@@ -13,3 +13,24 @@ data:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
+
+registrar:
+  etcd:
+    endpoints:
+      - ""
+
+trace:
+  endpoint: http://127.0.0.1:14268/api/traces
+
+nodes:
+  http:
+    - addr: 127.0.0.1:9001
+      timeout: 1s
+    - addr: 127.0.0.1:9002
+      timeout: 1s
+
+  grpc:
+    - addr: 127.0.0.1:9001
+      timeout: 1s
+    - addr: 127.0.0.1:9002
+      timeout: 1s

@@ -25,9 +25,18 @@ init:
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/google/wire/cmd/wire@latest
 
+.PHONY: errors
+# generate errors
+errors:
+	protoc --proto_path=. \
+			 --proto_path=./third_party \
+			 --go_out=paths=source_relative:. \
+			 --go-errors_out=paths=source_relative:. \
+			 $(API_PROTO_FILES)
+
 .PHONY: api
 # generate api proto
-api:
+api: errors
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \
