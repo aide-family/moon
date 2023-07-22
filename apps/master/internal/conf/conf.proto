@@ -8,19 +8,22 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
+  NodeServer nodes = 3;
+  Trace trace = 4;
+}
+
+message HTTP {
+  string network = 1;
+  string addr = 2;
+  google.protobuf.Duration timeout = 3;
+}
+message GRPC {
+  string network = 1;
+  string addr = 2;
+  google.protobuf.Duration timeout = 3;
 }
 
 message Server {
-  message HTTP {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
-  message GRPC {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
   HTTP http = 1;
   GRPC grpc = 2;
 }
@@ -38,4 +41,14 @@ message Data {
   }
   Database database = 1;
   Redis redis = 2;
+}
+
+message NodeServer {
+  repeated HTTP http = 1;
+  repeated GRPC grpc = 2;
+}
+
+// 链路追踪
+message Trace {
+  string endpoint = 1;
 }
