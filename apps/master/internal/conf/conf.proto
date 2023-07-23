@@ -10,6 +10,7 @@ message Bootstrap {
   Data data = 2;
   NodeServer nodes = 3;
   Trace trace = 4;
+  Env env = 5;
 }
 
 message HTTP {
@@ -51,4 +52,11 @@ message NodeServer {
 // 链路追踪
 message Trace {
   string endpoint = 1;
+}
+
+message Env {
+  string name = 1;
+  map<string, string> metadata = 2;
+  string version = 3;
+  string namespace = 4;
 }

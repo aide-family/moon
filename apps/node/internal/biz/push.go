@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"go.opentelemetry.io/otel/trace"
 	pb "prometheus-manager/api/strategy/v1/push"
 	"prometheus-manager/apps/node/internal/service"
 )
@@ -15,6 +16,7 @@ type (
 	PushLogic struct {
 		logger *log.Helper
 		repo   IPushRepo
+		tr     trace.Tracer
 	}
 )
 
