@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package api.strategy.v1.pull;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "strategy/strategy.proto";
+
+option go_package = "prometheus-manager/api/strategy/v1/pull;pull";
+option java_multiple_files = true;
+option java_package = "api.strategy.v1.pull";
+
+service Pull {
+	rpc Strategies (StrategiesRequest) returns (StrategiesReply) {
+		option (google.api.http) = {
+			get: "/pull/v1/strategies"
+		};
+	}
+}
+
+message StrategiesRequest {
+	string node = 1 [(validate.rules).string.min_len = 1];
+}
+
+message StrategiesReply {
+	repeated Strategy strategies = 1;
+}

@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package api.strategy.v1.push;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "strategy/strategy.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/strategy/v1/push;push";
+option java_multiple_files = true;
+option java_package = "api.strategy.v1.push";
+
+service Push {
+  rpc Strategies (StrategiesRequest) returns (StrategiesReply) {
+    option (google.api.http) = {
+      post: "/push/v1/strategies"
+      body: "*"
+    };
+  }
+}
+
+message StrategiesRequest {
+  // 目标节点
+  repeated string node = 1 [(validate.rules).repeated.items = {
+    string: {
+      pattern: "[a-zA-Z0-9_-]+$",
+      min_len: 1,
+    }
+  }];
+  // 策略
+  repeated Strategy strategies = 2 [(validate.rules).repeated = {
+    min_items: 1,
+  }];
+}
+
+message StrategiesReply {
+  // 响应内容
+  Response response = 1;
+  // 响应时间
+  int64 timestamp = 2;
+  // 响应结果
+  Result result = 3;
+}
+
+message Result {
+  // 成功数量
+  int64 success_count = 1;
+  // 失败数量
+  int64 failed_count = 2;
+  // 失败列表
+  repeated Strategy strategies = 3;
+}

@@ -7,6 +7,8 @@ import "google/protobuf/duration.proto";
 
 message Bootstrap {
   Server server = 1;
+  Trace trace = 4;
+  Strategy strategy = 5;
 }
 
 message Server {
@@ -22,4 +24,16 @@ message Server {
   }
   HTTP http = 1;
   GRPC grpc = 2;
+}
+
+// 链路追踪
+message Trace {
+  string endpoint = 1;
+}
+
+// strategy 策略路径
+message Strategy {
+  repeated string path = 1;
+  // load频率
+  google.protobuf.Duration load = 2;
 }
