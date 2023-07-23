@@ -21,6 +21,7 @@ var _ conn.ITraceEnv = (*Env)(nil)
 
 // 全局配置获取
 var c *Bootstrap
+var configPath string
 
 // 保证只执行一次
 var once sync.Once
@@ -30,9 +31,15 @@ func Get() *Bootstrap {
 	return c
 }
 
+// GetConfigPath 获取配置路径
+func GetConfigPath() string {
+	return configPath
+}
+
 // Set 设置配置, 单例
-func Set(b *Bootstrap) {
+func Set(b *Bootstrap, path string) {
 	once.Do(func() {
 		c = b
+		configPath = path
 	})
 }

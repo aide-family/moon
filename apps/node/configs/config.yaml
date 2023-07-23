@@ -11,10 +11,11 @@ trace:
 
 strategy:
   load_interval: 10s
+  # 目录为绝对路径或者相对configs路径
   path:
-    - "../../rule_temp/"
-    - "../../rule_temp/apache"
-    - "../../rule_temp/core_dns"
+    - "rule_temp"
+    - "rule_temp/apache"
+    - "rule_temp/core_dns"
 
 env:
   name: "prometheus-manager-node"

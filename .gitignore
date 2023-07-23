@@ -38,3 +38,4 @@ bin/
 *.swp
 **/configs/local*.yaml
 **/configs/local*.yml
+**/*_temp/

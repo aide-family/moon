@@ -94,14 +94,14 @@ func main() {
 		panic(err)
 	}
 
-	conf.Set(Init(&bc))
-	fmtASCIIGenerator(bc.GetEnv())
-
+	conf.Set(Init(&bc), flagconf)
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
 		panic(err)
 	}
 	defer cleanup()
+
+	fmtASCIIGenerator(bc.GetEnv())
 
 	// start and wait for stop signal
 	if err := app.Run(); err != nil {
