@@ -56,6 +56,28 @@ api: errors validate
  	       --go-grpc_out=paths=source_relative:./api \
 	       --openapi_out=fq_schema_naming=true,default_response=false:. \
 	       $(API_PROTO_FILES)
+.PHONY: data
+# generate service proto
+data:
+	@kratos proto data -t apps/node/internal/data api/strategy/v1/pull/pull.proto
+	@kratos proto data -t apps/node/internal/data api/strategy/v1/push/push.proto
+	@kratos proto data -t apps/node/internal/data api/strategy/v1/load/load.proto
+
+
+.PHONY: biz
+# generate service proto
+biz:
+	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/pull/pull.proto
+	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/push/push.proto
+	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/load/load.proto
+
+.PHONY: service
+# generate service proto
+service:
+	@kratos proto server -t apps/node/internal/service api/strategy/v1/pull/pull.proto
+	@kratos proto server -t apps/node/internal/service api/strategy/v1/push/push.proto
+	@kratos proto server -t apps/node/internal/service api/strategy/v1/load/load.proto
+
 
 .PHONY: build
 # build

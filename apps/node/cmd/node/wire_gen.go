@@ -30,11 +30,17 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	if err != nil {
 		return nil, nil, err
 	}
-	greeterRepo := data.NewGreeterRepo(dataData, logger)
-	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
-	greeterService := service.NewGreeterService(greeterUsecase)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, logger)
-	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
+	pushRepo := data.NewPushRepo(dataData, logger)
+	pushLogic := biz.NewPushLogic(pushRepo, logger)
+	pushService := service.NewPushService(pushLogic, logger)
+	loadRepo := data.NewLoadRepo(dataData, logger)
+	loadLogic := biz.NewLoadLogic(loadRepo, logger)
+	loadService := service.NewLoadService(loadLogic, logger)
+	pullRepo := data.NewPullRepo(dataData, logger)
+	pullLogic := biz.NewPullLogic(pullRepo, logger)
+	pullService := service.NewPullService(pullLogic, logger)
+	grpcServer := server.NewGRPCServer(confServer, pushService, loadService, pullService, logger)
+	httpServer := server.NewHTTPServer(confServer, pushService, loadService, pullService, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
