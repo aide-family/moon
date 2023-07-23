@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"prometheus-manager/api/strategy"
 	pb "prometheus-manager/api/strategy/v1/pull"
 	"prometheus-manager/apps/node/internal/service"
 )
@@ -12,6 +13,7 @@ import (
 type (
 	IPullRepo interface {
 		V1Repo
+		PullStrategies(ctx context.Context) ([]*strategy.Strategy, error)
 	}
 
 	PullLogic struct {
@@ -28,5 +30,14 @@ func NewPullLogic(repo IPullRepo, logger log.Logger) *PullLogic {
 }
 
 func (s *PullLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
-	return nil, nil
+	ctx, span := s.tr.Start(ctx, "Strategies")
+	defer span.End()
+
+	strategies, err := s.repo.PullStrategies(ctx)
+	if err != nil {
+		s.logger.Errorf("PullStrategies err: %v", err)
+		return nil, err
+	}
+
+	return &pb.StrategiesReply{Strategies: strategies}, nil
 }

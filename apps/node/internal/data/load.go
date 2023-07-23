@@ -2,10 +2,13 @@ package data
 
 import (
 	"context"
+	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"prometheus-manager/api/strategy"
 	"prometheus-manager/apps/node/internal/biz"
+	"prometheus-manager/pkg/util/strategyload"
 )
 
 type (
@@ -15,6 +18,28 @@ type (
 		tr     trace.Tracer
 	}
 )
+
+func (l *LoadRepo) LoadStrategy(ctx context.Context, path []string) error {
+	_, span := l.tr.Start(ctx, "LoadStrategy")
+	defer span.End()
+
+	l.logger.Infof("path: %v", path)
+
+	var tmpStrategies []*strategy.Strategy
+	for _, p := range path {
+		c := strategyload.NewStrategy(file.NewSource(p))
+		var strategyInfo []*strategy.Strategy
+		if err := c.Scan(&strategyInfo); err != nil {
+			l.logger.Errorf("c.Scan err: %v", err)
+		}
+
+		tmpStrategies = append(tmpStrategies, strategyInfo...)
+	}
+
+	strategies = tmpStrategies
+
+	return nil
+}
 
 func (l *LoadRepo) V1(ctx context.Context) (string, error) {
 	ctx, span := l.tr.Start(ctx, "showVersion")

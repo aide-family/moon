@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"prometheus-manager/api/strategy"
 	"prometheus-manager/apps/node/internal/biz"
 )
 
@@ -15,6 +16,13 @@ type (
 		tr     trace.Tracer
 	}
 )
+
+func (l *PullRepo) PullStrategies(ctx context.Context) ([]*strategy.Strategy, error) {
+	_, span := l.tr.Start(ctx, "PullStrategies")
+	defer span.End()
+
+	return strategies, nil
+}
 
 func (l *PullRepo) V1(ctx context.Context) (string, error) {
 	ctx, span := l.tr.Start(ctx, "showVersion")
