@@ -8,6 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/ratelimit"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
+	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 	ping "prometheus-manager/api"
@@ -39,6 +40,7 @@ func NewGRPCServer(
 				metrics.WithSeconds(prometheus.NewHistogram(prom.MetricSeconds)),
 				metrics.WithRequests(prometheus.NewCounter(prom.MetricRequests)),
 			),
+			validate.Validator(),
 		),
 	}
 	if c.Grpc.Network != "" {

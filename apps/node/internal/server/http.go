@@ -46,6 +46,7 @@ func NewHTTPServer(
 				metrics.WithRequests(prometheus.NewCounter(prom.MetricRequests)),
 			),
 			middler.IpMetric(middler.IpMetricCounter),
+			validate.Validator(),
 		),
 	}
 	if c.Http.Network != "" {
