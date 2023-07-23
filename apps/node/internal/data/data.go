@@ -3,6 +3,7 @@ package data
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+	"prometheus-manager/api/strategy"
 	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/apps/node/internal/conf"
 )
@@ -18,6 +19,10 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.ILoadRepo), new(*LoadRepo)),
 	NewPingRepo,
 	wire.Bind(new(biz.IPingRepo), new(*PingRepo)),
+)
+
+var (
+	strategies []*strategy.Strategy
 )
 
 // Data .
