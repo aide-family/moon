@@ -40,10 +40,11 @@ func (l *Timer) Start(ctx context.Context) error {
 	return nil
 }
 
-func (l *Timer) Stop(ctx context.Context) error {
+func (l *Timer) Stop(_ context.Context) error {
 	l.logger.Info("[Timer] server stopping")
-	l.ticker.Stop()
 	l.stop <- struct{}{}
+	l.ticker.Stop()
+	l.logger.Info("[Timer] server stopped")
 	return nil
 }
 
@@ -52,7 +53,7 @@ func NewTimer(call TimerCall, ticker *time.Ticker, logger log.Logger) *Timer {
 	return &Timer{
 		call:   call,
 		ticker: ticker,
-		stop:   make(chan struct{}),
+		stop:   make(chan struct{}, 1),
 		logger: log.NewHelper(log.With(logger, "module", "server/timer")),
 	}
 }
