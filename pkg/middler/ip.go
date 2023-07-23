@@ -9,19 +9,6 @@ import (
 	nhttp "net/http"
 )
 
-var (
-	IpMetricCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "server",
-		Subsystem: "requests",
-		Name:      "ip_total",
-		Help:      "The total number of processed requests",
-	}, []string{"ip"})
-)
-
-func init() {
-	prometheus.MustRegister(IpMetricCounter)
-}
-
 func IpMetric(counter *prometheus.CounterVec) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
