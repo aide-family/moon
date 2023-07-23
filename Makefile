@@ -87,6 +87,11 @@ service:
 build:
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
+.PHONY: test
+# test
+test:
+	go test -v ./... -cover
+
 .PHONY: generate
 # generate
 generate:
