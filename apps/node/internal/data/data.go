@@ -3,11 +3,20 @@ package data
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/apps/node/internal/conf"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewGreeterRepo)
+var ProviderSet = wire.NewSet(
+	NewData,
+	NewPushRepo,
+	wire.Bind(new(biz.IPushRepo), new(*PushRepo)),
+	NewPullRepo,
+	wire.Bind(new(biz.IPullRepo), new(*PullRepo)),
+	NewLoadRepo,
+	wire.Bind(new(biz.ILoadRepo), new(*LoadRepo)),
+)
 
 // Data .
 type Data struct {
