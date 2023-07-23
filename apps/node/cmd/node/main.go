@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"prometheus-manager/pkg/servers"
 	"sync"
 
 	"prometheus-manager/apps/node/internal/conf"
@@ -35,7 +36,12 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(
+	logger log.Logger,
+	gs *grpc.Server,
+	hs *http.Server,
+	ts *servers.Timer,
+) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -45,6 +51,7 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		kratos.Server(
 			gs,
 			hs,
+			ts,
 		),
 	)
 }
