@@ -94,6 +94,7 @@ func main() {
 	}
 
 	conf.Set(Init(&bc))
+	fmtASCIIGenerator(bc.GetEnv())
 
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
