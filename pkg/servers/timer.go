@@ -41,9 +41,9 @@ func (l *Timer) Start(ctx context.Context) error {
 }
 
 func (l *Timer) Stop(ctx context.Context) error {
+	l.logger.Info("[Timer] server stopping")
 	l.ticker.Stop()
 	l.stop <- struct{}{}
-	l.logger.Info("[Timer] server stopping")
 	return nil
 }
 
