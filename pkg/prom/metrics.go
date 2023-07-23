@@ -17,8 +17,15 @@ var (
 		Name:      "code_total",
 		Help:      "The total number of processed requests",
 	}, []string{"kind", "operation", "code", "reason"})
+
+	IpMetricCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "server",
+		Subsystem: "requests",
+		Name:      "ip_total",
+		Help:      "The total number of processed requests",
+	}, []string{"ip"})
 )
 
 func init() {
-	prometheus.MustRegister(MetricSeconds, MetricRequests)
+	prometheus.MustRegister(MetricSeconds, MetricRequests, IpMetricCounter)
 }

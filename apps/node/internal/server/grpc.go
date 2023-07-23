@@ -17,6 +17,7 @@ import (
 	pushV1 "prometheus-manager/api/strategy/v1/push"
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
+	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 )
 
@@ -40,6 +41,7 @@ func NewGRPCServer(
 				metrics.WithSeconds(prometheus.NewHistogram(prom.MetricSeconds)),
 				metrics.WithRequests(prometheus.NewCounter(prom.MetricRequests)),
 			),
+			middler.IpMetric(prom.IpMetricCounter),
 			validate.Validator(),
 		),
 	}

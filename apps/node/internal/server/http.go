@@ -45,7 +45,7 @@ func NewHTTPServer(
 				metrics.WithSeconds(prometheus.NewHistogram(prom.MetricSeconds)),
 				metrics.WithRequests(prometheus.NewCounter(prom.MetricRequests)),
 			),
-			middler.IpMetric(middler.IpMetricCounter),
+			middler.IpMetric(prom.IpMetricCounter),
 			validate.Validator(),
 		),
 	}
