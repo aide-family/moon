@@ -5,6 +5,7 @@ import (
 	"os"
 	"prometheus-manager/pkg/servers"
 	"sync"
+	"time"
 
 	"prometheus-manager/apps/node/internal/conf"
 
@@ -69,7 +70,7 @@ func Init(bc *conf.Bootstrap) *conf.Bootstrap {
 func main() {
 	flag.Parse()
 	logger := log.With(log.NewStdLogger(os.Stdout),
-		"ts", log.DefaultTimestamp,
+		"ts", log.Timestamp(time.DateTime),
 		"caller", log.DefaultCaller,
 		"service.id", id,
 		"service.name", Name,
