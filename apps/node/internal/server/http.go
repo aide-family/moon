@@ -10,7 +10,10 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/go-kratos/swagger-api/openapiv2"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
+	ping "prometheus-manager/api"
 	loadV1 "prometheus-manager/api/strategy/v1/load"
 	pullV1 "prometheus-manager/api/strategy/v1/pull"
 	pushV1 "prometheus-manager/api/strategy/v1/push"
@@ -25,6 +28,7 @@ func NewHTTPServer(
 	c *conf.Server,
 	logger log.Logger,
 	tp *traceSdk.TracerProvider,
+	pingService *service.PingService,
 	pushService *service.PushService,
 	loadService *service.LoadService,
 	pullService *service.PullService,
@@ -54,6 +58,13 @@ func NewHTTPServer(
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
+
+	// swagger api
+	srv.HandlePrefix("/q/", openapiv2.NewHandler())
+	// prometheus metrics
+	srv.HandlePrefix("/metrics", promhttp.Handler())
+
+	ping.RegisterPingHTTPServer(srv, pingService)
 	pushV1.RegisterPushHTTPServer(srv, pushService)
 	pullV1.RegisterPullHTTPServer(srv, pullService)
 	loadV1.RegisterLoadHTTPServer(srv, loadService)

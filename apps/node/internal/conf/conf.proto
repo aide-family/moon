@@ -36,7 +36,7 @@ message Trace {
 message Strategy {
   repeated string path = 1;
   // load频率
-  google.protobuf.Duration load = 2;
+  google.protobuf.Duration load_interval = 2;
 }
 
 message Env {
