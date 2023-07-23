@@ -3,8 +3,7 @@
 
 openapi: 3.0.3
 info:
-    title: Greeter API
-    description: The greeting service definition.
+    title: ""
     version: 0.0.1
 paths:
     /helloworld/{name}:
@@ -26,8 +25,180 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/helloworld.v1.HelloReply'
+    /load/v1/reload:
+        post:
+            tags:
+                - Load
+            operationId: Load_Reload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.load.ReloadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
+    /pull/v1/strategies:
+        get:
+            tags:
+                - Pull
+            operationId: Pull_Strategies
+            parameters:
+                - name: node
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
+    /push/v1/strategies:
+        post:
+            tags:
+                - Push
+            operationId: Push_Strategies
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.push.StrategiesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
 components:
     schemas:
+        api.Response:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int64
+                message:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                data:
+                    $ref: '#/components/schemas/google.protobuf.Any'
+        api.strategy.Group:
+            type: object
+            properties:
+                name:
+                    type: string
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Rule'
+        api.strategy.Rule:
+            type: object
+            properties:
+                alert:
+                    type: string
+                expr:
+                    type: string
+                for:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+        api.strategy.Strategy:
+            type: object
+            properties:
+                filename:
+                    type: string
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Group'
+        api.strategy.v1.load.ReloadReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                timestamp:
+                    type: integer
+                    format: int64
+        api.strategy.v1.load.ReloadRequest:
+            type: object
+            properties:
+                nodes:
+                    type: array
+                    items:
+                        type: string
+        api.strategy.v1.pull.StrategiesReply:
+            type: object
+            properties:
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Strategy'
+        api.strategy.v1.push.Result:
+            type: object
+            properties:
+                successCount:
+                    type: integer
+                    description: 成功数量
+                    format: int64
+                failedCount:
+                    type: integer
+                    description: 失败数量
+                    format: int64
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Strategy'
+                    description: 失败列表
+        api.strategy.v1.push.StrategiesReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                timestamp:
+                    type: integer
+                    description: 响应时间
+                    format: int64
+                result:
+                    $ref: '#/components/schemas/api.strategy.v1.push.Result'
+        api.strategy.v1.push.StrategiesRequest:
+            type: object
+            properties:
+                node:
+                    type: array
+                    items:
+                        type: string
+                    description: 目标节点
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Strategy'
+                    description: 策略
+        google.protobuf.Any:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
         helloworld.v1.HelloReply:
             type: object
             properties:
@@ -36,3 +207,7 @@ components:
             description: The response message containing the greetings
 tags:
     - name: Greeter
+      description: The greeting service definition.
+    - name: Load
+    - name: Pull
+    - name: Push

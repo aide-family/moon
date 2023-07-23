@@ -31,15 +31,24 @@ init:
 .PHONY: errors
 # generate errors
 errors:
-	protoc --proto_path=. \
+	protoc --proto_path=./api \
 			 --proto_path=./third_party \
-			 --go_out=paths=source_relative:. \
-			 --go-errors_out=paths=source_relative:. \
+			 --go_out=paths=source_relative:./api \
+			 --go-errors_out=paths=source_relative:./api \
 			 $(API_PROTO_FILES)
+
+.PHONY: validate
+# generate validate proto
+validate:
+	protoc --proto_path=./api \
+		   --proto_path=./third_party \
+		   --go_out=paths=source_relative:./api \
+		   --validate_out=paths=source_relative,lang=go:./api \
+		   $(API_PROTO_FILES)
 
 .PHONY: api
 # generate api proto
-api: errors
+api: errors validate
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \

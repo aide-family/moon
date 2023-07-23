@@ -11,26 +11,72 @@ import (
 // is compatible with the kratos package it is being compiled against.
 const _ = errors.SupportPackageIsVersion1
 
+// 客户端未知错误
 func IsClientUnknown(err error) bool {
 	if err == nil {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == LogicReason_CLIENT_UNKNOWN.String() && e.Code == 401
+	return e.Reason == ClientReason_CLIENT_UNKNOWN.String() && e.Code == 401
 }
 
+// 客户端未知错误
 func ErrorClientUnknown(format string, args ...interface{}) *errors.Error {
-	return errors.New(401, LogicReason_CLIENT_UNKNOWN.String(), fmt.Sprintf(format, args...))
+	return errors.New(401, ClientReason_CLIENT_UNKNOWN.String(), fmt.Sprintf(format, args...))
 }
 
-func IsSystemUnknown(err error) bool {
+// 客户端不存在
+func IsClientNotFound(err error) bool {
 	if err == nil {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == LogicReason_SYSTEM_UNKNOWN.String() && e.Code == 501
+	return e.Reason == ClientReason_CLIENT_NOT_FOUND.String() && e.Code == 402
 }
 
-func ErrorSystemUnknown(format string, args ...interface{}) *errors.Error {
-	return errors.New(501, LogicReason_SYSTEM_UNKNOWN.String(), fmt.Sprintf(format, args...))
+// 客户端不存在
+func ErrorClientNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(402, ClientReason_CLIENT_NOT_FOUND.String(), fmt.Sprintf(format, args...))
+}
+
+// 客户端已存在
+func IsClientAlreadyExists(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ClientReason_CLIENT_ALREADY_EXISTS.String() && e.Code == 403
+}
+
+// 客户端已存在
+func ErrorClientAlreadyExists(format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ClientReason_CLIENT_ALREADY_EXISTS.String(), fmt.Sprintf(format, args...))
+}
+
+// 服务端未知错误
+func IsServerUnknown(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ServerReason_SERVER_UNKNOWN.String() && e.Code == 501
+}
+
+// 服务端未知错误
+func ErrorServerUnknown(format string, args ...interface{}) *errors.Error {
+	return errors.New(501, ServerReason_SERVER_UNKNOWN.String(), fmt.Sprintf(format, args...))
+}
+
+// 逻辑未知错误
+func IsLogicUnknown(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_UNKNOWN.String() && e.Code == 201
+}
+
+// 逻辑未知错误
+func ErrorLogicUnknown(format string, args ...interface{}) *errors.Error {
+	return errors.New(201, LogicReason_LOGIC_UNKNOWN.String(), fmt.Sprintf(format, args...))
 }

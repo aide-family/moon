@@ -73,8 +73,9 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
+	conf.Set(&bc)
 
-	app, cleanup, err := wireApp(bc.Server, logger)
+	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
 		panic(err)
 	}

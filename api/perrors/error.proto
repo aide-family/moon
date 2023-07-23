@@ -8,8 +8,24 @@ option go_package = "prometheus-manager/api/errors;errors";
 option java_multiple_files = true;
 option java_package = "api.errors";
 
+// 错误码 [4xx][] [模块编号][业务错误]
+
+// 客户端错误
+enum ClientReason {
+  option (errors.default_code) = 400; // 默认错误码
+  CLIENT_UNKNOWN = 0 [(errors.code) = 401]; // 客户端未知错误
+  CLIENT_NOT_FOUND = 1 [(errors.code) = 402]; // 客户端不存在
+  CLIENT_ALREADY_EXISTS = 2 [(errors.code) = 403]; // 客户端已存在
+}
+
+// 服务端错误
+enum ServerReason {
+  option (errors.default_code) = 500; // 默认错误码
+  SERVER_UNKNOWN = 0 [(errors.code) = 501]; // 服务端未知错误
+}
+
+// 逻辑错误
 enum LogicReason {
-	option (errors.default_code) = 400;
-	CLIENT_UNKNOWN = 0 [(errors.code) = 401];
-	SYSTEM_UNKNOWN = 1 [(errors.code) = 501];
+  option (errors.default_code) = 200; // 默认错误码
+  LOGIC_UNKNOWN = 0 [(errors.code) = 201]; // 逻辑未知错误
 }

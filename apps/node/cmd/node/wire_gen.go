@@ -23,8 +23,10 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, logger log.Logger) (*kratos.App, func(), error) {
-	dataData, cleanup, err := data.NewData(logger)
+func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+	confServer := bootstrap.Server
+	strategy := bootstrap.Strategy
+	dataData, cleanup, err := data.NewData(strategy, logger)
 	if err != nil {
 		return nil, nil, err
 	}

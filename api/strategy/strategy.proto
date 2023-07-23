@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package api.strategy;
+
+import "validate/validate.proto";
+
+option go_package = "prometheus-manager/api/strategy;strategy";
+option java_multiple_files = true;
+option java_package = "api.strategy";
+
+message Strategy {
+  string filename = 1 [(validate.rules).string = {
+    // cup.yaml or cup.yml
+    pattern: "^([a-zA-Z0-9-_]+)(\\.yaml|\\.yml)$" // 只能是字母、数字、中划线、下划线
+  }];
+  repeated Group groups = 2 [(validate.rules) = {
+    repeated: {
+      min_items: 1, // 最少一个group
+    }
+  }];
+}
+
+message Group {
+  string name = 1 [(validate.rules).string = {
+    pattern: "^([a-zA-Z0-9-_]+)$" // 只能是字母、数字、中划线、下划线
+  }];
+  repeated Rule rules = 2 [(validate.rules) = {
+    repeated: {
+      min_items: 1, // 最少一个rule
+    }
+  }];
+}
+
+message Rule {
+  string alert = 1 [(validate.rules) = {
+    string: {
+      pattern: "^([a-zA-Z0-9-_]+)$", // 只能是字母、数字、下划线、中划线
+      min_len: 1, // 最少一个字符
+    },
+  }];
+  string expr = 2 [(validate.rules).string = {
+    min_len: 1, // 最少一个字符
+  }];
+  string for = 3 [(validate.rules).string = {
+    min_len: 2,
+    pattern: "^([0-9]+[hms])$", // 1h, 1m, 1s
+  }];
+  map<string, string> labels = 4 [(validate.rules) = {
+    map: {
+      min_pairs: 1, // 最少有一个label
+    },
+  }];
+  map<string, string> annotations = 5 [(validate.rules) = {
+    map: {
+      min_pairs: 1, // 最少有一个annotation
+    },
+  }];
+}
