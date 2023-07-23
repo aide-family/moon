@@ -49,11 +49,7 @@ func newApp(
 		kratos.Version(Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
-		kratos.Server(
-			gs,
-			hs,
-			ts,
-		),
+		kratos.Server(gs, hs, ts),
 	)
 }
 
@@ -94,14 +90,14 @@ func main() {
 		panic(err)
 	}
 
+	fmtASCIIGenerator(bc.GetEnv())
+
 	conf.Set(Init(&bc), flagconf)
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
 		panic(err)
 	}
 	defer cleanup()
-
-	fmtASCIIGenerator(bc.GetEnv())
 
 	// start and wait for stop signal
 	if err := app.Run(); err != nil {
