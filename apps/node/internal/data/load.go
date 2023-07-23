@@ -25,15 +25,18 @@ func (l *LoadRepo) LoadStrategy(ctx context.Context, path []string) error {
 
 	l.logger.Infof("path: %v", path)
 
-	var tmpStrategies []*strategy.Strategy
+	var tmpStrategies []*strategy.StrategyDir
 	for _, p := range path {
 		c := strategyload.NewStrategy(file.NewSource(p))
-		var strategyInfo []*strategy.Strategy
-		if err := c.Scan(&strategyInfo); err != nil {
+		var strategyList []*strategy.Strategy
+		if err := c.Scan(&strategyList); err != nil {
 			l.logger.Errorf("c.Scan err: %v", err)
 		}
 
-		tmpStrategies = append(tmpStrategies, strategyInfo...)
+		tmpStrategies = append(tmpStrategies, &strategy.StrategyDir{
+			Dir:        p,
+			Strategies: strategyList,
+		})
 	}
 
 	strategies = tmpStrategies

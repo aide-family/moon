@@ -13,7 +13,7 @@ import (
 type (
 	IPullRepo interface {
 		V1Repo
-		PullStrategies(ctx context.Context) ([]*strategy.Strategy, error)
+		PullStrategies(ctx context.Context) ([]*strategy.StrategyDir, error)
 	}
 
 	PullLogic struct {
@@ -39,5 +39,5 @@ func (s *PullLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 		return nil, err
 	}
 
-	return &pb.StrategiesReply{Strategies: strategies}, nil
+	return &pb.StrategiesReply{StrategyDirs: strategies}, nil
 }

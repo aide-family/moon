@@ -23,5 +23,5 @@ message StrategiesRequest {
 }
 
 message StrategiesReply {
-	repeated Strategy strategies = 1;
+	repeated StrategyDir strategy_dirs = 1;
 }

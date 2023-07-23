@@ -84,9 +84,9 @@ func (m *StrategiesRequest) validate(all bool) error {
 
 	}
 
-	if len(m.GetStrategies()) < 1 {
+	if len(m.GetStrategyDirs()) < 1 {
 		err := StrategiesRequestValidationError{
-			field:  "Strategies",
+			field:  "StrategyDirs",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
@@ -95,7 +95,7 @@ func (m *StrategiesRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetStrategies() {
+	for idx, item := range m.GetStrategyDirs() {
 		_, _ = idx, item
 
 		if all {
@@ -103,7 +103,7 @@ func (m *StrategiesRequest) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, StrategiesRequestValidationError{
-						field:  fmt.Sprintf("Strategies[%v]", idx),
+						field:  fmt.Sprintf("StrategyDirs[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -111,7 +111,7 @@ func (m *StrategiesRequest) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, StrategiesRequestValidationError{
-						field:  fmt.Sprintf("Strategies[%v]", idx),
+						field:  fmt.Sprintf("StrategyDirs[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -120,7 +120,7 @@ func (m *StrategiesRequest) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return StrategiesRequestValidationError{
-					field:  fmt.Sprintf("Strategies[%v]", idx),
+					field:  fmt.Sprintf("StrategyDirs[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
