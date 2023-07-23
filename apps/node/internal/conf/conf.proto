@@ -9,6 +9,7 @@ message Bootstrap {
   Server server = 1;
   Trace trace = 4;
   Strategy strategy = 5;
+  Env env = 6;
 }
 
 message Server {
@@ -36,4 +37,11 @@ message Strategy {
   repeated string path = 1;
   // load频率
   google.protobuf.Duration load = 2;
+}
+
+message Env {
+  string name = 1;
+  map<string, string> metadata = 2;
+  string version = 3;
+  string namespace = 4;
 }

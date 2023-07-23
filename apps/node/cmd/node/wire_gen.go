@@ -14,6 +14,7 @@ import (
 	"prometheus-manager/apps/node/internal/data"
 	"prometheus-manager/apps/node/internal/server"
 	"prometheus-manager/apps/node/internal/service"
+	"prometheus-manager/pkg/conn"
 )
 
 import (
@@ -25,6 +26,9 @@ import (
 // wireApp init kratos application.
 func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	confServer := bootstrap.Server
+	trace := bootstrap.Trace
+	env := bootstrap.Env
+	tracerProvider := conn.NewTracerProvider(trace, env)
 	strategy := bootstrap.Strategy
 	dataData, cleanup, err := data.NewData(strategy, logger)
 	if err != nil {
@@ -39,8 +43,8 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	pullRepo := data.NewPullRepo(dataData, logger)
 	pullLogic := biz.NewPullLogic(pullRepo, logger)
 	pullService := service.NewPullService(pullLogic, logger)
-	grpcServer := server.NewGRPCServer(confServer, pushService, loadService, pullService, logger)
-	httpServer := server.NewHTTPServer(confServer, pushService, loadService, pullService, logger)
+	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pushService, loadService, pullService)
+	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pushService, loadService, pullService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
