@@ -23,8 +23,6 @@ func (l *LoadRepo) LoadStrategy(ctx context.Context, path []string) error {
 	_, span := l.tr.Start(ctx, "LoadStrategy")
 	defer span.End()
 
-	l.logger.Infof("path: %v", path)
-
 	var tmpStrategies []*strategy.StrategyDir
 	for _, p := range path {
 		c := strategyload.NewStrategy(file.NewSource(p))
