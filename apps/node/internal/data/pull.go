@@ -17,7 +17,7 @@ type (
 	}
 )
 
-func (l *PullRepo) PullStrategies(ctx context.Context) ([]*strategy.Strategy, error) {
+func (l *PullRepo) PullStrategies(ctx context.Context) ([]*strategy.StrategyDir, error) {
 	_, span := l.tr.Start(ctx, "PullStrategies")
 	defer span.End()
 

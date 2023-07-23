@@ -29,7 +29,7 @@ message StrategiesRequest {
     }
   }];
   // 策略
-  repeated Strategy strategies = 2 [(validate.rules).repeated = {
+  repeated StrategyDir strategy_dirs = 2 [(validate.rules).repeated = {
     min_items: 1,
   }];
 }

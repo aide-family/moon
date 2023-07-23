@@ -22,7 +22,7 @@ var ProviderSet = wire.NewSet(
 )
 
 var (
-	strategies []*strategy.Strategy
+	strategies []*strategy.StrategyDir
 )
 
 // Data .

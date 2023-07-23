@@ -159,6 +159,15 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.Group'
+        api.strategy.StrategyDir:
+            type: object
+            properties:
+                dir:
+                    type: string
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Strategy'
         api.strategy.v1.load.ReloadReply:
             type: object
             properties:
@@ -177,10 +186,10 @@ components:
         api.strategy.v1.pull.StrategiesReply:
             type: object
             properties:
-                strategies:
+                strategyDirs:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.strategy.Strategy'
+                        $ref: '#/components/schemas/api.strategy.StrategyDir'
         api.strategy.v1.push.Result:
             type: object
             properties:
@@ -216,10 +225,10 @@ components:
                     items:
                         type: string
                     description: 目标节点
-                strategies:
+                strategyDirs:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.strategy.Strategy'
+                        $ref: '#/components/schemas/api.strategy.StrategyDir'
                     description: 策略
         google.protobuf.Any:
             type: object
