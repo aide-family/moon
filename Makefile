@@ -1,6 +1,8 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
+APPS ?= $(shell ls apps)
+path := $(shell pwd)
 
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
@@ -14,6 +16,7 @@ else
 	INTERNAL_PROTO_FILES=$(shell find internal -name *.proto)
 	API_PROTO_FILES=$(shell find api -name *.proto)
 endif
+
 
 .PHONY: init
 # init env
@@ -56,6 +59,14 @@ generate:
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
 	go generate ./...
+
+.PHONY: config
+# generate internal config
+config:
+	@for app in $(APPS); do \
+		echo "generate internal config for $$app"; \
+		cd $(path)/apps/$$app && make config; \
+	done
 
 .PHONY: all
 # generate all

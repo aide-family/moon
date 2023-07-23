@@ -1,44 +1,36 @@
-# Kratos Project Template
+# Prometheus-manager
+> prometheus 规则和告警统一管理平台
 
-## Install Kratos
-```
-go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
-```
-## Create a service
-```
-# Create a template project
-kratos new server
-
-cd server
-# Add a proto template
-kratos proto add api/server/server.proto
-# Generate the proto code
-kratos proto client api/server/server.proto
-# Generate the source code of service by proto file
-kratos proto server api/server/server.proto -t internal/service
-
-go generate ./...
-go build -o ./bin/ ./...
-./bin/server -conf ./configs
-```
-## Generate other auxiliary files by Makefile
-```
-# Download and update dependencies
+## Init
+```bash
+# init
 make init
-# Generate API files (include: pb.go, http, grpc, validate, swagger) by proto file
-make api
-# Generate all files
-make all
 ```
-## Automated Initialization (wire)
-```
-# install wire
-go get github.com/google/wire/cmd/wire
 
-# generate wire
-cd cmd/server
-wire
+## dev
+```bash
+kratos run
+# 然后选择运行的服务回车即可
 ```
+
+## add api
+```bash
+ kratos proto add api/<module-name>/<version>/<api-name>.proto
+```
+
+## generate code
+```bash
+# generate api pb
+make api
+
+# generate service
+kratos proto server api/<module-name>/<version>/<api-name>.proto -t apps/<server-app-name>/internal/service
+
+# generate config
+make config
+```
+
+
 
 ## Docker
 ```bash
