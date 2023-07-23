@@ -10,7 +10,7 @@ trace:
   endpoint: http://127.0.0.1:14268/api/traces
 
 strategy:
-  load_interval: 1m
+  load_interval: 1s
   path:
     - ""
 
