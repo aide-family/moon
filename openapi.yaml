@@ -43,6 +43,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
+    /ping:
+        get:
+            tags:
+                - Ping
+            operationId: Ping_Check
+            parameters:
+                - name: name
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.PingReply'
     /pull/v1/strategies:
         get:
             tags:
@@ -80,6 +97,19 @@ paths:
                                 $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
 components:
     schemas:
+        api.PingReply:
+            type: object
+            properties:
+                name:
+                    type: string
+                version:
+                    type: string
+                namespace:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
         api.Response:
             type: object
             properties:
@@ -209,5 +239,6 @@ tags:
     - name: Greeter
       description: The greeting service definition.
     - name: Load
+    - name: Ping
     - name: Pull
     - name: Push

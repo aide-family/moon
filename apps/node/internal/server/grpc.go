@@ -10,6 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
+	ping "prometheus-manager/api"
 	loadV1 "prometheus-manager/api/strategy/v1/load"
 	pullV1 "prometheus-manager/api/strategy/v1/pull"
 	pushV1 "prometheus-manager/api/strategy/v1/push"
@@ -23,6 +24,7 @@ func NewGRPCServer(
 	c *conf.Server,
 	logger log.Logger,
 	tp *traceSdk.TracerProvider,
+	pingService *service.PingService,
 	pushService *service.PushService,
 	loadService *service.LoadService,
 	pullService *service.PullService,
@@ -49,6 +51,7 @@ func NewGRPCServer(
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
+	ping.RegisterPingServer(srv, pingService)
 	pushV1.RegisterPushServer(srv, pushService)
 	pullV1.RegisterPullServer(srv, pullService)
 	loadV1.RegisterLoadServer(srv, loadService)

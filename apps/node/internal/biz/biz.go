@@ -13,4 +13,6 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.IPullLogic), new(*PullLogic)),
 	NewLoadLogic,
 	wire.Bind(new(service.ILoadLogic), new(*LoadLogic)),
+	NewPingLogic,
+	wire.Bind(new(service.IPingLogic), new(*PingLogic)),
 )

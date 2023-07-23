@@ -36,3 +36,5 @@ bin/
 .vscode/
 .idea/
 *.swp
+**/configs/local*.yaml
+**/configs/local*.yml
