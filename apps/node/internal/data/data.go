@@ -6,6 +6,7 @@ import (
 	"prometheus-manager/api/strategy"
 	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/apps/node/internal/conf"
+	"time"
 )
 
 // ProviderSet is data providers.
@@ -23,6 +24,7 @@ var ProviderSet = wire.NewSet(
 
 var (
 	strategies []*strategy.StrategyDir
+	loadTime   time.Time
 )
 
 // Data .

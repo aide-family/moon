@@ -190,6 +190,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.StrategyDir'
+                timestamp:
+                    type: integer
+                    format: int64
         api.strategy.v1.push.Result:
             type: object
             properties:

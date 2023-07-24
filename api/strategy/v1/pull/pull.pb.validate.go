@@ -204,6 +204,8 @@ func (m *StrategiesReply) validate(all bool) error {
 
 	}
 
+	// no validation rules for Timestamp
+
 	if len(errors) > 0 {
 		return StrategiesReplyMultiError(errors)
 	}
