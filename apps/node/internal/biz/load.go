@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/strategy/v1/load"
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
-	"strings"
+	"prometheus-manager/pkg/util/dir"
 	"time"
 )
 
@@ -37,31 +37,17 @@ func (l *LoadLogic) Reload(ctx context.Context, _ *pb.ReloadRequest) (*pb.Reload
 	defer span.End()
 
 	dirList := conf.Get().GetStrategy().GetPath()
-	newDirList := make([]string, 0, len(dirList))
 	configPath := conf.GetConfigPath()
-	// 去除configPath末尾的"/"
-	if configPath != "" && configPath[len(configPath)-1] == '/' {
-		configPath = configPath[:len(configPath)-1]
-	}
-
-	for _, dir := range dirList {
-		newDir := dir
-		// 判断是否为绝对路径
-		if dir[0] != '/' {
-			newDir = strings.Join([]string{configPath, dir}, "/")
-		}
-		newDirList = append(newDirList, newDir)
-	}
-
-	err := l.repo.LoadStrategy(ctx, newDirList)
+	err := l.repo.LoadStrategy(ctx, dir.MakeDirs(configPath, dirList...))
 	if err != nil {
 		l.logger.Errorf("LoadStrategy err: %v", err)
 		return nil, err
 	}
+
 	return &pb.ReloadReply{
 		Response: &api.Response{
 			Code:     0,
-			Message:  "load strategies success",
+			Message:  l.repo.V1(ctx),
 			Metadata: nil,
 			Data:     nil,
 		},

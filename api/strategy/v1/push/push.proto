@@ -49,5 +49,5 @@ message Result {
   // 失败数量
   int64 failed_count = 2;
   // 失败列表
-  repeated Strategy strategies = 3;
+  repeated StrategyDir strategy_dirs = 3;
 }

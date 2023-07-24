@@ -10,8 +10,8 @@ option java_package = "api.strategy";
 
 message StrategyDir {
   string dir = 1 [(validate.rules).string = {
-    // cup
-    pattern: "^([a-zA-Z0-9_]+)$" // 只能是字母、数字、下划线
+    // 文件夹路径正则
+//    pattern: "^([a-zA-Z0-9\\-_]+)(/[a-zA-Z0-9\\-_]+)*$", // 只能是字母、数字、中划线、下划线
   }];
   repeated Strategy strategies = 2 [(validate.rules) = {
     repeated: {

@@ -44,10 +44,10 @@ func (l *LoadRepo) LoadStrategy(ctx context.Context, path []string) error {
 	return nil
 }
 
-func (l *LoadRepo) V1(ctx context.Context) (string, error) {
+func (l *LoadRepo) V1(ctx context.Context) string {
 	ctx, span := l.tr.Start(ctx, "showVersion")
 	defer span.End()
-	return "version is v1", nil
+	return "version is v1"
 }
 
 var _ biz.ILoadRepo = (*LoadRepo)(nil)

@@ -26,10 +26,10 @@ func (l *PullRepo) PullStrategies(ctx context.Context) (*biz.StrategyLoad, error
 	}, nil
 }
 
-func (l *PullRepo) V1(ctx context.Context) (string, error) {
+func (l *PullRepo) V1(ctx context.Context) string {
 	ctx, span := l.tr.Start(ctx, "showVersion")
 	defer span.End()
-	return "version is v1", nil
+	return "version is v1"
 }
 
 var _ biz.IPullRepo = (*PullRepo)(nil)

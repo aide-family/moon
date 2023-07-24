@@ -4,9 +4,9 @@ package api.perrors;
 
 import "errors/errors.proto";
 
-option go_package = "prometheus-manager/api/errors;errors";
+option go_package = "prometheus-manager/api/perrors;perrors";
 option java_multiple_files = true;
-option java_package = "api.errors";
+option java_package = "api.perrors";
 
 // 错误码 [4xx][] [模块编号][业务错误]
 
@@ -28,4 +28,8 @@ enum ServerReason {
 enum LogicReason {
   option (errors.default_code) = 200; // 默认错误码
   LOGIC_UNKNOWN = 0 [(errors.code) = 201]; // 逻辑未知错误
+  // 未配置strategyPath
+  LOGIC_STRATEGY_PATH_NOT_CONFIGURED = 1 [(errors.code) = 202];
+  // 未授权路径
+  LOGIC_UNAUTHORIZED_PATH = 2 [(errors.code) = 203];
 }

@@ -57,17 +57,6 @@ func (m *StrategyDir) validate(all bool) error {
 
 	var errors []error
 
-	if !_StrategyDir_Dir_Pattern.MatchString(m.GetDir()) {
-		err := StrategyDirValidationError{
-			field:  "Dir",
-			reason: "value does not match regex pattern \"^([a-zA-Z0-9_]+)$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(m.GetStrategies()) < 1 {
 		err := StrategyDirValidationError{
 			field:  "Strategies",
@@ -189,8 +178,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StrategyDirValidationError{}
-
-var _StrategyDir_Dir_Pattern = regexp.MustCompile("^([a-zA-Z0-9_]+)$")
 
 // Validate checks the field values on Strategy with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
