@@ -204,10 +204,10 @@ components:
                     type: integer
                     description: 失败数量
                     format: int64
-                strategies:
+                strategyDirs:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.strategy.Strategy'
+                        $ref: '#/components/schemas/api.strategy.StrategyDir'
                     description: 失败列表
         api.strategy.v1.push.StrategiesReply:
             type: object
