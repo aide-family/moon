@@ -9,6 +9,7 @@ import (
 	"prometheus-manager/api/strategy"
 	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/pkg/util/strategyload"
+	"time"
 )
 
 type (
@@ -38,6 +39,7 @@ func (l *LoadRepo) LoadStrategy(ctx context.Context, path []string) error {
 	}
 
 	strategies = tmpStrategies
+	loadTime = time.Now()
 
 	return nil
 }

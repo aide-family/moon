@@ -8,12 +8,18 @@ import (
 	"prometheus-manager/api/strategy"
 	pb "prometheus-manager/api/strategy/v1/pull"
 	"prometheus-manager/apps/node/internal/service"
+	"time"
 )
 
 type (
+	StrategyLoad struct {
+		StrategyDirs []*strategy.StrategyDir `json:"strategy"`
+		LoadTime     time.Time               `json:"load_time"`
+	}
+
 	IPullRepo interface {
 		V1Repo
-		PullStrategies(ctx context.Context) ([]*strategy.StrategyDir, error)
+		PullStrategies(ctx context.Context) (*StrategyLoad, error)
 	}
 
 	PullLogic struct {
@@ -33,11 +39,11 @@ func (s *PullLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 	ctx, span := s.tr.Start(ctx, "Strategies")
 	defer span.End()
 
-	strategies, err := s.repo.PullStrategies(ctx)
+	strategyLoad, err := s.repo.PullStrategies(ctx)
 	if err != nil {
 		s.logger.Errorf("PullStrategies err: %v", err)
 		return nil, err
 	}
 
-	return &pb.StrategiesReply{StrategyDirs: strategies}, nil
+	return &pb.StrategiesReply{StrategyDirs: strategyLoad.StrategyDirs, Timestamp: strategyLoad.LoadTime.Unix()}, nil
 }
