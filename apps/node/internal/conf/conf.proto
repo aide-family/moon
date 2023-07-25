@@ -37,6 +37,10 @@ message Strategy {
   repeated string path = 1;
   // load频率
   google.protobuf.Duration load_interval = 2;
+  // reload频率
+  google.protobuf.Duration reload_interval = 3;
+  // reload path
+  string reload_path = 4;
 }
 
 message Env {

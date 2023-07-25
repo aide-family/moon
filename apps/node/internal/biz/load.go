@@ -9,6 +9,7 @@ import (
 	pb "prometheus-manager/api/strategy/v1/load"
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
+	"prometheus-manager/pkg/curl"
 	"prometheus-manager/pkg/util/dir"
 	"time"
 )
@@ -43,6 +44,14 @@ func (l *LoadLogic) Reload(ctx context.Context, _ *pb.ReloadRequest) (*pb.Reload
 		l.logger.Errorf("LoadStrategy err: %v", err)
 		return nil, err
 	}
+
+	out, err := curl.Curl(ctx, conf.Get().GetStrategy().GetReloadPath())
+	if err != nil {
+		l.logger.Errorf("Curl err: %v", err)
+		return nil, err
+	}
+
+	l.logger.Infof("Curl out: %v", out)
 
 	return &pb.ReloadReply{
 		Response: &api.Response{
