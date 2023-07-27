@@ -39,3 +39,4 @@ bin/
 **/configs/local*.yaml
 **/configs/local*.yml
 **/*_temp/
+**/dsn.yml
