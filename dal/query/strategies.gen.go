@@ -185,11 +185,11 @@ type IStrategyDo interface {
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	WhereID(ctx context.Context, id uint) (result []*model.Strategy, err error)
+	WhereID(ctx context.Context, id uint) (result *model.Strategy, err error)
 }
 
 // select * from @@table where id = @id
-func (s strategyDo) WhereID(ctx context.Context, id uint) (result []*model.Strategy, err error) {
+func (s strategyDo) WhereID(ctx context.Context, id uint) (result *model.Strategy, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
@@ -197,7 +197,7 @@ func (s strategyDo) WhereID(ctx context.Context, id uint) (result []*model.Strat
 	generateSQL.WriteString("select * from strategies where id = ? ")
 
 	var executeSQL *gorm.DB
-	executeSQL = s.UnderlyingDB().Raw(generateSQL.String(), params...).Find(&result) // ignore_security_alert
+	executeSQL = s.UnderlyingDB().Raw(generateSQL.String(), params...).Take(&result) // ignore_security_alert
 	err = executeSQL.Error
 
 	return
