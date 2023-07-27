@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"sync"
 
 	"prometheus-manager/apps/master/internal/conf"
 
@@ -27,6 +28,7 @@ var (
 	flagconf string
 
 	id, _ = os.Hostname()
+	once  sync.Once
 )
 
 func init() {
@@ -45,6 +47,16 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 			hs,
 		),
 	)
+}
+
+func Init(bc *conf.Bootstrap) *conf.Bootstrap {
+	once.Do(func() {
+		Name = bc.GetEnv().GetName()
+		if Version == "" {
+			Version = bc.GetEnv().GetVersion()
+		}
+	})
+	return bc
 }
 
 func main() {
@@ -74,7 +86,7 @@ func main() {
 		panic(err)
 	}
 
-	conf.Set(&bc)
+	conf.Set(Init(&bc))
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
 		panic(err)

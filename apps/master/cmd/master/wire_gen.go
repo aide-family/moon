@@ -14,6 +14,7 @@ import (
 	"prometheus-manager/apps/master/internal/data"
 	"prometheus-manager/apps/master/internal/server"
 	"prometheus-manager/apps/master/internal/service"
+	"prometheus-manager/pkg/conn"
 )
 
 import (
@@ -25,16 +26,22 @@ import (
 // wireApp init kratos application.
 func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	confServer := bootstrap.Server
+	trace := bootstrap.Trace
+	env := bootstrap.Env
+	tracerProvider := conn.NewTracerProvider(trace, env)
 	confData := bootstrap.Data
 	dataData, cleanup, err := data.NewData(confData, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	greeterRepo := data.NewGreeterRepo(dataData, logger)
-	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
-	greeterService := service.NewGreeterService(greeterUsecase)
-	grpcServer := server.NewGRPCServer(confServer, greeterService, logger)
-	httpServer := server.NewHTTPServer(confServer, greeterService, logger)
+	pingRepo := data.NewPingRepo(dataData, logger)
+	pingLogic := biz.NewPingLogic(pingRepo, logger)
+	pingService := service.NewPingService(pingLogic, logger)
+	crudRepo := data.NewCrudRepo(dataData, logger)
+	crudLogic := biz.NewCrudLogic(crudRepo, logger)
+	crudService := service.NewCrudService(crudLogic, logger)
+	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pingService, crudService)
+	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pingService, crudService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
