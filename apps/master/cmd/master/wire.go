@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/apps/master/internal/data"
 	"prometheus-manager/apps/master/internal/server"
 	"prometheus-manager/apps/master/internal/service"
+	"prometheus-manager/pkg/conn"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -20,6 +21,7 @@ import (
 // wireApp init kratos application.
 func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(
+		conn.NewTracerProvider,
 		server.ProviderSet,
 		data.ProviderSet,
 		biz.ProviderSet,

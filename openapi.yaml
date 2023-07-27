@@ -43,6 +43,90 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
+    /op/v1/add:
+        post:
+            tags:
+                - Crud
+            operationId: Crud_CreateCrud
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.CreateCrudRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.CreateCrudReply'
+    /op/v1/delete/{id}:
+        delete:
+            tags:
+                - Crud
+            operationId: Crud_DeleteCrud
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: nodes
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.DeleteCrudReply'
+    /op/v1/edit/{id}:
+        put:
+            tags:
+                - Crud
+            operationId: Crud_UpdateCrud
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.UpdateCrudRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.UpdateCrudReply'
+    /op/v1/get/{id}:
+        get:
+            tags:
+                - Crud
+            operationId: Crud_GetCrud
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.GetCrudReply'
     /ping:
         get:
             tags:
@@ -168,6 +252,46 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.Strategy'
+        api.strategy.v1.CreateCrudReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.CreateCrudRequest:
+            type: object
+            properties:
+                nodes:
+                    type: array
+                    items:
+                        type: string
+                strategyDir:
+                    $ref: '#/components/schemas/api.strategy.StrategyDir'
+        api.strategy.v1.DeleteCrudReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.GetCrudReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.UpdateCrudReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.UpdateCrudRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                nodes:
+                    type: array
+                    items:
+                        type: string
+                strategyDir:
+                    $ref: '#/components/schemas/api.strategy.StrategyDir'
         api.strategy.v1.load.ReloadReply:
             type: object
             properties:
@@ -248,6 +372,7 @@ components:
                     type: string
             description: The response message containing the greetings
 tags:
+    - name: Crud
     - name: Greeter
       description: The greeting service definition.
     - name: Load

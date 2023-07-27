@@ -2,6 +2,7 @@ package conf
 
 import (
 	"github.com/google/wire"
+	"prometheus-manager/pkg/conn"
 	"sync"
 )
 
@@ -11,6 +12,9 @@ var ProviderSet = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Trace"),
 	wire.FieldsOf(new(*Bootstrap), "Server"),
 	wire.FieldsOf(new(*Bootstrap), "Nodes"),
+	wire.FieldsOf(new(*Bootstrap), "Env"),
+	wire.Bind(new(conn.ITraceConfig), new(*Trace)),
+	wire.Bind(new(conn.ITraceEnv), new(*Env)),
 )
 
 // 全局配置获取
