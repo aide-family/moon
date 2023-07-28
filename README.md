@@ -4,7 +4,6 @@
 
 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
     <img alt="Prometheus" src="doc/img/logo.svg">
-    <span style="font-size: 38px">+</span>
     <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
 </h1>
 
