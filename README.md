@@ -1,24 +1,44 @@
 # Prometheus-manager
+
 > prometheus 规则和告警统一管理平台
 
+<h1 align="center" style="border-bottom: none">
+    <div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <img alt="Prometheus" src="doc/img/aide-cloud-logo.png" style="height: 114px; width: 114px; border-radius: 50%;">
+            <div>+</div>
+            <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
+        </div>
+        <br>
+        Prometheus-manager
+    </div>
+</h1>
+
+## Architecture overview
+
+![Architecture overview](doc/img/Prometheus-manager.png)
+
 ## Init
+
 ```bash
 # init
 make init
 ```
 
 ## dev
+
 ```bash
 kratos run
-# 然后选择运行的服务回车即可
 ```
 
 ## add api
+
 ```bash
  kratos proto add api/<module-name>/<version>/<api-name>.proto
 ```
 
 ## generate code
+
 ```bash
 # generate api pb
 make api
@@ -30,9 +50,8 @@ kratos proto server api/<module-name>/<version>/<api-name>.proto -t apps/<server
 make config
 ```
 
-
-
 ## Docker
+
 ```bash
 # build
 docker build -t <your-docker-image-name> .

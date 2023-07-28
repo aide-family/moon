@@ -14,6 +14,14 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
 
+env:
+  name: "prometheus-manager-master"
+  version: "v0.0.1"
+  namespace: "prometheus-manager"
+  metadata:
+    env: "dev"
+    description: "Kratos Layout App"
+
 registrar:
   etcd:
     endpoints:

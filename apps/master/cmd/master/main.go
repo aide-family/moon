@@ -61,15 +61,7 @@ func Init(bc *conf.Bootstrap) *conf.Bootstrap {
 
 func main() {
 	flag.Parse()
-	logger := log.With(log.NewStdLogger(os.Stdout),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", Name,
-		"service.version", Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
+
 	c := config.New(
 		config.WithSource(
 			file.NewSource(flagconf),
@@ -87,6 +79,17 @@ func main() {
 	}
 
 	conf.Set(Init(&bc))
+
+	logger := log.With(log.NewStdLogger(os.Stdout),
+		"ts", log.DefaultTimestamp,
+		"caller", log.DefaultCaller,
+		"service.id", id,
+		"service.name", Name,
+		"service.version", Version,
+		"trace.id", tracing.TraceID(),
+		"span.id", tracing.SpanID(),
+	)
+
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {
 		panic(err)

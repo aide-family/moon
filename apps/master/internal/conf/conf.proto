@@ -33,12 +33,16 @@ message Data {
   message Database {
     string driver = 1;
     string source = 2;
+    bool debug = 3;
   }
   message Redis {
     string network = 1;
     string addr = 2;
     google.protobuf.Duration read_timeout = 3;
     google.protobuf.Duration write_timeout = 4;
+    google.protobuf.Duration dial_timeout = 5;
+    uint32 db = 6;
+    string password = 7;
   }
   Database database = 1;
   Redis redis = 2;
