@@ -14,24 +14,24 @@ option java_package = "api.strategy.v1";
 service Crud {
 	rpc CreateCrud (CreateCrudRequest) returns (CreateCrudReply) {
 		option (google.api.http) = {
-			post: "/op/v1/add"
+			post: "/strategy/v1/add"
 			body: "*"
 		};
 	}
 	rpc UpdateCrud (UpdateCrudRequest) returns (UpdateCrudReply) {
 		option (google.api.http) = {
-			put: "/op/v1/edit/{id}"
+			put: "/strategy/v1/edit/{id}"
 			body: "*"
 		};
 	}
 	rpc DeleteCrud (DeleteCrudRequest) returns (DeleteCrudReply) {
 		option (google.api.http) = {
-			delete: "/op/v1/delete/{id}"
+			delete: "/strategy/v1/delete/{id}"
 		};
 	}
 	rpc GetCrud (GetCrudRequest) returns (GetCrudReply){
 		option (google.api.http) = {
-			get: "/op/v1/get/{id}"
+			get: "/strategy/v1/get/{id}"
 		};
 	}
 }

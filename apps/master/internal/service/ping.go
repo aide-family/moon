@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"go.opentelemetry.io/otel"
 	pb "prometheus-manager/api"
 )
 
@@ -26,6 +27,8 @@ func NewPingService(logic IPingLogic, logger log.Logger) *PingService {
 }
 
 func (l *PingService) Check(ctx context.Context, req *pb.PingRequest) (*pb.PingReply, error) {
-	l.logger.Debugf("Check req: %v", req)
+	ctx, span := otel.Tracer("service").Start(ctx, "PingService.Check")
+	defer span.End()
+	l.logger.WithContext(ctx).Debugf("Check req: %v", req)
 	return l.logic.Check(ctx, req)
 }

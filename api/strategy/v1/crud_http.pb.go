@@ -33,10 +33,10 @@ type CrudHTTPServer interface {
 
 func RegisterCrudHTTPServer(s *http.Server, srv CrudHTTPServer) {
 	r := s.Route("/")
-	r.POST("/op/v1/add", _Crud_CreateCrud0_HTTP_Handler(srv))
-	r.PUT("/op/v1/edit/{id}", _Crud_UpdateCrud0_HTTP_Handler(srv))
-	r.DELETE("/op/v1/delete/{id}", _Crud_DeleteCrud0_HTTP_Handler(srv))
-	r.GET("/op/v1/get/{id}", _Crud_GetCrud0_HTTP_Handler(srv))
+	r.POST("/strategy/v1/add", _Crud_CreateCrud0_HTTP_Handler(srv))
+	r.PUT("/strategy/v1/edit/{id}", _Crud_UpdateCrud0_HTTP_Handler(srv))
+	r.DELETE("/strategy/v1/delete/{id}", _Crud_DeleteCrud0_HTTP_Handler(srv))
+	r.GET("/strategy/v1/get/{id}", _Crud_GetCrud0_HTTP_Handler(srv))
 }
 
 func _Crud_CreateCrud0_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
@@ -141,7 +141,7 @@ func NewCrudHTTPClient(client *http.Client) CrudHTTPClient {
 
 func (c *CrudHTTPClientImpl) CreateCrud(ctx context.Context, in *CreateCrudRequest, opts ...http.CallOption) (*CreateCrudReply, error) {
 	var out CreateCrudReply
-	pattern := "/op/v1/add"
+	pattern := "/strategy/v1/add"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCrudCreateCrud))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -154,7 +154,7 @@ func (c *CrudHTTPClientImpl) CreateCrud(ctx context.Context, in *CreateCrudReque
 
 func (c *CrudHTTPClientImpl) DeleteCrud(ctx context.Context, in *DeleteCrudRequest, opts ...http.CallOption) (*DeleteCrudReply, error) {
 	var out DeleteCrudReply
-	pattern := "/op/v1/delete/{id}"
+	pattern := "/strategy/v1/delete/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationCrudDeleteCrud))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -167,7 +167,7 @@ func (c *CrudHTTPClientImpl) DeleteCrud(ctx context.Context, in *DeleteCrudReque
 
 func (c *CrudHTTPClientImpl) GetCrud(ctx context.Context, in *GetCrudRequest, opts ...http.CallOption) (*GetCrudReply, error) {
 	var out GetCrudReply
-	pattern := "/op/v1/get/{id}"
+	pattern := "/strategy/v1/get/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationCrudGetCrud))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -180,7 +180,7 @@ func (c *CrudHTTPClientImpl) GetCrud(ctx context.Context, in *GetCrudRequest, op
 
 func (c *CrudHTTPClientImpl) UpdateCrud(ctx context.Context, in *UpdateCrudRequest, opts ...http.CallOption) (*UpdateCrudReply, error) {
 	var out UpdateCrudReply
-	pattern := "/op/v1/edit/{id}"
+	pattern := "/strategy/v1/edit/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCrudUpdateCrud))
 	opts = append(opts, http.PathTemplate(pattern))

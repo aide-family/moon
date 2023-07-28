@@ -3,7 +3,9 @@ package data
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"go.opentelemetry.io/otel"
 	"prometheus-manager/apps/master/internal/biz"
+	"prometheus-manager/apps/master/internal/conf"
 )
 
 type (
@@ -14,8 +16,10 @@ type (
 )
 
 func (l *PingRepo) V1(ctx context.Context) string {
-	//TODO implement me
-	panic("implement me")
+	ctx, span := otel.Tracer("data").Start(ctx, "PingRepo.V1")
+	defer span.End()
+	l.logger.WithContext(ctx).Infof("PingRepo.V1")
+	return conf.Get().GetEnv().GetVersion()
 }
 
 var _ biz.IPingRepo = (*PingRepo)(nil)

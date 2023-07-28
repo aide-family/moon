@@ -1,8 +1,10 @@
 package server
 
 import (
+	"context"
 	"github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/metrics"
 	"github.com/go-kratos/kratos/v2/middleware/ratelimit"
@@ -12,7 +14,9 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/go-kratos/swagger-api/openapiv2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	ping "prometheus-manager/api"
 	crudV1 "prometheus-manager/api/strategy/v1"
 	"prometheus-manager/apps/master/internal/conf"
@@ -33,9 +37,17 @@ func NewHTTPServer(
 		http.Filter(middler.Cors(), middler.LocalHttpRequestFilter()), // 跨域
 		http.Middleware(
 			recovery.Recovery(),
+			func(handler middleware.Handler) middleware.Handler {
+				return func(ctx context.Context, req interface{}) (interface{}, error) {
+					ctx, span := otel.Tracer("http-middleware").Start(ctx, "middleware")
+					defer span.End()
+					ctx = trace.ContextWithSpanContext(ctx, span.SpanContext())
+					return handler(ctx, req)
+				}
+			},
 			logging.Server(logger),
 			validate.Validator(),
-			tracing.Server(tracing.WithTracerProvider(tp)),
+			tracing.Server(tracing.WithTracerProvider(tp), tracing.WithTracerName("http")),
 			ratelimit.Server(),
 			metrics.Server(
 				metrics.WithSeconds(prometheus.NewHistogram(prom.MetricSeconds)),
