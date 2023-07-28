@@ -3,7 +3,7 @@
 > prometheus 规则和告警统一管理平台
 
 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
-    <img alt="Prometheus" src="doc/img/aide-cloud-logo.png" style="height: 114px; width: 114px; border-radius: 50%;">
+    <img alt="Prometheus" src="doc/img/logo.svg">
     <span style="font-size: 38px">+</span>
     <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
 </h1>
