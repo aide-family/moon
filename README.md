@@ -2,17 +2,14 @@
 
 > prometheus 规则和告警统一管理平台
 
-<h1 align="center" style="border-bottom: none">
-    <div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+<div style="text-align: center">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
             <img alt="Prometheus" src="doc/img/aide-cloud-logo.png" style="height: 114px; width: 114px; border-radius: 50%;">
-            <div>+</div>
+            <div style="font-size: 38px">+</div>
             <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
         </div>
-        <br>
-        Prometheus-manager
-    </div>
-</h1>
+    <h1>Prometheus-manager</h1>
+</div>
 
 ## Architecture overview
 
