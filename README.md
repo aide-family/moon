@@ -1,6 +1,6 @@
 # Prometheus-manager
 
-> prometheus 规则和告警统一管理平台
+> prometheus unified rules and alarms management platform
 
 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
     <img alt="Prometheus" src="doc/img/logo.svg">
