@@ -8,10 +8,6 @@
     <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
 </h1>
 
-<h1 style="text-align: center">
-    Prometheus-manager
-</h1>
-
 ## Architecture overview
 
 ![Architecture overview](doc/img/Prometheus-manager.png)
