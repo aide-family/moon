@@ -16,39 +16,59 @@ import (
 )
 
 var (
-	Q             = new(Query)
-	Strategy      *strategy
-	StrategyGroup *strategyGroup
+	Q                            = new(Query)
+	PromCombo                    *promCombo
+	PromNode                     *promNode
+	PromNodeDir                  *promNodeDir
+	PromNodeDirFile              *promNodeDirFile
+	PromNodeDirFileGroup         *promNodeDirFileGroup
+	PromNodeDirFileGroupStrategy *promNodeDirFileGroupStrategy
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	Strategy = &Q.Strategy
-	StrategyGroup = &Q.StrategyGroup
+	PromCombo = &Q.PromCombo
+	PromNode = &Q.PromNode
+	PromNodeDir = &Q.PromNodeDir
+	PromNodeDirFile = &Q.PromNodeDirFile
+	PromNodeDirFileGroup = &Q.PromNodeDirFileGroup
+	PromNodeDirFileGroupStrategy = &Q.PromNodeDirFileGroupStrategy
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:            db,
-		Strategy:      newStrategy(db, opts...),
-		StrategyGroup: newStrategyGroup(db, opts...),
+		db:                           db,
+		PromCombo:                    newPromCombo(db, opts...),
+		PromNode:                     newPromNode(db, opts...),
+		PromNodeDir:                  newPromNodeDir(db, opts...),
+		PromNodeDirFile:              newPromNodeDirFile(db, opts...),
+		PromNodeDirFileGroup:         newPromNodeDirFileGroup(db, opts...),
+		PromNodeDirFileGroupStrategy: newPromNodeDirFileGroupStrategy(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Strategy      strategy
-	StrategyGroup strategyGroup
+	PromCombo                    promCombo
+	PromNode                     promNode
+	PromNodeDir                  promNodeDir
+	PromNodeDirFile              promNodeDirFile
+	PromNodeDirFileGroup         promNodeDirFileGroup
+	PromNodeDirFileGroupStrategy promNodeDirFileGroupStrategy
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:            db,
-		Strategy:      q.Strategy.clone(db),
-		StrategyGroup: q.StrategyGroup.clone(db),
+		db:                           db,
+		PromCombo:                    q.PromCombo.clone(db),
+		PromNode:                     q.PromNode.clone(db),
+		PromNodeDir:                  q.PromNodeDir.clone(db),
+		PromNodeDirFile:              q.PromNodeDirFile.clone(db),
+		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.clone(db),
+		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.clone(db),
 	}
 }
 
@@ -62,21 +82,33 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:            db,
-		Strategy:      q.Strategy.replaceDB(db),
-		StrategyGroup: q.StrategyGroup.replaceDB(db),
+		db:                           db,
+		PromCombo:                    q.PromCombo.replaceDB(db),
+		PromNode:                     q.PromNode.replaceDB(db),
+		PromNodeDir:                  q.PromNodeDir.replaceDB(db),
+		PromNodeDirFile:              q.PromNodeDirFile.replaceDB(db),
+		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.replaceDB(db),
+		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Strategy      IStrategyDo
-	StrategyGroup IStrategyGroupDo
+	PromCombo                    IPromComboDo
+	PromNode                     IPromNodeDo
+	PromNodeDir                  IPromNodeDirDo
+	PromNodeDirFile              IPromNodeDirFileDo
+	PromNodeDirFileGroup         IPromNodeDirFileGroupDo
+	PromNodeDirFileGroupStrategy IPromNodeDirFileGroupStrategyDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Strategy:      q.Strategy.WithContext(ctx),
-		StrategyGroup: q.StrategyGroup.WithContext(ctx),
+		PromCombo:                    q.PromCombo.WithContext(ctx),
+		PromNode:                     q.PromNode.WithContext(ctx),
+		PromNodeDir:                  q.PromNodeDir.WithContext(ctx),
+		PromNodeDirFile:              q.PromNodeDirFile.WithContext(ctx),
+		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.WithContext(ctx),
+		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.WithContext(ctx),
 	}
 }
 

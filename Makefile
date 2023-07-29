@@ -119,6 +119,12 @@ all:
 	make api;
 	make generate;
 
+.PHONY: model
+# generate model
+model:
+	@cd gen && go run .
+	@git add .
+
 # show help
 help:
 	@echo ''
