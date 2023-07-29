@@ -3,14 +3,26 @@ syntax = "proto3";
 package api;
 
 import "google/protobuf/any.proto";
+import "validate/validate.proto";
 
 option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
 message Response {
-	int64 code = 1;
-	string message = 2;
-	map<string, string> metadata = 3;
-	google.protobuf.Any data = 4;
+  int64 code = 1;
+  string message = 2;
+  map<string, string> metadata = 3;
+  google.protobuf.Any data = 4;
+}
+
+message PageRequest {
+  int32 current = 1 [(validate.rules).int32 = {gt: 0}];
+  int32 size = 2 [(validate.rules).int32 = {gt: 0}];
+}
+
+message PageReply {
+  int32 current = 1;
+  int32 size = 2;
+  int64 total = 3;
 }

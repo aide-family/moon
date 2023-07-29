@@ -233,6 +233,8 @@ func (m *DirItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for Id
+
 	if len(errors) > 0 {
 		return DirItemMultiError(errors)
 	}
@@ -372,6 +374,8 @@ func (m *FileItem) validate(all bool) error {
 	// no validation rules for CreatedAt
 
 	// no validation rules for UpdatedAt
+
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return FileItemMultiError(errors)
@@ -527,6 +531,8 @@ func (m *GroupItem) validate(all bool) error {
 	}
 
 	// no validation rules for UpdatedAt
+
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return GroupItemMultiError(errors)
@@ -764,6 +770,8 @@ func (m *RuleItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for Id
+
 	if len(errors) > 0 {
 		return RuleItemMultiError(errors)
 	}
@@ -987,6 +995,8 @@ func (m *ComboRuleItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for Id
+
 	if len(errors) > 0 {
 		return ComboRuleItemMultiError(errors)
 	}
@@ -1148,6 +1158,8 @@ func (m *ComboItem) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return ComboItemMultiError(errors)

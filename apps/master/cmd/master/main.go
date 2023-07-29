@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"prometheus-manager/pkg/hello"
 	"sync"
 
 	"prometheus-manager/apps/master/internal/conf"
@@ -35,12 +36,17 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(
+	env *conf.Env,
+	logger log.Logger,
+	gs *grpc.Server,
+	hs *http.Server,
+) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name(Name),
-		kratos.Version(Version),
-		kratos.Metadata(map[string]string{}),
+		kratos.Name(env.GetName()),
+		kratos.Version(env.GetVersion()),
+		kratos.Metadata(env.GetMetadata()),
 		kratos.Logger(logger),
 		kratos.Server(
 			gs,
@@ -56,6 +62,7 @@ func Init(bc *conf.Bootstrap) *conf.Bootstrap {
 			Version = bc.GetEnv().GetVersion()
 		}
 	})
+	hello.FmtASCIIGenerator(Name, Version, bc.GetEnv().GetMetadata())
 	return bc
 }
 

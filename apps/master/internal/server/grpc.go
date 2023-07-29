@@ -13,9 +13,11 @@ import (
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	ping "prometheus-manager/api"
+	promV1 "prometheus-manager/api/prom/v1"
 	crudV1 "prometheus-manager/api/strategy/v1"
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/apps/master/internal/service"
+	promServiceV1 "prometheus-manager/apps/master/internal/service/prom/v1"
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 
@@ -30,6 +32,11 @@ func NewGRPCServer(c *conf.Server,
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
 	crudService *service.CrudService,
+	dirV1Service *promServiceV1.DirService,
+	fileV1Service *promServiceV1.FileService,
+	nodeV1Service *promServiceV1.NodeService,
+	ruleV1Service *promServiceV1.RuleService,
+	groupV1Service *promServiceV1.GroupService,
 ) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
@@ -66,6 +73,11 @@ func NewGRPCServer(c *conf.Server,
 
 	ping.RegisterPingServer(srv, pingService)
 	crudV1.RegisterCrudServer(srv, crudService)
+	promV1.RegisterDirServer(srv, dirV1Service)
+	promV1.RegisterFileServer(srv, fileV1Service)
+	promV1.RegisterNodeServer(srv, nodeV1Service)
+	promV1.RegisterRuleServer(srv, ruleV1Service)
+	promV1.RegisterGroupServer(srv, groupV1Service)
 
 	log.NewHelper(log.With(logger, "module", "server/grpc")).Info("grpc server initialized")
 

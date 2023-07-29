@@ -60,6 +60,501 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.PingReply'
+    /prom/v1/dir/add:
+        post:
+            tags:
+                - Dir
+            operationId: Dir_CreateDir
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.CreateDirRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.CreateDirReply'
+    /prom/v1/dir/delete/{id}:
+        delete:
+            tags:
+                - Dir
+            operationId: Dir_DeleteDir
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.DeleteDirReply'
+    /prom/v1/dir/edit/{id}:
+        put:
+            tags:
+                - Dir
+            operationId: Dir_UpdateDir
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.UpdateDirRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.UpdateDirReply'
+    /prom/v1/dir/list:
+        post:
+            tags:
+                - Dir
+            operationId: Dir_ListDir
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.ListDirRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.ListDirReply'
+    /prom/v1/dir/{id}:
+        get:
+            tags:
+                - Dir
+            operationId: Dir_GetDir
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetDirReply'
+    /prom/v1/file/add:
+        post:
+            tags:
+                - File
+            operationId: File_CreateFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.CreateFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.CreateFileReply'
+    /prom/v1/file/delete/{id}:
+        delete:
+            tags:
+                - File
+            operationId: File_DeleteFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.DeleteFileReply'
+    /prom/v1/file/edit/{id}:
+        put:
+            tags:
+                - File
+            operationId: File_UpdateFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.UpdateFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.UpdateFileReply'
+    /prom/v1/file/list:
+        post:
+            tags:
+                - File
+            operationId: File_ListFile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.ListFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.ListFileReply'
+    /prom/v1/file/{id}:
+        get:
+            tags:
+                - File
+            operationId: File_GetFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetFileReply'
+    /prom/v1/group/add:
+        post:
+            tags:
+                - Group
+            operationId: Group_CreateGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.CreateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.CreateGroupReply'
+    /prom/v1/group/delete/{id}:
+        delete:
+            tags:
+                - Group
+            operationId: Group_DeleteGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.DeleteGroupReply'
+    /prom/v1/group/edit/{id}:
+        put:
+            tags:
+                - Group
+            operationId: Group_UpdateGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.UpdateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.UpdateGroupReply'
+    /prom/v1/group/list:
+        post:
+            tags:
+                - Group
+            operationId: Group_ListGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.ListGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.ListGroupReply'
+    /prom/v1/group/{id}:
+        get:
+            tags:
+                - Group
+            operationId: Group_GetGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetGroupReply'
+    /prom/v1/node/add:
+        post:
+            tags:
+                - Node
+            operationId: Node_CreateNode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.CreateNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.CreateNodeReply'
+    /prom/v1/node/delete/{id}:
+        delete:
+            tags:
+                - Node
+            operationId: Node_DeleteNode
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DeleteNodeReply'
+    /prom/v1/node/detail/{id}:
+        get:
+            tags:
+                - Node
+            operationId: Node_GetNode
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.GetNodeReply'
+    /prom/v1/node/edit/{id}:
+        put:
+            tags:
+                - Node
+            operationId: Node_UpdateNode
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateNodeReply'
+    /prom/v1/node/list:
+        post:
+            tags:
+                - Node
+            operationId: Node_ListNode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListNodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListNodeReply'
+    /prom/v1/rule/add:
+        post:
+            tags:
+                - Rule
+            operationId: Rule_CreateRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.CreateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.CreateRuleReply'
+    /prom/v1/rule/delete/{id}:
+        delete:
+            tags:
+                - Rule
+            operationId: Rule_DeleteRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.DeleteRuleReply'
+    /prom/v1/rule/edit/{id}:
+        put:
+            tags:
+                - Rule
+            operationId: Rule_UpdateRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.UpdateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.UpdateRuleReply'
+    /prom/v1/rule/get/{id}:
+        get:
+            tags:
+                - Rule
+            operationId: Rule_GetRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetRuleReply'
+    /prom/v1/rule/list:
+        post:
+            tags:
+                - Rule
+            operationId: Rule_ListRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.ListRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.ListRuleReply'
     /pull/v1/strategies:
         get:
             tags:
@@ -193,6 +688,27 @@ paths:
                                 $ref: '#/components/schemas/api.strategy.v1.StrategiesReply'
 components:
     schemas:
+        api.PageReply:
+            type: object
+            properties:
+                current:
+                    type: integer
+                    format: int32
+                size:
+                    type: integer
+                    format: int32
+                total:
+                    type: integer
+                    format: int64
+        api.PageRequest:
+            type: object
+            properties:
+                current:
+                    type: integer
+                    format: int32
+                size:
+                    type: integer
+                    format: int32
         api.PingReply:
             type: object
             properties:
@@ -220,6 +736,397 @@ components:
                         type: string
                 data:
                     $ref: '#/components/schemas/google.protobuf.Any'
+        api.prom.CreateDirReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.CreateDirRequest:
+            type: object
+            properties:
+                dir:
+                    $ref: '#/components/schemas/api.prom.DirItem'
+        api.prom.CreateFileReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.CreateFileRequest:
+            type: object
+            properties:
+                file:
+                    $ref: '#/components/schemas/api.prom.FileItem'
+        api.prom.CreateGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.CreateGroupRequest:
+            type: object
+            properties:
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.CreateRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.CreateRuleRequest:
+            type: object
+            properties:
+                rule:
+                    $ref: '#/components/schemas/api.prom.RuleItem'
+        api.prom.DeleteDirReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.DeleteFileReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.DeleteGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.DeleteRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.DirItem:
+            type: object
+            properties:
+                nodeId:
+                    type: integer
+                    format: uint32
+                path:
+                    type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.FileItem:
+            type: object
+            properties:
+                filename:
+                    type: string
+                dirId:
+                    type: integer
+                    format: uint32
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.GetDirReply:
+            type: object
+            properties:
+                dir:
+                    $ref: '#/components/schemas/api.prom.DirItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.GetFileReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                file:
+                    $ref: '#/components/schemas/api.prom.FileItem'
+        api.prom.GetGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.GetRuleReply:
+            type: object
+            properties:
+                rule:
+                    $ref: '#/components/schemas/api.prom.RuleItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.GroupItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                fileId:
+                    type: integer
+                    format: uint32
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.ListDirReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.DirItem'
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.ListDirRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                params:
+                    $ref: '#/components/schemas/api.prom.ListDirRequestParams'
+        api.prom.ListDirRequestParams:
+            type: object
+            properties:
+                keyword:
+                    type: string
+        api.prom.ListFileReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.FileItem'
+        api.prom.ListFileRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                params:
+                    $ref: '#/components/schemas/api.prom.ListFileRequestParams'
+        api.prom.ListFileRequestParams:
+            type: object
+            properties:
+                keyword:
+                    type: string
+        api.prom.ListGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                lig:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.ListGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                params:
+                    $ref: '#/components/schemas/api.prom.ListGroupRequestParams'
+        api.prom.ListGroupRequestParams:
+            type: object
+            properties:
+                keyword:
+                    type: string
+        api.prom.ListRuleReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.RuleItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.ListRuleRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                params:
+                    $ref: '#/components/schemas/api.prom.ListRuleRequestParams'
+        api.prom.ListRuleRequestParams:
+            type: object
+            properties:
+                keyword:
+                    type: string
+        api.prom.NodeItem:
+            type: object
+            properties:
+                enName:
+                    type: string
+                cnName:
+                    type: string
+                datasource:
+                    type: string
+                remark:
+                    type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+        api.prom.RuleItem:
+            type: object
+            properties:
+                groupId:
+                    type: integer
+                    format: uint32
+                alert:
+                    type: string
+                expr:
+                    type: string
+                for:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.UpdateDirReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.UpdateDirRequest:
+            type: object
+            properties:
+                dir:
+                    $ref: '#/components/schemas/api.prom.DirItem'
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.UpdateFileReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.UpdateFileRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                file:
+                    $ref: '#/components/schemas/api.prom.FileItem'
+        api.prom.UpdateGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.UpdateGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.UpdateRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.UpdateRuleRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                rule:
+                    $ref: '#/components/schemas/api.prom.RuleItem'
+        api.prom.v1.CreateNodeReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.CreateNodeRequest:
+            type: object
+            properties:
+                node:
+                    $ref: '#/components/schemas/api.prom.NodeItem'
+        api.prom.v1.DeleteNodeReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.GetNodeReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                node:
+                    $ref: '#/components/schemas/api.prom.NodeItem'
+        api.prom.v1.ListNodeReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.NodeItem'
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+        api.prom.v1.ListNodeRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                params:
+                    $ref: '#/components/schemas/api.prom.v1.ListNodeRequestParams'
+        api.prom.v1.ListNodeRequestParams:
+            type: object
+            properties:
+                keyword:
+                    type: string
+                name:
+                    type: string
+        api.prom.v1.UpdateNodeReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateNodeRequest:
+            type: object
+            properties:
+                node:
+                    $ref: '#/components/schemas/api.prom.NodeItem'
+                id:
+                    type: integer
+                    format: uint32
         api.strategy.Group:
             type: object
             properties:
@@ -391,9 +1298,14 @@ components:
             description: The response message containing the greetings
 tags:
     - name: Crud
+    - name: Dir
+    - name: File
     - name: Greeter
       description: The greeting service definition.
+    - name: Group
     - name: Load
+    - name: Node
     - name: Ping
     - name: Pull
     - name: Push
+    - name: Rule
