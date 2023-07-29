@@ -12,68 +12,76 @@ option java_multiple_files = true;
 option java_package = "api.strategy.v1";
 
 service Crud {
-	rpc CreateCrud (CreateCrudRequest) returns (CreateCrudReply) {
-		option (google.api.http) = {
-			post: "/strategy/v1/add"
-			body: "*"
-		};
-	}
-	rpc UpdateCrud (UpdateCrudRequest) returns (UpdateCrudReply) {
-		option (google.api.http) = {
-			put: "/strategy/v1/edit/{id}"
-			body: "*"
-		};
-	}
-	rpc DeleteCrud (DeleteCrudRequest) returns (DeleteCrudReply) {
-		option (google.api.http) = {
-			delete: "/strategy/v1/delete/{id}"
-		};
-	}
-	rpc GetCrud (GetCrudRequest) returns (GetCrudReply){
-		option (google.api.http) = {
-			get: "/strategy/v1/get/{id}"
-		};
-	}
+  rpc CreateRule (CreateRuleRequest) returns (CreateRuleReply) {
+    option (google.api.http) = {
+      post: "/rule/v1/add"
+      body: "*"
+    };
+  }
+  rpc UpdateRule (UpdateRuleRequest) returns (UpdateRuleReply) {
+    option (google.api.http) = {
+      put: "/rule/v1/edit/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteRule (DeleteRuleRequest) returns (DeleteRuleReply) {
+    option (google.api.http) = {
+      delete: "/rule/v1/delete/{id}"
+    };
+  }
+  rpc RuleDetail (GetRuleDetailRequest) returns (GetRuleDetailReply){
+    option (google.api.http) = {
+      get: "/rule/v1/detail/{id}"
+    };
+  }
+  rpc Strategies (StrategiesRequest) returns (StrategiesReply){
+    option (google.api.http) = {
+      get: "/strategies/v1/{node_id}"
+    };
+  }
 }
 
-message CreateCrudRequest {
-	repeated string nodes = 1 [(validate.rules).repeated = {
-		min_items: 1
-		max_items: 10
-	}];
-	StrategyDir strategy_dir = 2;
+message CreateRuleRequest {
+  Rule rule = 1;
+  uint32 group_id = 2 [(validate.rules).uint32.gt = 0];
 }
-message CreateCrudReply {
-	// 响应内容
-	Response response = 1;
+message CreateRuleReply {
+  // 响应内容
+  Response response = 1;
 }
 
-message UpdateCrudRequest {
-	string id = 1;
-	repeated string nodes = 2 [(validate.rules).repeated = {
-		min_items: 1
-		max_items: 10
-	}];
-	StrategyDir strategy_dir = 3;
+message UpdateRuleRequest {
+  string id = 1;
+  Rule rule = 2;
 }
-message UpdateCrudReply {
-	// 响应内容
-	Response response = 1;
+message UpdateRuleReply {
+  // 响应内容
+  Response response = 1;
 }
 
-message DeleteCrudRequest {
-	string id = 1;
-	repeated string nodes = 2;
+message DeleteRuleRequest {
+  string id = 1;
 }
-message DeleteCrudReply {
-	// 响应内容
-	Response response = 1;
+message DeleteRuleReply {
+  // 响应内容
+  Response response = 1;
 }
 
-message GetCrudRequest {
-	string id = 1;
+message GetRuleDetailRequest {
+  string id = 1;
 }
-message GetCrudReply {
-	// 响应内容
-	Response response = 1;
+message GetRuleDetailReply {
+  // 响应内容
+  Response response = 1;
+  Rule rule = 2;
+}
+
+message StrategiesRequest {
+  string node_id = 1 [(validate.rules).string.min_len = 1];
+}
+
+message StrategiesReply {
+  // 响应内容
+  Response response = 1;
+  repeated StrategyDir strategy_dir = 2;
 }

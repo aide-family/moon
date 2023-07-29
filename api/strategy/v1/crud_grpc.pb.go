@@ -22,10 +22,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CrudClient interface {
-	CreateCrud(ctx context.Context, in *CreateCrudRequest, opts ...grpc.CallOption) (*CreateCrudReply, error)
-	UpdateCrud(ctx context.Context, in *UpdateCrudRequest, opts ...grpc.CallOption) (*UpdateCrudReply, error)
-	DeleteCrud(ctx context.Context, in *DeleteCrudRequest, opts ...grpc.CallOption) (*DeleteCrudReply, error)
-	GetCrud(ctx context.Context, in *GetCrudRequest, opts ...grpc.CallOption) (*GetCrudReply, error)
+	CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*CreateRuleReply, error)
+	UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*UpdateRuleReply, error)
+	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*DeleteRuleReply, error)
+	RuleDetail(ctx context.Context, in *GetRuleDetailRequest, opts ...grpc.CallOption) (*GetRuleDetailReply, error)
+	Strategies(ctx context.Context, in *StrategiesRequest, opts ...grpc.CallOption) (*StrategiesReply, error)
 }
 
 type crudClient struct {
@@ -36,36 +37,45 @@ func NewCrudClient(cc grpc.ClientConnInterface) CrudClient {
 	return &crudClient{cc}
 }
 
-func (c *crudClient) CreateCrud(ctx context.Context, in *CreateCrudRequest, opts ...grpc.CallOption) (*CreateCrudReply, error) {
-	out := new(CreateCrudReply)
-	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/CreateCrud", in, out, opts...)
+func (c *crudClient) CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*CreateRuleReply, error) {
+	out := new(CreateRuleReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/CreateRule", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crudClient) UpdateCrud(ctx context.Context, in *UpdateCrudRequest, opts ...grpc.CallOption) (*UpdateCrudReply, error) {
-	out := new(UpdateCrudReply)
-	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/UpdateCrud", in, out, opts...)
+func (c *crudClient) UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*UpdateRuleReply, error) {
+	out := new(UpdateRuleReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/UpdateRule", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crudClient) DeleteCrud(ctx context.Context, in *DeleteCrudRequest, opts ...grpc.CallOption) (*DeleteCrudReply, error) {
-	out := new(DeleteCrudReply)
-	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/DeleteCrud", in, out, opts...)
+func (c *crudClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*DeleteRuleReply, error) {
+	out := new(DeleteRuleReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/DeleteRule", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crudClient) GetCrud(ctx context.Context, in *GetCrudRequest, opts ...grpc.CallOption) (*GetCrudReply, error) {
-	out := new(GetCrudReply)
-	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/GetCrud", in, out, opts...)
+func (c *crudClient) RuleDetail(ctx context.Context, in *GetRuleDetailRequest, opts ...grpc.CallOption) (*GetRuleDetailReply, error) {
+	out := new(GetRuleDetailReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/RuleDetail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *crudClient) Strategies(ctx context.Context, in *StrategiesRequest, opts ...grpc.CallOption) (*StrategiesReply, error) {
+	out := new(StrategiesReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.Crud/Strategies", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,10 +86,11 @@ func (c *crudClient) GetCrud(ctx context.Context, in *GetCrudRequest, opts ...gr
 // All implementations must embed UnimplementedCrudServer
 // for forward compatibility
 type CrudServer interface {
-	CreateCrud(context.Context, *CreateCrudRequest) (*CreateCrudReply, error)
-	UpdateCrud(context.Context, *UpdateCrudRequest) (*UpdateCrudReply, error)
-	DeleteCrud(context.Context, *DeleteCrudRequest) (*DeleteCrudReply, error)
-	GetCrud(context.Context, *GetCrudRequest) (*GetCrudReply, error)
+	CreateRule(context.Context, *CreateRuleRequest) (*CreateRuleReply, error)
+	UpdateRule(context.Context, *UpdateRuleRequest) (*UpdateRuleReply, error)
+	DeleteRule(context.Context, *DeleteRuleRequest) (*DeleteRuleReply, error)
+	RuleDetail(context.Context, *GetRuleDetailRequest) (*GetRuleDetailReply, error)
+	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
 	mustEmbedUnimplementedCrudServer()
 }
 
@@ -87,17 +98,20 @@ type CrudServer interface {
 type UnimplementedCrudServer struct {
 }
 
-func (UnimplementedCrudServer) CreateCrud(context.Context, *CreateCrudRequest) (*CreateCrudReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateCrud not implemented")
+func (UnimplementedCrudServer) CreateRule(context.Context, *CreateRuleRequest) (*CreateRuleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRule not implemented")
 }
-func (UnimplementedCrudServer) UpdateCrud(context.Context, *UpdateCrudRequest) (*UpdateCrudReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateCrud not implemented")
+func (UnimplementedCrudServer) UpdateRule(context.Context, *UpdateRuleRequest) (*UpdateRuleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRule not implemented")
 }
-func (UnimplementedCrudServer) DeleteCrud(context.Context, *DeleteCrudRequest) (*DeleteCrudReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteCrud not implemented")
+func (UnimplementedCrudServer) DeleteRule(context.Context, *DeleteRuleRequest) (*DeleteRuleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
 }
-func (UnimplementedCrudServer) GetCrud(context.Context, *GetCrudRequest) (*GetCrudReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCrud not implemented")
+func (UnimplementedCrudServer) RuleDetail(context.Context, *GetRuleDetailRequest) (*GetRuleDetailReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RuleDetail not implemented")
+}
+func (UnimplementedCrudServer) Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Strategies not implemented")
 }
 func (UnimplementedCrudServer) mustEmbedUnimplementedCrudServer() {}
 
@@ -112,74 +126,92 @@ func RegisterCrudServer(s grpc.ServiceRegistrar, srv CrudServer) {
 	s.RegisterService(&Crud_ServiceDesc, srv)
 }
 
-func _Crud_CreateCrud_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCrudRequest)
+func _Crud_CreateRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRuleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrudServer).CreateCrud(ctx, in)
+		return srv.(CrudServer).CreateRule(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.strategy.v1.Crud/CreateCrud",
+		FullMethod: "/api.strategy.v1.Crud/CreateRule",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrudServer).CreateCrud(ctx, req.(*CreateCrudRequest))
+		return srv.(CrudServer).CreateRule(ctx, req.(*CreateRuleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Crud_UpdateCrud_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateCrudRequest)
+func _Crud_UpdateRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRuleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrudServer).UpdateCrud(ctx, in)
+		return srv.(CrudServer).UpdateRule(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.strategy.v1.Crud/UpdateCrud",
+		FullMethod: "/api.strategy.v1.Crud/UpdateRule",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrudServer).UpdateCrud(ctx, req.(*UpdateCrudRequest))
+		return srv.(CrudServer).UpdateRule(ctx, req.(*UpdateRuleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Crud_DeleteCrud_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCrudRequest)
+func _Crud_DeleteRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRuleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrudServer).DeleteCrud(ctx, in)
+		return srv.(CrudServer).DeleteRule(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.strategy.v1.Crud/DeleteCrud",
+		FullMethod: "/api.strategy.v1.Crud/DeleteRule",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrudServer).DeleteCrud(ctx, req.(*DeleteCrudRequest))
+		return srv.(CrudServer).DeleteRule(ctx, req.(*DeleteRuleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Crud_GetCrud_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCrudRequest)
+func _Crud_RuleDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRuleDetailRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrudServer).GetCrud(ctx, in)
+		return srv.(CrudServer).RuleDetail(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.strategy.v1.Crud/GetCrud",
+		FullMethod: "/api.strategy.v1.Crud/RuleDetail",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrudServer).GetCrud(ctx, req.(*GetCrudRequest))
+		return srv.(CrudServer).RuleDetail(ctx, req.(*GetRuleDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Crud_Strategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StrategiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CrudServer).Strategies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.strategy.v1.Crud/Strategies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CrudServer).Strategies(ctx, req.(*StrategiesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -192,20 +224,24 @@ var Crud_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CrudServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateCrud",
-			Handler:    _Crud_CreateCrud_Handler,
+			MethodName: "CreateRule",
+			Handler:    _Crud_CreateRule_Handler,
 		},
 		{
-			MethodName: "UpdateCrud",
-			Handler:    _Crud_UpdateCrud_Handler,
+			MethodName: "UpdateRule",
+			Handler:    _Crud_UpdateRule_Handler,
 		},
 		{
-			MethodName: "DeleteCrud",
-			Handler:    _Crud_DeleteCrud_Handler,
+			MethodName: "DeleteRule",
+			Handler:    _Crud_DeleteRule_Handler,
 		},
 		{
-			MethodName: "GetCrud",
-			Handler:    _Crud_GetCrud_Handler,
+			MethodName: "RuleDetail",
+			Handler:    _Crud_RuleDetail_Handler,
+		},
+		{
+			MethodName: "Strategies",
+			Handler:    _Crud_Strategies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -3,15 +3,17 @@ package service
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"go.opentelemetry.io/otel"
 	pb "prometheus-manager/api/strategy/v1"
 )
 
 type (
 	ICrudLogic interface {
-		CreateCrud(ctx context.Context, req *pb.CreateCrudRequest) (*pb.CreateCrudReply, error)
-		UpdateCrud(ctx context.Context, req *pb.UpdateCrudRequest) (*pb.UpdateCrudReply, error)
-		DeleteCrud(ctx context.Context, req *pb.DeleteCrudRequest) (*pb.DeleteCrudReply, error)
-		GetCrud(ctx context.Context, req *pb.GetCrudRequest) (*pb.GetCrudReply, error)
+		CreateRule(ctx context.Context, req *pb.CreateRuleRequest) (*pb.CreateRuleReply, error)
+		UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (*pb.UpdateRuleReply, error)
+		DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (*pb.DeleteRuleReply, error)
+		RuleDetail(ctx context.Context, req *pb.GetRuleDetailRequest) (*pb.GetRuleDetailReply, error)
+		Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error)
 	}
 
 	CrudService struct {
@@ -28,22 +30,32 @@ func NewCrudService(logic ICrudLogic, logger log.Logger) *CrudService {
 	return &CrudService{logic: logic, logger: log.NewHelper(log.With(logger, "module", "service/Crud"))}
 }
 
-func (l *CrudService) CreateCrud(ctx context.Context, req *pb.CreateCrudRequest) (*pb.CreateCrudReply, error) {
-	l.logger.Debugf("CreateCrud req: %v", req)
-	return l.logic.CreateCrud(ctx, req)
+func (l *CrudService) CreateRule(ctx context.Context, req *pb.CreateRuleRequest) (*pb.CreateRuleReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "CrudService.CreateRule")
+	defer span.End()
+	return l.logic.CreateRule(ctx, req)
 }
 
-func (l *CrudService) UpdateCrud(ctx context.Context, req *pb.UpdateCrudRequest) (*pb.UpdateCrudReply, error) {
-	l.logger.Debugf("UpdateCrud req: %v", req)
-	return l.logic.UpdateCrud(ctx, req)
+func (l *CrudService) UpdateRule(ctx context.Context, req *pb.UpdateRuleRequest) (*pb.UpdateRuleReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "CrudService.UpdateRule")
+	defer span.End()
+	return l.logic.UpdateRule(ctx, req)
 }
 
-func (l *CrudService) DeleteCrud(ctx context.Context, req *pb.DeleteCrudRequest) (*pb.DeleteCrudReply, error) {
-	l.logger.Debugf("DeleteCrud req: %v", req)
-	return l.logic.DeleteCrud(ctx, req)
+func (l *CrudService) DeleteRule(ctx context.Context, req *pb.DeleteRuleRequest) (*pb.DeleteRuleReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "CrudService.DeleteRule")
+	defer span.End()
+	return l.logic.DeleteRule(ctx, req)
 }
 
-func (l *CrudService) GetCrud(ctx context.Context, req *pb.GetCrudRequest) (*pb.GetCrudReply, error) {
-	l.logger.Debugf("GetCrud req: %v", req)
-	return l.logic.GetCrud(ctx, req)
+func (l *CrudService) RuleDetail(ctx context.Context, req *pb.GetRuleDetailRequest) (*pb.GetRuleDetailReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "CrudService.RuleDetail")
+	defer span.End()
+	return l.logic.RuleDetail(ctx, req)
+}
+
+func (l *CrudService) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "CrudService.Strategies")
+	defer span.End()
+	return l.logic.Strategies(ctx, req)
 }

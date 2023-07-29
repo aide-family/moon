@@ -95,16 +95,16 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
-    /strategy/v1/add:
+    /rule/v1/add:
         post:
             tags:
                 - Crud
-            operationId: Crud_CreateCrud
+            operationId: Crud_CreateRule
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.strategy.v1.CreateCrudRequest'
+                            $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
                 required: true
             responses:
                 "200":
@@ -112,36 +112,48 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.strategy.v1.CreateCrudReply'
-    /strategy/v1/delete/{id}:
+                                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
+    /rule/v1/delete/{id}:
         delete:
             tags:
                 - Crud
-            operationId: Crud_DeleteCrud
+            operationId: Crud_DeleteRule
             parameters:
                 - name: id
                   in: path
                   required: true
                   schema:
                     type: string
-                - name: nodes
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.strategy.v1.DeleteCrudReply'
-    /strategy/v1/edit/{id}:
+                                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
+    /rule/v1/detail/{id}:
+        get:
+            tags:
+                - Crud
+            operationId: Crud_RuleDetail
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.GetRuleDetailReply'
+    /rule/v1/edit/{id}:
         put:
             tags:
                 - Crud
-            operationId: Crud_UpdateCrud
+            operationId: Crud_UpdateRule
             parameters:
                 - name: id
                   in: path
@@ -152,7 +164,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.strategy.v1.UpdateCrudRequest'
+                            $ref: '#/components/schemas/api.strategy.v1.UpdateRuleRequest'
                 required: true
             responses:
                 "200":
@@ -160,14 +172,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.strategy.v1.UpdateCrudReply'
-    /strategy/v1/get/{id}:
+                                $ref: '#/components/schemas/api.strategy.v1.UpdateRuleReply'
+    /strategies/v1/{nodeId}:
         get:
             tags:
                 - Crud
-            operationId: Crud_GetCrud
+            operationId: Crud_Strategies
             parameters:
-                - name: id
+                - name: nodeId
                   in: path
                   required: true
                   schema:
@@ -178,7 +190,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.strategy.v1.GetCrudReply'
+                                $ref: '#/components/schemas/api.strategy.v1.StrategiesReply'
 components:
     schemas:
         api.PingReply:
@@ -252,46 +264,52 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.Strategy'
-        api.strategy.v1.CreateCrudReply:
+        api.strategy.v1.CreateRuleReply:
             type: object
             properties:
                 response:
                     $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.CreateCrudRequest:
+        api.strategy.v1.CreateRuleRequest:
             type: object
             properties:
-                nodes:
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
+                groupId:
+                    type: integer
+                    format: uint32
+        api.strategy.v1.DeleteRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.GetRuleDetailReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
+        api.strategy.v1.StrategiesReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                strategyDir:
                     type: array
                     items:
-                        type: string
-                strategyDir:
-                    $ref: '#/components/schemas/api.strategy.StrategyDir'
-        api.strategy.v1.DeleteCrudReply:
+                        $ref: '#/components/schemas/api.strategy.StrategyDir'
+        api.strategy.v1.UpdateRuleReply:
             type: object
             properties:
                 response:
                     $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.GetCrudReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.UpdateCrudReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.UpdateCrudRequest:
+        api.strategy.v1.UpdateRuleRequest:
             type: object
             properties:
                 id:
                     type: string
-                nodes:
-                    type: array
-                    items:
-                        type: string
-                strategyDir:
-                    $ref: '#/components/schemas/api.strategy.StrategyDir'
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
         api.strategy.v1.load.ReloadReply:
             type: object
             properties:

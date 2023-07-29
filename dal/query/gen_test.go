@@ -83,6 +83,7 @@ func Test_WithContext(t *testing.T) {
 		qCtx.PromNodeDirFile.UnderlyingDB().Statement.Context,
 		qCtx.PromNodeDirFileGroup.UnderlyingDB().Statement.Context,
 		qCtx.PromNodeDirFileGroupStrategy.UnderlyingDB().Statement.Context,
+		qCtx.PromRule.UnderlyingDB().Statement.Context,
 	} {
 		if v := ctx.Value(key); v != value {
 			t.Errorf("get value from context fail, expect %q, got %q", value, v)

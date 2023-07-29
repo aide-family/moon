@@ -23,6 +23,7 @@ var (
 	PromNodeDirFile              *promNodeDirFile
 	PromNodeDirFileGroup         *promNodeDirFileGroup
 	PromNodeDirFileGroupStrategy *promNodeDirFileGroupStrategy
+	PromRule                     *promRule
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -33,6 +34,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	PromNodeDirFile = &Q.PromNodeDirFile
 	PromNodeDirFileGroup = &Q.PromNodeDirFileGroup
 	PromNodeDirFileGroupStrategy = &Q.PromNodeDirFileGroupStrategy
+	PromRule = &Q.PromRule
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -44,6 +46,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		PromNodeDirFile:              newPromNodeDirFile(db, opts...),
 		PromNodeDirFileGroup:         newPromNodeDirFileGroup(db, opts...),
 		PromNodeDirFileGroupStrategy: newPromNodeDirFileGroupStrategy(db, opts...),
+		PromRule:                     newPromRule(db, opts...),
 	}
 }
 
@@ -56,6 +59,7 @@ type Query struct {
 	PromNodeDirFile              promNodeDirFile
 	PromNodeDirFileGroup         promNodeDirFileGroup
 	PromNodeDirFileGroupStrategy promNodeDirFileGroupStrategy
+	PromRule                     promRule
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -69,6 +73,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		PromNodeDirFile:              q.PromNodeDirFile.clone(db),
 		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.clone(db),
 		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.clone(db),
+		PromRule:                     q.PromRule.clone(db),
 	}
 }
 
@@ -89,6 +94,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		PromNodeDirFile:              q.PromNodeDirFile.replaceDB(db),
 		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.replaceDB(db),
 		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.replaceDB(db),
+		PromRule:                     q.PromRule.replaceDB(db),
 	}
 }
 
@@ -99,6 +105,7 @@ type queryCtx struct {
 	PromNodeDirFile              IPromNodeDirFileDo
 	PromNodeDirFileGroup         IPromNodeDirFileGroupDo
 	PromNodeDirFileGroupStrategy IPromNodeDirFileGroupStrategyDo
+	PromRule                     IPromRuleDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -109,6 +116,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		PromNodeDirFile:              q.PromNodeDirFile.WithContext(ctx),
 		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.WithContext(ctx),
 		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.WithContext(ctx),
+		PromRule:                     q.PromRule.WithContext(ctx),
 	}
 }
 

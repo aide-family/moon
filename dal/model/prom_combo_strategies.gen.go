@@ -8,8 +8,8 @@ const TableNamePromComboStrategy = "prom_combo_strategies"
 
 // PromComboStrategy mapped from table <prom_combo_strategies>
 type PromComboStrategy struct {
-	ComboID    int32 `gorm:"column:combo_id;type:int unsigned;primaryKey;uniqueIndex:idx_combo_id__strategy_id,priority:1" json:"combo_id"`
-	StrategyID int32 `gorm:"column:strategy_id;type:int unsigned;primaryKey;uniqueIndex:idx_combo_id__strategy_id,priority:2" json:"strategy_id"`
+	ComboID int32 `gorm:"column:combo_id;type:int unsigned;primaryKey;uniqueIndex:idx_combo_id__strategy_id,priority:1" json:"combo_id"`
+	RuleID  int32 `gorm:"column:rule_id;type:int unsigned;primaryKey;uniqueIndex:idx_combo_id__strategy_id,priority:2" json:"rule_id"`
 }
 
 // TableName PromComboStrategy's table name

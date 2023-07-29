@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/apps/master/internal/biz"
+	"prometheus-manager/dal/model"
 )
 
 type (
@@ -13,7 +14,7 @@ type (
 	}
 )
 
-func (l *CrudRepo) V1(ctx context.Context) string {
+func (l *CrudRepo) CreateStrategies(ctx context.Context, m *model.PromNodeDirFileGroupStrategy) error {
 	//TODO implement me
 	panic("implement me")
 }
