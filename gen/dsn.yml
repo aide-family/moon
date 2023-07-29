@@ -1,0 +1,1 @@
+root:password@tcp(localhost:3306)/prom?charset=utf8mb4&parseTime=True&loc=Local
