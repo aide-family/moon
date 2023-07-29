@@ -40,3 +40,4 @@ bin/
 **/configs/local*.yml
 **/*_temp/
 **/dsn.yml
+**/*_test.db

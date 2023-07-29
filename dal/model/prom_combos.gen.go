@@ -18,7 +18,7 @@ type PromCombo struct {
 	CreatedAt time.Time   `gorm:"column:created_at;type:timestamp;not null" json:"created_at"`
 	UpdatedAt *time.Time  `gorm:"column:updated_at;type:timestamp" json:"updated_at"`
 	DeletedAt int64       `gorm:"column:deleted_at;type:bigint unsigned;not null" json:"deleted_at"`
-	Rules     []*PromRule `gorm:"foreignKey:ComboID" json:"rules"`
+	Rules     []*PromRule `gorm:"many2many:prom_combo_strategies" json:"rules"`
 }
 
 // TableName PromCombo's table name

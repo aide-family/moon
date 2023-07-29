@@ -104,7 +104,7 @@ func GenerateStrategy(g *gen.Generator) {
 			rules,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"ComboID"},
+					"many2many": []string{"prom_combo_strategies"},
 				},
 				RelateSlicePointer: true,
 			},
@@ -117,7 +117,7 @@ func GenerateStrategy(g *gen.Generator) {
 			combos,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"RuleID"},
+					"many2many": []string{"prom_combo_strategies"},
 				},
 				RelateSlicePointer: true,
 			},

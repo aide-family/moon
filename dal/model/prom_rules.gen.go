@@ -21,7 +21,7 @@ type PromRule struct {
 	CreatedAt   time.Time    `gorm:"column:created_at;type:timestamp;not null;comment:创建时间" json:"created_at"`        // 创建时间
 	UpdatedAt   *time.Time   `gorm:"column:updated_at;type:timestamp;comment:更新时间" json:"updated_at"`                 // 更新时间
 	DeletedAt   int64        `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间" json:"deleted_at"`           // 删除时间
-	Combos      []*PromCombo `gorm:"foreignKey:RuleID" json:"combos"`
+	Combos      []*PromCombo `gorm:"many2many:prom_combo_strategies" json:"combos"`
 }
 
 // TableName PromRule's table name
