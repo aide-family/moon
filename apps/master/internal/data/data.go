@@ -4,6 +4,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"prometheus-manager/apps/master/internal/biz"
+	promV1Biz "prometheus-manager/apps/master/internal/biz/prom/v1"
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/pkg/conn"
 
@@ -18,6 +19,16 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.IPingRepo), new(*PingRepo)),
 	NewCrudRepo,
 	wire.Bind(new(biz.ICrudRepo), new(*CrudRepo)),
+	NewDirRepo,
+	wire.Bind(new(promV1Biz.IDirRepo), new(*DirRepo)),
+	NewFileRepo,
+	wire.Bind(new(promV1Biz.IFileRepo), new(*FileRepo)),
+	NewGroupRepo,
+	wire.Bind(new(promV1Biz.IGroupRepo), new(*GroupRepo)),
+	NewNodeRepo,
+	wire.Bind(new(promV1Biz.INodeRepo), new(*NodeRepo)),
+	NewRuleRepo,
+	wire.Bind(new(promV1Biz.IRuleRepo), new(*RuleRepo)),
 )
 
 type TransactionFunc func(tx *gorm.DB) error

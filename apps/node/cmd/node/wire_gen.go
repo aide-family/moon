@@ -25,9 +25,9 @@ import (
 
 // wireApp init kratos application.
 func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+	env := bootstrap.Env
 	confServer := bootstrap.Server
 	trace := bootstrap.Trace
-	env := bootstrap.Env
 	tracerProvider := conn.NewTracerProvider(trace, env)
 	strategy := bootstrap.Strategy
 	dataData, cleanup, err := data.NewData(strategy, logger)
@@ -49,7 +49,7 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pingService, pushService, loadService, pullService)
 	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pingService, pushService, loadService, pullService)
 	timer := server.NewTimer(strategy, logger, loadService)
-	app := newApp(logger, grpcServer, httpServer, timer)
+	app := newApp(env, logger, grpcServer, httpServer, timer)
 	return app, func() {
 		cleanup()
 	}, nil

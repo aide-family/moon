@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: strategy/v1/crud.proto
+// source: prom/v1/rule.proto
 
 package v1
 
@@ -19,36 +19,36 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationCrudCreateRule = "/api.strategy.v1.Crud/CreateRule"
-const OperationCrudDeleteRule = "/api.strategy.v1.Crud/DeleteRule"
-const OperationCrudRuleDetail = "/api.strategy.v1.Crud/RuleDetail"
-const OperationCrudStrategies = "/api.strategy.v1.Crud/Strategies"
-const OperationCrudUpdateRule = "/api.strategy.v1.Crud/UpdateRule"
+const OperationRuleCreateRule = "/api.prom.Rule/CreateRule"
+const OperationRuleDeleteRule = "/api.prom.Rule/DeleteRule"
+const OperationRuleGetRule = "/api.prom.Rule/GetRule"
+const OperationRuleListRule = "/api.prom.Rule/ListRule"
+const OperationRuleUpdateRule = "/api.prom.Rule/UpdateRule"
 
-type CrudHTTPServer interface {
+type RuleHTTPServer interface {
 	CreateRule(context.Context, *CreateRuleRequest) (*CreateRuleReply, error)
 	DeleteRule(context.Context, *DeleteRuleRequest) (*DeleteRuleReply, error)
-	RuleDetail(context.Context, *GetRuleDetailRequest) (*GetRuleDetailReply, error)
-	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
+	GetRule(context.Context, *GetRuleRequest) (*GetRuleReply, error)
+	ListRule(context.Context, *ListRuleRequest) (*ListRuleReply, error)
 	UpdateRule(context.Context, *UpdateRuleRequest) (*UpdateRuleReply, error)
 }
 
-func RegisterCrudHTTPServer(s *http.Server, srv CrudHTTPServer) {
+func RegisterRuleHTTPServer(s *http.Server, srv RuleHTTPServer) {
 	r := s.Route("/")
-	r.POST("/rule/v1/add", _Crud_CreateRule1_HTTP_Handler(srv))
-	r.PUT("/rule/v1/edit/{id}", _Crud_UpdateRule1_HTTP_Handler(srv))
-	r.DELETE("/rule/v1/delete/{id}", _Crud_DeleteRule1_HTTP_Handler(srv))
-	r.GET("/rule/v1/detail/{id}", _Crud_RuleDetail0_HTTP_Handler(srv))
-	r.GET("/strategies/v1/{node_id}", _Crud_Strategies2_HTTP_Handler(srv))
+	r.POST("/prom/v1/rule/add", _Rule_CreateRule0_HTTP_Handler(srv))
+	r.PUT("/prom/v1/rule/edit/{id}", _Rule_UpdateRule0_HTTP_Handler(srv))
+	r.DELETE("/prom/v1/rule/delete/{id}", _Rule_DeleteRule0_HTTP_Handler(srv))
+	r.GET("/prom/v1/rule/get/{id}", _Rule_GetRule0_HTTP_Handler(srv))
+	r.POST("/prom/v1/rule/list", _Rule_ListRule0_HTTP_Handler(srv))
 }
 
-func _Crud_CreateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Rule_CreateRule0_HTTP_Handler(srv RuleHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateRuleRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCrudCreateRule)
+		http.SetOperation(ctx, OperationRuleCreateRule)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.CreateRule(ctx, req.(*CreateRuleRequest))
 		})
@@ -61,7 +61,7 @@ func _Crud_CreateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Crud_UpdateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Rule_UpdateRule0_HTTP_Handler(srv RuleHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateRuleRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -70,7 +70,7 @@ func _Crud_UpdateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCrudUpdateRule)
+		http.SetOperation(ctx, OperationRuleUpdateRule)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UpdateRule(ctx, req.(*UpdateRuleRequest))
 		})
@@ -83,7 +83,7 @@ func _Crud_UpdateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Crud_DeleteRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Rule_DeleteRule0_HTTP_Handler(srv RuleHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteRuleRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -92,7 +92,7 @@ func _Crud_DeleteRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCrudDeleteRule)
+		http.SetOperation(ctx, OperationRuleDeleteRule)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.DeleteRule(ctx, req.(*DeleteRuleRequest))
 		})
@@ -105,71 +105,68 @@ func _Crud_DeleteRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Crud_RuleDetail0_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Rule_GetRule0_HTTP_Handler(srv RuleHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetRuleDetailRequest
+		var in GetRuleRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCrudRuleDetail)
+		http.SetOperation(ctx, OperationRuleGetRule)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RuleDetail(ctx, req.(*GetRuleDetailRequest))
+			return srv.GetRule(ctx, req.(*GetRuleRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetRuleDetailReply)
+		reply := out.(*GetRuleReply)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _Crud_Strategies2_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Rule_ListRule0_HTTP_Handler(srv RuleHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in StrategiesRequest
-		if err := ctx.BindQuery(&in); err != nil {
+		var in ListRuleRequest
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationCrudStrategies)
+		http.SetOperation(ctx, OperationRuleListRule)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.Strategies(ctx, req.(*StrategiesRequest))
+			return srv.ListRule(ctx, req.(*ListRuleRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*StrategiesReply)
+		reply := out.(*ListRuleReply)
 		return ctx.Result(200, reply)
 	}
 }
 
-type CrudHTTPClient interface {
+type RuleHTTPClient interface {
 	CreateRule(ctx context.Context, req *CreateRuleRequest, opts ...http.CallOption) (rsp *CreateRuleReply, err error)
 	DeleteRule(ctx context.Context, req *DeleteRuleRequest, opts ...http.CallOption) (rsp *DeleteRuleReply, err error)
-	RuleDetail(ctx context.Context, req *GetRuleDetailRequest, opts ...http.CallOption) (rsp *GetRuleDetailReply, err error)
-	Strategies(ctx context.Context, req *StrategiesRequest, opts ...http.CallOption) (rsp *StrategiesReply, err error)
+	GetRule(ctx context.Context, req *GetRuleRequest, opts ...http.CallOption) (rsp *GetRuleReply, err error)
+	ListRule(ctx context.Context, req *ListRuleRequest, opts ...http.CallOption) (rsp *ListRuleReply, err error)
 	UpdateRule(ctx context.Context, req *UpdateRuleRequest, opts ...http.CallOption) (rsp *UpdateRuleReply, err error)
 }
 
-type CrudHTTPClientImpl struct {
+type RuleHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewCrudHTTPClient(client *http.Client) CrudHTTPClient {
-	return &CrudHTTPClientImpl{client}
+func NewRuleHTTPClient(client *http.Client) RuleHTTPClient {
+	return &RuleHTTPClientImpl{client}
 }
 
-func (c *CrudHTTPClientImpl) CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...http.CallOption) (*CreateRuleReply, error) {
+func (c *RuleHTTPClientImpl) CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...http.CallOption) (*CreateRuleReply, error) {
 	var out CreateRuleReply
-	pattern := "/rule/v1/add"
+	pattern := "/prom/v1/rule/add"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationCrudCreateRule))
+	opts = append(opts, http.Operation(OperationRuleCreateRule))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -178,11 +175,11 @@ func (c *CrudHTTPClientImpl) CreateRule(ctx context.Context, in *CreateRuleReque
 	return &out, err
 }
 
-func (c *CrudHTTPClientImpl) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...http.CallOption) (*DeleteRuleReply, error) {
+func (c *RuleHTTPClientImpl) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...http.CallOption) (*DeleteRuleReply, error) {
 	var out DeleteRuleReply
-	pattern := "/rule/v1/delete/{id}"
+	pattern := "/prom/v1/rule/delete/{id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationCrudDeleteRule))
+	opts = append(opts, http.Operation(OperationRuleDeleteRule))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -191,11 +188,11 @@ func (c *CrudHTTPClientImpl) DeleteRule(ctx context.Context, in *DeleteRuleReque
 	return &out, err
 }
 
-func (c *CrudHTTPClientImpl) RuleDetail(ctx context.Context, in *GetRuleDetailRequest, opts ...http.CallOption) (*GetRuleDetailReply, error) {
-	var out GetRuleDetailReply
-	pattern := "/rule/v1/detail/{id}"
+func (c *RuleHTTPClientImpl) GetRule(ctx context.Context, in *GetRuleRequest, opts ...http.CallOption) (*GetRuleReply, error) {
+	var out GetRuleReply
+	pattern := "/prom/v1/rule/get/{id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationCrudRuleDetail))
+	opts = append(opts, http.Operation(OperationRuleGetRule))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -204,24 +201,24 @@ func (c *CrudHTTPClientImpl) RuleDetail(ctx context.Context, in *GetRuleDetailRe
 	return &out, err
 }
 
-func (c *CrudHTTPClientImpl) Strategies(ctx context.Context, in *StrategiesRequest, opts ...http.CallOption) (*StrategiesReply, error) {
-	var out StrategiesReply
-	pattern := "/strategies/v1/{node_id}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationCrudStrategies))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
-func (c *CrudHTTPClientImpl) UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...http.CallOption) (*UpdateRuleReply, error) {
-	var out UpdateRuleReply
-	pattern := "/rule/v1/edit/{id}"
+func (c *RuleHTTPClientImpl) ListRule(ctx context.Context, in *ListRuleRequest, opts ...http.CallOption) (*ListRuleReply, error) {
+	var out ListRuleReply
+	pattern := "/prom/v1/rule/list"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationCrudUpdateRule))
+	opts = append(opts, http.Operation(OperationRuleListRule))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *RuleHTTPClientImpl) UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...http.CallOption) (*UpdateRuleReply, error) {
+	var out UpdateRuleReply
+	pattern := "/prom/v1/rule/edit/{id}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationRuleUpdateRule))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

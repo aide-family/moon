@@ -5,30 +5,84 @@ package api.prom.v1;
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
+import "prom/node.proto";
 
 option go_package = "prometheus-manager/api/prom/v1;v1";
 option java_multiple_files = true;
 option java_package = "api.prom.v1";
 
 service Node {
-	rpc CreateNode (CreateNodeRequest) returns (CreateNodeReply);
-	rpc UpdateNode (UpdateNodeRequest) returns (UpdateNodeReply);
-	rpc DeleteNode (DeleteNodeRequest) returns (DeleteNodeReply);
-	rpc GetNode (GetNodeRequest) returns (GetNodeReply);
-	rpc ListNode (ListNodeRequest) returns (ListNodeReply);
+  rpc CreateNode (CreateNodeRequest) returns (CreateNodeReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/node/add"
+      body: "*"
+    };
+  }
+  rpc UpdateNode (UpdateNodeRequest) returns (UpdateNodeReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/node/edit/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteNode (DeleteNodeRequest) returns (DeleteNodeReply) {
+    option (google.api.http) = {
+      delete: "/prom/v1/node/delete/{id}"
+    };
+  }
+  rpc GetNode (GetNodeRequest) returns (GetNodeReply) {
+    option (google.api.http) = {
+      get: "/prom/v1/node/detail/{id}"
+    };
+  }
+  rpc ListNode (ListNodeRequest) returns (ListNodeReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/node/list"
+			body: "*"
+    };
+  }
 }
 
-message CreateNodeRequest {}
-message CreateNodeReply {}
+message CreateNodeRequest {
+  NodeItem node = 1 [(validate.rules).message.required = true];
+}
+message CreateNodeReply {
+  Response response = 1;
+}
 
-message UpdateNodeRequest {}
-message UpdateNodeReply {}
+message UpdateNodeRequest {
+  NodeItem node = 1 [(validate.rules).message.required = true];
+  uint32 id = 2 [(validate.rules).uint32 = {gt: 0}];
+}
+message UpdateNodeReply {
+  Response response = 1;
+}
 
-message DeleteNodeRequest {}
-message DeleteNodeReply {}
+message DeleteNodeRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteNodeReply {
+  Response response = 1;
+}
 
-message GetNodeRequest {}
-message GetNodeReply {}
+message GetNodeRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetNodeReply {
+  Response response = 1;
+  NodeItem node = 2;
+}
 
-message ListNodeRequest {}
-message ListNodeReply {}
+message ListNodeRequestParams {
+  string keyword = 1;
+  string name = 2;
+}
+
+message ListNodeRequest {
+  PageRequest page = 1;
+  ListNodeRequestParams params = 2;
+}
+message ListNodeReply {
+	Response response = 1;
+	repeated NodeItem list = 2;
+	PageReply page = 3;
+}

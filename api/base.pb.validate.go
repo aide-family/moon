@@ -168,3 +168,229 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ResponseValidationError{}
+
+// Validate checks the field values on PageRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PageRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PageRequestMultiError, or
+// nil if none found.
+func (m *PageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetCurrent() <= 0 {
+		err := PageRequestValidationError{
+			field:  "Current",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetSize() <= 0 {
+		err := PageRequestValidationError{
+			field:  "Size",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// PageRequestMultiError is an error wrapping multiple validation errors
+// returned by PageRequest.ValidateAll() if the designated constraints aren't met.
+type PageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PageRequestMultiError) AllErrors() []error { return m }
+
+// PageRequestValidationError is the validation error returned by
+// PageRequest.Validate if the designated constraints aren't met.
+type PageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PageRequestValidationError) ErrorName() string { return "PageRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PageRequestValidationError{}
+
+// Validate checks the field values on PageReply with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PageReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PageReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PageReplyMultiError, or nil
+// if none found.
+func (m *PageReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PageReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Current
+
+	// no validation rules for Size
+
+	// no validation rules for Total
+
+	if len(errors) > 0 {
+		return PageReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// PageReplyMultiError is an error wrapping multiple validation errors returned
+// by PageReply.ValidateAll() if the designated constraints aren't met.
+type PageReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PageReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PageReplyMultiError) AllErrors() []error { return m }
+
+// PageReplyValidationError is the validation error returned by
+// PageReply.Validate if the designated constraints aren't met.
+type PageReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PageReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PageReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PageReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PageReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PageReplyValidationError) ErrorName() string { return "PageReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PageReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPageReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PageReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PageReplyValidationError{}

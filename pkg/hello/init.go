@@ -1,12 +1,12 @@
-package main
+package hello
 
 import (
 	"fmt"
-	"prometheus-manager/apps/node/internal/conf"
+	"os"
 )
 
-func fmtASCIIGenerator(env *conf.Env) {
-	fmt.Println(Name + " service starting...")
+func FmtASCIIGenerator(name, version string, metadata map[string]string) {
+	fmt.Println(name + " service starting...")
 
 	fmt.Println(`┌───────────────────────────────────────────────────────────────────────────────────────┐
 │                                      _____  _____   ______                            │
@@ -18,15 +18,19 @@ func fmtASCIIGenerator(env *conf.Env) {
 │                                 good luck and no bug                                  │
 └───────────────────────────────────────────────────────────────────────────────────────┘`)
 
+	id, _ := os.Hostname()
+
 	detail := `
 ┌──────────────────────────────────────────────────────────────────────────────────────`
 
-	detail += fmt.Sprintf("\n├── %s: %s", "Name", Name)
-	detail += fmt.Sprintf("\n├── %s: %s", "Version", Version)
+	detail += fmt.Sprintf("\n├── %s: %s", "Name", name)
+	detail += fmt.Sprintf("\n├── %s: %s", "Version", version)
 	detail += fmt.Sprintf("\n├── %s: %s", "ID", id)
-	detail += fmt.Sprintf("\n├── %s: %s", "Metadata", "")
-	for k, p := range env.Metadata {
-		detail += fmt.Sprintf("\n├────── %s: %s", k, p)
+	if metadata != nil {
+		detail += fmt.Sprintf("\n├── %s: %s", "Metadata", "")
+		for k, p := range metadata {
+			detail += fmt.Sprintf("\n├────── %s: %s", k, p)
+		}
 	}
 
 	detail += `
