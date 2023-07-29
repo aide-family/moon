@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gorm"
@@ -11,10 +12,17 @@ import (
 //go:embed dsn.yml
 var dsn string
 
+var dsnFlag = flag.String("dsn", "", "dsn file path")
+
 func main() {
-	if dsn == "" {
+	if dsn == "" && *dsnFlag == "" {
 		panic("dsn is empty")
 	}
+
+	if *dsnFlag != "" {
+		dsn = *dsnFlag
+	}
+
 	g := gen.NewGenerator(gen.Config{
 		Mode: gen.WithDefaultQuery | gen.WithQueryInterface | gen.WithoutContext,
 		//FieldNullable: true,
