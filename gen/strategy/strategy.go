@@ -26,6 +26,7 @@ func GenerateStrategy(g *gen.Generator) {
 	groupsTableName := joinModuleName("node_dir_file_groups")
 	strategiesTableName := joinModuleName("node_dir_file_group_strategies")
 	combosTableName := joinModuleName("combos")
+	rulesTableName := joinModuleName("rules")
 	comboStrategiesTableName := joinModuleName("combo_strategies")
 
 	strategies := g.GenerateModel(strategiesTableName)
@@ -35,6 +36,7 @@ func GenerateStrategy(g *gen.Generator) {
 	promNodes := g.GenerateModel(promNodesTableName)
 	combos := g.GenerateModel(combosTableName)
 	g.GenerateModel(comboStrategiesTableName)
+	rules := g.GenerateModel(rulesTableName)
 
 	g.ApplyInterface(func(Filter) {}, strategies)
 	g.ApplyInterface(func(Filter) {}, groups)
@@ -42,6 +44,7 @@ func GenerateStrategy(g *gen.Generator) {
 	g.ApplyInterface(func(Filter) {}, nodeDirs)
 	g.ApplyInterface(func(Filter) {}, promNodes)
 	g.ApplyInterface(func(Filter) {}, combos)
+	g.ApplyInterface(func(Filter) {}, rules)
 
 	g.GenerateModel(groupsTableName,
 		gen.FieldRelate(field.HasMany,
@@ -97,24 +100,24 @@ func GenerateStrategy(g *gen.Generator) {
 
 	g.GenerateModel(combosTableName,
 		gen.FieldRelate(field.Many2Many,
-			"Strategies",
-			strategies,
+			"Rules",
+			rules,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"combo_id"},
+					"foreignKey": []string{"ComboID"},
 				},
 				RelateSlicePointer: true,
 			},
 		),
 	)
 
-	g.GenerateModel(strategiesTableName,
+	g.GenerateModel(rulesTableName,
 		gen.FieldRelate(field.Many2Many,
-			"Strategies",
+			"Combos",
 			combos,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"strategy_id"},
+					"foreignKey": []string{"RuleID"},
 				},
 				RelateSlicePointer: true,
 			},

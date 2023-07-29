@@ -12,13 +12,13 @@ const TableNamePromCombo = "prom_combos"
 
 // PromCombo mapped from table <prom_combos>
 type PromCombo struct {
-	ID         int32                           `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	Name       string                          `gorm:"column:name;type:varchar(64);not null;comment:套餐名称" json:"name"`       // 套餐名称
-	Remark     string                          `gorm:"column:remark;type:varchar(2048);not null;comment:套餐说明" json:"remark"` // 套餐说明
-	CreatedAt  time.Time                       `gorm:"column:created_at;type:timestamp;not null" json:"created_at"`
-	UpdatedAt  *time.Time                      `gorm:"column:updated_at;type:timestamp" json:"updated_at"`
-	DeletedAt  int64                           `gorm:"column:deleted_at;type:bigint unsigned;not null" json:"deleted_at"`
-	Strategies []*PromNodeDirFileGroupStrategy `gorm:"foreignKey:combo_id" json:"strategies"`
+	ID        int32       `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	Name      string      `gorm:"column:name;type:varchar(64);not null;comment:套餐名称" json:"name"`       // 套餐名称
+	Remark    string      `gorm:"column:remark;type:varchar(2048);not null;comment:套餐说明" json:"remark"` // 套餐说明
+	CreatedAt time.Time   `gorm:"column:created_at;type:timestamp;not null" json:"created_at"`
+	UpdatedAt *time.Time  `gorm:"column:updated_at;type:timestamp" json:"updated_at"`
+	DeletedAt int64       `gorm:"column:deleted_at;type:bigint unsigned;not null" json:"deleted_at"`
+	Rules     []*PromRule `gorm:"foreignKey:ComboID" json:"rules"`
 }
 
 // TableName PromCombo's table name

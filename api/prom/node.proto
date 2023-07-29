@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package api.prom;
+
+import "validate/validate.proto";
+
+option go_package = "prometheus-manager/api/prom;prom";
+option java_multiple_files = true;
+option java_package = "api.prom";
+
+message NodeItem {
+  string en_name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string cn_name = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string datasource = 3 [(validate.rules).string = {min_len: 1, max_len: 1024}];
+  string remark = 4 [(validate.rules).string = {min_len: 0, max_len: 255}];
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message DirItem {
+  uint32 node_id = 1 [(validate.rules).uint32 = {
+    gt: 0,
+    lt: 4294967295,
+    ignore_empty: true,
+  }];
+  string path = 2 [(validate.rules).string = {min_len: 1, max_len: 1024}];
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message FileItem {
+  string filename = 1 [(validate.rules).string = {
+    min_len: 1, max_len: 1024,
+    // 后缀
+    pattern: "^.*\\.(yml|yaml)$",
+  }];
+  uint32 dir_id = 2 [(validate.rules).uint32 = {
+    gt: 0,
+    lt: 4294967295,
+    ignore_empty: true,
+  }];
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message GroupItem {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
+  uint32 file_id = 3 [(validate.rules).uint32 = {
+    gt: 0,
+    lt: 4294967295,
+    ignore_empty: true,
+  }];
+  int64 created_at = 5 [(validate.rules).int64 = {
+    gt: 0,
+    lt: 9223372036854775807,
+    ignore_empty: true,
+  }];
+  int64 updated_at = 6;
+}
+
+message RuleItem {
+  uint32 group_id = 1 [(validate.rules).uint32 = {
+    gt: 0,
+    lt: 4294967295,
+    ignore_empty: true,
+  }];
+  string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string expr = 3 [(validate.rules).string = {min_len: 1, max_len: 4096}];
+  string for = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 64,
+    // 后缀
+    pattern: "^\\d+(s|m|h)$",
+  }];
+  map<string, string> labels = 5 [(validate.rules).map = {
+    keys: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+    values: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+  }];
+  map<string, string> annotations = 6 [(validate.rules).map = {
+    keys: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+    values: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+  }];
+  int64 created_at = 7;
+  int64 updated_at = 8;
+}
+
+message ComboRuleItem {
+  string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string expr = 3 [(validate.rules).string = {min_len: 1, max_len: 4096}];
+  string for = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 64,
+    // 后缀
+    pattern: "^\\d+(s|m|h)$",
+  }];
+  map<string, string> labels = 5 [(validate.rules).map = {
+    keys: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+    values: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+  }];
+  map<string, string> annotations = 6 [(validate.rules).map = {
+    keys: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+    values: {
+      string: {
+        min_len: 1,
+        max_len: 64,
+      },
+    },
+  }];
+  int64 created_at = 7;
+  int64 updated_at = 8;
+}
+
+message ComboItem {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 2048}];
+  int64 created_at = 5;
+  int64 updated_at = 6;
+  repeated ComboRuleItem rules = 7;
+}

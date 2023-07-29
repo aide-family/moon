@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package api.prom.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/prom/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.prom.v1";
+
+service Node {
+	rpc CreateNode (CreateNodeRequest) returns (CreateNodeReply);
+	rpc UpdateNode (UpdateNodeRequest) returns (UpdateNodeReply);
+	rpc DeleteNode (DeleteNodeRequest) returns (DeleteNodeReply);
+	rpc GetNode (GetNodeRequest) returns (GetNodeReply);
+	rpc ListNode (ListNodeRequest) returns (ListNodeReply);
+}
+
+message CreateNodeRequest {}
+message CreateNodeReply {}
+
+message UpdateNodeRequest {}
+message UpdateNodeReply {}
+
+message DeleteNodeRequest {}
+message DeleteNodeReply {}
+
+message GetNodeRequest {}
+message GetNodeReply {}
+
+message ListNodeRequest {}
+message ListNodeReply {}
