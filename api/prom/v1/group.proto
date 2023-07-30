@@ -83,5 +83,5 @@ message ListGroupRequest {
 message ListGroupReply {
 	Response response = 1;
 	PageReply page = 2;
-	repeated GroupItem lig = 3;
+	repeated GroupItem list = 3;
 }

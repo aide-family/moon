@@ -146,17 +146,17 @@ func Test_promRuleQuery(t *testing.T) {
 	}
 }
 
-var PromRuleWhereIDTestCase = []TestCase{}
+var PromRuleFindByIdTestCase = []TestCase{}
 
-func Test_promRule_WhereID(t *testing.T) {
+func Test_promRule_FindById(t *testing.T) {
 	promRule := newPromRule(db)
 	do := promRule.WithContext(context.Background()).Debug()
 
-	for i, tt := range PromRuleWhereIDTestCase {
-		t.Run("WhereID_"+strconv.Itoa(i), func(t *testing.T) {
-			res1, res2 := do.WhereID(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(uint))
-			assert(t, "WhereID", res1, tt.Expectation.Ret[0])
-			assert(t, "WhereID", res2, tt.Expectation.Ret[1])
+	for i, tt := range PromRuleFindByIdTestCase {
+		t.Run("FindById_"+strconv.Itoa(i), func(t *testing.T) {
+			res1, res2 := do.FindById(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(int32))
+			assert(t, "FindById", res1, tt.Expectation.Ret[0])
+			assert(t, "FindById", res2, tt.Expectation.Ret[1])
 		})
 	}
 }

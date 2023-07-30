@@ -105,6 +105,8 @@ func (m *NodeItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for Id
+
 	if len(errors) > 0 {
 		return NodeItemMultiError(errors)
 	}

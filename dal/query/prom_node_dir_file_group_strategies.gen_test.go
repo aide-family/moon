@@ -146,17 +146,17 @@ func Test_promNodeDirFileGroupStrategyQuery(t *testing.T) {
 	}
 }
 
-var PromNodeDirFileGroupStrategyWhereIDTestCase = []TestCase{}
+var PromNodeDirFileGroupStrategyFindByIdTestCase = []TestCase{}
 
-func Test_promNodeDirFileGroupStrategy_WhereID(t *testing.T) {
+func Test_promNodeDirFileGroupStrategy_FindById(t *testing.T) {
 	promNodeDirFileGroupStrategy := newPromNodeDirFileGroupStrategy(db)
 	do := promNodeDirFileGroupStrategy.WithContext(context.Background()).Debug()
 
-	for i, tt := range PromNodeDirFileGroupStrategyWhereIDTestCase {
-		t.Run("WhereID_"+strconv.Itoa(i), func(t *testing.T) {
-			res1, res2 := do.WhereID(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(uint))
-			assert(t, "WhereID", res1, tt.Expectation.Ret[0])
-			assert(t, "WhereID", res2, tt.Expectation.Ret[1])
+	for i, tt := range PromNodeDirFileGroupStrategyFindByIdTestCase {
+		t.Run("FindById_"+strconv.Itoa(i), func(t *testing.T) {
+			res1, res2 := do.FindById(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(int32))
+			assert(t, "FindById", res1, tt.Expectation.Ret[0])
+			assert(t, "FindById", res2, tt.Expectation.Ret[1])
 		})
 	}
 }

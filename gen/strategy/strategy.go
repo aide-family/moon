@@ -9,7 +9,7 @@ import (
 type (
 	Filter interface {
 		// select * from @@table where id = @id
-		WhereID(ctx context.Context, id uint) (*gen.T, error)
+		FindById(ctx context.Context, id int32) (*gen.T, error)
 	}
 )
 

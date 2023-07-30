@@ -146,17 +146,17 @@ func Test_promComboQuery(t *testing.T) {
 	}
 }
 
-var PromComboWhereIDTestCase = []TestCase{}
+var PromComboFindByIdTestCase = []TestCase{}
 
-func Test_promCombo_WhereID(t *testing.T) {
+func Test_promCombo_FindById(t *testing.T) {
 	promCombo := newPromCombo(db)
 	do := promCombo.WithContext(context.Background()).Debug()
 
-	for i, tt := range PromComboWhereIDTestCase {
-		t.Run("WhereID_"+strconv.Itoa(i), func(t *testing.T) {
-			res1, res2 := do.WhereID(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(uint))
-			assert(t, "WhereID", res1, tt.Expectation.Ret[0])
-			assert(t, "WhereID", res2, tt.Expectation.Ret[1])
+	for i, tt := range PromComboFindByIdTestCase {
+		t.Run("FindById_"+strconv.Itoa(i), func(t *testing.T) {
+			res1, res2 := do.FindById(tt.Input.Args[0].(context.Context), tt.Input.Args[1].(int32))
+			assert(t, "FindById", res1, tt.Expectation.Ret[0])
+			assert(t, "FindById", res2, tt.Expectation.Ret[1])
 		})
 	}
 }
