@@ -1,0 +1,17 @@
+@alarmColor: rgb(var(--red-7)), rgb(var(--red-5)), rgb(var(--orange-6)), rgb(var(--orange-4)), rgb(var(--arcoblue-4)), rgb(var(--green-4));
+@colorListLength: length(@alarmColor);
+
+.loopColor(@index) when (@index <= @colorListLength) {
+  @color: extract(@alarmColor, @index + 1);
+  .priority-@{index} .arco-table-td {
+    background: @color;
+  }
+  .loopColor(@index + 1);
+}
+
+.loopColor(0);
+
+.arco-table-td.arco-table-col-fixed-left, .arco-table-td.arco-table-col-fixed-right {
+  background-color: var(--color-bg-2);
+  text-align: center;
+}
