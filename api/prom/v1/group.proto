@@ -31,7 +31,7 @@ service Group {
 	}
 	rpc GetGroup (GetGroupRequest) returns (GetGroupReply) {
 		option (google.api.http) = {
-			get: "/prom/v1/group/{id}"
+			get: "/prom/v1/group/detail/{id}"
 		};
 	}
 	rpc ListGroup (ListGroupRequest) returns (ListGroupReply) {

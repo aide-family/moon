@@ -36,7 +36,7 @@ func newPromRule(db *gorm.DB, opts ...gen.DOOption) promRule {
 	_promRule.Annotations = field.NewString(tableName, "annotations")
 	_promRule.CreatedAt = field.NewTime(tableName, "created_at")
 	_promRule.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promRule.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promRule.DeletedAt = field.NewField(tableName, "deleted_at")
 
 	_promRule.fillFieldMap()
 
@@ -55,7 +55,7 @@ type promRule struct {
 	Annotations field.String // 内容
 	CreatedAt   field.Time   // 创建时间
 	UpdatedAt   field.Time   // 更新时间
-	DeletedAt   field.Int64  // 删除时间
+	DeletedAt   field.Field  // 删除时间
 
 	fieldMap map[string]field.Expr
 }
@@ -80,7 +80,7 @@ func (p *promRule) updateTableName(table string) *promRule {
 	p.Annotations = field.NewString(table, "annotations")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 
 	p.fillFieldMap()
 

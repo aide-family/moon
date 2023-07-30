@@ -38,7 +38,7 @@ func RegisterFileHTTPServer(s *http.Server, srv FileHTTPServer) {
 	r.POST("/prom/v1/file/add", _File_CreateFile0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/file/edit/{id}", _File_UpdateFile0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/file/delete/{id}", _File_DeleteFile0_HTTP_Handler(srv))
-	r.GET("/prom/v1/file/{id}", _File_GetFile0_HTTP_Handler(srv))
+	r.GET("/prom/v1/file/detail/{id}", _File_GetFile0_HTTP_Handler(srv))
 	r.POST("/prom/v1/file/list", _File_ListFile0_HTTP_Handler(srv))
 }
 
@@ -190,7 +190,7 @@ func (c *FileHTTPClientImpl) DeleteFile(ctx context.Context, in *DeleteFileReque
 
 func (c *FileHTTPClientImpl) GetFile(ctx context.Context, in *GetFileRequest, opts ...http.CallOption) (*GetFileReply, error) {
 	var out GetFileReply
-	pattern := "/prom/v1/file/{id}"
+	pattern := "/prom/v1/file/detail/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationFileGetFile))
 	opts = append(opts, http.PathTemplate(pattern))

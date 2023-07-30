@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"gorm.io/gen"
 	promBizV1 "prometheus-manager/apps/master/internal/biz/prom/v1"
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
+	"prometheus-manager/pkg/util/stringer"
 )
 
 type (
@@ -19,15 +21,19 @@ type (
 
 func (l *GroupRepo) CreateGroup(ctx context.Context, m *model.PromNodeDirFileGroup) error {
 	ctx, span := otel.Tracer("data").Start(ctx, "GroupRepo.CreateGroup")
+	span.SetAttributes(attribute.Stringer("model", stringer.New(m)))
 	defer span.End()
 	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.Create(m)
 }
 
 func (l *GroupRepo) UpdateGroupById(ctx context.Context, id uint32, m *model.PromNodeDirFileGroup) error {
 	ctx, span := otel.Tracer("data").Start(ctx, "GroupRepo.UpdateGroupById")
+	span.SetAttributes(attribute.Stringer("model", stringer.New(m)))
 	defer span.End()
 
-	if _, err := query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.Where(query.PromNodeDirFileGroup.ID.Eq(int32(id))).Updates(m); err != nil {
+	modelInstance := query.Use(l.data.DB()).PromNodeDirFileGroup
+	db := modelInstance.WithContext(ctx)
+	if _, err := db.Where(modelInstance.ID.Eq(int32(id))).Updates(m); err != nil {
 		return err
 	}
 
@@ -36,9 +42,12 @@ func (l *GroupRepo) UpdateGroupById(ctx context.Context, id uint32, m *model.Pro
 
 func (l *GroupRepo) DeleteGroupById(ctx context.Context, id uint32) error {
 	ctx, span := otel.Tracer("data").Start(ctx, "GroupRepo.DeleteGroupById")
+	span.SetAttributes(attribute.Int("id", int(id)))
 	defer span.End()
 
-	if _, err := query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.Where(query.PromNodeDirFileGroup.ID.Eq(int32(id))).Delete(); err != nil {
+	modelInstance := query.Use(l.data.DB()).PromNodeDirFileGroup
+	db := modelInstance.WithContext(ctx)
+	if _, err := db.Where(modelInstance.ID.Eq(int32(id))).Delete(); err != nil {
 		return err
 	}
 
@@ -47,6 +56,7 @@ func (l *GroupRepo) DeleteGroupById(ctx context.Context, id uint32) error {
 
 func (l *GroupRepo) GetGroupById(ctx context.Context, id uint32) (*model.PromNodeDirFileGroup, error) {
 	ctx, span := otel.Tracer("data").Start(ctx, "GroupRepo.GetGroupById")
+	span.SetAttributes(attribute.Int("id", int(id)))
 	defer span.End()
 
 	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.FindById(ctx, int32(id))
@@ -54,12 +64,15 @@ func (l *GroupRepo) GetGroupById(ctx context.Context, id uint32) (*model.PromNod
 
 func (l *GroupRepo) ListGroup(ctx context.Context, q *promBizV1.GroupListQueryParams) ([]*model.PromNodeDirFileGroup, int64, error) {
 	ctx, span := otel.Tracer("data").Start(ctx, "GroupRepo.ListGroup")
+	span.SetAttributes(attribute.Stringer("query", stringer.New(q)))
 	defer span.End()
 
-	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.Scopes(
+	modelInstance := query.Use(l.data.DB()).PromNodeDirFileGroup
+	db := modelInstance.WithContext(ctx)
+	return db.Scopes(
 		func(dao gen.Dao) gen.Dao {
 			if q.Keyword != "" {
-				dao = dao.Where(query.PromNodeDirFileGroup.Name.Like("%" + q.Keyword + "%"))
+				dao = dao.Where(modelInstance.Name.Like("%" + q.Keyword + "%"))
 			}
 			return dao
 		},

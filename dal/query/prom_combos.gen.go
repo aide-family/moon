@@ -33,7 +33,7 @@ func newPromCombo(db *gorm.DB, opts ...gen.DOOption) promCombo {
 	_promCombo.Remark = field.NewString(tableName, "remark")
 	_promCombo.CreatedAt = field.NewTime(tableName, "created_at")
 	_promCombo.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promCombo.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promCombo.DeletedAt = field.NewField(tableName, "deleted_at")
 
 	_promCombo.fillFieldMap()
 
@@ -49,7 +49,7 @@ type promCombo struct {
 	Remark    field.String // 套餐说明
 	CreatedAt field.Time
 	UpdatedAt field.Time
-	DeletedAt field.Int64
+	DeletedAt field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -71,7 +71,7 @@ func (p *promCombo) updateTableName(table string) *promCombo {
 	p.Remark = field.NewString(table, "remark")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 
 	p.fillFieldMap()
 

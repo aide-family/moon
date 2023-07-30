@@ -31,7 +31,7 @@ service Rule {
   }
   rpc GetRule (GetRuleRequest) returns (GetRuleReply) {
     option (google.api.http) = {
-      get: "/prom/v1/rule/get/{id}"
+      get: "/prom/v1/rule/detail/{id}"
     };
   }
   rpc ListRule (ListRuleRequest) returns (ListRuleReply) {

@@ -37,7 +37,7 @@ func newPromNodeDirFileGroupStrategy(db *gorm.DB, opts ...gen.DOOption) promNode
 	_promNodeDirFileGroupStrategy.Annotations = field.NewString(tableName, "annotations")
 	_promNodeDirFileGroupStrategy.CreatedAt = field.NewTime(tableName, "created_at")
 	_promNodeDirFileGroupStrategy.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promNodeDirFileGroupStrategy.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promNodeDirFileGroupStrategy.DeletedAt = field.NewField(tableName, "deleted_at")
 
 	_promNodeDirFileGroupStrategy.fillFieldMap()
 
@@ -57,7 +57,7 @@ type promNodeDirFileGroupStrategy struct {
 	Annotations field.String // 内容
 	CreatedAt   field.Time   // 创建时间
 	UpdatedAt   field.Time   // 更新时间
-	DeletedAt   field.Int64  // 删除时间
+	DeletedAt   field.Field  // 删除时间
 
 	fieldMap map[string]field.Expr
 }
@@ -83,7 +83,7 @@ func (p *promNodeDirFileGroupStrategy) updateTableName(table string) *promNodeDi
 	p.Annotations = field.NewString(table, "annotations")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 
 	p.fillFieldMap()
 

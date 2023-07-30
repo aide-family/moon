@@ -38,7 +38,7 @@ func RegisterRuleHTTPServer(s *http.Server, srv RuleHTTPServer) {
 	r.POST("/prom/v1/rule/add", _Rule_CreateRule0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/rule/edit/{id}", _Rule_UpdateRule0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/rule/delete/{id}", _Rule_DeleteRule0_HTTP_Handler(srv))
-	r.GET("/prom/v1/rule/get/{id}", _Rule_GetRule0_HTTP_Handler(srv))
+	r.GET("/prom/v1/rule/detail/{id}", _Rule_GetRule0_HTTP_Handler(srv))
 	r.POST("/prom/v1/rule/list", _Rule_ListRule0_HTTP_Handler(srv))
 }
 
@@ -190,7 +190,7 @@ func (c *RuleHTTPClientImpl) DeleteRule(ctx context.Context, in *DeleteRuleReque
 
 func (c *RuleHTTPClientImpl) GetRule(ctx context.Context, in *GetRuleRequest, opts ...http.CallOption) (*GetRuleReply, error) {
 	var out GetRuleReply
-	pattern := "/prom/v1/rule/get/{id}"
+	pattern := "/prom/v1/rule/detail/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationRuleGetRule))
 	opts = append(opts, http.PathTemplate(pattern))

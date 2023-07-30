@@ -31,7 +31,7 @@ service Dir {
   }
   rpc GetDir (GetDirRequest) returns (GetDirReply) {
     option (google.api.http) = {
-      get: "/prom/v1/dir/{id}"
+      get: "/prom/v1/dir/detail/{id}"
     };
   }
   rpc ListDir (ListDirRequest) returns (ListDirReply) {

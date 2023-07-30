@@ -22,6 +22,8 @@ enum ClientReason {
 enum ServerReason {
   option (errors.default_code) = 500; // 默认错误码
   SERVER_UNKNOWN = 0 [(errors.code) = 501]; // 服务端未知错误
+  SERVER_DATA_NOT_FOUND = 1 [(errors.code) = 502]; // 数据不存在
+  SERVER_DATABASE_ERROR = 2 [(errors.code) = 503]; // 数据库错误
 }
 
 // 逻辑错误
