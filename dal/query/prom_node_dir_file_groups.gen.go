@@ -173,11 +173,11 @@ type IPromNodeDirFileGroupDo interface {
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	WhereID(ctx context.Context, id uint) (result *model.PromNodeDirFileGroup, err error)
+	FindById(ctx context.Context, id int32) (result *model.PromNodeDirFileGroup, err error)
 }
 
 // select * from @@table where id = @id
-func (p promNodeDirFileGroupDo) WhereID(ctx context.Context, id uint) (result *model.PromNodeDirFileGroup, err error) {
+func (p promNodeDirFileGroupDo) FindById(ctx context.Context, id int32) (result *model.PromNodeDirFileGroup, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder

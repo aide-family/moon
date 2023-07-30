@@ -930,7 +930,7 @@ components:
                     $ref: '#/components/schemas/api.Response'
                 page:
                     $ref: '#/components/schemas/api.PageReply'
-                lig:
+                list:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.prom.GroupItem'
@@ -986,6 +986,9 @@ components:
                 updatedAt:
                     type: integer
                     format: int64
+                id:
+                    type: integer
+                    format: uint32
         api.prom.RuleItem:
             type: object
             properties:

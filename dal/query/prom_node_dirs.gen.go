@@ -169,11 +169,11 @@ type IPromNodeDirDo interface {
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	WhereID(ctx context.Context, id uint) (result *model.PromNodeDir, err error)
+	FindById(ctx context.Context, id int32) (result *model.PromNodeDir, err error)
 }
 
 // select * from @@table where id = @id
-func (p promNodeDirDo) WhereID(ctx context.Context, id uint) (result *model.PromNodeDir, err error) {
+func (p promNodeDirDo) FindById(ctx context.Context, id int32) (result *model.PromNodeDir, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder

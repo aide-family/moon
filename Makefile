@@ -137,7 +137,7 @@ all:
 .PHONY: model
 # generate model
 model:
-	@go run gen/main.go
+	@cd gen && go run main.go
 	@git add .
 
 # show help

@@ -169,11 +169,11 @@ type IPromComboDo interface {
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	WhereID(ctx context.Context, id uint) (result *model.PromCombo, err error)
+	FindById(ctx context.Context, id int32) (result *model.PromCombo, err error)
 }
 
 // select * from @@table where id = @id
-func (p promComboDo) WhereID(ctx context.Context, id uint) (result *model.PromCombo, err error) {
+func (p promComboDo) FindById(ctx context.Context, id int32) (result *model.PromCombo, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder

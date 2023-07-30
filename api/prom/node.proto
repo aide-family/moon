@@ -15,6 +15,7 @@ message NodeItem {
   string remark = 4 [(validate.rules).string = {min_len: 0, max_len: 255}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  uint32 id = 99;
 }
 
 message DirItem {

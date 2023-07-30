@@ -5,9 +5,11 @@ package main
 import (
 	_ "embed"
 	"flag"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gorm"
+
 	"prometheus-manager/gen/strategy"
 )
 

@@ -1450,7 +1450,7 @@ func (m *ListGroupReply) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetLig() {
+	for idx, item := range m.GetList() {
 		_, _ = idx, item
 
 		if all {
@@ -1458,7 +1458,7 @@ func (m *ListGroupReply) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListGroupReplyValidationError{
-						field:  fmt.Sprintf("Lig[%v]", idx),
+						field:  fmt.Sprintf("List[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1466,7 +1466,7 @@ func (m *ListGroupReply) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListGroupReplyValidationError{
-						field:  fmt.Sprintf("Lig[%v]", idx),
+						field:  fmt.Sprintf("List[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1475,7 +1475,7 @@ func (m *ListGroupReply) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListGroupReplyValidationError{
-					field:  fmt.Sprintf("Lig[%v]", idx),
+					field:  fmt.Sprintf("List[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
