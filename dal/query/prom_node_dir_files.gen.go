@@ -32,7 +32,7 @@ func newPromNodeDirFile(db *gorm.DB, opts ...gen.DOOption) promNodeDirFile {
 	_promNodeDirFile.Filename = field.NewString(tableName, "filename")
 	_promNodeDirFile.CreatedAt = field.NewTime(tableName, "created_at")
 	_promNodeDirFile.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promNodeDirFile.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promNodeDirFile.DeletedAt = field.NewField(tableName, "deleted_at")
 	_promNodeDirFile.DirID = field.NewInt32(tableName, "dir_id")
 
 	_promNodeDirFile.fillFieldMap()
@@ -48,7 +48,7 @@ type promNodeDirFile struct {
 	Filename  field.String // yaml file
 	CreatedAt field.Time
 	UpdatedAt field.Time
-	DeletedAt field.Int64
+	DeletedAt field.Field
 	DirID     field.Int32 // 目录 ID
 
 	fieldMap map[string]field.Expr
@@ -70,7 +70,7 @@ func (p *promNodeDirFile) updateTableName(table string) *promNodeDirFile {
 	p.Filename = field.NewString(table, "filename")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 	p.DirID = field.NewInt32(table, "dir_id")
 
 	p.fillFieldMap()

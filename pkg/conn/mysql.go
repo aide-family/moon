@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -22,11 +21,10 @@ type DBConfig interface {
 type GormLogger struct {
 	logger log.Logger
 	level  logger.LogLevel
-	tr     trace.Tracer
 }
 
 func NewGormLogger(logger log.Logger) logger.Interface {
-	return &GormLogger{logger: logger, tr: otel.Tracer("mysql.gorm")}
+	return &GormLogger{logger: logger}
 }
 
 func (l *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
@@ -48,7 +46,7 @@ func (l *GormLogger) Error(ctx context.Context, s string, i ...interface{}) {
 
 func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	if l.level >= logger.Info {
-		ctx, span := l.tr.Start(ctx, "mysql.gorm.trace")
+		ctx, span := otel.Tracer("gorm").Start(ctx, "mysql.gorm.trace")
 		defer span.End()
 
 		elapsed := time.Since(begin)

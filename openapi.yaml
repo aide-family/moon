@@ -97,6 +97,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.DeleteDirReply'
+    /prom/v1/dir/detail/{id}:
+        get:
+            tags:
+                - Dir
+            operationId: Dir_GetDir
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetDirReply'
     /prom/v1/dir/edit/{id}:
         put:
             tags:
@@ -140,25 +159,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.ListDirReply'
-    /prom/v1/dir/{id}:
-        get:
-            tags:
-                - Dir
-            operationId: Dir_GetDir
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.prom.GetDirReply'
     /prom/v1/file/add:
         post:
             tags:
@@ -196,6 +196,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.DeleteFileReply'
+    /prom/v1/file/detail/{id}:
+        get:
+            tags:
+                - File
+            operationId: File_GetFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetFileReply'
     /prom/v1/file/edit/{id}:
         put:
             tags:
@@ -239,25 +258,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.ListFileReply'
-    /prom/v1/file/{id}:
-        get:
-            tags:
-                - File
-            operationId: File_GetFile
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.prom.GetFileReply'
     /prom/v1/group/add:
         post:
             tags:
@@ -295,6 +295,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.DeleteGroupReply'
+    /prom/v1/group/detail/{id}:
+        get:
+            tags:
+                - Group
+            operationId: Group_GetGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetGroupReply'
     /prom/v1/group/edit/{id}:
         put:
             tags:
@@ -338,25 +357,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.ListGroupReply'
-    /prom/v1/group/{id}:
-        get:
-            tags:
-                - Group
-            operationId: Group_GetGroup
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.prom.GetGroupReply'
     /prom/v1/node/add:
         post:
             tags:
@@ -493,6 +493,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.DeleteRuleReply'
+    /prom/v1/rule/detail/{id}:
+        get:
+            tags:
+                - Rule
+            operationId: Rule_GetRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.GetRuleReply'
     /prom/v1/rule/edit/{id}:
         put:
             tags:
@@ -518,25 +537,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.UpdateRuleReply'
-    /prom/v1/rule/get/{id}:
-        get:
-            tags:
-                - Rule
-            operationId: Rule_GetRule
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.prom.GetRuleReply'
     /prom/v1/rule/list:
         post:
             tags:

@@ -38,7 +38,7 @@ func RegisterDirHTTPServer(s *http.Server, srv DirHTTPServer) {
 	r.POST("/prom/v1/dir/add", _Dir_CreateDir0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/dir/edit/{id}", _Dir_UpdateDir0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/dir/delete/{id}", _Dir_DeleteDir0_HTTP_Handler(srv))
-	r.GET("/prom/v1/dir/{id}", _Dir_GetDir0_HTTP_Handler(srv))
+	r.GET("/prom/v1/dir/detail/{id}", _Dir_GetDir0_HTTP_Handler(srv))
 	r.POST("/prom/v1/dir/list", _Dir_ListDir0_HTTP_Handler(srv))
 }
 
@@ -190,7 +190,7 @@ func (c *DirHTTPClientImpl) DeleteDir(ctx context.Context, in *DeleteDirRequest,
 
 func (c *DirHTTPClientImpl) GetDir(ctx context.Context, in *GetDirRequest, opts ...http.CallOption) (*GetDirReply, error) {
 	var out GetDirReply
-	pattern := "/prom/v1/dir/{id}"
+	pattern := "/prom/v1/dir/detail/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDirGetDir))
 	opts = append(opts, http.PathTemplate(pattern))

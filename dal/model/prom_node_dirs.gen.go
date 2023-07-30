@@ -6,6 +6,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const TableNamePromNodeDir = "prom_node_dirs"
@@ -17,7 +19,7 @@ type PromNodeDir struct {
 	Path      string             `gorm:"column:path;type:varchar(255);not null;comment:目录地址" json:"path"`        // 目录地址
 	CreatedAt time.Time          `gorm:"column:created_at;type:timestamp;not null" json:"created_at"`
 	UpdatedAt *time.Time         `gorm:"column:updated_at;type:timestamp" json:"updated_at"`
-	DeletedAt int64              `gorm:"column:deleted_at;type:bigint unsigned;not null" json:"deleted_at"`
+	DeletedAt gorm.DeletedAt     `gorm:"column:deleted_at;type:timestamp" json:"deleted_at"`
 	Files     []*PromNodeDirFile `gorm:"foreignKey:DirID" json:"files"`
 }
 

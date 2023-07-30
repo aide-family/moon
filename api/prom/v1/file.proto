@@ -31,7 +31,7 @@ service File {
 	}
 	rpc GetFile (GetFileRequest) returns (GetFileReply) {
 		option (google.api.http) = {
-			get: "/prom/v1/file/{id}"
+			get: "/prom/v1/file/detail/{id}"
 		};
 	}
 	rpc ListFile (ListFileRequest) returns (ListFileReply) {

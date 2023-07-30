@@ -205,19 +205,15 @@ func (m *DirItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetNodeId() != 0 {
-
-		if val := m.GetNodeId(); val <= 0 || val >= 4294967295 {
-			err := DirItemValidationError{
-				field:  "NodeId",
-				reason: "value must be inside range (0, 4294967295)",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if val := m.GetNodeId(); val <= 0 || val >= 4294967295 {
+		err := DirItemValidationError{
+			field:  "NodeId",
+			reason: "value must be inside range (0, 4294967295)",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if l := utf8.RuneCountInString(m.GetPath()); l < 1 || l > 1024 {
@@ -358,19 +354,15 @@ func (m *FileItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetDirId() != 0 {
-
-		if val := m.GetDirId(); val <= 0 || val >= 4294967295 {
-			err := FileItemValidationError{
-				field:  "DirId",
-				reason: "value must be inside range (0, 4294967295)",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if val := m.GetDirId(); val <= 0 || val >= 4294967295 {
+		err := FileItemValidationError{
+			field:  "DirId",
+			reason: "value must be inside range (0, 4294967295)",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	// no validation rules for CreatedAt
@@ -502,35 +494,18 @@ func (m *GroupItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetFileId() != 0 {
-
-		if val := m.GetFileId(); val <= 0 || val >= 4294967295 {
-			err := GroupItemValidationError{
-				field:  "FileId",
-				reason: "value must be inside range (0, 4294967295)",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if val := m.GetFileId(); val <= 0 || val >= 4294967295 {
+		err := GroupItemValidationError{
+			field:  "FileId",
+			reason: "value must be inside range (0, 4294967295)",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
-	if m.GetCreatedAt() != 0 {
-
-		if val := m.GetCreatedAt(); val <= 0 || val >= 9223372036854775807 {
-			err := GroupItemValidationError{
-				field:  "CreatedAt",
-				reason: "value must be inside range (0, 9223372036854775807)",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
+	// no validation rules for CreatedAt
 
 	// no validation rules for UpdatedAt
 
@@ -635,19 +610,15 @@ func (m *RuleItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetGroupId() != 0 {
-
-		if val := m.GetGroupId(); val <= 0 || val >= 4294967295 {
-			err := RuleItemValidationError{
-				field:  "GroupId",
-				reason: "value must be inside range (0, 4294967295)",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if val := m.GetGroupId(); val <= 0 || val >= 4294967295 {
+		err := RuleItemValidationError{
+			field:  "GroupId",
+			reason: "value must be inside range (0, 4294967295)",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if l := utf8.RuneCountInString(m.GetAlert()); l < 1 || l > 64 {

@@ -19,7 +19,7 @@ message NodeItem {
 }
 
 message DirItem {
-  uint32 node_id = 1 [(validate.rules).uint32 = {gt: 0, lt: 4294967295, ignore_empty: true}];
+  uint32 node_id = 1 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
   string path = 2 [(validate.rules).string = {min_len: 1, max_len: 1024}];
   int64 created_at = 5;
   int64 updated_at = 6;
@@ -28,7 +28,7 @@ message DirItem {
 
 message FileItem {
   string filename = 1 [(validate.rules).string = {min_len: 1, max_len: 1024, pattern: "^.*\\.(yml|yaml)$"}];
-  uint32 dir_id = 2 [(validate.rules).uint32 = {gt: 0, lt: 4294967295, ignore_empty: true}];
+  uint32 dir_id = 2 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
   int64 created_at = 5;
   int64 updated_at = 6;
   uint32 id = 99;
@@ -37,18 +37,14 @@ message FileItem {
 message GroupItem {
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
-  uint32 file_id = 3 [(validate.rules).uint32 = {gt: 0, lt: 4294967295, ignore_empty: true}];
-  int64 created_at = 5 [(validate.rules).int64 = {gt: 0, lt: 9223372036854775807, ignore_empty: true}];
+  uint32 file_id = 3 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
+  int64 created_at = 5;
   int64 updated_at = 6;
   uint32 id = 99;
 }
 
 message RuleItem {
-  uint32 group_id = 1 [(validate.rules).uint32 = {
-    gt: 0,
-    lt: 4294967295,
-    ignore_empty: true,
-  }];
+  uint32 group_id = 1 [(validate.rules).uint32 = {gt: 0,lt: 4294967295}];
   string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string expr = 3 [(validate.rules).string = {min_len: 1, max_len: 4096}];
   string for = 4 [(validate.rules).string = {min_len: 1, max_len: 64, pattern: "^\\d+(s|m|h)$"}];

@@ -38,7 +38,7 @@ func RegisterGroupHTTPServer(s *http.Server, srv GroupHTTPServer) {
 	r.POST("/prom/v1/group/add", _Group_CreateGroup0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/group/edit/{id}", _Group_UpdateGroup0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/group/delete/{id}", _Group_DeleteGroup0_HTTP_Handler(srv))
-	r.GET("/prom/v1/group/{id}", _Group_GetGroup0_HTTP_Handler(srv))
+	r.GET("/prom/v1/group/detail/{id}", _Group_GetGroup0_HTTP_Handler(srv))
 	r.POST("/prom/v1/group/list", _Group_ListGroup0_HTTP_Handler(srv))
 }
 
@@ -190,7 +190,7 @@ func (c *GroupHTTPClientImpl) DeleteGroup(ctx context.Context, in *DeleteGroupRe
 
 func (c *GroupHTTPClientImpl) GetGroup(ctx context.Context, in *GetGroupRequest, opts ...http.CallOption) (*GetGroupReply, error) {
 	var out GetGroupReply
-	pattern := "/prom/v1/group/{id}"
+	pattern := "/prom/v1/group/detail/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGroupGetGroup))
 	opts = append(opts, http.PathTemplate(pattern))

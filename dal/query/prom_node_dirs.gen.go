@@ -33,7 +33,7 @@ func newPromNodeDir(db *gorm.DB, opts ...gen.DOOption) promNodeDir {
 	_promNodeDir.Path = field.NewString(tableName, "path")
 	_promNodeDir.CreatedAt = field.NewTime(tableName, "created_at")
 	_promNodeDir.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promNodeDir.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promNodeDir.DeletedAt = field.NewField(tableName, "deleted_at")
 
 	_promNodeDir.fillFieldMap()
 
@@ -49,7 +49,7 @@ type promNodeDir struct {
 	Path      field.String // 目录地址
 	CreatedAt field.Time
 	UpdatedAt field.Time
-	DeletedAt field.Int64
+	DeletedAt field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -71,7 +71,7 @@ func (p *promNodeDir) updateTableName(table string) *promNodeDir {
 	p.Path = field.NewString(table, "path")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 
 	p.fillFieldMap()
 

@@ -31,7 +31,7 @@ func newPromNode(db *gorm.DB, opts ...gen.DOOption) promNode {
 	_promNode.ID = field.NewInt32(tableName, "id")
 	_promNode.CreatedAt = field.NewTime(tableName, "created_at")
 	_promNode.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_promNode.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_promNode.DeletedAt = field.NewField(tableName, "deleted_at")
 	_promNode.EnName = field.NewString(tableName, "en_name")
 	_promNode.ChName = field.NewString(tableName, "ch_name")
 	_promNode.Datasource = field.NewString(tableName, "datasource")
@@ -49,7 +49,7 @@ type promNode struct {
 	ID         field.Int32
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
-	DeletedAt  field.Int64
+	DeletedAt  field.Field
 	EnName     field.String // 节点英文名称
 	ChName     field.String // 节点中文名称
 	Datasource field.String // prom数据源地址
@@ -73,7 +73,7 @@ func (p *promNode) updateTableName(table string) *promNode {
 	p.ID = field.NewInt32(table, "id")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
-	p.DeletedAt = field.NewInt64(table, "deleted_at")
+	p.DeletedAt = field.NewField(table, "deleted_at")
 	p.EnName = field.NewString(table, "en_name")
 	p.ChName = field.NewString(table, "ch_name")
 	p.Datasource = field.NewString(table, "datasource")

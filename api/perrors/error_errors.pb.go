@@ -67,6 +67,34 @@ func ErrorServerUnknown(format string, args ...interface{}) *errors.Error {
 	return errors.New(501, ServerReason_SERVER_UNKNOWN.String(), fmt.Sprintf(format, args...))
 }
 
+// 数据不存在
+func IsServerDataNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ServerReason_SERVER_DATA_NOT_FOUND.String() && e.Code == 502
+}
+
+// 数据不存在
+func ErrorServerDataNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(502, ServerReason_SERVER_DATA_NOT_FOUND.String(), fmt.Sprintf(format, args...))
+}
+
+// 数据库错误
+func IsServerDatabaseError(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ServerReason_SERVER_DATABASE_ERROR.String() && e.Code == 503
+}
+
+// 数据库错误
+func ErrorServerDatabaseError(format string, args ...interface{}) *errors.Error {
+	return errors.New(503, ServerReason_SERVER_DATABASE_ERROR.String(), fmt.Sprintf(format, args...))
+}
+
 // 逻辑未知错误
 func IsLogicUnknown(err error) bool {
 	if err == nil {

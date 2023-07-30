@@ -6,6 +6,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const TableNamePromNodeDirFile = "prom_node_dir_files"
@@ -16,7 +18,7 @@ type PromNodeDirFile struct {
 	Filename  string                  `gorm:"column:filename;type:varchar(64);not null;comment:yaml file" json:"filename"` // yaml file
 	CreatedAt time.Time               `gorm:"column:created_at;type:timestamp;not null" json:"created_at"`
 	UpdatedAt *time.Time              `gorm:"column:updated_at;type:timestamp" json:"updated_at"`
-	DeletedAt int64                   `gorm:"column:deleted_at;type:bigint unsigned;not null" json:"deleted_at"`
+	DeletedAt gorm.DeletedAt          `gorm:"column:deleted_at;type:timestamp" json:"deleted_at"`
 	DirID     int32                   `gorm:"column:dir_id;type:int unsigned;not null;comment:目录 ID" json:"dir_id"` // 目录 ID
 	Groups    []*PromNodeDirFileGroup `gorm:"foreignKey:FileID" json:"groups"`
 }
