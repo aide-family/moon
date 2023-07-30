@@ -1,0 +1,61 @@
+
+.priority-0 .arco-table-td {
+    background: rgb(var(--red-7));
+}
+
+.arco-table-col-fixed-right-first  {
+    box-sizing: border-box;
+    text-align: left;
+    color: rgb(var(--gray-10)) !important;
+    background-color: var(--color-bg-2) !important;
+    border-bottom: 1px solid var(--color-neutral-3) !important;
+    line-height: 1.5715;
+}
+
+.arco-table-col-fixed-right-first :hover  {
+    box-sizing: border-box;
+    text-align: left;
+    color: rgb(var(--gray-10)) !important;
+    background-color: var(--color-bg-2) !important;
+    border-bottom: 1px solid var(--color-neutral-3) !important;
+    line-height: 1.5715;
+}
+
+.arco-table-checkbox {
+    box-sizing: border-box;
+    text-align: left;
+    color: rgb(var(--gray-10)) !important;
+    background-color: var(--color-bg-2) !important;
+    border-bottom: 1px solid var(--color-neutral-3) !important;
+    line-height: 1.5715;
+}
+
+.arco-table-checkbox :hover{
+    box-sizing: border-box;
+    text-align: left;
+    color: rgb(var(--gray-10)) !important;
+    background-color: var(--color-bg-2) !important;
+    border-bottom: 1px solid var(--color-neutral-3) !important;
+    line-height: 1.5715;
+}
+
+
+.priority-1 .arco-table-td {
+    background: rgb(var(--red-5));
+}
+
+.priority-2 .arco-table-td {
+    background: rgb(var(--orange-6));
+}
+
+.priority-3 .arco-table-td {
+    background: rgb(var(--orange-4));
+}
+
+.priority-4 .arco-table-td {
+    background: rgb(var(--arcoblue-4));
+}
+
+.priority-5 .arco-table-td {
+    background: rgb(var(--green-4));
+}

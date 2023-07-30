@@ -140,6 +140,12 @@ model:
 	@cd gen && go run main.go
 	@git add .
 
+.PHONY: web
+# start web
+web:
+	@cd apps/master/web && yarn start
+
+
 # show help
 help:
 	@echo ''
