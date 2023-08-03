@@ -21,7 +21,7 @@ type PromNode struct {
 	EnName     string         `gorm:"column:en_name;type:varchar(64);not null;comment:节点英文名称" json:"en_name"`            // 节点英文名称
 	ChName     string         `gorm:"column:ch_name;type:varchar(64);not null;comment:节点中文名称" json:"ch_name"`            // 节点中文名称
 	Datasource string         `gorm:"column:datasource;type:varchar(1024);not null;comment:prom数据源地址" json:"datasource"` // prom数据源地址
-	Remark     string         `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                 // 备注
+	Remark     string         `gorm:"column:remark;type:varchar(1024);not null;comment:备注" json:"remark"`                // 备注
 	NodeDirs   []*PromNodeDir `gorm:"foreignKey:NodeID" json:"node_dirs"`
 }
 

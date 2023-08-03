@@ -59,7 +59,9 @@ func (l *FileRepo) GetFileById(ctx context.Context, id uint32) (*model.PromNodeD
 	span.SetAttributes(attribute.Int64("id", int64(id)))
 	defer span.End()
 
-	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFile.FindById(ctx, int32(id))
+	modelInstance := query.Use(l.data.DB()).PromNodeDirFile
+	db := modelInstance.WithContext(ctx)
+	return db.Preload(modelInstance.Groups.Strategies).Where(modelInstance.ID.Eq(int32(id))).First()
 }
 
 func (l *FileRepo) ListFile(ctx context.Context, q *promBizV1.FileListQueryParams) ([]*model.PromNodeDirFile, int64, error) {

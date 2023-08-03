@@ -58,7 +58,10 @@ func (l *DirRepo) GetDirById(ctx context.Context, id uint32) (*model.PromNodeDir
 	ctx, span := otel.Tracer("data").Start(ctx, "DirRepo.GetDirById")
 	span.SetAttributes(attribute.Int64("id", int64(id)))
 	defer span.End()
-	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDir.FindById(ctx, int32(id))
+
+	modelInstance := query.Use(l.data.DB()).PromNodeDir
+	db := modelInstance.WithContext(ctx)
+	return db.Preload(modelInstance.Files).Where(modelInstance.ID.Eq(int32(id))).First()
 }
 
 func (l *DirRepo) ListDir(ctx context.Context, q *promV1.DirListQueryParams) ([]*model.PromNodeDir, int64, error) {

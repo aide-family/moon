@@ -38,15 +38,7 @@ func GenerateStrategy(g *gen.Generator) {
 	g.GenerateModel(comboStrategiesTableName)
 	rules := g.GenerateModel(rulesTableName)
 
-	g.ApplyInterface(func(Filter) {}, strategies)
-	g.ApplyInterface(func(Filter) {}, groups)
-	g.ApplyInterface(func(Filter) {}, files)
-	g.ApplyInterface(func(Filter) {}, nodeDirs)
-	g.ApplyInterface(func(Filter) {}, promNodes)
-	g.ApplyInterface(func(Filter) {}, combos)
-	g.ApplyInterface(func(Filter) {}, rules)
-
-	g.GenerateModel(groupsTableName,
+	groups = g.GenerateModel(groupsTableName,
 		gen.FieldRelate(field.HasMany,
 			"Strategies",
 			strategies,
@@ -59,7 +51,7 @@ func GenerateStrategy(g *gen.Generator) {
 		),
 	)
 
-	g.GenerateModel(filesTableName,
+	files = g.GenerateModel(filesTableName,
 		gen.FieldRelate(field.HasMany,
 			"Groups",
 			groups,
@@ -72,7 +64,7 @@ func GenerateStrategy(g *gen.Generator) {
 		),
 	)
 
-	g.GenerateModel(nodeDirsTableName,
+	nodeDirs = g.GenerateModel(nodeDirsTableName,
 		gen.FieldRelate(field.HasMany,
 			"Files",
 			files,
@@ -85,7 +77,7 @@ func GenerateStrategy(g *gen.Generator) {
 		),
 	)
 
-	g.GenerateModel(promNodesTableName,
+	promNodes = g.GenerateModel(promNodesTableName,
 		gen.FieldRelate(field.HasMany,
 			"NodeDirs",
 			nodeDirs,
@@ -98,7 +90,7 @@ func GenerateStrategy(g *gen.Generator) {
 		),
 	)
 
-	g.GenerateModel(combosTableName,
+	combos = g.GenerateModel(combosTableName,
 		gen.FieldRelate(field.Many2Many,
 			"Rules",
 			rules,
@@ -111,7 +103,7 @@ func GenerateStrategy(g *gen.Generator) {
 		),
 	)
 
-	g.GenerateModel(rulesTableName,
+	rules = g.GenerateModel(rulesTableName,
 		gen.FieldRelate(field.Many2Many,
 			"Combos",
 			combos,
@@ -123,4 +115,12 @@ func GenerateStrategy(g *gen.Generator) {
 			},
 		),
 	)
+
+	g.ApplyInterface(func(Filter) {}, strategies)
+	g.ApplyInterface(func(Filter) {}, groups)
+	g.ApplyInterface(func(Filter) {}, files)
+	g.ApplyInterface(func(Filter) {}, nodeDirs)
+	g.ApplyInterface(func(Filter) {}, promNodes)
+	g.ApplyInterface(func(Filter) {}, combos)
+	g.ApplyInterface(func(Filter) {}, rules)
 }

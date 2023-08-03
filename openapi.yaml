@@ -810,6 +810,10 @@ components:
                 updatedAt:
                     type: integer
                     format: int64
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.FileItem'
                 id:
                     type: integer
                     format: uint32
@@ -827,6 +831,10 @@ components:
                 updatedAt:
                     type: integer
                     format: int64
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.GroupItem'
                 id:
                     type: integer
                     format: uint32
@@ -874,6 +882,10 @@ components:
                 updatedAt:
                     type: integer
                     format: int64
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.RuleItem'
                 id:
                     type: integer
                     format: uint32
@@ -986,6 +998,10 @@ components:
                 updatedAt:
                     type: integer
                     format: int64
+                dirs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.DirItem'
                 id:
                     type: integer
                     format: uint32

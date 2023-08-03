@@ -179,5 +179,6 @@ func (s *NodeLogic) buildNodeItem(node *model.PromNode) *promPB.NodeItem {
 		Remark:     node.Remark,
 		CreatedAt:  times.TimeToUnix(node.CreatedAt),
 		UpdatedAt:  times.TimeToUnix(node.UpdatedAt),
+		Dirs:       toDirs(node.NodeDirs),
 	}
 }
