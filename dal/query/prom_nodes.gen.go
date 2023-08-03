@@ -36,6 +36,35 @@ func newPromNode(db *gorm.DB, opts ...gen.DOOption) promNode {
 	_promNode.ChName = field.NewString(tableName, "ch_name")
 	_promNode.Datasource = field.NewString(tableName, "datasource")
 	_promNode.Remark = field.NewString(tableName, "remark")
+	_promNode.NodeDirs = promNodeHasManyNodeDirs{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("NodeDirs", "model.PromNodeDir"),
+		Files: struct {
+			field.RelationField
+			Groups struct {
+				field.RelationField
+				Strategies struct {
+					field.RelationField
+				}
+			}
+		}{
+			RelationField: field.NewRelation("NodeDirs.Files", "model.PromNodeDirFile"),
+			Groups: struct {
+				field.RelationField
+				Strategies struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("NodeDirs.Files.Groups", "model.PromNodeDirFileGroup"),
+				Strategies: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("NodeDirs.Files.Groups.Strategies", "model.PromNodeDirFileGroupStrategy"),
+				},
+			},
+		},
+	}
 
 	_promNode.fillFieldMap()
 
@@ -54,6 +83,7 @@ type promNode struct {
 	ChName     field.String // 节点中文名称
 	Datasource field.String // prom数据源地址
 	Remark     field.String // 备注
+	NodeDirs   promNodeHasManyNodeDirs
 
 	fieldMap map[string]field.Expr
 }
@@ -94,7 +124,7 @@ func (p *promNode) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (p *promNode) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 8)
+	p.fieldMap = make(map[string]field.Expr, 9)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
@@ -103,6 +133,7 @@ func (p *promNode) fillFieldMap() {
 	p.fieldMap["ch_name"] = p.ChName
 	p.fieldMap["datasource"] = p.Datasource
 	p.fieldMap["remark"] = p.Remark
+
 }
 
 func (p promNode) clone(db *gorm.DB) promNode {
@@ -113,6 +144,87 @@ func (p promNode) clone(db *gorm.DB) promNode {
 func (p promNode) replaceDB(db *gorm.DB) promNode {
 	p.promNodeDo.ReplaceDB(db)
 	return p
+}
+
+type promNodeHasManyNodeDirs struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Files struct {
+		field.RelationField
+		Groups struct {
+			field.RelationField
+			Strategies struct {
+				field.RelationField
+			}
+		}
+	}
+}
+
+func (a promNodeHasManyNodeDirs) Where(conds ...field.Expr) *promNodeHasManyNodeDirs {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a promNodeHasManyNodeDirs) WithContext(ctx context.Context) *promNodeHasManyNodeDirs {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a promNodeHasManyNodeDirs) Session(session *gorm.Session) *promNodeHasManyNodeDirs {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a promNodeHasManyNodeDirs) Model(m *model.PromNode) *promNodeHasManyNodeDirsTx {
+	return &promNodeHasManyNodeDirsTx{a.db.Model(m).Association(a.Name())}
+}
+
+type promNodeHasManyNodeDirsTx struct{ tx *gorm.Association }
+
+func (a promNodeHasManyNodeDirsTx) Find() (result []*model.PromNodeDir, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a promNodeHasManyNodeDirsTx) Append(values ...*model.PromNodeDir) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a promNodeHasManyNodeDirsTx) Replace(values ...*model.PromNodeDir) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a promNodeHasManyNodeDirsTx) Delete(values ...*model.PromNodeDir) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a promNodeHasManyNodeDirsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a promNodeHasManyNodeDirsTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type promNodeDo struct{ gen.DO }

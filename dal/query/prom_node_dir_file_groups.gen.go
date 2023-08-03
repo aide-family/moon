@@ -35,6 +35,11 @@ func newPromNodeDirFileGroup(db *gorm.DB, opts ...gen.DOOption) promNodeDirFileG
 	_promNodeDirFileGroup.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promNodeDirFileGroup.DeletedAt = field.NewField(tableName, "deleted_at")
 	_promNodeDirFileGroup.FileID = field.NewInt32(tableName, "file_id")
+	_promNodeDirFileGroup.Strategies = promNodeDirFileGroupHasManyStrategies{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Strategies", "model.PromNodeDirFileGroupStrategy"),
+	}
 
 	_promNodeDirFileGroup.fillFieldMap()
 
@@ -44,14 +49,15 @@ func newPromNodeDirFileGroup(db *gorm.DB, opts ...gen.DOOption) promNodeDirFileG
 type promNodeDirFileGroup struct {
 	promNodeDirFileGroupDo
 
-	ALL       field.Asterisk
-	ID        field.Int32
-	Name      field.String // 策略组名称
-	Remark    field.String // 说明
-	CreatedAt field.Time
-	UpdatedAt field.Time
-	DeletedAt field.Field
-	FileID    field.Int32 // files id
+	ALL        field.Asterisk
+	ID         field.Int32
+	Name       field.String // 策略组名称
+	Remark     field.String // 说明
+	CreatedAt  field.Time
+	UpdatedAt  field.Time
+	DeletedAt  field.Field
+	FileID     field.Int32 // files id
+	Strategies promNodeDirFileGroupHasManyStrategies
 
 	fieldMap map[string]field.Expr
 }
@@ -91,7 +97,7 @@ func (p *promNodeDirFileGroup) GetFieldByName(fieldName string) (field.OrderExpr
 }
 
 func (p *promNodeDirFileGroup) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 7)
+	p.fieldMap = make(map[string]field.Expr, 8)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["name"] = p.Name
 	p.fieldMap["remark"] = p.Remark
@@ -99,6 +105,7 @@ func (p *promNodeDirFileGroup) fillFieldMap() {
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
 	p.fieldMap["file_id"] = p.FileID
+
 }
 
 func (p promNodeDirFileGroup) clone(db *gorm.DB) promNodeDirFileGroup {
@@ -109,6 +116,77 @@ func (p promNodeDirFileGroup) clone(db *gorm.DB) promNodeDirFileGroup {
 func (p promNodeDirFileGroup) replaceDB(db *gorm.DB) promNodeDirFileGroup {
 	p.promNodeDirFileGroupDo.ReplaceDB(db)
 	return p
+}
+
+type promNodeDirFileGroupHasManyStrategies struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a promNodeDirFileGroupHasManyStrategies) Where(conds ...field.Expr) *promNodeDirFileGroupHasManyStrategies {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a promNodeDirFileGroupHasManyStrategies) WithContext(ctx context.Context) *promNodeDirFileGroupHasManyStrategies {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a promNodeDirFileGroupHasManyStrategies) Session(session *gorm.Session) *promNodeDirFileGroupHasManyStrategies {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a promNodeDirFileGroupHasManyStrategies) Model(m *model.PromNodeDirFileGroup) *promNodeDirFileGroupHasManyStrategiesTx {
+	return &promNodeDirFileGroupHasManyStrategiesTx{a.db.Model(m).Association(a.Name())}
+}
+
+type promNodeDirFileGroupHasManyStrategiesTx struct{ tx *gorm.Association }
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Find() (result []*model.PromNodeDirFileGroupStrategy, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Append(values ...*model.PromNodeDirFileGroupStrategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Replace(values ...*model.PromNodeDirFileGroupStrategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Delete(values ...*model.PromNodeDirFileGroupStrategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a promNodeDirFileGroupHasManyStrategiesTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type promNodeDirFileGroupDo struct{ gen.DO }

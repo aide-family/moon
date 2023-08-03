@@ -34,6 +34,11 @@ func newPromCombo(db *gorm.DB, opts ...gen.DOOption) promCombo {
 	_promCombo.CreatedAt = field.NewTime(tableName, "created_at")
 	_promCombo.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promCombo.DeletedAt = field.NewField(tableName, "deleted_at")
+	_promCombo.Rules = promComboManyToManyRules{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Rules", "model.PromRule"),
+	}
 
 	_promCombo.fillFieldMap()
 
@@ -50,6 +55,7 @@ type promCombo struct {
 	CreatedAt field.Time
 	UpdatedAt field.Time
 	DeletedAt field.Field
+	Rules     promComboManyToManyRules
 
 	fieldMap map[string]field.Expr
 }
@@ -88,13 +94,14 @@ func (p *promCombo) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (p *promCombo) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 6)
+	p.fieldMap = make(map[string]field.Expr, 7)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["name"] = p.Name
 	p.fieldMap["remark"] = p.Remark
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
+
 }
 
 func (p promCombo) clone(db *gorm.DB) promCombo {
@@ -105,6 +112,77 @@ func (p promCombo) clone(db *gorm.DB) promCombo {
 func (p promCombo) replaceDB(db *gorm.DB) promCombo {
 	p.promComboDo.ReplaceDB(db)
 	return p
+}
+
+type promComboManyToManyRules struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a promComboManyToManyRules) Where(conds ...field.Expr) *promComboManyToManyRules {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a promComboManyToManyRules) WithContext(ctx context.Context) *promComboManyToManyRules {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a promComboManyToManyRules) Session(session *gorm.Session) *promComboManyToManyRules {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a promComboManyToManyRules) Model(m *model.PromCombo) *promComboManyToManyRulesTx {
+	return &promComboManyToManyRulesTx{a.db.Model(m).Association(a.Name())}
+}
+
+type promComboManyToManyRulesTx struct{ tx *gorm.Association }
+
+func (a promComboManyToManyRulesTx) Find() (result []*model.PromRule, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a promComboManyToManyRulesTx) Append(values ...*model.PromRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a promComboManyToManyRulesTx) Replace(values ...*model.PromRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a promComboManyToManyRulesTx) Delete(values ...*model.PromRule) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a promComboManyToManyRulesTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a promComboManyToManyRulesTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type promComboDo struct{ gen.DO }

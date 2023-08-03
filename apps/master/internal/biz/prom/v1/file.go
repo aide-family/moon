@@ -146,5 +146,6 @@ func (s *FileLogic) buildFilePB(m *model.PromNodeDirFile) *promPB.FileItem {
 		DirId:     uint32(m.DirID),
 		CreatedAt: times.TimeToUnix(m.CreatedAt),
 		UpdatedAt: times.TimeToUnix(m.UpdatedAt),
+		Groups:    toGroups(m.Groups),
 	}
 }

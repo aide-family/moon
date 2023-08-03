@@ -59,7 +59,9 @@ func (l *GroupRepo) GetGroupById(ctx context.Context, id uint32) (*model.PromNod
 	span.SetAttributes(attribute.Int("id", int(id)))
 	defer span.End()
 
-	return query.Use(l.data.DB()).WithContext(ctx).PromNodeDirFileGroup.FindById(ctx, int32(id))
+	modelInstance := query.Use(l.data.DB()).PromNodeDirFileGroup
+	db := modelInstance.WithContext(ctx)
+	return db.Preload(modelInstance.Strategies).Where(modelInstance.ID.Eq(int32(id))).First()
 }
 
 func (l *GroupRepo) ListGroup(ctx context.Context, q *promBizV1.GroupListQueryParams) ([]*model.PromNodeDirFileGroup, int64, error) {

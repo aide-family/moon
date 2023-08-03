@@ -15,6 +15,7 @@ message NodeItem {
   string remark = 4 [(validate.rules).string = {min_len: 0, max_len: 255}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  repeated DirItem dirs = 7;
   uint32 id = 99;
 }
 
@@ -23,6 +24,7 @@ message DirItem {
   string path = 2 [(validate.rules).string = {min_len: 1, max_len: 1024}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  repeated FileItem files = 7;
   uint32 id = 99;
 }
 
@@ -31,6 +33,7 @@ message FileItem {
   uint32 dir_id = 2 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  repeated GroupItem groups = 7;
   uint32 id = 99;
 }
 
@@ -40,6 +43,7 @@ message GroupItem {
   uint32 file_id = 3 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  repeated RuleItem rules = 7;
   uint32 id = 99;
 }
 

@@ -65,12 +65,14 @@ func (l *NodeRepo) GetNodeById(ctx context.Context, id uint32) (*model.PromNode,
 	span.SetAttributes(attribute.Int64("id", int64(id)))
 	defer span.End()
 
-	return query.Use(l.data.DB()).WithContext(ctx).PromNode.FindById(ctx, int32(id))
+	modelInstance := query.Use(l.data.DB()).PromNode
+	db := modelInstance.WithContext(ctx)
+	return db.Preload(modelInstance.NodeDirs.Files).Where(modelInstance.ID.Eq(int32(id))).First()
 }
 
 func (l *NodeRepo) ListNode(ctx context.Context, q *promBizV1.NodeListQueryParams) ([]*model.PromNode, int64, error) {
 	ctx, span := otel.Tracer("query").Start(ctx, "NodeRepo.ListNode")
-	span.SetAttributes(attribute.Stringer("id", stringer.New(q)))
+	span.SetAttributes(attribute.Stringer("query", stringer.New(q)))
 	defer span.End()
 
 	modelInstance := query.Use(l.data.DB()).PromNode
