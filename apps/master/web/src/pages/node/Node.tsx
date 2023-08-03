@@ -40,7 +40,7 @@ const Node = () => {
                         <CollapseItem
                             key={node.id}
                             header={<div>
-                                <span>{`${node.cnName}(${node.enName})  ${node.datasource}`}</span>
+                                <span>{`${node.cn_name}(${node.en_name})  ${node.datasource}`}</span>
                             </div>}
                             name={node.id + ""}
                         >
