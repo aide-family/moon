@@ -9,6 +9,7 @@ import (
 var ProviderSet = wire.NewSet(
 	NewCrudService,
 	NewPingService,
+	NewPushService,
 	promV1.NewDirService,
 	promV1.NewFileService,
 	promV1.NewGroupService,

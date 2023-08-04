@@ -14,6 +14,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.ICrudLogic), new(*CrudLogic)),
 	NewPingLogic,
 	wire.Bind(new(service.IPingLogic), new(*PingLogic)),
+	NewPushLogic,
+	wire.Bind(new(service.IPushLogic), new(*PushLogic)),
 	promBizV1.NewDirLogic,
 	wire.Bind(new(promServiceV1.IDirLogic), new(*promBizV1.DirLogic)),
 	promBizV1.NewFileLogic,

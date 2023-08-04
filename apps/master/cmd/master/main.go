@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"prometheus-manager/pkg/hello"
+	"prometheus-manager/pkg/servers"
 	"sync"
 
 	"prometheus-manager/apps/master/internal/conf"
@@ -41,6 +42,7 @@ func newApp(
 	logger log.Logger,
 	gs *grpc.Server,
 	hs *http.Server,
+	ts *servers.Timer,
 ) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
@@ -48,10 +50,7 @@ func newApp(
 		kratos.Version(env.GetVersion()),
 		kratos.Metadata(env.GetMetadata()),
 		kratos.Logger(logger),
-		kratos.Server(
-			gs,
-			hs,
-		),
+		kratos.Server(gs, hs, ts),
 	)
 }
 
