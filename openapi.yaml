@@ -572,6 +572,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
+    /push/v1/node/{name}/strategies:
+        get:
+            tags:
+                - Push
+            operationId: Push_Call
+            parameters:
+                - name: name
+                  in: path
+                  description: The name of the node to call.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.node.CallResponse'
     /push/v1/strategies:
         post:
             tags:
@@ -736,6 +755,11 @@ components:
                         type: string
                 data:
                     $ref: '#/components/schemas/google.protobuf.Any'
+        api.node.CallResponse:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
         api.prom.CreateDirReply:
             type: object
             properties:
@@ -1326,5 +1350,6 @@ tags:
     - name: Node
     - name: Ping
     - name: Pull
+    - name: Push
     - name: Push
     - name: Rule

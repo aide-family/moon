@@ -11,6 +11,7 @@ message Bootstrap {
   NodeServer nodes = 3;
   Trace trace = 4;
   Env env = 5;
+  PushStrategy push_strategy = 6;
 }
 
 message HTTP {
@@ -63,4 +64,8 @@ message Env {
   map<string, string> metadata = 2;
   string version = 3;
   string namespace = 4;
+}
+
+message PushStrategy {
+  google.protobuf.Duration interval = 1; // push 策略的间隔
 }

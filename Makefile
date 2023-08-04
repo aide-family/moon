@@ -70,7 +70,7 @@ data:
 	@kratos proto data -t apps/master/internal/data api/prom/v1/group.proto
 	@kratos proto data -t apps/master/internal/data api/prom/v1/rule.proto
 	@kratos proto data -t apps/master/internal/data api/prom/v1/node.proto
-
+	@kratos proto data -t apps/master/internal/data api/node/push.proto
 
 .PHONY: biz
 # generate service proto
@@ -86,6 +86,7 @@ biz:
 	@kratos proto biz -t apps/master/internal/biz/prom/v1 api/prom/v1/group.proto
 	@kratos proto biz -t apps/master/internal/biz/prom/v1 api/prom/v1/rule.proto
 	@kratos proto biz -t apps/master/internal/biz/prom/v1 api/prom/v1/node.proto
+	@kratos proto biz -t apps/master/internal/biz api/node/push.proto
 
 .PHONY: service
 # generate service proto
@@ -101,6 +102,7 @@ service:
 	@kratos proto server -t apps/master/internal/service/prom/v1 api/prom/v1/group.proto
 	@kratos proto server -t apps/master/internal/service/prom/v1 api/prom/v1/rule.proto
 	@kratos proto server -t apps/master/internal/service/prom/v1 api/prom/v1/node.proto
+	@kratos proto server -t apps/master/internal/service api/node/push.proto
 
 
 .PHONY: build

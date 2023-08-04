@@ -19,6 +19,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.IPingRepo), new(*PingRepo)),
 	NewCrudRepo,
 	wire.Bind(new(biz.ICrudRepo), new(*CrudRepo)),
+	NewPushRepo,
+	wire.Bind(new(biz.IPushRepo), new(*PushRepo)),
 	NewDirRepo,
 	wire.Bind(new(promV1Biz.IDirRepo), new(*DirRepo)),
 	NewFileRepo,

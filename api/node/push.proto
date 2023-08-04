@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api.node;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/node;node";
+option java_multiple_files = true;
+option java_package = "api.node";
+
+service Push {
+	rpc Call (CallRequest) returns (CallResponse) {
+		option (google.api.http) = {
+			get: "/push/v1/node/{name}/strategies"
+		};
+	}
+}
+
+message CallRequest {
+	// The name of the node to call.
+	string name = 1 [(validate.rules).string.min_len = 1];
+}
+
+message CallResponse {
+	Response response = 1;
+}
