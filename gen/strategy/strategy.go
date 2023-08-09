@@ -9,7 +9,7 @@ import (
 type (
 	Filter interface {
 		// select * from @@table where id = @id
-		FindById(ctx context.Context, id int32) (*gen.T, error)
+		SaFindById(ctx context.Context, id int32) (*gen.T, error)
 	}
 )
 
@@ -20,28 +20,79 @@ func joinModuleName(name string) string {
 }
 
 func GenerateStrategy(g *gen.Generator) {
-	promNodesTableName := joinModuleName("nodes")
-	nodeDirsTableName := joinModuleName("node_dirs")
-	filesTableName := joinModuleName("node_dir_files")
-	groupsTableName := joinModuleName("node_dir_file_groups")
-	strategiesTableName := joinModuleName("node_dir_file_group_strategies")
-	combosTableName := joinModuleName("combos")
-	rulesTableName := joinModuleName("rules")
-	comboStrategiesTableName := joinModuleName("combo_strategies")
+	alarmPagesTableName := joinModuleName("alarm_pages")
+	dictTableName := joinModuleName("dict")
 
-	strategies := g.GenerateModel(strategiesTableName)
-	groups := g.GenerateModel(groupsTableName)
-	files := g.GenerateModel(filesTableName)
-	nodeDirs := g.GenerateModel(nodeDirsTableName)
-	promNodes := g.GenerateModel(promNodesTableName)
-	combos := g.GenerateModel(combosTableName)
-	g.GenerateModel(comboStrategiesTableName)
-	rules := g.GenerateModel(rulesTableName)
+	promGroupsTableName := joinModuleName("groups")
+	promStrategiesTableName := joinModuleName("strategies")
 
-	groups = g.GenerateModel(groupsTableName,
+	alarmPagesTable := g.GenerateModel(alarmPagesTableName)
+	dictTable := g.GenerateModel(dictTableName)
+	promGroupsTable := g.GenerateModel(promGroupsTableName)
+	promStrategiesTable := g.GenerateModel(promStrategiesTableName)
+
+	alarmPagesTable = g.GenerateModel(alarmPagesTableName,
 		gen.FieldRelate(field.HasMany,
-			"Strategies",
-			strategies,
+			"PromStrategies",
+			promStrategiesTable,
+			&field.RelateConfig{
+				GORMTag: field.GormTag{
+					"many2many":      []string{joinModuleName("strategy_alarm_pages")},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"AlarmPageID"},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"PromStrategyID"},
+				},
+				RelateSlicePointer: true,
+			},
+		),
+	)
+
+	promStrategiesTable = g.GenerateModel(promStrategiesTableName,
+		gen.FieldRelate(field.HasMany,
+			"AlarmPages",
+			alarmPagesTable,
+			&field.RelateConfig{
+				GORMTag: field.GormTag{
+					"many2many":      []string{joinModuleName("strategy_alarm_pages")},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"PromStrategyID"},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"AlarmPageID"},
+				},
+				RelateSlicePointer: true,
+			},
+		),
+		gen.FieldRelate(field.HasMany,
+			"Categories",
+			dictTable,
+			&field.RelateConfig{
+				GORMTag: field.GormTag{
+					"many2many":      []string{joinModuleName("strategy_categories")},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"PromStrategyID"},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"DictID"},
+				},
+				RelateSlicePointer: true,
+			},
+		),
+		gen.FieldRelate(field.BelongsTo,
+			"AlertLevel",
+			dictTable,
+			&field.RelateConfig{
+				GORMTag: field.GormTag{
+					"foreignKey": []string{"alert_level_id"},
+				},
+				RelatePointer: true,
+			},
+		),
+	)
+
+	promGroupsTable = g.GenerateModel(promGroupsTableName,
+		gen.FieldRelate(field.HasMany,
+			"PromStrategies",
+			promStrategiesTable,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
 					"foreignKey": []string{"GroupID"},
@@ -49,78 +100,24 @@ func GenerateStrategy(g *gen.Generator) {
 				RelateSlicePointer: true,
 			},
 		),
-	)
-
-	files = g.GenerateModel(filesTableName,
 		gen.FieldRelate(field.HasMany,
-			"Groups",
-			groups,
+			"Categories",
+			dictTable,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"FileID"},
+					"many2many":      []string{joinModuleName("group_categories")},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"PromGroupID"},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"DictID"},
 				},
 				RelateSlicePointer: true,
 			},
 		),
 	)
 
-	nodeDirs = g.GenerateModel(nodeDirsTableName,
-		gen.FieldRelate(field.HasMany,
-			"Files",
-			files,
-			&field.RelateConfig{
-				GORMTag: field.GormTag{
-					"foreignKey": []string{"DirID"},
-				},
-				RelateSlicePointer: true,
-			},
-		),
-	)
-
-	promNodes = g.GenerateModel(promNodesTableName,
-		gen.FieldRelate(field.HasMany,
-			"NodeDirs",
-			nodeDirs,
-			&field.RelateConfig{
-				GORMTag: field.GormTag{
-					"foreignKey": []string{"NodeID"},
-				},
-				RelateSlicePointer: true,
-			},
-		),
-	)
-
-	combos = g.GenerateModel(combosTableName,
-		gen.FieldRelate(field.Many2Many,
-			"Rules",
-			rules,
-			&field.RelateConfig{
-				GORMTag: field.GormTag{
-					"many2many": []string{"prom_combo_strategies"},
-				},
-				RelateSlicePointer: true,
-			},
-		),
-	)
-
-	rules = g.GenerateModel(rulesTableName,
-		gen.FieldRelate(field.Many2Many,
-			"Combos",
-			combos,
-			&field.RelateConfig{
-				GORMTag: field.GormTag{
-					"many2many": []string{"prom_combo_strategies"},
-				},
-				RelateSlicePointer: true,
-			},
-		),
-	)
-
-	g.ApplyInterface(func(Filter) {}, strategies)
-	g.ApplyInterface(func(Filter) {}, groups)
-	g.ApplyInterface(func(Filter) {}, files)
-	g.ApplyInterface(func(Filter) {}, nodeDirs)
-	g.ApplyInterface(func(Filter) {}, promNodes)
-	g.ApplyInterface(func(Filter) {}, combos)
-	g.ApplyInterface(func(Filter) {}, rules)
+	g.ApplyInterface(func(Filter) {}, alarmPagesTable)
+	g.ApplyInterface(func(Filter) {}, promStrategiesTable)
+	g.ApplyInterface(func(Filter) {}, promGroupsTable)
+	g.ApplyInterface(func(Filter) {}, dictTable)
 }

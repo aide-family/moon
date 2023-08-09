@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package api;
 
-import "google/protobuf/any.proto";
 import "validate/validate.proto";
 
 option go_package = "prometheus-manager/api;api";
@@ -13,7 +12,6 @@ message Response {
   int64 code = 1;
   string message = 2;
   map<string, string> metadata = 3;
-  google.protobuf.Any data = 4;
 }
 
 message PageRequest {
@@ -25,4 +23,29 @@ message PageReply {
   int32 current = 1;
   int32 size = 2;
   int64 total = 3;
+}
+
+message Sort {
+  repeated string field = 1;
+  bool asc = 2;
+}
+
+message Field {
+  string field = 1;
+  string label = 2;
+}
+
+message ListQuery {
+  PageRequest page = 1 [(validate.rules).message = {
+    required: true,
+  }];
+  Sort sort = 2;
+  repeated string fields = 4;
+  string keyword = 5;
+  repeated string keyword_fields = 6;
+}
+
+message ListQueryResult {
+  PageReply page = 1;
+  repeated Field fields = 4;
 }

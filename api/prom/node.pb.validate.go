@@ -35,54 +35,32 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on NodeItem with the rules defined in the
+// Validate checks the field values on DictItem with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *NodeItem) Validate() error {
+func (m *DictItem) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on NodeItem with the rules defined in
+// ValidateAll checks the field values on DictItem with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in NodeItemMultiError, or nil
+// result is a list of violation errors wrapped in DictItemMultiError, or nil
 // if none found.
-func (m *NodeItem) ValidateAll() error {
+func (m *DictItem) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *NodeItem) validate(all bool) error {
+func (m *DictItem) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetEnName()); l < 1 || l > 64 {
-		err := NodeItemValidationError{
-			field:  "EnName",
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
+		err := DictItemValidationError{
+			field:  "Name",
 			reason: "value length must be between 1 and 64 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if l := utf8.RuneCountInString(m.GetCnName()); l < 1 || l > 64 {
-		err := NodeItemValidationError{
-			field:  "CnName",
-			reason: "value length must be between 1 and 64 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if l := utf8.RuneCountInString(m.GetDatasource()); l < 1 || l > 1024 {
-		err := NodeItemValidationError{
-			field:  "Datasource",
-			reason: "value length must be between 1 and 1024 runes, inclusive",
 		}
 		if !all {
 			return err
@@ -91,7 +69,7 @@ func (m *NodeItem) validate(all bool) error {
 	}
 
 	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
-		err := NodeItemValidationError{
+		err := DictItemValidationError{
 			field:  "Remark",
 			reason: "value length must be between 0 and 255 runes, inclusive",
 		}
@@ -105,55 +83,34 @@ func (m *NodeItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
-	for idx, item := range m.GetDirs() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, NodeItemValidationError{
-						field:  fmt.Sprintf("Dirs[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, NodeItemValidationError{
-						field:  fmt.Sprintf("Dirs[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return NodeItemValidationError{
-					field:  fmt.Sprintf("Dirs[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
+	if _, ok := Category_name[int32(m.GetCategory())]; !ok {
+		err := DictItemValidationError{
+			field:  "Category",
+			reason: "value must be one of the defined enum values",
 		}
-
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
+
+	// no validation rules for Color
 
 	// no validation rules for Id
 
 	if len(errors) > 0 {
-		return NodeItemMultiError(errors)
+		return DictItemMultiError(errors)
 	}
 
 	return nil
 }
 
-// NodeItemMultiError is an error wrapping multiple validation errors returned
-// by NodeItem.ValidateAll() if the designated constraints aren't met.
-type NodeItemMultiError []error
+// DictItemMultiError is an error wrapping multiple validation errors returned
+// by DictItem.ValidateAll() if the designated constraints aren't met.
+type DictItemMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m NodeItemMultiError) Error() string {
+func (m DictItemMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -162,11 +119,11 @@ func (m NodeItemMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m NodeItemMultiError) AllErrors() []error { return m }
+func (m DictItemMultiError) AllErrors() []error { return m }
 
-// NodeItemValidationError is the validation error returned by
-// NodeItem.Validate if the designated constraints aren't met.
-type NodeItemValidationError struct {
+// DictItemValidationError is the validation error returned by
+// DictItem.Validate if the designated constraints aren't met.
+type DictItemValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -174,22 +131,22 @@ type NodeItemValidationError struct {
 }
 
 // Field function returns field value.
-func (e NodeItemValidationError) Field() string { return e.field }
+func (e DictItemValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e NodeItemValidationError) Reason() string { return e.reason }
+func (e DictItemValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e NodeItemValidationError) Cause() error { return e.cause }
+func (e DictItemValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e NodeItemValidationError) Key() bool { return e.key }
+func (e DictItemValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e NodeItemValidationError) ErrorName() string { return "NodeItemValidationError" }
+func (e DictItemValidationError) ErrorName() string { return "DictItemValidationError" }
 
 // Error satisfies the builtin error interface
-func (e NodeItemValidationError) Error() string {
+func (e DictItemValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -201,14 +158,14 @@ func (e NodeItemValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sNodeItem.%s: %s%s",
+		"invalid %sDictItem.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = NodeItemValidationError{}
+var _ error = DictItemValidationError{}
 
 var _ interface {
 	Field() string
@@ -216,194 +173,34 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = NodeItemValidationError{}
+} = DictItemValidationError{}
 
-// Validate checks the field values on DirItem with the rules defined in the
+// Validate checks the field values on AlarmPage with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *DirItem) Validate() error {
+func (m *AlarmPage) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DirItem with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in DirItemMultiError, or nil if none found.
-func (m *DirItem) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *DirItem) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if val := m.GetNodeId(); val <= 0 || val >= 4294967295 {
-		err := DirItemValidationError{
-			field:  "NodeId",
-			reason: "value must be inside range (0, 4294967295)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if l := utf8.RuneCountInString(m.GetPath()); l < 1 || l > 1024 {
-		err := DirItemValidationError{
-			field:  "Path",
-			reason: "value length must be between 1 and 1024 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	// no validation rules for CreatedAt
-
-	// no validation rules for UpdatedAt
-
-	for idx, item := range m.GetFiles() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, DirItemValidationError{
-						field:  fmt.Sprintf("Files[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, DirItemValidationError{
-						field:  fmt.Sprintf("Files[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return DirItemValidationError{
-					field:  fmt.Sprintf("Files[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	// no validation rules for Id
-
-	if len(errors) > 0 {
-		return DirItemMultiError(errors)
-	}
-
-	return nil
-}
-
-// DirItemMultiError is an error wrapping multiple validation errors returned
-// by DirItem.ValidateAll() if the designated constraints aren't met.
-type DirItemMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m DirItemMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m DirItemMultiError) AllErrors() []error { return m }
-
-// DirItemValidationError is the validation error returned by DirItem.Validate
-// if the designated constraints aren't met.
-type DirItemValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e DirItemValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e DirItemValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e DirItemValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e DirItemValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e DirItemValidationError) ErrorName() string { return "DirItemValidationError" }
-
-// Error satisfies the builtin error interface
-func (e DirItemValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sDirItem.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = DirItemValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = DirItemValidationError{}
-
-// Validate checks the field values on FileItem with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *FileItem) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on FileItem with the rules defined in
+// ValidateAll checks the field values on AlarmPage with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in FileItemMultiError, or nil
+// result is a list of violation errors wrapped in AlarmPageMultiError, or nil
 // if none found.
-func (m *FileItem) ValidateAll() error {
+func (m *AlarmPage) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *FileItem) validate(all bool) error {
+func (m *AlarmPage) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetFilename()); l < 1 || l > 1024 {
-		err := FileItemValidationError{
-			field:  "Filename",
-			reason: "value length must be between 1 and 1024 runes, inclusive",
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
+		err := AlarmPageValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 64 runes, inclusive",
 		}
 		if !all {
 			return err
@@ -411,10 +208,10 @@ func (m *FileItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_FileItem_Filename_Pattern.MatchString(m.GetFilename()) {
-		err := FileItemValidationError{
-			field:  "Filename",
-			reason: "value does not match regex pattern \"^.*\\\\.(yml|yaml)$\"",
+	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
+		err := AlarmPageValidationError{
+			field:  "Remark",
+			reason: "value length must be between 0 and 255 runes, inclusive",
 		}
 		if !all {
 			return err
@@ -422,10 +219,21 @@ func (m *FileItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if val := m.GetDirId(); val <= 0 || val >= 4294967295 {
-		err := FileItemValidationError{
-			field:  "DirId",
-			reason: "value must be inside range (0, 4294967295)",
+	if utf8.RuneCountInString(m.GetIcon()) > 1024 {
+		err := AlarmPageValidationError{
+			field:  "Icon",
+			reason: "value length must be at most 1024 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetColor()) > 64 {
+		err := AlarmPageValidationError{
+			field:  "Color",
+			reason: "value length must be at most 64 runes",
 		}
 		if !all {
 			return err
@@ -437,55 +245,21 @@ func (m *FileItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
-	for idx, item := range m.GetGroups() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, FileItemValidationError{
-						field:  fmt.Sprintf("Groups[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, FileItemValidationError{
-						field:  fmt.Sprintf("Groups[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return FileItemValidationError{
-					field:  fmt.Sprintf("Groups[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
 	// no validation rules for Id
 
 	if len(errors) > 0 {
-		return FileItemMultiError(errors)
+		return AlarmPageMultiError(errors)
 	}
 
 	return nil
 }
 
-// FileItemMultiError is an error wrapping multiple validation errors returned
-// by FileItem.ValidateAll() if the designated constraints aren't met.
-type FileItemMultiError []error
+// AlarmPageMultiError is an error wrapping multiple validation errors returned
+// by AlarmPage.ValidateAll() if the designated constraints aren't met.
+type AlarmPageMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m FileItemMultiError) Error() string {
+func (m AlarmPageMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -494,11 +268,11 @@ func (m FileItemMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m FileItemMultiError) AllErrors() []error { return m }
+func (m AlarmPageMultiError) AllErrors() []error { return m }
 
-// FileItemValidationError is the validation error returned by
-// FileItem.Validate if the designated constraints aren't met.
-type FileItemValidationError struct {
+// AlarmPageValidationError is the validation error returned by
+// AlarmPage.Validate if the designated constraints aren't met.
+type AlarmPageValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -506,22 +280,22 @@ type FileItemValidationError struct {
 }
 
 // Field function returns field value.
-func (e FileItemValidationError) Field() string { return e.field }
+func (e AlarmPageValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e FileItemValidationError) Reason() string { return e.reason }
+func (e AlarmPageValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e FileItemValidationError) Cause() error { return e.cause }
+func (e AlarmPageValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e FileItemValidationError) Key() bool { return e.key }
+func (e AlarmPageValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e FileItemValidationError) ErrorName() string { return "FileItemValidationError" }
+func (e AlarmPageValidationError) ErrorName() string { return "AlarmPageValidationError" }
 
 // Error satisfies the builtin error interface
-func (e FileItemValidationError) Error() string {
+func (e AlarmPageValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -533,14 +307,14 @@ func (e FileItemValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sFileItem.%s: %s%s",
+		"invalid %sAlarmPage.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = FileItemValidationError{}
+var _ error = AlarmPageValidationError{}
 
 var _ interface {
 	Field() string
@@ -548,9 +322,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = FileItemValidationError{}
-
-var _FileItem_Filename_Pattern = regexp.MustCompile("^.*\\.(yml|yaml)$")
+} = AlarmPageValidationError{}
 
 // Validate checks the field values on GroupItem with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -596,22 +368,11 @@ func (m *GroupItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if val := m.GetFileId(); val <= 0 || val >= 4294967295 {
-		err := GroupItemValidationError{
-			field:  "FileId",
-			reason: "value must be inside range (0, 4294967295)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	// no validation rules for CreatedAt
 
 	// no validation rules for UpdatedAt
 
-	for idx, item := range m.GetRules() {
+	for idx, item := range m.GetPromStrategies() {
 		_, _ = idx, item
 
 		if all {
@@ -619,7 +380,7 @@ func (m *GroupItem) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, GroupItemValidationError{
-						field:  fmt.Sprintf("Rules[%v]", idx),
+						field:  fmt.Sprintf("PromStrategies[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -627,7 +388,7 @@ func (m *GroupItem) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, GroupItemValidationError{
-						field:  fmt.Sprintf("Rules[%v]", idx),
+						field:  fmt.Sprintf("PromStrategies[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -636,7 +397,7 @@ func (m *GroupItem) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return GroupItemValidationError{
-					field:  fmt.Sprintf("Rules[%v]", idx),
+					field:  fmt.Sprintf("PromStrategies[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -644,6 +405,42 @@ func (m *GroupItem) validate(all bool) error {
 		}
 
 	}
+
+	for idx, item := range m.GetCategories() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GroupItemValidationError{
+						field:  fmt.Sprintf("Categories[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GroupItemValidationError{
+						field:  fmt.Sprintf("Categories[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GroupItemValidationError{
+					field:  fmt.Sprintf("Categories[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for StrategyCount
 
 	// no validation rules for Id
 
@@ -724,32 +521,32 @@ var _ interface {
 	ErrorName() string
 } = GroupItemValidationError{}
 
-// Validate checks the field values on RuleItem with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
+// Validate checks the field values on StrategyItem with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *RuleItem) Validate() error {
+func (m *StrategyItem) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on RuleItem with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in RuleItemMultiError, or nil
-// if none found.
-func (m *RuleItem) ValidateAll() error {
+// ValidateAll checks the field values on StrategyItem with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in StrategyItemMultiError, or
+// nil if none found.
+func (m *StrategyItem) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *RuleItem) validate(all bool) error {
+func (m *StrategyItem) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if val := m.GetGroupId(); val <= 0 || val >= 4294967295 {
-		err := RuleItemValidationError{
+	if m.GetGroupId() <= 0 {
+		err := StrategyItemValidationError{
 			field:  "GroupId",
-			reason: "value must be inside range (0, 4294967295)",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err
@@ -758,7 +555,7 @@ func (m *RuleItem) validate(all bool) error {
 	}
 
 	if l := utf8.RuneCountInString(m.GetAlert()); l < 1 || l > 64 {
-		err := RuleItemValidationError{
+		err := StrategyItemValidationError{
 			field:  "Alert",
 			reason: "value length must be between 1 and 64 runes, inclusive",
 		}
@@ -769,7 +566,7 @@ func (m *RuleItem) validate(all bool) error {
 	}
 
 	if l := utf8.RuneCountInString(m.GetExpr()); l < 1 || l > 4096 {
-		err := RuleItemValidationError{
+		err := StrategyItemValidationError{
 			field:  "Expr",
 			reason: "value length must be between 1 and 4096 runes, inclusive",
 		}
@@ -780,7 +577,7 @@ func (m *RuleItem) validate(all bool) error {
 	}
 
 	if l := utf8.RuneCountInString(m.GetFor()); l < 1 || l > 64 {
-		err := RuleItemValidationError{
+		err := StrategyItemValidationError{
 			field:  "For",
 			reason: "value length must be between 1 and 64 runes, inclusive",
 		}
@@ -790,8 +587,8 @@ func (m *RuleItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_RuleItem_For_Pattern.MatchString(m.GetFor()) {
-		err := RuleItemValidationError{
+	if !_StrategyItem_For_Pattern.MatchString(m.GetFor()) {
+		err := StrategyItemValidationError{
 			field:  "For",
 			reason: "value does not match regex pattern \"^\\\\d+(s|m|h)$\"",
 		}
@@ -814,7 +611,7 @@ func (m *RuleItem) validate(all bool) error {
 			_ = val
 
 			if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
-				err := RuleItemValidationError{
+				err := StrategyItemValidationError{
 					field:  fmt.Sprintf("Labels[%v]", key),
 					reason: "value length must be between 1 and 64 runes, inclusive",
 				}
@@ -825,7 +622,7 @@ func (m *RuleItem) validate(all bool) error {
 			}
 
 			if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
-				err := RuleItemValidationError{
+				err := StrategyItemValidationError{
 					field:  fmt.Sprintf("Labels[%v]", key),
 					reason: "value length must be between 1 and 64 runes, inclusive",
 				}
@@ -851,7 +648,7 @@ func (m *RuleItem) validate(all bool) error {
 			_ = val
 
 			if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
-				err := RuleItemValidationError{
+				err := StrategyItemValidationError{
 					field:  fmt.Sprintf("Annotations[%v]", key),
 					reason: "value length must be between 1 and 64 runes, inclusive",
 				}
@@ -862,7 +659,7 @@ func (m *RuleItem) validate(all bool) error {
 			}
 
 			if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
-				err := RuleItemValidationError{
+				err := StrategyItemValidationError{
 					field:  fmt.Sprintf("Annotations[%v]", key),
 					reason: "value length must be between 1 and 64 runes, inclusive",
 				}
@@ -879,21 +676,140 @@ func (m *RuleItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	for idx, item := range m.GetCategories() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, StrategyItemValidationError{
+						field:  fmt.Sprintf("Categories[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, StrategyItemValidationError{
+						field:  fmt.Sprintf("Categories[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StrategyItemValidationError{
+					field:  fmt.Sprintf("Categories[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetAlertLevelId() <= 0 {
+		err := StrategyItemValidationError{
+			field:  "AlertLevelId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAlertLevel()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StrategyItemValidationError{
+					field:  "AlertLevel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StrategyItemValidationError{
+					field:  "AlertLevel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAlertLevel()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StrategyItemValidationError{
+				field:  "AlertLevel",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetAlarmPageIds()) < 1 {
+		err := StrategyItemValidationError{
+			field:  "AlarmPageIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetAlarmPages() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, StrategyItemValidationError{
+						field:  fmt.Sprintf("AlarmPages[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, StrategyItemValidationError{
+						field:  fmt.Sprintf("AlarmPages[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StrategyItemValidationError{
+					field:  fmt.Sprintf("AlarmPages[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	// no validation rules for Id
 
 	if len(errors) > 0 {
-		return RuleItemMultiError(errors)
+		return StrategyItemMultiError(errors)
 	}
 
 	return nil
 }
 
-// RuleItemMultiError is an error wrapping multiple validation errors returned
-// by RuleItem.ValidateAll() if the designated constraints aren't met.
-type RuleItemMultiError []error
+// StrategyItemMultiError is an error wrapping multiple validation errors
+// returned by StrategyItem.ValidateAll() if the designated constraints aren't met.
+type StrategyItemMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m RuleItemMultiError) Error() string {
+func (m StrategyItemMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -902,11 +818,11 @@ func (m RuleItemMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m RuleItemMultiError) AllErrors() []error { return m }
+func (m StrategyItemMultiError) AllErrors() []error { return m }
 
-// RuleItemValidationError is the validation error returned by
-// RuleItem.Validate if the designated constraints aren't met.
-type RuleItemValidationError struct {
+// StrategyItemValidationError is the validation error returned by
+// StrategyItem.Validate if the designated constraints aren't met.
+type StrategyItemValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -914,22 +830,22 @@ type RuleItemValidationError struct {
 }
 
 // Field function returns field value.
-func (e RuleItemValidationError) Field() string { return e.field }
+func (e StrategyItemValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e RuleItemValidationError) Reason() string { return e.reason }
+func (e StrategyItemValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e RuleItemValidationError) Cause() error { return e.cause }
+func (e StrategyItemValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e RuleItemValidationError) Key() bool { return e.key }
+func (e StrategyItemValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e RuleItemValidationError) ErrorName() string { return "RuleItemValidationError" }
+func (e StrategyItemValidationError) ErrorName() string { return "StrategyItemValidationError" }
 
 // Error satisfies the builtin error interface
-func (e RuleItemValidationError) Error() string {
+func (e StrategyItemValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -941,14 +857,14 @@ func (e RuleItemValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sRuleItem.%s: %s%s",
+		"invalid %sStrategyItem.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = RuleItemValidationError{}
+var _ error = StrategyItemValidationError{}
 
 var _ interface {
 	Field() string
@@ -956,9 +872,9 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = RuleItemValidationError{}
+} = StrategyItemValidationError{}
 
-var _RuleItem_For_Pattern = regexp.MustCompile("^\\d+(s|m|h)$")
+var _StrategyItem_For_Pattern = regexp.MustCompile("^\\d+(s|m|h)$")
 
 // Validate checks the field values on ComboRuleItem with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

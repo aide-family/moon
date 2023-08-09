@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+package api.prom.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "prom/node.proto";
+
+option go_package = "prometheus-manager/api/prom/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.prom.v1";
+
+service Prom {
+  // Group 规则组
+  rpc CreateGroup (CreateGroupRequest) returns (CreateGroupReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/group"
+      body: "*"
+    };
+  }
+  rpc UpdateGroup (UpdateGroupRequest) returns (UpdateGroupReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/group/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupReply) {
+    option (google.api.http) = {
+      delete: "/prom/v1/group/{id}"
+    };
+  }
+  rpc GetGroup (GetGroupRequest) returns (GetGroupReply) {
+    option (google.api.http) = {
+      get: "/prom/v1/group/{id}"
+    };
+  }
+  rpc ListGroup (ListGroupRequest) returns (ListGroupReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/groups"
+      body: "*"
+    };
+  }
+
+  // Strategy 规则策略
+  rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/strategy"
+      body: "*"
+    };
+  }
+  rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/strategy/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
+    option (google.api.http) = {
+      delete: "/prom/v1/strategy/{id}"
+    };
+  }
+  rpc GetStrategy (GetStrategyRequest) returns (GetStrategyReply) {
+    option (google.api.http) = {
+      get: "/prom/v1/strategy/{id}"
+    };
+  }
+  rpc ListStrategy (ListStrategyRequest) returns (ListStrategyReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/strategies"
+      body: "*"
+    };
+  }
+}
+
+message CreateGroupRequest {
+  GroupItem group = 1 [(validate.rules).message = {
+    required: true,
+  }];
+}
+message CreateGroupReply {
+  Response response = 1;
+}
+
+message UpdateGroupRequest {
+  GroupItem group = 1 [(validate.rules).message = {
+    required: true,
+  }];
+  int32 id = 2 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message UpdateGroupReply {
+  Response response = 1;
+}
+
+message DeleteGroupRequest {
+  int32 id = 1 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message DeleteGroupReply {
+  Response response = 1;
+}
+
+message GetGroupRequest {
+  int32 id = 1 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message GetGroupReply {
+  Response response = 1;
+  GroupItem group = 2;
+}
+
+message ListGroupRequest {
+  ListQuery query = 1  [(validate.rules).message = {
+    required: true,
+  }];
+  GroupItem group = 2;
+}
+message ListGroupReply {
+  Response response = 1;
+  ListQueryResult result = 2;
+  repeated GroupItem groups = 3;
+}
+
+message CreateStrategyRequest {
+  StrategyItem strategy = 1 [(validate.rules).message = {
+    required: true,
+  }];
+}
+message CreateStrategyReply {
+  Response response = 1;
+}
+
+message UpdateStrategyRequest {
+  StrategyItem strategy = 1 [(validate.rules).message = {
+    required: true,
+  }];
+  int32 id = 2 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message UpdateStrategyReply {
+  Response response = 1;
+}
+
+message DeleteStrategyRequest {
+  int32 id = 1 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message DeleteStrategyReply {
+  Response response = 1;
+}
+
+message GetStrategyRequest {
+  int32 id = 1 [(validate.rules).int32 = {
+    gt: 0,
+  }];
+}
+message GetStrategyReply {
+  Response response = 1;
+  StrategyItem strategy = 2;
+}
+
+message ListStrategyRequest {
+  ListQuery query = 1  [(validate.rules).message = {
+    required: true,
+  }];
+  StrategyItem strategy = 2;
+}
+message ListStrategyReply {
+  Response response = 1;
+  ListQueryResult result = 2;
+  repeated StrategyItem strategies = 3;
+}

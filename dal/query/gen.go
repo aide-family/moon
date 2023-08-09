@@ -16,64 +16,49 @@ import (
 )
 
 var (
-	Q                            = new(Query)
-	PromCombo                    *promCombo
-	PromNode                     *promNode
-	PromNodeDir                  *promNodeDir
-	PromNodeDirFile              *promNodeDirFile
-	PromNodeDirFileGroup         *promNodeDirFileGroup
-	PromNodeDirFileGroupStrategy *promNodeDirFileGroupStrategy
-	PromRule                     *promRule
+	Q             = new(Query)
+	PromAlarmPage *promAlarmPage
+	PromDict      *promDict
+	PromGroup     *promGroup
+	PromStrategy  *promStrategy
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	PromCombo = &Q.PromCombo
-	PromNode = &Q.PromNode
-	PromNodeDir = &Q.PromNodeDir
-	PromNodeDirFile = &Q.PromNodeDirFile
-	PromNodeDirFileGroup = &Q.PromNodeDirFileGroup
-	PromNodeDirFileGroupStrategy = &Q.PromNodeDirFileGroupStrategy
-	PromRule = &Q.PromRule
+	PromAlarmPage = &Q.PromAlarmPage
+	PromDict = &Q.PromDict
+	PromGroup = &Q.PromGroup
+	PromStrategy = &Q.PromStrategy
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                           db,
-		PromCombo:                    newPromCombo(db, opts...),
-		PromNode:                     newPromNode(db, opts...),
-		PromNodeDir:                  newPromNodeDir(db, opts...),
-		PromNodeDirFile:              newPromNodeDirFile(db, opts...),
-		PromNodeDirFileGroup:         newPromNodeDirFileGroup(db, opts...),
-		PromNodeDirFileGroupStrategy: newPromNodeDirFileGroupStrategy(db, opts...),
-		PromRule:                     newPromRule(db, opts...),
+		db:            db,
+		PromAlarmPage: newPromAlarmPage(db, opts...),
+		PromDict:      newPromDict(db, opts...),
+		PromGroup:     newPromGroup(db, opts...),
+		PromStrategy:  newPromStrategy(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	PromCombo                    promCombo
-	PromNode                     promNode
-	PromNodeDir                  promNodeDir
-	PromNodeDirFile              promNodeDirFile
-	PromNodeDirFileGroup         promNodeDirFileGroup
-	PromNodeDirFileGroupStrategy promNodeDirFileGroupStrategy
-	PromRule                     promRule
+	PromAlarmPage promAlarmPage
+	PromDict      promDict
+	PromGroup     promGroup
+	PromStrategy  promStrategy
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                           db,
-		PromCombo:                    q.PromCombo.clone(db),
-		PromNode:                     q.PromNode.clone(db),
-		PromNodeDir:                  q.PromNodeDir.clone(db),
-		PromNodeDirFile:              q.PromNodeDirFile.clone(db),
-		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.clone(db),
-		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.clone(db),
-		PromRule:                     q.PromRule.clone(db),
+		db:            db,
+		PromAlarmPage: q.PromAlarmPage.clone(db),
+		PromDict:      q.PromDict.clone(db),
+		PromGroup:     q.PromGroup.clone(db),
+		PromStrategy:  q.PromStrategy.clone(db),
 	}
 }
 
@@ -87,36 +72,27 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                           db,
-		PromCombo:                    q.PromCombo.replaceDB(db),
-		PromNode:                     q.PromNode.replaceDB(db),
-		PromNodeDir:                  q.PromNodeDir.replaceDB(db),
-		PromNodeDirFile:              q.PromNodeDirFile.replaceDB(db),
-		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.replaceDB(db),
-		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.replaceDB(db),
-		PromRule:                     q.PromRule.replaceDB(db),
+		db:            db,
+		PromAlarmPage: q.PromAlarmPage.replaceDB(db),
+		PromDict:      q.PromDict.replaceDB(db),
+		PromGroup:     q.PromGroup.replaceDB(db),
+		PromStrategy:  q.PromStrategy.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	PromCombo                    IPromComboDo
-	PromNode                     IPromNodeDo
-	PromNodeDir                  IPromNodeDirDo
-	PromNodeDirFile              IPromNodeDirFileDo
-	PromNodeDirFileGroup         IPromNodeDirFileGroupDo
-	PromNodeDirFileGroupStrategy IPromNodeDirFileGroupStrategyDo
-	PromRule                     IPromRuleDo
+	PromAlarmPage IPromAlarmPageDo
+	PromDict      IPromDictDo
+	PromGroup     IPromGroupDo
+	PromStrategy  IPromStrategyDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		PromCombo:                    q.PromCombo.WithContext(ctx),
-		PromNode:                     q.PromNode.WithContext(ctx),
-		PromNodeDir:                  q.PromNodeDir.WithContext(ctx),
-		PromNodeDirFile:              q.PromNodeDirFile.WithContext(ctx),
-		PromNodeDirFileGroup:         q.PromNodeDirFileGroup.WithContext(ctx),
-		PromNodeDirFileGroupStrategy: q.PromNodeDirFileGroupStrategy.WithContext(ctx),
-		PromRule:                     q.PromRule.WithContext(ctx),
+		PromAlarmPage: q.PromAlarmPage.WithContext(ctx),
+		PromDict:      q.PromDict.WithContext(ctx),
+		PromGroup:     q.PromGroup.WithContext(ctx),
+		PromStrategy:  q.PromStrategy.WithContext(ctx),
 	}
 }
 
