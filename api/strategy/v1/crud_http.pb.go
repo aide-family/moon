@@ -35,14 +35,14 @@ type CrudHTTPServer interface {
 
 func RegisterCrudHTTPServer(s *http.Server, srv CrudHTTPServer) {
 	r := s.Route("/")
-	r.POST("/rule/v1/add", _Crud_CreateRule1_HTTP_Handler(srv))
-	r.PUT("/rule/v1/edit/{id}", _Crud_UpdateRule1_HTTP_Handler(srv))
-	r.DELETE("/rule/v1/delete/{id}", _Crud_DeleteRule1_HTTP_Handler(srv))
+	r.POST("/rule/v1/add", _Crud_CreateRule0_HTTP_Handler(srv))
+	r.PUT("/rule/v1/edit/{id}", _Crud_UpdateRule0_HTTP_Handler(srv))
+	r.DELETE("/rule/v1/delete/{id}", _Crud_DeleteRule0_HTTP_Handler(srv))
 	r.GET("/rule/v1/detail/{id}", _Crud_RuleDetail0_HTTP_Handler(srv))
 	r.GET("/strategies/v1/{node_id}", _Crud_Strategies2_HTTP_Handler(srv))
 }
 
-func _Crud_CreateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Crud_CreateRule0_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateRuleRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -61,7 +61,7 @@ func _Crud_CreateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Crud_UpdateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Crud_UpdateRule0_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateRuleRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -83,7 +83,7 @@ func _Crud_UpdateRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Crud_DeleteRule1_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
+func _Crud_DeleteRule0_HTTP_Handler(srv CrudHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteRuleRequest
 		if err := ctx.BindQuery(&in); err != nil {

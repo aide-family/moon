@@ -77,13 +77,10 @@ func Test_WithContext(t *testing.T) {
 	qCtx := query.WithContext(context.WithValue(context.Background(), key, value))
 
 	for _, ctx := range []context.Context{
-		qCtx.PromCombo.UnderlyingDB().Statement.Context,
-		qCtx.PromNode.UnderlyingDB().Statement.Context,
-		qCtx.PromNodeDir.UnderlyingDB().Statement.Context,
-		qCtx.PromNodeDirFile.UnderlyingDB().Statement.Context,
-		qCtx.PromNodeDirFileGroup.UnderlyingDB().Statement.Context,
-		qCtx.PromNodeDirFileGroupStrategy.UnderlyingDB().Statement.Context,
-		qCtx.PromRule.UnderlyingDB().Statement.Context,
+		qCtx.PromAlarmPage.UnderlyingDB().Statement.Context,
+		qCtx.PromDict.UnderlyingDB().Statement.Context,
+		qCtx.PromGroup.UnderlyingDB().Statement.Context,
+		qCtx.PromStrategy.UnderlyingDB().Statement.Context,
 	} {
 		if v := ctx.Value(key); v != value {
 			t.Errorf("get value from context fail, expect %q, got %q", value, v)

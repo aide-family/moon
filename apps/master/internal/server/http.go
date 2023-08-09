@@ -19,10 +19,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	ping "prometheus-manager/api"
 	promV1 "prometheus-manager/api/prom/v1"
-	crudV1 "prometheus-manager/api/strategy/v1"
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/apps/master/internal/service"
-	promServiceV1 "prometheus-manager/apps/master/internal/service/prom/v1"
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 )
@@ -33,12 +31,7 @@ func NewHTTPServer(
 	logger log.Logger,
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
-	crudService *service.CrudService,
-	dirV1Service *promServiceV1.DirService,
-	fileV1Service *promServiceV1.FileService,
-	nodeV1Service *promServiceV1.NodeService,
-	ruleV1Service *promServiceV1.RuleService,
-	groupV1Service *promServiceV1.GroupService,
+	promService *service.PromService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.LocalHttpRequestFilter()), // 跨域
@@ -53,7 +46,6 @@ func NewHTTPServer(
 				}
 			},
 			logging.Server(logger),
-			validate.Validator(),
 			tracing.Server(tracing.WithTracerProvider(tp), tracing.WithTracerName("http")),
 			ratelimit.Server(),
 			metrics.Server(
@@ -81,12 +73,7 @@ func NewHTTPServer(
 	srv.HandlePrefix("/metrics", promhttp.Handler())
 
 	ping.RegisterPingHTTPServer(srv, pingService)
-	crudV1.RegisterCrudHTTPServer(srv, crudService)
-	promV1.RegisterDirHTTPServer(srv, dirV1Service)
-	promV1.RegisterFileHTTPServer(srv, fileV1Service)
-	promV1.RegisterNodeHTTPServer(srv, nodeV1Service)
-	promV1.RegisterRuleHTTPServer(srv, ruleV1Service)
-	promV1.RegisterGroupHTTPServer(srv, groupV1Service)
+	promV1.RegisterPromHTTPServer(srv, promService)
 
 	log.NewHelper(log.With(logger, "module", "server/http")).Info("http server initialized")
 

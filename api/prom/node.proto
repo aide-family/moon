@@ -8,47 +8,56 @@ option go_package = "prometheus-manager/api/prom;prom";
 option java_multiple_files = true;
 option java_package = "api.prom";
 
-message NodeItem {
-  string en_name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
-  string cn_name = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
-  string datasource = 3 [(validate.rules).string = {min_len: 1, max_len: 1024}];
-  string remark = 4 [(validate.rules).string = {min_len: 0, max_len: 255}];
-  int64 created_at = 5;
-  int64 updated_at = 6;
-  repeated DirItem dirs = 7;
-  uint32 id = 99;
+enum Category {
+  // 未知
+  CATEGORY_NONE = 0;
+  // 规则组类型
+  CATEGORY_GROUP = 1;
+  // 套餐类型
+  CATEGORY_COMBO = 2;
+  // 规则类型
+  CATEGORY_STRATEGY = 3;
+  // 告警等级
+  CATEGORY_ALERT_LEVEL = 4;
+  // 告警通知方式
+  CATEGORY_ALERT_NOTIFY = 5;
 }
 
-message DirItem {
-  uint32 node_id = 1 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
-  string path = 2 [(validate.rules).string = {min_len: 1, max_len: 1024}];
+message DictItem {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
   int64 created_at = 5;
   int64 updated_at = 6;
-  repeated FileItem files = 7;
-  uint32 id = 99;
+  Category category = 7 [(validate.rules).enum.defined_only = true];
+  string color = 8;
+  int32 id = 99;
 }
 
-message FileItem {
-  string filename = 1 [(validate.rules).string = {min_len: 1, max_len: 1024, pattern: "^.*\\.(yml|yaml)$"}];
-  uint32 dir_id = 2 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
+message AlarmPage {
+  string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
+  string icon = 3 [(validate.rules).string = {max_len: 1024}];
+  string color = 4 [(validate.rules).string = {max_len: 64}];
   int64 created_at = 5;
   int64 updated_at = 6;
-  repeated GroupItem groups = 7;
-  uint32 id = 99;
+  int32 id = 99;
 }
 
 message GroupItem {
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
-  uint32 file_id = 3 [(validate.rules).uint32 = {gt: 0, lt: 4294967295}];
   int64 created_at = 5;
   int64 updated_at = 6;
-  repeated RuleItem rules = 7;
-  uint32 id = 99;
+  repeated StrategyItem prom_strategies = 7;
+  repeated DictItem categories = 8;
+  int64 strategy_count = 9;
+  // 规则组类型
+  repeated int32 categories_id = 10;
+  int32 id = 99;
 }
 
-message RuleItem {
-  uint32 group_id = 1 [(validate.rules).uint32 = {gt: 0,lt: 4294967295}];
+message StrategyItem {
+  int32 group_id = 1 [(validate.rules).int32 = {gt: 0}];
   string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string expr = 3 [(validate.rules).string = {min_len: 1, max_len: 4096}];
   string for = 4 [(validate.rules).string = {min_len: 1, max_len: 64, pattern: "^\\d+(s|m|h)$"}];
@@ -62,7 +71,15 @@ message RuleItem {
   }];
   int64 created_at = 7;
   int64 updated_at = 8;
-  uint32 id = 99;
+  // 规则类型
+  repeated DictItem categories = 9;
+  // 默认要具备告警等级
+  int32 alert_level_id = 11 [(validate.rules).int32 = {gt: 0}];
+  DictItem alert_level = 12;
+  // 规则报警页面(告警信息出现的大盘页面)
+  repeated int32 alarm_page_ids = 13 [(validate.rules).repeated = {min_items: 1}];
+  repeated AlarmPage alarm_pages = 14;
+  int32 id = 99;
 }
 
 message ComboRuleItem {
@@ -79,7 +96,7 @@ message ComboRuleItem {
   }];
   int64 created_at = 7;
   int64 updated_at = 8;
-  uint32 id = 99;
+  int32 id = 99;
 }
 
 message ComboItem {
@@ -88,5 +105,5 @@ message ComboItem {
   int64 created_at = 5;
   int64 updated_at = 6;
   repeated ComboRuleItem rules = 7;
-  uint32 id = 99;
+  int32 id = 99;
 }
