@@ -34,6 +34,10 @@ type Data struct {
 	cache *redis.Client
 }
 
+const (
+	promModuleName = "data/Prom"
+)
+
 func (l *Data) DB() *gorm.DB {
 	return l.db
 }
