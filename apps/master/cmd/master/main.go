@@ -3,11 +3,7 @@ package main
 import (
 	"flag"
 	"os"
-	"prometheus-manager/pkg/hello"
-	"prometheus-manager/pkg/servers"
 	"sync"
-
-	"prometheus-manager/apps/master/internal/conf"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -16,8 +12,12 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-
 	_ "go.uber.org/automaxprocs"
+
+	"prometheus-manager/pkg/hello"
+	"prometheus-manager/pkg/servers"
+
+	"prometheus-manager/apps/master/internal/conf"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"

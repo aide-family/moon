@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -17,12 +18,14 @@ import (
 	"go.opentelemetry.io/otel"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+
 	ping "prometheus-manager/api"
 	promV1 "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/conf"
-	"prometheus-manager/apps/master/internal/service"
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
+
+	"prometheus-manager/apps/master/internal/conf"
+	"prometheus-manager/apps/master/internal/service"
 )
 
 // NewHTTPServer new an HTTP server.

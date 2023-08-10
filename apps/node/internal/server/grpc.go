@@ -11,14 +11,17 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
+
 	ping "prometheus-manager/api"
 	loadV1 "prometheus-manager/api/strategy/v1/load"
 	pullV1 "prometheus-manager/api/strategy/v1/pull"
 	pushV1 "prometheus-manager/api/strategy/v1/push"
-	"prometheus-manager/apps/node/internal/conf"
-	"prometheus-manager/apps/node/internal/service"
+
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
+
+	"prometheus-manager/apps/node/internal/conf"
+	"prometheus-manager/apps/node/internal/service"
 )
 
 // NewGRPCServer new a gRPC server.

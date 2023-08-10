@@ -6,16 +6,17 @@
 package main
 
 import (
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+
+	"prometheus-manager/pkg/conn"
+
 	"prometheus-manager/apps/master/internal/biz"
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/apps/master/internal/data"
 	"prometheus-manager/apps/master/internal/server"
 	"prometheus-manager/apps/master/internal/service"
-	"prometheus-manager/pkg/conn"
-
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
 )
 
 // wireApp init kratos application.

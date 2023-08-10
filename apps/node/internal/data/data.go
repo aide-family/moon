@@ -1,12 +1,15 @@
 package data
 
 import (
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+
 	"prometheus-manager/api/strategy"
+
 	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/apps/node/internal/conf"
-	"time"
 )
 
 // ProviderSet is data providers.

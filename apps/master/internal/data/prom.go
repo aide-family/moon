@@ -3,18 +3,21 @@ package data
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/biz"
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
-	"time"
+
+	"prometheus-manager/apps/master/internal/biz"
 )
 
 type (
