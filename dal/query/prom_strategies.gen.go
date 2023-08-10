@@ -29,17 +29,17 @@ func newPromStrategy(db *gorm.DB, opts ...gen.DOOption) promStrategy {
 	tableName := _promStrategy.promStrategyDo.TableName()
 	_promStrategy.ALL = field.NewAsterisk(tableName)
 	_promStrategy.ID = field.NewInt32(tableName, "id")
+	_promStrategy.GroupID = field.NewInt32(tableName, "group_id")
 	_promStrategy.Alert = field.NewString(tableName, "alert")
 	_promStrategy.Expr = field.NewString(tableName, "expr")
 	_promStrategy.For = field.NewString(tableName, "for")
 	_promStrategy.Labels = field.NewString(tableName, "labels")
 	_promStrategy.Annotations = field.NewString(tableName, "annotations")
 	_promStrategy.AlertLevelID = field.NewInt32(tableName, "alert_level_id")
+	_promStrategy.Status = field.NewInt32(tableName, "status")
 	_promStrategy.CreatedAt = field.NewTime(tableName, "created_at")
 	_promStrategy.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promStrategy.DeletedAt = field.NewField(tableName, "deleted_at")
-	_promStrategy.GroupID = field.NewInt32(tableName, "group_id")
-	_promStrategy.Status = field.NewInt32(tableName, "status")
 	_promStrategy.AlarmPages = promStrategyHasManyAlarmPages{
 		db: db.Session(&gorm.Session{}),
 
@@ -73,17 +73,17 @@ type promStrategy struct {
 
 	ALL          field.Asterisk
 	ID           field.Int32
+	GroupID      field.Int32  // 所属规则组ID
 	Alert        field.String // 规则名称
 	Expr         field.String // prom ql
 	For          field.String // 持续时间
 	Labels       field.String // 标签
 	Annotations  field.String // 告警文案
 	AlertLevelID field.Int32  // 告警等级dict ID
+	Status       field.Int32  // 启用状态: 1启用;2禁用
 	CreatedAt    field.Time   // 创建时间
 	UpdatedAt    field.Time   // 更新时间
 	DeletedAt    field.Field  // 删除时间
-	GroupID      field.Int32  // 所属规则组ID
-	Status       field.Int32  // 启用状态: 1启用;2禁用
 	AlarmPages   promStrategyHasManyAlarmPages
 
 	Categories promStrategyHasManyCategories
@@ -106,17 +106,17 @@ func (p promStrategy) As(alias string) *promStrategy {
 func (p *promStrategy) updateTableName(table string) *promStrategy {
 	p.ALL = field.NewAsterisk(table)
 	p.ID = field.NewInt32(table, "id")
+	p.GroupID = field.NewInt32(table, "group_id")
 	p.Alert = field.NewString(table, "alert")
 	p.Expr = field.NewString(table, "expr")
 	p.For = field.NewString(table, "for")
 	p.Labels = field.NewString(table, "labels")
 	p.Annotations = field.NewString(table, "annotations")
 	p.AlertLevelID = field.NewInt32(table, "alert_level_id")
+	p.Status = field.NewInt32(table, "status")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
-	p.GroupID = field.NewInt32(table, "group_id")
-	p.Status = field.NewInt32(table, "status")
 
 	p.fillFieldMap()
 
@@ -135,17 +135,17 @@ func (p *promStrategy) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 func (p *promStrategy) fillFieldMap() {
 	p.fieldMap = make(map[string]field.Expr, 15)
 	p.fieldMap["id"] = p.ID
+	p.fieldMap["group_id"] = p.GroupID
 	p.fieldMap["alert"] = p.Alert
 	p.fieldMap["expr"] = p.Expr
 	p.fieldMap["for"] = p.For
 	p.fieldMap["labels"] = p.Labels
 	p.fieldMap["annotations"] = p.Annotations
 	p.fieldMap["alert_level_id"] = p.AlertLevelID
+	p.fieldMap["status"] = p.Status
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
-	p.fieldMap["group_id"] = p.GroupID
-	p.fieldMap["status"] = p.Status
 
 }
 

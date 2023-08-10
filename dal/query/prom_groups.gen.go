@@ -30,8 +30,9 @@ func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
 	_promGroup.ALL = field.NewAsterisk(tableName)
 	_promGroup.ID = field.NewInt32(tableName, "id")
 	_promGroup.Name = field.NewString(tableName, "name")
+	_promGroup.StrategyCount = field.NewInt64(tableName, "strategy_count")
+	_promGroup.Status = field.NewInt32(tableName, "status")
 	_promGroup.Remark = field.NewString(tableName, "remark")
-	_promGroup.StrategyCount = field.NewInt32(tableName, "strategy_count")
 	_promGroup.CreatedAt = field.NewTime(tableName, "created_at")
 	_promGroup.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promGroup.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -82,8 +83,9 @@ type promGroup struct {
 	ALL            field.Asterisk
 	ID             field.Int32
 	Name           field.String // 规则组名称
+	StrategyCount  field.Int64  // 规则数量
+	Status         field.Int32  // 启用状态1:启用;2禁用
 	Remark         field.String // 描述信息
-	StrategyCount  field.Int32  // 规则数量
 	CreatedAt      field.Time   // 创建时间
 	UpdatedAt      field.Time   // 更新时间
 	DeletedAt      field.Field  // 删除时间
@@ -109,8 +111,9 @@ func (p *promGroup) updateTableName(table string) *promGroup {
 	p.ALL = field.NewAsterisk(table)
 	p.ID = field.NewInt32(table, "id")
 	p.Name = field.NewString(table, "name")
+	p.StrategyCount = field.NewInt64(table, "strategy_count")
+	p.Status = field.NewInt32(table, "status")
 	p.Remark = field.NewString(table, "remark")
-	p.StrategyCount = field.NewInt32(table, "strategy_count")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
@@ -134,8 +137,9 @@ func (p *promGroup) fillFieldMap() {
 	p.fieldMap = make(map[string]field.Expr, 10)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["name"] = p.Name
-	p.fieldMap["remark"] = p.Remark
 	p.fieldMap["strategy_count"] = p.StrategyCount
+	p.fieldMap["status"] = p.Status
+	p.fieldMap["remark"] = p.Remark
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt

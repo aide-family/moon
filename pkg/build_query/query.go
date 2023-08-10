@@ -85,8 +85,8 @@ func GetSorts(q IDBQeury, sorts ...ISort) []field.Expr {
 }
 
 func GetPage(params IPage) (offset, limit int32) {
-	offset = (params.GetSize() - 1) * params.GetSize()
-	limit = params.GetCurrent()
+	offset = (params.GetCurrent() - 1) * params.GetSize()
+	limit = params.GetSize()
 	if offset < DefaultOffset {
 		offset = DefaultOffset
 	}

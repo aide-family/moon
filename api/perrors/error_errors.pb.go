@@ -101,12 +101,12 @@ func IsLogicUnknown(err error) bool {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == LogicReason_LOGIC_UNKNOWN.String() && e.Code == 201
+	return e.Reason == LogicReason_LOGIC_UNKNOWN.String() && e.Code == 200
 }
 
 // 逻辑未知错误
 func ErrorLogicUnknown(format string, args ...interface{}) *errors.Error {
-	return errors.New(201, LogicReason_LOGIC_UNKNOWN.String(), fmt.Sprintf(format, args...))
+	return errors.New(200, LogicReason_LOGIC_UNKNOWN.String(), fmt.Sprintf(format, args...))
 }
 
 // 未配置strategyPath
@@ -115,12 +115,12 @@ func IsLogicStrategyPathNotConfigured(err error) bool {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == LogicReason_LOGIC_STRATEGY_PATH_NOT_CONFIGURED.String() && e.Code == 202
+	return e.Reason == LogicReason_LOGIC_STRATEGY_PATH_NOT_CONFIGURED.String() && e.Code == 200
 }
 
 // 未配置strategyPath
 func ErrorLogicStrategyPathNotConfigured(format string, args ...interface{}) *errors.Error {
-	return errors.New(202, LogicReason_LOGIC_STRATEGY_PATH_NOT_CONFIGURED.String(), fmt.Sprintf(format, args...))
+	return errors.New(200, LogicReason_LOGIC_STRATEGY_PATH_NOT_CONFIGURED.String(), fmt.Sprintf(format, args...))
 }
 
 // 未授权路径
@@ -129,10 +129,122 @@ func IsLogicUnauthorizedPath(err error) bool {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == LogicReason_LOGIC_UNAUTHORIZED_PATH.String() && e.Code == 203
+	return e.Reason == LogicReason_LOGIC_UNAUTHORIZED_PATH.String() && e.Code == 200
 }
 
 // 未授权路径
 func ErrorLogicUnauthorizedPath(format string, args ...interface{}) *errors.Error {
-	return errors.New(203, LogicReason_LOGIC_UNAUTHORIZED_PATH.String(), fmt.Sprintf(format, args...))
+	return errors.New(200, LogicReason_LOGIC_UNAUTHORIZED_PATH.String(), fmt.Sprintf(format, args...))
+}
+
+// 创建prometheus-group失败
+func IsLogicCreatePrometheusGroupFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_CREATE_PROMETHEUS_GROUP_FAILED.String() && e.Code == 200
+}
+
+// 创建prometheus-group失败
+func ErrorLogicCreatePrometheusGroupFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_CREATE_PROMETHEUS_GROUP_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 编辑prometheus-group失败
+func IsLogicEditPrometheusGroupFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_EDIT_PROMETHEUS_GROUP_FAILED.String() && e.Code == 200
+}
+
+// 编辑prometheus-group失败
+func ErrorLogicEditPrometheusGroupFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_EDIT_PROMETHEUS_GROUP_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 删除prometheus-group失败
+func IsLogicDeletePrometheusGroupFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DELETE_PROMETHEUS_GROUP_FAILED.String() && e.Code == 200
+}
+
+// 删除prometheus-group失败
+func ErrorLogicDeletePrometheusGroupFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DELETE_PROMETHEUS_GROUP_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 创建prometheus-strategy失败
+func IsLogicCreatePrometheusStrategyFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_CREATE_PROMETHEUS_STRATEGY_FAILED.String() && e.Code == 200
+}
+
+// 创建prometheus-strategy失败
+func ErrorLogicCreatePrometheusStrategyFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_CREATE_PROMETHEUS_STRATEGY_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 编辑prometheus-strategy失败
+func IsLogicEditPrometheusStrategyFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_EDIT_PROMETHEUS_STRATEGY_FAILED.String() && e.Code == 200
+}
+
+// 编辑prometheus-strategy失败
+func ErrorLogicEditPrometheusStrategyFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_EDIT_PROMETHEUS_STRATEGY_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 删除prometheus-strategy失败
+func IsLogicDeletePrometheusStrategyFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DELETE_PROMETHEUS_STRATEGY_FAILED.String() && e.Code == 200
+}
+
+// 删除prometheus-strategy失败
+func ErrorLogicDeletePrometheusStrategyFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DELETE_PROMETHEUS_STRATEGY_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 数据不存在
+func IsLogicDataNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DATA_NOT_FOUND.String() && e.Code == 200
+}
+
+// 数据不存在
+func ErrorLogicDataNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DATA_NOT_FOUND.String(), fmt.Sprintf(format, args...))
+}
+
+// 数据重复
+func IsLogicDataDuplicate(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DATA_DUPLICATE.String() && e.Code == 200
+}
+
+// 数据重复
+func ErrorLogicDataDuplicate(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DATA_DUPLICATE.String(), fmt.Sprintf(format, args...))
 }

@@ -29,9 +29,25 @@ enum ServerReason {
 // 逻辑错误
 enum LogicReason {
   option (errors.default_code) = 200; // 默认错误码
-  LOGIC_UNKNOWN = 0 [(errors.code) = 201]; // 逻辑未知错误
+  LOGIC_UNKNOWN = 0 [(errors.code) = 200]; // 逻辑未知错误
   // 未配置strategyPath
-  LOGIC_STRATEGY_PATH_NOT_CONFIGURED = 1 [(errors.code) = 202];
+  LOGIC_STRATEGY_PATH_NOT_CONFIGURED = 1 [(errors.code) = 200];
   // 未授权路径
-  LOGIC_UNAUTHORIZED_PATH = 2 [(errors.code) = 203];
+  LOGIC_UNAUTHORIZED_PATH = 2 [(errors.code) = 200];
+  // 创建prometheus-group失败
+  LOGIC_CREATE_PROMETHEUS_GROUP_FAILED = 3 [(errors.code) = 200];
+  // 编辑prometheus-group失败
+  LOGIC_EDIT_PROMETHEUS_GROUP_FAILED = 4 [(errors.code) = 200];
+  // 删除prometheus-group失败
+  LOGIC_DELETE_PROMETHEUS_GROUP_FAILED = 5 [(errors.code) = 200];
+  // 创建prometheus-strategy失败
+  LOGIC_CREATE_PROMETHEUS_STRATEGY_FAILED = 6 [(errors.code) = 200];
+  // 编辑prometheus-strategy失败
+  LOGIC_EDIT_PROMETHEUS_STRATEGY_FAILED = 7 [(errors.code) = 200];
+  // 删除prometheus-strategy失败
+  LOGIC_DELETE_PROMETHEUS_STRATEGY_FAILED = 8 [(errors.code) = 200];
+  // 数据不存在
+  LOGIC_DATA_NOT_FOUND = 9 [(errors.code) = 200];
+  // 数据重复
+  LOGIC_DATA_DUPLICATE = 10 [(errors.code) = 200];
 }

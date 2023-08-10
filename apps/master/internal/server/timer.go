@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
-	pb "prometheus-manager/api/node"
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/apps/master/internal/service"
 	"prometheus-manager/pkg/servers"
@@ -24,13 +23,13 @@ func NewTimer(
 
 	call := func(ctx context.Context) error {
 		count++
-		log.Info("TimerCallFunc: ", count)
-		pushed, err := pushService.Call(ctx, &pb.CallRequest{Name: "prometheus-manager-node"})
-		if err != nil {
-			return err
-		}
+		//log.Info("TimerCallFunc: ", count)
+		//pushed, err := pushService.Call(ctx, &pb.CallRequest{Name: "prometheus-manager-node"})
+		//if err != nil {
+		//	return err
+		//}
 
-		log.Info("pushed: ", pushed)
+		//log.Info("pushed: ", pushed)
 		return nil
 	}
 

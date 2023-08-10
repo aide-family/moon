@@ -21,7 +21,7 @@ func FmtASCIIGenerator(name, version string, metadata map[string]string) {
 	id, _ := os.Hostname()
 
 	detail := `
-┌────────────────────────────────────────────────────────────────────────────────────────`
+┌───────────────────────────────────────────────────────────────────────────────────────`
 
 	detail += fmt.Sprintf("\n├── %s: %s", "Name", name)
 	detail += fmt.Sprintf("\n├── %s: %s", "Version", version)
@@ -34,7 +34,7 @@ func FmtASCIIGenerator(name, version string, metadata map[string]string) {
 	}
 
 	detail += `
-└────────────────────────────────────────────────────────────────────────────────────────
+└───────────────────────────────────────────────────────────────────────────────────────
 `
 
 	fmt.Println(detail)

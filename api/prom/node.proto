@@ -42,7 +42,7 @@ message DictItem {
   int32 id = 99;
 }
 
-message AlarmPage {
+message AlarmPageItem {
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
   string icon = 3 [(validate.rules).string = {max_len: 1024}];
@@ -89,9 +89,10 @@ message StrategyItem {
   DictItem alert_level = 12;
   // 规则报警页面(告警信息出现的大盘页面)
   repeated int32 alarm_page_ids = 13 [(validate.rules).repeated = {min_items: 1}];
-  repeated AlarmPage alarm_pages = 14;
+  repeated AlarmPageItem alarm_pages = 14;
   // 状态
   Status status = 15;
+  repeated int32 categorie_ids = 16;
   int32 id = 99;
 }
 

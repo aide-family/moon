@@ -17,16 +17,16 @@ paths:
           in: path
           required: true
           schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
-    /load/v1/reload:
-        post:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/helloworld.v1.HelloReply'
+  /load/v1/reload:
+    post:
             tags:
                 - Load
             operationId: Load_Reload
@@ -44,22 +44,22 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
     /ping:
-        get:
-            tags:
-                - Ping
-            operationId: Ping_Check
-            parameters:
-                - name: name
-                  in: query
-                  schema:
-                    type: string
-            responses:
-              "200":
-                description: OK
-                content:
-                  application/json:
-                    schema:
-                      $ref: '#/components/schemas/api.PingReply'
+      get:
+        tags:
+          - Ping
+        operationId: Ping_Check
+        parameters:
+          - name: name
+            in: query
+            schema:
+              type: string
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/api.PingReply'
   /prom/v1/group:
     post:
       tags:
@@ -256,16 +256,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
-    /pull/v1/strategies:
-        get:
-            tags:
-                - Pull
-            operationId: Pull_Strategies
-            parameters:
-                - name: node
-                  in: query
-                  schema:
-                    type: string
+  /pull/v1/strategies:
+    get:
+      tags:
+        - Pull
+      operationId: Pull_Strategies
+      parameters:
+        - name: node
+          in: query
+          schema:
+            type: string
             responses:
                 "200":
                     description: OK
@@ -467,20 +467,20 @@ components:
           format: int32
         size:
           type: integer
-                    format: int32
-        api.PingReply:
-            type: object
-            properties:
-                name:
-                    type: string
-                version:
-                    type: string
-                namespace:
-                    type: string
-                metadata:
-                    type: object
-                    additionalProperties:
-                      type: string
+          format: int32
+    api.PingReply:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        namespace:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     api.Response:
       type: object
       properties:
@@ -505,7 +505,7 @@ components:
       properties:
         response:
           $ref: '#/components/schemas/api.Response'
-    api.prom.AlarmPage:
+    api.prom.AlarmPageItem:
       type: object
       properties:
         name:
@@ -629,11 +629,16 @@ components:
         alarmPages:
           type: array
           items:
-            $ref: '#/components/schemas/api.prom.AlarmPage'
+            $ref: '#/components/schemas/api.prom.AlarmPageItem'
         status:
           type: integer
           description: 状态
           format: enum
+        categorieIds:
+          type: array
+          items:
+            type: integer
+            format: int32
         id:
           type: integer
           format: int32
@@ -753,16 +758,16 @@ components:
           items:
             $ref: '#/components/schemas/api.strategy.Rule'
     api.strategy.Rule:
-            type: object
-            properties:
-                alert:
-                    type: string
-                expr:
-                    type: string
-                for:
-                    type: string
-                labels:
-                    type: object
+      type: object
+      properties:
+        alert:
+          type: string
+        expr:
+          type: string
+        for:
+          type: string
+        labels:
+          type: object
                     additionalProperties:
                         type: string
                 annotations:
