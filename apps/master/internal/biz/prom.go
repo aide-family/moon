@@ -343,7 +343,7 @@ func (s *PromLogic) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRe
 	}
 	if firstStrategyInfo != nil && firstStrategyInfo.ID != req.GetId() {
 		return nil, perrors.ErrorLogicDataDuplicate("策略名称已存在").WithMetadata(map[string]string{
-			"alert":    req.GetStrategy().Alert,
+			"alert":    req.GetStrategy().GetAlert(),
 			"group_id": strconv.Itoa(int(req.GetStrategy().GetGroupId())),
 		})
 	}
