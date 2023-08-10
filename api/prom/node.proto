@@ -25,11 +25,11 @@ enum Category {
 
 enum Status {
   // 未知
-  NONE = 0;
+  Status_NONE = 0;
   // 启用
-  ENABLE = 1;
+  Status_ENABLE = 1;
   // 禁用
-  DISABLE = 2;
+  Status_DISABLE = 2;
 }
 
 message DictItem {

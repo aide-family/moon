@@ -276,16 +276,16 @@ paths:
   /push/v1/node/{name}/strategies:
     get:
       tags:
-                - Push
-            operationId: Push_Call
-            parameters:
-                - name: name
-                  in: path
-                  description: The name of the node to call.
-                  required: true
-                  schema:
-                    type: string
-            responses:
+        - Push
+      operationId: Push_Call
+      parameters:
+        - name: name
+          in: path
+          description: The name of the node to call.
+          required: true
+          schema:
+            type: string
+      responses:
                 "200":
                     description: OK
                     content:
@@ -778,16 +778,16 @@ components:
       type: object
       properties:
         filename:
-                    type: string
-                groups:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.strategy.Group'
-        api.strategy.StrategyDir:
-            type: object
-            properties:
-                dir:
-                    type: string
+          type: string
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.strategy.Group'
+    api.strategy.StrategyDir:
+      type: object
+      properties:
+        dir:
+          type: string
                 strategies:
                     type: array
                     items:
