@@ -16,11 +16,13 @@ type (
 		UpdateGroupByID(ctx context.Context, id int32, m *model.PromGroup) error
 		DeleteGroupByID(ctx context.Context, id int32) error
 		GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error)
+		Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error)
 
 		CreateStrategy(ctx context.Context, m *model.PromStrategy) error
 		UpdateStrategyByID(ctx context.Context, id int32, m *model.PromStrategy) error
 		DeleteStrategyByID(ctx context.Context, id int32) error
 		StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error)
+		Strategies(ctx context.Context, req *pb.ListStrategyRequest) ([]*model.PromStrategy, int64, error)
 	}
 
 	PromLogic struct {

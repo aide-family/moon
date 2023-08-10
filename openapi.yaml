@@ -7,16 +7,16 @@ info:
     version: 0.0.1
 paths:
   /helloworld/{name}:
-        get:
-            tags:
-                - Greeter
-            description: Sends a greeting
-            operationId: Greeter_SayHello
-            parameters:
-                - name: name
-                  in: path
-                  required: true
-                  schema:
+    get:
+      tags:
+        - Greeter
+      description: Sends a greeting
+      operationId: Greeter_SayHello
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
                     type: string
             responses:
                 "200":
@@ -54,31 +54,31 @@ paths:
                   schema:
                     type: string
             responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.PingReply'
-    /prom/v1/group:
-      post:
-        tags:
-          - Prom
-        description: Group 规则组
-        operationId: Prom_CreateGroup
-        requestBody:
+              "200":
+                description: OK
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/api.PingReply'
+  /prom/v1/group:
+    post:
+      tags:
+        - Prom
+      description: Group 规则组
+      operationId: Prom_CreateGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.CreateGroupRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/api.prom.v1.CreateGroupRequest'
-          required: true
-        responses:
-          "200":
-            description: OK
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/api.prom.v1.CreateGroupReply'
+                $ref: '#/components/schemas/api.prom.v1.CreateGroupReply'
   /prom/v1/group/{id}:
     get:
       tags:
@@ -94,52 +94,52 @@ paths:
       responses:
         "200":
           description: OK
-                    content:
-                        application/json:
-                            schema:
-                              $ref: '#/components/schemas/api.prom.v1.GetGroupReply'
-        put:
-          tags:
-            - Prom
-          operationId: Prom_UpdateGroup
-          parameters:
-            - name: id
-              in: path
-              required: true
+          content:
+            application/json:
               schema:
-                type: integer
-                format: int32
-          requestBody:
-            content:
-              application/json:
-                        schema:
-                          $ref: '#/components/schemas/api.prom.v1.UpdateGroupRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                              $ref: '#/components/schemas/api.prom.v1.UpdateGroupReply'
-        delete:
-          tags:
-            - Prom
-          operationId: Prom_DeleteGroup
-          parameters:
-            - name: id
-              in: path
-              required: true
+                $ref: '#/components/schemas/api.prom.v1.GetGroupReply'
+    put:
+      tags:
+        - Prom
+      operationId: Prom_UpdateGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateGroupRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
               schema:
-                type: integer
-                format: int32
-          responses:
-            "200":
-              description: OK
-              content:
-                application/json:
-                  schema:
-                    $ref: '#/components/schemas/api.prom.v1.DeleteGroupReply'
+                $ref: '#/components/schemas/api.prom.v1.UpdateGroupReply'
+    delete:
+      tags:
+        - Prom
+      operationId: Prom_DeleteGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.DeleteGroupReply'
   /prom/v1/groups:
     post:
       tags:
@@ -210,52 +210,52 @@ paths:
       responses:
         "200":
           description: OK
-                    content:
-                        application/json:
-                            schema:
-                              $ref: '#/components/schemas/api.prom.v1.GetStrategyReply'
-        put:
-          tags:
-            - Prom
-          operationId: Prom_UpdateStrategy
-          parameters:
-            - name: id
-              in: path
-              required: true
+          content:
+            application/json:
               schema:
-                type: integer
-                format: int32
-          requestBody:
-            content:
-              application/json:
-                        schema:
-                          $ref: '#/components/schemas/api.prom.v1.UpdateStrategyRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                              $ref: '#/components/schemas/api.prom.v1.UpdateStrategyReply'
-        delete:
-          tags:
-            - Prom
-          operationId: Prom_DeleteStrategy
-          parameters:
-            - name: id
-              in: path
-              required: true
+                $ref: '#/components/schemas/api.prom.v1.GetStrategyReply'
+    put:
+      tags:
+        - Prom
+      operationId: Prom_UpdateStrategy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateStrategyRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
               schema:
-                type: integer
-                format: int32
-          responses:
-            "200":
-              description: OK
-                    content:
-                        application/json:
-                            schema:
-                              $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
+                $ref: '#/components/schemas/api.prom.v1.UpdateStrategyReply'
+    delete:
+      tags:
+        - Prom
+      operationId: Prom_DeleteStrategy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
     /pull/v1/strategies:
         get:
             tags:
@@ -421,17 +421,23 @@ components:
         page:
           $ref: '#/components/schemas/api.PageRequest'
         sort:
-          $ref: '#/components/schemas/api.Sort'
+          type: array
+          items:
+            $ref: '#/components/schemas/api.Sort'
         fields:
           type: array
           items:
             type: string
         keyword:
           type: string
-        keywordFields:
-          type: array
-          items:
-            type: string
+        startAt:
+          type: integer
+          format: int64
+        endAt:
+          type: integer
+          format: int64
+        timeField:
+          type: string
     api.ListQueryResult:
       type: object
       properties:
@@ -451,16 +457,16 @@ components:
           type: integer
           format: int32
         total:
-                    type: integer
-                    format: int64
-        api.PageRequest:
-            type: object
-            properties:
-                current:
-                    type: integer
-                    format: int32
-                size:
-                    type: integer
+          type: integer
+          format: int64
+    api.PageRequest:
+      type: object
+      properties:
+        current:
+          type: integer
+          format: int32
+        size:
+          type: integer
                     format: int32
         api.PingReply:
             type: object
@@ -474,26 +480,24 @@ components:
                 metadata:
                     type: object
                     additionalProperties:
-                        type: string
-        api.Response:
-            type: object
-            properties:
-                code:
-                  type: integer
-                  format: int64
-                message:
-                  type: string
-                metadata:
-                  type: object
-                  additionalProperties:
-                    type: string
+                      type: string
+    api.Response:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64
+        message:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     api.Sort:
       type: object
       properties:
         field:
-          type: array
-          items:
-            type: string
+          type: string
         asc:
           type: boolean
     api.node.CallResponse:
@@ -542,39 +546,43 @@ components:
         id:
           type: integer
           format: int32
-        api.prom.GroupItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                remark:
-                  type: string
-                createdAt:
-                  type: integer
-                  format: int64
-                updatedAt:
-                  type: integer
-                  format: int64
-                promStrategies:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/api.prom.StrategyItem'
-                categories:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/api.prom.DictItem'
-                strategyCount:
-                  type: integer
-                  format: int64
-                categoriesId:
-                  type: array
-                  items:
-                    type: integer
-                    format: int32
-                  description: 规则组类型
-                id:
-                  type: integer
-                  format: int32
+    api.prom.GroupItem:
+      type: object
+      properties:
+        name:
+          type: string
+        remark:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+        promStrategies:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.prom.StrategyItem'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.prom.DictItem'
+        strategyCount:
+          type: integer
+          format: int64
+        categoriesIds:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: 规则组类型
+        status:
+          type: integer
+          description: 状态
+          format: enum
+        id:
+          type: integer
+          format: int32
     api.prom.StrategyItem:
       type: object
       properties:
@@ -586,11 +594,11 @@ components:
         expr:
           type: string
         for:
-                    type: string
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
         annotations:
           type: object
           additionalProperties:
@@ -622,6 +630,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/api.prom.AlarmPage'
+        status:
+          type: integer
+          description: 状态
+          format: enum
         id:
           type: integer
           format: int32
@@ -731,16 +743,16 @@ components:
         id:
           type: integer
           format: int32
-        api.strategy.Group:
-            type: object
-            properties:
-                name:
-                    type: string
-                rules:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.strategy.Rule'
-        api.strategy.Rule:
+    api.strategy.Group:
+      type: object
+      properties:
+        name:
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.strategy.Rule'
+    api.strategy.Rule:
             type: object
             properties:
                 alert:

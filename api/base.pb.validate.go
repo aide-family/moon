@@ -387,6 +387,8 @@ func (m *Sort) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Field
+
 	// no validation rules for Asc
 
 	if len(errors) > 0 {
@@ -630,36 +632,47 @@ func (m *ListQuery) validate(all bool) error {
 		}
 	}
 
-	if all {
-		switch v := interface{}(m.GetSort()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListQueryValidationError{
-					field:  "Sort",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetSort() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListQueryValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListQueryValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ListQueryValidationError{
-					field:  "Sort",
+				return ListQueryValidationError{
+					field:  fmt.Sprintf("Sort[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetSort()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ListQueryValidationError{
-				field:  "Sort",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	// no validation rules for Keyword
+
+	// no validation rules for StartAt
+
+	// no validation rules for EndAt
+
+	// no validation rules for TimeField
 
 	if len(errors) > 0 {
 		return ListQueryMultiError(errors)

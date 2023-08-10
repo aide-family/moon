@@ -25,6 +25,7 @@ type PromStrategy struct {
 	UpdatedAt    *time.Time       `gorm:"column:updated_at;type:timestamp;comment:更新时间" json:"updated_at"`                                                        // 更新时间
 	DeletedAt    gorm.DeletedAt   `gorm:"column:deleted_at;type:timestamp;comment:删除时间" json:"deleted_at"`                                                        // 删除时间
 	GroupID      int32            `gorm:"column:group_id;type:int unsigned;not null;comment:所属规则组ID" json:"group_id"`                                             // 所属规则组ID
+	Status       int32            `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用" json:"status"`                                      // 启用状态: 1启用;2禁用
 	AlarmPages   []*PromAlarmPage `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"alarm_pages"`
 	Categories   []*PromDict      `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"categories"`
 	AlertLevel   *PromDict        `gorm:"foreignKey:alert_level_id" json:"alert_level"`

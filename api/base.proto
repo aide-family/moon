@@ -26,7 +26,7 @@ message PageReply {
 }
 
 message Sort {
-  repeated string field = 1;
+  string field = 1;
   bool asc = 2;
 }
 
@@ -39,10 +39,12 @@ message ListQuery {
   PageRequest page = 1 [(validate.rules).message = {
     required: true,
   }];
-  Sort sort = 2;
+  repeated Sort sort = 2;
   repeated string fields = 4;
   string keyword = 5;
-  repeated string keyword_fields = 6;
+  int64 start_at = 6;
+  int64 end_at = 7;
+  string time_field = 8;
 }
 
 message ListQueryResult {
