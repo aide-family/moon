@@ -355,17 +355,51 @@ func (s *PromLogic) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRe
 func (s *PromLogic) DeleteStrategy(ctx context.Context, req *pb.DeleteStrategyRequest) (*pb.DeleteStrategyReply, error) {
 	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.DeleteStrategy")
 	defer span.End()
-	return nil, nil
+
+	if err := s.repo.DeleteStrategyByID(ctx, req.GetId()); err != nil {
+		s.logger.WithContext(ctx).Errorw("删除Prometheus策略失败", "id", req.GetId(), "err", err)
+		return nil, err
+	}
+	return &pb.DeleteStrategyReply{Response: &api.Response{Message: "删除Prometheus策略成功"}}, nil
 }
 
 func (s *PromLogic) GetStrategy(ctx context.Context, req *pb.GetStrategyRequest) (*pb.GetStrategyReply, error) {
 	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.GetStrategy")
 	defer span.End()
-	return nil, nil
+
+	strategyDetail, err := s.repo.StrategyDetail(ctx, req.GetId())
+	if err != nil {
+		s.logger.WithContext(ctx).Errorw("获取Prometheus策略失败", "id", req.GetId(), "err", err)
+		return nil, err
+	}
+
+	return &pb.GetStrategyReply{
+		Response: &api.Response{Message: "获取Prometheus策略成功"},
+		Strategy: buildStrategyItem(strategyDetail),
+	}, nil
 }
 
 func (s *PromLogic) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) (*pb.ListStrategyReply, error) {
 	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.ListStrategy")
 	defer span.End()
-	return nil, nil
+
+	strategies, total, err := s.repo.Strategies(ctx, req)
+	if err != nil {
+		s.logger.WithContext(ctx).Errorw("获取Prometheus策略列表失败", req, "err", err)
+		return nil, perrors.ErrorServerDatabaseError("获取Prometheus策略列表失败")
+	}
+
+	return &pb.ListStrategyReply{
+		Response: &api.Response{Message: "获取Prometheus策略列表成功"},
+		Result: &api.ListQueryResult{
+			Page: &api.PageReply{
+				Current: req.GetQuery().GetPage().GetCurrent(),
+				Size:    req.GetQuery().GetPage().GetSize(),
+				Total:   total,
+			},
+			// TODO 暂时不返回fields
+			Fields: nil,
+		},
+		Strategies: buildPromStrategies(strategies),
+	}, nil
 }

@@ -36,7 +36,6 @@ func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
 	_promGroup.CreatedAt = field.NewTime(tableName, "created_at")
 	_promGroup.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promGroup.DeletedAt = field.NewField(tableName, "deleted_at")
-	_promGroup.Status = field.NewInt32(tableName, "status")
 	_promGroup.PromStrategies = promGroupHasManyPromStrategies{
 		db: db.Session(&gorm.Session{}),
 
@@ -89,7 +88,6 @@ type promGroup struct {
 	CreatedAt      field.Time   // 创建时间
 	UpdatedAt      field.Time   // 更新时间
 	DeletedAt      field.Field  // 删除时间
-	Status         field.Int32  // 启用状态1:启用;2禁用
 	PromStrategies promGroupHasManyPromStrategies
 
 	Categories promGroupHasManyCategories
@@ -117,7 +115,6 @@ func (p *promGroup) updateTableName(table string) *promGroup {
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
-	p.Status = field.NewInt32(table, "status")
 
 	p.fillFieldMap()
 
@@ -143,7 +140,6 @@ func (p *promGroup) fillFieldMap() {
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
-	p.fieldMap["status"] = p.Status
 
 }
 

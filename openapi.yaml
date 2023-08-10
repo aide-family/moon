@@ -27,39 +27,39 @@ paths:
                 $ref: '#/components/schemas/helloworld.v1.HelloReply'
   /load/v1/reload:
     post:
-            tags:
-                - Load
-            operationId: Load_Reload
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.strategy.v1.load.ReloadRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
-    /ping:
-      get:
-        tags:
-          - Ping
-        operationId: Ping_Check
-        parameters:
-          - name: name
-            in: query
+      tags:
+        - Load
+      operationId: Load_Reload
+      requestBody:
+        content:
+          application/json:
             schema:
-              type: string
-        responses:
-          "200":
-            description: OK
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/api.PingReply'
+              $ref: '#/components/schemas/api.strategy.v1.load.ReloadRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
+  /ping:
+    get:
+      tags:
+        - Ping
+      operationId: Ping_Check
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.PingReply'
   /prom/v1/group:
     post:
       tags:
@@ -266,16 +266,16 @@ paths:
           in: query
           schema:
             type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
-    /push/v1/node/{name}/strategies:
-        get:
-            tags:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
+  /push/v1/node/{name}/strategies:
+    get:
+      tags:
                 - Push
             operationId: Push_Call
             parameters:
@@ -768,16 +768,16 @@ components:
           type: string
         labels:
           type: object
-                    additionalProperties:
-                        type: string
-                annotations:
-                    type: object
-                    additionalProperties:
-                        type: string
-        api.strategy.Strategy:
-            type: object
-            properties:
-                filename:
+          additionalProperties:
+            type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+    api.strategy.Strategy:
+      type: object
+      properties:
+        filename:
                     type: string
                 groups:
                     type: array

@@ -57,15 +57,19 @@ func (m *DictItem) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
-		err := DictItemValidationError{
-			field:  "Name",
-			reason: "value length must be between 1 and 64 runes, inclusive",
+	if m.GetName() != "" {
+
+		if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
+			err := DictItemValidationError{
+				field:  "Name",
+				reason: "value length must be between 1 and 64 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
@@ -197,15 +201,19 @@ func (m *AlarmPageItem) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
-		err := AlarmPageItemValidationError{
-			field:  "Name",
-			reason: "value length must be between 1 and 64 runes, inclusive",
+	if m.GetName() != "" {
+
+		if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
+			err := AlarmPageItemValidationError{
+				field:  "Name",
+				reason: "value length must be between 1 and 64 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
@@ -347,26 +355,34 @@ func (m *GroupItem) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
-		err := GroupItemValidationError{
-			field:  "Name",
-			reason: "value length must be between 1 and 64 runes, inclusive",
+	if m.GetName() != "" {
+
+		if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
+			err := GroupItemValidationError{
+				field:  "Name",
+				reason: "value length must be between 1 and 64 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
-	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
-		err := GroupItemValidationError{
-			field:  "Remark",
-			reason: "value length must be between 0 and 255 runes, inclusive",
+	if m.GetRemark() != "" {
+
+		if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
+			err := GroupItemValidationError{
+				field:  "Remark",
+				reason: "value length must be between 0 and 255 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	// no validation rules for CreatedAt
@@ -546,133 +562,157 @@ func (m *StrategyItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetGroupId() <= 0 {
-		err := StrategyItemValidationError{
-			field:  "GroupId",
-			reason: "value must be greater than 0",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	if m.GetGroupId() != 0 {
 
-	if l := utf8.RuneCountInString(m.GetAlert()); l < 1 || l > 64 {
-		err := StrategyItemValidationError{
-			field:  "Alert",
-			reason: "value length must be between 1 and 64 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if l := utf8.RuneCountInString(m.GetExpr()); l < 1 || l > 4096 {
-		err := StrategyItemValidationError{
-			field:  "Expr",
-			reason: "value length must be between 1 and 4096 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if l := utf8.RuneCountInString(m.GetFor()); l < 1 || l > 64 {
-		err := StrategyItemValidationError{
-			field:  "For",
-			reason: "value length must be between 1 and 64 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_StrategyItem_For_Pattern.MatchString(m.GetFor()) {
-		err := StrategyItemValidationError{
-			field:  "For",
-			reason: "value does not match regex pattern \"^\\\\d+(s|m|h)$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	{
-		sorted_keys := make([]string, len(m.GetLabels()))
-		i := 0
-		for key := range m.GetLabels() {
-			sorted_keys[i] = key
-			i++
-		}
-		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
-		for _, key := range sorted_keys {
-			val := m.GetLabels()[key]
-			_ = val
-
-			if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
-				err := StrategyItemValidationError{
-					field:  fmt.Sprintf("Labels[%v]", key),
-					reason: "value length must be between 1 and 64 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
+		if m.GetGroupId() <= 0 {
+			err := StrategyItemValidationError{
+				field:  "GroupId",
+				reason: "value must be greater than 0",
 			}
-
-			if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
-				err := StrategyItemValidationError{
-					field:  fmt.Sprintf("Labels[%v]", key),
-					reason: "value length must be between 1 and 64 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
+			if !all {
+				return err
 			}
-
+			errors = append(errors, err)
 		}
+
 	}
 
-	{
-		sorted_keys := make([]string, len(m.GetAnnotations()))
-		i := 0
-		for key := range m.GetAnnotations() {
-			sorted_keys[i] = key
-			i++
-		}
-		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
-		for _, key := range sorted_keys {
-			val := m.GetAnnotations()[key]
-			_ = val
+	if m.GetAlert() != "" {
 
-			if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
-				err := StrategyItemValidationError{
-					field:  fmt.Sprintf("Annotations[%v]", key),
-					reason: "value length must be between 1 and 64 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
+		if l := utf8.RuneCountInString(m.GetAlert()); l < 1 || l > 64 {
+			err := StrategyItemValidationError{
+				field:  "Alert",
+				reason: "value length must be between 1 and 64 runes, inclusive",
 			}
-
-			if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
-				err := StrategyItemValidationError{
-					field:  fmt.Sprintf("Annotations[%v]", key),
-					reason: "value length must be between 1 and 64 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
+			if !all {
+				return err
 			}
-
+			errors = append(errors, err)
 		}
+
+	}
+
+	if m.GetExpr() != "" {
+
+		if l := utf8.RuneCountInString(m.GetExpr()); l < 1 || l > 4096 {
+			err := StrategyItemValidationError{
+				field:  "Expr",
+				reason: "value length must be between 1 and 4096 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetFor() != "" {
+
+		if l := utf8.RuneCountInString(m.GetFor()); l < 1 || l > 64 {
+			err := StrategyItemValidationError{
+				field:  "For",
+				reason: "value length must be between 1 and 64 runes, inclusive",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_StrategyItem_For_Pattern.MatchString(m.GetFor()) {
+			err := StrategyItemValidationError{
+				field:  "For",
+				reason: "value does not match regex pattern \"^\\\\d+(s|m|h)$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(m.GetLabels()) > 0 {
+
+		{
+			sorted_keys := make([]string, len(m.GetLabels()))
+			i := 0
+			for key := range m.GetLabels() {
+				sorted_keys[i] = key
+				i++
+			}
+			sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+			for _, key := range sorted_keys {
+				val := m.GetLabels()[key]
+				_ = val
+
+				if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
+					err := StrategyItemValidationError{
+						field:  fmt.Sprintf("Labels[%v]", key),
+						reason: "value length must be between 1 and 64 runes, inclusive",
+					}
+					if !all {
+						return err
+					}
+					errors = append(errors, err)
+				}
+
+				if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
+					err := StrategyItemValidationError{
+						field:  fmt.Sprintf("Labels[%v]", key),
+						reason: "value length must be between 1 and 64 runes, inclusive",
+					}
+					if !all {
+						return err
+					}
+					errors = append(errors, err)
+				}
+
+			}
+		}
+
+	}
+
+	if len(m.GetAnnotations()) > 0 {
+
+		{
+			sorted_keys := make([]string, len(m.GetAnnotations()))
+			i := 0
+			for key := range m.GetAnnotations() {
+				sorted_keys[i] = key
+				i++
+			}
+			sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+			for _, key := range sorted_keys {
+				val := m.GetAnnotations()[key]
+				_ = val
+
+				if l := utf8.RuneCountInString(key); l < 1 || l > 64 {
+					err := StrategyItemValidationError{
+						field:  fmt.Sprintf("Annotations[%v]", key),
+						reason: "value length must be between 1 and 64 runes, inclusive",
+					}
+					if !all {
+						return err
+					}
+					errors = append(errors, err)
+				}
+
+				if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
+					err := StrategyItemValidationError{
+						field:  fmt.Sprintf("Annotations[%v]", key),
+						reason: "value length must be between 1 and 64 runes, inclusive",
+					}
+					if !all {
+						return err
+					}
+					errors = append(errors, err)
+				}
+
+			}
+		}
+
 	}
 
 	// no validation rules for CreatedAt
@@ -713,15 +753,19 @@ func (m *StrategyItem) validate(all bool) error {
 
 	}
 
-	if m.GetAlertLevelId() <= 0 {
-		err := StrategyItemValidationError{
-			field:  "AlertLevelId",
-			reason: "value must be greater than 0",
+	if m.GetAlertLevelId() != 0 {
+
+		if m.GetAlertLevelId() <= 0 {
+			err := StrategyItemValidationError{
+				field:  "AlertLevelId",
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if all {
@@ -753,15 +797,19 @@ func (m *StrategyItem) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetAlarmPageIds()) < 1 {
-		err := StrategyItemValidationError{
-			field:  "AlarmPageIds",
-			reason: "value must contain at least 1 item(s)",
+	if len(m.GetAlarmPageIds()) > 0 {
+
+		if len(m.GetAlarmPageIds()) < 1 {
+			err := StrategyItemValidationError{
+				field:  "AlarmPageIds",
+				reason: "value must contain at least 1 item(s)",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	for idx, item := range m.GetAlarmPages() {
