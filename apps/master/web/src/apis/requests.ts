@@ -1,24 +1,6 @@
 import {Message} from '@arco-design/web-react'
 import axios from 'axios'
 
-export type Resp = {
-    code: number
-    data: any
-    message: string
-    metadata?: { [key: string]: string }
-}
-
-export type PageRequest = {
-    current: number
-    size: number
-}
-
-export type PageReply = {
-    current: number
-    total: string
-    size: number
-}
-
 export const REACT_APP_MASTER_API = process.env.REACT_APP_MASTER_API
 
 const request = axios.create({
@@ -49,14 +31,13 @@ request.interceptors.response.use(
     }
 )
 
-const Get = async <T>(url: string, params?: any, headers?: any) => {
-    const data = await request({
+const Get = <T>(url: string, params?: any, headers?: any) => {
+    return request({
         url,
         method: 'get',
         params,
         headers,
-    })
-    return data as T
+    }).then((res) => res as T)
 }
 
 const Post = <T>(url: string, body?: any, headers?: any) => {
@@ -74,7 +55,7 @@ const Put = <T>(url: string, data?: any, headers?: any) => {
         method: 'put',
         data,
         headers,
-    }) as Promise<T>
+    }).then((res) => res as T)
 }
 
 const Delete = <T>(url: string, data?: any, headers?: any) => {
@@ -83,7 +64,7 @@ const Delete = <T>(url: string, data?: any, headers?: any) => {
         method: 'delete',
         data,
         headers,
-    }) as Promise<T>
+    }).then((res) => res as T)
 }
 
 export {request, Get, Post, Put, Delete}

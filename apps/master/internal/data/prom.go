@@ -145,7 +145,7 @@ func (p *PromRepo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*mod
 				promDict := p.db.PromDict
 				promDictPreloadExpr = append(promDictPreloadExpr, promDict.ID.In(categoriesIds...))
 			}
-			if groupQuery.Status != prom.Status_NONE {
+			if groupQuery.Status != prom.Status_Status_NONE {
 				promGroupDB = promGroupDB.Where(promGroup.Status.Eq(int32(groupQuery.Status.Number())))
 			}
 		}
