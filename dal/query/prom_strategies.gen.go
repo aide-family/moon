@@ -39,6 +39,7 @@ func newPromStrategy(db *gorm.DB, opts ...gen.DOOption) promStrategy {
 	_promStrategy.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promStrategy.DeletedAt = field.NewField(tableName, "deleted_at")
 	_promStrategy.GroupID = field.NewInt32(tableName, "group_id")
+	_promStrategy.Status = field.NewInt32(tableName, "status")
 	_promStrategy.AlarmPages = promStrategyHasManyAlarmPages{
 		db: db.Session(&gorm.Session{}),
 
@@ -82,6 +83,7 @@ type promStrategy struct {
 	UpdatedAt    field.Time   // 更新时间
 	DeletedAt    field.Field  // 删除时间
 	GroupID      field.Int32  // 所属规则组ID
+	Status       field.Int32  // 启用状态: 1启用;2禁用
 	AlarmPages   promStrategyHasManyAlarmPages
 
 	Categories promStrategyHasManyCategories
@@ -114,6 +116,7 @@ func (p *promStrategy) updateTableName(table string) *promStrategy {
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
 	p.GroupID = field.NewInt32(table, "group_id")
+	p.Status = field.NewInt32(table, "status")
 
 	p.fillFieldMap()
 
@@ -130,7 +133,7 @@ func (p *promStrategy) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *promStrategy) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 14)
+	p.fieldMap = make(map[string]field.Expr, 15)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["alert"] = p.Alert
 	p.fieldMap["expr"] = p.Expr
@@ -142,6 +145,7 @@ func (p *promStrategy) fillFieldMap() {
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
 	p.fieldMap["group_id"] = p.GroupID
+	p.fieldMap["status"] = p.Status
 
 }
 

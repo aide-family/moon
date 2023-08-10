@@ -4,9 +4,14 @@ import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"gorm.io/gen/field"
+	"prometheus-manager/api/prom"
+	pb "prometheus-manager/api/prom/v1"
 	"prometheus-manager/apps/master/internal/biz"
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
+	buildQuery "prometheus-manager/pkg/build_query"
+	"time"
 )
 
 type (
@@ -17,16 +22,112 @@ type (
 	}
 )
 
+func (p *PromRepo) Strategies(ctx context.Context, req *pb.ListStrategyRequest) ([]*model.PromStrategy, int64, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.Strategies")
+	defer span.End()
+
+	promStrategy := p.db.PromStrategy
+	offset, limit := buildQuery.GetPage(req.GetQuery().GetPage())
+	promStrategyDB := promStrategy.WithContext(ctx)
+
+	if req != nil {
+		queryPrams := req.GetQuery()
+		if queryPrams != nil {
+			sorts := queryPrams.GetSort()
+			iSorts := make([]buildQuery.ISort, 0, len(sorts))
+			for _, sort := range sorts {
+				iSorts = append(iSorts, sort)
+			}
+			promStrategyDB = promStrategyDB.Order(buildQuery.GetSorts(&promStrategy, iSorts...)...)
+			promStrategyDB = promStrategyDB.Select(buildQuery.GetSlectExprs(&promStrategy, queryPrams)...)
+			keyword := queryPrams.GetKeyword()
+			if keyword != "" {
+				key := "%" + keyword + "%"
+				promStrategyDB = promStrategyDB.Where(buildQuery.GetKeywords(key, promStrategy.Alert)...)
+			}
+			if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
+				promStrategyDB = promStrategyDB.Where(promStrategy.CreatedAt.Between(
+					time.Unix(queryPrams.GetStartAt(), 0),
+					time.Unix(queryPrams.GetEndAt(), 0),
+				))
+			}
+		}
+
+		strategyQuery := req.GetStrategy()
+		if strategyQuery != nil {
+			if strategyQuery.GetId() != 0 {
+				promStrategyDB = promStrategyDB.Where(promStrategy.ID.Eq(strategyQuery.GetId()))
+			}
+			if strategyQuery.GetAlert() != "" {
+				promStrategyDB = promStrategyDB.Where(promStrategy.Alert.Eq(strategyQuery.GetAlert()))
+			}
+		}
+	}
+
+	return promStrategyDB.Preload(field.Associations).FindByPage(int(offset), int(limit))
+}
+
+func (p *PromRepo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.Groups")
+	defer span.End()
+
+	promGroup := p.db.PromGroup
+	offset, limit := buildQuery.GetPage(req.GetQuery().GetPage())
+	promGroupDB := promGroup.WithContext(ctx)
+	var promDictPreloadExpr []field.Expr
+	if req != nil {
+		queryPrams := req.GetQuery()
+		if queryPrams != nil {
+			sorts := queryPrams.GetSort()
+			iSorts := make([]buildQuery.ISort, 0, len(sorts))
+			for _, sort := range sorts {
+				iSorts = append(iSorts, sort)
+			}
+			promGroupDB = promGroupDB.Order(buildQuery.GetSorts(&promGroup, iSorts...)...)
+			promGroupDB = promGroupDB.Select(buildQuery.GetSlectExprs(&promGroup, queryPrams)...)
+			keyword := queryPrams.GetKeyword()
+			if keyword != "" {
+				key := "%" + keyword + "%"
+				promGroupDB = promGroupDB.Where(buildQuery.GetKeywords(key, promGroup.Name)...)
+			}
+			if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
+				promGroupDB = promGroupDB.Where(promGroup.CreatedAt.Between(
+					time.Unix(queryPrams.GetStartAt(), 0),
+					time.Unix(queryPrams.GetEndAt(), 0),
+				))
+			}
+		}
+		groupQuery := req.GetGroup()
+		if groupQuery != nil {
+			if groupQuery.GetId() != 0 {
+				promGroupDB = promGroupDB.Where(promGroup.ID.Eq(groupQuery.GetId()))
+			}
+			if groupQuery.GetName() != "" {
+				promGroupDB = promGroupDB.Where(promGroup.Name.Eq(groupQuery.GetName()))
+			}
+			if groupQuery.GetStrategyCount() > 0 {
+				promGroupDB = promGroupDB.Where(promGroup.StrategyCount.Gte(int32(groupQuery.GetStrategyCount())))
+			}
+			categoriesIds := groupQuery.GetCategoriesIds()
+			if len(categoriesIds) > 0 {
+				promDict := p.db.PromDict
+				promDictPreloadExpr = append(promDictPreloadExpr, promDict.ID.In(categoriesIds...))
+			}
+			if groupQuery.Status != prom.Status_NONE {
+				promGroupDB = promGroupDB.Where(promGroup.Status.Eq(int32(groupQuery.Status.Number())))
+			}
+		}
+	}
+
+	return promGroupDB.Preload(promGroup.Categories.On(promDictPreloadExpr...)).FindByPage(int(offset), int(limit))
+}
+
 func (p *PromRepo) StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error) {
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.StrategyDetail")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
-	return promStrategy.WithContext(ctx).Preload(
-		promStrategy.Categories,
-		promStrategy.AlertLevel,
-		promStrategy.AlarmPages,
-	).Where(promStrategy.ID.Eq(id)).First()
+	return promStrategy.WithContext(ctx).Preload(field.Associations).Where(promStrategy.ID.Eq(id)).First()
 }
 
 func (p *PromRepo) DeleteStrategyByID(ctx context.Context, id int32) error {
@@ -166,7 +267,7 @@ func (p *PromRepo) GroupDetail(ctx context.Context, id int32) (*model.PromGroup,
 	defer span.End()
 
 	promGroup := p.db.PromGroup
-	return promGroup.WithContext(ctx).Preload(promGroup.PromStrategies, promGroup.Categories).Where(promGroup.ID.Eq(id)).First()
+	return promGroup.WithContext(ctx).Preload(promGroup.Categories).Where(promGroup.ID.Eq(id)).First()
 }
 
 func (p *PromRepo) DeleteGroupByID(ctx context.Context, id int32) error {

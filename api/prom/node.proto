@@ -23,6 +23,15 @@ enum Category {
   CATEGORY_ALERT_NOTIFY = 5;
 }
 
+enum Status {
+  // 未知
+  NONE = 0;
+  // 启用
+  ENABLE = 1;
+  // 禁用
+  DISABLE = 2;
+}
+
 message DictItem {
   string name = 1 [(validate.rules).string = {min_len: 1, max_len: 64}];
   string remark = 2 [(validate.rules).string = {min_len: 0, max_len: 255}];
@@ -52,7 +61,9 @@ message GroupItem {
   repeated DictItem categories = 8;
   int64 strategy_count = 9;
   // 规则组类型
-  repeated int32 categories_id = 10;
+  repeated int32 categories_ids = 10;
+  // 状态
+  Status status = 11;
   int32 id = 99;
 }
 
@@ -79,6 +90,8 @@ message StrategyItem {
   // 规则报警页面(告警信息出现的大盘页面)
   repeated int32 alarm_page_ids = 13 [(validate.rules).repeated = {min_items: 1}];
   repeated AlarmPage alarm_pages = 14;
+  // 状态
+  Status status = 15;
   int32 id = 99;
 }
 
