@@ -71,8 +71,8 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 func NewMysqlDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
 	if len(logger) > 0 {
-		gormLog := NewGormLogger(logger[0])
-		opts = append(opts, &gorm.Config{Logger: gormLog, DisableForeignKeyConstraintWhenMigrating: true})
+		//gormLog := NewGormLogger(logger[0])
+		//opts = append(opts, &gorm.Config{Logger: gormLog, DisableForeignKeyConstraintWhenMigrating: true})
 	}
 
 	conn, err := gorm.Open(mysql.Open(cfg.GetSource()), opts...)

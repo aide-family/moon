@@ -30,12 +30,12 @@ func newPromDict(db *gorm.DB, opts ...gen.DOOption) promDict {
 	_promDict.ALL = field.NewAsterisk(tableName)
 	_promDict.ID = field.NewInt32(tableName, "id")
 	_promDict.Name = field.NewString(tableName, "name")
+	_promDict.Category = field.NewInt32(tableName, "category")
+	_promDict.Color = field.NewString(tableName, "color")
 	_promDict.Remark = field.NewString(tableName, "remark")
 	_promDict.CreatedAt = field.NewTime(tableName, "created_at")
 	_promDict.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promDict.DeletedAt = field.NewField(tableName, "deleted_at")
-	_promDict.Category = field.NewInt32(tableName, "category")
-	_promDict.Color = field.NewString(tableName, "color")
 
 	_promDict.fillFieldMap()
 
@@ -48,12 +48,12 @@ type promDict struct {
 	ALL       field.Asterisk
 	ID        field.Int32
 	Name      field.String // 字典名称
+	Category  field.Int32  // 字典类型
+	Color     field.String // 字典tag颜色
 	Remark    field.String // 字典备注
 	CreatedAt field.Time   // 创建时间
 	UpdatedAt field.Time   // 更新时间
 	DeletedAt field.Field  // 删除时间
-	Category  field.Int32  // 字典类型
-	Color     field.String // 字典tag颜色
 
 	fieldMap map[string]field.Expr
 }
@@ -72,12 +72,12 @@ func (p *promDict) updateTableName(table string) *promDict {
 	p.ALL = field.NewAsterisk(table)
 	p.ID = field.NewInt32(table, "id")
 	p.Name = field.NewString(table, "name")
+	p.Category = field.NewInt32(table, "category")
+	p.Color = field.NewString(table, "color")
 	p.Remark = field.NewString(table, "remark")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
-	p.Category = field.NewInt32(table, "category")
-	p.Color = field.NewString(table, "color")
 
 	p.fillFieldMap()
 
@@ -97,12 +97,12 @@ func (p *promDict) fillFieldMap() {
 	p.fieldMap = make(map[string]field.Expr, 8)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["name"] = p.Name
+	p.fieldMap["category"] = p.Category
+	p.fieldMap["color"] = p.Color
 	p.fieldMap["remark"] = p.Remark
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt
-	p.fieldMap["category"] = p.Category
-	p.fieldMap["color"] = p.Color
 }
 
 func (p promDict) clone(db *gorm.DB) promDict {

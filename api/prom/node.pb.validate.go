@@ -175,22 +175,22 @@ var _ interface {
 	ErrorName() string
 } = DictItemValidationError{}
 
-// Validate checks the field values on AlarmPage with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
+// Validate checks the field values on AlarmPageItem with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *AlarmPage) Validate() error {
+func (m *AlarmPageItem) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on AlarmPage with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in AlarmPageMultiError, or nil
-// if none found.
-func (m *AlarmPage) ValidateAll() error {
+// ValidateAll checks the field values on AlarmPageItem with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AlarmPageItemMultiError, or
+// nil if none found.
+func (m *AlarmPageItem) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *AlarmPage) validate(all bool) error {
+func (m *AlarmPageItem) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -198,7 +198,7 @@ func (m *AlarmPage) validate(all bool) error {
 	var errors []error
 
 	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 64 {
-		err := AlarmPageValidationError{
+		err := AlarmPageItemValidationError{
 			field:  "Name",
 			reason: "value length must be between 1 and 64 runes, inclusive",
 		}
@@ -209,7 +209,7 @@ func (m *AlarmPage) validate(all bool) error {
 	}
 
 	if l := utf8.RuneCountInString(m.GetRemark()); l < 0 || l > 255 {
-		err := AlarmPageValidationError{
+		err := AlarmPageItemValidationError{
 			field:  "Remark",
 			reason: "value length must be between 0 and 255 runes, inclusive",
 		}
@@ -220,7 +220,7 @@ func (m *AlarmPage) validate(all bool) error {
 	}
 
 	if utf8.RuneCountInString(m.GetIcon()) > 1024 {
-		err := AlarmPageValidationError{
+		err := AlarmPageItemValidationError{
 			field:  "Icon",
 			reason: "value length must be at most 1024 runes",
 		}
@@ -231,7 +231,7 @@ func (m *AlarmPage) validate(all bool) error {
 	}
 
 	if utf8.RuneCountInString(m.GetColor()) > 64 {
-		err := AlarmPageValidationError{
+		err := AlarmPageItemValidationError{
 			field:  "Color",
 			reason: "value length must be at most 64 runes",
 		}
@@ -248,18 +248,19 @@ func (m *AlarmPage) validate(all bool) error {
 	// no validation rules for Id
 
 	if len(errors) > 0 {
-		return AlarmPageMultiError(errors)
+		return AlarmPageItemMultiError(errors)
 	}
 
 	return nil
 }
 
-// AlarmPageMultiError is an error wrapping multiple validation errors returned
-// by AlarmPage.ValidateAll() if the designated constraints aren't met.
-type AlarmPageMultiError []error
+// AlarmPageItemMultiError is an error wrapping multiple validation errors
+// returned by AlarmPageItem.ValidateAll() if the designated constraints
+// aren't met.
+type AlarmPageItemMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m AlarmPageMultiError) Error() string {
+func (m AlarmPageItemMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -268,11 +269,11 @@ func (m AlarmPageMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m AlarmPageMultiError) AllErrors() []error { return m }
+func (m AlarmPageItemMultiError) AllErrors() []error { return m }
 
-// AlarmPageValidationError is the validation error returned by
-// AlarmPage.Validate if the designated constraints aren't met.
-type AlarmPageValidationError struct {
+// AlarmPageItemValidationError is the validation error returned by
+// AlarmPageItem.Validate if the designated constraints aren't met.
+type AlarmPageItemValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -280,22 +281,22 @@ type AlarmPageValidationError struct {
 }
 
 // Field function returns field value.
-func (e AlarmPageValidationError) Field() string { return e.field }
+func (e AlarmPageItemValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AlarmPageValidationError) Reason() string { return e.reason }
+func (e AlarmPageItemValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AlarmPageValidationError) Cause() error { return e.cause }
+func (e AlarmPageItemValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AlarmPageValidationError) Key() bool { return e.key }
+func (e AlarmPageItemValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AlarmPageValidationError) ErrorName() string { return "AlarmPageValidationError" }
+func (e AlarmPageItemValidationError) ErrorName() string { return "AlarmPageItemValidationError" }
 
 // Error satisfies the builtin error interface
-func (e AlarmPageValidationError) Error() string {
+func (e AlarmPageItemValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -307,14 +308,14 @@ func (e AlarmPageValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAlarmPage.%s: %s%s",
+		"invalid %sAlarmPageItem.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AlarmPageValidationError{}
+var _ error = AlarmPageItemValidationError{}
 
 var _ interface {
 	Field() string
@@ -322,7 +323,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AlarmPageValidationError{}
+} = AlarmPageItemValidationError{}
 
 // Validate checks the field values on GroupItem with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
