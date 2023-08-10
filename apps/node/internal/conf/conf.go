@@ -1,9 +1,11 @@
 package conf
 
 import (
-	"github.com/google/wire"
-	"prometheus-manager/pkg/conn"
 	"sync"
+
+	"github.com/google/wire"
+
+	"prometheus-manager/pkg/conn"
 )
 
 // ProviderSet is conf providers.

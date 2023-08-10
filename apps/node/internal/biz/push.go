@@ -2,18 +2,22 @@ package biz
 
 import (
 	"context"
+	"strings"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/strategy"
 	pb "prometheus-manager/api/strategy/v1/push"
+
+	"prometheus-manager/pkg/util/dir"
+
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
-	"prometheus-manager/pkg/util/dir"
-	"strings"
-	"time"
 )
 
 type (
@@ -88,12 +92,7 @@ func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 	}
 
 	return &pb.StrategiesReply{
-		Response: &api.Response{
-			Code:     0,
-			Message:  l.repo.V1(ctx),
-			Metadata: nil,
-			Data:     nil,
-		},
+		Response:  &api.Response{Message: l.repo.V1(ctx)},
 		Timestamp: time.Now().Unix(),
 		Result: &pb.Result{
 			SuccessCount: storeResult.SuccessCount,

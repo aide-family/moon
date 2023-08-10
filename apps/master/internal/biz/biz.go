@@ -2,7 +2,9 @@ package biz
 
 import (
 	"context"
+
 	"github.com/google/wire"
+
 	"prometheus-manager/apps/master/internal/service"
 )
 

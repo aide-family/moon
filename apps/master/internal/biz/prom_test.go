@@ -1,8 +1,9 @@
 package biz
 
 import (
-	"prometheus-manager/api/prom"
 	"testing"
+
+	"prometheus-manager/api/prom"
 )
 
 func TestEnum(t *testing.T) {

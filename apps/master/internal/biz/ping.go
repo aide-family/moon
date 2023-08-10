@@ -2,9 +2,12 @@ package biz
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+
 	pb "prometheus-manager/api"
+
 	"prometheus-manager/apps/master/internal/conf"
 	"prometheus-manager/apps/master/internal/service"
 )

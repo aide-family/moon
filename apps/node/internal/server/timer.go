@@ -2,12 +2,16 @@ package server
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
+
 	pb "prometheus-manager/api/strategy/v1/load"
+
+	"prometheus-manager/pkg/servers"
+
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
-	"prometheus-manager/pkg/servers"
-	"time"
 )
 
 func NewTimer(

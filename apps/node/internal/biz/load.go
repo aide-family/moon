@@ -2,16 +2,20 @@ package biz
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"prometheus-manager/api"
+
 	pb "prometheus-manager/api/strategy/v1/load"
-	"prometheus-manager/apps/node/internal/conf"
-	"prometheus-manager/apps/node/internal/service"
+
 	"prometheus-manager/pkg/curl"
 	"prometheus-manager/pkg/util/dir"
-	"time"
+
+	"prometheus-manager/apps/node/internal/conf"
+	"prometheus-manager/apps/node/internal/service"
 )
 
 type (
@@ -54,12 +58,7 @@ func (l *LoadLogic) Reload(ctx context.Context, _ *pb.ReloadRequest) (*pb.Reload
 	l.logger.Infof("Curl out: %v", out)
 
 	return &pb.ReloadReply{
-		Response: &api.Response{
-			Code:     0,
-			Message:  l.repo.V1(ctx),
-			Metadata: nil,
-			Data:     nil,
-		},
+		Response:  &api.Response{Message: l.repo.V1(ctx)},
 		Timestamp: time.Now().Unix(),
 	}, nil
 }

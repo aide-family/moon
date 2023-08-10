@@ -2,14 +2,18 @@ package data
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+
 	"prometheus-manager/api/strategy"
-	"prometheus-manager/apps/node/internal/biz"
+
 	"prometheus-manager/pkg/util/strategyload"
-	"time"
+
+	"prometheus-manager/apps/node/internal/biz"
 )
 
 type (

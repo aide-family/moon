@@ -3,25 +3,26 @@ package server
 import (
 	"context"
 	"github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/metrics"
 	"github.com/go-kratos/kratos/v2/middleware/ratelimit"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
+	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"go.opentelemetry.io/otel"
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+
 	ping "prometheus-manager/api"
 	promV1 "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/conf"
-	"prometheus-manager/apps/master/internal/service"
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
+	"prometheus-manager/apps/master/internal/conf"
+	"prometheus-manager/apps/master/internal/service"
 )
 
 // NewGRPCServer new a gRPC server.

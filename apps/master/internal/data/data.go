@@ -1,14 +1,15 @@
 package data
 
 import (
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-	"prometheus-manager/apps/master/internal/biz"
-	"prometheus-manager/apps/master/internal/conf"
-	"prometheus-manager/pkg/conn"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+
+	"prometheus-manager/pkg/conn"
+
+	"prometheus-manager/apps/master/internal/biz"
+	"prometheus-manager/apps/master/internal/conf"
 )
 
 // ProviderSet is data providers.

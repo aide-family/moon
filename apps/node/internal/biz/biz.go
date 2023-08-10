@@ -2,6 +2,7 @@ package biz
 
 import (
 	"github.com/google/wire"
+
 	"prometheus-manager/apps/node/internal/service"
 )
 
