@@ -87,6 +87,9 @@ func (p *PromRepo) Strategies(ctx context.Context, req *pb.ListStrategyRequest) 
 			if strategyQuery.GetAlert() != "" {
 				promStrategyDB = promStrategyDB.Where(promStrategy.Alert.Eq(strategyQuery.GetAlert()))
 			}
+			if strategyQuery.GetGroupId() != 0 {
+				promStrategyDB = promStrategyDB.Where(promStrategy.GroupID.Eq(strategyQuery.GetGroupId()))
+			}
 		}
 	}
 
@@ -160,15 +163,16 @@ func (p *PromRepo) DeleteStrategyByID(ctx context.Context, id int32) error {
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.DeleteStrategyByID")
 	defer span.End()
 
+	promStrategy := p.db.PromStrategy
+
+	first, err := promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
+	if err != nil {
+		p.logger.WithContext(ctx).Errorw("PromRepo.DeleteStrategyByID", id, "err", err)
+		return err
+	}
+
 	return p.db.Transaction(func(tx *query.Query) error {
-		promStrategy := tx.PromStrategy
-
-		first, err := promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
-		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.DeleteStrategyByID", id, "err", err)
-			return err
-		}
-
+		promStrategy = tx.PromStrategy
 		promGroup := tx.PromGroup
 		inf, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
 		if err != nil {
