@@ -13,12 +13,12 @@ type (
 	IPromRepo interface {
 		V1Repo
 		CreateGroup(ctx context.Context, m *model.PromGroup) error
-		UpdateGroupByID(ctx context.Context, id int32, m map[string]any) error
+		UpdateGroupByID(ctx context.Context, id int32, m *model.PromGroup) error
 		DeleteGroupByID(ctx context.Context, id int32) error
 		GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error)
 
 		CreateStrategy(ctx context.Context, m *model.PromStrategy) error
-		UpdateStrategyByID(ctx context.Context, id int32, m map[string]any) error
+		UpdateStrategyByID(ctx context.Context, id int32, m *model.PromStrategy) error
 		DeleteStrategyByID(ctx context.Context, id int32) error
 		StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error)
 	}
