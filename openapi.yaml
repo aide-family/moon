@@ -64,7 +64,7 @@ paths:
     post:
       tags:
         - Prom
-      description: Group 规则组
+      description: CreateGroup 创建规则组
       operationId: Prom_CreateGroup
       requestBody:
         content:
@@ -83,6 +83,7 @@ paths:
     get:
       tags:
         - Prom
+      description: GetGroup 获取规则组, 传入id获取指定的规则组
       operationId: Prom_GetGroup
       parameters:
         - name: id
@@ -101,6 +102,7 @@ paths:
     put:
       tags:
         - Prom
+      description: UpdateGroup 更新规则组, 传入id更新指定的规则组
       operationId: Prom_UpdateGroup
       parameters:
         - name: id
@@ -125,6 +127,7 @@ paths:
     delete:
       tags:
         - Prom
+      description: DeleteGroup 删除规则组, 传入id删除指定的规则组
       operationId: Prom_DeleteGroup
       parameters:
         - name: id
@@ -144,6 +147,7 @@ paths:
     post:
       tags:
         - Prom
+      description: ListGroup 获取规则组列表
       operationId: Prom_ListGroup
       requestBody:
         content:
@@ -158,10 +162,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.ListGroupReply'
+  /prom/v1/groups/status:
+    put:
+      tags:
+        - Prom
+      description: UpdateGroupStatus 批量更新规则组状态
+      operationId: Prom_UpdateGroupsStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusReply'
   /prom/v1/strategies:
     post:
       tags:
         - Prom
+      description: ListStrategy 获取规则策略列表
       operationId: Prom_ListStrategy
       requestBody:
         content:
@@ -176,11 +200,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.ListStrategyReply'
+  /prom/v1/strategies/status:
+    put:
+      tags:
+        - Prom
+      description: UpdateStrategiesStatus 批量更新规则策略状态
+      operationId: Prom_UpdateStrategiesStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusReply'
   /prom/v1/strategy:
     post:
       tags:
         - Prom
-      description: Strategy 规则策略
+      description: CreateStrategy 创建规则策略
       operationId: Prom_CreateStrategy
       requestBody:
         content:
@@ -199,6 +242,7 @@ paths:
     get:
       tags:
         - Prom
+      description: GetStrategy 获取规则策略, 传入id获取指定的规则策略
       operationId: Prom_GetStrategy
       parameters:
         - name: id
@@ -217,6 +261,7 @@ paths:
     put:
       tags:
         - Prom
+      description: UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
       operationId: Prom_UpdateStrategy
       parameters:
         - name: id
@@ -241,6 +286,7 @@ paths:
     delete:
       tags:
         - Prom
+      description: DeleteStrategy 删除规则策略, 传入id删除指定的规则策略
       operationId: Prom_DeleteStrategy
       parameters:
         - name: id
@@ -286,16 +332,16 @@ paths:
           schema:
             type: string
       responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.node.CallResponse'
-    /push/v1/strategies:
-        post:
-            tags:
-                - Push
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.node.CallResponse'
+  /push/v1/strategies:
+    post:
+      tags:
+        - Push
             operationId: Push_Strategies
             requestBody:
                 content:
@@ -735,6 +781,38 @@ components:
         id:
           type: integer
           format: int32
+    api.prom.v1.UpdateGroupsStatusReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateGroupsStatusRequest:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: enum
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+    api.prom.v1.UpdateStrategiesStatusReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateStrategiesStatusRequest:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: enum
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int32
     api.prom.v1.UpdateStrategyReply:
       type: object
       properties:
@@ -788,16 +866,16 @@ components:
       properties:
         dir:
           type: string
-                strategies:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.strategy.Strategy'
-        api.strategy.v1.CreateRuleReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.CreateRuleRequest:
+        strategies:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.strategy.Strategy'
+    api.strategy.v1.CreateRuleReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.strategy.v1.CreateRuleRequest:
             type: object
             properties:
                 rule:

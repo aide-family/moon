@@ -22,17 +22,29 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PromClient interface {
-	// Group 规则组
+	// CreateGroup 创建规则组
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupReply, error)
+	// UpdateGroup 更新规则组, 传入id更新指定的规则组
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupReply, error)
+	// UpdateGroupStatus 批量更新规则组状态
+	UpdateGroupsStatus(ctx context.Context, in *UpdateGroupsStatusRequest, opts ...grpc.CallOption) (*UpdateGroupsStatusReply, error)
+	// DeleteGroup 删除规则组, 传入id删除指定的规则组
 	DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupReply, error)
+	// GetGroup 获取规则组, 传入id获取指定的规则组
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupReply, error)
+	// ListGroup 获取规则组列表
 	ListGroup(ctx context.Context, in *ListGroupRequest, opts ...grpc.CallOption) (*ListGroupReply, error)
-	// Strategy 规则策略
+	// CreateStrategy 创建规则策略
 	CreateStrategy(ctx context.Context, in *CreateStrategyRequest, opts ...grpc.CallOption) (*CreateStrategyReply, error)
+	// UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
 	UpdateStrategy(ctx context.Context, in *UpdateStrategyRequest, opts ...grpc.CallOption) (*UpdateStrategyReply, error)
+	// UpdateStrategiesStatus 批量更新规则策略状态
+	UpdateStrategiesStatus(ctx context.Context, in *UpdateStrategiesStatusRequest, opts ...grpc.CallOption) (*UpdateStrategiesStatusReply, error)
+	// DeleteStrategy 删除规则策略, 传入id删除指定的规则策略
 	DeleteStrategy(ctx context.Context, in *DeleteStrategyRequest, opts ...grpc.CallOption) (*DeleteStrategyReply, error)
+	// GetStrategy 获取规则策略, 传入id获取指定的规则策略
 	GetStrategy(ctx context.Context, in *GetStrategyRequest, opts ...grpc.CallOption) (*GetStrategyReply, error)
+	// ListStrategy 获取规则策略列表
 	ListStrategy(ctx context.Context, in *ListStrategyRequest, opts ...grpc.CallOption) (*ListStrategyReply, error)
 }
 
@@ -56,6 +68,15 @@ func (c *promClient) CreateGroup(ctx context.Context, in *CreateGroupRequest, op
 func (c *promClient) UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupReply, error) {
 	out := new(UpdateGroupReply)
 	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/UpdateGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *promClient) UpdateGroupsStatus(ctx context.Context, in *UpdateGroupsStatusRequest, opts ...grpc.CallOption) (*UpdateGroupsStatusReply, error) {
+	out := new(UpdateGroupsStatusReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/UpdateGroupsStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +128,15 @@ func (c *promClient) UpdateStrategy(ctx context.Context, in *UpdateStrategyReque
 	return out, nil
 }
 
+func (c *promClient) UpdateStrategiesStatus(ctx context.Context, in *UpdateStrategiesStatusRequest, opts ...grpc.CallOption) (*UpdateStrategiesStatusReply, error) {
+	out := new(UpdateStrategiesStatusReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/UpdateStrategiesStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *promClient) DeleteStrategy(ctx context.Context, in *DeleteStrategyRequest, opts ...grpc.CallOption) (*DeleteStrategyReply, error) {
 	out := new(DeleteStrategyReply)
 	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/DeleteStrategy", in, out, opts...)
@@ -138,17 +168,29 @@ func (c *promClient) ListStrategy(ctx context.Context, in *ListStrategyRequest, 
 // All implementations must embed UnimplementedPromServer
 // for forward compatibility
 type PromServer interface {
-	// Group 规则组
+	// CreateGroup 创建规则组
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupReply, error)
+	// UpdateGroup 更新规则组, 传入id更新指定的规则组
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupReply, error)
+	// UpdateGroupStatus 批量更新规则组状态
+	UpdateGroupsStatus(context.Context, *UpdateGroupsStatusRequest) (*UpdateGroupsStatusReply, error)
+	// DeleteGroup 删除规则组, 传入id删除指定的规则组
 	DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupReply, error)
+	// GetGroup 获取规则组, 传入id获取指定的规则组
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupReply, error)
+	// ListGroup 获取规则组列表
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
-	// Strategy 规则策略
+	// CreateStrategy 创建规则策略
 	CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error)
+	// UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
+	// UpdateStrategiesStatus 批量更新规则策略状态
+	UpdateStrategiesStatus(context.Context, *UpdateStrategiesStatusRequest) (*UpdateStrategiesStatusReply, error)
+	// DeleteStrategy 删除规则策略, 传入id删除指定的规则策略
 	DeleteStrategy(context.Context, *DeleteStrategyRequest) (*DeleteStrategyReply, error)
+	// GetStrategy 获取规则策略, 传入id获取指定的规则策略
 	GetStrategy(context.Context, *GetStrategyRequest) (*GetStrategyReply, error)
+	// ListStrategy 获取规则策略列表
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	mustEmbedUnimplementedPromServer()
 }
@@ -162,6 +204,9 @@ func (UnimplementedPromServer) CreateGroup(context.Context, *CreateGroupRequest)
 }
 func (UnimplementedPromServer) UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateGroup not implemented")
+}
+func (UnimplementedPromServer) UpdateGroupsStatus(context.Context, *UpdateGroupsStatusRequest) (*UpdateGroupsStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateGroupsStatus not implemented")
 }
 func (UnimplementedPromServer) DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteGroup not implemented")
@@ -177,6 +222,9 @@ func (UnimplementedPromServer) CreateStrategy(context.Context, *CreateStrategyRe
 }
 func (UnimplementedPromServer) UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategy not implemented")
+}
+func (UnimplementedPromServer) UpdateStrategiesStatus(context.Context, *UpdateStrategiesStatusRequest) (*UpdateStrategiesStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategiesStatus not implemented")
 }
 func (UnimplementedPromServer) DeleteStrategy(context.Context, *DeleteStrategyRequest) (*DeleteStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteStrategy not implemented")
@@ -232,6 +280,24 @@ func _Prom_UpdateGroup_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PromServer).UpdateGroup(ctx, req.(*UpdateGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Prom_UpdateGroupsStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGroupsStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PromServer).UpdateGroupsStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.Prom/UpdateGroupsStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PromServer).UpdateGroupsStatus(ctx, req.(*UpdateGroupsStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -326,6 +392,24 @@ func _Prom_UpdateStrategy_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Prom_UpdateStrategiesStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStrategiesStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PromServer).UpdateStrategiesStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.Prom/UpdateStrategiesStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PromServer).UpdateStrategiesStatus(ctx, req.(*UpdateStrategiesStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Prom_DeleteStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteStrategyRequest)
 	if err := dec(in); err != nil {
@@ -396,6 +480,10 @@ var Prom_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Prom_UpdateGroup_Handler,
 		},
 		{
+			MethodName: "UpdateGroupsStatus",
+			Handler:    _Prom_UpdateGroupsStatus_Handler,
+		},
+		{
 			MethodName: "DeleteGroup",
 			Handler:    _Prom_DeleteGroup_Handler,
 		},
@@ -414,6 +502,10 @@ var Prom_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateStrategy",
 			Handler:    _Prom_UpdateStrategy_Handler,
+		},
+		{
+			MethodName: "UpdateStrategiesStatus",
+			Handler:    _Prom_UpdateStrategiesStatus_Handler,
 		},
 		{
 			MethodName: "DeleteStrategy",

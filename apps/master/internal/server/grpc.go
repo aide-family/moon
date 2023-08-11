@@ -30,7 +30,7 @@ func NewGRPCServer(c *conf.Server,
 	logger log.Logger,
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
-	promService *service.PromService,
+	promService *service.PromV1Service,
 ) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(

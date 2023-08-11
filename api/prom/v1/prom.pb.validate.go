@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	prom "prometheus-manager/api/prom"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = prom.Status(0)
 )
 
 // Validate checks the field values on CreateGroupRequest with the rules
@@ -587,6 +591,266 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateGroupReplyValidationError{}
+
+// Validate checks the field values on UpdateGroupsStatusRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateGroupsStatusRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateGroupsStatusRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateGroupsStatusRequestMultiError, or nil if none found.
+func (m *UpdateGroupsStatusRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateGroupsStatusRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := prom.Status_name[int32(m.GetStatus())]; !ok {
+		err := UpdateGroupsStatusRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetIds() {
+		_, _ = idx, item
+
+		if item <= 0 {
+			err := UpdateGroupsStatusRequestValidationError{
+				field:  fmt.Sprintf("Ids[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return UpdateGroupsStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateGroupsStatusRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateGroupsStatusRequest.ValidateAll() if the
+// designated constraints aren't met.
+type UpdateGroupsStatusRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateGroupsStatusRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateGroupsStatusRequestMultiError) AllErrors() []error { return m }
+
+// UpdateGroupsStatusRequestValidationError is the validation error returned by
+// UpdateGroupsStatusRequest.Validate if the designated constraints aren't met.
+type UpdateGroupsStatusRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateGroupsStatusRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateGroupsStatusRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateGroupsStatusRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateGroupsStatusRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateGroupsStatusRequestValidationError) ErrorName() string {
+	return "UpdateGroupsStatusRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateGroupsStatusRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateGroupsStatusRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateGroupsStatusRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateGroupsStatusRequestValidationError{}
+
+// Validate checks the field values on UpdateGroupsStatusReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateGroupsStatusReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateGroupsStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateGroupsStatusReplyMultiError, or nil if none found.
+func (m *UpdateGroupsStatusReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateGroupsStatusReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateGroupsStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateGroupsStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateGroupsStatusReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateGroupsStatusReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateGroupsStatusReplyMultiError is an error wrapping multiple validation
+// errors returned by UpdateGroupsStatusReply.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateGroupsStatusReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateGroupsStatusReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateGroupsStatusReplyMultiError) AllErrors() []error { return m }
+
+// UpdateGroupsStatusReplyValidationError is the validation error returned by
+// UpdateGroupsStatusReply.Validate if the designated constraints aren't met.
+type UpdateGroupsStatusReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateGroupsStatusReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateGroupsStatusReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateGroupsStatusReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateGroupsStatusReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateGroupsStatusReplyValidationError) ErrorName() string {
+	return "UpdateGroupsStatusReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateGroupsStatusReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateGroupsStatusReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateGroupsStatusReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateGroupsStatusReplyValidationError{}
 
 // Validate checks the field values on DeleteGroupRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2016,6 +2280,268 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateStrategyReplyValidationError{}
+
+// Validate checks the field values on UpdateStrategiesStatusRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateStrategiesStatusRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateStrategiesStatusRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// UpdateStrategiesStatusRequestMultiError, or nil if none found.
+func (m *UpdateStrategiesStatusRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateStrategiesStatusRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := prom.Status_name[int32(m.GetStatus())]; !ok {
+		err := UpdateStrategiesStatusRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetIds() {
+		_, _ = idx, item
+
+		if item <= 0 {
+			err := UpdateStrategiesStatusRequestValidationError{
+				field:  fmt.Sprintf("Ids[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return UpdateStrategiesStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateStrategiesStatusRequestMultiError is an error wrapping multiple
+// validation errors returned by UpdateStrategiesStatusRequest.ValidateAll()
+// if the designated constraints aren't met.
+type UpdateStrategiesStatusRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateStrategiesStatusRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateStrategiesStatusRequestMultiError) AllErrors() []error { return m }
+
+// UpdateStrategiesStatusRequestValidationError is the validation error
+// returned by UpdateStrategiesStatusRequest.Validate if the designated
+// constraints aren't met.
+type UpdateStrategiesStatusRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateStrategiesStatusRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateStrategiesStatusRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateStrategiesStatusRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateStrategiesStatusRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateStrategiesStatusRequestValidationError) ErrorName() string {
+	return "UpdateStrategiesStatusRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateStrategiesStatusRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateStrategiesStatusRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateStrategiesStatusRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateStrategiesStatusRequestValidationError{}
+
+// Validate checks the field values on UpdateStrategiesStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateStrategiesStatusReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateStrategiesStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateStrategiesStatusReplyMultiError, or nil if none found.
+func (m *UpdateStrategiesStatusReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateStrategiesStatusReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateStrategiesStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateStrategiesStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateStrategiesStatusReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateStrategiesStatusReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateStrategiesStatusReplyMultiError is an error wrapping multiple
+// validation errors returned by UpdateStrategiesStatusReply.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateStrategiesStatusReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateStrategiesStatusReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateStrategiesStatusReplyMultiError) AllErrors() []error { return m }
+
+// UpdateStrategiesStatusReplyValidationError is the validation error returned
+// by UpdateStrategiesStatusReply.Validate if the designated constraints
+// aren't met.
+type UpdateStrategiesStatusReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateStrategiesStatusReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateStrategiesStatusReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateStrategiesStatusReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateStrategiesStatusReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateStrategiesStatusReplyValidationError) ErrorName() string {
+	return "UpdateStrategiesStatusReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateStrategiesStatusReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateStrategiesStatusReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateStrategiesStatusReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateStrategiesStatusReplyValidationError{}
 
 // Validate checks the field values on DeleteStrategyRequest with the rules
 // defined in the proto definition for this message. If any rules are

@@ -28,6 +28,8 @@ const OperationPromGetStrategy = "/api.prom.v1.Prom/GetStrategy"
 const OperationPromListGroup = "/api.prom.v1.Prom/ListGroup"
 const OperationPromListStrategy = "/api.prom.v1.Prom/ListStrategy"
 const OperationPromUpdateGroup = "/api.prom.v1.Prom/UpdateGroup"
+const OperationPromUpdateGroupsStatus = "/api.prom.v1.Prom/UpdateGroupsStatus"
+const OperationPromUpdateStrategiesStatus = "/api.prom.v1.Prom/UpdateStrategiesStatus"
 const OperationPromUpdateStrategy = "/api.prom.v1.Prom/UpdateStrategy"
 
 type PromHTTPServer interface {
@@ -40,6 +42,8 @@ type PromHTTPServer interface {
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupReply, error)
+	UpdateGroupsStatus(context.Context, *UpdateGroupsStatusRequest) (*UpdateGroupsStatusReply, error)
+	UpdateStrategiesStatus(context.Context, *UpdateStrategiesStatusRequest) (*UpdateStrategiesStatusReply, error)
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
 }
 
@@ -47,11 +51,13 @@ func RegisterPromHTTPServer(s *http.Server, srv PromHTTPServer) {
 	r := s.Route("/")
 	r.POST("/prom/v1/group", _Prom_CreateGroup0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/group/{id}", _Prom_UpdateGroup0_HTTP_Handler(srv))
+	r.PUT("/prom/v1/groups/status", _Prom_UpdateGroupsStatus0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/group/{id}", _Prom_DeleteGroup0_HTTP_Handler(srv))
 	r.GET("/prom/v1/group/{id}", _Prom_GetGroup0_HTTP_Handler(srv))
 	r.POST("/prom/v1/groups", _Prom_ListGroup0_HTTP_Handler(srv))
 	r.POST("/prom/v1/strategy", _Prom_CreateStrategy0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/strategy/{id}", _Prom_UpdateStrategy0_HTTP_Handler(srv))
+	r.PUT("/prom/v1/strategies/status", _Prom_UpdateStrategiesStatus0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/strategy/{id}", _Prom_DeleteStrategy0_HTTP_Handler(srv))
 	r.GET("/prom/v1/strategy/{id}", _Prom_GetStrategy0_HTTP_Handler(srv))
 	r.POST("/prom/v1/strategies", _Prom_ListStrategy0_HTTP_Handler(srv))
@@ -94,6 +100,25 @@ func _Prom_UpdateGroup0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) 
 			return err
 		}
 		reply := out.(*UpdateGroupReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Prom_UpdateGroupsStatus0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateGroupsStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPromUpdateGroupsStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateGroupsStatus(ctx, req.(*UpdateGroupsStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateGroupsStatusReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -202,6 +227,25 @@ func _Prom_UpdateStrategy0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Contex
 	}
 }
 
+func _Prom_UpdateStrategiesStatus0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateStrategiesStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPromUpdateStrategiesStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateStrategiesStatus(ctx, req.(*UpdateStrategiesStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateStrategiesStatusReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Prom_DeleteStrategy0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteStrategyRequest
@@ -275,6 +319,8 @@ type PromHTTPClient interface {
 	ListGroup(ctx context.Context, req *ListGroupRequest, opts ...http.CallOption) (rsp *ListGroupReply, err error)
 	ListStrategy(ctx context.Context, req *ListStrategyRequest, opts ...http.CallOption) (rsp *ListStrategyReply, err error)
 	UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...http.CallOption) (rsp *UpdateGroupReply, err error)
+	UpdateGroupsStatus(ctx context.Context, req *UpdateGroupsStatusRequest, opts ...http.CallOption) (rsp *UpdateGroupsStatusReply, err error)
+	UpdateStrategiesStatus(ctx context.Context, req *UpdateStrategiesStatusRequest, opts ...http.CallOption) (rsp *UpdateStrategiesStatusReply, err error)
 	UpdateStrategy(ctx context.Context, req *UpdateStrategyRequest, opts ...http.CallOption) (rsp *UpdateStrategyReply, err error)
 }
 
@@ -395,6 +441,32 @@ func (c *PromHTTPClientImpl) UpdateGroup(ctx context.Context, in *UpdateGroupReq
 	pattern := "/prom/v1/group/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationPromUpdateGroup))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *PromHTTPClientImpl) UpdateGroupsStatus(ctx context.Context, in *UpdateGroupsStatusRequest, opts ...http.CallOption) (*UpdateGroupsStatusReply, error) {
+	var out UpdateGroupsStatusReply
+	pattern := "/prom/v1/groups/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPromUpdateGroupsStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *PromHTTPClientImpl) UpdateStrategiesStatus(ctx context.Context, in *UpdateStrategiesStatusRequest, opts ...http.CallOption) (*UpdateStrategiesStatusReply, error) {
+	var out UpdateStrategiesStatusReply
+	pattern := "/prom/v1/strategies/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPromUpdateStrategiesStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

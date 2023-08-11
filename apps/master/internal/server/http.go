@@ -34,7 +34,7 @@ func NewHTTPServer(
 	logger log.Logger,
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
-	promService *service.PromService,
+	promService *service.PromV1Service,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.LocalHttpRequestFilter()), // 跨域
