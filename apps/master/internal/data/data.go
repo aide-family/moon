@@ -19,8 +19,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.IPingRepo), new(*PingRepo)),
 	NewPushRepo,
 	wire.Bind(new(biz.IPushRepo), new(*PushRepo)),
-	NewPromRepo,
-	wire.Bind(new(biz.IPromRepo), new(*PromRepo)),
+	NewPromV1Repo,
+	wire.Bind(new(biz.IPromV1Repo), new(*PromV1Repo)),
 )
 
 type TransactionFunc func(tx *gorm.DB) error

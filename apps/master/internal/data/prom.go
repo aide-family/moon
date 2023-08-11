@@ -3,6 +3,8 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -21,15 +23,34 @@ import (
 )
 
 type (
-	PromRepo struct {
+	PromV1Repo struct {
 		logger *log.Helper
 		data   *Data
 		db     *query.Query
 	}
 )
 
-func (p *PromRepo) GetStrategyByName(ctx context.Context, groupID int32, name string) (*model.PromStrategy, error) {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.GetStrategyByName")
+var _ biz.IPromV1Repo = (*PromV1Repo)(nil)
+
+// NewPromV1Repo 初始化data.PromV1Repo, 用于操作底层数据库或缓存
+//
+//	data:   data配置实例, 内部可以包含db、cache等
+//	logger: 日志组件接口, 用于记录日志, 实现了改接口的所有log都可以使用
+func NewPromV1Repo(data *Data, logger log.Logger) *PromV1Repo {
+	return &PromV1Repo{
+		data:   data,
+		logger: log.NewHelper(log.With(logger, "module", "data/Prom")),
+		db:     query.Use(data.DB()),
+	}
+}
+
+// GetStrategyByName 根据策略名称获取策略, 如果不存在则返回错误, 一般用于策略名称判重
+//
+//	ctx: 	 上下文
+//	groupID: 策略所属组ID
+//	name: 	 查询的策略名称
+func (p *PromV1Repo) GetStrategyByName(ctx context.Context, groupID int32, name string) (*model.PromStrategy, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.GetStrategyByName")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
@@ -51,8 +72,12 @@ func (p *PromRepo) GetStrategyByName(ctx context.Context, groupID int32, name st
 	return first, nil
 }
 
-func (p *PromRepo) Strategies(ctx context.Context, req *pb.ListStrategyRequest) ([]*model.PromStrategy, int64, error) {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.Strategies")
+// Strategies 根据查询条件获取策略列表
+//
+//	ctx: 上下文
+//	req: 查询条件
+func (p *PromV1Repo) Strategies(ctx context.Context, req *pb.ListStrategyRequest) ([]*model.PromStrategy, int64, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.Strategies")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
@@ -99,8 +124,12 @@ func (p *PromRepo) Strategies(ctx context.Context, req *pb.ListStrategyRequest) 
 	return promStrategyDB.Preload(field.Associations).FindByPage(int(offset), int(limit))
 }
 
-func (p *PromRepo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error) {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.Groups")
+// Groups 根据查询条件获取策略组列表
+//
+//	ctx: 上下文
+//	req: 查询条件
+func (p *PromV1Repo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.Groups")
 	defer span.End()
 
 	promGroup := p.db.PromGroup
@@ -154,23 +183,31 @@ func (p *PromRepo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*mod
 	return promGroupDB.Preload(promGroup.Categories.On(promDictPreloadExpr...)).FindByPage(int(offset), int(limit))
 }
 
-func (p *PromRepo) StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error) {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.StrategyDetail")
+// StrategyDetail 根据ID获取策略详情
+//
+//	ctx: 上下文
+//	id: 策略ID
+func (p *PromV1Repo) StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.StrategyDetail")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
 	return promStrategy.WithContext(ctx).Preload(field.Associations).Where(promStrategy.ID.Eq(id)).First()
 }
 
-func (p *PromRepo) DeleteStrategyByID(ctx context.Context, id int32) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.DeleteStrategyByID")
+// DeleteStrategyByID 根据ID删除策略
+//
+//	ctx: 上下文
+//	id: 策略ID
+func (p *PromV1Repo) DeleteStrategyByID(ctx context.Context, id int32) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.DeleteStrategyByID")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
 
 	first, err := promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
 	if err != nil {
-		p.logger.WithContext(ctx).Errorw("PromRepo.DeleteStrategyByID", id, "err", err)
+		p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteStrategyByID", id, "err", err)
 		return err
 	}
 
@@ -179,48 +216,92 @@ func (p *PromRepo) DeleteStrategyByID(ctx context.Context, id int32) error {
 		promGroup := tx.PromGroup
 		inf, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
 		if err != nil {
-			p.logger.WithContext(ctx).Warnw("PromRepo.DeleteStrategyByID", id, "err", err)
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteStrategyByID", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.DeleteStrategyByID", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteStrategyByID", id, "err", "RowsAffected != 1")
 		}
 
 		inf, err = promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).Delete()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.DeleteStrategyByID", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteStrategyByID", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.DeleteStrategyByID", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteStrategyByID", id, "err", "RowsAffected != 1")
 		}
 
 		return nil
 	})
 }
 
-func (p *PromRepo) UpdateStrategyByID(ctx context.Context, id int32, m *model.PromStrategy) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.UpdateStrategyByID")
+// UpdateStrategiesStatusByIds 根据ID批量更新策略状态
+//
+//	ctx: 上下文
+//	ids: 策略ID列表
+//	status: 状态
+func (p *PromV1Repo) UpdateStrategiesStatusByIds(ctx context.Context, ids []int32, status prom.Status) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateGroupStatusByID")
+	defer span.End()
+
+	promStrategy := p.db.PromStrategy
+	promStrategyDB := promStrategy.WithContext(ctx)
+	switch len(ids) {
+	case 0:
+		return nil
+	case 1:
+		promStrategyDB = promStrategyDB.Where(promStrategy.ID.Eq(ids[0]))
+	default:
+		promStrategyDB = promStrategyDB.Where(promStrategy.ID.In(ids...))
+	}
+
+	inf, err := promStrategyDB.UpdateColumnSimple(promStrategy.Status.Value(int32(status)))
+	if err != nil {
+		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", err)
+		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
+			"statusCode": strconv.Itoa(int(status)),
+			"status":     status.String(),
+		})
+	}
+
+	if inf.RowsAffected != 1 {
+		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", "RowsAffected != 1")
+		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
+			"id": fmt.Sprintf("%v", ids),
+		})
+	}
+
+	return nil
+}
+
+// UpdateStrategyByID 根据ID更新策略
+//
+//	ctx: 上下文
+//	id: 策略ID
+//	m: 策略实体
+func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.PromStrategy) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateStrategyByID")
 	defer span.End()
 
 	promStrategy := p.db.PromStrategy
 	first, err := p.db.PromStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
 	if err != nil {
-		p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID", id, "err", err)
+		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
 		return err
 	}
 
 	return p.db.Transaction(func(tx *query.Query) error {
 		promStrategy = tx.PromStrategy
 		if err = promStrategy.AlarmPages.WithContext(ctx).Model(&model.PromStrategy{ID: id}).Replace(m.AlarmPages...); err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID AlarmPages Replace", id, "m.AlarmPages", m.AlarmPages, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID AlarmPages Replace", id, "m.AlarmPages", m.AlarmPages, "err", err)
 			return err
 		}
 
 		if err = promStrategy.Categories.WithContext(ctx).Model(&model.PromStrategy{ID: id}).Replace(m.Categories...); err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID Categories Replace", id, "m.Categories", m.Categories, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID Categories Replace", id, "m.Categories", m.Categories, "err", err)
 			return err
 		}
 
@@ -229,20 +310,20 @@ func (p *PromRepo) UpdateStrategyByID(ctx context.Context, id int32, m *model.Pr
 			// 源group strategy_count -1, 目标group strategy_count +1
 			simple, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
 			if err != nil {
-				p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID", id, "err", err)
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
 				return err
 			}
 			if simple.RowsAffected != 1 {
-				p.logger.WithContext(ctx).Warnw("PromRepo.UpdateStrategyByID", first.GroupID, "err", "RowsAffected != 1")
+				p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", first.GroupID, "err", "RowsAffected != 1")
 			}
 
 			simple, err = promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Add(1))
 			if err != nil {
-				p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID", id, "err", err)
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
 				return err
 			}
 			if simple.RowsAffected != 1 {
-				p.logger.WithContext(ctx).Warnw("PromRepo.UpdateStrategyByID", m.GroupID, "err", "RowsAffected != 1")
+				p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", m.GroupID, "err", "RowsAffected != 1")
 			}
 		}
 
@@ -257,20 +338,24 @@ func (p *PromRepo) UpdateStrategyByID(ctx context.Context, id int32, m *model.Pr
 			promStrategy.GroupID.Value(m.GroupID),
 		)
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateStrategyByID", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.UpdateStrategyByID", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", id, "err", "RowsAffected != 1")
 		}
 
 		return nil
 	})
 }
 
-func (p *PromRepo) CreateStrategy(ctx context.Context, m *model.PromStrategy) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.CreateStrategy")
+// CreateStrategy 创建策略
+//
+//	ctx: 上下文
+//	m: 策略实体
+func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.CreateStrategy")
 	defer span.End()
 
 	alarmPageIds := make([]int32, 0, len(m.AlarmPages))
@@ -290,7 +375,7 @@ func (p *PromRepo) CreateStrategy(ctx context.Context, m *model.PromStrategy) er
 
 		alertLevelInfo, err := promDict.WithContext(ctx).Where(promDict.ID.Eq(m.AlertLevelID)).Select(promDict.ID).First()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", m.AlertLevelID, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m.AlertLevelID, "err", err)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return perrors.ErrorLogicDataNotFound("AlertLevel is not found")
 			}
@@ -301,24 +386,24 @@ func (p *PromRepo) CreateStrategy(ctx context.Context, m *model.PromStrategy) er
 
 		rows, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Add(1))
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", m.GroupID, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m.GroupID, "err", err)
 			return perrors.ErrorServerDatabaseError("server database error, %v", err)
 		}
 
 		if rows.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.CreateStrategy", m.GroupID, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.CreateStrategy", m.GroupID, "err", "RowsAffected != 1")
 			return perrors.ErrorServerDataNotFound("PromeGroup is not found")
 		}
 
 		if len(alarmPageIds) > 0 {
 			alarmPageList, err := promAlarmPage.WithContext(ctx).Where(promAlarmPage.ID.In(alarmPageIds...)).Select(promAlarmPage.ID).Find()
 			if err != nil {
-				p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", alarmPageIds, "err", err)
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", alarmPageIds, "err", err)
 				return perrors.ErrorServerDatabaseError("server database error, %v", err)
 			}
 
 			if len(alarmPageList) != len(alarmPageIds) {
-				p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", alarmPageIds, "err", "alarmPageList != alarmPageIds")
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", alarmPageIds, "err", "alarmPageList != alarmPageIds")
 				return perrors.ErrorServerDataNotFound("PromAlarmPage is not found")
 			}
 			m.AlarmPages = alarmPageList
@@ -327,18 +412,18 @@ func (p *PromRepo) CreateStrategy(ctx context.Context, m *model.PromStrategy) er
 		if len(categoriesIds) > 0 {
 			categoriesList, err := promDict.WithContext(ctx).Where(promDict.ID.In(categoriesIds...)).Select(promDict.ID).Find()
 			if err != nil {
-				p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", categoriesIds, "err", err)
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", categoriesIds, "err", err)
 				return perrors.ErrorServerDatabaseError("server database error, %v", err)
 			}
 			if len(categoriesList) != len(categoriesIds) {
-				p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", categoriesIds, "err", "categoriesList != categoriesIds")
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", categoriesIds, "err", "categoriesList != categoriesIds")
 				return perrors.ErrorServerDataNotFound("PromDict is not found")
 			}
 			m.Categories = categoriesList
 		}
 
 		if err = promStrategy.WithContext(ctx).Create(m); err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.CreateStrategy", m, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m, "err", err)
 			return perrors.ErrorServerDatabaseError("server database error, %v", err)
 		}
 
@@ -346,8 +431,12 @@ func (p *PromRepo) CreateStrategy(ctx context.Context, m *model.PromStrategy) er
 	})
 }
 
-func (p *PromRepo) GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error) {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.GroupDetail")
+// GroupDetail 获取分组详情
+//
+//	ctx: 上下文
+//	id: 规则组ID
+func (p *PromV1Repo) GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.GroupDetail")
 	defer span.End()
 
 	promGroup := p.db.PromGroup
@@ -360,8 +449,12 @@ func (p *PromRepo) GroupDetail(ctx context.Context, id int32) (*model.PromGroup,
 	).Where(promGroup.ID.Eq(id)).First()
 }
 
-func (p *PromRepo) DeleteGroupByID(ctx context.Context, id int32) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.DeleteGroupByID")
+// DeleteGroupByID 删除分组
+//
+//	ctx: 上下文
+//	id: 规则组ID
+func (p *PromV1Repo) DeleteGroupByID(ctx context.Context, id int32) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.DeleteGroupByID")
 	defer span.End()
 
 	return p.db.Transaction(func(tx *query.Query) error {
@@ -370,36 +463,80 @@ func (p *PromRepo) DeleteGroupByID(ctx context.Context, id int32) error {
 		promStrategy := tx.PromStrategy
 		inf, err := promStrategy.WithContext(ctx).Where(promStrategy.GroupID.Eq(id)).Delete()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.DeleteGroupByID PromStrategy", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID PromStrategy", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.DeleteGroupByID PromStrategy", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteGroupByID PromStrategy", id, "err", "RowsAffected != 1")
 		}
 
 		if err = promGroup.Categories.WithContext(ctx).Model(&model.PromGroup{ID: id}).Clear(); err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.DeleteGroupByID Categories Clear", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID Categories Clear", id, "err", err)
 			return err
 		}
 
 		// 删除主数据
 		inf, err = promGroup.WithContext(ctx).Where(promGroup.ID.Eq(id)).Delete()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.DeleteGroupByID", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.DeleteGroupByID", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteGroupByID", id, "err", "RowsAffected != 1")
 		}
 
 		return nil
 	})
 }
 
-func (p *PromRepo) UpdateGroupByID(ctx context.Context, id int32, m *model.PromGroup) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.UpdateGroupByID")
+// UpdateGroupsStatusByIds 批量更新分组状态
+//
+//	ctx: 上下文
+//	ids: 分组ID列表
+//	status: 状态
+func (p *PromV1Repo) UpdateGroupsStatusByIds(ctx context.Context, ids []int32, status prom.Status) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateGroupStatusByID")
+	defer span.End()
+
+	promGroup := p.db.PromGroup
+	promGroupDB := promGroup.WithContext(ctx)
+	switch len(ids) {
+	case 0:
+		return nil
+	case 1:
+		promGroupDB = promGroupDB.Where(promGroup.ID.Eq(ids[0]))
+	default:
+		promGroupDB = promGroupDB.Where(promGroup.ID.In(ids...))
+	}
+
+	inf, err := promGroupDB.UpdateColumnSimple(promGroup.Status.Value(int32(status)))
+	if err != nil {
+		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", err)
+		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
+			"statusCode": strconv.Itoa(int(status)),
+			"status":     status.String(),
+		})
+	}
+
+	if inf.RowsAffected != 1 {
+		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", "RowsAffected != 1")
+		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
+			"ids": fmt.Sprintf("%v", ids),
+		})
+	}
+
+	return nil
+}
+
+// UpdateGroupByID 根据ID更新分组
+//
+//	ctx: 上下文
+//	id: 分组ID
+//	m: 规则组实体
+func (p *PromV1Repo) UpdateGroupByID(ctx context.Context, id int32, m *model.PromGroup) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateGroupByID")
 	defer span.End()
 
 	categorieIds := make([]int32, 0, len(m.Categories))
@@ -415,12 +552,12 @@ func (p *PromRepo) UpdateGroupByID(ctx context.Context, id int32, m *model.PromG
 			promDict.Category.Eq(int32(prom.Category_CATEGORY_GROUP)),
 		).Select(promDict.ID).Find()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateGroupByID Categories Find", id, "m.Categories", m.Categories, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupByID Categories Find", id, "m.Categories", m.Categories, "err", err)
 			return err
 		}
 
 		if err = promGroup.Categories.WithContext(ctx).Model(&model.PromGroup{ID: id}).Replace(dictList...); err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateGroupByID Categories Replace", id, "m.Categories", m.Categories, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupByID Categories Replace", id, "m.Categories", m.Categories, "err", err)
 			return err
 		}
 
@@ -429,20 +566,24 @@ func (p *PromRepo) UpdateGroupByID(ctx context.Context, id int32, m *model.PromG
 			promGroup.Remark.Value(m.Remark),
 		)
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.UpdateGroupByID", id, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupByID", id, "err", err)
 			return err
 		}
 
 		if inf.RowsAffected != 1 {
-			p.logger.WithContext(ctx).Warnw("PromRepo.UpdateGroupByID", id, "err", "RowsAffected != 1")
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupByID", id, "err", "RowsAffected != 1")
 		}
 
 		return nil
 	})
 }
 
-func (p *PromRepo) CreateGroup(ctx context.Context, m *model.PromGroup) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromRepo.CreateGroup")
+// CreateGroup 创建分组
+//
+//	ctx: 上下文
+//	m: 规则组实体
+func (p *PromV1Repo) CreateGroup(ctx context.Context, m *model.PromGroup) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.CreateGroup")
 	defer span.End()
 
 	categorieIds := make([]int32, 0, len(m.Categories))
@@ -457,7 +598,7 @@ func (p *PromRepo) CreateGroup(ctx context.Context, m *model.PromGroup) error {
 			promDict.Category.Eq(int32(prom.Category_CATEGORY_GROUP)),
 		).Select(promDict.ID).Find()
 		if err != nil {
-			p.logger.WithContext(ctx).Errorw("PromRepo.CreateGroup", categorieIds, "err", err)
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateGroup", categorieIds, "err", err)
 			return err
 		}
 
@@ -467,16 +608,9 @@ func (p *PromRepo) CreateGroup(ctx context.Context, m *model.PromGroup) error {
 	})
 }
 
-func (p *PromRepo) V1(_ context.Context) string {
+// V1 服务版本
+//
+//	ctx: 上下文
+func (p *PromV1Repo) V1(_ context.Context) string {
 	return "/prom/v1"
-}
-
-var _ biz.IPromRepo = (*PromRepo)(nil)
-
-func NewPromRepo(data *Data, logger log.Logger) *PromRepo {
-	return &PromRepo{
-		data:   data,
-		logger: log.NewHelper(log.With(logger, "module", "data/Prom")),
-		db:     query.Use(data.DB()),
-	}
 }
