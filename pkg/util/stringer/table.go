@@ -6,7 +6,7 @@ import (
 )
 
 type model struct {
-	Model any
+	Model any `json:"model"`
 }
 
 func (l *model) String() string {
