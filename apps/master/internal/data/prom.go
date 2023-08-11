@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
+	"prometheus-manager/pkg/util/stringer"
 	"strconv"
 	"time"
 
@@ -59,14 +59,16 @@ func (p *PromV1Repo) GetStrategyByName(ctx context.Context, groupID int32, name 
 	first, err := promStrategyDB.Where(promStrategy.Alert.Eq(name), promStrategy.GroupID.Eq(groupID)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, perrors.ErrorLogicDataNotFound("name %s not found", name)
+			return nil, perrors.ErrorLogicDataNotFound("name %s not found", name).WithMetadata(map[string]string{
+				"name":     name,
+				"group_id": string(groupID),
+			}).WithCause(err)
 		}
 		p.logger.WithContext(ctx).Errorw("name", name, "err", err)
 		return nil, perrors.ErrorServerDatabaseError("get strategy by name error").WithMetadata(map[string]string{
 			"name":     name,
 			"group_id": string(groupID),
-			"err":      err.Error(),
-		})
+		}).WithCause(err)
 	}
 
 	return first, nil
@@ -207,8 +209,13 @@ func (p *PromV1Repo) DeleteStrategyByID(ctx context.Context, id int32) error {
 
 	first, err := promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteStrategyByID", id, "err", err)
-		return err
+		return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+			"id": strconv.Itoa(int(id)),
+		})
 	}
 
 	return p.db.Transaction(func(tx *query.Query) error {
@@ -217,7 +224,9 @@ func (p *PromV1Repo) DeleteStrategyByID(ctx context.Context, id int32) error {
 		inf, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
 		if err != nil {
 			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteStrategyByID", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -227,7 +236,9 @@ func (p *PromV1Repo) DeleteStrategyByID(ctx context.Context, id int32) error {
 		inf, err = promStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).Delete()
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteStrategyByID", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -261,16 +272,17 @@ func (p *PromV1Repo) UpdateStrategiesStatusByIds(ctx context.Context, ids []int3
 	inf, err := promStrategyDB.UpdateColumnSimple(promStrategy.Status.Value(int32(status)))
 	if err != nil {
 		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", err)
-		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
+		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithCause(err).WithMetadata(map[string]string{
 			"statusCode": strconv.Itoa(int(status)),
 			"status":     status.String(),
+			"ids":        stringer.New(ids).String(),
 		})
 	}
 
 	if inf.RowsAffected != 1 {
 		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", "RowsAffected != 1")
 		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
-			"id": fmt.Sprintf("%v", ids),
+			"ids": stringer.New(ids).String(),
 		})
 	}
 
@@ -289,20 +301,31 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 	promStrategy := p.db.PromStrategy
 	first, err := p.db.PromStrategy.WithContext(ctx).Where(promStrategy.ID.Eq(id)).First()
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return perrors.ErrorClientNotFound("PromStrategy is not found").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
+		}
 		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
-		return err
+		return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+			"id": strconv.Itoa(int(id)),
+		})
 	}
 
 	return p.db.Transaction(func(tx *query.Query) error {
 		promStrategy = tx.PromStrategy
 		if err = promStrategy.AlarmPages.WithContext(ctx).Model(&model.PromStrategy{ID: id}).Replace(m.AlarmPages...); err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID AlarmPages Replace", id, "m.AlarmPages", m.AlarmPages, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if err = promStrategy.Categories.WithContext(ctx).Model(&model.PromStrategy{ID: id}).Replace(m.Categories...); err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID Categories Replace", id, "m.Categories", m.Categories, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if first.GroupID != m.GroupID {
@@ -311,7 +334,9 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 			simple, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
 			if err != nil {
 				p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
-				return err
+				return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+					"id": strconv.Itoa(int(id)),
+				})
 			}
 			if simple.RowsAffected != 1 {
 				p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", first.GroupID, "err", "RowsAffected != 1")
@@ -320,7 +345,9 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 			simple, err = promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Add(1))
 			if err != nil {
 				p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
-				return err
+				return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+					"id": strconv.Itoa(int(id)),
+				})
 			}
 			if simple.RowsAffected != 1 {
 				p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", m.GroupID, "err", "RowsAffected != 1")
@@ -339,7 +366,9 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 		)
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -379,7 +408,9 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return perrors.ErrorLogicDataNotFound("AlertLevel is not found")
 			}
-			return perrors.ErrorServerDatabaseError("server database error, %v", err)
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"promStrategy": stringer.New(m).String(),
+			})
 		}
 
 		m.AlertLevel = alertLevelInfo
@@ -387,7 +418,9 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 		rows, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Add(1))
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m.GroupID, "err", err)
-			return perrors.ErrorServerDatabaseError("server database error, %v", err)
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"promStrategy": stringer.New(m).String(),
+			})
 		}
 
 		if rows.RowsAffected != 1 {
@@ -399,7 +432,9 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 			alarmPageList, err := promAlarmPage.WithContext(ctx).Where(promAlarmPage.ID.In(alarmPageIds...)).Select(promAlarmPage.ID).Find()
 			if err != nil {
 				p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", alarmPageIds, "err", err)
-				return perrors.ErrorServerDatabaseError("server database error, %v", err)
+				return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+					"promStrategy": stringer.New(m).String(),
+				})
 			}
 
 			if len(alarmPageList) != len(alarmPageIds) {
@@ -424,7 +459,9 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 
 		if err = promStrategy.WithContext(ctx).Create(m); err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m, "err", err)
-			return perrors.ErrorServerDatabaseError("server database error, %v", err)
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"promStrategy": stringer.New(m).String(),
+			})
 		}
 
 		return nil
@@ -464,7 +501,9 @@ func (p *PromV1Repo) DeleteGroupByID(ctx context.Context, id int32) error {
 		inf, err := promStrategy.WithContext(ctx).Where(promStrategy.GroupID.Eq(id)).Delete()
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID PromStrategy", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"groupId": stringer.New(id).String(),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -473,14 +512,18 @@ func (p *PromV1Repo) DeleteGroupByID(ctx context.Context, id int32) error {
 
 		if err = promGroup.Categories.WithContext(ctx).Model(&model.PromGroup{ID: id}).Clear(); err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID Categories Clear", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"groupId": stringer.New(id).String(),
+			})
 		}
 
 		// 删除主数据
 		inf, err = promGroup.WithContext(ctx).Where(promGroup.ID.Eq(id)).Delete()
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.DeleteGroupByID", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -517,13 +560,14 @@ func (p *PromV1Repo) UpdateGroupsStatusByIds(ctx context.Context, ids []int32, s
 		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
 			"statusCode": strconv.Itoa(int(status)),
 			"status":     status.String(),
+			"ids":        stringer.New(ids).String(),
 		})
 	}
 
 	if inf.RowsAffected != 1 {
 		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", "RowsAffected != 1")
 		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
-			"ids": fmt.Sprintf("%v", ids),
+			"ids": stringer.New(ids).String(),
 		})
 	}
 
@@ -567,7 +611,10 @@ func (p *PromV1Repo) UpdateGroupByID(ctx context.Context, id int32, m *model.Pro
 		)
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupByID", id, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"id": strconv.Itoa(int(id)),
+				"m":  stringer.New(m).String(),
+			})
 		}
 
 		if inf.RowsAffected != 1 {
@@ -599,7 +646,9 @@ func (p *PromV1Repo) CreateGroup(ctx context.Context, m *model.PromGroup) error 
 		).Select(promDict.ID).Find()
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateGroup", categorieIds, "err", err)
-			return err
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
+				"categorieIds": stringer.New(categorieIds).String(),
+			})
 		}
 
 		m.Categories = dictList
