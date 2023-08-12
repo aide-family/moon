@@ -126,7 +126,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             dataIndex: "createdAt",
             width: 200,
             render: (createdAt: string) => {
-                return dayjs(+createdAt).format("YYYY-MM-DD HH:mm:ss");
+                return dayjs(+createdAt * 1000).format("YYYY-MM-DD HH:mm:ss");
             },
         },
         {
@@ -134,7 +134,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             dataIndex: "updatedAt",
             width: 200,
             render: (updatedAt: string) => {
-                return dayjs(+updatedAt).format("YYYY-MM-DD HH:mm:ss");
+                return dayjs(+updatedAt * 1000).format("YYYY-MM-DD HH:mm:ss");
             },
         },
     ];
