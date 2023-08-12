@@ -1,16 +1,21 @@
 import React, {createContext} from "react";
-import {Status, StatusMap} from "@/apis/prom/prom";
+
 import {Button, Modal, Tag} from "@arco-design/web-react";
 import {Tooltip} from "@arco-design/web-react/lib";
-import {GroupUpdateStatus} from "@/apis/prom/group/api";
 import {ConfirmProps} from "@arco-design/web-react/es/Modal/confirm";
 import Countdown from "@arco-design/web-react/es/Statistic/countdown";
+
 import dayjs from "dayjs";
+
+import type {Response} from "@/apis/type";
+import {Status, StatusMap} from "@/apis/prom/prom";
+import {GroupUpdatesStatus} from "@/apis/prom/group/api";
 
 export interface StatusTagProps {
     status: Status;
     name: string;
     id: number
+    onFinished?: (resp: Response) => void
 }
 
 const ConfigContext = createContext({});
@@ -18,7 +23,7 @@ const ConfigContext = createContext({});
 const defaultTime = 3;
 
 const StatusTag: React.FC<StatusTagProps> = (props) => {
-    const {status, name, id} = props;
+    const {status, name, id, onFinished} = props;
     const statusValue = StatusMap[status];
 
     const [modal, contextHolder] = Modal.useModal();
@@ -37,7 +42,7 @@ const StatusTag: React.FC<StatusTagProps> = (props) => {
                 setTimeout(() => {
                     init()
                     Modal.destroyAll()
-                }, 500)
+                }, loading ? 500 : 0)
             }}>取消</Button>
             <Button
                 status={status !== Status.Status_ENABLE ? "default" : "danger"}
@@ -56,7 +61,7 @@ const StatusTag: React.FC<StatusTagProps> = (props) => {
                         now={dayjs()}
                         onFinish={
                             () => {
-                                GroupUpdateStatus(id, status).finally(() => {
+                                GroupUpdatesStatus([id], status).then(onFinished).finally(() => {
                                     setLoading(false)
                                     Modal.destroyAll()
                                 })

@@ -2,6 +2,7 @@ import {Delete, Get, Post, Put} from "@/apis/requests";
 import type {GroupCreateItem, GroupDetailReply, ListGroupReply, ListGroupRequest} from "@/apis/prom/group/group";
 import type {GroupItem} from "@/apis/prom/prom";
 import {Status, StatusMap} from "@/apis/prom/prom";
+import type {Response} from "@/apis/type";
 
 /**
  * 规则组列表请求参数, 复数形式, 模块+版本+模型复数, 为了支持复杂的查询条件, 使用POST请求
@@ -61,11 +62,11 @@ function GroupDelete(id: number) {
 
 /**
  * 更新规则组状态
- * @param id 规则组ID
+ * @param ids 规则组ID
  * @param status 规则组状态
  */
-function GroupUpdateStatus(id: number, status: Status) {
-    return Put<GroupItem>([GroupAPI, id, "status"].join("/"), {status: StatusMap[status].opposite?.number})
+function GroupUpdatesStatus(ids: number[], status: Status) {
+    return Put<Response>([GroupListAPI, "status"].join("/"), {status: StatusMap[status].opposite?.number, ids: ids})
 }
 
 export {
@@ -74,5 +75,5 @@ export {
     GroupCreate,
     GroupUpdate,
     GroupDelete,
-    GroupUpdateStatus,
+    GroupUpdatesStatus,
 }

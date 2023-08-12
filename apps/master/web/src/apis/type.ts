@@ -30,13 +30,13 @@ export type BaseResp = {
 }
 
 // 基础响应格式
-export type Reponse = {
+export type Response = {
     // 基础响应参数
     response: BaseResp
 }
 
 // 列表响应参数
-export type ListReponse = Reponse & {
+export type ListReponse = Response & {
     result: Result
 }
 
@@ -80,4 +80,9 @@ export type Query = {
     endAt?: string
     // 查询的时间字段
     timeField?: string
+}
+
+export const defaultPage: PageReq = {
+    current: 1,
+    size: 10,
 }

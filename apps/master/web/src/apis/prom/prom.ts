@@ -194,3 +194,13 @@ export type GroupItem = {
     // 规则组下规则列表
     promStrategies: PromStrategyItem[]
 }
+
+// 规则组
+export type GroupItemRequest = {
+    // 规则组状态, 启用或禁用
+    status?: number,
+    // 规则组下规则数量, int64的字符串
+    strategyCount?: number,
+    // 规则组属性ID, 用于标记规则组属性, 例如告警对象领域, 业务领域等, 与categories一一对应
+    categoriesIds?: number[],
+}

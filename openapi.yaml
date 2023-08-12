@@ -342,16 +342,16 @@ paths:
     post:
       tags:
         - Push
-            operationId: Push_Strategies
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.strategy.v1.push.StrategiesRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
+      operationId: Push_Strategies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.strategy.v1.push.StrategiesRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
                     content:
                         application/json:
                             schema:
@@ -876,16 +876,16 @@ components:
         response:
           $ref: '#/components/schemas/api.Response'
     api.strategy.v1.CreateRuleRequest:
-            type: object
-            properties:
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
-                groupId:
-                    type: integer
-                    format: uint32
-        api.strategy.v1.DeleteRuleReply:
-            type: object
-            properties:
+      type: object
+      properties:
+        rule:
+          $ref: '#/components/schemas/api.strategy.Rule'
+        groupId:
+          type: integer
+          format: uint32
+    api.strategy.v1.DeleteRuleReply:
+      type: object
+      properties:
                 response:
                     $ref: '#/components/schemas/api.Response'
         api.strategy.v1.GetRuleDetailReply:
