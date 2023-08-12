@@ -1,0 +1,34 @@
+@group-padding: 12px;
+@padding-width: 8px;
+@row-width: calc(100% - 2 * @padding-width);
+@div-bg: var(--color-bg-white);
+@border-radius: 4px;
+
+.GroupDiv {
+  padding: @group-padding;
+  background: var(--color-neutral-2);
+  height: calc(100% - 2 * @group-padding);
+  display: flex;
+  flex-direction: column;
+}
+
+.SearchFormDiv {
+  padding: @padding-width @padding-width 0 @padding-width;
+  width: @row-width;
+  background: @div-bg;
+  border-radius: @border-radius;
+}
+
+.OptionLineDiv {
+  margin: 12px 0;
+  padding: @padding-width;
+  width: @row-width;
+  background: @div-bg;
+  border-radius: @border-radius;
+}
+
+.ShowTableDiv {
+  background: @div-bg;
+  flex: 1;
+  border-radius: @border-radius;
+}

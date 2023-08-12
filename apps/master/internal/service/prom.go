@@ -51,7 +51,7 @@ func (l *PromV1Service) UpdateGroup(ctx context.Context, req *pb.UpdateGroupRequ
 	return l.logic.UpdateGroup(ctx, req)
 }
 
-func (l *PromV1Service) UpdateGroupStatus(ctx context.Context, request *pb.UpdateGroupsStatusRequest) (*pb.UpdateGroupsStatusReply, error) {
+func (l *PromV1Service) UpdateGroupsStatus(ctx context.Context, request *pb.UpdateGroupsStatusRequest) (*pb.UpdateGroupsStatusReply, error) {
 	ctx, span := otel.Tracer("service").Start(ctx, "PromV1Service.UpdateGroupStatus")
 	defer span.End()
 	return l.logic.UpdateGroupsStatus(ctx, request)

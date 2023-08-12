@@ -1,104 +1,62 @@
 import React, {useEffect} from "react";
-import dayjs from "dayjs";
-import {TacerTable} from "tacer-cloud";
-import type {ColumnProps} from "@arco-design/web-react/es/Table";
-import type {TacerFormColumn} from "tacer-cloud/es/TacerForm";
-import type {GroupItem} from "@/apis/prom/prom";
-import {Status} from "@/apis/prom/prom";
-import {GroupList} from "@/apis/prom/group/api";
-import {Statistic} from "@arco-design/web-react";
-import {calcColor, colors} from "@/utils/calcColor";
-import StatusTag from "@/pages/strategy/group/child/StatusTag";
+
+import SearchForm, {SearchFormType} from "@/pages/strategy/group/child/SearchForm";
+import ShowTable from "@/pages/strategy/group/child/ShowTable";
+import OptionLine from "@/pages/strategy/group/child/OptionLine";
+import {defaultListGroupRequest, ListGroupRequest} from "@/apis/prom/group/group";
+import {useSearchParams} from "react-router-dom";
+
+import groupStyle from "./style/group.module.less";
 
 const Group: React.FC = () => {
-    const [dataSource, setDataSource] = React.useState<GroupItem[]>([]);
-    const tableColumns: ColumnProps<GroupItem>[] = [
-        {
-            title: "名称",
-            dataIndex: "name",
-            width: 300,
-        },
-        {
-            title: "状态",
-            dataIndex: "status",
-            width: 160,
-            align: "center",
-            render: (status: Status, item: GroupItem) => {
-                return <StatusTag status={status} id={item.id} name={item.name}/>;
-            }
-        },
-        {
-            title: "规则总数",
-            dataIndex: "strategyCount",
-            width: 500,
-            render: (strategyCount: string) => {
-                let color = calcColor(colors, +strategyCount, 100)
-                return <Statistic value={strategyCount} groupSeparator suffix="条" styleValue={{color: color}}/>
-            }
-        },
-        {
-            title: "描述",
-            dataIndex: "remark",
-            width: 500,
-            render: (remark: string) => {
-                return remark || "-";
-            }
-        },
-        {
-            title: "创建时间",
-            dataIndex: "createdAt",
-            width: 200,
-            render: (createdAt: string) => {
-                return dayjs(+createdAt).format("YYYY-MM-DD HH:mm:ss");
-            },
-        },
-        {
-            title: "更新时间",
-            dataIndex: "updatedAt",
-            width: 200,
-            render: (updatedAt: string) => {
-                return dayjs(+updatedAt).format("YYYY-MM-DD HH:mm:ss");
-            },
-        },
-    ];
+    const [searchParams] = useSearchParams();
 
-    const searchColumns: TacerFormColumn[] = [
-        {
-            type: "input",
-            label: "名称",
-            field: "name",
-            placeholder: "请输入名称",
-        },
-    ];
+    const [queryParams, setQueryParams] = React.useState<ListGroupRequest | undefined>();
+    const [isNoData, setIsNoData] = React.useState<boolean>(false);
 
+    const handleSearchChange = (params: SearchFormType) => {
+        setIsNoData(false);
+        setQueryParams((prev?: ListGroupRequest): ListGroupRequest => {
+            return {
+                ...prev,
+                query: {
+                    ...prev?.query,
+                    page: prev?.query.page || defaultListGroupRequest.query?.page,
+                    endAt: params.endAt ? params.endAt + "" : undefined,
+                    startAt: params.startAt ? params.startAt + "" : undefined,
+                    keyword: params.keyword,
+                },
+                group: {
+                    ...prev?.group,
+                    strategyCount: params.strategyCount,
+                    status: params.status,
+                },
+            }
+        });
+    }
 
     useEffect(() => {
-        GroupList({
-            group: undefined,
-            query: {
-                page: {
-                    current: 1,
-                    size: 1000
-                }
-            }
-        }).then((listGroupReply) => setDataSource(() => listGroupReply.groups || []))
-    }, []);
+        try {
+            setQueryParams(() => {
+                let q = searchParams.get("q")
+                if (!q) return defaultListGroupRequest
+                return JSON.parse(q || "")
+            })
+        } catch (e) {
+        }
+    }, [])
 
     return (
-        <>
-            <TacerTable
-                rowKey={(row) => row.id}
-                columns={tableColumns}
-                searchColumns={searchColumns}
-                data={dataSource}
-                size="small"
-                page={{
-                    pageSize: 1000,
-                    total: dataSource.length,
-                    current: 1,
-                }}
+        <div className={groupStyle.GroupDiv}>
+            <SearchForm onChange={handleSearchChange}/>
+            <OptionLine/>
+            <ShowTable
+                queryParams={queryParams}
+                setQueryParams={setQueryParams}
+                setIsNoData={setIsNoData}
+                isNoData={isNoData}
             />
-        </>
+        </div>
     );
 };
 

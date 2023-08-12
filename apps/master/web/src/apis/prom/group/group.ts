@@ -1,10 +1,19 @@
-import type {ListReponse, Query, Reponse} from "@/apis/type";
-import type {GroupItem, Status} from "@/apis/prom/prom";
+import type {ListReponse, Query, Response} from "@/apis/type";
+import type {GroupItem, GroupItemRequest, Status} from "@/apis/prom/prom";
 
 // 规则组列表请求参数
 export type  ListGroupRequest = {
-    query?: Query
-    group?: GroupItem
+    query: Query
+    group?: GroupItemRequest
+}
+
+export const defaultListGroupRequest: ListGroupRequest = {
+    query: {
+        page: {
+            current: 1,
+            size: 10,
+        },
+    },
 }
 
 // 规则组列表响应参数
@@ -13,7 +22,7 @@ export type ListGroupReply = ListReponse & {
 }
 
 // 规则组详情响应参数
-export type GroupDetailReply = Reponse & {
+export type GroupDetailReply = Response & {
     group: GroupItem
 }
 

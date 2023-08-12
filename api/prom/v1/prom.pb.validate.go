@@ -625,6 +625,17 @@ func (m *UpdateGroupsStatusRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if len(m.GetIds()) < 1 {
+		err := UpdateGroupsStatusRequestValidationError{
+			field:  "Ids",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	for idx, item := range m.GetIds() {
 		_, _ = idx, item
 
@@ -2307,6 +2318,17 @@ func (m *UpdateStrategiesStatusRequest) validate(all bool) error {
 		err := UpdateStrategiesStatusRequestValidationError{
 			field:  "Status",
 			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetIds()) < 1 {
+		err := UpdateStrategiesStatusRequestValidationError{
+			field:  "Ids",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err

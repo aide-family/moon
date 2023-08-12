@@ -127,7 +127,8 @@ message UpdateGroupsStatusRequest {
       int32: {
         gt: 0,
       }
-    }
+    },
+    min_items: 1,
   }];
 }
 message UpdateGroupsStatusReply {
@@ -193,7 +194,8 @@ message UpdateStrategiesStatusRequest {
       int32: {
         gt: 0,
       }
-    }
+    },
+    min_items: 1,
   }];
 }
 message UpdateStrategiesStatusReply {
