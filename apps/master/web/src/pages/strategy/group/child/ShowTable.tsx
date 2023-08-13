@@ -156,7 +156,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     }
 
     useEffect(() => {
-        if (isNoData) return;
+        if (isNoData || !queryParams) return;
         setSearchParams({q: JSON.stringify(queryParams)})
         onSearch()
     }, [queryParams]);
