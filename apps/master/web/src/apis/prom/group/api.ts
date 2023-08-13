@@ -40,7 +40,7 @@ function GroupDetail(id: number) {
  * @param params 规则组参数
  */
 function GroupCreate(params: GroupCreateItem) {
-    return Post<GroupItem>(GroupAPI, params)
+    return Post<Response>(GroupAPI, {group: params})
 }
 
 /**
@@ -49,7 +49,7 @@ function GroupCreate(params: GroupCreateItem) {
  * @param params 规则组参数
  */
 function GroupUpdate(id: number, params: GroupCreateItem) {
-    return Put<GroupItem>([GroupAPI, id].join("/"), params)
+    return Put<Response>([GroupAPI, id].join("/"), {group: params})
 }
 
 /**
@@ -57,7 +57,7 @@ function GroupUpdate(id: number, params: GroupCreateItem) {
  * @param id 规则组ID
  */
 function GroupDelete(id: number) {
-    return Delete<GroupItem>([GroupAPI, id].join("/"))
+    return Delete<Response>([GroupAPI, id].join("/"))
 }
 
 /**
