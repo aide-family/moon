@@ -3,9 +3,6 @@ import React, {createContext} from "react";
 import {Button, Modal, Tag} from "@arco-design/web-react";
 import {Tooltip} from "@arco-design/web-react/lib";
 import {ConfirmProps} from "@arco-design/web-react/es/Modal/confirm";
-import Countdown from "@arco-design/web-react/es/Statistic/countdown";
-
-import dayjs from "dayjs";
 
 import type {Response} from "@/apis/type";
 import {Status, StatusMap} from "@/apis/prom/prom";
@@ -20,8 +17,6 @@ export interface StatusTagProps {
 
 const ConfigContext = createContext({});
 
-const defaultTime = 3;
-
 const StatusTag: React.FC<StatusTagProps> = (props) => {
     const {status, name, id, onFinished} = props;
     const statusValue = StatusMap[status];
@@ -30,46 +25,28 @@ const StatusTag: React.FC<StatusTagProps> = (props) => {
 
     const Footer = () => {
         const [loading, setLoading] = React.useState<boolean>(false);
-        const [closeLoading, setCloseLoading] = React.useState<boolean>(false);
         const init = () => {
             setLoading(false)
-            setCloseLoading(false)
         }
 
         return <div style={{flex: "1 1 100%", display: "flex", justifyContent: "flex-end", gap: "12px"}}>
-            <Button type="secondary" loading={closeLoading} onClick={() => {
-                setCloseLoading(true)
-                setTimeout(() => {
-                    init()
-                    Modal.destroyAll()
-                }, loading ? 500 : 0)
+            <Button type="secondary" onClick={() => {
+                init()
+                Modal.destroyAll()
             }}>取消</Button>
             <Button
                 status={status !== Status.Status_ENABLE ? "default" : "danger"}
                 type="primary"
-                loading={loading || closeLoading}
+                loading={loading}
                 onClick={() => {
                     setLoading(true);
+                    GroupUpdatesStatus([id], status).then(onFinished).finally(() => {
+                        setLoading(false)
+                        Modal.destroyAll()
+                    })
                 }}
-            >{statusValue.opposite?.text}{" "}{loading &&
-                <span>
-                    <Countdown
-                        format="ss"
-                        styleValue={{color: "var(--color-neutral-8)", fontSize: "16px", fontWeight: "bold"}}
-                        value={dayjs().add(defaultTime, "second")}
-                        start={loading}
-                        now={dayjs()}
-                        onFinish={
-                            () => {
-                                GroupUpdatesStatus([id], status).then(onFinished).finally(() => {
-                                    setLoading(false)
-                                    Modal.destroyAll()
-                                })
-                            }
-                        }/>
-                    s
-                </span>
-            }
+            >
+                {statusValue.opposite?.text}
             </Button>
         </div>
     }

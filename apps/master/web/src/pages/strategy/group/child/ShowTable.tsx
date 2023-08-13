@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import type {PaginationProps} from "@arco-design/web-react";
-import {Statistic, Table, Tag} from "@arco-design/web-react";
+import {Button, Statistic, Table, Tag} from "@arco-design/web-react";
 import type {GroupItem} from "@/apis/prom/prom";
 import {PromDict, Status} from "@/apis/prom/prom";
 import type {ColumnProps} from "@arco-design/web-react/es/Table";
@@ -12,20 +12,17 @@ import {ListGroupRequest} from "@/apis/prom/group/group";
 import {defaultPage} from "@/apis/type";
 import {useSearchParams} from "react-router-dom";
 import groupStyle from "../style/group.module.less";
+import {IconMore} from "@arco-design/web-react/icon";
 
 export interface ShowTableProps {
     setQueryParams: React.Dispatch<React.SetStateAction<ListGroupRequest | undefined>>
-    setIsNoData: React.Dispatch<React.SetStateAction<boolean>>
     queryParams?: ListGroupRequest
-    isNoData: boolean
 }
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
     const {
         setQueryParams,
-        setIsNoData,
         queryParams,
-        isNoData,
     } = props;
     const [_, setSearchParams] = useSearchParams();
 
@@ -49,16 +46,6 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                 pageSize: +listGroupReply?.result?.page?.size || tablePagination.pageSize,
                 current: +listGroupReply?.result?.page?.current || tablePagination.current,
             } : function () {
-                setIsNoData(true)
-                setQueryParams?.((prev) => {
-                    return {
-                        ...prev,
-                        query: {
-                            ...prev?.query,
-                            page: defaultPage
-                        }
-                    }
-                })
                 return defaultPage
             }()
             setTablePagination((prev) => {
@@ -70,6 +57,15 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     }
 
     const tableColumns: ColumnProps<GroupItem>[] = [
+        {
+            title: "序号",
+            dataIndex: "index",
+            width: 80,
+            fixed: "left",
+            render: (text, item, index) => {
+                return <span>{(tablePagination.current - 1) * tablePagination.pageSize + index + 1}</span>;
+            }
+        },
         {
             title: "名称",
             dataIndex: "name",
@@ -137,6 +133,25 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                 return dayjs(+updatedAt * 1000).format("YYYY-MM-DD HH:mm:ss");
             },
         },
+        {
+            title: "操作",
+            dataIndex: "action",
+            width: 140,
+            fixed: "right",
+            align: "center",
+            render: (_, item: GroupItem) => {
+                return (
+                    <div className={groupStyle.action}>
+                        <Button type="text" onClick={() => {
+                            // TODO
+                        }}>详情</Button>
+                        <Button type="text" onClick={() => {
+                            // TODO
+                        }}><IconMore/></Button>
+                    </div>
+                );
+            }
+        }
     ];
 
     const handlePageChange = (page: number, pageSize: number) => {
@@ -156,7 +171,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     }
 
     useEffect(() => {
-        if (isNoData || !queryParams) return;
+        if (!queryParams) return;
         setSearchParams({q: JSON.stringify(queryParams)})
         onSearch()
     }, [queryParams]);
@@ -165,9 +180,32 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         ...tablePagination,
         showTotal: (total) => `共 ${total} 条`,
         onChange: handlePageChange,
+        sizeOptions: [10, 20, 50, 100],
+        showJumper: true,
+        sizeCanChange: true,
     };
 
-    return <div className={groupStyle.ShowTableDiv}>
+    const [ShowTableDivHeight, setShowTableDivHeight] = React.useState<number>(document.getElementById("ShowTableDiv")?.clientHeight || 0);
+
+    // 监听窗口尺寸变化
+    useEffect(() => {
+        const resize = () => {
+            const tableDivHeight = document.getElementById("ShowTableDiv")?.clientHeight || 0;
+            setShowTableDivHeight(tableDivHeight);
+        }
+        window.addEventListener("resize", resize);
+        return () => {
+            window.removeEventListener("resize", resize);
+        };
+    }, []);
+
+    // 监听ShowTableDiv渲染完成
+    useEffect(() => {
+        const tableDivHeight = document.getElementById("ShowTableDiv")?.clientHeight || 0;
+        setShowTableDivHeight(tableDivHeight);
+    }, []);
+
+    return <div className={groupStyle.ShowTableDiv} id="ShowTableDiv">
         <Table
             style={{padding: 8}}
             rowKey={(row) => row.id}
@@ -175,6 +213,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             columns={tableColumns}
             data={dataSource}
             pagination={pagination}
+            scroll={{y: ShowTableDivHeight - 112}}
         />
     </div>
 }
