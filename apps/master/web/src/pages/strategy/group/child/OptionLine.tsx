@@ -28,13 +28,15 @@ const sizes = [{
     value: "mini",
 }]
 
+const defaultInterval = 60
+
 const OptionLine: React.FC<OptionLineProps> = (props) => {
     const {
         refresh,
         onTableSizeChange,
     } = props;
 
-    const [refreshInterval, setRefreshInterval] = React.useState<number>(10)
+    const [refreshInterval, setRefreshInterval] = React.useState<number>(defaultInterval)
 
     const handleIntervalChange = (key: string) => {
         setRefreshInterval(+key)
@@ -58,7 +60,9 @@ const OptionLine: React.FC<OptionLineProps> = (props) => {
     return <>
         <div className={groupStyle.OptionLineDiv}>
             <Row className={groupStyle.Row}>
-                <Col span={12} className={groupStyle.LeftCol}><AddGroup/></Col>
+                <Col span={12} className={groupStyle.LeftCol}><AddGroup onFinished={refresh}>
+                    <Button type="primary">添加分组</Button>
+                </AddGroup></Col>
                 <Col span={12} className={groupStyle.RightCol}>
                     <Button.Group>
                         <Button type="default" onClick={refresh} icon={<IconRefresh/>}/>
@@ -72,6 +76,7 @@ const OptionLine: React.FC<OptionLineProps> = (props) => {
                     <Radio.Group
                         type="button"
                         options={sizes}
+                        defaultValue={sizes.length && sizes[0].value || "default"}
                         onChange={onTableSizeChange}
                     />
                 </Col>

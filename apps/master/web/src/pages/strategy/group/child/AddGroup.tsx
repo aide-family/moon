@@ -1,19 +1,52 @@
 import React from "react";
-import {Button} from "@arco-design/web-react";
+import EditGroup from "@/pages/strategy/group/child/EditGroup";
+import {GroupCreateItem} from "@/apis/prom/group/group";
 
 export interface AddGroupProps {
     children?: React.ReactNode
+    title?: React.ReactNode
+    onFinished?: () => void
+    initialValues?: GroupCreateItem
+    groupId?: number
 }
 
 const defaultAddGroupName = "新建分组";
 
 const AddGroup: React.FC<AddGroupProps> = (props) => {
-    const {children = defaultAddGroupName} = props;
+    const {
+        children = defaultAddGroupName,
+        title = defaultAddGroupName,
+        onFinished,
+        initialValues,
+        groupId,
+    } = props;
+    const [visible, setVisible] = React.useState<boolean>(false);
+
+    const handleOpenEditGroup = () => {
+        setVisible(true)
+    }
+
+    const handleOnClose = () => {
+        setVisible(false)
+    }
+
+    const handleOnFinished = () => {
+        setVisible(false)
+        onFinished?.()
+    }
 
     return <>
-        <Button type="primary">
+        <div onClick={handleOpenEditGroup}>
             {children}
-        </Button>
+        </div>
+        <EditGroup
+            title={title}
+            visible={visible}
+            onClose={handleOnClose}
+            onFinished={handleOnFinished}
+            initialValues={initialValues}
+            id={groupId}
+        />
     </>
 }
 

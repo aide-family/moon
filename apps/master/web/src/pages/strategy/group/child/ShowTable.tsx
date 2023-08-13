@@ -9,11 +9,16 @@ import {calcColor, colors} from "@/utils/calcColor";
 import dayjs from "dayjs";
 import {GroupList} from "@/apis/prom/group/api";
 import {ListGroupRequest} from "@/apis/prom/group/group";
-import {defaultPage, M, Sort} from "@/apis/type";
+import type {M, Sort} from "@/apis/type";
+import {defaultPage} from "@/apis/type";
 import {useSearchParams} from "react-router-dom";
 import groupStyle from "../style/group.module.less";
-import {IconMore} from "@arco-design/web-react/icon";
 import toSnakeCase from "@/utils/strings";
+import MoreMenu from "@/components/More/MoreMenu";
+import AddGroup from "@/pages/strategy/group/child/AddGroup";
+import {OmitText} from "tacer-cloud";
+import DeleteButton from "@/pages/strategy/group/child/DeleteButton";
+import type {SorterInfo} from "@arco-design/web-react/es/Table/interface";
 
 export type sizeType = 'default' | 'middle' | 'small' | 'mini'
 
@@ -40,7 +45,6 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         pageSize: queryParams?.query?.page.size || defaultPage.size,
         total: 0,
     });
-    const [sorter, setSorter] = React.useState<M<Sort>>({});
 
     // 统一查询
     function onSearch() {
@@ -63,6 +67,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             setTableLoading(false)
         })
     }
+
 
     const tableColumns: ColumnProps<GroupItem>[] = [
         {
@@ -129,7 +134,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             dataIndex: "remark",
             width: 500,
             render: (remark: string) => {
-                return remark || "-";
+                return <OmitText showTooltip maxLine={2}>{remark}</OmitText>
             }
         },
         {
@@ -162,9 +167,21 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                         <Button type="text" onClick={() => {
                             // TODO
                         }}>详情</Button>
-                        <Button type="text" onClick={() => {
-                            // TODO
-                        }}><IconMore/></Button>
+                        <MoreMenu options={[
+                            {
+                                label: <AddGroup onFinished={onSearch} groupId={item.id} initialValues={{
+                                    name: item.name,
+                                    remark: item.remark,
+                                    categoriesIds: item.categoriesIds,
+                                }}>
+                                    <Button type="text">编辑</Button>
+                                </AddGroup>,
+                                key: "edit",
+                            }, {
+                                label: <DeleteButton onFinished={onSearch} item={item}/>,
+                                key: "delete",
+                            }
+                        ]}/>
                     </div>
                 );
             }
@@ -222,20 +239,34 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         setShowTableDivHeight(tableDivHeight);
     }, []);
 
-    useEffect(() => {
-        if (!sorter) return;
+    const handleSetSorter = (sorts: M<Sort>) => {
         setQueryParams?.((prev?: ListGroupRequest): ListGroupRequest | any => {
             return {
                 ...prev,
                 query: {
                     ...prev?.query,
                     sort: [
-                        ...Object.keys(sorter).map((key) => sorter[key]),
+                        ...Object.keys(sorts).map((key) => sorts[key]),
                     ],
                 },
             };
         });
-    }, [sorter])
+    }
+
+    const handleTableOnChange = (pagination: PaginationProps, changedSorter: SorterInfo) => {
+        let sorts = {}
+        if (changedSorter && changedSorter.direction) {
+            let field = toSnakeCase(changedSorter.field + "");
+            sorts = {
+                [field]: {
+                    asc: changedSorter.direction === "ascend",
+                    field: field,
+                }
+            };
+        }
+
+        handleSetSorter(sorts);
+    }
 
     return <div className={groupStyle.ShowTableDiv} id="ShowTableDiv">
         <Table
@@ -247,19 +278,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             data={dataSource}
             pagination={pagination}
             scroll={{y: ShowTableDivHeight - 112}}
-            onChange={(pagination, changedSorter) => {
-                console.log(changedSorter);
-                if (!changedSorter || !changedSorter.direction) return;
-                setSorter(() => {
-                    let field = toSnakeCase(changedSorter.field + "");
-                    return {
-                        [field]: {
-                            asc: changedSorter.direction === "ascend",
-                            field: field,
-                        }
-                    };
-                });
-            }}
+            onChange={handleTableOnChange}
         />
     </div>
 }
