@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 
 import SearchForm, {SearchFormType} from "@/pages/strategy/group/child/SearchForm";
+import type {sizeType} from "@/pages/strategy/group/child/ShowTable";
 import ShowTable from "@/pages/strategy/group/child/ShowTable";
 import OptionLine from "@/pages/strategy/group/child/OptionLine";
 import {defaultListGroupRequest, ListGroupRequest} from "@/apis/prom/group/group";
@@ -11,6 +12,8 @@ import groupStyle from "./style/group.module.less";
 const Group: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [queryParams, setQueryParams] = React.useState<ListGroupRequest | undefined>();
+    const [tableSize, setTableSize] = React.useState<sizeType>("default");
+    const [refresh, setRefresh] = React.useState<boolean>(false);
 
     const handleSearchChange = (params: SearchFormType) => {
         setQueryParams((prev?: ListGroupRequest): ListGroupRequest => {
@@ -32,6 +35,10 @@ const Group: React.FC = () => {
         });
     }
 
+    const handleOnRefresh = () => {
+        setRefresh((prev) => !prev)
+    }
+
     useEffect(() => {
         try {
             setQueryParams(() => {
@@ -46,8 +53,10 @@ const Group: React.FC = () => {
     return (
         <div className={groupStyle.GroupDiv}>
             <SearchForm onChange={handleSearchChange}/>
-            <OptionLine/>
+            <OptionLine onTableSizeChange={setTableSize} refresh={handleOnRefresh}/>
             <ShowTable
+                size={tableSize}
+                refresh={refresh}
                 queryParams={queryParams}
                 setQueryParams={setQueryParams}
             />

@@ -9,20 +9,27 @@ import {calcColor, colors} from "@/utils/calcColor";
 import dayjs from "dayjs";
 import {GroupList} from "@/apis/prom/group/api";
 import {ListGroupRequest} from "@/apis/prom/group/group";
-import {defaultPage} from "@/apis/type";
+import {defaultPage, M, Sort} from "@/apis/type";
 import {useSearchParams} from "react-router-dom";
 import groupStyle from "../style/group.module.less";
 import {IconMore} from "@arco-design/web-react/icon";
+import toSnakeCase from "@/utils/strings";
+
+export type sizeType = 'default' | 'middle' | 'small' | 'mini'
 
 export interface ShowTableProps {
     setQueryParams: React.Dispatch<React.SetStateAction<ListGroupRequest | undefined>>
     queryParams?: ListGroupRequest
+    size?: sizeType
+    refresh?: boolean
 }
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
     const {
         setQueryParams,
         queryParams,
+        size = "default",
+        refresh
     } = props;
     const [_, setSearchParams] = useSearchParams();
 
@@ -33,6 +40,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         pageSize: queryParams?.query?.page.size || defaultPage.size,
         total: 0,
     });
+    const [sorter, setSorter] = React.useState<M<Sort>>({});
 
     // 统一查询
     function onSearch() {
@@ -67,6 +75,12 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             }
         },
         {
+            title: "ID",
+            dataIndex: "id",
+            width: 140,
+            sorter: (a, b) => +a.id - +b.id,
+        },
+        {
             title: "名称",
             dataIndex: "name",
             width: 300,
@@ -88,7 +102,8 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             render: (strategyCount: string) => {
                 let color = calcColor(colors, +strategyCount, 100)
                 return <Statistic value={strategyCount} groupSeparator suffix="条" styleValue={{color: color}}/>
-            }
+            },
+            sorter: (a, b) => +a.strategyCount - +b.strategyCount,
         },
         {
             title: "标签",
@@ -124,6 +139,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             render: (createdAt: string) => {
                 return dayjs(+createdAt * 1000).format("YYYY-MM-DD HH:mm:ss");
             },
+            sorter: (a, b) => +a.createdAt - +b.createdAt,
         },
         {
             title: "更新时间",
@@ -132,6 +148,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             render: (updatedAt: string) => {
                 return dayjs(+updatedAt * 1000).format("YYYY-MM-DD HH:mm:ss");
             },
+            sorter: (a, b) => +a.updatedAt - +b.updatedAt,
         },
         {
             title: "操作",
@@ -174,7 +191,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         if (!queryParams) return;
         setSearchParams({q: JSON.stringify(queryParams)})
         onSearch()
-    }, [queryParams]);
+    }, [queryParams, refresh]);
 
     const pagination: boolean | PaginationProps = {
         ...tablePagination,
@@ -205,8 +222,24 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         setShowTableDivHeight(tableDivHeight);
     }, []);
 
+    useEffect(() => {
+        if (!sorter) return;
+        setQueryParams?.((prev?: ListGroupRequest): ListGroupRequest | any => {
+            return {
+                ...prev,
+                query: {
+                    ...prev?.query,
+                    sort: [
+                        ...Object.keys(sorter).map((key) => sorter[key]),
+                    ],
+                },
+            };
+        });
+    }, [sorter])
+
     return <div className={groupStyle.ShowTableDiv} id="ShowTableDiv">
         <Table
+            size={size}
             style={{padding: 8}}
             rowKey={(row) => row.id}
             loading={tableLoading}
@@ -214,6 +247,19 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             data={dataSource}
             pagination={pagination}
             scroll={{y: ShowTableDivHeight - 112}}
+            onChange={(pagination, changedSorter) => {
+                console.log(changedSorter);
+                if (!changedSorter || !changedSorter.direction) return;
+                setSorter(() => {
+                    let field = toSnakeCase(changedSorter.field + "");
+                    return {
+                        [field]: {
+                            asc: changedSorter.direction === "ascend",
+                            field: field,
+                        }
+                    };
+                });
+            }}
         />
     </div>
 }
