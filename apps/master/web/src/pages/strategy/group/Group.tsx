@@ -10,18 +10,15 @@ import groupStyle from "./style/group.module.less";
 
 const Group: React.FC = () => {
     const [searchParams] = useSearchParams();
-
     const [queryParams, setQueryParams] = React.useState<ListGroupRequest | undefined>();
-    const [isNoData, setIsNoData] = React.useState<boolean>(false);
 
     const handleSearchChange = (params: SearchFormType) => {
-        setIsNoData(false);
         setQueryParams((prev?: ListGroupRequest): ListGroupRequest => {
             return {
                 ...prev,
                 query: {
                     ...prev?.query,
-                    page: prev?.query.page || defaultListGroupRequest.query?.page,
+                    page: defaultListGroupRequest.query?.page,
                     endAt: params.endAt ? params.endAt + "" : undefined,
                     startAt: params.startAt ? params.startAt + "" : undefined,
                     keyword: params.keyword,
@@ -53,8 +50,6 @@ const Group: React.FC = () => {
             <ShowTable
                 queryParams={queryParams}
                 setQueryParams={setQueryParams}
-                setIsNoData={setIsNoData}
-                isNoData={isNoData}
             />
         </div>
     );
