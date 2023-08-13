@@ -62,7 +62,6 @@ const SearchForm: React.FC<SearchFormProps> = (props) => {
                 ],
                 status: query?.group?.status || 0,
             }
-            console.log("query", query)
             form.setFieldsValue(formData)
         } catch (e) {
         }

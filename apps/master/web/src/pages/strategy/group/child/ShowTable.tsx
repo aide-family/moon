@@ -19,6 +19,7 @@ import AddGroup from "@/pages/strategy/group/child/AddGroup";
 import {OmitText} from "tacer-cloud";
 import DeleteButton from "@/pages/strategy/group/child/DeleteButton";
 import type {SorterInfo} from "@arco-design/web-react/es/Table/interface";
+import DetailModal from "@/pages/strategy/group/child/DetailModal";
 
 export type sizeType = 'default' | 'middle' | 'small' | 'mini'
 
@@ -67,7 +68,6 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             setTableLoading(false)
         })
     }
-
 
     const tableColumns: ColumnProps<GroupItem>[] = [
         {
@@ -134,7 +134,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             dataIndex: "remark",
             width: 500,
             render: (remark: string) => {
-                return <OmitText showTooltip maxLine={2}>{remark}</OmitText>
+                return <OmitText showTooltip maxLine={2} placeholder="-">{remark}</OmitText>
             }
         },
         {
@@ -158,18 +158,21 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         {
             title: "操作",
             dataIndex: "action",
-            width: 140,
+            width: 120,
             fixed: "right",
             align: "center",
             render: (_, item: GroupItem) => {
                 return (
                     <div className={groupStyle.action}>
-                        <Button type="text" onClick={() => {
-                            // TODO
-                        }}>详情</Button>
+                        <DetailModal item={item}>
+                            <Button type="text">详情</Button>
+                        </DetailModal>
                         <MoreMenu options={[
                             {
-                                label: <AddGroup onFinished={onSearch} groupId={item.id} initialValues={{
+                                label: <AddGroup
+                                    onFinished={onSearch}
+                                    title="编辑分组"
+                                    groupId={item.id} initialValues={{
                                     name: item.name,
                                     remark: item.remark,
                                     categoriesIds: item.categoriesIds,
