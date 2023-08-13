@@ -25,6 +25,23 @@
   width: @row-width;
   background: @div-bg;
   border-radius: @border-radius;
+
+  .Row {
+    .LeftCol {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .RightCol {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+  }
 }
 
 .ShowTableDiv {

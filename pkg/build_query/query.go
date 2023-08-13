@@ -58,7 +58,7 @@ func GetSlectExprs(q IDBQeury, params IField) []field.Expr {
 		selectExpr := make([]field.Expr, 0, len(selectFields))
 		for _, fieldName := range selectFields {
 			fieldExpr, ok := q.GetFieldByName(fieldName)
-			if ok {
+			if !ok {
 				continue
 			}
 			selectExpr = append(selectExpr, fieldExpr)
@@ -73,7 +73,7 @@ func GetSorts(q IDBQeury, sorts ...ISort) []field.Expr {
 	sortExpr := make([]field.Expr, 0, len(sorts))
 	for _, sort := range sorts {
 		fieldExpr, ok := q.GetFieldByName(sort.GetField())
-		if ok {
+		if !ok {
 			continue
 		}
 		if !sort.GetAsc() {
