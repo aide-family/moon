@@ -566,16 +566,16 @@ paths:
         - Crud
       operationId: Crud_CreateRule
       requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
     /rule/v1/delete/{id}:
@@ -1206,16 +1206,16 @@ components:
         rule:
           $ref: '#/components/schemas/api.strategy.Rule'
     api.strategy.v1.StrategiesReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-                strategyDir:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.strategy.StrategyDir'
-        api.strategy.v1.UpdateRuleReply:
-            type: object
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+        strategyDir:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.strategy.StrategyDir'
+    api.strategy.v1.UpdateRuleReply:
+      type: object
             properties:
                 response:
                     $ref: '#/components/schemas/api.Response'
