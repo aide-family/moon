@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"encoding/json"
-
 	"github.com/google/wire"
 
 	"prometheus-manager/api/prom"
@@ -204,5 +203,59 @@ func buildModelPromStrategy(strategyItem *prom.StrategyItem) *model.PromStrategy
 		Annotations:  annotationsToString(strategyItem.GetAnnotations()),
 		AlertLevelID: strategyItem.GetAlertLevelId(),
 		Status:       int32(strategyItem.GetStatus()),
+	}
+}
+
+func alarmPageToProm(m *model.PromAlarmPage) *prom.AlarmPageItem {
+	if m == nil {
+		return nil
+	}
+	return &prom.AlarmPageItem{
+		Id:        m.ID,
+		Name:      m.Name,
+		Remark:    m.Remark,
+		Icon:      m.Icon,
+		Color:     m.Color,
+		CreatedAt: times.TimeToUnix(m.CreatedAt),
+		UpdatedAt: times.TimeToUnix(m.UpdatedAt),
+	}
+}
+
+func alarmPageToModel(req *prom.AlarmPageItem) *model.PromAlarmPage {
+	if req == nil {
+		return nil
+	}
+	return &model.PromAlarmPage{
+		Name:   req.GetName(),
+		Remark: req.GetRemark(),
+		Icon:   req.GetIcon(),
+		Color:  req.GetColor(),
+	}
+}
+
+func dictToModel(req *prom.DictItem) *model.PromDict {
+	if req == nil {
+		return nil
+	}
+	return &model.PromDict{
+		Category: int32(req.GetCategory()),
+		Name:     req.GetName(),
+		Remark:   req.GetRemark(),
+		Color:    req.GetColor(),
+	}
+}
+
+func dictToProm(m *model.PromDict) *prom.DictItem {
+	if m == nil {
+		return nil
+	}
+	return &prom.DictItem{
+		Id:        m.ID,
+		Category:  prom.Category(m.Category),
+		Name:      m.Name,
+		Remark:    m.Remark,
+		Color:     m.Color,
+		CreatedAt: times.TimeToUnix(m.CreatedAt),
+		UpdatedAt: times.TimeToUnix(m.UpdatedAt),
 	}
 }

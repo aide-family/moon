@@ -50,4 +50,16 @@ enum LogicReason {
   LOGIC_DATA_NOT_FOUND = 9 [(errors.code) = 200];
   // 数据重复
   LOGIC_DATA_DUPLICATE = 10 [(errors.code) = 200];
+  // 创建alart-page失败
+  LOGIC_CREATE_ALERT_PAGE_FAILED = 11 [(errors.code) = 200];
+  // 编辑alart-page失败
+  LOGIC_EDIT_ALERT_PAGE_FAILED = 12 [(errors.code) = 200];
+  // 删除alart-page失败
+  LOGIC_DELETE_ALERT_PAGE_FAILED = 13 [(errors.code) = 200];
+  // 创建dict失败
+  LOGIC_CREATE_DICT_FAILED = 14 [(errors.code) = 200];
+  // 编辑dict失败
+  LOGIC_EDIT_DICT_FAILED = 15 [(errors.code) = 200];
+  // 删除dict失败
+  LOGIC_DELETE_DICT_FAILED = 16 [(errors.code) = 200];
 }

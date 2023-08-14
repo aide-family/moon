@@ -248,3 +248,87 @@ func IsLogicDataDuplicate(err error) bool {
 func ErrorLogicDataDuplicate(format string, args ...interface{}) *errors.Error {
 	return errors.New(200, LogicReason_LOGIC_DATA_DUPLICATE.String(), fmt.Sprintf(format, args...))
 }
+
+// 创建alart-page失败
+func IsLogicCreateAlertPageFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_CREATE_ALERT_PAGE_FAILED.String() && e.Code == 200
+}
+
+// 创建alart-page失败
+func ErrorLogicCreateAlertPageFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_CREATE_ALERT_PAGE_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 编辑alart-page失败
+func IsLogicEditAlertPageFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_EDIT_ALERT_PAGE_FAILED.String() && e.Code == 200
+}
+
+// 编辑alart-page失败
+func ErrorLogicEditAlertPageFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_EDIT_ALERT_PAGE_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 删除alart-page失败
+func IsLogicDeleteAlertPageFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DELETE_ALERT_PAGE_FAILED.String() && e.Code == 200
+}
+
+// 删除alart-page失败
+func ErrorLogicDeleteAlertPageFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DELETE_ALERT_PAGE_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 创建dict失败
+func IsLogicCreateDictFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_CREATE_DICT_FAILED.String() && e.Code == 200
+}
+
+// 创建dict失败
+func ErrorLogicCreateDictFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_CREATE_DICT_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 编辑dict失败
+func IsLogicEditDictFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_EDIT_DICT_FAILED.String() && e.Code == 200
+}
+
+// 编辑dict失败
+func ErrorLogicEditDictFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_EDIT_DICT_FAILED.String(), fmt.Sprintf(format, args...))
+}
+
+// 删除dict失败
+func IsLogicDeleteDictFailed(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_DELETE_DICT_FAILED.String() && e.Code == 200
+}
+
+// 删除dict失败
+func ErrorLogicDeleteDictFailed(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_DELETE_DICT_FAILED.String(), fmt.Sprintf(format, args...))
+}
