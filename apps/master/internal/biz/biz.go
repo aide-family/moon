@@ -21,6 +21,10 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.IPushLogic), new(*PushLogic)),
 	NewPromLogic,
 	wire.Bind(new(service.IPromV1Logic), new(*PromLogic)),
+	NewAlarmPageLogic,
+	wire.Bind(new(service.IAlarmPageV1Logic), new(*AlarmPageLogic)),
+	NewDictLogic,
+	wire.Bind(new(service.IDictV1Logic), new(*DictLogic)),
 )
 
 type V1Repo interface {

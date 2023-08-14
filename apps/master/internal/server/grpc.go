@@ -31,6 +31,8 @@ func NewGRPCServer(c *conf.Server,
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
 	promService *service.PromV1Service,
+	dictService *service.DictV1Service,
+	alarmPageService *service.AlarmPageV1Service,
 ) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
@@ -67,6 +69,8 @@ func NewGRPCServer(c *conf.Server,
 
 	ping.RegisterPingServer(srv, pingService)
 	promV1.RegisterPromServer(srv, promService)
+	promV1.RegisterDictServer(srv, dictService)
+	promV1.RegisterAlarmPageServer(srv, alarmPageService)
 
 	log.NewHelper(log.With(logger, "module", "server/grpc")).Info("grpc server initialized")
 

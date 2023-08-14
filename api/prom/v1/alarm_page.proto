@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package api.prom.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "prom/node.proto";
+
+option go_package = "prometheus-manager/api/prom/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.prom.v1";
+
+service AlarmPage {
+  // CreateAlarmPage creates a new alarm page.
+  rpc CreateAlarmPage (CreateAlarmPageRequest) returns (CreateAlarmPageReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/alarm-page"
+      body: "*"
+    };
+  }
+  // UpdateAlarmPage updates an existing alarm page by id.
+  rpc UpdateAlarmPage (UpdateAlarmPageRequest) returns (UpdateAlarmPageReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/alarm-page/{id}"
+      body: "*"
+    };
+  }
+  // DeleteAlarmPage deletes an existing alarm page by id.
+  rpc DeleteAlarmPage (DeleteAlarmPageRequest) returns (DeleteAlarmPageReply) {
+    option (google.api.http) = {
+      delete: "/prom/v1/alarm-page/{id}"
+    };
+  }
+  // GetAlarmPage gets an existing alarm page by id.
+  rpc GetAlarmPage (GetAlarmPageRequest) returns (GetAlarmPageReply) {
+    option (google.api.http) = {
+      get: "/prom/v1/alarm-page/{id}"
+    };
+  }
+  // GetAlarmPage gets an existing alarm page by query and alarm page.
+  rpc ListAlarmPage (ListAlarmPageRequest) returns (ListAlarmPageReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/alarm-pages"
+      body: "*"
+    };
+  }
+}
+
+message CreateAlarmPageRequest {
+  AlarmPageItem alarm_page = 1 [(validate.rules).message.required = true];
+}
+message CreateAlarmPageReply {
+  Response response = 1;
+}
+
+message UpdateAlarmPageRequest {
+  AlarmPageItem alarm_page = 1 [(validate.rules).message.required = true];
+  int32 id = 2 [(validate.rules).int32.gt = 0];
+}
+message UpdateAlarmPageReply {
+  Response response = 1;
+}
+
+message DeleteAlarmPageRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+message DeleteAlarmPageReply {
+  Response response = 1;
+}
+
+message GetAlarmPageRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+message GetAlarmPageReply {
+  AlarmPageItem alarm_page = 1;
+  Response response = 2;
+}
+
+message ListAlarmPageRequest {
+  ListQuery query = 1 [(validate.rules).message.required = true];
+  AlarmPageItem alarm_page = 2;
+}
+message ListAlarmPageReply {
+  Response response = 1;
+  ListQueryResult result = 2;
+  repeated AlarmPageItem alarm_pages = 3;
+}

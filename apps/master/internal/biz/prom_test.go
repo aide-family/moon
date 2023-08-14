@@ -7,8 +7,8 @@ import (
 )
 
 func TestEnum(t *testing.T) {
-	t.Log(prom.Status_ENABLE.String())
-	t.Log(prom.Status_ENABLE.Descriptor())
-	t.Log(prom.Status_ENABLE.Number())
-	t.Log(prom.Status_ENABLE)
+	t.Log(prom.Status_Status_ENABLE.String())
+	t.Log(prom.Status_Status_ENABLE.Descriptor())
+	t.Log(prom.Status_Status_ENABLE.Number())
+	t.Log(prom.Status_Status_ENABLE)
 }
