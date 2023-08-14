@@ -35,6 +35,8 @@ func NewHTTPServer(
 	tp *traceSdk.TracerProvider,
 	pingService *service.PingService,
 	promService *service.PromV1Service,
+	dictService *service.DictV1Service,
+	alarmPageService *service.AlarmPageV1Service,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.LocalHttpRequestFilter()), // 跨域
@@ -77,6 +79,8 @@ func NewHTTPServer(
 
 	ping.RegisterPingHTTPServer(srv, pingService)
 	promV1.RegisterPromHTTPServer(srv, promService)
+	promV1.RegisterDictHTTPServer(srv, dictService)
+	promV1.RegisterAlarmPageHTTPServer(srv, alarmPageService)
 
 	log.NewHelper(log.With(logger, "module", "server/http")).Info("http server initialized")
 

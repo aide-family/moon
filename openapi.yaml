@@ -60,6 +60,210 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.PingReply'
+  /prom/v1/alarm-page:
+    post:
+      tags:
+        - AlarmPage
+      description: CreateAlarmPage creates a new alarm page.
+      operationId: AlarmPage_CreateAlarmPage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageReply'
+  /prom/v1/alarm-page/{id}:
+    get:
+      tags:
+        - AlarmPage
+      description: GetAlarmPage gets an existing alarm page by id.
+      operationId: AlarmPage_GetAlarmPage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.GetAlarmPageReply'
+    put:
+      tags:
+        - AlarmPage
+      description: UpdateAlarmPage updates an existing alarm page by id.
+      operationId: AlarmPage_UpdateAlarmPage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageReply'
+    delete:
+      tags:
+        - AlarmPage
+      description: DeleteAlarmPage deletes an existing alarm page by id.
+      operationId: AlarmPage_DeleteAlarmPage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.DeleteAlarmPageReply'
+  /prom/v1/alarm-pages:
+    post:
+      tags:
+        - AlarmPage
+      description: GetAlarmPage gets an existing alarm page by query and alarm page.
+      operationId: AlarmPage_ListAlarmPage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.ListAlarmPageRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.ListAlarmPageReply'
+  /prom/v1/dict:
+    post:
+      tags:
+        - Dict
+      description: CreateDict creates a new dict.
+      operationId: Dict_CreateDict
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.CreateDictRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.CreateDictReply'
+  /prom/v1/dict/{id}:
+    get:
+      tags:
+        - Dict
+      description: GetDict gets a dict by id.
+      operationId: Dict_GetDict
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.GetDictReply'
+    put:
+      tags:
+        - Dict
+      description: UpdateDict updates a dict by id.
+      operationId: Dict_UpdateDict
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateDictRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateDictReply'
+    delete:
+      tags:
+        - Dict
+      description: DeleteDict deletes a dict by id.
+      operationId: Dict_DeleteDict
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.DeleteDictReply'
+  /prom/v1/dicts:
+    post:
+      tags:
+        - Dict
+      description: ListDict lists dicts.
+      operationId: Dict_ListDict
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.ListDictRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.ListDictReply'
   /prom/v1/group:
     post:
       tags:
@@ -352,16 +556,16 @@ paths:
       responses:
         "200":
           description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
-    /rule/v1/add:
-        post:
-            tags:
-                - Crud
-            operationId: Crud_CreateRule
-            requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
+  /rule/v1/add:
+    post:
+      tags:
+        - Crud
+      operationId: Crud_CreateRule
+      requestBody:
                 content:
                     application/json:
                         schema:
@@ -688,6 +892,26 @@ components:
         id:
           type: integer
           format: int32
+    api.prom.v1.CreateAlarmPageReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.CreateAlarmPageRequest:
+      type: object
+      properties:
+        alarmPage:
+          $ref: '#/components/schemas/api.prom.AlarmPageItem'
+    api.prom.v1.CreateDictReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.CreateDictRequest:
+      type: object
+      properties:
+        dict:
+          $ref: '#/components/schemas/api.prom.DictItem'
     api.prom.v1.CreateGroupReply:
       type: object
       properties:
@@ -708,6 +932,16 @@ components:
       properties:
         strategy:
           $ref: '#/components/schemas/api.prom.StrategyItem'
+    api.prom.v1.DeleteAlarmPageReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.DeleteDictReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
     api.prom.v1.DeleteGroupReply:
       type: object
       properties:
@@ -716,6 +950,20 @@ components:
     api.prom.v1.DeleteStrategyReply:
       type: object
       properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.GetAlarmPageReply:
+      type: object
+      properties:
+        alarmPage:
+          $ref: '#/components/schemas/api.prom.AlarmPageItem'
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.GetDictReply:
+      type: object
+      properties:
+        dict:
+          $ref: '#/components/schemas/api.prom.DictItem'
         response:
           $ref: '#/components/schemas/api.Response'
     api.prom.v1.GetGroupReply:
@@ -732,6 +980,42 @@ components:
           $ref: '#/components/schemas/api.Response'
         strategy:
           $ref: '#/components/schemas/api.prom.StrategyItem'
+    api.prom.v1.ListAlarmPageReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+        result:
+          $ref: '#/components/schemas/api.ListQueryResult'
+        alarmPages:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.prom.AlarmPageItem'
+    api.prom.v1.ListAlarmPageRequest:
+      type: object
+      properties:
+        query:
+          $ref: '#/components/schemas/api.ListQuery'
+        alarmPage:
+          $ref: '#/components/schemas/api.prom.AlarmPageItem'
+    api.prom.v1.ListDictReply:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/api.ListQueryResult'
+        response:
+          $ref: '#/components/schemas/api.Response'
+        dicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/api.prom.DictItem'
+    api.prom.v1.ListDictRequest:
+      type: object
+      properties:
+        query:
+          $ref: '#/components/schemas/api.ListQuery'
+        dict:
+          $ref: '#/components/schemas/api.prom.DictItem'
     api.prom.v1.ListGroupReply:
       type: object
       properties:
@@ -768,6 +1052,32 @@ components:
           $ref: '#/components/schemas/api.ListQuery'
         strategy:
           $ref: '#/components/schemas/api.prom.StrategyItem'
+    api.prom.v1.UpdateAlarmPageReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateAlarmPageRequest:
+      type: object
+      properties:
+        alarmPage:
+          $ref: '#/components/schemas/api.prom.AlarmPageItem'
+        id:
+          type: integer
+          format: int32
+    api.prom.v1.UpdateDictReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateDictRequest:
+      type: object
+      properties:
+        dict:
+          $ref: '#/components/schemas/api.prom.DictItem'
+        id:
+          type: integer
+          format: int32
     api.prom.v1.UpdateGroupReply:
       type: object
       properties:
@@ -886,16 +1196,16 @@ components:
     api.strategy.v1.DeleteRuleReply:
       type: object
       properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.GetRuleDetailReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
-        api.strategy.v1.StrategiesReply:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.strategy.v1.GetRuleDetailReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+        rule:
+          $ref: '#/components/schemas/api.strategy.Rule'
+    api.strategy.v1.StrategiesReply:
             type: object
             properties:
                 response:
@@ -988,12 +1298,14 @@ components:
                     type: string
             description: The response message containing the greetings
 tags:
+  - name: AlarmPage
   - name: Crud
-    - name: Greeter
-      description: The greeting service definition.
-    - name: Load
-    - name: Ping
+  - name: Dict
+  - name: Greeter
+    description: The greeting service definition.
+  - name: Load
+  - name: Ping
   - name: Prom
-    - name: Pull
-    - name: Push
-    - name: Push
+  - name: Pull
+  - name: Push
+  - name: Push
