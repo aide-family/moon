@@ -43,7 +43,7 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	dictRepo := data.NewDictRepo(dataData, logger)
 	dictLogic := biz.NewDictLogic(dictRepo, logger)
 	dictV1Service := service.NewDictService(dictLogic, logger)
-	alarmPageRepo := data.NewAlarmPageRepo(dataData, logger)
+	alarmPageRepo := data.NewAlarmPageV1Repo(dataData, logger)
 	alarmPageLogic := biz.NewAlarmPageLogic(alarmPageRepo, logger)
 	alarmPageV1Service := service.NewAlarmPageService(alarmPageLogic, logger)
 	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service)

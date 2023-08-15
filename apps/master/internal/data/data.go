@@ -21,10 +21,10 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.IPushRepo), new(*PushRepo)),
 	NewPromV1Repo,
 	wire.Bind(new(biz.IPromV1Repo), new(*PromV1Repo)),
-	NewAlarmPageRepo,
-	wire.Bind(new(biz.IAlarmPageV1Repo), new(*AlarmPageRepo)),
+	NewAlarmPageV1Repo,
+	wire.Bind(new(biz.IAlarmPageV1Repo), new(*AlarmPageV1Repo)),
 	NewDictRepo,
-	wire.Bind(new(biz.IDictV1Repo), new(*DictRepo)),
+	wire.Bind(new(biz.IDictV1Repo), new(*DictV1Repo)),
 )
 
 type TransactionFunc func(tx *gorm.DB) error
@@ -40,7 +40,9 @@ type Data struct {
 }
 
 const (
-	promModuleName = "data/Prom"
+	promModuleName      = "data/Prom"
+	alarmPageModuleName = "data/AlarmPage"
+	dictModuleName      = "data/Dict"
 )
 
 func (l *Data) DB() *gorm.DB {
