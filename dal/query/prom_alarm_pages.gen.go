@@ -33,6 +33,7 @@ func newPromAlarmPage(db *gorm.DB, opts ...gen.DOOption) promAlarmPage {
 	_promAlarmPage.Remark = field.NewString(tableName, "remark")
 	_promAlarmPage.Icon = field.NewString(tableName, "icon")
 	_promAlarmPage.Color = field.NewString(tableName, "color")
+	_promAlarmPage.Status = field.NewInt32(tableName, "status")
 	_promAlarmPage.CreatedAt = field.NewTime(tableName, "created_at")
 	_promAlarmPage.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promAlarmPage.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -56,6 +57,7 @@ type promAlarmPage struct {
 	Remark         field.String // 描述信息
 	Icon           field.String // 图表
 	Color          field.String // tab颜色
+	Status         field.Int32  // 启用状态,1启用;2禁用
 	CreatedAt      field.Time   // 创建时间
 	UpdatedAt      field.Time   // 更新时间
 	DeletedAt      field.Field  // 删除时间
@@ -81,6 +83,7 @@ func (p *promAlarmPage) updateTableName(table string) *promAlarmPage {
 	p.Remark = field.NewString(table, "remark")
 	p.Icon = field.NewString(table, "icon")
 	p.Color = field.NewString(table, "color")
+	p.Status = field.NewInt32(table, "status")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 	p.DeletedAt = field.NewField(table, "deleted_at")
@@ -100,12 +103,13 @@ func (p *promAlarmPage) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (p *promAlarmPage) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 9)
+	p.fieldMap = make(map[string]field.Expr, 10)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["name"] = p.Name
 	p.fieldMap["remark"] = p.Remark
 	p.fieldMap["icon"] = p.Icon
 	p.fieldMap["color"] = p.Color
+	p.fieldMap["status"] = p.Status
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 	p.fieldMap["deleted_at"] = p.DeletedAt

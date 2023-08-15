@@ -50,6 +50,7 @@ message AlarmPageItem {
   string color = 4 [(validate.rules).string = {max_len: 64}];
   int64 created_at = 5;
   int64 updated_at = 6;
+  Status status = 7;
   int32 id = 99;
 }
 

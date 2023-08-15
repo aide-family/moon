@@ -24,6 +24,7 @@ const OperationAlarmPageDeleteAlarmPage = "/api.prom.v1.AlarmPage/DeleteAlarmPag
 const OperationAlarmPageGetAlarmPage = "/api.prom.v1.AlarmPage/GetAlarmPage"
 const OperationAlarmPageListAlarmPage = "/api.prom.v1.AlarmPage/ListAlarmPage"
 const OperationAlarmPageUpdateAlarmPage = "/api.prom.v1.AlarmPage/UpdateAlarmPage"
+const OperationAlarmPageUpdateAlarmPagesStatus = "/api.prom.v1.AlarmPage/UpdateAlarmPagesStatus"
 
 type AlarmPageHTTPServer interface {
 	CreateAlarmPage(context.Context, *CreateAlarmPageRequest) (*CreateAlarmPageReply, error)
@@ -31,12 +32,14 @@ type AlarmPageHTTPServer interface {
 	GetAlarmPage(context.Context, *GetAlarmPageRequest) (*GetAlarmPageReply, error)
 	ListAlarmPage(context.Context, *ListAlarmPageRequest) (*ListAlarmPageReply, error)
 	UpdateAlarmPage(context.Context, *UpdateAlarmPageRequest) (*UpdateAlarmPageReply, error)
+	UpdateAlarmPagesStatus(context.Context, *UpdateAlarmPagesStatusRequest) (*UpdateAlarmPagesStatusReply, error)
 }
 
 func RegisterAlarmPageHTTPServer(s *http.Server, srv AlarmPageHTTPServer) {
 	r := s.Route("/")
 	r.POST("/prom/v1/alarm-page", _AlarmPage_CreateAlarmPage0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/alarm-page/{id}", _AlarmPage_UpdateAlarmPage0_HTTP_Handler(srv))
+	r.PUT("/prom/v1/alarm-pages/status", _AlarmPage_UpdateAlarmPagesStatus0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/alarm-page/{id}", _AlarmPage_DeleteAlarmPage0_HTTP_Handler(srv))
 	r.POST("/prom/v1/alarm-page/{id}", _AlarmPage_GetAlarmPage0_HTTP_Handler(srv))
 	r.POST("/prom/v1/alarm-pages", _AlarmPage_ListAlarmPage0_HTTP_Handler(srv))
@@ -79,6 +82,25 @@ func _AlarmPage_UpdateAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx 
 			return err
 		}
 		reply := out.(*UpdateAlarmPageReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlarmPage_UpdateAlarmPagesStatus0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAlarmPagesStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlarmPageUpdateAlarmPagesStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAlarmPagesStatus(ctx, req.(*UpdateAlarmPagesStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAlarmPagesStatusReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -152,6 +174,7 @@ type AlarmPageHTTPClient interface {
 	GetAlarmPage(ctx context.Context, req *GetAlarmPageRequest, opts ...http.CallOption) (rsp *GetAlarmPageReply, err error)
 	ListAlarmPage(ctx context.Context, req *ListAlarmPageRequest, opts ...http.CallOption) (rsp *ListAlarmPageReply, err error)
 	UpdateAlarmPage(ctx context.Context, req *UpdateAlarmPageRequest, opts ...http.CallOption) (rsp *UpdateAlarmPageReply, err error)
+	UpdateAlarmPagesStatus(ctx context.Context, req *UpdateAlarmPagesStatusRequest, opts ...http.CallOption) (rsp *UpdateAlarmPagesStatusReply, err error)
 }
 
 type AlarmPageHTTPClientImpl struct {
@@ -219,6 +242,19 @@ func (c *AlarmPageHTTPClientImpl) UpdateAlarmPage(ctx context.Context, in *Updat
 	pattern := "/prom/v1/alarm-page/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAlarmPageUpdateAlarmPage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AlarmPageHTTPClientImpl) UpdateAlarmPagesStatus(ctx context.Context, in *UpdateAlarmPagesStatusRequest, opts ...http.CallOption) (*UpdateAlarmPagesStatusReply, error) {
+	var out UpdateAlarmPagesStatusReply
+	pattern := "/prom/v1/alarm-pages/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAlarmPageUpdateAlarmPagesStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

@@ -26,6 +26,13 @@ service AlarmPage {
       body: "*"
     };
   }
+  // UpdateAlarmPagesStatus updates an existing alarm page status by ids.
+  rpc UpdateAlarmPagesStatus (UpdateAlarmPagesStatusRequest) returns (UpdateAlarmPagesStatusReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/alarm-pages/status"
+      body: "*"
+    };
+  }
   // DeleteAlarmPage deletes an existing alarm page by id.
   rpc DeleteAlarmPage (DeleteAlarmPageRequest) returns (DeleteAlarmPageReply) {
     option (google.api.http) = {
@@ -60,6 +67,21 @@ message UpdateAlarmPageRequest {
   int32 id = 2 [(validate.rules).int32.gt = 0];
 }
 message UpdateAlarmPageReply {
+  Response response = 1;
+}
+
+message UpdateAlarmPagesStatusRequest {
+  repeated int32 ids = 1 [(validate.rules).repeated = {
+    min_items: 1
+    items: {
+      int32: {
+        gt: 0
+      }
+    }
+  }];
+  Status status = 2 [(validate.rules).enum = {defined_only: true}];
+}
+message UpdateAlarmPagesStatusReply {
   Response response = 1;
 }
 

@@ -168,6 +168,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.ListAlarmPageReply'
+  /prom/v1/alarm-pages/status:
+    put:
+      tags:
+        - AlarmPage
+      description: UpdateAlarmPagesStatus updates an existing alarm page status by ids.
+      operationId: AlarmPage_UpdateAlarmPagesStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusReply'
   /prom/v1/dict:
     post:
       tags:
@@ -621,16 +640,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
-    /rule/v1/detail/{id}:
-        get:
-            tags:
-                - Crud
-            operationId: Crud_RuleDetail
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
+  /rule/v1/detail/{id}:
+    get:
+      tags:
+        - Crud
+      operationId: Crud_RuleDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
                     type: string
             responses:
                 "200":
@@ -797,6 +816,9 @@ components:
         updatedAt:
           type: integer
           format: int64
+        status:
+          type: integer
+          format: enum
         id:
           type: integer
           format: int32
@@ -1105,6 +1127,22 @@ components:
         id:
           type: integer
           format: int32
+    api.prom.v1.UpdateAlarmPagesStatusReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateAlarmPagesStatusRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+        status:
+          type: integer
+          format: enum
     api.prom.v1.UpdateDictReply:
       type: object
       properties:
@@ -1292,16 +1330,16 @@ components:
           format: int64
     api.strategy.v1.load.ReloadRequest:
       type: object
-            properties:
-                nodes:
-                    type: array
-                    items:
-                        type: string
-        api.strategy.v1.pull.StrategiesReply:
-            type: object
-            properties:
-                strategyDirs:
-                    type: array
+      properties:
+        nodes:
+          type: array
+          items:
+            type: string
+    api.strategy.v1.pull.StrategiesReply:
+      type: object
+      properties:
+        strategyDirs:
+          type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.StrategyDir'
                 timestamp:

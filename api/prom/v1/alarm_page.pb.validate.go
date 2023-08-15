@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	prom "prometheus-manager/api/prom"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = prom.Status(0)
 )
 
 // Validate checks the field values on CreateAlarmPageRequest with the rules
@@ -591,6 +595,279 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateAlarmPageReplyValidationError{}
+
+// Validate checks the field values on UpdateAlarmPagesStatusRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateAlarmPagesStatusRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateAlarmPagesStatusRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// UpdateAlarmPagesStatusRequestMultiError, or nil if none found.
+func (m *UpdateAlarmPagesStatusRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateAlarmPagesStatusRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetIds()) < 1 {
+		err := UpdateAlarmPagesStatusRequestValidationError{
+			field:  "Ids",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetIds() {
+		_, _ = idx, item
+
+		if item <= 0 {
+			err := UpdateAlarmPagesStatusRequestValidationError{
+				field:  fmt.Sprintf("Ids[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if _, ok := prom.Status_name[int32(m.GetStatus())]; !ok {
+		err := UpdateAlarmPagesStatusRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return UpdateAlarmPagesStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateAlarmPagesStatusRequestMultiError is an error wrapping multiple
+// validation errors returned by UpdateAlarmPagesStatusRequest.ValidateAll()
+// if the designated constraints aren't met.
+type UpdateAlarmPagesStatusRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateAlarmPagesStatusRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateAlarmPagesStatusRequestMultiError) AllErrors() []error { return m }
+
+// UpdateAlarmPagesStatusRequestValidationError is the validation error
+// returned by UpdateAlarmPagesStatusRequest.Validate if the designated
+// constraints aren't met.
+type UpdateAlarmPagesStatusRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateAlarmPagesStatusRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateAlarmPagesStatusRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateAlarmPagesStatusRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateAlarmPagesStatusRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateAlarmPagesStatusRequestValidationError) ErrorName() string {
+	return "UpdateAlarmPagesStatusRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateAlarmPagesStatusRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateAlarmPagesStatusRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateAlarmPagesStatusRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateAlarmPagesStatusRequestValidationError{}
+
+// Validate checks the field values on UpdateAlarmPagesStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateAlarmPagesStatusReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateAlarmPagesStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateAlarmPagesStatusReplyMultiError, or nil if none found.
+func (m *UpdateAlarmPagesStatusReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateAlarmPagesStatusReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateAlarmPagesStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateAlarmPagesStatusReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateAlarmPagesStatusReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateAlarmPagesStatusReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateAlarmPagesStatusReplyMultiError is an error wrapping multiple
+// validation errors returned by UpdateAlarmPagesStatusReply.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateAlarmPagesStatusReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateAlarmPagesStatusReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateAlarmPagesStatusReplyMultiError) AllErrors() []error { return m }
+
+// UpdateAlarmPagesStatusReplyValidationError is the validation error returned
+// by UpdateAlarmPagesStatusReply.Validate if the designated constraints
+// aren't met.
+type UpdateAlarmPagesStatusReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateAlarmPagesStatusReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateAlarmPagesStatusReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateAlarmPagesStatusReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateAlarmPagesStatusReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateAlarmPagesStatusReplyValidationError) ErrorName() string {
+	return "UpdateAlarmPagesStatusReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateAlarmPagesStatusReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateAlarmPagesStatusReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateAlarmPagesStatusReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateAlarmPagesStatusReplyValidationError{}
 
 // Validate checks the field values on DeleteAlarmPageRequest with the rules
 // defined in the proto definition for this message. If any rules are
