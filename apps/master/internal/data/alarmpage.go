@@ -243,6 +243,9 @@ func (l *AlarmPageV1Repo) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPa
 			if promAlarmQuery.GetColor() != "" {
 				promAlarmPageDB = promAlarmPageDB.Where(promAlarmPage.Color.Eq(promAlarmQuery.GetColor()))
 			}
+			if promAlarmQuery.GetStatus() != prom.Status_Status_NONE {
+				promAlarmPageDB = promAlarmPageDB.Where(promAlarmPage.Status.Eq(int32(promAlarmQuery.GetStatus())))
+			}
 		}
 	}
 
