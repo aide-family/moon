@@ -255,6 +255,8 @@ func (m *AlarmPageItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for Status
+
 	// no validation rules for Id
 
 	if len(errors) > 0 {

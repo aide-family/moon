@@ -17,6 +17,7 @@ type (
 		V1Repo
 		CreateAlarmPage(ctx context.Context, m *model.PromAlarmPage) error
 		UpdateAlarmPageById(ctx context.Context, id int32, m *model.PromAlarmPage) error
+		UpdateAlarmPagesStatusByIds(ctx context.Context, ids []int32, status prom.Status) error
 		DeleteAlarmPageById(ctx context.Context, id int32) error
 		GetAlarmPageById(ctx context.Context, req *pb.GetAlarmPageRequest) (*model.PromAlarmPage, error)
 		ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*model.PromAlarmPage, int64, error)
@@ -68,6 +69,24 @@ func (s *AlarmPageLogic) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAlar
 	}
 
 	return &pb.UpdateAlarmPageReply{Response: &api.Response{Message: "更新告警页面成功"}}, nil
+}
+
+// UpdateAlarmPagesStatus 更新告警页面状态
+//
+//	ctx 上下文
+//	req 请求参数
+func (s *AlarmPageLogic) UpdateAlarmPagesStatus(ctx context.Context, req *pb.UpdateAlarmPagesStatusRequest) (*pb.UpdateAlarmPagesStatusReply, error) {
+	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.UpdateAlarmPagesStatus")
+	defer span.End()
+
+	if err := s.repo.UpdateAlarmPagesStatusByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
+		s.logger.WithContext(ctx).Errorf("UpdateAlarmPagesStatus error: %v", err)
+		return nil, perrors.ErrorLogicEditAlertPageFailed("更新告警页面状态失败").WithCause(err).WithMetadata(map[string]string{
+			"req": req.String(),
+		})
+	}
+
+	return &pb.UpdateAlarmPagesStatusReply{Response: &api.Response{Message: "更新告警页面状态成功"}}, nil
 }
 
 // DeleteAlarmPage 删除告警页面

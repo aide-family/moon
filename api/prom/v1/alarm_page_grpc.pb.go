@@ -26,6 +26,8 @@ type AlarmPageClient interface {
 	CreateAlarmPage(ctx context.Context, in *CreateAlarmPageRequest, opts ...grpc.CallOption) (*CreateAlarmPageReply, error)
 	// UpdateAlarmPage updates an existing alarm page by id.
 	UpdateAlarmPage(ctx context.Context, in *UpdateAlarmPageRequest, opts ...grpc.CallOption) (*UpdateAlarmPageReply, error)
+	// UpdateAlarmPagesStatus updates an existing alarm page status by ids.
+	UpdateAlarmPagesStatus(ctx context.Context, in *UpdateAlarmPagesStatusRequest, opts ...grpc.CallOption) (*UpdateAlarmPagesStatusReply, error)
 	// DeleteAlarmPage deletes an existing alarm page by id.
 	DeleteAlarmPage(ctx context.Context, in *DeleteAlarmPageRequest, opts ...grpc.CallOption) (*DeleteAlarmPageReply, error)
 	// GetAlarmPage gets an existing alarm page by id.
@@ -54,6 +56,15 @@ func (c *alarmPageClient) CreateAlarmPage(ctx context.Context, in *CreateAlarmPa
 func (c *alarmPageClient) UpdateAlarmPage(ctx context.Context, in *UpdateAlarmPageRequest, opts ...grpc.CallOption) (*UpdateAlarmPageReply, error) {
 	out := new(UpdateAlarmPageReply)
 	err := c.cc.Invoke(ctx, "/api.prom.v1.AlarmPage/UpdateAlarmPage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alarmPageClient) UpdateAlarmPagesStatus(ctx context.Context, in *UpdateAlarmPagesStatusRequest, opts ...grpc.CallOption) (*UpdateAlarmPagesStatusReply, error) {
+	out := new(UpdateAlarmPagesStatusReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.AlarmPage/UpdateAlarmPagesStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +106,8 @@ type AlarmPageServer interface {
 	CreateAlarmPage(context.Context, *CreateAlarmPageRequest) (*CreateAlarmPageReply, error)
 	// UpdateAlarmPage updates an existing alarm page by id.
 	UpdateAlarmPage(context.Context, *UpdateAlarmPageRequest) (*UpdateAlarmPageReply, error)
+	// UpdateAlarmPagesStatus updates an existing alarm page status by ids.
+	UpdateAlarmPagesStatus(context.Context, *UpdateAlarmPagesStatusRequest) (*UpdateAlarmPagesStatusReply, error)
 	// DeleteAlarmPage deletes an existing alarm page by id.
 	DeleteAlarmPage(context.Context, *DeleteAlarmPageRequest) (*DeleteAlarmPageReply, error)
 	// GetAlarmPage gets an existing alarm page by id.
@@ -113,6 +126,9 @@ func (UnimplementedAlarmPageServer) CreateAlarmPage(context.Context, *CreateAlar
 }
 func (UnimplementedAlarmPageServer) UpdateAlarmPage(context.Context, *UpdateAlarmPageRequest) (*UpdateAlarmPageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAlarmPage not implemented")
+}
+func (UnimplementedAlarmPageServer) UpdateAlarmPagesStatus(context.Context, *UpdateAlarmPagesStatusRequest) (*UpdateAlarmPagesStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAlarmPagesStatus not implemented")
 }
 func (UnimplementedAlarmPageServer) DeleteAlarmPage(context.Context, *DeleteAlarmPageRequest) (*DeleteAlarmPageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAlarmPage not implemented")
@@ -168,6 +184,24 @@ func _AlarmPage_UpdateAlarmPage_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AlarmPageServer).UpdateAlarmPage(ctx, req.(*UpdateAlarmPageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlarmPage_UpdateAlarmPagesStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAlarmPagesStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlarmPageServer).UpdateAlarmPagesStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.AlarmPage/UpdateAlarmPagesStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlarmPageServer).UpdateAlarmPagesStatus(ctx, req.(*UpdateAlarmPagesStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -240,6 +274,10 @@ var AlarmPage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAlarmPage",
 			Handler:    _AlarmPage_UpdateAlarmPage_Handler,
+		},
+		{
+			MethodName: "UpdateAlarmPagesStatus",
+			Handler:    _AlarmPage_UpdateAlarmPagesStatus_Handler,
 		},
 		{
 			MethodName: "DeleteAlarmPage",

@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
 	"prometheus-manager/apps/master/internal/biz"
 	"prometheus-manager/dal/model"
@@ -75,6 +76,26 @@ func (l *AlarmPageV1Repo) UpdateAlarmPageById(ctx context.Context, id int32, m *
 		return perrors.ErrorClientNotFound("alarmPage not found").WithMetadata(map[string]string{
 			"model": stringer.New(m).String(),
 			"id":    strconv.Itoa(int(id)),
+		})
+	}
+
+	return nil
+}
+
+func (l *AlarmPageV1Repo) UpdateAlarmPagesStatusByIds(ctx context.Context, ids []int32, status prom.Status) error {
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageV1Repo.UpdateAlarmPagesStatusById")
+	defer span.End()
+
+	promAlarmPage := l.db.PromAlarmPage
+
+	_, err := promAlarmPage.WithContext(ctx).Where(promAlarmPage.ID.In(ids...)).UpdateColumnSimple(
+		promAlarmPage.Status.Value(int32(status)),
+	)
+	if err != nil {
+		l.logger.WithContext(ctx).Errorw("UpdateAlarmPagesStatusById", ids, "err", err)
+		return perrors.ErrorServerDatabaseError("UpdateAlarmPagesStatusById err").WithCause(err).WithMetadata(map[string]string{
+			"ids":    stringer.New(ids).String(),
+			"status": status.String(),
 		})
 	}
 
