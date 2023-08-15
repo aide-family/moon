@@ -35,7 +35,8 @@ service AlarmPage {
   // GetAlarmPage gets an existing alarm page by id.
   rpc GetAlarmPage (GetAlarmPageRequest) returns (GetAlarmPageReply) {
     option (google.api.http) = {
-      get: "/prom/v1/alarm-page/{id}"
+      post: "/prom/v1/alarm-page/{id}"
+      body: "*"
     };
   }
   // GetAlarmPage gets an existing alarm page by query and alarm page.
@@ -71,10 +72,13 @@ message DeleteAlarmPageReply {
 
 message GetAlarmPageRequest {
   int32 id = 1 [(validate.rules).int32.gt = 0];
+  ListQuery query = 2;
+  StrategyItem strategy = 3;
 }
 message GetAlarmPageReply {
   AlarmPageItem alarm_page = 1;
   Response response = 2;
+  ListQueryResult result = 3;
 }
 
 message ListAlarmPageRequest {

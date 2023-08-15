@@ -38,7 +38,7 @@ func RegisterAlarmPageHTTPServer(s *http.Server, srv AlarmPageHTTPServer) {
 	r.POST("/prom/v1/alarm-page", _AlarmPage_CreateAlarmPage0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/alarm-page/{id}", _AlarmPage_UpdateAlarmPage0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/alarm-page/{id}", _AlarmPage_DeleteAlarmPage0_HTTP_Handler(srv))
-	r.GET("/prom/v1/alarm-page/{id}", _AlarmPage_GetAlarmPage0_HTTP_Handler(srv))
+	r.POST("/prom/v1/alarm-page/{id}", _AlarmPage_GetAlarmPage0_HTTP_Handler(srv))
 	r.POST("/prom/v1/alarm-pages", _AlarmPage_ListAlarmPage0_HTTP_Handler(srv))
 }
 
@@ -108,7 +108,7 @@ func _AlarmPage_DeleteAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx 
 func _AlarmPage_GetAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetAlarmPageRequest
-		if err := ctx.BindQuery(&in); err != nil {
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
@@ -191,10 +191,10 @@ func (c *AlarmPageHTTPClientImpl) DeleteAlarmPage(ctx context.Context, in *Delet
 func (c *AlarmPageHTTPClientImpl) GetAlarmPage(ctx context.Context, in *GetAlarmPageRequest, opts ...http.CallOption) (*GetAlarmPageReply, error) {
 	var out GetAlarmPageReply
 	pattern := "/prom/v1/alarm-page/{id}"
-	path := binding.EncodeURL(pattern, in, true)
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAlarmPageGetAlarmPage))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
