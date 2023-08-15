@@ -98,8 +98,17 @@ func GetPage(params IPage) (offset, limit int32) {
 	return
 }
 
-func GetKeywords(keyword string, fields ...field.String) []gen.Condition {
+func GetConditionKeywords(keyword string, fields ...field.String) []gen.Condition {
 	keywordExpr := make([]gen.Condition, 0, len(fields))
+	for _, f := range fields {
+		keywordExpr = append(keywordExpr, f.Like(keyword))
+	}
+
+	return keywordExpr
+}
+
+func GetExprKeywords(keyword string, fields ...field.String) []field.Expr {
+	keywordExpr := make([]field.Expr, 0, len(fields))
 	for _, f := range fields {
 		keywordExpr = append(keywordExpr, f.Like(keyword))
 	}

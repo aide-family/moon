@@ -105,13 +105,57 @@ func (l *AlarmPageV1Repo) DeleteAlarmPageById(ctx context.Context, id int32) err
 	return nil
 }
 
-func (l *AlarmPageV1Repo) GetAlarmPageById(ctx context.Context, id int32) (*model.PromAlarmPage, error) {
+func (l *AlarmPageV1Repo) GetAlarmPageById(ctx context.Context, req *pb.GetAlarmPageRequest) (*model.PromAlarmPage, error) {
 	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageV1Repo.GetAlarmPageById")
 	defer span.End()
 
-	promAlarmPage := l.db.PromAlarmPage
+	if req == nil {
+		return nil, perrors.ErrorServerUnknown("GetAlarmPageById req is nil")
+	}
 
-	detail, err := promAlarmPage.WithContext(ctx).Where(promAlarmPage.ID.Eq(id)).First()
+	promAlarmPage := l.db.PromAlarmPage
+	promStrategy := l.db.PromStrategy
+
+	queryPrams := req.GetQuery()
+	id := req.GetId()
+
+	offset, limit := buildQuery.GetPage(queryPrams.GetPage())
+	promStrategyDB := promAlarmPage.PromStrategies
+	if queryPrams != nil {
+		sorts := queryPrams.GetSort()
+		iSorts := make([]buildQuery.ISort, 0, len(sorts))
+		for _, sort := range sorts {
+			iSorts = append(iSorts, sort)
+		}
+		promStrategyDB.Order(buildQuery.GetSorts(&promStrategy, iSorts...)...)
+		promStrategyDB.Select(buildQuery.GetSlectExprs(&promStrategy, queryPrams)...)
+		keyword := queryPrams.GetKeyword()
+		if keyword != "" {
+			key := "%" + keyword + "%"
+			promStrategyDB.Where(buildQuery.GetExprKeywords(key, promStrategy.Alert)...)
+		}
+		if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
+			promStrategyDB.Where(promStrategy.CreatedAt.Between(
+				time.Unix(queryPrams.GetStartAt(), 0),
+				time.Unix(queryPrams.GetEndAt(), 0),
+			))
+		}
+	}
+
+	strategyQuery := req.GetStrategy()
+	if strategyQuery != nil {
+		if strategyQuery.GetId() != 0 {
+			promStrategyDB.Where(promStrategy.ID.Eq(strategyQuery.GetId()))
+		}
+		if strategyQuery.GetAlert() != "" {
+			promStrategyDB.Where(promStrategy.Alert.Eq(strategyQuery.GetAlert()))
+		}
+		if strategyQuery.GetGroupId() != 0 {
+			promStrategyDB.Where(promStrategy.GroupID.Eq(strategyQuery.GetGroupId()))
+		}
+	}
+
+	detail, err := promAlarmPage.WithContext(ctx).Preload(promStrategyDB.Offset(int(offset)).Limit(int(limit))).Where(promAlarmPage.ID.Eq(id)).First()
 	if err != nil {
 		l.logger.WithContext(ctx).Errorw("GetAlarmPageById", id, "err", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -147,7 +191,7 @@ func (l *AlarmPageV1Repo) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPa
 			keyword := queryPrams.GetKeyword()
 			if keyword != "" {
 				key := "%" + keyword + "%"
-				promAlarmPageDB = promAlarmPageDB.Or(buildQuery.GetKeywords(
+				promAlarmPageDB = promAlarmPageDB.Or(buildQuery.GetConditionKeywords(
 					key, promAlarmPage.Name,
 					promAlarmPage.Color,
 					promAlarmPage.Remark,

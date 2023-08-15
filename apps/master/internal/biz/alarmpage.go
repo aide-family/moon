@@ -18,7 +18,7 @@ type (
 		CreateAlarmPage(ctx context.Context, m *model.PromAlarmPage) error
 		UpdateAlarmPageById(ctx context.Context, id int32, m *model.PromAlarmPage) error
 		DeleteAlarmPageById(ctx context.Context, id int32) error
-		GetAlarmPageById(ctx context.Context, id int32) (*model.PromAlarmPage, error)
+		GetAlarmPageById(ctx context.Context, req *pb.GetAlarmPageRequest) (*model.PromAlarmPage, error)
 		ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*model.PromAlarmPage, int64, error)
 	}
 
@@ -96,7 +96,7 @@ func (s *AlarmPageLogic) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPageR
 	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.GetAlarmPage")
 	defer span.End()
 
-	detail, err := s.repo.GetAlarmPageById(ctx, req.GetId())
+	detail, err := s.repo.GetAlarmPageById(ctx, req)
 	if err != nil {
 		s.logger.WithContext(ctx).Errorf("GetAlarmPage error: %v", err)
 		if perrors.IsLogicDataNotFound(err) {

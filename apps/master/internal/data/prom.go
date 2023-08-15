@@ -99,7 +99,7 @@ func (p *PromV1Repo) Strategies(ctx context.Context, req *pb.ListStrategyRequest
 			keyword := queryPrams.GetKeyword()
 			if keyword != "" {
 				key := "%" + keyword + "%"
-				promStrategyDB = promStrategyDB.Where(buildQuery.GetKeywords(key, promStrategy.Alert)...)
+				promStrategyDB = promStrategyDB.Where(buildQuery.GetConditionKeywords(key, promStrategy.Alert)...)
 			}
 			if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
 				promStrategyDB = promStrategyDB.Where(promStrategy.CreatedAt.Between(
@@ -151,7 +151,7 @@ func (p *PromV1Repo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*m
 			keyword := queryPrams.GetKeyword()
 			if keyword != "" {
 				key := "%" + keyword + "%"
-				promGroupDB = promGroupDB.Where(buildQuery.GetKeywords(key, promGroup.Name)...)
+				promGroupDB = promGroupDB.Where(buildQuery.GetConditionKeywords(key, promGroup.Name)...)
 			}
 			if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
 				promGroupDB = promGroupDB.Where(promGroup.CreatedAt.Between(

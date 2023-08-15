@@ -80,25 +80,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageReply'
   /prom/v1/alarm-page/{id}:
-    get:
-      tags:
-        - AlarmPage
-      description: GetAlarmPage gets an existing alarm page by id.
-      operationId: AlarmPage_GetAlarmPage
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.GetAlarmPageReply'
     put:
       tags:
         - AlarmPage
@@ -124,6 +105,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageReply'
+    post:
+      tags:
+        - AlarmPage
+      description: GetAlarmPage gets an existing alarm page by id.
+      operationId: AlarmPage_GetAlarmPage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.GetAlarmPageRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.GetAlarmPageReply'
     delete:
       tags:
         - AlarmPage
@@ -576,16 +582,16 @@ paths:
           description: OK
           content:
             application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
-    /rule/v1/delete/{id}:
-        delete:
-            tags:
-                - Crud
-            operationId: Crud_DeleteRule
-            parameters:
-                - name: id
-                  in: path
+              schema:
+                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
+  /rule/v1/delete/{id}:
+    delete:
+      tags:
+        - Crud
+      operationId: Crud_DeleteRule
+      parameters:
+        - name: id
+          in: path
                   required: true
                   schema:
                     type: string
@@ -959,6 +965,18 @@ components:
           $ref: '#/components/schemas/api.prom.AlarmPageItem'
         response:
           $ref: '#/components/schemas/api.Response'
+        result:
+          $ref: '#/components/schemas/api.ListQueryResult'
+    api.prom.v1.GetAlarmPageRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        query:
+          $ref: '#/components/schemas/api.ListQuery'
+        strategy:
+          $ref: '#/components/schemas/api.prom.StrategyItem'
     api.prom.v1.GetDictReply:
       type: object
       properties:
@@ -1216,16 +1234,16 @@ components:
             $ref: '#/components/schemas/api.strategy.StrategyDir'
     api.strategy.v1.UpdateRuleReply:
       type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.UpdateRuleRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.strategy.v1.UpdateRuleRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        rule:
+          $ref: '#/components/schemas/api.strategy.Rule'
         api.strategy.v1.load.ReloadReply:
             type: object
             properties:

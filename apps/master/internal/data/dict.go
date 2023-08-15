@@ -136,7 +136,7 @@ func (l *DictV1Repo) ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*
 			keyword := queryPrams.GetKeyword()
 			if keyword != "" {
 				key := "%" + keyword + "%"
-				promDictDB = promDictDB.Where(buildQuery.GetKeywords(key, promDict.Name)...)
+				promDictDB = promDictDB.Where(buildQuery.GetConditionKeywords(key, promDict.Name)...)
 			}
 			if queryPrams.GetStartAt() > 0 && queryPrams.GetEndAt() > 0 {
 				promDictDB = promDictDB.Where(promDict.CreatedAt.Between(
