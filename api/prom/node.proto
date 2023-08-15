@@ -39,6 +39,7 @@ message DictItem {
   int64 updated_at = 6;
   Category category = 7 [(validate.rules).enum.defined_only = true];
   string color = 8;
+  Status status = 9;
   int32 id = 99;
 }
 

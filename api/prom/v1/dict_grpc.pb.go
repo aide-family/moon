@@ -26,6 +26,8 @@ type DictClient interface {
 	CreateDict(ctx context.Context, in *CreateDictRequest, opts ...grpc.CallOption) (*CreateDictReply, error)
 	// UpdateDict updates a dict by id.
 	UpdateDict(ctx context.Context, in *UpdateDictRequest, opts ...grpc.CallOption) (*UpdateDictReply, error)
+	// UpdateDictsStatus updates dicts status by ids.
+	UpdateDictsStatus(ctx context.Context, in *UpdateDictsStatusRequest, opts ...grpc.CallOption) (*UpdateDictsStatusReply, error)
 	// DeleteDict deletes a dict by id.
 	DeleteDict(ctx context.Context, in *DeleteDictRequest, opts ...grpc.CallOption) (*DeleteDictReply, error)
 	// GetDict gets a dict by id.
@@ -54,6 +56,15 @@ func (c *dictClient) CreateDict(ctx context.Context, in *CreateDictRequest, opts
 func (c *dictClient) UpdateDict(ctx context.Context, in *UpdateDictRequest, opts ...grpc.CallOption) (*UpdateDictReply, error) {
 	out := new(UpdateDictReply)
 	err := c.cc.Invoke(ctx, "/api.prom.v1.Dict/UpdateDict", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dictClient) UpdateDictsStatus(ctx context.Context, in *UpdateDictsStatusRequest, opts ...grpc.CallOption) (*UpdateDictsStatusReply, error) {
+	out := new(UpdateDictsStatusReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.Dict/UpdateDictsStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +106,8 @@ type DictServer interface {
 	CreateDict(context.Context, *CreateDictRequest) (*CreateDictReply, error)
 	// UpdateDict updates a dict by id.
 	UpdateDict(context.Context, *UpdateDictRequest) (*UpdateDictReply, error)
+	// UpdateDictsStatus updates dicts status by ids.
+	UpdateDictsStatus(context.Context, *UpdateDictsStatusRequest) (*UpdateDictsStatusReply, error)
 	// DeleteDict deletes a dict by id.
 	DeleteDict(context.Context, *DeleteDictRequest) (*DeleteDictReply, error)
 	// GetDict gets a dict by id.
@@ -113,6 +126,9 @@ func (UnimplementedDictServer) CreateDict(context.Context, *CreateDictRequest) (
 }
 func (UnimplementedDictServer) UpdateDict(context.Context, *UpdateDictRequest) (*UpdateDictReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDict not implemented")
+}
+func (UnimplementedDictServer) UpdateDictsStatus(context.Context, *UpdateDictsStatusRequest) (*UpdateDictsStatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDictsStatus not implemented")
 }
 func (UnimplementedDictServer) DeleteDict(context.Context, *DeleteDictRequest) (*DeleteDictReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDict not implemented")
@@ -168,6 +184,24 @@ func _Dict_UpdateDict_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DictServer).UpdateDict(ctx, req.(*UpdateDictRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Dict_UpdateDictsStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDictsStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictServer).UpdateDictsStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.Dict/UpdateDictsStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictServer).UpdateDictsStatus(ctx, req.(*UpdateDictsStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -240,6 +274,10 @@ var Dict_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDict",
 			Handler:    _Dict_UpdateDict_Handler,
+		},
+		{
+			MethodName: "UpdateDictsStatus",
+			Handler:    _Dict_UpdateDictsStatus_Handler,
 		},
 		{
 			MethodName: "DeleteDict",

@@ -270,6 +270,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/api.prom.v1.ListDictReply'
+  /prom/v1/dicts/status:
+    put:
+      tags:
+        - Dict
+      description: UpdateDictsStatus updates dicts status by ids.
+      operationId: Dict_UpdateDictsStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusReply'
   /prom/v1/group:
     post:
       tags:
@@ -592,16 +611,16 @@ paths:
       parameters:
         - name: id
           in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
     /rule/v1/detail/{id}:
         get:
             tags:
@@ -799,6 +818,9 @@ components:
           format: enum
         color:
           type: string
+        status:
+          type: integer
+          format: enum
         id:
           type: integer
           format: int32
@@ -1096,6 +1118,22 @@ components:
         id:
           type: integer
           format: int32
+    api.prom.v1.UpdateDictsStatusReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+    api.prom.v1.UpdateDictsStatusRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+        status:
+          type: integer
+          format: enum
     api.prom.v1.UpdateGroupReply:
       type: object
       properties:
@@ -1244,16 +1282,16 @@ components:
           type: string
         rule:
           $ref: '#/components/schemas/api.strategy.Rule'
-        api.strategy.v1.load.ReloadReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-                timestamp:
-                    type: integer
-                    format: int64
-        api.strategy.v1.load.ReloadRequest:
-            type: object
+    api.strategy.v1.load.ReloadReply:
+      type: object
+      properties:
+        response:
+          $ref: '#/components/schemas/api.Response'
+        timestamp:
+          type: integer
+          format: int64
+    api.strategy.v1.load.ReloadRequest:
+      type: object
             properties:
                 nodes:
                     type: array

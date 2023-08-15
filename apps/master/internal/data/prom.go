@@ -120,6 +120,9 @@ func (p *PromV1Repo) Strategies(ctx context.Context, req *pb.ListStrategyRequest
 			if strategyQuery.GetGroupId() != 0 {
 				promStrategyDB = promStrategyDB.Where(promStrategy.GroupID.Eq(strategyQuery.GetGroupId()))
 			}
+			if strategyQuery.GetStatus() != prom.Status_Status_NONE {
+				promStrategyDB = promStrategyDB.Where(promStrategy.Status.Eq(int32(strategyQuery.GetStatus())))
+			}
 		}
 	}
 

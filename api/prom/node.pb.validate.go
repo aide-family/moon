@@ -100,6 +100,8 @@ func (m *DictItem) validate(all bool) error {
 
 	// no validation rules for Color
 
+	// no validation rules for Status
+
 	// no validation rules for Id
 
 	if len(errors) > 0 {

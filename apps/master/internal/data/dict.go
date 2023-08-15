@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
+	"prometheus-manager/pkg/util/stringer"
 	"strconv"
 	"time"
 )
@@ -69,6 +70,23 @@ func (l *DictV1Repo) UpdateDictById(ctx context.Context, id int32, m *model.Prom
 	if inf.RowsAffected != 1 {
 		return perrors.ErrorClientNotFound("PromDict not found").WithMetadata(map[string]string{
 			"id": strconv.Itoa(int(id)),
+		})
+	}
+
+	return nil
+}
+
+func (l *DictV1Repo) UpdateDictByIds(ctx context.Context, ids []int32, status prom.Status) error {
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictV1Repo.UpdateDictByIds")
+	defer span.End()
+
+	promDict := l.db.PromDict
+
+	_, err := promDict.WithContext(ctx).Where(promDict.ID.In(ids...)).UpdateColumnSimple(promDict.Status.Value(int32(status)))
+	if err != nil {
+		l.logger.WithContext(ctx).Errorw("UpdateDictByIds", ids, "err", err)
+		return perrors.ErrorServerDatabaseError("UpdateDictByIds err").WithCause(err).WithMetadata(map[string]string{
+			"ids": stringer.New(ids).String(),
 		})
 	}
 
@@ -159,6 +177,9 @@ func (l *DictV1Repo) ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*
 			}
 			if dictQuery.GetCategory() != prom.Category_CATEGORY_NONE {
 				promDictDB = promDictDB.Where(promDict.Category.Eq(int32(dictQuery.GetCategory())))
+			}
+			if dictQuery.GetStatus() != prom.Status_Status_NONE {
+				promDictDB = promDictDB.Where(promDict.Status.Eq(int32(dictQuery.GetStatus())))
 			}
 		}
 	}

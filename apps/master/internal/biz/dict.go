@@ -17,6 +17,7 @@ type (
 		V1Repo
 		CreateDict(ctx context.Context, m *model.PromDict) error
 		UpdateDictById(ctx context.Context, id int32, m *model.PromDict) error
+		UpdateDictByIds(ctx context.Context, ids []int32, status prom.Status) error
 		DeleteDictById(ctx context.Context, id int32) error
 		GetDictById(ctx context.Context, id int32) (*model.PromDict, error)
 		ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*model.PromDict, int64, error)
@@ -68,6 +69,24 @@ func (s *DictLogic) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (
 	}
 
 	return &pb.UpdateDictReply{Response: &api.Response{Message: "更新字典成功"}}, nil
+}
+
+// UpdateDictsStatus 更新字典状态
+//
+//	ctx 上下文
+//	req 请求参数
+func (s *DictLogic) UpdateDictsStatus(ctx context.Context, req *pb.UpdateDictsStatusRequest) (*pb.UpdateDictsStatusReply, error) {
+	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.UpdateDictsStatus")
+	defer span.End()
+
+	if err := s.repo.UpdateDictByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
+		s.logger.WithContext(ctx).Errorf("UpdateDictsStatus error: %v", err)
+		return nil, perrors.ErrorLogicEditDictFailed("更新字典状态失败").WithCause(err).WithMetadata(map[string]string{
+			"req": req.String(),
+		})
+	}
+
+	return &pb.UpdateDictsStatusReply{Response: &api.Response{Message: "更新字典状态成功"}}, nil
 }
 
 // DeleteDict 删除字典

@@ -26,6 +26,13 @@ service Dict {
       body: "*"
     };
   }
+  // UpdateDictsStatus updates dicts status by ids.
+  rpc UpdateDictsStatus (UpdateDictsStatusRequest) returns (UpdateDictsStatusReply) {
+    option (google.api.http) = {
+      put: "/prom/v1/dicts/status"
+      body: "*"
+    };
+  }
   // DeleteDict deletes a dict by id.
   rpc DeleteDict (DeleteDictRequest) returns (DeleteDictReply) {
     option (google.api.http) = {
@@ -59,6 +66,21 @@ message UpdateDictRequest {
   int32 id = 2 [(validate.rules).int32 = {gt: 0}];
 }
 message UpdateDictReply {
+  Response response = 1;
+}
+
+message UpdateDictsStatusRequest {
+  repeated int32 ids = 1 [(validate.rules).repeated = {
+    min_items: 1
+    items: {
+      int32: {
+        gt: 0
+      }
+    }
+  }];
+  Status status = 2 [(validate.rules).enum = {defined_only: true}];
+}
+message UpdateDictsStatusReply {
   Response response = 1;
 }
 
