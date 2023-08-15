@@ -24,6 +24,7 @@ const OperationDictDeleteDict = "/api.prom.v1.Dict/DeleteDict"
 const OperationDictGetDict = "/api.prom.v1.Dict/GetDict"
 const OperationDictListDict = "/api.prom.v1.Dict/ListDict"
 const OperationDictUpdateDict = "/api.prom.v1.Dict/UpdateDict"
+const OperationDictUpdateDictsStatus = "/api.prom.v1.Dict/UpdateDictsStatus"
 
 type DictHTTPServer interface {
 	CreateDict(context.Context, *CreateDictRequest) (*CreateDictReply, error)
@@ -31,12 +32,14 @@ type DictHTTPServer interface {
 	GetDict(context.Context, *GetDictRequest) (*GetDictReply, error)
 	ListDict(context.Context, *ListDictRequest) (*ListDictReply, error)
 	UpdateDict(context.Context, *UpdateDictRequest) (*UpdateDictReply, error)
+	UpdateDictsStatus(context.Context, *UpdateDictsStatusRequest) (*UpdateDictsStatusReply, error)
 }
 
 func RegisterDictHTTPServer(s *http.Server, srv DictHTTPServer) {
 	r := s.Route("/")
 	r.POST("/prom/v1/dict", _Dict_CreateDict0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/dict/{id}", _Dict_UpdateDict0_HTTP_Handler(srv))
+	r.PUT("/prom/v1/dicts/status", _Dict_UpdateDictsStatus0_HTTP_Handler(srv))
 	r.DELETE("/prom/v1/dict/{id}", _Dict_DeleteDict0_HTTP_Handler(srv))
 	r.GET("/prom/v1/dict/{id}", _Dict_GetDict0_HTTP_Handler(srv))
 	r.POST("/prom/v1/dicts", _Dict_ListDict0_HTTP_Handler(srv))
@@ -79,6 +82,25 @@ func _Dict_UpdateDict0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) e
 			return err
 		}
 		reply := out.(*UpdateDictReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Dict_UpdateDictsStatus0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateDictsStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDictUpdateDictsStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateDictsStatus(ctx, req.(*UpdateDictsStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateDictsStatusReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -152,6 +174,7 @@ type DictHTTPClient interface {
 	GetDict(ctx context.Context, req *GetDictRequest, opts ...http.CallOption) (rsp *GetDictReply, err error)
 	ListDict(ctx context.Context, req *ListDictRequest, opts ...http.CallOption) (rsp *ListDictReply, err error)
 	UpdateDict(ctx context.Context, req *UpdateDictRequest, opts ...http.CallOption) (rsp *UpdateDictReply, err error)
+	UpdateDictsStatus(ctx context.Context, req *UpdateDictsStatusRequest, opts ...http.CallOption) (rsp *UpdateDictsStatusReply, err error)
 }
 
 type DictHTTPClientImpl struct {
@@ -219,6 +242,19 @@ func (c *DictHTTPClientImpl) UpdateDict(ctx context.Context, in *UpdateDictReque
 	pattern := "/prom/v1/dict/{id}"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDictUpdateDict))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DictHTTPClientImpl) UpdateDictsStatus(ctx context.Context, in *UpdateDictsStatusRequest, opts ...http.CallOption) (*UpdateDictsStatusReply, error) {
+	var out UpdateDictsStatusReply
+	pattern := "/prom/v1/dicts/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDictUpdateDictsStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

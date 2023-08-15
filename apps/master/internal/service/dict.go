@@ -11,6 +11,7 @@ type (
 	IDictV1Logic interface {
 		CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error)
 		UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*pb.UpdateDictReply, error)
+		UpdateDictsStatus(ctx context.Context, req *pb.UpdateDictsStatusRequest) (*pb.UpdateDictsStatusReply, error)
 		DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*pb.DeleteDictReply, error)
 		GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetDictReply, error)
 		ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.ListDictReply, error)
@@ -40,6 +41,12 @@ func (l *DictV1Service) UpdateDict(ctx context.Context, req *pb.UpdateDictReques
 	ctx, span := otel.Tracer("service").Start(ctx, "DictV1Service.UpdateDict")
 	defer span.End()
 	return l.logic.UpdateDict(ctx, req)
+}
+
+func (l *DictV1Service) UpdateDictsStatus(ctx context.Context, req *pb.UpdateDictsStatusRequest) (*pb.UpdateDictsStatusReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "DictV1Service.UpdateDictsStatus")
+	defer span.End()
+	return l.logic.UpdateDictsStatus(ctx, req)
 }
 
 func (l *DictV1Service) DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*pb.DeleteDictReply, error) {
