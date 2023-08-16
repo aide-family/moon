@@ -87,6 +87,16 @@ func GenerateStrategy(g *gen.Generator) {
 				RelatePointer: true,
 			},
 		),
+		gen.FieldRelate(field.BelongsTo,
+			"GroupInfo",
+			promGroupsTable,
+			&field.RelateConfig{
+				GORMTag: field.GormTag{
+					"foreignKey": []string{"group_id"},
+				},
+				RelatePointer: true,
+			},
+		),
 	)
 
 	promGroupsTable = g.GenerateModel(promGroupsTableName,

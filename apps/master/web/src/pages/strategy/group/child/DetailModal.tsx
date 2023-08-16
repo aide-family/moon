@@ -3,13 +3,14 @@ import type {GroupItem} from "@/apis/prom/prom";
 import {Modal} from "@arco-design/web-react";
 import groupStyle from "../style/group.module.less";
 import StrategyModal from "@/pages/strategy/child/StrategyModal";
+import StrategyList from "@/pages/strategy/group/child/StrategyList";
 
 export interface DetailModalProps {
     item?: GroupItem
     children?: React.ReactNode
 }
 
-const pathPrefix = "http://localhost:9090";
+
 
 const DetailModal: React.FC<DetailModalProps> = (props) => {
     const {item, children} = props;
@@ -34,27 +35,9 @@ const DetailModal: React.FC<DetailModalProps> = (props) => {
                 className={groupStyle.GroupDetail}
                 style={{width: "100%"}}
                 title={item?.name}
+                unmountOnExit
             >
-                <StrategyModal
-                    title="添加策略"
-                    btnProps={{
-                        size: "mini",
-                    }}
-                    initialValues={{
-                        datasource: pathPrefix,
-                        alert: "up == 0",
-                        expr: "up == 0",
-                        for: "30s",
-                        labels: {
-                            severity: "critical",
-                        },
-                        annotations: {
-                            title: "{{$labels.instance}} down",
-                            description:
-                                "The instance {{$labels.instance}} has been down for more than 30 seconds.",
-                        },
-                    }}
-                />
+                <StrategyList groupItem={item} />
             </Modal>
         </>
     )

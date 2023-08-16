@@ -63,6 +63,11 @@ func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
 		}{
 			RelationField: field.NewRelation("PromStrategies.AlertLevel", "model.PromDict"),
 		},
+		GroupInfo: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("PromStrategies.GroupInfo", "model.PromGroup"),
+		},
 	}
 
 	_promGroup.Categories = promGroupHasManyCategories{
@@ -168,6 +173,9 @@ type promGroupHasManyPromStrategies struct {
 		field.RelationField
 	}
 	AlertLevel struct {
+		field.RelationField
+	}
+	GroupInfo struct {
 		field.RelationField
 	}
 }
