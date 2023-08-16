@@ -6,650 +6,643 @@ info:
     title: ""
     version: 0.0.1
 paths:
-  /helloworld/{name}:
-    get:
-      tags:
-        - Greeter
-      description: Sends a greeting
-      operationId: Greeter_SayHello
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/helloworld.v1.HelloReply'
-  /load/v1/reload:
-    post:
-      tags:
-        - Load
-      operationId: Load_Reload
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.strategy.v1.load.ReloadRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
-  /ping:
-    get:
-      tags:
-        - Ping
-      operationId: Ping_Check
-      parameters:
-        - name: name
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.PingReply'
-  /prom/v1/alarm-page:
-    post:
-      tags:
-        - AlarmPage
-      description: CreateAlarmPage creates a new alarm page.
-      operationId: AlarmPage_CreateAlarmPage
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageReply'
-  /prom/v1/alarm-page/{id}:
-    put:
-      tags:
-        - AlarmPage
-      description: UpdateAlarmPage updates an existing alarm page by id.
-      operationId: AlarmPage_UpdateAlarmPage
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageReply'
-    post:
-      tags:
-        - AlarmPage
-      description: GetAlarmPage gets an existing alarm page by id.
-      operationId: AlarmPage_GetAlarmPage
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.GetAlarmPageRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.GetAlarmPageReply'
-    delete:
-      tags:
-        - AlarmPage
-      description: DeleteAlarmPage deletes an existing alarm page by id.
-      operationId: AlarmPage_DeleteAlarmPage
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.DeleteAlarmPageReply'
-  /prom/v1/alarm-pages:
-    post:
-      tags:
-        - AlarmPage
-      description: GetAlarmPage gets an existing alarm page by query and alarm page.
-      operationId: AlarmPage_ListAlarmPage
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.ListAlarmPageRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.ListAlarmPageReply'
-  /prom/v1/alarm-pages/status:
-    put:
-      tags:
-        - AlarmPage
-      description: UpdateAlarmPagesStatus updates an existing alarm page status by ids.
-      operationId: AlarmPage_UpdateAlarmPagesStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusReply'
-  /prom/v1/dict:
-    post:
-      tags:
-        - Dict
-      description: CreateDict creates a new dict.
-      operationId: Dict_CreateDict
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.CreateDictRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.CreateDictReply'
-  /prom/v1/dict/{id}:
-    get:
-      tags:
-        - Dict
-      description: GetDict gets a dict by id.
-      operationId: Dict_GetDict
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.GetDictReply'
-    put:
-      tags:
-        - Dict
-      description: UpdateDict updates a dict by id.
-      operationId: Dict_UpdateDict
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateDictRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateDictReply'
-    delete:
-      tags:
-        - Dict
-      description: DeleteDict deletes a dict by id.
-      operationId: Dict_DeleteDict
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.DeleteDictReply'
-  /prom/v1/dicts:
-    post:
-      tags:
-        - Dict
-      description: ListDict lists dicts.
-      operationId: Dict_ListDict
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.ListDictRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.ListDictReply'
-  /prom/v1/dicts/status:
-    put:
-      tags:
-        - Dict
-      description: UpdateDictsStatus updates dicts status by ids.
-      operationId: Dict_UpdateDictsStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusReply'
-  /prom/v1/group:
-    post:
-      tags:
-        - Prom
-      description: CreateGroup 创建规则组
-      operationId: Prom_CreateGroup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.CreateGroupRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.CreateGroupReply'
-  /prom/v1/group/{id}:
-    get:
-      tags:
-        - Prom
-      description: GetGroup 获取规则组, 传入id获取指定的规则组
-      operationId: Prom_GetGroup
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.GetGroupReply'
-    put:
-      tags:
-        - Prom
-      description: UpdateGroup 更新规则组, 传入id更新指定的规则组
-      operationId: Prom_UpdateGroup
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateGroupRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateGroupReply'
-    delete:
-      tags:
-        - Prom
-      description: DeleteGroup 删除规则组, 传入id删除指定的规则组
-      operationId: Prom_DeleteGroup
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.DeleteGroupReply'
-  /prom/v1/groups:
-    post:
-      tags:
-        - Prom
-      description: ListGroup 获取规则组列表
-      operationId: Prom_ListGroup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.ListGroupRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.ListGroupReply'
-  /prom/v1/groups/status:
-    put:
-      tags:
-        - Prom
-      description: UpdateGroupStatus 批量更新规则组状态
-      operationId: Prom_UpdateGroupsStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusReply'
-  /prom/v1/strategies:
-    post:
-      tags:
-        - Prom
-      description: ListStrategy 获取规则策略列表
-      operationId: Prom_ListStrategy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.ListStrategyRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.ListStrategyReply'
-  /prom/v1/strategies/status:
-    put:
-      tags:
-        - Prom
-      description: UpdateStrategiesStatus 批量更新规则策略状态
-      operationId: Prom_UpdateStrategiesStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusReply'
-  /prom/v1/strategy:
-    post:
-      tags:
-        - Prom
-      description: CreateStrategy 创建规则策略
-      operationId: Prom_CreateStrategy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.CreateStrategyRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.CreateStrategyReply'
-  /prom/v1/strategy/{id}:
-    get:
-      tags:
-        - Prom
-      description: GetStrategy 获取规则策略, 传入id获取指定的规则策略
-      operationId: Prom_GetStrategy
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.GetStrategyReply'
-    put:
-      tags:
-        - Prom
-      description: UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
-      operationId: Prom_UpdateStrategy
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.prom.v1.UpdateStrategyRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.UpdateStrategyReply'
-    delete:
-      tags:
-        - Prom
-      description: DeleteStrategy 删除规则策略, 传入id删除指定的规则策略
-      operationId: Prom_DeleteStrategy
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
-  /pull/v1/strategies:
-    get:
-      tags:
-        - Pull
-      operationId: Pull_Strategies
-      parameters:
-        - name: node
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
-  /push/v1/node/{name}/strategies:
-    get:
-      tags:
-        - Push
-      operationId: Push_Call
-      parameters:
-        - name: name
-          in: path
-          description: The name of the node to call.
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.node.CallResponse'
-  /push/v1/strategies:
-    post:
-      tags:
-        - Push
-      operationId: Push_Strategies
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.strategy.v1.push.StrategiesRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
-  /rule/v1/add:
-    post:
-      tags:
-        - Crud
-      operationId: Crud_CreateRule
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
-  /rule/v1/delete/{id}:
-    delete:
-      tags:
-        - Crud
-      operationId: Crud_DeleteRule
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
-  /rule/v1/detail/{id}:
-    get:
-      tags:
-        - Crud
-      operationId: Crud_RuleDetail
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
+    /helloworld/{name}:
+        get:
+            tags:
+                - Greeter
+            description: Sends a greeting
+            operationId: Greeter_SayHello
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
+    /load/v1/reload:
+        post:
+            tags:
+                - Load
+            operationId: Load_Reload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.load.ReloadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.load.ReloadReply'
+    /ping:
+        get:
+            tags:
+                - Ping
+            operationId: Ping_Check
+            parameters:
+                - name: name
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.PingReply'
+    /prom/v1/alarm-page:
+        post:
+            tags:
+                - AlarmPage
+            description: CreateAlarmPage creates a new alarm page.
+            operationId: AlarmPage_CreateAlarmPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.CreateAlarmPageReply'
+    /prom/v1/alarm-page/{id}:
+        put:
+            tags:
+                - AlarmPage
+            description: UpdateAlarmPage updates an existing alarm page by id.
+            operationId: AlarmPage_UpdateAlarmPage
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPageReply'
+        post:
+            tags:
+                - AlarmPage
+            description: GetAlarmPage gets an existing alarm page by id.
+            operationId: AlarmPage_GetAlarmPage
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.GetAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.GetAlarmPageReply'
+        delete:
+            tags:
+                - AlarmPage
+            description: DeleteAlarmPage deletes an existing alarm page by id.
+            operationId: AlarmPage_DeleteAlarmPage
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DeleteAlarmPageReply'
+    /prom/v1/alarm-pages:
+        post:
+            tags:
+                - AlarmPage
+            description: GetAlarmPage gets an existing alarm page by query and alarm page.
+            operationId: AlarmPage_ListAlarmPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListAlarmPageReply'
+    /prom/v1/alarm-pages/status:
+        put:
+            tags:
+                - AlarmPage
+            description: UpdateAlarmPagesStatus updates an existing alarm page status by ids.
+            operationId: AlarmPage_UpdateAlarmPagesStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusReply'
+    /prom/v1/dict:
+        post:
+            tags:
+                - Dict
+            description: CreateDict creates a new dict.
+            operationId: Dict_CreateDict
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.CreateDictRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.CreateDictReply'
+    /prom/v1/dict/{id}:
+        get:
+            tags:
+                - Dict
+            description: GetDict gets a dict by id.
+            operationId: Dict_GetDict
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.GetDictReply'
+        put:
+            tags:
+                - Dict
+            description: UpdateDict updates a dict by id.
+            operationId: Dict_UpdateDict
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateDictRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateDictReply'
+        delete:
+            tags:
+                - Dict
+            description: DeleteDict deletes a dict by id.
+            operationId: Dict_DeleteDict
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DeleteDictReply'
+    /prom/v1/dicts:
+        post:
+            tags:
+                - Dict
+            description: ListDict lists dicts.
+            operationId: Dict_ListDict
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListDictRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListDictReply'
+    /prom/v1/dicts/status:
+        put:
+            tags:
+                - Dict
+            description: UpdateDictsStatus updates dicts status by ids.
+            operationId: Dict_UpdateDictsStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateDictsStatusReply'
+    /prom/v1/group:
+        post:
+            tags:
+                - Prom
+            description: CreateGroup 创建规则组
+            operationId: Prom_CreateGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.CreateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.CreateGroupReply'
+    /prom/v1/group/{id}:
+        get:
+            tags:
+                - Prom
+            description: GetGroup 获取规则组, 传入id获取指定的规则组
+            operationId: Prom_GetGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.GetGroupReply'
+        put:
+            tags:
+                - Prom
+            description: UpdateGroup 更新规则组, 传入id更新指定的规则组
+            operationId: Prom_UpdateGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateGroupReply'
+        delete:
+            tags:
+                - Prom
+            description: DeleteGroup 删除规则组, 传入id删除指定的规则组
+            operationId: Prom_DeleteGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DeleteGroupReply'
+    /prom/v1/groups:
+        post:
+            tags:
+                - Prom
+            description: ListGroup 获取规则组列表
+            operationId: Prom_ListGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListGroupReply'
+    /prom/v1/groups/status:
+        put:
+            tags:
+                - Prom
+            description: UpdateGroupStatus 批量更新规则组状态
+            operationId: Prom_UpdateGroupsStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateGroupsStatusReply'
+    /prom/v1/strategies:
+        post:
+            tags:
+                - Prom
+            description: ListStrategy 获取规则策略列表
+            operationId: Prom_ListStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListStrategyReply'
+    /prom/v1/strategies/status:
+        put:
+            tags:
+                - Prom
+            description: UpdateStrategiesStatus 批量更新规则策略状态
+            operationId: Prom_UpdateStrategiesStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateStrategiesStatusReply'
+    /prom/v1/strategy:
+        post:
+            tags:
+                - Prom
+            description: CreateStrategy 创建规则策略
+            operationId: Prom_CreateStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.CreateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.CreateStrategyReply'
+    /prom/v1/strategy/{id}:
+        get:
+            tags:
+                - Prom
+            description: GetStrategy 获取规则策略, 传入id获取指定的规则策略
+            operationId: Prom_GetStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.GetStrategyReply'
+        put:
+            tags:
+                - Prom
+            description: UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
+            operationId: Prom_UpdateStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.UpdateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.UpdateStrategyReply'
+        delete:
+            tags:
+                - Prom
+            description: DeleteStrategy 删除规则策略, 传入id删除指定的规则策略
+            operationId: Prom_DeleteStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
+    /pull/v1/strategies:
+        get:
+            tags:
+                - Pull
+            operationId: Pull_Strategies
+            parameters:
+                - name: node
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.pull.StrategiesReply'
+    /push/v1/nodes/strategies:
+        get:
+            tags:
+                - Push
+            operationId: Push_Call
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.node.CallResponse'
+    /push/v1/strategies:
+        post:
+            tags:
+                - Push
+            operationId: Push_Strategies
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.push.StrategiesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
+    /rule/v1/add:
+        post:
+            tags:
+                - Crud
+            operationId: Crud_CreateRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
+    /rule/v1/delete/{id}:
+        delete:
+            tags:
+                - Crud
+            operationId: Crud_DeleteRule
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
+    /rule/v1/detail/{id}:
+        get:
+            tags:
+                - Crud
+            operationId: Crud_RuleDetail
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
                     type: string
             responses:
                 "200":
@@ -701,645 +694,645 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.StrategiesReply'
 components:
-  schemas:
-    api.Field:
-      type: object
-      properties:
-        field:
-          type: string
-        label:
-          type: string
-    api.ListQuery:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/api.PageRequest'
-        sort:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.Sort'
-        fields:
-          type: array
-          items:
-            type: string
-        keyword:
-          type: string
-        startAt:
-          type: integer
-          format: int64
-        endAt:
-          type: integer
-          format: int64
-        timeField:
-          type: string
-    api.ListQueryResult:
-      type: object
-      properties:
-        page:
-          $ref: '#/components/schemas/api.PageReply'
-        fields:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.Field'
-    api.PageReply:
-      type: object
-      properties:
-        current:
-          type: integer
-          format: int32
-        size:
-          type: integer
-          format: int32
-        total:
-          type: integer
-          format: int64
-    api.PageRequest:
-      type: object
-      properties:
-        current:
-          type: integer
-          format: int32
-        size:
-          type: integer
-          format: int32
-    api.PingReply:
-      type: object
-      properties:
-        name:
-          type: string
-        version:
-          type: string
-        namespace:
-          type: string
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-    api.Response:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int64
-        message:
-          type: string
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-    api.Sort:
-      type: object
-      properties:
-        field:
-          type: string
-        asc:
-          type: boolean
-    api.node.CallResponse:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.AlarmPageItem:
-      type: object
-      properties:
-        name:
-          type: string
-        remark:
-          type: string
-        icon:
-          type: string
-        color:
-          type: string
-        createdAt:
-          type: integer
-          format: int64
-        updatedAt:
-          type: integer
-          format: int64
-        status:
-          type: integer
-          format: enum
-        id:
-          type: integer
-          format: int32
-    api.prom.DictItem:
-      type: object
-      properties:
-        name:
-          type: string
-        remark:
-          type: string
-        createdAt:
-          type: integer
-          format: int64
-        updatedAt:
-          type: integer
-          format: int64
-        category:
-          type: integer
-          format: enum
-        color:
-          type: string
-        status:
-          type: integer
-          format: enum
-        id:
-          type: integer
-          format: int32
-    api.prom.GroupItem:
-      type: object
-      properties:
-        name:
-          type: string
-        remark:
-          type: string
-        createdAt:
-          type: integer
-          format: int64
-        updatedAt:
-          type: integer
-          format: int64
-        promStrategies:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.StrategyItem'
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.DictItem'
-        strategyCount:
-          type: integer
-          format: int64
-        categoriesIds:
-          type: array
-          items:
-            type: integer
-            format: int32
-          description: 规则组类型
-        status:
-          type: integer
-          description: 状态
-          format: enum
-        id:
-          type: integer
-          format: int32
-    api.prom.StrategyItem:
-      type: object
-      properties:
-        groupId:
-          type: integer
-          format: int32
-        alert:
-          type: string
-        expr:
-          type: string
-        for:
-          type: string
-        labels:
-          type: object
-          additionalProperties:
-            type: string
-        annotations:
-          type: object
-          additionalProperties:
-            type: string
-        createdAt:
-          type: integer
-          format: int64
-        updatedAt:
-          type: integer
-          format: int64
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.DictItem'
-          description: 规则类型
-        alertLevelId:
-          type: integer
-          description: 默认要具备告警等级
-          format: int32
-        alertLevel:
-          $ref: '#/components/schemas/api.prom.DictItem'
-        alarmPageIds:
-          type: array
-          items:
-            type: integer
-            format: int32
-          description: 规则报警页面(告警信息出现的大盘页面)
-        alarmPages:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.AlarmPageItem'
-        status:
-          type: integer
-          description: 状态
-          format: enum
-        categorieIds:
-          type: array
-          items:
-            type: integer
-            format: int32
-        id:
-          type: integer
-          format: int32
-    api.prom.v1.CreateAlarmPageReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.CreateAlarmPageRequest:
-      type: object
-      properties:
-        alarmPage:
-          $ref: '#/components/schemas/api.prom.AlarmPageItem'
-    api.prom.v1.CreateDictReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.CreateDictRequest:
-      type: object
-      properties:
-        dict:
-          $ref: '#/components/schemas/api.prom.DictItem'
-    api.prom.v1.CreateGroupReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.CreateGroupRequest:
-      type: object
-      properties:
-        group:
-          $ref: '#/components/schemas/api.prom.GroupItem'
-    api.prom.v1.CreateStrategyReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.CreateStrategyRequest:
-      type: object
-      properties:
-        strategy:
-          $ref: '#/components/schemas/api.prom.StrategyItem'
-    api.prom.v1.DeleteAlarmPageReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.DeleteDictReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.DeleteGroupReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.DeleteStrategyReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.GetAlarmPageReply:
-      type: object
-      properties:
-        alarmPage:
-          $ref: '#/components/schemas/api.prom.AlarmPageItem'
-        response:
-          $ref: '#/components/schemas/api.Response'
-        result:
-          $ref: '#/components/schemas/api.ListQueryResult'
-    api.prom.v1.GetAlarmPageRequest:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        query:
-          $ref: '#/components/schemas/api.ListQuery'
-        strategy:
-          $ref: '#/components/schemas/api.prom.StrategyItem'
-    api.prom.v1.GetDictReply:
-      type: object
-      properties:
-        dict:
-          $ref: '#/components/schemas/api.prom.DictItem'
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.GetGroupReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        group:
-          $ref: '#/components/schemas/api.prom.GroupItem'
-    api.prom.v1.GetStrategyReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        strategy:
-          $ref: '#/components/schemas/api.prom.StrategyItem'
-    api.prom.v1.ListAlarmPageReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        result:
-          $ref: '#/components/schemas/api.ListQueryResult'
-        alarmPages:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.AlarmPageItem'
-    api.prom.v1.ListAlarmPageRequest:
-      type: object
-      properties:
-        query:
-          $ref: '#/components/schemas/api.ListQuery'
-        alarmPage:
-          $ref: '#/components/schemas/api.prom.AlarmPageItem'
-    api.prom.v1.ListDictReply:
-      type: object
-      properties:
-        result:
-          $ref: '#/components/schemas/api.ListQueryResult'
-        response:
-          $ref: '#/components/schemas/api.Response'
-        dicts:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.DictItem'
-    api.prom.v1.ListDictRequest:
-      type: object
-      properties:
-        query:
-          $ref: '#/components/schemas/api.ListQuery'
-        dict:
-          $ref: '#/components/schemas/api.prom.DictItem'
-    api.prom.v1.ListGroupReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        result:
-          $ref: '#/components/schemas/api.ListQueryResult'
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.GroupItem'
-    api.prom.v1.ListGroupRequest:
-      type: object
-      properties:
-        query:
-          $ref: '#/components/schemas/api.ListQuery'
-        group:
-          $ref: '#/components/schemas/api.prom.GroupItem'
-    api.prom.v1.ListStrategyReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        result:
-          $ref: '#/components/schemas/api.ListQueryResult'
-        strategies:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.prom.StrategyItem'
-    api.prom.v1.ListStrategyRequest:
-      type: object
-      properties:
-        query:
-          $ref: '#/components/schemas/api.ListQuery'
-        strategy:
-          $ref: '#/components/schemas/api.prom.StrategyItem'
-    api.prom.v1.UpdateAlarmPageReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateAlarmPageRequest:
-      type: object
-      properties:
-        alarmPage:
-          $ref: '#/components/schemas/api.prom.AlarmPageItem'
-        id:
-          type: integer
-          format: int32
-    api.prom.v1.UpdateAlarmPagesStatusReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateAlarmPagesStatusRequest:
-      type: object
-      properties:
-        ids:
-          type: array
-          items:
-            type: integer
-            format: int32
-        status:
-          type: integer
-          format: enum
-    api.prom.v1.UpdateDictReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateDictRequest:
-      type: object
-      properties:
-        dict:
-          $ref: '#/components/schemas/api.prom.DictItem'
-        id:
-          type: integer
-          format: int32
-    api.prom.v1.UpdateDictsStatusReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateDictsStatusRequest:
-      type: object
-      properties:
-        ids:
-          type: array
-          items:
-            type: integer
-            format: int32
-        status:
-          type: integer
-          format: enum
-    api.prom.v1.UpdateGroupReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateGroupRequest:
-      type: object
-      properties:
-        group:
-          $ref: '#/components/schemas/api.prom.GroupItem'
-        id:
-          type: integer
-          format: int32
-    api.prom.v1.UpdateGroupsStatusReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateGroupsStatusRequest:
-      type: object
-      properties:
-        status:
-          type: integer
-          format: enum
-        ids:
-          type: array
-          items:
-            type: integer
-            format: int32
-    api.prom.v1.UpdateStrategiesStatusReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateStrategiesStatusRequest:
-      type: object
-      properties:
-        status:
-          type: integer
-          format: enum
-        ids:
-          type: array
-          items:
-            type: integer
-            format: int32
-    api.prom.v1.UpdateStrategyReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.prom.v1.UpdateStrategyRequest:
-      type: object
-      properties:
-        strategy:
-          $ref: '#/components/schemas/api.prom.StrategyItem'
-        id:
-          type: integer
-          format: int32
-    api.strategy.Group:
-      type: object
-      properties:
-        name:
-          type: string
-        rules:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.strategy.Rule'
-    api.strategy.Rule:
-      type: object
-      properties:
-        alert:
-          type: string
-        expr:
-          type: string
-        for:
-          type: string
-        labels:
-          type: object
-          additionalProperties:
-            type: string
-        annotations:
-          type: object
-          additionalProperties:
-            type: string
-    api.strategy.Strategy:
-      type: object
-      properties:
-        filename:
-          type: string
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.strategy.Group'
-    api.strategy.StrategyDir:
-      type: object
-      properties:
-        dir:
-          type: string
-        strategies:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.strategy.Strategy'
-    api.strategy.v1.CreateRuleReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.strategy.v1.CreateRuleRequest:
-      type: object
-      properties:
-        rule:
-          $ref: '#/components/schemas/api.strategy.Rule'
-        groupId:
-          type: integer
-          format: uint32
-    api.strategy.v1.DeleteRuleReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.strategy.v1.GetRuleDetailReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        rule:
-          $ref: '#/components/schemas/api.strategy.Rule'
-    api.strategy.v1.StrategiesReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        strategyDir:
-          type: array
-          items:
-            $ref: '#/components/schemas/api.strategy.StrategyDir'
-    api.strategy.v1.UpdateRuleReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-    api.strategy.v1.UpdateRuleRequest:
-      type: object
-      properties:
-        id:
-          type: string
-        rule:
-          $ref: '#/components/schemas/api.strategy.Rule'
-    api.strategy.v1.load.ReloadReply:
-      type: object
-      properties:
-        response:
-          $ref: '#/components/schemas/api.Response'
-        timestamp:
-          type: integer
-          format: int64
-    api.strategy.v1.load.ReloadRequest:
-      type: object
-      properties:
-        nodes:
-          type: array
-          items:
-            type: string
-    api.strategy.v1.pull.StrategiesReply:
-      type: object
-      properties:
-        strategyDirs:
-          type: array
+    schemas:
+        api.Field:
+            type: object
+            properties:
+                field:
+                    type: string
+                label:
+                    type: string
+        api.ListQuery:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                sort:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.Sort'
+                fields:
+                    type: array
+                    items:
+                        type: string
+                keyword:
+                    type: string
+                startAt:
+                    type: integer
+                    format: int64
+                endAt:
+                    type: integer
+                    format: int64
+                timeField:
+                    type: string
+        api.ListQueryResult:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                fields:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.Field'
+        api.PageReply:
+            type: object
+            properties:
+                current:
+                    type: integer
+                    format: int32
+                size:
+                    type: integer
+                    format: int32
+                total:
+                    type: integer
+                    format: int64
+        api.PageRequest:
+            type: object
+            properties:
+                current:
+                    type: integer
+                    format: int32
+                size:
+                    type: integer
+                    format: int32
+        api.PingReply:
+            type: object
+            properties:
+                name:
+                    type: string
+                version:
+                    type: string
+                namespace:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        api.Response:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int64
+                message:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        api.Sort:
+            type: object
+            properties:
+                field:
+                    type: string
+                asc:
+                    type: boolean
+        api.node.CallResponse:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.AlarmPageItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                icon:
+                    type: string
+                color:
+                    type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                status:
+                    type: integer
+                    format: enum
+                id:
+                    type: integer
+                    format: int32
+        api.prom.DictItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                category:
+                    type: integer
+                    format: enum
+                color:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                id:
+                    type: integer
+                    format: int32
+        api.prom.GroupItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                promStrategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.StrategyItem'
+                categories:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.DictItem'
+                strategyCount:
+                    type: integer
+                    format: int64
+                categoriesIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                    description: 规则组类型
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                id:
+                    type: integer
+                    format: int32
+        api.prom.StrategyItem:
+            type: object
+            properties:
+                groupId:
+                    type: integer
+                    format: int32
+                alert:
+                    type: string
+                expr:
+                    type: string
+                for:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                categories:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.DictItem'
+                    description: 规则类型
+                alertLevelId:
+                    type: integer
+                    description: 默认要具备告警等级
+                    format: int32
+                alertLevel:
+                    $ref: '#/components/schemas/api.prom.DictItem'
+                alarmPageIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                    description: 规则报警页面(告警信息出现的大盘页面)
+                alarmPages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.AlarmPageItem'
+                status:
+                    type: integer
+                    description: 状态
+                    format: enum
+                categorieIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                id:
+                    type: integer
+                    format: int32
+        api.prom.v1.CreateAlarmPageReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.CreateAlarmPageRequest:
+            type: object
+            properties:
+                alarmPage:
+                    $ref: '#/components/schemas/api.prom.AlarmPageItem'
+        api.prom.v1.CreateDictReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.CreateDictRequest:
+            type: object
+            properties:
+                dict:
+                    $ref: '#/components/schemas/api.prom.DictItem'
+        api.prom.v1.CreateGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.CreateGroupRequest:
+            type: object
+            properties:
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.v1.CreateStrategyReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.CreateStrategyRequest:
+            type: object
+            properties:
+                strategy:
+                    $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.DeleteAlarmPageReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.DeleteDictReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.DeleteGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.DeleteStrategyReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.GetAlarmPageReply:
+            type: object
+            properties:
+                alarmPage:
+                    $ref: '#/components/schemas/api.prom.AlarmPageItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                result:
+                    $ref: '#/components/schemas/api.ListQueryResult'
+        api.prom.v1.GetAlarmPageRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                query:
+                    $ref: '#/components/schemas/api.ListQuery'
+                strategy:
+                    $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.GetDictReply:
+            type: object
+            properties:
+                dict:
+                    $ref: '#/components/schemas/api.prom.DictItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.GetGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.v1.GetStrategyReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                strategy:
+                    $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.ListAlarmPageReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                result:
+                    $ref: '#/components/schemas/api.ListQueryResult'
+                alarmPages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.AlarmPageItem'
+        api.prom.v1.ListAlarmPageRequest:
+            type: object
+            properties:
+                query:
+                    $ref: '#/components/schemas/api.ListQuery'
+                alarmPage:
+                    $ref: '#/components/schemas/api.prom.AlarmPageItem'
+        api.prom.v1.ListDictReply:
+            type: object
+            properties:
+                result:
+                    $ref: '#/components/schemas/api.ListQueryResult'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                dicts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.DictItem'
+        api.prom.v1.ListDictRequest:
+            type: object
+            properties:
+                query:
+                    $ref: '#/components/schemas/api.ListQuery'
+                dict:
+                    $ref: '#/components/schemas/api.prom.DictItem'
+        api.prom.v1.ListGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                result:
+                    $ref: '#/components/schemas/api.ListQueryResult'
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.v1.ListGroupRequest:
+            type: object
+            properties:
+                query:
+                    $ref: '#/components/schemas/api.ListQuery'
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.v1.ListStrategyReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                result:
+                    $ref: '#/components/schemas/api.ListQueryResult'
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.ListStrategyRequest:
+            type: object
+            properties:
+                query:
+                    $ref: '#/components/schemas/api.ListQuery'
+                strategy:
+                    $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.UpdateAlarmPageReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateAlarmPageRequest:
+            type: object
+            properties:
+                alarmPage:
+                    $ref: '#/components/schemas/api.prom.AlarmPageItem'
+                id:
+                    type: integer
+                    format: int32
+        api.prom.v1.UpdateAlarmPagesStatusReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateAlarmPagesStatusRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                status:
+                    type: integer
+                    format: enum
+        api.prom.v1.UpdateDictReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateDictRequest:
+            type: object
+            properties:
+                dict:
+                    $ref: '#/components/schemas/api.prom.DictItem'
+                id:
+                    type: integer
+                    format: int32
+        api.prom.v1.UpdateDictsStatusReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateDictsStatusRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                status:
+                    type: integer
+                    format: enum
+        api.prom.v1.UpdateGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateGroupRequest:
+            type: object
+            properties:
+                group:
+                    $ref: '#/components/schemas/api.prom.GroupItem'
+                id:
+                    type: integer
+                    format: int32
+        api.prom.v1.UpdateGroupsStatusReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateGroupsStatusRequest:
+            type: object
+            properties:
+                status:
+                    type: integer
+                    format: enum
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+        api.prom.v1.UpdateStrategiesStatusReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateStrategiesStatusRequest:
+            type: object
+            properties:
+                status:
+                    type: integer
+                    format: enum
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+        api.prom.v1.UpdateStrategyReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.UpdateStrategyRequest:
+            type: object
+            properties:
+                strategy:
+                    $ref: '#/components/schemas/api.prom.StrategyItem'
+                id:
+                    type: integer
+                    format: int32
+        api.strategy.Group:
+            type: object
+            properties:
+                name:
+                    type: string
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Rule'
+        api.strategy.Rule:
+            type: object
+            properties:
+                alert:
+                    type: string
+                expr:
+                    type: string
+                for:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+        api.strategy.Strategy:
+            type: object
+            properties:
+                filename:
+                    type: string
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Group'
+        api.strategy.StrategyDir:
+            type: object
+            properties:
+                dir:
+                    type: string
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.Strategy'
+        api.strategy.v1.CreateRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.CreateRuleRequest:
+            type: object
+            properties:
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
+                groupId:
+                    type: integer
+                    format: uint32
+        api.strategy.v1.DeleteRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.GetRuleDetailReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
+        api.strategy.v1.StrategiesReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                strategyDir:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.StrategyDir'
+        api.strategy.v1.UpdateRuleReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.UpdateRuleRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                rule:
+                    $ref: '#/components/schemas/api.strategy.Rule'
+        api.strategy.v1.load.ReloadReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                timestamp:
+                    type: integer
+                    format: int64
+        api.strategy.v1.load.ReloadRequest:
+            type: object
+            properties:
+                nodes:
+                    type: array
+                    items:
+                        type: string
+        api.strategy.v1.pull.StrategiesReply:
+            type: object
+            properties:
+                strategyDirs:
+                    type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.StrategyDir'
                 timestamp:
@@ -1392,14 +1385,14 @@ components:
                     type: string
             description: The response message containing the greetings
 tags:
-  - name: AlarmPage
-  - name: Crud
-  - name: Dict
-  - name: Greeter
-    description: The greeting service definition.
-  - name: Load
-  - name: Ping
-  - name: Prom
-  - name: Pull
-  - name: Push
-  - name: Push
+    - name: AlarmPage
+    - name: Crud
+    - name: Dict
+    - name: Greeter
+      description: The greeting service definition.
+    - name: Load
+    - name: Ping
+    - name: Prom
+    - name: Pull
+    - name: Push
+    - name: Push

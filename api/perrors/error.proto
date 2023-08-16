@@ -24,6 +24,10 @@ enum ServerReason {
   SERVER_UNKNOWN = 0 [(errors.code) = 501]; // 服务端未知错误
   SERVER_DATA_NOT_FOUND = 1 [(errors.code) = 502]; // 数据不存在
   SERVER_DATABASE_ERROR = 2 [(errors.code) = 503]; // 数据库错误
+  // GRPC错误
+  SERVER_GRPC_ERROR = 3 [(errors.code) = 504];
+  // HTTP错误
+  SERVER_HTTP_ERROR = 4 [(errors.code) = 505];
 }
 
 // 逻辑错误

@@ -35,6 +35,138 @@ var (
 	_ = sort.Sort
 )
 
+// Validate checks the field values on NodeServer with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *NodeServer) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on NodeServer with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in NodeServerMultiError, or
+// nil if none found.
+func (m *NodeServer) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *NodeServer) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ServerName
+
+	if all {
+		switch v := interface{}(m.GetTimeout()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, NodeServerValidationError{
+					field:  "Timeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, NodeServerValidationError{
+					field:  "Timeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NodeServerValidationError{
+				field:  "Timeout",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Network
+
+	if len(errors) > 0 {
+		return NodeServerMultiError(errors)
+	}
+
+	return nil
+}
+
+// NodeServerMultiError is an error wrapping multiple validation errors
+// returned by NodeServer.ValidateAll() if the designated constraints aren't met.
+type NodeServerMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m NodeServerMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m NodeServerMultiError) AllErrors() []error { return m }
+
+// NodeServerValidationError is the validation error returned by
+// NodeServer.Validate if the designated constraints aren't met.
+type NodeServerValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e NodeServerValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e NodeServerValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e NodeServerValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e NodeServerValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e NodeServerValidationError) ErrorName() string { return "NodeServerValidationError" }
+
+// Error satisfies the builtin error interface
+func (e NodeServerValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sNodeServer.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = NodeServerValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = NodeServerValidationError{}
+
 // Validate checks the field values on CallRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -57,15 +189,49 @@ func (m *CallRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetServers()) < 1 {
 		err := CallRequestValidationError{
-			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			field:  "Servers",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetServers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CallRequestValidationError{
+						field:  fmt.Sprintf("Servers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CallRequestValidationError{
+						field:  fmt.Sprintf("Servers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CallRequestValidationError{
+					field:  fmt.Sprintf("Servers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {

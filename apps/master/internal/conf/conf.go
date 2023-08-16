@@ -16,7 +16,6 @@ var ProviderSet = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "PushStrategy"),
 	wire.FieldsOf(new(*Bootstrap), "Registrar"),
-	wire.FieldsOf(new(*Bootstrap), "Nodes"),
 	wire.FieldsOf(new(*Registrar), "Etcd"),
 	wire.Bind(new(conn.ITraceConfig), new(*Trace)),
 	wire.Bind(new(conn.ITraceEnv), new(*Env)),

@@ -28,8 +28,7 @@ func (l *Timer) Start(ctx context.Context) error {
 				return
 			case <-l.ticker.C:
 				if err := l.call(ctx); err != nil {
-					l.logger.Errorf("[Timer] call error: %v", err)
-					return
+
 				}
 			case <-l.stop:
 				return

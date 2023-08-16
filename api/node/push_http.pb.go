@@ -27,16 +27,13 @@ type PushHTTPServer interface {
 
 func RegisterPushHTTPServer(s *http.Server, srv PushHTTPServer) {
 	r := s.Route("/")
-	r.GET("/push/v1/node/{name}/strategies", _Push_Call0_HTTP_Handler(srv))
+	r.GET("/push/v1/nodes/strategies", _Push_Call0_HTTP_Handler(srv))
 }
 
 func _Push_Call0_HTTP_Handler(srv PushHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CallRequest
 		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationPushCall)
@@ -66,7 +63,7 @@ func NewPushHTTPClient(client *http.Client) PushHTTPClient {
 
 func (c *PushHTTPClientImpl) Call(ctx context.Context, in *CallRequest, opts ...http.CallOption) (*CallResponse, error) {
 	var out CallResponse
-	pattern := "/push/v1/node/{name}/strategies"
+	pattern := "/push/v1/nodes/strategies"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationPushCall))
 	opts = append(opts, http.PathTemplate(pattern))

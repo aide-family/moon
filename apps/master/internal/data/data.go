@@ -43,6 +43,7 @@ const (
 	promModuleName      = "data/Prom"
 	alarmPageModuleName = "data/AlarmPage"
 	dictModuleName      = "data/Dict"
+	pushModuleName      = "data/Push"
 )
 
 func (l *Data) DB() *gorm.DB {
