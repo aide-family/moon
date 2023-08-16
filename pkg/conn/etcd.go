@@ -8,7 +8,7 @@ import (
 	clientV3 "go.etcd.io/etcd/client/v3"
 )
 
-type EtcdConfig interface {
+type IEtcdConfig interface {
 	GetEndpoints() []string
 }
 
@@ -20,8 +20,8 @@ var (
 
 // NewETCDClient new etcd client
 //
-//	@param cfg EtcdConfig
-func NewETCDClient(conf EtcdConfig) *clientV3.Client {
+//	@param cfg IEtcdConfig
+func NewETCDClient(conf IEtcdConfig) *clientV3.Client {
 	endpoints := conf.GetEndpoints()
 	if len(endpoints) == 0 {
 		panic("etcd endpoints is empty")

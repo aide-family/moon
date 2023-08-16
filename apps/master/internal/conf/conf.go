@@ -20,7 +20,7 @@ var ProviderSet = wire.NewSet(
 	wire.FieldsOf(new(*Registrar), "Etcd"),
 	wire.Bind(new(conn.ITraceConfig), new(*Trace)),
 	wire.Bind(new(conn.ITraceEnv), new(*Env)),
-	wire.Bind(new(conn.EtcdConfig), new(*Registrar_Etcd)),
+	wire.Bind(new(conn.IEtcdConfig), new(*Registrar_Etcd)),
 )
 
 // 全局配置获取
