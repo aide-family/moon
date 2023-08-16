@@ -12,7 +12,7 @@ import (
 )
 
 type INodeServer interface {
-	GetServername() string
+	GetServerName() string
 	GetNetwork() string
 	GetTimeout() *durationpb.Duration
 }
@@ -34,7 +34,7 @@ func GetNodeHttpClient(ctx context.Context, s INodeServer, d registry.Discovery)
 
 	hConn, err := http.NewClient(
 		ctx,
-		http.WithEndpoint("discovery:///"+s.GetServername()),
+		http.WithEndpoint("discovery:///"+s.GetServerName()),
 		http.WithDiscovery(d),
 		http.WithTimeout(s.GetTimeout().AsDuration()),
 	)
@@ -48,7 +48,7 @@ func GetNodeGrpcClient(ctx context.Context, s INodeServer, d registry.Discovery)
 	}
 	gConn, err := grpc.DialInsecure(
 		ctx,
-		grpc.WithEndpoint("discovery:///"+s.GetServername()),
+		grpc.WithEndpoint("discovery:///"+s.GetServerName()),
 		grpc.WithDiscovery(d),
 		grpc.WithTimeout(s.GetTimeout().AsDuration()),
 	)

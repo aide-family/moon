@@ -95,6 +95,34 @@ func ErrorServerDatabaseError(format string, args ...interface{}) *errors.Error 
 	return errors.New(503, ServerReason_SERVER_DATABASE_ERROR.String(), fmt.Sprintf(format, args...))
 }
 
+// GRPC错误
+func IsServerGrpcError(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ServerReason_SERVER_GRPC_ERROR.String() && e.Code == 504
+}
+
+// GRPC错误
+func ErrorServerGrpcError(format string, args ...interface{}) *errors.Error {
+	return errors.New(504, ServerReason_SERVER_GRPC_ERROR.String(), fmt.Sprintf(format, args...))
+}
+
+// HTTP错误
+func IsServerHttpError(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ServerReason_SERVER_HTTP_ERROR.String() && e.Code == 505
+}
+
+// HTTP错误
+func ErrorServerHttpError(format string, args ...interface{}) *errors.Error {
+	return errors.New(505, ServerReason_SERVER_HTTP_ERROR.String(), fmt.Sprintf(format, args...))
+}
+
 // 逻辑未知错误
 func IsLogicUnknown(err error) bool {
 	if err == nil {

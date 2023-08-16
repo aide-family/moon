@@ -31,3 +31,11 @@ registrar:
       - localhost:20000
       - localhost:20002
       - localhost:20004
+
+push_strategy:
+  interval: 10s
+  dir: /tmp/prometheus-manager
+  nodes:
+    - server_name: "prometheus-manager-node"
+      timeout: 1s
+      network: "grpc" # grpc, http, https

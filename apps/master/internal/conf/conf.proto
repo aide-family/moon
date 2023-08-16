@@ -12,7 +12,6 @@ message Bootstrap {
   Env env = 5;
   PushStrategy push_strategy = 6;
   Registrar registrar = 7;
-  repeated NodeServer nodes = 8;
 }
 
 message HTTP {
@@ -64,6 +63,8 @@ message Env {
 
 message PushStrategy {
   google.protobuf.Duration interval = 1; // push 策略的间隔
+  string dir = 2; // push 策略的目录
+  repeated NodeServer nodes = 8;
 }
 
 message Registrar {
