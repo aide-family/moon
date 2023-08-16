@@ -28,6 +28,8 @@ func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		biz.ProviderSet,
 		service.ProviderSet,
 		conn.NewTracerProvider,
+		conn.NewETCDClient,
+		conn.NewETCDRegistrar,
 		newApp,
 	))
 }

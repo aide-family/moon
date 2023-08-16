@@ -8,10 +8,10 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
-  NodeServer nodes = 3;
   Trace trace = 4;
   Env env = 5;
   PushStrategy push_strategy = 6;
+  Registrar registrar = 7;
 }
 
 message HTTP {
@@ -49,11 +49,6 @@ message Data {
   Redis redis = 2;
 }
 
-message NodeServer {
-  repeated HTTP http = 1;
-  repeated GRPC grpc = 2;
-}
-
 // 链路追踪
 message Trace {
   string endpoint = 1;
@@ -68,4 +63,11 @@ message Env {
 
 message PushStrategy {
   google.protobuf.Duration interval = 1; // push 策略的间隔
+}
+
+message Registrar {
+  message Etcd {
+    repeated string endpoints = 1;
+  }
+  Etcd etcd = 1;
 }

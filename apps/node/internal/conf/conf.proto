@@ -10,6 +10,7 @@ message Bootstrap {
   Trace trace = 4;
   Strategy strategy = 5;
   Env env = 6;
+  Registrar registrar = 7;
 }
 
 message Server {
@@ -48,4 +49,12 @@ message Env {
   map<string, string> metadata = 2;
   string version = 3;
   string namespace = 4;
+}
+
+
+message Registrar {
+  message Etcd {
+    repeated string endpoints = 1;
+  }
+  Etcd etcd = 1;
 }

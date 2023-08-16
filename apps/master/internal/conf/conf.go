@@ -13,11 +13,13 @@ var ProviderSet = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Data"),
 	wire.FieldsOf(new(*Bootstrap), "Trace"),
 	wire.FieldsOf(new(*Bootstrap), "Server"),
-	wire.FieldsOf(new(*Bootstrap), "Nodes"),
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "PushStrategy"),
+	wire.FieldsOf(new(*Bootstrap), "Registrar"),
+	wire.FieldsOf(new(*Registrar), "Etcd"),
 	wire.Bind(new(conn.ITraceConfig), new(*Trace)),
 	wire.Bind(new(conn.ITraceEnv), new(*Env)),
+	wire.Bind(new(conn.EtcdConfig), new(*Registrar_Etcd)),
 )
 
 // 全局配置获取

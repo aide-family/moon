@@ -30,15 +30,9 @@ registrar:
 trace:
   endpoint: http://127.0.0.1:14268/api/traces
 
-nodes:
-  http:
-    - addr: 127.0.0.1:9001
-      timeout: 1s
-    - addr: 127.0.0.1:9002
-      timeout: 1s
-
-  grpc:
-    - addr: 127.0.0.1:9001
-      timeout: 1s
-    - addr: 127.0.0.1:9002
-      timeout: 1s
+registrar:
+  etcd:
+    endpoints:
+      - localhost:20000
+      - localhost:20002
+      - localhost:20004
