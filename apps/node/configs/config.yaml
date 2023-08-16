@@ -26,3 +26,10 @@ env:
   metadata:
     description: "Kratos Layout App"
     env: "local"
+
+registrar:
+  etcd:
+    endpoints:
+      - localhost:20000
+      - localhost:20002
+      - localhost:20004

@@ -23,6 +23,8 @@ import (
 func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(
 		conn.NewTracerProvider,
+		conn.NewETCDClient,
+		conn.NewETCDRegistrar,
 		server.ProviderSet,
 		data.ProviderSet,
 		biz.ProviderSet,

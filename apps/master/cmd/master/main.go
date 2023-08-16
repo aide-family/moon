@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"os"
 	"sync"
 
@@ -40,6 +41,7 @@ func init() {
 func newApp(
 	env *conf.Env,
 	logger log.Logger,
+	etcdRegistry *etcd.Registry,
 	gs *grpc.Server,
 	hs *http.Server,
 	ts *servers.Timer,
@@ -49,6 +51,7 @@ func newApp(
 		kratos.Name(env.GetName()),
 		kratos.Version(env.GetVersion()),
 		kratos.Metadata(env.GetMetadata()),
+		kratos.Registrar(etcdRegistry),
 		kratos.Logger(logger),
 		kratos.Server(gs, hs, ts),
 	)
