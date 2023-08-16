@@ -69,6 +69,11 @@ message GroupItem {
   int32 id = 99;
 }
 
+message GroupSimpleItem {
+  int32 id = 1;
+  string name = 2;
+}
+
 message StrategyItem {
   int32 group_id = 1 [(validate.rules).int32 = {gt: 0, ignore_empty: true}];
   string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 64, ignore_empty: true}];
@@ -97,6 +102,7 @@ message StrategyItem {
   // 状态
   Status status = 15;
   repeated int32 categorie_ids = 16;
+  GroupSimpleItem group = 17;
   int32 id = 99;
 }
 

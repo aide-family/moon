@@ -63,6 +63,12 @@ func newPromStrategy(db *gorm.DB, opts ...gen.DOOption) promStrategy {
 		RelationField: field.NewRelation("AlertLevel", "model.PromDict"),
 	}
 
+	_promStrategy.GroupInfo = promStrategyBelongsToGroupInfo{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("GroupInfo", "model.PromGroup"),
+	}
+
 	_promStrategy.fillFieldMap()
 
 	return _promStrategy
@@ -89,6 +95,8 @@ type promStrategy struct {
 	Categories promStrategyHasManyCategories
 
 	AlertLevel promStrategyBelongsToAlertLevel
+
+	GroupInfo promStrategyBelongsToGroupInfo
 
 	fieldMap map[string]field.Expr
 }
@@ -133,7 +141,7 @@ func (p *promStrategy) GetFieldByName(fieldName string) (field.OrderExpr, bool) 
 }
 
 func (p *promStrategy) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 15)
+	p.fieldMap = make(map[string]field.Expr, 16)
 	p.fieldMap["id"] = p.ID
 	p.fieldMap["group_id"] = p.GroupID
 	p.fieldMap["alert"] = p.Alert
@@ -373,6 +381,77 @@ func (a promStrategyBelongsToAlertLevelTx) Clear() error {
 }
 
 func (a promStrategyBelongsToAlertLevelTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type promStrategyBelongsToGroupInfo struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a promStrategyBelongsToGroupInfo) Where(conds ...field.Expr) *promStrategyBelongsToGroupInfo {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a promStrategyBelongsToGroupInfo) WithContext(ctx context.Context) *promStrategyBelongsToGroupInfo {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a promStrategyBelongsToGroupInfo) Session(session *gorm.Session) *promStrategyBelongsToGroupInfo {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a promStrategyBelongsToGroupInfo) Model(m *model.PromStrategy) *promStrategyBelongsToGroupInfoTx {
+	return &promStrategyBelongsToGroupInfoTx{a.db.Model(m).Association(a.Name())}
+}
+
+type promStrategyBelongsToGroupInfoTx struct{ tx *gorm.Association }
+
+func (a promStrategyBelongsToGroupInfoTx) Find() (result *model.PromGroup, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a promStrategyBelongsToGroupInfoTx) Append(values ...*model.PromGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a promStrategyBelongsToGroupInfoTx) Replace(values ...*model.PromGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a promStrategyBelongsToGroupInfoTx) Delete(values ...*model.PromGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a promStrategyBelongsToGroupInfoTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a promStrategyBelongsToGroupInfoTx) Count() int64 {
 	return a.tx.Count()
 }
 

@@ -136,10 +136,18 @@ export type AlarmPage = {
     id: number
 }
 
+export type PromGroupSimpleItem = {
+    // 规则组唯一ID
+    id: number
+    // 规则组名称, 唯一
+    name: string,
+}
+
 // 规则
 export type PromStrategyItem = {
     // 规则所属规则组ID
     groupId: number,
+    group: PromGroupSimpleItem,
     // 规则名称
     alert: string,
     // 规则PromQL表达式
@@ -203,4 +211,12 @@ export type GroupItemRequest = {
     strategyCount?: number,
     // 规则组属性ID, 用于标记规则组属性, 例如告警对象领域, 业务领域等, 与categories一一对应
     categoriesIds?: number[],
+}
+
+// 规则
+export type PromStrategyItemRequest = {
+    // 规则所属规则组ID
+    groupId?: number,
+    // 规则名称
+    alert?: string,
 }

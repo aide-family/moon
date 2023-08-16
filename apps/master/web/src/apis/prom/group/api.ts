@@ -1,6 +1,5 @@
 import {Delete, Get, Post, Put} from "@/apis/requests";
 import type {GroupCreateItem, GroupDetailReply, ListGroupReply, ListGroupRequest} from "@/apis/prom/group/group";
-import type {GroupItem} from "@/apis/prom/prom";
 import {Status, StatusMap} from "@/apis/prom/prom";
 import type {Response} from "@/apis/type";
 

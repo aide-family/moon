@@ -144,7 +144,15 @@ func buildStrategyItem(strategyItem *model.PromStrategy) *prom.StrategyItem {
 			return result
 		}(),
 		Status: prom.Status(strategyItem.Status),
+		Group:  buildGroupSimpleItem(strategyItem.GroupInfo),
 		Id:     strategyItem.ID,
+	}
+}
+
+func buildGroupSimpleItem(group *model.PromGroup) *prom.GroupSimpleItem {
+	return &prom.GroupSimpleItem{
+		Id:   group.ID,
+		Name: group.Name,
 	}
 }
 

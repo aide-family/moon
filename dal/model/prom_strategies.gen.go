@@ -29,6 +29,7 @@ type PromStrategy struct {
 	AlarmPages   []*PromAlarmPage `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"alarm_pages"`
 	Categories   []*PromDict      `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"categories"`
 	AlertLevel   *PromDict        `gorm:"foreignKey:alert_level_id" json:"alert_level"`
+	GroupInfo    *PromGroup       `gorm:"foreignKey:group_id" json:"group_info"`
 }
 
 // TableName PromStrategy's table name
