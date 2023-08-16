@@ -22,11 +22,6 @@ env:
     env: "dev"
     description: "Kratos Layout App"
 
-registrar:
-  etcd:
-    endpoints:
-      - ""
-
 trace:
   endpoint: http://127.0.0.1:14268/api/traces
 

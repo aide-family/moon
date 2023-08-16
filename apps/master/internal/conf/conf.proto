@@ -12,6 +12,7 @@ message Bootstrap {
   Env env = 5;
   PushStrategy push_strategy = 6;
   Registrar registrar = 7;
+  repeated NodeServer nodes = 8;
 }
 
 message HTTP {
@@ -70,4 +71,10 @@ message Registrar {
     repeated string endpoints = 1;
   }
   Etcd etcd = 1;
+}
+
+message NodeServer {
+  string server_name = 1;
+  google.protobuf.Duration timeout = 2;
+  string network = 3;
 }
