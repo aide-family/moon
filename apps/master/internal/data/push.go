@@ -2,8 +2,11 @@ package data
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/strategy"
 	nodeV1Push "prometheus-manager/api/strategy/v1/push"
@@ -12,7 +15,7 @@ import (
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/util/dir"
-	"strconv"
+	"prometheus-manager/pkg/util/hash"
 
 	"prometheus-manager/apps/master/internal/biz"
 )
@@ -38,20 +41,11 @@ func NewPushRepo(data *Data, logger log.Logger) *PushRepo {
 func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) error {
 	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.GRPCPushCall")
 	defer span.End()
-	rpcConn, err := conn.GetNodeGrpcClient(ctx, server, conn.GetDiscovery())
-	if err != nil {
-		l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
-		return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
-			"server": server.GetServerName(),
-		})
-	}
 
 	groups, err := l.promV1Repo.AllGroups(ctx)
 	if err != nil {
-		l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
-		return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
-			"server": server.GetServerName(),
-		})
+		l.logger.WithContext(ctx).Errorf("GRPCPushCall err: %v", err)
+		return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err)
 	}
 
 	if len(groups) == 0 {
@@ -64,7 +58,7 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 			continue
 		}
 		strategies = append(strategies, &strategy.Strategy{
-			Filename: dir.BuildYamlFilename(group.Name),
+			Filename: dir.BuildYamlFilename(hash.MD5([]byte(strconv.Itoa(int(group.ID))))),
 			Groups: []*strategy.Group{
 				{
 					Name: group.Name,
@@ -87,6 +81,17 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 				},
 			},
 		})
+	}
+
+	rpcConn, ok := l.data.nodeGrpcClients[server]
+	if !ok {
+		rpcConn, err = conn.GetNodeGrpcClient(ctx, server, conn.GetDiscovery())
+		if err != nil {
+			l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
+			return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
+				"server": server.GetServerName(),
+			})
+		}
 	}
 
 	strategiesResp, err := nodeV1Push.NewPushClient(rpcConn).Strategies(ctx, &nodeV1Push.StrategiesRequest{

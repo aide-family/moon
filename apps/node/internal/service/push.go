@@ -9,6 +9,7 @@ import (
 type (
 	IPushLogic interface {
 		Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error)
+		DeleteStrategies(ctx context.Context, req *pb.DeleteStrategiesRequest) (*pb.DeleteStrategiesReply, error)
 	}
 
 	PushService struct {
@@ -27,4 +28,8 @@ func NewPushService(logic IPushLogic, logger log.Logger) *PushService {
 
 func (l *PushService) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
 	return l.logic.Strategies(ctx, req)
+}
+
+func (l *PushService) DeleteStrategies(ctx context.Context, req *pb.DeleteStrategiesRequest) (*pb.DeleteStrategiesReply, error) {
+	return l.logic.DeleteStrategies(ctx, req)
 }

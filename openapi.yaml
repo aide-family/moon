@@ -580,6 +580,23 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.node.CallResponse'
     /push/v1/strategies:
+        put:
+            tags:
+                - Push
+            operationId: Push_DeleteStrategies
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.strategy.v1.push.DeleteStrategiesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.push.DeleteStrategiesReply'
         post:
             tags:
                 - Push
@@ -597,102 +614,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
-    /rule/v1/add:
-        post:
-            tags:
-                - Crud
-            operationId: Crud_CreateRule
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.strategy.v1.CreateRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.CreateRuleReply'
-    /rule/v1/delete/{id}:
-        delete:
-            tags:
-                - Crud
-            operationId: Crud_DeleteRule
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.DeleteRuleReply'
-    /rule/v1/detail/{id}:
-        get:
-            tags:
-                - Crud
-            operationId: Crud_RuleDetail
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.GetRuleDetailReply'
-    /rule/v1/edit/{id}:
-        put:
-            tags:
-                - Crud
-            operationId: Crud_UpdateRule
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.strategy.v1.UpdateRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.UpdateRuleReply'
-    /strategies/v1/{nodeId}:
-        get:
-            tags:
-                - Crud
-            operationId: Crud_Strategies
-            parameters:
-                - name: nodeId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.strategy.v1.StrategiesReply'
 components:
     schemas:
         api.Field:
@@ -1277,52 +1198,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.strategy.Strategy'
-        api.strategy.v1.CreateRuleReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.CreateRuleRequest:
-            type: object
-            properties:
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
-                groupId:
-                    type: integer
-                    format: uint32
-        api.strategy.v1.DeleteRuleReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.GetRuleDetailReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
-        api.strategy.v1.StrategiesReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-                strategyDir:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.strategy.StrategyDir'
-        api.strategy.v1.UpdateRuleReply:
-            type: object
-            properties:
-                response:
-                    $ref: '#/components/schemas/api.Response'
-        api.strategy.v1.UpdateRuleRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-                rule:
-                    $ref: '#/components/schemas/api.strategy.Rule'
         api.strategy.v1.load.ReloadReply:
             type: object
             properties:
@@ -1348,6 +1223,31 @@ components:
                 timestamp:
                     type: integer
                     format: int64
+        api.strategy.v1.push.DeleteStrategiesReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.strategy.v1.push.DeleteStrategiesRequest:
+            type: object
+            properties:
+                node:
+                    type: string
+                    description: 目标节点
+                dirs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.v1.push.DeleteStrategyDirItem'
+                    description: 策略
+        api.strategy.v1.push.DeleteStrategyDirItem:
+            type: object
+            properties:
+                dir:
+                    type: string
+                filenames:
+                    type: array
+                    items:
+                        type: string
         api.strategy.v1.push.Result:
             type: object
             properties:
@@ -1394,7 +1294,6 @@ components:
             description: The response message containing the greetings
 tags:
     - name: AlarmPage
-    - name: Crud
     - name: Dict
     - name: Greeter
       description: The greeting service definition.

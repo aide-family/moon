@@ -34,7 +34,8 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	trace := bootstrap.Trace
 	tracerProvider := conn.NewTracerProvider(trace, env)
 	confData := bootstrap.Data
-	dataData, cleanup, err := data.NewData(confData, logger)
+	pushStrategy := bootstrap.PushStrategy
+	dataData, cleanup, err := data.NewData(confData, pushStrategy, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -52,7 +53,6 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	alarmPageV1Service := service.NewAlarmPageService(alarmPageLogic, logger)
 	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service)
 	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service)
-	pushStrategy := bootstrap.PushStrategy
 	pushRepo := data.NewPushRepo(dataData, logger)
 	pushLogic := biz.NewPushLogic(pushRepo, logger)
 	pushService := service.NewPushService(pushLogic, logger)

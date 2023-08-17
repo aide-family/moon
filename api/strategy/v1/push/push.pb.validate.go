@@ -501,3 +501,470 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ResultValidationError{}
+
+// Validate checks the field values on DeleteStrategiesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteStrategiesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteStrategiesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteStrategiesRequestMultiError, or nil if none found.
+func (m *DeleteStrategiesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteStrategiesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetNode()) < 1 {
+		err := DeleteStrategiesRequestValidationError{
+			field:  "Node",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_DeleteStrategiesRequest_Node_Pattern.MatchString(m.GetNode()) {
+		err := DeleteStrategiesRequestValidationError{
+			field:  "Node",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetDirs()) < 1 {
+		err := DeleteStrategiesRequestValidationError{
+			field:  "Dirs",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetDirs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DeleteStrategiesRequestValidationError{
+						field:  fmt.Sprintf("Dirs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DeleteStrategiesRequestValidationError{
+						field:  fmt.Sprintf("Dirs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DeleteStrategiesRequestValidationError{
+					field:  fmt.Sprintf("Dirs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return DeleteStrategiesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteStrategiesRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteStrategiesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteStrategiesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteStrategiesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteStrategiesRequestMultiError) AllErrors() []error { return m }
+
+// DeleteStrategiesRequestValidationError is the validation error returned by
+// DeleteStrategiesRequest.Validate if the designated constraints aren't met.
+type DeleteStrategiesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteStrategiesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteStrategiesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteStrategiesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteStrategiesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteStrategiesRequestValidationError) ErrorName() string {
+	return "DeleteStrategiesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteStrategiesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteStrategiesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteStrategiesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteStrategiesRequestValidationError{}
+
+var _DeleteStrategiesRequest_Node_Pattern = regexp.MustCompile("[a-zA-Z0-9_-]+$")
+
+// Validate checks the field values on DeleteStrategyDirItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteStrategyDirItem) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteStrategyDirItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteStrategyDirItemMultiError, or nil if none found.
+func (m *DeleteStrategyDirItem) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteStrategyDirItem) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetDir()) < 1 {
+		err := DeleteStrategyDirItemValidationError{
+			field:  "Dir",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetFilenames()) < 1 {
+		err := DeleteStrategyDirItemValidationError{
+			field:  "Filenames",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetFilenames() {
+		_, _ = idx, item
+
+		if utf8.RuneCountInString(item) != 37 {
+			err := DeleteStrategyDirItemValidationError{
+				field:  fmt.Sprintf("Filenames[%v]", idx),
+				reason: "value length must be 37 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+
+		}
+
+		if !strings.HasSuffix(item, ".yaml") {
+			err := DeleteStrategyDirItemValidationError{
+				field:  fmt.Sprintf("Filenames[%v]", idx),
+				reason: "value does not have suffix \".yaml\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_DeleteStrategyDirItem_Filenames_Pattern.MatchString(item) {
+			err := DeleteStrategyDirItemValidationError{
+				field:  fmt.Sprintf("Filenames[%v]", idx),
+				reason: "value does not match regex pattern \"[a-z0-9]+.yaml\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return DeleteStrategyDirItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteStrategyDirItemMultiError is an error wrapping multiple validation
+// errors returned by DeleteStrategyDirItem.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteStrategyDirItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteStrategyDirItemMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteStrategyDirItemMultiError) AllErrors() []error { return m }
+
+// DeleteStrategyDirItemValidationError is the validation error returned by
+// DeleteStrategyDirItem.Validate if the designated constraints aren't met.
+type DeleteStrategyDirItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteStrategyDirItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteStrategyDirItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteStrategyDirItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteStrategyDirItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteStrategyDirItemValidationError) ErrorName() string {
+	return "DeleteStrategyDirItemValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteStrategyDirItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteStrategyDirItem.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteStrategyDirItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteStrategyDirItemValidationError{}
+
+var _DeleteStrategyDirItem_Filenames_Pattern = regexp.MustCompile("[a-z0-9]+.yaml")
+
+// Validate checks the field values on DeleteStrategiesReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteStrategiesReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteStrategiesReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteStrategiesReplyMultiError, or nil if none found.
+func (m *DeleteStrategiesReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteStrategiesReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeleteStrategiesReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeleteStrategiesReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeleteStrategiesReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DeleteStrategiesReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteStrategiesReplyMultiError is an error wrapping multiple validation
+// errors returned by DeleteStrategiesReply.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteStrategiesReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteStrategiesReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteStrategiesReplyMultiError) AllErrors() []error { return m }
+
+// DeleteStrategiesReplyValidationError is the validation error returned by
+// DeleteStrategiesReply.Validate if the designated constraints aren't met.
+type DeleteStrategiesReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteStrategiesReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteStrategiesReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteStrategiesReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteStrategiesReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteStrategiesReplyValidationError) ErrorName() string {
+	return "DeleteStrategiesReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteStrategiesReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteStrategiesReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteStrategiesReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteStrategiesReplyValidationError{}

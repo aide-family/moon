@@ -2,6 +2,7 @@ package dir
 
 import (
 	"os"
+	"path"
 	"strings"
 )
 
@@ -101,4 +102,37 @@ func BuildYamlFilename(filename string) string {
 	}
 
 	return filename
+}
+
+// RemoveAllYamlFilename 删除yaml文件
+func RemoveAllYamlFilename(filenames ...string) error {
+	// 创建临时目录
+	if err := os.MkdirAll("./tmp/", os.ModePerm); err != nil {
+		return err
+	}
+
+	for _, f := range filenames {
+		if f == "" {
+			continue
+		}
+
+		if f[len(f)-5:] != ".yaml" {
+			f = f + ".yaml"
+		}
+
+		// 判断文件是否存在, 如果存在, 重命名文件为待删除文件
+		fileInfo, err := os.Stat(f)
+		if err != nil {
+			continue
+		}
+
+		// 重命名文件为待删除文件
+		err = os.Rename(f, path.Join("./tmp/", fileInfo.Name()+".delete"))
+		if err != nil {
+			return err
+		}
+	}
+
+	// 删除所有待删除文件
+	return os.RemoveAll("./tmp/")
 }

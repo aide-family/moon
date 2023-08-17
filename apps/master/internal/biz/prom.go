@@ -2,16 +2,17 @@ package biz
 
 import (
 	"context"
-	"strconv"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"golang.org/x/sync/errgroup"
+	pb "prometheus-manager/api/prom/v1"
+	"prometheus-manager/apps/master/internal/conf"
+	"prometheus-manager/pkg/conn"
+	"strconv"
 
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
-	pb "prometheus-manager/api/prom/v1"
-
 	"prometheus-manager/apps/master/internal/service"
 	"prometheus-manager/dal/model"
 )
@@ -23,6 +24,7 @@ type (
 		UpdateGroupByID(ctx context.Context, id int32, m *model.PromGroup) error
 		UpdateGroupsStatusByIds(ctx context.Context, ids []int32, status prom.Status) error
 		DeleteGroupByID(ctx context.Context, id int32) error
+		DeleteGroupSyncNode(ctx context.Context, server conn.INodeServer, groupId int32) error
 		GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error)
 		Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error)
 
@@ -109,6 +111,34 @@ func (s *PromLogic) DeleteGroup(ctx context.Context, req *pb.DeleteGroupRequest)
 	if err := s.v1Repo.DeleteGroupByID(ctx, req.GetId()); err != nil {
 		s.logger.WithContext(ctx).Errorw("删除Prometheus分组失败", "id", req.GetId(), "err", err)
 		return nil, perrors.ErrorLogicDeletePrometheusGroupFailed("删除Prometheus分组失败").WithCause(err)
+	}
+
+	serverList := conf.Get().GetPushStrategy().GetNodes()
+	grpcNodeServers := make([]conn.INodeServer, 0, len(serverList))
+	httpNodeServers := make([]conn.INodeServer, 0, len(serverList))
+	for _, server := range serverList {
+		switch server.GetNetwork() {
+		case conn.NetworkHttp, conn.NetworkHttps:
+			httpNodeServers = append(httpNodeServers, server)
+		default:
+			grpcNodeServers = append(grpcNodeServers, server)
+		}
+	}
+
+	var eg errgroup.Group
+
+	for _, server := range grpcNodeServers {
+		eg.Go(func() error {
+			if err := s.v1Repo.DeleteGroupSyncNode(ctx, server, req.GetId()); err != nil {
+				// TODO 应该加入会任务队列重试, 保证任务完成, 从而达到数据一致性
+				return err
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		s.logger.WithContext(ctx).Errorw("同步删除Prometheus分组失败", "id", req.GetId(), "err", err)
+		return nil, err
 	}
 
 	return &pb.DeleteGroupReply{Response: &api.Response{Message: "删除Prometheus group成功"}}, nil
