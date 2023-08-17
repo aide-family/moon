@@ -49,7 +49,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         {
             title: "报警页面",
             dataIndex: "alarmPages",
-            width: 200,
+            width: 300,
             render: (alarmPages: AlarmPage[]) => {
                 return <div className={strategyStyles.alarmPagesDiv}>{
                     alarmPages.map((alarmPage, index) => {
