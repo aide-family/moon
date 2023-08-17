@@ -1,22 +1,26 @@
 package strategystore
 
 import (
-	"fmt"
-	"github.com/spf13/viper"
 	"path"
+	"strings"
+
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/spf13/viper"
+
 	"prometheus-manager/api/strategy"
 	"prometheus-manager/pkg/util/dir"
-	"strings"
 )
 
 type Strategy struct {
-	source []*strategy.StrategyDir
+	source       []*strategy.StrategyDir
+	loggerHelper *log.Helper
 }
 
 // NewStrategy 初始化配置文件
-func NewStrategy(source []*strategy.StrategyDir) *Strategy {
+func NewStrategy(source []*strategy.StrategyDir, loggerHelper *log.Helper) *Strategy {
 	return &Strategy{
-		source: source,
+		source:       source,
+		loggerHelper: loggerHelper,
 	}
 }
 
@@ -33,16 +37,16 @@ func (l *Strategy) StoreStrategy() ([]*strategy.StrategyDir, error) {
 		}
 
 		if !isDir {
-			fmt.Println("this is not dir:", strategyDir.GetDir())
+			l.loggerHelper.Warnf("this is not dir: %s", strategyDir.GetDir())
 			list = append(list, strategyDir)
 			continue
 		}
-		fmt.Println("strategyDir.GetDir():", strategyDir.GetDir())
+
 		strategyTempList := make([]*strategy.Strategy, 0, len(strategyDir.GetStrategies()))
 		for _, strategyInfo := range strategyDir.GetStrategies() {
 			if !isYamlFile(strategyInfo.GetFilename()) {
 				strategyTempList = append(strategyTempList, strategyInfo)
-				fmt.Println("isYamlFile:", strategyInfo.GetFilename())
+				l.loggerHelper.Warnf("this is not yaml file: %s", strategyInfo.GetFilename())
 				continue
 			}
 			writePath := path.Join(strategyDir.GetDir(), strategyInfo.GetFilename())

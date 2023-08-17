@@ -18,6 +18,12 @@ service Push {
       body: "*"
     };
   }
+  rpc DeleteStrategies (DeleteStrategiesRequest) returns (DeleteStrategiesReply) {
+    option (google.api.http) = {
+      put: "/push/v1/strategies"
+      body: "*"
+    };
+  }
 }
 
 message StrategiesRequest {
@@ -50,4 +56,40 @@ message Result {
   int64 failed_count = 2;
   // 失败列表
   repeated StrategyDir strategy_dirs = 3;
+}
+
+message DeleteStrategiesRequest {
+  // 目标节点
+  string node = 1 [(validate.rules) = {
+    string: {
+      pattern: "[a-zA-Z0-9_-]+$",
+      min_len: 1,
+    }
+  }];
+  // 策略
+  repeated DeleteStrategyDirItem dirs = 2 [(validate.rules).repeated = {
+    min_items: 1,
+  }];
+}
+
+message DeleteStrategyDirItem {
+  string dir = 1 [(validate.rules).string = {
+    //      pattern: "[a-zA-Z0-9_-]+$",
+    min_len: 1,
+  }];
+  repeated string filenames = 2 [(validate.rules).repeated = {
+    min_items: 1,
+    items:{
+      string: {
+        len: 37,
+        // 不允许出现\*\.等通配符
+        pattern: "[a-z0-9]+.yaml",
+        suffix: ".yaml",
+      }
+    }
+  }];
+}
+
+message DeleteStrategiesReply {
+  Response response = 1;
 }

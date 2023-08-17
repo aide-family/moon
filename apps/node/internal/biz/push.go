@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"path"
+	"prometheus-manager/pkg/util/stringer"
 	"strings"
 	"time"
 
@@ -30,6 +32,7 @@ type (
 	IPushRepo interface {
 		V1Repo
 		StoreStrategy(ctx context.Context, strategyDirList []*strategy.StrategyDir) (*StoreStrategyResult, error)
+		RemoveStrategy(ctx context.Context, files []string) error
 	}
 
 	PushLogic struct {
@@ -60,8 +63,8 @@ func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 	}
 
 	strategyPathMap := make(map[string]struct{})
-	for _, path := range strategyPath {
-		strategyPathMap[dir.RemoveLastSlash(path)] = struct{}{}
+	for _, p := range strategyPath {
+		strategyPathMap[dir.RemoveLastSlash(p)] = struct{}{}
 	}
 
 	// 判断路径是否在允许的范围内
@@ -100,4 +103,52 @@ func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 			StrategyDirs: storeResult.StrategyDirs,
 		},
 	}, nil
+}
+
+func (l *PushLogic) DeleteStrategies(ctx context.Context, req *pb.DeleteStrategiesRequest) (*pb.DeleteStrategiesReply, error) {
+	ctx, span := l.tr.Start(ctx, "DeleteStrategies")
+	defer span.End()
+
+	dirs := req.GetDirs()
+
+	strategyPath := conf.Get().GetStrategy().GetPath()
+	if len(strategyPath) == 0 {
+		l.logger.Error("strategy path not configured")
+		return nil, perrors.ErrorLogicStrategyPathNotConfigured("strategy path not configured")
+	}
+
+	strategyPathMap := make(map[string]struct{})
+	for _, p := range strategyPath {
+		strategyPathMap[dir.RemoveLastSlash(p)] = struct{}{}
+	}
+
+	var unauthorizedPath []string
+	var authorizedPath []string
+	for _, strategyDir := range dirs {
+		dirString := dir.RemoveLastSlash(strategyDir.GetDir())
+		if _, ok := strategyPathMap[dirString]; !ok {
+			l.logger.Errorf("strategy path %s not allowed", dirString)
+			unauthorizedPath = append(unauthorizedPath, dirString)
+			continue
+		}
+
+		dirString = dir.MakeDir(conf.GetConfigPath(), dirString)
+
+		for _, filename := range strategyDir.GetFilenames() {
+			authorizedPath = append(authorizedPath, path.Join(dirString, filename))
+		}
+	}
+
+	if len(unauthorizedPath) > 0 {
+		return nil, perrors.ErrorLogicUnauthorizedPath("strategy path [%s] not allowed", strings.Join(unauthorizedPath, ","))
+	}
+
+	if err := l.repo.RemoveStrategy(ctx, authorizedPath); err != nil {
+		l.logger.WithContext(ctx).Errorf("RemoveStrategy error: %v", err)
+		return nil, perrors.ErrorLogicDeletePrometheusStrategyFailed("delete prometheus strategy file failed").WithCause(err).WithMetadata(map[string]string{
+			"authorizedPath": stringer.New(authorizedPath).String(),
+		})
+	}
+
+	return &pb.DeleteStrategiesReply{Response: &api.Response{Message: "success"}}, nil
 }

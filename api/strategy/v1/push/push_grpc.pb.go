@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PushClient interface {
 	Strategies(ctx context.Context, in *StrategiesRequest, opts ...grpc.CallOption) (*StrategiesReply, error)
+	DeleteStrategies(ctx context.Context, in *DeleteStrategiesRequest, opts ...grpc.CallOption) (*DeleteStrategiesReply, error)
 }
 
 type pushClient struct {
@@ -42,11 +43,21 @@ func (c *pushClient) Strategies(ctx context.Context, in *StrategiesRequest, opts
 	return out, nil
 }
 
+func (c *pushClient) DeleteStrategies(ctx context.Context, in *DeleteStrategiesRequest, opts ...grpc.CallOption) (*DeleteStrategiesReply, error) {
+	out := new(DeleteStrategiesReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.push.Push/DeleteStrategies", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PushServer is the server API for Push service.
 // All implementations must embed UnimplementedPushServer
 // for forward compatibility
 type PushServer interface {
 	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
+	DeleteStrategies(context.Context, *DeleteStrategiesRequest) (*DeleteStrategiesReply, error)
 	mustEmbedUnimplementedPushServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedPushServer struct {
 
 func (UnimplementedPushServer) Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Strategies not implemented")
+}
+func (UnimplementedPushServer) DeleteStrategies(context.Context, *DeleteStrategiesRequest) (*DeleteStrategiesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteStrategies not implemented")
 }
 func (UnimplementedPushServer) mustEmbedUnimplementedPushServer() {}
 
@@ -88,6 +102,24 @@ func _Push_Strategies_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Push_DeleteStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteStrategiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PushServer).DeleteStrategies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.strategy.v1.push.Push/DeleteStrategies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PushServer).DeleteStrategies(ctx, req.(*DeleteStrategiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Push_ServiceDesc is the grpc.ServiceDesc for Push service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var Push_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Strategies",
 			Handler:    _Push_Strategies_Handler,
+		},
+		{
+			MethodName: "DeleteStrategies",
+			Handler:    _Push_DeleteStrategies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

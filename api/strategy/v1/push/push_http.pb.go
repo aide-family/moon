@@ -19,15 +19,18 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationPushDeleteStrategies = "/api.strategy.v1.push.Push/DeleteStrategies"
 const OperationPushStrategies = "/api.strategy.v1.push.Push/Strategies"
 
 type PushHTTPServer interface {
+	DeleteStrategies(context.Context, *DeleteStrategiesRequest) (*DeleteStrategiesReply, error)
 	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
 }
 
 func RegisterPushHTTPServer(s *http.Server, srv PushHTTPServer) {
 	r := s.Route("/")
 	r.POST("/push/v1/strategies", _Push_Strategies1_HTTP_Handler(srv))
+	r.PUT("/push/v1/strategies", _Push_DeleteStrategies0_HTTP_Handler(srv))
 }
 
 func _Push_Strategies1_HTTP_Handler(srv PushHTTPServer) func(ctx http.Context) error {
@@ -49,7 +52,27 @@ func _Push_Strategies1_HTTP_Handler(srv PushHTTPServer) func(ctx http.Context) e
 	}
 }
 
+func _Push_DeleteStrategies0_HTTP_Handler(srv PushHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteStrategiesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPushDeleteStrategies)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteStrategies(ctx, req.(*DeleteStrategiesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteStrategiesReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type PushHTTPClient interface {
+	DeleteStrategies(ctx context.Context, req *DeleteStrategiesRequest, opts ...http.CallOption) (rsp *DeleteStrategiesReply, err error)
 	Strategies(ctx context.Context, req *StrategiesRequest, opts ...http.CallOption) (rsp *StrategiesReply, err error)
 }
 
@@ -59,6 +82,19 @@ type PushHTTPClientImpl struct {
 
 func NewPushHTTPClient(client *http.Client) PushHTTPClient {
 	return &PushHTTPClientImpl{client}
+}
+
+func (c *PushHTTPClientImpl) DeleteStrategies(ctx context.Context, in *DeleteStrategiesRequest, opts ...http.CallOption) (*DeleteStrategiesReply, error) {
+	var out DeleteStrategiesReply
+	pattern := "/push/v1/strategies"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPushDeleteStrategies))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *PushHTTPClientImpl) Strategies(ctx context.Context, in *StrategiesRequest, opts ...http.CallOption) (*StrategiesReply, error) {

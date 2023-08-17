@@ -2,10 +2,9 @@ package biz
 
 import (
 	"context"
-	"sync"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"golang.org/x/sync/errgroup"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/node"
@@ -50,43 +49,30 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 		}
 	}
 
-	var Err struct {
-		errs []error
-		lock sync.Mutex
-	}
-	var wg sync.WaitGroup
-	wg.Add(len(grpcNodeServers) + len(httpNodeServers))
+	var eg errgroup.Group
+
 	for _, server := range grpcNodeServers {
-		go func(srv conn.INodeServer) {
-			defer wg.Done()
-			if err := s.repo.GRPCPushCall(ctx, srv); err != nil {
-				Err.lock.Lock()
-				Err.errs = append(Err.errs, err)
-				Err.lock.Unlock()
+		eg.Go(func() error {
+			if err := s.repo.GRPCPushCall(ctx, server); err != nil {
+				return err
 			}
-		}(server)
+			return nil
+		})
 	}
 	for _, server := range httpNodeServers {
-		go func(srv conn.INodeServer) {
-			defer wg.Done()
-			if err := s.repo.HTTPPushCall(ctx, srv); err != nil {
-				Err.lock.Lock()
-				Err.errs = append(Err.errs, err)
-				Err.lock.Unlock()
+		eg.Go(func() error {
+			if err := s.repo.HTTPPushCall(ctx, server); err != nil {
+				return err
 			}
-		}(server)
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	if len(Err.errs) > 0 {
-		err := perrors.ErrorServerUnknown("push call err").WithMetadata(map[string]string{
+	if err := eg.Wait(); err != nil {
+		s.logger.WithContext(ctx).Errorw("Call", req, "err", err)
+		return nil, perrors.ErrorServerUnknown("push call err").WithMetadata(map[string]string{
 			"req": req.String(),
 		})
-		for _, e := range Err.errs {
-			err = err.WithCause(e)
-		}
-		return nil, err
 	}
 
 	return &pb.CallResponse{Response: &api.Response{Message: s.repo.V1(ctx)}}, nil

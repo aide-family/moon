@@ -1,11 +1,12 @@
 package data
 
 import (
+	"context"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
-
 	"prometheus-manager/pkg/conn"
 
 	"prometheus-manager/apps/master/internal/biz"
@@ -35,8 +36,9 @@ type ITransaction interface {
 
 // Data .
 type Data struct {
-	db    *gorm.DB
-	cache *redis.Client
+	db              *gorm.DB
+	cache           *redis.Client
+	nodeGrpcClients map[conn.INodeServer]*grpc.ClientConn
 }
 
 const (
@@ -63,7 +65,11 @@ var _ ITransaction = (*Data)(nil)
 var _ ICrud = (*Data)(nil)
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
+func NewData(
+	c *conf.Data,
+	pushStrategy *conf.PushStrategy,
+	logger log.Logger,
+) (*Data, func(), error) {
 	db, err := conn.NewMysqlDB(c.GetDatabase(), logger)
 	if err != nil {
 		log.NewHelper(logger).Errorf("failed opening connection to mysql: %v", err)
@@ -71,6 +77,15 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 	}
 
 	cache := conn.NewRedisClient(c.GetRedis())
+	nodeGrpcClients := make(map[conn.INodeServer]*grpc.ClientConn)
+	for _, srv := range pushStrategy.GetNodes() {
+		rpcConn, err := conn.GetNodeGrpcClient(context.Background(), srv, conn.GetDiscovery())
+		if err != nil {
+			log.NewHelper(logger).Errorf("GetNodeGrpcClient err", err)
+			return nil, nil, err
+		}
+		nodeGrpcClients[srv] = rpcConn
+	}
 
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
@@ -90,7 +105,8 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 		}
 	}
 	return &Data{
-		db:    db,
-		cache: cache,
+		db:              db,
+		cache:           cache,
+		nodeGrpcClients: nodeGrpcClients,
 	}, cleanup, nil
 }
