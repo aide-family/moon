@@ -3,11 +3,6 @@ package data
 import (
 	"context"
 	"errors"
-	nodeV1Push "prometheus-manager/api/strategy/v1/push"
-	"prometheus-manager/apps/master/internal/conf"
-	"prometheus-manager/pkg/conn"
-	"prometheus-manager/pkg/util/dir"
-	"prometheus-manager/pkg/util/hash"
 	"prometheus-manager/pkg/util/stringer"
 	"strconv"
 	"time"
@@ -680,41 +675,14 @@ func (p *PromV1Repo) CreateGroup(ctx context.Context, m *model.PromGroup) error 
 	})
 }
 
-func (p *PromV1Repo) DeleteGroupSyncNode(ctx context.Context, server conn.INodeServer, groupId int32) error {
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.DeleteGroupSyncNode")
-	defer span.End()
+func (p *PromV1Repo) StoreChangeGroupNode(ctx context.Context, groupIds ...any) error {
+	// 把变更的group id存入redis的集合类型中
+	return p.data.cache.SAdd(ctx, "prom:group:change", groupIds...).Err()
+}
 
-	var err error
-	rpcConn, ok := p.data.nodeGrpcClients[server]
-	if !ok {
-		rpcConn, err = conn.GetNodeGrpcClient(ctx, server, conn.GetDiscovery())
-		if err != nil {
-			p.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
-			return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
-				"server": server.GetServerName(),
-			})
-		}
-	}
-
-	resp, err := nodeV1Push.NewPushClient(rpcConn).
-		DeleteStrategies(ctx,
-			&nodeV1Push.DeleteStrategiesRequest{
-				Node: server.GetServerName(),
-				Dirs: []*nodeV1Push.DeleteStrategyDirItem{
-					{
-						Dir:       conf.Get().GetPushStrategy().GetDir(),
-						Filenames: []string{dir.BuildYamlFilename(hash.MD5([]byte(strconv.Itoa(int(groupId)))))},
-					},
-				},
-			},
-		)
-	if err != nil {
-		p.logger.WithContext(ctx).Warnw("DeleteGroup", server, "err", err)
-		return err
-	}
-
-	p.logger.WithContext(ctx).Infow("DeleteGroup", server, "resp", resp)
-	return nil
+func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) error {
+	// 把删除的group id存入redis的集合类型中
+	return p.data.cache.SAdd(ctx, "prom:group:delete", groupIds...).Err()
 }
 
 // V1 服务版本

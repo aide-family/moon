@@ -123,6 +123,57 @@ func (l *PushRepo) HTTPPushCall(ctx context.Context, server conn.INodeServer) er
 	})
 }
 
+func (l *PushRepo) DeleteGroupSyncNode(ctx context.Context, server conn.INodeServer) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.DeleteGroupSyncNode")
+	defer span.End()
+
+	var err error
+	rpcConn, ok := l.data.nodeGrpcClients[server]
+	if !ok {
+		rpcConn, err = conn.GetNodeGrpcClient(ctx, server, conn.GetDiscovery())
+		if err != nil {
+			l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
+			return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
+				"server": server.GetServerName(),
+			})
+		}
+	}
+
+	var groupIds, filenames, result []string
+	var cursor uint64
+	for {
+		result, cursor = l.data.cache.SScan(ctx, "prom:group:delete", cursor, "", 10).Val()
+		groupIds = append(groupIds, result...)
+		if cursor == 0 {
+			break
+		}
+	}
+
+	for _, id := range groupIds {
+		filenames = append(filenames, dir.BuildYamlFilename(hash.MD5([]byte(id))))
+	}
+
+	resp, err := nodeV1Push.NewPushClient(rpcConn).
+		DeleteStrategies(ctx,
+			&nodeV1Push.DeleteStrategiesRequest{
+				Node: server.GetServerName(),
+				Dirs: []*nodeV1Push.DeleteStrategyDirItem{
+					{
+						Dir:       conf.Get().GetPushStrategy().GetDir(),
+						Filenames: filenames,
+					},
+				},
+			},
+		)
+	if err != nil {
+		l.logger.WithContext(ctx).Warnw("DeleteGroup", server, "err", err)
+		return err
+	}
+
+	l.logger.WithContext(ctx).Infow("DeleteGroup", server, "resp", resp)
+	return nil
+}
+
 func (l *PushRepo) V1(ctx context.Context) string {
 	_, span := otel.Tracer("data").Start(ctx, "PushRepo.V1")
 	defer span.End()

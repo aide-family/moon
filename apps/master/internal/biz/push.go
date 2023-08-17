@@ -19,6 +19,7 @@ type (
 		V1Repo
 		GRPCPushCall(ctx context.Context, server conn.INodeServer) error
 		HTTPPushCall(ctx context.Context, server conn.INodeServer) error
+		DeleteGroupSyncNode(ctx context.Context, server conn.INodeServer) error
 	}
 
 	PushLogic struct {
@@ -54,6 +55,12 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 	for _, server := range grpcNodeServers {
 		eg.Go(func() error {
 			if err := s.repo.GRPCPushCall(ctx, server); err != nil {
+				return err
+			}
+			return nil
+		})
+		eg.Go(func() error {
+			if err := s.repo.DeleteGroupSyncNode(ctx, server); err != nil {
 				return err
 			}
 			return nil
