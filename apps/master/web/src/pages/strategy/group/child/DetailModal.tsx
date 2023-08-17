@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import type {GroupItem} from "@/apis/prom/prom";
 import {Modal} from "@arco-design/web-react";
 import groupStyle from "../style/group.module.less";
@@ -8,12 +8,13 @@ import StrategyList from "@/pages/strategy/group/child/StrategyList";
 export interface DetailModalProps {
     item?: GroupItem
     children?: React.ReactNode
+    setRefreshLock?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 
 
 const DetailModal: React.FC<DetailModalProps> = (props) => {
-    const {item, children} = props;
+    const {item, children,setRefreshLock} = props;
     const [visible, setVisible] = React.useState(false);
 
     const handleOpenModal = () => {
@@ -23,6 +24,10 @@ const DetailModal: React.FC<DetailModalProps> = (props) => {
     const handleCloseModal = () => {
         setVisible(false);
     }
+
+    useEffect(() => {
+       setRefreshLock?.(visible)
+    }, [visible]);
 
     return (
         <>

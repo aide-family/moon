@@ -8,17 +8,31 @@ import {defaultPage, M} from "@/apis/type";
 
 import strategyStyles from "../style/strategy.module.less"
 import {OmitText} from "tacer-cloud";
+import StrategyModal from "@/pages/strategy/child/StrategyModal";
+import groupStyle from "@/pages/strategy/group/style/group.module.less";
+import MoreMenu from "@/components/More/MoreMenu";
 
 export interface ShowTableProps {
+    database?: string
     queryParams?: ListStrategyRequest
     setQueryParams?: React.Dispatch<React.SetStateAction<ListStrategyRequest>>
 }
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
-    const {queryParams, setQueryParams} = props
+    const {queryParams, setQueryParams, database} = props
     const [tableLoading, setTableLoading] = React.useState<boolean>(false);
 
     const tableColumns: ColumnProps<PromStrategyItem>[] = [
+        {
+            title: "序号",
+            dataIndex: "index",
+            width: 80,
+            fixed: "left",
+            align: "left",
+            render: (text, item, index) => {
+                return <span>{(tablePagination.current - 1) * tablePagination.pageSize + index + 1}</span>;
+            }
+        },
         {
             title: "名称",
             dataIndex: "alert",
@@ -59,7 +73,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             render: (labels: M) => {
                 let str = "-"
                 try {
-                     str = JSON.stringify(labels)
+                    str = JSON.stringify(labels)
                 } catch (e) {
                     console.log(e)
                 }
@@ -95,6 +109,41 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                 return <Tag color={alertLevel.color}>{alertLevel.name}</Tag>
             }
         },
+        {
+            title: "操作",
+            dataIndex: "action",
+            width: 120,
+            fixed: "right",
+            render: (_, row) => {
+                return <div className={groupStyle.action} key={row.id}>
+                    <StrategyModal disabled title="详情" btnProps={{type: "text"}} key={row.id} initialValues={{
+                        datasource: database,
+                        alert: row.alert,
+                        for: row.for,
+                        expr: row.expr,
+                        labels: row.labels,
+                        annotations: row.annotations,
+                    }}/>
+                    <MoreMenu options={[
+                        {
+                            label: <StrategyModal title="编辑" btnProps={{type: "text"}} initialValues={{
+                                datasource: database,
+                                alert: row.alert,
+                                for: row.for,
+                                expr: row.expr,
+                                labels: row.labels,
+                                annotations: row.annotations,
+                            }}/>,
+                            key: "eidt"
+                        },
+                        {
+                            label: <Button status="danger" type="text">删除</Button>,
+                            key: "delete"
+                        }
+                    ]}/>
+                </div>
+            }
+        }
     ];
 
     const [dataSource, setDataSource] = useState<PromStrategyItem[]>([]);
@@ -144,6 +193,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
 
 
     useEffect(() => {
+        setDataSource([])
         if (!queryParams) return
         getStrategies()
     }, [queryParams]);

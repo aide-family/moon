@@ -26,7 +26,12 @@ const pathPrefix = "http://localhost:9090";
 const Strategy: React.FC<StrategyListProps> = (props) => {
     const {groupItem} = props;
 
-    const [queryParams, setQueryParams] = React.useState<ListStrategyRequest>(defaultListStrategyRequest);
+    const [queryParams, setQueryParams] = React.useState<ListStrategyRequest>(groupItem ? {
+        ...defaultListStrategyRequest,
+        strategy: {
+            groupId: groupItem.id
+        }
+    } : defaultListStrategyRequest);
 
     useEffect(() => {
         if (!groupItem) return;
@@ -40,7 +45,7 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
 
     return (
         <div>
-            <ShowTable setQueryParams={setQueryParams} queryParams={queryParams}/>
+            <ShowTable database={pathPrefix} setQueryParams={setQueryParams} queryParams={queryParams}/>
         </div>
     );
 };
