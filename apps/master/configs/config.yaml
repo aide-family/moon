@@ -35,6 +35,7 @@ registrar:
 push_strategy:
   interval: 10s
   dir: /tmp/prometheus-manager
+  enable: false
   nodes:
     - server_name: "prometheus-manager-node"
       timeout: 1s

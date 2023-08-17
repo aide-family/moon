@@ -42,6 +42,8 @@ message Strategy {
   google.protobuf.Duration reload_interval = 3;
   // reload path
   string reload_path = 4;
+  // enable reload
+  bool enable = 5;
 }
 
 message Env {

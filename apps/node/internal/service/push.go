@@ -26,6 +26,5 @@ func NewPushService(logic IPushLogic, logger log.Logger) *PushService {
 }
 
 func (l *PushService) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
-	l.logger.Debugf("Strategies req: %v", req)
 	return l.logic.Strategies(ctx, req)
 }

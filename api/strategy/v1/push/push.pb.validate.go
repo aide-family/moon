@@ -57,31 +57,26 @@ func (m *StrategiesRequest) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetNode() {
-		_, _ = idx, item
-
-		if utf8.RuneCountInString(item) < 1 {
-			err := StrategiesRequestValidationError{
-				field:  fmt.Sprintf("Node[%v]", idx),
-				reason: "value length must be at least 1 runes",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+	if utf8.RuneCountInString(m.GetNode()) < 1 {
+		err := StrategiesRequestValidationError{
+			field:  "Node",
+			reason: "value length must be at least 1 runes",
 		}
-
-		if !_StrategiesRequest_Node_Pattern.MatchString(item) {
-			err := StrategiesRequestValidationError{
-				field:  fmt.Sprintf("Node[%v]", idx),
-				reason: "value does not match regex pattern \"[a-zA-Z0-9_-]+$\"",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
+	}
 
+	if !_StrategiesRequest_Node_Pattern.MatchString(m.GetNode()) {
+		err := StrategiesRequestValidationError{
+			field:  "Node",
+			reason: "value does not match regex pattern \"[a-zA-Z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if len(m.GetStrategyDirs()) < 1 {

@@ -15,23 +15,26 @@ import (
 )
 
 func NewTimer(
-	conf *conf.Strategy,
+	reloadStrategy *conf.Strategy,
 	logger log.Logger,
 	loadService *service.LoadService,
 ) *servers.Timer {
-	ticker := time.NewTicker(conf.LoadInterval.AsDuration())
+	ticker := time.NewTicker(reloadStrategy.GetLoadInterval().AsDuration())
 	var count int64
+	loggerHelper := log.NewHelper(log.With(logger, "module", "server/Timer"))
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) {
+		if !reloadStrategy.GetEnable() {
+			return
+		}
 		count++
 		log.Info("TimerCallFunc: ", count)
 		reload, err := loadService.Reload(ctx, &pb.ReloadRequest{Nodes: nil})
 		if err != nil {
-			return err
+			loggerHelper.Errorf("[Timer] call error: %v", err)
 		}
 
 		log.Info("Reload: ", reload)
-		return nil
 	}
 
 	return servers.NewTimer(call, ticker, logger)

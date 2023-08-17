@@ -23,6 +23,7 @@ func NewTimer(
 	}
 	ticker := time.NewTicker(interval)
 	var count int64
+	loggerHelper := log.NewHelper(log.With(logger, "module", "server/Timer"))
 
 	srvList := make([]*pb.NodeServer, 0, len(pushStrategy.GetNodes()))
 	for _, srv := range pushStrategy.GetNodes() {
@@ -33,17 +34,20 @@ func NewTimer(
 		})
 	}
 
-	call := func(ctx context.Context) error {
+	call := func(ctx context.Context) {
+		if !pushStrategy.GetEnable() {
+			return
+		}
 		count++
-		log.Info("TimerCallFunc: ", count)
+		loggerHelper.Info("TimerCallFunc: ", count)
+		//return
 		pushed, err := pushService.Call(ctx, &pb.CallRequest{Servers: srvList})
 		if err != nil {
-			log.Errorf("[Timer] call error: %v", err)
-			return nil
+			loggerHelper.Errorf("[Timer] call error: %v", err)
+			return
 		}
 
 		log.Info("pushed: ", pushed)
-		return nil
 	}
 
 	return servers.NewTimer(call, ticker, logger)
