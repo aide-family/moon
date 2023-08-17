@@ -31,12 +31,6 @@ type (
 		StrategyDetail(ctx context.Context, id int32) (*model.PromStrategy, error)
 		Strategies(ctx context.Context, req *pb.ListStrategyRequest) ([]*model.PromStrategy, int64, error)
 		GetStrategyByName(ctx context.Context, groupID int32, name string) (*model.PromStrategy, error)
-
-		// StoreChangeGroupNode 存储变更(修改|新增)的groupId -> nodeServer
-		StoreChangeGroupNode(ctx context.Context, groupIds ...any) error
-
-		// StoreDeleteGroupNode 存储删除|关闭的groupId -> nodeServer
-		StoreDeleteGroupNode(ctx context.Context, groupIds ...any) error
 	}
 
 	PromLogic struct {
@@ -66,10 +60,6 @@ func (s *PromLogic) CreateGroup(ctx context.Context, req *pb.CreateGroupRequest)
 		return nil, perrors.ErrorLogicCreatePrometheusGroupFailed("创建Prometheus分组失败")
 	}
 
-	if err := s.v1Repo.StoreChangeGroupNode(ctx, insertModel.ID); err != nil {
-		s.logger.WithContext(ctx).Errorf("存储Prometheus分组失败, err: %v", err)
-	}
-
 	return &pb.CreateGroupReply{Response: &api.Response{Message: "创建Prometheus group成功"}}, nil
 }
 
@@ -85,10 +75,6 @@ func (s *PromLogic) UpdateGroup(ctx context.Context, req *pb.UpdateGroupRequest)
 	if err := s.v1Repo.UpdateGroupByID(ctx, req.GetId(), edieModel); err != nil {
 		s.logger.WithContext(ctx).Errorw("更新Prometheus分组失败", edieModel, "err", err)
 		return nil, perrors.ErrorLogicEditPrometheusGroupFailed("更新Prometheus分组失败")
-	}
-
-	if err := s.v1Repo.StoreChangeGroupNode(ctx, req.GetId()); err != nil {
-		s.logger.WithContext(ctx).Errorf("存储Prometheus分组失败, err: %v", err)
 	}
 
 	return &pb.UpdateGroupReply{Response: &api.Response{Message: "更新Prometheus group成功"}}, nil
@@ -107,16 +93,6 @@ func (s *PromLogic) UpdateGroupsStatus(ctx context.Context, req *pb.UpdateGroups
 		return nil, perrors.ErrorLogicEditPrometheusGroupFailed("更新Prometheus分组状态失败").WithCause(err)
 	}
 
-	if err := s.v1Repo.StoreDeleteGroupNode(ctx, func() []any {
-		ids := make([]any, 0, len(req.GetIds()))
-		for _, id := range req.GetIds() {
-			ids = append(ids, id)
-		}
-		return ids
-	}()...); err != nil {
-		s.logger.WithContext(ctx).Errorf("存储Prometheus分组失败, err: %v", err)
-	}
-
 	return &pb.UpdateGroupsStatusReply{Response: &api.Response{Message: "更新Prometheus group状态成功"}}, nil
 }
 
@@ -131,10 +107,6 @@ func (s *PromLogic) DeleteGroup(ctx context.Context, req *pb.DeleteGroupRequest)
 	if err := s.v1Repo.DeleteGroupByID(ctx, req.GetId()); err != nil {
 		s.logger.WithContext(ctx).Errorw("删除Prometheus分组失败", "id", req.GetId(), "err", err)
 		return nil, perrors.ErrorLogicDeletePrometheusGroupFailed("删除Prometheus分组失败").WithCause(err)
-	}
-
-	if err := s.v1Repo.StoreDeleteGroupNode(ctx, req.GetId()); err != nil {
-		s.logger.WithContext(ctx).Errorf("存储Prometheus分组失败, err: %v", err)
 	}
 
 	return &pb.DeleteGroupReply{Response: &api.Response{Message: "删除Prometheus group成功"}}, nil
@@ -217,10 +189,6 @@ func (s *PromLogic) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRe
 	if err = s.v1Repo.CreateStrategy(ctx, buildModelPromStrategy(req.GetStrategy())); err != nil {
 		s.logger.WithContext(ctx).Errorw("创建Prometheus策略失败", req.GetStrategy(), "err", err)
 		return nil, err
-	}
-
-	if err := s.v1Repo.StoreChangeGroupNode(ctx, req.GetStrategy().GetGroupId()); err != nil {
-		s.logger.WithContext(ctx).Errorf("存储Prometheus分组失败, err: %v", err)
 	}
 
 	return &pb.CreateStrategyReply{Response: &api.Response{Message: "创建Prometheus strategy成功"}}, nil

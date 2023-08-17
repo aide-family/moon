@@ -42,7 +42,26 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.GRPCPushCall")
 	defer span.End()
 
-	groups, err := l.promV1Repo.AllGroups(ctx)
+	var groupIds, result []string
+	var cursor uint64
+	for {
+		result, cursor = l.data.cache.SScan(ctx, "prom:group:delete", cursor, "", 10).Val()
+		groupIds = append(groupIds, result...)
+		if cursor == 0 {
+			break
+		}
+	}
+
+	var int32GroupIds []int32
+	for _, idStr := range groupIds {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			continue
+		}
+		int32GroupIds = append(int32GroupIds, int32(id))
+	}
+
+	groups, err := l.promV1Repo.AllGroups(ctx, int32GroupIds)
 	if err != nil {
 		l.logger.WithContext(ctx).Errorf("GRPCPushCall err: %v", err)
 		return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err)
