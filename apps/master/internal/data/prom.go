@@ -191,14 +191,17 @@ func (p *PromV1Repo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*m
 // AllGroups 获取所有策略组
 //
 //	ctx: 上下文
-func (p *PromV1Repo) AllGroups(ctx context.Context) ([]*model.PromGroup, error) {
+func (p *PromV1Repo) AllGroups(ctx context.Context, ids []int32) ([]*model.PromGroup, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.AllGroups")
 	defer span.End()
 
 	promGroup := p.db.PromGroup
 	promStrategy := p.db.PromStrategy
 	return promGroup.WithContext(ctx).
-		Where(promGroup.Status.Eq(int32(prom.Status_Status_ENABLE))).
+		Where(promGroup.Status.Eq(int32(prom.Status_Status_ENABLE)), promGroup.ID.In(ids...)).
 		Preload(promGroup.PromStrategies.Where(promStrategy.Status.Eq(int32(prom.Status_Status_ENABLE)))).
 		Find()
 }
@@ -263,6 +266,11 @@ func (p *PromV1Repo) DeleteStrategyByID(ctx context.Context, id int32) error {
 			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteStrategyByID", id, "err", "RowsAffected != 1")
 		}
 
+		if err = p.StoreChangeGroupNode(ctx, first.GroupID); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", id, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+		}
+
 		return nil
 	})
 }
@@ -276,35 +284,59 @@ func (p *PromV1Repo) UpdateStrategiesStatusByIds(ctx context.Context, ids []int3
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateGroupStatusByID")
 	defer span.End()
 
-	promStrategy := p.db.PromStrategy
-	promStrategyDB := promStrategy.WithContext(ctx)
-	switch len(ids) {
-	case 0:
+	return p.db.Transaction(func(tx *query.Query) error {
+		promStrategy := tx.PromStrategy
+		promStrategyDB := promStrategy.WithContext(ctx)
+		promStrategyQueryDB := promStrategy.WithContext(ctx)
+		switch len(ids) {
+		case 0:
+			return nil
+		case 1:
+			promStrategyDB = promStrategyDB.Where(promStrategy.ID.Eq(ids[0]))
+			promStrategyQueryDB = promStrategyQueryDB.Where(promStrategy.ID.Eq(ids[0]))
+		default:
+			promStrategyDB = promStrategyDB.Where(promStrategy.ID.In(ids...))
+			promStrategyQueryDB = promStrategyQueryDB.Where(promStrategy.ID.In(ids...))
+		}
+
+		inf, err := promStrategyDB.UpdateColumnSimple(promStrategy.Status.Value(int32(status)))
+		if err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", err)
+			return perrors.ErrorServerDatabaseError("server database error, %v", err).WithCause(err).WithMetadata(map[string]string{
+				"statusCode": strconv.Itoa(int(status)),
+				"status":     status.String(),
+				"ids":        stringer.New(ids).String(),
+			})
+		}
+
+		if inf.RowsAffected != int64(len(ids)) {
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", "RowsAffected != 1")
+			return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
+				"ids": stringer.New(ids).String(),
+			})
+		}
+
+		var groupIds []any
+		if err := promStrategyQueryDB.Select(promStrategy.GroupID).Pluck(promStrategy.GroupID, &groupIds); err != nil {
+			p.logger.Errorf("")
+			return perrors.ErrorServerDatabaseError("database server unknown err").WithCause(err)
+		}
+
+		switch status {
+		case prom.Status_Status_DISABLE:
+			if err = p.StoreChangeGroupNode(ctx, groupIds...); err != nil {
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", groupIds, "err", err)
+				return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+			}
+		case prom.Status_Status_ENABLE:
+			if err = p.StoreDeleteGroupNode(ctx, groupIds...); err != nil {
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreDeleteGroupNode", groupIds, "err", err)
+				return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+			}
+		}
+
 		return nil
-	case 1:
-		promStrategyDB = promStrategyDB.Where(promStrategy.ID.Eq(ids[0]))
-	default:
-		promStrategyDB = promStrategyDB.Where(promStrategy.ID.In(ids...))
-	}
-
-	inf, err := promStrategyDB.UpdateColumnSimple(promStrategy.Status.Value(int32(status)))
-	if err != nil {
-		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", err)
-		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithCause(err).WithMetadata(map[string]string{
-			"statusCode": strconv.Itoa(int(status)),
-			"status":     status.String(),
-			"ids":        stringer.New(ids).String(),
-		})
-	}
-
-	if inf.RowsAffected != 1 {
-		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategiesStatusByIds", ids, "err", "RowsAffected != 1")
-		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
-			"ids": stringer.New(ids).String(),
-		})
-	}
-
-	return nil
+	})
 }
 
 // UpdateStrategyByID 根据ID更新策略
@@ -330,7 +362,9 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 		})
 	}
 
+	var groupIds []any
 	return p.db.Transaction(func(tx *query.Query) error {
+		groupIds = append(groupIds, m.GroupID)
 		promStrategy = tx.PromStrategy
 		if err = promStrategy.AlarmPages.WithContext(ctx).Model(&model.PromStrategy{ID: id}).Replace(m.AlarmPages...); err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateStrategyByID AlarmPages Replace", id, "m.AlarmPages", m.AlarmPages, "err", err)
@@ -347,6 +381,7 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 		}
 
 		if first.GroupID != m.GroupID {
+			groupIds = append(groupIds, first.GroupID)
 			promGroup := tx.PromGroup
 			// 源group strategy_count -1, 目标group strategy_count +1
 			simple, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(first.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Sub(1))
@@ -391,6 +426,11 @@ func (p *PromV1Repo) UpdateStrategyByID(ctx context.Context, id int32, m *model.
 
 		if inf.RowsAffected != 1 {
 			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateStrategyByID", id, "err", "RowsAffected != 1")
+		}
+
+		if err = p.StoreChangeGroupNode(ctx, groupIds...); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", groupIds, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
 		}
 
 		return nil
@@ -482,6 +522,11 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 			})
 		}
 
+		if err = p.StoreChangeGroupNode(ctx, m.GroupID); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", m.GroupID, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+		}
+
 		return nil
 	})
 }
@@ -548,6 +593,11 @@ func (p *PromV1Repo) DeleteGroupByID(ctx context.Context, id int32) error {
 			p.logger.WithContext(ctx).Warnw("PromV1Repo.DeleteGroupByID", id, "err", "RowsAffected != 1")
 		}
 
+		if err = p.StoreDeleteGroupNode(ctx, id); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreDeleteGroupNode", id, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+		}
+
 		return nil
 	})
 }
@@ -561,35 +611,59 @@ func (p *PromV1Repo) UpdateGroupsStatusByIds(ctx context.Context, ids []int32, s
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.UpdateGroupStatusByID")
 	defer span.End()
 
-	promGroup := p.db.PromGroup
-	promGroupDB := promGroup.WithContext(ctx)
-	switch len(ids) {
-	case 0:
+	return p.db.Transaction(func(tx *query.Query) error {
+		promGroup := tx.PromGroup
+		promGroupDB := promGroup.WithContext(ctx)
+		promGroupQueryDB := promGroup.WithContext(ctx)
+		switch len(ids) {
+		case 0:
+			return nil
+		case 1:
+			promGroupDB = promGroupDB.Where(promGroup.ID.Eq(ids[0]))
+			promGroupQueryDB = promGroupQueryDB.Where(promGroup.ID.Eq(ids[0]))
+		default:
+			promGroupDB = promGroupDB.Where(promGroup.ID.In(ids...))
+			promGroupQueryDB = promGroupQueryDB.Where(promGroup.ID.In(ids...))
+		}
+
+		inf, err := promGroupDB.UpdateColumnSimple(promGroup.Status.Value(int32(status)))
+		if err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", err)
+			return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
+				"statusCode": strconv.Itoa(int(status)),
+				"status":     status.String(),
+				"ids":        stringer.New(ids).String(),
+			})
+		}
+
+		if inf.RowsAffected != int64(len(ids)) {
+			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", "RowsAffected != 1")
+			return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
+				"ids": stringer.New(ids).String(),
+			})
+		}
+
+		var groupIds []any
+
+		if err := promGroupQueryDB.Select(promGroup.ID).Pluck(promGroup.ID, &groupIds); err != nil {
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err)
+		}
+
+		switch status {
+		case prom.Status_Status_ENABLE:
+			if err = p.StoreChangeGroupNode(ctx, groupIds...); err != nil {
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", groupIds, "err", err)
+				return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+			}
+		case prom.Status_Status_DISABLE:
+			if err = p.StoreDeleteGroupNode(ctx, groupIds...); err != nil {
+				p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreDeleteGroupNode", groupIds, "err", err)
+				return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+			}
+		}
+
 		return nil
-	case 1:
-		promGroupDB = promGroupDB.Where(promGroup.ID.Eq(ids[0]))
-	default:
-		promGroupDB = promGroupDB.Where(promGroup.ID.In(ids...))
-	}
-
-	inf, err := promGroupDB.UpdateColumnSimple(promGroup.Status.Value(int32(status)))
-	if err != nil {
-		p.logger.WithContext(ctx).Errorw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", err)
-		return perrors.ErrorServerDatabaseError("server database error, %v", err).WithMetadata(map[string]string{
-			"statusCode": strconv.Itoa(int(status)),
-			"status":     status.String(),
-			"ids":        stringer.New(ids).String(),
-		})
-	}
-
-	if inf.RowsAffected != 1 {
-		p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupsStatusByIds", ids, "err", "RowsAffected != 1")
-		return perrors.ErrorClientNotFound("PromGroup is not found").WithMetadata(map[string]string{
-			"ids": stringer.New(ids).String(),
-		})
-	}
-
-	return nil
+	})
 }
 
 // UpdateGroupByID 根据ID更新分组
@@ -639,6 +713,11 @@ func (p *PromV1Repo) UpdateGroupByID(ctx context.Context, id int32, m *model.Pro
 			p.logger.WithContext(ctx).Warnw("PromV1Repo.UpdateGroupByID", id, "err", "RowsAffected != 1")
 		}
 
+		if err = p.StoreChangeGroupNode(ctx, id); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", id, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+		}
+
 		return nil
 	})
 }
@@ -671,16 +750,31 @@ func (p *PromV1Repo) CreateGroup(ctx context.Context, m *model.PromGroup) error 
 
 		m.Categories = dictList
 		promGroup := tx.PromGroup
-		return promGroup.WithContext(ctx).Create(m)
+		if err := promGroup.WithContext(ctx).Create(m); err != nil {
+			return perrors.ErrorServerDatabaseError("database err").WithCause(err)
+		}
+
+		if err = p.StoreChangeGroupNode(ctx, m.ID); err != nil {
+			p.logger.WithContext(ctx).Errorw("PromV1Repo.StoreChangeGroupNode", m.ID, "err", err)
+			return perrors.ErrorServerUnknown("server unknown error").WithCause(err)
+		}
+
+		return nil
 	})
 }
 
 func (p *PromV1Repo) StoreChangeGroupNode(ctx context.Context, groupIds ...any) error {
+	if len(groupIds) == 0 {
+		return nil
+	}
 	// 把变更的group id存入redis的集合类型中
 	return p.data.cache.SAdd(ctx, "prom:group:change", groupIds...).Err()
 }
 
 func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) error {
+	if len(groupIds) == 0 {
+		return nil
+	}
 	// 把删除的group id存入redis的集合类型中
 	return p.data.cache.SAdd(ctx, "prom:group:delete", groupIds...).Err()
 }
