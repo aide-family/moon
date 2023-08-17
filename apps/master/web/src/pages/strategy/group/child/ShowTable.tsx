@@ -46,6 +46,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
         pageSize: queryParams?.query?.page.size || defaultPage.size,
         total: 0,
     });
+    const [refreshLock, setRefreshLock] = React.useState<boolean>(false);
 
     // 统一查询
     function onSearch() {
@@ -75,6 +76,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             dataIndex: "index",
             width: 80,
             fixed: "left",
+            align: "left",
             render: (text, item, index) => {
                 return <span>{(tablePagination.current - 1) * tablePagination.pageSize + index + 1}</span>;
             }
@@ -164,12 +166,13 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             render: (_, item: GroupItem) => {
                 return (
                     <div className={groupStyle.action}>
-                        <DetailModal item={item}>
+                        <DetailModal item={item} setRefreshLock={setRefreshLock}>
                             <Button type="text">详情</Button>
                         </DetailModal>
                         <MoreMenu options={[
                             {
                                 label: <AddGroup
+                                    setRefreshLock={setRefreshLock}
                                     onFinished={onSearch}
                                     title="编辑分组"
                                     groupId={item.id} initialValues={{
@@ -208,7 +211,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     }
 
     useEffect(() => {
-        if (!queryParams) return;
+        if (!queryParams || refreshLock) return;
         setSearchParams({q: JSON.stringify(queryParams)})
         onSearch()
     }, [queryParams, refresh]);

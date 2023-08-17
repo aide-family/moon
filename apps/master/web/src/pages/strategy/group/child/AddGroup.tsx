@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import EditGroup from "@/pages/strategy/group/child/EditGroup";
 import {GroupCreateItem} from "@/apis/prom/group/group";
 
@@ -8,6 +8,7 @@ export interface AddGroupProps {
     onFinished?: () => void
     initialValues?: GroupCreateItem
     groupId?: number
+    setRefreshLock?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const defaultAddGroupName = "新建分组";
@@ -19,6 +20,7 @@ const AddGroup: React.FC<AddGroupProps> = (props) => {
         onFinished,
         initialValues,
         groupId,
+        setRefreshLock,
     } = props;
     const [visible, setVisible] = React.useState<boolean>(false);
 
@@ -34,6 +36,10 @@ const AddGroup: React.FC<AddGroupProps> = (props) => {
         setVisible(false)
         onFinished?.()
     }
+
+    useEffect(() => {
+        setRefreshLock?.(visible)
+    }, []);
 
     return <>
         <div onClick={handleOpenEditGroup}>
