@@ -12,6 +12,7 @@ import (
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/util/dir"
+	"strconv"
 
 	"prometheus-manager/apps/master/internal/biz"
 )
@@ -70,11 +71,14 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 					Rules: func(rs []*model.PromStrategy) []*strategy.Rule {
 						rules := make([]*strategy.Rule, 0, len(rs))
 						for _, rule := range rs {
+							labels := helper.BuildLabels(rule.Labels)
+							labels["__strategy_id__"] = strconv.Itoa(int(rule.ID))
+
 							rules = append(rules, &strategy.Rule{
 								Alert:       rule.Alert,
 								Expr:        rule.Expr,
 								For:         rule.For,
-								Labels:      helper.BuildLabels(rule.Labels),
+								Labels:      labels,
 								Annotations: helper.BuildAnnotations(rule.Annotations),
 							})
 						}
