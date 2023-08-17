@@ -89,3 +89,16 @@ func IsFile(path string) (bool, error) {
 
 	return !fi.IsDir(), err
 }
+
+// BuildYamlFilename 构建yaml文件名
+func BuildYamlFilename(filename string) string {
+	if filename == "" {
+		return ""
+	}
+
+	if filename[len(filename)-5:] != ".yaml" {
+		filename = filename + ".yaml"
+	}
+
+	return filename
+}

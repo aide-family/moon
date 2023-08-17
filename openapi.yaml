@@ -1379,9 +1379,7 @@ components:
             type: object
             properties:
                 node:
-                    type: array
-                    items:
-                        type: string
+                    type: string
                     description: 目标节点
                 strategyDirs:
                     type: array

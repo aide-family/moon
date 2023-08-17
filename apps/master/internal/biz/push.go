@@ -34,6 +34,7 @@ func NewPushLogic(repo IPushRepo, logger log.Logger) *PushLogic {
 	return &PushLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Push"))}
 }
 
+// Call TODO 限制该方法并发, 同一时段内, 只允许执行一次, 如果请求该方法, 监测到正在执行, 则返回正在执行的结果
 func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResponse, error) {
 	ctx, span := otel.Tracer("biz").Start(ctx, "PushLogic.Call")
 	defer span.End()
@@ -57,6 +58,7 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 	wg.Add(len(grpcNodeServers) + len(httpNodeServers))
 	for _, server := range grpcNodeServers {
 		go func(srv conn.INodeServer) {
+			defer wg.Done()
 			if err := s.repo.GRPCPushCall(ctx, srv); err != nil {
 				Err.lock.Lock()
 				Err.errs = append(Err.errs, err)
@@ -66,6 +68,7 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 	}
 	for _, server := range httpNodeServers {
 		go func(srv conn.INodeServer) {
+			defer wg.Done()
 			if err := s.repo.HTTPPushCall(ctx, srv); err != nil {
 				Err.lock.Lock()
 				Err.errs = append(Err.errs, err)

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type TimerCall func(ctx context.Context) error
+type TimerCall func(ctx context.Context)
 
 type Timer struct {
 	call   TimerCall
@@ -27,9 +27,7 @@ func (l *Timer) Start(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case <-l.ticker.C:
-				if err := l.call(ctx); err != nil {
-
-				}
+				l.call(ctx)
 			case <-l.stop:
 				return
 			}

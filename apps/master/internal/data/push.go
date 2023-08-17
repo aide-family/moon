@@ -2,28 +2,36 @@ package data
 
 import (
 	"context"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
-
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/api/strategy"
 	nodeV1Push "prometheus-manager/api/strategy/v1/push"
+	"prometheus-manager/apps/master/internal/conf"
+	"prometheus-manager/dal/model"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/util/dir"
 
 	"prometheus-manager/apps/master/internal/biz"
 )
 
 type (
 	PushRepo struct {
-		logger *log.Helper
-		data   *Data
+		logger     *log.Helper
+		data       *Data
+		promV1Repo *PromV1Repo
 	}
 )
 
 var _ biz.IPushRepo = (*PushRepo)(nil)
 
 func NewPushRepo(data *Data, logger log.Logger) *PushRepo {
-	return &PushRepo{data: data, logger: log.NewHelper(log.With(logger, "module", "data/Push"))}
+	return &PushRepo{
+		data:       data,
+		promV1Repo: NewPromV1Repo(data, logger),
+		logger:     log.NewHelper(log.With(logger, "module", "data/Push")),
+	}
 }
 
 func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) error {
@@ -37,9 +45,54 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 		})
 	}
 
+	groups, err := l.promV1Repo.AllGroups(ctx)
+	if err != nil {
+		l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)
+		return perrors.ErrorServerGrpcError("GRPCPushCall").WithCause(err).WithMetadata(map[string]string{
+			"server": server.GetServerName(),
+		})
+	}
+
+	if len(groups) == 0 {
+		return nil
+	}
+
+	strategies := make([]*strategy.Strategy, 0, len(groups))
+	for _, group := range groups {
+		if len(group.PromStrategies) == 0 {
+			continue
+		}
+		strategies = append(strategies, &strategy.Strategy{
+			Filename: dir.BuildYamlFilename(group.Name),
+			Groups: []*strategy.Group{
+				{
+					Name: group.Name,
+					Rules: func(rs []*model.PromStrategy) []*strategy.Rule {
+						rules := make([]*strategy.Rule, 0, len(rs))
+						for _, rule := range rs {
+							rules = append(rules, &strategy.Rule{
+								Alert:       rule.Alert,
+								Expr:        rule.Expr,
+								For:         rule.For,
+								Labels:      helper.BuildLabels(rule.Labels),
+								Annotations: helper.BuildAnnotations(rule.Annotations),
+							})
+						}
+						return rules
+					}(group.PromStrategies),
+				},
+			},
+		})
+	}
+
 	strategiesResp, err := nodeV1Push.NewPushClient(rpcConn).Strategies(ctx, &nodeV1Push.StrategiesRequest{
-		Node:         nil,
-		StrategyDirs: nil,
+		Node: server.GetServerName(),
+		StrategyDirs: []*strategy.StrategyDir{
+			{
+				Dir:        conf.Get().GetPushStrategy().GetDir(),
+				Strategies: strategies,
+			},
+		},
 	})
 	if err != nil {
 		l.logger.WithContext(ctx).Warnw("GRPCPushCall", server, "err", err)

@@ -13,6 +13,7 @@ strategy:
   load_interval: 10s
   reload_interval: 10s
   reload_path: "http://localhost:9090/-/reload"
+  enable: true
   # 目录为绝对路径或者相对configs路径
   path:
     - "rule_temp"

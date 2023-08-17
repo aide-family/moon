@@ -188,6 +188,21 @@ func (p *PromV1Repo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*m
 	return promGroupDB.Preload(promGroup.Categories.On(promDictPreloadExpr...)).FindByPage(int(offset), int(limit))
 }
 
+// AllGroups 获取所有策略组
+//
+//	ctx: 上下文
+func (p *PromV1Repo) AllGroups(ctx context.Context) ([]*model.PromGroup, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.AllGroups")
+	defer span.End()
+
+	promGroup := p.db.PromGroup
+	promStrategy := p.db.PromStrategy
+	return promGroup.WithContext(ctx).
+		Where(promGroup.Status.Eq(int32(prom.Status_Status_ENABLE))).
+		Preload(promGroup.PromStrategies.Where(promStrategy.Status.Eq(int32(prom.Status_Status_ENABLE)))).
+		Find()
+}
+
 // StrategyDetail 根据ID获取策略详情
 //
 //	ctx: 上下文

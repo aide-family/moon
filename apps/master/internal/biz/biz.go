@@ -3,10 +3,12 @@ package biz
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/google/wire"
 
 	"prometheus-manager/api/prom"
 	"prometheus-manager/dal/model"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/times"
 
 	"prometheus-manager/apps/master/internal/service"
@@ -46,22 +48,6 @@ func buildModelPromGroup(groupItem *prom.GroupItem) *model.PromGroup {
 		Remark:     groupItem.GetRemark(),
 		Categories: buildInsertCategories(groupItem.GetCategoriesIds()),
 	}
-}
-
-func buildLabels(labelsStr string) map[string]string {
-	result := make(map[string]string)
-	if labelsStr != "" {
-		_ = json.Unmarshal([]byte(labelsStr), &result)
-	}
-	return result
-}
-
-func buildAnnotations(annotationsStr string) map[string]string {
-	result := make(map[string]string)
-	if annotationsStr != "" {
-		_ = json.Unmarshal([]byte(annotationsStr), &result)
-	}
-	return result
 }
 
 func buildPromStrategies(strategyItems []*model.PromStrategy) []*prom.StrategyItem {
@@ -121,8 +107,8 @@ func buildStrategyItem(strategyItem *model.PromStrategy) *prom.StrategyItem {
 		Alert:       strategyItem.Alert,
 		Expr:        strategyItem.Expr,
 		For:         strategyItem.For,
-		Labels:      buildLabels(strategyItem.Labels),
-		Annotations: buildAnnotations(strategyItem.Annotations),
+		Labels:      helper.BuildLabels(strategyItem.Labels),
+		Annotations: helper.BuildAnnotations(strategyItem.Annotations),
 		CreatedAt:   times.TimeToUnix(strategyItem.CreatedAt),
 		UpdatedAt:   times.TimeToUnix(strategyItem.UpdatedAt),
 		Categories:  buidlPromCategories(strategyItem.Categories),

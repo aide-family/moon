@@ -22,7 +22,7 @@ service Push {
 
 message StrategiesRequest {
   // 目标节点
-  repeated string node = 1 [(validate.rules).repeated.items = {
+  string node = 1 [(validate.rules) = {
     string: {
       pattern: "[a-zA-Z0-9_-]+$",
       min_len: 1,

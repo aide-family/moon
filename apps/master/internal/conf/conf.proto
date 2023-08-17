@@ -61,17 +61,18 @@ message Env {
   string namespace = 4;
 }
 
-message PushStrategy {
-  google.protobuf.Duration interval = 1; // push 策略的间隔
-  string dir = 2; // push 策略的目录
-  repeated NodeServer nodes = 8;
-}
-
 message Registrar {
   message Etcd {
     repeated string endpoints = 1;
   }
   Etcd etcd = 1;
+}
+
+message PushStrategy {
+  google.protobuf.Duration interval = 1; // push 策略的间隔
+  string dir = 2; // push 策略的目录
+  bool enable = 3; // 是否开启 push 策略
+  repeated NodeServer nodes = 8;
 }
 
 message NodeServer {
