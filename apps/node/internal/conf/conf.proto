@@ -11,6 +11,7 @@ message Bootstrap {
   Strategy strategy = 5;
   Env env = 6;
   Registrar registrar = 7;
+  repeated PromDatasource prom_datasources = 8;
 }
 
 message Server {
@@ -59,4 +60,11 @@ message Registrar {
     repeated string endpoints = 1;
   }
   Etcd etcd = 1;
+}
+
+message PromDatasource {
+  string name = 1;
+  string type = 2;
+  string url = 3;
+  string access = 4;
 }

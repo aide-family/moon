@@ -283,3 +283,386 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StrategiesReplyValidationError{}
+
+// Validate checks the field values on DatasourcesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DatasourcesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DatasourcesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DatasourcesRequestMultiError, or nil if none found.
+func (m *DatasourcesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DatasourcesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetNode()) < 1 {
+		err := DatasourcesRequestValidationError{
+			field:  "Node",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return DatasourcesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DatasourcesRequestMultiError is an error wrapping multiple validation errors
+// returned by DatasourcesRequest.ValidateAll() if the designated constraints
+// aren't met.
+type DatasourcesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DatasourcesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DatasourcesRequestMultiError) AllErrors() []error { return m }
+
+// DatasourcesRequestValidationError is the validation error returned by
+// DatasourcesRequest.Validate if the designated constraints aren't met.
+type DatasourcesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DatasourcesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DatasourcesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DatasourcesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DatasourcesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DatasourcesRequestValidationError) ErrorName() string {
+	return "DatasourcesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DatasourcesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDatasourcesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DatasourcesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DatasourcesRequestValidationError{}
+
+// Validate checks the field values on DatasourcesReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *DatasourcesReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DatasourcesReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DatasourcesReplyMultiError, or nil if none found.
+func (m *DatasourcesReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DatasourcesReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetDatasource() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DatasourcesReplyValidationError{
+						field:  fmt.Sprintf("Datasource[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DatasourcesReplyValidationError{
+						field:  fmt.Sprintf("Datasource[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DatasourcesReplyValidationError{
+					field:  fmt.Sprintf("Datasource[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DatasourcesReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DatasourcesReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DatasourcesReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DatasourcesReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// DatasourcesReplyMultiError is an error wrapping multiple validation errors
+// returned by DatasourcesReply.ValidateAll() if the designated constraints
+// aren't met.
+type DatasourcesReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DatasourcesReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DatasourcesReplyMultiError) AllErrors() []error { return m }
+
+// DatasourcesReplyValidationError is the validation error returned by
+// DatasourcesReply.Validate if the designated constraints aren't met.
+type DatasourcesReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DatasourcesReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DatasourcesReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DatasourcesReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DatasourcesReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DatasourcesReplyValidationError) ErrorName() string { return "DatasourcesReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DatasourcesReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDatasourcesReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DatasourcesReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DatasourcesReplyValidationError{}
+
+// Validate checks the field values on Datasource with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Datasource) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Datasource with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DatasourceMultiError, or
+// nil if none found.
+func (m *Datasource) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Datasource) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Type
+
+	// no validation rules for Url
+
+	// no validation rules for Access
+
+	if len(errors) > 0 {
+		return DatasourceMultiError(errors)
+	}
+
+	return nil
+}
+
+// DatasourceMultiError is an error wrapping multiple validation errors
+// returned by Datasource.ValidateAll() if the designated constraints aren't met.
+type DatasourceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DatasourceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DatasourceMultiError) AllErrors() []error { return m }
+
+// DatasourceValidationError is the validation error returned by
+// Datasource.Validate if the designated constraints aren't met.
+type DatasourceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DatasourceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DatasourceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DatasourceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DatasourceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DatasourceValidationError) ErrorName() string { return "DatasourceValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DatasourceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDatasource.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DatasourceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DatasourceValidationError{}
