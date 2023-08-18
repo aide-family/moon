@@ -56,13 +56,13 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 		server := srv
 		eg.Go(func() error {
 			if err := s.repo.GRPCPushCall(ctx, server); err != nil {
-				return err
+				// TODO 加入重试队列, 后续重试
 			}
 			return nil
 		})
 		eg.Go(func() error {
 			if err := s.repo.DeleteGroupSyncNode(ctx, server); err != nil {
-				return err
+				//TODO 加入重试队列, 后续重试
 			}
 			return nil
 		})
@@ -71,7 +71,7 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 		server := srv
 		eg.Go(func() error {
 			if err := s.repo.HTTPPushCall(ctx, server); err != nil {
-				return err
+				// TODO 加入重试队列, 后续重试
 			}
 			return nil
 		})
