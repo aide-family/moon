@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PullClient interface {
 	Strategies(ctx context.Context, in *StrategiesRequest, opts ...grpc.CallOption) (*StrategiesReply, error)
+	Datasources(ctx context.Context, in *DatasourcesRequest, opts ...grpc.CallOption) (*DatasourcesReply, error)
 }
 
 type pullClient struct {
@@ -42,11 +43,21 @@ func (c *pullClient) Strategies(ctx context.Context, in *StrategiesRequest, opts
 	return out, nil
 }
 
+func (c *pullClient) Datasources(ctx context.Context, in *DatasourcesRequest, opts ...grpc.CallOption) (*DatasourcesReply, error) {
+	out := new(DatasourcesReply)
+	err := c.cc.Invoke(ctx, "/api.strategy.v1.pull.Pull/Datasources", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PullServer is the server API for Pull service.
 // All implementations must embed UnimplementedPullServer
 // for forward compatibility
 type PullServer interface {
 	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
+	Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error)
 	mustEmbedUnimplementedPullServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedPullServer struct {
 
 func (UnimplementedPullServer) Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Strategies not implemented")
+}
+func (UnimplementedPullServer) Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Datasources not implemented")
 }
 func (UnimplementedPullServer) mustEmbedUnimplementedPullServer() {}
 
@@ -88,6 +102,24 @@ func _Pull_Strategies_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pull_Datasources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DatasourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PullServer).Datasources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.strategy.v1.pull.Pull/Datasources",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PullServer).Datasources(ctx, req.(*DatasourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Pull_ServiceDesc is the grpc.ServiceDesc for Pull service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var Pull_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Strategies",
 			Handler:    _Pull_Strategies_Handler,
+		},
+		{
+			MethodName: "Datasources",
+			Handler:    _Pull_Datasources_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

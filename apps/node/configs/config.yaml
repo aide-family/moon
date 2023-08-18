@@ -20,6 +20,12 @@ strategy:
     - "rule_temp/apache"
     - "rule_temp/core_dns"
 
+prom_datasources:
+  - name: "prometheus-node"
+    type: "prometheus"
+    url: "http://localhost:9090"
+    access: ""
+
 env:
   name: "prometheus-manager-node"
   version: "v0.0.1"

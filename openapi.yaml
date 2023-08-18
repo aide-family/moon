@@ -550,6 +550,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.v1.DeleteStrategyReply'
+    /pull/v1/datasources:
+        get:
+            tags:
+                - Pull
+            operationId: Pull_Datasources
+            parameters:
+                - name: node
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.strategy.v1.pull.DatasourcesReply'
     /pull/v1/strategies:
         get:
             tags:
@@ -1213,6 +1230,26 @@ components:
                     type: array
                     items:
                         type: string
+        api.strategy.v1.pull.Datasource:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                url:
+                    type: string
+                access:
+                    type: string
+        api.strategy.v1.pull.DatasourcesReply:
+            type: object
+            properties:
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.strategy.v1.pull.Datasource'
+                response:
+                    $ref: '#/components/schemas/api.Response'
         api.strategy.v1.pull.StrategiesReply:
             type: object
             properties:

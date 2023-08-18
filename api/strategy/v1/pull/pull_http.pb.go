@@ -19,15 +19,18 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationPullDatasources = "/api.strategy.v1.pull.Pull/Datasources"
 const OperationPullStrategies = "/api.strategy.v1.pull.Pull/Strategies"
 
 type PullHTTPServer interface {
+	Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error)
 	Strategies(context.Context, *StrategiesRequest) (*StrategiesReply, error)
 }
 
 func RegisterPullHTTPServer(s *http.Server, srv PullHTTPServer) {
 	r := s.Route("/")
 	r.GET("/pull/v1/strategies", _Pull_Strategies0_HTTP_Handler(srv))
+	r.GET("/pull/v1/datasources", _Pull_Datasources0_HTTP_Handler(srv))
 }
 
 func _Pull_Strategies0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) error {
@@ -49,7 +52,27 @@ func _Pull_Strategies0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) e
 	}
 }
 
+func _Pull_Datasources0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DatasourcesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPullDatasources)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Datasources(ctx, req.(*DatasourcesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DatasourcesReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type PullHTTPClient interface {
+	Datasources(ctx context.Context, req *DatasourcesRequest, opts ...http.CallOption) (rsp *DatasourcesReply, err error)
 	Strategies(ctx context.Context, req *StrategiesRequest, opts ...http.CallOption) (rsp *StrategiesReply, err error)
 }
 
@@ -59,6 +82,19 @@ type PullHTTPClientImpl struct {
 
 func NewPullHTTPClient(client *http.Client) PullHTTPClient {
 	return &PullHTTPClientImpl{client}
+}
+
+func (c *PullHTTPClientImpl) Datasources(ctx context.Context, in *DatasourcesRequest, opts ...http.CallOption) (*DatasourcesReply, error) {
+	var out DatasourcesReply
+	pattern := "/pull/v1/datasources"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationPullDatasources))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *PullHTTPClientImpl) Strategies(ctx context.Context, in *StrategiesRequest, opts ...http.CallOption) (*StrategiesReply, error) {
