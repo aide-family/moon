@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"prometheus-manager/api"
 	"strconv"
 	"sync"
 	"time"
@@ -11,10 +10,12 @@ import (
 	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
 
+	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
 	nodeV1Pull "prometheus-manager/api/strategy/v1/pull"
+
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
@@ -36,7 +37,7 @@ type (
 var _ biz.IDictV1Repo = (*DictV1Repo)(nil)
 
 func NewDictRepo(data *Data, logger log.Logger) *DictV1Repo {
-	return &DictV1Repo{data: data, db: query.Use(data.DB()), logger: log.NewHelper(log.With(logger, "module", "data/Dict"))}
+	return &DictV1Repo{data: data, db: query.Use(data.DB()), logger: log.NewHelper(log.With(logger, "module", dictModuleName))}
 }
 
 func (l *DictV1Repo) V1(_ context.Context) string {
@@ -197,6 +198,8 @@ func (l *DictV1Repo) ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*
 }
 
 func (l *DictV1Repo) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictV1Repo.Datasources")
+	defer span.End()
 	nodes := conf.Get().GetPushStrategy().GetNodes()
 	var err error
 	var eg errgroup.Group

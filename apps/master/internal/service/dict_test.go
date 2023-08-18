@@ -1,9 +1,10 @@
 package service
 
 import (
-	"golang.org/x/sync/errgroup"
 	"sync"
 	"testing"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func TestSliceAppend(t *testing.T) {

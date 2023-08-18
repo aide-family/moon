@@ -2,8 +2,11 @@ package strategyload
 
 import (
 	"bytes"
+	"context"
+
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/otel"
 	"prometheus-manager/api/strategy"
 )
 
@@ -28,7 +31,9 @@ func (l *Strategy) load() error {
 	return nil
 }
 
-func (l *Strategy) Scan(v *[]*strategy.Strategy) error {
+func (l *Strategy) Scan(ctx context.Context, v *[]*strategy.Strategy) error {
+	_, span := otel.Tracer("strategyload/load").Start(ctx, "Strategy.Scan")
+	defer span.End()
 	if err := l.load(); err != nil {
 		return err
 	}

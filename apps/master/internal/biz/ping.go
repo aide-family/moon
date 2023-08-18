@@ -26,11 +26,11 @@ type (
 var _ service.IPingLogic = (*PingLogic)(nil)
 
 func NewPingLogic(repo IPingRepo, logger log.Logger) *PingLogic {
-	return &PingLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Ping"))}
+	return &PingLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", pingModuleName))}
 }
 
 func (s *PingLogic) Check(ctx context.Context, req *pb.PingRequest) (*pb.PingReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PingLogic.Check")
+	ctx, span := otel.Tracer(pingModuleName).Start(ctx, "PingLogic.Check")
 	defer span.End()
 
 	s.logger.WithContext(ctx).Infof("PingLogic.Check with req: %v", req)

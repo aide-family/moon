@@ -2,11 +2,13 @@ package data
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
+
 	"prometheus-manager/pkg/conn"
 
 	"prometheus-manager/apps/master/internal/biz"
@@ -46,6 +48,7 @@ const (
 	alarmPageModuleName = "data/AlarmPage"
 	dictModuleName      = "data/Dict"
 	pushModuleName      = "data/Push"
+	pingModuleName      = "data/Ping"
 )
 
 func (l *Data) DB() *gorm.DB {

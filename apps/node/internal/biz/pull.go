@@ -2,16 +2,17 @@ package biz
 
 import (
 	"context"
-	"go.opentelemetry.io/otel"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/apps/node/internal/conf"
-	"prometheus-manager/pkg/util/stringer"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"go.opentelemetry.io/otel"
+
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/strategy"
 	pb "prometheus-manager/api/strategy/v1/pull"
+	"prometheus-manager/pkg/util/stringer"
 
+	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
 )
 
@@ -36,11 +37,11 @@ type (
 var _ service.IPullLogic = (*PullLogic)(nil)
 
 func NewPullLogic(repo IPullRepo, logger log.Logger) *PullLogic {
-	return &PullLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Pull"))}
+	return &PullLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", pullModuleName))}
 }
 
 func (s *PullLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
-	ctx, span := otel.Tracer("biz/pull").Start(ctx, "PullLogic.Strategies")
+	ctx, span := otel.Tracer(pullModuleName).Start(ctx, "PullLogic.Strategies")
 	defer span.End()
 
 	strategyLoad, err := s.repo.PullStrategies(ctx)
@@ -53,7 +54,7 @@ func (s *PullLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 }
 
 func (s *PullLogic) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
-	ctx, span := otel.Tracer("biz/pull").Start(ctx, "PullLogic.Datasources")
+	ctx, span := otel.Tracer(pullModuleName).Start(ctx, "PullLogic.Datasources")
 	defer span.End()
 
 	serverEnv := conf.Get().GetEnv()

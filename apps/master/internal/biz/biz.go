@@ -28,6 +28,14 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.IDictV1Logic), new(*DictLogic)),
 )
 
+const (
+	dictModuleName      = "biz/dict"
+	alarmPageModuleName = "biz/alarmPage"
+	promModuleName      = "biz/prom"
+	pushModuleName      = "biz/push"
+	pingModuleName      = "biz/ping"
+)
+
 type V1Repo interface {
 	V1(ctx context.Context) string
 }

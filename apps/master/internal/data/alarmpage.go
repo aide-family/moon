@@ -3,19 +3,23 @@ package data
 import (
 	"context"
 	"errors"
+	"strconv"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"gorm.io/gorm"
+
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/biz"
+
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
 	"prometheus-manager/pkg/util/stringer"
-	"strconv"
-	"time"
+
+	"prometheus-manager/apps/master/internal/biz"
 )
 
 type (
@@ -29,7 +33,7 @@ type (
 var _ biz.IAlarmPageV1Repo = (*AlarmPageV1Repo)(nil)
 
 func NewAlarmPageV1Repo(data *Data, logger log.Logger) *AlarmPageV1Repo {
-	return &AlarmPageV1Repo{data: data, db: query.Use(data.DB()), logger: log.NewHelper(log.With(logger, "module", "data/AlarmPage"))}
+	return &AlarmPageV1Repo{data: data, db: query.Use(data.DB()), logger: log.NewHelper(log.With(logger, "module", alarmPageModuleName))}
 }
 
 func (l *AlarmPageV1Repo) V1(_ context.Context) string {

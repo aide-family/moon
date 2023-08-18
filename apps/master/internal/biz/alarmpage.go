@@ -2,14 +2,18 @@ package biz
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/service"
+
 	"prometheus-manager/dal/model"
+
+	"prometheus-manager/apps/master/internal/service"
 )
 
 type (
@@ -32,7 +36,7 @@ type (
 var _ service.IAlarmPageV1Logic = (*AlarmPageLogic)(nil)
 
 func NewAlarmPageLogic(repo IAlarmPageV1Repo, logger log.Logger) *AlarmPageLogic {
-	return &AlarmPageLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/AlarmPage"))}
+	return &AlarmPageLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", alarmPageModuleName))}
 }
 
 // CreateAlarmPage 创建告警页面
@@ -40,7 +44,7 @@ func NewAlarmPageLogic(repo IAlarmPageV1Repo, logger log.Logger) *AlarmPageLogic
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) CreateAlarmPage(ctx context.Context, req *pb.CreateAlarmPageRequest) (*pb.CreateAlarmPageReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.CreateAlarmPage")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.CreateAlarmPage")
 	defer span.End()
 
 	if err := s.repo.CreateAlarmPage(ctx, alarmPageToModel(req.GetAlarmPage())); err != nil {
@@ -58,7 +62,7 @@ func (s *AlarmPageLogic) CreateAlarmPage(ctx context.Context, req *pb.CreateAlar
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAlarmPageRequest) (*pb.UpdateAlarmPageReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.UpdateAlarmPage")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.UpdateAlarmPage")
 	defer span.End()
 
 	if err := s.repo.UpdateAlarmPageById(ctx, req.GetId(), alarmPageToModel(req.GetAlarmPage())); err != nil {
@@ -76,7 +80,7 @@ func (s *AlarmPageLogic) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAlar
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) UpdateAlarmPagesStatus(ctx context.Context, req *pb.UpdateAlarmPagesStatusRequest) (*pb.UpdateAlarmPagesStatusReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.UpdateAlarmPagesStatus")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.UpdateAlarmPagesStatus")
 	defer span.End()
 
 	if err := s.repo.UpdateAlarmPagesStatusByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
@@ -94,7 +98,7 @@ func (s *AlarmPageLogic) UpdateAlarmPagesStatus(ctx context.Context, req *pb.Upd
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) DeleteAlarmPage(ctx context.Context, req *pb.DeleteAlarmPageRequest) (*pb.DeleteAlarmPageReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.DeleteAlarmPage")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.DeleteAlarmPage")
 	defer span.End()
 
 	if err := s.repo.DeleteAlarmPageById(ctx, req.GetId()); err != nil {
@@ -112,7 +116,7 @@ func (s *AlarmPageLogic) DeleteAlarmPage(ctx context.Context, req *pb.DeleteAlar
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPageRequest) (*pb.GetAlarmPageReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.GetAlarmPage")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.GetAlarmPage")
 	defer span.End()
 
 	detail, err := s.repo.GetAlarmPageById(ctx, req)
@@ -137,7 +141,7 @@ func (s *AlarmPageLogic) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPageR
 //	ctx 上下文
 //	req 请求参数
 func (s *AlarmPageLogic) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "AlarmPageLogic.ListAlarmPage")
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.ListAlarmPage")
 	defer span.End()
 
 	alarmPages, total, err := s.repo.ListAlarmPage(ctx, req)

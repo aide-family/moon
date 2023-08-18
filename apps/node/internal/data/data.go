@@ -30,9 +30,16 @@ var (
 	loadTime   time.Time
 )
 
+const (
+	loadModuleName = "data/load"
+	pingModuleName = "data/ping"
+	pullModuleName = "data/pull"
+	pushModuleName = "data/push"
+)
+
 // Data .
 type Data struct {
-	// TODO wrapped database client
+	strategy *conf.Strategy
 }
 
 // NewData .
@@ -40,5 +47,7 @@ func NewData(strategy *conf.Strategy, logger log.Logger) (*Data, func(), error) 
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{}, cleanup, nil
+	return &Data{
+		strategy: strategy,
+	}, cleanup, nil
 }

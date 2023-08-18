@@ -3,13 +3,11 @@ package biz
 import (
 	"context"
 	"path"
-	"prometheus-manager/pkg/util/stringer"
 	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
@@ -17,6 +15,7 @@ import (
 	pb "prometheus-manager/api/strategy/v1/push"
 
 	"prometheus-manager/pkg/util/dir"
+	"prometheus-manager/pkg/util/stringer"
 
 	"prometheus-manager/apps/node/internal/conf"
 	"prometheus-manager/apps/node/internal/service"
@@ -38,7 +37,6 @@ type (
 	PushLogic struct {
 		logger *log.Helper
 		repo   IPushRepo
-		tr     trace.Tracer
 	}
 )
 
@@ -47,13 +45,12 @@ var _ service.IPushLogic = (*PushLogic)(nil)
 func NewPushLogic(repo IPushRepo, logger log.Logger) *PushLogic {
 	return &PushLogic{
 		repo:   repo,
-		logger: log.NewHelper(log.With(logger, "module", "biz/Push")),
-		tr:     otel.Tracer("biz/Push"),
+		logger: log.NewHelper(log.With(logger, "module", pushModuleName)),
 	}
 }
 
 func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (*pb.StrategiesReply, error) {
-	ctx, span := l.tr.Start(ctx, "Strategies")
+	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushLogic.Strategies")
 	defer span.End()
 
 	strategyPath := conf.Get().GetStrategy().GetPath()
@@ -106,7 +103,7 @@ func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 }
 
 func (l *PushLogic) DeleteStrategies(ctx context.Context, req *pb.DeleteStrategiesRequest) (*pb.DeleteStrategiesReply, error) {
-	ctx, span := l.tr.Start(ctx, "DeleteStrategies")
+	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushLogic.DeleteStrategies")
 	defer span.End()
 
 	dirs := req.GetDirs()

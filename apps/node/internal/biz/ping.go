@@ -2,9 +2,9 @@ package biz
 
 import (
 	"context"
+	"go.opentelemetry.io/otel"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
 	pb "prometheus-manager/api"
@@ -30,13 +30,12 @@ var _ service.IPingLogic = (*PingLogic)(nil)
 func NewPingLogic(repo IPingRepo, logger log.Logger) *PingLogic {
 	return &PingLogic{
 		repo:   repo,
-		logger: log.NewHelper(log.With(logger, "module", "biz/Ping")),
-		tr:     otel.Tracer("biz/Ping"),
+		logger: log.NewHelper(log.With(logger, "module", pingModuleName)),
 	}
 }
 
 func (l *PingLogic) Check(ctx context.Context, req *pb.PingRequest) (*pb.PingReply, error) {
-	ctx, span := l.tr.Start(ctx, "Check "+req.GetName())
+	ctx, span := otel.Tracer(pingModuleName).Start(ctx, "PingLogic.Check")
 	defer span.End()
 
 	env, err := l.repo.Check(ctx)

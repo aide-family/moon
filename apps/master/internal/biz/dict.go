@@ -2,14 +2,18 @@ package biz
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/service"
+
 	"prometheus-manager/dal/model"
+
+	"prometheus-manager/apps/master/internal/service"
 )
 
 type (
@@ -34,7 +38,7 @@ type (
 var _ service.IDictV1Logic = (*DictLogic)(nil)
 
 func NewDictLogic(repo IDictV1Repo, logger log.Logger) *DictLogic {
-	return &DictLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Dict"))}
+	return &DictLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", dictModuleName))}
 }
 
 // CreateDict 创建字典
@@ -42,7 +46,7 @@ func NewDictLogic(repo IDictV1Repo, logger log.Logger) *DictLogic {
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.CreateDict")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.CreateDict")
 	defer span.End()
 
 	if err := s.repo.CreateDict(ctx, dictToModel(req.GetDict())); err != nil {
@@ -60,7 +64,7 @@ func (s *DictLogic) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*pb.UpdateDictReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.UpdateDict")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.UpdateDict")
 	defer span.End()
 
 	if err := s.repo.UpdateDictById(ctx, req.GetId(), dictToModel(req.GetDict())); err != nil {
@@ -78,7 +82,7 @@ func (s *DictLogic) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) UpdateDictsStatus(ctx context.Context, req *pb.UpdateDictsStatusRequest) (*pb.UpdateDictsStatusReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.UpdateDictsStatus")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.UpdateDictsStatus")
 	defer span.End()
 
 	if err := s.repo.UpdateDictByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
@@ -96,7 +100,7 @@ func (s *DictLogic) UpdateDictsStatus(ctx context.Context, req *pb.UpdateDictsSt
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*pb.DeleteDictReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.DeleteDict")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.DeleteDict")
 	defer span.End()
 
 	if err := s.repo.DeleteDictById(ctx, req.GetId()); err != nil {
@@ -114,7 +118,7 @@ func (s *DictLogic) DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetDictReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.GetDict")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.GetDict")
 	defer span.End()
 
 	detail, err := s.repo.GetDictById(ctx, req.GetId())
@@ -139,7 +143,7 @@ func (s *DictLogic) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.Ge
 //	ctx 上下文
 //	req 请求参数
 func (s *DictLogic) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.ListDictReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.ListDict")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.ListDict")
 	defer span.End()
 
 	dicts, total, err := s.repo.ListDict(ctx, req)
@@ -171,7 +175,7 @@ func (s *DictLogic) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.
 }
 
 func (s *DictLogic) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.Datasources")
+	ctx, span := otel.Tracer(dictModuleName).Start(ctx, "DictLogic.Datasources")
 	defer span.End()
 
 	return s.repo.Datasources(ctx, req)
