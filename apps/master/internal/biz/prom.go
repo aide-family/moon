@@ -2,14 +2,16 @@ package biz
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
-	pb "prometheus-manager/api/prom/v1"
-	"strconv"
 
 	"prometheus-manager/api"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
+	pb "prometheus-manager/api/prom/v1"
+
 	"prometheus-manager/apps/master/internal/service"
 	"prometheus-manager/dal/model"
 )
@@ -43,7 +45,7 @@ var _ service.IPromV1Logic = (*PromLogic)(nil)
 
 // NewPromLogic 初始化biz.PromLogic
 func NewPromLogic(v1Repo IPromV1Repo, logger log.Logger) *PromLogic {
-	return &PromLogic{v1Repo: v1Repo, logger: log.NewHelper(log.With(logger, "module", "biz/Prom"))}
+	return &PromLogic{v1Repo: v1Repo, logger: log.NewHelper(log.With(logger, "module", promModuleName))}
 }
 
 // CreateGroup 创建Prometheus分组
@@ -51,7 +53,7 @@ func NewPromLogic(v1Repo IPromV1Repo, logger log.Logger) *PromLogic {
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) CreateGroup(ctx context.Context, req *pb.CreateGroupRequest) (*pb.CreateGroupReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.CreateGroup")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.CreateGroup")
 	defer span.End()
 
 	insertModel := buildModelPromGroup(req.GetGroup())
@@ -68,7 +70,7 @@ func (s *PromLogic) CreateGroup(ctx context.Context, req *pb.CreateGroupRequest)
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) UpdateGroup(ctx context.Context, req *pb.UpdateGroupRequest) (*pb.UpdateGroupReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.UpdateGroup")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.UpdateGroup")
 	defer span.End()
 
 	edieModel := buildModelPromGroup(req.GetGroup())
@@ -85,7 +87,7 @@ func (s *PromLogic) UpdateGroup(ctx context.Context, req *pb.UpdateGroupRequest)
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) UpdateGroupsStatus(ctx context.Context, req *pb.UpdateGroupsStatusRequest) (*pb.UpdateGroupsStatusReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.UpdateGrouStatus")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.UpdateGrouStatus")
 	defer span.End()
 
 	if err := s.v1Repo.UpdateGroupsStatusByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
@@ -101,7 +103,7 @@ func (s *PromLogic) UpdateGroupsStatus(ctx context.Context, req *pb.UpdateGroups
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) DeleteGroup(ctx context.Context, req *pb.DeleteGroupRequest) (*pb.DeleteGroupReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.DeleteGroup")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.DeleteGroup")
 	defer span.End()
 
 	if err := s.v1Repo.DeleteGroupByID(ctx, req.GetId()); err != nil {
@@ -117,7 +119,7 @@ func (s *PromLogic) DeleteGroup(ctx context.Context, req *pb.DeleteGroupRequest)
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*pb.GetGroupReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.GetGroup")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.GetGroup")
 	defer span.End()
 
 	groupDetail, err := s.v1Repo.GroupDetail(ctx, req.GetId())
@@ -137,7 +139,7 @@ func (s *PromLogic) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*pb.
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*pb.ListGroupReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.ListGroup")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.ListGroup")
 	defer span.End()
 
 	groups, total, err := s.v1Repo.Groups(ctx, req)
@@ -171,7 +173,7 @@ func (s *PromLogic) ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*p
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.CreateStrategy")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.CreateStrategy")
 	defer span.End()
 
 	firstStrategyInfo, err := s.v1Repo.GetStrategyByName(ctx, req.GetStrategy().GetGroupId(), req.GetStrategy().Alert)
@@ -199,7 +201,7 @@ func (s *PromLogic) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRe
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) UpdateStrategiesStatus(ctx context.Context, req *pb.UpdateStrategiesStatusRequest) (*pb.UpdateStrategiesStatusReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.UpdateStrategiesStatus")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.UpdateStrategiesStatus")
 	defer span.End()
 
 	if err := s.v1Repo.UpdateStrategiesStatusByIds(ctx, req.GetIds(), req.GetStatus()); err != nil {
@@ -215,7 +217,7 @@ func (s *PromLogic) UpdateStrategiesStatus(ctx context.Context, req *pb.UpdateSt
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRequest) (*pb.UpdateStrategyReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.UpdateStrategy")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.UpdateStrategy")
 	defer span.End()
 
 	firstStrategyInfo, err := s.v1Repo.GetStrategyByName(ctx, req.GetStrategy().GetGroupId(), req.GetStrategy().Alert)
@@ -243,7 +245,7 @@ func (s *PromLogic) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRe
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) DeleteStrategy(ctx context.Context, req *pb.DeleteStrategyRequest) (*pb.DeleteStrategyReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.DeleteStrategy")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.DeleteStrategy")
 	defer span.End()
 
 	if err := s.v1Repo.DeleteStrategyByID(ctx, req.GetId()); err != nil {
@@ -258,7 +260,7 @@ func (s *PromLogic) DeleteStrategy(ctx context.Context, req *pb.DeleteStrategyRe
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) GetStrategy(ctx context.Context, req *pb.GetStrategyRequest) (*pb.GetStrategyReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.GetStrategy")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.GetStrategy")
 	defer span.End()
 
 	strategyDetail, err := s.v1Repo.StrategyDetail(ctx, req.GetId())
@@ -278,7 +280,7 @@ func (s *PromLogic) GetStrategy(ctx context.Context, req *pb.GetStrategyRequest)
 //	ctx: 上下文
 //	req: 请求参数
 func (s *PromLogic) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) (*pb.ListStrategyReply, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PromLogic.ListStrategy")
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.ListStrategy")
 	defer span.End()
 
 	strategies, total, err := s.v1Repo.Strategies(ctx, req)

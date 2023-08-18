@@ -2,9 +2,9 @@ package data
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 	"prometheus-manager/pkg/util/dir"
 
 	"prometheus-manager/api/strategy"
@@ -18,7 +18,6 @@ type (
 	PushRepo struct {
 		logger *log.Helper
 		data   *Data
-		tr     trace.Tracer
 	}
 )
 
@@ -27,13 +26,12 @@ var _ biz.IPushRepo = (*PushRepo)(nil)
 func NewPushRepo(data *Data, logger log.Logger) *PushRepo {
 	return &PushRepo{
 		data:   data,
-		logger: log.NewHelper(log.With(logger, "module", "data/Push")),
-		tr:     otel.Tracer("data/Push"),
+		logger: log.NewHelper(log.With(logger, "module", pushModuleName)),
 	}
 }
 
 func (l *PushRepo) StoreStrategy(ctx context.Context, strategyDirList []*strategy.StrategyDir) (*biz.StoreStrategyResult, error) {
-	_, span := l.tr.Start(ctx, "StoreStrategy")
+	_, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.StoreStrategy")
 	defer span.End()
 
 	store := strategystore.NewStrategy(strategyDirList, l.logger)
@@ -51,13 +49,13 @@ func (l *PushRepo) StoreStrategy(ctx context.Context, strategyDirList []*strateg
 }
 
 func (l *PushRepo) RemoveStrategy(ctx context.Context, files []string) error {
-	_, span := l.tr.Start(ctx, "PushRepo.RemoveStrategy")
+	_, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.RemoveStrategy")
 	defer span.End()
 	return dir.RemoveAllYamlFilename(files...)
 }
 
 func (l *PushRepo) V1(ctx context.Context) string {
-	ctx, span := l.tr.Start(ctx, "showVersion")
+	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.V1")
 	defer span.End()
 	return "version is v1"
 }

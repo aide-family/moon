@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/strategy"
 	nodeV1Push "prometheus-manager/api/strategy/v1/push"
-	"prometheus-manager/apps/master/internal/conf"
+
 	"prometheus-manager/dal/model"
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper"
@@ -18,6 +18,7 @@ import (
 	"prometheus-manager/pkg/util/hash"
 
 	"prometheus-manager/apps/master/internal/biz"
+	"prometheus-manager/apps/master/internal/conf"
 )
 
 type (
@@ -38,7 +39,7 @@ func NewPushRepo(data *Data, logger log.Logger) *PushRepo {
 	return &PushRepo{
 		data:       data,
 		promV1Repo: NewPromV1Repo(data, logger),
-		logger:     log.NewHelper(log.With(logger, "module", "data/Push")),
+		logger:     log.NewHelper(log.With(logger, "module", pushModuleName)),
 	}
 }
 
@@ -198,7 +199,7 @@ func (l *PushRepo) DeleteGroupSyncNode(ctx context.Context, server conn.INodeSer
 }
 
 func (l *PushRepo) V1(ctx context.Context) string {
-	_, span := otel.Tracer("data").Start(ctx, "PushRepo.V1")
+	_, span := otel.Tracer(pushModuleName).Start(ctx, "PushRepo.V1")
 	defer span.End()
 	return "PushRepo.V1"
 }

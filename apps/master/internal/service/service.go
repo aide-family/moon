@@ -12,3 +12,11 @@ var ProviderSet = wire.NewSet(
 	NewAlarmPageService,
 	NewDictService,
 )
+
+const (
+	dictModuleName      = "service/dict"
+	alarmPageModuleName = "service/alarmPage"
+	promModuleName      = "service/prom"
+	pushModuleName      = "service/push"
+	pingModuleName      = "service/ping"
+)

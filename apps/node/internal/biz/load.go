@@ -6,9 +6,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
-	"prometheus-manager/api"
 
+	"prometheus-manager/api"
 	pb "prometheus-manager/api/strategy/v1/load"
 
 	"prometheus-manager/pkg/curl"
@@ -27,18 +26,17 @@ type (
 	LoadLogic struct {
 		logger *log.Helper
 		repo   ILoadRepo
-		tr     trace.Tracer
 	}
 )
 
 var _ service.ILoadLogic = (*LoadLogic)(nil)
 
 func NewLoadLogic(repo ILoadRepo, logger log.Logger) *LoadLogic {
-	return &LoadLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Load")), tr: otel.Tracer("biz/Code")}
+	return &LoadLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", loadModuleName))}
 }
 
 func (l *LoadLogic) Reload(ctx context.Context, _ *pb.ReloadRequest) (*pb.ReloadReply, error) {
-	ctx, span := l.tr.Start(ctx, "Reload")
+	ctx, span := otel.Tracer(loadModuleName).Start(ctx, "LoadLogic.Reload")
 	defer span.End()
 
 	dirList := conf.Get().GetStrategy().GetPath()

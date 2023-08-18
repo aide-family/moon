@@ -2,9 +2,10 @@ package server
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/node"
-	"time"
 
 	"prometheus-manager/pkg/servers"
 

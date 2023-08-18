@@ -2,8 +2,9 @@ package curl
 
 import (
 	"context"
-	"go.opentelemetry.io/otel"
 	"os/exec"
+
+	"go.opentelemetry.io/otel"
 )
 
 func Curl(ctx context.Context, path string) (string, error) {

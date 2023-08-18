@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
@@ -9,6 +10,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/node"
 	"prometheus-manager/api/perrors"
+
 	"prometheus-manager/pkg/conn"
 
 	"prometheus-manager/apps/master/internal/service"
@@ -31,12 +33,12 @@ type (
 var _ service.IPushLogic = (*PushLogic)(nil)
 
 func NewPushLogic(repo IPushRepo, logger log.Logger) *PushLogic {
-	return &PushLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", "biz/Push"))}
+	return &PushLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", pushModuleName))}
 }
 
 // Call TODO 限制该方法并发, 同一时段内, 只允许执行一次, 如果请求该方法, 监测到正在执行, 则返回正在执行的结果
 func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResponse, error) {
-	ctx, span := otel.Tracer("biz").Start(ctx, "PushLogic.Call")
+	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushLogic.Call")
 	defer span.End()
 
 	grpcNodeServers := make([]*pb.NodeServer, 0, len(req.GetServers()))

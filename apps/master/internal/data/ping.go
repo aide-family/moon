@@ -17,15 +17,15 @@ type (
 	}
 )
 
-func (l *PingRepo) V1(ctx context.Context) string {
-	ctx, span := otel.Tracer("data").Start(ctx, "PingRepo.V1")
-	defer span.End()
-	l.logger.WithContext(ctx).Infof("PingRepo.V1")
-	return conf.Get().GetEnv().GetVersion()
-}
-
 var _ biz.IPingRepo = (*PingRepo)(nil)
 
 func NewPingRepo(data *Data, logger log.Logger) *PingRepo {
-	return &PingRepo{data: data, logger: log.NewHelper(log.With(logger, "module", "data/Ping"))}
+	return &PingRepo{data: data, logger: log.NewHelper(log.With(logger, "module", pingModuleName))}
+}
+
+func (l *PingRepo) V1(ctx context.Context) string {
+	ctx, span := otel.Tracer(pingModuleName).Start(ctx, "PingRepo.V1")
+	defer span.End()
+	l.logger.WithContext(ctx).Infof("PingRepo.V1")
+	return conf.Get().GetEnv().GetVersion()
 }

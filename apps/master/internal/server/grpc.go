@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -18,6 +19,7 @@ import (
 
 	ping "prometheus-manager/api"
 	promV1 "prometheus-manager/api/prom/v1"
+
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 

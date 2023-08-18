@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"os"
 	"sync"
 
+	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"

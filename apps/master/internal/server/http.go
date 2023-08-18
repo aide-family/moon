@@ -21,6 +21,7 @@ import (
 
 	ping "prometheus-manager/api"
 	promV1 "prometheus-manager/api/prom/v1"
+
 	"prometheus-manager/pkg/middler"
 	"prometheus-manager/pkg/prom"
 

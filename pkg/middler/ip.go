@@ -2,11 +2,12 @@ package middler
 
 import (
 	"context"
+	nhttp "net/http"
+
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/prometheus/client_golang/prometheus"
-	nhttp "net/http"
 )
 
 func IpMetric(counter *prometheus.CounterVec) middleware.Middleware {

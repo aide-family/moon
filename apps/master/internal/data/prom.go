@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"errors"
-	"prometheus-manager/pkg/util/stringer"
 	"strconv"
 	"time"
 
@@ -15,9 +14,11 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
+
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
+	"prometheus-manager/pkg/util/stringer"
 
 	"prometheus-manager/apps/master/internal/biz"
 )
@@ -39,7 +40,7 @@ var _ biz.IPromV1Repo = (*PromV1Repo)(nil)
 func NewPromV1Repo(data *Data, logger log.Logger) *PromV1Repo {
 	return &PromV1Repo{
 		data:   data,
-		logger: log.NewHelper(log.With(logger, "module", "data/Prom")),
+		logger: log.NewHelper(log.With(logger, "module", promModuleName)),
 		db:     query.Use(data.DB()),
 	}
 }
@@ -192,11 +193,12 @@ func (p *PromV1Repo) Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*m
 //
 //	ctx: 上下文
 func (p *PromV1Repo) AllGroups(ctx context.Context, ids []int32) ([]*model.PromGroup, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.AllGroups")
+	defer span.End()
+
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.AllGroups")
-	defer span.End()
 
 	promGroup := p.db.PromGroup
 	promStrategy := p.db.PromStrategy
@@ -764,6 +766,8 @@ func (p *PromV1Repo) CreateGroup(ctx context.Context, m *model.PromGroup) error 
 }
 
 func (p *PromV1Repo) StoreChangeGroupNode(ctx context.Context, groupIds ...any) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.StoreChangeGroupNode")
+	defer span.End()
 	if len(groupIds) == 0 {
 		return nil
 	}
@@ -772,6 +776,8 @@ func (p *PromV1Repo) StoreChangeGroupNode(ctx context.Context, groupIds ...any) 
 }
 
 func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) error {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.StoreDeleteGroupNode")
+	defer span.End()
 	if len(groupIds) == 0 {
 		return nil
 	}
@@ -782,6 +788,8 @@ func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) 
 // V1 服务版本
 //
 //	ctx: 上下文
-func (p *PromV1Repo) V1(_ context.Context) string {
+func (p *PromV1Repo) V1(ctx context.Context) string {
+	_, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.V1")
+	defer span.End()
 	return "/prom/v1"
 }

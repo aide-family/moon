@@ -2,10 +2,13 @@ package data
 
 import (
 	"context"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+
 	"prometheus-manager/api"
 	"prometheus-manager/api/strategy/v1/pull"
+
 	"prometheus-manager/apps/node/internal/biz"
 	"prometheus-manager/apps/node/internal/conf"
 )
@@ -20,11 +23,11 @@ type (
 var _ biz.IPullRepo = (*PullRepo)(nil)
 
 func NewPullRepo(data *Data, logger log.Logger) *PullRepo {
-	return &PullRepo{data: data, logger: log.NewHelper(log.With(logger, "module", "data/Pull"))}
+	return &PullRepo{data: data, logger: log.NewHelper(log.With(logger, "module", pullModuleName))}
 }
 
 func (l *PullRepo) Datasources(ctx context.Context) (*pull.DatasourcesReply, error) {
-	ctx, span := otel.Tracer("data/pull").Start(ctx, "PullRepo.Datasources")
+	ctx, span := otel.Tracer(pullModuleName).Start(ctx, "PullRepo.Datasources")
 	defer span.End()
 
 	datasource := conf.Get().GetPromDatasources()
@@ -42,7 +45,7 @@ func (l *PullRepo) Datasources(ctx context.Context) (*pull.DatasourcesReply, err
 }
 
 func (l *PullRepo) PullStrategies(ctx context.Context) (*biz.StrategyLoad, error) {
-	_, span := otel.Tracer("data/pull").Start(ctx, "PullRepo.PullStrategies")
+	_, span := otel.Tracer(pullModuleName).Start(ctx, "PullRepo.PullStrategies")
 	defer span.End()
 
 	return &biz.StrategyLoad{
@@ -52,7 +55,7 @@ func (l *PullRepo) PullStrategies(ctx context.Context) (*biz.StrategyLoad, error
 }
 
 func (l *PullRepo) V1(ctx context.Context) string {
-	ctx, span := otel.Tracer("data/pull").Start(ctx, "PullRepo.V1")
+	ctx, span := otel.Tracer(pullModuleName).Start(ctx, "PullRepo.V1")
 	defer span.End()
 	return "version is v1"
 }

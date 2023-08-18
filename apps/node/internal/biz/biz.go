@@ -1,10 +1,16 @@
 package biz
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"prometheus-manager/apps/node/internal/service"
 )
+
+type V1Repo interface {
+	V1(ctx context.Context) string
+}
 
 // ProviderSet is biz providers.
 var ProviderSet = wire.NewSet(
@@ -16,4 +22,11 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.ILoadLogic), new(*LoadLogic)),
 	NewPingLogic,
 	wire.Bind(new(service.IPingLogic), new(*PingLogic)),
+)
+
+const (
+	loadModuleName = "biz/load"
+	pingModuleName = "biz/ping"
+	pullModuleName = "biz/pull"
+	pushModuleName = "biz/push"
 )

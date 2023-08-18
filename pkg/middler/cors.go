@@ -1,8 +1,9 @@
 package middler
 
 import (
-	"github.com/gorilla/handlers"
 	"net/http"
+
+	"github.com/gorilla/handlers"
 )
 
 func Cors() func(http.Handler) http.Handler {
