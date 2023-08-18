@@ -5,6 +5,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/apps/node/internal/conf"
+	"prometheus-manager/pkg/util/stringer"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -57,7 +58,11 @@ func (s *PullLogic) Datasources(ctx context.Context, req *pb.DatasourcesRequest)
 
 	serverEnv := conf.Get().GetEnv()
 	if serverEnv == nil || req.GetNode() != serverEnv.GetName() {
-		return nil, perrors.ErrorClientNotFound("node not found")
+		s.logger.Errorf("node not found: %s", req.GetNode())
+		return nil, perrors.ErrorClientNotFound("node not found").WithMetadata(map[string]string{
+			"node": req.GetNode(),
+			"env":  stringer.New(serverEnv).String(),
+		})
 	}
 
 	return s.repo.Datasources(ctx)

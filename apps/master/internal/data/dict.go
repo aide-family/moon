@@ -2,18 +2,27 @@ package data
 
 import (
 	"context"
+	"prometheus-manager/api"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"golang.org/x/sync/errgroup"
+
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
-	"prometheus-manager/apps/master/internal/biz"
+	nodeV1Pull "prometheus-manager/api/strategy/v1/pull"
 	"prometheus-manager/dal/model"
 	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
+	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/util/stringer"
-	"strconv"
-	"time"
+
+	"prometheus-manager/apps/master/internal/biz"
+	"prometheus-manager/apps/master/internal/conf"
 )
 
 type (
@@ -185,4 +194,46 @@ func (l *DictV1Repo) ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*
 	}
 
 	return promDictDB.FindByPage(int(offset), int(limit))
+}
+
+func (l *DictV1Repo) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
+	nodes := conf.Get().GetPushStrategy().GetNodes()
+	var err error
+	var eg errgroup.Group
+	datasourceList := make([]*api.Datasource, 0)
+	var lock sync.Mutex
+	for _, node := range nodes {
+		if node.Network != conn.NetworkGrpc {
+			continue
+		}
+		newNode := node
+		eg.Go(func() error {
+			rpcConn, ok := l.data.nodeGrpcClients[newNode]
+			if !ok {
+				rpcConn, err = conn.GetNodeGrpcClient(ctx, newNode, conn.GetDiscovery())
+				if err != nil {
+					l.logger.WithContext(ctx).Warnw("GRPCPushCall", newNode, "err", err)
+					return nil
+				}
+			}
+
+			resp, err := nodeV1Pull.NewPullClient(rpcConn).Datasources(ctx, &nodeV1Pull.DatasourcesRequest{Node: newNode.GetServerName()})
+			if err != nil {
+				l.logger.WithContext(ctx).Warnw("GRPCPushCall", newNode, "err", err)
+				return nil
+			}
+			lock.Lock()
+			defer lock.Unlock()
+			datasourceList = append(datasourceList, resp.GetDatasource()...)
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		l.logger.WithContext(ctx).Errorw("Datasource", req, "err", err)
+		return nil, perrors.ErrorServerUnknown("Datasources err").WithCause(err).WithMetadata(map[string]string{
+			"err": err.Error(),
+		})
+	}
+
+	return &pb.DatasourcesReply{Response: &api.Response{Message: l.V1(ctx)}, Datasources: datasourceList}, nil
 }

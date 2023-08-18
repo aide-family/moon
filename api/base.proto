@@ -51,3 +51,10 @@ message ListQueryResult {
   PageReply page = 1;
   repeated Field fields = 4;
 }
+
+message Datasource {
+  string name = 1;
+  string type = 2;
+  string url = 3;
+  string access = 4;
+}

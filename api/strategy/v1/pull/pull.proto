@@ -41,10 +41,3 @@ message DatasourcesReply {
 	repeated Datasource datasource = 1;
 	Response response = 2;
 }
-
-message Datasource {
-	string name = 1;
-	string type = 2;
-	string url = 3;
-	string access = 4;
-}

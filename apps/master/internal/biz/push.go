@@ -52,7 +52,8 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 
 	var eg errgroup.Group
 
-	for _, server := range grpcNodeServers {
+	for _, srv := range grpcNodeServers {
+		server := srv
 		eg.Go(func() error {
 			if err := s.repo.GRPCPushCall(ctx, server); err != nil {
 				return err
@@ -66,7 +67,8 @@ func (s *PushLogic) Call(ctx context.Context, req *pb.CallRequest) (*pb.CallResp
 			return nil
 		})
 	}
-	for _, server := range httpNodeServers {
+	for _, srv := range httpNodeServers {
+		server := srv
 		eg.Go(func() error {
 			if err := s.repo.HTTPPushCall(ctx, server); err != nil {
 				return err

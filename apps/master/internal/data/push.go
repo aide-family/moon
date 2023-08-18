@@ -30,6 +30,10 @@ type (
 
 var _ biz.IPushRepo = (*PushRepo)(nil)
 
+const (
+	MaxSScanCount = 1000
+)
+
 func NewPushRepo(data *Data, logger log.Logger) *PushRepo {
 	return &PushRepo{
 		data:       data,
@@ -45,7 +49,7 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 	var groupIds, result []string
 	var cursor uint64
 	for {
-		result, cursor = l.data.cache.SScan(ctx, "prom:group:delete", cursor, "", 10).Val()
+		result, cursor = l.data.cache.SScan(ctx, "prom:group:delete", cursor, "", MaxSScanCount).Val()
 		groupIds = append(groupIds, result...)
 		if cursor == 0 {
 			break

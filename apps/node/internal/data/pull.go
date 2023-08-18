@@ -28,9 +28,9 @@ func (l *PullRepo) Datasources(ctx context.Context) (*pull.DatasourcesReply, err
 	defer span.End()
 
 	datasource := conf.Get().GetPromDatasources()
-	promDatasource := make([]*pull.Datasource, 0, len(datasource))
+	promDatasource := make([]*api.Datasource, 0, len(datasource))
 	for _, v := range datasource {
-		promDatasource = append(promDatasource, &pull.Datasource{
+		promDatasource = append(promDatasource, &api.Datasource{
 			Name:   v.Name,
 			Type:   v.Type,
 			Url:    v.Url,

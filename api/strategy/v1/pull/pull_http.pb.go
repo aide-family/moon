@@ -30,7 +30,7 @@ type PullHTTPServer interface {
 func RegisterPullHTTPServer(s *http.Server, srv PullHTTPServer) {
 	r := s.Route("/")
 	r.GET("/pull/v1/strategies", _Pull_Strategies0_HTTP_Handler(srv))
-	r.GET("/pull/v1/datasources", _Pull_Datasources0_HTTP_Handler(srv))
+	r.GET("/pull/v1/datasources", _Pull_Datasources1_HTTP_Handler(srv))
 }
 
 func _Pull_Strategies0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) error {
@@ -52,7 +52,7 @@ func _Pull_Strategies0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Pull_Datasources0_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) error {
+func _Pull_Datasources1_HTTP_Handler(srv PullHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DatasourcesRequest
 		if err := ctx.BindQuery(&in); err != nil {

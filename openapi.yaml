@@ -187,6 +187,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.v1.UpdateAlarmPagesStatusReply'
+    /prom/v1/datasources:
+        get:
+            tags:
+                - Dict
+            description: Datasources returns all datasources.
+            operationId: Dict_Datasources
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.DatasourcesReply'
     /prom/v1/dict:
         post:
             tags:
@@ -633,6 +646,17 @@ paths:
                                 $ref: '#/components/schemas/api.strategy.v1.push.StrategiesReply'
 components:
     schemas:
+        api.Datasource:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                url:
+                    type: string
+                access:
+                    type: string
         api.Field:
             type: object
             properties:
@@ -923,6 +947,15 @@ components:
             properties:
                 strategy:
                     $ref: '#/components/schemas/api.prom.StrategyItem'
+        api.prom.v1.DatasourcesReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                datasources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.Datasource'
         api.prom.v1.DeleteAlarmPageReply:
             type: object
             properties:
@@ -1230,24 +1263,13 @@ components:
                     type: array
                     items:
                         type: string
-        api.strategy.v1.pull.Datasource:
-            type: object
-            properties:
-                name:
-                    type: string
-                type:
-                    type: string
-                url:
-                    type: string
-                access:
-                    type: string
         api.strategy.v1.pull.DatasourcesReply:
             type: object
             properties:
                 datasource:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.strategy.v1.pull.Datasource'
+                        $ref: '#/components/schemas/api.Datasource'
                 response:
                     $ref: '#/components/schemas/api.Response'
         api.strategy.v1.pull.StrategiesReply:
