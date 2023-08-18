@@ -462,6 +462,77 @@ func (x *ListQueryResult) GetFields() []*Field {
 	return nil
 }
 
+type Datasource struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name   string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type   string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Url    string `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	Access string `protobuf:"bytes,4,opt,name=access,proto3" json:"access,omitempty"`
+}
+
+func (x *Datasource) Reset() {
+	*x = Datasource{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_base_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Datasource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Datasource) ProtoMessage() {}
+
+func (x *Datasource) ProtoReflect() protoreflect.Message {
+	mi := &file_base_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Datasource.ProtoReflect.Descriptor instead.
+func (*Datasource) Descriptor() ([]byte, []int) {
+	return file_base_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Datasource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Datasource) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Datasource) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Datasource) GetAccess() string {
+	if x != nil {
+		return x.Access
+	}
+	return ""
+}
+
 var File_base_proto protoreflect.FileDescriptor
 
 var file_base_proto_rawDesc = []byte{
@@ -514,7 +585,13 @@ var file_base_proto_rawDesc = []byte{
 	0x0b, 0x32, 0x0e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6c,
 	0x79, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x22, 0x0a, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64,
 	0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x46, 0x69,
-	0x65, 0x6c, 0x64, 0x52, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x42, 0x23, 0x0a, 0x03, 0x61,
+	0x65, 0x6c, 0x64, 0x52, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x22, 0x5e, 0x0a, 0x0a, 0x44,
+	0x61, 0x74, 0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70,
+	0x65, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x75, 0x72, 0x6c, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x42, 0x23, 0x0a, 0x03, 0x61,
 	0x70, 0x69, 0x50, 0x01, 0x5a, 0x1a, 0x70, 0x72, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x65, 0x75, 0x73,
 	0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x61, 0x70, 0x69,
 	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
@@ -532,7 +609,7 @@ func file_base_proto_rawDescGZIP() []byte {
 	return file_base_proto_rawDescData
 }
 
-var file_base_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_base_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_base_proto_goTypes = []interface{}{
 	(*Response)(nil),        // 0: api.Response
 	(*PageRequest)(nil),     // 1: api.PageRequest
@@ -541,10 +618,11 @@ var file_base_proto_goTypes = []interface{}{
 	(*Field)(nil),           // 4: api.Field
 	(*ListQuery)(nil),       // 5: api.ListQuery
 	(*ListQueryResult)(nil), // 6: api.ListQueryResult
-	nil,                     // 7: api.Response.MetadataEntry
+	(*Datasource)(nil),      // 7: api.Datasource
+	nil,                     // 8: api.Response.MetadataEntry
 }
 var file_base_proto_depIdxs = []int32{
-	7, // 0: api.Response.metadata:type_name -> api.Response.MetadataEntry
+	8, // 0: api.Response.metadata:type_name -> api.Response.MetadataEntry
 	1, // 1: api.ListQuery.page:type_name -> api.PageRequest
 	3, // 2: api.ListQuery.sort:type_name -> api.Sort
 	2, // 3: api.ListQueryResult.page:type_name -> api.PageReply
@@ -646,6 +724,18 @@ func file_base_proto_init() {
 				return nil
 			}
 		}
+		file_base_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Datasource); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -653,7 +743,7 @@ func file_base_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_base_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

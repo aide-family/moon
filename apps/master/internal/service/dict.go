@@ -15,6 +15,8 @@ type (
 		DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*pb.DeleteDictReply, error)
 		GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetDictReply, error)
 		ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.ListDictReply, error)
+
+		Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error)
 	}
 
 	DictV1Service struct {
@@ -65,4 +67,10 @@ func (l *DictV1Service) ListDict(ctx context.Context, req *pb.ListDictRequest) (
 	ctx, span := otel.Tracer("service").Start(ctx, "DictV1Service.ListDict")
 	defer span.End()
 	return l.logic.ListDict(ctx, req)
+}
+
+func (l *DictV1Service) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
+	ctx, span := otel.Tracer("service").Start(ctx, "DictV1Service.Datasources")
+	defer span.End()
+	return l.logic.Datasources(ctx, req)
 }

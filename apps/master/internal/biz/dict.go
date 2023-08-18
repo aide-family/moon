@@ -21,6 +21,8 @@ type (
 		DeleteDictById(ctx context.Context, id int32) error
 		GetDictById(ctx context.Context, id int32) (*model.PromDict, error)
 		ListDict(ctx context.Context, req *pb.ListDictRequest) ([]*model.PromDict, int64, error)
+
+		Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error)
 	}
 
 	DictLogic struct {
@@ -166,4 +168,11 @@ func (s *DictLogic) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.
 		},
 		Dicts: list,
 	}, nil
+}
+
+func (s *DictLogic) Datasources(ctx context.Context, req *pb.DatasourcesRequest) (*pb.DatasourcesReply, error) {
+	ctx, span := otel.Tracer("biz").Start(ctx, "DictLogic.Datasources")
+	defer span.End()
+
+	return s.repo.Datasources(ctx, req)
 }

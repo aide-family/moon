@@ -20,6 +20,7 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationDictCreateDict = "/api.prom.v1.Dict/CreateDict"
+const OperationDictDatasources = "/api.prom.v1.Dict/Datasources"
 const OperationDictDeleteDict = "/api.prom.v1.Dict/DeleteDict"
 const OperationDictGetDict = "/api.prom.v1.Dict/GetDict"
 const OperationDictListDict = "/api.prom.v1.Dict/ListDict"
@@ -28,6 +29,7 @@ const OperationDictUpdateDictsStatus = "/api.prom.v1.Dict/UpdateDictsStatus"
 
 type DictHTTPServer interface {
 	CreateDict(context.Context, *CreateDictRequest) (*CreateDictReply, error)
+	Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error)
 	DeleteDict(context.Context, *DeleteDictRequest) (*DeleteDictReply, error)
 	GetDict(context.Context, *GetDictRequest) (*GetDictReply, error)
 	ListDict(context.Context, *ListDictRequest) (*ListDictReply, error)
@@ -43,6 +45,7 @@ func RegisterDictHTTPServer(s *http.Server, srv DictHTTPServer) {
 	r.DELETE("/prom/v1/dict/{id}", _Dict_DeleteDict0_HTTP_Handler(srv))
 	r.GET("/prom/v1/dict/{id}", _Dict_GetDict0_HTTP_Handler(srv))
 	r.POST("/prom/v1/dicts", _Dict_ListDict0_HTTP_Handler(srv))
+	r.GET("/prom/v1/datasources", _Dict_Datasources0_HTTP_Handler(srv))
 }
 
 func _Dict_CreateDict0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
@@ -168,8 +171,28 @@ func _Dict_ListDict0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) err
 	}
 }
 
+func _Dict_Datasources0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DatasourcesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDictDatasources)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Datasources(ctx, req.(*DatasourcesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DatasourcesReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DictHTTPClient interface {
 	CreateDict(ctx context.Context, req *CreateDictRequest, opts ...http.CallOption) (rsp *CreateDictReply, err error)
+	Datasources(ctx context.Context, req *DatasourcesRequest, opts ...http.CallOption) (rsp *DatasourcesReply, err error)
 	DeleteDict(ctx context.Context, req *DeleteDictRequest, opts ...http.CallOption) (rsp *DeleteDictReply, err error)
 	GetDict(ctx context.Context, req *GetDictRequest, opts ...http.CallOption) (rsp *GetDictReply, err error)
 	ListDict(ctx context.Context, req *ListDictRequest, opts ...http.CallOption) (rsp *ListDictReply, err error)
@@ -192,6 +215,19 @@ func (c *DictHTTPClientImpl) CreateDict(ctx context.Context, in *CreateDictReque
 	opts = append(opts, http.Operation(OperationDictCreateDict))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DictHTTPClientImpl) Datasources(ctx context.Context, in *DatasourcesRequest, opts ...http.CallOption) (*DatasourcesReply, error) {
+	var out DatasourcesReply
+	pattern := "/prom/v1/datasources"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDictDatasources))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -34,6 +34,8 @@ type DictClient interface {
 	GetDict(ctx context.Context, in *GetDictRequest, opts ...grpc.CallOption) (*GetDictReply, error)
 	// ListDict lists dicts.
 	ListDict(ctx context.Context, in *ListDictRequest, opts ...grpc.CallOption) (*ListDictReply, error)
+	// Datasources returns all datasources.
+	Datasources(ctx context.Context, in *DatasourcesRequest, opts ...grpc.CallOption) (*DatasourcesReply, error)
 }
 
 type dictClient struct {
@@ -98,6 +100,15 @@ func (c *dictClient) ListDict(ctx context.Context, in *ListDictRequest, opts ...
 	return out, nil
 }
 
+func (c *dictClient) Datasources(ctx context.Context, in *DatasourcesRequest, opts ...grpc.CallOption) (*DatasourcesReply, error) {
+	out := new(DatasourcesReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.Dict/Datasources", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DictServer is the server API for Dict service.
 // All implementations must embed UnimplementedDictServer
 // for forward compatibility
@@ -114,6 +125,8 @@ type DictServer interface {
 	GetDict(context.Context, *GetDictRequest) (*GetDictReply, error)
 	// ListDict lists dicts.
 	ListDict(context.Context, *ListDictRequest) (*ListDictReply, error)
+	// Datasources returns all datasources.
+	Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error)
 	mustEmbedUnimplementedDictServer()
 }
 
@@ -138,6 +151,9 @@ func (UnimplementedDictServer) GetDict(context.Context, *GetDictRequest) (*GetDi
 }
 func (UnimplementedDictServer) ListDict(context.Context, *ListDictRequest) (*ListDictReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDict not implemented")
+}
+func (UnimplementedDictServer) Datasources(context.Context, *DatasourcesRequest) (*DatasourcesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Datasources not implemented")
 }
 func (UnimplementedDictServer) mustEmbedUnimplementedDictServer() {}
 
@@ -260,6 +276,24 @@ func _Dict_ListDict_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Dict_Datasources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DatasourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DictServer).Datasources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.Dict/Datasources",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DictServer).Datasources(ctx, req.(*DatasourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Dict_ServiceDesc is the grpc.ServiceDesc for Dict service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -290,6 +324,10 @@ var Dict_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDict",
 			Handler:    _Dict_ListDict_Handler,
+		},
+		{
+			MethodName: "Datasources",
+			Handler:    _Dict_Datasources_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

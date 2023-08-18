@@ -52,6 +52,13 @@ service Dict {
       body: "*"
     };
   }
+
+  // Datasources returns all datasources.
+  rpc Datasources (DatasourcesRequest) returns (DatasourcesReply) {
+    option (google.api.http) = {
+      get: "/prom/v1/datasources"
+    };
+  }
 }
 
 message CreateDictRequest {
@@ -107,4 +114,12 @@ message ListDictReply {
   ListQueryResult result = 1;
   Response response = 2;
   repeated DictItem dicts = 3;
+}
+
+message DatasourcesRequest {
+}
+
+message DatasourcesReply {
+  Response response = 1;
+  repeated Datasource datasources = 3;
 }
