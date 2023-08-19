@@ -1,31 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { ListStrategyRequest } from "@/apis/prom/strategy/strategy";
-import { StrategyList } from "@/apis/prom/strategy/api";
-import { Button, PaginationProps, Table, Tag } from "@arco-design/web-react";
+import { StrategyList, StrategyUpdate } from "@/apis/prom/strategy/api";
+import {
+  Button,
+  Message,
+  PaginationProps,
+  Table,
+  Tag,
+} from "@arco-design/web-react";
 import { ColumnProps } from "@arco-design/web-react/es/Table";
 import {
   AlarmPage,
   PromDict,
   PromGroupSimpleItem,
   PromStrategyItem,
+  Status,
 } from "@/apis/prom/prom";
 import { defaultPage, M } from "@/apis/type";
+import MoreMenu from "@/components/More/MoreMenu";
+import StatusTag from "@/pages/strategy/child/StatusTag";
+import { OmitText } from "tacer-cloud";
+import StrategyModal, {
+  StrategyModalProps,
+  StrategyValues,
+} from "@/pages/strategy/child/StrategyModal";
 
 import strategyStyles from "../style/strategy.module.less";
-import { OmitText } from "tacer-cloud";
-import StrategyModal from "@/pages/strategy/child/StrategyModal";
 import groupStyle from "@/pages/strategy/group/style/group.module.less";
-import MoreMenu from "@/components/More/MoreMenu";
 
 export interface ShowTableProps {
   database?: string;
   queryParams?: ListStrategyRequest;
   setQueryParams?: React.Dispatch<React.SetStateAction<ListStrategyRequest>>;
+  refresh?: boolean;
+  setRefresh?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
-  const { queryParams, setQueryParams, database } = props;
-  const [tableLoading, setTableLoading] = React.useState<boolean>(false);
+  const { queryParams, setQueryParams, database, refresh, setRefresh } = props;
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
+  const [strategyModalProps, setStrategyModalProps] = useState<
+    StrategyModalProps | undefined
+  >();
+  const [strategyModalVisabled, setStrategyModalVisabled] =
+    useState<boolean>(false);
+
+  const updateStrategy = async (
+    val: StrategyValues,
+    item: PromStrategyItem
+  ) => {
+    const res = await StrategyUpdate(item.id, {
+      alarmPageIds: item.alarmPageIds,
+      alert: val.alert || item.alert,
+      alertLevelId: item.alertLevelId,
+      annotations: val.annotations || item.annotations,
+      categorieIds: item.categorieIds,
+      expr: val.expr || item.expr,
+      for: val.for || item.for,
+      groupId: item.groupId,
+      labels: val.labels || item.labels,
+    });
+    if (res.response.code !== "0") {
+      Message.error(res.response.message);
+      return Promise.reject(res.response.message);
+    }
+    if (setRefresh) {
+      setRefresh?.((prv) => !prv);
+    } else {
+      getStrategies();
+    }
+
+    return res;
+  };
 
   const tableColumns: ColumnProps<PromStrategyItem>[] = [
     {
@@ -132,6 +178,22 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
       },
     },
     {
+      title: "状态",
+      dataIndex: "status",
+      width: 160,
+      align: "center",
+      render: (status: Status, item: PromStrategyItem) => {
+        return (
+          <StatusTag
+            onFinished={getStrategies}
+            status={status}
+            id={item.id}
+            name={item.alert}
+          />
+        );
+      },
+    },
+    {
       title: "操作",
       dataIndex: "action",
       width: 120,
@@ -139,36 +201,55 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
       render: (_, row) => {
         return (
           <div className={groupStyle.action} key={row.id}>
-            <StrategyModal
-              disabled
-              title="详情"
-              btnProps={{ type: "text" }}
-              key={row.id}
-              initialValues={{
-                datasource: database,
-                alert: row.alert,
-                for: row.for,
-                expr: row.expr,
-                labels: row.labels,
-                annotations: row.annotations,
+            <Button
+              type="text"
+              onClick={() => {
+                setStrategyModalVisabled(true);
+                setStrategyModalProps({
+                  disabled: true,
+                  title: "详情",
+                  setVisible: setStrategyModalVisabled,
+                  initialValues: {
+                    datasource: database,
+                    alert: row.alert,
+                    for: row.for,
+                    expr: row.expr,
+                    labels: row.labels,
+                    annotations: row.annotations,
+                  },
+                });
               }}
-            />
+            >
+              详情
+            </Button>
+
             <MoreMenu
               options={[
                 {
                   label: (
-                    <StrategyModal
-                      title="编辑"
-                      btnProps={{ type: "text" }}
-                      initialValues={{
-                        datasource: database,
-                        alert: row.alert,
-                        for: row.for,
-                        expr: row.expr,
-                        labels: row.labels,
-                        annotations: row.annotations,
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        setStrategyModalVisabled(() => {
+                          setStrategyModalProps({
+                            onOk: (newVal) => updateStrategy(newVal, row),
+                            title: "编辑",
+                            setVisible: setStrategyModalVisabled,
+                            initialValues: {
+                              datasource: database,
+                              alert: row.alert,
+                              for: row.for,
+                              expr: row.expr,
+                              labels: row.labels,
+                              annotations: row.annotations,
+                            },
+                          });
+                          return true;
+                        });
                       }}
-                    />
+                    >
+                      编辑
+                    </Button>
                   ),
                   key: "eidt",
                 },
@@ -241,16 +322,19 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     setDataSource([]);
     if (!queryParams) return;
     getStrategies();
-  }, [queryParams]);
+  }, [queryParams, refresh]);
 
   return (
-    <Table
-      rowKey={(record) => record.id}
-      loading={tableLoading}
-      data={dataSource}
-      columns={tableColumns}
-      pagination={pagination}
-    />
+    <>
+      <Table
+        rowKey={(record) => record.id}
+        loading={tableLoading}
+        data={dataSource}
+        columns={tableColumns}
+        pagination={pagination}
+      />
+      <StrategyModal {...strategyModalProps} visible={strategyModalVisabled} />
+    </>
   );
 };
 

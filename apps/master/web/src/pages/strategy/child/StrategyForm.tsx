@@ -25,7 +25,10 @@ const pathPrefix = "https://prometheus.bitrecx.com";
 
 const StrategyForm: React.FC<StrategyModalProps> = (props) => {
   const { form, disabled, initialValues, onChange } = props;
-  const datasource = Form.useWatch("datasource", form) || pathPrefix;
+  const datasource =
+    Form.useWatch("datasource", form) ||
+    initialValues?.datasource ||
+    pathPrefix;
   const [labels, setLabels] = React.useState<Map[]>([]);
   const [annotations, setAnnotations] = React.useState<Map[]>([]);
 

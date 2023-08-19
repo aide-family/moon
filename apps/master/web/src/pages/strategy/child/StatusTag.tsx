@@ -6,7 +6,7 @@ import { ConfirmProps } from "@arco-design/web-react/es/Modal/confirm";
 
 import type { Response } from "@/apis/type";
 import { Status, StatusMap } from "@/apis/prom/prom";
-import { GroupUpdatesStatus } from "@/apis/prom/group/api";
+import { StrategyUpdateStatus } from "@/apis/prom/strategy/api";
 
 export interface StatusTagProps {
   status: Status;
@@ -53,7 +53,7 @@ const StatusTag: React.FC<StatusTagProps> = (props) => {
           loading={loading}
           onClick={() => {
             setLoading(true);
-            GroupUpdatesStatus([id], status)
+            StrategyUpdateStatus([id], status)
               .then(onFinished)
               .finally(() => {
                 setLoading(false);
@@ -78,7 +78,7 @@ const StatusTag: React.FC<StatusTagProps> = (props) => {
               <span style={{ color: "red" }}>
                 <b>{name}</b>
               </span>
-              规则组吗?
+              规则吗?
             </div>
           );
         }}

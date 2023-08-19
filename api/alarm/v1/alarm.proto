@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package api.alarm.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/alarm/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.alarm.v1";
+
+service Alarm {
+	// Statistics 统计总报警数量, 以及各个报警页面各自的报警数量, 各个报警等级的报警数量, 各个业务属性的报警数量, 各个规则组的报警数量
+	rpc Statistics(StatisticsRequest) returns (StatisticsResponse) {
+		option (google.api.http) = {
+			get: "/alarm/v1/statistics"
+		};
+	}
+	// List 获取报警列表
+	rpc List(ListRequest) returns (ListResponse) {
+		option (google.api.http) = {
+			get: "/alarm/v1/list"
+		};
+	}
+}
+
+message StatisticsRequest {
+}
+
+message StatisticsResponse {
+	// 总报警数量
+	int64 total = 1;
+	// 各个报警页面各自的报警数量
+	map<string, int64> pages = 2;
+	// 各个报警等级的报警数量
+	map<string, int64> levels = 3;
+	// 各个业务属性的报警数量
+	map<string, int64> business = 4;
+	// 各个规则组的报警数量
+	map<string, int64> groups = 5;
+}
+
+message Filter {
+// 报警页面
+	int32 page = 1;
+	// 报警等级
+	int32 level = 2;
+	// 业务属性
+	int32 business = 3;
+	// 规则组
+	int32 group = 4;
+	// 报警状态
+	int32 status = 5;
+	// 报警开始时间
+	int64 start_at = 6;
+	// 报警结束时间
+	int64 end_at = 7;
+}
+
+message ListRequest {
+	// 分页参数
+	PageRequest page = 1;
+	// 过滤参数
+	Filter filter = 3;
+}
+
+message AlarmItem {
+
+}
+
+message ListResponse {
+	// 报警列表
+	repeated AlarmItem alarms = 1;
+	// 分页参数
+	PageReply page = 2;
+	Response response = 3;
+}
