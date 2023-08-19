@@ -1,17 +1,15 @@
 import React from "react";
-import type {GroupItem} from "@/apis/prom/prom";
+import type { GroupItem } from "@/apis/prom/prom";
 import Strategy from "@/pages/strategy";
 
 export interface StrategyListProps {
-    groupItem?: GroupItem
+  groupItem?: GroupItem;
 }
 
 const StrategyList: React.FC<StrategyListProps> = (props) => {
-    const {groupItem} = props;
+  const { groupItem } = props;
 
-    return (
-        <Strategy groupItem={groupItem} />
-    )
-}
+  return <Strategy groupItem={groupItem} />;
+};
 
-export default StrategyList
+export default StrategyList;

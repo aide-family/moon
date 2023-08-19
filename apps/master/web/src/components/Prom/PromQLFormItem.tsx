@@ -46,6 +46,7 @@ const PromQLFormItem: React.FC<PromQLFormItemProps> = (props) => {
                             return;
                         }
                         timeout = setTimeout(() => {
+                            if(disabled) return
                             formatExpressionFunc(pathPrefix, value)
                                 .then(() =>
                                     setPromValidate({
