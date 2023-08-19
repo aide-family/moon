@@ -1,53 +1,49 @@
-import React, { createContext } from "react";
+import React, { useState } from "react";
 import { Button, Form, Modal, Space } from "@arco-design/web-react";
-import type { ButtonProps } from "@arco-design/web-react/es/Button";
 import StrategyForm from "@/pages/strategy/child/StrategyForm";
 import CodeView from "@/components/Code/CodeView";
 import { toYaml } from "@/utils/yaml";
+import type { M, Response } from "@/apis/type";
 
 export interface StrategyValues {
   datasource?: string;
-  labels?: { [key: string]: string };
-  annotations?: { [key: string]: string };
+  labels?: M;
+  annotations?: M;
   for?: string;
   alert?: string;
   expr?: string;
 }
 
 export interface StrategyModalProps {
-  title: string;
-  btnProps?: ButtonProps;
+  title?: string;
   initialValues?: StrategyValues;
-  onChange?: (values?: StrategyValues) => void;
+  onOk?: (values: StrategyValues) => Promise<Response>;
   disabled?: boolean;
+  visible?: boolean;
+  setVisible?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ConfigContext = createContext({});
-
 const StrategyModal: React.FC<StrategyModalProps> = (props) => {
-  const { title, disabled, btnProps, initialValues, onChange } = props;
+  const { title, disabled, initialValues, onOk, visible, setVisible } = props;
   const [form] = Form.useForm();
-  const [visible, setVisible] = React.useState(false);
-  const [data, setData] = React.useState<StrategyValues | undefined>(
-    initialValues
-  );
-
-  const handleOnOpen = () => {
-    setVisible(true);
-  };
+  const [data, setData] = useState<StrategyValues | undefined>(initialValues);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleOnClose = () => {
-    setVisible(false);
+    setVisible?.(false);
   };
 
   const handleOnOk = () => {
     form.validate().then((val) => {
-      handleOnClose();
+      setLoading(true);
+      onOk?.(val)
+        .then(handleOnClose)
+        .finally(() => setLoading(false));
     });
   };
 
   const handleSetValues = (formValues?: StrategyValues) => {
-    onChange?.(formValues);
+    setVisible?.(true);
     setData(formValues);
   };
 
@@ -106,16 +102,10 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
     );
   };
 
-  const Title = (props: { title: string }) => {
+  const Title = (props: { title?: string }) => {
     return (
       <Space style={{ width: "100%" }}>
-        <span
-          style={{
-            float: "left",
-          }}
-        >
-          {props.title}
-        </span>
+        <span style={{ float: "left" }}>{props.title}</span>
         <View rule={data} />
       </Space>
     );
@@ -123,50 +113,29 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
 
   return (
     <>
-      <ConfigContext.Provider
-        value={{
-          name: "hello",
-          age: 18,
-        }}
+      <Modal
+        visible={visible}
+        unmountOnExit
+        closable={false}
+        title={<Title title={title} />}
+        onCancel={handleOnClose}
+        onOk={handleOnOk}
+        style={{ width: "80vw" }}
+        okButtonProps={{ loading, disabled }}
       >
-        <Modal
-          unmountOnExit
-          visible={visible}
-          title={<Title title={title} />}
-          onCancel={handleOnClose}
-          onOk={handleOnOk}
-          closable={false}
-          style={{
-            width: "80vw",
-          }}
+        <div
+          style={{ maxHeight: "80vh", overflow: "auto", overflowX: "hidden" }}
         >
-          <ConfigContext.Consumer>
-            {() => {
-              return (
-                <div
-                  style={{
-                    maxHeight: "80vh",
-                    overflow: "auto",
-                    overflowX: "hidden",
-                  }}
-                >
-                  <div>
-                    <StrategyForm
-                      form={form}
-                      disabled={disabled}
-                      initialValues={initialValues}
-                      onChange={handleSetValues}
-                    />
-                  </div>
-                </div>
-              );
-            }}
-          </ConfigContext.Consumer>
-        </Modal>
-        <Button type="primary" onClick={handleOnOpen} {...btnProps}>
-          {title}
-        </Button>
-      </ConfigContext.Provider>
+          <div>
+            <StrategyForm
+              form={form}
+              disabled={disabled}
+              initialValues={initialValues}
+              onChange={handleSetValues}
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };
