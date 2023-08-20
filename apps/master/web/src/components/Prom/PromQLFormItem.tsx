@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PromQLInput, {
   formatExpressionFunc,
   PromValidate,
@@ -29,6 +29,29 @@ const PromQLFormItem: React.FC<PromQLFormItemProps> = (props) => {
   const [promValidate, setPromValidate] = React.useState<
     PromValidate | undefined
   >();
+  const [expr, setExpr] = useState<string | undefined>("");
+
+  const fetchValidateExpr = (value?: string) => {
+    formatExpressionFunc(pathPrefix, value)
+      .then((resp) => {
+        setPromValidate({
+          help: "Your PromQL is valid",
+          validateStatus: "success",
+        });
+        return resp;
+      })
+      .catch((err) => {
+        setPromValidate({
+          help: err,
+          validateStatus: "error",
+        });
+        return err;
+      });
+  };
+
+  useEffect(() => {
+    fetchValidateExpr(expr);
+  }, [pathPrefix]);
 
   return (
     <Form.Item
@@ -49,27 +72,14 @@ const PromQLFormItem: React.FC<PromQLFormItemProps> = (props) => {
               return;
             }
             timeout = setTimeout(() => {
-              formatExpressionFunc(pathPrefix, value)
-                .then((resp) => {
-                  setPromValidate({
-                    help: "Your PromQL is valid",
-                    validateStatus: "success",
-                  });
-                  return resp;
-                })
-                .catch((err) => {
-                  setPromValidate({
-                    help: err,
-                    validateStatus: "error",
-                  });
-                  return err;
-                });
+              fetchValidateExpr(value);
             }, 1000);
           },
         },
       ]}
     >
       <PromQLInput
+        onChange={setExpr}
         disabled={disabled}
         pathPrefix={pathPrefix}
         formatExpression={true}
