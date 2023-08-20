@@ -1,10 +1,18 @@
 import React, { useEffect } from "react";
-import { Alert, List, Modal, Space, Tabs } from "@arco-design/web-react";
+import {
+  Alert,
+  Button,
+  List,
+  Modal,
+  Space,
+  Tabs,
+} from "@arco-design/web-react";
 import dayjs from "dayjs";
 import { CopyText } from "tacer-cloud";
 import SearchForm, { DateDataType } from "@/components/Prom/SearchForm";
 import AreaStackGradient from "@/components/charts/area-stack-gradient/AreaStackGradient";
 import { promData } from "@/components/charts/area-stack-gradient/option";
+import { IconImage, IconList } from "@arco-design/web-react/icon";
 
 export interface PromValueModalProps {
   visible: boolean;
@@ -178,15 +186,16 @@ const PromValueModal: React.FC<PromValueModalProps> = ({
         onChange={handleTabChange}
         defaultActiveTab="table"
       >
-        <TabPane title="Table" key="table">
-          {err && (
-            <Alert
-              closable
-              type="error"
-              // title="Error"
-              content={err}
-            />
-          )}
+        <TabPane
+          title={
+            <Button type="text">
+              <IconList />
+              指标列表
+            </Button>
+          }
+          key="table"
+        >
+          {err && <Alert closable type="error" content={err} />}
           <List
             loading={loading}
             style={{ height: height }}
@@ -222,7 +231,15 @@ const PromValueModal: React.FC<PromValueModalProps> = ({
             }}
           />
         </TabPane>
-        <TabPane title="Graph" key="graph">
+        <TabPane
+          title={
+            <Button type="text">
+              <IconImage />
+              指标图表
+            </Button>
+          }
+          key="graph"
+        >
           <div
             style={{
               height: height,
