@@ -140,11 +140,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
       render: (labels: M) => {
         if (!labels) return "-";
         return Object.keys(labels).map((key) => {
-          return (
-            <div key={key}>
-              {key}: {labels[key]}
-            </div>
-          );
+          return <div key={key}>{`${key}(${labels[key]})`}</div>;
         });
       },
     },
@@ -155,11 +151,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
       render: (annotations: M) => {
         if (!annotations) return "-";
         return Object.keys(annotations).map((key) => {
-          return (
-            <div key={key}>
-              {key}: {annotations[key]}
-            </div>
-          );
+          return <div key={key}>{`${key}(${annotations[key]})`}</div>;
         });
       },
     },
