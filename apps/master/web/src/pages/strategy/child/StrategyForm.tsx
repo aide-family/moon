@@ -135,6 +135,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
       <Form.Item
         label="数据源"
         field="datasource"
+        disabled={false}
         rules={[
           {
             required: true,
@@ -144,7 +145,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
       >
         <Select
           placeholder="请输入数据源"
-          allowClear
+          disabled={false}
           options={[
             ...promDatasource.map((item) => ({
               label: item.name,
