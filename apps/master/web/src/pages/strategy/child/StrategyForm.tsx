@@ -148,7 +148,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
           disabled={false}
           options={[
             ...promDatasource.map((item) => ({
-              label: item.name,
+              label: `${item.name}(${item.url})`,
               value: item.url,
             })),
           ]}
