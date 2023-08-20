@@ -59,6 +59,9 @@ const PromQLFormItem: React.FC<PromQLFormItemProps> = (props) => {
       field={field}
       {...promValidate}
       disabled={disabled}
+      tooltip={
+        <div>正确的PromQL表达式, 用于完成Prometheus报警规则数据匹配</div>
+      }
       rules={[
         ...rules,
         {

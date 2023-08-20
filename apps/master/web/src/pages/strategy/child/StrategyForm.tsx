@@ -136,6 +136,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
         label="数据源"
         field="datasource"
         disabled={false}
+        tooltip={<div>选择合适的数据源, 用于校验该PromQL语句正确性</div>}
         rules={[
           {
             required: true,
@@ -196,7 +197,12 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
         field="expr"
         label="PromQL"
         placeholder="请输入PromQL"
-        required
+        rules={[
+          {
+            required: true,
+            message: "PromQL不能为空, 请编写PromQL语句",
+          },
+        ]}
       />
       <Form.Item
         disabled={disabled}
