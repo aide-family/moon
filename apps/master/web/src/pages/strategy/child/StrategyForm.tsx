@@ -1,16 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Form,
   FormInstance,
   Grid,
   Input,
+  Message,
+  Select,
 } from "@arco-design/web-react";
 import PromQLFormItem from "@/components/Prom/PromQLFormItem";
 import MapFormModal, { Map } from "@/pages/strategy/child/MapFormModal";
 import { IconDelete } from "@arco-design/web-react/icon";
-import ForInput, { ForInputValue } from "@/pages/strategy/child/ForInput";
-import { StrategyValues } from "@/pages/strategy/child/StrategyModal";
+import type { ForInputValue } from "@/pages/strategy/child/ForInput";
+import ForInput from "@/pages/strategy/child/ForInput";
+import type { StrategyValues } from "@/pages/strategy/child/StrategyModal";
+import type { DatasourceItem } from "@/apis/prom/prom";
+import { Datasources } from "@/apis/prom/dict/api";
 
 export interface StrategyModalProps {
   form: FormInstance;
@@ -29,8 +34,19 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
     Form.useWatch("datasource", form) ||
     initialValues?.datasource ||
     pathPrefix;
-  const [labels, setLabels] = React.useState<Map[]>([]);
-  const [annotations, setAnnotations] = React.useState<Map[]>([]);
+  const [labels, setLabels] = useState<Map[]>([]);
+  const [annotations, setAnnotations] = useState<Map[]>([]);
+  const [promDatasource, setPromDatasource] = useState<DatasourceItem[]>([]);
+
+  const getpromDatasource = () => {
+    Datasources().then((resp) => {
+      const { datasources, response } = resp;
+      if (response.code !== "0") {
+        return;
+      }
+      setPromDatasource(datasources || []);
+    });
+  };
 
   const setLabelsValue = (value: Map) => {
     setLabels(
@@ -98,6 +114,10 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
     buildMap(initialValues?.annotations, setAnnotations);
   }, [initialValues, form]);
 
+  useEffect(() => {
+    getpromDatasource();
+  }, []);
+
   return (
     <Form
       form={form}
@@ -122,7 +142,16 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
           },
         ]}
       >
-        <Input size="large" placeholder="请输入数据源" />
+        <Select
+          placeholder="请输入数据源"
+          allowClear
+          options={[
+            ...promDatasource.map((item) => ({
+              label: item.name,
+              value: item.url,
+            })),
+          ]}
+        />
       </Form.Item>
       <Row
         gutter={16}

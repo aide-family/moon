@@ -254,6 +254,14 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                   key: "eidt",
                 },
                 {
+                  label: <Button type="text">页面</Button>,
+                  key: "alarm-pages",
+                },
+                {
+                  label: <Button type="text">等级</Button>,
+                  key: "alarm-level",
+                },
+                {
                   label: (
                     <Button status="danger" type="text">
                       删除
