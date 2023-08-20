@@ -255,3 +255,19 @@ func (l *AlarmPageV1Repo) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPa
 
 	return promAlarmPageDB.FindByPage(int(offset), int(limit))
 }
+
+func (l *AlarmPageV1Repo) ListSimpleAlarmPage(ctx context.Context, req *pb.ListSimpleAlarmPageRequest) ([]*model.PromAlarmPage, int64, error) {
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageV1Repo.ListSimpleAlarmPage")
+	defer span.End()
+
+	alarmPage := l.db.PromAlarmPage
+	alarmPageDB := alarmPage.WithContext(ctx)
+	offset, limit := buildQuery.GetPage(req.GetPage())
+	if req != nil {
+		if req.GetKeyword() != "" {
+			alarmPageDB = alarmPageDB.Where(buildQuery.GetConditionKeywords("%"+req.GetKeyword()+"%", alarmPage.Name)...)
+		}
+	}
+
+	return alarmPageDB.Select(alarmPage.ID, alarmPage.Name, alarmPage.Color, alarmPage.Icon).FindByPage(int(offset), int(limit))
+}

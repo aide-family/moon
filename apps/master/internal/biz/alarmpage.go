@@ -25,6 +25,7 @@ type (
 		DeleteAlarmPageById(ctx context.Context, id int32) error
 		GetAlarmPageById(ctx context.Context, req *pb.GetAlarmPageRequest) (*model.PromAlarmPage, error)
 		ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*model.PromAlarmPage, int64, error)
+		ListSimpleAlarmPage(ctx context.Context, req *pb.ListSimpleAlarmPageRequest) ([]*model.PromAlarmPage, int64, error)
 	}
 
 	AlarmPageLogic struct {
@@ -169,5 +170,38 @@ func (s *AlarmPageLogic) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPag
 			Fields: nil,
 		},
 		AlarmPages: list,
+	}, nil
+}
+
+func (s *AlarmPageLogic) ListSimpleAlarmPage(ctx context.Context, req *pb.ListSimpleAlarmPageRequest) (*pb.ListSimpleAlarmPageReply, error) {
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageLogic.ListSimpleAlarmPage")
+	defer span.End()
+
+	alarmPages, total, err := s.repo.ListSimpleAlarmPage(ctx, req)
+	if err != nil {
+		s.logger.WithContext(ctx).Errorf("ListAlarmPage error: %v", err)
+		return nil, perrors.ErrorServerDatabaseError("获取告警页面列表失败").WithCause(err).WithMetadata(map[string]string{
+			"req": req.String(),
+		})
+	}
+
+	list := make([]*prom.AlarmPageItem, 0, len(alarmPages))
+	for _, page := range alarmPages {
+		list = append(list, &prom.AlarmPageItem{
+			Id:    page.ID,
+			Name:  page.Name,
+			Color: page.Color,
+			Icon:  page.Color,
+		})
+	}
+
+	return &pb.ListSimpleAlarmPageReply{
+		Page: &api.PageReply{
+			Current: req.GetPage().GetCurrent(),
+			Size:    req.GetPage().GetSize(),
+			Total:   total,
+		},
+		AlarmPages: list,
+		Response:   &api.Response{Message: "获取数据成功"},
 	}, nil
 }

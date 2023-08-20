@@ -6,6 +6,85 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /alarm/v1/list:
+        get:
+            tags:
+                - Alarm
+            description: List 获取报警列表
+            operationId: Alarm_List
+            parameters:
+                - name: page.current
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: page.size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.page
+                  in: query
+                  description: 报警页面
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.level
+                  in: query
+                  description: 报警等级
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.business
+                  in: query
+                  description: 业务属性
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.group
+                  in: query
+                  description: 规则组
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.status
+                  in: query
+                  description: 报警状态
+                  schema:
+                    type: integer
+                    format: int32
+                - name: filter.startAt
+                  in: query
+                  description: 报警开始时间
+                  schema:
+                    type: integer
+                    format: int64
+                - name: filter.endAt
+                  in: query
+                  description: 报警结束时间
+                  schema:
+                    type: integer
+                    format: int64
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alarm.v1.ListResponse'
+    /alarm/v1/statistics:
+        get:
+            tags:
+                - Alarm
+            description: Statistics 统计总报警数量, 以及各个报警页面各自的报警数量, 各个报警等级的报警数量, 各个业务属性的报警数量, 各个规则组的报警数量
+            operationId: Alarm_Statistics
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alarm.v1.StatisticsResponse'
     /helloworld/{name}:
         get:
             tags:
@@ -153,7 +232,7 @@ paths:
         post:
             tags:
                 - AlarmPage
-            description: GetAlarmPage gets an existing alarm page by query and alarm page.
+            description: ListAlarmPage gets an existing alarm page by query and alarm page.
             operationId: AlarmPage_ListAlarmPage
             requestBody:
                 content:
@@ -168,6 +247,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.v1.ListAlarmPageReply'
+    /prom/v1/alarm-pages/simple:
+        post:
+            tags:
+                - AlarmPage
+            description: ListSimpleAlarmPage gets an existing alarm page by query and alarm page.
+            operationId: AlarmPage_ListSimpleAlarmPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListSimpleAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListSimpleAlarmPageReply'
     /prom/v1/alarm-pages/status:
         put:
             tags:
@@ -423,6 +521,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.v1.ListGroupReply'
+    /prom/v1/groups/simple:
+        post:
+            tags:
+                - Prom
+            description: ListSimpleGroup 获取规则组简单列表
+            operationId: Prom_ListSimpleGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.v1.ListSimpleGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.v1.ListSimpleGroupReply'
     /prom/v1/groups/status:
         put:
             tags:
@@ -749,6 +866,52 @@ components:
                     type: string
                 asc:
                     type: boolean
+        api.alarm.v1.AlarmItem:
+            type: object
+            properties: {}
+        api.alarm.v1.ListResponse:
+            type: object
+            properties:
+                alarms:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.alarm.v1.AlarmItem'
+                    description: 报警列表
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.alarm.v1.StatisticsResponse:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    description: 总报警数量
+                    format: int64
+                pages:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                    description: 各个报警页面各自的报警数量
+                levels:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                    description: 各个报警等级的报警数量
+                business:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                    description: 各个业务属性的报警数量
+                groups:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int64
+                    description: 各个规则组的报警数量
         api.node.CallResponse:
             type: object
             properties:
@@ -839,6 +1002,14 @@ components:
                     type: integer
                     format: int32
         api.prom.GroupSimpleItem:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                name:
+                    type: string
+        api.prom.SimpleItem:
             type: object
             properties:
                 id:
@@ -1070,6 +1241,42 @@ components:
                     $ref: '#/components/schemas/api.ListQuery'
                 group:
                     $ref: '#/components/schemas/api.prom.GroupItem'
+        api.prom.v1.ListSimpleAlarmPageReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                alarmPages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.AlarmPageItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.ListSimpleAlarmPageRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+        api.prom.v1.ListSimpleGroupReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                groups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.prom.SimpleItem'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.v1.ListSimpleGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
         api.prom.v1.ListStrategyReply:
             type: object
             properties:
@@ -1352,6 +1559,7 @@ components:
                     type: string
             description: The response message containing the greetings
 tags:
+    - name: Alarm
     - name: AlarmPage
     - name: Dict
     - name: Greeter

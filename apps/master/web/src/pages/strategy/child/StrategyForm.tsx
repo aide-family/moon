@@ -5,8 +5,8 @@ import {
   FormInstance,
   Grid,
   Input,
-  Message,
   Select,
+  Tag,
 } from "@arco-design/web-react";
 import PromQLFormItem from "@/components/Prom/PromQLFormItem";
 import MapFormModal, { Map } from "@/pages/strategy/child/MapFormModal";
@@ -14,12 +14,21 @@ import { IconDelete } from "@arco-design/web-react/icon";
 import type { ForInputValue } from "@/pages/strategy/child/ForInput";
 import ForInput from "@/pages/strategy/child/ForInput";
 import type { StrategyValues } from "@/pages/strategy/child/StrategyModal";
-import type { DatasourceItem } from "@/apis/prom/prom";
-import { Datasources } from "@/apis/prom/dict/api";
+import type {
+  AlarmPage,
+  DatasourceItem,
+  PromDict,
+  SimpleItem,
+} from "@/apis/prom/prom";
+import { Category, CategoryMap } from "@/apis/prom/prom";
+import { Datasources, DictList } from "@/apis/prom/dict/api";
+import { defaultListDictRequest } from "@/apis/prom/dict/dict";
+import GroupSelect from "@/pages/strategy/child/GroupSelect";
+import { AlarmPageSimpleList } from "@/apis/prom/alarm/api";
 
 export interface StrategyModalProps {
   form: FormInstance;
-  initialValues?: any;
+  initialValues?: StrategyValues;
   onChange?: (values?: StrategyValues) => void;
   disabled?: boolean;
 }
@@ -37,14 +46,57 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
   const [labels, setLabels] = useState<Map[]>([]);
   const [annotations, setAnnotations] = useState<Map[]>([]);
   const [promDatasource, setPromDatasource] = useState<DatasourceItem[]>([]);
+  const [promAlertLeves, setPromAlertLeves] = useState<PromDict[]>([]);
+  const [promCategories, setPromCategories] = useState<PromDict[]>([]);
+  const [promAlarmPages, setPromAlarmPages] = useState<AlarmPage[]>([]);
 
-  const getpromDatasource = () => {
+  const getPromDatasource = () => {
     Datasources().then((resp) => {
       const { datasources, response } = resp;
       if (response.code !== "0") {
         return;
       }
       setPromDatasource(datasources || []);
+    });
+  };
+
+  const getPromAlarmPages = () => {
+    AlarmPageSimpleList({
+      page: {
+        current: 1,
+        size: 10,
+      },
+    }).then((resp) => {
+      const { alarmPages, response } = resp;
+      if (response.code !== "0") {
+        return;
+      }
+      setPromAlarmPages(alarmPages || []);
+    });
+  };
+
+  const getDicts = (category: Category) => {
+    return DictList({
+      ...defaultListDictRequest,
+      dict: {
+        category: CategoryMap[category],
+      },
+    });
+  };
+
+  const getPromAlertLeves = () => {
+    getDicts(Category.CATEGORY_ALERT_LEVEL).then((resp) => {
+      const { dicts, response } = resp;
+      if (response.code !== "0") return;
+      setPromAlertLeves(dicts || []);
+    });
+  };
+
+  const getPromCategories = () => {
+    getDicts(Category.CATEGORY_STRATEGY).then((resp) => {
+      const { dicts, response } = resp;
+      if (response.code !== "0") return;
+      setPromCategories(dicts || []);
     });
   };
 
@@ -98,10 +150,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
     if (!val) return;
     const newMap = Object.keys(val).map(
       (key): { name: string; key: string } => {
-        return {
-          name: key,
-          key: key,
-        };
+        return { name: key, key: key };
       }
     );
 
@@ -109,13 +158,20 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
   };
 
   useEffect(() => {
-    if (!initialValues && !form) return;
-    buildMap(initialValues?.labels, setLabels);
-    buildMap(initialValues?.annotations, setAnnotations);
+    if (!initialValues || !form) return;
+    if (initialValues.labels) {
+      buildMap(initialValues?.labels, setLabels);
+    }
+    if (initialValues.annotations) {
+      buildMap(initialValues?.annotations, setAnnotations);
+    }
   }, [initialValues, form]);
 
   useEffect(() => {
-    getpromDatasource();
+    getPromDatasource();
+    getPromAlertLeves();
+    getPromCategories();
+    getPromAlarmPages();
   }, []);
 
   return (
@@ -155,6 +211,101 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
           ]}
         />
       </Form.Item>
+      <Row gutter={16} style={{ margin: 0, padding: 0 }}>
+        <Col span={6}>
+          <Form.Item
+            label="规则组"
+            field="groupId"
+            rules={[
+              {
+                required: true,
+                message: "规则组不能为空, 请选择规则组",
+              },
+            ]}
+          >
+            <GroupSelect />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item
+            label="告警页面"
+            field="alarmPageIds"
+            rules={[
+              {
+                required: true,
+                message: "规则组不能为空, 请选择告警页面",
+              },
+            ]}
+          >
+            <Select
+              placeholder="请选择告警页面"
+              mode="multiple"
+              options={[
+                ...promAlarmPages.map((item) => ({
+                  label: (
+                    <Tag
+                      style={{ width: "100%" }}
+                      size="small"
+                      color={item.color}
+                    >
+                      {item.name}
+                    </Tag>
+                  ),
+                  value: item.id,
+                })),
+              ]}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item
+            label="告警等级"
+            field="alertLevelId"
+            rules={[
+              {
+                required: true,
+                message: "规则组不能为空, 请选择规则组",
+              },
+            ]}
+          >
+            <Select
+              placeholder="请选择告警等级"
+              options={[
+                ...promAlertLeves.map((item) => ({
+                  label: (
+                    <Tag size="small" color={item.color}>
+                      {item.name}
+                    </Tag>
+                  ),
+                  value: item.id,
+                })),
+              ]}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item label="规则类型" field="categorieIds">
+            <Select
+              placeholder="请选择规则类型"
+              mode="multiple"
+              options={[
+                ...promCategories.map((item) => ({
+                  label: (
+                    <Tag
+                      style={{ width: "100%" }}
+                      size="small"
+                      color={item.color}
+                    >
+                      {item.name}
+                    </Tag>
+                  ),
+                  value: item.id,
+                })),
+              ]}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
       <Row
         gutter={16}
         style={{

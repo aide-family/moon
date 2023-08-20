@@ -17,6 +17,7 @@ type (
 		DeleteGroup(ctx context.Context, req *pb.DeleteGroupRequest) (*pb.DeleteGroupReply, error)
 		GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*pb.GetGroupReply, error)
 		ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*pb.ListGroupReply, error)
+		ListSimpleGroup(ctx context.Context, req *pb.ListSimpleGroupRequest) (*pb.ListSimpleGroupReply, error)
 		CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error)
 		UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRequest) (*pb.UpdateStrategyReply, error)
 		UpdateStrategiesStatus(ctx context.Context, req *pb.UpdateStrategiesStatusRequest) (*pb.UpdateStrategiesStatusReply, error)
@@ -73,6 +74,12 @@ func (l *PromV1Service) ListGroup(ctx context.Context, req *pb.ListGroupRequest)
 	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Service.ListGroup")
 	defer span.End()
 	return l.logic.ListGroup(ctx, req)
+}
+
+func (l *PromV1Service) ListSimpleGroup(ctx context.Context, req *pb.ListSimpleGroupRequest) (*pb.ListSimpleGroupReply, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Service.ListGroup")
+	defer span.End()
+	return l.logic.ListSimpleGroup(ctx, req)
 }
 
 func (l *PromV1Service) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error) {

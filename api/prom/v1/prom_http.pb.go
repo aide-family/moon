@@ -26,6 +26,7 @@ const OperationPromDeleteStrategy = "/api.prom.v1.Prom/DeleteStrategy"
 const OperationPromGetGroup = "/api.prom.v1.Prom/GetGroup"
 const OperationPromGetStrategy = "/api.prom.v1.Prom/GetStrategy"
 const OperationPromListGroup = "/api.prom.v1.Prom/ListGroup"
+const OperationPromListSimpleGroup = "/api.prom.v1.Prom/ListSimpleGroup"
 const OperationPromListStrategy = "/api.prom.v1.Prom/ListStrategy"
 const OperationPromUpdateGroup = "/api.prom.v1.Prom/UpdateGroup"
 const OperationPromUpdateGroupsStatus = "/api.prom.v1.Prom/UpdateGroupsStatus"
@@ -40,6 +41,7 @@ type PromHTTPServer interface {
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupReply, error)
 	GetStrategy(context.Context, *GetStrategyRequest) (*GetStrategyReply, error)
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
+	ListSimpleGroup(context.Context, *ListSimpleGroupRequest) (*ListSimpleGroupReply, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupReply, error)
 	UpdateGroupsStatus(context.Context, *UpdateGroupsStatusRequest) (*UpdateGroupsStatusReply, error)
@@ -55,6 +57,7 @@ func RegisterPromHTTPServer(s *http.Server, srv PromHTTPServer) {
 	r.DELETE("/prom/v1/group/{id}", _Prom_DeleteGroup0_HTTP_Handler(srv))
 	r.GET("/prom/v1/group/{id}", _Prom_GetGroup0_HTTP_Handler(srv))
 	r.POST("/prom/v1/groups", _Prom_ListGroup0_HTTP_Handler(srv))
+	r.POST("/prom/v1/groups/simple", _Prom_ListSimpleGroup0_HTTP_Handler(srv))
 	r.POST("/prom/v1/strategy", _Prom_CreateStrategy0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/strategy/{id}", _Prom_UpdateStrategy0_HTTP_Handler(srv))
 	r.PUT("/prom/v1/strategies/status", _Prom_UpdateStrategiesStatus0_HTTP_Handler(srv))
@@ -182,6 +185,25 @@ func _Prom_ListGroup0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) er
 			return err
 		}
 		reply := out.(*ListGroupReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Prom_ListSimpleGroup0_HTTP_Handler(srv PromHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSimpleGroupRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPromListSimpleGroup)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSimpleGroup(ctx, req.(*ListSimpleGroupRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSimpleGroupReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -317,6 +339,7 @@ type PromHTTPClient interface {
 	GetGroup(ctx context.Context, req *GetGroupRequest, opts ...http.CallOption) (rsp *GetGroupReply, err error)
 	GetStrategy(ctx context.Context, req *GetStrategyRequest, opts ...http.CallOption) (rsp *GetStrategyReply, err error)
 	ListGroup(ctx context.Context, req *ListGroupRequest, opts ...http.CallOption) (rsp *ListGroupReply, err error)
+	ListSimpleGroup(ctx context.Context, req *ListSimpleGroupRequest, opts ...http.CallOption) (rsp *ListSimpleGroupReply, err error)
 	ListStrategy(ctx context.Context, req *ListStrategyRequest, opts ...http.CallOption) (rsp *ListStrategyReply, err error)
 	UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...http.CallOption) (rsp *UpdateGroupReply, err error)
 	UpdateGroupsStatus(ctx context.Context, req *UpdateGroupsStatusRequest, opts ...http.CallOption) (rsp *UpdateGroupsStatusReply, err error)
@@ -415,6 +438,19 @@ func (c *PromHTTPClientImpl) ListGroup(ctx context.Context, in *ListGroupRequest
 	pattern := "/prom/v1/groups"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationPromListGroup))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *PromHTTPClientImpl) ListSimpleGroup(ctx context.Context, in *ListSimpleGroupRequest, opts ...http.CallOption) (*ListSimpleGroupReply, error) {
+	var out ListSimpleGroupReply
+	pattern := "/prom/v1/groups/simple"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPromListSimpleGroup))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

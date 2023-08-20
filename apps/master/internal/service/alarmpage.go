@@ -17,6 +17,7 @@ type (
 		DeleteAlarmPage(ctx context.Context, req *pb.DeleteAlarmPageRequest) (*pb.DeleteAlarmPageReply, error)
 		GetAlarmPage(ctx context.Context, req *pb.GetAlarmPageRequest) (*pb.GetAlarmPageReply, error)
 		ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error)
+		ListSimpleAlarmPage(ctx context.Context, req *pb.ListSimpleAlarmPageRequest) (*pb.ListSimpleAlarmPageReply, error)
 	}
 
 	AlarmPageV1Service struct {
@@ -67,4 +68,10 @@ func (l *AlarmPageV1Service) ListAlarmPage(ctx context.Context, req *pb.ListAlar
 	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageV1Service.ListAlarmPage")
 	defer span.End()
 	return l.logic.ListAlarmPage(ctx, req)
+}
+
+func (l *AlarmPageV1Service) ListSimpleAlarmPage(ctx context.Context, req *pb.ListSimpleAlarmPageRequest) (*pb.ListSimpleAlarmPageReply, error) {
+	ctx, span := otel.Tracer(alarmPageModuleName).Start(ctx, "AlarmPageV1Service.ListSimpleAlarmPage")
+	defer span.End()
+	return l.logic.ListSimpleAlarmPage(ctx, req)
 }

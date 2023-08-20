@@ -16,6 +16,25 @@ export enum Category {
   CATEGORY_ALERT_NOTIFY = "CATEGORY_ALERT_NOTIFY",
 }
 
+export type CategoryMapType = {
+  [key in Category]: number;
+};
+
+export const CategoryMap: CategoryMapType = {
+  // 未知
+  CATEGORY_NONE: 0,
+  // 规则组类型
+  CATEGORY_GROUP: 1,
+  // 套餐类型
+  CATEGORY_COMBO: 2,
+  // 规则类型
+  CATEGORY_STRATEGY: 3,
+  // 告警等级
+  CATEGORY_ALERT_LEVEL: 4,
+  // 告警通知方式
+  CATEGORY_ALERT_NOTIFY: 5,
+};
+
 // 状态枚举
 export enum Status {
   // 未知
@@ -102,11 +121,11 @@ export type PromDict = {
 
 export type PromDictRequest = {
   // 字典名称
-  name: string;
+  name?: string;
   // 字典备注
   remark?: string;
   // 字典类别
-  category: Category;
+  category?: number;
   // 字典颜色
   color?: string;
 };
@@ -237,4 +256,9 @@ export type PromStrategyItemRequest = {
   groupId?: number;
   // 规则名称
   alert?: string;
+};
+
+export type SimpleItem = {
+  id: number;
+  name: string;
 };

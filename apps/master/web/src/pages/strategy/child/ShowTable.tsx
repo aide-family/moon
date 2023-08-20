@@ -50,14 +50,14 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     item: PromStrategyItem
   ) => {
     const res = await StrategyUpdate(item.id, {
-      alarmPageIds: item.alarmPageIds,
+      alarmPageIds: val.alarmPageIds || item.alarmPageIds,
       alert: val.alert || item.alert,
-      alertLevelId: item.alertLevelId,
+      alertLevelId: val.alertLevelId || item.alertLevelId,
       annotations: val.annotations || item.annotations,
-      categorieIds: item.categorieIds,
+      categorieIds: val.categorieIds || item.categorieIds,
       expr: val.expr || item.expr,
       for: val.for || item.for,
-      groupId: item.groupId,
+      groupId: val.groupId || item.groupId,
       labels: val.labels || item.labels,
     });
     if (res.response.code !== "0") {
@@ -203,6 +203,10 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                   setVisible: setStrategyModalVisabled,
                   initialValues: {
                     datasource: database,
+                    groupId: row.groupId,
+                    alertLevelId: row.alertLevelId,
+                    alarmPageIds: row.alarmPageIds,
+                    categorieIds: row.categorieIds,
                     alert: row.alert,
                     for: row.for,
                     expr: row.expr,
@@ -229,6 +233,10 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                             setVisible: setStrategyModalVisabled,
                             initialValues: {
                               datasource: database,
+                              groupId: row.groupId,
+                              alertLevelId: row.alertLevelId,
+                              categorieIds: row.categorieIds,
+                              alarmPageIds: row.alarmPageIds,
                               alert: row.alert,
                               for: row.for,
                               expr: row.expr,

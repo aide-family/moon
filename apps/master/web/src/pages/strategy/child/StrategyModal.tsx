@@ -12,6 +12,10 @@ export interface StrategyValues {
   for?: string;
   alert?: string;
   expr?: string;
+  groupId?: number;
+  alertLevelId?: number;
+  categorieIds?: number[];
+  alarmPageIds?: number[];
 }
 
 export interface StrategyModalProps {
@@ -61,7 +65,14 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
 
     const toYamlString = (jsonData?: StrategyValues) => {
       // 去掉jsonData的datasource属性
-      let { datasource, ...rest } = jsonData || {};
+      let {
+        datasource,
+        groupId,
+        alarmPageIds,
+        categorieIds,
+        alertLevelId,
+        ...rest
+      } = jsonData || {};
       // 去掉undefined的属性
       const removeUndefined = (obj: any) => {
         Object.keys(obj).forEach((key) => {
@@ -95,6 +106,7 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
           onCancel={handleOnClose}
           style={{ width: "60vw" }}
           maskStyle={{ padding: 0 }}
+          footer={null}
         >
           <CodeView codeString={toYamlString(rule)} language="yaml" />
         </Modal>
@@ -121,7 +133,11 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
         onCancel={handleOnClose}
         onOk={handleOnOk}
         style={{ width: "80vw" }}
-        okButtonProps={{ loading, disabled }}
+        okButtonProps={{
+          loading,
+          disabled,
+          style: { display: disabled ? "none" : "" },
+        }}
       >
         <div
           style={{ maxHeight: "80vh", overflow: "auto", overflowX: "hidden" }}

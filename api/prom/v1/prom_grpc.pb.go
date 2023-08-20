@@ -34,6 +34,8 @@ type PromClient interface {
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupReply, error)
 	// ListGroup 获取规则组列表
 	ListGroup(ctx context.Context, in *ListGroupRequest, opts ...grpc.CallOption) (*ListGroupReply, error)
+	// ListSimpleGroup 获取规则组简单列表
+	ListSimpleGroup(ctx context.Context, in *ListSimpleGroupRequest, opts ...grpc.CallOption) (*ListSimpleGroupReply, error)
 	// CreateStrategy 创建规则策略
 	CreateStrategy(ctx context.Context, in *CreateStrategyRequest, opts ...grpc.CallOption) (*CreateStrategyReply, error)
 	// UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
@@ -110,6 +112,15 @@ func (c *promClient) ListGroup(ctx context.Context, in *ListGroupRequest, opts .
 	return out, nil
 }
 
+func (c *promClient) ListSimpleGroup(ctx context.Context, in *ListSimpleGroupRequest, opts ...grpc.CallOption) (*ListSimpleGroupReply, error) {
+	out := new(ListSimpleGroupReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/ListSimpleGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *promClient) CreateStrategy(ctx context.Context, in *CreateStrategyRequest, opts ...grpc.CallOption) (*CreateStrategyReply, error) {
 	out := new(CreateStrategyReply)
 	err := c.cc.Invoke(ctx, "/api.prom.v1.Prom/CreateStrategy", in, out, opts...)
@@ -180,6 +191,8 @@ type PromServer interface {
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupReply, error)
 	// ListGroup 获取规则组列表
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
+	// ListSimpleGroup 获取规则组简单列表
+	ListSimpleGroup(context.Context, *ListSimpleGroupRequest) (*ListSimpleGroupReply, error)
 	// CreateStrategy 创建规则策略
 	CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error)
 	// UpdateStrategy 更新规则策略, 传入id更新指定的规则策略
@@ -216,6 +229,9 @@ func (UnimplementedPromServer) GetGroup(context.Context, *GetGroupRequest) (*Get
 }
 func (UnimplementedPromServer) ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroup not implemented")
+}
+func (UnimplementedPromServer) ListSimpleGroup(context.Context, *ListSimpleGroupRequest) (*ListSimpleGroupReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSimpleGroup not implemented")
 }
 func (UnimplementedPromServer) CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStrategy not implemented")
@@ -352,6 +368,24 @@ func _Prom_ListGroup_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PromServer).ListGroup(ctx, req.(*ListGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Prom_ListSimpleGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSimpleGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PromServer).ListSimpleGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.Prom/ListSimpleGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PromServer).ListSimpleGroup(ctx, req.(*ListSimpleGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -494,6 +528,10 @@ var Prom_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGroup",
 			Handler:    _Prom_ListGroup_Handler,
+		},
+		{
+			MethodName: "ListSimpleGroup",
+			Handler:    _Prom_ListSimpleGroup_Handler,
 		},
 		{
 			MethodName: "CreateStrategy",

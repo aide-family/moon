@@ -3444,3 +3444,341 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListStrategyReplyValidationError{}
+
+// Validate checks the field values on ListSimpleGroupRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSimpleGroupRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSimpleGroupRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSimpleGroupRequestMultiError, or nil if none found.
+func (m *ListSimpleGroupRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSimpleGroupRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPage() == nil {
+		err := ListSimpleGroupRequestValidationError{
+			field:  "Page",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleGroupRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleGroupRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleGroupRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Keyword
+
+	if len(errors) > 0 {
+		return ListSimpleGroupRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSimpleGroupRequestMultiError is an error wrapping multiple validation
+// errors returned by ListSimpleGroupRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListSimpleGroupRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSimpleGroupRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSimpleGroupRequestMultiError) AllErrors() []error { return m }
+
+// ListSimpleGroupRequestValidationError is the validation error returned by
+// ListSimpleGroupRequest.Validate if the designated constraints aren't met.
+type ListSimpleGroupRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSimpleGroupRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSimpleGroupRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSimpleGroupRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSimpleGroupRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSimpleGroupRequestValidationError) ErrorName() string {
+	return "ListSimpleGroupRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSimpleGroupRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSimpleGroupRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSimpleGroupRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSimpleGroupRequestValidationError{}
+
+// Validate checks the field values on ListSimpleGroupReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSimpleGroupReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSimpleGroupReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSimpleGroupReplyMultiError, or nil if none found.
+func (m *ListSimpleGroupReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSimpleGroupReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleGroupReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleGroupReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleGroupReplyValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetGroups() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListSimpleGroupReplyValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListSimpleGroupReplyValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListSimpleGroupReplyValidationError{
+					field:  fmt.Sprintf("Groups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleGroupReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleGroupReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleGroupReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ListSimpleGroupReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSimpleGroupReplyMultiError is an error wrapping multiple validation
+// errors returned by ListSimpleGroupReply.ValidateAll() if the designated
+// constraints aren't met.
+type ListSimpleGroupReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSimpleGroupReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSimpleGroupReplyMultiError) AllErrors() []error { return m }
+
+// ListSimpleGroupReplyValidationError is the validation error returned by
+// ListSimpleGroupReply.Validate if the designated constraints aren't met.
+type ListSimpleGroupReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSimpleGroupReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSimpleGroupReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSimpleGroupReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSimpleGroupReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSimpleGroupReplyValidationError) ErrorName() string {
+	return "ListSimpleGroupReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSimpleGroupReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSimpleGroupReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSimpleGroupReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSimpleGroupReplyValidationError{}
