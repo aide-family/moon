@@ -25,6 +25,7 @@ type (
 		DeleteGroupByID(ctx context.Context, id int32) error
 		GroupDetail(ctx context.Context, id int32) (*model.PromGroup, error)
 		Groups(ctx context.Context, req *pb.ListGroupRequest) ([]*model.PromGroup, int64, error)
+		SimpleGroups(ctx context.Context, req *pb.ListSimpleGroupRequest) ([]*model.PromGroup, int64, error)
 
 		CreateStrategy(ctx context.Context, m *model.PromStrategy) error
 		UpdateStrategyByID(ctx context.Context, id int32, m *model.PromStrategy) error
@@ -46,6 +47,39 @@ var _ service.IPromV1Logic = (*PromLogic)(nil)
 // NewPromLogic 初始化biz.PromLogic
 func NewPromLogic(v1Repo IPromV1Repo, logger log.Logger) *PromLogic {
 	return &PromLogic{v1Repo: v1Repo, logger: log.NewHelper(log.With(logger, "module", promModuleName))}
+}
+
+// ListSimpleGroup 简单的规则组列表, 用于前端选择用
+//
+//	ctx: 上下文
+//	req: 请求参数
+func (s *PromLogic) ListSimpleGroup(ctx context.Context, req *pb.ListSimpleGroupRequest) (*pb.ListSimpleGroupReply, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromLogic.ListSimpleGroup")
+	defer span.End()
+
+	simpleList, total, err := s.v1Repo.SimpleGroups(ctx, req)
+	if err != nil {
+		s.logger.WithContext(ctx).Errorf("SimpleGroups err: %v", err)
+		return nil, err
+	}
+
+	list := make([]*prom.SimpleItem, 0, len(simpleList))
+	for _, group := range simpleList {
+		list = append(list, &prom.SimpleItem{
+			Id:   group.ID,
+			Name: group.Name,
+		})
+	}
+
+	return &pb.ListSimpleGroupReply{
+		Groups: list,
+		Page: &api.PageReply{
+			Current: req.GetPage().GetCurrent(),
+			Size:    req.GetPage().GetSize(),
+			Total:   total,
+		},
+		Response: &api.Response{Message: "获取成功"},
+	}, nil
 }
 
 // CreateGroup 创建Prometheus分组

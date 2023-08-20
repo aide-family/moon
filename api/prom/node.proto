@@ -131,3 +131,8 @@ message ComboItem {
   repeated ComboRuleItem rules = 7;
   int32 id = 99;
 }
+
+message SimpleItem {
+  int32 id = 1;
+  string name = 2;
+}

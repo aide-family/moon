@@ -1837,3 +1837,350 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListAlarmPageReplyValidationError{}
+
+// Validate checks the field values on ListSimpleAlarmPageRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSimpleAlarmPageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSimpleAlarmPageRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSimpleAlarmPageRequestMultiError, or nil if none found.
+func (m *ListSimpleAlarmPageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSimpleAlarmPageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPage() == nil {
+		err := ListSimpleAlarmPageRequestValidationError{
+			field:  "Page",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleAlarmPageRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetKeyword()) > 32 {
+		err := ListSimpleAlarmPageRequestValidationError{
+			field:  "Keyword",
+			reason: "value length must be at most 32 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListSimpleAlarmPageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSimpleAlarmPageRequestMultiError is an error wrapping multiple
+// validation errors returned by ListSimpleAlarmPageRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListSimpleAlarmPageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSimpleAlarmPageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSimpleAlarmPageRequestMultiError) AllErrors() []error { return m }
+
+// ListSimpleAlarmPageRequestValidationError is the validation error returned
+// by ListSimpleAlarmPageRequest.Validate if the designated constraints aren't met.
+type ListSimpleAlarmPageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSimpleAlarmPageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSimpleAlarmPageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSimpleAlarmPageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSimpleAlarmPageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSimpleAlarmPageRequestValidationError) ErrorName() string {
+	return "ListSimpleAlarmPageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSimpleAlarmPageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSimpleAlarmPageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSimpleAlarmPageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSimpleAlarmPageRequestValidationError{}
+
+// Validate checks the field values on ListSimpleAlarmPageReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListSimpleAlarmPageReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListSimpleAlarmPageReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListSimpleAlarmPageReplyMultiError, or nil if none found.
+func (m *ListSimpleAlarmPageReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListSimpleAlarmPageReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleAlarmPageReplyValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetAlarmPages() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+						field:  fmt.Sprintf("AlarmPages[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+						field:  fmt.Sprintf("AlarmPages[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListSimpleAlarmPageReplyValidationError{
+					field:  fmt.Sprintf("AlarmPages[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetResponse()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListSimpleAlarmPageReplyValidationError{
+					field:  "Response",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListSimpleAlarmPageReplyValidationError{
+				field:  "Response",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ListSimpleAlarmPageReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListSimpleAlarmPageReplyMultiError is an error wrapping multiple validation
+// errors returned by ListSimpleAlarmPageReply.ValidateAll() if the designated
+// constraints aren't met.
+type ListSimpleAlarmPageReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListSimpleAlarmPageReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListSimpleAlarmPageReplyMultiError) AllErrors() []error { return m }
+
+// ListSimpleAlarmPageReplyValidationError is the validation error returned by
+// ListSimpleAlarmPageReply.Validate if the designated constraints aren't met.
+type ListSimpleAlarmPageReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListSimpleAlarmPageReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListSimpleAlarmPageReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListSimpleAlarmPageReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListSimpleAlarmPageReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListSimpleAlarmPageReplyValidationError) ErrorName() string {
+	return "ListSimpleAlarmPageReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListSimpleAlarmPageReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListSimpleAlarmPageReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListSimpleAlarmPageReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListSimpleAlarmPageReplyValidationError{}

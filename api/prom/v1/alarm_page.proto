@@ -46,10 +46,18 @@ service AlarmPage {
       body: "*"
     };
   }
-  // GetAlarmPage gets an existing alarm page by query and alarm page.
+  // ListAlarmPage gets an existing alarm page by query and alarm page.
   rpc ListAlarmPage (ListAlarmPageRequest) returns (ListAlarmPageReply) {
     option (google.api.http) = {
       post: "/prom/v1/alarm-pages"
+      body: "*"
+    };
+  }
+
+  // ListSimpleAlarmPage gets an existing alarm page by query and alarm page.
+  rpc ListSimpleAlarmPage (ListSimpleAlarmPageRequest) returns (ListSimpleAlarmPageReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/alarm-pages/simple"
       body: "*"
     };
   }
@@ -111,4 +119,14 @@ message ListAlarmPageReply {
   Response response = 1;
   ListQueryResult result = 2;
   repeated AlarmPageItem alarm_pages = 3;
+}
+
+message ListSimpleAlarmPageRequest {
+  PageRequest page = 1 [(validate.rules) = {message: {required: true}}];
+  string keyword = 2 [(validate.rules) = {string: {max_len: 32}}];
+}
+message ListSimpleAlarmPageReply {
+  PageReply page = 1;
+  repeated AlarmPageItem alarmPages = 2;
+  Response response = 3;
 }

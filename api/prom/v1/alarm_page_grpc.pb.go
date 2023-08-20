@@ -32,8 +32,10 @@ type AlarmPageClient interface {
 	DeleteAlarmPage(ctx context.Context, in *DeleteAlarmPageRequest, opts ...grpc.CallOption) (*DeleteAlarmPageReply, error)
 	// GetAlarmPage gets an existing alarm page by id.
 	GetAlarmPage(ctx context.Context, in *GetAlarmPageRequest, opts ...grpc.CallOption) (*GetAlarmPageReply, error)
-	// GetAlarmPage gets an existing alarm page by query and alarm page.
+	// ListAlarmPage gets an existing alarm page by query and alarm page.
 	ListAlarmPage(ctx context.Context, in *ListAlarmPageRequest, opts ...grpc.CallOption) (*ListAlarmPageReply, error)
+	// ListSimpleAlarmPage gets an existing alarm page by query and alarm page.
+	ListSimpleAlarmPage(ctx context.Context, in *ListSimpleAlarmPageRequest, opts ...grpc.CallOption) (*ListSimpleAlarmPageReply, error)
 }
 
 type alarmPageClient struct {
@@ -98,6 +100,15 @@ func (c *alarmPageClient) ListAlarmPage(ctx context.Context, in *ListAlarmPageRe
 	return out, nil
 }
 
+func (c *alarmPageClient) ListSimpleAlarmPage(ctx context.Context, in *ListSimpleAlarmPageRequest, opts ...grpc.CallOption) (*ListSimpleAlarmPageReply, error) {
+	out := new(ListSimpleAlarmPageReply)
+	err := c.cc.Invoke(ctx, "/api.prom.v1.AlarmPage/ListSimpleAlarmPage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlarmPageServer is the server API for AlarmPage service.
 // All implementations must embed UnimplementedAlarmPageServer
 // for forward compatibility
@@ -112,8 +123,10 @@ type AlarmPageServer interface {
 	DeleteAlarmPage(context.Context, *DeleteAlarmPageRequest) (*DeleteAlarmPageReply, error)
 	// GetAlarmPage gets an existing alarm page by id.
 	GetAlarmPage(context.Context, *GetAlarmPageRequest) (*GetAlarmPageReply, error)
-	// GetAlarmPage gets an existing alarm page by query and alarm page.
+	// ListAlarmPage gets an existing alarm page by query and alarm page.
 	ListAlarmPage(context.Context, *ListAlarmPageRequest) (*ListAlarmPageReply, error)
+	// ListSimpleAlarmPage gets an existing alarm page by query and alarm page.
+	ListSimpleAlarmPage(context.Context, *ListSimpleAlarmPageRequest) (*ListSimpleAlarmPageReply, error)
 	mustEmbedUnimplementedAlarmPageServer()
 }
 
@@ -138,6 +151,9 @@ func (UnimplementedAlarmPageServer) GetAlarmPage(context.Context, *GetAlarmPageR
 }
 func (UnimplementedAlarmPageServer) ListAlarmPage(context.Context, *ListAlarmPageRequest) (*ListAlarmPageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAlarmPage not implemented")
+}
+func (UnimplementedAlarmPageServer) ListSimpleAlarmPage(context.Context, *ListSimpleAlarmPageRequest) (*ListSimpleAlarmPageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSimpleAlarmPage not implemented")
 }
 func (UnimplementedAlarmPageServer) mustEmbedUnimplementedAlarmPageServer() {}
 
@@ -260,6 +276,24 @@ func _AlarmPage_ListAlarmPage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlarmPage_ListSimpleAlarmPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSimpleAlarmPageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlarmPageServer).ListSimpleAlarmPage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.v1.AlarmPage/ListSimpleAlarmPage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlarmPageServer).ListSimpleAlarmPage(ctx, req.(*ListSimpleAlarmPageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlarmPage_ServiceDesc is the grpc.ServiceDesc for AlarmPage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -290,6 +324,10 @@ var AlarmPage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAlarmPage",
 			Handler:    _AlarmPage_ListAlarmPage_Handler,
+		},
+		{
+			MethodName: "ListSimpleAlarmPage",
+			Handler:    _AlarmPage_ListSimpleAlarmPage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

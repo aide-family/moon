@@ -45,6 +45,22 @@ func NewPromV1Repo(data *Data, logger log.Logger) *PromV1Repo {
 	}
 }
 
+func (p *PromV1Repo) SimpleGroups(ctx context.Context, req *pb.ListSimpleGroupRequest) ([]*model.PromGroup, int64, error) {
+	ctx, span := otel.Tracer(promModuleName).Start(ctx, "PromV1Repo.SimpleGroups")
+	defer span.End()
+
+	promGroup := p.db.PromGroup
+	promGroupDB := promGroup.WithContext(ctx)
+	offset, limit := buildQuery.GetPage(req.GetPage())
+	if req != nil {
+		if req.GetKeyword() != "" {
+			promGroupDB = promGroupDB.Where(buildQuery.GetConditionKeywords("%"+req.GetKeyword()+"%", promGroup.Name)...)
+		}
+	}
+
+	return promGroupDB.Select(promGroup.ID, promGroup.Name).FindByPage(int(offset), int(limit))
+}
+
 // GetStrategyByName 根据策略名称获取策略, 如果不存在则返回错误, 一般用于策略名称判重
 //
 //	ctx: 	 上下文

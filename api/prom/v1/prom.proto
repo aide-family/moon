@@ -53,6 +53,15 @@ service Prom {
       body: "*"
     };
   }
+
+  // ListSimpleGroup 获取规则组简单列表
+  rpc ListSimpleGroup(ListSimpleGroupRequest) returns(ListSimpleGroupReply) {
+    option (google.api.http) = {
+      post: "/prom/v1/groups/simple"
+      body: "*"
+    };
+  }
+
   /* ----------------------Group 规则组 END--------------------------*/
 
   /* --------------------------------规则策略-------------------------------*/
@@ -232,3 +241,14 @@ message ListStrategyReply {
   ListQueryResult result = 2;
   repeated StrategyItem strategies = 3;
 }
+
+message ListSimpleGroupRequest {
+  PageRequest page = 1 [(validate.rules) = {message: {required: true}}];
+  string keyword = 2;
+}
+message ListSimpleGroupReply {
+  PageReply page = 1;
+  repeated SimpleItem groups = 2;
+  Response response = 3;
+}
+
