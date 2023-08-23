@@ -11,8 +11,8 @@ import (
 	"prometheus-manager/api/strategy"
 	nodeV1Push "prometheus-manager/api/strategy/v1/push"
 
-	"prometheus-manager/dal/model"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/dal/model"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/util/dir"
 	"prometheus-manager/pkg/util/hash"

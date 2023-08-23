@@ -7,7 +7,7 @@ import (
 	"github.com/google/wire"
 
 	"prometheus-manager/api/prom"
-	"prometheus-manager/dal/model"
+	"prometheus-manager/pkg/dal/model"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/times"
 

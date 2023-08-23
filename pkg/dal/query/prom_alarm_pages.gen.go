@@ -17,7 +17,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"prometheus-manager/dal/model"
+	"prometheus-manager/pkg/dal/model"
 )
 
 func newPromAlarmPage(db *gorm.DB, opts ...gen.DOOption) promAlarmPage {

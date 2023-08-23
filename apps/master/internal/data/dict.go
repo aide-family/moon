@@ -16,10 +16,10 @@ import (
 	pb "prometheus-manager/api/prom/v1"
 	nodeV1Pull "prometheus-manager/api/strategy/v1/pull"
 
-	"prometheus-manager/dal/model"
-	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/dal/model"
+	"prometheus-manager/pkg/dal/query"
 	"prometheus-manager/pkg/util/stringer"
 
 	"prometheus-manager/apps/master/internal/biz"
