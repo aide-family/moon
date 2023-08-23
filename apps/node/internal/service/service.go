@@ -10,11 +10,13 @@ var ProviderSet = wire.NewSet(
 	NewLoadService,
 	NewPushService,
 	NewPingService,
+	NewAlertService,
 )
 
 const (
-	loadModuleName = "service/load"
-	pingModuleName = "service/ping"
-	pullModuleName = "service/pull"
-	pushModuleName = "service/push"
+	loadModuleName  = "service/load"
+	pingModuleName  = "service/ping"
+	pullModuleName  = "service/pull"
+	pushModuleName  = "service/push"
+	alertModuleName = "service/alert"
 )

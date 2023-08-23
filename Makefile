@@ -63,6 +63,7 @@ data:
 	@kratos proto data -t apps/node/internal/data api/strategy/v1/push/push.proto
 	@kratos proto data -t apps/node/internal/data api/strategy/v1/load/load.proto
 	@kratos proto data -t apps/node/internal/data api/ping.proto
+	@kratos proto data -t apps/node/internal/data api/alert/v1/alert.proto
 	@kratos proto data -t apps/master/internal/data api/ping.proto
 	@kratos proto data -t apps/master/internal/data api/prom/v1/prom.proto
 	@kratos proto data -t apps/master/internal/data api/prom/v1/dict.proto
@@ -76,6 +77,7 @@ biz:
 	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/push/push.proto
 	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/load/load.proto
 	@kratos proto biz -t apps/node/internal/biz api/ping.proto
+	@kratos proto biz -t apps/node/internal/biz api/alert/v1/alert.proto
 	@kratos proto biz -t apps/master/internal/biz api/ping.proto
 	@kratos proto biz -t apps/master/internal/biz api/prom/v1/prom.proto
 	@kratos proto biz -t apps/master/internal/biz api/prom/v1/dict.proto
@@ -89,6 +91,7 @@ service:
 	@kratos proto server -t apps/node/internal/service api/strategy/v1/push/push.proto
 	@kratos proto server -t apps/node/internal/service api/strategy/v1/load/load.proto
 	@kratos proto server -t apps/node/internal/service api/ping.proto
+	@kratos proto server -t apps/node/internal/service api/alert/v1/alert.proto
 	@kratos proto server -t apps/master/internal/service api/ping.proto
 	@kratos proto server -t apps/master/internal/service api/prom/v1/prom.proto
 	@kratos proto server -t apps/master/internal/service api/prom/v1/dict.proto

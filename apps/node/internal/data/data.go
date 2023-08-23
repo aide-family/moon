@@ -23,6 +23,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.ILoadRepo), new(*LoadRepo)),
 	NewPingRepo,
 	wire.Bind(new(biz.IPingRepo), new(*PingRepo)),
+	NewAlertRepo,
+	wire.Bind(new(biz.IAlertRepo), new(*AlertRepo)),
 )
 
 var (
@@ -31,10 +33,11 @@ var (
 )
 
 const (
-	loadModuleName = "data/load"
-	pingModuleName = "data/ping"
-	pullModuleName = "data/pull"
-	pushModuleName = "data/push"
+	loadModuleName  = "data/load"
+	pingModuleName  = "data/ping"
+	pullModuleName  = "data/pull"
+	pushModuleName  = "data/push"
+	alertModuleName = "data/alert"
 )
 
 // Data .

@@ -22,11 +22,14 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.ILoadLogic), new(*LoadLogic)),
 	NewPingLogic,
 	wire.Bind(new(service.IPingLogic), new(*PingLogic)),
+	NewAlertLogic,
+	wire.Bind(new(service.IAlertLogic), new(*AlertLogic)),
 )
 
 const (
-	loadModuleName = "biz/load"
-	pingModuleName = "biz/ping"
-	pullModuleName = "biz/pull"
-	pushModuleName = "biz/push"
+	loadModuleName  = "biz/load"
+	pingModuleName  = "biz/ping"
+	pullModuleName  = "biz/pull"
+	pushModuleName  = "biz/push"
+	alertModuleName = "biz/alert"
 )

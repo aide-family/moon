@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.alarm.v1;
 
 import "google/api/annotations.proto";
-import "validate/validate.proto";
 import "base.proto";
 
 option go_package = "prometheus-manager/api/alarm/v1;v1";
