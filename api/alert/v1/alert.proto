@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package api.alert.v1;
+
+import "google/api/annotations.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/alert/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.alert.v1";
+
+service Alert {
+	rpc Webhook(WebhookRequest) returns (WebhookReply) {
+		option (google.api.http) = {
+			post: "/alert/v1/webhook"
+			body: "*"
+		};
+	}
+}
+
+message WebhookRequest {
+	message AlertInfo {
+		string status = 1;
+		map<string, string> labels = 2;
+		map<string, string>  annotations = 3;
+		string startsAt = 4;
+		string endsAt = 5;
+		string generatorURL = 6;
+		string fingerprint = 7;
+	}
+
+	string receiver = 1;
+	string status = 2;
+	repeated AlertInfo alerts = 3;
+	map<string, string> groupLabels = 4;
+	map<string, string> commonLabels = 5;
+	map<string, string> commonAnnotations = 6;
+	string externalURL = 7;
+	string version = 8;
+	string groupKey = 9;
+	int32 truncatedAlerts = 10;
+}
+
+message WebhookReply {
+	Response response = 1;
+}

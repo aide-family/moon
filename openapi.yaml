@@ -85,6 +85,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm.v1.StatisticsResponse'
+    /alert/v1/webhook:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_Webhook
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.alert.v1.WebhookRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alert.v1.WebhookReply'
     /helloworld/{name}:
         get:
             tags:
@@ -912,6 +930,64 @@ components:
                         type: integer
                         format: int64
                     description: 各个规则组的报警数量
+        api.alert.v1.WebhookReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.alert.v1.WebhookRequest:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                status:
+                    type: string
+                alerts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.alert.v1.WebhookRequest_AlertInfo'
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                externalURL:
+                    type: string
+                version:
+                    type: string
+                groupKey:
+                    type: string
+                truncatedAlerts:
+                    type: integer
+                    format: int32
+        api.alert.v1.WebhookRequest_AlertInfo:
+            type: object
+            properties:
+                status:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                startsAt:
+                    type: string
+                endsAt:
+                    type: string
+                generatorURL:
+                    type: string
+                fingerprint:
+                    type: string
         api.node.CallResponse:
             type: object
             properties:
@@ -1561,6 +1637,7 @@ components:
 tags:
     - name: Alarm
     - name: AlarmPage
+    - name: Alert
     - name: Dict
     - name: Greeter
       description: The greeting service definition.
