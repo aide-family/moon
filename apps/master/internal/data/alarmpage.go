@@ -14,9 +14,9 @@ import (
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
 
-	"prometheus-manager/dal/model"
-	"prometheus-manager/dal/query"
 	buildQuery "prometheus-manager/pkg/build_query"
+	"prometheus-manager/pkg/dal/model"
+	"prometheus-manager/pkg/dal/query"
 	"prometheus-manager/pkg/util/stringer"
 
 	"prometheus-manager/apps/master/internal/biz"

@@ -11,9 +11,8 @@ import (
 	"prometheus-manager/api/prom"
 	pb "prometheus-manager/api/prom/v1"
 
-	"prometheus-manager/dal/model"
-
 	"prometheus-manager/apps/master/internal/service"
+	"prometheus-manager/pkg/dal/model"
 )
 
 type (

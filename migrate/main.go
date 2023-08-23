@@ -1,4 +1,4 @@
-//go:build ignore
+// go:build ignore
 
 package main
 
@@ -10,7 +10,7 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gorm"
 
-	"prometheus-manager/gen/strategy"
+	"prometheus-manager/migrate/strategy"
 )
 
 //go:embed dsn.yml
@@ -30,9 +30,9 @@ func main() {
 	g := gen.NewGenerator(gen.Config{
 		Mode: gen.WithDefaultQuery | gen.WithQueryInterface | gen.WithoutContext,
 		//FieldNullable: true,
-		OutPath:      "../dal/query",
-		ModelPkgPath: "../dal/model",
-		WithUnitTest: true,
+		OutPath:      "./pkg/dal/query",
+		ModelPkgPath: "./pkg/dal/model",
+		//WithUnitTest: true,
 
 		// generate model global configuration
 		FieldNullable: true, // generate pointer when field is nullable

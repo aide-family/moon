@@ -93,12 +93,14 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     {
       title: "名称",
       dataIndex: "alert",
+      align: "left",
       width: 200,
     },
     {
       title: "规则组",
       dataIndex: "group",
       width: 200,
+      align: "center",
       render: (group: PromGroupSimpleItem) => {
         return <Button type="text">{group.name}</Button>;
       },
@@ -164,9 +166,29 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     {
       title: "优先级",
       dataIndex: "alertLevel",
-      width: 200,
+      width: 160,
+      align: "center",
       render: (alertLevel: PromDict) => {
         return <Tag color={alertLevel.color}>{alertLevel.name}</Tag>;
+      },
+    },
+    {
+      title: "规则属性",
+      dataIndex: "categories",
+      width: 160,
+      align: "center",
+      render: (categories: PromDict[]) => {
+        return (
+          <div className={strategyStyles.alarmPagesDiv}>
+            {categories.map((categorie, index) => {
+              return (
+                <Tag key={index} color={categorie.color}>
+                  {categorie.remark}
+                </Tag>
+              );
+            })}
+          </div>
+        );
       },
     },
     {
@@ -190,6 +212,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
       dataIndex: "action",
       width: 120,
       fixed: "right",
+      align: "center",
       render: (_, row) => {
         return (
           <div className={groupStyle.action} key={row.id}>
@@ -332,17 +355,35 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     getStrategies();
   }, [queryParams, refresh]);
 
+  const [ShowTableDivHeight, setShowTableDivHeight] = React.useState<number>(
+    document.getElementById("strategyTabl")?.clientHeight || 0
+  );
+
+  // 监听窗口尺寸变化
+  useEffect(() => {
+    const resize = () => {
+      const tableDivHeight =
+        document.getElementById("strategyTabl")?.clientHeight || 0;
+      setShowTableDivHeight(tableDivHeight);
+    };
+    window.addEventListener("resize", resize);
+    return () => {
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
   return (
-    <>
+    <div id="strategyTabl">
       <Table
         rowKey={(record) => record.id}
         loading={tableLoading}
         data={dataSource}
         columns={tableColumns}
         pagination={pagination}
+        scroll={{ y: ShowTableDivHeight - 112 }}
       />
       <StrategyModal {...strategyModalProps} visible={strategyModalVisabled} />
-    </>
+    </div>
   );
 };
 

@@ -130,7 +130,7 @@ all:
 .PHONY: model
 # generate model
 model:
-	@cd gen && go run main.go
+	go run ./migrate
 	@git add .
 
 .PHONY: web

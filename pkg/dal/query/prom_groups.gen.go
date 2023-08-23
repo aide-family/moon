@@ -17,7 +17,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"prometheus-manager/dal/model"
+	"prometheus-manager/pkg/dal/model"
 )
 
 func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
