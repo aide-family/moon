@@ -83,14 +83,17 @@ func NewData(
 	}
 
 	cache := conn.NewRedisClient(c.GetRedis())
+
 	nodeGrpcClients := make(map[conn.INodeServer]*grpc.ClientConn)
-	for _, srv := range pushStrategy.GetNodes() {
-		rpcConn, err := conn.GetNodeGrpcClient(context.Background(), srv, conn.GetDiscovery())
-		if err != nil {
-			log.NewHelper(logger).Errorf("GetNodeGrpcClient err", err)
-			return nil, nil, err
+	if pushStrategy.GetEnable() {
+		for _, srv := range pushStrategy.GetNodes() {
+			rpcConn, err := conn.GetNodeGrpcClient(context.Background(), srv, conn.GetDiscovery())
+			if err != nil {
+				log.NewHelper(logger).Errorf("GetNodeGrpcClient err: %v", err)
+				return nil, nil, err
+			}
+			nodeGrpcClients[srv] = rpcConn
 		}
-		nodeGrpcClients[srv] = rpcConn
 	}
 
 	cleanup := func() {
