@@ -12,6 +12,7 @@ message Bootstrap {
   Env env = 6;
   Registrar registrar = 7;
   repeated PromDatasource prom_datasources = 8;
+  Kafka kafka = 9;
 }
 
 message Server {
@@ -67,4 +68,9 @@ message PromDatasource {
   string type = 2;
   string url = 3;
   string access = 4;
+}
+
+message Kafka {
+  repeated string endpoints = 1;
+  string alert_topic = 2;
 }

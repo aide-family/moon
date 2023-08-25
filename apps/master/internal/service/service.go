@@ -11,6 +11,7 @@ var ProviderSet = wire.NewSet(
 	NewPromService,
 	NewAlarmPageService,
 	NewDictService,
+	NewWatchService,
 )
 
 const (
@@ -19,4 +20,5 @@ const (
 	promModuleName      = "service/prom"
 	pushModuleName      = "service/push"
 	pingModuleName      = "service/ping"
+	watchModuleName     = "service/watch"
 )

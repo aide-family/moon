@@ -2,12 +2,13 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
+	"prometheus-manager/api"
 
 	pb "prometheus-manager/api/alert/v1"
+	"prometheus-manager/pkg/alert"
 
 	"prometheus-manager/apps/node/internal/service"
 )
@@ -15,6 +16,8 @@ import (
 type (
 	IAlertRepo interface {
 		V1Repo
+
+		SyncAlert(ctx context.Context, alertData *alert.Data) error
 	}
 
 	AlertLogic struct {
@@ -33,8 +36,10 @@ func (s *AlertLogic) Webhook(ctx context.Context, req *pb.WebhookRequest) (*pb.W
 	ctx, span := otel.Tracer(alertModuleName).Start(ctx, "AlertLogic.Webhook")
 	defer span.End()
 
-	str, _ := json.Marshal(req)
-	s.logger.Info("Webhook", string(str))
+	if err := s.repo.SyncAlert(ctx, alertWebhookRequestToAlertData(req)); err != nil {
+		s.logger.WithContext(ctx).Errorf("SyncAlert err: %v", err)
+		return nil, err
+	}
 
-	return nil, nil
+	return &pb.WebhookReply{Response: &api.Response{Message: "succeed"}}, nil
 }

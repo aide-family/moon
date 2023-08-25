@@ -1,6 +1,6 @@
 package alert
 
-import "time"
+import "encoding/json"
 
 type (
 	KV map[string]string
@@ -15,8 +15,8 @@ type (
 		Status       string      `json:"status"`
 		Labels       Labels      `json:"labels"`
 		Annotations  Annotations `json:"annotations"`
-		StartsAt     time.Time   `json:"startsAt"`
-		EndsAt       time.Time   `json:"endsAt"`
+		StartsAt     int64       `json:"startsAt"`
+		EndsAt       int64       `json:"endsAt"`
 		GeneratorURL string      `json:"generatorURL"`
 		Fingerprint  string      `json:"fingerprint"`
 	}
@@ -24,7 +24,7 @@ type (
 	Data struct {
 		Receiver          string            `json:"receiver"`
 		Status            string            `json:"status"`
-		Alerts            []Alert           `json:"alerts"`
+		Alerts            []*Alert          `json:"alerts"`
 		GroupLabels       GroupLabels       `json:"groupLabels"`
 		CommonLabels      CommonLabels      `json:"commonLabels"`
 		CommonAnnotations CommonAnnotations `json:"commonAnnotations"`
@@ -34,3 +34,11 @@ type (
 		TruncatedAlerts   int32             `json:"truncatedAlerts"`
 	}
 )
+
+func (l *Data) Byte() []byte {
+	if l == nil {
+		return nil
+	}
+	b, _ := json.Marshal(*l)
+	return b
+}

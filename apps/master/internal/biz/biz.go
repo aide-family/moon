@@ -26,6 +26,8 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(service.IAlarmPageV1Logic), new(*AlarmPageLogic)),
 	NewDictLogic,
 	wire.Bind(new(service.IDictV1Logic), new(*DictLogic)),
+	NewWatchLogic,
+	wire.Bind(new(service.IWatchLogic), new(*WatchLogic)),
 )
 
 const (
@@ -34,6 +36,7 @@ const (
 	promModuleName      = "biz/prom"
 	pushModuleName      = "biz/push"
 	pingModuleName      = "biz/ping"
+	watchModuleName     = "biz/watch"
 )
 
 type V1Repo interface {

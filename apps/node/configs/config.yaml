@@ -40,3 +40,9 @@ registrar:
       - localhost:20000
       - localhost:20002
       - localhost:20004
+
+kafka:
+  alert_topic: "prometheus-manager-node-alert"
+  endpoints:
+    - "localhost:9092"
+    - "localhost:9093"

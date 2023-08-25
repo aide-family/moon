@@ -85,6 +85,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm.v1.StatisticsResponse'
+    /alert/v1/watch:
+        post:
+            tags:
+                - Watch
+            operationId: Watch_WatchAlert
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.alert.v1.WatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alert.v1.WatchReply'
     /alert/v1/webhook:
         post:
             tags:
@@ -930,6 +948,66 @@ components:
                         type: integer
                         format: int64
                     description: 各个规则组的报警数量
+        api.alert.v1.WatchReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.alert.v1.WatchRequest:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                status:
+                    type: string
+                alerts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.alert.v1.WatchRequest_AlertInfo'
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                externalURL:
+                    type: string
+                version:
+                    type: string
+                groupKey:
+                    type: string
+                truncatedAlerts:
+                    type: integer
+                    format: int32
+        api.alert.v1.WatchRequest_AlertInfo:
+            type: object
+            properties:
+                status:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                startsAt:
+                    type: integer
+                    format: int64
+                endsAt:
+                    type: integer
+                    format: int64
+                generatorURL:
+                    type: string
+                fingerprint:
+                    type: string
         api.alert.v1.WebhookReply:
             type: object
             properties:
@@ -1647,3 +1725,4 @@ tags:
     - name: Pull
     - name: Push
     - name: Push
+    - name: Watch

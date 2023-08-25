@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	ping "prometheus-manager/api"
+	alertV1 "prometheus-manager/api/alert/v1"
 	promV1 "prometheus-manager/api/prom/v1"
 
 	"prometheus-manager/pkg/middler"
@@ -38,6 +39,7 @@ func NewHTTPServer(
 	promService *service.PromV1Service,
 	dictService *service.DictV1Service,
 	alarmPageService *service.AlarmPageV1Service,
+	watchService *service.WatchService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.LocalHttpRequestFilter()), // 跨域
@@ -82,6 +84,7 @@ func NewHTTPServer(
 	promV1.RegisterPromHTTPServer(srv, promService)
 	promV1.RegisterDictHTTPServer(srv, dictService)
 	promV1.RegisterAlarmPageHTTPServer(srv, alarmPageService)
+	alertV1.RegisterWatchHTTPServer(srv, watchService)
 
 	log.NewHelper(log.With(logger, "module", "server/http")).Info("http server initialized")
 

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"prometheus-manager/pkg/conn"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -42,15 +43,25 @@ const (
 
 // Data .
 type Data struct {
-	strategy *conf.Strategy
+	strategy      *conf.Strategy
+	kafkaProducer *conn.KafkaProducer
+	kafkaConf     *conf.Kafka
 }
 
 // NewData .
-func NewData(strategy *conf.Strategy, logger log.Logger) (*Data, func(), error) {
+func NewData(strategy *conf.Strategy, kafkaConf *conf.Kafka, logger log.Logger) (*Data, func(), error) {
+	logHelper := log.NewHelper(log.With(logger, "module", "data"))
+	kafkaProducer, err := conn.NewKafkaProducer(kafkaConf.GetEndpoints(), logger)
+	if err != nil {
+		return nil, nil, err
+	}
 	cleanup := func() {
-		log.NewHelper(logger).Info("closing the data resources")
+		logHelper.Info("closing the data resources")
+		kafkaProducer.Producer.Close()
 	}
 	return &Data{
-		strategy: strategy,
+		strategy:      strategy,
+		kafkaProducer: kafkaProducer,
+		kafkaConf:     kafkaConf,
 	}, cleanup, nil
 }
