@@ -163,3 +163,65 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+
+
+TAG ?= latest
+REPO ?= docker.hub # TODO: set your repository address
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+.PHONY: docker-build
+docker-build: # test ## Build docker image with the manager.
+	docker build -t ${REPO}/prometheus-manager:${TAG} .
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the manager.
+	docker push ${REPO}/prometheus-manager:${TAG}
+
+
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+KUSTOMIZE = $(shell pwd)/bin/kustomize
+.PHONY: kustomize
+kustomize: ## Download kustomize locally if necessary.
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
+
+.PHONY: deploy-yaml
+# Generate deploy yaml.
+deploy-yaml: kustomize ## Generate deploy yaml.
+	$(call gen-yamls)
+
+
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
+
+define gen-yamls
+{\
+set -e ;\
+[ -f ${PROJECT_DIR}/_output/yamls/build ] || mkdir -p ${PROJECT_DIR}/_output/yamls/build; \
+rm -rf ${PROJECT_DIR}/_output/yamls/build/manager; \
+cp -rf ${PROJECT_DIR}/config/* ${PROJECT_DIR}/_output/yamls/build/; \
+cd ${PROJECT_DIR}/_output/yamls/build/manager; \
+${KUSTOMIZE} edit set image controller=${REPO}/prometheus-manager:${TAG}; \
+set +x ;\
+echo "==== create prometheus-manager.yaml in ${PROJECT_DIR}/_output/yamls/ ====";\
+${KUSTOMIZE} build ${PROJECT_DIR}/_output/yamls/build/default > ${PROJECT_DIR}/_output/yamls/prometheus-manager.yaml;\
+}
+endef
