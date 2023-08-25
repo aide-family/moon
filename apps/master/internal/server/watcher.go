@@ -24,6 +24,12 @@ var _ transport.Server = (*WatchServer)(nil)
 
 func NewWatchServer(kafkaConf *conf.Kafka, watchService *service.WatchService, logger log.Logger) (*WatchServer, error) {
 	logHelper := log.NewHelper(log.With(logger, "module", "server/server"))
+	if !kafkaConf.GetEnable() {
+		logHelper.Warnf("Not enabel kafka")
+		return &WatchServer{
+			logger: logHelper,
+		}, nil
+	}
 	consumer, err := conn.NewKafkaConsumer(kafkaConf.GetEndpoints(), []string{kafkaConf.GetAlertTopic()}, log.DefaultLogger)
 	if err != nil {
 		logHelper.Error("kafka消费者初始化失败")
@@ -39,17 +45,22 @@ func NewWatchServer(kafkaConf *conf.Kafka, watchService *service.WatchService, l
 
 func (l *WatchServer) Start(ctx context.Context) error {
 	l.logger.Info("[WatchServer] server starting")
-	l.consumer.Consume(func(msg *kafka.Message) (flag bool) {
-		flag = l.callbackFunc(ctx, msg)
-		return
-	})
+	if l.consumer != nil {
+		l.consumer.Consume(func(msg *kafka.Message) (flag bool) {
+			flag = l.callbackFunc(ctx, msg)
+			return
+		})
+	}
 
 	return nil
 }
 
 func (l *WatchServer) Stop(_ context.Context) error {
 	defer l.logger.Info("[WatchServer] server stopped")
-	return l.consumer.Close()
+	if l.consumer != nil {
+		return l.consumer.Close()
+	}
+	return nil
 }
 
 func (l *WatchServer) callbackFunc(ctx context.Context, msg *kafka.Message) (flag bool) {

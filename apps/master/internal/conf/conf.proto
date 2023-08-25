@@ -85,4 +85,5 @@ message NodeServer {
 message Kafka {
   repeated string endpoints = 1;
   string alert_topic = 2;
+  bool enable = 3;
 }
