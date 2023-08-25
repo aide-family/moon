@@ -40,3 +40,9 @@ push_strategy:
     - server_name: "prometheus-manager-node"
       timeout: 1s
       network: "grpc" # grpc, http, https
+
+kafka:
+  alert_topic: "prometheus-manager-node-alert"
+  endpoints:
+    - "localhost:9092"
+    - "localhost:9093"

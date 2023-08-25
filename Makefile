@@ -69,6 +69,7 @@ data:
 	@kratos proto data -t apps/master/internal/data api/prom/v1/dict.proto
 	@kratos proto data -t apps/master/internal/data api/prom/v1/alarm_page.proto
 	@kratos proto data -t apps/master/internal/data api/node/push.proto
+	@kratos proto data -t apps/master/internal/data api/alert/v1/watch.proto
 
 .PHONY: biz
 # generate service proto
@@ -83,6 +84,7 @@ biz:
 	@kratos proto biz -t apps/master/internal/biz api/prom/v1/dict.proto
 	@kratos proto biz -t apps/master/internal/biz api/prom/v1/alarm_page.proto
 	@kratos proto biz -t apps/master/internal/biz api/node/push.proto
+	@kratos proto biz -t apps/master/internal/biz api/alert/v1/watch.proto
 
 .PHONY: service
 # generate service proto
@@ -97,6 +99,7 @@ service:
 	@kratos proto server -t apps/master/internal/service api/prom/v1/dict.proto
 	@kratos proto server -t apps/master/internal/service api/prom/v1/alarm_page.proto
 	@kratos proto server -t apps/master/internal/service api/node/push.proto
+	@kratos proto server -t apps/master/internal/service api/alert/v1/watch.proto
 
 
 .PHONY: build

@@ -34,7 +34,8 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	trace := bootstrap.Trace
 	tracerProvider := conn.NewTracerProvider(trace, env)
 	strategy := bootstrap.Strategy
-	dataData, cleanup, err := data.NewData(strategy, logger)
+	kafka := bootstrap.Kafka
+	dataData, cleanup, err := data.NewData(strategy, kafka, logger)
 	if err != nil {
 		return nil, nil, err
 	}

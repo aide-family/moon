@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"prometheus-manager/apps/master/internal/server"
 	"sync"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -45,6 +46,7 @@ func newApp(
 	gs *grpc.Server,
 	hs *http.Server,
 	ts *servers.Timer,
+	watchServer *server.WatchServer,
 ) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
@@ -53,7 +55,7 @@ func newApp(
 		kratos.Metadata(env.GetMetadata()),
 		kratos.Registrar(etcdRegistry),
 		kratos.Logger(logger),
-		kratos.Server(gs, hs, ts),
+		kratos.Server(gs, hs, ts, watchServer),
 	)
 }
 

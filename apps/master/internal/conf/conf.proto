@@ -12,6 +12,7 @@ message Bootstrap {
   Env env = 5;
   PushStrategy push_strategy = 6;
   Registrar registrar = 7;
+  Kafka kafka = 8;
 }
 
 message HTTP {
@@ -79,4 +80,9 @@ message NodeServer {
   string server_name = 1;
   google.protobuf.Duration timeout = 2;
   string network = 3;
+}
+
+message Kafka {
+  repeated string endpoints = 1;
+  string alert_topic = 2;
 }

@@ -3,10 +3,14 @@ package data
 import (
 	"context"
 
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.opentelemetry.io/otel"
 
+	"prometheus-manager/pkg/alert"
+
 	"prometheus-manager/apps/node/internal/biz"
+	"prometheus-manager/apps/node/internal/conf"
 )
 
 type (
@@ -26,4 +30,17 @@ func (l *AlertRepo) V1(ctx context.Context) string {
 	ctx, span := otel.Tracer(alertModuleName).Start(ctx, "AlertRepo.V1")
 	defer span.End()
 	return "AlertRepo.V1"
+}
+
+func (l *AlertRepo) SyncAlert(ctx context.Context, alertData *alert.Data) error {
+	ctx, span := otel.Tracer(alertModuleName).Start(ctx, "AlertRepo.SyncAlert")
+	defer span.End()
+	topic := l.data.kafkaConf.GetAlertTopic()
+	return l.data.kafkaProducer.Produce(&kafka.Message{
+		Key:   []byte(conf.Get().GetEnv().GetName()),
+		Value: alertData.Byte(),
+		TopicPartition: kafka.TopicPartition{
+			Topic: &topic,
+		},
+	})
 }

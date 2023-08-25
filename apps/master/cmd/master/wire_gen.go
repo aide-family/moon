@@ -52,12 +52,21 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	alarmPageLogic := biz.NewAlarmPageLogic(alarmPageV1Repo, logger)
 	alarmPageV1Service := service.NewAlarmPageService(alarmPageLogic, logger)
 	grpcServer := server.NewGRPCServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service)
-	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service)
+	watchRepo := data.NewWatchRepo(dataData, logger)
+	watchLogic := biz.NewWatchLogic(watchRepo, logger)
+	watchService := service.NewWatchService(watchLogic, logger)
+	httpServer := server.NewHTTPServer(confServer, logger, tracerProvider, pingService, promV1Service, dictV1Service, alarmPageV1Service, watchService)
 	pushRepo := data.NewPushRepo(dataData, logger)
 	pushLogic := biz.NewPushLogic(pushRepo, logger)
 	pushService := service.NewPushService(pushLogic, logger)
 	timer := server.NewTimer(pushStrategy, logger, pushService)
-	app := newApp(env, logger, registry, grpcServer, httpServer, timer)
+	kafka := bootstrap.Kafka
+	watchServer, err := server.NewWatchServer(kafka, watchService, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	app := newApp(env, logger, registry, grpcServer, httpServer, timer, watchServer)
 	return app, func() {
 		cleanup()
 	}, nil

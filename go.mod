@@ -1,13 +1,15 @@
 module prometheus-manager
 
-go 1.20
+go 1.21
 
 require (
+	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.1
 	github.com/go-kratos/kratos/contrib/metrics/prometheus/v2 v2.0.0-20230706115902-bffc1a0989a6
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20230808051727-7888107c4b4f
 	github.com/go-kratos/kratos/v2 v2.7.0
 	github.com/go-kratos/swagger-api v1.0.1
+	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/prometheus/client_golang v1.16.0
@@ -48,7 +50,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
