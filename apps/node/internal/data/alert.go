@@ -35,6 +35,10 @@ func (l *AlertRepo) V1(ctx context.Context) string {
 func (l *AlertRepo) SyncAlert(ctx context.Context, alertData *alert.Data) error {
 	ctx, span := otel.Tracer(alertModuleName).Start(ctx, "AlertRepo.SyncAlert")
 	defer span.End()
+	if !l.data.kafkaConf.GetEnable() {
+		l.logger.Warnf("Not enabel kafka")
+		return nil
+	}
 	topic := l.data.kafkaConf.GetAlertTopic()
 	return l.data.kafkaProducer.Produce(&kafka.Message{
 		Key:   []byte(conf.Get().GetEnv().GetName()),
