@@ -40,7 +40,7 @@ func newPromStrategy(db *gorm.DB, opts ...gen.DOOption) promStrategy {
 	_promStrategy.CreatedAt = field.NewTime(tableName, "created_at")
 	_promStrategy.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_promStrategy.DeletedAt = field.NewField(tableName, "deleted_at")
-	_promStrategy.AlarmPages = promStrategyHasManyAlarmPages{
+	_promStrategy.AlarmPages = promStrategyManyToManyAlarmPages{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("AlarmPages", "model.PromAlarmPage"),
@@ -49,9 +49,22 @@ func newPromStrategy(db *gorm.DB, opts ...gen.DOOption) promStrategy {
 		}{
 			RelationField: field.NewRelation("AlarmPages.PromStrategies", "model.PromStrategy"),
 		},
+		Histories: struct {
+			field.RelationField
+			Pages struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("AlarmPages.Histories", "model.PromAlarmHistory"),
+			Pages: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("AlarmPages.Histories.Pages", "model.PromAlarmPage"),
+			},
+		},
 	}
 
-	_promStrategy.Categories = promStrategyHasManyCategories{
+	_promStrategy.Categories = promStrategyManyToManyCategories{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Categories", "model.PromDict"),
@@ -90,9 +103,9 @@ type promStrategy struct {
 	CreatedAt    field.Time   // 创建时间
 	UpdatedAt    field.Time   // 更新时间
 	DeletedAt    field.Field  // 删除时间
-	AlarmPages   promStrategyHasManyAlarmPages
+	AlarmPages   promStrategyManyToManyAlarmPages
 
-	Categories promStrategyHasManyCategories
+	Categories promStrategyManyToManyCategories
 
 	AlertLevel promStrategyBelongsToAlertLevel
 
@@ -167,7 +180,7 @@ func (p promStrategy) replaceDB(db *gorm.DB) promStrategy {
 	return p
 }
 
-type promStrategyHasManyAlarmPages struct {
+type promStrategyManyToManyAlarmPages struct {
 	db *gorm.DB
 
 	field.RelationField
@@ -175,9 +188,15 @@ type promStrategyHasManyAlarmPages struct {
 	PromStrategies struct {
 		field.RelationField
 	}
+	Histories struct {
+		field.RelationField
+		Pages struct {
+			field.RelationField
+		}
+	}
 }
 
-func (a promStrategyHasManyAlarmPages) Where(conds ...field.Expr) *promStrategyHasManyAlarmPages {
+func (a promStrategyManyToManyAlarmPages) Where(conds ...field.Expr) *promStrategyManyToManyAlarmPages {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -190,27 +209,27 @@ func (a promStrategyHasManyAlarmPages) Where(conds ...field.Expr) *promStrategyH
 	return &a
 }
 
-func (a promStrategyHasManyAlarmPages) WithContext(ctx context.Context) *promStrategyHasManyAlarmPages {
+func (a promStrategyManyToManyAlarmPages) WithContext(ctx context.Context) *promStrategyManyToManyAlarmPages {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a promStrategyHasManyAlarmPages) Session(session *gorm.Session) *promStrategyHasManyAlarmPages {
+func (a promStrategyManyToManyAlarmPages) Session(session *gorm.Session) *promStrategyManyToManyAlarmPages {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a promStrategyHasManyAlarmPages) Model(m *model.PromStrategy) *promStrategyHasManyAlarmPagesTx {
-	return &promStrategyHasManyAlarmPagesTx{a.db.Model(m).Association(a.Name())}
+func (a promStrategyManyToManyAlarmPages) Model(m *model.PromStrategy) *promStrategyManyToManyAlarmPagesTx {
+	return &promStrategyManyToManyAlarmPagesTx{a.db.Model(m).Association(a.Name())}
 }
 
-type promStrategyHasManyAlarmPagesTx struct{ tx *gorm.Association }
+type promStrategyManyToManyAlarmPagesTx struct{ tx *gorm.Association }
 
-func (a promStrategyHasManyAlarmPagesTx) Find() (result []*model.PromAlarmPage, err error) {
+func (a promStrategyManyToManyAlarmPagesTx) Find() (result []*model.PromAlarmPage, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a promStrategyHasManyAlarmPagesTx) Append(values ...*model.PromAlarmPage) (err error) {
+func (a promStrategyManyToManyAlarmPagesTx) Append(values ...*model.PromAlarmPage) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -218,7 +237,7 @@ func (a promStrategyHasManyAlarmPagesTx) Append(values ...*model.PromAlarmPage) 
 	return a.tx.Append(targetValues...)
 }
 
-func (a promStrategyHasManyAlarmPagesTx) Replace(values ...*model.PromAlarmPage) (err error) {
+func (a promStrategyManyToManyAlarmPagesTx) Replace(values ...*model.PromAlarmPage) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -226,7 +245,7 @@ func (a promStrategyHasManyAlarmPagesTx) Replace(values ...*model.PromAlarmPage)
 	return a.tx.Replace(targetValues...)
 }
 
-func (a promStrategyHasManyAlarmPagesTx) Delete(values ...*model.PromAlarmPage) (err error) {
+func (a promStrategyManyToManyAlarmPagesTx) Delete(values ...*model.PromAlarmPage) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -234,21 +253,21 @@ func (a promStrategyHasManyAlarmPagesTx) Delete(values ...*model.PromAlarmPage) 
 	return a.tx.Delete(targetValues...)
 }
 
-func (a promStrategyHasManyAlarmPagesTx) Clear() error {
+func (a promStrategyManyToManyAlarmPagesTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a promStrategyHasManyAlarmPagesTx) Count() int64 {
+func (a promStrategyManyToManyAlarmPagesTx) Count() int64 {
 	return a.tx.Count()
 }
 
-type promStrategyHasManyCategories struct {
+type promStrategyManyToManyCategories struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a promStrategyHasManyCategories) Where(conds ...field.Expr) *promStrategyHasManyCategories {
+func (a promStrategyManyToManyCategories) Where(conds ...field.Expr) *promStrategyManyToManyCategories {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -261,27 +280,27 @@ func (a promStrategyHasManyCategories) Where(conds ...field.Expr) *promStrategyH
 	return &a
 }
 
-func (a promStrategyHasManyCategories) WithContext(ctx context.Context) *promStrategyHasManyCategories {
+func (a promStrategyManyToManyCategories) WithContext(ctx context.Context) *promStrategyManyToManyCategories {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a promStrategyHasManyCategories) Session(session *gorm.Session) *promStrategyHasManyCategories {
+func (a promStrategyManyToManyCategories) Session(session *gorm.Session) *promStrategyManyToManyCategories {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a promStrategyHasManyCategories) Model(m *model.PromStrategy) *promStrategyHasManyCategoriesTx {
-	return &promStrategyHasManyCategoriesTx{a.db.Model(m).Association(a.Name())}
+func (a promStrategyManyToManyCategories) Model(m *model.PromStrategy) *promStrategyManyToManyCategoriesTx {
+	return &promStrategyManyToManyCategoriesTx{a.db.Model(m).Association(a.Name())}
 }
 
-type promStrategyHasManyCategoriesTx struct{ tx *gorm.Association }
+type promStrategyManyToManyCategoriesTx struct{ tx *gorm.Association }
 
-func (a promStrategyHasManyCategoriesTx) Find() (result []*model.PromDict, err error) {
+func (a promStrategyManyToManyCategoriesTx) Find() (result []*model.PromDict, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a promStrategyHasManyCategoriesTx) Append(values ...*model.PromDict) (err error) {
+func (a promStrategyManyToManyCategoriesTx) Append(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -289,7 +308,7 @@ func (a promStrategyHasManyCategoriesTx) Append(values ...*model.PromDict) (err 
 	return a.tx.Append(targetValues...)
 }
 
-func (a promStrategyHasManyCategoriesTx) Replace(values ...*model.PromDict) (err error) {
+func (a promStrategyManyToManyCategoriesTx) Replace(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -297,7 +316,7 @@ func (a promStrategyHasManyCategoriesTx) Replace(values ...*model.PromDict) (err
 	return a.tx.Replace(targetValues...)
 }
 
-func (a promStrategyHasManyCategoriesTx) Delete(values ...*model.PromDict) (err error) {
+func (a promStrategyManyToManyCategoriesTx) Delete(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -305,11 +324,11 @@ func (a promStrategyHasManyCategoriesTx) Delete(values ...*model.PromDict) (err 
 	return a.tx.Delete(targetValues...)
 }
 
-func (a promStrategyHasManyCategoriesTx) Clear() error {
+func (a promStrategyManyToManyCategoriesTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a promStrategyHasManyCategoriesTx) Count() int64 {
+func (a promStrategyManyToManyCategoriesTx) Count() int64 {
 	return a.tx.Count()
 }
 

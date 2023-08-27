@@ -50,7 +50,7 @@ func (l *PushRepo) GRPCPushCall(ctx context.Context, server conn.INodeServer) er
 	var groupIds, result []string
 	var cursor uint64
 	for {
-		result, cursor = l.data.cache.SScan(ctx, "prom:group:delete", cursor, "", MaxSScanCount).Val()
+		result, cursor = l.data.cache.SScan(ctx, helper.PromGroupDeleteKey.String(), cursor, "", MaxSScanCount).Val()
 		groupIds = append(groupIds, result...)
 		if cursor == 0 {
 			break

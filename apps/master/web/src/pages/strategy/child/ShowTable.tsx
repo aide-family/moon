@@ -20,7 +20,7 @@ import { defaultPage, M } from "@/apis/type";
 import MoreMenu from "@/components/More/MoreMenu";
 import StatusTag from "@/pages/strategy/child/StatusTag";
 import { OmitText } from "tacer-cloud";
-import StrategyModal, {
+import {
   StrategyModalProps,
   StrategyValues,
 } from "@/pages/strategy/child/StrategyModal";
@@ -34,16 +34,23 @@ export interface ShowTableProps {
   setQueryParams?: React.Dispatch<React.SetStateAction<ListStrategyRequest>>;
   refresh?: boolean;
   setRefresh?: React.Dispatch<React.SetStateAction<boolean>>;
+  setStrategyModalProps?: React.Dispatch<
+    React.SetStateAction<StrategyModalProps | undefined>
+  >;
+  setStrategyModalVisabled?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
-  const { queryParams, setQueryParams, database, refresh, setRefresh } = props;
+  const {
+    queryParams,
+    setQueryParams,
+    database,
+    refresh,
+    setRefresh,
+    setStrategyModalProps,
+    setStrategyModalVisabled,
+  } = props;
   const [tableLoading, setTableLoading] = useState<boolean>(false);
-  const [strategyModalProps, setStrategyModalProps] = useState<
-    StrategyModalProps | undefined
-  >();
-  const [strategyModalVisabled, setStrategyModalVisabled] =
-    useState<boolean>(false);
 
   const updateStrategy = async (
     val: StrategyValues,
@@ -77,7 +84,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
     {
       title: "序号",
       dataIndex: "index",
-      width: 80,
+      width: 60,
       fixed: "left",
       align: "left",
       render: (text, item, index) => {
@@ -89,6 +96,12 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
           </span>
         );
       },
+    },
+    {
+      title: "id",
+      dataIndex: "id",
+      align: "left",
+      width: 120,
     },
     {
       title: "名称",
@@ -219,8 +232,8 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
             <Button
               type="text"
               onClick={() => {
-                setStrategyModalVisabled(true);
-                setStrategyModalProps({
+                setStrategyModalVisabled?.(true);
+                setStrategyModalProps?.({
                   disabled: true,
                   title: "详情",
                   setVisible: setStrategyModalVisabled,
@@ -249,8 +262,8 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                     <Button
                       type="text"
                       onClick={() => {
-                        setStrategyModalVisabled(() => {
-                          setStrategyModalProps({
+                        setStrategyModalVisabled?.(() => {
+                          setStrategyModalProps?.({
                             onOk: (newVal) => updateStrategy(newVal, row),
                             title: "编辑",
                             setVisible: setStrategyModalVisabled,
@@ -275,14 +288,6 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
                     </Button>
                   ),
                   key: "eidt",
-                },
-                {
-                  label: <Button type="text">页面</Button>,
-                  key: "alarm-pages",
-                },
-                {
-                  label: <Button type="text">等级</Button>,
-                  key: "alarm-level",
                 },
                 {
                   label: (
@@ -373,17 +378,18 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
   }, []);
 
   return (
-    <div id="strategyTabl">
-      <Table
-        rowKey={(record) => record.id}
-        loading={tableLoading}
-        data={dataSource}
-        columns={tableColumns}
-        pagination={pagination}
-        scroll={{ y: ShowTableDivHeight - 112 }}
-      />
-      <StrategyModal {...strategyModalProps} visible={strategyModalVisabled} />
-    </div>
+    <>
+      <div id="strategyTabl" className={groupStyle.ShowTableDiv}>
+        <Table
+          rowKey={(record) => record.id}
+          loading={tableLoading}
+          data={dataSource}
+          columns={tableColumns}
+          pagination={pagination}
+          scroll={{ y: ShowTableDivHeight - 112 }}
+        />
+      </div>
+    </>
   );
 };
 

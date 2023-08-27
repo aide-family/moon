@@ -66,4 +66,6 @@ enum LogicReason {
   LOGIC_EDIT_DICT_FAILED = 15 [(errors.code) = 200];
   // 删除dict失败
   LOGIC_DELETE_DICT_FAILED = 16 [(errors.code) = 200];
+  // 同步告警错误
+  LOGIC_SYNC_ALERT_ERROR = 17 [(errors.code) = 200];
 }

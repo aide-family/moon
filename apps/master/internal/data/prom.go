@@ -18,6 +18,7 @@ import (
 	buildQuery "prometheus-manager/pkg/build_query"
 	"prometheus-manager/pkg/dal/model"
 	"prometheus-manager/pkg/dal/query"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/util/stringer"
 
 	"prometheus-manager/apps/master/internal/biz"
@@ -788,7 +789,7 @@ func (p *PromV1Repo) StoreChangeGroupNode(ctx context.Context, groupIds ...any) 
 		return nil
 	}
 	// 把变更的group id存入redis的集合类型中
-	return p.data.cache.SAdd(ctx, "prom:group:change", groupIds...).Err()
+	return p.data.cache.SAdd(ctx, helper.PromGroupChangeKey.String(), groupIds...).Err()
 }
 
 func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) error {
@@ -798,7 +799,7 @@ func (p *PromV1Repo) StoreDeleteGroupNode(ctx context.Context, groupIds ...any) 
 		return nil
 	}
 	// 把删除的group id存入redis的集合类型中
-	return p.data.cache.SAdd(ctx, "prom:group:delete", groupIds...).Err()
+	return p.data.cache.SAdd(ctx, helper.PromGroupDeleteKey.String(), groupIds...).Err()
 }
 
 // V1 服务版本

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/go-kratos/kratos/v2/errors"
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/alert"
 
@@ -17,19 +18,19 @@ type (
 	IWatchRepo interface {
 		V1Repo
 
-		WatchAlert(ctx context.Context, req *alert.Data) error
+		SyncAlert(ctx context.Context, req *alert.Data) error
 	}
 
 	WatchLogic struct {
 		logger *log.Helper
-		repo   IWatchRepo
+		repoes []IWatchRepo
 	}
 )
 
 var _ service.IWatchLogic = (*WatchLogic)(nil)
 
-func NewWatchLogic(repo IWatchRepo, logger log.Logger) *WatchLogic {
-	return &WatchLogic{repo: repo, logger: log.NewHelper(log.With(logger, "module", watchModuleName))}
+func NewWatchLogic(logger log.Logger, repoes ...IWatchRepo) *WatchLogic {
+	return &WatchLogic{repoes: repoes, logger: log.NewHelper(log.With(logger, "module", watchModuleName))}
 }
 
 func (s *WatchLogic) WatchAlert(ctx context.Context, req *pb.WatchRequest) (*pb.WatchReply, error) {
@@ -37,9 +38,15 @@ func (s *WatchLogic) WatchAlert(ctx context.Context, req *pb.WatchRequest) (*pb.
 	defer span.End()
 
 	// TODO 落库、落ES、落Redis、发送通知
-	if err := s.repo.WatchAlert(ctx, watchRequestToData(req)); err != nil {
-		s.logger.Errorf("WatchAlert error: %v", err)
-		return nil, err
+	var syncErr *errors.Error
+	for _, repo := range s.repoes {
+		if err := repo.SyncAlert(ctx, watchRequestToData(req)); err != nil {
+			s.logger.Errorf("WatchAlert error: %v", err)
+			syncErr = errors.FromError(err).WithCause(syncErr)
+		}
+	}
+	if syncErr != nil {
+		return nil, syncErr
 	}
 
 	return &pb.WatchReply{Response: &api.Response{Message: "succeed"}}, nil

@@ -133,9 +133,9 @@ all:
 	make api;
 	make generate;
 
-.PHONY: model
+.PHONY: migrate
 # generate model
-model:
+migrate:
 	go run ./migrate
 	@git add .
 

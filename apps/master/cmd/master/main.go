@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"os"
-	"prometheus-manager/apps/master/internal/server"
 	"sync"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -20,6 +19,7 @@ import (
 	"prometheus-manager/pkg/servers"
 
 	"prometheus-manager/apps/master/internal/conf"
+	"prometheus-manager/apps/master/internal/server"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
