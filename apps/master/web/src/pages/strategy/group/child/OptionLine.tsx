@@ -14,7 +14,7 @@ export interface OptionLineProps {
 const { Row, Col } = Grid;
 
 // 'default', 'middle', 'small', 'mini'
-const sizes = [
+export const sizes = [
   {
     label: "默认",
     value: "default",
