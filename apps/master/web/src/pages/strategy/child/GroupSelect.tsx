@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { SimpleItem } from "@/apis/prom/prom";
+import React, { useCallback, useEffect, useState } from "react";
 import { Select, Spin } from "@arco-design/web-react";
 import debounce from "lodash/debounce";
 import { GroupSimpleList } from "@/apis/prom/group/api";

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { GroupItem } from "@/apis/prom/prom";
+import { GroupItem, PromStrategyItemRequest } from "@/apis/prom/prom";
 import {
   defaultListStrategyRequest,
   ListStrategyRequest,
 } from "@/apis/prom/strategy/strategy";
 import ShowTable from "@/pages/strategy/child/ShowTable";
-import { Button, Divider, Form, Grid, Input } from "@arco-design/web-react";
+import { Button, Form, Grid } from "@arco-design/web-react";
 import StrategyModal, {
   StrategyModalProps,
   StrategyValues,
@@ -13,6 +13,7 @@ import StrategyModal, {
 import { StrategyCreate } from "@/apis/prom/strategy/api";
 
 import styles from "./style/strategy.module.less";
+import QueryForm from "@/pages/strategy/child/QueryForm";
 
 export interface StrategyListProps {
   groupItem?: GroupItem;
@@ -24,6 +25,7 @@ const { Row, Col } = Grid;
 
 const Strategy: React.FC<StrategyListProps> = (props) => {
   const { groupItem } = props;
+  const [searchForm] = Form.useForm();
 
   const [strategyModalProps, setStrategyModalProps] = useState<
     StrategyModalProps | undefined
@@ -70,6 +72,16 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
     });
   };
 
+  const setSearchParams = (value: PromStrategyItemRequest) => {
+    setQueryParams({
+      ...queryParams,
+      query: {
+        ...queryParams.query,
+        keyword: value.alert,
+      },
+    });
+  };
+
   useEffect(() => {
     if (!groupItem) return;
     setQueryParams({
@@ -82,11 +94,10 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
 
   return (
     <div className={styles.strategyDiv}>
-      <Form layout="inline" className={styles.queryForm}>
-        <Form.Item label="规则名称" field="alert">
-          <Input placeholder="通过规则名称模糊搜索" />
-        </Form.Item>
-      </Form>
+      <div className={styles.queryForm}>
+        <QueryForm form={searchForm} onChange={setSearchParams} />
+      </div>
+
       <Row className={styles.optionDiv}>
         <Col span={12}>
           <Button type="primary" onClick={openAddModalForm}>
@@ -96,6 +107,7 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
         <Col span={12}></Col>
       </Row>
       <ShowTable
+        className={styles.strategyTable}
         database={pathPrefix}
         setQueryParams={setQueryParams}
         queryParams={queryParams}

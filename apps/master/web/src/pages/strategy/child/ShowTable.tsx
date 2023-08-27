@@ -29,6 +29,7 @@ import strategyStyles from "../style/strategy.module.less";
 import groupStyle from "@/pages/strategy/group/style/group.module.less";
 
 export interface ShowTableProps {
+  className?: string;
   database?: string;
   queryParams?: ListStrategyRequest;
   setQueryParams?: React.Dispatch<React.SetStateAction<ListStrategyRequest>>;
@@ -42,6 +43,7 @@ export interface ShowTableProps {
 
 const ShowTable: React.FC<ShowTableProps> = (props) => {
   const {
+    className,
     queryParams,
     setQueryParams,
     database,
@@ -379,7 +381,7 @@ const ShowTable: React.FC<ShowTableProps> = (props) => {
 
   return (
     <>
-      <div id="strategyTabl" className={groupStyle.ShowTableDiv}>
+      <div id="strategyTabl" className={className}>
         <Table
           rowKey={(record) => record.id}
           loading={tableLoading}
