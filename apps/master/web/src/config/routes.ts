@@ -13,11 +13,6 @@ export const routes: IRoute[] = [
     path: "/",
   },
   {
-    "zh-CN": "监控大盘",
-    "en-US": "Monitor Dashboard",
-    path: "/monitor",
-  },
-  {
     "zh-CN": "报警规则",
     "en-US": "Alarm Rules",
     path: "/strategy",
