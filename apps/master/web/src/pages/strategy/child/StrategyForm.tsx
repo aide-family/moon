@@ -94,7 +94,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
   const setLabelsValue = (value: Map) => {
     setLabels(
       [...labels, value].filter((item, index, arr) => {
-        return arr.findIndex((v) => v.name === item.name) === index;
+        return arr.findIndex((v) => v.key === item.key) === index;
       })
     );
   };
@@ -103,7 +103,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
     // 去重
     setAnnotations(
       [...annotations, value].filter((item, index, arr) => {
-        return arr.findIndex((v) => v.name === item.name) === index;
+        return arr.findIndex((v) => v.key === item.key) === index;
       })
     );
   };
@@ -360,17 +360,17 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
                   layout="vertical"
                   key={index}
                   field={`labels.${item.key}`}
-                  label={`${item.name}(${item.key})`}
+                  label={`${item.key}`}
                   rules={[
                     {
                       required: true,
-                      message: `${item.name}不能为空, 请填写${item.name}`,
+                      message: `${item.key}不能为空, 请填写${item.key}`,
                     },
                   ]}
                 >
                   <Input
                     size="large"
-                    placeholder={`请输入${item.name}(${item.key})`}
+                    placeholder={`请输入${item.key}`}
                     suffix={
                       <Button
                         disabled={disabled}
@@ -405,19 +405,19 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
           <Col span={24}>
             <Form.Item
               field="annotations.title"
-              label="报警标题"
-              rules={[{ required: true, message: "请输入报警标题..." }]}
+              label="标题模板"
+              rules={[{ required: true, message: "请输入报警标题模板..." }]}
             >
-              <Input placeholder="请输入报警标题" />
+              <Input placeholder="请输入报警标题模板" />
             </Form.Item>
           </Col>
           <Col span={24}>
             <Form.Item
               field="annotations.remark"
-              label="标题模板"
-              rules={[{ required: true, message: "请输入报警标题模板..." }]}
+              label="描述模板"
+              rules={[{ required: true, message: "请输入报警描述模板..." }]}
             >
-              <Input.TextArea placeholder="请输入报警明细模板" showWordLimit />
+              <Input.TextArea placeholder="请输入报警描述模板" showWordLimit />
             </Form.Item>
           </Col>
           {annotations
@@ -429,17 +429,17 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
                     layout="vertical"
                     key={index}
                     field={`annotations.${item.key}`}
-                    label={`${item.name}(${item.key})`}
+                    label={`${item.key}`}
                     rules={[
                       {
                         required: true,
-                        message: `${item.name}不能为空, 请填写${item.name}`,
+                        message: `${item.key}不能为空, 请填写${item.key}`,
                       },
                     ]}
                   >
                     <Input
                       size="large"
-                      placeholder={`请输入${item.name}(${item.key})`}
+                      placeholder={`请输入${item.key}`}
                       suffix={
                         <Button
                           disabled={disabled}

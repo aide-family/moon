@@ -4,8 +4,9 @@ import {
   defaultListStrategyRequest,
   ListStrategyRequest,
 } from "@/apis/prom/strategy/strategy";
+import type { tableSize } from "@/pages/strategy/child/ShowTable";
 import ShowTable from "@/pages/strategy/child/ShowTable";
-import { Button, Form, Grid } from "@arco-design/web-react";
+import { Button, Form, Grid, Radio } from "@arco-design/web-react";
 import StrategyModal, {
   StrategyModalProps,
   StrategyValues,
@@ -14,6 +15,8 @@ import { StrategyCreate } from "@/apis/prom/strategy/api";
 
 import styles from "./style/strategy.module.less";
 import QueryForm from "@/pages/strategy/child/QueryForm";
+import { sizes } from "@/pages/strategy/group/child/OptionLine";
+import groupStyle from "@/pages/strategy/group/style/group.module.less";
 
 export interface StrategyListProps {
   groupItem?: GroupItem;
@@ -32,6 +35,7 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
   >();
   const [strategyModalVisabled, setStrategyModalVisabled] =
     useState<boolean>(false);
+  const [tableSize, setTableSize] = useState<tableSize>("small");
   const [refresh, setRefresh] = useState<boolean>(false);
   const [queryParams, setQueryParams] = React.useState<ListStrategyRequest>(
     groupItem
@@ -82,6 +86,10 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
     });
   };
 
+  const onTableSizeChange = (size: tableSize) => {
+    setTableSize(size);
+  };
+
   useEffect(() => {
     if (!groupItem) return;
     setQueryParams({
@@ -98,15 +106,26 @@ const Strategy: React.FC<StrategyListProps> = (props) => {
         <QueryForm form={searchForm} onChange={setSearchParams} />
       </div>
 
-      <Row className={styles.optionDiv}>
-        <Col span={12}>
-          <Button type="primary" onClick={openAddModalForm}>
-            添加规则
-          </Button>
-        </Col>
-        <Col span={12}></Col>
-      </Row>
+      <div className={groupStyle.OptionLineDiv}>
+        <Row className={groupStyle.Row}>
+          <Col span={12} className={groupStyle.LeftCol}>
+            <Button type="primary" onClick={openAddModalForm}>
+              添加规则
+            </Button>
+          </Col>
+          <Col span={12} className={groupStyle.RightCol}>
+            <Radio.Group
+              type="button"
+              options={sizes}
+              defaultValue={(sizes.length && sizes[0].value) || "default"}
+              onChange={onTableSizeChange}
+            />
+          </Col>
+        </Row>
+      </div>
+
       <ShowTable
+        size={tableSize}
         className={styles.strategyTable}
         database={pathPrefix}
         setQueryParams={setQueryParams}

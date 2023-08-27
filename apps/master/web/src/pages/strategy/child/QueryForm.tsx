@@ -22,7 +22,11 @@ const QueryForm: React.FC<QueryFormProps> = (props) => {
     <>
       <Form layout="inline" form={form} onChange={handleQueryFormOnchan}>
         <Form.Item label="规则名称" field="alert">
-          <Input placeholder="通过规则名称模糊搜索" />
+          <Input
+            placeholder="通过规则名称模糊搜索"
+            allowClear
+            style={{ width: 600 }}
+          />
         </Form.Item>
       </Form>
     </>

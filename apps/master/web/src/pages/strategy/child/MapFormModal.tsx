@@ -9,7 +9,6 @@ export interface PromQLFormItemProps {
 }
 
 export type Map = {
-  name: string;
   key: string;
 };
 
@@ -51,18 +50,6 @@ const MapFormModal: React.FC<PromQLFormItemProps> = (props) => {
         onOk={handleOnOk}
       >
         <Form layout="vertical" autoComplete="off" form={form}>
-          <Form.Item
-            label="标签名称"
-            field="name"
-            rules={[
-              {
-                required: true,
-                message: "标签名称不能为空, 请填写标签名称",
-              },
-            ]}
-          >
-            <Input placeholder="请输入标签名称" />
-          </Form.Item>
           <Form.Item
             label="标签Key"
             field="key"

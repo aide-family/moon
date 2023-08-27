@@ -492,7 +492,14 @@ func (p *PromV1Repo) CreateStrategy(ctx context.Context, m *model.PromStrategy) 
 
 		m.AlertLevel = alertLevelInfo
 
-		rows, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Add(1))
+		groupStrategyTotal, err := promStrategy.WithContext(ctx).Where(promStrategy.GroupID.Eq(m.GroupID)).Count()
+		if err != nil {
+			p.logger.WithContext(ctx).Errorf("query group strategy total err: %v", err)
+			return perrors.ErrorServerDatabaseError("query group strategy total err").WithCause(err)
+		}
+
+		// 这里直接inc会有问题, 如果数据本来就是错误的, 那么永远不能自动修正
+		rows, err := promGroup.WithContext(ctx).Where(promGroup.ID.Eq(m.GroupID)).UpdateColumnSimple(promGroup.StrategyCount.Value(groupStrategyTotal + 1))
 		if err != nil {
 			p.logger.WithContext(ctx).Errorw("PromV1Repo.CreateStrategy", m.GroupID, "err", err)
 			return perrors.ErrorServerDatabaseError("database err").WithCause(err).WithMetadata(map[string]string{
