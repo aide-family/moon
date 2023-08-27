@@ -14,12 +14,7 @@ import { IconDelete } from "@arco-design/web-react/icon";
 import type { ForInputValue } from "@/pages/strategy/child/ForInput";
 import ForInput from "@/pages/strategy/child/ForInput";
 import type { StrategyValues } from "@/pages/strategy/child/StrategyModal";
-import type {
-  AlarmPage,
-  DatasourceItem,
-  PromDict,
-  SimpleItem,
-} from "@/apis/prom/prom";
+import type { AlarmPage, DatasourceItem, PromDict } from "@/apis/prom/prom";
 import { Category, CategoryMap } from "@/apis/prom/prom";
 import { Datasources, DictList } from "@/apis/prom/dict/api";
 import { defaultListDictRequest } from "@/apis/prom/dict/dict";
@@ -35,14 +30,10 @@ export interface StrategyModalProps {
 
 const { Row, Col } = Grid;
 
-const pathPrefix = "https://prometheus.bitrecx.com";
-
 const StrategyForm: React.FC<StrategyModalProps> = (props) => {
   const { form, disabled, initialValues, onChange } = props;
   const datasource =
-    Form.useWatch("datasource", form) ||
-    initialValues?.datasource ||
-    pathPrefix;
+    Form.useWatch("datasource", form) || initialValues?.datasource;
   const [labels, setLabels] = useState<Map[]>([]);
   const [annotations, setAnnotations] = useState<Map[]>([]);
   const [promDatasource, setPromDatasource] = useState<DatasourceItem[]>([]);
@@ -216,6 +207,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
           <Form.Item
             label="规则组"
             field="groupId"
+            disabled={!!initialValues?.groupId}
             rules={[
               {
                 required: true,
@@ -226,7 +218,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
             <GroupSelect />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col span={18}>
           <Form.Item
             label="告警页面"
             field="alarmPageIds"
@@ -243,11 +235,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
               options={[
                 ...promAlarmPages.map((item) => ({
                   label: (
-                    <Tag
-                      style={{ width: "100%" }}
-                      size="small"
-                      color={item.color}
-                    >
+                    <Tag size="small" color={item.color}>
                       {item.name}
                     </Tag>
                   ),
@@ -283,7 +271,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
             />
           </Form.Item>
         </Col>
-        <Col span={6}>
+        <Col span={18}>
           <Form.Item label="规则类型" field="categorieIds">
             <Select
               placeholder="请选择规则类型"
@@ -291,11 +279,7 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
               options={[
                 ...promCategories.map((item) => ({
                   label: (
-                    <Tag
-                      style={{ width: "100%" }}
-                      size="small"
-                      color={item.color}
-                    >
+                    <Tag size="small" color={item.color}>
                       {item.name}
                     </Tag>
                   ),
@@ -418,40 +402,60 @@ const StrategyForm: React.FC<StrategyModalProps> = (props) => {
         }
       >
         <Row gutter={16}>
-          {annotations.map((item, index) => {
-            return (
-              <Col span={12} key={index}>
-                <Form.Item
-                  layout="vertical"
-                  key={index}
-                  field={`annotations.${item.key}`}
-                  label={`${item.name}(${item.key})`}
-                  rules={[
-                    {
-                      required: true,
-                      message: `${item.name}不能为空, 请填写${item.name}`,
-                    },
-                  ]}
-                >
-                  <Input
-                    size="large"
-                    placeholder={`请输入${item.name}(${item.key})`}
-                    suffix={
-                      <Button
-                        disabled={disabled}
-                        type="primary"
-                        status="danger"
-                        icon={<IconDelete />}
-                        style={{ position: "absolute", right: 0 }}
-                        onClick={() => removeAnnotation(index)}
-                        size="large"
-                      />
-                    }
-                  />
-                </Form.Item>
-              </Col>
-            );
-          })}
+          <Col span={24}>
+            <Form.Item
+              field="annotations.title"
+              label="报警标题"
+              rules={[{ required: true, message: "请输入报警标题..." }]}
+            >
+              <Input placeholder="请输入报警标题" />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
+              field="annotations.remark"
+              label="标题模板"
+              rules={[{ required: true, message: "请输入报警标题模板..." }]}
+            >
+              <Input.TextArea placeholder="请输入报警明细模板" showWordLimit />
+            </Form.Item>
+          </Col>
+          {annotations
+            .filter((item) => item.key !== "remark" && item.key !== "title")
+            .map((item, index) => {
+              return (
+                <Col span={12} key={index}>
+                  <Form.Item
+                    layout="vertical"
+                    key={index}
+                    field={`annotations.${item.key}`}
+                    label={`${item.name}(${item.key})`}
+                    rules={[
+                      {
+                        required: true,
+                        message: `${item.name}不能为空, 请填写${item.name}`,
+                      },
+                    ]}
+                  >
+                    <Input
+                      size="large"
+                      placeholder={`请输入${item.name}(${item.key})`}
+                      suffix={
+                        <Button
+                          disabled={disabled}
+                          type="primary"
+                          status="danger"
+                          icon={<IconDelete />}
+                          style={{ position: "absolute", right: 0 }}
+                          onClick={() => removeAnnotation(index)}
+                          size="large"
+                        />
+                      }
+                    />
+                  </Form.Item>
+                </Col>
+              );
+            })}
         </Row>
       </Form.Item>
     </Form>

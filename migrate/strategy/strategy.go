@@ -25,14 +25,33 @@ func GenerateStrategy(g *gen.Generator) {
 
 	promGroupsTableName := joinModuleName("groups")
 	promStrategiesTableName := joinModuleName("strategies")
+	alarmHistoryTableName := joinModuleName("alarm_histories")
+	alarmPageHistoryTableName := joinModuleName("alarm_page_histories")
 
 	alarmPagesTable := g.GenerateModel(alarmPagesTableName)
 	dictTable := g.GenerateModel(dictTableName)
 	promGroupsTable := g.GenerateModel(promGroupsTableName)
 	promStrategiesTable := g.GenerateModel(promStrategiesTableName)
 
+	alarmPageHistoryTable := g.GenerateModel(alarmPageHistoryTableName)
+	alarmHistoryTable := g.GenerateModel(alarmHistoryTableName,
+		gen.FieldRelate(field.Many2Many,
+			"Pages",
+			alarmPagesTable,
+			&field.RelateConfig{
+				RelateSlicePointer: true,
+				GORMTag: field.GormTag{
+					"many2many":      []string{joinModuleName("prom_alarm_page_histories")},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"AlarmPageID"},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"PageID"},
+				},
+			},
+		))
+
 	alarmPagesTable = g.GenerateModel(alarmPagesTableName,
-		gen.FieldRelate(field.HasMany,
+		gen.FieldRelate(field.Many2Many,
 			"PromStrategies",
 			promStrategiesTable,
 			&field.RelateConfig{
@@ -46,10 +65,24 @@ func GenerateStrategy(g *gen.Generator) {
 				RelateSlicePointer: true,
 			},
 		),
+		gen.FieldRelate(field.Many2Many,
+			"Histories",
+			alarmHistoryTable,
+			&field.RelateConfig{
+				RelateSlicePointer: true,
+				GORMTag: field.GormTag{
+					"many2many":      []string{joinModuleName("alarm_page_histories")},
+					"References":     []string{"ID"},
+					"joinReferences": []string{"HistoryID"},
+					"foreignKey":     []string{"ID"},
+					"joinForeignKey": []string{"AlarmPageID"},
+				},
+			},
+		),
 	)
 
 	promStrategiesTable = g.GenerateModel(promStrategiesTableName,
-		gen.FieldRelate(field.HasMany,
+		gen.FieldRelate(field.Many2Many,
 			"AlarmPages",
 			alarmPagesTable,
 			&field.RelateConfig{
@@ -63,7 +96,7 @@ func GenerateStrategy(g *gen.Generator) {
 				RelateSlicePointer: true,
 			},
 		),
-		gen.FieldRelate(field.HasMany,
+		gen.FieldRelate(field.Many2Many,
 			"Categories",
 			dictTable,
 			&field.RelateConfig{
@@ -82,7 +115,7 @@ func GenerateStrategy(g *gen.Generator) {
 			dictTable,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"alert_level_id"},
+					"foreignKey": []string{"AlertLevelID"},
 				},
 				RelatePointer: true,
 			},
@@ -92,7 +125,7 @@ func GenerateStrategy(g *gen.Generator) {
 			promGroupsTable,
 			&field.RelateConfig{
 				GORMTag: field.GormTag{
-					"foreignKey": []string{"group_id"},
+					"foreignKey": []string{"GroupID"},
 				},
 				RelatePointer: true,
 			},
@@ -110,7 +143,7 @@ func GenerateStrategy(g *gen.Generator) {
 				RelateSlicePointer: true,
 			},
 		),
-		gen.FieldRelate(field.HasMany,
+		gen.FieldRelate(field.Many2Many,
 			"Categories",
 			dictTable,
 			&field.RelateConfig{
@@ -130,4 +163,6 @@ func GenerateStrategy(g *gen.Generator) {
 	g.ApplyInterface(func(Filter) {}, promStrategiesTable)
 	g.ApplyInterface(func(Filter) {}, promGroupsTable)
 	g.ApplyInterface(func(Filter) {}, dictTable)
+	g.ApplyInterface(func(Filter) {}, alarmHistoryTable)
+	g.ApplyInterface(func(Filter) {}, alarmPageHistoryTable)
 }

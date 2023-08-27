@@ -31,5 +31,6 @@ func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		service.ProviderSet,
 		conf.ProviderSet,
 		newApp,
+		//data.NewWatchRepoes,
 	))
 }

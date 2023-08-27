@@ -360,3 +360,17 @@ func IsLogicDeleteDictFailed(err error) bool {
 func ErrorLogicDeleteDictFailed(format string, args ...interface{}) *errors.Error {
 	return errors.New(200, LogicReason_LOGIC_DELETE_DICT_FAILED.String(), fmt.Sprintf(format, args...))
 }
+
+// 同步告警错误
+func IsLogicSyncAlertError(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == LogicReason_LOGIC_SYNC_ALERT_ERROR.String() && e.Code == 200
+}
+
+// 同步告警错误
+func ErrorLogicSyncAlertError(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, LogicReason_LOGIC_SYNC_ALERT_ERROR.String(), fmt.Sprintf(format, args...))
+}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Modal, Space } from "@arco-design/web-react";
 import StrategyForm from "@/pages/strategy/child/StrategyForm";
 import CodeView from "@/components/Code/CodeView";
@@ -122,6 +122,12 @@ const StrategyModal: React.FC<StrategyModalProps> = (props) => {
       </Space>
     );
   };
+
+  useEffect(() => {
+    if (form && !visible) {
+      form.clearFields();
+    }
+  }, [visible]);
 
   return (
     <>

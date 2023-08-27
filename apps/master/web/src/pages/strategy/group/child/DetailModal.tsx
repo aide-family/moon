@@ -35,7 +35,7 @@ const DetailModal: React.FC<DetailModalProps> = (props) => {
         escToExit
         footer={null}
         className={groupStyle.GroupDetail}
-        style={{ width: "100%" }}
+        style={{ width: "100%", height: "100%" }}
         title={item?.name}
         unmountOnExit
       >

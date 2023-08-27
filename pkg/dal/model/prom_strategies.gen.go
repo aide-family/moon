@@ -28,8 +28,8 @@ type PromStrategy struct {
 	DeletedAt    gorm.DeletedAt   `gorm:"column:deleted_at;type:timestamp;comment:删除时间" json:"deleted_at"`                                                        // 删除时间
 	AlarmPages   []*PromAlarmPage `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"alarm_pages"`
 	Categories   []*PromDict      `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"categories"`
-	AlertLevel   *PromDict        `gorm:"foreignKey:alert_level_id" json:"alert_level"`
-	GroupInfo    *PromGroup       `gorm:"foreignKey:group_id" json:"group_info"`
+	AlertLevel   *PromDict        `gorm:"foreignKey:AlertLevelID" json:"alert_level"`
+	GroupInfo    *PromGroup       `gorm:"foreignKey:GroupID" json:"group_info"`
 }
 
 // TableName PromStrategy's table name

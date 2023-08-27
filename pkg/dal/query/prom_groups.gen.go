@@ -45,12 +45,31 @@ func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
 			PromStrategies struct {
 				field.RelationField
 			}
+			Histories struct {
+				field.RelationField
+				Pages struct {
+					field.RelationField
+				}
+			}
 		}{
 			RelationField: field.NewRelation("PromStrategies.AlarmPages", "model.PromAlarmPage"),
 			PromStrategies: struct {
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("PromStrategies.AlarmPages.PromStrategies", "model.PromStrategy"),
+			},
+			Histories: struct {
+				field.RelationField
+				Pages struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("PromStrategies.AlarmPages.Histories", "model.PromAlarmHistory"),
+				Pages: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("PromStrategies.AlarmPages.Histories.Pages", "model.PromAlarmPage"),
+				},
 			},
 		},
 		Categories: struct {
@@ -70,7 +89,7 @@ func newPromGroup(db *gorm.DB, opts ...gen.DOOption) promGroup {
 		},
 	}
 
-	_promGroup.Categories = promGroupHasManyCategories{
+	_promGroup.Categories = promGroupManyToManyCategories{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Categories", "model.PromDict"),
@@ -95,7 +114,7 @@ type promGroup struct {
 	DeletedAt      field.Field  // 删除时间
 	PromStrategies promGroupHasManyPromStrategies
 
-	Categories promGroupHasManyCategories
+	Categories promGroupManyToManyCategories
 
 	fieldMap map[string]field.Expr
 }
@@ -167,6 +186,12 @@ type promGroupHasManyPromStrategies struct {
 		field.RelationField
 		PromStrategies struct {
 			field.RelationField
+		}
+		Histories struct {
+			field.RelationField
+			Pages struct {
+				field.RelationField
+			}
 		}
 	}
 	Categories struct {
@@ -245,13 +270,13 @@ func (a promGroupHasManyPromStrategiesTx) Count() int64 {
 	return a.tx.Count()
 }
 
-type promGroupHasManyCategories struct {
+type promGroupManyToManyCategories struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a promGroupHasManyCategories) Where(conds ...field.Expr) *promGroupHasManyCategories {
+func (a promGroupManyToManyCategories) Where(conds ...field.Expr) *promGroupManyToManyCategories {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -264,27 +289,27 @@ func (a promGroupHasManyCategories) Where(conds ...field.Expr) *promGroupHasMany
 	return &a
 }
 
-func (a promGroupHasManyCategories) WithContext(ctx context.Context) *promGroupHasManyCategories {
+func (a promGroupManyToManyCategories) WithContext(ctx context.Context) *promGroupManyToManyCategories {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a promGroupHasManyCategories) Session(session *gorm.Session) *promGroupHasManyCategories {
+func (a promGroupManyToManyCategories) Session(session *gorm.Session) *promGroupManyToManyCategories {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a promGroupHasManyCategories) Model(m *model.PromGroup) *promGroupHasManyCategoriesTx {
-	return &promGroupHasManyCategoriesTx{a.db.Model(m).Association(a.Name())}
+func (a promGroupManyToManyCategories) Model(m *model.PromGroup) *promGroupManyToManyCategoriesTx {
+	return &promGroupManyToManyCategoriesTx{a.db.Model(m).Association(a.Name())}
 }
 
-type promGroupHasManyCategoriesTx struct{ tx *gorm.Association }
+type promGroupManyToManyCategoriesTx struct{ tx *gorm.Association }
 
-func (a promGroupHasManyCategoriesTx) Find() (result []*model.PromDict, err error) {
+func (a promGroupManyToManyCategoriesTx) Find() (result []*model.PromDict, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a promGroupHasManyCategoriesTx) Append(values ...*model.PromDict) (err error) {
+func (a promGroupManyToManyCategoriesTx) Append(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -292,7 +317,7 @@ func (a promGroupHasManyCategoriesTx) Append(values ...*model.PromDict) (err err
 	return a.tx.Append(targetValues...)
 }
 
-func (a promGroupHasManyCategoriesTx) Replace(values ...*model.PromDict) (err error) {
+func (a promGroupManyToManyCategoriesTx) Replace(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -300,7 +325,7 @@ func (a promGroupHasManyCategoriesTx) Replace(values ...*model.PromDict) (err er
 	return a.tx.Replace(targetValues...)
 }
 
-func (a promGroupHasManyCategoriesTx) Delete(values ...*model.PromDict) (err error) {
+func (a promGroupManyToManyCategoriesTx) Delete(values ...*model.PromDict) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -308,11 +333,11 @@ func (a promGroupHasManyCategoriesTx) Delete(values ...*model.PromDict) (err err
 	return a.tx.Delete(targetValues...)
 }
 
-func (a promGroupHasManyCategoriesTx) Clear() error {
+func (a promGroupManyToManyCategoriesTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a promGroupHasManyCategoriesTx) Count() int64 {
+func (a promGroupManyToManyCategoriesTx) Count() int64 {
 	return a.tx.Count()
 }
 

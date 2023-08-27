@@ -81,12 +81,12 @@ message StrategyItem {
   string for = 4 [(validate.rules).string = {min_len: 1, max_len: 64, pattern: "^\\d+(s|m|h)$", ignore_empty: true}];
   map<string, string> labels = 5 [(validate.rules).map = {
     keys: {string: {min_len: 1, max_len: 64}},
-    values: {string: {min_len: 1, max_len: 64}},
+    values: {string: {min_len: 1}},
     ignore_empty: true
   }];
   map<string, string> annotations = 6 [(validate.rules).map = {
     keys: {string: {min_len: 1, max_len: 64}},
-    values: {string: {min_len: 1, max_len: 64}},
+    values: {string: {min_len: 1}},
     ignore_empty: true
   }];
   int64 created_at = 7;

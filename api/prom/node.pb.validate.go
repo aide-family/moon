@@ -766,10 +766,10 @@ func (m *StrategyItem) validate(all bool) error {
 					errors = append(errors, err)
 				}
 
-				if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
+				if utf8.RuneCountInString(val) < 1 {
 					err := StrategyItemValidationError{
 						field:  fmt.Sprintf("Labels[%v]", key),
-						reason: "value length must be between 1 and 64 runes, inclusive",
+						reason: "value length must be at least 1 runes",
 					}
 					if !all {
 						return err
@@ -807,10 +807,10 @@ func (m *StrategyItem) validate(all bool) error {
 					errors = append(errors, err)
 				}
 
-				if l := utf8.RuneCountInString(val); l < 1 || l > 64 {
+				if utf8.RuneCountInString(val) < 1 {
 					err := StrategyItemValidationError{
 						field:  fmt.Sprintf("Annotations[%v]", key),
-						reason: "value length must be between 1 and 64 runes, inclusive",
+						reason: "value length must be at least 1 runes",
 					}
 					if !all {
 						return err

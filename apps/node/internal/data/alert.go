@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
@@ -35,6 +36,10 @@ func (l *AlertRepo) V1(ctx context.Context) string {
 func (l *AlertRepo) SyncAlert(ctx context.Context, alertData *alert.Data) error {
 	ctx, span := otel.Tracer(alertModuleName).Start(ctx, "AlertRepo.SyncAlert")
 	defer span.End()
+
+	str, _ := json.Marshal(alertData)
+	l.logger.Info("alert", string(str))
+
 	if !l.data.kafkaConf.GetEnable() {
 		l.logger.Warnf("Not enabel kafka")
 		return nil
