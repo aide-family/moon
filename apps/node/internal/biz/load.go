@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -39,21 +40,32 @@ func (l *LoadLogic) Reload(ctx context.Context, _ *pb.ReloadRequest) (*pb.Reload
 	ctx, span := otel.Tracer(loadModuleName).Start(ctx, "LoadLogic.Reload")
 	defer span.End()
 
-	dirList := conf.Get().GetStrategy().GetPath()
-	configPath := conf.GetConfigPath()
-	err := l.repo.LoadStrategy(ctx, dir.MakeDirs(configPath, dirList...))
-	if err != nil {
-		l.logger.Errorf("LoadStrategy err: %v", err)
+	var eg errgroup.Group
+
+	datasource := conf.Get().GetStrategy().GetPromDatasources()
+	for _, promDatasource := range datasource {
+		eg.Go(func() error {
+			dirList := promDatasource.GetPath()
+			configPath := conf.GetConfigPath()
+			err := l.repo.LoadStrategy(ctx, dir.MakeDirs(configPath, dirList...))
+			if err != nil {
+				l.logger.Errorf("LoadStrategy err: %v", err)
+				return err
+			}
+
+			out, err := curl.Curl(ctx, promDatasource.GetReloadPath())
+			if err != nil {
+				l.logger.Errorf("Curl err: %v", err)
+				return err
+			}
+			l.logger.Infof("Curl out: %v", out)
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		l.logger.Errorf("Wait err: %v", err)
 		return nil, err
 	}
-
-	out, err := curl.Curl(ctx, conf.Get().GetStrategy().GetReloadPath())
-	if err != nil {
-		l.logger.Errorf("Curl err: %v", err)
-		return nil, err
-	}
-
-	l.logger.Infof("Curl out: %v", out)
 
 	return &pb.ReloadReply{
 		Response:  &api.Response{Message: l.repo.V1(ctx)},

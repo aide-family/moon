@@ -1,3 +1,4 @@
+# 通信服务配置
 server:
   http:
     addr: 0.0.0.0:8000
@@ -6,26 +7,33 @@ server:
     addr: 0.0.0.0:9000
     timeout: 1s
 
+# 链路追踪 jaeger
 trace:
   endpoint: http://127.0.0.1:14268/api/traces
 
+# 策略加载 prometheus config
 strategy:
+  # 加载策略的频率
   load_interval: 10s
+  # 写入策略的频率
   reload_interval: 10s
-  reload_path: "http://localhost:9090/-/reload"
+  # 是否开启策略加载
   enable: false
-  # 目录为绝对路径或者相对configs路径
-  path:
-    - "rule_temp"
-    - "rule_temp/apache"
-    - "rule_temp/core_dns"
+  # prometheus数据源, 支持多个,
+  prom_datasources:
+    - name: "prometheus-node"
+      type: "prometheus"
+      url: "http://localhost:9090"
+      access: ""
+      # 默认的reload地址
+      reload_path: "http://localhost:9090/-/reload"
+      # 目录为绝对路径或者相对configs路径
+      path:
+        - "rule_temp"
+        - "rule_temp/apache"
+        - "rule_temp/core_dns"
 
-prom_datasources:
-  - name: "prometheus-node"
-    type: "prometheus"
-    url: "http://localhost:9090"
-    access: ""
-
+# 运行环境配置
 env:
   name: "prometheus-manager-node"
   version: "v0.0.1"
@@ -34,6 +42,7 @@ env:
     description: "Kratos Layout App"
     env: "local"
 
+# 服务注册和发现 ETCD
 registrar:
   etcd:
     endpoints:
@@ -41,8 +50,10 @@ registrar:
       - localhost:20002
       - localhost:20004
 
+# 告警配置, 目前采用kafka
 kafka:
+  # 推送告警信息的topic
   alert_topic: "prometheus-manager-node-alert"
+  # kafka集群地址
   endpoints:
     - "localhost:9092"
-    - "localhost:9093"

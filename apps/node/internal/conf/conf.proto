@@ -11,7 +11,6 @@ message Bootstrap {
   Strategy strategy = 5;
   Env env = 6;
   Registrar registrar = 7;
-  repeated PromDatasource prom_datasources = 8;
   Kafka kafka = 9;
 }
 
@@ -37,15 +36,11 @@ message Trace {
 
 // strategy 策略路径
 message Strategy {
-  repeated string path = 1;
   // load频率
-  google.protobuf.Duration load_interval = 2;
-  // reload频率
-  google.protobuf.Duration reload_interval = 3;
-  // reload path
-  string reload_path = 4;
+  google.protobuf.Duration load_interval = 1;
   // enable reload
-  bool enable = 5;
+  bool enable = 2;
+  repeated PromDatasource prom_datasources = 3;
 }
 
 message Env {
@@ -54,7 +49,6 @@ message Env {
   string version = 3;
   string namespace = 4;
 }
-
 
 message Registrar {
   message Etcd {
@@ -68,6 +62,9 @@ message PromDatasource {
   string type = 2;
   string url = 3;
   string access = 4;
+  // reload path
+  string reload_path = 5;
+  repeated string path = 6;
 }
 
 message Kafka {

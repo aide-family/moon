@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -53,32 +52,25 @@ func (l *PushLogic) Strategies(ctx context.Context, req *pb.StrategiesRequest) (
 	ctx, span := otel.Tracer(pushModuleName).Start(ctx, "PushLogic.Strategies")
 	defer span.End()
 
-	strategyPath := conf.Get().GetStrategy().GetPath()
-	if len(strategyPath) == 0 {
-		l.logger.Error("strategy path not configured")
-		return nil, perrors.ErrorLogicStrategyPathNotConfigured("strategy path not configured")
-	}
-
-	strategyPathMap := make(map[string]struct{})
-	for _, p := range strategyPath {
-		strategyPathMap[dir.RemoveLastSlash(p)] = struct{}{}
-	}
+	datasource := conf.Get().GetStrategy().GetPromDatasources()
+	strategyPathMap := getStrategyPathMap(datasource)
 
 	// 判断路径是否在允许的范围内
-	newStrategyDirs := req.GetStrategyDirs()
-	// 未授权路径列表
-	var unauthorizedPath []string
-	for index, strategyDir := range newStrategyDirs {
-		dirString := dir.RemoveLastSlash(strategyDir.Dir)
+	newStrategyDirs := make([]*strategy.StrategyDir, 0, len(req.GetStrategyDirs()))
+	for _, strategyDir := range req.GetStrategyDirs() {
+		dirInfo := dir.RemoveLastSlash(strategyDir.Dir)
+		dirString := joinUniKey(req.GetNode(), dirInfo)
 		if _, ok := strategyPathMap[dirString]; !ok {
 			l.logger.Errorf("strategy path %s not allowed", dirString)
-			unauthorizedPath = append(unauthorizedPath, dirString)
+			continue
 		}
-		newStrategyDirs[index].Dir = dir.MakeDir(conf.GetConfigPath(), strategyDir.Dir)
+		newStrategyDir := strategyDir
+		newStrategyDir.Dir = dir.MakeDir(conf.GetConfigPath(), dirInfo)
+		newStrategyDirs = append(newStrategyDirs, newStrategyDir)
 	}
 
-	if len(unauthorizedPath) > 0 {
-		return nil, perrors.ErrorLogicUnauthorizedPath("strategy path [%s] not allowed", strings.Join(unauthorizedPath, ","))
+	if len(newStrategyDirs) == 0 {
+		return nil, perrors.ErrorLogicUnauthorizedPath("strategy path not allowed")
 	}
 
 	storeResult, err := l.repo.StoreStrategy(ctx, newStrategyDirs)
@@ -107,37 +99,27 @@ func (l *PushLogic) DeleteStrategies(ctx context.Context, req *pb.DeleteStrategi
 	defer span.End()
 
 	dirs := req.GetDirs()
+	datasource := conf.Get().GetStrategy().GetPromDatasources()
+	strategyPathMap := getStrategyPathMap(datasource)
 
-	strategyPath := conf.Get().GetStrategy().GetPath()
-	if len(strategyPath) == 0 {
-		l.logger.Error("strategy path not configured")
-		return nil, perrors.ErrorLogicStrategyPathNotConfigured("strategy path not configured")
-	}
-
-	strategyPathMap := make(map[string]struct{})
-	for _, p := range strategyPath {
-		strategyPathMap[dir.RemoveLastSlash(p)] = struct{}{}
-	}
-
-	var unauthorizedPath []string
 	var authorizedPath []string
 	for _, strategyDir := range dirs {
-		dirString := dir.RemoveLastSlash(strategyDir.GetDir())
+		dirInfo := dir.RemoveLastSlash(strategyDir.Dir)
+		dirString := joinUniKey(req.GetNode(), dirInfo)
 		if _, ok := strategyPathMap[dirString]; !ok {
 			l.logger.Errorf("strategy path %s not allowed", dirString)
-			unauthorizedPath = append(unauthorizedPath, dirString)
 			continue
 		}
 
-		dirString = dir.MakeDir(conf.GetConfigPath(), dirString)
+		dirInfo = dir.MakeDir(conf.GetConfigPath(), dirInfo)
 
 		for _, filename := range strategyDir.GetFilenames() {
-			authorizedPath = append(authorizedPath, path.Join(dirString, filename))
+			authorizedPath = append(authorizedPath, path.Join(dirInfo, filename))
 		}
 	}
 
-	if len(unauthorizedPath) > 0 {
-		return nil, perrors.ErrorLogicUnauthorizedPath("strategy path [%s] not allowed", strings.Join(unauthorizedPath, ","))
+	if len(authorizedPath) > 0 {
+		return nil, perrors.ErrorLogicUnauthorizedPath("strategy path not allowed")
 	}
 
 	if err := l.repo.RemoveStrategy(ctx, authorizedPath); err != nil {
