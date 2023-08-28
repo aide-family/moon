@@ -15,8 +15,6 @@ trace:
 strategy:
   # 加载策略的频率
   load_interval: 10s
-  # 写入策略的频率
-  reload_interval: 10s
   # 是否开启策略加载
   enable: false
   # prometheus数据源, 支持多个,
