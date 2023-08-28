@@ -2,11 +2,11 @@ package conn
 
 import (
 	"fmt"
-	"go.etcd.io/etcd/client/pkg/v3/transport"
 	"sync"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
+	"go.etcd.io/etcd/client/pkg/v3/transport"
 	clientV3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -73,12 +73,12 @@ func genEtcdConfig(conf IEtcdConfig) (*clientV3.Config, error) {
 //
 //	@param etcdClient *clientV3.Client
 func NewETCDRegistrar(etcdClient *clientV3.Client) *etcd.Registry {
-	registry := etcd.New(etcdClient)
+	r := etcd.New(etcdClient)
 	once.Do(func() {
-		dis = registry
-		reg = registry
+		dis = r
+		reg = r
 	})
-	return registry
+	return r
 }
 
 func GetDiscovery() registry.Discovery {
