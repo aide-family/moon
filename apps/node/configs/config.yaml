@@ -43,6 +43,9 @@ env:
 # 服务注册和发现 ETCD
 registrar:
   etcd:
+    key_file: ""
+    cert_file: ""
+    trusted_ca_file: ""
     endpoints:
       - localhost:20000
       - localhost:20002
