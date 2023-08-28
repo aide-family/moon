@@ -53,6 +53,7 @@ message Data {
 // 链路追踪
 message Trace {
   string endpoint = 1;
+  bool enable = 2;
 }
 
 message Env {
