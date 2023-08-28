@@ -1,13 +1,10 @@
 resources:
-#- manager.yaml
-- namespace.yaml
-- service.yaml
-- mysql.yaml
+  - manager.yaml
+  - namespace.yaml
+  - config.yaml
+  - service.yaml
+  - mysql.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
 
-#configMapGenerator:
-#- name: manager-config
-#  files:
-#  - controller_manager_config.yaml

@@ -1,0 +1,27 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: master-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: master-role
+subjects:
+- kind: ServiceAccount
+  name: prometheus-manager-master
+  namespace: prometheus-manager
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-role
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-manager-node
+    namespace: prometheus-manager
