@@ -12,7 +12,7 @@ data:
   # 关系型数据库, 当前只支持mysql
   database:
     driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test
+    source: root:12345678@tcp(127.0.0.1:33060)/prom
   # redis缓存
   redis:
     addr: 127.0.0.1:6379
