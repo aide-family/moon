@@ -13,6 +13,7 @@ import (
 
 type ITraceConfig interface {
 	GetEndpoint() string
+	GetEnable() bool
 }
 
 type ITraceEnv interface {
@@ -25,6 +26,9 @@ type ITraceEnv interface {
 //
 //	@param conf ITraceConfig
 func NewTracerProvider(conf ITraceConfig, traceEnv ITraceEnv) *traceSdk.TracerProvider {
+	if !conf.GetEnable() {
+		return traceSdk.NewTracerProvider()
+	}
 	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(conf.GetEndpoint())))
 	if err != nil {
 		panic(err)
