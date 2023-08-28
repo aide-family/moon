@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"prometheus-manager/apps/node/internal/conf"
+	"prometheus-manager/pkg/util/dir"
 
 	"github.com/google/wire"
 	pb "prometheus-manager/api/alert/v1"
@@ -64,4 +66,23 @@ func alertWebhookRequestToAlertData(req *pb.WebhookRequest) *alert.Data {
 		GroupKey:          req.GetGroupKey(),
 		TruncatedAlerts:   req.GetTruncatedAlerts(),
 	}
+}
+
+func joinUniKey(nodeName, path string) string {
+	return nodeName + "__" + path
+}
+
+func getStrategyPathMap(datasource []*conf.PromDatasource) map[string]struct{} {
+	strategyPathMap := make(map[string]struct{})
+	for _, promDatasource := range datasource {
+		strategyPath := promDatasource.GetPath()
+		if len(strategyPath) == 0 {
+			continue
+		}
+		for _, p := range strategyPath {
+			strategyPathMap[joinUniKey(promDatasource.GetName(), dir.RemoveLastSlash(p))] = struct{}{}
+		}
+	}
+
+	return strategyPathMap
 }

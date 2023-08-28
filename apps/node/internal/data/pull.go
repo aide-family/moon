@@ -30,7 +30,7 @@ func (l *PullRepo) Datasources(ctx context.Context) (*pull.DatasourcesReply, err
 	ctx, span := otel.Tracer(pullModuleName).Start(ctx, "PullRepo.Datasources")
 	defer span.End()
 
-	datasource := conf.Get().GetPromDatasources()
+	datasource := conf.Get().GetStrategy().GetPromDatasources()
 	promDatasource := make([]*api.Datasource, 0, len(datasource))
 	for _, v := range datasource {
 		promDatasource = append(promDatasource, &api.Datasource{
