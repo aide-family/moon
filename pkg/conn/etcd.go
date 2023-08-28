@@ -1,6 +1,8 @@
 package conn
 
 import (
+	"fmt"
+	"go.etcd.io/etcd/client/pkg/v3/transport"
 	"sync"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -10,6 +12,9 @@ import (
 
 type IEtcdConfig interface {
 	GetEndpoints() []string
+	GetKeyFile() string
+	GetCertFile() string
+	GetTrustedCaFile() string
 }
 
 var (
@@ -22,19 +27,46 @@ var (
 //
 //	@param cfg IEtcdConfig
 func NewETCDClient(conf IEtcdConfig) *clientV3.Client {
-	endpoints := conf.GetEndpoints()
-	if len(endpoints) == 0 {
-		panic("etcd endpoints is empty")
+	etcdConfig, err := genEtcdConfig(conf)
+	if err != nil {
+		panic(err)
 	}
 	// new etcd client
-	client, err := clientV3.New(clientV3.Config{
-		Endpoints: endpoints,
-	})
+	client, err := clientV3.New(*etcdConfig)
 	if err != nil {
 		panic(err)
 	}
 	// new reg with etcd client
 	return client
+}
+
+// genEtcdConfig generates etcd configuration
+//
+// @param conf IEtcdConfig
+func genEtcdConfig(conf IEtcdConfig) (*clientV3.Config, error) {
+	config := &clientV3.Config{}
+	endpoints := conf.GetEndpoints()
+	if len(endpoints) == 0 {
+		return nil, fmt.Errorf("etcd endpoints is empty")
+	}
+	config.Endpoints = endpoints
+
+	ca := conf.GetTrustedCaFile()
+	key := conf.GetKeyFile()
+	cert := conf.GetCertFile()
+	if ca != "" || cert != "" || key != "" {
+		tlsInfo := transport.TLSInfo{
+			CertFile:      cert,
+			KeyFile:       key,
+			TrustedCAFile: ca,
+		}
+		tlsConfig, err := tlsInfo.ClientConfig()
+		if err != nil {
+			return nil, err
+		}
+		config.TLS = tlsConfig
+	}
+	return config, nil
 }
 
 // NewETCDRegistrar new etcd registrar

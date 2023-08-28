@@ -39,6 +39,9 @@ registrar:
       - localhost:20000
       - localhost:20002
       - localhost:20004
+    key_file: "xxx"
+    cert_file: "xxx"
+    trusted_ca_file: "xxx"
 
 # 推送策略配置
 push_strategy:

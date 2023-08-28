@@ -65,6 +65,10 @@ message Env {
 message Registrar {
   message Etcd {
     repeated string endpoints = 1;
+    // TLS credentials
+    string key_file = 2;
+    string cert_file = 3;
+    string trusted_ca_file = 4;
   }
   Etcd etcd = 1;
 }
