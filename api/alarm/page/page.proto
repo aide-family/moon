@@ -5,7 +5,7 @@ package api.alarm.page;
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
-import "prom_model.proto";
+import "model.proto";
 
 option go_package = "prometheus-manager/api/alarm/page;page";
 option java_multiple_files = true;

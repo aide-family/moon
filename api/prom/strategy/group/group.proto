@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package api.prom.strategy.group;
+
+option go_package = "prometheus-manager/api/prom/strategy/group;group";
+option java_multiple_files = true;
+option java_package = "api.prom.strategy.group";
+
+service Group {
+	rpc CreateGroup (CreateGroupRequest) returns (CreateGroupReply);
+	rpc UpdateGroup (UpdateGroupRequest) returns (UpdateGroupReply);
+	rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupReply);
+	rpc GetGroup (GetGroupRequest) returns (GetGroupReply);
+	rpc ListGroup (ListGroupRequest) returns (ListGroupReply);
+}
+
+message CreateGroupRequest {}
+message CreateGroupReply {}
+
+message UpdateGroupRequest {}
+message UpdateGroupReply {}
+
+message DeleteGroupRequest {}
+message DeleteGroupReply {}
+
+message GetGroupRequest {}
+message GetGroupReply {}
+
+message ListGroupRequest {}
+message ListGroupReply {}
