@@ -13,11 +13,19 @@ import (
 	"prometheus-manager/app/demo/internal/service"
 
 	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) {
-	panic(wire.Build(server.ProviderSetServer, data.ProviderSetData, biz.ProviderSetBiz, service.ProviderSetService, newApp))
+func wireApp(*string) (*kratos.App, func(), error) {
+	panic(wire.Build(
+		loadConfig,
+		newLogger,
+		server.ProviderSetServer,
+		data.ProviderSetData,
+		biz.ProviderSetBiz,
+		service.ProviderSetService,
+		conf.ProviderSetConf,
+		newApp,
+	))
 }
