@@ -163,6 +163,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm_page.UpdateAlarmPageReply'
+    /api/v1/alert/hook:
+        post:
+            tags:
+                - Alert
+            description: HookV1 接收prometheus报警hook请求
+            operationId: Alert_HookV1
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.Data'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alert.HookV1Reply'
     /api/v1/prom_dict:
         post:
             tags:
@@ -394,6 +413,78 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: AlarmPageV1 告警页面基础类型
+        api.Alert:
+            type: object
+            properties:
+                status:
+                    type: string
+                    description: status 状态, firing, resolved
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 注解
+                startsAt:
+                    type: string
+                    description: startsAt 开始时间
+                endsAt:
+                    type: string
+                    description: endsAt 结束时间, 空表示未结束
+                generatorURL:
+                    type: string
+                    description: generatorURL 告警生成链接
+                fingerprint:
+                    type: string
+                    description: fingerprint 指纹
+            description: Alert 告警明细
+        api.Data:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                    description: receiver 接收者
+                status:
+                    type: string
+                    description: status 状态, firing, resolved
+                alert:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.Alert'
+                    description: alert 告警列表
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: groupLabels 告警组标签
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: commonLabels 公共标签
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: commonAnnotations 公共注解
+                externalURL:
+                    type: string
+                    description: externalURL 外部链接
+                version:
+                    type: string
+                    description: version 版本
+                groupKey:
+                    type: string
+                    description: groupKey 告警组key
+                truncatedAlerts:
+                    type: integer
+                    description: truncatedAlerts 截断告警数
+                    format: int32
+            description: Data prometheus webhook 报警数据
         api.PageReply:
             type: object
             properties:
@@ -622,6 +713,16 @@ components:
                     type: string
                     description: remark 告警页面备注(字符串长度0-200)
             description: UpdateAlarmPageRequest 更新告警页面请求
+        api.alert.HookV1Reply:
+            type: object
+            properties:
+                msg:
+                    type: string
+                    description: msg 响应消息
+                code:
+                    type: string
+                    description: code 响应码
+            description: HookV1Reply 接收prometheus报警hook请求返回
         api.prom_dict.BatchDeletePromDictReply:
             type: object
             properties:
@@ -805,6 +906,8 @@ components:
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块
+    - name: Alert
+      description: Alert prometheus 报警hook模块
     - name: Ping
     - name: PromDict
       description: PromDict 字典管理模块
