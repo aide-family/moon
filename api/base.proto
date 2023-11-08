@@ -8,19 +8,19 @@ option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
-message Response {
-  int64 code = 1;
-  string message = 2;
-  map<string, string> metadata = 3;
-}
-
+// PageRequest 分页请求参数
 message PageRequest {
+  // curr 当前页, 从1开始
   int32 curr = 1 [(validate.rules).int32 = {gt: 0}];
-  int32 size = 2 [(validate.rules).int32 = {gt: 0}];
+  // size 每页大小, 1 < size <= 200
+  int32 size = 2 [(validate.rules).int32 = {gt: 0, lte: 200}];
 }
-
+// PageReply 分页返回参数
 message PageReply {
+  // curr 当前页码
   int32 curr = 1;
+  // size 每页大小
   int32 size = 2;
+  // total 总数
   int64 total = 3;
 }

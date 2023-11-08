@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package api.prom_dict;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "prom_model.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/prom_dict;prom_dict";
+option java_multiple_files = true;
+option java_package = "api.prom_dict";
+
+// PromDict 字典管理模块
+service PromDict {
+  // CreatePromDict 创建字典
+  rpc CreatePromDict (CreatePromDictRequest) returns (CreatePromDictReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom_dict"
+      body: "*"
+    };
+  }
+
+  // UpdatePromDict 更新字典
+  rpc UpdatePromDict (UpdatePromDictRequest) returns (UpdatePromDictReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom_dict/update/{id}"
+      body: "*"
+    };
+  }
+
+	// BatchUpdatePromDictStatus 更新字典状态
+	rpc BatchUpdatePromDictStatus (BatchUpdatePromDictStatusRequest) returns (BatchUpdatePromDictStatusReply) {
+		option (google.api.http) = {
+			post: "/api/v1/prom_dict/status/update/batch"
+			body: "*"
+		};
+	}
+
+  // DeletePromDict 删除字典
+  rpc DeletePromDict (DeletePromDictRequest) returns (DeletePromDictReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom_dict/delete/{id}"
+			body: "*"
+    };
+  }
+
+	// BatchDeletePromDict 删除字典列表
+	rpc BatchDeletePromDict (BatchDeletePromDictRequest) returns (BatchDeletePromDictReply) {
+		option (google.api.http) = {
+			post: "/api/v1/prom_dict/batch/delete"
+			body: "*"
+		};
+	}
+
+  // GetPromDict 获取字典
+  rpc GetPromDict (GetPromDictRequest) returns (GetPromDictReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom_dict/get/{id}"
+			body: "*"
+    };
+  }
+
+  // ListPromDict 获取字典列表
+  rpc ListPromDict (ListPromDictRequest) returns (ListPromDictReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom_dict/list"
+			body: "*"
+    };
+  }
+
+	// ListSelectPromDict 获取字典列表, 用于下拉选择
+	rpc ListSelectPromDict (ListSelectPromDictRequest) returns (ListSelectPromDictReply) {
+		option (google.api.http) = {
+			post: "/api/v1/prom_dict/select"
+			body: "*"
+		};
+	}
+}
+
+// CreatePromDictRequest 创建字典请求
+message CreatePromDictRequest {
+  string name = 2;
+  Category category = 3;
+  string color = 4;
+  Status status = 5;
+  string remark = 6;
+}
+// CreatePromDictReply 创建字典响应
+message CreatePromDictReply {
+  // id 创建成功后的字典ID
+  uint32 id = 1;
+}
+
+// UpdatePromDictRequest 更新字典请求
+message UpdatePromDictRequest {
+  // id 需要更新的字典ID
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // name 字典名称
+  string name = 2 [(validate.rules).string = {min_len: 1, max_len: 20}];
+  // category 字典分类
+  Category category = 3 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+  // color 字典颜色
+  string color = 4 [(validate.rules).string = {max_len: 10}];
+  // remark 字典备注
+  string remark = 6 [(validate.rules).string = {max_len: 255}];
+}
+// UpdatePromDictReply 更新字典响应
+message UpdatePromDictReply {
+	// id 更新成功后的字典ID
+	uint32 id = 1;
+}
+
+// BatchUpdatePromDictStatusRequest 更新字典状态请求
+message BatchUpdatePromDictStatusRequest {
+	// ids 需要更新的字典ID列表
+	repeated uint32 ids = 1 [(validate.rules).repeated.min_items = 1, (validate.rules).repeated.unique = true];
+	// status 字典状态
+	Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+// BatchUpdatePromDictStatusReply 更新字典状态响应
+message BatchUpdatePromDictStatusReply {
+	// ids 更新成功后的字典ID列表
+	repeated uint32 ids = 1;
+}
+
+// DeletePromDictRequest 删除字典请求
+message DeletePromDictRequest {
+	// id 需要删除的字典ID
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// DeletePromDictReply 删除字典响应
+message DeletePromDictReply {
+	// id 删除成功后的字典ID
+	uint32 id = 1;
+}
+
+// BatchDeletePromDictRequest 删除字典列表请求
+message BatchDeletePromDictRequest {
+	// ids 需要删除的字典ID列表
+	repeated uint32 ids = 1 [(validate.rules).repeated.min_items = 1, (validate.rules).repeated.unique = true];
+}
+// BatchDeletePromDictReply 删除字典列表响应
+message BatchDeletePromDictReply {
+	// ids 删除成功后的字典ID列表
+	repeated uint32 ids = 1;
+}
+
+// GetPromDictRequest 获取字典请求
+message GetPromDictRequest {
+	// id 需要获取的字典ID
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// isDeleted 是否获取已删除的字典
+	bool isDeleted = 2;
+}
+// GetPromDictReply 获取字典响应
+message GetPromDictReply {
+	PromDictV1 promDict = 1;
+}
+
+// ListPromDictRequest 获取字典列表请求
+message ListPromDictRequest {
+	// isDeleted 是否获取已删除的字典
+	bool isDeleted = 1;
+	// page 分页参数
+	PageRequest page = 2;
+	// keyword 关键字
+	string keyword = 3 [(validate.rules).string = {max_len: 20}];
+}
+// ListPromDictReply 获取字典列表响应
+message ListPromDictReply {
+	// page 分页参数
+	PageReply page = 1;
+	// list 字典列表
+	repeated PromDictV1 list = 2;
+}
+
+// ListSelectPromDictRequest 获取字典列表请求
+message ListSelectPromDictRequest {
+	// isDeleted 是否获取已删除的字典
+	bool isDeleted = 1;
+	// page 分页参数
+	PageRequest page = 2;
+	// keyword 关键字
+	string keyword = 3 [(validate.rules).string = {max_len: 20}];
+	// category 分类
+	Category category = 4;
+}
+// ListSelectPromDictReply 获取字典列表响应
+message ListSelectPromDictReply {
+	// page 分页参数
+	PageReply page = 1;
+	// list 字典列表
+	repeated PromDictV1 list = 2;
+}
