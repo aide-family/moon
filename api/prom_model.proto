@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "prometheus-manager/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+enum Status {
+	// UNKNOWN 未知, 用于默认值
+	STATUS_UNKNOWN = 0;
+
+	// ENABLED 启用
+	STATUS_ENABLED = 1;
+
+	// DISABLED 禁用
+	STATUS_DISABLED = 2;
+}
+
+enum Category {
+	// UNKNOWN 未知, 用于默认值
+	CATEGORY_UNKNOWN = 0;
+
+	// PromLabel 标签
+	CATEGORY_PROM_LABEL = 1;
+
+	// PromAnnotation 注解
+	CATEGORY_PROM_ANNOTATION = 2;
+
+	// PromStrategy 策略
+	CATEGORY_PROM_STRATEGY = 3;
+
+	// PromStrategyGroup 策略组
+	CATEGORY_PROM_STRATEGY_GROUP = 4;
+
+	// AlarmLevel 告警级别
+	CATEGORY_ALARM_LEVEL = 5;
+
+	// AlarmStatus 告警状态
+	CATEGORY_ALARM_STATUS = 6;
+
+	// NotifyType 通知类型
+	CATEGORY_NOTIFY_TYPE = 7;
+}
+
+// AlarmPageV1 告警页面基础类型
+message AlarmPageV1 {
+	// id 告警页面ID
+	uint32 id = 1;
+	// name 告警页面名称
+	string name = 2;
+	// category 告警页面图标
+	string icon = 3;
+	// color 告警页面颜色
+	string color = 4;
+	// status 告警页面状态
+	Status status = 5;
+	// remark 告警页面备注
+	string remark = 6;
+	// createdAt 创建时间, unix时间戳
+	int64 createdAt = 7;
+	// updatedAt 更新时间, unix时间戳
+	int64 updatedAt = 8;
+	// deletedAt 删除时间, unix时间戳
+	int64 deletedAt = 9;
+}
+
+// AlarmPageSelectV1 告警页面选择类型
+message AlarmPageSelectV1 {
+	// value 告警页面值, 对应告警页面的id
+	uint32 value = 1;
+	// label 告警页面标签, 对应告警页面的name
+	string label = 2;
+	// category 告警页面图标
+	string icon = 3;
+	// color 告警页面颜色
+	string color = 4;
+	// status 告警页面状态
+	Status status = 5;
+	// remark 告警页面备注
+	string remark = 6;
+}
+
+// PromDictV1 字典基础类型
+message PromDictV1 {
+	// id 字典ID
+	uint32 id = 1;
+	// name 字典名称
+	string name = 2;
+	// category 字典分类
+	Category category = 3;
+	// color 字典颜色
+	string color = 4;
+	// status 字典状态
+	Status status = 5;
+	// remark 字典备注
+	string remark = 6;
+	// createdAt 创建时间, unix时间戳
+	int64 createdAt = 7;
+	// updatedAt 更新时间, unix时间戳
+	int64 updatedAt = 8;
+	// deletedAt 删除时间, unix时间戳
+	int64 deletedAt = 9;
+}
+
+// PromDictSelectV1 字典选择类型
+message PromDictSelectV1 {
+	// value 字典值, 对应字典的id
+	uint32 value = 1;
+	// label 字典标签, 对应字典的name
+	string label = 2;
+	// category 字典分类
+	Category category = 3;
+	// color 字典颜色
+	string color = 4;
+	// status 字典状态
+	Status status = 5;
+	// remark 字典备注
+	string remark = 6;
+}
