@@ -95,8 +95,8 @@ message AlarmHistoryV1 {
 	string alarmStatus = 5;
 }
 
-// PromDictV1 字典基础类型
-message PromDictV1 {
+// DictV1 字典基础类型
+message DictV1 {
 	// id 字典ID
 	uint32 id = 1;
 	// name 字典名称
@@ -117,8 +117,8 @@ message PromDictV1 {
 	int64 deletedAt = 9;
 }
 
-// PromDictSelectV1 字典选择类型
-message PromDictSelectV1 {
+// DictSelectV1 字典选择类型
+message DictSelectV1 {
 	// value 字典值, 对应字典的id
 	uint32 value = 1;
 	// label 字典标签, 对应字典的name
