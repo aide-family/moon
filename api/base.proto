@@ -15,46 +15,12 @@ message Response {
 }
 
 message PageRequest {
-  int32 current = 1 [(validate.rules).int32 = {gt: 0}];
+  int32 curr = 1 [(validate.rules).int32 = {gt: 0}];
   int32 size = 2 [(validate.rules).int32 = {gt: 0}];
 }
 
 message PageReply {
-  int32 current = 1;
+  int32 curr = 1;
   int32 size = 2;
   int64 total = 3;
-}
-
-message Sort {
-  string field = 1;
-  bool asc = 2;
-}
-
-message Field {
-  string field = 1;
-  string label = 2;
-}
-
-message ListQuery {
-  PageRequest page = 1 [(validate.rules).message = {
-    required: true,
-  }];
-  repeated Sort sort = 2;
-  repeated string fields = 4;
-  string keyword = 5;
-  int64 start_at = 6;
-  int64 end_at = 7;
-  string time_field = 8;
-}
-
-message ListQueryResult {
-  PageReply page = 1;
-  repeated Field fields = 4;
-}
-
-message Datasource {
-  string name = 1;
-  string type = 2;
-  string url = 3;
-  string access = 4;
 }

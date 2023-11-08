@@ -1,7 +1,7 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
-APPS ?= $(shell ls apps)
+APPS ?= $(shell ls cmd)
 path := $(shell pwd)
 
 ifeq ($(GOHOSTOS), windows)
@@ -56,50 +56,6 @@ api: errors validate
  	       --go-grpc_out=paths=source_relative:./api \
 	       --openapi_out=fq_schema_naming=true,default_response=false:. \
 	       $(API_PROTO_FILES)
-.PHONY: data
-# generate service proto
-data:
-	@kratos proto data -t apps/node/internal/data api/strategy/v1/pull/pull.proto
-	@kratos proto data -t apps/node/internal/data api/strategy/v1/push/push.proto
-	@kratos proto data -t apps/node/internal/data api/strategy/v1/load/load.proto
-	@kratos proto data -t apps/node/internal/data api/ping.proto
-	@kratos proto data -t apps/node/internal/data api/alert/v1/alert.proto
-	@kratos proto data -t apps/master/internal/data api/ping.proto
-	@kratos proto data -t apps/master/internal/data api/prom/v1/prom.proto
-	@kratos proto data -t apps/master/internal/data api/prom/v1/dict.proto
-	@kratos proto data -t apps/master/internal/data api/prom/v1/alarm_page.proto
-	@kratos proto data -t apps/master/internal/data api/node/push.proto
-	@kratos proto data -t apps/master/internal/data api/alert/v1/watch.proto
-
-.PHONY: biz
-# generate service proto
-biz:
-	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/pull/pull.proto
-	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/push/push.proto
-	@kratos proto biz -t apps/node/internal/biz api/strategy/v1/load/load.proto
-	@kratos proto biz -t apps/node/internal/biz api/ping.proto
-	@kratos proto biz -t apps/node/internal/biz api/alert/v1/alert.proto
-	@kratos proto biz -t apps/master/internal/biz api/ping.proto
-	@kratos proto biz -t apps/master/internal/biz api/prom/v1/prom.proto
-	@kratos proto biz -t apps/master/internal/biz api/prom/v1/dict.proto
-	@kratos proto biz -t apps/master/internal/biz api/prom/v1/alarm_page.proto
-	@kratos proto biz -t apps/master/internal/biz api/node/push.proto
-	@kratos proto biz -t apps/master/internal/biz api/alert/v1/watch.proto
-
-.PHONY: service
-# generate service proto
-service:
-	@kratos proto server -t apps/node/internal/service api/strategy/v1/pull/pull.proto
-	@kratos proto server -t apps/node/internal/service api/strategy/v1/push/push.proto
-	@kratos proto server -t apps/node/internal/service api/strategy/v1/load/load.proto
-	@kratos proto server -t apps/node/internal/service api/ping.proto
-	@kratos proto server -t apps/node/internal/service api/alert/v1/alert.proto
-	@kratos proto server -t apps/master/internal/service api/ping.proto
-	@kratos proto server -t apps/master/internal/service api/prom/v1/prom.proto
-	@kratos proto server -t apps/master/internal/service api/prom/v1/dict.proto
-	@kratos proto server -t apps/master/internal/service api/prom/v1/alarm_page.proto
-	@kratos proto server -t apps/master/internal/service api/node/push.proto
-	@kratos proto server -t apps/master/internal/service api/alert/v1/watch.proto
 
 
 .PHONY: build
@@ -124,7 +80,7 @@ generate:
 config:
 	@for app in $(APPS); do \
 		echo "generate internal config for $$app"; \
-		cd $(path)/apps/$$app && make config; \
+		cd $(path)/cmd/$$app && make config; \
 	done
 
 .PHONY: all
