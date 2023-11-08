@@ -8,9 +8,7 @@ package main
 
 import (
 	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/demo/internal/biz"
-	"prometheus-manager/app/demo/internal/conf"
 	"prometheus-manager/app/demo/internal/data"
 	"prometheus-manager/app/demo/internal/server"
 	"prometheus-manager/app/demo/internal/service"
@@ -23,7 +21,15 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(string2 *string) (*kratos.App, func(), error) {
+	bootstrap, err := loadConfig(string2)
+	if err != nil {
+		return nil, nil, err
+	}
+	log := bootstrap.Log
+	logger := newLogger(log)
+	confServer := bootstrap.Server
+	confData := bootstrap.Data
 	dataData, cleanup, err := data.NewData(confData, logger)
 	if err != nil {
 		return nil, nil, err

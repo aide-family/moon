@@ -1,7 +1,7 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
-APPS ?= $(shell ls cmd)
+APPS ?= $(shell ls app)
 path := $(shell pwd)
 
 ifeq ($(GOHOSTOS), windows)
@@ -80,7 +80,7 @@ generate:
 config:
 	@for app in $(APPS); do \
 		echo "generate internal config for $$app"; \
-		cd $(path)/cmd/$$app && make config; \
+		cd $(path)/app/$$app && make config; \
 	done
 
 .PHONY: all
