@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "prometheus-manager/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+// Data prometheus webhook 报警数据
+message Data {
+	// receiver 接收者
+	string receiver = 1;
+	// status 状态, firing, resolved
+	string status = 2;
+	// alert 告警列表
+	repeated Alert alert = 3;
+	// groupLabels 告警组标签
+	map<string,string> groupLabels = 4;
+	// commonLabels 公共标签
+	map<string,string> commonLabels = 5;
+	// commonAnnotations 公共注解
+	map<string,string> commonAnnotations = 6;
+	// externalURL 外部链接
+	string externalURL = 7;
+	// version 版本
+	string version = 8;
+	// groupKey 告警组key
+	string groupKey = 9;
+	// truncatedAlerts 截断告警数
+	int32 truncatedAlerts = 10;
+}
+
+// Alert 告警明细
+message Alert {
+	// status 状态, firing, resolved
+	string status = 1;
+	// labels 标签
+	map<string,string> labels = 2;
+	// annotations 注解
+	map<string,string> annotations = 3;
+	// startsAt 开始时间
+	string startsAt = 4;
+	// endsAt 结束时间, 空表示未结束
+	string endsAt = 5;
+	// generatorURL 告警生成链接
+	string generatorURL = 6;
+	// fingerprint 指纹
+	string fingerprint = 7;
+}
+

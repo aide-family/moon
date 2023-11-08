@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package api.alert;
+
+import "google/api/annotations.proto";
+import "alert_model.proto";
+
+option go_package = "prometheus-manager/api/alert;alert";
+option java_multiple_files = true;
+option java_package = "api.alert";
+
+// Alert prometheus 报警hook模块
+service Alert {
+	// HookV1 接收prometheus报警hook请求
+	rpc HookV1(Data) returns (HookV1Reply) {
+		option (google.api.http) = {
+			post: "/api/v1/alert/hook"
+			body: "*"
+		};
+	}
+}
+
+// HookV1Reply 接收prometheus报警hook请求返回
+message HookV1Reply {
+	// msg 响应消息
+	string msg = 1;
+	// code 响应码
+	string code = 2;
+}
+
