@@ -1,19 +1,32 @@
 syntax = "proto3";
 
-package api;
+package api.alarm.hook;
 
-option go_package = "prometheus-manager/api;api";
+import "google/api/annotations.proto";
+
+option go_package = "prometheus-manager/api/alarm/hook;hook";
 option java_multiple_files = true;
-option java_package = "api";
+option java_package = "api.alarm.hook";
 
-// Data prometheus webhook 报警数据
-message Data {
+service Hook {
+	// V1 接收prometheus报警hook请求
+	rpc V1(HookV1Request) returns (HookV1Reply) {
+		option (google.api.http) = {
+			post: "/api/v1/alert/hook"
+			body: "*"
+		};
+	}
+}
+
+
+// HookV1Request prometheus webhook 报警数据
+message HookV1Request {
 	// receiver 接收者
 	string receiver = 1;
 	// status 状态, firing, resolved
 	string status = 2;
 	// alert 告警列表
-	repeated Alert alert = 3;
+	repeated AlertV1 alert = 3;
 	// groupLabels 告警组标签
 	map<string,string> groupLabels = 4;
 	// commonLabels 公共标签
@@ -31,7 +44,7 @@ message Data {
 }
 
 // Alert 告警明细
-message Alert {
+message AlertV1 {
 	// status 状态, firing, resolved
 	string status = 1;
 	// labels 标签
@@ -48,3 +61,10 @@ message Alert {
 	string fingerprint = 7;
 }
 
+// HookV1Reply 接收prometheus报警hook请求返回
+message HookV1Reply {
+	// msg 响应消息
+	string msg = 1;
+	// code 响应码
+	string code = 2;
+}

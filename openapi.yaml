@@ -6,6 +6,52 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /api/v1/alarm/history/get/{id}:
+        post:
+            tags:
+                - History
+            description: GetHistory 获取报警历史详情
+            operationId: History_GetHistory
+            parameters:
+                - name: id
+                  in: path
+                  description: id 报警历史ID, 0 < id
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.alarm.history.GetHistoryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alarm.history.GetHistoryReply'
+    /api/v1/alarm/history/list:
+        post:
+            tags:
+                - History
+            description: ListHistory 获取报警历史列表
+            operationId: History_ListHistory
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.alarm.history.ListHistoryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alarm.history.ListHistoryReply'
     /api/v1/alarm_page/batch/delete:
         post:
             tags:
@@ -16,7 +62,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.BatchDeleteAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.BatchDeleteAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -24,7 +70,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.BatchDeleteAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.BatchDeleteAlarmPageReply'
     /api/v1/alarm_page/create:
         post:
             tags:
@@ -35,7 +81,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.CreateAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.CreateAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -43,7 +89,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.CreateAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.CreateAlarmPageReply'
     /api/v1/alarm_page/delete/{id}:
         post:
             tags:
@@ -62,7 +108,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.DeleteAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.DeleteAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -70,7 +116,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.DeleteAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.DeleteAlarmPageReply'
     /api/v1/alarm_page/get/{id}:
         post:
             tags:
@@ -89,7 +135,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.GetAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.GetAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -97,7 +143,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.GetAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.GetAlarmPageReply'
     /api/v1/alarm_page/list:
         post:
             tags:
@@ -108,7 +154,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.ListAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.ListAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -116,7 +162,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.ListAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.ListAlarmPageReply'
     /api/v1/alarm_page/status/batch/update:
         post:
             tags:
@@ -127,7 +173,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.BatchUpdateAlarmPageStatusRequest'
+                            $ref: '#/components/schemas/api.alarm.page.BatchUpdateAlarmPageStatusRequest'
                 required: true
             responses:
                 "200":
@@ -135,7 +181,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.BatchUpdateAlarmPageStatusReply'
+                                $ref: '#/components/schemas/api.alarm.page.BatchUpdateAlarmPageStatusReply'
     /api/v1/alarm_page/update/{id}:
         post:
             tags:
@@ -154,7 +200,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.alarm_page.UpdateAlarmPageRequest'
+                            $ref: '#/components/schemas/api.alarm.page.UpdateAlarmPageRequest'
                 required: true
             responses:
                 "200":
@@ -162,18 +208,18 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alarm_page.UpdateAlarmPageReply'
+                                $ref: '#/components/schemas/api.alarm.page.UpdateAlarmPageReply'
     /api/v1/alert/hook:
         post:
             tags:
-                - Alert
-            description: HookV1 接收prometheus报警hook请求
-            operationId: Alert_HookV1
+                - Hook
+            description: V1 接收prometheus报警hook请求
+            operationId: Hook_V1
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.Data'
+                            $ref: '#/components/schemas/api.alarm.hook.HookV1Request'
                 required: true
             responses:
                 "200":
@@ -181,7 +227,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.alert.HookV1Reply'
+                                $ref: '#/components/schemas/api.alarm.hook.HookV1Reply'
     /api/v1/prom_dict:
         post:
             tags:
@@ -377,6 +423,27 @@ paths:
                                 $ref: '#/components/schemas/api.PingReply'
 components:
     schemas:
+        api.AlarmHistoryV1:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 报警历史ID
+                    format: uint32
+                alarmId:
+                    type: integer
+                    description: alarmId 报警ID
+                    format: uint32
+                alarmName:
+                    type: string
+                    description: alarmName 报警名称
+                alarmLevel:
+                    type: string
+                    description: alarmLevel 报警级别
+                alarmStatus:
+                    type: string
+                    description: alarmStatus 报警状态
+            description: AlarmHistoryV1 告警历史基础类型
         api.AlarmPageV1:
             type: object
             properties:
@@ -413,78 +480,6 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: AlarmPageV1 告警页面基础类型
-        api.Alert:
-            type: object
-            properties:
-                status:
-                    type: string
-                    description: status 状态, firing, resolved
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: labels 标签
-                annotations:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: annotations 注解
-                startsAt:
-                    type: string
-                    description: startsAt 开始时间
-                endsAt:
-                    type: string
-                    description: endsAt 结束时间, 空表示未结束
-                generatorURL:
-                    type: string
-                    description: generatorURL 告警生成链接
-                fingerprint:
-                    type: string
-                    description: fingerprint 指纹
-            description: Alert 告警明细
-        api.Data:
-            type: object
-            properties:
-                receiver:
-                    type: string
-                    description: receiver 接收者
-                status:
-                    type: string
-                    description: status 状态, firing, resolved
-                alert:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.Alert'
-                    description: alert 告警列表
-                groupLabels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: groupLabels 告警组标签
-                commonLabels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: commonLabels 公共标签
-                commonAnnotations:
-                    type: object
-                    additionalProperties:
-                        type: string
-                    description: commonAnnotations 公共注解
-                externalURL:
-                    type: string
-                    description: externalURL 外部链接
-                version:
-                    type: string
-                    description: version 版本
-                groupKey:
-                    type: string
-                    description: groupKey 告警组key
-                truncatedAlerts:
-                    type: integer
-                    description: truncatedAlerts 截断告警数
-                    format: int32
-            description: Data prometheus webhook 报警数据
         api.PageReply:
             type: object
             properties:
@@ -563,7 +558,142 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: PromDictV1 字典基础类型
-        api.alarm_page.BatchDeleteAlarmPageReply:
+        api.alarm.history.GetHistoryReply:
+            type: object
+            properties:
+                alarmHistory:
+                    $ref: '#/components/schemas/api.AlarmHistoryV1'
+            description: GetHistoryReply 获取报警历史详情响应
+        api.alarm.history.GetHistoryRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 报警历史ID, 0 < id
+                    format: uint32
+            description: GetHistoryRequest 获取报警历史详情请求
+        api.alarm.history.ListHistoryReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.AlarmHistoryV1'
+                    description: list 报警历史列表
+        api.alarm.history.ListHistoryRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                    description: keyword 关键字
+                statusList:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: statusList 报警状态, 对应PromDictV1 id
+                alarmPages:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: alarmPages 报警页面, 对应AlarmPageV1 id
+                startAt:
+                    type: integer
+                    description: startAt 开始时间, unix时间戳
+                    format: int64
+                endAt:
+                    type: integer
+                    description: endAt 结束时间, unix时间戳
+                    format: int64
+            description: ListHistoryRequest 获取报警历史列表请求
+        api.alarm.hook.AlertV1:
+            type: object
+            properties:
+                status:
+                    type: string
+                    description: status 状态, firing, resolved
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 注解
+                startsAt:
+                    type: string
+                    description: startsAt 开始时间
+                endsAt:
+                    type: string
+                    description: endsAt 结束时间, 空表示未结束
+                generatorURL:
+                    type: string
+                    description: generatorURL 告警生成链接
+                fingerprint:
+                    type: string
+                    description: fingerprint 指纹
+            description: Alert 告警明细
+        api.alarm.hook.HookV1Reply:
+            type: object
+            properties:
+                msg:
+                    type: string
+                    description: msg 响应消息
+                code:
+                    type: string
+                    description: code 响应码
+            description: HookV1Reply 接收prometheus报警hook请求返回
+        api.alarm.hook.HookV1Request:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                    description: receiver 接收者
+                status:
+                    type: string
+                    description: status 状态, firing, resolved
+                alert:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.alarm.hook.AlertV1'
+                    description: alert 告警列表
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: groupLabels 告警组标签
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: commonLabels 公共标签
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: commonAnnotations 公共注解
+                externalURL:
+                    type: string
+                    description: externalURL 外部链接
+                version:
+                    type: string
+                    description: version 版本
+                groupKey:
+                    type: string
+                    description: groupKey 告警组key
+                truncatedAlerts:
+                    type: integer
+                    description: truncatedAlerts 截断告警数
+                    format: int32
+            description: HookV1Request prometheus webhook 报警数据
+        api.alarm.page.BatchDeleteAlarmPageReply:
             type: object
             properties:
                 ids:
@@ -573,7 +703,7 @@ components:
                         format: uint32
                     description: ids 告警页面ID列表
             description: BatchDeleteAlarmPageReply 批量删除告警页面响应
-        api.alarm_page.BatchDeleteAlarmPageRequest:
+        api.alarm.page.BatchDeleteAlarmPageRequest:
             type: object
             properties:
                 ids:
@@ -583,7 +713,7 @@ components:
                         format: uint32
                     description: ids 告警页面ID列表(大于0)
             description: BatchDeleteAlarmPageRequest 批量删除告警页面请求
-        api.alarm_page.BatchUpdateAlarmPageStatusReply:
+        api.alarm.page.BatchUpdateAlarmPageStatusReply:
             type: object
             properties:
                 ids:
@@ -593,7 +723,7 @@ components:
                         format: uint32
                     description: ids 告警页面ID列表
             description: BatchUpdateAlarmPageStatusReply 批量更新告警页面状态响应
-        api.alarm_page.BatchUpdateAlarmPageStatusRequest:
+        api.alarm.page.BatchUpdateAlarmPageStatusRequest:
             type: object
             properties:
                 ids:
@@ -607,7 +737,7 @@ components:
                     description: status 告警页面状态
                     format: enum
             description: BatchUpdateAlarmPageStatusRequest 批量更新告警页面状态请求
-        api.alarm_page.CreateAlarmPageReply:
+        api.alarm.page.CreateAlarmPageReply:
             type: object
             properties:
                 id:
@@ -615,7 +745,7 @@ components:
                     description: id 告警页面ID
                     format: uint32
             description: CreateAlarmPageReply 创建告警页面响应
-        api.alarm_page.CreateAlarmPageRequest:
+        api.alarm.page.CreateAlarmPageRequest:
             type: object
             properties:
                 name:
@@ -631,7 +761,7 @@ components:
                     type: string
                     description: remark 告警页面备注(字符串长度0-200)
             description: CreateAlarmPageRequest 创建告警页面请求
-        api.alarm_page.DeleteAlarmPageReply:
+        api.alarm.page.DeleteAlarmPageReply:
             type: object
             properties:
                 id:
@@ -639,7 +769,7 @@ components:
                     description: id 告警页面ID
                     format: uint32
             description: DeleteAlarmPageReply 删除告警页面响应
-        api.alarm_page.DeleteAlarmPageRequest:
+        api.alarm.page.DeleteAlarmPageRequest:
             type: object
             properties:
                 id:
@@ -647,13 +777,13 @@ components:
                     description: id 告警页面ID(大于0)
                     format: uint32
             description: DeleteAlarmPageRequest 删除告警页面请求
-        api.alarm_page.GetAlarmPageReply:
+        api.alarm.page.GetAlarmPageReply:
             type: object
             properties:
                 alarmPage:
                     $ref: '#/components/schemas/api.AlarmPageV1'
             description: GetAlarmPageReply 获取告警页面响应
-        api.alarm_page.GetAlarmPageRequest:
+        api.alarm.page.GetAlarmPageRequest:
             type: object
             properties:
                 id:
@@ -661,7 +791,7 @@ components:
                     description: id 告警页面ID(大于0)
                     format: uint32
             description: GetAlarmPageRequest 获取告警页面请求
-        api.alarm_page.ListAlarmPageReply:
+        api.alarm.page.ListAlarmPageReply:
             type: object
             properties:
                 page:
@@ -672,7 +802,7 @@ components:
                         $ref: '#/components/schemas/api.AlarmPageV1'
                     description: list 告警页面列表
             description: ListAlarmPageReply 获取告警页面列表响应
-        api.alarm_page.ListAlarmPageRequest:
+        api.alarm.page.ListAlarmPageRequest:
             type: object
             properties:
                 page:
@@ -685,7 +815,7 @@ components:
                     description: status 告警页面状态
                     format: enum
             description: ListAlarmPageRequest 获取告警页面列表请求
-        api.alarm_page.UpdateAlarmPageReply:
+        api.alarm.page.UpdateAlarmPageReply:
             type: object
             properties:
                 id:
@@ -693,7 +823,7 @@ components:
                     description: id 告警页面ID
                     format: uint32
             description: UpdateAlarmPageReply 更新告警页面响应
-        api.alarm_page.UpdateAlarmPageRequest:
+        api.alarm.page.UpdateAlarmPageRequest:
             type: object
             properties:
                 id:
@@ -713,16 +843,6 @@ components:
                     type: string
                     description: remark 告警页面备注(字符串长度0-200)
             description: UpdateAlarmPageRequest 更新告警页面请求
-        api.alert.HookV1Reply:
-            type: object
-            properties:
-                msg:
-                    type: string
-                    description: msg 响应消息
-                code:
-                    type: string
-                    description: code 响应码
-            description: HookV1Reply 接收prometheus报警hook请求返回
         api.prom_dict.BatchDeletePromDictReply:
             type: object
             properties:
@@ -906,8 +1026,9 @@ components:
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块
-    - name: Alert
-      description: Alert prometheus 报警hook模块
+    - name: History
+      description: History 报警历史模块
+    - name: Hook
     - name: Ping
     - name: PromDict
       description: PromDict 字典管理模块

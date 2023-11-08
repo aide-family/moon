@@ -81,6 +81,20 @@ message AlarmPageSelectV1 {
 	string remark = 6;
 }
 
+// AlarmHistoryV1 告警历史基础类型
+message AlarmHistoryV1 {
+	// id 报警历史ID
+	uint32 id = 1;
+	// alarmId 报警ID
+	uint32 alarmId = 2;
+	// alarmName 报警名称
+	string alarmName = 3;
+	// alarmLevel 报警级别
+	string alarmLevel = 4;
+	// alarmStatus 报警状态
+	string alarmStatus = 5;
+}
+
 // PromDictV1 字典基础类型
 message PromDictV1 {
 	// id 字典ID
