@@ -69,6 +69,14 @@ service AlarmPage {
 			body: "*"
 		};
 	}
+
+	// SelectAlarmPage 获取告警页面下拉列表
+	rpc SelectAlarmPage (SelectAlarmPageRequest) returns (SelectAlarmPageReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm_page/select"
+			body: "*"
+		};
+	}
 }
 
 // CreateAlarmPageRequest 创建告警页面请求
@@ -167,4 +175,21 @@ message ListAlarmPageReply {
 	PageReply page = 1;
 	// list 告警页面列表
 	repeated AlarmPageV1 list = 2;
+}
+
+// SelectAlarmPageRequest 获取告警页面下拉列表请求
+message SelectAlarmPageRequest {
+	// page 分页参数
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	// keyword 关键字(字符串长度0-20)
+	string keyword = 2 [(validate.rules).string = {max_len: 20}];
+	// status 告警页面状态
+	Status status = 3 [(validate.rules).enum = {defined_only: true}];
+}
+// SelectAlarmPageReply 获取告警页面下拉列表响应
+message SelectAlarmPageReply {
+	// page 分页参数
+	PageReply page = 1;
+	// list 告警页面列表
+	repeated AlarmPageSelectV1 list = 2;
 }

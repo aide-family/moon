@@ -163,6 +163,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm.page.ListAlarmPageReply'
+    /api/v1/alarm_page/select:
+        post:
+            tags:
+                - AlarmPage
+            description: SelectAlarmPage 获取告警页面下拉列表
+            operationId: AlarmPage_SelectAlarmPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.alarm.page.SelectAlarmPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.alarm.page.SelectAlarmPageReply'
     /api/v1/alarm_page/status/batch/update:
         post:
             tags:
@@ -228,25 +247,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm.hook.HookV1Reply'
-    /api/v1/dict:
-        post:
-            tags:
-                - Dict
-            description: CreateDict 创建字典
-            operationId: Dict_CreateDict
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.dict.CreateDictRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.dict.CreateDictReply'
     /api/v1/dict/batch/delete:
         post:
             tags:
@@ -266,6 +266,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.dict.BatchDeleteDictReply'
+    /api/v1/dict/create:
+        post:
+            tags:
+                - Dict
+            description: CreateDict 创建字典
+            operationId: Dict_CreateDict
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.dict.CreateDictRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.dict.CreateDictReply'
     /api/v1/dict/delete/{id}:
         post:
             tags:
@@ -343,13 +362,13 @@ paths:
         post:
             tags:
                 - Dict
-            description: ListSelectDict 获取字典列表, 用于下拉选择
-            operationId: Dict_ListSelectDict
+            description: SelectDict 获取字典列表, 用于下拉选择
+            operationId: Dict_SelectDict
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.dict.ListSelectDictRequest'
+                            $ref: '#/components/schemas/api.dict.SelectDictRequest'
                 required: true
             responses:
                 "200":
@@ -357,7 +376,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.dict.ListSelectDictReply'
+                                $ref: '#/components/schemas/api.dict.SelectDictReply'
     /api/v1/dict/status/update/batch:
         post:
             tags:
@@ -404,6 +423,220 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.dict.UpdateDictReply'
+    /api/v1/strategy/batch/delete:
+        post:
+            tags:
+                - Strategy
+            description: BatchDeleteStrategy 批量删除策略
+            operationId: Strategy_BatchDeleteStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.BatchDeleteStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.BatchDeleteStrategyReply'
+    /api/v1/strategy/create:
+        post:
+            tags:
+                - Strategy
+            description: CreateStrategy 创建策略
+            operationId: Strategy_CreateStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.CreateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.CreateStrategyReply'
+    /api/v1/strategy/delete/{id}:
+        post:
+            tags:
+                - Strategy
+            description: DeleteStrategy 删除策略
+            operationId: Strategy_DeleteStrategy
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.DeleteStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.DeleteStrategyReply'
+    /api/v1/strategy/export:
+        post:
+            tags:
+                - Strategy
+            description: ExportStrategy 导出策略
+            operationId: Strategy_ExportStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.ExportStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.ExportStrategyReply'
+    /api/v1/strategy/get/{id}:
+        post:
+            tags:
+                - Strategy
+            description: GetStrategy 获取策略
+            operationId: Strategy_GetStrategy
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.GetStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.GetStrategyReply'
+    /api/v1/strategy/import:
+        post:
+            tags:
+                - Strategy
+            description: ImportStrategy 导入策略
+            operationId: Strategy_ImportStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.ImportStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.ImportStrategyReply'
+    /api/v1/strategy/list:
+        post:
+            tags:
+                - Strategy
+            description: ListStrategy 获取策略列表
+            operationId: Strategy_ListStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.ListStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.ListStrategyReply'
+    /api/v1/strategy/select:
+        post:
+            tags:
+                - Strategy
+            description: SelectStrategy 获取策略列表
+            operationId: Strategy_SelectStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.SelectStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.SelectStrategyReply'
+    /api/v1/strategy/status/batch/update:
+        post:
+            tags:
+                - Strategy
+            description: BatchUpdateStrategyStatus 批量更新策略状态
+            operationId: Strategy_BatchUpdateStrategyStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.BatchUpdateStrategyStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.BatchUpdateStrategyStatusReply'
+    /api/v1/strategy/update/{id}:
+        post:
+            tags:
+                - Strategy
+            description: UpdateStrategy 更新策略
+            operationId: Strategy_UpdateStrategy
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.UpdateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.UpdateStrategyReply'
     /ping:
         get:
             tags:
@@ -444,6 +677,30 @@ components:
                     type: string
                     description: alarmStatus 报警状态
             description: AlarmHistoryV1 告警历史基础类型
+        api.AlarmPageSelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: value 告警页面值, 对应告警页面的id
+                    format: uint32
+                label:
+                    type: string
+                    description: label 告警页面标签, 对应告警页面的name
+                icon:
+                    type: string
+                    description: category 告警页面图标
+                color:
+                    type: string
+                    description: color 告警页面颜色
+                status:
+                    type: integer
+                    description: status 告警页面状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 告警页面备注
+            description: AlarmPageSelectV1 告警页面选择类型
         api.AlarmPageV1:
             type: object
             properties:
@@ -480,6 +737,31 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: AlarmPageV1 告警页面基础类型
+        api.DictSelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: value 字典值, 对应字典的id
+                    format: uint32
+                label:
+                    type: string
+                    description: label 字典标签, 对应字典的name
+                category:
+                    type: integer
+                    description: category 字典分类
+                    format: enum
+                color:
+                    type: string
+                    description: color 字典颜色
+                status:
+                    type: integer
+                    description: status 字典状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 字典备注
+            description: DictSelectV1 字典选择类型
         api.DictV1:
             type: object
             properties:
@@ -558,6 +840,124 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        api.PromGroupSelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: value 策略组值, 对应策略组的id
+                    format: uint32
+                label:
+                    type: string
+                    description: label 策略组标签, 对应策略组的name
+                category:
+                    type: integer
+                    description: category 策略组分类
+                    format: enum
+                status:
+                    type: integer
+                    description: status 策略组状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 策略组备注
+            description: PromGroupSelectV1 策略组选择类型
+        api.PromStrategySelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: value 策略值, 对应策略的id
+                    format: uint32
+                label:
+                    type: string
+                    description: label 策略标签, 对应策略的alert
+                category:
+                    type: integer
+                    description: category 策略分类
+                    format: enum
+                status:
+                    type: integer
+                    description: status 策略状态
+                    format: enum
+            description: StrategySelectV1 策略选择类型
+        api.PromStrategyV1:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+                alert:
+                    type: string
+                    description: alert 告警名称
+                expr:
+                    type: string
+                    description: expr 表达式
+                duration:
+                    type: string
+                    description: duration 持续时间
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 注解
+                status:
+                    type: integer
+                    description: status 策略状态
+                    format: enum
+                groupId:
+                    type: integer
+                    description: groupId 策略组ID
+                    format: uint32
+                groupInfo:
+                    $ref: '#/components/schemas/api.PromGroupSelectV1'
+                alarmLevelId:
+                    type: integer
+                    description: alarmLevelId 告警级别ID
+                    format: uint32
+                alarmLevelInfo:
+                    $ref: '#/components/schemas/api.DictSelectV1'
+                alarmPageIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: alarmPageIds 告警页面ID列表
+                alarmPageInfo:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.AlarmPageSelectV1'
+                    description: alarmPageInfo 告警页面信息
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: categoryIds 分类ID列表
+                categoryInfo:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.DictSelectV1'
+                    description: categoryInfo 分类信息
+                createdAt:
+                    type: integer
+                    description: createdAt 创建时间, unix时间戳
+                    format: int64
+                updatedAt:
+                    type: integer
+                    description: updatedAt 更新时间, unix时间戳
+                    format: int64
+                deletedAt:
+                    type: integer
+                    description: deletedAt 删除时间, unix时间戳
+                    format: int64
+            description: StrategyV1 策略基础类型
         api.alarm.history.GetHistoryReply:
             type: object
             properties:
@@ -815,6 +1215,30 @@ components:
                     description: status 告警页面状态
                     format: enum
             description: ListAlarmPageRequest 获取告警页面列表请求
+        api.alarm.page.SelectAlarmPageReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.AlarmPageSelectV1'
+                    description: list 告警页面列表
+            description: SelectAlarmPageReply 获取告警页面下拉列表响应
+        api.alarm.page.SelectAlarmPageRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                    description: keyword 关键字(字符串长度0-20)
+                status:
+                    type: integer
+                    description: status 告警页面状态
+                    format: enum
+            description: SelectAlarmPageRequest 获取告警页面下拉列表请求
         api.alarm.page.UpdateAlarmPageReply:
             type: object
             properties:
@@ -967,7 +1391,7 @@ components:
                     type: string
                     description: keyword 关键字
             description: ListDictRequest 获取字典列表请求
-        api.dict.ListSelectDictReply:
+        api.dict.SelectDictReply:
             type: object
             properties:
                 page:
@@ -977,8 +1401,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.DictV1'
                     description: list 字典列表
-            description: ListSelectDictReply 获取字典列表响应
-        api.dict.ListSelectDictRequest:
+            description: SelectDictReply 获取字典列表响应
+        api.dict.SelectDictRequest:
             type: object
             properties:
                 isDeleted:
@@ -993,7 +1417,7 @@ components:
                     type: integer
                     description: category 分类
                     format: enum
-            description: ListSelectDictRequest 获取字典列表请求
+            description: SelectDictRequest 获取字典列表请求
         api.dict.UpdateDictReply:
             type: object
             properties:
@@ -1023,6 +1447,284 @@ components:
                     type: string
                     description: remark 字典备注
             description: UpdateDictRequest 更新字典请求
+        api.prom.strategy.BatchDeleteStrategyReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略ID列表
+            description: BatchDeleteStrategyReply 批量删除策略响应
+        api.prom.strategy.BatchDeleteStrategyRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略ID列表
+            description: BatchDeleteStrategy 批量删除策略
+        api.prom.strategy.BatchUpdateStrategyStatusReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略ID列表
+            description: BatchUpdateStrategyStatusReply 批量更新策略状态响应
+        api.prom.strategy.BatchUpdateStrategyStatusRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略ID列表
+                status:
+                    type: integer
+                    description: status 策略状态
+                    format: enum
+            description: BatchUpdateStrategyStatusRequest 批量更新策略状态请求
+        api.prom.strategy.CreateStrategyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+            description: CreateStrategyReply 创建策略响应
+        api.prom.strategy.CreateStrategyRequest:
+            type: object
+            properties:
+                groupId:
+                    type: integer
+                    description: groupId 策略组ID
+                    format: uint32
+                alert:
+                    type: string
+                    description: alert 告警名称
+                expr:
+                    type: string
+                    description: expr 表达式
+                duration:
+                    type: string
+                    description: duration 持续时间,(1s,1m,1h,1d)
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 注解
+                alarmPageIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: alarmPageIds 告警页面ID列表
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: categoryIds 分类ID列表
+                alarmLevelId:
+                    type: integer
+                    description: alarmLevelId 告警级别ID
+                    format: uint32
+            description: CreateStrategyRequest 创建策略请求
+        api.prom.strategy.DeleteStrategyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+            description: DeleteStrategyReply 删除策略响应
+        api.prom.strategy.DeleteStrategyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+            description: DeleteStrategy 删除策略
+        api.prom.strategy.ExportStrategyReply:
+            type: object
+            properties:
+                file:
+                    type: string
+                    description: file 策略文件
+                    format: bytes
+            description: ExportStrategyReply 导出策略响应
+        api.prom.strategy.ExportStrategyRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略ID列表
+            description: ExportStrategyRequest 导出策略请求
+        api.prom.strategy.GetStrategyReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.PromStrategyV1'
+            description: GetStrategyReply 获取策略响应
+        api.prom.strategy.GetStrategyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+            description: GetStrategy 获取策略
+        api.prom.strategy.ImportStrategyReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 导入成功的策略ID列表
+            description: ImportStrategyReply 导入策略响应
+        api.prom.strategy.ImportStrategyRequest:
+            type: object
+            properties:
+                files:
+                    type: array
+                    items:
+                        type: string
+                        format: bytes
+                    description: file 策略文件
+            description: ImportStrategyRequest 导入策略请求
+        api.prom.strategy.ListStrategyReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PromStrategyV1'
+                    description: list 策略列表
+            description: ListStrategyReply 获取策略列表响应
+        api.prom.strategy.ListStrategyRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                    description: keyword 关键字
+                groupId:
+                    type: integer
+                    description: groupId 策略组ID
+                    format: uint32
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: categoryIds 分类ID列表
+                alarmLevelId:
+                    type: integer
+                    description: alarmLevelId 告警级别ID
+                    format: uint32
+                status:
+                    type: integer
+                    description: status 策略状态
+                    format: enum
+                isDeleted:
+                    type: boolean
+                    description: isDeleted 是否获取已删除的策略
+            description: ListStrategy 获取策略列表
+        api.prom.strategy.SelectStrategyReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PromStrategySelectV1'
+                    description: list 策略列表
+            description: SelectStrategyReply 获取策略列表响应
+        api.prom.strategy.SelectStrategyRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+            description: SelectStrategy 获取策略列表
+        api.prom.strategy.UpdateStrategyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+            description: UpdateStrategyReply 更新策略响应
+        api.prom.strategy.UpdateStrategyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略ID
+                    format: uint32
+                groupId:
+                    type: integer
+                    description: groupId 策略组ID
+                    format: uint32
+                alert:
+                    type: string
+                    description: alert 告警名称
+                expr:
+                    type: string
+                    description: expr 表达式
+                duration:
+                    type: string
+                    description: duration 持续时间,(1s,1m,1h,1d)
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 注解
+                alarmPageIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: alarmPageIds 告警页面ID列表
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: categoryIds 分类ID列表
+                alarmLevelId:
+                    type: integer
+                    description: alarmLevelId 告警级别ID
+                    format: uint32
+            description: UpdateStrategyRequest 更新策略请求
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块
@@ -1032,3 +1734,5 @@ tags:
       description: History 报警历史模块
     - name: Hook
     - name: Ping
+    - name: Strategy
+      description: Strategy 策略管理模块
