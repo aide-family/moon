@@ -132,3 +132,90 @@ message DictSelectV1 {
 	// remark 字典备注
 	string remark = 6;
 }
+
+// StrategyV1 策略基础类型
+message PromStrategyV1 {
+	// id 策略ID
+	uint32 id = 1;
+	// alert 告警名称
+	string alert = 2;
+	// expr 表达式
+	string expr = 3;
+	// duration 持续时间
+	string duration = 4;
+	// labels 标签
+	map<string, string> labels = 5;
+	// annotations 注解
+	map<string, string> annotations = 6;
+	// status 策略状态
+	Status status = 7;
+	// groupId 策略组ID
+	uint32 groupId = 8;
+	// groupInfo 策略组信息
+	PromGroupSelectV1 groupInfo = 9;
+	// alarmLevelId 告警级别ID
+	uint32 alarmLevelId = 10;
+	// alarmLevelInfo 告警级别信息
+	DictSelectV1 alarmLevelInfo = 11;
+	// alarmPageIds 告警页面ID列表
+	repeated uint32 alarmPageIds = 12;
+	// alarmPageInfo 告警页面信息
+	repeated AlarmPageSelectV1 alarmPageInfo = 13;
+	// categoryIds 分类ID列表
+	repeated uint32 categoryIds = 14;
+	// categoryInfo 分类信息
+	repeated DictSelectV1 categoryInfo = 15;
+
+	// createdAt 创建时间, unix时间戳
+	int64 createdAt = 16;
+	// updatedAt 更新时间, unix时间戳
+	int64 updatedAt = 17;
+	// deletedAt 删除时间, unix时间戳
+	int64 deletedAt = 18;
+}
+
+// StrategySelectV1 策略选择类型
+message PromStrategySelectV1 {
+	// value 策略值, 对应策略的id
+	uint32 value = 1;
+	// label 策略标签, 对应策略的alert
+	string label = 2;
+	// category 策略分类
+	Category category = 3;
+	// status 策略状态
+	Status status = 4;
+}
+
+// PromGroup 策略组基础类型
+message PromGroup {
+	// id 策略组ID
+	uint32 id = 1;
+	// name 策略组名称
+	string name = 2;
+	// category 策略组分类
+	Category category = 3;
+	// status 策略组状态
+	Status status = 4;
+	// remark 策略组备注
+	string remark = 5;
+	// createdAt 创建时间, unix时间戳
+	int64 createdAt = 6;
+	// updatedAt 更新时间, unix时间戳
+	int64 updatedAt = 7;
+	// deletedAt 删除时间, unix时间戳
+	int64 deletedAt = 8;
+}
+
+// PromGroupSelectV1 策略组选择类型
+message PromGroupSelectV1 {
+	// value 策略组值, 对应策略组的id
+	uint32 value = 1;
+	// label 策略组标签, 对应策略组的name
+	string label = 2;
+	// category 策略组分类
+	Category category = 3;
+	// status 策略组状态
+	Status status = 4;
+	// remark 策略组备注
+	string remark = 5;
+}

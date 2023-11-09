@@ -17,7 +17,7 @@ service Dict {
 	// CreateDict 创建字典
 	rpc CreateDict (CreateDictRequest) returns (CreateDictReply) {
 		option (google.api.http) = {
-			post: "/api/v1/dict"
+			post: "/api/v1/dict/create"
 			body: "*"
 		};
 	}
@@ -70,8 +70,8 @@ service Dict {
 		};
 	}
 
-	// ListSelectDict 获取字典列表, 用于下拉选择
-	rpc ListSelectDict (ListSelectDictRequest) returns (ListSelectDictReply) {
+	// SelectDict 获取字典列表, 用于下拉选择
+	rpc SelectDict (SelectDictRequest) returns (SelectDictReply) {
 		option (google.api.http) = {
 			post: "/api/v1/dict/select"
 			body: "*"
@@ -176,8 +176,8 @@ message ListDictReply {
 	repeated DictV1 list = 2;
 }
 
-// ListSelectDictRequest 获取字典列表请求
-message ListSelectDictRequest {
+// SelectDictRequest 获取字典列表请求
+message SelectDictRequest {
 	// isDeleted 是否获取已删除的字典
 	bool isDeleted = 1;
 	// page 分页参数
@@ -187,8 +187,8 @@ message ListSelectDictRequest {
 	// category 分类
 	Category category = 4;
 }
-// ListSelectDictReply 获取字典列表响应
-message ListSelectDictReply {
+// SelectDictReply 获取字典列表响应
+message SelectDictReply {
 	// page 分页参数
 	PageReply page = 1;
 	// list 字典列表
