@@ -534,17 +534,17 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.strategy.GetStrategyReply'
-    /api/v1/strategy/import:
+    /api/v1/strategy/group/batch/delete:
         post:
             tags:
-                - Strategy
-            description: ImportStrategy 导入策略
-            operationId: Strategy_ImportStrategy
+                - Group
+            description: BatchDeleteGroup 批量删除策略组
+            operationId: Group_BatchDeleteGroup
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.prom.strategy.ImportStrategyRequest'
+                            $ref: '#/components/schemas/api.prom.strategy.group.BatchDeleteGroupRequest'
                 required: true
             responses:
                 "200":
@@ -552,7 +552,202 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.prom.strategy.ImportStrategyReply'
+                                $ref: '#/components/schemas/api.prom.strategy.group.BatchDeleteGroupReply'
+    /api/v1/strategy/group/create:
+        post:
+            tags:
+                - Group
+            description: CreateGroup 创建策略组
+            operationId: Group_CreateGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.CreateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.CreateGroupReply'
+    /api/v1/strategy/group/delete/{id}:
+        post:
+            tags:
+                - Group
+            description: DeleteGroup 删除策略组
+            operationId: Group_DeleteGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.DeleteGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.DeleteGroupReply'
+    /api/v1/strategy/group/export:
+        post:
+            tags:
+                - Group
+            description: ExportGroup 导出策略组
+            operationId: Group_ExportGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.ExportGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.ExportGroupReply'
+    /api/v1/strategy/group/get/{id}:
+        post:
+            tags:
+                - Group
+            description: GetGroup 获取策略组
+            operationId: Group_GetGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.GetGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.GetGroupReply'
+    /api/v1/strategy/group/import:
+        post:
+            tags:
+                - Group
+            description: ImportGroup 导入策略组
+            operationId: Group_ImportGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.ImportGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.ImportGroupReply'
+    /api/v1/strategy/group/list:
+        post:
+            tags:
+                - Group
+            description: ListGroup 获取策略组列表
+            operationId: Group_ListGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.ListGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.ListGroupReply'
+    /api/v1/strategy/group/select:
+        post:
+            tags:
+                - Group
+            description: SelectGroup 获取策略组列表
+            operationId: Group_SelectGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.SelectGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.SelectGroupReply'
+    /api/v1/strategy/group/status/batch/update:
+        post:
+            tags:
+                - Group
+            description: BatchUpdateGroupStatus 批量更新策略组状态
+            operationId: Group_BatchUpdateGroupStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.BatchUpdateGroupStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.BatchUpdateGroupStatusReply'
+    /api/v1/strategy/group/update/{id}:
+        post:
+            tags:
+                - Group
+            description: UpdateGroup 更新策略组
+            operationId: Group_UpdateGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: id 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.strategy.group.UpdateGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.strategy.group.UpdateGroupReply'
     /api/v1/strategy/list:
         post:
             tags:
@@ -840,6 +1035,40 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        api.PromGroup:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+                name:
+                    type: string
+                    description: name 策略组名称
+                category:
+                    type: integer
+                    description: category 策略组分类
+                    format: enum
+                status:
+                    type: integer
+                    description: status 策略组状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 策略组备注
+                createdAt:
+                    type: integer
+                    description: createdAt 创建时间, unix时间戳
+                    format: int64
+                updatedAt:
+                    type: integer
+                    description: updatedAt 更新时间, unix时间戳
+                    format: int64
+                deletedAt:
+                    type: integer
+                    description: deletedAt 删除时间, unix时间戳
+                    format: int64
+            description: PromGroup 策略组基础类型
         api.PromGroupSelectV1:
             type: object
             properties:
@@ -1590,26 +1819,6 @@ components:
                     description: id 策略ID
                     format: uint32
             description: GetStrategy 获取策略
-        api.prom.strategy.ImportStrategyReply:
-            type: object
-            properties:
-                ids:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-                    description: ids 导入成功的策略ID列表
-            description: ImportStrategyReply 导入策略响应
-        api.prom.strategy.ImportStrategyRequest:
-            type: object
-            properties:
-                files:
-                    type: array
-                    items:
-                        type: string
-                        format: bytes
-                    description: file 策略文件
-            description: ImportStrategyRequest 导入策略请求
         api.prom.strategy.ListStrategyReply:
             type: object
             properties:
@@ -1725,11 +1934,231 @@ components:
                     description: alarmLevelId 告警级别ID
                     format: uint32
             description: UpdateStrategyRequest 更新策略请求
+        api.prom.strategy.group.BatchDeleteGroupReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略组ID列表
+            description: BatchDeleteGroupReply 批量删除策略组回复
+        api.prom.strategy.group.BatchDeleteGroupRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略组ID列表
+            description: BatchDeleteGroupRequest 批量删除策略组请求
+        api.prom.strategy.group.BatchUpdateGroupStatusReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略组ID列表
+            description: BatchUpdateGroupStatusReply 批量更新策略组状态回复
+        api.prom.strategy.group.BatchUpdateGroupStatusRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略组ID列表
+            description: BatchUpdateGroupStatusRequest 批量更新策略组状态请求
+        api.prom.strategy.group.CreateGroupReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+            description: CreateGroupReply 创建策略组回复
+        api.prom.strategy.group.CreateGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: name 策略组名称
+                category:
+                    type: integer
+                    description: category 策略组分类
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 策略组备注
+            description: CreateGroupRequest 创建策略组请求
+        api.prom.strategy.group.DeleteGroupReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+            description: DeleteGroupReply 删除策略组回复
+        api.prom.strategy.group.DeleteGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+            description: DeleteGroupRequest 删除策略组请求
+        api.prom.strategy.group.ExportGroupReply:
+            type: object
+            properties:
+                file:
+                    type: string
+                    description: file 策略文件
+                    format: bytes
+            description: ExportGroupReply 导出策略组回复
+        api.prom.strategy.group.ExportGroupRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 策略组ID列表
+            description: ExportGroupRequest 导出策略组请求
+        api.prom.strategy.group.GetGroupReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.PromGroup'
+            description: GetGroupReply 获取策略组回复
+        api.prom.strategy.group.GetGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+            description: GetGroupRequest 获取策略组请求
+        api.prom.strategy.group.ImportGroupReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: ids 导入成功的策略组ID列表
+            description: ImportGroupReply 导入策略组回复
+        api.prom.strategy.group.ImportGroupRequest:
+            type: object
+            properties:
+                files:
+                    type: array
+                    items:
+                        type: string
+                        format: bytes
+                    description: files 策略文件
+                groupId:
+                    type: integer
+                    description: groupId 策略组ID
+                    format: uint32
+            description: ImportGroupRequest 导入策略组请求
+        api.prom.strategy.group.ListGroupReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PromGroup'
+                    description: list 策略组列表
+            description: ListGroupReply 获取策略组列表回复
+        api.prom.strategy.group.ListGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                    description: keyword 关键字
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: categoryIds 分类ID列表
+                status:
+                    type: integer
+                    description: status 策略组状态
+                    format: enum
+                startAt:
+                    type: integer
+                    description: startAt 开始时间,unix时间戳
+                    format: uint64
+                endAt:
+                    type: integer
+                    description: endAt 结束时间,unix时间戳
+                    format: uint64
+            description: ListGroupRequest 获取策略组列表请求
+        api.prom.strategy.group.SelectGroupReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PromGroupSelectV1'
+                    description: list 策略组列表
+            description: SelectGroupReply 获取策略组列表回复
+        api.prom.strategy.group.SelectGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                    description: keyword 关键字
+            description: SelectGroupRequest 获取策略组列表请求
+        api.prom.strategy.group.UpdateGroupReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+            description: UpdateGroupReply 更新策略组回复
+        api.prom.strategy.group.UpdateGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 策略组ID
+                    format: uint32
+                name:
+                    type: string
+                    description: name 策略组名称
+                category:
+                    type: integer
+                    description: category 策略组分类
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 策略组备注
+            description: UpdateGroupRequest 更新策略组请求
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块
     - name: Dict
       description: Dict 字典管理模块
+    - name: Group
+      description: Group 策略组管理模块
     - name: History
       description: History 报警历史模块
     - name: Hook

@@ -77,14 +77,6 @@ service Strategy {
     };
   }
 
-  // ImportStrategy 导入策略
-  rpc ImportStrategy (ImportStrategyRequest) returns (ImportStrategyReply) {
-    option (google.api.http) = {
-      post: "/api/v1/strategy/import"
-      body: "*"
-    };
-  }
-
   // ExportStrategy 导出策略
   rpc ExportStrategy (ExportStrategyRequest) returns (ExportStrategyReply) {
     option (google.api.http) = {
@@ -301,17 +293,6 @@ message SelectStrategyReply {
   PageReply page = 1;
   // list 策略列表
   repeated PromStrategySelectV1 list = 2;
-}
-
-// ImportStrategyRequest 导入策略请求
-message ImportStrategyRequest {
-  // file 策略文件
-  repeated bytes files = 1 [(validate.rules).repeated.items.bytes = {min_len: 1}];
-}
-// ImportStrategyReply 导入策略响应
-message ImportStrategyReply {
-  // ids 导入成功的策略ID列表
-  repeated uint32 ids = 1;
 }
 
 // ExportStrategyRequest 导出策略请求
