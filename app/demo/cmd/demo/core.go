@@ -1,76 +1,73 @@
 package main
 
 import (
-	"errors"
-	"os"
 	"sync"
 
 	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/config"
-	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/google/wire"
 	"prometheus-manager/app/demo/internal/conf"
 	"prometheus-manager/pkg/hello"
+	"prometheus-manager/pkg/plog"
 )
+
+var _ plog.ServerEnv = (*core)(nil)
+
+type (
+	core struct {
+		name     string
+		id       string
+		version  string
+		metadata map[string]string
+	}
+)
+
+func (l *core) GetId() string {
+	return l.id
+}
+
+func (l *core) GetName() string {
+	return l.name
+}
+
+func (l *core) GetVersion() string {
+	return l.version
+}
+
+func newCore(_ *conf.Bootstrap) plog.ServerEnv {
+	return &core{
+		name:     Name,
+		id:       id,
+		version:  Version,
+		metadata: Metadata,
+	}
+}
 
 var (
-	once sync.Once
+	once            sync.Once
+	ProviderSetCore = wire.NewSet(
+		before,
+		newCore,
+	)
 )
 
-func loadConfig(flagConf *string) (*conf.Bootstrap, error) {
-	if flagConf == nil || *flagConf == "" {
-		return nil, errors.New("flagConf is empty")
+func before() conf.Before {
+	return func(bc *conf.Bootstrap) error {
+		once.Do(func() {
+			Name = bc.GetEnv().GetName()
+			if Version == "" {
+				Version = bc.GetEnv().GetVersion()
+			}
+			Metadata = bc.GetEnv().GetMetadata()
+		})
+		hello.FmtASCIIGenerator(Name, Version, bc.GetEnv().GetMetadata())
+		return nil
 	}
-	c := config.New(
-		config.WithSource(
-			file.NewSource(*flagConf),
-		),
-	)
-	defer c.Close()
-
-	if err := c.Load(); err != nil {
-		return nil, err
-	}
-
-	var bc conf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
-		return nil, err
-	}
-
-	return before(&bc), nil
 }
 
-func before(bc *conf.Bootstrap) *conf.Bootstrap {
-	once.Do(func() {
-		Name = bc.GetEnv().GetName()
-		if Version == "" {
-			Version = bc.GetEnv().GetVersion()
-		}
-		Metadata = bc.GetEnv().GetMetadata()
-	})
-	hello.FmtASCIIGenerator(Name, Version, bc.GetEnv().GetMetadata())
-	return bc
-}
-
-// newLogger new a logger.
-func newLogger(c *conf.Log) log.Logger {
-	logger := log.With(log.NewStdLogger(os.Stdout),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", Name,
-		"service.version", Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
-
-	return logger
-}
-
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(gs *grpc.Server, hs *http.Server, logger log.Logger) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
