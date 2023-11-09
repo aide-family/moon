@@ -9,9 +9,11 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"prometheus-manager/app/demo/internal/biz"
+	"prometheus-manager/app/demo/internal/conf"
 	"prometheus-manager/app/demo/internal/data"
 	"prometheus-manager/app/demo/internal/server"
 	"prometheus-manager/app/demo/internal/service"
+	"prometheus-manager/pkg/plog"
 )
 
 import (
@@ -22,14 +24,15 @@ import (
 
 // wireApp init kratos application.
 func wireApp(string2 *string) (*kratos.App, func(), error) {
-	bootstrap, err := loadConfig(string2)
+	confBefore := before()
+	bootstrap, err := conf.LoadConfig(string2, confBefore)
 	if err != nil {
 		return nil, nil, err
 	}
-	log := bootstrap.Log
-	logger := newLogger(log)
 	confServer := bootstrap.Server
 	confData := bootstrap.Data
+	serverEnv := newCore(bootstrap)
+	logger := plog.NewLogger(serverEnv)
 	dataData, cleanup, err := data.NewData(confData, logger)
 	if err != nil {
 		return nil, nil, err
@@ -39,7 +42,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	pingService := service.NewPingService(pingUseCase, logger)
 	grpcServer := server.NewGRPCServer(confServer, pingService, logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, logger)
-	app := newApp(logger, grpcServer, httpServer)
+	app := newApp(grpcServer, httpServer, logger)
 	return app, func() {
 		cleanup()
 	}, nil
