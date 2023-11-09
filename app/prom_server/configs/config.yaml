@@ -1,0 +1,25 @@
+server:
+  http:
+    addr: 0.0.0.0:8002
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9002
+    timeout: 1s
+data:
+  database:
+    driver: mysql
+    source: root:root@tcp(127.0.0.1:3306)/test
+  redis:
+    addr: 127.0.0.1:6379
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+env:
+  name: prometheus-manager_prom_server
+  version: 0.0.1
+  metadata:
+    description: Prometheus Manager Server APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager
