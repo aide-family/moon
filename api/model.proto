@@ -131,6 +131,8 @@ message DictSelectV1 {
 	Status status = 5;
 	// remark 字典备注
 	string remark = 6;
+	// isDeleted 是否已删除
+	bool isDeleted = 7;
 }
 
 // StrategyV1 策略基础类型

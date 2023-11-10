@@ -9,10 +9,13 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
 	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/dictbiz"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/app/prom_server/internal/data/repository"
 	"prometheus-manager/app/prom_server/internal/server"
 	"prometheus-manager/app/prom_server/internal/service"
+	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/pkg/plog"
 )
 
@@ -26,6 +29,9 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		service.ProviderSetService,
 		conf.ProviderSetConf,
 		plog.ProviderSetPlog,
+		dictservice.ProviderSetDictService,
+		dictbiz.ProviderSetDictBiz,
+		repository.ProviderSetRepository,
 		newApp,
 	))
 }

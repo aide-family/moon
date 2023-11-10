@@ -956,6 +956,9 @@ components:
                 remark:
                     type: string
                     description: remark 字典备注
+                isDeleted:
+                    type: boolean
+                    description: isDeleted 是否已删除
             description: DictSelectV1 字典选择类型
         api.DictV1:
             type: object
@@ -1558,9 +1561,6 @@ components:
                     format: enum
                 color:
                     type: string
-                status:
-                    type: integer
-                    format: enum
                 remark:
                     type: string
             description: CreateDictRequest 创建字典请求
@@ -1619,6 +1619,10 @@ components:
                 keyword:
                     type: string
                     description: keyword 关键字
+                category:
+                    type: integer
+                    description: category 分类
+                    format: enum
             description: ListDictRequest 获取字典列表请求
         api.dict.SelectDictReply:
             type: object
@@ -1628,7 +1632,7 @@ components:
                 list:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.DictV1'
+                        $ref: '#/components/schemas/api.DictSelectV1'
                     description: list 字典列表
             description: SelectDictReply 获取字典列表响应
         api.dict.SelectDictRequest:

@@ -84,7 +84,6 @@ message CreateDictRequest {
 	string name = 2;
 	Category category = 3;
 	string color = 4;
-	Status status = 5;
 	string remark = 6;
 }
 // CreateDictReply 创建字典响应
@@ -167,6 +166,8 @@ message ListDictRequest {
 	PageRequest page = 2;
 	// keyword 关键字
 	string keyword = 3 [(validate.rules).string = {max_len: 20}];
+	// category 分类
+	Category category = 4;
 }
 // ListDictReply 获取字典列表响应
 message ListDictReply {
@@ -192,5 +193,5 @@ message SelectDictReply {
 	// page 分页参数
 	PageReply page = 1;
 	// list 字典列表
-	repeated DictV1 list = 2;
+	repeated DictSelectV1 list = 2;
 }
