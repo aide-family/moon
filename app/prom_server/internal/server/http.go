@@ -3,9 +3,11 @@ package server
 import (
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
+	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
+	"prometheus-manager/app/prom_server/internal/service/promservice"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -16,6 +18,7 @@ import (
 func NewHTTPServer(c *conf.Server,
 	pingService *service.PingService,
 	dictService *dictservice.Service,
+	strategyService *promservice.StrategyService,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -37,6 +40,7 @@ func NewHTTPServer(c *conf.Server,
 	srv := http.NewServer(opts...)
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
+	strategy.RegisterStrategyHTTPServer(srv, strategyService)
 
 	return srv
 }

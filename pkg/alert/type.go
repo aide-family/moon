@@ -42,3 +42,24 @@ func (l *Data) Byte() []byte {
 	b, _ := json.Marshal(*l)
 	return b
 }
+
+func (l KV) String() string {
+	if l == nil {
+		return ""
+	}
+
+	str, _ := json.Marshal(l)
+	return string(str)
+}
+
+func ToLabels(str string) Labels {
+	var labels Labels
+	_ = json.Unmarshal([]byte(str), &labels)
+	return labels
+}
+
+func ToAnnotations(str string) Annotations {
+	var annotations Annotations
+	_ = json.Unmarshal([]byte(str), &annotations)
+	return annotations
+}

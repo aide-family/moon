@@ -1048,10 +1048,12 @@ components:
                 name:
                     type: string
                     description: name 策略组名称
-                category:
-                    type: integer
+                categories:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
                     description: category 策略组分类
-                    format: enum
                 status:
                     type: integer
                     description: status 策略组状态
@@ -1071,6 +1073,10 @@ components:
                     type: integer
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
+                strategyCount:
+                    type: integer
+                    description: strategyCount 策略数量
+                    format: uint32
             description: PromGroup 策略组基础类型
         api.PromGroupSelectV1:
             type: object
