@@ -8,4 +8,6 @@ import (
 var ProviderSetRepository = wire.NewSet(
 	NewDictRepo,
 	NewStrategyRepo,
+	NewAlarmPageRepo,
+	NewAlarmHistoryRepo,
 )

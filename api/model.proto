@@ -17,6 +17,17 @@ enum Status {
 	STATUS_DISABLED = 2;
 }
 
+enum AlarmStatus {
+	// UNKNOWN 未知, 用于默认值
+	ALARM_STATUS_UNKNOWN = 0;
+
+	// ALARM 告警
+	ALARM_STATUS_ALARM = 1;
+
+	// RESOLVE 已解决
+	ALARM_STATUS_RESOLVE = 2;
+}
+
 enum Category {
 	// UNKNOWN 未知, 用于默认值
 	CATEGORY_UNKNOWN = 0;

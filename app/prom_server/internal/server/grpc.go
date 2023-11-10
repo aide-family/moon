@@ -1,9 +1,18 @@
 package server
 
 import (
+	"prometheus-manager/api/alarm/history"
+	"prometheus-manager/api/alarm/hook"
+	"prometheus-manager/api/alarm/page"
+	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
+	"prometheus-manager/api/prom/strategy"
+	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/service"
+	"prometheus-manager/app/prom_server/internal/service/alarmservice"
+	"prometheus-manager/app/prom_server/internal/service/dictservice"
+	"prometheus-manager/app/prom_server/internal/service/promservice"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -11,7 +20,17 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, pingService *service.PingService, logger log.Logger) *grpc.Server {
+func NewGRPCServer(
+	c *conf.Server,
+	pingService *service.PingService,
+	dictService *dictservice.Service,
+	strategyService *promservice.StrategyService,
+	strategyGroupService *promservice.GroupService,
+	alarmPageService *alarmservice.AlarmPageService,
+	hookService *alarmservice.HookService,
+	historyService *alarmservice.HistoryService,
+	logger log.Logger,
+) *grpc.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "server/grpc"))
 	defer logHelper.Info("NewGRPCServer done")
 	var opts = []grpc.ServerOption{
@@ -30,6 +49,12 @@ func NewGRPCServer(c *conf.Server, pingService *service.PingService, logger log.
 	}
 	srv := grpc.NewServer(opts...)
 	ping.RegisterPingServer(srv, pingService)
+	dict.RegisterDictServer(srv, dictService)
+	strategy.RegisterStrategyServer(srv, strategyService)
+	group.RegisterGroupServer(srv, strategyGroupService)
+	page.RegisterAlarmPageServer(srv, alarmPageService)
+	hook.RegisterHookServer(srv, hookService)
+	history.RegisterHistoryServer(srv, historyService)
 
 	return srv
 }

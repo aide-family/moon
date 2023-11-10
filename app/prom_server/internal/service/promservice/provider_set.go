@@ -7,4 +7,5 @@ import (
 // ProviderSetProm 注入prometheus相关服务
 var ProviderSetProm = wire.NewSet(
 	NewStrategyService,
+	NewGroupService,
 )
