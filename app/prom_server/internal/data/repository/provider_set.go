@@ -7,4 +7,5 @@ import (
 // ProviderSetRepository 注入repository依赖
 var ProviderSetRepository = wire.NewSet(
 	NewDictRepo,
+	NewStrategyRepo,
 )

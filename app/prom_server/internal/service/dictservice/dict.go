@@ -101,8 +101,8 @@ func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetD
 		Color:     dictBo.Color,
 		Status:    dictBo.Status,
 		Remark:    dictBo.Remark,
-		CreatedAt: dictBo.CreateAt,
-		UpdatedAt: dictBo.UpdateAt,
+		CreatedAt: dictBo.CreatedAt,
+		UpdatedAt: dictBo.UpdatedAt,
 		DeletedAt: dictBo.DeletedAt,
 	}}
 	return reply, nil
@@ -123,8 +123,8 @@ func (s *Service) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.Li
 			Color:     dictBo.Color,
 			Status:    dictBo.Status,
 			Remark:    dictBo.Remark,
-			CreatedAt: dictBo.CreateAt,
-			UpdatedAt: dictBo.UpdateAt,
+			CreatedAt: dictBo.CreatedAt,
+			UpdatedAt: dictBo.UpdatedAt,
 			DeletedAt: dictBo.DeletedAt,
 		})
 	}

@@ -5,12 +5,11 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/model/dict"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
-
 	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/pkg/model/dict"
 )
 
 type (
@@ -62,14 +61,17 @@ func (b *Biz) UpdateDict(ctx context.Context, dict *biz.DictBO) (*biz.DictBO, er
 	return biz.NewDictDO(newDictDO).BO().First(), nil
 }
 
+// BatchUpdateDictStatus 批量更新字典状态
 func (b *Biz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint) error {
 	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, int32(status), ids)
 }
 
+// DeleteDictByIds 删除字典
 func (b *Biz) DeleteDictByIds(ctx context.Context, id ...uint) error {
 	return b.dictRepo.DeleteDictByIds(ctx, id...)
 }
 
+// GetDictById 获取字典详情
 func (b *Biz) GetDictById(ctx context.Context, id uint) (*biz.DictBO, error) {
 	dictDetail, err := b.dictRepo.GetDictById(ctx, id)
 	if err != nil {
@@ -78,6 +80,7 @@ func (b *Biz) GetDictById(ctx context.Context, id uint) (*biz.DictBO, error) {
 	return biz.NewDictDO(dictDetail).BO().First(), nil
 }
 
+// ListDict 获取字典列表
 func (b *Biz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*biz.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
@@ -95,6 +98,7 @@ func (b *Biz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*biz
 	return biz.NewDictDO(dictList...).BO().List(), pgInfo, nil
 }
 
+// SelectDict 获取字典列表
 func (b *Biz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*biz.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))

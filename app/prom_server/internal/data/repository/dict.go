@@ -91,8 +91,8 @@ func dictModelToDO(m *model.PromDict) *biz.DictDO {
 		Status:    m.Status,
 		Remark:    m.Remark,
 		Color:     m.Color,
-		CreateAt:  m.CreatedAt,
-		UpdateAt:  m.UpdatedAt,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 		DeletedAt: int64(m.DeletedAt),
 	}
 }
@@ -110,8 +110,8 @@ func dictDOToModel(d *biz.DictDO) *model.PromDict {
 		Color:    d.Color,
 		BaseModel: query.BaseModel{
 			ID:        d.Id,
-			CreatedAt: d.CreateAt,
-			UpdatedAt: d.UpdateAt,
+			CreatedAt: d.CreatedAt,
+			UpdatedAt: d.UpdatedAt,
 			DeletedAt: soft_delete.DeletedAt(d.DeletedAt),
 		},
 	}

@@ -14,8 +14,8 @@ type (
 		Status    api.Status
 		Remark    string
 		Color     string
-		CreateAt  int64
-		UpdateAt  int64
+		CreatedAt int64
+		UpdatedAt int64
 		DeletedAt int64
 	}
 
@@ -26,8 +26,8 @@ type (
 		Status    int32
 		Remark    string
 		Color     string
-		CreateAt  time.Time
-		UpdateAt  time.Time
+		CreatedAt time.Time
+		UpdatedAt time.Time
 		DeletedAt int64
 	}
 )
@@ -62,8 +62,8 @@ func dictDoToBo(d *DictDO) *DictBO {
 		Status:    api.Status(d.Status),
 		Remark:    d.Remark,
 		Color:     d.Color,
-		CreateAt:  d.CreateAt.Unix(),
-		UpdateAt:  d.UpdateAt.Unix(),
+		CreatedAt: d.CreatedAt.Unix(),
+		UpdatedAt: d.UpdatedAt.Unix(),
 		DeletedAt: d.DeletedAt,
 	}
 }
@@ -74,13 +74,13 @@ func dictBoToDo(b *DictBO) *DictDO {
 		return nil
 	}
 	return &DictDO{
-		Id:       uint(b.Id),
-		Name:     b.Name,
-		Category: int32(b.Category),
-		Status:   int32(b.Status),
-		Remark:   b.Remark,
-		Color:    b.Color,
-		CreateAt: time.Unix(b.CreateAt, 0),
-		UpdateAt: time.Unix(b.UpdateAt, 0),
+		Id:        uint(b.Id),
+		Name:      b.Name,
+		Category:  int32(b.Category),
+		Status:    int32(b.Status),
+		Remark:    b.Remark,
+		Color:     b.Color,
+		CreatedAt: time.Unix(b.CreatedAt, 0),
+		UpdatedAt: time.Unix(b.UpdatedAt, 0),
 	}
 }
