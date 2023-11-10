@@ -1,11 +1,16 @@
 package server
 
 import (
+	"prometheus-manager/api/alarm/history"
+	"prometheus-manager/api/alarm/hook"
+	"prometheus-manager/api/alarm/page"
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/strategy"
+	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/service"
+	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 
@@ -19,6 +24,10 @@ func NewHTTPServer(c *conf.Server,
 	pingService *service.PingService,
 	dictService *dictservice.Service,
 	strategyService *promservice.StrategyService,
+	strategyGroupService *promservice.GroupService,
+	alarmPageService *alarmservice.AlarmPageService,
+	hookService *alarmservice.HookService,
+	historyService *alarmservice.HistoryService,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -41,6 +50,10 @@ func NewHTTPServer(c *conf.Server,
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
 	strategy.RegisterStrategyHTTPServer(srv, strategyService)
+	group.RegisterGroupHTTPServer(srv, strategyGroupService)
+	page.RegisterAlarmPageHTTPServer(srv, alarmPageService)
+	hook.RegisterHookHTTPServer(srv, hookService)
+	history.RegisterHistoryHTTPServer(srv, historyService)
 
 	return srv
 }

@@ -52,6 +52,21 @@ func (l KV) String() string {
 	return string(str)
 }
 
+func (l *Alert) Byte() []byte {
+	if l == nil {
+		return nil
+	}
+	b, _ := json.Marshal(*l)
+	return b
+}
+
+// NewAlertByString .
+func NewAlertByString(str string) *Alert {
+	var alert Alert
+	_ = json.Unmarshal([]byte(str), &alert)
+	return &alert
+}
+
 func ToLabels(str string) Labels {
 	var labels Labels
 	_ = json.Unmarshal([]byte(str), &labels)

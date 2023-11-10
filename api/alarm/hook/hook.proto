@@ -18,7 +18,6 @@ service Hook {
 	}
 }
 
-
 // HookV1Request prometheus webhook 报警数据
 message HookV1Request {
 	// receiver 接收者
