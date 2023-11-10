@@ -9,10 +9,13 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/dictbiz"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/app/prom_server/internal/data/repository"
 	"prometheus-manager/app/prom_server/internal/server"
 	"prometheus-manager/app/prom_server/internal/service"
+	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/pkg/plog"
 )
 
@@ -41,7 +44,10 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	pingUseCase := biz.NewPingUseCase(pingRepo, logger)
 	pingService := service.NewPingService(pingUseCase, logger)
 	grpcServer := server.NewGRPCServer(confServer, pingService, logger)
-	httpServer := server.NewHTTPServer(confServer, pingService, logger)
+	repo := repository.NewDictRepo(dataData, logger)
+	dictbizBiz := dictbiz.NewBiz(repo, logger)
+	dictserviceService := dictservice.NewDictService(dictbizBiz, logger)
+	httpServer := server.NewHTTPServer(confServer, pingService, dictserviceService, logger)
 	app := newApp(grpcServer, httpServer, logger)
 	return app, func() {
 		cleanup()
