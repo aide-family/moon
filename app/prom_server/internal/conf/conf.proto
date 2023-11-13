@@ -10,6 +10,7 @@ message Bootstrap {
   Data data = 2;
   Env env = 3;
   Log log = 4;
+  WhiteList whiteList = 5;
 }
 
 message Server {
@@ -52,3 +53,6 @@ message Env {
 message Log {
 }
 
+message WhiteList {
+  repeated string api = 1;
+}
