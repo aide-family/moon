@@ -8,6 +8,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.1
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20230808051727-7888107c4b4f
 	github.com/go-kratos/kratos/v2 v2.7.0
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
 	github.com/gorilla/handlers v1.5.1

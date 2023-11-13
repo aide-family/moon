@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package api.auth;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "prometheus-manager/api/auth;auth";
+option java_multiple_files = true;
+option java_package = "api.auth";
+
+service Auth {
+	rpc Login (LoginRequest) returns (LoginReply) {
+		option (google.api.http) = {
+			post: "/api/v1/auth/login"
+			body: "*"
+		};
+	}
+	rpc Logout (LogoutRequest) returns (LogoutReply) {
+		option (google.api.http) = {
+			post: "/api/v1/auth/logout"
+			body: "*"
+		};
+	}
+	rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
+		option (google.api.http) = {
+			post: "/api/v1/auth/refresh/token"
+			body: "*"
+		};
+	}
+}
+
+message LoginRequest {
+  // username 用户名
+  string username = 1 [(validate.rules).string.min_len = 1];
+  // password 密码
+  string password = 2 [(validate.rules).string.min_len = 1];
+	// code 验证码
+	string code = 3 [(validate.rules).string.min_len = 1];
+	// uuid 验证码uuid
+	string uuid = 4 [(validate.rules).string.min_len = 1];
+}
+message LoginReply {
+  // token 登录token
+  string token = 1;
+}
+
+message LogoutRequest {
+}
+message LogoutReply {
+}
+
+message RefreshTokenRequest {
+}
+message RefreshTokenReply {
+  // token 登录token
+  string token = 1;
+}

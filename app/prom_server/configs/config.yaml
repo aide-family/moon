@@ -23,3 +23,6 @@ env:
     license: MIT
     email: aidecloud@163.com
     url: https://github.com/aide-cloud/prometheus-manager
+whiteList:
+  api:
+    - /api.auth.Auth/Login
