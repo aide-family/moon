@@ -78,10 +78,9 @@ service Strategy {
   }
 
   // ExportStrategy 导出策略
-  rpc ExportStrategy (ExportStrategyRequest) returns (ExportStrategyReply) {
+  rpc  ExportStrategy (ExportStrategyRequest) returns (ExportStrategyReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/export"
-      body: "*"
+      get: "/api/v1/strategy/export"
     };
   }
 }
@@ -103,9 +102,9 @@ message CreateStrategyRequest {
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    values: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    }
+    //    values: {
+    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    //    }
   }];
   // annotations 注解
   map<string, string> annotations = 6 [(validate.rules).map = {
@@ -114,9 +113,9 @@ message CreateStrategyRequest {
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    values: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    }
+    //    values: {
+    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    //    }
   }];
   // alarmPageIds 告警页面ID列表
   repeated uint32 alarmPageIds = 7 [(validate.rules).repeated = {
@@ -136,6 +135,8 @@ message CreateStrategyRequest {
   }];
   // alarmLevelId 告警级别ID
   uint32 alarmLevelId = 9 [(validate.rules).uint32.gt = 0];
+  // remark 备注
+  string remark = 10 [(validate.rules).string.max_len = 255];
 }
 // CreateStrategyReply 创建策略响应
 message CreateStrategyReply {
@@ -162,9 +163,9 @@ message UpdateStrategyRequest {
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    values: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    }
+    //    values: {
+    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    //    }
   }];
   // annotations 注解
   map<string, string> annotations = 7 [(validate.rules).map = {
@@ -173,9 +174,9 @@ message UpdateStrategyRequest {
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    values: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    }
+    //    values: {
+    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    //    }
   }];
   // alarmPageIds 告警页面ID列表
   repeated uint32 alarmPageIds = 8 [(validate.rules).repeated = {
@@ -191,6 +192,8 @@ message UpdateStrategyRequest {
   }];
   // alarmLevelId 告警级别ID
   uint32 alarmLevelId = 10 [(validate.rules).uint32.gt = 0];
+  // remark 备注
+  string remark = 11 [(validate.rules).string.max_len = 255];
 }
 // UpdateStrategyReply 更新策略响应
 message UpdateStrategyReply {
@@ -308,4 +311,6 @@ message ExportStrategyRequest {
 message ExportStrategyReply {
   // file 策略文件
   bytes file = 1;
+  // fileName 策略文件名
+  string fileName = 2;
 }

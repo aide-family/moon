@@ -185,6 +185,9 @@ message PromStrategyV1 {
 	int64 updatedAt = 17;
 	// deletedAt 删除时间, unix时间戳
 	int64 deletedAt = 18;
+
+	// remark 策略备注
+	string remark = 19;
 }
 
 // StrategySelectV1 策略选择类型
@@ -194,7 +197,7 @@ message PromStrategySelectV1 {
 	// label 策略标签, 对应策略的alert
 	string label = 2;
 	// category 策略分类
-	Category category = 3;
+	repeated DictSelectV1 category = 3;
 	// status 策略状态
 	Status status = 4;
 }
@@ -228,7 +231,7 @@ message PromGroupSelectV1 {
 	// label 策略组标签, 对应策略组的name
 	string label = 2;
 	// category 策略组分类
-	Category category = 3;
+	repeated DictSelectV1 category = 3;
 	// status 策略组状态
 	Status status = 4;
 	// remark 策略组备注

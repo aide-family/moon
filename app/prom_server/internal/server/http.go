@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
@@ -47,6 +48,8 @@ func NewHTTPServer(c *conf.Server,
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
+	srv.HandlePrefix("/metrics", promhttp.Handler())
+
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
 	strategy.RegisterStrategyHTTPServer(srv, strategyService)

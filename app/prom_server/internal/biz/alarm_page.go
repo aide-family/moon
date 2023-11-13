@@ -87,3 +87,24 @@ func alarmPageBoToDo(b *AlarmPageBO) *AlarmPageDO {
 		DeletedAt: b.DeletedAt,
 	}
 }
+
+// ToApiAlarmPageSelectV1 .
+func (b *AlarmPageBO) ToApiAlarmPageSelectV1() *api.AlarmPageSelectV1 {
+	return &api.AlarmPageSelectV1{
+		Value:  b.Id,
+		Label:  b.Name,
+		Icon:   b.Icon,
+		Color:  b.Color,
+		Status: b.Status,
+		Remark: b.Remark,
+	}
+}
+
+// ListToApiAlarmPageSelectV1 .
+func ListToApiAlarmPageSelectV1(values ...*AlarmPageBO) []*api.AlarmPageSelectV1 {
+	var list []*api.AlarmPageSelectV1
+	for _, v := range values {
+		list = append(list, v.ToApiAlarmPageSelectV1())
+	}
+	return list
+}

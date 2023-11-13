@@ -98,3 +98,18 @@ func strategyGroupBoToDo(b *StrategyGroupBO) *StrategyGroupDO {
 		DeletedAt: b.DeletedAt,
 	}
 }
+
+// ToApiPromGroupSelectV1 .
+func (b *StrategyGroupBO) ToApiPromGroupSelectV1() *api.PromGroupSelectV1 {
+	if b == nil {
+		return nil
+	}
+
+	return &api.PromGroupSelectV1{
+		Value:    b.Id,
+		Label:    b.Name,
+		Category: ListToApiDictSelectV1(b.Categories...),
+		Status:   b.Status,
+		Remark:   b.Remark,
+	}
+}

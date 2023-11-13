@@ -20,6 +20,11 @@ type (
 	}
 )
 
+func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([]*biz.StrategyBO, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategy *biz.StrategyDO) (*biz.StrategyDO, error) {
 	//TODO implement me
 	panic("implement me")

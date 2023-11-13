@@ -489,17 +489,20 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.prom.strategy.DeleteStrategyReply'
     /api/v1/strategy/export:
-        post:
+        get:
             tags:
                 - Strategy
             description: ExportStrategy 导出策略
             operationId: Strategy_ExportStrategy
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.prom.strategy.ExportStrategyRequest'
-                required: true
+            parameters:
+                - name: ids
+                  in: query
+                  description: ids 策略ID列表
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
             responses:
                 "200":
                     description: OK
@@ -1089,9 +1092,10 @@ components:
                     type: string
                     description: label 策略组标签, 对应策略组的name
                 category:
-                    type: integer
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.DictSelectV1'
                     description: category 策略组分类
-                    format: enum
                 status:
                     type: integer
                     description: status 策略组状态
@@ -1111,9 +1115,10 @@ components:
                     type: string
                     description: label 策略标签, 对应策略的alert
                 category:
-                    type: integer
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.DictSelectV1'
                     description: category 策略分类
-                    format: enum
                 status:
                     type: integer
                     description: status 策略状态
@@ -1195,6 +1200,9 @@ components:
                     type: integer
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
+                remark:
+                    type: string
+                    description: remark 策略备注
             description: StrategyV1 策略基础类型
         api.alarm.history.GetHistoryReply:
             type: object
@@ -1780,6 +1788,9 @@ components:
                     type: integer
                     description: alarmLevelId 告警级别ID
                     format: uint32
+                remark:
+                    type: string
+                    description: remark 备注
             description: CreateStrategyRequest 创建策略请求
         api.prom.strategy.DeleteStrategyReply:
             type: object
@@ -1804,17 +1815,10 @@ components:
                     type: string
                     description: file 策略文件
                     format: bytes
+                fileName:
+                    type: string
+                    description: fileName 策略文件名
             description: ExportStrategyReply 导出策略响应
-        api.prom.strategy.ExportStrategyRequest:
-            type: object
-            properties:
-                ids:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-                    description: ids 策略ID列表
-            description: ExportStrategyRequest 导出策略请求
         api.prom.strategy.GetStrategyReply:
             type: object
             properties:
@@ -1943,6 +1947,9 @@ components:
                     type: integer
                     description: alarmLevelId 告警级别ID
                     format: uint32
+                remark:
+                    type: string
+                    description: remark 备注
             description: UpdateStrategyRequest 更新策略请求
         api.prom.strategy.group.BatchDeleteGroupReply:
             type: object
