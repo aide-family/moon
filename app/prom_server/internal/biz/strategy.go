@@ -13,7 +13,7 @@ type (
 		Id          uint32
 		Alert       string
 		Expr        string
-		Duration    int64
+		Duration    string
 		Labels      alert.Labels
 		Annotations alert.Annotations
 		Status      api.Status
@@ -40,7 +40,7 @@ type (
 		Id          uint
 		Alert       string
 		Expr        string
-		Duration    int64
+		Duration    string
 		Labels      string
 		Annotations string
 		Status      int32
@@ -154,4 +154,76 @@ func strategyBoToDo(b *StrategyBO) *StrategyDO {
 		UpdateAt:  time.Unix(b.UpdatedAt, 0),
 		DeletedAt: b.DeletedAt,
 	}
+}
+
+// AlarmPagesToApiAlarmPageSelectV1 告警页面列表转换为api告警页面列表
+func (s *StrategyBO) AlarmPagesToApiAlarmPageSelectV1() []*api.AlarmPageSelectV1 {
+	return ListToApiAlarmPageSelectV1(s.AlarmPages...)
+}
+
+// CategoryInfoToApiDictSelectV1 分类信息转换为api分类列表
+func (s *StrategyBO) CategoryInfoToApiDictSelectV1() []*api.DictSelectV1 {
+	return ListToApiDictSelectV1(s.Categories...)
+}
+
+// ToApiPromStrategyV1 策略转换为api策略
+func (s *StrategyBO) ToApiPromStrategyV1() *api.PromStrategyV1 {
+	if s == nil {
+		return nil
+	}
+	strategyBO := s
+	return &api.PromStrategyV1{
+		Id:           strategyBO.Id,
+		Alert:        strategyBO.Alert,
+		Expr:         strategyBO.Expr,
+		Duration:     strategyBO.Duration,
+		Labels:       strategyBO.Labels,
+		Annotations:  strategyBO.Annotations,
+		Remark:       strategyBO.Remark,
+		Status:       strategyBO.Status,
+		GroupId:      strategyBO.GroupId,
+		AlarmLevelId: strategyBO.AlarmLevelId,
+
+		GroupInfo:      strategyBO.GroupInfo.ToApiPromGroupSelectV1(),
+		AlarmLevelInfo: strategyBO.AlarmLevelInfo.ToApiDictSelectV1(),
+		AlarmPageIds:   strategyBO.AlarmPageIds,
+		AlarmPageInfo:  strategyBO.AlarmPagesToApiAlarmPageSelectV1(),
+		CategoryIds:    strategyBO.CategoryIds,
+		CategoryInfo:   strategyBO.CategoryInfoToApiDictSelectV1(),
+		CreatedAt:      strategyBO.CreatedAt,
+		UpdatedAt:      strategyBO.UpdatedAt,
+		DeletedAt:      strategyBO.DeletedAt,
+	}
+}
+
+// ToApiPromStrategySelectV1 策略转换为api策略
+func (s *StrategyBO) ToApiPromStrategySelectV1() *api.PromStrategySelectV1 {
+	if s == nil {
+		return nil
+	}
+
+	return &api.PromStrategySelectV1{
+		Value:    s.Id,
+		Label:    s.Alert,
+		Category: ListToApiDictSelectV1(s.Categories...),
+		Status:   s.Status,
+	}
+}
+
+// ListToApiPromStrategyV1 策略列表转换为api策略列表
+func ListToApiPromStrategyV1(values ...*StrategyBO) []*api.PromStrategyV1 {
+	list := make([]*api.PromStrategyV1, 0, len(values))
+	for _, v := range values {
+		list = append(list, v.ToApiPromStrategyV1())
+	}
+	return list
+}
+
+// ListToApiPromStrategySelectV1 策略列表转换为api策略列表
+func ListToApiPromStrategySelectV1(values ...*StrategyBO) []*api.PromStrategySelectV1 {
+	list := make([]*api.PromStrategySelectV1, 0, len(values))
+	for _, v := range values {
+		list = append(list, v.ToApiPromStrategySelectV1())
+	}
+	return list
 }

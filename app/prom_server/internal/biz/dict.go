@@ -84,3 +84,24 @@ func dictBoToDo(b *DictBO) *DictDO {
 		UpdatedAt: time.Unix(b.UpdatedAt, 0),
 	}
 }
+
+// ToApiDictSelectV1 转换为api字典查询对象
+func (b *DictBO) ToApiDictSelectV1() *api.DictSelectV1 {
+	return &api.DictSelectV1{
+		Value:     b.Id,
+		Label:     b.Name,
+		Category:  b.Category,
+		Color:     b.Color,
+		Status:    b.Status,
+		Remark:    b.Remark,
+		IsDeleted: b.DeletedAt > 0,
+	}
+}
+
+func ListToApiDictSelectV1(values ...*DictBO) []*api.DictSelectV1 {
+	list := make([]*api.DictSelectV1, 0, len(values))
+	for _, v := range values {
+		list = append(list, v.ToApiDictSelectV1())
+	}
+	return list
+}
