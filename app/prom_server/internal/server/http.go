@@ -2,7 +2,9 @@ package server
 
 import (
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
+	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
@@ -49,7 +51,8 @@ func NewHTTPServer(
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
-			selector.Server(helper.JwtServer()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
+			logging.Server(logger),
+			selector.Server(helper.JwtServer(), validate.Validator()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
 		),
 	}
 	if c.Http.Network != "" {
