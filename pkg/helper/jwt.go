@@ -21,6 +21,10 @@ var (
 	secret = []byte("secret")
 )
 
+var (
+	ErrTokenInvalid = jwt.ErrTokenInvalid
+)
+
 // WithSecret set secret
 func WithSecret(s []byte) {
 	secret = s

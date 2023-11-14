@@ -26,9 +26,20 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	}
 	return &pb.LoginReply{Token: token}, nil
 }
+
 func (s *AuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutReply, error) {
 	return &pb.LogoutReply{}, nil
 }
+
 func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
-	return &pb.RefreshTokenReply{}, nil
+	authClaims, ok := helper.GetAuthClaims(ctx)
+	if !ok {
+		return nil, helper.ErrTokenInvalid
+	}
+
+	token, err := helper.IssueToken(authClaims.ID, authClaims.Role)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.RefreshTokenReply{Token: token}, nil
 }
