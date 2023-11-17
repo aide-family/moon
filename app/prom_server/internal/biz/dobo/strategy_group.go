@@ -1,9 +1,10 @@
-package biz
+package dobo
 
 import (
 	"time"
 
 	"prometheus-manager/api"
+	"prometheus-manager/pkg/model"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -111,5 +112,31 @@ func (b *StrategyGroupBO) ToApiPromGroupSelectV1() *api.PromGroupSelectV1 {
 		Category: ListToApiDictSelectV1(b.Categories...),
 		Status:   b.Status,
 		Remark:   b.Remark,
+	}
+}
+
+// StrategyGroupModelToDO .
+func StrategyGroupModelToDO(m *model.PromGroup) *StrategyGroupDO {
+	return &StrategyGroupDO{
+		Id:            0,
+		Name:          m.Name,
+		Remark:        m.Remark,
+		Status:        m.Status,
+		StrategyCount: m.StrategyCount,
+		CategoryIds: slices.To(m.Categories, func(t *model.PromDict) uint {
+			if t == nil {
+				return 0
+			}
+			return t.ID
+		}),
+		Categories: slices.To(m.Categories, func(t *model.PromDict) *DictDO {
+			if t == nil {
+				return nil
+			}
+			return DictModelToDO(t)
+		}),
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeletedAt: int64(m.DeletedAt),
 	}
 }

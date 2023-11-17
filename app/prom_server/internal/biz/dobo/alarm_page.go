@@ -1,9 +1,10 @@
-package biz
+package dobo
 
 import (
 	"time"
 
 	"prometheus-manager/api"
+	"prometheus-manager/pkg/model"
 )
 
 type (
@@ -107,4 +108,32 @@ func ListToApiAlarmPageSelectV1(values ...*AlarmPageBO) []*api.AlarmPageSelectV1
 		list = append(list, v.ToApiAlarmPageSelectV1())
 	}
 	return list
+}
+
+// PageDoToModel .
+func PageDoToModel(do *AlarmPageDO) *model.PromAlarmPage {
+	if do == nil {
+		return nil
+	}
+	return &model.PromAlarmPage{
+		Name:   do.Name,
+		Remark: do.Remark,
+		Icon:   do.Icon,
+		Color:  do.Color,
+		Status: do.Status,
+	}
+}
+
+// PageModelToDO .
+func PageModelToDO(m *model.PromAlarmPage) *AlarmPageDO {
+	if m == nil {
+		return nil
+	}
+	return &AlarmPageDO{
+		Name:   m.Name,
+		Remark: m.Remark,
+		Icon:   m.Icon,
+		Color:  m.Color,
+		Status: m.Status,
+	}
 }

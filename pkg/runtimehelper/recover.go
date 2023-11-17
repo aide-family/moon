@@ -4,10 +4,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-func Recover(module string) {
+type (
+	RecoverCallback func(log *log.Helper, err error)
+)
+
+func Recover(logHelper *log.Helper, calls ...RecoverCallback) {
 	if err := recover(); err != nil {
-		log.Errorf("module: %s, error: %v", module, err)
-		// TOOD 发送告警信息到通知中心
-		// 记录panic日志
+		logHelper.Errorf("module: %s, error: %v", err)
+		for _, call := range calls {
+			call(logHelper, err.(error))
+		}
 	}
 }

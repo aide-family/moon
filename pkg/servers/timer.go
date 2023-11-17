@@ -22,7 +22,7 @@ func (l *Timer) Start(ctx context.Context) error {
 	l.logger.Info("[Timer] server starting")
 	// 根据ticker的时间间隔，定时执行call
 	go func() {
-		defer runtimehelper.Recover("[Timer] server")
+		defer runtimehelper.Recover(l.logger, "[Timer] server")
 		for {
 			select {
 			case <-ctx.Done():

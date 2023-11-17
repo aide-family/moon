@@ -1,15 +1,15 @@
 package data
 
 import (
-	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/conf"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+	"gorm.io/gorm"
+
+	"prometheus-manager/app/prom_server/internal/conf"
 )
 
 // ProviderSetData is data providers.
-var ProviderSetData = wire.NewSet(NewData, NewPingRepo)
+var ProviderSetData = wire.NewSet(NewData)
 
 // Data .
 type Data struct {

@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/history"
-	"prometheus-manager/app/prom_server/internal/biz/alarmbiz"
+	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type HistoryService struct {
@@ -14,10 +14,10 @@ type HistoryService struct {
 
 	log *log.Helper
 
-	historyBiz *alarmbiz.HistoryBiz
+	historyBiz *biz.HistoryBiz
 }
 
-func NewHistoryService(historyBiz *alarmbiz.HistoryBiz, logger log.Logger) *HistoryService {
+func NewHistoryService(historyBiz *biz.HistoryBiz, logger log.Logger) *HistoryService {
 	return &HistoryService{
 		log:        log.NewHelper(log.With(logger, "module", "service.alarm.history")),
 		historyBiz: historyBiz,

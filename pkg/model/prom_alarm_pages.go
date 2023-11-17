@@ -13,7 +13,7 @@ type PromAlarmPage struct {
 	Remark         string              `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`                               // 描述信息
 	Icon           string              `gorm:"column:icon;type:varchar(1024);not null;comment:图表" json:"icon"`                                    // 图表
 	Color          string              `gorm:"column:color;type:varchar(64);not null;comment:tab颜色" json:"color"`                                 // tab颜色
-	Status         Status              `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态,1启用;2禁用" json:"status"`                  // 启用状态,1启用;2禁用
+	Status         int32               `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态,1启用;2禁用" json:"status"`                  // 启用状态,1启用;2禁用
 	PromStrategies []*PromStrategy     `gorm:"References:ID;foreignKey:ID;joinForeignKey:AlarmPageID;joinReferences:PromStrategyID;many2many:prom_strategy_alarm_pages" json:"prom_strategies"`
 	Histories      []*PromAlarmHistory `gorm:"References:ID;foreignKey:ID;joinForeignKey:AlarmPageID;joinReferences:HistoryID;many2many:prom_alarm_page_histories" json:"histories"`
 }

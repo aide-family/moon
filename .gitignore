@@ -43,3 +43,4 @@ bin/
 **/*_test.db
 api/**/*.go
 **/**.pb.go
+**/cmd/**/**_gen.go

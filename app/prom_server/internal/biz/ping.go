@@ -4,31 +4,23 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
-// Ping is a Ping model.
-type Ping struct {
-	Hello string
-}
-
-// PingRepo is a Greater repo.
-type PingRepo interface {
-	Ping(ctx context.Context, g *Ping) (*Ping, error)
-}
-
-// PingUseCase is a Ping useCase.
-type PingUseCase struct {
-	repo PingRepo
+// PingBiz is a Ping useCase.
+type PingBiz struct {
+	repo repository.PingRepo
 	log  *log.Helper
 }
 
-// NewPingUseCase new a Ping useCase.
-func NewPingUseCase(repo PingRepo, logger log.Logger) *PingUseCase {
-	return &PingUseCase{repo: repo, log: log.NewHelper(logger)}
+// NewPingRepo new a Ping useCase.
+func NewPingRepo(repo repository.PingRepo, logger log.Logger) *PingBiz {
+	return &PingBiz{repo: repo, log: log.NewHelper(logger)}
 }
 
 // Ping creates a Ping, and returns the new Ping.
-func (l *PingUseCase) Ping(ctx context.Context, g *Ping) (*Ping, error) {
+func (l *PingBiz) Ping(ctx context.Context, g *dobo.Ping) (*dobo.Ping, error) {
 	l.log.WithContext(ctx).Infof("CreatePing: %v", g.Hello)
 	return l.repo.Ping(ctx, g)
 }
