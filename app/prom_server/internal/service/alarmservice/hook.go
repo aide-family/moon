@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/alarm/hook"
-	"prometheus-manager/app/prom_server/internal/biz/alarmbiz"
+	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type HookService struct {
@@ -13,10 +13,10 @@ type HookService struct {
 
 	log *log.Helper
 
-	historyBiz *alarmbiz.HistoryBiz
+	historyBiz *biz.HistoryBiz
 }
 
-func NewHookService(historyBiz *alarmbiz.HistoryBiz, logger log.Logger) *HookService {
+func NewHookService(historyBiz *biz.HistoryBiz, logger log.Logger) *HookService {
 	return &HookService{
 		log:        log.NewHelper(log.With(logger, "module", "service.alarm.hook")),
 		historyBiz: historyBiz,

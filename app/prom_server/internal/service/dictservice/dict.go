@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/dict"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dictbiz"
+	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -16,10 +16,10 @@ type Service struct {
 
 	log *log.Helper
 
-	dictBiz *dictbiz.Biz
+	dictBiz *biz.DictBiz
 }
 
-func NewDictService(dictBiz *dictbiz.Biz, logger log.Logger) *Service {
+func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
 	return &Service{
 		log:     log.NewHelper(log.With(logger, "module", "service.Service")),
 		dictBiz: dictBiz,
@@ -27,7 +27,7 @@ func NewDictService(dictBiz *dictbiz.Biz, logger log.Logger) *Service {
 }
 
 func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
-	dictBo := &biz.DictBO{
+	dictBo := &dobo.DictBO{
 		Name:     req.GetName(),
 		Category: req.GetCategory(),
 		Remark:   req.GetRemark(),
@@ -42,7 +42,7 @@ func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*p
 }
 
 func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*pb.UpdateDictReply, error) {
-	dictBo := &biz.DictBO{
+	dictBo := &dobo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
 		Category: req.GetCategory(),

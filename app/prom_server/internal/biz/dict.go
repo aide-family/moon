@@ -1,107 +1,103 @@
 package biz
 
 import (
-	"time"
+	"context"
+
+	query "github.com/aide-cloud/gorm-normalize"
+	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 
 	"prometheus-manager/api"
+	dictpb "prometheus-manager/api/dict"
+	"prometheus-manager/pkg/model/dict"
 )
 
 type (
-	DictBO struct {
-		Id        uint32
-		Name      string
-		Category  api.Category
-		Status    api.Status
-		Remark    string
-		Color     string
-		CreatedAt int64
-		UpdatedAt int64
-		DeletedAt int64
-	}
+	DictBiz struct {
+		log *log.Helper
 
-	DictDO struct {
-		Id        uint
-		Name      string
-		Category  int32
-		Status    int32
-		Remark    string
-		Color     string
-		CreatedAt time.Time
-		UpdatedAt time.Time
-		DeletedAt int64
+		dictRepo repository.PromDictRepo
 	}
 )
 
-// NewDictBO 创建字典业务对象
-func NewDictBO(values ...*DictBO) IBO[*DictBO, *DictDO] {
-	return NewBO[*DictBO, *DictDO](
-		BOWithValues[*DictBO, *DictDO](values...),
-		BOWithDToB[*DictBO, *DictDO](dictDoToBo),
-		BOWithBToD[*DictBO, *DictDO](dictBoToDo),
-	)
-}
-
-// NewDictDO 创建字典数据对象
-func NewDictDO(values ...*DictDO) IDO[*DictBO, *DictDO] {
-	return NewDO[*DictBO, *DictDO](
-		DOWithValues[*DictBO, *DictDO](values...),
-		DOWithBToD[*DictBO, *DictDO](dictBoToDo),
-		DOWithDToB[*DictBO, *DictDO](dictDoToBo),
-	)
-}
-
-// dictDoToBo 字典数据对象转换为字典业务对象
-func dictDoToBo(d *DictDO) *DictBO {
-	if d == nil {
-		return nil
-	}
-	return &DictBO{
-		Id:        uint32(d.Id),
-		Name:      d.Name,
-		Category:  api.Category(d.Category),
-		Status:    api.Status(d.Status),
-		Remark:    d.Remark,
-		Color:     d.Color,
-		CreatedAt: d.CreatedAt.Unix(),
-		UpdatedAt: d.UpdatedAt.Unix(),
-		DeletedAt: d.DeletedAt,
+// NewDictBiz 实例化字典业务
+func NewDictBiz(dictRepo repository.PromDictRepo, logger log.Logger) *DictBiz {
+	return &DictBiz{
+		log:      log.NewHelper(log.With(logger, "module", "biz.dict")),
+		dictRepo: dictRepo,
 	}
 }
 
-// dictBoToDo 字典业务对象转换为字典数据对象
-func dictBoToDo(b *DictBO) *DictDO {
-	if b == nil {
-		return nil
+// CreateDict 创建字典
+func (b *DictBiz) CreateDict(ctx context.Context, dict *dobo.DictBO) (*dobo.DictBO, error) {
+	newDictBO, err := b.dictRepo.CreateDict(ctx, dobo.NewDictBO(dict).DO().First())
+	if err != nil {
+		return nil, err
 	}
-	return &DictDO{
-		Id:        uint(b.Id),
-		Name:      b.Name,
-		Category:  int32(b.Category),
-		Status:    int32(b.Status),
-		Remark:    b.Remark,
-		Color:     b.Color,
-		CreatedAt: time.Unix(b.CreatedAt, 0),
-		UpdatedAt: time.Unix(b.UpdatedAt, 0),
-	}
+	return dobo.NewDictDO(newDictBO).BO().First(), nil
 }
 
-// ToApiDictSelectV1 转换为api字典查询对象
-func (b *DictBO) ToApiDictSelectV1() *api.DictSelectV1 {
-	return &api.DictSelectV1{
-		Value:     b.Id,
-		Label:     b.Name,
-		Category:  b.Category,
-		Color:     b.Color,
-		Status:    b.Status,
-		Remark:    b.Remark,
-		IsDeleted: b.DeletedAt > 0,
+// UpdateDict 更新字典
+func (b *DictBiz) UpdateDict(ctx context.Context, dict *dobo.DictBO) (*dobo.DictBO, error) {
+	newDictDO, err := b.dictRepo.UpdateDictById(ctx, uint(dict.Id), dobo.NewDictBO(dict).DO().First())
+	if err != nil {
+		return nil, err
 	}
+	return dobo.NewDictDO(newDictDO).BO().First(), nil
 }
 
-func ListToApiDictSelectV1(values ...*DictBO) []*api.DictSelectV1 {
-	list := make([]*api.DictSelectV1, 0, len(values))
-	for _, v := range values {
-		list = append(list, v.ToApiDictSelectV1())
+// BatchUpdateDictStatus 批量更新字典状态
+func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint) error {
+	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, int32(status), ids)
+}
+
+// DeleteDictByIds 删除字典
+func (b *DictBiz) DeleteDictByIds(ctx context.Context, id ...uint) error {
+	return b.dictRepo.DeleteDictByIds(ctx, id...)
+}
+
+// GetDictById 获取字典详情
+func (b *DictBiz) GetDictById(ctx context.Context, id uint) (*dobo.DictBO, error) {
+	dictDetail, err := b.dictRepo.GetDictById(ctx, id)
+	if err != nil {
+		return nil, err
 	}
-	return list
+	return dobo.NewDictDO(dictDetail).BO().First(), nil
+}
+
+// ListDict 获取字典列表
+func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*dobo.DictBO, *query.Page, error) {
+	pageReq := req.GetPage()
+	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
+
+	wheres := []query.ScopeMethod{
+		dict.WhereCategory(int32(req.GetCategory())),
+		dict.LikeName(req.GetKeyword()),
+		dict.WithTrashed(req.GetIsDeleted()),
+	}
+
+	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
+	if err != nil {
+		return nil, nil, err
+	}
+	return dobo.NewDictDO(dictList...).BO().List(), pgInfo, nil
+}
+
+// SelectDict 获取字典列表
+func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*dobo.DictBO, *query.Page, error) {
+	pageReq := req.GetPage()
+	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
+
+	wheres := []query.ScopeMethod{
+		dict.WhereCategory(int32(req.GetCategory())),
+		dict.LikeName(req.GetKeyword()),
+		dict.WithTrashed(req.GetIsDeleted()),
+	}
+
+	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
+	if err != nil {
+		return nil, nil, err
+	}
+	return dobo.NewDictDO(dictList...).BO().List(), pgInfo, nil
 }

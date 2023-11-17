@@ -9,12 +9,9 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/alarmbiz"
-	"prometheus-manager/app/prom_server/internal/biz/dictbiz"
-	"prometheus-manager/app/prom_server/internal/biz/prombiz"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/app/prom_server/internal/data/repository"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple"
 	"prometheus-manager/app/prom_server/internal/server"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
@@ -30,7 +27,6 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		ProviderSetCore,
 		server.ProviderSetServer,
 		data.ProviderSetData,
-		biz.ProviderSetBiz,
 		service.ProviderSetService,
 		conf.ProviderSetConf,
 		plog.ProviderSetPlog,
@@ -38,10 +34,8 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		promservice.ProviderSetProm,
 		alarmservice.ProviderSetAlarm,
 		authservice.ProviderSetAuthService,
-		dictbiz.ProviderSetDictBiz,
-		prombiz.ProviderSetPromBiz,
-		alarmbiz.ProviderSetAlarmBiz,
-		repository.ProviderSetRepository,
+		biz.ProviderSetBiz,
+		repositiryimple.ProviderSetRepository,
 		newApp,
 	))
 }

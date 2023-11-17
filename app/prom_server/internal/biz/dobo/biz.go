@@ -1,9 +1,4 @@
-package biz
-
-import "github.com/google/wire"
-
-// ProviderSetBiz is biz providers.
-var ProviderSetBiz = wire.NewSet(NewPingUseCase)
+package dobo
 
 type (
 	IBO[B, D any] interface {
