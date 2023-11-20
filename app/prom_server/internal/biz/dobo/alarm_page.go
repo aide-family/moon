@@ -110,8 +110,8 @@ func ListToApiAlarmPageSelectV1(values ...*AlarmPageBO) []*api.AlarmPageSelectV1
 	return list
 }
 
-// PageDoToModel .
-func PageDoToModel(do *AlarmPageDO) *model.PromAlarmPage {
+// PageDOToModel .
+func PageDOToModel(do *AlarmPageDO) *model.PromAlarmPage {
 	if do == nil {
 		return nil
 	}

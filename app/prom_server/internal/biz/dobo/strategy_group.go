@@ -3,6 +3,8 @@ package dobo
 import (
 	"time"
 
+	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/model"
 	"prometheus-manager/pkg/util/slices"
@@ -115,8 +117,32 @@ func (b *StrategyGroupBO) ToApiPromGroupSelectV1() *api.PromGroupSelectV1 {
 	}
 }
 
+// ToApiPromPromGroup .
+func (b *StrategyGroupBO) ToApiPromPromGroup() *api.PromGroup {
+	if b == nil {
+		return nil
+	}
+
+	return &api.PromGroup{
+		Id:   b.Id,
+		Name: b.Name,
+		Categories: slices.To(b.Categories, func(t *DictBO) *api.DictSelectV1 {
+			return t.ToApiDictSelectV1()
+		}),
+		Status:        b.Status,
+		Remark:        b.Remark,
+		CreatedAt:     b.CreatedAt,
+		UpdatedAt:     b.UpdatedAt,
+		DeletedAt:     b.DeletedAt,
+		StrategyCount: b.StrategyCount,
+	}
+}
+
 // StrategyGroupModelToDO .
 func StrategyGroupModelToDO(m *model.PromGroup) *StrategyGroupDO {
+	if m == nil {
+		return nil
+	}
 	return &StrategyGroupDO{
 		Id:            0,
 		Name:          m.Name,
@@ -138,5 +164,31 @@ func StrategyGroupModelToDO(m *model.PromGroup) *StrategyGroupDO {
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 		DeletedAt: int64(m.DeletedAt),
+	}
+}
+
+// StrategyGroupDOToModel .
+func StrategyGroupDOToModel(d *StrategyGroupDO) *model.PromGroup {
+	if d == nil {
+		return nil
+	}
+	return &model.PromGroup{
+		BaseModel: query.BaseModel{
+			ID:        d.Id,
+			CreatedAt: d.CreatedAt,
+			UpdatedAt: d.UpdatedAt,
+			DeletedAt: soft_delete.DeletedAt(d.DeletedAt),
+		},
+		Name:           d.Name,
+		StrategyCount:  d.StrategyCount,
+		Status:         d.Status,
+		Remark:         d.Remark,
+		PromStrategies: nil,
+		Categories: slices.To(d.Categories, func(u *DictDO) *model.PromDict {
+			if u == nil {
+				return nil
+			}
+			return DictDOToModel(u)
+		}),
 	}
 }

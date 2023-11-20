@@ -1108,8 +1108,7 @@ components:
                 categories:
                     type: array
                     items:
-                        type: integer
-                        format: enum
+                        $ref: '#/components/schemas/api.DictSelectV1'
                     description: category 策略组分类
                 status:
                     type: integer
@@ -1133,7 +1132,7 @@ components:
                 strategyCount:
                     type: integer
                     description: strategyCount 策略数量
-                    format: uint32
+                    format: int64
             description: PromGroup 策略组基础类型
         api.PromGroupSelectV1:
             type: object
@@ -2080,6 +2079,10 @@ components:
                         type: integer
                         format: uint32
                     description: ids 策略组ID列表
+                status:
+                    type: integer
+                    description: status 策略组状态
+                    format: enum
             description: BatchUpdateGroupStatusRequest 批量更新策略组状态请求
         api.prom.strategy.group.CreateGroupReply:
             type: object
@@ -2095,10 +2098,12 @@ components:
                 name:
                     type: string
                     description: name 策略组名称
-                category:
-                    type: integer
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
                     description: category 策略组分类
-                    format: enum
                 remark:
                     type: string
                     description: remark 策略组备注
@@ -2251,10 +2256,12 @@ components:
                 name:
                     type: string
                     description: name 策略组名称
-                category:
-                    type: integer
+                categoryIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
                     description: category 策略组分类
-                    format: enum
                 remark:
                     type: string
                     description: remark 策略组备注
