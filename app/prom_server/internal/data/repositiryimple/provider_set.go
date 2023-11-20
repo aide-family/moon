@@ -2,6 +2,7 @@ package repositiryimple
 
 import (
 	"github.com/google/wire"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/strategygroup"
 
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmhistory"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmpage"
@@ -17,4 +18,5 @@ var ProviderSetRepository = wire.NewSet(
 	strategy.NewStrategyRepo,
 	alarmpage.NewAlarmPageRepo,
 	alarmhistory.NewAlarmHistoryRepo,
+	strategygroup.NewStrategyGroupRepo,
 )

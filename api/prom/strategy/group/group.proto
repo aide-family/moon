@@ -103,7 +103,9 @@ message CreateGroupRequest {
     pattern: "^[a-zA-Z0-9_]+$"
   }];
   // category 策略组分类
-  Category category = 2 [(validate.rules).enum.defined_only = true];
+  repeated uint32 categoryIds = 2 [(validate.rules).repeated.items = {
+    uint32: {gt: 0},
+  }];
   // remark 策略组备注
   string remark = 3 [(validate.rules).string.max_len = 255];
 }
@@ -124,7 +126,9 @@ message UpdateGroupRequest {
     pattern: "^[a-zA-Z0-9_]+$"
   }];
   // category 策略组分类
-  Category category = 3 [(validate.rules).enum.defined_only = true];
+  repeated uint32 categoryIds = 3 [(validate.rules).repeated.items = {
+    uint32: {gt: 0},
+  }];
   // remark 策略组备注
   string remark = 4 [(validate.rules).string.max_len = 255];
 }
@@ -145,6 +149,8 @@ message BatchUpdateGroupStatusRequest {
       uint32: {gt: 0}
     }
   }];
+  // status 策略组状态
+  Status status = 2 [(validate.rules).enum = {defined_only: true}];
 }
 // BatchUpdateGroupStatusReply 批量更新策略组状态回复
 message BatchUpdateGroupStatusReply {

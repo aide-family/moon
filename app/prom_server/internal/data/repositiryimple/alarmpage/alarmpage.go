@@ -22,7 +22,7 @@ type alarmPageRepoImpl struct {
 }
 
 func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageDo *dobo.AlarmPageDO) (*dobo.AlarmPageDO, error) {
-	newModel := dobo.PageDoToModel(pageDo)
+	newModel := dobo.PageDOToModel(pageDo)
 	if err := l.WithContext(ctx).Create(newModel); err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageDo *dobo.AlarmPa
 }
 
 func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint, pageDo *dobo.AlarmPageDO) (*dobo.AlarmPageDO, error) {
-	newModel := dobo.PageDoToModel(pageDo)
+	newModel := dobo.PageDOToModel(pageDo)
 	if err := l.WithContext(ctx).UpdateByID(id, newModel); err != nil {
 		return nil, err
 	}

@@ -3,6 +3,8 @@ package dobo
 import (
 	"time"
 
+	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/alert"
 	"prometheus-manager/pkg/model"
@@ -274,5 +276,43 @@ func StrategyModelToDO(m *model.PromStrategy) *StrategyDO {
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 		DeletedAt: int64(m.DeletedAt),
+	}
+}
+
+// StrategyDOTOModel .
+func StrategyDOTOModel(d *StrategyDO) *model.PromStrategy {
+	if d == nil {
+		return nil
+	}
+	return &model.PromStrategy{
+		BaseModel: query.BaseModel{
+			ID:        d.Id,
+			DeletedAt: soft_delete.DeletedAt(d.DeletedAt),
+			UpdatedAt: d.UpdatedAt,
+			CreatedAt: d.CreatedAt,
+		},
+		GroupID:      d.GroupId,
+		Alert:        d.Alert,
+		Expr:         d.Expr,
+		For:          d.Duration,
+		Labels:       d.Labels,
+		Annotations:  d.Annotations,
+		AlertLevelID: d.AlarmLevelId,
+		Status:       d.Status,
+		Remark:       d.Remark,
+		AlarmPages: slices.To(d.AlarmPages, func(alarmPageInfo *AlarmPageDO) *model.PromAlarmPage {
+			if alarmPageInfo == nil {
+				return nil
+			}
+			return PageDOToModel(alarmPageInfo)
+		}),
+		Categories: slices.To(d.Categories, func(dictInfo *DictDO) *model.PromDict {
+			if dictInfo == nil {
+				return nil
+			}
+			return DictDOToModel(dictInfo)
+		}),
+		AlertLevel: DictDOToModel(d.AlarmLevelInfo),
+		GroupInfo:  StrategyGroupDOToModel(d.GroupInfo),
 	}
 }

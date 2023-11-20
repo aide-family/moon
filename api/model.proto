@@ -209,7 +209,7 @@ message PromGroup {
 	// name 策略组名称
 	string name = 2;
 	// category 策略组分类
-	repeated Category categories = 3;
+	repeated DictSelectV1 categories = 3;
 	// status 策略组状态
 	Status status = 4;
 	// remark 策略组备注
@@ -221,7 +221,7 @@ message PromGroup {
 	// deletedAt 删除时间, unix时间戳
 	int64 deletedAt = 8;
 	// strategyCount 策略数量
-	uint32 strategyCount = 9;
+	int64 strategyCount = 9;
 }
 
 // PromGroupSelectV1 策略组选择类型

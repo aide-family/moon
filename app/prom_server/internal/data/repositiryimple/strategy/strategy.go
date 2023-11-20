@@ -5,10 +5,12 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/model/strategy"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	data2 "prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/model"
 )
 
@@ -18,7 +20,7 @@ type (
 	strategyRepoImpl struct {
 		query.IAction[model.PromStrategy]
 
-		data *data2.Data
+		data *data.Data
 		log  *log.Helper
 	}
 )
@@ -37,36 +39,58 @@ func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([
 }
 
 func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategy *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	//TODO implement me
-	panic("implement me")
+	newStrategy := dobo.StrategyDOTOModel(strategy)
+	if err := l.WithContext(ctx).Create(newStrategy); err != nil {
+		return nil, err
+	}
+	return dobo.StrategyModelToDO(newStrategy), nil
 }
 
 func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategy *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	//TODO implement me
-	panic("implement me")
+	newStrategy := dobo.StrategyDOTOModel(strategy)
+	if err := l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
+		return nil, err
+	}
+	return dobo.StrategyModelToDO(newStrategy), nil
 }
 
 func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status int32, ids []uint) error {
-	//TODO implement me
-	panic("implement me")
+	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategy.InIds(ids)); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint) error {
-	//TODO implement me
-	panic("implement me")
+	if err := l.WithContext(ctx).Delete(strategy.InIds(id)); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint) (*dobo.StrategyDO, error) {
-	//TODO implement me
-	panic("implement me")
+	firstStrategy, err := l.WithContext(ctx).FirstByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return dobo.StrategyModelToDO(firstStrategy), nil
 }
 
 func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.StrategyDO, error) {
-	//TODO implement me
-	panic("implement me")
+	listStrategy, err := l.WithContext(ctx).List(pgInfo, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	list := slices.To(listStrategy, func(i *model.PromStrategy) *dobo.StrategyDO {
+		if i == nil {
+			return nil
+		}
+		return dobo.StrategyModelToDO(i)
+	})
+	return list, nil
 }
 
-func NewStrategyRepo(data *data2.Data, logger log.Logger) repository.StrategyRepo {
+func NewStrategyRepo(data *data.Data, logger log.Logger) repository.StrategyRepo {
 	return &strategyRepoImpl{
 		data: data,
 		log:  log.NewHelper(logger),
