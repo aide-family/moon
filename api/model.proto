@@ -101,9 +101,17 @@ message AlarmHistoryV1 {
 	// alarmName 报警名称
 	string alarmName = 3;
 	// alarmLevel 报警级别
-	string alarmLevel = 4;
+	DictSelectV1 alarmLevel = 4;
 	// alarmStatus 报警状态
 	string alarmStatus = 5;
+	// labels 报警标签
+	map<string, string> labels = 6;
+	// annotations 报警注解
+	map<string, string> annotations = 7;
+	// startAt 开始时间, unix时间戳
+	int64 startAt = 8;
+	// endAt 结束时间, unix时间戳
+	int64 endAt = 9;
 }
 
 // DictV1 字典基础类型
@@ -236,4 +244,71 @@ message PromGroupSelectV1 {
 	Status status = 4;
 	// remark 策略组备注
 	string remark = 5;
+}
+
+// AlarmData 告警数据基础类型
+/*
+Data struct {
+		Receiver          string            `json:"receiver"`
+		Status            string            `json:"status"`
+		Alerts            []*Alert          `json:"alerts"`
+		GroupLabels       GroupLabels       `json:"groupLabels"`
+		CommonLabels      CommonLabels      `json:"commonLabels"`
+		CommonAnnotations CommonAnnotations `json:"commonAnnotations"`
+		ExternalURL       string            `json:"externalURL"`
+		Version           string            `json:"version"`
+		GroupKey          string            `json:"groupKey"`
+		TruncatedAlerts   int32             `json:"truncatedAlerts"`
+	}
+ */
+message AlarmData {
+	// receiver 接收者
+	string receiver = 1;
+	// status 状态
+	string status = 2;
+	// alerts 报警列表
+	repeated Alert alerts = 3;
+	// groupLabels 组标签
+	map<string, string> groupLabels = 4;
+	// commonLabels 公共标签
+	map<string, string> commonLabels = 5;
+	// commonAnnotations 公共注解
+	map<string, string> commonAnnotations = 6;
+	// externalURL 外部链接
+	string externalURL = 7;
+	// version 版本
+	string version = 8;
+	// groupKey 组键
+	string groupKey = 9;
+	// truncatedAlerts 被截断的告警数量
+	int32 truncatedAlerts = 10;
+}
+
+// Alert 告警基础类型
+/**
+Alert struct {
+		Status       string      `json:"status"`
+		Labels       Labels      `json:"labels"`
+		Annotations  Annotations `json:"annotations"`
+		StartsAt     int64       `json:"startsAt"`
+		EndsAt       int64       `json:"endsAt"`
+		GeneratorURL string      `json:"generatorURL"`
+		Fingerprint  string      `json:"fingerprint"`
+	}
+ */
+message Alert {
+	// status 状态
+	string status = 1;
+	// labels 标签
+	map<string, string> labels = 2;
+	// annotations 注解
+	map<string, string> annotations = 3;
+	// startsAt 开始时间, unix时间戳
+	int64 startsAt = 4;
+	// endsAt 结束时间, unix时间戳
+	int64 endsAt = 5;
+	// generatorURL 生成页面链接
+	string generatorURL = 6;
+	// fingerprint 指纹
+	string fingerprint = 7;
 }
