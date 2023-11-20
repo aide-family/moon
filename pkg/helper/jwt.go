@@ -2,12 +2,16 @@ package helper
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
+	"github.com/redis/go-redis/v9"
+
+	"prometheus-manager/pkg/util/hash"
 )
 
 // AuthClaims jwt claims
@@ -25,9 +29,31 @@ var (
 	ErrTokenInvalid = jwt.ErrTokenInvalid
 )
 
-// WithSecret set secret
-func WithSecret(s []byte) {
+func (l *AuthClaims) MD5() string {
+	return hash.MD5(l.String())
+}
+
+func (l *AuthClaims) String() string {
+	if l == nil {
+		return "{}"
+	}
+	jsonByte, _ := json.Marshal(l)
+	return string(jsonByte)
+}
+
+// SetSecret set secret
+func SetSecret(s []byte) {
 	secret = s
+}
+
+// Expire 把token过期掉
+func Expire(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims) error {
+	timeUnix := authClaims.ExpiresAt.Time.Unix()
+	if timeUnix <= time.Now().Unix() {
+		return nil
+	}
+
+	return rdsClient.Set(ctx, authClaims.MD5(), authClaims.String(), time.Duration(timeUnix-time.Now().Unix())).Err()
 }
 
 // GetAuthClaims get auth claims

@@ -20,14 +20,24 @@ func NewAuthService(logger log.Logger) *AuthService {
 }
 
 func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
-	token, err := helper.IssueToken(1, "admin")
+	// 颁发token, 时间建议设置为半天以内
+	token, err := helper.IssueToken(1, "admin") //
 	if err != nil {
 		return nil, err
 	}
 	return &pb.LoginReply{Token: token}, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutReply, error) {
+func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
+	authClaims, ok := helper.GetAuthClaims(ctx)
+	if !ok {
+		return nil, helper.ErrTokenInvalid
+	}
+	// 记录token md5然后存储到redis
+	if err := helper.Expire(ctx, nil, authClaims); err != nil {
+		return nil, err
+	}
+
 	return &pb.LogoutReply{}, nil
 }
 
