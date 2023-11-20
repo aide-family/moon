@@ -3,7 +3,8 @@ package data
 import (
 	"context"
 
-	"prometheus-manager/app/demo/internal/biz"
+	"prometheus-manager/app/demo/internal/biz/dobo"
+	"prometheus-manager/app/demo/internal/biz/repository"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -13,14 +14,14 @@ type PingRepo struct {
 	log  *log.Helper
 }
 
-func (l *PingRepo) Ping(ctx context.Context, g *biz.Ping) (*biz.Ping, error) {
-	return &biz.Ping{Hello: "world"}, nil
+func (l *PingRepo) Ping(ctx context.Context, g *dobo.Ping) (*dobo.Ping, error) {
+	return &dobo.Ping{Hello: "world"}, nil
 }
 
 // NewPingRepo .
-func NewPingRepo(data *Data, logger log.Logger) biz.PingRepo {
+func NewPingRepo(data *Data, logger log.Logger) repository.PingRepo {
 	return &PingRepo{
 		data: data,
-		log:  log.NewHelper(log.With(logger, "module", "data/Ping")),
+		log:  log.NewHelper(log.With(logger, "module", "data.Ping")),
 	}
 }
