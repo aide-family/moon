@@ -923,11 +923,28 @@ components:
                     type: string
                     description: alarmName 报警名称
                 alarmLevel:
-                    type: string
-                    description: alarmLevel 报警级别
+                    $ref: '#/components/schemas/api.DictSelectV1'
                 alarmStatus:
                     type: string
                     description: alarmStatus 报警状态
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels 报警标签
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations 报警注解
+                startAt:
+                    type: integer
+                    description: startAt 开始时间, unix时间戳
+                    format: int64
+                endAt:
+                    type: integer
+                    description: endAt 结束时间, unix时间戳
+                    format: int64
             description: AlarmHistoryV1 告警历史基础类型
         api.AlarmPageSelectV1:
             type: object

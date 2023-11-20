@@ -1,10 +1,10 @@
 package dobo
 
 import (
+	"encoding/json"
 	"time"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/alert"
 )
 
 type (
@@ -12,7 +12,9 @@ type (
 		Id         uint32
 		Md5        string
 		StrategyId uint32
+		StrategyBO *StrategyBO
 		LevelId    uint32
+		Level      *DictBO
 		Status     api.AlarmStatus
 
 		StartAt int64
@@ -21,7 +23,7 @@ type (
 		Instance string
 		Duration int64
 
-		Info *alert.Alert
+		Info *api.Alert
 
 		CreatedAt int64
 		UpdatedAt int64
@@ -31,7 +33,9 @@ type (
 		Id         uint
 		Md5        string
 		StrategyId uint
+		StrategyDO *StrategyDO
 		LevelId    uint
+		Level      *DictDO
 		Status     int32
 
 		StartAt int64
@@ -79,7 +83,7 @@ func alarmHistoryBoToDo(b *AlarmHistoryBO) *AlarmHistoryDO {
 		Duration:   b.Duration,
 		StartAt:    b.StartAt,
 		EndAt:      b.EndAt,
-		Info:       string(b.Info.Byte()),
+		Info:       b.Info.String(),
 		CreatedAt:  time.Unix(b.CreatedAt, 0),
 		UpdatedAt:  time.Unix(b.UpdatedAt, 0),
 	}
@@ -89,18 +93,42 @@ func alarmHistoryDoToBo(d *AlarmHistoryDO) *AlarmHistoryBO {
 	if d == nil {
 		return nil
 	}
+
+	info := &api.Alert{}
+	_ = json.Unmarshal([]byte(d.Info), info)
+
 	return &AlarmHistoryBO{
 		Id:         uint32(d.Id),
 		Md5:        d.Md5,
 		StrategyId: uint32(d.StrategyId),
+		StrategyBO: NewStrategyDO(d.StrategyDO).BO().First(),
 		LevelId:    uint32(d.LevelId),
+		Level:      NewDictDO(d.Level).BO().First(),
 		Status:     api.AlarmStatus(d.Status),
-		Instance:   d.Instance,
-		Duration:   d.Duration,
 		StartAt:    d.StartAt,
 		EndAt:      d.EndAt,
-		Info:       alert.NewAlertByString(d.Info),
+		Instance:   d.Instance,
+		Duration:   d.Duration,
+		Info:       info,
 		CreatedAt:  d.CreatedAt.Unix(),
 		UpdatedAt:  d.UpdatedAt.Unix(),
+	}
+}
+
+// ToApiAlarmHistory .
+func (b *AlarmHistoryBO) ToApiAlarmHistory() *api.AlarmHistoryV1 {
+	if b == nil {
+		return nil
+	}
+	return &api.AlarmHistoryV1{
+		Id:          b.Id,
+		AlarmId:     b.StrategyId,
+		AlarmName:   b.StrategyBO.Alert,
+		AlarmLevel:  b.Level.ToApiDictSelectV1(),
+		AlarmStatus: b.Info.GetStatus(),
+		Labels:      b.Info.GetLabels(),
+		Annotations: b.Info.GetAnnotations(),
+		StartAt:     b.StartAt,
+		EndAt:       b.EndAt,
 	}
 }
