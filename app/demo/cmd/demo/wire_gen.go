@@ -38,8 +38,8 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 		return nil, nil, err
 	}
 	pingRepo := data.NewPingRepo(dataData, logger)
-	pingUseCase := biz.NewPingUseCase(pingRepo, logger)
-	pingService := service.NewPingService(pingUseCase, logger)
+	pingBiz := biz.NewPingBiz(pingRepo, logger)
+	pingService := service.NewPingService(pingBiz, logger)
 	grpcServer := server.NewGRPCServer(confServer, pingService, logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, logger)
 	app := newApp(grpcServer, httpServer, logger)
