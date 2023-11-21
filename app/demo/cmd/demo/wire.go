@@ -13,7 +13,7 @@ import (
 	"prometheus-manager/app/demo/internal/data"
 	"prometheus-manager/app/demo/internal/server"
 	"prometheus-manager/app/demo/internal/service"
-	"prometheus-manager/pkg/plog"
+	"prometheus-manager/pkg/helper/plog"
 )
 
 // wireApp init kratos application.
@@ -25,7 +25,7 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
 		conf.ProviderSetConf,
-		plog.ProviderSetPlog,
+		plog.ProviderSetPLog,
 		newApp,
 	))
 }

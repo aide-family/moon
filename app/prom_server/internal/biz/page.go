@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/model/page"
+	"prometheus-manager/pkg/helper/model/page"
 	"prometheus-manager/pkg/util/slices"
 )
 

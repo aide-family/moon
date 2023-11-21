@@ -6,30 +6,23 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/google/wire"
+	"prometheus-manager/pkg/util/hello"
 )
 
 var (
-	ProviderSetPlog = wire.NewSet(
+	ProviderSetPLog = wire.NewSet(
 		NewLogger,
 	)
 )
 
-type (
-	ServerEnv interface {
-		GetId() string
-		GetName() string
-		GetVersion() string
-	}
-)
-
 // NewLogger new a logger.
-func NewLogger(c ServerEnv) log.Logger {
+func NewLogger() log.Logger {
 	logger := log.With(log.NewStdLogger(os.Stdout),
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
-		"service.id", c.GetId(),
-		"service.name", c.GetName(),
-		"service.version", c.GetVersion(),
+		"service.id", hello.ID(),
+		"service.name", hello.Name(),
+		"service.version", hello.Version(),
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)

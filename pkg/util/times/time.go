@@ -1,7 +1,18 @@
 package times
 
+import (
+	"time"
+)
+
 type UnixTime interface {
 	Unix() int64
+}
+
+const ParseLayout = "2006-01-02T15:04:05Z07:00"
+
+func ParseAlertTime(timeStr string) time.Time {
+	t, _ := time.Parse(ParseLayout, timeStr)
+	return t
 }
 
 // TimeToUnix convert time.Time to unix timestamp

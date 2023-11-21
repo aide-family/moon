@@ -6,7 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/model"
+	"prometheus-manager/pkg/helper/model"
 )
 
 type (

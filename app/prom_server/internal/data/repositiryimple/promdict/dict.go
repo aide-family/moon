@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/model"
+	"prometheus-manager/pkg/helper/model"
 )
 
 var _ repository.PromDictRepo = (*promDictRepoImpl)(nil)

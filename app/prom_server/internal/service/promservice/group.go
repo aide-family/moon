@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
-	"prometheus-manager/pkg/model/strategygroup"
+	"prometheus-manager/pkg/helper/model/strategygroup"
 	"prometheus-manager/pkg/util/slices"
 )
 
