@@ -43,11 +43,11 @@ func (l *Timer) Stop(_ context.Context) error {
 }
 
 // NewTimer 创建一个定时器
-func NewTimer(call TimerCall, ticker *time.Ticker, logger log.Logger) *Timer {
+func NewTimer(ticker *time.Ticker, call TimerCall, logger log.Logger) *Timer {
 	return &Timer{
 		call:   call,
 		ticker: ticker,
 		stop:   make(chan struct{}, 1),
-		logger: log.NewHelper(log.With(logger, "module", "server/timer")),
+		logger: log.NewHelper(log.With(logger, "module", "server.timer")),
 	}
 }

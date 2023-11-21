@@ -6,8 +6,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/alert"
-	"prometheus-manager/pkg/model"
+	model2 "prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -17,8 +17,8 @@ type (
 		Alert       string
 		Expr        string
 		Duration    string
-		Labels      alert.Labels
-		Annotations alert.Annotations
+		Labels      strategy.Labels
+		Annotations strategy.Annotations
 		Status      api.Status
 		Remark      string
 
@@ -95,8 +95,8 @@ func strategyDoToBo(d *StrategyDO) *StrategyBO {
 		Alert:       d.Alert,
 		Expr:        d.Expr,
 		Duration:    d.Duration,
-		Labels:      alert.ToLabels(d.Labels),
-		Annotations: alert.ToAnnotations(d.Annotations),
+		Labels:      strategy.ToLabels(d.Labels),
+		Annotations: strategy.ToAnnotations(d.Annotations),
 		Status:      api.Status(d.Status),
 		Remark:      d.Remark,
 
@@ -132,8 +132,8 @@ func strategyBoToDo(b *StrategyBO) *StrategyDO {
 		Alert:       b.Alert,
 		Expr:        b.Expr,
 		Duration:    b.Duration,
-		Labels:      alert.KV(b.Labels).String(),
-		Annotations: alert.KV(b.Annotations).String(),
+		Labels:      b.Labels.String(),
+		Annotations: b.Annotations.String(),
 		Status:      int32(b.Status),
 		Remark:      b.Remark,
 
@@ -232,7 +232,7 @@ func ListToApiPromStrategySelectV1(values ...*StrategyBO) []*api.PromStrategySel
 }
 
 // StrategyModelToDO .
-func StrategyModelToDO(m *model.PromStrategy) *StrategyDO {
+func StrategyModelToDO(m *model2.PromStrategy) *StrategyDO {
 	if m == nil {
 		return nil
 	}
@@ -249,25 +249,25 @@ func StrategyModelToDO(m *model.PromStrategy) *StrategyDO {
 		GroupInfo:      StrategyGroupModelToDO(m.GroupInfo),
 		AlarmLevelId:   m.AlertLevelID,
 		AlarmLevelInfo: DictModelToDO(m.AlertLevel),
-		AlarmPageIds: slices.To(m.AlarmPages, func(i *model.PromAlarmPage) uint {
+		AlarmPageIds: slices.To(m.AlarmPages, func(i *model2.PromAlarmPage) uint {
 			if i == nil {
 				return 0
 			}
 			return i.ID
 		}),
-		AlarmPages: slices.To(m.AlarmPages, func(i *model.PromAlarmPage) *AlarmPageDO {
+		AlarmPages: slices.To(m.AlarmPages, func(i *model2.PromAlarmPage) *AlarmPageDO {
 			if i == nil {
 				return nil
 			}
 			return PageModelToDO(i)
 		}),
-		CategoryIds: slices.To(m.Categories, func(i *model.PromDict) uint {
+		CategoryIds: slices.To(m.Categories, func(i *model2.PromDict) uint {
 			if i == nil {
 				return 0
 			}
 			return i.ID
 		}),
-		Categories: slices.To(m.Categories, func(i *model.PromDict) *DictDO {
+		Categories: slices.To(m.Categories, func(i *model2.PromDict) *DictDO {
 			if i == nil {
 				return nil
 			}
@@ -280,11 +280,11 @@ func StrategyModelToDO(m *model.PromStrategy) *StrategyDO {
 }
 
 // StrategyDOTOModel .
-func StrategyDOTOModel(d *StrategyDO) *model.PromStrategy {
+func StrategyDOTOModel(d *StrategyDO) *model2.PromStrategy {
 	if d == nil {
 		return nil
 	}
-	return &model.PromStrategy{
+	return &model2.PromStrategy{
 		BaseModel: query.BaseModel{
 			ID:        d.Id,
 			DeletedAt: soft_delete.DeletedAt(d.DeletedAt),
@@ -300,13 +300,13 @@ func StrategyDOTOModel(d *StrategyDO) *model.PromStrategy {
 		AlertLevelID: d.AlarmLevelId,
 		Status:       d.Status,
 		Remark:       d.Remark,
-		AlarmPages: slices.To(d.AlarmPages, func(alarmPageInfo *AlarmPageDO) *model.PromAlarmPage {
+		AlarmPages: slices.To(d.AlarmPages, func(alarmPageInfo *AlarmPageDO) *model2.PromAlarmPage {
 			if alarmPageInfo == nil {
 				return nil
 			}
 			return PageDOToModel(alarmPageInfo)
 		}),
-		Categories: slices.To(d.Categories, func(dictInfo *DictDO) *model.PromDict {
+		Categories: slices.To(d.Categories, func(dictInfo *DictDO) *model2.PromDict {
 			if dictInfo == nil {
 				return nil
 			}

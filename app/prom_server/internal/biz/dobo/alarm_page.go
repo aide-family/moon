@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/model"
+	"prometheus-manager/pkg/helper/model"
 )
 
 type (

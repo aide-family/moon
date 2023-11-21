@@ -8,7 +8,7 @@ import (
 	pb "prometheus-manager/api/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/model/history"
+	"prometheus-manager/pkg/helper/model/history"
 )
 
 type (

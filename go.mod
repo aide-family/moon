@@ -25,7 +25,6 @@ require (
 	google.golang.org/grpc v1.56.1
 	google.golang.org/protobuf v1.31.0
 	gorm.io/driver/mysql v1.5.1
-	gorm.io/gen v0.3.23
 	gorm.io/gorm v1.25.4
 	gorm.io/plugin/soft_delete v1.2.1
 )
@@ -80,7 +79,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230629202037-9506855d4529 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/datatypes v1.1.1-0.20230130040222-c43177d3cf8c // indirect
-	gorm.io/hints v1.1.0 // indirect
-	gorm.io/plugin/dbresolver v1.3.0 // indirect
+	gorm.io/driver/sqlite v1.4.3 // indirect
 )

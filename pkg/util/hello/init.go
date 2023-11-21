@@ -5,7 +5,44 @@ import (
 	"os"
 )
 
-func FmtASCIIGenerator(name, version string, metadata map[string]string) {
+var (
+	name     = ""
+	version  = ""
+	metadata = map[string]string{}
+	id, _    = os.Hostname()
+)
+
+// SetName set name
+func SetName(n string) {
+	name = n
+}
+
+func SetVersion(v string) {
+	version = v
+}
+
+func SetMetadata(m map[string]string) {
+	metadata = m
+}
+
+// Name name
+func Name() string {
+	return name
+}
+
+func Version() string {
+	return version
+}
+
+func Metadata() map[string]string {
+	return metadata
+}
+
+func ID() string {
+	return id
+}
+
+func FmtASCIIGenerator() {
 	fmt.Println(name + " service starting...")
 
 	fmt.Println(`┌───────────────────────────────────────────────────────────────────────────────────────┐
@@ -17,8 +54,6 @@ func FmtASCIIGenerator(name, version string, metadata map[string]string) {
 │                           /_/    \_\|_____||_____/ |______|                           │							
 │                                 good luck and no bug                                  │
 └───────────────────────────────────────────────────────────────────────────────────────┘`)
-
-	id, _ := os.Hostname()
 
 	detail := `
 ┌───────────────────────────────────────────────────────────────────────────────────────`

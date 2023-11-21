@@ -7,10 +7,10 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/pkg/helper/model/dict"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
-	"prometheus-manager/pkg/model/dict"
 )
 
 type (

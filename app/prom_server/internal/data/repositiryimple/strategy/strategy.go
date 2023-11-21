@@ -5,13 +5,13 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/model/strategy"
+	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/model/strategy"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/model"
 )
 
 var _ repository.StrategyRepo = (*strategyRepoImpl)(nil)
