@@ -3,37 +3,120 @@ package systemservice
 import (
 	"context"
 
+	query "github.com/aide-cloud/gorm-normalize"
+	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
+	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type UserService struct {
 	pb.UnimplementedUserServer
+	log *log.Helper
+
+	userBiz *biz.UserBiz
 }
 
-func NewUserService() *UserService {
-	return &UserService{}
+func NewUserService(userBiz *biz.UserBiz, logger log.Logger) *UserService {
+	return &UserService{
+		log:     log.NewHelper(log.With(logger, "module", "service.user")),
+		userBiz: userBiz,
+	}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
-	return &pb.CreateUserReply{}, nil
+	userBo := &dobo.UserBO{
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
+		Email:    req.GetEmail(),
+		Phone:    req.GetPhone(),
+		Remark:   req.GetPassword(),
+	}
+	userBo, err := s.userBiz.CreateUser(ctx, userBo)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.CreateUserReply{Id: uint32(userBo.Id)}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserReply, error) {
-	return &pb.UpdateUserReply{}, nil
+	userBo := &dobo.UserBO{
+		Id:       uint(req.GetId()),
+		Username: req.GetUsername(),
+		Avatar:   req.GetAvatar(),
+		Status:   valueobj.Status(req.GetStatus()),
+		Remark:   req.GetRemark(),
+	}
+	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UpdateUserReply{Id: req.GetId()}, nil
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserReply, error) {
-	return &pb.DeleteUserReply{}, nil
+	if err := s.userBiz.DeleteUserByIds(ctx, []uint32{req.GetId()}); err != nil {
+		return nil, err
+	}
+	return &pb.DeleteUserReply{Id: req.GetId()}, nil
 }
 
 func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserReply, error) {
-	return &pb.GetUserReply{}, nil
+	userBo, err := s.userBiz.GetUserInfoById(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetUserReply{
+		Detail: userBo.ApiUserV1(),
+	}, nil
 }
 
 func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserReply, error) {
-	return &pb.ListUserReply{}, nil
+	pgReq := req.GetPage()
+	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	scopes := []query.ScopeMethod{
+		system.UserLike(req.GetKeyword()),
+	}
+	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserV1 {
+		return userBo.ApiUserV1()
+	})
+	return &pb.ListUserReply{
+		Page: &api.PageReply{
+			Curr:  pgReq.GetCurr(),
+			Size:  pgReq.GetSize(),
+			Total: pgInfo.GetTotal(),
+		},
+		List: list,
+	}, nil
 }
 
 func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest) (*pb.SelectUserReply, error) {
-	return &pb.SelectUserReply{}, nil
+	pgReq := req.GetPage()
+	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	scopes := []query.ScopeMethod{
+		system.UserLike(req.GetKeyword()),
+	}
+	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserSelectV1 {
+		return userBo.ApiUserSelectV1()
+	})
+	return &pb.SelectUserReply{
+		Page: &api.PageReply{
+			Curr:  pgReq.GetCurr(),
+			Size:  pgReq.GetSize(),
+			Total: pgInfo.GetTotal(),
+		},
+		List: list,
+	}, nil
 }
