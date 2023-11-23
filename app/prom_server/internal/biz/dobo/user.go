@@ -23,6 +23,7 @@ type (
 		CreatedAt time.Time `json:"createdAt"`
 		UpdatedAt time.Time `json:"updatedAt"`
 		DeletedAt int64     `json:"deletedAt"`
+		Salt      string    `json:"salt"`
 	}
 
 	UserBO struct {
@@ -148,6 +149,7 @@ func (l *UserDO) ModelUser() *model.SysUser {
 		Status:   l.Status,
 		Remark:   l.Remark,
 		Avatar:   l.Avatar,
+		Salt:     l.Salt,
 	}
 }
 
@@ -169,5 +171,6 @@ func UserModelToDO(m *model.SysUser) *UserDO {
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 		DeletedAt: int64(m.DeletedAt),
+		Salt:      m.Salt,
 	}
 }

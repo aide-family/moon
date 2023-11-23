@@ -8,22 +8,26 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/util/password"
 )
 
 type (
 	UserBiz struct {
 		log *log.Helper
 
-		userRepo repository.UserRepo
+		userRepo  repository.UserRepo
+		cacheRepo repository.CacheRepo
 	}
 )
 
-func NewUserBiz(userRepo repository.UserRepo, logger log.Logger) *UserBiz {
+func NewUserBiz(userRepo repository.UserRepo, cacheRepo repository.CacheRepo, logger log.Logger) *UserBiz {
 	return &UserBiz{
 		log: log.NewHelper(logger),
 
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		cacheRepo: cacheRepo,
 	}
 }
 
@@ -38,11 +42,19 @@ func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*dobo.UserBO,
 
 // CreateUser 创建用户
 func (b *UserBiz) CreateUser(ctx context.Context, user *dobo.UserBO) (*dobo.UserBO, error) {
+	var err error
 	userDo := dobo.NewUserBO(user).DO().First()
-	userDo, err := b.userRepo.Create(ctx, userDo)
+	userDo.Salt = password.GenerateSalt()
+	userDo.Password, err = password.GeneratePassword(userDo.Password, userDo.Salt)
 	if err != nil {
 		return nil, err
 	}
+
+	userDo, err = b.userRepo.Create(ctx, userDo)
+	if err != nil {
+		return nil, err
+	}
+
 	return dobo.NewUserDO(userDo).BO().First(), nil
 }
 
@@ -81,4 +93,34 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 		return nil, err
 	}
 	return dobo.NewUserDO(userDos...).BO().List(), nil
+}
+
+// LoginByUsernameAndPassword 登录
+func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (string, error) {
+	userDo, err := b.userRepo.Get(ctx, system.UserEqName(username))
+	if err != nil {
+		return "", err
+	}
+
+	if err = password.ValidatePasswordErr(pwd, userDo.Password, userDo.Salt); err != nil {
+		return "", err
+	}
+
+	// 颁发token
+	token, err := helper.IssueToken(userDo.Id, "")
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+// Logout 退出登录
+func (b *UserBiz) Logout(ctx context.Context, authClaims *helper.AuthClaims) error {
+	return helper.Expire(ctx, b.cacheRepo.Client(), authClaims)
+}
+
+// RefreshToken 刷新token
+func (b *UserBiz) RefreshToken(_ context.Context, authClaims *helper.AuthClaims) (string, error) {
+	return helper.IssueToken(authClaims.ID, authClaims.Role)
 }

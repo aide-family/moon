@@ -5,9 +5,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
+	"prometheus-manager/app/prom_server/internal/server"
 	"prometheus-manager/pkg/util/hello"
 
 	"prometheus-manager/app/prom_server/internal/conf"
@@ -32,13 +31,13 @@ func before() conf.Before {
 	}
 }
 
-func newApp(gs *grpc.Server, hs *http.Server, logger log.Logger) *kratos.App {
+func newApp(s *server.Server, logger log.Logger) *kratos.App {
 	return kratos.New(
 		kratos.ID(hello.ID()),
 		kratos.Name(hello.Name()),
 		kratos.Version(hello.Version()),
 		kratos.Metadata(hello.Metadata()),
 		kratos.Logger(logger),
-		kratos.Server(gs, hs),
+		kratos.Server(s.List()...),
 	)
 }

@@ -42,8 +42,8 @@ func (l *AuthClaims) String() string {
 }
 
 // SetSecret set secret
-func SetSecret(s []byte) {
-	secret = s
+func SetSecret(s string) {
+	secret = []byte(s)
 }
 
 // Expire 把token过期掉
@@ -72,11 +72,16 @@ func GetAuthClaims(ctx context.Context) (*AuthClaims, bool) {
 
 // IssueToken issue token
 func IssueToken(id uint, role string) (string, error) {
+	return IssueTokenWithDuration(id, role, time.Hour*24)
+}
+
+// IssueTokenWithDuration issue token with duration
+func IssueTokenWithDuration(id uint, role string, duration time.Duration) (string, error) {
 	claims := &AuthClaims{
 		ID:   id,
 		Role: role,
 		RegisteredClaims: &jwtv4.RegisteredClaims{
-			ExpiresAt: jwtv4.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			ExpiresAt: jwtv4.NewNumericDate(time.Now().Add(duration)),
 		},
 	}
 	token := jwtv4.NewWithClaims(jwtv4.SigningMethodHS256, claims)

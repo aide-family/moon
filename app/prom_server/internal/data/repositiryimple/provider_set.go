@@ -2,6 +2,7 @@ package repositiryimple
 
 import (
 	"github.com/google/wire"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/cache"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/role"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/strategygroup"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/user"
@@ -23,4 +24,5 @@ var ProviderSetRepository = wire.NewSet(
 	strategygroup.NewStrategyGroupRepo,
 	role.NewRoleRepo,
 	user.NewUserRepo,
+	cache.NewCacheRepo,
 )

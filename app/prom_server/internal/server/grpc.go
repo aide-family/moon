@@ -25,10 +25,13 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 )
 
-// NewGRPCServer new a gRPC server.
-func NewGRPCServer(
-	c *conf.Server,
-	whiteList *conf.WhiteList,
+type GrpcServer struct {
+	*grpc.Server
+}
+
+// RegisterGrpcServer register a gRPC server.
+func RegisterGrpcServer(
+	srv *grpc.Server,
 	pingService *service.PingService,
 	dictService *dictservice.Service,
 	strategyService *promservice.StrategyService,
@@ -38,6 +41,24 @@ func NewGRPCServer(
 	historyService *alarmservice.HistoryService,
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
+) *GrpcServer {
+	ping.RegisterPingServer(srv, pingService)
+	dict.RegisterDictServer(srv, dictService)
+	strategy.RegisterStrategyServer(srv, strategyService)
+	group.RegisterGroupServer(srv, strategyGroupService)
+	page.RegisterAlarmPageServer(srv, alarmPageService)
+	hook.RegisterHookServer(srv, hookService)
+	history.RegisterHistoryServer(srv, historyService)
+	system.RegisterUserServer(srv, userService)
+	system.RegisterRoleServer(srv, roleService)
+
+	return &GrpcServer{Server: srv}
+}
+
+// NewGRPCServer new a gRPC server.
+func NewGRPCServer(
+	c *conf.Server,
+	whiteList *conf.WhiteList,
 	logger log.Logger,
 ) *grpc.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "server/grpc"))
@@ -59,15 +80,6 @@ func NewGRPCServer(
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	ping.RegisterPingServer(srv, pingService)
-	dict.RegisterDictServer(srv, dictService)
-	strategy.RegisterStrategyServer(srv, strategyService)
-	group.RegisterGroupServer(srv, strategyGroupService)
-	page.RegisterAlarmPageServer(srv, alarmPageService)
-	hook.RegisterHookServer(srv, hookService)
-	history.RegisterHistoryServer(srv, historyService)
-	system.RegisterUserServer(srv, userService)
-	system.RegisterRoleServer(srv, roleService)
 
 	return srv
 }

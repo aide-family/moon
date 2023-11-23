@@ -5,23 +5,34 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/auth"
+	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/util/password"
 )
 
 type AuthService struct {
 	pb.UnimplementedAuthServer
 	log *log.Helper
+
+	userBiz *biz.UserBiz
 }
 
-func NewAuthService(logger log.Logger) *AuthService {
+func NewAuthService(userBiz *biz.UserBiz, logger log.Logger) *AuthService {
 	return &AuthService{
-		log: log.NewHelper(log.With(logger, "module", "service.auth")),
+		log:     log.NewHelper(log.With(logger, "module", "service.auth")),
+		userBiz: userBiz,
 	}
 }
 
 func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
+	pwd := req.GetPassword()
+	// 解密前端传递的密码, 拒绝明文传输
+	dePwd, err := password.DecryptPassword(pwd, password.DefaultIv)
+	if err != nil {
+		return nil, err
+	}
 	// 颁发token, 时间建议设置为半天以内
-	token, err := helper.IssueToken(1, "admin") //
+	token, err := s.userBiz.LoginByUsernameAndPassword(ctx, req.GetUsername(), dePwd)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +45,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 		return nil, helper.ErrTokenInvalid
 	}
 	// 记录token md5然后存储到redis
-	if err := helper.Expire(ctx, nil, authClaims); err != nil {
+	if err := s.userBiz.Logout(ctx, authClaims); err != nil {
 		return nil, err
 	}
 
@@ -47,7 +58,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 		return nil, helper.ErrTokenInvalid
 	}
 
-	token, err := helper.IssueToken(authClaims.ID, authClaims.Role)
+	token, err := s.userBiz.RefreshToken(ctx, authClaims)
 	if err != nil {
 		return nil, err
 	}
