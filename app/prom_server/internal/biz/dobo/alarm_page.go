@@ -4,34 +4,33 @@ import (
 	"time"
 
 	"prometheus-manager/api"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
 )
 
 type (
 	AlarmPageBO struct {
-		Id     uint32
-		Name   string
-		Icon   string
-		Color  string
-		Remark string
-		Status api.Status
-
-		CreatedAt int64
-		UpdatedAt int64
-		DeletedAt int64
+		Id        uint32          `json:"id"`
+		Name      string          `json:"name"`
+		Icon      string          `json:"icon"`
+		Color     string          `json:"color"`
+		Remark    string          `json:"remark"`
+		Status    valueobj.Status `json:"status"`
+		CreatedAt int64           `json:"createdAt"`
+		UpdatedAt int64           `json:"updatedAt"`
+		DeletedAt int64           `json:"deletedAt"`
 	}
 
 	AlarmPageDO struct {
-		Id     uint
-		Name   string
-		Icon   string
-		Color  string
-		Remark string
-		Status int32
-
-		CreatedAt time.Time
-		UpdatedAt time.Time
-		DeletedAt int64
+		Id        uint      `json:"id"`
+		Name      string    `json:"name"`
+		Icon      string    `json:"icon"`
+		Color     string    `json:"color"`
+		Remark    string    `json:"remark"`
+		Status    int32     `json:"status"`
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updatedAt"`
+		DeletedAt int64     `json:"deletedAt"`
 	}
 )
 
@@ -64,7 +63,7 @@ func alarmPageDoToBo(d *AlarmPageDO) *AlarmPageBO {
 		Icon:      d.Icon,
 		Color:     d.Color,
 		Remark:    d.Remark,
-		Status:    api.Status(d.Status),
+		Status:    valueobj.Status(d.Status),
 		CreatedAt: d.CreatedAt.Unix(),
 		UpdatedAt: d.UpdatedAt.Unix(),
 		DeletedAt: d.DeletedAt,
@@ -96,7 +95,7 @@ func (b *AlarmPageBO) ToApiAlarmPageSelectV1() *api.AlarmPageSelectV1 {
 		Label:  b.Name,
 		Icon:   b.Icon,
 		Color:  b.Color,
-		Status: b.Status,
+		Status: api.Status(b.Status),
 		Remark: b.Remark,
 	}
 }

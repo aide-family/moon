@@ -11,11 +11,13 @@ import (
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
+	"prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
+	"prometheus-manager/app/prom_server/internal/service/systemservice"
 	"prometheus-manager/pkg/helper"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -34,6 +36,8 @@ func NewGRPCServer(
 	alarmPageService *alarmservice.AlarmPageService,
 	hookService *alarmservice.HookService,
 	historyService *alarmservice.HistoryService,
+	userService *systemservice.UserService,
+	roleService *systemservice.RoleService,
 	logger log.Logger,
 ) *grpc.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "server/grpc"))
@@ -62,6 +66,8 @@ func NewGRPCServer(
 	page.RegisterAlarmPageServer(srv, alarmPageService)
 	hook.RegisterHookServer(srv, hookService)
 	history.RegisterHistoryServer(srv, historyService)
+	system.RegisterUserServer(srv, userService)
+	system.RegisterRoleServer(srv, roleService)
 
 	return srv
 }

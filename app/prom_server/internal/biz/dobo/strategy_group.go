@@ -6,39 +6,36 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	model2 "prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	StrategyGroupBO struct {
-		Id            uint32
-		Name          string
-		Remark        string
-		Status        api.Status
-		StrategyCount int64
-
-		CategoryIds []uint32
-		Categories  []*DictBO
-
-		CreatedAt int64
-		UpdatedAt int64
-		DeletedAt int64
+		Id            uint32          `json:"id"`
+		Name          string          `json:"name"`
+		Remark        string          `json:"remark"`
+		Status        valueobj.Status `json:"status"`
+		StrategyCount int64           `json:"strategyCount"`
+		CategoryIds   []uint32        `json:"categoryIds"`
+		Categories    []*DictBO       `json:"categories"`
+		CreatedAt     int64           `json:"createdAt"`
+		UpdatedAt     int64           `json:"updatedAt"`
+		DeletedAt     int64           `json:"deletedAt"`
 	}
 
 	StrategyGroupDO struct {
-		Id            uint
-		Name          string
-		Remark        string
-		Status        int32
-		StrategyCount int64
-
-		CategoryIds []uint
-		Categories  []*DictDO
-
-		CreatedAt time.Time
-		UpdatedAt time.Time
-		DeletedAt int64
+		Id            uint      `json:"id"`
+		Name          string    `json:"name"`
+		Remark        string    `json:"remark"`
+		Status        int32     `json:"status"`
+		StrategyCount int64     `json:"strategyCount"`
+		CategoryIds   []uint    `json:"categoryIds"`
+		Categories    []*DictDO `json:"categories"`
+		CreatedAt     time.Time `json:"createdAt"`
+		UpdatedAt     time.Time `json:"updatedAt"`
+		DeletedAt     int64     `json:"deletedAt"`
 	}
 )
 
@@ -69,7 +66,7 @@ func strategyGroupDoToBo(d *StrategyGroupDO) *StrategyGroupBO {
 		Id:            uint32(d.Id),
 		Name:          d.Name,
 		Remark:        d.Remark,
-		Status:        api.Status(d.Status),
+		Status:        valueobj.Status(d.Status),
 		StrategyCount: d.StrategyCount,
 		Categories:    NewDictDO(d.Categories...).BO().List(),
 		CategoryIds: slices.To[uint, uint32](d.CategoryIds, func(u uint) uint32 {
@@ -112,7 +109,7 @@ func (b *StrategyGroupBO) ToApiPromGroupSelectV1() *api.PromGroupSelectV1 {
 		Value:    b.Id,
 		Label:    b.Name,
 		Category: ListToApiDictSelectV1(b.Categories...),
-		Status:   b.Status,
+		Status:   api.Status(b.Status),
 		Remark:   b.Remark,
 	}
 }
@@ -129,7 +126,7 @@ func (b *StrategyGroupBO) ToApiPromPromGroup() *api.PromGroup {
 		Categories: slices.To(b.Categories, func(t *DictBO) *api.DictSelectV1 {
 			return t.ToApiDictSelectV1()
 		}),
-		Status:        b.Status,
+		Status:        api.Status(b.Status),
 		Remark:        b.Remark,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,
