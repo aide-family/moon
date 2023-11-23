@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package api.system;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+import "system.proto";
+
+option go_package = "prometheus-manager/api/system;system";
+option java_multiple_files = true;
+option java_package = "api.system";
+
+service Role {
+  // CreateRole 创建角色
+  rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/create"
+      body: "*"
+    };
+  }
+
+  // UpdateRole 更新角色
+  rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/update/{id}"
+      body: "*"
+    };
+  }
+
+  // DeleteRole 删除角色
+  rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/delete/{id}"
+      body: "*"
+    };
+  }
+
+  // GetRole 获取角色
+  rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/get/{id}"
+      body: "*"
+    };
+  }
+
+  // ListRole 获取角色列表
+  rpc ListRole (ListRoleRequest) returns (ListRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/list"
+      body: "*"
+    };
+  }
+
+  // SelectRole 获取角色列表
+  rpc SelectRole (SelectRoleRequest) returns (SelectRoleReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/select"
+      body: "*"
+    };
+  }
+}
+
+message CreateRoleRequest {
+  string name = 1 [(validate.rules).string.min_len = 2];
+  string remark = 2 [(validate.rules).string.max_len = 255];
+}
+message CreateRoleReply {
+  uint32 id = 1;
+}
+
+message UpdateRoleRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  string name = 2 [(validate.rules).string.min_len = 2];
+  string remark = 3 [(validate.rules).string.max_len = 255];
+  Status status = 4 [(validate.rules).enum = {defined_only: true}];
+}
+message UpdateRoleReply {
+  uint32 id = 1;
+}
+
+message DeleteRoleRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteRoleReply {
+  uint32 id = 1;
+}
+
+message GetRoleRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetRoleReply {
+  RoleV1 detail = 1;
+}
+
+message ListRoleRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
+}
+message ListRoleReply {
+  PageReply page = 1;
+  repeated RoleV1 list = 2;
+}
+
+message SelectRoleRequest{
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
+}
+message SelectRoleReply{
+  PageReply page = 1;
+  repeated RoleSelectV1 list = 2;
+}

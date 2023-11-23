@@ -5,49 +5,42 @@ import (
 	"time"
 
 	"prometheus-manager/api"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 )
 
 type (
 	AlarmHistoryBO struct {
-		Id         uint32
-		Md5        string
-		StrategyId uint32
-		StrategyBO *StrategyBO
-		LevelId    uint32
-		Level      *DictBO
-		Status     api.AlarmStatus
-
-		StartAt int64
-		EndAt   int64
-
-		Instance string
-		Duration int64
-
-		Info *api.Alert
-
-		CreatedAt int64
-		UpdatedAt int64
+		Id         uint32               `json:"id"`
+		Md5        string               `json:"md5"`
+		StrategyId uint32               `json:"strategyId"`
+		StrategyBO *StrategyBO          `json:"strategyBO"`
+		LevelId    uint32               `json:"levelId"`
+		Level      *DictBO              `json:"level"`
+		Status     valueobj.AlarmStatus `json:"status"`
+		StartAt    int64                `json:"startAt"`
+		EndAt      int64                `json:"endAt"`
+		Instance   string               `json:"instance"`
+		Duration   int64                `json:"duration"`
+		Info       *AlertBo             `json:"info"`
+		CreatedAt  int64                `json:"createdAt"`
+		UpdatedAt  int64                `json:"UpdatedAt"`
 	}
 
 	AlarmHistoryDO struct {
-		Id         uint
-		Md5        string
-		StrategyId uint
-		StrategyDO *StrategyDO
-		LevelId    uint
-		Level      *DictDO
-		Status     int32
-
-		StartAt int64
-		EndAt   int64
-
-		Instance string
-		Duration int64
-
-		Info string
-
-		CreatedAt time.Time
-		UpdatedAt time.Time
+		Id         uint        `json:"id"`
+		Md5        string      `json:"md5"`
+		StrategyId uint        `json:"strategyId"`
+		StrategyDO *StrategyDO `json:"strategyDO"`
+		LevelId    uint        `json:"levelId"`
+		Level      *DictDO     `json:"level"`
+		Status     int32       `json:"status"`
+		StartAt    int64       `json:"startAt"`
+		EndAt      int64       `json:"endAt"`
+		Instance   string      `json:"instance"`
+		Duration   int64       `json:"duration"`
+		Info       string      `json:"info"`
+		CreatedAt  time.Time   `json:"createdAt"`
+		UpdatedAt  time.Time   `json:"updatedAt"`
 	}
 )
 
@@ -94,7 +87,7 @@ func alarmHistoryDoToBo(d *AlarmHistoryDO) *AlarmHistoryBO {
 		return nil
 	}
 
-	info := &api.Alert{}
+	info := &AlertBo{}
 	_ = json.Unmarshal([]byte(d.Info), info)
 
 	return &AlarmHistoryBO{
@@ -104,7 +97,7 @@ func alarmHistoryDoToBo(d *AlarmHistoryDO) *AlarmHistoryBO {
 		StrategyBO: NewStrategyDO(d.StrategyDO).BO().First(),
 		LevelId:    uint32(d.LevelId),
 		Level:      NewDictDO(d.Level).BO().First(),
-		Status:     api.AlarmStatus(d.Status),
+		Status:     valueobj.AlarmStatus(d.Status),
 		StartAt:    d.StartAt,
 		EndAt:      d.EndAt,
 		Instance:   d.Instance,

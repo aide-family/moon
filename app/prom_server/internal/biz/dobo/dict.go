@@ -6,32 +6,33 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
 )
 
 type (
 	DictBO struct {
-		Id        uint32
-		Name      string
-		Category  api.Category
-		Status    api.Status
-		Remark    string
-		Color     string
-		CreatedAt int64
-		UpdatedAt int64
-		DeletedAt int64
+		Id        uint32            `json:"id"`
+		Name      string            `json:"name"`
+		Category  valueobj.Category `json:"category"`
+		Status    valueobj.Status   `json:"status"`
+		Remark    string            `json:"remark"`
+		Color     string            `json:"color"`
+		CreatedAt int64             `json:"createdAt"`
+		UpdatedAt int64             `json:"updatedAt"`
+		DeletedAt int64             `json:"deletedAt"`
 	}
 
 	DictDO struct {
-		Id        uint
-		Name      string
-		Category  int32
-		Status    int32
-		Remark    string
-		Color     string
-		CreatedAt time.Time
-		UpdatedAt time.Time
-		DeletedAt int64
+		Id        uint      `json:"id"`
+		Name      string    `json:"name"`
+		Category  int32     `json:"category"`
+		Status    int32     `json:"status"`
+		Remark    string    `json:"remark"`
+		Color     string    `json:"color"`
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updatedAt"`
+		DeletedAt int64     `json:"deletedAt"`
 	}
 )
 
@@ -61,8 +62,8 @@ func dictDoToBo(d *DictDO) *DictBO {
 	return &DictBO{
 		Id:        uint32(d.Id),
 		Name:      d.Name,
-		Category:  api.Category(d.Category),
-		Status:    api.Status(d.Status),
+		Category:  valueobj.Category(d.Category),
+		Status:    valueobj.Status(d.Status),
 		Remark:    d.Remark,
 		Color:     d.Color,
 		CreatedAt: d.CreatedAt.Unix(),
@@ -93,9 +94,9 @@ func (b *DictBO) ToApiDictSelectV1() *api.DictSelectV1 {
 	return &api.DictSelectV1{
 		Value:     b.Id,
 		Label:     b.Name,
-		Category:  b.Category,
+		Category:  api.Category(b.Category),
 		Color:     b.Color,
-		Status:    b.Status,
+		Status:    api.Status(b.Status),
 		Remark:    b.Remark,
 		IsDeleted: b.DeletedAt > 0,
 	}
