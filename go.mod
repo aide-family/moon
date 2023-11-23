@@ -4,6 +4,7 @@ go 1.21.0
 
 require (
 	github.com/aide-cloud/gorm-normalize v0.4.2
+	github.com/aide-cloud/universal v1.2.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.1
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20230808051727-7888107c4b4f

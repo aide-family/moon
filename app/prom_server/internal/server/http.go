@@ -30,10 +30,13 @@ import (
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 )
 
-// NewHTTPServer new an HTTP server.
-func NewHTTPServer(
-	c *conf.Server,
-	whiteList *conf.WhiteList,
+type HttpServer struct {
+	*http.Server
+}
+
+// RegisterHttpServer new a HTTP server register.
+func RegisterHttpServer(
+	srv *http.Server,
 	pingService *service.PingService,
 	dictService *dictservice.Service,
 	strategyService *promservice.StrategyService,
@@ -44,6 +47,25 @@ func NewHTTPServer(
 	authService *authservice.AuthService,
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
+) *HttpServer {
+	ping.RegisterPingHTTPServer(srv, pingService)
+	dict.RegisterDictHTTPServer(srv, dictService)
+	strategy.RegisterStrategyHTTPServer(srv, strategyService)
+	group.RegisterGroupHTTPServer(srv, strategyGroupService)
+	page.RegisterAlarmPageHTTPServer(srv, alarmPageService)
+	hook.RegisterHookHTTPServer(srv, hookService)
+	history.RegisterHistoryHTTPServer(srv, historyService)
+	auth.RegisterAuthHTTPServer(srv, authService)
+	system.RegisterUserHTTPServer(srv, userService)
+	system.RegisterRoleHTTPServer(srv, roleService)
+
+	return &HttpServer{Server: srv}
+}
+
+// NewHTTPServer new an HTTP server.
+func NewHTTPServer(
+	c *conf.Server,
+	whiteList *conf.WhiteList,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -70,17 +92,6 @@ func NewHTTPServer(
 	}
 	srv := http.NewServer(opts...)
 	srv.HandlePrefix("/metrics", promhttp.Handler())
-
-	ping.RegisterPingHTTPServer(srv, pingService)
-	dict.RegisterDictHTTPServer(srv, dictService)
-	strategy.RegisterStrategyHTTPServer(srv, strategyService)
-	group.RegisterGroupHTTPServer(srv, strategyGroupService)
-	page.RegisterAlarmPageHTTPServer(srv, alarmPageService)
-	hook.RegisterHookHTTPServer(srv, hookService)
-	history.RegisterHistoryHTTPServer(srv, historyService)
-	auth.RegisterAuthHTTPServer(srv, authService)
-	system.RegisterUserHTTPServer(srv, userService)
-	system.RegisterRoleHTTPServer(srv, roleService)
 
 	return srv
 }

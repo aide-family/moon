@@ -14,3 +14,8 @@ func UserInIds[T types.Int](ids ...T) query.ScopeMethod {
 func UserLike(keyword string) query.ScopeMethod {
 	return query.WhereLikeKeyword(keyword+"%", "name")
 }
+
+// UserEqName 等于name
+func UserEqName(name string) query.ScopeMethod {
+	return query.WhereInColumn("name", name)
+}
