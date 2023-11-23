@@ -9,10 +9,10 @@ import (
 
 type (
 	RoleRepo interface {
-		CreateRole(ctx context.Context, role *dobo.RoleDO) (*dobo.RoleDO, error)
-		UpdateRoleById(ctx context.Context, id uint, role *dobo.RoleDO) (*dobo.RoleDO, error)
-		DeleteRoleByIds(ctx context.Context, id ...uint) error
-		GetRoleById(ctx context.Context, id uint) (*dobo.RoleDO, error)
-		ListRole(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error)
+		Create(ctx context.Context, role *dobo.RoleDO) (*dobo.RoleDO, error)
+		Update(ctx context.Context, role *dobo.RoleDO, scopes ...query.ScopeMethod) (*dobo.RoleDO, error)
+		Delete(ctx context.Context, scopes ...query.ScopeMethod) error
+		Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.RoleDO, error)
+		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error)
 	}
 )
