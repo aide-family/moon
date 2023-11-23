@@ -150,3 +150,24 @@ func (l *UserDO) ModelUser() *model.SysUser {
 		Avatar:   l.Avatar,
 	}
 }
+
+// UserModelToDO .
+func UserModelToDO(m *model.SysUser) *UserDO {
+	if m == nil {
+		return nil
+	}
+
+	return &UserDO{
+		Id:        m.ID,
+		Username:  m.Username,
+		Password:  m.Password,
+		Email:     m.Email,
+		Phone:     m.Phone,
+		Status:    m.Status,
+		Remark:    m.Remark,
+		Avatar:    m.Avatar,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeletedAt: int64(m.DeletedAt),
+	}
+}

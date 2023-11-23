@@ -9,11 +9,10 @@ import (
 
 type (
 	UserRepo interface {
-		GetUserById(ctx context.Context, id uint) (*dobo.UserDO, error)
-		ListUser(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error)
-		ListUserByIds(ctx context.Context, ids []uint) ([]*dobo.UserDO, error)
-		CreateUser(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error)
-		UpdateUserById(ctx context.Context, id uint, user *dobo.UserDO) (*dobo.UserDO, error)
-		DeleteUserByIds(ctx context.Context, id ...uint) error
+		Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.UserDO, error)
+		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error)
+		Create(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error)
+		Update(ctx context.Context, user *dobo.UserDO, scopes ...query.ScopeMethod) (*dobo.UserDO, error)
+		Delete(ctx context.Context, scopes ...query.ScopeMethod) error
 	}
 )
