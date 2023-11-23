@@ -117,3 +117,19 @@ func (l *RoleDO) ModelRole() *model.SysRole {
 		Status: l.Status,
 	}
 }
+
+// RoleModelToDO .
+func RoleModelToDO(m *model.SysRole) *RoleDO {
+	if m == nil {
+		return nil
+	}
+	return &RoleDO{
+		Id:        m.ID,
+		Name:      m.Name,
+		Status:    m.Status,
+		Remark:    m.Remark,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeletedAt: int64(m.DeletedAt),
+	}
+}
