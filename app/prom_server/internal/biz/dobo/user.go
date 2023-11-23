@@ -3,8 +3,11 @@ package dobo
 import (
 	"time"
 
+	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper/model"
 )
 
 type (
@@ -93,7 +96,7 @@ func userBoToDo(b *UserBO) *UserDO {
 	}
 }
 
-func (l *UserBO) ToApiUserSelectV1() *api.UserSelectV1 {
+func (l *UserBO) ApiUserSelectV1() *api.UserSelectV1 {
 	if l == nil {
 		return nil
 	}
@@ -107,7 +110,7 @@ func (l *UserBO) ToApiUserSelectV1() *api.UserSelectV1 {
 	}
 }
 
-func (l *UserBO) ToApiUserV1() *api.UserV1 {
+func (l *UserBO) ApiUserV1() *api.UserV1 {
 	if l == nil {
 		return nil
 	}
@@ -123,5 +126,27 @@ func (l *UserBO) ToApiUserV1() *api.UserV1 {
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
+	}
+}
+
+func (l *UserDO) ModelUser() *model.SysUser {
+	if l == nil {
+		return nil
+	}
+
+	return &model.SysUser{
+		BaseModel: query.BaseModel{
+			ID:        l.Id,
+			CreatedAt: l.CreatedAt,
+			UpdatedAt: l.UpdatedAt,
+			DeletedAt: soft_delete.DeletedAt(l.DeletedAt),
+		},
+		Username: l.Username,
+		Password: l.Password,
+		Email:    l.Email,
+		Phone:    l.Phone,
+		Status:   l.Status,
+		Remark:   l.Remark,
+		Avatar:   l.Avatar,
 	}
 }

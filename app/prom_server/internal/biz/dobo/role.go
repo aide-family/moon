@@ -3,8 +3,11 @@ package dobo
 import (
 	"time"
 
+	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper/model"
 )
 
 type (
@@ -77,7 +80,7 @@ func roleDoToBo(d *RoleDO) *RoleBO {
 	}
 }
 
-func (l *RoleBO) ToApiRoleSelectV1() *api.RoleSelectV1 {
+func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
 	return &api.RoleSelectV1{
 		Value:  uint32(l.Id),
 		Label:  l.Name,
@@ -86,7 +89,7 @@ func (l *RoleBO) ToApiRoleSelectV1() *api.RoleSelectV1 {
 	}
 }
 
-func (l *RoleBO) ToApiRoleV1() *api.RoleV1 {
+func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 	return &api.RoleV1{
 		Id:        uint32(l.Id),
 		Name:      l.Name,
@@ -95,5 +98,22 @@ func (l *RoleBO) ToApiRoleV1() *api.RoleV1 {
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
+	}
+}
+
+func (l *RoleDO) ModelRole() *model.SysRole {
+	if l == nil {
+		return nil
+	}
+	return &model.SysRole{
+		BaseModel: query.BaseModel{
+			ID:        l.Id,
+			CreatedAt: l.CreatedAt,
+			UpdatedAt: l.UpdatedAt,
+			DeletedAt: soft_delete.DeletedAt(l.DeletedAt),
+		},
+		Remark: l.Remark,
+		Name:   l.Name,
+		Status: l.Status,
 	}
 }
