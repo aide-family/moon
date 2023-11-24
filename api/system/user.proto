@@ -13,120 +13,143 @@ option java_multiple_files = true;
 option java_package = "api.system";
 
 service User {
-	// CreateUser 创建用户
-	rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/create"
-			body: "*"
-		};
-	}
+  // CreateUser 创建用户
+  rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/create"
+      body: "*"
+    };
+  }
 
-	// UpdateUser 更新用户
-	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/update/{id}"
-			body: "*"
-		};
-	}
+  // UpdateUser 更新用户
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/update/{id}"
+      body: "*"
+    };
+  }
 
-	// DeleteUser 删除用户
-	rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/delete/{id}"
-			body: "*"
-		};
-	}
+  // DeleteUser 删除用户
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/delete/{id}"
+      body: "*"
+    };
+  }
 
-	// GetUser 获取用户
-	rpc GetUser (GetUserRequest) returns (GetUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/get/{id}"
-			body: "*"
-		};
-	}
+  // GetUser 获取用户
+  rpc GetUser (GetUserRequest) returns (GetUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/get/{id}"
+      body: "*"
+    };
+  }
 
-	// ListUser 获取用户列表
-	rpc ListUser (ListUserRequest) returns (ListUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/list"
-			body: "*"
-		};
-	}
+  // ListUser 获取用户列表
+  rpc ListUser (ListUserRequest) returns (ListUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/list"
+      body: "*"
+    };
+  }
 
-	// SelectUser 获取用户列表
-	rpc SelectUser (SelectUserRequest) returns (SelectUserReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/select"
-			body: "*"
-		};
-	}
+  // SelectUser 获取用户列表
+  rpc SelectUser (SelectUserRequest) returns (SelectUserReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/select"
+      body: "*"
+    };
+  }
 
-	// EditUserPassword 修改密码
-	rpc EditUserPassword (EditUserPasswordRequest) returns (EditUserPasswordReply) {
-		option (google.api.http) = {
-			post: "/api/v1/user/password/edit"
-			body: "*"
-		};
-	}
+  // EditUserPassword 修改密码
+  rpc EditUserPassword (EditUserPasswordRequest) returns (EditUserPasswordReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/password/edit"
+      body: "*"
+    };
+  }
+
+  // EditUserStatus 修改状态
+  rpc EditUserStatus (EditUserStatusRequest) returns (EditUserStatusReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/status/edit"
+      body: "*"
+    };
+  }
 }
 
 message CreateUserRequest {
-	string username = 1 [(validate.rules).string.min_len = 4];
-	string password = 2 [(validate.rules).string.min_len = 6];
-	string email = 3 [(validate.rules).string.email = true];
-	string phone = 4 [(validate.rules).string.len = 11];
+  string username = 1 [(validate.rules).string.min_len = 4];
+  string password = 2 [(validate.rules).string.min_len = 6];
+  string email = 3 [(validate.rules).string.email = true];
+  string phone = 4 [(validate.rules).string.len = 11];
 }
 message CreateUserReply {
-	uint32 id = 1;
+  uint32 id = 1;
 }
 
 message UpdateUserRequest {
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
-	string username = 2 [(validate.rules).string.min_len = 4];
-	string remark = 3 [(validate.rules).string.max_len = 255];
-	string avatar = 4 [(validate.rules).string.uri = true];
-	Status status = 5 [(validate.rules).enum = {defined_only: true}];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  string username = 2 [(validate.rules).string.min_len = 4];
+  string remark = 3 [(validate.rules).string.max_len = 255];
+  string avatar = 4 [(validate.rules).string.uri = true];
+  Status status = 5 [(validate.rules).enum = {defined_only: true}];
 }
 message UpdateUserReply {
-	uint32 id = 1;
+  uint32 id = 1;
 }
 
 message DeleteUserRequest {
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 message DeleteUserReply {
-	uint32 id = 1;
+  uint32 id = 1;
 }
 
 message GetUserRequest {
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 message GetUserReply {
-	UserV1 detail = 1;
+  UserV1 detail = 1;
 }
 
 message ListUserRequest {
-	PageRequest page = 1 [(validate.rules).message.required = true];
-	string keyword = 2 [(validate.rules).string.max_len = 20];
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
 }
 message ListUserReply {
-	PageReply page = 1;
-	repeated UserV1 list = 2;
+  PageReply page = 1;
+  repeated UserV1 list = 2;
 }
 
 message SelectUserRequest {
-	PageRequest page = 1 [(validate.rules).message.required = true];
-	string keyword = 2 [(validate.rules).string.max_len = 20];
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
 }
 message SelectUserReply {
-	PageReply page = 1;
-	repeated UserSelectV1 list = 2;
+  PageReply page = 1;
+  repeated UserSelectV1 list = 2;
 }
 
 message EditUserPasswordRequest {
-	string oldPassword = 1 [(validate.rules).string = {min_len: 6, max_len: 32}];
-	string newPassword = 2 [(validate.rules).string = {min_len: 6, max_len: 32}];
+  string oldPassword = 1 [(validate.rules).string = {min_len: 6, max_len: 32}];
+  string newPassword = 2 [(validate.rules).string = {min_len: 6, max_len: 32}];
 }
 message EditUserPasswordReply {
-	uint32 id = 1;
+  uint32 id = 1;
+}
+
+message EditUserStatusRequest {
+  repeated uint32 ids = 1 [(validate.rules).repeated = {
+    min_items: 1,
+    max_items: 100,
+    unique: true,
+    items: {
+      uint32: {gt: 0}
+    }
+  }];
+  Status status = 2 [(validate.rules).enum = {defined_only: true}];
+}
+message EditUserStatusReply {
+  repeated uint32 ids = 1;
 }

@@ -1152,6 +1152,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.system.SelectUserReply'
+    /api/v1/user/status/edit:
+        post:
+            tags:
+                - User
+            description: EditUserStatus 修改状态
+            operationId: User_EditUserStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.EditUserStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.EditUserStatusReply'
     /api/v1/user/update/{id}:
         post:
             tags:
@@ -2743,6 +2762,25 @@ components:
                     type: string
                 newPassword:
                     type: string
+        api.system.EditUserStatusReply:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+        api.system.EditUserStatusRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                status:
+                    type: integer
+                    format: enum
         api.system.GetRoleReply:
             type: object
             properties:
