@@ -146,3 +146,10 @@ func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPass
 		Id: uint32(userBo.Id),
 	}, nil
 }
+
+func (s *UserService) EditUserStatus(ctx context.Context, req *pb.EditUserStatusRequest) (*pb.EditUserStatusReply, error) {
+	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+		return nil, err
+	}
+	return &pb.EditUserStatusReply{Ids: req.GetIds()}, nil
+}
