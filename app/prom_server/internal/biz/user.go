@@ -117,10 +117,43 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 // Logout 退出登录
 func (b *UserBiz) Logout(ctx context.Context, authClaims *helper.AuthClaims) error {
-	return helper.Expire(ctx, b.cacheRepo.Client(), authClaims)
+	client, err := b.cacheRepo.Client()
+	if err != nil {
+		return err
+	}
+	return helper.Expire(ctx, client, authClaims)
 }
 
 // RefreshToken 刷新token
 func (b *UserBiz) RefreshToken(_ context.Context, authClaims *helper.AuthClaims) (string, error) {
 	return helper.IssueToken(authClaims.ID, authClaims.Role)
+}
+
+// EditUserPassword 修改密码
+func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *helper.AuthClaims, oldPassword, newPassword string) (*dobo.UserBO, error) {
+	userDo, err := b.userRepo.Get(ctx, system.UserInIds(authClaims.ID))
+	if err != nil {
+		return nil, err
+	}
+	// 验证旧密码
+	if err = password.ValidatePasswordErr(oldPassword, userDo.Password, userDo.Salt); err != nil {
+		return nil, err
+	}
+
+	// 加密新密码
+	if userDo.Password, err = password.GeneratePassword(newPassword, userDo.Salt); err != nil {
+		return nil, err
+	}
+
+	newUserDo := &dobo.UserDO{
+		Id:       userDo.Id,
+		Password: userDo.Password,
+	}
+
+	// 更新密码
+	if _, err = b.userRepo.Update(ctx, newUserDo, system.UserInIds(userDo.Id)); err != nil {
+		return nil, err
+	}
+
+	return dobo.NewUserDO(userDo).BO().First(), nil
 }
