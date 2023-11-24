@@ -2,248 +2,203 @@ syntax = "proto3";
 
 package api;
 
+import "validate/validate.proto";
+import "base.proto";
+
 option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
-enum Status {
-	// UNKNOWN 未知, 用于默认值
-	STATUS_UNKNOWN = 0;
-
-	// ENABLED 启用
-	STATUS_ENABLED = 1;
-
-	// DISABLED 禁用
-	STATUS_DISABLED = 2;
-}
-
-enum AlarmStatus {
-	// UNKNOWN 未知, 用于默认值
-	ALARM_STATUS_UNKNOWN = 0;
-
-	// ALARM 告警
-	ALARM_STATUS_ALARM = 1;
-
-	// RESOLVE 已解决
-	ALARM_STATUS_RESOLVE = 2;
-}
-
-enum Category {
-	// UNKNOWN 未知, 用于默认值
-	CATEGORY_UNKNOWN = 0;
-
-	// PromLabel 标签
-	CATEGORY_PROM_LABEL = 1;
-
-	// PromAnnotation 注解
-	CATEGORY_PROM_ANNOTATION = 2;
-
-	// PromStrategy 策略
-	CATEGORY_PROM_STRATEGY = 3;
-
-	// PromStrategyGroup 策略组
-	CATEGORY_PROM_STRATEGY_GROUP = 4;
-
-	// AlarmLevel 告警级别
-	CATEGORY_ALARM_LEVEL = 5;
-
-	// AlarmStatus 告警状态
-	CATEGORY_ALARM_STATUS = 6;
-
-	// NotifyType 通知类型
-	CATEGORY_NOTIFY_TYPE = 7;
-}
-
 // AlarmPageV1 告警页面基础类型
 message AlarmPageV1 {
-	// id 告警页面ID
-	uint32 id = 1;
-	// name 告警页面名称
-	string name = 2;
-	// category 告警页面图标
-	string icon = 3;
-	// color 告警页面颜色
-	string color = 4;
-	// status 告警页面状态
-	Status status = 5;
-	// remark 告警页面备注
-	string remark = 6;
-	// createdAt 创建时间, unix时间戳
-	int64 createdAt = 7;
-	// updatedAt 更新时间, unix时间戳
-	int64 updatedAt = 8;
-	// deletedAt 删除时间, unix时间戳
-	int64 deletedAt = 9;
+  // id 告警页面ID
+  uint32 id = 1;
+  // name 告警页面名称
+  string name = 2;
+  // category 告警页面图标
+  string icon = 3;
+  // color 告警页面颜色
+  string color = 4;
+  // status 告警页面状态
+  Status status = 5;
+  // remark 告警页面备注
+  string remark = 6;
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 7;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 8;
+  // deletedAt 删除时间, unix时间戳
+  int64 deletedAt = 9;
 }
 
 // AlarmPageSelectV1 告警页面选择类型
 message AlarmPageSelectV1 {
-	// value 告警页面值, 对应告警页面的id
-	uint32 value = 1;
-	// label 告警页面标签, 对应告警页面的name
-	string label = 2;
-	// category 告警页面图标
-	string icon = 3;
-	// color 告警页面颜色
-	string color = 4;
-	// status 告警页面状态
-	Status status = 5;
-	// remark 告警页面备注
-	string remark = 6;
+  // value 告警页面值, 对应告警页面的id
+  uint32 value = 1;
+  // label 告警页面标签, 对应告警页面的name
+  string label = 2;
+  // category 告警页面图标
+  string icon = 3;
+  // color 告警页面颜色
+  string color = 4;
+  // status 告警页面状态
+  Status status = 5;
+  // remark 告警页面备注
+  string remark = 6;
 }
 
 // AlarmHistoryV1 告警历史基础类型
 message AlarmHistoryV1 {
-	// id 报警历史ID
-	uint32 id = 1;
-	// alarmId 报警ID
-	uint32 alarmId = 2;
-	// alarmName 报警名称
-	string alarmName = 3;
-	// alarmLevel 报警级别
-	DictSelectV1 alarmLevel = 4;
-	// alarmStatus 报警状态
-	string alarmStatus = 5;
-	// labels 报警标签
-	map<string, string> labels = 6;
-	// annotations 报警注解
-	map<string, string> annotations = 7;
-	// startAt 开始时间, unix时间戳
-	int64 startAt = 8;
-	// endAt 结束时间, unix时间戳
-	int64 endAt = 9;
+  // id 报警历史ID
+  uint32 id = 1;
+  // alarmId 报警ID
+  uint32 alarmId = 2;
+  // alarmName 报警名称
+  string alarmName = 3;
+  // alarmLevel 报警级别
+  DictSelectV1 alarmLevel = 4;
+  // alarmStatus 报警状态
+  string alarmStatus = 5;
+  // labels 报警标签
+  map<string, string> labels = 6;
+  // annotations 报警注解
+  map<string, string> annotations = 7;
+  // startAt 开始时间, unix时间戳
+  int64 startAt = 8;
+  // endAt 结束时间, unix时间戳
+  int64 endAt = 9;
 }
 
 // DictV1 字典基础类型
 message DictV1 {
-	// id 字典ID
-	uint32 id = 1;
-	// name 字典名称
-	string name = 2;
-	// category 字典分类
-	Category category = 3;
-	// color 字典颜色
-	string color = 4;
-	// status 字典状态
-	Status status = 5;
-	// remark 字典备注
-	string remark = 6;
-	// createdAt 创建时间, unix时间戳
-	int64 createdAt = 7;
-	// updatedAt 更新时间, unix时间戳
-	int64 updatedAt = 8;
-	// deletedAt 删除时间, unix时间戳
-	int64 deletedAt = 9;
+  // id 字典ID
+  uint32 id = 1;
+  // name 字典名称
+  string name = 2;
+  // category 字典分类
+  Category category = 3;
+  // color 字典颜色
+  string color = 4;
+  // status 字典状态
+  Status status = 5;
+  // remark 字典备注
+  string remark = 6;
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 7;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 8;
+  // deletedAt 删除时间, unix时间戳
+  int64 deletedAt = 9;
 }
 
 // DictSelectV1 字典选择类型
 message DictSelectV1 {
-	// value 字典值, 对应字典的id
-	uint32 value = 1;
-	// label 字典标签, 对应字典的name
-	string label = 2;
-	// category 字典分类
-	Category category = 3;
-	// color 字典颜色
-	string color = 4;
-	// status 字典状态
-	Status status = 5;
-	// remark 字典备注
-	string remark = 6;
-	// isDeleted 是否已删除
-	bool isDeleted = 7;
+  // value 字典值, 对应字典的id
+  uint32 value = 1;
+  // label 字典标签, 对应字典的name
+  string label = 2;
+  // category 字典分类
+  Category category = 3;
+  // color 字典颜色
+  string color = 4;
+  // status 字典状态
+  Status status = 5;
+  // remark 字典备注
+  string remark = 6;
+  // isDeleted 是否已删除
+  bool isDeleted = 7;
 }
 
 // StrategyV1 策略基础类型
 message PromStrategyV1 {
-	// id 策略ID
-	uint32 id = 1;
-	// alert 告警名称
-	string alert = 2;
-	// expr 表达式
-	string expr = 3;
-	// duration 持续时间
-	string duration = 4;
-	// labels 标签
-	map<string, string> labels = 5;
-	// annotations 注解
-	map<string, string> annotations = 6;
-	// status 策略状态
-	Status status = 7;
-	// groupId 策略组ID
-	uint32 groupId = 8;
-	// groupInfo 策略组信息
-	PromGroupSelectV1 groupInfo = 9;
-	// alarmLevelId 告警级别ID
-	uint32 alarmLevelId = 10;
-	// alarmLevelInfo 告警级别信息
-	DictSelectV1 alarmLevelInfo = 11;
-	// alarmPageIds 告警页面ID列表
-	repeated uint32 alarmPageIds = 12;
-	// alarmPageInfo 告警页面信息
-	repeated AlarmPageSelectV1 alarmPageInfo = 13;
-	// categoryIds 分类ID列表
-	repeated uint32 categoryIds = 14;
-	// categoryInfo 分类信息
-	repeated DictSelectV1 categoryInfo = 15;
+  // id 策略ID
+  uint32 id = 1;
+  // alert 告警名称
+  string alert = 2;
+  // expr 表达式
+  string expr = 3;
+  // duration 持续时间
+  string duration = 4;
+  // labels 标签
+  map<string, string> labels = 5;
+  // annotations 注解
+  map<string, string> annotations = 6;
+  // status 策略状态
+  Status status = 7;
+  // groupId 策略组ID
+  uint32 groupId = 8;
+  // groupInfo 策略组信息
+  PromGroupSelectV1 groupInfo = 9;
+  // alarmLevelId 告警级别ID
+  uint32 alarmLevelId = 10;
+  // alarmLevelInfo 告警级别信息
+  DictSelectV1 alarmLevelInfo = 11;
+  // alarmPageIds 告警页面ID列表
+  repeated uint32 alarmPageIds = 12;
+  // alarmPageInfo 告警页面信息
+  repeated AlarmPageSelectV1 alarmPageInfo = 13;
+  // categoryIds 分类ID列表
+  repeated uint32 categoryIds = 14;
+  // categoryInfo 分类信息
+  repeated DictSelectV1 categoryInfo = 15;
 
-	// createdAt 创建时间, unix时间戳
-	int64 createdAt = 16;
-	// updatedAt 更新时间, unix时间戳
-	int64 updatedAt = 17;
-	// deletedAt 删除时间, unix时间戳
-	int64 deletedAt = 18;
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 16;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 17;
+  // deletedAt 删除时间, unix时间戳
+  int64 deletedAt = 18;
 
-	// remark 策略备注
-	string remark = 19;
+  // remark 策略备注
+  string remark = 19;
 }
 
 // StrategySelectV1 策略选择类型
 message PromStrategySelectV1 {
-	// value 策略值, 对应策略的id
-	uint32 value = 1;
-	// label 策略标签, 对应策略的alert
-	string label = 2;
-	// category 策略分类
-	repeated DictSelectV1 category = 3;
-	// status 策略状态
-	Status status = 4;
+  // value 策略值, 对应策略的id
+  uint32 value = 1;
+  // label 策略标签, 对应策略的alert
+  string label = 2;
+  // category 策略分类
+  repeated DictSelectV1 category = 3;
+  // status 策略状态
+  Status status = 4;
 }
 
 // PromGroup 策略组基础类型
 message PromGroup {
-	// id 策略组ID
-	uint32 id = 1;
-	// name 策略组名称
-	string name = 2;
-	// category 策略组分类
-	repeated DictSelectV1 categories = 3;
-	// status 策略组状态
-	Status status = 4;
-	// remark 策略组备注
-	string remark = 5;
-	// createdAt 创建时间, unix时间戳
-	int64 createdAt = 6;
-	// updatedAt 更新时间, unix时间戳
-	int64 updatedAt = 7;
-	// deletedAt 删除时间, unix时间戳
-	int64 deletedAt = 8;
-	// strategyCount 策略数量
-	int64 strategyCount = 9;
+  // id 策略组ID
+  uint32 id = 1;
+  // name 策略组名称
+  string name = 2;
+  // category 策略组分类
+  repeated DictSelectV1 categories = 3;
+  // status 策略组状态
+  Status status = 4;
+  // remark 策略组备注
+  string remark = 5;
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 6;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 7;
+  // deletedAt 删除时间, unix时间戳
+  int64 deletedAt = 8;
+  // strategyCount 策略数量
+  int64 strategyCount = 9;
 }
 
 // PromGroupSelectV1 策略组选择类型
 message PromGroupSelectV1 {
-	// value 策略组值, 对应策略组的id
-	uint32 value = 1;
-	// label 策略组标签, 对应策略组的name
-	string label = 2;
-	// category 策略组分类
-	repeated DictSelectV1 category = 3;
-	// status 策略组状态
-	Status status = 4;
-	// remark 策略组备注
-	string remark = 5;
+  // value 策略组值, 对应策略组的id
+  uint32 value = 1;
+  // label 策略组标签, 对应策略组的name
+  string label = 2;
+  // category 策略组分类
+  repeated DictSelectV1 category = 3;
+  // status 策略组状态
+  Status status = 4;
+  // remark 策略组备注
+  string remark = 5;
 }
 
 // AlarmData 告警数据基础类型
@@ -262,26 +217,26 @@ Data struct {
 	}
  */
 message AlarmData {
-	// receiver 接收者
-	string receiver = 1;
-	// status 状态
-	string status = 2;
-	// alerts 报警列表
-	repeated Alert alerts = 3;
-	// groupLabels 组标签
-	map<string, string> groupLabels = 4;
-	// commonLabels 公共标签
-	map<string, string> commonLabels = 5;
-	// commonAnnotations 公共注解
-	map<string, string> commonAnnotations = 6;
-	// externalURL 外部链接
-	string externalURL = 7;
-	// version 版本
-	string version = 8;
-	// groupKey 组键
-	string groupKey = 9;
-	// truncatedAlerts 被截断的告警数量
-	int32 truncatedAlerts = 10;
+  // receiver 接收者
+  string receiver = 1;
+  // status 状态
+  string status = 2;
+  // alerts 报警列表
+  repeated Alert alerts = 3;
+  // groupLabels 组标签
+  map<string, string> groupLabels = 4;
+  // commonLabels 公共标签
+  map<string, string> commonLabels = 5;
+  // commonAnnotations 公共注解
+  map<string, string> commonAnnotations = 6;
+  // externalURL 外部链接
+  string externalURL = 7;
+  // version 版本
+  string version = 8;
+  // groupKey 组键
+  string groupKey = 9;
+  // truncatedAlerts 被截断的告警数量
+  int32 truncatedAlerts = 10;
 }
 
 // Alert 告警基础类型
@@ -297,18 +252,46 @@ Alert struct {
 	}
  */
 message Alert {
-	// status 状态
-	string status = 1;
-	// labels 标签
-	map<string, string> labels = 2;
-	// annotations 注解
-	map<string, string> annotations = 3;
-	// startsAt 开始时间, unix时间戳
-	int64 startsAt = 4;
-	// endsAt 结束时间, unix时间戳
-	int64 endsAt = 5;
-	// generatorURL 生成页面链接
-	string generatorURL = 6;
-	// fingerprint 指纹
-	string fingerprint = 7;
+  // status 状态
+  string status = 1;
+  // labels 标签
+  map<string, string> labels = 2;
+  // annotations 注解
+  map<string, string> annotations = 3;
+  // startsAt 开始时间, unix时间戳
+  int64 startsAt = 4;
+  // endsAt 结束时间, unix时间戳
+  int64 endsAt = 5;
+  // generatorURL 生成页面链接
+  string generatorURL = 6;
+  // fingerprint 指纹
+  string fingerprint = 7;
+}
+
+message PrometheusServer {
+  // id 端点ID
+  string id = 1 [(validate.rules).string = {
+    uuid: true
+  }];
+  // agentName 采集器名称
+  string name = 2 [(validate.rules).string = {
+    min_len: 2
+    max_len: 32
+  }];
+  // endpoint 端点
+  string endpoint = 3;
+  // status 端点状态
+  Status status = 4 [(validate.rules).enum = {
+    defined_only: true
+  }];
+  // remark 备注
+  string remark = 5 [(validate.rules).string.max_len = 255];
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 6;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 7;
+  // agentEndpoint 采集器端点
+  string agentEndpoint = 8;
+  // agentCheck 采集器检查
+  string agentCheck = 9;
 }

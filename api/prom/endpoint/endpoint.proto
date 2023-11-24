@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package api.prom.endpoint;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "model.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/prom/endpoint;endpoint";
+option java_multiple_files = true;
+option java_package = "api.prom.endpoint";
+
+service Endpoint {
+	// 添加监控端点
+	rpc AppendEndpoint (AppendEndpointRequest) returns (AppendEndpointReply) {
+		option (google.api.http) = {
+			post: "/api/v1/endpoint/append"
+			body: "*"
+		};
+	}
+
+	// 删除监控端点
+	rpc DeleteEndpoint (DeleteEndpointRequest) returns (DeleteEndpointReply) {
+		option (google.api.http) = {
+			post: "/api/v1/endpoint/delete"
+			body: "*"
+		};
+	}
+
+	// 获取监控端点列表
+	rpc ListEndpoint (ListEndpointRequest) returns (ListEndpointReply) {
+		option (google.api.http) = {
+			post: "/api/v1/endpoint/list"
+			body: "*"
+		};
+	}
+}
+
+message AppendEndpointRequest {
+	string agentName = 1 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 32,
+	}];
+	repeated PrometheusServer endpoints = 2 [(validate.rules).repeated.min_items = 1];
+}
+message AppendEndpointReply {
+	Response response = 1;
+}
+
+message DeleteEndpointRequest {}
+message DeleteEndpointReply {
+		Response response = 1;
+}
+
+message ListEndpointRequest {}
+message ListEndpointReply {
+	Response response = 1;
+	repeated PrometheusServer endpoints = 2;
+}
