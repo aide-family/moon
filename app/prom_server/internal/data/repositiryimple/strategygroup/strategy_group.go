@@ -17,6 +17,7 @@ var _ repository.StrategyGroupRepo = (*strategyGroupRepoImpl)(nil)
 
 type (
 	strategyGroupRepoImpl struct {
+		repository.UnimplementedStrategyGroupRepo
 		query.IAction[model.PromGroup]
 
 		data *data.Data

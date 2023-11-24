@@ -13,6 +13,8 @@ import (
 var _ repository.CacheRepo = (*cacheRepoImpl)(nil)
 
 type cacheRepoImpl struct {
+	repository.UnimplementedCacheRepo
+
 	log *log.Helper
 
 	data *data.Data
@@ -25,10 +27,14 @@ func NewCacheRepo(data *data.Data, logger log.Logger) repository.CacheRepo {
 	}
 }
 
-func (l *cacheRepoImpl) Client() *redis.Client {
-	return l.data.Client()
+func (l *cacheRepoImpl) Client() (*redis.Client, error) {
+	return l.data.Client(), nil
 }
 
 func (l *cacheRepoImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
-	return l.Client().Set(ctx, key, value, expiration).Err()
+	client, err := l.Client()
+	if err != nil {
+		return err
+	}
+	return client.Set(ctx, key, value, expiration).Err()
 }

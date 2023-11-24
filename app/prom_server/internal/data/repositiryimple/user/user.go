@@ -15,6 +15,7 @@ import (
 var _ repository.UserRepo = (*userRepoImpl)(nil)
 
 type userRepoImpl struct {
+	repository.UnimplementedUserRepo
 	log  *log.Helper
 	data *data.Data
 	query.IAction[model.SysUser]

@@ -14,6 +14,7 @@ import (
 var _ repository.PromDictRepo = (*promDictRepoImpl)(nil)
 
 type promDictRepoImpl struct {
+	repository.UnimplementedPromDictRepo
 	data *data.Data
 	log  *log.Helper
 

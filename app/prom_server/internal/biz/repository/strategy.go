@@ -4,11 +4,16 @@ import (
 	"context"
 
 	query "github.com/aide-cloud/gorm-normalize"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 )
 
+var _ StrategyRepo = (*UnimplementedStrategyRepo)(nil)
+
 type (
 	StrategyRepo interface {
+		mustEmbedUnimplemented()
 		// CreateStrategy 创建策略
 		CreateStrategy(ctx context.Context, strategy *dobo.StrategyDO) (*dobo.StrategyDO, error)
 		// UpdateStrategyById 通过id更新策略
@@ -24,4 +29,37 @@ type (
 		// ListStrategyByIds 通过id列表获取策略列表
 		ListStrategyByIds(ctx context.Context, ids []uint) ([]*dobo.StrategyDO, error)
 	}
+
+	UnimplementedStrategyRepo struct{}
 )
+
+func (UnimplementedStrategyRepo) mustEmbedUnimplemented() {}
+
+func (UnimplementedStrategyRepo) CreateStrategy(_ context.Context, _ *dobo.StrategyDO) (*dobo.StrategyDO, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint, _ *dobo.StrategyDO) (*dobo.StrategyDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategyById not implemented")
+}
+
+func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ int32, _ []uint) error {
+	return status.Errorf(codes.Unimplemented, "method BatchUpdateStrategyStatusByIds not implemented")
+}
+
+func (UnimplementedStrategyRepo) DeleteStrategyByIds(_ context.Context, _ ...uint) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteStrategyByIds not implemented")
+}
+
+func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint) (*dobo.StrategyDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyById not implemented")
+}
+
+func (UnimplementedStrategyRepo) ListStrategy(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*dobo.StrategyDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStrategy not implemented")
+}
+
+func (UnimplementedStrategyRepo) ListStrategyByIds(_ context.Context, _ []uint) ([]*dobo.StrategyDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStrategyByIds not implemented")
+}
