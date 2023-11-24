@@ -477,6 +477,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.dict.UpdateDictReply'
+    /api/v1/endpoint/append:
+        post:
+            tags:
+                - Endpoint
+            description: 添加监控端点
+            operationId: Endpoint_AppendEndpoint
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.endpoint.AppendEndpointRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.endpoint.AppendEndpointReply'
+    /api/v1/endpoint/delete:
+        post:
+            tags:
+                - Endpoint
+            description: 删除监控端点
+            operationId: Endpoint_DeleteEndpoint
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.endpoint.DeleteEndpointRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.endpoint.DeleteEndpointReply'
+    /api/v1/endpoint/list:
+        post:
+            tags:
+                - Endpoint
+            description: 获取监控端点列表
+            operationId: Endpoint_ListEndpoint
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.endpoint.ListEndpointRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.endpoint.ListEndpointReply'
     /api/v1/role/create:
         post:
             tags:
@@ -1582,6 +1639,50 @@ components:
                     type: string
                     description: remark 策略备注
             description: StrategyV1 策略基础类型
+        api.PrometheusServer:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: id 端点ID
+                name:
+                    type: string
+                    description: agentName 采集器名称
+                endpoint:
+                    type: string
+                    description: endpoint 端点
+                status:
+                    type: integer
+                    description: status 端点状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 备注
+                createdAt:
+                    type: integer
+                    description: createdAt 创建时间, unix时间戳
+                    format: int64
+                updatedAt:
+                    type: integer
+                    description: updatedAt 更新时间, unix时间戳
+                    format: int64
+                agentEndpoint:
+                    type: string
+                    description: agentEndpoint 采集器端点
+                agentCheck:
+                    type: string
+                    description: agentCheck 采集器检查
+        api.Response:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: code 状态码
+                    format: int32
+                msg:
+                    type: string
+                    description: msg 返回信息
+            description: Response 返回参数
         api.RoleSelectV1:
             type: object
             properties:
@@ -2212,6 +2313,40 @@ components:
                     type: string
                     description: remark 字典备注
             description: UpdateDictRequest 更新字典请求
+        api.prom.endpoint.AppendEndpointReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.endpoint.AppendEndpointRequest:
+            type: object
+            properties:
+                agentName:
+                    type: string
+                endpoints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PrometheusServer'
+        api.prom.endpoint.DeleteEndpointReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.endpoint.DeleteEndpointRequest:
+            type: object
+            properties: {}
+        api.prom.endpoint.ListEndpointReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                endpoints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.PrometheusServer'
+        api.prom.endpoint.ListEndpointRequest:
+            type: object
+            properties: {}
         api.prom.strategy.BatchDeleteStrategyReply:
             type: object
             properties:
@@ -2913,6 +3048,7 @@ tags:
     - name: Auth
     - name: Dict
       description: Dict 字典管理模块
+    - name: Endpoint
     - name: Group
       description: Group 策略组管理模块
     - name: History

@@ -8,4 +8,5 @@ import (
 var ProviderSetProm = wire.NewSet(
 	NewStrategyService,
 	NewGroupService,
+	NewEndpointService,
 )

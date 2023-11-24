@@ -8,6 +8,54 @@ option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
+enum Status {
+  // UNKNOWN 未知, 用于默认值
+  STATUS_UNKNOWN = 0;
+
+  // ENABLED 启用
+  STATUS_ENABLED = 1;
+
+  // DISABLED 禁用
+  STATUS_DISABLED = 2;
+}
+
+enum AlarmStatus {
+  // UNKNOWN 未知, 用于默认值
+  ALARM_STATUS_UNKNOWN = 0;
+
+  // ALARM 告警
+  ALARM_STATUS_ALARM = 1;
+
+  // RESOLVE 已解决
+  ALARM_STATUS_RESOLVE = 2;
+}
+
+enum Category {
+  // UNKNOWN 未知, 用于默认值
+  CATEGORY_UNKNOWN = 0;
+
+  // PromLabel 标签
+  CATEGORY_PROM_LABEL = 1;
+
+  // PromAnnotation 注解
+  CATEGORY_PROM_ANNOTATION = 2;
+
+  // PromStrategy 策略
+  CATEGORY_PROM_STRATEGY = 3;
+
+  // PromStrategyGroup 策略组
+  CATEGORY_PROM_STRATEGY_GROUP = 4;
+
+  // AlarmLevel 告警级别
+  CATEGORY_ALARM_LEVEL = 5;
+
+  // AlarmStatus 告警状态
+  CATEGORY_ALARM_STATUS = 6;
+
+  // NotifyType 通知类型
+  CATEGORY_NOTIFY_TYPE = 7;
+}
+
 // PageRequest 分页请求参数
 message PageRequest {
   // curr 当前页, 从1开始
@@ -23,4 +71,12 @@ message PageReply {
   int32 size = 2;
   // total 总数
   int64 total = 3;
+}
+
+// Response 返回参数
+message Response {
+  // code 状态码
+  int32 code = 1;
+  // msg 返回信息
+  string msg = 2;
 }

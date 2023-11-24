@@ -5,7 +5,6 @@ package api.system;
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
-import "model.proto";
 import "system.proto";
 
 option go_package = "prometheus-manager/api/system;system";
