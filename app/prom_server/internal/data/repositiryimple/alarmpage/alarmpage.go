@@ -15,6 +15,7 @@ import (
 var _ repository.PageRepo = (*alarmPageRepoImpl)(nil)
 
 type alarmPageRepoImpl struct {
+	repository.UnimplementedPageRepo
 	log *log.Helper
 
 	data *data.Data

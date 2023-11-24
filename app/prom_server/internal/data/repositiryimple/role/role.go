@@ -15,6 +15,7 @@ import (
 var _ repository.RoleRepo = (*roleRepoImpl)(nil)
 
 type roleRepoImpl struct {
+	repository.UnimplementedRoleRepo
 	log  *log.Helper
 	data *data.Data
 	query.IAction[model.SysRole]
@@ -58,7 +59,7 @@ func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes
 	list := slices.To(roleList, func(role *model.SysRole) *dobo.RoleDO {
 		return dobo.RoleModelToDO(role)
 	})
-	
+
 	return list, nil
 }
 

@@ -15,6 +15,7 @@ import (
 var _ repository.HistoryRepo = (*alarmHistoryRepoImpl)(nil)
 
 type alarmHistoryRepoImpl struct {
+	repository.UnimplementedHistoryRepo
 	data *data.Data
 
 	log *log.Helper
