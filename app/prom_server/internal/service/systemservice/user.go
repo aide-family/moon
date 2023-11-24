@@ -10,7 +10,9 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -118,5 +120,29 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
+	}, nil
+}
+
+func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPasswordRequest) (*pb.EditUserPasswordReply, error) {
+	authClaims, ok := helper.GetAuthClaims(ctx)
+	if !ok {
+		return nil, helper.ErrTokenInvalid
+	}
+
+	oldPassword, err := password.DecryptPassword(req.GetOldPassword(), password.DefaultIv)
+	if err != nil {
+		return nil, err
+	}
+	newPassword, err := password.DecryptPassword(req.GetNewPassword(), password.DefaultIv)
+	if err != nil {
+		return nil, err
+	}
+
+	userBo, err := s.userBiz.EditUserPassword(ctx, authClaims, oldPassword, newPassword)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.EditUserPasswordReply{
+		Id: uint32(userBo.Id),
 	}, nil
 }

@@ -1114,6 +1114,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.system.ListUserReply'
+    /api/v1/user/password/edit:
+        post:
+            tags:
+                - User
+            description: EditUserPassword 修改密码
+            operationId: User_EditUserPassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.EditUserPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.EditUserPasswordReply'
     /api/v1/user/select:
         post:
             tags:
@@ -2711,6 +2730,19 @@ components:
                 id:
                     type: integer
                     format: uint32
+        api.system.EditUserPasswordReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.system.EditUserPasswordRequest:
+            type: object
+            properties:
+                oldPassword:
+                    type: string
+                newPassword:
+                    type: string
         api.system.GetRoleReply:
             type: object
             properties:
