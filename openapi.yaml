@@ -1876,8 +1876,9 @@ components:
                     type: string
                     description: msg 响应消息
                 code:
-                    type: string
+                    type: integer
                     description: code 响应码
+                    format: int32
             description: HookV1Reply 接收prometheus报警hook请求返回
         api.alarm.hook.HookV1Request:
             type: object
@@ -1888,7 +1889,7 @@ components:
                 status:
                     type: string
                     description: status 状态, firing, resolved
-                alert:
+                alerts:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.alarm.hook.AlertV1'

@@ -18,6 +18,7 @@ type EndpointService struct {
 	endpointBiz *biz.EndpointBiz
 }
 
+// NewEndpointService 实例化EndpointService
 func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *EndpointService {
 	return &EndpointService{
 		log:         log.NewHelper(log.With(logger, "module", "service.endpoint")),
@@ -25,6 +26,7 @@ func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *Endpoi
 	}
 }
 
+// AppendEndpoint 新增
 func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndpointRequest) (*pb.AppendEndpointReply, error) {
 	endpointBo := make([]*dobo.EndpointBO, 0, len(req.Endpoints))
 	for _, endpoint := range req.GetEndpoints() {
@@ -52,6 +54,7 @@ func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndp
 	}, nil
 }
 
+// DeleteEndpoint 删除
 func (s *EndpointService) DeleteEndpoint(ctx context.Context, req *pb.DeleteEndpointRequest) (*pb.DeleteEndpointReply, error) {
 	endpointList := make([]*dobo.EndpointBO, 0, len(req.GetUuids()))
 	for _, uuid := range req.GetUuids() {
@@ -71,6 +74,7 @@ func (s *EndpointService) DeleteEndpoint(ctx context.Context, req *pb.DeleteEndp
 	}, nil
 }
 
+// ListEndpoint 查询
 func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpointRequest) (*pb.ListEndpointReply, error) {
 	listEndpoint, err := s.endpointBiz.ListEndpoint(ctx)
 	if err != nil {

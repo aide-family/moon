@@ -6,6 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/model/history"
 
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -43,18 +44,26 @@ func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo query.Pag
 	return boList, nil
 }
 
-func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyDo *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error) {
-	newModel := historyDOToModel(historyDo)
-	if err := l.WithContext(ctx).Create(newModel); err != nil {
+func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyDos ...*dobo.AlarmHistoryDO) ([]*dobo.AlarmHistoryDO, error) {
+	newModels := make([]*model.PromAlarmHistory, 0, len(historyDos))
+	for _, historyDo := range historyDos {
+		newModel := historyDOToModel(historyDo)
+		newModels = append(newModels, newModel)
+	}
+	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).BatchCreate(newModels, 50); err != nil {
 		return nil, err
 	}
 
-	return historyModelToDO(newModel), nil
+	resList := make([]*dobo.AlarmHistoryDO, 0, len(newModels))
+	for _, v := range newModels {
+		resList = append(resList, historyModelToDO(v))
+	}
+	return resList, nil
 }
 
 func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint, historyDo *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error) {
 	newModel := historyDOToModel(historyDo)
-	if err := l.WithContext(ctx).UpdateByID(id, newModel); err != nil {
+	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).UpdateByID(id, newModel); err != nil {
 		return nil, err
 	}
 	return historyModelToDO(newModel), nil
@@ -88,14 +97,11 @@ func historyDOToModel(detail *dobo.AlarmHistoryDO) *model.PromAlarmHistory {
 	}
 	return &model.PromAlarmHistory{
 		BaseModel: query.BaseModel{
-			ID:        detail.Id,
-			CreatedAt: detail.CreatedAt,
-			UpdatedAt: detail.UpdatedAt,
+			ID: detail.Id,
 		},
 		Instance:   detail.Instance,
 		Status:     detail.Status,
 		Info:       detail.Info,
-		CreatedAt:  detail.CreatedAt,
 		StartAt:    detail.StartAt,
 		EndAt:      detail.EndAt,
 		Duration:   detail.Duration,

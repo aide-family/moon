@@ -50,6 +50,20 @@ func (s AlarmStatus) Value() int32 {
 	return int32(s)
 }
 
+// ToAlarmStatus 转换为AlarmStatus
+func ToAlarmStatus(status string) AlarmStatus {
+	switch status {
+	case "firing":
+		return AlarmStatusAlarm
+	case "resolved":
+		return AlarmStatusResolved
+	case "ignored":
+		return AlarmStatusIgnored
+	default:
+		return AlarmStatusUnknown
+	}
+}
+
 // ApiAlarmStatus 转换为api.AlarmStatus
 func (s AlarmStatus) ApiAlarmStatus() api.AlarmStatus {
 	return api.AlarmStatus(s)

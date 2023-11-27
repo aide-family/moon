@@ -35,9 +35,14 @@ func (d *Data) Client() *redis.Client {
 
 // NewData .
 func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
+	db, err := conn.NewMysqlDB(c.GetDatabase(), logger)
+	if err != nil {
+		return nil, nil, err
+	}
 	d := &Data{
 		log:    log.NewHelper(log.With(logger, "module", "data")),
 		client: conn.NewRedisClient(c.GetRedis()),
+		db:     db,
 	}
 
 	if err := d.Client().Ping(context.Background()).Err(); err != nil {

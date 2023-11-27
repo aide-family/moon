@@ -20,7 +20,7 @@ type (
 		// ListHistory 获取历史列表
 		ListHistory(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.AlarmHistoryDO, error)
 		// CreateHistory 创建历史
-		CreateHistory(ctx context.Context, historyDo *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error)
+		CreateHistory(ctx context.Context, historyDo ...*dobo.AlarmHistoryDO) ([]*dobo.AlarmHistoryDO, error)
 		// UpdateHistoryById 通过id更新历史
 		UpdateHistoryById(ctx context.Context, id uint, historyDo *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error)
 	}
@@ -38,7 +38,7 @@ func (UnimplementedHistoryRepo) ListHistory(_ context.Context, _ query.Paginatio
 	return nil, status.Errorf(codes.Unimplemented, "method ListHistory not implemented")
 }
 
-func (UnimplementedHistoryRepo) CreateHistory(_ context.Context, _ *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error) {
+func (UnimplementedHistoryRepo) CreateHistory(_ context.Context, _ ...*dobo.AlarmHistoryDO) ([]*dobo.AlarmHistoryDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateHistory not implemented")
 }
 
