@@ -2334,7 +2334,13 @@ components:
                     $ref: '#/components/schemas/api.Response'
         api.prom.endpoint.DeleteEndpointRequest:
             type: object
-            properties: {}
+            properties:
+                agentName:
+                    type: string
+                uuids:
+                    type: array
+                    items:
+                        type: string
         api.prom.endpoint.ListEndpointReply:
             type: object
             properties:

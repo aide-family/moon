@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/auth"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/util/password"
@@ -25,16 +26,18 @@ func NewAuthService(userBiz *biz.UserBiz, logger log.Logger) *AuthService {
 }
 
 func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
+	// TODO 认证传递的code, 前端需要校验code的合法性
 	pwd := req.GetPassword()
 	// 解密前端传递的密码, 拒绝明文传输
 	dePwd, err := password.DecryptPassword(pwd, password.DefaultIv)
 	if err != nil {
-		return nil, err
+		return nil, perrors.ErrorInvalidParams("密码不规范")
 	}
 	// 颁发token, 时间建议设置为半天以内
 	token, err := s.userBiz.LoginByUsernameAndPassword(ctx, req.GetUsername(), dePwd)
 	if err != nil {
-		return nil, err
+		s.log.Warnf("LoginByUsernameAndPassword error: %v", err)
+		return nil, perrors.ErrorUnknown("颁发token失败")
 	}
 	return &pb.LoginReply{Token: token}, nil
 }

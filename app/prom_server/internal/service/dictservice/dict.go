@@ -8,6 +8,7 @@ import (
 	pb "prometheus-manager/api/dict"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -29,7 +30,7 @@ func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
 func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
 	dictBo := &dobo.DictBO{
 		Name:     req.GetName(),
-		Category: req.GetCategory(),
+		Category: valueobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
@@ -45,7 +46,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*p
 	dictBo := &dobo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
-		Category: req.GetCategory(),
+		Category: valueobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
@@ -97,9 +98,9 @@ func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetD
 	reply := &pb.GetDictReply{PromDict: &api.DictV1{
 		Id:        dictBo.Id,
 		Name:      dictBo.Name,
-		Category:  dictBo.Category,
+		Category:  api.Category(dictBo.Category),
 		Color:     dictBo.Color,
-		Status:    dictBo.Status,
+		Status:    api.Status(dictBo.Status),
 		Remark:    dictBo.Remark,
 		CreatedAt: dictBo.CreatedAt,
 		UpdatedAt: dictBo.UpdatedAt,
@@ -119,9 +120,9 @@ func (s *Service) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.Li
 		list = append(list, &api.DictV1{
 			Id:        dictBo.Id,
 			Name:      dictBo.Name,
-			Category:  dictBo.Category,
+			Category:  api.Category(dictBo.Category),
 			Color:     dictBo.Color,
-			Status:    dictBo.Status,
+			Status:    api.Status(dictBo.Status),
 			Remark:    dictBo.Remark,
 			CreatedAt: dictBo.CreatedAt,
 			UpdatedAt: dictBo.UpdatedAt,
@@ -151,9 +152,9 @@ func (s *Service) SelectDict(ctx context.Context, req *pb.SelectDictRequest) (*p
 		list = append(list, &api.DictSelectV1{
 			Value:    dictBo.Id,
 			Label:    dictBo.Name,
-			Category: dictBo.Category,
+			Category: api.Category(dictBo.Category),
 			Color:    dictBo.Color,
-			Status:   dictBo.Status,
+			Status:   api.Status(dictBo.Status),
 			Remark:   dictBo.Remark,
 		})
 	}

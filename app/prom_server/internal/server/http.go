@@ -12,6 +12,7 @@ import (
 	"prometheus-manager/api/auth"
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
+	"prometheus-manager/api/prom/endpoint"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
@@ -47,6 +48,7 @@ func RegisterHttpServer(
 	authService *authservice.AuthService,
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
+	endpointService *promservice.EndpointService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -58,6 +60,7 @@ func RegisterHttpServer(
 	auth.RegisterAuthHTTPServer(srv, authService)
 	system.RegisterUserHTTPServer(srv, userService)
 	system.RegisterRoleHTTPServer(srv, roleService)
+	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
 
 	return &HttpServer{Server: srv}
 }
@@ -78,7 +81,8 @@ func NewHTTPServer(
 		http.Middleware(
 			recovery.Recovery(),
 			logging.Server(logger),
-			selector.Server(helper.JwtServer(), validate.Validator()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
+			validate.Validator(),
+			selector.Server(helper.JwtServer()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
 		),
 	}
 	if c.Http.Network != "" {

@@ -9,6 +9,7 @@ import (
 	"prometheus-manager/api/alarm/page"
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
+	"prometheus-manager/api/prom/endpoint"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
@@ -41,6 +42,7 @@ func RegisterGrpcServer(
 	historyService *alarmservice.HistoryService,
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
+	endpointService *promservice.EndpointService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -51,6 +53,7 @@ func RegisterGrpcServer(
 	history.RegisterHistoryServer(srv, historyService)
 	system.RegisterUserServer(srv, userService)
 	system.RegisterRoleServer(srv, roleService)
+	endpoint.RegisterEndpointServer(srv, endpointService)
 
 	return &GrpcServer{Server: srv}
 }
@@ -67,7 +70,8 @@ func NewGRPCServer(
 		grpc.Middleware(
 			recovery.Recovery(),
 			logging.Server(logger),
-			selector.Server(helper.JwtServer(), validate.Validator()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
+			validate.Validator(),
+			selector.Server(helper.JwtServer()).Match(helper.NewWhiteListMatcher(whiteList.GetApi())).Build(),
 		),
 	}
 	if c.Grpc.Network != "" {

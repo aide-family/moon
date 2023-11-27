@@ -4,6 +4,9 @@ VERSION=$(shell git describe --tags --always)
 APPS ?= $(shell ls app)
 path := $(shell pwd)
 
+# 获取输入的参数
+APP_NAME ?= $(app)
+
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
 	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
@@ -17,6 +20,12 @@ else
 	API_PROTO_FILES=$(shell find api -name *.proto)
 endif
 
+.PHONY:
+dev:
+	@echo "make dev"
+	@echo "APP_NAME: $(APP_NAME)"
+	@echo "VERSION: $(VERSION)"
+	@cd $(APP_NAME) && make dev
 
 .PHONY: init
 # init env
@@ -89,17 +98,10 @@ all:
 	make api;
 	make generate;
 
-.PHONY: migrate
-# generate model
-migrate:
-	go run ./migrate
-	@git add .
-
 .PHONY: web
 # start web
 web:
 	@cd apps/master/web && yarn start
-
 
 # show help
 help:
