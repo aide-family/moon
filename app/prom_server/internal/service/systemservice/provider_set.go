@@ -8,4 +8,5 @@ import (
 var ProviderSetSystem = wire.NewSet(
 	NewUserService,
 	NewRoleService,
+	NewApiService,
 )

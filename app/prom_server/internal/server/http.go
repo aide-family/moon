@@ -49,6 +49,7 @@ func RegisterHttpServer(
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
 	endpointService *promservice.EndpointService,
+	apiService *systemservice.ApiService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -61,6 +62,7 @@ func RegisterHttpServer(
 	system.RegisterUserHTTPServer(srv, userService)
 	system.RegisterRoleHTTPServer(srv, roleService)
 	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
+	system.RegisterApiHTTPServer(srv, apiService)
 
 	return &HttpServer{Server: srv}
 }

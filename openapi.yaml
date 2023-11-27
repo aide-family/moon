@@ -669,6 +669,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.system.UpdateRoleReply'
+    /api/v1/role/{id}/relate/api:
+        post:
+            tags:
+                - Role
+            description: RelateApi 关联角色接口
+            operationId: Role_RelateApi
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.RelateApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.RelateApiReply'
     /api/v1/strategy/batch/delete:
         post:
             tags:
@@ -1081,6 +1107,138 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.strategy.UpdateStrategyReply'
+    /api/v1/system/api/create:
+        post:
+            tags:
+                - Api
+            operationId: Api_CreateApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.CreateApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.CreateApiReply'
+    /api/v1/system/api/delete/{id}:
+        post:
+            tags:
+                - Api
+            operationId: Api_DeleteApi
+            parameters:
+                - name: id
+                  in: path
+                  description: id 接口ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.DeleteApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.DeleteApiReply'
+    /api/v1/system/api/get/{id}:
+        post:
+            tags:
+                - Api
+            operationId: Api_GetApi
+            parameters:
+                - name: id
+                  in: path
+                  description: id 接口ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.GetApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.GetApiReply'
+    /api/v1/system/api/list:
+        post:
+            tags:
+                - Api
+            operationId: Api_ListApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.ListApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.ListApiReply'
+    /api/v1/system/api/select:
+        post:
+            tags:
+                - Api
+            operationId: Api_SelectApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.SelectApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.SelectApiReply'
+    /api/v1/system/api/update/{id}:
+        post:
+            tags:
+                - Api
+            operationId: Api_UpdateApi
+            parameters:
+                - name: id
+                  in: path
+                  description: id 接口ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.UpdateApiRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.UpdateApiReply'
     /api/v1/user/create:
         post:
             tags:
@@ -1371,6 +1529,58 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: AlarmPageV1 告警页面基础类型
+        api.ApiSelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: value 接口值, 对应接口的id
+                    format: uint32
+                label:
+                    type: string
+                    description: label 接口标签, 对应接口的name
+                status:
+                    type: integer
+                    description: status 接口状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 备注
+        api.ApiV1:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
+                name:
+                    type: string
+                    description: name 接口名称
+                path:
+                    type: string
+                    description: path 接口路径
+                method:
+                    type: string
+                    description: method 接口方法
+                status:
+                    type: integer
+                    description: status 接口状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 备注
+                createdAt:
+                    type: integer
+                    description: createdAt 创建时间, unix时间戳
+                    format: int64
+                updatedAt:
+                    type: integer
+                    description: updatedAt 更新时间, unix时间戳
+                    format: int64
+                deletedAt:
+                    type: integer
+                    description: deletedAt 删除时间, unix时间戳
+                    format: int64
         api.DictSelectV1:
             type: object
             properties:
@@ -2837,6 +3047,28 @@ components:
                     type: string
                     description: remark 策略组备注
             description: UpdateGroupRequest 更新策略组请求
+        api.system.CreateApiReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
+        api.system.CreateApiRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: name 接口名称
+                path:
+                    type: string
+                    description: path 接口路径
+                method:
+                    type: string
+                    description: method 接口方法
+                remark:
+                    type: string
+                    description: remark 备注
         api.system.CreateRoleReply:
             type: object
             properties:
@@ -2867,6 +3099,20 @@ components:
                     type: string
                 phone:
                     type: string
+        api.system.DeleteApiReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
+        api.system.DeleteApiRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
         api.system.DeleteRoleReply:
             type: object
             properties:
@@ -2923,6 +3169,18 @@ components:
                 status:
                     type: integer
                     format: enum
+        api.system.GetApiReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.ApiV1'
+        api.system.GetApiRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
         api.system.GetRoleReply:
             type: object
             properties:
@@ -2945,6 +3203,22 @@ components:
                 id:
                     type: integer
                     format: uint32
+        api.system.ListApiReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ApiV1'
+        api.system.ListApiRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
         api.system.ListRoleReply:
             type: object
             properties:
@@ -2971,6 +3245,39 @@ components:
                     items:
                         $ref: '#/components/schemas/api.UserV1'
         api.system.ListUserRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+        api.system.RelateApiReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.system.RelateApiRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                apiIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+        api.system.SelectApiReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ApiSelectV1'
+        api.system.SelectApiRequest:
             type: object
             properties:
                 page:
@@ -3009,6 +3316,36 @@ components:
                     $ref: '#/components/schemas/api.PageRequest'
                 keyword:
                     type: string
+        api.system.UpdateApiReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
+        api.system.UpdateApiRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 接口ID
+                    format: uint32
+                name:
+                    type: string
+                    description: name 接口名称
+                path:
+                    type: string
+                    description: path 接口路径
+                method:
+                    type: string
+                    description: method 接口方法
+                status:
+                    type: integer
+                    description: status 接口状态
+                    format: enum
+                remark:
+                    type: string
+                    description: remark 备注
         api.system.UpdateRoleReply:
             type: object
             properties:
@@ -3052,6 +3389,7 @@ components:
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块
+    - name: Api
     - name: Auth
     - name: Dict
       description: Dict 字典管理模块

@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package api.system;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "system.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/system;system";
+option java_multiple_files = true;
+option java_package = "api.system";
+
+service Api {
+	rpc CreateApi (CreateApiRequest) returns (CreateApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/create"
+			body: "*"
+		};
+	}
+	rpc UpdateApi (UpdateApiRequest) returns (UpdateApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/update/{id}"
+			body: "*"
+		};
+	}
+	rpc DeleteApi (DeleteApiRequest) returns (DeleteApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/delete/{id}"
+			body: "*"
+		};
+	}
+	rpc GetApi (GetApiRequest) returns (GetApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/get/{id}"
+			body: "*"
+		};
+	}
+	rpc ListApi (ListApiRequest) returns (ListApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/list"
+			body: "*"
+		};
+	}
+	rpc SelectApi (SelectApiRequest) returns (SelectApiReply) {
+		option (google.api.http) = {
+			post: "/api/v1/system/api/select"
+			body: "*"
+		};
+	}
+}
+
+message CreateApiRequest {
+	// name 接口名称
+	string name = 2 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 20,
+	}];
+	// path 接口路径
+	string path = 3 [(validate.rules).string = {
+		uri: true,
+	}];
+	// method 接口方法
+	string method = 4 [(validate.rules).string = {
+		in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
+	}];
+	// remark 备注
+	string remark = 6 [(validate.rules).string.max_len = 255];
+}
+message CreateApiReply {
+	// id 接口ID
+	uint32 id = 1;
+}
+
+message UpdateApiRequest {
+	// id 接口ID
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// name 接口名称
+	string name = 2 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 20,
+	}];
+	// path 接口路径
+	string path = 3 [(validate.rules).string = {
+		uri: true,
+	}];
+	// method 接口方法
+	string method = 4 [(validate.rules).string = {
+		in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
+	}];
+	// status 接口状态
+	Status status = 5 [(validate.rules).enum = {defined_only: true}];
+	// remark 备注
+	string remark = 6 [(validate.rules).string.max_len = 255];
+}
+message UpdateApiReply {
+	// id 接口ID
+	uint32 id = 1;
+}
+
+message DeleteApiRequest {
+	// id 接口ID
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteApiReply {
+	// id 接口ID
+	uint32 id = 1;
+}
+
+message GetApiRequest {
+	// id 接口ID
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetApiReply {
+	ApiV1 detail = 1;
+}
+
+message ListApiRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	string keyword = 2 [(validate.rules).string.max_len = 20];
+}
+message ListApiReply {
+	PageReply page = 1;
+	repeated ApiV1 list = 2;
+}
+
+message SelectApiRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	string keyword = 2 [(validate.rules).string.max_len = 20];
+}
+message SelectApiReply {
+	PageReply page = 1;
+	repeated ApiSelectV1 list = 2;
+}

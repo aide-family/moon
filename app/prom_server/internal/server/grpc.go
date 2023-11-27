@@ -43,6 +43,7 @@ func RegisterGrpcServer(
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
 	endpointService *promservice.EndpointService,
+	apiService *systemservice.ApiService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -54,6 +55,7 @@ func RegisterGrpcServer(
 	system.RegisterUserServer(srv, userService)
 	system.RegisterRoleServer(srv, roleService)
 	endpoint.RegisterEndpointServer(srv, endpointService)
+	system.RegisterApiServer(srv, apiService)
 
 	return &GrpcServer{Server: srv}
 }

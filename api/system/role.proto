@@ -59,6 +59,14 @@ service Role {
       body: "*"
     };
   }
+
+  // RelateApi 关联角色接口
+  rpc RelateApi (RelateApiRequest) returns (RelateApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/{id}/relate/api"
+      body: "*"
+    };
+  }
 }
 
 message CreateRoleRequest {
@@ -109,4 +117,12 @@ message SelectRoleRequest{
 message SelectRoleReply{
   PageReply page = 1;
   repeated RoleSelectV1 list = 2;
+}
+
+message RelateApiRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  repeated uint32 apiIds = 2 [(validate.rules).repeated.min_items = 1];
+}
+message RelateApiReply {
+  uint32 id = 1;
 }
