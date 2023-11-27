@@ -44,3 +44,4 @@ bin/
 api/**/*.go
 **/**.pb.go
 **/cmd/**/**_gen.go
+**/configs_*/

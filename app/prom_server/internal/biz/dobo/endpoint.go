@@ -1,11 +1,16 @@
 package dobo
 
 import (
+	"encoding"
+	"encoding/json"
 	"time"
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 )
+
+var _ encoding.BinaryMarshaler = (*EndpointDO)(nil)
+var _ encoding.BinaryUnmarshaler = (*EndpointDO)(nil)
 
 type (
 	EndpointDO struct {
@@ -36,6 +41,14 @@ type (
 		AgentCheck    string          `json:"agentCheck"`
 	}
 )
+
+func (l *EndpointDO) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, l)
+}
+
+func (l *EndpointDO) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(l)
+}
 
 // NewEndpointDO new endpoint do
 func NewEndpointDO(values ...*EndpointDO) IDO[*EndpointBO, *EndpointDO] {

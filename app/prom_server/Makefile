@@ -15,6 +15,10 @@ else
 	API_PROTO_FILES=$(shell find api -name *.proto)
 endif
 
+.PHONY:
+dev:
+	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_server -conf ./configs_dev
+
 .PHONY: init
 # init env
 init:
