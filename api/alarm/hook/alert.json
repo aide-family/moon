@@ -1,0 +1,56 @@
+{
+  "level": "info",
+  "msg": "PostHook: ",
+  "req": {
+    "receiver": "web\\.hook",
+    "status": "firing",
+    "alerts": [
+      {
+        "status": "firing",
+        "labels": {
+          "alertname": "up",
+          "instance": "prom:9090",
+          "job": "prometheus_server",
+          "severity": "warning"
+        },
+        "annotations": {
+          "description": "prom:9090 of job prometheus_server has been down for more than 1 minute.",
+          "title": "Instance prom:9090 down"
+        },
+        "startsAt": "2023-10-17T04:23:51.237Z",
+        "endsAt": "0001-01-01T00:00:00Z",
+        "generatorURL": "http://8ce022f7e801:9090/graph?g0.expr=up+%3D%3D+1&g0.tab=1",
+        "fingerprint": "a2f1d053912a1d40"
+      },
+      {
+        "status": "firing",
+        "labels": {
+          "alertname": "up",
+          "instance": "pushgateway:9091",
+          "job": "pushgateway",
+          "severity": "warning"
+        },
+        "annotations": {
+          "description": "pushgateway:9091 of job pushgateway has been down for more than 1 minute.",
+          "title": "Instance pushgateway:9091 down"
+        },
+        "startsAt": "2023-10-17T04:23:51.237Z",
+        "endsAt": "0001-01-01T00:00:00Z",
+        "generatorURL": "http://8ce022f7e801:9090/graph?g0.expr=up+%3D%3D+1&g0.tab=1",
+        "fingerprint": "dfd0a50a1843cd59"
+      }
+    ],
+    "groupLabels": {
+      "alertname": "up"
+    },
+    "commonLabels": {
+      "alertname": "up",
+      "severity": "warning"
+    },
+    "commonAnnotations": {},
+    "externalURL": "http://f0084003d7e0:9093",
+    "version": "4",
+    "groupKey": "{}:{alertname=\"up\"}",
+    "truncatedAlerts": 0
+  }
+}

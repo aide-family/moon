@@ -25,7 +25,7 @@ message HookV1Request {
 	// status 状态, firing, resolved
 	string status = 2;
 	// alert 告警列表
-	repeated AlertV1 alert = 3;
+	repeated AlertV1 alerts = 3;
 	// groupLabels 告警组标签
 	map<string,string> groupLabels = 4;
 	// commonLabels 公共标签
@@ -65,5 +65,5 @@ message HookV1Reply {
 	// msg 响应消息
 	string msg = 1;
 	// code 响应码
-	string code = 2;
+	int32 code = 2;
 }

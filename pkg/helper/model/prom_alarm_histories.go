@@ -1,8 +1,6 @@
 package model
 
 import (
-	"time"
-
 	query "github.com/aide-cloud/gorm-normalize"
 )
 
@@ -14,7 +12,6 @@ type PromAlarmHistory struct {
 	Instance   string           `gorm:"column:instance;type:varchar(64);not null;comment:instance名称" json:"instance"`                                            // node名称
 	Status     int32            `gorm:"column:status;type:varchar(16);not null;comment:告警消息状态, 报警和恢复" json:"status"`                                             // 告警消息状态, 报警和恢复
 	Info       string           `gorm:"column:info;type:json;not null;comment:原始告警消息" json:"info"`                                                               // 原始告警消息
-	CreatedAt  time.Time        `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`                      // 创建时间
 	StartAt    int64            `gorm:"column:start_at;type:bigint unsigned;not null;comment:报警开始时间" json:"start_at"`                                            // 报警开始时间
 	EndAt      int64            `gorm:"column:end_at;type:bigint unsigned;not null;comment:报警恢复时间" json:"end_at"`                                                // 报警恢复时间
 	Duration   int64            `gorm:"column:duration;type:bigint unsigned;not null;comment:持续时间时间戳, 没有恢复, 时间戳是0" json:"duration"`                              // 持续时间时间戳, 没有恢复, 时间戳是0

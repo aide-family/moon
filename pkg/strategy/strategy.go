@@ -18,11 +18,13 @@ type (
 	Label interface {
 		StrategyId() uint
 		LevelId() uint
+		Get(key string) string
 	}
 
 	Annotation interface {
 		Summary() string
 		Description() string
+		Get(key string) string
 	}
 
 	Groups struct {
@@ -45,6 +47,14 @@ type (
 	Labels      map[string]string
 	Annotations map[string]string
 )
+
+func (l Annotations) Get(key string) string {
+	return l[key]
+}
+
+func (l Labels) Get(key string) string {
+	return l[key]
+}
 
 const (
 	strategyId  = "strategy_id"

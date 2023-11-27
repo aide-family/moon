@@ -3,6 +3,7 @@ package history
 import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // LikeInstance 根据字典名称模糊查询
@@ -32,5 +33,15 @@ func WhereAlarmPages(ids []uint) query.ScopeMethod {
 			return db
 		}
 		return db.Where("alarm_page_id IN (?)", ids)
+	}
+}
+
+// ClausesOnConflict 当索引冲突, 直接更新
+func ClausesOnConflict() query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "md5"}},
+			DoUpdates: clause.AssignmentColumns([]string{"status", "end_at", "duration", "info"}),
+		})
 	}
 }
