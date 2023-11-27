@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmhistory"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmpage"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/api"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/cache"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/endpoint"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/ping"
@@ -26,4 +27,5 @@ var ProviderSetRepository = wire.NewSet(
 	user.NewUserRepo,
 	cache.NewCacheRepo,
 	endpoint.NewEndpointRepo,
+	api.NewApiRepo,
 )

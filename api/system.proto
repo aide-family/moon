@@ -73,3 +73,35 @@ message RoleSelectV1 {
   // remark 备注
   string remark = 4;
 }
+
+message ApiV1 {
+  // id 接口ID
+  uint32 id = 1;
+  // name 接口名称
+  string name = 2;
+  // path 接口路径
+  string path = 3;
+  // method 接口方法
+  string method = 4;
+  // status 接口状态
+  Status status = 5;
+  // remark 备注
+  string remark = 6;
+  // createdAt 创建时间, unix时间戳
+  int64 createdAt = 7;
+  // updatedAt 更新时间, unix时间戳
+  int64 updatedAt = 8;
+  // deletedAt 删除时间, unix时间戳
+  int64 deletedAt = 9;
+}
+
+message ApiSelectV1 {
+  // value 接口值, 对应接口的id
+  uint32 value = 1;
+  // label 接口标签, 对应接口的name
+  string label = 2;
+  // status 接口状态
+  Status status = 3;
+  // remark 备注
+  string remark = 4;
+}
