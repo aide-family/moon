@@ -2,9 +2,11 @@ package role
 
 import (
 	"context"
+	"strconv"
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -61,6 +63,35 @@ func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes
 	})
 
 	return list, nil
+}
+
+func (l *roleRepoImpl) RelateApi(_ context.Context, roleId uint, apiList []*dobo.ApiDO) error {
+	enforcer := l.data.Enforcer()
+	polices := make([][]string, 0, len(apiList))
+	roleIdStr := strconv.Itoa(int(roleId))
+	for _, api := range apiList {
+		polices = append(polices, []string{roleIdStr, api.Path, api.Method})
+	}
+
+	// 删除这个角色之前的权限
+	_, removeErr := enforcer.RemoveFilteredPolicy(0, roleIdStr)
+	if removeErr != nil {
+		return removeErr
+	}
+
+	if len(polices) == 0 {
+		return nil
+	}
+
+	policiesAddOk, err := enforcer.AddPolicies(polices)
+	if err != nil {
+		return err
+	}
+	if !policiesAddOk {
+		return perrors.ErrorUnknown("add policies failed")
+	}
+
+	return nil
 }
 
 func NewRoleRepo(data *data.Data, logger log.Logger) repository.RoleRepo {

@@ -58,7 +58,7 @@ message CreateApiRequest {
 	}];
 	// path 接口路径
 	string path = 3 [(validate.rules).string = {
-		uri: true,
+		pattern:  "^/[ a-zA-Z0-9_\\-\\./]+$",
 	}];
 	// method 接口方法
 	string method = 4 [(validate.rules).string = {
@@ -82,7 +82,7 @@ message UpdateApiRequest {
 	}];
 	// path 接口路径
 	string path = 3 [(validate.rules).string = {
-		uri: true,
+		pattern:  "^/[ a-zA-Z0-9_\\-\\./]+$",
 	}];
 	// method 接口方法
 	string method = 4 [(validate.rules).string = {

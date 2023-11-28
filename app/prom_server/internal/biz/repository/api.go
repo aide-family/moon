@@ -18,6 +18,8 @@ type (
 		Create(ctx context.Context, apiDoList ...*dobo.ApiDO) ([]*dobo.ApiDO, error)
 		// Get 获取api
 		Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.ApiDO, error)
+		// Find 查询api
+		Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error)
 		// List 获取api列表
 		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error)
 		// Delete 删除api
@@ -28,6 +30,10 @@ type (
 
 	UnimplementedApiRepo struct{}
 )
+
+func (UnimplementedApiRepo) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
+}
 
 func (UnimplementedApiRepo) Create(ctx context.Context, apiDoList ...*dobo.ApiDO) ([]*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")

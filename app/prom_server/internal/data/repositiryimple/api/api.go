@@ -53,6 +53,22 @@ func (l *apiRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*do
 	return dobo.ApiModelToDO(apiModelInfo), nil
 }
 
+func (l *apiRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
+	var apiModelInfoList []*model.SysApi
+
+	if err := l.WithContext(ctx).DB().Scopes(scopes...).Find(&apiModelInfoList).Error; err != nil {
+		return nil, err
+	}
+
+	list := make([]*dobo.ApiDO, 0, len(apiModelInfoList))
+	for _, apiModelInfo := range apiModelInfoList {
+		newModelData := dobo.ApiModelToDO(apiModelInfo)
+		list = append(list, newModelData)
+	}
+
+	return list, nil
+}
+
 func (l *apiRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
 	apiModelList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
