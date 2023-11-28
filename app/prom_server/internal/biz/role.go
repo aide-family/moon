@@ -16,13 +16,15 @@ type (
 		log *log.Helper
 
 		roleRepo repository.RoleRepo
+		apiRepo  repository.ApiRepo
 	}
 )
 
-func NewRoleBiz(roleRepo repository.RoleRepo, logger log.Logger) *RoleBiz {
+func NewRoleBiz(roleRepo repository.RoleRepo, apiRepo repository.ApiRepo, logger log.Logger) *RoleBiz {
 	return &RoleBiz{
 		log:      log.NewHelper(logger),
 		roleRepo: roleRepo,
+		apiRepo:  apiRepo,
 	}
 }
 
@@ -85,4 +87,27 @@ func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status api.Status, i
 	}
 
 	return nil
+}
+
+// RelateApiById 关联角色和api
+func (b *RoleBiz) RelateApiById(ctx context.Context, roleId uint32, apiIds []uint32) error {
+	var (
+		findDoList []*dobo.ApiDO
+		err        error
+	)
+
+	if len(apiIds) > 0 {
+		// 查询API
+		findDoList, err = b.apiRepo.Find(ctx, system.ApiInIds(apiIds...))
+		if err != nil {
+			return err
+		}
+	}
+
+	roleDoInfo, err := b.roleRepo.Get(ctx, system.RoleInIds(roleId))
+	if err != nil {
+		return err
+	}
+
+	return b.roleRepo.RelateApi(ctx, roleDoInfo.Id, findDoList)
 }

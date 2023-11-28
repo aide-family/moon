@@ -124,3 +124,12 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 		List: list,
 	}, nil
 }
+
+func (s *RoleService) RelateApi(ctx context.Context, req *pb.RelateApiRequest) (*pb.RelateApiReply, error) {
+	if err := s.roleBiz.RelateApiById(ctx, req.GetId(), req.GetApiIds()); err != nil {
+		return nil, err
+	}
+	return &pb.RelateApiReply{
+		Id: req.GetId(),
+	}, nil
+}

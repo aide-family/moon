@@ -16,4 +16,7 @@ enum Err {
 
 	// INVALID_PARAMS 参数错误
 	INVALID_PARAMS = 1 [(errors.code) = 400];
+
+	// NOT_FOUND 资源不存在
+	NOT_FOUND = 2 [(errors.code) = 404];
 }

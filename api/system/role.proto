@@ -121,7 +121,7 @@ message SelectRoleReply{
 
 message RelateApiRequest {
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
-  repeated uint32 apiIds = 2 [(validate.rules).repeated.min_items = 1];
+  repeated uint32 apiIds = 2 [(validate.rules).repeated = {unique: true}];
 }
 message RelateApiReply {
   uint32 id = 1;
