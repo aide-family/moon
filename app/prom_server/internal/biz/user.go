@@ -2,15 +2,18 @@ package biz
 
 import (
 	"context"
+	"strconv"
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -125,7 +128,26 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 }
 
 // RefreshToken 刷新token
-func (b *UserBiz) RefreshToken(_ context.Context, authClaims *middler.AuthClaims) (string, error) {
+func (b *UserBiz) RefreshToken(_ context.Context, authClaims *middler.AuthClaims, roleId uint32) (string, error) {
+	roleIdStr := strconv.Itoa(int(roleId))
+	if authClaims.Role == roleIdStr {
+		return middler.IssueToken(authClaims.ID, authClaims.Role)
+	}
+	// 查询用户角色列表信息
+	if roleId > 0 {
+		userDo, err := b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32](roleId))
+		if err != nil {
+			return "", err
+		}
+
+		if len(userDo.Roles) == 0 || !slices.ContainsOf(userDo.Roles, func(do *dobo.RoleDO) bool {
+			return do.Id == uint(roleId)
+		}) {
+			return "", perrors.ErrorNotFound("role data is not found")
+		}
+
+		authClaims.Role = roleIdStr
+	}
 	return middler.IssueToken(authClaims.ID, authClaims.Role)
 }
 
