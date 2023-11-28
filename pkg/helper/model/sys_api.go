@@ -2,7 +2,10 @@ package model
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/gorm/schema"
 )
+
+var _ schema.Tabler = (*SysApi)(nil)
 
 const TableNameSysApi = "sys_apis"
 
@@ -17,6 +20,6 @@ type SysApi struct {
 }
 
 // TableName 表名
-func (*SysApi) TableName() string {
+func (SysApi) TableName() string {
 	return TableNameSysApi
 }

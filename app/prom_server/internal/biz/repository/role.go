@@ -18,6 +18,7 @@ type (
 		Update(ctx context.Context, role *dobo.RoleDO, scopes ...query.ScopeMethod) (*dobo.RoleDO, error)
 		Delete(ctx context.Context, scopes ...query.ScopeMethod) error
 		Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.RoleDO, error)
+		Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error)
 		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error)
 		RelateApi(ctx context.Context, roleId uint, apiList []*dobo.ApiDO) error
 	}
@@ -41,6 +42,10 @@ func (UnimplementedRoleRepo) Delete(_ context.Context, _ ...query.ScopeMethod) e
 
 func (UnimplementedRoleRepo) Get(_ context.Context, _ ...query.ScopeMethod) (*dobo.RoleDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+
+func (UnimplementedRoleRepo) Find(_ context.Context, _ ...query.ScopeMethod) ([]*dobo.RoleDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
 
 func (UnimplementedRoleRepo) List(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*dobo.RoleDO, error) {

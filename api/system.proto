@@ -31,7 +31,10 @@ message UserV1 {
   int64 updatedAt = 10;
   // deletedAt 删除时间, unix时间戳
   int64 deletedAt = 11;
+  // roles 角色列表
   repeated RoleSelectV1 roles = 12;
+  // nickname 昵称
+  string nickname = 13;
 }
 
 message UserSelectV1 {
@@ -45,6 +48,8 @@ message UserSelectV1 {
   string remark = 4;
   // avatar 头像
   string avatar = 5;
+  // nickname 昵称
+  string nickname = 6;
 }
 
 message RoleV1 {

@@ -9,6 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -19,6 +20,17 @@ type userRepoImpl struct {
 	log  *log.Helper
 	data *data.Data
 	query.IAction[model.SysUser]
+}
+
+func (l *userRepoImpl) RelateRoles(ctx context.Context, userDo *dobo.UserDO, roleList []*dobo.RoleDO) error {
+	roleModelList := slices.To(roleList, func(roleInfo *dobo.RoleDO) *model.SysRole {
+		return roleInfo.ToModel()
+	})
+
+	return l.DB().WithContext(ctx).Model(userDo.ToModel()).
+		Association(string(system.UserAssociationReplaceRoles)).
+		Replace(&roleModelList)
+
 }
 
 func (l *userRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.UserDO, error) {
@@ -42,7 +54,7 @@ func (l *userRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes
 }
 
 func (l *userRepoImpl) Create(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error) {
-	newUser := user.ModelUser()
+	newUser := user.ToModel()
 	if err := l.WithContext(ctx).Create(newUser); err != nil {
 		return nil, err
 	}
@@ -50,7 +62,7 @@ func (l *userRepoImpl) Create(ctx context.Context, user *dobo.UserDO) (*dobo.Use
 }
 
 func (l *userRepoImpl) Update(ctx context.Context, user *dobo.UserDO, scopes ...query.ScopeMethod) (*dobo.UserDO, error) {
-	newUser := user.ModelUser()
+	newUser := user.ToModel()
 	if err := l.WithContext(ctx).Update(newUser, scopes...); err != nil {
 		return nil, err
 	}

@@ -27,3 +27,13 @@ func TestGenerateSalt(t *testing.T) {
 		GenerateSalt()
 	}
 }
+
+func TestEncryptPassword(t *testing.T) {
+	enPwd, err := EncryptPassword("123456", DefaultIv)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(enPwd)
+}

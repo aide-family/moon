@@ -24,7 +24,7 @@ type roleRepoImpl struct {
 }
 
 func (l *roleRepoImpl) Create(ctx context.Context, role *dobo.RoleDO) (*dobo.RoleDO, error) {
-	newRole := role.ModelRole()
+	newRole := role.ToModel()
 	if err := l.WithContext(ctx).Create(newRole); err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (l *roleRepoImpl) Create(ctx context.Context, role *dobo.RoleDO) (*dobo.Rol
 }
 
 func (l *roleRepoImpl) Update(ctx context.Context, role *dobo.RoleDO, scopes ...query.ScopeMethod) (*dobo.RoleDO, error) {
-	newRole := role.ModelRole()
+	newRole := role.ToModel()
 	if err := l.WithContext(ctx).Update(newRole, scopes...); err != nil {
 		return nil, err
 	}
@@ -50,6 +50,20 @@ func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*d
 		return nil, err
 	}
 	return dobo.RoleModelToDO(roleDetail), nil
+}
+
+func (l *roleRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error) {
+	var roleModelList []*model.SysRole
+
+	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&roleModelList).Error; err != nil {
+		return nil, err
+	}
+
+	list := slices.To(roleModelList, func(role *model.SysRole) *dobo.RoleDO {
+		return dobo.RoleModelToDO(role)
+	})
+
+	return list, nil
 }
 
 func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error) {

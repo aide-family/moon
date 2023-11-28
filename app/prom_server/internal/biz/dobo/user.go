@@ -141,7 +141,7 @@ func (l *UserBO) ApiUserV1() *api.UserV1 {
 	}
 }
 
-func (l *UserDO) ModelUser() *model.SysUser {
+func (l *UserDO) ToModel() *model.SysUser {
 	if l == nil {
 		return nil
 	}
@@ -165,7 +165,7 @@ func (l *UserDO) ModelUser() *model.SysUser {
 			if do == nil {
 				return nil
 			}
-			return do.ModelRole()
+			return do.ToModel()
 		}),
 	}
 }

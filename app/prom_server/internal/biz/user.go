@@ -10,6 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
@@ -22,15 +23,17 @@ type (
 
 		userRepo  repository.UserRepo
 		cacheRepo repository.CacheRepo
+		roleRepo  repository.RoleRepo
 	}
 )
 
-func NewUserBiz(userRepo repository.UserRepo, cacheRepo repository.CacheRepo, logger log.Logger) *UserBiz {
+func NewUserBiz(userRepo repository.UserRepo, cacheRepo repository.CacheRepo, roleRepo repository.RoleRepo, logger log.Logger) *UserBiz {
 	return &UserBiz{
 		log: log.NewHelper(logger),
 
 		userRepo:  userRepo,
 		cacheRepo: cacheRepo,
+		roleRepo:  roleRepo,
 	}
 }
 
@@ -100,7 +103,7 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 
 // LoginByUsernameAndPassword 登录
 func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (string, error) {
-	userDo, err := b.userRepo.Get(ctx, system.UserEqName(username))
+	userDo, err := b.userRepo.Get(ctx, system.UserEqName(username), system.UserPreloadRoles[uint32]())
 	if err != nil {
 		return "", err
 	}
@@ -109,13 +112,15 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 		return "", err
 	}
 
-	// 颁发token
-	token, err := middler.IssueToken(userDo.Id, "")
-	if err != nil {
-		return "", err
+	roleId := uint(0)
+	// 获取用户上一次的role
+	if len(userDo.Roles) > 0 {
+		roleId = userDo.Roles[0].Id
 	}
 
-	return token, nil
+	roleIdStr := strconv.Itoa(int(roleId))
+
+	return middler.IssueToken(userDo.Id, roleIdStr)
 }
 
 // Logout 退出登录
@@ -128,8 +133,15 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 }
 
 // RefreshToken 刷新token
-func (b *UserBiz) RefreshToken(_ context.Context, authClaims *middler.AuthClaims, roleId uint32) (string, error) {
+func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (string, error) {
 	roleIdStr := strconv.Itoa(int(roleId))
+	defer func() {
+		key := helper.UserRoleKey.KeyInt(authClaims.ID).String()
+		if err := b.cacheRepo.Set(ctx, key, roleIdStr, 0); err != nil {
+			b.log.Errorf("cache user role err: %v", err)
+			return
+		}
+	}()
 	if authClaims.Role == roleIdStr {
 		return middler.IssueToken(authClaims.ID, authClaims.Role)
 	}
@@ -178,4 +190,28 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 	}
 
 	return dobo.NewUserDO(userDo).BO().First(), nil
+}
+
+// RelateRoles 关联角色
+func (b *UserBiz) RelateRoles(ctx context.Context, userId uint32, roleIds []uint32) error {
+	userDo, err := b.userRepo.Get(ctx, system.UserInIds(userId))
+	if err != nil {
+		return err
+	}
+
+	// 查询角色
+	if len(roleIds) > 0 {
+		roleDos, err := b.roleRepo.Find(ctx, system.RoleInIds(roleIds...))
+		if err != nil {
+			return err
+		}
+		userDo.Roles = roleDos
+	}
+
+	// 关联角色
+	if err = b.userRepo.RelateRoles(ctx, userDo, userDo.Roles); err != nil {
+		return err
+	}
+
+	return nil
 }

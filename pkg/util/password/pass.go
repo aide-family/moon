@@ -47,6 +47,19 @@ func DecryptPassword(password, salt string) (string, error) {
 	return string(newPass), nil
 }
 
+// EncryptPassword 加密密码
+func EncryptPassword(password, salt string) (string, error) {
+	aes, err := cipher.NewAes(key, salt)
+	if err != nil {
+		return "", err
+	}
+	newPass, err := aes.EncryptBase64([]byte(password))
+	if err != nil {
+		return "", err
+	}
+	return newPass, nil
+}
+
 // ValidatePassword 验证密码
 func ValidatePassword(p1, dePass, salt string) bool {
 	newPass, err := DecryptPassword(dePass, salt)

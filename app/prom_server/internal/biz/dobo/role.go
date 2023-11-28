@@ -107,7 +107,7 @@ func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 	}
 }
 
-func (l *RoleDO) ModelRole() *model.SysRole {
+func (l *RoleDO) ToModel() *model.SysRole {
 	if l == nil {
 		return nil
 	}
