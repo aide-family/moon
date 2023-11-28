@@ -31,6 +31,7 @@ message UserV1 {
   int64 updatedAt = 10;
   // deletedAt 删除时间, unix时间戳
   int64 deletedAt = 11;
+  repeated RoleSelectV1 roles = 12;
 }
 
 message UserSelectV1 {
