@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
 )
@@ -107,7 +107,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	}
 
 	// 颁发token
-	token, err := helper.IssueToken(userDo.Id, "")
+	token, err := middler.IssueToken(userDo.Id, "")
 	if err != nil {
 		return "", err
 	}
@@ -116,21 +116,21 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 }
 
 // Logout 退出登录
-func (b *UserBiz) Logout(ctx context.Context, authClaims *helper.AuthClaims) error {
+func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) error {
 	client, err := b.cacheRepo.Client()
 	if err != nil {
 		return err
 	}
-	return helper.Expire(ctx, client, authClaims)
+	return middler.Expire(ctx, client, authClaims)
 }
 
 // RefreshToken 刷新token
-func (b *UserBiz) RefreshToken(_ context.Context, authClaims *helper.AuthClaims) (string, error) {
-	return helper.IssueToken(authClaims.ID, authClaims.Role)
+func (b *UserBiz) RefreshToken(_ context.Context, authClaims *middler.AuthClaims) (string, error) {
+	return middler.IssueToken(authClaims.ID, authClaims.Role)
 }
 
 // EditUserPassword 修改密码
-func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *helper.AuthClaims, oldPassword, newPassword string) (*dobo.UserBO, error) {
+func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.AuthClaims, oldPassword, newPassword string) (*dobo.UserBO, error) {
 	userDo, err := b.userRepo.Get(ctx, system.UserInIds(authClaims.ID))
 	if err != nil {
 		return nil, err

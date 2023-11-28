@@ -7,7 +7,7 @@ import (
 	pb "prometheus-manager/api/auth"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/password"
 )
 
@@ -43,9 +43,9 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 }
 
 func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
-	authClaims, ok := helper.GetAuthClaims(ctx)
+	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
-		return nil, helper.ErrTokenInvalid
+		return nil, middler.ErrTokenInvalid
 	}
 	// 记录token md5然后存储到redis
 	if err := s.userBiz.Logout(ctx, authClaims); err != nil {
@@ -56,9 +56,9 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 }
 
 func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
-	authClaims, ok := helper.GetAuthClaims(ctx)
+	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
-		return nil, helper.ErrTokenInvalid
+		return nil, middler.ErrTokenInvalid
 	}
 
 	token, err := s.userBiz.RefreshToken(ctx, authClaims)

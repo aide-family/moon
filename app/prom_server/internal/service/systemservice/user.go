@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
@@ -124,9 +124,9 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 }
 
 func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPasswordRequest) (*pb.EditUserPasswordReply, error) {
-	authClaims, ok := helper.GetAuthClaims(ctx)
+	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
-		return nil, helper.ErrTokenInvalid
+		return nil, middler.ErrTokenInvalid
 	}
 
 	oldPassword, err := password.DecryptPassword(req.GetOldPassword(), password.DefaultIv)
