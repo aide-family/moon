@@ -1997,6 +1997,10 @@ components:
                     type: integer
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.RoleSelectV1'
         api.alarm.history.GetHistoryReply:
             type: object
             properties:
@@ -3303,6 +3307,9 @@ components:
                     $ref: '#/components/schemas/api.PageRequest'
                 keyword:
                     type: string
+                userId:
+                    type: integer
+                    format: uint32
         api.system.SelectUserReply:
             type: object
             properties:

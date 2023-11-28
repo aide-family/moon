@@ -81,6 +81,9 @@ func roleDoToBo(d *RoleDO) *RoleBO {
 }
 
 func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
+	if l == nil {
+		return nil
+	}
 	return &api.RoleSelectV1{
 		Value:  uint32(l.Id),
 		Label:  l.Name,
@@ -90,6 +93,9 @@ func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
 }
 
 func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
+	if l == nil {
+		return nil
+	}
 	return &api.RoleV1{
 		Id:        uint32(l.Id),
 		Name:      l.Name,

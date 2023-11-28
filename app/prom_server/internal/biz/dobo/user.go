@@ -132,6 +132,12 @@ func (l *UserBO) ApiUserV1() *api.UserV1 {
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
+		Roles: slices.To(l.Roles, func(bo *RoleBO) *api.RoleSelectV1 {
+			if bo == nil {
+				return nil
+			}
+			return bo.ApiRoleSelectV1()
+		}),
 	}
 }
 

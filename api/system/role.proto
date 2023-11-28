@@ -113,6 +113,7 @@ message ListRoleReply {
 message SelectRoleRequest{
   PageRequest page = 1 [(validate.rules).message.required = true];
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  uint32 userId = 3;
 }
 message SelectRoleReply{
   PageReply page = 1;

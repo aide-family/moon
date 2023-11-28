@@ -36,7 +36,7 @@ func NewUserBiz(userRepo repository.UserRepo, cacheRepo repository.CacheRepo, lo
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*dobo.UserBO, error) {
-	user, err := b.userRepo.Get(ctx, system.RoleInIds(id))
+	user, err := b.userRepo.Get(ctx, system.UserInIds(id), system.UserPreloadRoles[uint32]())
 	if err != nil {
 		return nil, err
 	}
