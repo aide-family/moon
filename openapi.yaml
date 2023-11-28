@@ -2342,7 +2342,10 @@ components:
                     description: token 登录token
         api.auth.RefreshTokenRequest:
             type: object
-            properties: {}
+            properties:
+                roleId:
+                    type: integer
+                    format: uint32
         api.dict.BatchDeleteDictReply:
             type: object
             properties:

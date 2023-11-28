@@ -51,6 +51,7 @@ message LogoutReply {
 }
 
 message RefreshTokenRequest {
+	uint32 roleId = 1 [(validate.rules).uint32.gt = 0];
 }
 message RefreshTokenReply {
   // token 登录token

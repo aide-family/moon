@@ -61,7 +61,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 		return nil, middler.ErrTokenInvalid
 	}
 
-	token, err := s.userBiz.RefreshToken(ctx, authClaims)
+	token, err := s.userBiz.RefreshToken(ctx, authClaims, req.GetRoleId())
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package system
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/gorm"
 	"prometheus-manager/pkg/util/types"
 )
 
@@ -18,4 +19,14 @@ func UserLike(keyword string) query.ScopeMethod {
 // UserEqName 等于name
 func UserEqName(name string) query.ScopeMethod {
 	return query.WhereInColumn("name", name)
+}
+
+// UserPreloadRoles 预加载角色
+func UserPreloadRoles[T types.Int](roleIds ...T) query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(roleIds) > 0 {
+			return db.Preload("Roles", query.WhereInColumn("id", roleIds...))
+		}
+		return db.Preload("Roles")
+	}
 }
