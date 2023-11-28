@@ -36,7 +36,6 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Password: req.GetPassword(),
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
-		Remark:   req.GetPassword(),
 	}
 	userBo, err := s.userBiz.CreateUser(ctx, userBo)
 	if err != nil {
@@ -152,4 +151,11 @@ func (s *UserService) EditUserStatus(ctx context.Context, req *pb.EditUserStatus
 		return nil, err
 	}
 	return &pb.EditUserStatusReply{Ids: req.GetIds()}, nil
+}
+
+func (s *UserService) RelateRoles(ctx context.Context, req *pb.RelateRolesRequest) (*pb.RelateRolesReply, error) {
+	if err := s.userBiz.RelateRoles(ctx, req.GetId(), req.GetRoleIds()); err != nil {
+		return nil, err
+	}
+	return &pb.RelateRolesReply{Id: req.GetId()}, nil
 }

@@ -1412,6 +1412,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.system.UpdateUserReply'
+    /api/v1/user/{id}/roles/relate:
+        post:
+            tags:
+                - User
+            description: RelateRoles 关联角色
+            operationId: User_RelateRoles
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.system.RelateRolesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.system.RelateRolesReply'
     /ping:
         get:
             tags:
@@ -1959,6 +1985,9 @@ components:
                 avatar:
                     type: string
                     description: avatar 头像
+                nickname:
+                    type: string
+                    description: nickname 昵称
         api.UserV1:
             type: object
             properties:
@@ -2001,6 +2030,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.RoleSelectV1'
+                    description: roles 角色列表
+                nickname:
+                    type: string
+                    description: nickname 昵称
         api.alarm.history.GetHistoryReply:
             type: object
             properties:
@@ -3106,6 +3139,8 @@ components:
                     type: string
                 phone:
                     type: string
+                nickname:
+                    type: string
         api.system.DeleteApiReply:
             type: object
             properties:
@@ -3275,6 +3310,23 @@ components:
                     items:
                         type: integer
                         format: uint32
+        api.system.RelateRolesReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.system.RelateRolesRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                roleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
         api.system.SelectApiReply:
             type: object
             properties:
@@ -3396,6 +3448,8 @@ components:
                 status:
                     type: integer
                     format: enum
+                nickname:
+                    type: string
 tags:
     - name: AlarmPage
       description: AlarmPage 告警页面管理模块

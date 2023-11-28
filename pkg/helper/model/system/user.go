@@ -6,6 +6,10 @@ import (
 	"prometheus-manager/pkg/util/types"
 )
 
+const (
+	UserAssociationReplaceRoles query.AssociationKey = "Roles"
+)
+
 // UserInIds id列表
 func UserInIds[T types.Int](ids ...T) query.ScopeMethod {
 	return query.WhereInColumn("id", ids...)
@@ -13,12 +17,12 @@ func UserInIds[T types.Int](ids ...T) query.ScopeMethod {
 
 // UserLike 模糊查询
 func UserLike(keyword string) query.ScopeMethod {
-	return query.WhereLikeKeyword(keyword+"%", "name")
+	return query.WhereLikeKeyword(keyword+"%", "username", "nickname", "email", "phone")
 }
 
 // UserEqName 等于name
 func UserEqName(name string) query.ScopeMethod {
-	return query.WhereInColumn("name", name)
+	return query.WhereInColumn("username", name)
 }
 
 // UserPreloadRoles 预加载角色

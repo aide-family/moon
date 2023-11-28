@@ -75,13 +75,26 @@ service User {
       body: "*"
     };
   }
+
+  // RelateRoles 关联角色
+  rpc RelateRoles (RelateRolesRequest) returns (RelateRolesReply) {
+    option (google.api.http) = {
+      post: "/api/v1/user/{id}/roles/relate"
+      body: "*"
+    };
+  }
 }
 
 message CreateUserRequest {
-  string username = 1 [(validate.rules).string.min_len = 4];
+  string username = 1 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 64,
+    pattern: "^[a-zA-Z0-9_\\.]+$"
+  }];
   string password = 2 [(validate.rules).string.min_len = 6];
   string email = 3 [(validate.rules).string.email = true];
   string phone = 4 [(validate.rules).string.len = 11];
+  string nickname = 5 [(validate.rules).string.max_len = 64];
 }
 message CreateUserReply {
   uint32 id = 1;
@@ -93,6 +106,7 @@ message UpdateUserRequest {
   string remark = 3 [(validate.rules).string.max_len = 255];
   string avatar = 4 [(validate.rules).string.uri = true];
   Status status = 5 [(validate.rules).enum = {defined_only: true}];
+  string nickname = 6 [(validate.rules).string.max_len = 64];
 }
 message UpdateUserReply {
   uint32 id = 1;
@@ -151,4 +165,20 @@ message EditUserStatusRequest {
 }
 message EditUserStatusReply {
   repeated uint32 ids = 1;
+}
+
+message RelateRolesRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  repeated uint32 roleIds = 2 [(validate.rules).repeated = {
+    min_items: 1,
+    max_items: 100,
+    unique: true,
+    items: {
+      uint32: {gt: 0}
+    }
+  }];
+}
+
+message RelateRolesReply {
+  uint32 id = 1;
 }

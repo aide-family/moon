@@ -19,10 +19,15 @@ type (
 		Create(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error)
 		Update(ctx context.Context, user *dobo.UserDO, scopes ...query.ScopeMethod) (*dobo.UserDO, error)
 		Delete(ctx context.Context, scopes ...query.ScopeMethod) error
+		RelateRoles(ctx context.Context, userDo *dobo.UserDO, roleList []*dobo.RoleDO) error
 	}
 
 	UnimplementedUserRepo struct{}
 )
+
+func (UnimplementedUserRepo) RelateRoles(_ context.Context, _ *dobo.UserDO, _ []*dobo.RoleDO) error {
+	return status.Errorf(codes.Unimplemented, "method RelateRoles not implemented")
+}
 
 func (UnimplementedUserRepo) mustEmbedUnimplemented() {}
 

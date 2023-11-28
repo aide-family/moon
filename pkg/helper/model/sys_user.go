@@ -10,6 +10,7 @@ const TableNameSystemUser = "sys_users"
 type SysUser struct {
 	query.BaseModel
 	Username string     `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx_username,priority:1;comment:用户名" json:"username"`
+	Nickname string     `gorm:"column:nickname;type:varchar(64);not null;comment:昵称" json:"nickname"`
 	Password string     `gorm:"column:password;type:varchar(255);not null;comment:密码" json:"password"`
 	Email    string     `gorm:"column:email;type:varchar(64);not null;uniqueIndex:idx_email,priority:1;comment:邮箱" json:"email"`
 	Phone    string     `gorm:"column:phone;type:varchar(64);not null;uniqueIndex:idx_phone,priority:1;comment:手机号" json:"phone"`
