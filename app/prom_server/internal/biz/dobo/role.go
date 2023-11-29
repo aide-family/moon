@@ -8,6 +8,7 @@ import (
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -19,6 +20,7 @@ type (
 		CreatedAt time.Time `json:"createdAt"`
 		UpdatedAt time.Time `json:"updatedAt"`
 		DeletedAt int64     `json:"deletedAt"`
+		Users     []*UserDO `json:"users"`
 	}
 
 	RoleBO struct {
@@ -29,6 +31,7 @@ type (
 		CreatedAt int64           `json:"createdAt"`
 		UpdatedAt int64           `json:"updatedAt"`
 		DeletedAt int64           `json:"deletedAt"`
+		Users     []*UserBO       `json:"users"`
 	}
 )
 
@@ -62,6 +65,7 @@ func roleBoToDo(b *RoleBO) *RoleDO {
 		CreatedAt: time.Unix(b.CreatedAt, 0),
 		UpdatedAt: time.Unix(b.UpdatedAt, 0),
 		DeletedAt: b.DeletedAt,
+		Users:     NewUserBO(b.Users...).DO().List(),
 	}
 }
 
@@ -77,6 +81,7 @@ func roleDoToBo(d *RoleDO) *RoleBO {
 		CreatedAt: d.CreatedAt.Unix(),
 		UpdatedAt: d.UpdatedAt.Unix(),
 		DeletedAt: d.DeletedAt,
+		Users:     NewUserDO(d.Users...).BO().List(),
 	}
 }
 
@@ -104,6 +109,9 @@ func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
+		Users: slices.To(l.Users, func(i *UserBO) *api.UserSelectV1 {
+			return i.ApiSelectV1()
+		}),
 	}
 }
 
@@ -121,6 +129,9 @@ func (l *RoleDO) ToModel() *model.SysRole {
 		Remark: l.Remark,
 		Name:   l.Name,
 		Status: l.Status,
+		Users: slices.To(l.Users, func(i *UserDO) *model.SysUser {
+			return i.ToModel()
+		}),
 	}
 }
 
@@ -137,5 +148,8 @@ func RoleModelToDO(m *model.SysRole) *RoleDO {
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 		DeletedAt: int64(m.DeletedAt),
+		Users: slices.To(m.Users, func(i *model.SysUser) *UserDO {
+			return UserModelToDO(i)
+		}),
 	}
 }

@@ -1,7 +1,6 @@
 package dobo
 
 import (
-	"fmt"
 	"time"
 
 	query "github.com/aide-cloud/gorm-normalize"
@@ -107,17 +106,17 @@ func userBoToDo(b *UserBO) *UserDO {
 	}
 }
 
-func (l *UserBO) ApiUserSelectV1() *api.UserSelectV1 {
+func (l *UserBO) ApiSelectV1() *api.UserSelectV1 {
 	if l == nil {
 		return nil
 	}
 
 	return &api.UserSelectV1{
-		Value:  uint32(l.Id),
-		Label:  fmt.Sprintf("%s(%s)", l.Username, l.Nickname),
-		Status: l.Status.ApiStatus(),
-		Remark: l.Remark,
-		Avatar: l.Avatar,
+		Value:    uint32(l.Id),
+		Label:    l.Username,
+		Status:   l.Status.ApiStatus(),
+		Avatar:   l.Avatar,
+		Nickname: l.Nickname,
 	}
 }
 

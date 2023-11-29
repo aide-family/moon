@@ -120,7 +120,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 		return nil, err
 	}
 	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserSelectV1 {
-		return userBo.ApiUserSelectV1()
+		return userBo.ApiSelectV1()
 	})
 	return &pb.SelectUserReply{
 		Page: &api.PageReply{
