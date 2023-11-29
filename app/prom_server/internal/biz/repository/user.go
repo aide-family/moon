@@ -15,6 +15,8 @@ type (
 	UserRepo interface {
 		mustEmbedUnimplemented()
 		Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.UserDO, error)
+		Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error)
+		Count(ctx context.Context, scopes ...query.ScopeMethod) (int64, error)
 		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error)
 		Create(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error)
 		Update(ctx context.Context, user *dobo.UserDO, scopes ...query.ScopeMethod) (*dobo.UserDO, error)
@@ -33,6 +35,14 @@ func (UnimplementedUserRepo) mustEmbedUnimplemented() {}
 
 func (UnimplementedUserRepo) Get(_ context.Context, _ ...query.ScopeMethod) (*dobo.UserDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+
+func (UnimplementedUserRepo) Find(_ context.Context, _ ...query.ScopeMethod) ([]*dobo.UserDO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+
+func (UnimplementedUserRepo) Count(_ context.Context, _ ...query.ScopeMethod) (int64, error) {
+	return 0, status.Errorf(codes.Unimplemented, "method Count not implemented")
 }
 
 func (UnimplementedUserRepo) List(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*dobo.UserDO, error) {

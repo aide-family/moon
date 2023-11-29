@@ -46,6 +46,40 @@ func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*dobo.UserBO,
 	return dobo.NewUserDO(user).BO().First(), nil
 }
 
+// CheckNewUser 检查新用户信息
+func (b *UserBiz) CheckNewUser(ctx context.Context, user *dobo.UserBO) error {
+	if user == nil {
+		return perrors.ErrorInvalidParams("用户信息不能为空")
+	}
+
+	wheres := []query.ScopeMethod{
+		system.UserEqName(user.Username),
+		system.UserEqEmail(user.Email),
+		system.UserEqPhone(user.Phone),
+	}
+	list, err := b.userRepo.Find(ctx, wheres...)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range list {
+		if v.Id == user.Id {
+			continue
+		}
+
+		if v.Username == user.Username {
+			return perrors.ErrorInvalidParams("用户名已存在")
+		}
+		if v.Email == user.Email {
+			return perrors.ErrorInvalidParams("邮箱已存在")
+		}
+		if v.Phone == user.Phone {
+			return perrors.ErrorInvalidParams("手机号已存在")
+		}
+	}
+	return nil
+}
+
 // CreateUser 创建用户
 func (b *UserBiz) CreateUser(ctx context.Context, user *dobo.UserBO) (*dobo.UserBO, error) {
 	var err error

@@ -25,6 +25,16 @@ func UserEqName(name string) query.ScopeMethod {
 	return query.WhereInColumn("username", name)
 }
 
+// UserEqEmail 等于email
+func UserEqEmail(email string) query.ScopeMethod {
+	return query.WhereInColumn("email", email)
+}
+
+// UserEqPhone 等于phone
+func UserEqPhone(phone string) query.ScopeMethod {
+	return query.WhereInColumn("phone", phone)
+}
+
 // UserPreloadRoles 预加载角色
 func UserPreloadRoles[T types.Int](roleIds ...T) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
