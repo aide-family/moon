@@ -11,6 +11,7 @@ message Bootstrap {
   Env env = 3;
   Log log = 4;
   ApiWhite apiWhite = 5;
+  Email email = 6;
 }
 
 message Server {
@@ -61,4 +62,11 @@ message ApiWhite {
   repeated string jwtApi = 1;
   repeated string rbacApi = 2;
   repeated string all = 3;
+}
+
+message Email {
+  string host = 1;
+  uint32 port = 2;
+  string user = 3;
+  string pass = 4;
 }
