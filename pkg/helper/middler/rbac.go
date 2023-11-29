@@ -17,6 +17,7 @@ func RbacServer() middleware.Middleware {
 			if !ok {
 				return nil, ErrTokenInvalid
 			}
+
 			path := GetPath(ctx)
 			method := GetMethod(ctx)
 			// 2. 校验权限

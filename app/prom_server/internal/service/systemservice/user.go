@@ -31,13 +31,18 @@ func NewUserService(userBiz *biz.UserBiz, logger log.Logger) *UserService {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
+	newPassword, err := password.DecryptPassword(req.GetPassword(), password.DefaultIv)
+	if err != nil {
+		return nil, err
+	}
+
 	userBo := &dobo.UserBO{
 		Username: req.GetUsername(),
-		Password: req.GetPassword(),
+		Password: newPassword,
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
 	}
-	userBo, err := s.userBiz.CreateUser(ctx, userBo)
+	userBo, err = s.userBiz.CreateUser(ctx, userBo)
 	if err != nil {
 		return nil, err
 	}

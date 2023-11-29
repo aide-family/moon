@@ -17,6 +17,7 @@ import (
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
@@ -71,7 +72,8 @@ func RegisterHttpServer(
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(
 	c *conf.Server,
-	whiteList *conf.WhiteList,
+	d *data.Data,
+	apiWhite *conf.ApiWhite,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -80,15 +82,23 @@ func NewHTTPServer(
 	jwt.WithSigningMethod(jwtv4.SigningMethodHS256)
 	jwt.WithClaims(func() jwtv4.Claims { return &jwtv4.RegisteredClaims{} })
 
+	allApi := apiWhite.GetAll()
+	jwtApis := append(allApi, apiWhite.GetJwtApi()...)
+	rbacApis := append(allApi, apiWhite.GetRbacApi()...)
+
+	jwtMiddle := selector.Server(
+		middler.JwtServer(),
+		middler.MustLogin(d.Client()),
+	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
+	rbacMiddle := selector.Server(middler.RbacServer()).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
+
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.Context()),
 		http.Middleware(
 			recovery.Recovery(),
 			logging.Server(logger),
-			selector.Server(
-				middler.JwtServer(),
-				middler.RbacServer(),
-			).Match(middler.NewWhiteListMatcher(whiteList.GetApi())).Build(),
+			jwtMiddle,
+			rbacMiddle,
 			validate.Validator(),
 		),
 	}

@@ -16,6 +16,8 @@ const (
 	UserRoleKey RedisKey = "user:role"
 	// AuthCaptchaKey 验证码缓存
 	AuthCaptchaKey RedisKey = "auth:captcha"
+	// UserLogoutKey 用户退出缓存
+	UserLogoutKey RedisKey = "user:logout"
 )
 
 func (r RedisKey) String() string {
