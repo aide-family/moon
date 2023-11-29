@@ -41,6 +41,25 @@ func (l *userRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*d
 	return dobo.UserModelToDO(userDetail), nil
 }
 
+func (l *userRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error) {
+	var userDetailList []*model.SysUser
+	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&userDetailList).Error; err != nil {
+		return nil, err
+	}
+	list := slices.To(userDetailList, func(user *model.SysUser) *dobo.UserDO {
+		return dobo.UserModelToDO(user)
+	})
+	return list, nil
+}
+
+func (l *userRepoImpl) Count(ctx context.Context, scopes ...query.ScopeMethod) (int64, error) {
+	var count int64
+	if err := l.DB().WithContext(ctx).Scopes(scopes...).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (l *userRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error) {
 	userList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {

@@ -1,6 +1,7 @@
 package dobo
 
 import (
+	"fmt"
 	"time"
 
 	query "github.com/aide-cloud/gorm-normalize"
@@ -15,6 +16,7 @@ type (
 	UserDO struct {
 		Id        uint      `json:"id"`
 		Username  string    `json:"username"`
+		Nickname  string    `json:"nickname"`
 		Password  string    `json:"password"`
 		Email     string    `json:"email"`
 		Phone     string    `json:"phone"`
@@ -31,6 +33,7 @@ type (
 	UserBO struct {
 		Id        uint            `json:"id"`
 		Username  string          `json:"username"`
+		Nickname  string          `json:"nickname"`
 		Password  string          `json:"password"`
 		Email     string          `json:"email"`
 		Phone     string          `json:"phone"`
@@ -69,6 +72,7 @@ func userDoToBo(d *UserDO) *UserBO {
 	return &UserBO{
 		Id:        d.Id,
 		Username:  d.Username,
+		Nickname:  d.Nickname,
 		Password:  d.Password,
 		Email:     d.Email,
 		Phone:     d.Phone,
@@ -89,6 +93,7 @@ func userBoToDo(b *UserBO) *UserDO {
 	return &UserDO{
 		Id:        b.Id,
 		Username:  b.Username,
+		Nickname:  b.Nickname,
 		Password:  b.Password,
 		Email:     b.Email,
 		Phone:     b.Phone,
@@ -109,7 +114,7 @@ func (l *UserBO) ApiUserSelectV1() *api.UserSelectV1 {
 
 	return &api.UserSelectV1{
 		Value:  uint32(l.Id),
-		Label:  l.Username,
+		Label:  fmt.Sprintf("%s(%s)", l.Username, l.Nickname),
 		Status: l.Status.ApiStatus(),
 		Remark: l.Remark,
 		Avatar: l.Avatar,
@@ -124,6 +129,7 @@ func (l *UserBO) ApiUserV1() *api.UserV1 {
 	return &api.UserV1{
 		Id:        uint32(l.Id),
 		Username:  l.Username,
+		Nickname:  l.Nickname,
 		Email:     l.Email,
 		Phone:     l.Phone,
 		Status:    l.Status.ApiStatus(),
@@ -154,6 +160,7 @@ func (l *UserDO) ToModel() *model.SysUser {
 			DeletedAt: soft_delete.DeletedAt(l.DeletedAt),
 		},
 		Username: l.Username,
+		Nickname: l.Nickname,
 		Password: l.Password,
 		Email:    l.Email,
 		Phone:    l.Phone,
@@ -179,6 +186,7 @@ func UserModelToDO(m *model.SysUser) *UserDO {
 	return &UserDO{
 		Id:        m.ID,
 		Username:  m.Username,
+		Nickname:  m.Nickname,
 		Password:  m.Password,
 		Email:     m.Email,
 		Phone:     m.Phone,
