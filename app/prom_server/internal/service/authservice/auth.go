@@ -8,6 +8,7 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/util/captcha"
 	"prometheus-manager/pkg/util/password"
 )
 
@@ -15,18 +16,23 @@ type AuthService struct {
 	pb.UnimplementedAuthServer
 	log *log.Helper
 
-	userBiz *biz.UserBiz
+	userBiz    *biz.UserBiz
+	captchaBiz *biz.CaptchaBiz
 }
 
-func NewAuthService(userBiz *biz.UserBiz, logger log.Logger) *AuthService {
+func NewAuthService(userBiz *biz.UserBiz, captchaBiz *biz.CaptchaBiz, logger log.Logger) *AuthService {
 	return &AuthService{
-		log:     log.NewHelper(log.With(logger, "module", "service.auth")),
-		userBiz: userBiz,
+		log:        log.NewHelper(log.With(logger, "module", "service.auth")),
+		userBiz:    userBiz,
+		captchaBiz: captchaBiz,
 	}
 }
 
 func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
-	// TODO 认证传递的code, 前端需要校验code的合法性
+	// 认证传递的code, 前端需要校验code的合法性
+	if err := s.captchaBiz.VerifyCaptcha(ctx, req.GetUuid(), req.GetCode()); err != nil {
+		return nil, err
+	}
 	pwd := req.GetPassword()
 	// 解密前端传递的密码, 拒绝明文传输
 	dePwd, err := password.DecryptPassword(pwd, password.DefaultIv)
@@ -66,4 +72,15 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 		return nil, err
 	}
 	return &pb.RefreshTokenReply{Token: token}, nil
+}
+
+func (s *AuthService) Captcha(ctx context.Context, req *pb.CaptchaRequest) (*pb.CaptchaReply, error) {
+	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.CaptchaType(req.GetCaptchaType()), int(req.GetX()), int(req.GetY()))
+	if err != nil {
+		return nil, err
+	}
+	return &pb.CaptchaReply{
+		Captcha: generateCaptcha.Image,
+		Uuid:    generateCaptcha.Id,
+	}, nil
 }

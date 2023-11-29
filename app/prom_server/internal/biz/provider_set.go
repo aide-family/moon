@@ -16,4 +16,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewRoleBiz,
 	NewEndpointBiz,
 	NewApiBiz,
+	NewCaptchaBiz,
 )

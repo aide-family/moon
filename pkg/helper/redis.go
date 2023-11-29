@@ -14,6 +14,8 @@ const (
 	PromGroupChangeKey RedisKey = "prom:group:change"
 	// UserRoleKey 用户角色缓存
 	UserRoleKey RedisKey = "user:role"
+	// AuthCaptchaKey 验证码缓存
+	AuthCaptchaKey RedisKey = "auth:captcha"
 )
 
 func (r RedisKey) String() string {
