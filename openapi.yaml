@@ -2406,7 +2406,12 @@ components:
                     description: uuid 验证码uuid
         api.auth.LogoutReply:
             type: object
-            properties: {}
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                userId:
+                    type: integer
+                    format: uint32
         api.auth.LogoutRequest:
             type: object
             properties: {}

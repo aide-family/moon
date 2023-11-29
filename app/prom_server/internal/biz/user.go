@@ -112,12 +112,30 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 		return "", err
 	}
 
-	roleId := uint(0)
-	// 获取用户上一次的role
-	if len(userDo.Roles) > 0 {
-		roleId = userDo.Roles[0].Id
+	// 没有角色
+	if len(userDo.Roles) == 0 {
+		return middler.IssueToken(userDo.Id, "")
 	}
 
+	// 获取上次默认角色
+	key := helper.UserRoleKey.KeyInt(userDo.Id).String()
+	client, err := b.cacheRepo.Client()
+	if err != nil {
+		b.log.Error(err)
+		return "", perrors.ErrorUnknown("系统错误")
+	}
+
+	cacheRoleIdStr := client.Get(ctx, key).String()
+	searchRole := func(roleInfo *dobo.RoleDO) bool {
+		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
+		return roleInfo.Id == uint(cacheRoleId)
+	}
+	// 如果上次默认角色还在角色列表中
+	if slices.ContainsOf(userDo.Roles, searchRole) {
+		return middler.IssueToken(userDo.Id, cacheRoleIdStr)
+	}
+
+	roleId := userDo.Roles[0].Id
 	roleIdStr := strconv.Itoa(int(roleId))
 
 	return middler.IssueToken(userDo.Id, roleIdStr)
@@ -142,25 +160,38 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 			return
 		}
 	}()
-	if authClaims.Role == roleIdStr {
-		return middler.IssueToken(authClaims.ID, authClaims.Role)
-	}
-	// 查询用户角色列表信息
-	if roleId > 0 {
-		userDo, err := b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32](roleId))
-		if err != nil {
-			return "", err
-		}
 
-		if len(userDo.Roles) == 0 || !slices.ContainsOf(userDo.Roles, func(do *dobo.RoleDO) bool {
-			return do.Id == uint(roleId)
-		}) {
-			return "", perrors.ErrorNotFound("role data is not found")
-		}
-
-		authClaims.Role = roleIdStr
+	userDo, err := b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32]())
+	if err != nil {
+		return "", err
 	}
-	return middler.IssueToken(authClaims.ID, authClaims.Role)
+
+	// 如果用户没有可用角色, 则直接置空处理
+	if len(userDo.Roles) == 0 {
+		roleIdStr = ""
+		return middler.IssueToken(authClaims.ID, roleIdStr)
+	}
+
+	// 更改角色成功
+	compareFun := func(do *dobo.RoleDO) bool {
+		return do.Id == uint(roleId)
+	}
+
+	// 切换的角色不存在, 则检查已有角色和token内角色
+	if !slices.ContainsOf(userDo.Roles, compareFun) {
+		compareFunCurrRoleId := func(do *dobo.RoleDO) bool {
+			currRoleId, _ := strconv.Atoi(authClaims.Role)
+			return do.Id == uint(currRoleId)
+		}
+		// 先默认为token内的角色
+		roleIdStr = authClaims.Role
+		// 如果token的角色不在已有的角色列表中, 则默认第一个角色
+		if !slices.ContainsOf(userDo.Roles, compareFunCurrRoleId) {
+			roleIdStr = strconv.Itoa(int(userDo.Roles[0].Id))
+		}
+	}
+
+	return middler.IssueToken(authClaims.ID, roleIdStr)
 }
 
 // EditUserPassword 修改密码

@@ -14,6 +14,7 @@ import (
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
@@ -63,17 +64,23 @@ func RegisterGrpcServer(
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(
 	c *conf.Server,
-	whiteList *conf.WhiteList,
+	d *data.Data,
+	apiWhite *conf.ApiWhite,
 	logger log.Logger,
 ) *grpc.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "server/grpc"))
 	defer logHelper.Info("NewGRPCServer done")
+
+	allApi := apiWhite.GetAll()
+	jwtApis := append(allApi, apiWhite.GetJwtApi()...)
+	jwtMiddle := selector.Server(middler.JwtServer(), middler.MustLogin(d.Client())).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
+
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
 			logging.Server(logger),
 			validate.Validator(),
-			selector.Server(middler.JwtServer()).Match(middler.NewWhiteListMatcher(whiteList.GetApi())).Build(),
+			jwtMiddle,
 		),
 	}
 	if c.Grpc.Network != "" {

@@ -13,7 +13,7 @@ var ProviderSetConf = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Data"),
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "Log"),
-	wire.FieldsOf(new(*Bootstrap), "WhiteList"),
+	wire.FieldsOf(new(*Bootstrap), "ApiWhite"),
 	LoadConfig,
 )
 

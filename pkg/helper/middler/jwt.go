@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
+	"prometheus-manager/pkg/helper"
 
 	"prometheus-manager/pkg/util/hash"
 )
@@ -27,6 +29,7 @@ var (
 
 var (
 	ErrTokenInvalid = jwt.ErrTokenInvalid
+	ErrLogout       = errors.Unauthorized("UNAUTHORIZED", "token has been logout")
 )
 
 func (l *AuthClaims) MD5() string {
@@ -52,8 +55,23 @@ func Expire(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims
 	if timeUnix <= time.Now().Unix() {
 		return nil
 	}
+	diffTimeUnix := timeUnix - time.Now().Unix()
+	// 如果小于1m, 则设置1m
+	if diffTimeUnix < 60 {
+		diffTimeUnix = 60
+	}
 
-	return rdsClient.Set(ctx, authClaims.MD5(), authClaims.String(), time.Duration(timeUnix-time.Now().Unix())).Err()
+	key := helper.UserLogoutKey.Key(authClaims.MD5()).String()
+	return rdsClient.Set(ctx, key, authClaims.String(), time.Duration(diffTimeUnix)*time.Second).Err()
+}
+
+// IsLogout 判断token是否被logout
+func IsLogout(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims) error {
+	key := helper.UserLogoutKey.Key(authClaims.MD5()).String()
+	if rdsClient.Exists(ctx, key).Val() == 1 {
+		return ErrLogout
+	}
+	return nil
 }
 
 // GetAuthClaims get auth claims
@@ -90,14 +108,38 @@ func IssueTokenWithDuration(id uint, role string, duration time.Duration) (strin
 
 // JwtServer jwt server
 func JwtServer() middleware.Middleware {
-	return jwt.Server(func(token *jwtv4.Token) (interface{}, error) {
-		return secret, nil
-	}, jwt.WithSigningMethod(jwtv4.SigningMethodHS256),
+	return jwt.Server(
+		func(token *jwtv4.Token) (interface{}, error) {
+			return secret, nil
+		},
+		jwt.WithSigningMethod(jwtv4.SigningMethodHS256),
 		jwt.WithClaims(func() jwtv4.Claims {
 			return &AuthClaims{}
 		}),
 	)
 }
+
+// MustLogin 必须登录
+func MustLogin(cache ...*redis.Client) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
+			// 1. 解析jwt
+			authClaims, ok := GetAuthClaims(ctx)
+			if !ok {
+				return nil, ErrTokenInvalid
+			}
+			// 判断token是否被人为下线
+			if len(cache) > 0 && cache[0] != nil {
+				client := cache[0]
+				if err = IsLogout(ctx, client, authClaims); err != nil {
+					return nil, err
+				}
+			}
+			return handler(ctx, req)
+		}
+	}
+}
+
 func NewWhiteListMatcher(list []string) selector.MatchFunc {
 	whiteList := make(map[string]struct{})
 	for _, v := range list {

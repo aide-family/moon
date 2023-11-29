@@ -5,6 +5,7 @@ package api.auth;
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "system.proto";
+import "base.proto";
 
 option go_package = "prometheus-manager/api/auth;auth";
 option java_multiple_files = true;
@@ -55,6 +56,8 @@ message LoginReply {
 message LogoutRequest {
 }
 message LogoutReply {
+	Response response = 1;
+	uint32 userId = 2;
 }
 
 message RefreshTokenRequest {
