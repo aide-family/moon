@@ -35,7 +35,12 @@ func GenerateSalt() string {
 }
 
 // DecryptPassword 解密密码
-func DecryptPassword(password, salt string) (string, error) {
+func DecryptPassword(password, salt string) (str string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = ErrValidatePassword
+		}
+	}()
 	aes, err := cipher.NewAes(key, salt)
 	if err != nil {
 		return "", err
@@ -48,7 +53,12 @@ func DecryptPassword(password, salt string) (string, error) {
 }
 
 // EncryptPassword 加密密码
-func EncryptPassword(password, salt string) (string, error) {
+func EncryptPassword(password, salt string) (str string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = ErrValidatePassword
+		}
+	}()
 	aes, err := cipher.NewAes(key, salt)
 	if err != nil {
 		return "", err
