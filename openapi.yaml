@@ -1995,6 +1995,11 @@ components:
                     type: integer
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.UserSelectV1'
+                    description: Users 用户列表
         api.UserSelectV1:
             type: object
             properties:
@@ -2009,12 +2014,9 @@ components:
                     type: integer
                     description: status 用户状态
                     format: enum
-                remark:
-                    type: string
-                    description: remark 备注
                 avatar:
                     type: string
-                    description: avatar 头像
+                    description: remark 备注  string remark = 4; avatar 头像
                 nickname:
                     type: string
                     description: nickname 昵称

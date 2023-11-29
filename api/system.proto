@@ -59,7 +59,7 @@ message UserSelectV1 {
   // status 用户状态
   Status status = 3;
   // remark 备注
-  string remark = 4;
+//  string remark = 4;
   // avatar 头像
   string avatar = 5;
   // nickname 昵称
@@ -81,6 +81,8 @@ message RoleV1 {
   int64 updatedAt = 6;
   // deletedAt 删除时间, unix时间戳
   int64 deletedAt = 7;
+  // Users 用户列表
+  repeated UserSelectV1 users = 8;
 }
 
 message RoleSelectV1 {
