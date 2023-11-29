@@ -6,6 +6,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmpage"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/api"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/cache"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/captcha"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/endpoint"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/ping"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/promdict"
@@ -28,4 +29,5 @@ var ProviderSetRepository = wire.NewSet(
 	cache.NewCacheRepo,
 	endpoint.NewEndpointRepo,
 	api.NewApiRepo,
+	captcha.NewCaptchaRepo,
 )

@@ -247,6 +247,36 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.alarm.hook.HookV1Reply'
+    /api/v1/auth/captcha:
+        get:
+            tags:
+                - Auth
+            description: 验证码
+            operationId: Auth_Captcha
+            parameters:
+                - name: x
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint64
+                - name: y
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint64
+                - name: captchaType
+                  in: query
+                  description: 验证码类型
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.auth.CaptchaReply'
     /api/v1/auth/login:
         post:
             tags:
@@ -2344,6 +2374,15 @@ components:
                     type: string
                     description: remark 告警页面备注(字符串长度0-200)
             description: UpdateAlarmPageRequest 更新告警页面请求
+        api.auth.CaptchaReply:
+            type: object
+            properties:
+                captcha:
+                    type: string
+                    description: 验证码图片base64
+                uuid:
+                    type: string
+                    description: 验证码uuid
         api.auth.LoginReply:
             type: object
             properties:

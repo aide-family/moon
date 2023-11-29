@@ -8,6 +8,20 @@ option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
+enum CaptchaType {
+  CaptchaTypeUnknown = 0;
+  // audio captcha
+  CaptchaTypeAudio = 1;
+  // string captcha
+  CaptchaTypeString = 2;
+  // math captcha
+  CaptchaTypeMath = 3;
+  // chinese captcha
+  CaptchaTypeChinese = 4;
+  // digit captcha
+  CaptchaTypeDigit = 5;
+}
+
 message UserV1 {
   // id 用户ID
   uint32 id = 1;

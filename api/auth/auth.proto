@@ -4,6 +4,7 @@ package api.auth;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
+import "system.proto";
 
 option go_package = "prometheus-manager/api/auth;auth";
 option java_multiple_files = true;
@@ -26,6 +27,12 @@ service Auth {
 		option (google.api.http) = {
 			post: "/api/v1/auth/refresh/token"
 			body: "*"
+		};
+	}
+	// 验证码
+	rpc Captcha (CaptchaRequest) returns (CaptchaReply) {
+		option (google.api.http) = {
+			get: "/api/v1/auth/captcha"
 		};
 	}
 }
@@ -56,4 +63,17 @@ message RefreshTokenRequest {
 message RefreshTokenReply {
   // token 登录token
   string token = 1;
+}
+
+message CaptchaRequest {
+	uint64 x = 1;
+	uint64 y = 2;
+	// 验证码类型
+	CaptchaType captcha_type = 3;
+}
+message CaptchaReply {
+	// 验证码图片base64
+	string captcha = 1;
+	// 验证码uuid
+	string uuid = 2;
 }
