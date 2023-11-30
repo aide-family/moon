@@ -5,17 +5,20 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/prom/notify"
+	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type ChatGroupService struct {
 	pb.UnimplementedChatGroupServer
 
-	log *log.Helper
+	log          *log.Helper
+	chatGroupBiz *biz.ChatGroupBiz
 }
 
-func NewChatGroupService(logger log.Logger) *ChatGroupService {
+func NewChatGroupService(chatGroupBiz *biz.ChatGroupBiz, logger log.Logger) *ChatGroupService {
 	return &ChatGroupService{
-		log: log.NewHelper(log.With(logger, "module", "service.prom.chatgroup")),
+		log:          log.NewHelper(log.With(logger, "module", "service.prom.chatgroup")),
+		chatGroupBiz: chatGroupBiz,
 	}
 }
 

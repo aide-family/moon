@@ -19,4 +19,7 @@ enum Err {
 
 	// NOT_FOUND 资源不存在
 	NOT_FOUND = 2 [(errors.code) = 404];
+
+	// 数据已存在
+	ALREADY_EXISTS = 3 [(errors.code) = 409];
 }

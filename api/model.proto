@@ -299,16 +299,11 @@ message PrometheusServer {
 
 message ChatGroup {
   // id 群组ID
-  uint32 id = 1 [(validate.rules).uint32 = {
-    gt: 0
-  }];
+  uint32 id = 1;
   // name 群组名称
-  string name = 2 [(validate.rules).string = {
-    min_len: 2
-    max_len: 32
-  }];
+  string name = 2;
   // remark 备注
-  string remark = 3 [(validate.rules).string.max_len = 255];
+  string remark = 3;
   // createdAt 创建时间, unix时间戳
   int64 createdAt = 4;
   // updatedAt 更新时间, unix时间戳
@@ -324,9 +319,9 @@ message ChatGroup {
 }
 
 message ChatGroupSelectV1 {
-  uint32 id = 1;
+  uint32 value = 1;
   NotifyApp app = 2;
-  string hookName = 4;
+  string label = 4;
   Status status = 5;
 }
 
@@ -345,24 +340,19 @@ message BeNotifyMember {
       }
     }
   }];
+  uint32 id = 3;
 }
 // BeNotifyMemberDetail 通知成员详情
 message BeNotifyMemberDetail {
   // 通知人ID, 对应用户的id
-  uint32 memberId = 1 [(validate.rules).uint32.gt = 0];
+  uint32 memberId = 1;
   // 通知方式, 可以同时多种类型
-  repeated NotifyType notifyTypes = 2 [(validate.rules).repeated = {
-    min_items: 1
-    unique: true
-    items: {
-      enum: {
-        defined_only: true
-        not_in: [0]
-      }
-    }
-  }];
+  repeated NotifyType notifyTypes = 2;
   // 通知人明细
   UserSelectV1 user = 3;
+  // Status 通知人状态
+  Status status = 4;
+  uint32 id = 5;
 }
 
 // NotifyV1 通知基础类型
