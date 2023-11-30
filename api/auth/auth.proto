@@ -5,32 +5,35 @@ package api.auth;
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "system.proto";
-import "base.proto";
 
 option go_package = "prometheus-manager/api/auth;auth";
 option java_multiple_files = true;
 option java_package = "api.auth";
 
+// 权限认证相关接口
 service Auth {
+	// 登录(目前是通过用户名+密码方式)
 	rpc Login (LoginRequest) returns (LoginReply) {
 		option (google.api.http) = {
 			post: "/api/v1/auth/login"
 			body: "*"
 		};
 	}
+	// 登出, 清除token
 	rpc Logout (LogoutRequest) returns (LogoutReply) {
 		option (google.api.http) = {
 			post: "/api/v1/auth/logout"
 			body: "*"
 		};
 	}
+	// 刷新token, 过期时间为1天, 切换角色也是用该接口
 	rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
 		option (google.api.http) = {
 			post: "/api/v1/auth/refresh/token"
 			body: "*"
 		};
 	}
-	// 验证码
+	// 获取验证码, 验证码有几种类型, 具体见CaptchaType
 	rpc Captcha (CaptchaRequest) returns (CaptchaReply) {
 		option (google.api.http) = {
 			get: "/api/v1/auth/captcha"
@@ -38,45 +41,56 @@ service Auth {
 	}
 }
 
+// 登录请求参数
 message LoginRequest {
-  // username 用户名
+  // 用户名
   string username = 1 [(validate.rules).string.min_len = 1];
-  // password 密码
+  // 密码
   string password = 2 [(validate.rules).string.min_len = 1];
-	// code 验证码
+	// 验证码
 	string code = 3 [(validate.rules).string.min_len = 1];
-	// uuid 验证码uuid
-	string uuid = 4 [(validate.rules).string.min_len = 1];
+	// 验证码id
+	string captchaId = 4 [(validate.rules).string.min_len = 1];
 }
+// 登录返回参数
 message LoginReply {
-  // token 登录token
+  // 登录token
   string token = 1;
 }
 
+// 登出请求参数(登出不需要参数, 这里只是为了站位)
 message LogoutRequest {
 }
+// 登出返回参数
 message LogoutReply {
-	Response response = 1;
-	uint32 userId = 2;
+	// 响应信息, 如果成功, 则返回userId
+	uint32 userId = 1;
 }
 
+// 刷新token请求参数
 message RefreshTokenRequest {
-	uint32 roleId = 1 [(validate.rules).uint32.gt = 0];
+	// 角色id, 不传则刷新当前token的角色, 相关角色可以通过查看用户详情接口得到该用户的角色列表信息
+	uint32 roleId = 1;
 }
+// 刷新token返回参数
 message RefreshTokenReply {
-  // token 登录token
+  // JWT token, 需要在header中传递
   string token = 1;
 }
 
+// 获取验证码请求参数
 message CaptchaRequest {
+	// 验证码宽度
 	uint64 x = 1;
+	// 验证码高度
 	uint64 y = 2;
 	// 验证码类型
 	CaptchaType captcha_type = 3;
 }
+// 获取验证码返回参数
 message CaptchaReply {
-	// 验证码图片base64
+	// 验证码base64信息, 如果是图片验证码, 则直接使用img标签展示即可, 如果是音频验证码, 则需要调用相关接口播放音频
 	string captcha = 1;
-	// 验证码uuid
-	string uuid = 2;
+	// 验证码标识ID, 验证的时候需要传递该值
+	string captchaId = 2;
 }

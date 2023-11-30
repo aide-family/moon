@@ -12,9 +12,9 @@ option java_multiple_files = true;
 option java_package = "api.alarm.page";
 
 
-// AlarmPage 告警页面管理模块
+// 告警页面管理模块相关接口
 service AlarmPage {
-	// CreateAlarmPage 创建告警页面
+	// 创建告警页面
 	rpc CreateAlarmPage (CreateAlarmPageRequest) returns (CreateAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/create"
@@ -22,7 +22,7 @@ service AlarmPage {
 		};
 	}
 
-	// UpdateAlarmPage 更新告警页面
+	// 更新告警页面
 	rpc UpdateAlarmPage (UpdateAlarmPageRequest) returns (UpdateAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/update/{id}"
@@ -30,7 +30,7 @@ service AlarmPage {
 		};
 	}
 
-	// BatchUpdateAlarmPageStatus 批量更新告警页面状态
+	// 批量更新告警页面状态
 	rpc BatchUpdateAlarmPageStatus (BatchUpdateAlarmPageStatusRequest) returns (BatchUpdateAlarmPageStatusReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/status/batch/update"
@@ -38,7 +38,7 @@ service AlarmPage {
 		};
 	}
 
-	// DeleteAlarmPage 删除告警页面
+	// 删除告警页面
 	rpc DeleteAlarmPage (DeleteAlarmPageRequest) returns (DeleteAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/delete/{id}"
@@ -46,7 +46,7 @@ service AlarmPage {
 		};
 	}
 
-	// BatchDeleteAlarmPage 批量删除告警页面
+	// 批量删除告警页面
 	rpc BatchDeleteAlarmPage (BatchDeleteAlarmPageRequest) returns (BatchDeleteAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/batch/delete"
@@ -54,7 +54,7 @@ service AlarmPage {
 		};
 	}
 
-	// GetAlarmPage 获取告警页面
+	// 获取告警页面
 	rpc GetAlarmPage (GetAlarmPageRequest) returns (GetAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/get/{id}"
@@ -62,7 +62,7 @@ service AlarmPage {
 		};
 	}
 
-	// ListAlarmPage 获取告警页面列表
+	// 获取告警页面列表
 	rpc ListAlarmPage (ListAlarmPageRequest) returns (ListAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/list"
@@ -70,7 +70,7 @@ service AlarmPage {
 		};
 	}
 
-	// SelectAlarmPage 获取告警页面下拉列表
+	// 获取告警页面下拉列表
 	rpc SelectAlarmPage (SelectAlarmPageRequest) returns (SelectAlarmPageReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm_page/select"
@@ -79,117 +79,118 @@ service AlarmPage {
 	}
 }
 
-// CreateAlarmPageRequest 创建告警页面请求
+// 创建告警页面请求参数
 message CreateAlarmPageRequest {
-	// name 告警页面名称(字符串长度1-20)
+	// 告警页面名称(字符串长度1-20)
 	string name = 1 [(validate.rules).string = {min_len: 1, max_len: 20}];
-	// category 告警页面图标(字符串长度0-2048)
+	// 告警页面图标(字符串长度0-2048)
 	string icon = 2 [(validate.rules).string = {max_len: 2048}];
-	// color 告警页面颜色(字符串长度0-10)
+	// 告警页面颜色(字符串长度0-10)
 	string color = 3 [(validate.rules).string = {max_len: 10}];
-	// remark 告警页面备注(字符串长度0-200)
+	// 告警页面备注(字符串长度0-200)
 	string remark = 4 [(validate.rules).string = {max_len: 200}];
 }
-// CreateAlarmPageReply 创建告警页面响应
+// 创建告警页面响应参数
 message CreateAlarmPageReply {
-	// id 告警页面ID
+	// 告警页面ID
 	uint32 id = 1;
 }
 
-// UpdateAlarmPageRequest 更新告警页面请求
+// 更新告警页面请求参数
 message UpdateAlarmPageRequest {
-	// id 告警页面ID(大于0)
+	// 告警页面ID(大于0)
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
-	// name 告警页面名称(字符串长度1-20)
+	// 告警页面名称(字符串长度1-20)
 	string name = 2 [(validate.rules).string = {min_len: 1, max_len: 20}];
-	// category 告警页面图标(字符串长度0-2048)
+	// 告警页面图标(字符串长度0-2048)
 	string icon = 3 [(validate.rules).string = {max_len: 2048}];
-	// color 告警页面颜色(字符串长度0-10)
+	// 告警页面颜色(字符串长度0-10)
 	string color = 4 [(validate.rules).string = {max_len: 10}];
-	// remark 告警页面备注(字符串长度0-200)
+	// 告警页面备注(字符串长度0-200)
 	string remark = 5 [(validate.rules).string = {max_len: 200}];
 }
-// UpdateAlarmPageReply 更新告警页面响应
+// 更新告警页面响应参数
 message UpdateAlarmPageReply {
-	// id 告警页面ID
+	// 告警页面ID
 	uint32 id = 1;
 }
 
-// BatchUpdateAlarmPageStatusRequest 批量更新告警页面状态请求
+// 批量更新告警页面状态请求参数
 message BatchUpdateAlarmPageStatusRequest {
-	// ids 告警页面ID列表(大于0)
+	// 告警页面ID列表(大于0)
 	repeated uint32 ids = 1 [(validate.rules).repeated.min_items = 1, (validate.rules).repeated.unique = true];
-	// status 告警页面状态
+	// 告警页面状态
 	Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
-// BatchUpdateAlarmPageStatusReply 批量更新告警页面状态响应
+// 批量更新告警页面状态响应参数
 message BatchUpdateAlarmPageStatusReply {
-	// ids 告警页面ID列表
+	// 告警页面ID列表
 	repeated uint32 ids = 1;
 }
 
-// DeleteAlarmPageRequest 删除告警页面请求
+// 删除告警页面请求参数
 message DeleteAlarmPageRequest {
-	// id 告警页面ID(大于0)
+	// 告警页面ID(大于0)
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// DeleteAlarmPageReply 删除告警页面响应
+// 删除告警页面响应参数
 message DeleteAlarmPageReply {
-	// id 告警页面ID
+	// 告警页面ID
 	uint32 id = 1;
 }
 
-// BatchDeleteAlarmPageRequest 批量删除告警页面请求
+// 批量删除告警页面请求参数
 message BatchDeleteAlarmPageRequest {
-	// ids 告警页面ID列表(大于0)
+	// 告警页面ID列表(大于0)
 	repeated uint32 ids = 1 [(validate.rules).repeated.min_items = 1, (validate.rules).repeated.unique = true];
 }
-// BatchDeleteAlarmPageReply 批量删除告警页面响应
+// 批量删除告警页面响应参数
 message BatchDeleteAlarmPageReply {
-	// ids 告警页面ID列表
+	// 告警页面ID列表
 	repeated uint32 ids = 1;
 }
 
-// GetAlarmPageRequest 获取告警页面请求
+// 获取告警页面请求参数
 message GetAlarmPageRequest {
-	// id 告警页面ID(大于0)
+	// 告警页面ID(大于0)
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// GetAlarmPageReply 获取告警页面响应
+// 获取告警页面响应参数
 message GetAlarmPageReply {
+	// 告警页面信息
 	AlarmPageV1 alarmPage = 1;
 }
 
-// ListAlarmPageRequest 获取告警页面列表请求
+// 获取告警页面列表请求参数
 message ListAlarmPageRequest {
-	// page 分页参数
+	// 分页参数
 	PageRequest page = 1 [(validate.rules).message.required = true];
-	// keyword 关键字(字符串长度0-20)
+	// 关键字(字符串长度0-20)
 	string keyword = 2 [(validate.rules).string = {max_len: 20}];
-	// status 告警页面状态
+	// 告警页面状态
 	Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
-// ListAlarmPageReply 获取告警页面列表响应
+// 获取告警页面列表响应参数
 message ListAlarmPageReply {
-	// page 分页参数
+	// 分页参数
 	PageReply page = 1;
-	// list 告警页面列表
+	// 告警页面列表
 	repeated AlarmPageV1 list = 2;
 }
 
-// SelectAlarmPageRequest 获取告警页面下拉列表请求
+// 获取告警页面下拉列表请求参数
 message SelectAlarmPageRequest {
-	// page 分页参数
+	// 分页参数
 	PageRequest page = 1 [(validate.rules).message.required = true];
-	// keyword 关键字(字符串长度0-20)
+	// 关键字(字符串长度0-20)
 	string keyword = 2 [(validate.rules).string = {max_len: 20}];
-	// status 告警页面状态
+	// 告警页面状态
 	Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
-// SelectAlarmPageReply 获取告警页面下拉列表响应
+// 获取告警页面下拉列表响应参数
 message SelectAlarmPageReply {
-	// page 分页参数
+	// 分页参数
 	PageReply page = 1;
-	// list 告警页面列表
+	// 告警页面列表
 	repeated AlarmPageSelectV1 list = 2;
 }

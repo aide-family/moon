@@ -8,8 +8,9 @@ option go_package = "prometheus-manager/api/alarm/hook;hook";
 option java_multiple_files = true;
 option java_package = "api.alarm.hook";
 
+// 接收prometheus报警hook请求
 service Hook {
-	// V1 接收prometheus报警hook请求
+	// 接收prometheus报警hook请求
 	rpc V1(HookV1Request) returns (HookV1Reply) {
 		option (google.api.http) = {
 			post: "/api/v1/alert/hook"
@@ -18,52 +19,52 @@ service Hook {
 	}
 }
 
-// HookV1Request prometheus webhook 报警数据
+// prometheus webhook 报警数据
 message HookV1Request {
-	// receiver 接收者
+	// 接收者
 	string receiver = 1;
-	// status 状态, firing, resolved
+	// 报警状态, firing, resolved
 	string status = 2;
-	// alert 告警列表
+	// 告警列表
 	repeated AlertV1 alerts = 3;
-	// groupLabels 告警组标签
+	// 告警组标签
 	map<string,string> groupLabels = 4;
-	// commonLabels 公共标签
+	// 公共标签
 	map<string,string> commonLabels = 5;
-	// commonAnnotations 公共注解
+	// 公共注解
 	map<string,string> commonAnnotations = 6;
-	// externalURL 外部链接
+	// 外部链接
 	string externalURL = 7;
-	// version 版本
+	// 版本
 	string version = 8;
-	// groupKey 告警组key
+	// 告警组key
 	string groupKey = 9;
-	// truncatedAlerts 截断告警数
+	// 截断告警数
 	int32 truncatedAlerts = 10;
 }
 
-// Alert 告警明细
+// 告警明细
 message AlertV1 {
-	// status 状态, firing, resolved
+	// 告警状态, firing, resolved
 	string status = 1;
-	// labels 标签
+	// 标签
 	map<string,string> labels = 2;
-	// annotations 注解
+	// 注解
 	map<string,string> annotations = 3;
-	// startsAt 开始时间
+	// 开始时间
 	string startsAt = 4;
-	// endsAt 结束时间, 空表示未结束
+	// 结束时间, 空表示未结束
 	string endsAt = 5;
-	// generatorURL 告警生成链接
+	// 告警生成链接
 	string generatorURL = 6;
-	// fingerprint 指纹
+	// 指纹
 	string fingerprint = 7;
 }
 
-// HookV1Reply 接收prometheus报警hook请求返回
+// 接收prometheus报警hook请求返回
 message HookV1Reply {
-	// msg 响应消息
+	// 响应消息
 	string msg = 1;
-	// code 响应码
+	// 响应码
 	int32 code = 2;
 }

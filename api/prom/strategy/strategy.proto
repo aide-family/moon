@@ -11,9 +11,9 @@ option go_package = "prometheus-manager/api/prom/strategy;strategy";
 option java_multiple_files = true;
 option java_package = "api.prom.strategy";
 
-// Strategy 策略管理模块
+// 策略管理模块相关接口
 service Strategy {
-  // CreateStrategy 创建策略
+  // 创建策略
   rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/create"
@@ -21,7 +21,7 @@ service Strategy {
     };
   }
 
-  // UpdateStrategy 更新策略
+  // 更新策略
   rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/update/{id}"
@@ -29,7 +29,7 @@ service Strategy {
     };
   }
 
-  // BatchUpdateStrategyStatus 批量更新策略状态
+  // 批量更新策略状态
   rpc BatchUpdateStrategyStatus (BatchUpdateStrategyStatusRequest) returns (BatchUpdateStrategyStatusReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/status/batch/update"
@@ -37,7 +37,7 @@ service Strategy {
     };
   }
 
-  // DeleteStrategy 删除策略
+  // 删除策略
   rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/delete/{id}"
@@ -45,7 +45,7 @@ service Strategy {
     };
   }
 
-  // BatchDeleteStrategy 批量删除策略
+  // 批量删除策略
   rpc BatchDeleteStrategy (BatchDeleteStrategyRequest) returns (BatchDeleteStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/batch/delete"
@@ -53,7 +53,7 @@ service Strategy {
     };
   }
 
-  // GetStrategy 获取策略
+  // 获取策略
   rpc GetStrategy (GetStrategyRequest) returns (GetStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/get/{id}"
@@ -61,7 +61,7 @@ service Strategy {
     };
   }
 
-  // ListStrategy 获取策略列表
+  // 获取策略列表
   rpc ListStrategy (ListStrategyRequest) returns (ListStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/list"
@@ -69,7 +69,7 @@ service Strategy {
     };
   }
 
-  // SelectStrategy 获取策略列表
+  // 获取策略下拉列表
   rpc SelectStrategy (SelectStrategyRequest) returns (SelectStrategyReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/select"
@@ -80,44 +80,39 @@ service Strategy {
   // ExportStrategy 导出策略
   rpc  ExportStrategy (ExportStrategyRequest) returns (ExportStrategyReply) {
     option (google.api.http) = {
-      get: "/api/v1/strategy/export"
+      post: "/api/v1/strategy/export"
+      body: "*"
     };
   }
 }
 
-// CreateStrategyRequest 创建策略请求
+// 创建策略请求参数
 message CreateStrategyRequest {
-  // groupId 策略组ID
+  // 策略组ID, 必填, 所属的策略组ID信息
   uint32 groupId = 1 [(validate.rules).uint32.gt = 0];
-  // alert 告警名称
+  // 告警名称, 必填, 字符串, 长度限制: 1-255, 正则表达式: ^[a-zA-Z0-9_]+$
   string alert = 2 [(validate.rules).string = {min_len: 1 max_len: 255, pattern: "^[a-zA-Z0-9_]+$"}];
-  // expr 表达式
+  // 表达式, 必填, promQL表达式
   string expr = 3 [(validate.rules).string.min_len = 1];
-  // duration 持续时间,(1s,1m,1h,1d)
+  // 持续时间,(1s,1m,1h,1d), 对应prometheus的持续时间单位for
   string duration = 4 [(validate.rules).string = {min_len: 1 max_len: 10, pattern: "^[1-9][0-9]*[smhd]$"}];
-  // labels 标签
+  // 标签, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> labels = 5 [(validate.rules).map = {
     min_pairs: 1
     max_pairs: 100
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    //    values: {
-    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    //    }
   }];
-  // annotations 注解
+  // 注解, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> annotations = 6 [(validate.rules).map = {
     min_pairs: 1
     max_pairs: 100
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    //    values: {
-    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    //    }
   }];
-  // alarmPageIds 告警页面ID列表
+  // 告警页面ID列表, 对应告警页面的ID
   repeated uint32 alarmPageIds = 7 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
@@ -125,7 +120,7 @@ message CreateStrategyRequest {
       uint32: {gt: 0}
     }
   }];
-  // categoryIds 分类ID列表
+  // 分类ID列表, 对应字典表ID
   repeated uint32 categoryIds = 8 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
@@ -133,184 +128,179 @@ message CreateStrategyRequest {
       uint32: {gt: 0}
     }
   }];
-  // alarmLevelId 告警级别ID
+  // 告警级别ID, 对应字典表ID(告警等级维护在字典表中)
   uint32 alarmLevelId = 9 [(validate.rules).uint32.gt = 0];
-  // remark 备注
+  // 备注, 长度限制: 0-255
   string remark = 10 [(validate.rules).string.max_len = 255];
 }
-// CreateStrategyReply 创建策略响应
+// 创建策略响应参数
 message CreateStrategyReply {
-  // id 策略ID
+  // id 策略ID, 成功返回策略ID
   uint32 id = 1;
 }
 
-// UpdateStrategyRequest 更新策略请求
+// 更新策略请求参数
 message UpdateStrategyRequest {
-  // id 策略ID
+  // 策略ID, 路径参数, 必填, 大于0
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
-  // groupId 策略组ID
+  // 策略组ID, 所属的策略组ID信息, 可以替换成新的, 如果不替换则使用原有的
   uint32 groupId = 2 [(validate.rules).uint32.gt = 0];
-  // alert 告警名称
+  // 告警名称, 必填, 字符串, 长度限制: 1-255, 正则表达式: ^[a-zA-Z0-9_]+$
   string alert = 3 [(validate.rules).string = {min_len: 1 max_len: 255, pattern: "^[a-zA-Z0-9_]+$"}];
-  // expr 表达式
+  // 表达式, 必填, promQL表达式
   string expr = 4 [(validate.rules).string.min_len = 1];
-  // duration 持续时间,(1s,1m,1h,1d)
+  // 持续时间,(1s,1m,1h,1d), 对应prometheus的持续时间单位for
   string duration = 5 [(validate.rules).string = {min_len: 1 max_len: 10, pattern: "^[1-9][0-9]*[smhd]$"}];
-  // labels 标签
+  // 标签, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> labels = 6 [(validate.rules).map = {
     min_pairs: 1
     max_pairs: 100
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    //    values: {
-    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    //    }
   }];
-  // annotations 注解
+  // 注解, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> annotations = 7 [(validate.rules).map = {
     min_pairs: 1
     max_pairs: 100
     keys: {
       string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
     }
-    //    values: {
-    //      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
-    //    }
   }];
-  // alarmPageIds 告警页面ID列表
+  // 告警页面ID列表
   repeated uint32 alarmPageIds = 8 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
-  // categoryIds 分类ID列表
+  // 分类ID列表, 对应字典表ID
   repeated uint32 categoryIds = 9 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
-  // alarmLevelId 告警级别ID
+  // 告警级别ID, 对应字典表ID(告警等级维护在字典表中)
   uint32 alarmLevelId = 10 [(validate.rules).uint32.gt = 0];
-  // remark 备注
+  // 备注, 长度限制: 0-255
   string remark = 11 [(validate.rules).string.max_len = 255];
 }
-// UpdateStrategyReply 更新策略响应
+// 更新策略响应参数
 message UpdateStrategyReply {
-  // id 策略ID
+  // 策略ID, 成功返回策略ID
   uint32 id = 1;
 }
 
-// BatchUpdateStrategyStatusRequest 批量更新策略状态请求
+// 批量更新策略状态请求参数
 message BatchUpdateStrategyStatusRequest {
-  // ids 策略ID列表
+  // 策略ID列表, 最少1个, 必须大于0, 唯一
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
-  // status 策略状态
+  // 策略状态, 不能为0
   Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
-// BatchUpdateStrategyStatusReply 批量更新策略状态响应
+// 批量更新策略状态响应参数
 message BatchUpdateStrategyStatusReply {
-  // ids 策略ID列表
+  // 策略ID列表, 成功后返回策略ID列表
   repeated uint32 ids = 1;
 }
 
-// DeleteStrategy 删除策略
+// 删除策略请求参数
 message DeleteStrategyRequest {
-  // id 策略ID
+  // 策略ID, 路径参数, 必填, 大于0
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// DeleteStrategyReply 删除策略响应
+// 删除策略响应参数
 message DeleteStrategyReply {
-  // id 策略ID
+  // 策略ID, 成功返回策略ID
   uint32 id = 1;
 }
 
-// BatchDeleteStrategy 批量删除策略
+// 批量删除策略请求参数
 message BatchDeleteStrategyRequest {
-  // ids 策略ID列表
+  // 策略ID列表, 最少1个, 必须大于0, 唯一
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
 }
-// BatchDeleteStrategyReply 批量删除策略响应
+// 批量删除策略响应参数
 message BatchDeleteStrategyReply {
-  // ids 策略ID列表
+  // 策略ID列表, 成功后返回策略ID列表
   repeated uint32 ids = 1;
 }
 
-// GetStrategy 获取策略
+// 获取策略请求参数
 message GetStrategyRequest {
-  // id 策略ID
+  // 策略ID, 路径参数, 必填, 大于0
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// GetStrategyReply 获取策略响应
+// 获取策略响应参数
 message GetStrategyReply {
-  // promStrategy 策略信息
+  // 策略信息
   PromStrategyV1 detail = 1;
 }
 
-// ListStrategy 获取策略列表
+// 获取策略列表请求参数
 message ListStrategyRequest {
-  // page 分页参数
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
-  // keyword 关键字
+  // 关键字, 可选, 长度限制: 0-255, 用于模糊查询
   string keyword = 2 [(validate.rules).string = {max_len: 255}];
-  // groupId 策略组ID
-  uint32 groupId = 3 [(validate.rules).uint32.gt = 0];
-  // categoryIds 分类ID列表
+  // 策略组ID, 可选, 用于查询指定策略组下的策略
+  uint32 groupId = 3;
+  // 分类ID列表, 可选, 用于查询指定分类下的策略
   repeated uint32 categoryIds = 4 [(validate.rules).repeated = {
-    min_items: 1,
+    max_items: 10,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
-  // alarmLevelId 告警级别ID
-  uint32 alarmLevelId = 5 [(validate.rules).uint32.gt = 0];
-  // status 策略状态
+  // 告警级别ID, 可选, 用于查询指定告警级别下的策略
+  uint32 alarmLevelId = 5;
+  // 策略状态, 可选, 用于查询指定状态下的策略
   Status status = 6 [(validate.rules).enum = {defined_only: true}];
-  // isDeleted 是否获取已删除的策略
+  // 是否获取已删除的策略
   bool isDeleted = 7;
 }
-// ListStrategyReply 获取策略列表响应
+// 获取策略列表响应参数
 message ListStrategyReply {
-  // page 分页参数
+  // 分页参数
   PageReply page = 1;
-  // list 策略列表
+  // 策略列表
   repeated PromStrategyV1 list = 2;
 }
 
-// SelectStrategy 获取策略列表
+// 获取策略下拉列表请求参数
 message SelectStrategyRequest {
-  // page 分页参数
+  // 分页参数
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 可选, 长度限制: 0-255, 用于模糊查询
   string keyword = 2 [(validate.rules).string = {max_len: 255}];
 }
-// SelectStrategyReply 获取策略列表响应
+// 获取策略列表响应参数
 message SelectStrategyReply {
-  // page 分页参数
+  // 分页参数
   PageReply page = 1;
-  // list 策略列表
+  // 策略下拉列表
   repeated PromStrategySelectV1 list = 2;
 }
 
-// ExportStrategyRequest 导出策略请求
+// 导出策略请求参数
 message ExportStrategyRequest {
-  // ids 策略ID列表
+  // 需要导出的策略ID列表, 最少1个, 必须大于0, 唯一
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     unique: true,
     items: {uint32: {gt: 0}}
   }];
 }
-// ExportStrategyReply 导出策略响应
+// 导出策略响应
 message ExportStrategyReply {
-  // file 策略文件
+  // 导出的策略文件bytes
   bytes file = 1;
-  // fileName 策略文件名
+  // 导出的策略文件名
   string fileName = 2;
 }

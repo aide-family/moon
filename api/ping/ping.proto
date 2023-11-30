@@ -8,7 +8,9 @@ option go_package = "prometheus-manager/api/ping;ping";
 option java_multiple_files = true;
 option java_package = "ping";
 
+// 健康检查模块接口
 service Ping {
+	// 健康检查接口
 	rpc Check (PingRequest) returns (PingReply) {
 		option (google.api.http) = {
 			get: "/ping"
@@ -16,13 +18,20 @@ service Ping {
 	}
 }
 
+// 健康检查请求
 message PingRequest {
+	// 请求者名称, 非必填
 	string name = 1;
 }
 
+// 健康检查响应
 message PingReply {
+	// 响应者名称
 	string name = 1;
+	// 版本号
 	string version = 2;
+	// 命名空间
 	string namespace = 3;
+	// 元数据
 	map<string, string> metadata = 4;
 }

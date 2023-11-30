@@ -11,6 +11,7 @@ option go_package = "prometheus-manager/api/prom/notify;notify";
 option java_multiple_files = true;
 option java_package = "api.prom.notify";
 
+// 通知对象管理模块相关接口
 service Notify {
   // 创建通知对象
   rpc CreateNotify (CreateNotifyRequest) returns (CreateNotifyReply) {
@@ -55,8 +56,9 @@ service Notify {
   }
 }
 
+// 创建通知对象请求参数
 message CreateNotifyRequest {
-  // 通知对象名称
+  // 通知对象名称, 字符串长度2-20
   string name = 1 [(validate.rules).string = {
     min_len: 2,
     max_len: 20,
@@ -73,50 +75,72 @@ message CreateNotifyRequest {
     max_items: 100,
   }];
 }
+// 创建通知对象响应参数
 message CreateNotifyReply {
+  // 通知对象ID, 创建成功后返回
   uint32 id = 1;
 }
 
+// 更新通知对象请求参数
 message UpdateNotifyRequest {
+  // 通知对象ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 通知对象名称, 字符串长度2-20
   string name = 2 [(validate.rules).string = {
     min_len: 2,
     max_len: 20,
   }];
+  // 备注, 字符串长度0-255
   string remark = 3 [(validate.rules).string.max_len = 255];
+  // 通知的人员, 最多为100个通知人员对象
   repeated BeNotifyMember members = 4 [(validate.rules).repeated = {
     max_items: 100,
   }];
+  // 通知的群组, 最多为100个群组ID
   repeated uint32 chatGroups = 5 [(validate.rules).repeated = {
     unique: true,
     max_items: 100,
   }];
+  // 状态
   Status status = 6 [(validate.rules).enum = {
     defined_only: true,
   }];
 }
+// 更新通知对象响应参数
 message UpdateNotifyReply {
+  // 通知对象ID, 更新成功后返回
   uint32 id = 1;
 }
 
+// 删除通知对象请求参数
 message DeleteNotifyRequest {
+  // 通知对象ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 删除通知对象响应参数
 message DeleteNotifyReply {
+  // 通知对象ID, 删除成功后返回
   uint32 id = 1;
 }
 
+// 获取通知对象详情请求参数
 message GetNotifyRequest {
+  // 通知对象ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 获取通知对象详情响应参数
 message GetNotifyReply {
+  // 通知对象详情
   NotifyV1 detail = 1;
-  Response response = 2;
 }
 
+// 获取通知对象列表请求参数
 message ListNotifyRequest {
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 字符串长度0-20, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 状态, 枚举值, 可选, 用于过滤
   repeated Status status = 3 [(validate.rules).repeated = {
     unique: true,
     items: {
@@ -126,15 +150,21 @@ message ListNotifyRequest {
     }
   }];
 }
+// 获取通知对象列表响应参数
 message ListNotifyReply {
+  // 分页参数
   PageReply page = 1;
+  // 通知对象列表
   repeated NotifyV1 list = 2;
-  Response response = 3;
 }
 
+// 获取通知对象列表(用于下拉选择)请求参数
 message SelectNotifyRequest {
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 字符串长度0-20, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 状态, 枚举值, 可选, 用于过滤
   repeated Status status = 3 [(validate.rules).repeated = {
     unique: true,
     items: {
@@ -144,8 +174,10 @@ message SelectNotifyRequest {
     }
   }];
 }
+// 获取通知对象列表(用于下拉选择)响应参数
 message SelectNotifyReply {
+  // 分页参数
   PageReply page = 1;
+  // 通知对象列表
   repeated NotifySelectV1 list = 2;
-  Response response = 3;
 }

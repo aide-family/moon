@@ -8,122 +8,129 @@ option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
+// 验证码类型枚举
 enum CaptchaType {
   CaptchaTypeUnknown = 0;
-  // audio captcha
+  // audio captcha 音频形式的验证码
   CaptchaTypeAudio = 1;
-  // string captcha
+  // string captcha 字符串形式的验证码
   CaptchaTypeString = 2;
-  // math captcha
+  // math captcha 数学公式形式的验证码
   CaptchaTypeMath = 3;
-  // chinese captcha
+  // chinese captcha 中文形式的验证码
   CaptchaTypeChinese = 4;
-  // digit captcha
+  // digit captcha 数字形式的验证码
   CaptchaTypeDigit = 5;
 }
 
+// 系统用户信息
 message UserV1 {
-  // id 用户ID
+  // 用户ID
   uint32 id = 1;
-  // username 用户名
+  // 用户名
   string username = 2;
-  // password 密码
+  // 密码
   //	string password = 3;
-  // email 邮箱
+  // 邮箱
   string email = 4;
-  // phone 手机号
+  // 手机号
   string phone = 5;
-  // status 用户状态
+  // 用户状态
   Status status = 6;
-  // remark 备注
+  // 备注
   string remark = 7;
-  // avatar 头像
+  // 头像
   string avatar = 8;
-  // createdAt 创建时间, unix时间戳
+  // 创建时间, unix时间戳
   int64 createdAt = 9;
-  // updatedAt 更新时间, unix时间戳
+  // 更新时间, unix时间戳
   int64 updatedAt = 10;
-  // deletedAt 删除时间, unix时间戳
+  // 删除时间, unix时间戳
   int64 deletedAt = 11;
-  // roles 角色列表
+  // 角色列表
   repeated RoleSelectV1 roles = 12;
-  // nickname 昵称
+  // 昵称
   string nickname = 13;
 }
 
+// 系统用户下拉信息
 message UserSelectV1 {
-  // value 用户值, 对应用户的id
+  // 用户值, 对应用户的id
   uint32 value = 1;
-  // label 用户标签, 对应用户的username
+  // 用户标签, 对应用户的username
   string label = 2;
-  // status 用户状态
+  // 用户状态
   Status status = 3;
-  // remark 备注
+  // 备注
 //  string remark = 4;
-  // avatar 头像
+  // 头像
   string avatar = 5;
-  // nickname 昵称
+  // 昵称
   string nickname = 6;
 }
 
+// 系统角色信息
 message RoleV1 {
-  // id 角色ID
+  // 角色ID
   uint32 id = 1;
-  // name 角色名称
+  // 角色名称
   string name = 2;
-  // status 角色状态
+  // 角色状态
   Status status = 3;
-  // remark 备注
+  // 备注
   string remark = 4;
-  // createdAt 创建时间, unix时间戳
+  // 创建时间, unix时间戳
   int64 createdAt = 5;
-  // updatedAt 更新时间, unix时间戳
+  // 更新时间, unix时间戳
   int64 updatedAt = 6;
-  // deletedAt 删除时间, unix时间戳
+  // 删除时间, unix时间戳
   int64 deletedAt = 7;
-  // Users 用户列表
+  // 用户列表
   repeated UserSelectV1 users = 8;
 }
 
+// 系统角色下拉信息
 message RoleSelectV1 {
-  // value 角色值, 对应角色的id
+  // 角色值, 对应角色的id
   uint32 value = 1;
-  // label 角色标签, 对应角色的name
+  // 角色标签, 对应角色的name
   string label = 2;
-  // status 角色状态
+  // 角色状态
   Status status = 3;
-  // remark 备注
+  // 备注
   string remark = 4;
 }
 
+// 系统接口信息
 message ApiV1 {
-  // id 接口ID
+  // 接口ID
   uint32 id = 1;
-  // name 接口名称
+  // 接口名称
   string name = 2;
-  // path 接口路径
+  // 接口路径
   string path = 3;
-  // method 接口方法
+  // 接口请求方法
   string method = 4;
-  // status 接口状态
+  // 接口状态
   Status status = 5;
-  // remark 备注
+  // 备注
   string remark = 6;
-  // createdAt 创建时间, unix时间戳
+  // 创建时间, unix时间戳
   int64 createdAt = 7;
-  // updatedAt 更新时间, unix时间戳
+  // 更新时间, unix时间戳
   int64 updatedAt = 8;
-  // deletedAt 删除时间, unix时间戳
+  // 删除时间, unix时间戳
   int64 deletedAt = 9;
 }
 
+// 系统接口下拉信息
 message ApiSelectV1 {
-  // value 接口值, 对应接口的id
+  // 接口值, 对应接口的id
   uint32 value = 1;
-  // label 接口标签, 对应接口的name
+  // 接口标签, 对应接口的name
   string label = 2;
-  // status 接口状态
+  // 接口状态
   Status status = 3;
-  // remark 备注
+  // 备注
   string remark = 4;
 }

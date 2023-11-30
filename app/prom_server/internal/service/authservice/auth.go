@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api"
 	pb "prometheus-manager/api/auth"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz"
@@ -60,10 +59,6 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 	}
 
 	return &pb.LogoutReply{
-		Response: &api.Response{
-			Code: 0,
-			Msg:  "推出登录成功",
-		},
 		UserId: uint32(authClaims.ID),
 	}, nil
 }
@@ -87,7 +82,7 @@ func (s *AuthService) Captcha(ctx context.Context, req *pb.CaptchaRequest) (*pb.
 		return nil, err
 	}
 	return &pb.CaptchaReply{
-		Captcha: generateCaptcha.Image,
-		Uuid:    generateCaptcha.Id,
+		Captcha:   generateCaptcha.Image,
+		CaptchaId: generateCaptcha.Id,
 	}, nil
 }
