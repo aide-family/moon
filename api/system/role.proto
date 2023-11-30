@@ -11,8 +11,9 @@ option go_package = "prometheus-manager/api/system;system";
 option java_multiple_files = true;
 option java_package = "api.system";
 
+// 系统角色管理模块相关接口
 service Role {
-  // CreateRole 创建角色
+  // 创建角色
   rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/create"
@@ -20,7 +21,7 @@ service Role {
     };
   }
 
-  // UpdateRole 更新角色
+  // 更新角色
   rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/update/{id}"
@@ -28,7 +29,7 @@ service Role {
     };
   }
 
-  // DeleteRole 删除角色
+  // 删除角色
   rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/delete/{id}"
@@ -36,7 +37,7 @@ service Role {
     };
   }
 
-  // GetRole 获取角色
+  // 获取角色
   rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/get/{id}"
@@ -44,7 +45,7 @@ service Role {
     };
   }
 
-  // ListRole 获取角色列表
+  // 获取角色列表
   rpc ListRole (ListRoleRequest) returns (ListRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/list"
@@ -52,7 +53,7 @@ service Role {
     };
   }
 
-  // SelectRole 获取角色列表
+  // 获取角色下拉列表
   rpc SelectRole (SelectRoleRequest) returns (SelectRoleReply) {
     option (google.api.http) = {
       post: "/api/v1/role/select"
@@ -60,7 +61,7 @@ service Role {
     };
   }
 
-  // RelateApi 关联角色接口
+  // 关联角色接口
   rpc RelateApi (RelateApiRequest) returns (RelateApiReply) {
     option (google.api.http) = {
       post: "/api/v1/role/{id}/relate/api"
@@ -69,61 +70,105 @@ service Role {
   }
 }
 
+// 创建角色请求参数
 message CreateRoleRequest {
-  string name = 1 [(validate.rules).string.min_len = 2];
+  // 角色名称, 长度限制2-32字符
+  string name = 1 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 32,
+  }];
+  // 备注, 长度限制2-255字符
   string remark = 2 [(validate.rules).string.max_len = 255];
 }
+// 创建角色响应参数
 message CreateRoleReply {
+  // 角色ID, 创建成功后返回
   uint32 id = 1;
 }
 
+// 更新角色请求参数
 message UpdateRoleRequest {
+  // 用于更新的角色ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
-  string name = 2 [(validate.rules).string.min_len = 2];
+  // 角色名称, 长度限制2-32字符
+  string name = 2 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 32,
+  }];
+  // 备注, 长度限制0-255字符
   string remark = 3 [(validate.rules).string.max_len = 255];
+  // 角色状态, 枚举下的值
   Status status = 4 [(validate.rules).enum = {defined_only: true}];
 }
+// 更新角色响应参数
 message UpdateRoleReply {
+  // 角色ID, 更新成功后返回
   uint32 id = 1;
 }
 
+// 删除角色请求参数
 message DeleteRoleRequest {
+  // 用于删除的角色ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 删除角色响应参数
 message DeleteRoleReply {
+  // 角色ID, 删除成功后返回
   uint32 id = 1;
 }
 
+// 获取角色请求参数
 message GetRoleRequest {
+  // 用于获取的角色ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 获取角色响应参数
 message GetRoleReply {
+  // 角色详情信息
   RoleV1 detail = 1;
 }
 
+// 获取角色列表请求参数
 message ListRoleRequest {
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制0-20字符, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
 }
+// 获取角色列表响应参数
 message ListRoleReply {
+  // 分页参数
   PageReply page = 1;
+  // 角色列表
   repeated RoleV1 list = 2;
 }
 
+// 获取角色下拉列表请求参数
 message SelectRoleRequest{
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制0-20字符, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 用于获取指定用户的角色信息
   uint32 userId = 3;
 }
+// 获取角色下拉列表响应参数
 message SelectRoleReply{
+  // 分页参数
   PageReply page = 1;
+  // 角色下拉列表
   repeated RoleSelectV1 list = 2;
 }
 
+// 关联角色接口请求参数
 message RelateApiRequest {
+  // 需要关联的角色ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 需要关联的接口ID列表
   repeated uint32 apiIds = 2 [(validate.rules).repeated = {unique: true}];
 }
+// 关联角色接口响应参数
 message RelateApiReply {
+  // 角色ID, 关联成功后返回
   uint32 id = 1;
 }

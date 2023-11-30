@@ -105,10 +105,6 @@ func (s *NotifyService) GetNotify(ctx context.Context, req *pb.GetNotifyRequest)
 	}
 	return &pb.GetNotifyReply{
 		Detail: notifyBo.ToApi(),
-		Response: &api.Response{
-			Code: 0,
-			Msg:  "",
-		},
 	}, nil
 }
 
@@ -133,10 +129,6 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
-		Response: &api.Response{
-			Code: 0,
-			Msg:  "",
-		},
 	}, nil
 }
 
@@ -161,9 +153,5 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
-		Response: &api.Response{
-			Code: 0,
-			Msg:  "",
-		},
 	}, nil
 }

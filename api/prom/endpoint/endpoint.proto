@@ -11,6 +11,7 @@ option go_package = "prometheus-manager/api/prom/endpoint;endpoint";
 option java_multiple_files = true;
 option java_package = "api.prom.endpoint";
 
+// 监控端点管理模块相关接口
 service Endpoint {
   // 添加监控端点
   rpc AppendEndpoint (AppendEndpointRequest) returns (AppendEndpointReply) {
@@ -37,11 +38,14 @@ service Endpoint {
   }
 }
 
+// 添加监控端点请求参数
 message AppendEndpointRequest {
+  // 监控端点名称
   string agentName = 1 [(validate.rules).string = {
     min_len: 2,
     max_len: 32,
   }];
+  // 监控端点地址列表信息, 最少有一个, 不允许为空对象
   repeated PrometheusServer endpoints = 2 [(validate.rules).repeated = {
     min_items: 1,
     items: {
@@ -51,15 +55,20 @@ message AppendEndpointRequest {
     }
   }];
 }
+// 添加监控端点响应参数
 message AppendEndpointReply {
+  // 响应信息
   Response response = 1;
 }
 
+// 删除监控端点请求参数
 message DeleteEndpointRequest {
+  // 监控端点名称
   string agentName = 1 [(validate.rules).string = {
     min_len: 2,
     max_len: 32,
   }];
+  // 要删除的监控端点uuid列表, 最少有一个
   repeated string uuids = 2 [(validate.rules).repeated = {
     min_items: 1,
     items: {
@@ -69,12 +78,17 @@ message DeleteEndpointRequest {
     }
   }];
 }
+// 删除监控端点响应参数
 message DeleteEndpointReply {
+  // 响应信息
   Response response = 1;
 }
 
+// 获取监控端点列表请求参数, 这里每次拉取都是全部, 所以不做分页查询等
 message ListEndpointRequest {}
 message ListEndpointReply {
+  // 响应信息
   Response response = 1;
+  // 监控端点列表
   repeated PrometheusServer endpoints = 2;
 }

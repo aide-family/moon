@@ -11,9 +11,9 @@ option go_package = "prometheus-manager/api/alarm/history;history";
 option java_multiple_files = true;
 option java_package = "api.alarm.history";
 
-// History 报警历史模块
+// 报警历史模块相关接口
 service History {
-	// GetHistory 获取报警历史详情
+	// 获取报警历史详情
 	rpc GetHistory (GetHistoryRequest) returns (GetHistoryReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm/history/get/{id}"
@@ -21,7 +21,7 @@ service History {
 		};
 	}
 
-	// ListHistory 获取报警历史列表
+	// 获取报警历史列表
 	rpc ListHistory (ListHistoryRequest) returns (ListHistoryReply) {
 		option (google.api.http) = {
 			post: "/api/v1/alarm/history/list"
@@ -30,35 +30,36 @@ service History {
 	}
 }
 
-// GetHistoryRequest 获取报警历史详情请求
+// 获取报警历史详情请求参数
 message GetHistoryRequest {
-	// id 报警历史ID, 0 < id
+	// 报警历史ID, 0 < id
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// GetHistoryReply 获取报警历史详情响应
+// 获取报警历史详情响应参数
 message GetHistoryReply {
-	// alarmHistory 报警历史详情
+	// 报警历史详情
 	AlarmHistoryV1 alarmHistory = 1;
 }
 
-// ListHistoryRequest 获取报警历史列表请求
+// 获取报警历史列表请求参数
 message ListHistoryRequest {
-	// page 分页参数
+	// 分页参数
 	PageRequest page = 1 [(validate.rules).message.required = true];
-	// keyword 关键字
+	// 关键字
 	string keyword = 2;
-	// statusList 报警状态, 对应PromDictV1 id
+	// 报警状态, 对应PromDictV1 id
 	repeated uint32 statusList = 3;
-	// alarmPages 报警页面, 对应AlarmPageV1 id
+	// 报警页面, 对应AlarmPageV1 id
 	repeated uint32 alarmPages = 4;
-	// startAt 开始时间, unix时间戳
+	// 开始时间, unix时间戳
 	int64 startAt = 5;
-	// endAt 结束时间, unix时间戳
+	// 结束时间, unix时间戳
 	int64 endAt = 6;
 }
+// 获取报警历史列表响应参数
 message ListHistoryReply {
-	// page 分页参数
+	// 分页参数
 	PageReply page = 1;
-	// list 报警历史列表
+	// 报警历史列表
 	repeated AlarmHistoryV1 list = 2;
 }

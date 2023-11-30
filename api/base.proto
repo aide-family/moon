@@ -8,6 +8,7 @@ option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
+// 系统状态, 用于表达数据是否可用
 enum Status {
   // UNKNOWN 未知, 用于默认值
   STATUS_UNKNOWN = 0;
@@ -19,6 +20,7 @@ enum Status {
   STATUS_DISABLED = 2;
 }
 
+// 告警状态
 enum AlarmStatus {
   // UNKNOWN 未知, 用于默认值
   ALARM_STATUS_UNKNOWN = 0;
@@ -30,6 +32,7 @@ enum AlarmStatus {
   ALARM_STATUS_RESOLVE = 2;
 }
 
+// 分类, 区分字典中的各个模块数据
 enum Category {
   // UNKNOWN 未知, 用于默认值
   CATEGORY_UNKNOWN = 0;
@@ -56,6 +59,7 @@ enum Category {
   CATEGORY_NOTIFY_TYPE = 7;
 }
 
+// 通知类型, 用于区分通知方式
 enum NotifyType {
   // UNKNOWN 未知, 用于默认值
   NOTIFY_TYPE_UNKNOWN = 0;
@@ -70,6 +74,7 @@ enum NotifyType {
   NOTIFY_TYPE_PHONE = 3;
 }
 
+// 通知应用, 用于区分通知方式
 enum NotifyApp {
   // UNKNOWN 未知, 用于默认值
   NOTIFY_APP_UNKNOWN = 0;
@@ -84,27 +89,27 @@ enum NotifyApp {
   NOTIFY_APP_FEISHU = 3;
 }
 
-// PageRequest 分页请求参数
+// 分页请求参数
 message PageRequest {
-  // curr 当前页, 从1开始
+  // 当前页, 从1开始
   int32 curr = 1 [(validate.rules).int32 = {gt: 0}];
-  // size 每页大小, 1 < size <= 200
+  // 每页大小, 1 < size <= 200
   int32 size = 2 [(validate.rules).int32 = {gt: 0, lte: 200}];
 }
-// PageReply 分页返回参数
+// 分页返回参数
 message PageReply {
-  // curr 当前页码
+  // 当前页码
   int32 curr = 1;
-  // size 每页大小
+  // 每页大小
   int32 size = 2;
-  // total 总数
+  // 总数
   int64 total = 3;
 }
 
-// Response 返回参数
+// 返回参数
 message Response {
-  // code 状态码
+  // 状态码
   int32 code = 1;
-  // msg 返回信息
+  // 返回信息
   string msg = 2;
 }

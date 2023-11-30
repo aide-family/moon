@@ -11,8 +11,9 @@ option go_package = "prometheus-manager/api/system;system";
 option java_multiple_files = true;
 option java_package = "api.system";
 
+// 系统用户体系管理模块相关接口
 service User {
-  // CreateUser 创建用户
+  // 创建用户
   rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/create"
@@ -20,7 +21,7 @@ service User {
     };
   }
 
-  // UpdateUser 更新用户
+  // 更新用户
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/update/{id}"
@@ -28,7 +29,7 @@ service User {
     };
   }
 
-  // DeleteUser 删除用户
+  // 删除用户
   rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/delete/{id}"
@@ -36,7 +37,7 @@ service User {
     };
   }
 
-  // GetUser 获取用户
+  // 获取用户
   rpc GetUser (GetUserRequest) returns (GetUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/get/{id}"
@@ -44,7 +45,7 @@ service User {
     };
   }
 
-  // ListUser 获取用户列表
+  // 获取用户列表
   rpc ListUser (ListUserRequest) returns (ListUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/list"
@@ -52,7 +53,7 @@ service User {
     };
   }
 
-  // SelectUser 获取用户列表
+  // 获取用户下拉列表
   rpc SelectUser (SelectUserRequest) returns (SelectUserReply) {
     option (google.api.http) = {
       post: "/api/v1/user/select"
@@ -60,7 +61,7 @@ service User {
     };
   }
 
-  // EditUserPassword 修改密码
+  // 修改密码
   rpc EditUserPassword (EditUserPasswordRequest) returns (EditUserPasswordReply) {
     option (google.api.http) = {
       post: "/api/v1/user/password/edit"
@@ -68,7 +69,7 @@ service User {
     };
   }
 
-  // EditUserStatus 修改状态
+  // 修改状态
   rpc EditUserStatus (EditUserStatusRequest) returns (EditUserStatusReply) {
     option (google.api.http) = {
       post: "/api/v1/user/status/edit"
@@ -76,7 +77,7 @@ service User {
     };
   }
 
-  // RelateRoles 关联角色
+  // 关联角色
   rpc RelateRoles (RelateRolesRequest) returns (RelateRolesReply) {
     option (google.api.http) = {
       post: "/api/v1/user/{id}/roles/relate"
@@ -85,74 +86,119 @@ service User {
   }
 }
 
+// 创建用户请求参数
 message CreateUserRequest {
+  // 用户名, 长度限制 2-64 字符, 字母, 数字, 下划线, 中划线, 点号(^[a-zA-Z0-9_\\.]+$)
   string username = 1 [(validate.rules).string = {
     min_len: 2,
     max_len: 64,
     pattern: "^[a-zA-Z0-9_\\.]+$"
   }];
+  // 密码, aes加密后的字符串
   string password = 2 [(validate.rules).string.min_len = 6];
+  // 邮箱
   string email = 3 [(validate.rules).string.email = true];
+  // 手机号
   string phone = 4 [(validate.rules).string.len = 11];
-  string nickname = 5 [(validate.rules).string.max_len = 64];
+  // 昵称, 长度限制 0-32 字符
+  string nickname = 5 [(validate.rules).string.max_len = 32];
 }
+// 创建用户响应参数
 message CreateUserReply {
+  // 用户ID, 创建成功后返回
   uint32 id = 1;
 }
 
+// 更新用户请求参数
 message UpdateUserRequest {
+  // 需要更新数据的用户ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
-  string username = 2 [(validate.rules).string.min_len = 4];
+  // 昵称, 长度限制 0-32 字符
+  string nickname = 2 [(validate.rules).string.max_len = 32];
+  // 备注, 长度限制 0-255 字符
   string remark = 3 [(validate.rules).string.max_len = 255];
-  string avatar = 4 [(validate.rules).string.uri = true];
+  // 头像, 格式: http(s)?://.*
+  string avatar = 4 [(validate.rules).string = {
+    pattern: "^http(s)?://.*",
+    max_len: 255
+  }];
+  // 状态, 必须为系统枚举类型数据, 参考Status
   Status status = 5 [(validate.rules).enum = {defined_only: true}];
-  string nickname = 6 [(validate.rules).string.max_len = 64];
 }
+// 更新用户响应参数
 message UpdateUserReply {
+  // 用户ID, 更新成功后返回
   uint32 id = 1;
 }
 
+// 删除用户请求参数
 message DeleteUserRequest {
+  // 需要删除数据的用户ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 删除用户响应参数
 message DeleteUserReply {
+  // 用户ID, 删除成功后返回
   uint32 id = 1;
 }
 
+// 获取用户请求参数
 message GetUserRequest {
+  // 需要查询数据的用户ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 获取用户响应参数
 message GetUserReply {
+  // 用户详情信息
   UserV1 detail = 1;
 }
 
+// 获取用户列表请求参数
 message ListUserRequest {
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制 0-20 字符, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
 }
+// 获取用户列表响应参数
 message ListUserReply {
+  // 分页参数
   PageReply page = 1;
+  // 用户列表
   repeated UserV1 list = 2;
 }
 
+// 获取用户下拉列表请求参数
 message SelectUserRequest {
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制 0-20 字符, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
 }
+// 获取用户下拉列表响应参数
 message SelectUserReply {
+  // 分页参数
   PageReply page = 1;
+  // 用户下拉列表
   repeated UserSelectV1 list = 2;
 }
 
+// 修改密码请求参数
 message EditUserPasswordRequest {
-  string oldPassword = 1 [(validate.rules).string = {min_len: 6}];
-  string newPassword = 2 [(validate.rules).string = {min_len: 6}];
+  // 旧密码, aes加密后的字符串
+  string oldPassword = 1 [(validate.rules).string = {min_len: 1}];
+  // 新密码, aes加密后的字符串
+  string newPassword = 2 [(validate.rules).string = {min_len: 1}];
 }
+// 修改密码响应参数
 message EditUserPasswordReply {
+  // 用户ID, 修改成功后返回
   uint32 id = 1;
 }
 
+// 修改状态请求参数
 message EditUserStatusRequest {
+  // 用户ID列表, 数量限制 1-100, 必填, 唯一, 大于0
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
@@ -161,14 +207,20 @@ message EditUserStatusRequest {
       uint32: {gt: 0}
     }
   }];
-  Status status = 2 [(validate.rules).enum = {defined_only: true}];
+  // 状态, 必须为系统枚举类型数据, 参考Status, 不允许为0
+  Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
 }
+// 修改状态响应参数
 message EditUserStatusReply {
+  // 用户ID列表, 修改成功后返回
   repeated uint32 ids = 1;
 }
 
+// 关联角色请求参数
 message RelateRolesRequest {
+  // 需要关联角色的用户ID, 必须大于0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 角色ID列表, 数量限制 1-100, 必填, 唯一, 大于0
   repeated uint32 roleIds = 2 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
@@ -178,7 +230,8 @@ message RelateRolesRequest {
     }
   }];
 }
-
+// 关联角色响应参数
 message RelateRolesReply {
+  // 用户ID, 关联成功后返回
   uint32 id = 1;
 }

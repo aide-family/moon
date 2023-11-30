@@ -11,6 +11,7 @@ option go_package = "prometheus-manager/api/prom/notify;notify";
 option java_multiple_files = true;
 option java_package = "api.prom.notify";
 
+// 通知的群组模块相关接口
 service ChatGroup {
 	// 创建通知群组
 	rpc CreateChatGroup (CreateChatGroupRequest) returns (CreateChatGroupReply) {
@@ -55,80 +56,116 @@ service ChatGroup {
 	}
 }
 
+// 创建通知群组请求参数
 message CreateChatGroupRequest {
+	// 群组名称(一般指IM群, 例如微信群、钉钉群等)
 	string name = 1 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
 	}];
+	// 群组备注
 	string remark = 2 [(validate.rules).string.max_len = 255];
+	// 群组webhook地址(机器人地址)
 	string hook = 3 [(validate.rules).string = {
 		pattern: "^https?://",
 	}];
+	// 这个群组所属的应用
 	NotifyApp app = 4 [(validate.rules).enum.defined_only = true];
+	// hook一般是机器人, 这个字段是机器人的名称(也可以是hook别名)
 	string hookName = 5 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
 	}];
 }
+// 创建通知群组响应参数
 message CreateChatGroupReply {
+	// 群组ID, 成功会返回该参数
 	uint32 id = 1;
-	Response response = 2;
 }
 
+// 更新通知群组请求参数
 message UpdateChatGroupRequest {
+	// 群组ID(大于0), 路径参数
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// 群组名称(一般指IM群, 例如微信群、钉钉群等)
 	string name = 2 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
 	}];
+	// 群组备注, 不允许超过255字符
 	string remark = 3 [(validate.rules).string.max_len = 255];
+	// 群组webhook地址(机器人地址)
 	string hook = 4 [(validate.rules).string = {
 		pattern: "^https?://",
 	}];
+	// 这个群组所属的应用
 	NotifyApp app = 5 [(validate.rules).enum.defined_only = true];
+	// hook一般是机器人, 这个字段是机器人的名称(也可以是hook别名)
 	string hookName = 6 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
 	}];
+	// 群组状态
 	Status status = 7 [(validate.rules).enum.defined_only = true];
 }
+// 更新通知群组响应参数
 message UpdateChatGroupReply {
-	Response response = 1;
-	uint32 id = 2;
+	// 群组ID, 成功会返回该参数
+	uint32 id = 1;
 }
 
+// 删除通知群组请求参数
 message DeleteChatGroupRequest {
+	// 需要删除的群组ID(大于0), 路径参数
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 删除通知群组响应参数
 message DeleteChatGroupReply {
-	Response response = 1;
-	uint32 id = 2;
+	// 群组ID, 成功会返回该参数
+	uint32 id = 1;
 }
 
+// 获取通知群组请求参数
 message GetChatGroupRequest {
+	// 需要获取的群组ID(大于0), 路径参数
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
+// 获取通知群组响应参数
 message GetChatGroupReply {
+	// 群组详情
 	ChatGroup detail = 1;
-	Response response = 2;
 }
 
+// 获取通知群组列表请求参数
 message ListChatGroupRequest {
+	// 分页参数, 必须传递
 	PageRequest page = 1 [(validate.rules).message.required = true];
+	// 关键字, 用于模糊查询, 非必填, 最大为20字符
 	string keyword = 2 [(validate.rules).string.max_len = 20];
+	// 群组状态
 	Status status = 3 [(validate.rules).enum.defined_only = true];
 }
+// 获取通知群组列表响应参数
 message ListChatGroupReply {
+	// 分页参数
 	PageReply page = 1;
+	// 群组列表
 	repeated ChatGroup list = 2;
 }
 
+// 获取通知群组列表(下拉选择)请求参数
 message SelectChatGroupRequest {
+	// 分页参数, 必须传递
 	PageRequest page = 1 [(validate.rules).message.required = true];
+	// 关键字, 用于模糊查询, 非必填, 最大为20字符
 	string keyword = 2 [(validate.rules).string.max_len = 20];
+	// 群组状态
 	Status status = 3 [(validate.rules).enum.defined_only = true];
 }
+// 获取通知群组列表(下拉选择)响应参数
 message SelectChatGroupReply {
+	// 分页参数
 	PageReply page = 1;
+	// 群组列表
 	repeated ChatGroupSelectV1 list = 2;
 }

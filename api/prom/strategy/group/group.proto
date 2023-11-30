@@ -11,9 +11,9 @@ option go_package = "prometheus-manager/api/prom/strategy/group;group";
 option java_multiple_files = true;
 option java_package = "api.prom.strategy.group";
 
-// Group 策略组管理模块
+// 策略组管理模块相关接口
 service Group {
-  // CreateGroup 创建策略组
+  // 创建策略组
   rpc CreateGroup (CreateGroupRequest) returns (CreateGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/create"
@@ -21,7 +21,7 @@ service Group {
     };
   }
 
-  // UpdateGroup 更新策略组
+  // 更新策略组
   rpc UpdateGroup (UpdateGroupRequest) returns (UpdateGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/update/{id}"
@@ -29,7 +29,7 @@ service Group {
     };
   }
 
-  // BatchUpdateGroupStatus 批量更新策略组状态
+  // 批量更新策略组状态
   rpc BatchUpdateGroupStatus (BatchUpdateGroupStatusRequest) returns (BatchUpdateGroupStatusReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/status/batch/update"
@@ -37,7 +37,7 @@ service Group {
     };
   }
 
-  // DeleteGroup 删除策略组
+  // 删除策略组
   rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/delete/{id}"
@@ -45,7 +45,7 @@ service Group {
     };
   }
 
-  // BatchDeleteGroup 批量删除策略组
+  // 批量删除策略组
   rpc BatchDeleteGroup (BatchDeleteGroupRequest) returns (BatchDeleteGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/batch/delete"
@@ -61,7 +61,7 @@ service Group {
     };
   }
 
-  // ListGroup 获取策略组列表
+  // 获取策略组列表
   rpc ListGroup (ListGroupRequest) returns (ListGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/list"
@@ -69,7 +69,7 @@ service Group {
     };
   }
 
-  // SelectGroup 获取策略组列表
+  // 获取策略组下拉列表
   rpc SelectGroup (SelectGroupRequest) returns (SelectGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/select"
@@ -77,7 +77,7 @@ service Group {
     };
   }
 
-  // ImportGroup 导入策略组
+  // 导入策略组
   rpc ImportGroup (ImportGroupRequest) returns (ImportGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/import"
@@ -85,7 +85,7 @@ service Group {
     };
   }
 
-  // ExportGroup 导出策略组
+  // 导出策略组
   rpc ExportGroup (ExportGroupRequest) returns (ExportGroupReply) {
     option (google.api.http) = {
       post: "/api/v1/strategy/group/export"
@@ -94,53 +94,53 @@ service Group {
   }
 }
 
-// CreateGroupRequest 创建策略组请求
+// 创建策略组请求参数
 message CreateGroupRequest {
-  // name 策略组名称
+  // 策略组名称, 长度1-32, 字母数字下划线(^[a-zA-Z0-9_]+$)
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 32,
     pattern: "^[a-zA-Z0-9_]+$"
   }];
-  // category 策略组分类
+  // 策略组分类的ID, 对应字典表ID, 不允许为0
   repeated uint32 categoryIds = 2 [(validate.rules).repeated.items = {
     uint32: {gt: 0},
   }];
-  // remark 策略组备注
+  // 策略组备注, 长度0-255
   string remark = 3 [(validate.rules).string.max_len = 255];
 }
-// CreateGroupReply 创建策略组回复
+// 创建策略组响应参数
 message CreateGroupReply {
-  // id 策略组ID
+  // 策略组ID, 创建成功后返回
   uint32 id = 1;
 }
 
-// UpdateGroupRequest 更新策略组请求
+// 更新策略组请求
 message UpdateGroupRequest {
-  // id 策略组ID
+  // 策略组ID
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
-  // name 策略组名称
+  // 策略组名称, 长度1-32, 字母数字下划线(^[a-zA-Z0-9_]+$)
   string name = 2 [(validate.rules).string = {
     min_len: 1,
     max_len: 32,
     pattern: "^[a-zA-Z0-9_]+$"
   }];
-  // category 策略组分类
+  // 策略组分类, 对应字典表ID, 不允许为0
   repeated uint32 categoryIds = 3 [(validate.rules).repeated.items = {
     uint32: {gt: 0},
   }];
-  // remark 策略组备注
+  // 策略组备注, 长度0-255
   string remark = 4 [(validate.rules).string.max_len = 255];
 }
-// UpdateGroupReply 更新策略组回复
+// 更新策略组响应参数
 message UpdateGroupReply {
-  // id 策略组ID
+  // 策略组ID, 更新成功后返回
   uint32 id = 1;
 }
 
-// BatchUpdateGroupStatusRequest 批量更新策略组状态请求
+// 批量更新策略组状态请求
 message BatchUpdateGroupStatusRequest {
-  // ids 策略组ID列表
+  // 策略组ID列表, 最少1个, 最多100个, 不允许为0, 不允许重复
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
@@ -149,29 +149,29 @@ message BatchUpdateGroupStatusRequest {
       uint32: {gt: 0}
     }
   }];
-  // status 策略组状态
+  // 策略组状态
   Status status = 2 [(validate.rules).enum = {defined_only: true}];
 }
 // BatchUpdateGroupStatusReply 批量更新策略组状态回复
 message BatchUpdateGroupStatusReply {
-  // ids 策略组ID列表
+  // 策略组ID列表, 更新成功后返回
   repeated uint32 ids = 1;
 }
 
-// DeleteGroupRequest 删除策略组请求
+// 删除策略组请求参数
 message DeleteGroupRequest {
-  // id 策略组ID
+  // 策略组ID, 不允许为0
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// DeleteGroupReply 删除策略组回复
+// 删除策略组响应参数
 message DeleteGroupReply {
-  // id 策略组ID
+  // 策略组ID, 删除成功后返回
   uint32 id = 1;
 }
 
-// BatchDeleteGroupRequest 批量删除策略组请求
+// 批量删除策略组请求参数
 message BatchDeleteGroupRequest {
-  // ids 策略组ID列表
+  // 策略组ID列表, 最少1个, 最多100个, 不允许为0, 不允许重复
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
@@ -181,30 +181,30 @@ message BatchDeleteGroupRequest {
     }
   }];
 }
-// BatchDeleteGroupReply 批量删除策略组回复
+// 批量删除策略组响应参数
 message BatchDeleteGroupReply {
-  // ids 策略组ID列表
+  // 策略组ID列表, 删除成功后返回
   repeated uint32 ids = 1;
 }
 
-// GetGroupRequest 获取策略组请求
+// 获取策略组请求参数
 message GetGroupRequest {
-  // id 策略组ID
+  // 策略组ID, 不允许为0, 路径参数
   uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
-// GetGroupReply 获取策略组回复
+// 获取策略组响应参数
 message GetGroupReply {
-  // promGroup 策略组信息
+  // 策略组信息
   PromGroup detail = 1;
 }
 
-// ListGroupRequest 获取策略组列表请求
+// 获取策略组列表请求参数
 message ListGroupRequest {
-  // page 分页参数
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
-  // keyword 关键字
+  // 关键字, 长度0-32
   string keyword = 2 [(validate.rules).string.max_len = 32];
-  // categoryIds 分类ID列表
+  // 分类ID列表, 不允许为0, 不允许重复, 非必填, 取自字典表ID
   repeated uint32 categoryIds = 3 [(validate.rules) = {
     repeated: {
       unique: true,
@@ -213,56 +213,56 @@ message ListGroupRequest {
       }
     }
   }];
-  // status 策略组状态
+  // 策略组状态
   Status status = 4 [(validate.rules).enum.defined_only = true];
-  // startAt 开始时间,unix时间戳
+  // 开始时间,unix时间戳
   uint64 startAt = 5;
-  // endAt 结束时间,unix时间戳
+  // 结束时间,unix时间戳
   uint64 endAt = 6;
 }
-// ListGroupReply 获取策略组列表回复
+// 获取策略组列表响应参数
 message ListGroupReply {
-  // page 分页参数
+  // 分页参数
   PageReply page = 1;
-  // list 策略组列表
+  // 策略组列表
   repeated PromGroup list = 2;
 }
 
-// SelectGroupRequest 获取策略组列表请求
+// 获取策略组下拉列表请求参数
 message SelectGroupRequest {
-  // page 分页参数
+  // 分页参数, 必填
   PageRequest page = 1 [(validate.rules).message.required = true];
-  // keyword 关键字
+  // 关键字, 长度0-32
   string keyword = 2 [(validate.rules).string.max_len = 32];
 }
-// SelectGroupReply 获取策略组列表回复
+// 获取策略组下拉列表响应列表
 message SelectGroupReply {
-  // page 分页参数
+  // 分页参数
   PageReply page = 1;
-  // list 策略组列表
+  // 策略组列表
   repeated PromGroupSelectV1 list = 2;
 }
 
-// ImportGroupRequest 导入策略组请求
+// 导入策略组请求参数
 message ImportGroupRequest {
-  // files 策略文件
+  // 策略文件byte, 最少1个, 最多100个, 不允许重复
   repeated bytes files = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
     unique: true,
   }];
-  // groupId 策略组ID
+  // 策略组ID, 必填
   uint32 groupId = 2 [(validate.rules).uint32.gt = 0];
 }
-// ImportGroupReply 导入策略组回复
+// 导入策略组响应参数
 message ImportGroupReply {
-  // ids 导入成功的策略组ID列表
+  // 导入成功的策略组ID列表
   repeated uint32 ids = 1;
 }
 
-// ExportGroupRequest 导出策略组请求
+// 导出策略组请求参数
 message ExportGroupRequest {
-  // ids 策略组ID列表
+  // 策略组ID列表, 最少1个, 最多100个, 不允许为0, 不允许重复
   repeated uint32 ids = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
@@ -272,8 +272,8 @@ message ExportGroupRequest {
     }
   }];
 }
-// ExportGroupReply 导出策略组回复
+// 导出策略组响应参数
 message ExportGroupReply {
-  // file 策略文件
+  // 策略文件bytes
   bytes file = 1;
 }
