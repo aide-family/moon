@@ -10,6 +10,7 @@ import (
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/endpoint"
+	"prometheus-manager/api/prom/notify"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
@@ -45,6 +46,8 @@ func RegisterGrpcServer(
 	roleService *systemservice.RoleService,
 	endpointService *promservice.EndpointService,
 	apiService *systemservice.ApiService,
+	chatGroupService *promservice.ChatGroupService,
+	notifyService *promservice.NotifyService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -57,6 +60,8 @@ func RegisterGrpcServer(
 	system.RegisterRoleServer(srv, roleService)
 	endpoint.RegisterEndpointServer(srv, endpointService)
 	system.RegisterApiServer(srv, apiService)
+	notify.RegisterNotifyServer(srv, notifyService)
+	notify.RegisterChatGroupServer(srv, chatGroupService)
 
 	return &GrpcServer{Server: srv}
 }

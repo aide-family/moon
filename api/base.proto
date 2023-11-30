@@ -56,6 +56,34 @@ enum Category {
   CATEGORY_NOTIFY_TYPE = 7;
 }
 
+enum NotifyType {
+  // UNKNOWN 未知, 用于默认值
+  NOTIFY_TYPE_UNKNOWN = 0;
+
+  // EMAIL 邮件
+  NOTIFY_TYPE_EMAIL = 1;
+
+  // SMS 短信
+  NOTIFY_TYPE_SMS = 2;
+
+  // phone 电话
+  NOTIFY_TYPE_PHONE = 3;
+}
+
+enum NotifyApp {
+  // UNKNOWN 未知, 用于默认值
+  NOTIFY_APP_UNKNOWN = 0;
+
+  // DINGTALK 钉钉
+  NOTIFY_APP_DINGTALK = 1;
+
+  // WECHATWORK 企业微信
+  NOTIFY_APP_WECHATWORK = 2;
+
+  // FEISHU 飞书
+  NOTIFY_APP_FEISHU = 3;
+}
+
 // PageRequest 分页请求参数
 message PageRequest {
   // curr 当前页, 从1开始

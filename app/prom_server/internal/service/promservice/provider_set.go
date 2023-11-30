@@ -9,4 +9,6 @@ var ProviderSetProm = wire.NewSet(
 	NewStrategyService,
 	NewGroupService,
 	NewEndpointService,
+	NewNotifyService,
+	NewChatGroupService,
 )

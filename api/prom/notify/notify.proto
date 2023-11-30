@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package api.prom.notify;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/prom/notify;notify";
+option java_multiple_files = true;
+option java_package = "api.prom.notify";
+
+service Notify {
+  // 创建通知对象
+  rpc CreateNotify (CreateNotifyRequest) returns (CreateNotifyReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom/notify/create"
+      body: "*"
+    };
+  }
+  // 更新通知对象
+  rpc UpdateNotify (UpdateNotifyRequest) returns (UpdateNotifyReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom/notify/{id}/update"
+      body: "*"
+    };
+  }
+  // 删除通知对象
+  rpc DeleteNotify (DeleteNotifyRequest) returns (DeleteNotifyReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom/notify/{id}/delete"
+      body: "*"
+    };
+  }
+  // 获取通知对象详情
+  rpc GetNotify (GetNotifyRequest) returns (GetNotifyReply) {
+    option (google.api.http) = {
+      get: "/api/v1/prom/notify/{id}/get"
+    };
+  }
+  // 获取通知对象列表
+  rpc ListNotify (ListNotifyRequest) returns (ListNotifyReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom/notify/list"
+      body: "*"
+    };
+  }
+  // 获取通知对象列表(用于下拉选择)
+  rpc SelectNotify (SelectNotifyRequest) returns (SelectNotifyReply) {
+    option (google.api.http) = {
+      post: "/api/v1/prom/notify/select"
+      body: "*"
+    };
+  }
+}
+
+message CreateNotifyRequest {
+  // 通知对象名称
+  string name = 1 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 20,
+  }];
+  // 备注
+  string remark = 2 [(validate.rules).string.max_len = 255];
+  // 通知的人员
+  repeated BeNotifyMember members = 3 [(validate.rules).repeated = {
+    max_items: 100,
+  }];
+  // 通知的群组
+  repeated uint32 chatGroups = 4 [(validate.rules).repeated = {
+    unique: true,
+    max_items: 100,
+  }];
+}
+message CreateNotifyReply {
+  uint32 id = 1;
+}
+
+message UpdateNotifyRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  string name = 2 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 20,
+  }];
+  string remark = 3 [(validate.rules).string.max_len = 255];
+  repeated BeNotifyMember members = 4 [(validate.rules).repeated = {
+    max_items: 100,
+  }];
+  repeated uint32 chatGroups = 5 [(validate.rules).repeated = {
+    unique: true,
+    max_items: 100,
+  }];
+  Status status = 6 [(validate.rules).enum = {
+    defined_only: true,
+  }];
+}
+message UpdateNotifyReply {
+  uint32 id = 1;
+}
+
+message DeleteNotifyRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteNotifyReply {
+  uint32 id = 1;
+}
+
+message GetNotifyRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetNotifyReply {
+  NotifyV1 detail = 1;
+  Response response = 2;
+}
+
+message ListNotifyRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
+  repeated Status status = 3 [(validate.rules).repeated = {
+    unique: true,
+    items: {
+      enum: {
+        defined_only: true,
+      }
+    }
+  }];
+}
+message ListNotifyReply {
+  PageReply page = 1;
+  repeated NotifyV1 list = 2;
+  Response response = 3;
+}
+
+message SelectNotifyRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 20];
+  repeated Status status = 3 [(validate.rules).repeated = {
+    unique: true,
+    items: {
+      enum: {
+        defined_only: true,
+      }
+    }
+  }];
+}
+message SelectNotifyReply {
+  PageReply page = 1;
+  repeated NotifySelectV1 list = 2;
+  Response response = 3;
+}

@@ -331,6 +331,135 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.auth.RefreshTokenReply'
+    /api/v1/chat/group/create:
+        post:
+            tags:
+                - ChatGroup
+            description: 创建通知群组
+            operationId: ChatGroup_CreateChatGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.CreateChatGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.CreateChatGroupReply'
+    /api/v1/chat/group/list:
+        post:
+            tags:
+                - ChatGroup
+            description: 获取通知群组列表
+            operationId: ChatGroup_ListChatGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.ListChatGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.ListChatGroupReply'
+    /api/v1/chat/group/select:
+        post:
+            tags:
+                - ChatGroup
+            description: 获取通知群组列表(下拉选择)
+            operationId: ChatGroup_SelectChatGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.SelectChatGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.SelectChatGroupReply'
+    /api/v1/chat/group/{id}/delete:
+        post:
+            tags:
+                - ChatGroup
+            description: 删除通知群组
+            operationId: ChatGroup_DeleteChatGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.DeleteChatGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.DeleteChatGroupReply'
+    /api/v1/chat/group/{id}/get:
+        get:
+            tags:
+                - ChatGroup
+            description: 获取通知群组
+            operationId: ChatGroup_GetChatGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.GetChatGroupReply'
+    /api/v1/chat/group/{id}/update:
+        post:
+            tags:
+                - ChatGroup
+            description: 更新通知群组
+            operationId: ChatGroup_UpdateChatGroup
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.UpdateChatGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.UpdateChatGroupReply'
     /api/v1/dict/batch/delete:
         post:
             tags:
@@ -564,6 +693,135 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.prom.endpoint.ListEndpointReply'
+    /api/v1/prom/notify/create:
+        post:
+            tags:
+                - Notify
+            description: 创建通知对象
+            operationId: Notify_CreateNotify
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.CreateNotifyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.CreateNotifyReply'
+    /api/v1/prom/notify/list:
+        post:
+            tags:
+                - Notify
+            description: 获取通知对象列表
+            operationId: Notify_ListNotify
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.ListNotifyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.ListNotifyReply'
+    /api/v1/prom/notify/select:
+        post:
+            tags:
+                - Notify
+            description: 获取通知对象列表(用于下拉选择)
+            operationId: Notify_SelectNotify
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.SelectNotifyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.SelectNotifyReply'
+    /api/v1/prom/notify/{id}/delete:
+        post:
+            tags:
+                - Notify
+            description: 删除通知对象
+            operationId: Notify_DeleteNotify
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.DeleteNotifyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.DeleteNotifyReply'
+    /api/v1/prom/notify/{id}/get:
+        get:
+            tags:
+                - Notify
+            description: 获取通知对象详情
+            operationId: Notify_GetNotify
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.GetNotifyReply'
+    /api/v1/prom/notify/{id}/update:
+        post:
+            tags:
+                - Notify
+            description: 更新通知对象
+            operationId: Notify_UpdateNotify
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.prom.notify.UpdateNotifyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.prom.notify.UpdateNotifyReply'
     /api/v1/role/create:
         post:
             tags:
@@ -1637,6 +1895,85 @@ components:
                     type: integer
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
+        api.BeNotifyMember:
+            type: object
+            properties:
+                memberId:
+                    type: integer
+                    description: 通知人ID, 对应用户的id
+                    format: uint32
+                notifyTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: 通知方式, 可以同时多种类型
+            description: BeNotify 通知基础类型
+        api.BeNotifyMemberDetail:
+            type: object
+            properties:
+                memberId:
+                    type: integer
+                    description: 通知人ID, 对应用户的id
+                    format: uint32
+                notifyTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: 通知方式, 可以同时多种类型
+                user:
+                    $ref: '#/components/schemas/api.UserSelectV1'
+            description: BeNotifyMemberDetail 通知成员详情
+        api.ChatGroup:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: id 群组ID
+                    format: uint32
+                name:
+                    type: string
+                    description: name 群组名称
+                remark:
+                    type: string
+                    description: remark 备注
+                createdAt:
+                    type: integer
+                    description: createdAt 创建时间, unix时间戳
+                    format: int64
+                updatedAt:
+                    type: integer
+                    description: updatedAt 更新时间, unix时间戳
+                    format: int64
+                hook:
+                    type: string
+                    description: hook 钩子
+                status:
+                    type: integer
+                    description: status 群组状态
+                    format: enum
+                app:
+                    type: integer
+                    description: app 通知应用
+                    format: enum
+                hookName:
+                    type: string
+                    description: hookName 钩子名称
+        api.ChatGroupSelectV1:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                app:
+                    type: integer
+                    format: enum
+                hookName:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
         api.DictSelectV1:
             type: object
             properties:
@@ -1702,6 +2039,51 @@ components:
                     description: deletedAt 删除时间, unix时间戳
                     format: int64
             description: DictV1 字典基础类型
+        api.NotifySelectV1:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    format: uint32
+                label:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+            description: NotifySelectV1 通知选择类型
+        api.NotifyV1:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.BeNotifyMemberDetail'
+                chatGroups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ChatGroupSelectV1'
+                createdAt:
+                    type: integer
+                    format: int64
+                updatedAt:
+                    type: integer
+                    format: int64
+                deletedAt:
+                    type: integer
+                    format: int64
+            description: NotifyV1 通知基础类型
         api.PageReply:
             type: object
             properties:
@@ -2650,6 +3032,234 @@ components:
         api.prom.endpoint.ListEndpointRequest:
             type: object
             properties: {}
+        api.prom.notify.CreateChatGroupReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.notify.CreateChatGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                hook:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+                hookName:
+                    type: string
+        api.prom.notify.CreateNotifyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.CreateNotifyRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 通知对象名称
+                remark:
+                    type: string
+                    description: 备注
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.BeNotifyMember'
+                    description: 通知的人员
+                chatGroups:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: 通知的群组
+        api.prom.notify.DeleteChatGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.DeleteChatGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.DeleteNotifyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.DeleteNotifyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.GetChatGroupReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.ChatGroup'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.notify.GetNotifyReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.NotifyV1'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.notify.ListChatGroupReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ChatGroup'
+        api.prom.notify.ListChatGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        api.prom.notify.ListNotifyReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.NotifyV1'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.notify.ListNotifyRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+        api.prom.notify.SelectChatGroupReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.ChatGroupSelectV1'
+        api.prom.notify.SelectChatGroupRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        api.prom.notify.SelectNotifyReply:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.NotifySelectV1'
+                response:
+                    $ref: '#/components/schemas/api.Response'
+        api.prom.notify.SelectNotifyRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/api.PageRequest'
+                keyword:
+                    type: string
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+        api.prom.notify.UpdateChatGroupReply:
+            type: object
+            properties:
+                response:
+                    $ref: '#/components/schemas/api.Response'
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.UpdateChatGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                hook:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+                hookName:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        api.prom.notify.UpdateNotifyReply:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+        api.prom.notify.UpdateNotifyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.BeNotifyMember'
+                chatGroups:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                status:
+                    type: integer
+                    format: enum
         api.prom.strategy.BatchDeleteStrategyReply:
             type: object
             properties:
@@ -3501,6 +4111,7 @@ tags:
       description: AlarmPage 告警页面管理模块
     - name: Api
     - name: Auth
+    - name: ChatGroup
     - name: Dict
       description: Dict 字典管理模块
     - name: Endpoint
@@ -3509,6 +4120,7 @@ tags:
     - name: History
       description: History 报警历史模块
     - name: Hook
+    - name: Notify
     - name: Ping
     - name: Role
     - name: Strategy

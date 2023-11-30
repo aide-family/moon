@@ -21,7 +21,7 @@ type EndpointService struct {
 // NewEndpointService 实例化EndpointService
 func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *EndpointService {
 	return &EndpointService{
-		log:         log.NewHelper(log.With(logger, "module", "service.endpoint")),
+		log:         log.NewHelper(log.With(logger, "module", "service.prom.endpoint")),
 		endpointBiz: endpointBiz,
 	}
 }
