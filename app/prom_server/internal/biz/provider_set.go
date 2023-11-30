@@ -17,4 +17,6 @@ var ProviderSetBiz = wire.NewSet(
 	NewEndpointBiz,
 	NewApiBiz,
 	NewCaptchaBiz,
+	NewChatGroupBiz,
+	NewNotifyBiz,
 )

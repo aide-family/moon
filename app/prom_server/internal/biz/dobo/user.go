@@ -106,7 +106,7 @@ func userBoToDo(b *UserBO) *UserDO {
 	}
 }
 
-func (l *UserBO) ApiSelectV1() *api.UserSelectV1 {
+func (l *UserBO) ToApiSelectV1() *api.UserSelectV1 {
 	if l == nil {
 		return nil
 	}
@@ -120,7 +120,7 @@ func (l *UserBO) ApiSelectV1() *api.UserSelectV1 {
 	}
 }
 
-func (l *UserBO) ApiUserV1() *api.UserV1 {
+func (l *UserBO) ToApiV1() *api.UserV1 {
 	if l == nil {
 		return nil
 	}

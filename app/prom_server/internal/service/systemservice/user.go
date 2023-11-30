@@ -82,7 +82,7 @@ func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 		return nil, err
 	}
 	return &pb.GetUserReply{
-		Detail: userBo.ApiUserV1(),
+		Detail: userBo.ToApiV1(),
 	}, nil
 }
 
@@ -97,7 +97,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 		return nil, err
 	}
 	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserV1 {
-		return userBo.ApiUserV1()
+		return userBo.ToApiV1()
 	})
 	return &pb.ListUserReply{
 		Page: &api.PageReply{
@@ -120,7 +120,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 		return nil, err
 	}
 	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserSelectV1 {
-		return userBo.ApiSelectV1()
+		return userBo.ToApiSelectV1()
 	})
 	return &pb.SelectUserReply{
 		Page: &api.PageReply{

@@ -7,7 +7,9 @@ import (
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/api"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/cache"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/captcha"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/chatgroup"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/endpoint"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/notify"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/ping"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/promdict"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/role"
@@ -30,4 +32,6 @@ var ProviderSetRepository = wire.NewSet(
 	endpoint.NewEndpointRepo,
 	api.NewApiRepo,
 	captcha.NewCaptchaRepo,
+	chatgroup.NewChatGroupRepo,
+	notify.NewNotifyRepo,
 )

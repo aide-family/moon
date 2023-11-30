@@ -1908,6 +1908,9 @@ components:
                         type: integer
                         format: enum
                     description: 通知方式, 可以同时多种类型
+                id:
+                    type: integer
+                    format: uint32
             description: BeNotify 通知基础类型
         api.BeNotifyMemberDetail:
             type: object
@@ -1924,6 +1927,13 @@ components:
                     description: 通知方式, 可以同时多种类型
                 user:
                     $ref: '#/components/schemas/api.UserSelectV1'
+                status:
+                    type: integer
+                    description: Status 通知人状态
+                    format: enum
+                id:
+                    type: integer
+                    format: uint32
             description: BeNotifyMemberDetail 通知成员详情
         api.ChatGroup:
             type: object
@@ -1963,13 +1973,13 @@ components:
         api.ChatGroupSelectV1:
             type: object
             properties:
-                id:
+                value:
                     type: integer
                     format: uint32
                 app:
                     type: integer
                     format: enum
-                hookName:
+                label:
                     type: string
                 status:
                     type: integer

@@ -78,5 +78,5 @@ func (c Category) Value() int32 {
 
 // ApiCategory 转换为 api 枚举
 func (c Category) ApiCategory() api.Category {
-	return api.Category(c.Value())
+	return api.Category(c)
 }

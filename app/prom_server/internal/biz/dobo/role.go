@@ -110,7 +110,7 @@ func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
 		Users: slices.To(l.Users, func(i *UserBO) *api.UserSelectV1 {
-			return i.ApiSelectV1()
+			return i.ToApiSelectV1()
 		}),
 	}
 }
