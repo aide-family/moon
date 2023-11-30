@@ -13,6 +13,7 @@ import (
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/endpoint"
+	"prometheus-manager/api/prom/notify"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
@@ -52,6 +53,8 @@ func RegisterHttpServer(
 	roleService *systemservice.RoleService,
 	endpointService *promservice.EndpointService,
 	apiService *systemservice.ApiService,
+	chatGroupService *promservice.ChatGroupService,
+	notifyService *promservice.NotifyService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -65,6 +68,8 @@ func RegisterHttpServer(
 	system.RegisterRoleHTTPServer(srv, roleService)
 	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
 	system.RegisterApiHTTPServer(srv, apiService)
+	notify.RegisterNotifyHTTPServer(srv, notifyService)
+	notify.RegisterChatGroupHTTPServer(srv, chatGroupService)
 
 	return &HttpServer{Server: srv}
 }

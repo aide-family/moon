@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package api.prom.notify;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/prom/notify;notify";
+option java_multiple_files = true;
+option java_package = "api.prom.notify";
+
+service ChatGroup {
+	// 创建通知群组
+	rpc CreateChatGroup (CreateChatGroupRequest) returns (CreateChatGroupReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/create"
+			body: "*"
+		};
+	}
+	// 更新通知群组
+	rpc UpdateChatGroup (UpdateChatGroupRequest) returns (UpdateChatGroupReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/{id}/update"
+			body: "*"
+		};
+	}
+	// 删除通知群组
+	rpc DeleteChatGroup (DeleteChatGroupRequest) returns (DeleteChatGroupReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/{id}/delete"
+			body: "*"
+		};
+	}
+	// 获取通知群组
+	rpc GetChatGroup (GetChatGroupRequest) returns (GetChatGroupReply) {
+		option (google.api.http) = {
+			get: "/api/v1/chat/group/{id}/get"
+		};
+	}
+	// 获取通知群组列表
+	rpc ListChatGroup (ListChatGroupRequest) returns (ListChatGroupReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/list"
+			body: "*"
+		};
+	}
+	// 获取通知群组列表(下拉选择)
+	rpc SelectChatGroup (SelectChatGroupRequest) returns (SelectChatGroupReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/select"
+			body: "*"
+		};
+	}
+}
+
+message CreateChatGroupRequest {
+	string name = 1 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 32,
+	}];
+	string remark = 2 [(validate.rules).string.max_len = 255];
+	string hook = 3 [(validate.rules).string = {
+		pattern: "^https?://",
+	}];
+	NotifyApp app = 4 [(validate.rules).enum.defined_only = true];
+	string hookName = 5 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 32,
+	}];
+}
+message CreateChatGroupReply {
+	uint32 id = 1;
+	Response response = 2;
+}
+
+message UpdateChatGroupRequest {
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	string name = 2 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 32,
+	}];
+	string remark = 3 [(validate.rules).string.max_len = 255];
+	string hook = 4 [(validate.rules).string = {
+		pattern: "^https?://",
+	}];
+	NotifyApp app = 5 [(validate.rules).enum.defined_only = true];
+	string hookName = 6 [(validate.rules).string = {
+		min_len: 2,
+		max_len: 32,
+	}];
+	Status status = 7 [(validate.rules).enum.defined_only = true];
+}
+message UpdateChatGroupReply {
+	Response response = 1;
+	uint32 id = 2;
+}
+
+message DeleteChatGroupRequest {
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteChatGroupReply {
+	Response response = 1;
+	uint32 id = 2;
+}
+
+message GetChatGroupRequest {
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetChatGroupReply {
+	ChatGroup detail = 1;
+	Response response = 2;
+}
+
+message ListChatGroupRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	string keyword = 2 [(validate.rules).string.max_len = 20];
+	Status status = 3 [(validate.rules).enum.defined_only = true];
+}
+message ListChatGroupReply {
+	PageReply page = 1;
+	repeated ChatGroup list = 2;
+}
+
+message SelectChatGroupRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	string keyword = 2 [(validate.rules).string.max_len = 20];
+	Status status = 3 [(validate.rules).enum.defined_only = true];
+}
+message SelectChatGroupReply {
+	PageReply page = 1;
+	repeated ChatGroupSelectV1 list = 2;
+}
