@@ -61,9 +61,9 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		)
 
 		if err != nil {
-			_ = log.WithContext(ctx, l.logger).Log(log.LevelError, "exec", fmt.Sprintf("[%s] %s, %v", sql, elapsed, err))
+			_ = log.WithContext(ctx, l.logger).Log(log.LevelError, "sql", sql, "elapsed", elapsed, "err", elapsed)
 		} else {
-			_ = log.WithContext(ctx, l.logger).Log(log.LevelInfo, "exec", fmt.Sprintf("[%s] %s, %d rows affected", sql, elapsed, rows))
+			_ = log.WithContext(ctx, l.logger).Log(log.LevelInfo, "sql", sql, "elapsed", elapsed, "rows", rows)
 		}
 	}
 }
@@ -72,8 +72,8 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 func NewMysqlDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
 	if len(logger) > 0 {
-		//gormLog := NewGormLogger(logger[0])
-		//opts = append(opts, &gorm.Config{Logger: gormLog, DisableForeignKeyConstraintWhenMigrating: true})
+		gormLog := NewGormLogger(logger[0])
+		opts = append(opts, &gorm.Config{Logger: gormLog, DisableForeignKeyConstraintWhenMigrating: true})
 	}
 
 	conn, err := gorm.Open(mysql.Open(cfg.GetSource()), opts...)

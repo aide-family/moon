@@ -30,7 +30,7 @@ func NewAuthService(userBiz *biz.UserBiz, captchaBiz *biz.CaptchaBiz, logger log
 
 func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
 	// 认证传递的code, 前端需要校验code的合法性
-	if err := s.captchaBiz.VerifyCaptcha(ctx, req.GetUuid(), req.GetCode()); err != nil {
+	if err := s.captchaBiz.VerifyCaptcha(ctx, req.GetCaptchaId(), req.GetCode()); err != nil {
 		return nil, err
 	}
 	pwd := req.GetPassword()
@@ -77,7 +77,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 }
 
 func (s *AuthService) Captcha(ctx context.Context, req *pb.CaptchaRequest) (*pb.CaptchaReply, error) {
-	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.CaptchaType(req.GetCaptchaType()), int(req.GetX()), int(req.GetY()))
+	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.Type(req.GetCaptchaType()), int(req.GetX()), int(req.GetY()))
 	if err != nil {
 		return nil, err
 	}
