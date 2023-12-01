@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/google/wire"
+	"prometheus-manager/pkg/helper/plog"
 )
 
 // ProviderSetConf is conf providers.
@@ -13,6 +14,7 @@ var ProviderSetConf = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Data"),
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "Log"),
+	wire.Bind(new(plog.Config), new(*Log)),
 	LoadConfig,
 )
 

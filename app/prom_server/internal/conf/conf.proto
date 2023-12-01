@@ -56,6 +56,22 @@ message Env {
 }
 
 message Log {
+  // 默认: ./server.log
+  string filename = 1;
+  // 日志最大体积MB, 默认: 100MB
+  int32 maxSize = 2;
+  // 日志保留天数, 默认: 7
+  int32 maxAge = 3;
+  // 日志保留个数, 默认: 10
+  int32 maxBackups = 4;
+  // 是否压缩, 默认: true
+  bool compress = 5;
+  // 是否使用本地时间戳, 默认: true
+  bool localTime = 6;
+  // 日志级别, 默认: info
+  string level = 7;
+  // Encoder 类型: console | json, 默认: console
+  string encoder = 8;
 }
 
 message ApiWhite {

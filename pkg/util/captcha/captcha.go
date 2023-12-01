@@ -9,51 +9,38 @@ import (
 	"github.com/mojocn/base64Captcha"
 )
 
-type CaptchaType int8
+type Type int8
 
 const (
-	// CaptchaTypeAudio 音频验证码
-	CaptchaTypeAudio CaptchaType = iota + 1
-	// CaptchaTypeString 字符验证码
-	CaptchaTypeString
-	// CaptchaTypeMath 算术验证码
-	CaptchaTypeMath
-	// CaptchaTypeChinese 汉字验证码
-	CaptchaTypeChinese
-	// CaptchaTypeDigit 数字验证码
-	CaptchaTypeDigit
+	// TypeAudio 音频验证码
+	TypeAudio Type = iota + 1
+	// TypeString 字符验证码
+	TypeString
+	// TypeMath 算术验证码
+	TypeMath
+	// TypeChinese 汉字验证码
+	TypeChinese
+	// TypeDigit 数字验证码
+	TypeDigit
 )
-
-var CaptchaTypeMap = map[CaptchaType]string{
-	CaptchaTypeAudio:   "audio",
-	CaptchaTypeString:  "string",
-	CaptchaTypeMath:    "math",
-	CaptchaTypeChinese: "chinese",
-	CaptchaTypeDigit:   "digit",
-}
 
 // var result = base64Captcha.DefaultMemStore
 // 设置存储的验证码为 20240个，过期时间为 3分钟
 var result = base64Captcha.NewMemoryStore(20240, 3*time.Minute)
-
-func IsCaptchaType(captchaType CaptchaType) bool {
-	_, ok := CaptchaTypeMap[captchaType]
-	return ok
-}
 
 func getSizes(size ...int) (int, int) {
 	height := 50
 	width := 100
 	switch len(size) {
 	case 1:
-		if size[0] > 0 {
+		if size[0] > 50 {
 			height, width = size[0], size[0]
 		}
 	case 2:
-		if size[0] > 0 {
+		if size[0] > 50 {
 			height = size[0]
 		}
-		if size[1] > 0 {
+		if size[1] > 50 {
 			width = size[1]
 		}
 	}
@@ -148,18 +135,18 @@ func autoConfig() *base64Captcha.DriverAudio {
 //	id 	验证码id
 //	bse64s 	图片base64编码
 //	err 	错误
-func CreateCode(_ context.Context, captchaType CaptchaType, size ...int) (string, string, error) {
+func CreateCode(_ context.Context, captchaType Type, size ...int) (string, string, error) {
 	var driver base64Captcha.Driver
 	switch captchaType {
-	case CaptchaTypeAudio:
+	case TypeAudio:
 		driver = autoConfig()
-	case CaptchaTypeString:
+	case TypeString:
 		driver = stringConfig(size...)
-	case CaptchaTypeMath:
+	case TypeMath:
 		driver = mathConfig(size...)
-	case CaptchaTypeChinese:
+	case TypeChinese:
 		driver = chineseConfig(size...)
-	case CaptchaTypeDigit:
+	case TypeDigit:
 		driver = digitConfig(size...)
 	default:
 		driver = digitConfig(size...)

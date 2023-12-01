@@ -28,7 +28,7 @@ func NewCaptchaBiz(captchaRepo repository.CaptchaRepo, logger log.Logger) *Captc
 }
 
 // GenerateCaptcha 生成验证码
-func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.CaptchaType, size ...int) (*dobo.CaptchaBO, error) {
+func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Type, size ...int) (*dobo.CaptchaBO, error) {
 	codeId, codeImageBase64, err := captcha.CreateCode(ctx, captchaType, size...)
 	if err != nil {
 		return nil, err

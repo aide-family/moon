@@ -6,7 +6,7 @@ import (
 )
 
 func TestCreateCode(t *testing.T) {
-	code, s, err := CreateCode(context.Background(), CaptchaTypeDigit, 100, 200)
+	code, s, err := CreateCode(context.Background(), TypeDigit, 100, 200)
 	if err != nil {
 		t.Error(err)
 		return
