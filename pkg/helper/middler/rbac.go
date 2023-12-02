@@ -36,6 +36,9 @@ func RbacServer(cache ...*redis.Client) middleware.Middleware {
 				if err = model.CheckUserRoleExist(ctx, cache[0], authClaims.ID, authClaims.Role); err != nil {
 					return nil, perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 				}
+				if _, err = model.GetApiIDByPathAndMethod(cache[0], path, method); err != nil {
+					return nil, err
+				}
 			}
 
 			return handler(ctx, req)

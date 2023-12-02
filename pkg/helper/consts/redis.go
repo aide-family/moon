@@ -20,6 +20,8 @@ const (
 	UserLogoutKey RedisKey = "user:logout"
 	// UserRolesKey 用户角色缓存
 	UserRolesKey RedisKey = "user:roles:rbac"
+	// APICacheKey 接口缓存
+	APICacheKey RedisKey = "api:cache"
 )
 
 func (r RedisKey) String() string {

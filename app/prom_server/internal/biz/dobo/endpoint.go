@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 var _ encoding.BinaryMarshaler = (*EndpointDO)(nil)
