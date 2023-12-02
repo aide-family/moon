@@ -5,8 +5,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 type (

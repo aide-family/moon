@@ -9,12 +9,12 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -23,20 +23,23 @@ type (
 	UserBiz struct {
 		log *log.Helper
 
-		userRepo  repository.UserRepo
-		cacheRepo repository.CacheRepo
-		roleRepo  repository.RoleRepo
-		dataRepo  repository.DataRepo
+		userRepo repository.UserRepo
+		roleRepo repository.RoleRepo
+		dataRepo repository.DataRepo
 	}
 )
 
-func NewUserBiz(userRepo repository.UserRepo, cacheRepo repository.CacheRepo, roleRepo repository.RoleRepo, logger log.Logger) *UserBiz {
+func NewUserBiz(
+	userRepo repository.UserRepo,
+	dataRepo repository.DataRepo,
+	roleRepo repository.RoleRepo,
+	logger log.Logger,
+) *UserBiz {
 	return &UserBiz{
-		log: log.NewHelper(logger),
-
-		userRepo:  userRepo,
-		cacheRepo: cacheRepo,
-		roleRepo:  roleRepo,
+		log:      log.NewHelper(logger),
+		userRepo: userRepo,
+		dataRepo: dataRepo,
+		roleRepo: roleRepo,
 	}
 }
 
@@ -159,7 +162,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 	// 获取上次默认角色
 	key := consts.UserRoleKey.KeyInt(userDo.Id).String()
-	client, err := b.cacheRepo.Client()
+	client, err := b.dataRepo.Client()
 	if err != nil {
 		b.log.Error(err)
 		err = perrors.ErrorUnknown("系统错误")
@@ -185,7 +188,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 // Logout 退出登录
 func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) error {
-	client, err := b.cacheRepo.Client()
+	client, err := b.dataRepo.Client()
 	if err != nil {
 		return err
 	}
@@ -197,7 +200,12 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
 		key := consts.UserRoleKey.KeyInt(authClaims.ID).String()
-		if err := b.cacheRepo.Set(ctx, key, roleIdStr, 0); err != nil {
+		client, err := b.dataRepo.Client()
+		if err != nil {
+			b.log.Error(err)
+			return
+		}
+		if err = client.Set(ctx, key, roleIdStr, 0).Err(); err != nil {
 			b.log.Errorf("cache user role err: %v", err)
 			return
 		}

@@ -9,9 +9,9 @@ import (
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
+	valueobj2 "prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -42,7 +42,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
 		Nickname: req.GetNickname(),
-		Gender:   valueobj.Gender(req.GetGender()),
+		Gender:   valueobj2.Gender(req.GetGender()),
 	}
 
 	if err = s.userBiz.CheckNewUser(ctx, userBo); err != nil {
@@ -61,9 +61,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 		Id:       uint(req.GetId()),
 		Nickname: req.GetNickname(),
 		Avatar:   req.GetAvatar(),
-		Status:   valueobj.Status(req.GetStatus()),
+		Status:   valueobj2.Status(req.GetStatus()),
 		Remark:   req.GetRemark(),
-		Gender:   valueobj.Gender(req.GetGender()),
+		Gender:   valueobj2.Gender(req.GetGender()),
 	}
 	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
 	if err != nil {
@@ -162,7 +162,7 @@ func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPass
 }
 
 func (s *UserService) EditUserStatus(ctx context.Context, req *pb.EditUserStatusRequest) (*pb.EditUserStatusReply, error) {
-	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj2.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.EditUserStatusReply{Ids: req.GetIds()}, nil

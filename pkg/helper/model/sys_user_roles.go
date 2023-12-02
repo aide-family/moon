@@ -70,7 +70,7 @@ func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
 	// 写入redis hash表中
 	args := make([]interface{}, 0, len(roleMap))
 	for userId, ur := range roleMap {
-		key := generateKey(userId)
+		key := generateUserCacheKey(userId)
 		args = append(args, key, ur)
 	}
 
@@ -92,7 +92,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
 
 	if len(uRoles) == 0 {
 		// 清除缓存
-		if err := cacheClient.HDel(context.Background(), consts.UserRoleKey.String(), generateKey(userID)).Err(); err != nil {
+		if err := cacheClient.HDel(context.Background(), consts.UserRoleKey.String(), generateUserCacheKey(userID)).Err(); err != nil {
 			return err
 		}
 		return nil
@@ -103,7 +103,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
 		roleIds = append(roleIds, ur.RoleID)
 	}
 
-	if err := cacheClient.HSet(context.Background(), consts.UserRoleKey.String(), generateKey(userID), &UserRoles{
+	if err := cacheClient.HSet(context.Background(), consts.UserRoleKey.String(), generateUserCacheKey(userID), &UserRoles{
 		UserID: userID,
 		Roles:  roleIds,
 	}).Err(); err != nil {
@@ -113,7 +113,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
 	return nil
 }
 
-func generateKey(userID uint) string {
+func generateUserCacheKey(userID uint) string {
 	return strconv.FormatUint(uint64(userID), 10)
 }
 
@@ -124,7 +124,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 	}
 
 	// 从redis hash表中获取
-	key := generateKey(userID)
+	key := generateUserCacheKey(userID)
 	result, err := cacheClient.HGet(ctx, consts.UserRolesKey.String(), key).Result()
 	if err != nil {
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")

@@ -9,8 +9,8 @@ import (
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 

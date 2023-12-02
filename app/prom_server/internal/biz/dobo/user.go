@@ -5,8 +5,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
+	valueobj2 "prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -30,20 +30,20 @@ type (
 	}
 
 	UserBO struct {
-		Id        uint            `json:"id"`
-		Username  string          `json:"username"`
-		Nickname  string          `json:"nickname"`
-		Password  string          `json:"password"`
-		Email     string          `json:"email"`
-		Phone     string          `json:"phone"`
-		Status    valueobj.Status `json:"status"`
-		Remark    string          `json:"remark"`
-		Avatar    string          `json:"avatar"`
-		CreatedAt int64           `json:"createdAt"`
-		UpdatedAt int64           `json:"updatedAt"`
-		DeletedAt int64           `json:"deletedAt"`
-		Roles     []*RoleBO       `json:"roles"`
-		Gender    valueobj.Gender `json:"gender"`
+		Id        uint             `json:"id"`
+		Username  string           `json:"username"`
+		Nickname  string           `json:"nickname"`
+		Password  string           `json:"password"`
+		Email     string           `json:"email"`
+		Phone     string           `json:"phone"`
+		Status    valueobj2.Status `json:"status"`
+		Remark    string           `json:"remark"`
+		Avatar    string           `json:"avatar"`
+		CreatedAt int64            `json:"createdAt"`
+		UpdatedAt int64            `json:"updatedAt"`
+		DeletedAt int64            `json:"deletedAt"`
+		Roles     []*RoleBO        `json:"roles"`
+		Gender    valueobj2.Gender `json:"gender"`
 	}
 )
 
@@ -76,14 +76,14 @@ func userDoToBo(d *UserDO) *UserBO {
 		Password:  d.Password,
 		Email:     d.Email,
 		Phone:     d.Phone,
-		Status:    valueobj.Status(d.Status),
+		Status:    valueobj2.Status(d.Status),
 		Remark:    d.Remark,
 		Avatar:    d.Avatar,
 		CreatedAt: d.CreatedAt.Unix(),
 		UpdatedAt: d.UpdatedAt.Unix(),
 		DeletedAt: d.DeletedAt,
 		Roles:     NewRoleDO(d.Roles...).BO().List(),
-		Gender:    valueobj.Gender(d.Gender),
+		Gender:    valueobj2.Gender(d.Gender),
 	}
 }
 

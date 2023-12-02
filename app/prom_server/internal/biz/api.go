@@ -7,19 +7,24 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type ApiBiz struct {
 	log *log.Helper
 
-	apiRepo repository.ApiRepo
+	apiRepo  repository.ApiRepo
+	dataRepo repository.DataRepo
 }
 
-func NewApiBiz(repo repository.ApiRepo, logger log.Logger) *ApiBiz {
+func NewApiBiz(repo repository.ApiRepo, dataRepo repository.DataRepo, logger log.Logger) *ApiBiz {
 	return &ApiBiz{
-		apiRepo: repo,
-		log:     log.NewHelper(log.With(logger, "module", "biz.api")),
+		apiRepo:  repo,
+		dataRepo: dataRepo,
+		log:      log.NewHelper(log.With(logger, "module", "biz.api")),
 	}
 }
 
@@ -31,6 +36,10 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiDoList ...*dobo.ApiBO) ([]*do
 		return nil, err
 	}
 
+	ids := slices.To[*dobo.ApiDO, uint](apiDOList, func(t *dobo.ApiDO) uint {
+		return t.Id
+	})
+	b.cacheApiByIds(ids...)
 	return dobo.NewApiDO(apiDOList...).BO().List(), nil
 }
 
@@ -56,7 +65,11 @@ func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ..
 
 // DeleteApiById 删除api
 func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
-	return b.apiRepo.Delete(ctx, system.ApiInIds(id))
+	if err := b.apiRepo.Delete(ctx, system.ApiInIds(id)); err != nil {
+		return err
+	}
+	b.cacheApiByIds(id)
+	return nil
 }
 
 // UpdateApiById 更新api
@@ -66,6 +79,25 @@ func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBo *dobo.ApiBO) 
 	if err != nil {
 		return nil, err
 	}
+	b.cacheApiByIds(id)
 
 	return dobo.NewApiDO(apiDO).BO().First(), nil
+}
+
+// cacheApiByIds 缓存api
+func (b *ApiBiz) cacheApiByIds(apiIds ...uint) {
+	go func() {
+		defer helper.Recover(b.log)
+		db, err := b.dataRepo.DB()
+		if err != nil {
+			return
+		}
+		cacheClient, err := b.dataRepo.Client()
+		if err != nil {
+			return
+		}
+		if err = model.CacheApiSimple(db, cacheClient, apiIds...); err != nil {
+			b.log.Error(err)
+		}
+	}()
 }

@@ -5,21 +5,21 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
+	valueobj2 "prometheus-manager/pkg/helper/valueobj"
 )
 
 type (
 	DictBO struct {
-		Id        uint32            `json:"id"`
-		Name      string            `json:"name"`
-		Category  valueobj.Category `json:"category"`
-		Status    valueobj.Status   `json:"status"`
-		Remark    string            `json:"remark"`
-		Color     string            `json:"color"`
-		CreatedAt int64             `json:"createdAt"`
-		UpdatedAt int64             `json:"updatedAt"`
-		DeletedAt int64             `json:"deletedAt"`
+		Id        uint32             `json:"id"`
+		Name      string             `json:"name"`
+		Category  valueobj2.Category `json:"category"`
+		Status    valueobj2.Status   `json:"status"`
+		Remark    string             `json:"remark"`
+		Color     string             `json:"color"`
+		CreatedAt int64              `json:"createdAt"`
+		UpdatedAt int64              `json:"updatedAt"`
+		DeletedAt int64              `json:"deletedAt"`
 	}
 
 	DictDO struct {
@@ -61,8 +61,8 @@ func dictDoToBo(d *DictDO) *DictBO {
 	return &DictBO{
 		Id:        uint32(d.Id),
 		Name:      d.Name,
-		Category:  valueobj.Category(d.Category),
-		Status:    valueobj.Status(d.Status),
+		Category:  valueobj2.Category(d.Category),
+		Status:    valueobj2.Status(d.Status),
 		Remark:    d.Remark,
 		Color:     d.Color,
 		CreatedAt: d.CreatedAt.Unix(),
