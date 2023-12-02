@@ -31,27 +31,27 @@ type (
 	UnimplementedApiRepo struct{}
 )
 
-func (UnimplementedApiRepo) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
+func (UnimplementedApiRepo) Find(_ context.Context, _ ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
 
-func (UnimplementedApiRepo) Create(ctx context.Context, apiDoList ...*dobo.ApiDO) ([]*dobo.ApiDO, error) {
+func (UnimplementedApiRepo) Create(_ context.Context, _ ...*dobo.ApiDO) ([]*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 
-func (UnimplementedApiRepo) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.ApiDO, error) {
+func (UnimplementedApiRepo) Get(_ context.Context, _ ...query.ScopeMethod) (*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
 
-func (UnimplementedApiRepo) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
+func (UnimplementedApiRepo) List(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 
-func (UnimplementedApiRepo) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
+func (UnimplementedApiRepo) Delete(_ context.Context, _ ...query.ScopeMethod) error {
 	return status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 
-func (UnimplementedApiRepo) Update(ctx context.Context, apiDo *dobo.ApiDO, scopes ...query.ScopeMethod) (*dobo.ApiDO, error) {
+func (UnimplementedApiRepo) Update(_ context.Context, _ *dobo.ApiDO, _ ...query.ScopeMethod) (*dobo.ApiDO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 

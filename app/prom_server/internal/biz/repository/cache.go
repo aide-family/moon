@@ -25,7 +25,7 @@ func (UnimplementedCacheRepo) Client() (*redis.Client, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Client not implemented")
 }
 
-func (UnimplementedCacheRepo) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
+func (UnimplementedCacheRepo) Set(_ context.Context, _ string, _ any, _ time.Duration) error {
 	return status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
 
