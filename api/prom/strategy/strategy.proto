@@ -24,7 +24,7 @@ service Strategy {
   // 更新策略
   rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/update/{id}"
+      post: "/api/v1/strategy/update"
       body: "*"
     };
   }
@@ -40,7 +40,7 @@ service Strategy {
   // 删除策略
   rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/delete/{id}"
+      post: "/api/v1/strategy/delete"
       body: "*"
     };
   }

@@ -37,6 +37,7 @@ func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 			return
 		}
 
+		// 加载策略
 		if err = enforcer.LoadPolicy(); err != nil {
 			return
 		}

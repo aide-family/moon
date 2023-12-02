@@ -16,7 +16,7 @@ service History {
 	// 获取报警历史详情
 	rpc GetHistory (GetHistoryRequest) returns (GetHistoryReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm/history/get/{id}"
+			post: "/api/v1/alarm/history/get"
 			body: "*"
 		};
 	}

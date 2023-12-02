@@ -16,7 +16,7 @@ service Realtime {
 	// 获取实时告警数据详情
 	rpc GetRealtime (GetRealtimeRequest) returns (GetRealtimeReply) {
 		option (google.api.http) = {
-			get: "/api/v1/alarm/realtime/detail/{id}"
+			get: "/api/v1/alarm/realtime/detail"
 		};
 	}
 	// 获取实时告警数据列表
@@ -29,21 +29,21 @@ service Realtime {
 	// 告警认领/介入
 	rpc Intervene (InterveneRequest) returns (InterveneReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm/realtime/{id}/intervene"
+			post: "/api/v1/alarm/realtime/intervene"
 			body: "*"
 		};
 	}
 	// 告警升级, 用于提高优先级, 增加敏感度(抑制后不允许升级)
 	rpc Upgrade (UpgradeRequest) returns (UpgradeReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm/realtime/{id}/upgrade"
+			post: "/api/v1/alarm/realtime/upgrade"
 			body: "*"
 		};
 	}
 	// 告警抑制(升级后不允许抑制)
 	rpc Suppress (SuppressRequest) returns (SuppressReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm/realtime/{id}/suppress"
+			post: "/api/v1/alarm/realtime/suppress"
 			body: "*"
 		};
 	}

@@ -24,7 +24,7 @@ service Group {
   // 更新策略组
   rpc UpdateGroup (UpdateGroupRequest) returns (UpdateGroupReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/group/update/{id}"
+      post: "/api/v1/strategy/group/update"
       body: "*"
     };
   }
@@ -40,7 +40,7 @@ service Group {
   // 删除策略组
   rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/group/delete/{id}"
+      post: "/api/v1/strategy/group/delete"
       body: "*"
     };
   }
@@ -56,7 +56,7 @@ service Group {
   // GetGroup 获取策略组
   rpc GetGroup (GetGroupRequest) returns (GetGroupReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/group/get/{id}"
+      post: "/api/v1/strategy/group/get"
       body: "*"
     };
   }

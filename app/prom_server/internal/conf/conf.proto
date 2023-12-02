@@ -53,6 +53,7 @@ message Env {
   map<string, string> metadata = 2;
   string version = 3;
   string namespace = 4;
+  string env = 5;
 }
 
 message Log {
