@@ -25,7 +25,7 @@ type chatGroupRepoImpl struct {
 	log *log.Helper
 	d   *data.Data
 
-	query.IAction[model.PromChatGroup]
+	query.IAction[model.PromAlarmChatGroup]
 }
 
 func (l *chatGroupRepoImpl) Create(ctx context.Context, chatGroup *dobo.ChatGroupDO) (*dobo.ChatGroupDO, error) {
@@ -46,11 +46,11 @@ func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod
 }
 
 func (l *chatGroupRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.ChatGroupDO, error) {
-	var chatGroupList []*model.PromChatGroup
+	var chatGroupList []*model.PromAlarmChatGroup
 	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&chatGroupList).Error; err != nil {
 		return nil, err
 	}
-	list := slices.To(chatGroupList, func(i *model.PromChatGroup) *dobo.ChatGroupDO {
+	list := slices.To(chatGroupList, func(i *model.PromAlarmChatGroup) *dobo.ChatGroupDO {
 		return dobo.ChatGroupModelToDO(i)
 	})
 	return list, nil
@@ -76,7 +76,7 @@ func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, s
 		return nil, err
 	}
 
-	return slices.To(chatGroupList, func(i *model.PromChatGroup) *dobo.ChatGroupDO {
+	return slices.To(chatGroupList, func(i *model.PromAlarmChatGroup) *dobo.ChatGroupDO {
 		return dobo.ChatGroupModelToDO(i)
 	}), nil
 }
@@ -85,6 +85,6 @@ func NewChatGroupRepo(d *data.Data, logger log.Logger) repository.ChatGroupRepo 
 	return &chatGroupRepoImpl{
 		log:     log.NewHelper(log.With(logger, "module", "data.repository.chat_group")),
 		d:       d,
-		IAction: query.NewAction[model.PromChatGroup](query.WithDB[model.PromChatGroup](d.DB())),
+		IAction: query.NewAction[model.PromAlarmChatGroup](query.WithDB[model.PromAlarmChatGroup](d.DB())),
 	}
 }

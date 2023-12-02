@@ -23,21 +23,21 @@ service Api {
 	// 更新API数据
 	rpc UpdateApi (UpdateApiRequest) returns (UpdateApiReply) {
 		option (google.api.http) = {
-			post: "/api/v1/system/api/update/{id}"
+			post: "/api/v1/system/api/update"
 			body: "*"
 		};
 	}
 	// 删除API数据
 	rpc DeleteApi (DeleteApiRequest) returns (DeleteApiReply) {
 		option (google.api.http) = {
-			post: "/api/v1/system/api/delete/{id}"
+			post: "/api/v1/system/api/delete"
 			body: "*"
 		};
 	}
 	// 获取API数据
 	rpc GetApi (GetApiRequest) returns (GetApiReply) {
 		option (google.api.http) = {
-			post: "/api/v1/system/api/get/{id}"
+			post: "/api/v1/system/api/get"
 			body: "*"
 		};
 	}

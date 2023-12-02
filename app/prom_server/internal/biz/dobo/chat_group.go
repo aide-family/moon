@@ -90,11 +90,11 @@ func chatGroupDoToBo(d *ChatGroupDO) *ChatGroupBO {
 }
 
 // ToModel ...
-func (d *ChatGroupDO) ToModel() *model.PromChatGroup {
+func (d *ChatGroupDO) ToModel() *model.PromAlarmChatGroup {
 	if d == nil {
 		return nil
 	}
-	return &model.PromChatGroup{
+	return &model.PromAlarmChatGroup{
 		BaseModel: query.BaseModel{ID: d.Id},
 		Status:    d.Status,
 		Remark:    d.Remark,
@@ -137,7 +137,7 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 }
 
 // ChatGroupModelToDO ...
-func ChatGroupModelToDO(m *model.PromChatGroup) *ChatGroupDO {
+func ChatGroupModelToDO(m *model.PromAlarmChatGroup) *ChatGroupDO {
 	if m == nil {
 		return nil
 	}

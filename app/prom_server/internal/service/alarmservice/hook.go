@@ -41,7 +41,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			Status:     valueobj.ToAlarmStatus(alert.GetStatus()),
 			StartAt:    startTime.Unix(),
 			EndAt:      endTime.Unix(),
-			Instance:   strategy.Labels(alert.GetLabels()).Get("instance"),
+			Instance:   strategy.MapToLabels(alert.GetLabels()).GetInstance(),
 			Duration:   int64(endTime.Sub(startTime).Seconds()),
 			Info: &dobo.AlertBo{
 				Status:       alert.GetStatus(),
@@ -54,12 +54,12 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			},
 		})
 	}
-	_, err := s.historyBiz.CreateHistory(ctx, historyBos...)
+	_, err := s.historyBiz.HandleHistory(ctx, historyBos...)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.HookV1Reply{
-		Msg:  "create history success",
+		Msg:  "handle alert info is success",
 		Code: 0,
 	}, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/helper/model"
 
 	"prometheus-manager/app/prom_server/internal/conf"
 )
@@ -50,6 +51,11 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 		log:    log.NewHelper(log.With(logger, "module", "data")),
 		client: conn.NewRedisClient(c.GetRedis()),
 		db:     db,
+	}
+
+	if err = model.Migrate(db); err != nil {
+		d.log.Errorf("db migrate error: %v", err)
+		return nil, nil, err
 	}
 
 	if err := d.Client().Ping(context.Background()).Err(); err != nil {

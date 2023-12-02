@@ -108,7 +108,6 @@ func historyDOToModel(detail *dobo.AlarmHistoryDO) *model.PromAlarmHistory {
 		StrategyID: detail.StrategyId,
 		LevelID:    detail.LevelId,
 		Md5:        detail.Md5,
-		Pages:      nil,
 	}
 }
 

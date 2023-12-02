@@ -10,6 +10,7 @@ import (
 	pb "prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/pkg/strategy"
 )
 
 type StrategyService struct {
@@ -32,8 +33,8 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
 		Duration:     req.GetDuration(),
-		Labels:       req.GetLabels(),
-		Annotations:  req.GetAnnotations(),
+		Labels:       strategy.MapToLabels(req.GetLabels()),
+		Annotations:  strategy.MapToAnnotations(req.GetAnnotations()),
 		Remark:       req.GetRemark(),
 		GroupId:      req.GetGroupId(),
 		AlarmLevelId: req.GetAlarmLevelId(),
@@ -52,8 +53,8 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
 		Duration:     req.GetDuration(),
-		Labels:       req.GetLabels(),
-		Annotations:  req.GetAnnotations(),
+		Labels:       strategy.MapToLabels(req.GetLabels()),
+		Annotations:  strategy.MapToAnnotations(req.GetAnnotations()),
 		Remark:       req.GetRemark(),
 		GroupId:      req.GetGroupId(),
 		AlarmLevelId: req.GetAlarmLevelId(),

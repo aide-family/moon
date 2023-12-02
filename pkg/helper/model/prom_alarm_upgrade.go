@@ -1,0 +1,21 @@
+package model
+
+import (
+	query "github.com/aide-cloud/gorm-normalize"
+)
+
+const TableNamePromAlarmUpgrade = "prom_alarm_upgrades"
+
+// PromAlarmUpgrade 告警升级信息
+type PromAlarmUpgrade struct {
+	query.BaseModel
+	RealtimeAlarmID uint     `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__realtime_alarm_id,priority:1;comment:告警ID"`
+	UserID          uint     `gorm:"column:user_id;type:int unsigned;not null;index:idx__user_id,priority:1;comment:用户ID"`
+	UserInfo        *SysUser `gorm:"foreignKey:UserID"`
+	UpgradedAt      int64    `gorm:"column:upgraded_at;type:bigint;not null;comment:升级时间"`
+	Remark          string   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
+}
+
+func (*PromAlarmUpgrade) TableName() string {
+	return TableNamePromAlarmUpgrade
+}
