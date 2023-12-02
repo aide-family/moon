@@ -114,7 +114,7 @@ func (b *ApiBO) ToSelectV1() *api.ApiSelectV1 {
 	return &api.ApiSelectV1{
 		Value:  uint32(b.Id),
 		Label:  b.Name,
-		Status: api.Status(b.Status),
+		Status: b.Status.Value(),
 		Remark: b.Remark,
 	}
 }
@@ -130,7 +130,7 @@ func (b *ApiBO) ToV1() *api.ApiV1 {
 		Name:      b.Name,
 		Path:      b.Path,
 		Method:    b.Method,
-		Status:    api.Status(b.Status),
+		Status:    b.Status.Value(),
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,

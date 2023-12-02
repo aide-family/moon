@@ -21,7 +21,7 @@ message AlarmPageV1 {
   // 告警页面颜色
   string color = 4;
   // 告警页面状态
-  Status status = 5;
+  int32 status = 5;
   // 告警页面备注
   string remark = 6;
   // 创建时间, unix时间戳
@@ -43,7 +43,7 @@ message AlarmPageSelectV1 {
   // 告警页面颜色
   string color = 4;
   // 告警页面状态
-  Status status = 5;
+  int32 status = 5;
   // 告警页面备注
   string remark = 6;
 }
@@ -77,11 +77,11 @@ message DictV1 {
   // 字典名称
   string name = 2;
   // 字典分类
-  Category category = 3;
+  int32 category = 3;
   // 字典颜色
   string color = 4;
   // 字典状态
-  Status status = 5;
+  int32 status = 5;
   // 字典备注
   string remark = 6;
   // 创建时间, unix时间戳
@@ -125,7 +125,7 @@ message PromStrategyV1 {
   // 注解
   map<string, string> annotations = 6;
   // 策略状态
-  Status status = 7;
+  int32 status = 7;
   // 策略组ID
   uint32 groupId = 8;
   // 策略组信息
@@ -161,7 +161,7 @@ message PromStrategySelectV1 {
   // 策略分类
   repeated DictSelectV1 category = 3;
   // 策略状态
-  Status status = 4;
+  int32 status = 4;
 }
 
 // 策略组基础类型
@@ -173,7 +173,7 @@ message PromGroup {
   // 策略组分类
   repeated DictSelectV1 categories = 3;
   // 策略组状态
-  Status status = 4;
+  int32 status = 4;
   // 策略组备注
   string remark = 5;
   // 创建时间, unix时间戳
@@ -195,7 +195,7 @@ message PromGroupSelectV1 {
   // 策略组分类
   repeated DictSelectV1 category = 3;
   // 策略组状态
-  Status status = 4;
+  int32 status = 4;
   // 策略组备注
   string remark = 5;
 }
@@ -286,9 +286,9 @@ message ChatGroup {
   // 钩子
   string hook = 6;
   // 群组状态
-  Status status = 7;
+  int32 status = 7;
   // 通知应用
-  NotifyApp app = 8;
+  int32 app = 8;
   // 钩子名称
   string hookName = 9;
 }
@@ -298,11 +298,11 @@ message ChatGroupSelectV1 {
   // 群组值, 对应群组的id
   uint32 value = 1;
   // 所属APP
-  NotifyApp app = 2;
+  int32 app = 2;
   // 群组标签, 对应群组的name
   string label = 4;
   // 群组状态
-  Status status = 5;
+  int32 status = 5;
 }
 
 // 通知基础类型
@@ -332,7 +332,7 @@ message BeNotifyMemberDetail {
   // 通知人明细
   UserSelectV1 user = 3;
   // 通知人状态
-  Status status = 4;
+  int32 status = 4;
   // 数据ID
   uint32 id = 5;
 }
@@ -346,7 +346,7 @@ message NotifyV1 {
   // 备注
   string remark = 3;
   // 状态
-  Status status = 4;
+  int32 status = 4;
   // 通知成员
   repeated BeNotifyMemberDetail members = 5;
   // 通知群组
@@ -368,7 +368,7 @@ message NotifySelectV1 {
   // 备注
   string remark = 3;
   // 状态
-  Status status = 4;
+  int32 status = 4;
 }
 
 // 介入信息
@@ -416,7 +416,7 @@ message RealtimeAlarmData {
   // 告警时间, unix时间戳
   int64 eventAt = 5;
   // 告警状态
-  Status status = 6;
+  int32 status = 6;
   // 告警页面
   repeated uint32 pageIds = 7;
   // 介入信息

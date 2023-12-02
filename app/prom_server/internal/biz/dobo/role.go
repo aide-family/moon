@@ -91,7 +91,7 @@ func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
 	return &api.RoleSelectV1{
 		Value:  uint32(l.Id),
 		Label:  l.Name,
-		Status: l.Status.ApiStatus(),
+		Status: l.Status.Value(),
 		Remark: l.Remark,
 	}
 }
@@ -103,7 +103,7 @@ func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 	return &api.RoleV1{
 		Id:        uint32(l.Id),
 		Name:      l.Name,
-		Status:    l.Status.ApiStatus(),
+		Status:    l.Status.Value(),
 		Remark:    l.Remark,
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,

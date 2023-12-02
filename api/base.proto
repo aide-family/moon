@@ -89,6 +89,18 @@ enum NotifyApp {
   NOTIFY_APP_FEISHU = 3;
 }
 
+// 性别, 用于区分用户性别
+enum Gender {
+  // UNKNOWN 未知, 用于默认值
+  Gender_UNKNOWN = 0;
+
+  // MALE 男
+  Gender_MALE = 1;
+
+  // FEMALE 女
+  Gender_FEMALE = 2;
+}
+
 // 分页请求参数
 message PageRequest {
   // 当前页, 从1开始

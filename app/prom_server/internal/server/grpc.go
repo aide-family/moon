@@ -7,6 +7,7 @@ import (
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
+	"prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/endpoint"
@@ -48,6 +49,7 @@ func RegisterGrpcServer(
 	apiService *systemservice.ApiService,
 	chatGroupService *promservice.ChatGroupService,
 	notifyService *promservice.NotifyService,
+	realtimeService *alarmservice.RealtimeService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -62,6 +64,7 @@ func RegisterGrpcServer(
 	system.RegisterApiServer(srv, apiService)
 	notify.RegisterNotifyServer(srv, notifyService)
 	notify.RegisterChatGroupServer(srv, chatGroupService)
+	realtime.RegisterRealtimeServer(srv, realtimeService)
 
 	return &GrpcServer{Server: srv}
 }

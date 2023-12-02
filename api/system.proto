@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package api;
 
-import "base.proto";
-
 option go_package = "prometheus-manager/api;api";
 option java_multiple_files = true;
 option java_package = "api";
@@ -36,7 +34,7 @@ message UserV1 {
   // 手机号
   string phone = 5;
   // 用户状态
-  Status status = 6;
+  int32 status = 6;
   // 备注
   string remark = 7;
   // 头像
@@ -51,6 +49,8 @@ message UserV1 {
   repeated RoleSelectV1 roles = 12;
   // 昵称
   string nickname = 13;
+  // 性别
+  int32 gender = 14;
 }
 
 // 系统用户下拉信息
@@ -60,13 +60,15 @@ message UserSelectV1 {
   // 用户标签, 对应用户的username
   string label = 2;
   // 用户状态
-  Status status = 3;
+  int32 status = 3;
   // 备注
 //  string remark = 4;
   // 头像
   string avatar = 5;
   // 昵称
   string nickname = 6;
+  // 性别
+  int32 gender = 7;
 }
 
 // 系统角色信息
@@ -76,7 +78,7 @@ message RoleV1 {
   // 角色名称
   string name = 2;
   // 角色状态
-  Status status = 3;
+  int32 status = 3;
   // 备注
   string remark = 4;
   // 创建时间, unix时间戳
@@ -96,7 +98,7 @@ message RoleSelectV1 {
   // 角色标签, 对应角色的name
   string label = 2;
   // 角色状态
-  Status status = 3;
+  int32 status = 3;
   // 备注
   string remark = 4;
 }
@@ -112,7 +114,7 @@ message ApiV1 {
   // 接口请求方法
   string method = 4;
   // 接口状态
-  Status status = 5;
+  int32 status = 5;
   // 备注
   string remark = 6;
   // 创建时间, unix时间戳
@@ -130,7 +132,7 @@ message ApiSelectV1 {
   // 接口标签, 对应接口的name
   string label = 2;
   // 接口状态
-  Status status = 3;
+  int32 status = 3;
   // 备注
   string remark = 4;
 }
