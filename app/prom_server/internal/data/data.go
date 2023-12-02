@@ -8,10 +8,9 @@ import (
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper/model"
-
-	"prometheus-manager/app/prom_server/internal/conf"
 )
 
 // ProviderSetData is data providers.
@@ -42,23 +41,28 @@ func (d *Data) Enforcer() *casbin.SyncedEnforcer {
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
-	db, err := conn.NewMysqlDB(c.GetDatabase(), logger)
+func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
+	databaseConf := c.GetData().GetDatabase()
+	redisConf := c.GetData().GetRedis()
+	env := c.GetEnv()
+	db, err := conn.NewMysqlDB(databaseConf, logger)
 	if err != nil {
 		return nil, nil, err
 	}
 	d := &Data{
 		log:    log.NewHelper(log.With(logger, "module", "data")),
-		client: conn.NewRedisClient(c.GetRedis()),
+		client: conn.NewRedisClient(redisConf),
 		db:     db,
 	}
 
-	if err = model.Migrate(db); err != nil {
-		d.log.Errorf("db migrate error: %v", err)
-		return nil, nil, err
+	if env.GetEnv() == "dev" || env.GetEnv() == "test" {
+		if err = model.Migrate(db); err != nil {
+			d.log.Errorf("db migrate error: %v", err)
+			return nil, nil, err
+		}
 	}
 
-	if err := d.Client().Ping(context.Background()).Err(); err != nil {
+	if err = d.Client().Ping(context.Background()).Err(); err != nil {
 		d.log.Errorf("redis ping error: %v", err)
 		return nil, nil, err
 	}

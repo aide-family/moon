@@ -23,21 +23,21 @@ service ChatGroup {
 	// 更新通知群组
 	rpc UpdateChatGroup (UpdateChatGroupRequest) returns (UpdateChatGroupReply) {
 		option (google.api.http) = {
-			post: "/api/v1/chat/group/{id}/update"
+			post: "/api/v1/chat/group/update"
 			body: "*"
 		};
 	}
 	// 删除通知群组
 	rpc DeleteChatGroup (DeleteChatGroupRequest) returns (DeleteChatGroupReply) {
 		option (google.api.http) = {
-			post: "/api/v1/chat/group/{id}/delete"
+			post: "/api/v1/chat/group/delete"
 			body: "*"
 		};
 	}
 	// 获取通知群组
 	rpc GetChatGroup (GetChatGroupRequest) returns (GetChatGroupReply) {
 		option (google.api.http) = {
-			get: "/api/v1/chat/group/{id}/get"
+			get: "/api/v1/chat/group/get"
 		};
 	}
 	// 获取通知群组列表

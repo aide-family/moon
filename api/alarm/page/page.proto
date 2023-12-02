@@ -25,7 +25,7 @@ service AlarmPage {
 	// 更新告警页面
 	rpc UpdateAlarmPage (UpdateAlarmPageRequest) returns (UpdateAlarmPageReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm_page/update/{id}"
+			post: "/api/v1/alarm_page/update"
 			body: "*"
 		};
 	}
@@ -41,7 +41,7 @@ service AlarmPage {
 	// 删除告警页面
 	rpc DeleteAlarmPage (DeleteAlarmPageRequest) returns (DeleteAlarmPageReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm_page/delete/{id}"
+			post: "/api/v1/alarm_page/delete"
 			body: "*"
 		};
 	}
@@ -57,7 +57,7 @@ service AlarmPage {
 	// 获取告警页面
 	rpc GetAlarmPage (GetAlarmPageRequest) returns (GetAlarmPageReply) {
 		option (google.api.http) = {
-			post: "/api/v1/alarm_page/get/{id}"
+			post: "/api/v1/alarm_page/get"
 			body: "*"
 		};
 	}

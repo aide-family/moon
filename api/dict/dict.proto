@@ -25,7 +25,7 @@ service Dict {
 	// 更新字典
 	rpc UpdateDict (UpdateDictRequest) returns (UpdateDictReply) {
 		option (google.api.http) = {
-			post: "/api/v1/dict/update/{id}"
+			post: "/api/v1/dict/update"
 			body: "*"
 		};
 	}
@@ -41,7 +41,7 @@ service Dict {
 	// 删除字典
 	rpc DeleteDict (DeleteDictRequest) returns (DeleteDictReply) {
 		option (google.api.http) = {
-			post: "/api/v1/dict/delete/{id}"
+			post: "/api/v1/dict/delete"
 			body: "*"
 		};
 	}
@@ -57,7 +57,7 @@ service Dict {
 	// 获取字典
 	rpc GetDict (GetDictRequest) returns (GetDictReply) {
 		option (google.api.http) = {
-			post: "/api/v1/dict/get/{id}"
+			post: "/api/v1/dict/get"
 			body: "*"
 		};
 	}

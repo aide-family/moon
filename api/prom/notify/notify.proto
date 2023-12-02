@@ -23,21 +23,21 @@ service Notify {
   // 更新通知对象
   rpc UpdateNotify (UpdateNotifyRequest) returns (UpdateNotifyReply) {
     option (google.api.http) = {
-      post: "/api/v1/prom/notify/{id}/update"
+      post: "/api/v1/prom/notify/update"
       body: "*"
     };
   }
   // 删除通知对象
   rpc DeleteNotify (DeleteNotifyRequest) returns (DeleteNotifyReply) {
     option (google.api.http) = {
-      post: "/api/v1/prom/notify/{id}/delete"
+      post: "/api/v1/prom/notify/delete"
       body: "*"
     };
   }
   // 获取通知对象详情
   rpc GetNotify (GetNotifyRequest) returns (GetNotifyReply) {
     option (google.api.http) = {
-      get: "/api/v1/prom/notify/{id}/get"
+      get: "/api/v1/prom/notify/get"
     };
   }
   // 获取通知对象列表
