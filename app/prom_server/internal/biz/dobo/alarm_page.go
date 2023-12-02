@@ -3,9 +3,11 @@ package dobo
 import (
 	"time"
 
+	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -88,8 +90,11 @@ func alarmPageBoToDo(b *AlarmPageBO) *AlarmPageDO {
 	}
 }
 
-// ToApiAlarmPageSelectV1 .
-func (b *AlarmPageBO) ToApiAlarmPageSelectV1() *api.AlarmPageSelectV1 {
+// ToSelectV1 .
+func (b *AlarmPageBO) ToSelectV1() *api.AlarmPageSelectV1 {
+	if b == nil {
+		return nil
+	}
 	return &api.AlarmPageSelectV1{
 		Value:  b.Id,
 		Label:  b.Name,
@@ -102,24 +107,23 @@ func (b *AlarmPageBO) ToApiAlarmPageSelectV1() *api.AlarmPageSelectV1 {
 
 // ListToApiAlarmPageSelectV1 .
 func ListToApiAlarmPageSelectV1(values ...*AlarmPageBO) []*api.AlarmPageSelectV1 {
-	var list []*api.AlarmPageSelectV1
-	for _, v := range values {
-		list = append(list, v.ToApiAlarmPageSelectV1())
-	}
-	return list
+	return slices.To(values, func(info *AlarmPageBO) *api.AlarmPageSelectV1 {
+		return info.ToSelectV1()
+	})
 }
 
-// PageDOToModel .
-func PageDOToModel(do *AlarmPageDO) *model.PromAlarmPage {
-	if do == nil {
+// ToModel .
+func (b *AlarmPageDO) ToModel() *model.PromAlarmPage {
+	if b == nil {
 		return nil
 	}
 	return &model.PromAlarmPage{
-		Name:   do.Name,
-		Remark: do.Remark,
-		Icon:   do.Icon,
-		Color:  do.Color,
-		Status: do.Status,
+		BaseModel: query.BaseModel{ID: b.Id},
+		Name:      b.Name,
+		Icon:      b.Icon,
+		Color:     b.Color,
+		Remark:    b.Remark,
+		Status:    b.Status,
 	}
 }
 

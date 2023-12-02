@@ -26,7 +26,7 @@ type (
 )
 
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *dobo.StrategyGroupDO) (*dobo.StrategyGroupDO, error) {
-	strategyGroupModel := dobo.StrategyGroupDOToModel(strategyGroup)
+	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).Create(strategyGroupModel); err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *dobo.
 }
 
 func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strategyGroup *dobo.StrategyGroupDO) (*dobo.StrategyGroupDO, error) {
-	strategyGroupModel := dobo.StrategyGroupDOToModel(strategyGroup)
+	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, strategyGroupModel); err != nil {
 		return nil, err
 	}

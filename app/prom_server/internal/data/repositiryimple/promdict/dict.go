@@ -21,8 +21,8 @@ type promDictRepoImpl struct {
 	query.IAction[model.PromDict]
 }
 
-func (l *promDictRepoImpl) CreateDict(ctx context.Context, dict *dobo.DictDO) (*dobo.DictDO, error) {
-	newModelData := dobo.DictDOToModel(dict)
+func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictDO *dobo.DictDO) (*dobo.DictDO, error) {
+	newModelData := dictDO.ToModel()
 	if err := l.WithContext(ctx).Create(newModelData); err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func (l *promDictRepoImpl) CreateDict(ctx context.Context, dict *dobo.DictDO) (*
 	return dobo.DictModelToDO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dict *dobo.DictDO) (*dobo.DictDO, error) {
-	newModelData := dobo.DictDOToModel(dict)
+func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictDO *dobo.DictDO) (*dobo.DictDO, error) {
+	newModelData := dictDO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newModelData); err != nil {
 		return nil, err
 	}

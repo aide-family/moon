@@ -39,16 +39,16 @@ func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([
 	return list, nil
 }
 
-func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategy *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	newStrategy := dobo.StrategyDOTOModel(strategy)
+func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyDO *dobo.StrategyDO) (*dobo.StrategyDO, error) {
+	newStrategy := strategyDO.ToModel()
 	if err := l.WithContext(ctx).Create(newStrategy); err != nil {
 		return nil, err
 	}
 	return dobo.StrategyModelToDO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategy *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	newStrategy := dobo.StrategyDOTOModel(strategy)
+func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategyDO *dobo.StrategyDO) (*dobo.StrategyDO, error) {
+	newStrategy := strategyDO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
 		return nil, err
 	}

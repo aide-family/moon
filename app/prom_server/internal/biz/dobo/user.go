@@ -4,7 +4,6 @@ import (
 	"time"
 
 	query "github.com/aide-cloud/gorm-normalize"
-	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
@@ -153,10 +152,7 @@ func (l *UserDO) ToModel() *model.SysUser {
 
 	return &model.SysUser{
 		BaseModel: query.BaseModel{
-			ID:        l.Id,
-			CreatedAt: l.CreatedAt,
-			UpdatedAt: l.UpdatedAt,
-			DeletedAt: soft_delete.DeletedAt(l.DeletedAt),
+			ID: l.Id,
 		},
 		Username: l.Username,
 		Nickname: l.Nickname,
