@@ -5,18 +5,21 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/alarm/realtime"
+	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type RealtimeService struct {
 	pb.UnimplementedRealtimeServer
 
-	log *log.Helper
+	log           *log.Helper
+	alarmRealtime *biz.AlarmRealtime
 }
 
 // NewRealtimeService 实时告警服务
-func NewRealtimeService(logger log.Logger) *RealtimeService {
+func NewRealtimeService(alarmRealtime *biz.AlarmRealtime, logger log.Logger) *RealtimeService {
 	return &RealtimeService{
-		log: log.NewHelper(log.With(logger, "module", "service.alarm.realtime")),
+		log:           log.NewHelper(log.With(logger, "module", "service.alarm.realtime")),
+		alarmRealtime: alarmRealtime,
 	}
 }
 
