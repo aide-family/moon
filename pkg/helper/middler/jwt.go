@@ -11,8 +11,7 @@ import (
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/pkg/helper"
-
+	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/util/hash"
 )
 
@@ -61,13 +60,13 @@ func Expire(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims
 		diffTimeUnix = 60
 	}
 
-	key := helper.UserLogoutKey.Key(authClaims.MD5()).String()
+	key := consts.UserLogoutKey.Key(authClaims.MD5()).String()
 	return rdsClient.Set(ctx, key, authClaims.String(), time.Duration(diffTimeUnix)*time.Second).Err()
 }
 
 // IsLogout 判断token是否被logout
 func IsLogout(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims) error {
-	key := helper.UserLogoutKey.Key(authClaims.MD5()).String()
+	key := consts.UserLogoutKey.Key(authClaims.MD5()).String()
 	if rdsClient.Exists(ctx, key).Val() == 1 {
 		return ErrLogout
 	}

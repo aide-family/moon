@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
@@ -152,7 +152,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	}
 
 	// 获取上次默认角色
-	key := helper.UserRoleKey.KeyInt(userDo.Id).String()
+	key := consts.UserRoleKey.KeyInt(userDo.Id).String()
 	client, err := b.cacheRepo.Client()
 	if err != nil {
 		b.log.Error(err)
@@ -188,7 +188,7 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (string, error) {
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
-		key := helper.UserRoleKey.KeyInt(authClaims.ID).String()
+		key := consts.UserRoleKey.KeyInt(authClaims.ID).String()
 		if err := b.cacheRepo.Set(ctx, key, roleIdStr, 0); err != nil {
 			b.log.Errorf("cache user role err: %v", err)
 			return
