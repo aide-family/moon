@@ -18,7 +18,7 @@ var _ repository.StrategyGroupRepo = (*strategyGroupRepoImpl)(nil)
 type (
 	strategyGroupRepoImpl struct {
 		repository.UnimplementedStrategyGroupRepo
-		query.IAction[model.PromGroup]
+		query.IAction[model.PromStrategyGroup]
 
 		data *data.Data
 		log  *log.Helper
@@ -42,7 +42,7 @@ func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strateg
 }
 
 func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status int32, ids []uint) error {
-	if err := l.WithContext(ctx).Update(&model.PromGroup{Status: status}, strategygroup.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroup.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
@@ -68,7 +68,7 @@ func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Paginatio
 	if err != nil {
 		return nil, err
 	}
-	list := slices.To(strategyModelList, func(m *model.PromGroup) *dobo.StrategyGroupDO {
+	list := slices.To(strategyModelList, func(m *model.PromStrategyGroup) *dobo.StrategyGroupDO {
 		return dobo.StrategyGroupModelToDO(m)
 	})
 	return list, nil
@@ -76,8 +76,8 @@ func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Paginatio
 
 func NewStrategyGroupRepo(data *data.Data, logger log.Logger) repository.StrategyGroupRepo {
 	return &strategyGroupRepoImpl{
-		IAction: query.NewAction[model.PromGroup](
-			query.WithDB[model.PromGroup](data.DB()),
+		IAction: query.NewAction[model.PromStrategyGroup](
+			query.WithDB[model.PromStrategyGroup](data.DB()),
 		),
 		data: data,
 		log:  log.NewHelper(logger),

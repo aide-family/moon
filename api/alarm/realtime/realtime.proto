@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package api.alarm.realtime;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/alarm/realtime;realtime";
+option java_multiple_files = true;
+option java_package = "api.alarm.realtime";
+
+// 实时告警数据操作模块相关接口
+service Realtime {
+	// 获取实时告警数据详情
+	rpc GetRealtime (GetRealtimeRequest) returns (GetRealtimeReply) {
+		option (google.api.http) = {
+			get: "/api/v1/alarm/realtime/detail/{id}"
+		};
+	}
+	// 获取实时告警数据列表
+	rpc ListRealtime (ListRealtimeRequest) returns (ListRealtimeReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm/realtime/list"
+			body: "*"
+		};
+	}
+	// 告警认领/介入
+	rpc Intervene (InterveneRequest) returns (InterveneReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm/realtime/{id}/intervene"
+			body: "*"
+		};
+	}
+	// 告警升级, 用于提高优先级, 增加敏感度(抑制后不允许升级)
+	rpc Upgrade (UpgradeRequest) returns (UpgradeReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm/realtime/{id}/upgrade"
+			body: "*"
+		};
+	}
+	// 告警抑制(升级后不允许抑制)
+	rpc Suppress (SuppressRequest) returns (SuppressReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm/realtime/{id}/suppress"
+			body: "*"
+		};
+	}
+}
+
+// 实时告警数据详情请求参数
+message GetRealtimeRequest {
+	// 实时告警数据ID, 0 < id
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// 实时告警数据详情返回参数
+message GetRealtimeReply {
+	// 实时告警数据详情
+	RealtimeAlarmData detail = 1;
+}
+
+// 实时告警数据列表请求参数
+message ListRealtimeRequest {
+	// 分页参数
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	// 关键字
+	string keyword = 2;
+	// 告警页面, 对应AlarmPageV1 id
+	repeated uint32 alarmPages = 4;
+	// 开始时间, unix时间戳
+	int64 startAt = 5;
+	// 结束时间, unix时间戳
+	int64 endAt = 6;
+}
+message ListRealtimeReply {
+	// 分页参数
+	PageReply page = 1;
+	// 实时告警数据列表
+	repeated RealtimeAlarmData list = 2;
+}
+
+// 告警认领/介入请求参数
+message InterveneRequest {
+	// 实时告警数据ID, 0 < id
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// 介入备注
+	string remark = 3 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 255,
+	}];
+}
+// 告警认领/介入返回参数
+message InterveneReply {
+}
+
+// 告警升级请求参数
+message UpgradeRequest {
+	// 实时告警数据ID, 0 < id
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// 告警升级返回参数
+message UpgradeReply {
+}
+
+// 告警抑制请求参数
+message SuppressRequest {
+	// 实时告警数据ID, 0 < id
+	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// 抑制备注
+	string remark = 3 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 255,
+	}];
+	// 抑制时长s, 大于60s, 小于24h, 过长的抑制时间, 证明改告警不合理, 不建议这么配置, 可以修改告警阈值解决
+	uint32 duration = 4 [(validate.rules).uint32 = {
+		gte: 60,
+		lte: 86400,
+	}];
+}
+// 告警抑制返回参数
+message SuppressReply {
+}

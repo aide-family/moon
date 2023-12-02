@@ -25,7 +25,7 @@ type notifyRepoImpl struct {
 	log  *log.Helper
 	data *data.Data
 
-	query.IAction[model.PromNotify]
+	query.IAction[model.PromAlarmNotify]
 }
 
 func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.NotifyDO, error) {
@@ -38,12 +38,12 @@ func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (
 }
 
 func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.NotifyDO, error) {
-	var notifyList []*model.PromNotify
+	var notifyList []*model.PromAlarmNotify
 	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&notifyList).Error; err != nil {
 		return nil, err
 	}
 
-	return slices.To(notifyList, func(i *model.PromNotify) *dobo.NotifyDO {
+	return slices.To(notifyList, func(i *model.PromAlarmNotify) *dobo.NotifyDO {
 		return dobo.NotifyModelToDO(i)
 	}), nil
 }
@@ -58,7 +58,7 @@ func (l *notifyRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scop
 		return nil, err
 	}
 
-	return slices.To(notifyList, func(i *model.PromNotify) *dobo.NotifyDO {
+	return slices.To(notifyList, func(i *model.PromAlarmNotify) *dobo.NotifyDO {
 		return dobo.NotifyModelToDO(i)
 	}), nil
 }
@@ -91,6 +91,6 @@ func NewNotifyRepo(d *data.Data, logger log.Logger) repository.NotifyRepo {
 	return &notifyRepoImpl{
 		log:     log.NewHelper(log.With(logger, "module", "data.repository.notify")),
 		data:    d,
-		IAction: query.NewAction[model.PromNotify](query.WithDB[model.PromNotify](d.DB())),
+		IAction: query.NewAction[model.PromAlarmNotify](query.WithDB[model.PromAlarmNotify](d.DB())),
 	}
 }

@@ -39,7 +39,7 @@ func (UnimplementedHistoryRepo) ListHistory(_ context.Context, _ query.Paginatio
 }
 
 func (UnimplementedHistoryRepo) CreateHistory(_ context.Context, _ ...*dobo.AlarmHistoryDO) ([]*dobo.AlarmHistoryDO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateHistory not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method HandleHistory not implemented")
 }
 
 func (UnimplementedHistoryRepo) UpdateHistoryById(_ context.Context, _ uint, _ *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error) {

@@ -14,25 +14,25 @@ import (
 
 type (
 	StrategyBO struct {
-		Id             uint32               `json:"id"`
-		Alert          string               `json:"alert"`
-		Expr           string               `json:"expr"`
-		Duration       string               `json:"duration"`
-		Labels         strategy.Labels      `json:"labels"`
-		Annotations    strategy.Annotations `json:"annotations"`
-		Status         valueobj.Status      `json:"status"`
-		Remark         string               `json:"remark"`
-		GroupId        uint32               `json:"groupId"`
-		GroupInfo      *StrategyGroupBO     `json:"groupInfo"`
-		AlarmLevelId   uint32               `json:"alarmLevelId"`
-		AlarmLevelInfo *DictBO              `json:"alarmLevelInfo"`
-		AlarmPageIds   []uint32             `json:"alarmPageIds"`
-		AlarmPages     []*AlarmPageBO       `json:"alarmPages"`
-		CategoryIds    []uint32             `json:"categoryIds"`
-		Categories     []*DictBO            `json:"categories"`
-		CreatedAt      int64                `json:"createdAt"`
-		UpdatedAt      int64                `json:"updatedAt"`
-		DeletedAt      int64                `json:"deletedAt"`
+		Id             uint32                `json:"id"`
+		Alert          string                `json:"alert"`
+		Expr           string                `json:"expr"`
+		Duration       string                `json:"duration"`
+		Labels         *strategy.Labels      `json:"labels"`
+		Annotations    *strategy.Annotations `json:"annotations"`
+		Status         valueobj.Status       `json:"status"`
+		Remark         string                `json:"remark"`
+		GroupId        uint32                `json:"groupId"`
+		GroupInfo      *StrategyGroupBO      `json:"groupInfo"`
+		AlarmLevelId   uint32                `json:"alarmLevelId"`
+		AlarmLevelInfo *DictBO               `json:"alarmLevelInfo"`
+		AlarmPageIds   []uint32              `json:"alarmPageIds"`
+		AlarmPages     []*AlarmPageBO        `json:"alarmPages"`
+		CategoryIds    []uint32              `json:"categoryIds"`
+		Categories     []*DictBO             `json:"categories"`
+		CreatedAt      int64                 `json:"createdAt"`
+		UpdatedAt      int64                 `json:"updatedAt"`
+		DeletedAt      int64                 `json:"deletedAt"`
 	}
 
 	StrategyDO struct {
@@ -171,8 +171,8 @@ func (s *StrategyBO) ToApiPromStrategyV1() *api.PromStrategyV1 {
 		Alert:        strategyBO.Alert,
 		Expr:         strategyBO.Expr,
 		Duration:     strategyBO.Duration,
-		Labels:       strategyBO.Labels,
-		Annotations:  strategyBO.Annotations,
+		Labels:       strategyBO.Labels.Map(),
+		Annotations:  strategyBO.Annotations.Map(),
 		Remark:       strategyBO.Remark,
 		Status:       api.Status(strategyBO.Status),
 		GroupId:      strategyBO.GroupId,
@@ -232,8 +232,8 @@ func StrategyModelToDO(m *model2.PromStrategy) *StrategyDO {
 		Alert:          m.Alert,
 		Expr:           m.Alert,
 		Duration:       m.For,
-		Labels:         m.Labels,
-		Annotations:    m.Annotations,
+		Labels:         m.Labels.String(),
+		Annotations:    m.Annotations.String(),
 		Status:         m.Status,
 		Remark:         m.Remark,
 		GroupId:        m.GroupID,
@@ -286,8 +286,8 @@ func StrategyDOTOModel(d *StrategyDO) *model2.PromStrategy {
 		Alert:        d.Alert,
 		Expr:         d.Expr,
 		For:          d.Duration,
-		Labels:       d.Labels,
-		Annotations:  d.Annotations,
+		Labels:       strategy.ToLabels(d.Labels),
+		Annotations:  strategy.ToAnnotations(d.Annotations),
 		AlertLevelID: d.AlarmLevelId,
 		Status:       d.Status,
 		Remark:       d.Remark,

@@ -24,7 +24,7 @@ service Role {
   // 更新角色
   rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
     option (google.api.http) = {
-      post: "/api/v1/role/update/{id}"
+      post: "/api/v1/role/update"
       body: "*"
     };
   }
@@ -32,7 +32,7 @@ service Role {
   // 删除角色
   rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
     option (google.api.http) = {
-      post: "/api/v1/role/delete/{id}"
+      post: "/api/v1/role/delete"
       body: "*"
     };
   }
@@ -40,7 +40,7 @@ service Role {
   // 获取角色
   rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
     option (google.api.http) = {
-      post: "/api/v1/role/get/{id}"
+      post: "/api/v1/role/get"
       body: "*"
     };
   }
@@ -64,7 +64,7 @@ service Role {
   // 关联角色接口
   rpc RelateApi (RelateApiRequest) returns (RelateApiReply) {
     option (google.api.http) = {
-      post: "/api/v1/role/{id}/relate/api"
+      post: "/api/v1/role/relate/api"
       body: "*"
     };
   }

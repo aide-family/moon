@@ -136,7 +136,7 @@ func (b *StrategyGroupBO) ToApiPromPromGroup() *api.PromGroup {
 }
 
 // StrategyGroupModelToDO .
-func StrategyGroupModelToDO(m *model2.PromGroup) *StrategyGroupDO {
+func StrategyGroupModelToDO(m *model2.PromStrategyGroup) *StrategyGroupDO {
 	if m == nil {
 		return nil
 	}
@@ -165,11 +165,11 @@ func StrategyGroupModelToDO(m *model2.PromGroup) *StrategyGroupDO {
 }
 
 // StrategyGroupDOToModel .
-func StrategyGroupDOToModel(d *StrategyGroupDO) *model2.PromGroup {
+func StrategyGroupDOToModel(d *StrategyGroupDO) *model2.PromStrategyGroup {
 	if d == nil {
 		return nil
 	}
-	return &model2.PromGroup{
+	return &model2.PromStrategyGroup{
 		BaseModel: query.BaseModel{
 			ID:        d.Id,
 			CreatedAt: d.CreatedAt,

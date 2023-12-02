@@ -54,8 +54,8 @@ func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest
 	return dobo.NewAlarmHistoryDO(historyList...).BO().List(), pgInfo, nil
 }
 
-// CreateHistory 创建历史
-func (a *HistoryBiz) CreateHistory(ctx context.Context, historyBO ...*dobo.AlarmHistoryBO) ([]*dobo.AlarmHistoryBO, error) {
+// HandleHistory 维护告警数据
+func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*dobo.AlarmHistoryBO) ([]*dobo.AlarmHistoryBO, error) {
 	if len(historyBO) == 0 {
 		return nil, nil
 	}
@@ -66,17 +66,7 @@ func (a *HistoryBiz) CreateHistory(ctx context.Context, historyBO ...*dobo.Alarm
 		return nil, err
 	}
 
+	// 发送告警
+
 	return dobo.NewAlarmHistoryDO(historyDos...).BO().List(), nil
-}
-
-// UpdateHistory 更新历史
-func (a *HistoryBiz) UpdateHistory(ctx context.Context, historyBO *dobo.AlarmHistoryBO) (*dobo.AlarmHistoryBO, error) {
-	historyDO := dobo.NewAlarmHistoryBO(historyBO).DO().First()
-
-	historyDO, err := a.historyRepo.UpdateHistoryById(ctx, historyDO.Id, historyDO)
-	if err != nil {
-		return nil, err
-	}
-
-	return dobo.NewAlarmHistoryDO(historyDO).BO().First(), nil
 }

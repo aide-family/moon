@@ -370,3 +370,69 @@ message NotifySelectV1 {
   // 状态
   Status status = 4;
 }
+
+// 介入信息
+message InterveneInfo {
+  // 介入人
+  UserSelectV1 intervenedUser = 1;
+  // 介入时间, unix时间戳
+  int64 intervenedAt = 2;
+  // 介入备注
+  string remark = 3;
+}
+
+// 告警升级信息
+message AlarmUpgradeInfo {
+  // 升级人
+  UserSelectV1 upgradedUser = 1;
+  // 升级时间, unix时间戳
+  int64 upgradedAt = 2;
+  // 升级备注
+  string remark = 3;
+}
+
+// 告警抑制信息
+message AlarmSuppressInfo {
+  // 抑制人
+  UserSelectV1 suppressedUser = 1;
+  // 抑制时间, unix时间戳
+  int64 suppressedAt = 2;
+  // 抑制备注
+  string remark = 3;
+  // 抑制时长, 单位: 秒
+  int64 duration = 4;
+}
+
+// 实时告警数据明细
+message RealtimeAlarmData {
+  // 告警ID
+  uint32 id = 1;
+  // 实例
+  string instance = 2;
+  // 告警内容
+  string note = 3;
+  // 告警级别
+  string level = 4;
+  // 告警时间, unix时间戳
+  int64 eventAt = 5;
+  // 告警状态
+  Status status = 6;
+  // 告警页面
+  repeated uint32 pageIds = 7;
+  // 介入信息
+  repeated InterveneInfo intervenedUser = 8;
+  // 已通知的对象
+  repeated BeNotifyMemberDetail beenNotifyMembers = 9;
+  // 通知时间, unix时间戳
+  int64 notifiedAt = 10;
+  // 报警历史ID, 可以通过报警历史ID查询报警更加原始的信息
+  uint32 historyId = 11;
+  // 升级信息
+  AlarmUpgradeInfo upgradedUser = 12;
+  // 抑制信息
+  AlarmSuppressInfo suppressedUser = 13;
+  // 所属策略ID
+  uint32 strategyId = 14;
+  // 已通知的群组
+  repeated ChatGroupSelectV1 notifiedChatGroups = 15;
+}

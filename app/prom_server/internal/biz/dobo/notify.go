@@ -86,14 +86,14 @@ func notifyBoToDo(b *NotifyBO) *NotifyDO {
 }
 
 // ToModel ...
-func (d *NotifyDO) ToModel() *model.PromNotify {
-	return &model.PromNotify{
+func (d *NotifyDO) ToModel() *model.PromAlarmNotify {
+	return &model.PromAlarmNotify{
 		BaseModel:       query.BaseModel{ID: d.Id},
 		Name:            d.Name,
 		Status:          d.Status,
 		Remark:          d.Remark,
-		ChatGroups:      slices.To(d.ChatGroups, func(d *ChatGroupDO) *model.PromChatGroup { return d.ToModel() }),
-		BeNotifyMembers: slices.To(d.BeNotifyMembers, func(d *NotifyMemberDO) *model.PromNotifyMember { return d.ToModel() }),
+		ChatGroups:      slices.To(d.ChatGroups, func(d *ChatGroupDO) *model.PromAlarmChatGroup { return d.ToModel() }),
+		BeNotifyMembers: slices.To(d.BeNotifyMembers, func(d *NotifyMemberDO) *model.PromAlarmNotifyMember { return d.ToModel() }),
 	}
 }
 
@@ -129,7 +129,7 @@ func (d *NotifyBO) ToApiSelectV1() *api.NotifySelectV1 {
 }
 
 // NotifyModelToDO ...
-func NotifyModelToDO(m *model.PromNotify) *NotifyDO {
+func NotifyModelToDO(m *model.PromAlarmNotify) *NotifyDO {
 	if m == nil {
 		return nil
 	}
@@ -141,7 +141,7 @@ func NotifyModelToDO(m *model.PromNotify) *NotifyDO {
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
 		DeletedAt:       int64(m.DeletedAt),
-		ChatGroups:      slices.To(m.ChatGroups, func(m *model.PromChatGroup) *ChatGroupDO { return ChatGroupModelToDO(m) }),
-		BeNotifyMembers: slices.To(m.BeNotifyMembers, func(m *model.PromNotifyMember) *NotifyMemberDO { return NotifyMemberModelToDO(m) }),
+		ChatGroups:      slices.To(m.ChatGroups, func(m *model.PromAlarmChatGroup) *ChatGroupDO { return ChatGroupModelToDO(m) }),
+		BeNotifyMembers: slices.To(m.BeNotifyMembers, func(m *model.PromAlarmNotifyMember) *NotifyMemberDO { return NotifyMemberModelToDO(m) }),
 	}
 }

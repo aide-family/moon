@@ -24,7 +24,7 @@ service User {
   // 更新用户
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
     option (google.api.http) = {
-      post: "/api/v1/user/update/{id}"
+      post: "/api/v1/user/update"
       body: "*"
     };
   }
@@ -32,7 +32,7 @@ service User {
   // 删除用户
   rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply) {
     option (google.api.http) = {
-      post: "/api/v1/user/delete/{id}"
+      post: "/api/v1/user/delete"
       body: "*"
     };
   }
@@ -40,7 +40,7 @@ service User {
   // 获取用户
   rpc GetUser (GetUserRequest) returns (GetUserReply) {
     option (google.api.http) = {
-      post: "/api/v1/user/get/{id}"
+      post: "/api/v1/user/get"
       body: "*"
     };
   }
@@ -80,7 +80,7 @@ service User {
   // 关联角色
   rpc RelateRoles (RelateRolesRequest) returns (RelateRolesReply) {
     option (google.api.http) = {
-      post: "/api/v1/user/{id}/roles/relate"
+      post: "/api/v1/user/roles/relate"
       body: "*"
     };
   }

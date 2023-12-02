@@ -80,11 +80,11 @@ func notifyMemberBoToDo(b *NotifyMemberBO) *NotifyMemberDO {
 }
 
 // ToModel ...
-func (d *NotifyMemberDO) ToModel() *model.PromNotifyMember {
+func (d *NotifyMemberDO) ToModel() *model.PromAlarmNotifyMember {
 	if d == nil {
 		return nil
 	}
-	return &model.PromNotifyMember{
+	return &model.PromAlarmNotifyMember{
 		BaseModel:   query.BaseModel{ID: d.Id},
 		Status:      d.Status,
 		NotifyTypes: d.NotifyTypes,
@@ -109,7 +109,7 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 }
 
 // NotifyMemberModelToDO ...
-func NotifyMemberModelToDO(m *model.PromNotifyMember) *NotifyMemberDO {
+func NotifyMemberModelToDO(m *model.PromAlarmNotifyMember) *NotifyMemberDO {
 	if m == nil {
 		return nil
 	}
