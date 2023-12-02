@@ -94,6 +94,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
 		system.UserLike(req.GetKeyword()),
+		system.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -117,6 +118,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
 		system.UserLike(req.GetKeyword()),
+		system.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {

@@ -56,6 +56,8 @@ message LoginRequest {
 message LoginReply {
   // 登录token
   string token = 1;
+	// 用户详情
+	UserV1 user = 2;
 }
 
 // 登出请求参数(登出不需要参数, 这里只是为了站位)
@@ -76,6 +78,8 @@ message RefreshTokenRequest {
 message RefreshTokenReply {
   // JWT token, 需要在header中传递
   string token = 1;
+	// 用户详情
+	UserV1 user = 2;
 }
 
 // 获取验证码请求参数

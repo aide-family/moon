@@ -1,12 +1,11 @@
 package password
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/aide-cloud/universal/cipher"
-	"github.com/go-kratos/kratos/v2/errors"
+	"prometheus-manager/api/perrors"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 	DefaultIv = "1234567890123456"
 )
 
-var ErrValidatePassword = errors.New(http.StatusUnauthorized, "ErrValidatePassword", "密码错误")
+var ErrValidatePassword = perrors.ErrorInvalidParams("密码错误")
 
 // GeneratePassword 生成密码
 func GeneratePassword(password, salt string) (string, error) {
