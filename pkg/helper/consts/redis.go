@@ -1,4 +1,4 @@
-package helper
+package consts
 
 import (
 	"strconv"
@@ -18,6 +18,8 @@ const (
 	AuthCaptchaKey RedisKey = "auth:captcha"
 	// UserLogoutKey 用户退出缓存
 	UserLogoutKey RedisKey = "user:logout"
+	// UserRolesKey 用户角色缓存
+	UserRolesKey RedisKey = "user:roles:rbac"
 )
 
 func (r RedisKey) String() string {

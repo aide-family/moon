@@ -73,6 +73,10 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 
+	if err = model.CacheUserRoles(d.DB(), d.Client()); err != nil {
+		return nil, nil, err
+	}
+
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}

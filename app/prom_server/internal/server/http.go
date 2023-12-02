@@ -99,7 +99,7 @@ func NewHTTPServer(
 		middler.JwtServer(),
 		middler.MustLogin(d.Client()),
 	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
-	rbacMiddle := selector.Server(middler.RbacServer()).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
+	rbacMiddle := selector.Server(middler.RbacServer(d.Client())).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
 
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.Context()),
