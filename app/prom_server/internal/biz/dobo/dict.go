@@ -4,7 +4,6 @@ import (
 	"time"
 
 	query "github.com/aide-cloud/gorm-normalize"
-	"gorm.io/plugin/soft_delete"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
 	"prometheus-manager/pkg/helper/model"
@@ -128,8 +127,7 @@ func DictModelToDO(m *model.PromDict) *DictDO {
 	}
 }
 
-// DictDOToModel dict do to dict model
-func DictDOToModel(d *DictDO) *model.PromDict {
+func (d *DictDO) ToModel() *model.PromDict {
 	if d == nil {
 		return nil
 	}
@@ -140,10 +138,7 @@ func DictDOToModel(d *DictDO) *model.PromDict {
 		Remark:   d.Remark,
 		Color:    d.Color,
 		BaseModel: query.BaseModel{
-			ID:        d.Id,
-			CreatedAt: d.CreatedAt,
-			UpdatedAt: d.UpdatedAt,
-			DeletedAt: soft_delete.DeletedAt(d.DeletedAt),
+			ID: d.Id,
 		},
 	}
 }
