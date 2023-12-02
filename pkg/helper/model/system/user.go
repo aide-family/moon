@@ -49,3 +49,10 @@ func UserPreloadRoles[T types.Int](roleIds ...T) query.ScopeMethod {
 		return db.Preload("Roles")
 	}
 }
+
+// CreatedAtDesc 按创建时间倒序
+func CreatedAtDesc() query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Order("created_at desc")
+	}
+}

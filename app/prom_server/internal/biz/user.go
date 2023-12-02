@@ -136,19 +136,22 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 }
 
 // LoginByUsernameAndPassword 登录
-func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (string, error) {
+func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *dobo.UserBO, token string, err error) {
 	userDo, err := b.userRepo.Get(ctx, system.UserEqName(username), system.UserPreloadRoles[uint32]())
 	if err != nil {
-		return "", err
+		return
 	}
 
+	userBO = dobo.NewUserDO(userDo).BO().First()
+
 	if err = password.ValidatePasswordErr(pwd, userDo.Password, userDo.Salt); err != nil {
-		return "", err
+		return
 	}
 
 	// 没有角色
 	if len(userDo.Roles) == 0 {
-		return middler.IssueToken(userDo.Id, "")
+		token, err = middler.IssueToken(userDo.Id, "")
+		return
 	}
 
 	// 获取上次默认角色
@@ -156,7 +159,8 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	client, err := b.cacheRepo.Client()
 	if err != nil {
 		b.log.Error(err)
-		return "", perrors.ErrorUnknown("系统错误")
+		err = perrors.ErrorUnknown("系统错误")
+		return
 	}
 
 	cacheRoleIdStr := client.Get(ctx, key).String()
@@ -166,13 +170,14 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	}
 	// 如果上次默认角色还在角色列表中
 	if slices.ContainsOf(userDo.Roles, searchRole) {
-		return middler.IssueToken(userDo.Id, cacheRoleIdStr)
+		token, err = middler.IssueToken(userDo.Id, cacheRoleIdStr)
+		return
 	}
 
 	roleId := userDo.Roles[0].Id
 	roleIdStr := strconv.Itoa(int(roleId))
-
-	return middler.IssueToken(userDo.Id, roleIdStr)
+	token, err = middler.IssueToken(userDo.Id, roleIdStr)
+	return
 }
 
 // Logout 退出登录
@@ -185,7 +190,7 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 }
 
 // RefreshToken 刷新token
-func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (string, error) {
+func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (userBO *dobo.UserBO, token string, err error) {
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
 		key := consts.UserRoleKey.KeyInt(authClaims.ID).String()
@@ -197,13 +202,16 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 
 	userDo, err := b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32]())
 	if err != nil {
-		return "", err
+		err = perrors.ErrorUnknown("系统错误")
+		return
 	}
+	userBO = dobo.NewUserDO(userDo).BO().First()
 
 	// 如果用户没有可用角色, 则直接置空处理
 	if len(userDo.Roles) == 0 {
 		roleIdStr = ""
-		return middler.IssueToken(authClaims.ID, roleIdStr)
+		token, err = middler.IssueToken(authClaims.ID, roleIdStr)
+		return
 	}
 
 	// 更改角色成功
@@ -225,7 +233,8 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}
 
-	return middler.IssueToken(authClaims.ID, roleIdStr)
+	token, err = middler.IssueToken(authClaims.ID, roleIdStr)
+	return
 }
 
 // EditUserPassword 修改密码
