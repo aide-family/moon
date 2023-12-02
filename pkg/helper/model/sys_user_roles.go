@@ -13,6 +13,9 @@ import (
 	"prometheus-manager/pkg/util/slices"
 )
 
+var _ encoding.BinaryMarshaler = (*UserRoles)(nil)
+var _ encoding.BinaryUnmarshaler = (*UserRoles)(nil)
+
 const TableNameUserRoles = "sys_user_roles"
 
 type UserRole struct {
@@ -42,9 +45,6 @@ func (l *UserRoles) MarshalBinary() (data []byte, err error) {
 	}
 	return json.Marshal(*l)
 }
-
-var _ encoding.BinaryMarshaler = (*UserRoles)(nil)
-var _ encoding.BinaryUnmarshaler = (*UserRoles)(nil)
 
 // CacheUserRoles 缓存用户角色关联关系
 func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
@@ -76,6 +76,41 @@ func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
 
 	key := consts.UserRolesKey
 	return cacheClient.HSet(context.Background(), key.String(), args).Err()
+}
+
+// CacheUserRole 缓存用户角色关联关系
+func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
+	if userID == 0 {
+		return nil
+	}
+
+	// 查询这个用户的全部角色
+	var uRoles []*UserRole
+	if err := db.Where("sys_user_id =?", userID).Find(&uRoles).Error; err != nil {
+		return err
+	}
+
+	if len(uRoles) == 0 {
+		// 清除缓存
+		if err := cacheClient.HDel(context.Background(), consts.UserRoleKey.String(), generateKey(userID)).Err(); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	roleIds := make([]uint, 0, len(uRoles))
+	for _, ur := range uRoles {
+		roleIds = append(roleIds, ur.RoleID)
+	}
+
+	if err := cacheClient.HSet(context.Background(), consts.UserRoleKey.String(), generateKey(userID), &UserRoles{
+		UserID: userID,
+		Roles:  roleIds,
+	}).Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func generateKey(userID uint) string {

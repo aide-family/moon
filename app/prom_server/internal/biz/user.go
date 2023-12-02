@@ -10,8 +10,10 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/dobo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/valueobj"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
@@ -24,6 +26,7 @@ type (
 		userRepo  repository.UserRepo
 		cacheRepo repository.CacheRepo
 		roleRepo  repository.RoleRepo
+		dataRepo  repository.DataRepo
 	}
 )
 
@@ -266,8 +269,30 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 	return dobo.NewUserDO(userDo).BO().First(), nil
 }
 
+// UpdateUserRoleRelation 更新用户角色关系
+func (b *UserBiz) UpdateUserRoleRelation(userId uint) {
+	go func() {
+		defer helper.Recover(b.log)
+		db, err := b.dataRepo.DB()
+		if err != nil {
+			b.log.Errorf("cache user role err: %v", err)
+			return
+		}
+		client, err := b.dataRepo.Client()
+		if err != nil {
+			b.log.Errorf("cache user role err: %v", err)
+			return
+		}
+		if err = model.CacheUserRole(db, client, userId); err != nil {
+			b.log.Errorf("cache user role err: %v", err)
+			return
+		}
+	}()
+}
+
 // RelateRoles 关联角色
 func (b *UserBiz) RelateRoles(ctx context.Context, userId uint32, roleIds []uint32) error {
+	defer b.UpdateUserRoleRelation(uint(userId))
 	userDo, err := b.userRepo.Get(ctx, system.UserInIds(userId))
 	if err != nil {
 		return err
