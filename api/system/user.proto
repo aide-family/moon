@@ -102,6 +102,8 @@ message CreateUserRequest {
   string phone = 4 [(validate.rules).string.len = 11];
   // 昵称, 长度限制 0-32 字符
   string nickname = 5 [(validate.rules).string.max_len = 32];
+  // 性别
+  Gender gender = 6 [(validate.rules).enum = {defined_only: true}];
 }
 // 创建用户响应参数
 message CreateUserReply {
@@ -124,6 +126,8 @@ message UpdateUserRequest {
   }];
   // 状态, 必须为系统枚举类型数据, 参考Status
   Status status = 5 [(validate.rules).enum = {defined_only: true}];
+  // 性别
+  Gender gender = 6 [(validate.rules).enum = {defined_only: true}];
 }
 // 更新用户响应参数
 message UpdateUserReply {

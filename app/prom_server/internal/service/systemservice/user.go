@@ -41,6 +41,8 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Password: newPassword,
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
+		Nickname: req.GetNickname(),
+		Gender:   valueobj.Gender(req.GetGender()),
 	}
 
 	if err = s.userBiz.CheckNewUser(ctx, userBo); err != nil {
@@ -61,6 +63,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 		Avatar:   req.GetAvatar(),
 		Status:   valueobj.Status(req.GetStatus()),
 		Remark:   req.GetRemark(),
+		Gender:   valueobj.Gender(req.GetGender()),
 	}
 	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
 	if err != nil {

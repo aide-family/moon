@@ -102,7 +102,7 @@ func alarmPageBOToAlarmPageInfo(alarmPageBO *dobo.AlarmPageBO) *api.AlarmPageV1 
 		Name:   alarmPageBO.Name,
 		Icon:   alarmPageBO.Icon,
 		Color:  alarmPageBO.Color,
-		Status: api.Status(alarmPageBO.Status),
+		Status: alarmPageBO.Status.Value(),
 		Remark: alarmPageBO.Remark,
 	}
 }
@@ -117,7 +117,7 @@ func alarmPageBOToAlarmPageInfoSelect(alarmPageBO *dobo.AlarmPageBO) *api.AlarmP
 		Label:  alarmPageBO.Name,
 		Icon:   alarmPageBO.Icon,
 		Color:  alarmPageBO.Color,
-		Status: api.Status(alarmPageBO.Status),
+		Status: alarmPageBO.Status.Value(),
 		Remark: alarmPageBO.Remark,
 	}
 }

@@ -17,6 +17,11 @@ func UserInIds[T types.Int](ids ...T) query.ScopeMethod {
 
 // UserLike 模糊查询
 func UserLike(keyword string) query.ScopeMethod {
+	if keyword == "" {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
 	return query.WhereLikeKeyword(keyword+"%", "username", "nickname", "email", "phone")
 }
 

@@ -29,6 +29,8 @@ func RbacServer() middleware.Middleware {
 				return nil, perrors.ErrorPermissionDenied("请联系管理员分配权限")
 			}
 
+			// 3. 校验用户是否具备这个角色, 避免角色被删除后, 用户仍然具备这个角色
+
 			return handler(ctx, req)
 		}
 	}

@@ -98,9 +98,9 @@ func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetD
 	reply := &pb.GetDictReply{PromDict: &api.DictV1{
 		Id:        dictBo.Id,
 		Name:      dictBo.Name,
-		Category:  api.Category(dictBo.Category),
+		Category:  dictBo.Category.Value(),
 		Color:     dictBo.Color,
-		Status:    api.Status(dictBo.Status),
+		Status:    dictBo.Status.Value(),
 		Remark:    dictBo.Remark,
 		CreatedAt: dictBo.CreatedAt,
 		UpdatedAt: dictBo.UpdatedAt,
@@ -120,9 +120,9 @@ func (s *Service) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.Li
 		list = append(list, &api.DictV1{
 			Id:        dictBo.Id,
 			Name:      dictBo.Name,
-			Category:  api.Category(dictBo.Category),
+			Category:  dictBo.Category.Value(),
 			Color:     dictBo.Color,
-			Status:    api.Status(dictBo.Status),
+			Status:    dictBo.Status.Value(),
 			Remark:    dictBo.Remark,
 			CreatedAt: dictBo.CreatedAt,
 			UpdatedAt: dictBo.UpdatedAt,

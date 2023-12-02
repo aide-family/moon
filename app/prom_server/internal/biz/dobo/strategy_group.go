@@ -108,7 +108,7 @@ func (b *StrategyGroupBO) ToApiPromGroupSelectV1() *api.PromGroupSelectV1 {
 		Value:    b.Id,
 		Label:    b.Name,
 		Category: ListToApiDictSelectV1(b.Categories...),
-		Status:   api.Status(b.Status),
+		Status:   b.Status.Value(),
 		Remark:   b.Remark,
 	}
 }
@@ -125,7 +125,7 @@ func (b *StrategyGroupBO) ToApiPromPromGroup() *api.PromGroup {
 		Categories: slices.To(b.Categories, func(t *DictBO) *api.DictSelectV1 {
 			return t.ToApiDictSelectV1()
 		}),
-		Status:        api.Status(b.Status),
+		Status:        b.Status.Value(),
 		Remark:        b.Remark,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,

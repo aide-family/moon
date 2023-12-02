@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
+	"prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/api/auth"
 	"prometheus-manager/api/dict"
 	"prometheus-manager/api/ping"
@@ -56,6 +57,7 @@ func RegisterHttpServer(
 	apiService *systemservice.ApiService,
 	chatGroupService *promservice.ChatGroupService,
 	notifyService *promservice.NotifyService,
+	realtimeService *alarmservice.RealtimeService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -71,6 +73,7 @@ func RegisterHttpServer(
 	system.RegisterApiHTTPServer(srv, apiService)
 	notify.RegisterNotifyHTTPServer(srv, notifyService)
 	notify.RegisterChatGroupHTTPServer(srv, chatGroupService)
+	realtime.RegisterRealtimeHTTPServer(srv, realtimeService)
 
 	return &HttpServer{Server: srv}
 }

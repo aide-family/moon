@@ -106,7 +106,7 @@ func (d *NotifyBO) ToApi() *api.NotifyV1 {
 		Id:         uint32(d.Id),
 		Name:       d.Name,
 		Remark:     d.Remark,
-		Status:     api.Status(d.Status),
+		Status:     d.Status,
 		Members:    nil,
 		ChatGroups: slices.To(d.ChatGroups, func(d *ChatGroupBO) *api.ChatGroupSelectV1 { return d.ToSelectApi() }),
 		CreatedAt:  d.CreatedAt,
@@ -124,7 +124,7 @@ func (d *NotifyBO) ToApiSelectV1() *api.NotifySelectV1 {
 		Value:  uint32(d.Id),
 		Label:  d.Name,
 		Remark: d.Remark,
-		Status: api.Status(d.Status),
+		Status: d.Status,
 	}
 }
 

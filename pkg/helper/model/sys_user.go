@@ -18,6 +18,7 @@ type SysUser struct {
 	Remark   string     `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	Avatar   string     `gorm:"column:avatar;type:varchar(255);not null;comment:头像"`
 	Salt     string     `gorm:"column:salt;type:varchar(16);not null;comment:盐"`
+	Gender   int32      `gorm:"column:gender;type:tinyint;not null;default:0;comment:性别"`
 	Roles    []*SysRole `gorm:"many2many:sys_user_roles;comment:用户角色"`
 }
 

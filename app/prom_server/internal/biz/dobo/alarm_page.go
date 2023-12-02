@@ -100,7 +100,7 @@ func (b *AlarmPageBO) ToSelectV1() *api.AlarmPageSelectV1 {
 		Label:  b.Name,
 		Icon:   b.Icon,
 		Color:  b.Color,
-		Status: api.Status(b.Status),
+		Status: b.Status.Value(),
 		Remark: b.Remark,
 	}
 }

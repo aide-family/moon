@@ -26,6 +26,7 @@ type (
 		DeletedAt int64     `json:"deletedAt"`
 		Salt      string    `json:"salt"`
 		Roles     []*RoleDO `json:"roles"`
+		Gender    int32     `json:"gender"`
 	}
 
 	UserBO struct {
@@ -42,6 +43,7 @@ type (
 		UpdatedAt int64           `json:"updatedAt"`
 		DeletedAt int64           `json:"deletedAt"`
 		Roles     []*RoleBO       `json:"roles"`
+		Gender    valueobj.Gender `json:"gender"`
 	}
 )
 
@@ -81,6 +83,7 @@ func userDoToBo(d *UserDO) *UserBO {
 		UpdatedAt: d.UpdatedAt.Unix(),
 		DeletedAt: d.DeletedAt,
 		Roles:     NewRoleDO(d.Roles...).BO().List(),
+		Gender:    valueobj.Gender(d.Gender),
 	}
 }
 
@@ -102,6 +105,7 @@ func userBoToDo(b *UserBO) *UserDO {
 		UpdatedAt: time.Unix(b.UpdatedAt, 0),
 		DeletedAt: b.DeletedAt,
 		Roles:     NewRoleBO(b.Roles...).DO().List(),
+		Gender:    b.Gender.Value(),
 	}
 }
 
@@ -113,9 +117,10 @@ func (l *UserBO) ToApiSelectV1() *api.UserSelectV1 {
 	return &api.UserSelectV1{
 		Value:    uint32(l.Id),
 		Label:    l.Username,
-		Status:   l.Status.ApiStatus(),
+		Status:   l.Status.Value(),
 		Avatar:   l.Avatar,
 		Nickname: l.Nickname,
+		Gender:   l.Gender.Value(),
 	}
 }
 
@@ -127,10 +132,9 @@ func (l *UserBO) ToApiV1() *api.UserV1 {
 	return &api.UserV1{
 		Id:        uint32(l.Id),
 		Username:  l.Username,
-		Nickname:  l.Nickname,
 		Email:     l.Email,
 		Phone:     l.Phone,
-		Status:    l.Status.ApiStatus(),
+		Status:    l.Status.Value(),
 		Remark:    l.Remark,
 		Avatar:    l.Avatar,
 		CreatedAt: l.CreatedAt,
@@ -142,6 +146,8 @@ func (l *UserBO) ToApiV1() *api.UserV1 {
 			}
 			return bo.ApiRoleSelectV1()
 		}),
+		Nickname: l.Nickname,
+		Gender:   l.Gender.Value(),
 	}
 }
 
@@ -163,6 +169,7 @@ func (l *UserDO) ToModel() *model.SysUser {
 		Remark:   l.Remark,
 		Avatar:   l.Avatar,
 		Salt:     l.Salt,
+		Gender:   l.Gender,
 		Roles: slices.To(l.Roles, func(do *RoleDO) *model.SysRole {
 			if do == nil {
 				return nil
@@ -198,5 +205,6 @@ func UserModelToDO(m *model.SysUser) *UserDO {
 			}
 			return RoleModelToDO(m)
 		}),
+		Gender: m.Gender,
 	}
 }

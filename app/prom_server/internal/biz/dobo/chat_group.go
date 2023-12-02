@@ -117,8 +117,8 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
 		Hook:      b.Hook,
-		Status:    api.Status(b.Status),
-		App:       api.NotifyApp(b.NotifyApp),
+		Status:    b.Status,
+		App:       b.NotifyApp,
 		HookName:  b.HookName,
 	}
 }
@@ -130,9 +130,9 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 	}
 	return &api.ChatGroupSelectV1{
 		Value:  uint32(b.Id),
-		App:    api.NotifyApp(b.NotifyApp),
+		App:    b.NotifyApp,
 		Label:  b.HookName,
-		Status: api.Status(b.Status),
+		Status: b.Status,
 	}
 }
 

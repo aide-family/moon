@@ -103,7 +103,7 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 		MemberId:    uint32(b.MemberId),
 		NotifyTypes: slices.To(b.NotifyTypes, func(i int32) api.NotifyType { return api.NotifyType(i) }),
 		User:        b.Member.ToApiSelectV1(),
-		Status:      api.Status(b.Status),
+		Status:      b.Status,
 		Id:          uint32(b.Id),
 	}
 }

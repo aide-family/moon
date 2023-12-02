@@ -173,7 +173,7 @@ func (s *StrategyBO) ToApiPromStrategyV1() *api.PromStrategyV1 {
 		Labels:       strategyBO.Labels.Map(),
 		Annotations:  strategyBO.Annotations.Map(),
 		Remark:       strategyBO.Remark,
-		Status:       api.Status(strategyBO.Status),
+		Status:       strategyBO.Status.Value(),
 		GroupId:      strategyBO.GroupId,
 		AlarmLevelId: strategyBO.AlarmLevelId,
 
@@ -199,7 +199,7 @@ func (s *StrategyBO) ToApiPromStrategySelectV1() *api.PromStrategySelectV1 {
 		Value:    s.Id,
 		Label:    s.Alert,
 		Category: ListToApiDictSelectV1(s.Categories...),
-		Status:   api.Status(s.Status),
+		Status:   s.Status.Value(),
 	}
 }
 
