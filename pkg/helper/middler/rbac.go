@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/middleware"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/conn"
 )
 
@@ -24,10 +23,10 @@ func RbacServer() middleware.Middleware {
 			enforcer := conn.Enforcer()
 			has, err := enforcer.Enforce(authClaims.Role, path, method)
 			if err != nil {
-				return nil, err
+				return nil, perrors.ErrorUnknown("系统错误")
 			}
 			if !has {
-				return nil, status.Error(codes.PermissionDenied, "permission denied")
+				return nil, perrors.ErrorPermissionDenied("请联系管理员分配权限")
 			}
 
 			return handler(ctx, req)

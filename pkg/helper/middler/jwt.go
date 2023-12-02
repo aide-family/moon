@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/redis/go-redis/v9"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/helper"
 
 	"prometheus-manager/pkg/util/hash"
@@ -28,8 +28,8 @@ var (
 )
 
 var (
-	ErrTokenInvalid = jwt.ErrTokenInvalid
-	ErrLogout       = errors.Unauthorized("UNAUTHORIZED", "token has been logout")
+	ErrTokenInvalid = perrors.ErrorUnauthorized("请先登录")
+	ErrLogout       = perrors.ErrorUnauthorized("令牌已失效, 请重新登录")
 )
 
 func (l *AuthClaims) MD5() string {
