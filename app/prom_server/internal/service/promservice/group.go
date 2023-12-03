@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/model/strategygroup"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -28,7 +28,7 @@ func NewGroupService(strategyGroupBiz *biz.StrategyGroupBiz, logger log.Logger) 
 }
 
 func (s *GroupService) CreateGroup(ctx context.Context, req *pb.CreateGroupRequest) (*pb.CreateGroupReply, error) {
-	strategyGroup := &dobo.StrategyGroupBO{
+	strategyGroup := &bo.StrategyGroupBO{
 		Name:        req.GetName(),
 		Remark:      req.GetRemark(),
 		CategoryIds: req.GetCategoryIds(),
@@ -43,7 +43,7 @@ func (s *GroupService) CreateGroup(ctx context.Context, req *pb.CreateGroupReque
 }
 
 func (s *GroupService) UpdateGroup(ctx context.Context, req *pb.UpdateGroupRequest) (*pb.UpdateGroupReply, error) {
-	strategyGroup := &dobo.StrategyGroupBO{
+	strategyGroup := &bo.StrategyGroupBO{
 		Id:          req.GetId(),
 		Name:        req.GetName(),
 		Remark:      req.GetRemark(),
@@ -90,7 +90,7 @@ func (s *GroupService) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*
 		return nil, err
 	}
 	return &pb.GetGroupReply{
-		Detail: detail.ToApiPromPromGroup(),
+		Detail: detail.ToApiV1(),
 	}, nil
 }
 
@@ -110,8 +110,8 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 			Size:  int32(pgInfo.GetSize()),
 			Total: pgInfo.GetTotal(),
 		},
-		List: slices.To(list, func(t *dobo.StrategyGroupBO) *api.PromGroup {
-			return t.ToApiPromPromGroup()
+		List: slices.To(list, func(t *bo.StrategyGroupBO) *api.PromGroup {
+			return t.ToApiV1()
 		}),
 	}, nil
 }
@@ -127,8 +127,8 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 		return nil, err
 	}
 	return &pb.SelectGroupReply{
-		List: slices.To(selectList, func(t *dobo.StrategyGroupBO) *api.PromGroupSelectV1 {
-			return t.ToApiPromGroupSelectV1()
+		List: slices.To(selectList, func(t *bo.StrategyGroupBO) *api.PromGroupSelectV1 {
+			return t.ToApiSelectV1()
 		}),
 		Page: &api.PageReply{
 			Curr:  int32(pgInfo.GetCurr()),

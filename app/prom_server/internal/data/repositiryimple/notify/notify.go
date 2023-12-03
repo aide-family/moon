@@ -6,7 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
@@ -28,23 +28,23 @@ type notifyRepoImpl struct {
 	query.IAction[model.PromAlarmNotify]
 }
 
-func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.NotifyDO, error) {
+func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.NotifyBO, error) {
 	notifyDetail, err := l.WithContext(ctx).First(scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NotifyModelToDO(notifyDetail), nil
+	return bo.NotifyModelToBO(notifyDetail), nil
 }
 
-func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.NotifyDO, error) {
+func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*model.PromAlarmNotify
 	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&notifyList).Error; err != nil {
 		return nil, err
 	}
 
-	return slices.To(notifyList, func(i *model.PromAlarmNotify) *dobo.NotifyDO {
-		return dobo.NotifyModelToDO(i)
+	return slices.To(notifyList, func(i *model.PromAlarmNotify) *bo.NotifyBO {
+		return bo.NotifyModelToBO(i)
 	}), nil
 }
 
@@ -52,27 +52,27 @@ func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...query.ScopeMethod)
 	return l.WithContext(ctx).Count(scopes...)
 }
 
-func (l *notifyRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.NotifyDO, error) {
+func (l *notifyRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.NotifyBO, error) {
 	notifyList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	return slices.To(notifyList, func(i *model.PromAlarmNotify) *dobo.NotifyDO {
-		return dobo.NotifyModelToDO(i)
+	return slices.To(notifyList, func(i *model.PromAlarmNotify) *bo.NotifyBO {
+		return bo.NotifyModelToBO(i)
 	}), nil
 }
 
-func (l *notifyRepoImpl) Create(ctx context.Context, notify *dobo.NotifyDO) (*dobo.NotifyDO, error) {
+func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.NotifyBO, error) {
 	newNotify := notify.ToModel()
 	if err := l.WithContext(ctx).Create(newNotify); err != nil {
 		return nil, err
 	}
 
-	return dobo.NotifyModelToDO(newNotify), nil
+	return bo.NotifyModelToBO(newNotify), nil
 }
 
-func (l *notifyRepoImpl) Update(ctx context.Context, notify *dobo.NotifyDO, scopes ...query.ScopeMethod) error {
+func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes ...query.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}

@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/endpoint"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
 )
 
@@ -28,9 +28,9 @@ func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *Endpoi
 
 // AppendEndpoint 新增
 func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndpointRequest) (*pb.AppendEndpointReply, error) {
-	endpointBo := make([]*dobo.EndpointBO, 0, len(req.Endpoints))
+	endpointBo := make([]*bo.EndpointBO, 0, len(req.Endpoints))
 	for _, endpoint := range req.GetEndpoints() {
-		endpointBo = append(endpointBo, &dobo.EndpointBO{
+		endpointBo = append(endpointBo, &bo.EndpointBO{
 			Uuid:          endpoint.GetId(),
 			Name:          endpoint.GetName(),
 			Endpoint:      endpoint.GetEndpoint(),
@@ -56,9 +56,9 @@ func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndp
 
 // DeleteEndpoint 删除
 func (s *EndpointService) DeleteEndpoint(ctx context.Context, req *pb.DeleteEndpointRequest) (*pb.DeleteEndpointReply, error) {
-	endpointList := make([]*dobo.EndpointBO, 0, len(req.GetUuids()))
+	endpointList := make([]*bo.EndpointBO, 0, len(req.GetUuids()))
 	for _, uuid := range req.GetUuids() {
-		endpointList = append(endpointList, &dobo.EndpointBO{
+		endpointList = append(endpointList, &bo.EndpointBO{
 			Uuid:          uuid,
 			AgentEndpoint: req.GetAgentName(),
 		})
@@ -82,7 +82,7 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 	}
 	list := make([]*api.PrometheusServer, 0, len(listEndpoint))
 	for _, endpoint := range listEndpoint {
-		list = append(list, endpoint.ToApiEndpointSelectV1())
+		list = append(list, endpoint.ToApiSelectV1())
 	}
 	return &pb.ListEndpointReply{
 		Response: &api.Response{

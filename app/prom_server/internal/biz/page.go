@@ -7,9 +7,10 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/page"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper/model/page"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -31,27 +32,23 @@ func NewPageBiz(pageRepo repository.PageRepo, logger log.Logger) *PageBiz {
 }
 
 // CreatePage 创建页面
-func (p *PageBiz) CreatePage(ctx context.Context, pageBO *dobo.AlarmPageBO) (*dobo.AlarmPageBO, error) {
-	pageDO := dobo.NewAlarmPageBO(pageBO).DO().First()
-
-	pageDO, err := p.pageRepo.CreatePage(ctx, pageDO)
+func (p *PageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+	pageBO, err := p.pageRepo.CreatePage(ctx, pageBO)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewAlarmPageDO(pageDO).BO().First(), nil
+	return pageBO, nil
 }
 
 // UpdatePage 通过id更新页面
-func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *dobo.AlarmPageBO) (*dobo.AlarmPageBO, error) {
-	pageDO := dobo.NewAlarmPageBO(pageBO).DO().First()
-
-	pageDO, err := p.pageRepo.UpdatePageById(ctx, pageDO.Id, pageDO)
+func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+	pageBO, err := p.pageRepo.UpdatePageById(ctx, uint(pageBO.Id), pageBO)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewAlarmPageDO(pageDO).BO().First(), nil
+	return pageBO, nil
 }
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
@@ -59,7 +56,7 @@ func (p *PageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Sta
 	alarmPageIds := slices.To(ids, func(t uint32) uint {
 		return uint(t)
 	})
-	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, int32(status), alarmPageIds)
+	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, valueobj.Status(status), alarmPageIds)
 }
 
 // DeletePageByIds 通过id删除页面
@@ -71,17 +68,17 @@ func (p *PageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error {
 }
 
 // GetPageById 通过id获取页面详情
-func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*dobo.AlarmPageBO, error) {
-	pageDO, err := p.pageRepo.GetPageById(ctx, uint(id))
+func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
+	pageBO, err := p.pageRepo.GetPageById(ctx, uint(id))
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewAlarmPageDO(pageDO).BO().First(), nil
+	return pageBO, nil
 }
 
 // ListPage 获取页面列表
-func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*dobo.AlarmPageBO, query.Pagination, error) {
+func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*bo.AlarmPageBO, query.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
@@ -89,16 +86,16 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 		page.StatusEQ(int32(req.GetStatus())),
 	}
 
-	pageDOs, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
+	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return dobo.NewAlarmPageDO(pageDOs...).BO().List(), pgInfo, nil
+	return pageBos, pgInfo, nil
 }
 
 // SelectPageList 获取页面列表
-func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*dobo.AlarmPageBO, query.Pagination, error) {
+func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, query.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
@@ -106,9 +103,9 @@ func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageReq
 		page.StatusEQ(int32(req.GetStatus())),
 	}
 
-	pageDOs, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
+	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, nil, err
 	}
-	return dobo.NewAlarmPageDO(pageDOs...).BO().List(), pgInfo, nil
+	return pageBos, pgInfo, nil
 }

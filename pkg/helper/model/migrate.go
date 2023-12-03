@@ -22,6 +22,6 @@ func Migrate(db *gorm.DB) error {
 
 		&SysUser{},
 		&SysRole{},
-		&SysApi{},
+		&SysAPI{},
 	)
 }

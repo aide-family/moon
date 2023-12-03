@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/consts"
@@ -20,14 +20,14 @@ type captchaRepoImpl struct {
 	log  *log.Helper
 }
 
-func (l *captchaRepoImpl) CreateCaptcha(ctx context.Context, captcha *dobo.CaptchaDO) error {
+func (l *captchaRepoImpl) CreateCaptcha(ctx context.Context, captcha *bo.CaptchaBO) error {
 	key := consts.AuthCaptchaKey.Key(captcha.Id).String()
 	return l.data.Client().Set(ctx, key, captcha, time.Minute*3).Err()
 }
 
-func (l *captchaRepoImpl) GetCaptchaById(ctx context.Context, id string) (*dobo.CaptchaDO, error) {
+func (l *captchaRepoImpl) GetCaptchaById(ctx context.Context, id string) (*bo.CaptchaBO, error) {
 	key := consts.AuthCaptchaKey.Key(id).String()
-	var captcha dobo.CaptchaDO
+	var captcha bo.CaptchaBO
 	if err := l.data.Client().Get(ctx, key).Scan(&captcha); err != nil {
 		return nil, err
 	}

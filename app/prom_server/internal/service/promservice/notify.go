@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/notify"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/model/notifyscopes"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -29,17 +29,17 @@ func NewNotifyService(notifyBiz *biz.NotifyBiz, logger log.Logger) *NotifyServic
 }
 
 func (s *NotifyService) CreateNotify(ctx context.Context, req *pb.CreateNotifyRequest) (*pb.CreateNotifyReply, error) {
-	notifyBo := &dobo.NotifyBO{
+	notifyBo := &bo.NotifyBO{
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *dobo.NotifyMemberBO {
-			return dobo.NotifyMemberApiToBO(t)
+		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *bo.NotifyMemberBO {
+			return bo.NotifyMemberApiToBO(t)
 		}),
-		ChatGroups: slices.To(req.GetChatGroups(), func(t uint32) *dobo.ChatGroupBO {
+		ChatGroups: slices.To(req.GetChatGroups(), func(t uint32) *bo.ChatGroupBO {
 			chatGroupApi := &api.ChatGroup{
 				Id: t,
 			}
-			return dobo.ChatGroupApiToBO(chatGroupApi)
+			return bo.ChatGroupApiToBO(chatGroupApi)
 		}),
 	}
 
@@ -61,19 +61,19 @@ func (s *NotifyService) CreateNotify(ctx context.Context, req *pb.CreateNotifyRe
 }
 
 func (s *NotifyService) UpdateNotify(ctx context.Context, req *pb.UpdateNotifyRequest) (*pb.UpdateNotifyReply, error) {
-	notifyBo := &dobo.NotifyBO{
+	notifyBo := &bo.NotifyBO{
 		Id:     uint(req.GetId()),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 		Status: int32(req.GetStatus()),
-		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *dobo.NotifyMemberBO {
-			return dobo.NotifyMemberApiToBO(t)
+		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *bo.NotifyMemberBO {
+			return bo.NotifyMemberApiToBO(t)
 		}),
-		ChatGroups: slices.To(req.GetChatGroups(), func(t uint32) *dobo.ChatGroupBO {
+		ChatGroups: slices.To(req.GetChatGroups(), func(t uint32) *bo.ChatGroupBO {
 			chatGroupApi := &api.ChatGroup{
 				Id: t,
 			}
-			return dobo.ChatGroupApiToBO(chatGroupApi)
+			return bo.ChatGroupApiToBO(chatGroupApi)
 		}),
 	}
 
@@ -119,7 +119,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 		return nil, err
 	}
 
-	list := slices.To(notifyBos, func(t *dobo.NotifyBO) *api.NotifyV1 {
+	list := slices.To(notifyBos, func(t *bo.NotifyBO) *api.NotifyV1 {
 		return t.ToApi()
 	})
 	return &pb.ListNotifyReply{
@@ -143,7 +143,7 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 		return nil, err
 	}
 
-	list := slices.To(notifyBos, func(t *dobo.NotifyBO) *api.NotifySelectV1 {
+	list := slices.To(notifyBos, func(t *bo.NotifyBO) *api.NotifySelectV1 {
 		return t.ToApiSelectV1()
 	})
 	return &pb.SelectNotifyReply{

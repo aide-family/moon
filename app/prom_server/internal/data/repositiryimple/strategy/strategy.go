@@ -7,9 +7,10 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/strategy"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 )
@@ -26,36 +27,36 @@ type (
 	}
 )
 
-func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([]*dobo.StrategyDO, error) {
+func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([]*bo.StrategyBO, error) {
 	modelList := make([]*model.PromStrategy, 0, len(ids))
 	if err := l.WithContext(ctx).DB().Find(&modelList).Error; err != nil {
 		return nil, err
 	}
 
-	list := make([]*dobo.StrategyDO, 0, len(modelList))
+	list := make([]*bo.StrategyBO, 0, len(modelList))
 	for _, m := range modelList {
-		list = append(list, dobo.StrategyModelToDO(m))
+		list = append(list, bo.StrategyModelToBO(m))
 	}
 	return list, nil
 }
 
-func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyDO *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	newStrategy := strategyDO.ToModel()
+func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
+	newStrategy := strategyBO.ToModel()
 	if err := l.WithContext(ctx).Create(newStrategy); err != nil {
 		return nil, err
 	}
-	return dobo.StrategyModelToDO(newStrategy), nil
+	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategyDO *dobo.StrategyDO) (*dobo.StrategyDO, error) {
-	newStrategy := strategyDO.ToModel()
+func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
+	newStrategy := strategyBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
 		return nil, err
 	}
-	return dobo.StrategyModelToDO(newStrategy), nil
+	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status int32, ids []uint) error {
+func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
 	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategy.InIds(ids)); err != nil {
 		return err
 	}
@@ -69,24 +70,24 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint) 
 	return nil
 }
 
-func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint) (*dobo.StrategyDO, error) {
+func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint) (*bo.StrategyBO, error) {
 	firstStrategy, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.StrategyModelToDO(firstStrategy), nil
+	return bo.StrategyModelToBO(firstStrategy), nil
 }
 
-func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.StrategyDO, error) {
+func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyBO, error) {
 	listStrategy, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
-	list := slices.To(listStrategy, func(i *model.PromStrategy) *dobo.StrategyDO {
+	list := slices.To(listStrategy, func(i *model.PromStrategy) *bo.StrategyBO {
 		if i == nil {
 			return nil
 		}
-		return dobo.StrategyModelToDO(i)
+		return bo.StrategyModelToBO(i)
 	})
 	return list, nil
 }

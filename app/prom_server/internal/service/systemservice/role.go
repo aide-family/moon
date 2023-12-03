@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
@@ -29,7 +29,7 @@ func NewRoleService(roleBiz *biz.RoleBiz, logger log.Logger) *RoleService {
 }
 
 func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest) (*pb.CreateRoleReply, error) {
-	bo := &dobo.RoleBO{
+	bo := &bo.RoleBO{
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 	}
@@ -43,7 +43,7 @@ func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest)
 }
 
 func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest) (*pb.UpdateRoleReply, error) {
-	bo := &dobo.RoleBO{
+	bo := &bo.RoleBO{
 		Id:     uint(req.GetId()),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
@@ -71,7 +71,7 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 		return nil, err
 	}
 	return &pb.GetRoleReply{
-		Detail: bo.ApiRoleV1(),
+		Detail: bo.ToApiV1(),
 	}, nil
 }
 
@@ -87,8 +87,8 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 		return nil, err
 	}
 
-	list := slices.To(boList, func(t *dobo.RoleBO) *api.RoleV1 {
-		return t.ApiRoleV1()
+	list := slices.To(boList, func(t *bo.RoleBO) *api.RoleV1 {
+		return t.ToApiV1()
 	})
 	return &pb.ListRoleReply{
 		Page: &api.PageReply{
@@ -112,7 +112,7 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 		return nil, err
 	}
 
-	list := slices.To(boList, func(t *dobo.RoleBO) *api.RoleSelectV1 {
+	list := slices.To(boList, func(t *bo.RoleBO) *api.RoleSelectV1 {
 		return t.ApiRoleSelectV1()
 	})
 	return &pb.SelectRoleReply{

@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
 )
 
@@ -27,7 +27,7 @@ func NewApiService(apiBiz *biz.ApiBiz, logger log.Logger) *ApiService {
 }
 
 func (s *ApiService) CreateApi(ctx context.Context, req *pb.CreateApiRequest) (*pb.CreateApiReply, error) {
-	apiBo := &dobo.ApiBO{
+	apiBo := &bo.ApiBO{
 		Name:   req.GetName(),
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
@@ -48,7 +48,7 @@ func (s *ApiService) CreateApi(ctx context.Context, req *pb.CreateApiRequest) (*
 }
 
 func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*pb.UpdateApiReply, error) {
-	apiBo := &dobo.ApiBO{
+	apiBo := &bo.ApiBO{
 		Id:     uint(req.GetId()),
 		Name:   req.GetName(),
 		Path:   req.GetPath(),
@@ -87,7 +87,7 @@ func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.Get
 	}
 
 	return &pb.GetApiReply{
-		Detail: apiBo.ToV1(),
+		Detail: apiBo.ToApiV1(),
 	}, nil
 }
 
@@ -100,7 +100,7 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 	}
 	list := make([]*api.ApiV1, 0, len(apiBoList))
 	for _, apiBo := range apiBoList {
-		list = append(list, apiBo.ToV1())
+		list = append(list, apiBo.ToApiV1())
 	}
 	return &pb.ListApiReply{
 		Page: &api.PageReply{
@@ -121,7 +121,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 	}
 	list := make([]*api.ApiSelectV1, 0, len(apiBoList))
 	for _, apiBo := range apiBoList {
-		list = append(list, apiBo.ToSelectV1())
+		list = append(list, apiBo.ToApiSelectV1())
 	}
 	return &pb.SelectApiReply{
 		Page: &api.PageReply{

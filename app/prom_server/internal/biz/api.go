@@ -5,7 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model"
@@ -29,38 +29,38 @@ func NewApiBiz(repo repository.ApiRepo, dataRepo repository.DataRepo, logger log
 }
 
 // CreateApi 创建api
-func (b *ApiBiz) CreateApi(ctx context.Context, apiDoList ...*dobo.ApiBO) ([]*dobo.ApiBO, error) {
-	apiDOList := dobo.NewApiBO(apiDoList...).DO().List()
-	apiDOList, err := b.apiRepo.Create(ctx, apiDOList...)
+func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.ApiBO, error) {
+
+	apiBoList, err := b.apiRepo.Create(ctx, apiBoList...)
 	if err != nil {
 		return nil, err
 	}
 
-	ids := slices.To[*dobo.ApiDO, uint](apiDOList, func(t *dobo.ApiDO) uint {
+	ids := slices.To[*bo.ApiBO, uint](apiBoList, func(t *bo.ApiBO) uint {
 		return t.Id
 	})
 	b.cacheApiByIds(ids...)
-	return dobo.NewApiDO(apiDOList...).BO().List(), nil
+	return apiBoList, nil
 }
 
 // GetApiById 获取api
-func (b *ApiBiz) GetApiById(ctx context.Context, id uint) (*dobo.ApiBO, error) {
-	apiDO, err := b.apiRepo.Get(ctx, system.ApiInIds(id))
+func (b *ApiBiz) GetApiById(ctx context.Context, id uint) (*bo.ApiBO, error) {
+	apiBO, err := b.apiRepo.Get(ctx, system.ApiInIds(id))
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewApiDO(apiDO).BO().First(), nil
+	return apiBO, nil
 }
 
 // ListApi 获取api列表
-func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.ApiBO, error) {
-	apiDOList, err := b.apiRepo.List(ctx, pgInfo, scopes...)
+func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
+	apiBOList, err := b.apiRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewApiDO(apiDOList...).BO().List(), nil
+	return apiBOList, nil
 }
 
 // DeleteApiById 删除api
@@ -73,15 +73,14 @@ func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
 }
 
 // UpdateApiById 更新api
-func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBo *dobo.ApiBO) (*dobo.ApiBO, error) {
-	apiDO := dobo.NewApiBO(apiBo).DO().First()
-	apiDO, err := b.apiRepo.Update(ctx, apiDO, system.ApiInIds(id))
+func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBO *bo.ApiBO) (*bo.ApiBO, error) {
+	apiBO, err := b.apiRepo.Update(ctx, apiBO, system.ApiInIds(id))
 	if err != nil {
 		return nil, err
 	}
 	b.cacheApiByIds(id)
 
-	return dobo.NewApiDO(apiDO).BO().First(), nil
+	return apiBO, nil
 }
 
 // cacheApiByIds 缓存api

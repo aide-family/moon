@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/history"
 
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 )
@@ -23,92 +23,50 @@ type alarmHistoryRepoImpl struct {
 	query.IAction[model.PromAlarmHistory]
 }
 
-func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint) (*dobo.AlarmHistoryDO, error) {
+func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint) (*bo.AlarmHistoryBO, error) {
 	detail, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return historyModelToDO(detail), nil
+	return bo.AlarmHistoryModelToBO(detail), nil
 }
 
-func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.AlarmHistoryDO, error) {
+func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmHistoryBO, error) {
 	list, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
-	boList := make([]*dobo.AlarmHistoryDO, 0, len(list))
+	boList := make([]*bo.AlarmHistoryBO, 0, len(list))
 	for _, v := range list {
-		boList = append(boList, historyModelToDO(v))
+		boList = append(boList, bo.AlarmHistoryModelToBO(v))
 	}
 	return boList, nil
 }
 
-func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyDos ...*dobo.AlarmHistoryDO) ([]*dobo.AlarmHistoryDO, error) {
-	newModels := make([]*model.PromAlarmHistory, 0, len(historyDos))
-	for _, historyDo := range historyDos {
-		newModel := historyDOToModel(historyDo)
+func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyBOs ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
+	newModels := make([]*model.PromAlarmHistory, 0, len(historyBOs))
+	for _, historyBO := range historyBOs {
+		newModel := historyBO.ToModel()
 		newModels = append(newModels, newModel)
 	}
 	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).BatchCreate(newModels, 50); err != nil {
 		return nil, err
 	}
 
-	resList := make([]*dobo.AlarmHistoryDO, 0, len(newModels))
+	resList := make([]*bo.AlarmHistoryBO, 0, len(newModels))
 	for _, v := range newModels {
-		resList = append(resList, historyModelToDO(v))
+		resList = append(resList, bo.AlarmHistoryModelToBO(v))
 	}
 	return resList, nil
 }
 
-func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint, historyDo *dobo.AlarmHistoryDO) (*dobo.AlarmHistoryDO, error) {
-	newModel := historyDOToModel(historyDo)
+func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
+	newModel := historyBO.ToModel()
 	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).UpdateByID(id, newModel); err != nil {
 		return nil, err
 	}
-	return historyModelToDO(newModel), nil
-}
-
-// historyModelToDO .
-func historyModelToDO(detail *model.PromAlarmHistory) *dobo.AlarmHistoryDO {
-	if detail == nil {
-		return nil
-	}
-	return &dobo.AlarmHistoryDO{
-		Id:         detail.ID,
-		Md5:        detail.Md5,
-		StrategyId: detail.StrategyID,
-		LevelId:    detail.LevelID,
-		Status:     detail.Status,
-		StartAt:    detail.StartAt,
-		EndAt:      detail.EndAt,
-		Instance:   detail.Instance,
-		Duration:   detail.Duration,
-		Info:       detail.Info,
-		CreatedAt:  detail.CreatedAt,
-		UpdatedAt:  detail.UpdatedAt,
-	}
-}
-
-// historyDOToModel .
-func historyDOToModel(detail *dobo.AlarmHistoryDO) *model.PromAlarmHistory {
-	if detail == nil {
-		return nil
-	}
-	return &model.PromAlarmHistory{
-		BaseModel: query.BaseModel{
-			ID: detail.Id,
-		},
-		Instance:   detail.Instance,
-		Status:     detail.Status,
-		Info:       detail.Info,
-		StartAt:    detail.StartAt,
-		EndAt:      detail.EndAt,
-		Duration:   detail.Duration,
-		StrategyID: detail.StrategyId,
-		LevelID:    detail.LevelId,
-		Md5:        detail.Md5,
-	}
+	return bo.AlarmHistoryModelToBO(newModel), nil
 }
 
 // NewAlarmHistoryRepo .

@@ -5,11 +5,12 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/strategygroup"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -25,23 +26,23 @@ type (
 	}
 )
 
-func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *dobo.StrategyGroupDO) (*dobo.StrategyGroupDO, error) {
+func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).Create(strategyGroupModel); err != nil {
 		return nil, err
 	}
-	return dobo.StrategyGroupModelToDO(strategyGroupModel), nil
+	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
-func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strategyGroup *dobo.StrategyGroupDO) (*dobo.StrategyGroupDO, error) {
+func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, strategyGroupModel); err != nil {
 		return nil, err
 	}
-	return dobo.StrategyGroupModelToDO(strategyGroupModel), nil
+	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
-func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status int32, ids []uint) error {
+func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint) error {
 	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroup.InIds(ids)); err != nil {
 		return err
 	}
@@ -55,21 +56,21 @@ func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint) er
 	return nil
 }
 
-func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint) (*dobo.StrategyGroupDO, error) {
+func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint) (*bo.StrategyGroupBO, error) {
 	first, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.StrategyGroupModelToDO(first), nil
+	return bo.StrategyGroupModelToBO(first), nil
 }
 
-func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.StrategyGroupDO, error) {
+func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	strategyModelList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
-	list := slices.To(strategyModelList, func(m *model.PromStrategyGroup) *dobo.StrategyGroupDO {
-		return dobo.StrategyGroupModelToDO(m)
+	list := slices.To(strategyModelList, func(m *model.PromStrategyGroup) *bo.StrategyGroupBO {
+		return bo.StrategyGroupModelToBO(m)
 	})
 	return list, nil
 }

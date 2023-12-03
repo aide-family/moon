@@ -1,4 +1,4 @@
-package dobo
+package bo
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"

@@ -1,4 +1,4 @@
-package dobo
+package bo
 
 import (
 	"encoding/json"

@@ -5,9 +5,10 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper/model/dict"
+	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
@@ -30,26 +31,26 @@ func NewDictBiz(dictRepo repository.PromDictRepo, logger log.Logger) *DictBiz {
 }
 
 // CreateDict 创建字典
-func (b *DictBiz) CreateDict(ctx context.Context, dict *dobo.DictBO) (*dobo.DictBO, error) {
-	newDictBO, err := b.dictRepo.CreateDict(ctx, dobo.NewDictBO(dict).DO().First())
+func (b *DictBiz) CreateDict(ctx context.Context, dict *bo.DictBO) (*bo.DictBO, error) {
+	newDictBO, err := b.dictRepo.CreateDict(ctx, dict)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewDictDO(newDictBO).BO().First(), nil
+	return newDictBO, nil
 }
 
 // UpdateDict 更新字典
-func (b *DictBiz) UpdateDict(ctx context.Context, dict *dobo.DictBO) (*dobo.DictBO, error) {
-	newDictDO, err := b.dictRepo.UpdateDictById(ctx, uint(dict.Id), dobo.NewDictBO(dict).DO().First())
+func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO, error) {
+	newDictDO, err := b.dictRepo.UpdateDictById(ctx, uint(dictBO.Id), dictBO)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewDictDO(newDictDO).BO().First(), nil
+	return newDictDO, nil
 }
 
 // BatchUpdateDictStatus 批量更新字典状态
 func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint) error {
-	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, int32(status), ids)
+	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, valueobj.Status(status), ids)
 }
 
 // DeleteDictByIds 删除字典
@@ -58,16 +59,16 @@ func (b *DictBiz) DeleteDictByIds(ctx context.Context, id ...uint) error {
 }
 
 // GetDictById 获取字典详情
-func (b *DictBiz) GetDictById(ctx context.Context, id uint) (*dobo.DictBO, error) {
+func (b *DictBiz) GetDictById(ctx context.Context, id uint) (*bo.DictBO, error) {
 	dictDetail, err := b.dictRepo.GetDictById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewDictDO(dictDetail).BO().First(), nil
+	return dictDetail, nil
 }
 
 // ListDict 获取字典列表
-func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*dobo.DictBO, *query.Page, error) {
+func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*bo.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
 
@@ -81,11 +82,11 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 	if err != nil {
 		return nil, nil, err
 	}
-	return dobo.NewDictDO(dictList...).BO().List(), pgInfo, nil
+	return dictList, pgInfo, nil
 }
 
 // SelectDict 获取字典列表
-func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*dobo.DictBO, *query.Page, error) {
+func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*bo.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
 
@@ -99,5 +100,5 @@ func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest)
 	if err != nil {
 		return nil, nil, err
 	}
-	return dobo.NewDictDO(dictList...).BO().List(), pgInfo, nil
+	return dictList, pgInfo, nil
 }

@@ -30,7 +30,7 @@ func (s *HistoryService) GetHistory(ctx context.Context, req *pb.GetHistoryReque
 		return nil, err
 	}
 
-	alarmHistoryInfo := historyDetailBO.ToApiAlarmHistory()
+	alarmHistoryInfo := historyDetailBO.ToApiV1()
 
 	return &pb.GetHistoryReply{AlarmHistory: alarmHistoryInfo}, nil
 }
@@ -43,7 +43,7 @@ func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryReq
 
 	list := make([]*api.AlarmHistoryV1, 0, len(historyList))
 	for _, v := range historyList {
-		list = append(list, v.ToApiAlarmHistory())
+		list = append(list, v.ToApiV1())
 	}
 
 	return &pb.ListHistoryReply{

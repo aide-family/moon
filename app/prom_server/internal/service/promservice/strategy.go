@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/strategy"
 )
 
@@ -29,7 +29,7 @@ func NewStrategyService(strategyBiz *biz.StrategyXBiz, logger log.Logger) *Strat
 }
 
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error) {
-	strategyBO, err := s.strategyBiz.CreateStrategy(ctx, &dobo.StrategyBO{
+	strategyBO, err := s.strategyBiz.CreateStrategy(ctx, &bo.StrategyBO{
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
 		Duration:     req.GetDuration(),
@@ -49,7 +49,7 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 }
 
 func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRequest) (*pb.UpdateStrategyReply, error) {
-	strategyBO, err := s.strategyBiz.UpdateStrategyById(ctx, req.GetId(), &dobo.StrategyBO{
+	strategyBO, err := s.strategyBiz.UpdateStrategyById(ctx, req.GetId(), &bo.StrategyBO{
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
 		Duration:     req.GetDuration(),
@@ -94,7 +94,7 @@ func (s *StrategyService) GetStrategy(ctx context.Context, req *pb.GetStrategyRe
 		return nil, err
 	}
 
-	detail := strategyBO.ToApiPromStrategyV1()
+	detail := strategyBO.ToApiV1()
 
 	return &pb.GetStrategyReply{Detail: detail}, nil
 }
@@ -105,7 +105,7 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategy
 		return nil, err
 	}
 
-	list := dobo.ListToApiPromStrategyV1(strategyBos...)
+	list := bo.ListToApiPromStrategyV1(strategyBos...)
 	pg := &api.PageReply{
 		Curr:  int32(pgInfo.GetCurr()),
 		Size:  int32(pgInfo.GetSize()),
@@ -119,7 +119,7 @@ func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStra
 	if err != nil {
 		return nil, err
 	}
-	list := dobo.ListToApiPromStrategySelectV1(strategyBos...)
+	list := bo.ListToApiPromStrategySelectV1(strategyBos...)
 	pg := &api.PageReply{
 		Curr:  int32(pgInfo.GetCurr()),
 		Size:  int32(pgInfo.GetSize()),
