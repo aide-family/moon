@@ -5,10 +5,11 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 var _ repository.PromDictRepo = (*promDictRepoImpl)(nil)
@@ -21,17 +22,17 @@ type promDictRepoImpl struct {
 	query.IAction[model.PromDict]
 }
 
-func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictDO *dobo.DictDO) (*dobo.DictDO, error) {
-	newModelData := dictDO.ToModel()
+func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO, error) {
+	newModelData := dictBO.ToModel()
 	if err := l.WithContext(ctx).Create(newModelData); err != nil {
 		return nil, err
 	}
 
-	return dobo.DictModelToDO(newModelData), nil
+	return bo.DictModelToBO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictDO *dobo.DictDO) (*dobo.DictDO, error) {
-	newModelData := dictDO.ToModel()
+func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictBO *bo.DictBO) (*bo.DictBO, error) {
+	newModelData := dictBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newModelData); err != nil {
 		return nil, err
 	}
@@ -41,10 +42,10 @@ func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictDO *
 		return nil, err
 	}
 
-	return dobo.DictModelToDO(newModelData), nil
+	return bo.DictModelToBO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status int32, ids []uint) error {
+func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
 	if err := l.WithContext(ctx).Update(&model.PromDict{Status: status}, query.WhereID(ids...)); err != nil {
 		return err
 	}
@@ -58,23 +59,23 @@ func (l *promDictRepoImpl) DeleteDictByIds(ctx context.Context, id ...uint) erro
 	return nil
 }
 
-func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint) (*dobo.DictDO, error) {
+func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint) (*bo.DictBO, error) {
 	detailModel, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.DictModelToDO(detailModel), nil
+	return bo.DictModelToBO(detailModel), nil
 }
 
-func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.DictDO, error) {
+func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.DictBO, error) {
 	dictModelList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	boList := make([]*dobo.DictDO, 0, len(dictModelList))
+	boList := make([]*bo.DictBO, 0, len(dictModelList))
 	for _, m := range dictModelList {
-		boList = append(boList, dobo.DictModelToDO(m))
+		boList = append(boList, bo.DictModelToBO(m))
 	}
 
 	return boList, nil

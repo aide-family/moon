@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
@@ -20,7 +20,7 @@ func NewPingRepo(repo repository.PingRepo, logger log.Logger) *PingBiz {
 }
 
 // Ping creates a Ping, and returns the new Ping.
-func (l *PingBiz) Ping(ctx context.Context, g *dobo.Ping) (*dobo.Ping, error) {
+func (l *PingBiz) Ping(ctx context.Context, g *bo.Ping) (*bo.Ping, error) {
 	l.log.WithContext(ctx).Infof("CreatePing: %v", g.Hello)
 	return l.repo.Ping(ctx, g)
 }

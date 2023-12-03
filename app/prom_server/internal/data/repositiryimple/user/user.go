@@ -5,7 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
@@ -22,32 +22,32 @@ type userRepoImpl struct {
 	query.IAction[model.SysUser]
 }
 
-func (l *userRepoImpl) RelateRoles(ctx context.Context, userDo *dobo.UserDO, roleList []*dobo.RoleDO) error {
-	roleModelList := slices.To(roleList, func(roleInfo *dobo.RoleDO) *model.SysRole {
+func (l *userRepoImpl) RelateRoles(ctx context.Context, userBO *bo.UserBO, roleList []*bo.RoleBO) error {
+	roleModelList := slices.To(roleList, func(roleInfo *bo.RoleBO) *model.SysRole {
 		return roleInfo.ToModel()
 	})
 
-	return l.DB().WithContext(ctx).Model(userDo.ToModel()).
+	return l.DB().WithContext(ctx).Model(userBO.ToModel()).
 		Association(string(system.UserAssociationReplaceRoles)).
 		Replace(&roleModelList)
 
 }
 
-func (l *userRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.UserDO, error) {
+func (l *userRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.UserBO, error) {
 	userDetail, err := l.WithContext(ctx).First(scopes...)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.UserModelToDO(userDetail), nil
+	return bo.UserModelToBO(userDetail), nil
 }
 
-func (l *userRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error) {
+func (l *userRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.UserBO, error) {
 	var userDetailList []*model.SysUser
 	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&userDetailList).Error; err != nil {
 		return nil, err
 	}
-	list := slices.To(userDetailList, func(user *model.SysUser) *dobo.UserDO {
-		return dobo.UserModelToDO(user)
+	list := slices.To(userDetailList, func(user *model.SysUser) *bo.UserBO {
+		return bo.UserModelToBO(user)
 	})
 	return list, nil
 }
@@ -60,32 +60,32 @@ func (l *userRepoImpl) Count(ctx context.Context, scopes ...query.ScopeMethod) (
 	return count, nil
 }
 
-func (l *userRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserDO, error) {
+func (l *userRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.UserBO, error) {
 	userList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	list := slices.To(userList, func(user *model.SysUser) *dobo.UserDO {
-		return dobo.UserModelToDO(user)
+	list := slices.To(userList, func(user *model.SysUser) *bo.UserBO {
+		return bo.UserModelToBO(user)
 	})
 	return list, nil
 }
 
-func (l *userRepoImpl) Create(ctx context.Context, user *dobo.UserDO) (*dobo.UserDO, error) {
+func (l *userRepoImpl) Create(ctx context.Context, user *bo.UserBO) (*bo.UserBO, error) {
 	newUser := user.ToModel()
 	if err := l.WithContext(ctx).Create(newUser); err != nil {
 		return nil, err
 	}
-	return dobo.UserModelToDO(newUser), nil
+	return bo.UserModelToBO(newUser), nil
 }
 
-func (l *userRepoImpl) Update(ctx context.Context, user *dobo.UserDO, scopes ...query.ScopeMethod) (*dobo.UserDO, error) {
+func (l *userRepoImpl) Update(ctx context.Context, user *bo.UserBO, scopes ...query.ScopeMethod) (*bo.UserBO, error) {
 	newUser := user.ToModel()
 	if err := l.WithContext(ctx).Update(newUser, scopes...); err != nil {
 		return nil, err
 	}
-	return dobo.UserModelToDO(newUser), nil
+	return bo.UserModelToBO(newUser), nil
 }
 
 func (l *userRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {

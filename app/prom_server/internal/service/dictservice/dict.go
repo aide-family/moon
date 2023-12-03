@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/dict"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -28,7 +28,7 @@ func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
 }
 
 func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
-	dictBo := &dobo.DictBO{
+	dictBo := &bo.DictBO{
 		Name:     req.GetName(),
 		Category: valueobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
@@ -43,7 +43,7 @@ func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*p
 }
 
 func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*pb.UpdateDictReply, error) {
-	dictBo := &dobo.DictBO{
+	dictBo := &bo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
 		Category: valueobj.Category(req.GetCategory()),

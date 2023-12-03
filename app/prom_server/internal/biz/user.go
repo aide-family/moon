@@ -7,7 +7,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/consts"
@@ -44,24 +44,24 @@ func NewUserBiz(
 }
 
 // GetUserInfoById 获取用户信息
-func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*dobo.UserBO, error) {
-	user, err := b.userRepo.Get(ctx, system.UserInIds(id), system.UserPreloadRoles[uint32]())
+func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
+	userBo, err := b.userRepo.Get(ctx, system.UserInIds(id), system.UserPreloadRoles[uint32]())
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewUserDO(user).BO().First(), nil
+	return userBo, nil
 }
 
 // CheckNewUser 检查新用户信息
-func (b *UserBiz) CheckNewUser(ctx context.Context, user *dobo.UserBO) error {
-	if user == nil {
+func (b *UserBiz) CheckNewUser(ctx context.Context, userBo *bo.UserBO) error {
+	if userBo == nil {
 		return perrors.ErrorInvalidParams("用户信息不能为空")
 	}
 
 	wheres := []query.ScopeMethod{
-		system.UserEqName(user.Username),
-		system.UserEqEmail(user.Email),
-		system.UserEqPhone(user.Phone),
+		system.UserEqName(userBo.Username),
+		system.UserEqEmail(userBo.Email),
+		system.UserEqPhone(userBo.Phone),
 	}
 	list, err := b.userRepo.Find(ctx, wheres...)
 	if err != nil {
@@ -69,17 +69,17 @@ func (b *UserBiz) CheckNewUser(ctx context.Context, user *dobo.UserBO) error {
 	}
 
 	for _, v := range list {
-		if v.Id == user.Id {
+		if v.Id == userBo.Id {
 			continue
 		}
 
-		if v.Username == user.Username {
+		if v.Username == userBo.Username {
 			return perrors.ErrorInvalidParams("用户名已存在")
 		}
-		if v.Email == user.Email {
+		if v.Email == userBo.Email {
 			return perrors.ErrorInvalidParams("邮箱已存在")
 		}
-		if v.Phone == user.Phone {
+		if v.Phone == userBo.Phone {
 			return perrors.ErrorInvalidParams("手机号已存在")
 		}
 	}
@@ -87,31 +87,29 @@ func (b *UserBiz) CheckNewUser(ctx context.Context, user *dobo.UserBO) error {
 }
 
 // CreateUser 创建用户
-func (b *UserBiz) CreateUser(ctx context.Context, user *dobo.UserBO) (*dobo.UserBO, error) {
+func (b *UserBiz) CreateUser(ctx context.Context, userBo *bo.UserBO) (*bo.UserBO, error) {
 	var err error
-	userDo := dobo.NewUserBO(user).DO().First()
-	userDo.Salt = password.GenerateSalt()
-	userDo.Password, err = password.GeneratePassword(userDo.Password, userDo.Salt)
+	userBo.Salt = password.GenerateSalt()
+	userBo.Password, err = password.GeneratePassword(userBo.Password, userBo.Salt)
 	if err != nil {
 		return nil, err
 	}
 
-	userDo, err = b.userRepo.Create(ctx, userDo)
+	userBo, err = b.userRepo.Create(ctx, userBo)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewUserDO(userDo).BO().First(), nil
+	return userBo, nil
 }
 
 // UpdateUserById 更新用户信息
-func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, user *dobo.UserBO) (*dobo.UserBO, error) {
-	userDo := dobo.NewUserBO(user).DO().First()
-	userDo, err := b.userRepo.Update(ctx, userDo, system.RoleInIds(id))
+func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.UserBO) (*bo.UserBO, error) {
+	userBo, err := b.userRepo.Update(ctx, userBo, system.RoleInIds(id))
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewUserDO(userDo).BO().First(), nil
+	return userBo, nil
 }
 
 // UpdateUserStatusById 更新用户状态
@@ -119,8 +117,8 @@ func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status valueobj.Stat
 	if len(ids) == 0 {
 		return nil
 	}
-	userDo := &dobo.UserDO{Status: int32(status)}
-	_, err := b.userRepo.Update(ctx, userDo, system.RoleInIds(ids...))
+	userBo := &bo.UserBO{Status: status}
+	_, err := b.userRepo.Update(ctx, userBo, system.RoleInIds(ids...))
 	return err
 }
 
@@ -133,35 +131,33 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 }
 
 // GetUserList 获取用户列表
-func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.UserBO, error) {
-	userDos, err := b.userRepo.List(ctx, pgInfo, scopes...)
+func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.UserBO, error) {
+	userBos, err := b.userRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewUserDO(userDos...).BO().List(), nil
+	return userBos, nil
 }
 
 // LoginByUsernameAndPassword 登录
-func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *dobo.UserBO, token string, err error) {
-	userDo, err := b.userRepo.Get(ctx, system.UserEqName(username), system.UserPreloadRoles[uint32]())
+func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *bo.UserBO, token string, err error) {
+	userBO, err = b.userRepo.Get(ctx, system.UserEqName(username), system.UserPreloadRoles[uint32]())
 	if err != nil {
 		return
 	}
 
-	userBO = dobo.NewUserDO(userDo).BO().First()
-
-	if err = password.ValidatePasswordErr(pwd, userDo.Password, userDo.Salt); err != nil {
+	if err = password.ValidatePasswordErr(pwd, userBO.Password, userBO.Salt); err != nil {
 		return
 	}
 
 	// 没有角色
-	if len(userDo.Roles) == 0 {
-		token, err = middler.IssueToken(userDo.Id, "")
+	if len(userBO.Roles) == 0 {
+		token, err = middler.IssueToken(userBO.Id, "")
 		return
 	}
 
 	// 获取上次默认角色
-	key := consts.UserRoleKey.KeyInt(userDo.Id).String()
+	key := consts.UserRoleKey.KeyInt(userBO.Id).String()
 	client, err := b.dataRepo.Client()
 	if err != nil {
 		b.log.Error(err)
@@ -170,19 +166,19 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	}
 
 	cacheRoleIdStr := client.Get(ctx, key).String()
-	searchRole := func(roleInfo *dobo.RoleDO) bool {
+	searchRole := func(roleInfo *bo.RoleBO) bool {
 		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
 		return roleInfo.Id == uint(cacheRoleId)
 	}
 	// 如果上次默认角色还在角色列表中
-	if slices.ContainsOf(userDo.Roles, searchRole) {
-		token, err = middler.IssueToken(userDo.Id, cacheRoleIdStr)
+	if slices.ContainsOf(userBO.Roles, searchRole) {
+		token, err = middler.IssueToken(userBO.Id, cacheRoleIdStr)
 		return
 	}
 
-	roleId := userDo.Roles[0].Id
+	roleId := userBO.Roles[0].Id
 	roleIdStr := strconv.Itoa(int(roleId))
-	token, err = middler.IssueToken(userDo.Id, roleIdStr)
+	token, err = middler.IssueToken(userBO.Id, roleIdStr)
 	return
 }
 
@@ -196,7 +192,7 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 }
 
 // RefreshToken 刷新token
-func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (userBO *dobo.UserBO, token string, err error) {
+func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (userBO *bo.UserBO, token string, err error) {
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
 		key := consts.UserRoleKey.KeyInt(authClaims.ID).String()
@@ -211,36 +207,35 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userDo, err := b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32]())
+	userBO, err = b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32]())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return
 	}
-	userBO = dobo.NewUserDO(userDo).BO().First()
 
 	// 如果用户没有可用角色, 则直接置空处理
-	if len(userDo.Roles) == 0 {
+	if len(userBO.Roles) == 0 {
 		roleIdStr = ""
 		token, err = middler.IssueToken(authClaims.ID, roleIdStr)
 		return
 	}
 
 	// 更改角色成功
-	compareFun := func(do *dobo.RoleDO) bool {
+	compareFun := func(do *bo.RoleBO) bool {
 		return do.Id == uint(roleId)
 	}
 
 	// 切换的角色不存在, 则检查已有角色和token内角色
-	if !slices.ContainsOf(userDo.Roles, compareFun) {
-		compareFunCurrRoleId := func(do *dobo.RoleDO) bool {
+	if !slices.ContainsOf(userBO.Roles, compareFun) {
+		compareFunCurrRoleId := func(do *bo.RoleBO) bool {
 			currRoleId, _ := strconv.Atoi(authClaims.Role)
 			return do.Id == uint(currRoleId)
 		}
 		// 先默认为token内的角色
 		roleIdStr = authClaims.Role
 		// 如果token的角色不在已有的角色列表中, 则默认第一个角色
-		if !slices.ContainsOf(userDo.Roles, compareFunCurrRoleId) {
-			roleIdStr = strconv.Itoa(int(userDo.Roles[0].Id))
+		if !slices.ContainsOf(userBO.Roles, compareFunCurrRoleId) {
+			roleIdStr = strconv.Itoa(int(userBO.Roles[0].Id))
 		}
 	}
 
@@ -249,7 +244,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 }
 
 // EditUserPassword 修改密码
-func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.AuthClaims, oldPassword, newPassword string) (*dobo.UserBO, error) {
+func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.AuthClaims, oldPassword, newPassword string) (*bo.UserBO, error) {
 	userDo, err := b.userRepo.Get(ctx, system.UserInIds(authClaims.ID))
 	if err != nil {
 		return nil, err
@@ -264,17 +259,17 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 		return nil, err
 	}
 
-	newUserDo := &dobo.UserDO{
+	newUserDo := &bo.UserBO{
 		Id:       userDo.Id,
 		Password: userDo.Password,
 	}
 
 	// 更新密码
-	if _, err = b.userRepo.Update(ctx, newUserDo, system.UserInIds(userDo.Id)); err != nil {
+	if newUserDo, err = b.userRepo.Update(ctx, newUserDo, system.UserInIds(userDo.Id)); err != nil {
 		return nil, err
 	}
 
-	return dobo.NewUserDO(userDo).BO().First(), nil
+	return newUserDo, nil
 }
 
 // UpdateUserRoleRelation 更新用户角色关系

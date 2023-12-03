@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
 
 type AlarmPageService struct {
@@ -27,7 +27,7 @@ func NewAlarmPageService(pageBiz *biz.PageBiz, logger log.Logger) *AlarmPageServ
 }
 
 func (s *AlarmPageService) CreateAlarmPage(ctx context.Context, req *pb.CreateAlarmPageRequest) (*pb.CreateAlarmPageReply, error) {
-	alarmPageBO := &dobo.AlarmPageBO{
+	alarmPageBO := &bo.AlarmPageBO{
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 		Icon:   req.GetIcon(),
@@ -43,7 +43,7 @@ func (s *AlarmPageService) CreateAlarmPage(ctx context.Context, req *pb.CreateAl
 }
 
 func (s *AlarmPageService) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAlarmPageRequest) (*pb.UpdateAlarmPageReply, error) {
-	alarmPageBO := &dobo.AlarmPageBO{
+	alarmPageBO := &bo.AlarmPageBO{
 		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
@@ -93,7 +93,7 @@ func (s *AlarmPageService) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPag
 }
 
 // alarmPageBOToAlarmPageInfo .
-func alarmPageBOToAlarmPageInfo(alarmPageBO *dobo.AlarmPageBO) *api.AlarmPageV1 {
+func alarmPageBOToAlarmPageInfo(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageV1 {
 	if alarmPageBO == nil {
 		return nil
 	}
@@ -108,7 +108,7 @@ func alarmPageBOToAlarmPageInfo(alarmPageBO *dobo.AlarmPageBO) *api.AlarmPageV1 
 }
 
 // alarmPageBOToAlarmPageInfoSelect .
-func alarmPageBOToAlarmPageInfoSelect(alarmPageBO *dobo.AlarmPageBO) *api.AlarmPageSelectV1 {
+func alarmPageBOToAlarmPageInfoSelect(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageSelectV1 {
 	if alarmPageBO == nil {
 		return nil
 	}

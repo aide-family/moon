@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/times"
@@ -29,12 +29,12 @@ func NewHookService(historyBiz *biz.HistoryBiz, logger log.Logger) *HookService 
 
 func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1Reply, error) {
 	alertList := req.GetAlerts()
-	historyBos := make([]*dobo.AlarmHistoryBO, 0, len(alertList))
+	historyBos := make([]*bo.AlarmHistoryBO, 0, len(alertList))
 	for _, alert := range alertList {
 		startTime := times.ParseAlertTime(alert.GetStartsAt())
 		endTime := times.ParseAlertTime(alert.GetEndsAt())
 		labels := strategy.Labels(alert.GetLabels())
-		historyBos = append(historyBos, &dobo.AlarmHistoryBO{
+		historyBos = append(historyBos, &bo.AlarmHistoryBO{
 			Md5:        alert.GetFingerprint(),
 			StrategyId: uint32(labels.StrategyId()),
 			LevelId:    uint32(labels.LevelId()),
@@ -43,7 +43,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			EndAt:      endTime.Unix(),
 			Instance:   strategy.MapToLabels(alert.GetLabels()).GetInstance(),
 			Duration:   int64(endTime.Sub(startTime).Seconds()),
-			Info: &dobo.AlertBo{
+			Info: &bo.AlertBo{
 				Status:       alert.GetStatus(),
 				Labels:       alert.GetLabels(),
 				Annotations:  alert.GetAnnotations(),

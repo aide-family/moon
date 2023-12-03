@@ -2,6 +2,7 @@ package model
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/strategy"
 )
 
@@ -17,7 +18,7 @@ type PromStrategy struct {
 	Labels       *strategy.Labels      `gorm:"column:labels;type:json;not null;comment:标签"`
 	Annotations  *strategy.Annotations `gorm:"column:annotations;type:json;not null;comment:告警文案"`
 	AlertLevelID uint                  `gorm:"column:alert_level_id;type:int;not null;index:idx__alert_level_id,priority:1;comment:告警等级dict ID"`
-	Status       int32                 `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用"`
+	Status       valueobj.Status       `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用"`
 	Remark       string                `gorm:"column:remark;type:varchar(255);not null;comment:描述信息"`
 
 	AlarmPages []*PromAlarmPage   `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages"`

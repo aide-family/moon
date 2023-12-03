@@ -3,7 +3,7 @@ package ping
 import (
 	"context"
 
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 
@@ -18,8 +18,8 @@ type pingRepoImpl struct {
 	log  *log.Helper
 }
 
-func (l *pingRepoImpl) Ping(ctx context.Context, g *dobo.Ping) (*dobo.Ping, error) {
-	return &dobo.Ping{Hello: "world"}, nil
+func (l *pingRepoImpl) Ping(ctx context.Context, g *bo.Ping) (*bo.Ping, error) {
+	return &bo.Ping{Hello: "world"}, nil
 }
 
 // NewPingRepo .

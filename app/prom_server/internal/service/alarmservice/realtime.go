@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/alarm"
 	"prometheus-manager/pkg/util/slices"
@@ -60,7 +60,7 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 			Size:  pgReq.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
-		List: slices.To(realtimeAlarmList, func(t *dobo.AlarmRealtimeBO) *api.RealtimeAlarmData {
+		List: slices.To(realtimeAlarmList, func(t *bo.AlarmRealtimeBO) *api.RealtimeAlarmData {
 			return t.ToApi()
 		}),
 	}, nil
@@ -73,7 +73,7 @@ func (l *RealtimeService) Intervene(ctx context.Context, req *pb.InterveneReques
 		return nil, middler.ErrTokenInvalid
 	}
 
-	alarmInterveneBO := &dobo.AlarmInterveneBO{
+	alarmInterveneBO := &bo.AlarmInterveneBO{
 		RealtimeAlarmID: uint(req.GetId()),
 		UserID:          authClaims.ID,
 		IntervenedAt:    time.Now().Unix(),
@@ -93,7 +93,7 @@ func (l *RealtimeService) Upgrade(ctx context.Context, req *pb.UpgradeRequest) (
 		return nil, middler.ErrTokenInvalid
 	}
 
-	alarmUpgradeBO := &dobo.AlarmUpgradeBO{
+	alarmUpgradeBO := &bo.AlarmUpgradeBO{
 		RealtimeAlarmID: uint(req.GetId()),
 		UserID:          authClaims.ID,
 		UpgradedAt:      time.Now().Unix(),
@@ -113,7 +113,7 @@ func (l *RealtimeService) Suppress(ctx context.Context, req *pb.SuppressRequest)
 		return nil, middler.ErrTokenInvalid
 	}
 
-	alarmSuppressBO := &dobo.AlarmSuppressBO{
+	alarmSuppressBO := &bo.AlarmSuppressBO{
 		RealtimeAlarmID: uint(req.GetId()),
 		UserID:          authClaims.ID,
 		SuppressedAt:    time.Now().Unix(),

@@ -6,9 +6,10 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 type (
@@ -29,14 +30,13 @@ func NewRoleBiz(roleRepo repository.RoleRepo, apiRepo repository.ApiRepo, logger
 }
 
 // CreateRole 创建角色
-func (b *RoleBiz) CreateRole(ctx context.Context, role *dobo.RoleBO) (*dobo.RoleBO, error) {
-	do := dobo.NewRoleBO(role).DO().First()
-	do, err := b.roleRepo.Create(ctx, do)
+func (b *RoleBiz) CreateRole(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO, error) {
+	roleBO, err := b.roleRepo.Create(ctx, roleBO)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewRoleDO(do).BO().First(), nil
+	return roleBO, nil
 }
 
 // DeleteRoleByIds 删除角色
@@ -48,39 +48,38 @@ func (b *RoleBiz) DeleteRoleByIds(ctx context.Context, ids []uint32) error {
 }
 
 // ListRole 角色列表
-func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleBO, error) {
-	dList, err := b.roleRepo.List(ctx, pgInfo, scopes...)
+func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error) {
+	roleBOList, err := b.roleRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewRoleDO(dList...).BO().List(), nil
+	return roleBOList, nil
 }
 
 // GetRoleById 获取角色
-func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*dobo.RoleBO, error) {
-	do, err := b.roleRepo.Get(ctx, system.RoleInIds(id), system.RolePreloadUsers[uint32]())
+func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
+	roleBO, err := b.roleRepo.Get(ctx, system.RoleInIds(id), system.RolePreloadUsers[uint32]())
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewRoleDO(do).BO().First(), nil
+	return roleBO, nil
 }
 
 // UpdateRoleById 更新角色
-func (b *RoleBiz) UpdateRoleById(ctx context.Context, role *dobo.RoleBO) (*dobo.RoleBO, error) {
-	do := dobo.NewRoleBO(role).DO().First()
-	do, err := b.roleRepo.Update(ctx, do, system.RoleInIds(role.Id))
+func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO, error) {
+	roleBO, err := b.roleRepo.Update(ctx, roleBO, system.RoleInIds(roleBO.Id))
 	if err != nil {
 		return nil, err
 	}
 
-	return dobo.NewRoleDO(do).BO().First(), nil
+	return roleBO, nil
 }
 
 // UpdateRoleStatusById 更新角色状态
 func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status api.Status, ids []uint32) error {
-	do := &dobo.RoleDO{Status: int32(status)}
+	do := &bo.RoleBO{Status: valueobj.Status(status)}
 	do, err := b.roleRepo.Update(ctx, do, system.RoleInIds(ids...))
 	if err != nil {
 		return err
@@ -92,22 +91,22 @@ func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status api.Status, i
 // RelateApiById 关联角色和api
 func (b *RoleBiz) RelateApiById(ctx context.Context, roleId uint32, apiIds []uint32) error {
 	var (
-		findDoList []*dobo.ApiDO
+		findBoList []*bo.ApiBO
 		err        error
 	)
 
 	if len(apiIds) > 0 {
 		// 查询API
-		findDoList, err = b.apiRepo.Find(ctx, system.ApiInIds(apiIds...))
+		findBoList, err = b.apiRepo.Find(ctx, system.ApiInIds(apiIds...))
 		if err != nil {
 			return err
 		}
 	}
 
-	roleDoInfo, err := b.roleRepo.Get(ctx, system.RoleInIds(roleId))
+	roleBoInfo, err := b.roleRepo.Get(ctx, system.RoleInIds(roleId))
 	if err != nil {
 		return err
 	}
 
-	return b.roleRepo.RelateApi(ctx, roleDoInfo.Id, findDoList)
+	return b.roleRepo.RelateApi(ctx, roleBoInfo.Id, findBoList)
 }

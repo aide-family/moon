@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/system"
 	valueobj2 "prometheus-manager/pkg/helper/valueobj"
@@ -36,7 +36,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, err
 	}
 
-	userBo := &dobo.UserBO{
+	userBo := &bo.UserBO{
 		Username: req.GetUsername(),
 		Password: newPassword,
 		Email:    req.GetEmail(),
@@ -57,7 +57,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserReply, error) {
-	userBo := &dobo.UserBO{
+	userBo := &bo.UserBO{
 		Id:       uint(req.GetId()),
 		Nickname: req.GetNickname(),
 		Avatar:   req.GetAvatar(),
@@ -100,7 +100,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 	if err != nil {
 		return nil, err
 	}
-	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserV1 {
+	list := slices.To(userBos, func(userBo *bo.UserBO) *api.UserV1 {
 		return userBo.ToApiV1()
 	})
 	return &pb.ListUserReply{
@@ -124,7 +124,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	list := slices.To(userBos, func(userBo *dobo.UserBO) *api.UserSelectV1 {
+	list := slices.To(userBos, func(userBo *bo.UserBO) *api.UserSelectV1 {
 		return userBo.ToApiSelectV1()
 	})
 	return &pb.SelectUserReply{

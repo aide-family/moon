@@ -7,7 +7,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
@@ -23,63 +23,63 @@ type roleRepoImpl struct {
 	query.IAction[model.SysRole]
 }
 
-func (l *roleRepoImpl) Create(ctx context.Context, role *dobo.RoleDO) (*dobo.RoleDO, error) {
+func (l *roleRepoImpl) Create(ctx context.Context, role *bo.RoleBO) (*bo.RoleBO, error) {
 	newRole := role.ToModel()
 	if err := l.WithContext(ctx).Create(newRole); err != nil {
 		return nil, err
 	}
 
-	return dobo.RoleModelToDO(newRole), nil
+	return bo.RoleModelToBO(newRole), nil
 }
 
-func (l *roleRepoImpl) Update(ctx context.Context, role *dobo.RoleDO, scopes ...query.ScopeMethod) (*dobo.RoleDO, error) {
+func (l *roleRepoImpl) Update(ctx context.Context, role *bo.RoleBO, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
 	newRole := role.ToModel()
 	if err := l.WithContext(ctx).Update(newRole, scopes...); err != nil {
 		return nil, err
 	}
-	return dobo.RoleModelToDO(newRole), nil
+	return bo.RoleModelToBO(newRole), nil
 }
 
 func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
 	return l.WithContext(ctx).Delete(scopes...)
 }
 
-func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*dobo.RoleDO, error) {
+func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
 	roleDetail, err := l.WithContext(ctx).First(scopes...)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.RoleModelToDO(roleDetail), nil
+	return bo.RoleModelToBO(roleDetail), nil
 }
 
-func (l *roleRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error) {
+func (l *roleRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error) {
 	var roleModelList []*model.SysRole
 
 	if err := l.DB().WithContext(ctx).Scopes(scopes...).Find(&roleModelList).Error; err != nil {
 		return nil, err
 	}
 
-	list := slices.To(roleModelList, func(role *model.SysRole) *dobo.RoleDO {
-		return dobo.RoleModelToDO(role)
+	list := slices.To(roleModelList, func(role *model.SysRole) *bo.RoleBO {
+		return bo.RoleModelToBO(role)
 	})
 
 	return list, nil
 }
 
-func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.RoleDO, error) {
+func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error) {
 	roleList, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
 
-	list := slices.To(roleList, func(role *model.SysRole) *dobo.RoleDO {
-		return dobo.RoleModelToDO(role)
+	list := slices.To(roleList, func(role *model.SysRole) *bo.RoleBO {
+		return bo.RoleModelToBO(role)
 	})
 
 	return list, nil
 }
 
-func (l *roleRepoImpl) RelateApi(_ context.Context, roleId uint, apiList []*dobo.ApiDO) error {
+func (l *roleRepoImpl) RelateApi(_ context.Context, roleId uint, apiList []*bo.ApiBO) error {
 	enforcer := l.data.Enforcer()
 	polices := make([][]string, 0, len(apiList))
 	roleIdStr := strconv.Itoa(int(roleId))

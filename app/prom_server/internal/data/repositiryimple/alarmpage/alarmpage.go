@@ -6,8 +6,9 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/valueobj"
 
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 )
@@ -22,23 +23,23 @@ type alarmPageRepoImpl struct {
 	query.IAction[model.PromAlarmPage]
 }
 
-func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageDo *dobo.AlarmPageDO) (*dobo.AlarmPageDO, error) {
-	newModel := pageDo.ToModel()
+func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+	newModel := pageBO.ToModel()
 	if err := l.WithContext(ctx).Create(newModel); err != nil {
 		return nil, err
 	}
-	return dobo.PageModelToDO(newModel), nil
+	return bo.AlarmPageModelToBO(newModel), nil
 }
 
-func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint, pageDo *dobo.AlarmPageDO) (*dobo.AlarmPageDO, error) {
-	newModel := pageDo.ToModel()
+func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+	newModel := pageBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newModel); err != nil {
 		return nil, err
 	}
-	return dobo.PageModelToDO(newModel), nil
+	return bo.AlarmPageModelToBO(newModel), nil
 }
 
-func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status int32, ids []uint) error {
+func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -59,22 +60,22 @@ func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint) er
 	return nil
 }
 
-func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint) (*dobo.AlarmPageDO, error) {
+func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint) (*bo.AlarmPageBO, error) {
 	detail, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.PageModelToDO(detail), nil
+	return bo.AlarmPageModelToBO(detail), nil
 }
 
-func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*dobo.AlarmPageDO, error) {
+func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmPageBO, error) {
 	list, err := l.WithContext(ctx).List(pgInfo, scopes...)
 	if err != nil {
 		return nil, err
 	}
-	doList := make([]*dobo.AlarmPageDO, 0, len(list))
+	doList := make([]*bo.AlarmPageBO, 0, len(list))
 	for _, m := range list {
-		doList = append(doList, dobo.PageModelToDO(m))
+		doList = append(doList, bo.AlarmPageModelToBO(m))
 	}
 	return doList, nil
 }

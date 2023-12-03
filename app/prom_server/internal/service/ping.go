@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
 
 // PingService is a Ping service.
@@ -28,7 +28,7 @@ func NewPingService(uc *biz.PingBiz, logger log.Logger) *PingService {
 
 // Check implements ping.Check
 func (s *PingService) Check(ctx context.Context, in *ping.PingRequest) (*ping.PingReply, error) {
-	g, err := s.uc.Ping(ctx, &dobo.Ping{Hello: in.Name})
+	g, err := s.uc.Ping(ctx, &bo.Ping{Hello: in.Name})
 	if err != nil {
 		return nil, err
 	}

@@ -14,24 +14,24 @@ import (
 	"prometheus-manager/pkg/helper/valueobj"
 )
 
-var _ schema.Tabler = (*SysApi)(nil)
+var _ schema.Tabler = (*SysAPI)(nil)
 var _ encoding.BinaryMarshaler = (*ApiSimple)(nil)
 var _ encoding.BinaryUnmarshaler = (*ApiSimple)(nil)
 
 const TableNameSysApi = "sys_apis"
 
-// SysApi 系统api
-type SysApi struct {
+// SysAPI 系统api
+type SysAPI struct {
 	query.BaseModel
-	Name   string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:api名称"`
-	Path   string `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__path,priority:1;comment:api路径"`
-	Method string `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
-	Status int32  `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
-	Remark string `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
+	Name   string          `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:api名称"`
+	Path   string          `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__path,priority:1;comment:api路径"`
+	Method string          `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
+	Status valueobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
+	Remark string          `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
 }
 
 // TableName 表名
-func (SysApi) TableName() string {
+func (SysAPI) TableName() string {
 	return TableNameSysApi
 }
 
@@ -60,7 +60,7 @@ func (l *ApiSimple) MarshalBinary() (data []byte, err error) {
 // CacheAllApiSimple 缓存所有api简单信息
 func CacheAllApiSimple(db *gorm.DB, cacheClient *redis.Client) error {
 	var apiList []*ApiSimple
-	if err := db.Model(&SysApi{}).Where("status", valueobj.StatusEnabled).Find(&apiList).Error; err != nil {
+	if err := db.Model(&SysAPI{}).Where("status", valueobj.StatusEnabled).Find(&apiList).Error; err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint) erro
 	}
 
 	var apiList []*ApiSimple
-	if err := db.Model(&SysApi{}).Where("status", valueobj.StatusEnabled).Scopes(query.WhereID(apiIds...)).Find(&apiList).Error; err != nil {
+	if err := db.Model(&SysAPI{}).Where("status", valueobj.StatusEnabled).Scopes(query.WhereID(apiIds...)).Find(&apiList).Error; err != nil {
 		return err
 	}
 

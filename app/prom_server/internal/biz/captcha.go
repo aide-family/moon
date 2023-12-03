@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/util/captcha"
 )
@@ -28,14 +28,14 @@ func NewCaptchaBiz(captchaRepo repository.CaptchaRepo, logger log.Logger) *Captc
 }
 
 // GenerateCaptcha 生成验证码
-func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Type, size ...int) (*dobo.CaptchaBO, error) {
+func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Type, size ...int) (*bo.CaptchaBO, error) {
 	codeId, codeImageBase64, err := captcha.CreateCode(ctx, captchaType, size...)
 	if err != nil {
 		return nil, err
 	}
 	// 过期时间
 	expireAt := time.Now().Add(time.Minute * 1).Unix()
-	captchaDo := &dobo.CaptchaDO{
+	captchaBo := &bo.CaptchaBO{
 		Id:       codeId,
 		Value:    captcha.GetCodeAnswer(codeId),
 		Image:    codeImageBase64,
@@ -43,11 +43,11 @@ func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Ty
 	}
 
 	// 存储验证码到缓存
-	if err = b.captchaRepo.CreateCaptcha(ctx, captchaDo); err != nil {
+	if err = b.captchaRepo.CreateCaptcha(ctx, captchaBo); err != nil {
 		return nil, err
 	}
 
-	return dobo.NewCaptchaDO(captchaDo).BO().First(), nil
+	return captchaBo, nil
 }
 
 // VerifyCaptcha 验证验证码

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/dobo"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
@@ -24,20 +24,20 @@ func NewEndpointBiz(endpointRepo repository.EndpointRepo, logger log.Logger) *En
 }
 
 // AppendEndpoint 新增
-func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoints []*dobo.EndpointBO) error {
-	return b.endpointRepo.Append(ctx, dobo.NewEndpointBO(endpoints...).DO().List())
+func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoints []*bo.EndpointBO) error {
+	return b.endpointRepo.Append(ctx, endpoints)
 }
 
 // DeleteEndpoint 删除
-func (b *EndpointBiz) DeleteEndpoint(ctx context.Context, endpoints []*dobo.EndpointBO) error {
-	return b.endpointRepo.Delete(ctx, dobo.NewEndpointBO(endpoints...).DO().List())
+func (b *EndpointBiz) DeleteEndpoint(ctx context.Context, endpoints []*bo.EndpointBO) error {
+	return b.endpointRepo.Delete(ctx, endpoints)
 }
 
 // ListEndpoint 查询
-func (b *EndpointBiz) ListEndpoint(ctx context.Context) ([]*dobo.EndpointBO, error) {
+func (b *EndpointBiz) ListEndpoint(ctx context.Context) ([]*bo.EndpointBO, error) {
 	list, err := b.endpointRepo.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return dobo.NewEndpointDO(list...).BO().List(), nil
+	return list, nil
 }
