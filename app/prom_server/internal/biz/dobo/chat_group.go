@@ -136,6 +136,21 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 	}
 }
 
+func (b *ChatGroupBO) ToModel() *model.PromAlarmChatGroup {
+	if b == nil {
+		return nil
+	}
+	return &model.PromAlarmChatGroup{
+		BaseModel: query.BaseModel{ID: b.Id},
+		Status:    b.Status,
+		Remark:    b.Remark,
+		Name:      b.Name,
+		Hook:      b.Hook,
+		NotifyApp: b.NotifyApp,
+		HookName:  b.HookName,
+	}
+}
+
 // ChatGroupModelToDO ...
 func ChatGroupModelToDO(m *model.PromAlarmChatGroup) *ChatGroupDO {
 	if m == nil {
@@ -170,5 +185,24 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 		Hook:      a.Hook,
 		NotifyApp: int32(a.App),
 		HookName:  a.HookName,
+	}
+}
+
+// ChatGroupModelToBO .
+func ChatGroupModelToBO(m *model.PromAlarmChatGroup) *ChatGroupBO {
+	if m == nil {
+		return nil
+	}
+	return &ChatGroupBO{
+		Id:        m.ID,
+		Name:      m.Name,
+		Status:    m.Status,
+		Remark:    m.Remark,
+		CreatedAt: m.CreatedAt.Unix(),
+		UpdatedAt: m.UpdatedAt.Unix(),
+		DeletedAt: int64(m.DeletedAt),
+		Hook:      m.Hook,
+		NotifyApp: m.NotifyApp,
+		HookName:  m.HookName,
 	}
 }

@@ -17,7 +17,12 @@ func RoleInIds[T types.Int](ids ...T) query.ScopeMethod {
 
 // RoleLike 模糊查询
 func RoleLike(keyword string) query.ScopeMethod {
-	return query.WhereLikeKeyword(keyword+"%", "name")
+	return func(db *gorm.DB) *gorm.DB {
+		if keyword == "" {
+			return db
+		}
+		return db.Where("name LIKE ?", keyword+"%")
+	}
 }
 
 // RoleEqName 等于name

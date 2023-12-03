@@ -2,6 +2,7 @@ package system
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"gorm.io/gorm"
 	"prometheus-manager/pkg/util/types"
 )
 
@@ -12,5 +13,10 @@ func ApiInIds[T types.Int](ids ...T) query.ScopeMethod {
 
 // ApiLike 模糊查询
 func ApiLike(keyword string) query.ScopeMethod {
-	return query.WhereLikeKeyword(keyword+"%", "name")
+	return func(db *gorm.DB) *gorm.DB {
+		if keyword == "" {
+			return db
+		}
+		return db.Where("name LIKE ?", keyword+"%")
+	}
 }

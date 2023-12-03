@@ -98,6 +98,11 @@ message InterveneReply {
 message UpgradeRequest {
 	// 实时告警数据ID, 0 < id
 	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+	// 升级备注
+	string remark = 3 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 255,
+	}];
 }
 // 告警升级返回参数
 message UpgradeReply {
@@ -113,7 +118,7 @@ message SuppressRequest {
 		max_len: 255,
 	}];
 	// 抑制时长s, 大于60s, 小于24h, 过长的抑制时间, 证明改告警不合理, 不建议这么配置, 可以修改告警阈值解决
-	uint32 duration = 4 [(validate.rules).uint32 = {
+	int64 duration = 4 [(validate.rules).int64 = {
 		gte: 60,
 		lte: 86400,
 	}];

@@ -328,7 +328,7 @@ message BeNotifyMemberDetail {
   // 通知人ID, 对应用户的id
   uint32 memberId = 1;
   // 通知方式, 可以同时多种类型
-  repeated NotifyType notifyTypes = 2;
+  repeated int32 notifyTypes = 2;
   // 通知人明细
   UserSelectV1 user = 3;
   // 通知人状态
@@ -412,7 +412,7 @@ message RealtimeAlarmData {
   // 告警内容
   string note = 3;
   // 告警级别
-  string level = 4;
+  uint32 levelId = 4;
   // 告警时间, unix时间戳
   int64 eventAt = 5;
   // 告警状态
@@ -435,4 +435,10 @@ message RealtimeAlarmData {
   uint32 strategyId = 14;
   // 已通知的群组
   repeated ChatGroupSelectV1 notifiedChatGroups = 15;
+  // 创建时间
+  int64 createdAt = 16;
+  // 更新时间
+  int64 updatedAt = 17;
+  // 告警等级
+  DictSelectV1 level = 18;
 }

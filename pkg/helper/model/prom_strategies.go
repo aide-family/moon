@@ -41,3 +41,19 @@ type PromStrategy struct {
 func (*PromStrategy) TableName() string {
 	return TableNamePromStrategy
 }
+
+// GetAlertLevel 获取告警等级
+func (p *PromStrategy) GetAlertLevel() *PromDict {
+	if p.AlertLevel == nil {
+		return &PromDict{}
+	}
+	return p.AlertLevel
+}
+
+// GetAlarmPages 获取告警页面
+func (p *PromStrategy) GetAlarmPages() []*PromAlarmPage {
+	if p.AlarmPages == nil {
+		return []*PromAlarmPage{}
+	}
+	return p.AlarmPages
+}
