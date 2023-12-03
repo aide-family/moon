@@ -179,6 +179,30 @@ func (l *UserDO) ToModel() *model.SysUser {
 	}
 }
 
+func (l *UserBO) ToModel() *model.SysUser {
+	if l == nil {
+		return nil
+	}
+
+	return &model.SysUser{
+		BaseModel: query.BaseModel{
+			ID: l.Id,
+		},
+		Username: l.Username,
+		Nickname: l.Nickname,
+		Password: l.Password,
+		Email:    l.Email,
+		Phone:    l.Phone,
+		Status:   l.Status.Value(),
+		Remark:   l.Remark,
+		Avatar:   l.Avatar,
+		Gender:   l.Gender.Value(),
+		Roles: slices.To(l.Roles, func(bo *RoleBO) *model.SysRole {
+			return bo.ToModel()
+		}),
+	}
+}
+
 // UserModelToDO .
 func UserModelToDO(m *model.SysUser) *UserDO {
 	if m == nil {
@@ -206,5 +230,31 @@ func UserModelToDO(m *model.SysUser) *UserDO {
 			return RoleModelToDO(m)
 		}),
 		Gender: m.Gender,
+	}
+}
+
+// UserModelToBO .
+func UserModelToBO(m *model.SysUser) *UserBO {
+	if m == nil {
+		return nil
+	}
+
+	return &UserBO{
+		Id:        m.ID,
+		Username:  m.Username,
+		Nickname:  m.Nickname,
+		Password:  m.Password,
+		Email:     m.Email,
+		Phone:     m.Phone,
+		Status:    valueobj2.Status(m.Status),
+		Remark:    m.Remark,
+		Avatar:    m.Avatar,
+		CreatedAt: m.CreatedAt.Unix(),
+		UpdatedAt: m.UpdatedAt.Unix(),
+		DeletedAt: int64(m.DeletedAt),
+		Roles: slices.To(m.Roles, func(m *model.SysRole) *RoleBO {
+			return RoleModelToBO(m)
+		}),
+		Gender: valueobj2.Gender(m.Gender),
 	}
 }

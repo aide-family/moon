@@ -19,14 +19,14 @@ type PromAlarmRealtime struct {
 	// EventAt 告警时间
 	EventAt int64 `gorm:"column:event_at;type:bigint;not null;comment:告警时间"`
 	// 通知对象, 记录事件发生时候实际的通知人员
-	BeenNotifyMembers []*PromAlarmNotifyMember `gorm:"many2many:prom_realtime_alarms_notify_members;comment:已通知成员"`
-	BeenChatGroups    []*PromAlarmChatGroup    `gorm:"many2many:prom_realtime_alarms_chat_groups;comment:已通知群组"`
-	NotifiedAt        int64                    `gorm:"column:notified_at;type:bigint;not null;default:0;comment:通知时间"`
+	BeenNotifyMembers []*PromAlarmBeenNotifyMember    `gorm:"foreignKey:RealtimeAlarmID;comment:已通知成员"`
+	BeenChatGroups    []*PromAlarmBeenNotifyChatGroup `gorm:"foreignKey:RealtimeAlarmID;comment:已通知群组"`
+	NotifiedAt        int64                           `gorm:"column:notified_at;type:bigint;not null;default:0;comment:通知时间"`
 	// HistoryID 对应的报警历史数据
 	HistoryID uint32            `gorm:"column:history_id;type:int unsigned;not null;index:idx__history_id,priority:1;comment:历史记录ID"`
 	History   *PromAlarmHistory `gorm:"foreignKey:HistoryID"`
 	// Intervenes 运维介入信息
-	Intervenes []*PromAlarmIntervene `gorm:"foreignKey:RealtimeAlarmID"`
+	AlarmIntervenes []*PromAlarmIntervene `gorm:"foreignKey:RealtimeAlarmID"`
 	// AlarmUpgradeInfo 告警升级信息
 	AlarmUpgradeInfo *PromAlarmUpgrade `gorm:"foreignKey:RealtimeAlarmID"`
 	// AlarmSuppressInfo 告警抑制信息
@@ -36,4 +36,13 @@ type PromAlarmRealtime struct {
 // TableName 表名
 func (*PromAlarmRealtime) TableName() string {
 	return TableNamePromAlarmRealtime
+}
+
+// GetStrategy 获取策略信息
+func (p *PromAlarmRealtime) GetStrategy() *PromStrategy {
+	if p.Strategy == nil {
+		p.Strategy = &PromStrategy{}
+		p.Strategy.ID = p.StrategyID
+	}
+	return p.Strategy
 }

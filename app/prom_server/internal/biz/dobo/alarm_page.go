@@ -140,3 +140,21 @@ func PageModelToDO(m *model.PromAlarmPage) *AlarmPageDO {
 		Status: m.Status,
 	}
 }
+
+// AlarmPageModelToBO .
+func AlarmPageModelToBO(m *model.PromAlarmPage) *AlarmPageBO {
+	if m == nil {
+		return nil
+	}
+	return &AlarmPageBO{
+		Id:        uint32(m.ID),
+		Name:      m.Name,
+		Icon:      m.Icon,
+		Color:     m.Color,
+		Remark:    m.Remark,
+		Status:    valueobj.Status(m.Status),
+		CreatedAt: m.CreatedAt.Unix(),
+		UpdatedAt: m.UpdatedAt.Unix(),
+		DeletedAt: int64(m.DeletedAt),
+	}
+}

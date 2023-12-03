@@ -114,6 +114,23 @@ func (l *RoleBO) ApiRoleV1() *api.RoleV1 {
 	}
 }
 
+func (l *RoleBO) ToModel() *model.SysRole {
+	if l == nil {
+		return nil
+	}
+	return &model.SysRole{
+		BaseModel: query.BaseModel{
+			ID: l.Id,
+		},
+		Remark: l.Remark,
+		Name:   l.Name,
+		Status: l.Status.Value(),
+		Users: slices.To(l.Users, func(i *UserBO) *model.SysUser {
+			return i.ToModel()
+		}),
+	}
+}
+
 func (l *RoleDO) ToModel() *model.SysRole {
 	if l == nil {
 		return nil
@@ -146,6 +163,25 @@ func RoleModelToDO(m *model.SysRole) *RoleDO {
 		DeletedAt: int64(m.DeletedAt),
 		Users: slices.To(m.Users, func(i *model.SysUser) *UserDO {
 			return UserModelToDO(i)
+		}),
+	}
+}
+
+// RoleModelToBO .
+func RoleModelToBO(m *model.SysRole) *RoleBO {
+	if m == nil {
+		return nil
+	}
+	return &RoleBO{
+		Id:        m.ID,
+		Name:      m.Name,
+		Status:    valueobj.Status(m.Status),
+		Remark:    m.Remark,
+		CreatedAt: m.CreatedAt.Unix(),
+		UpdatedAt: m.UpdatedAt.Unix(),
+		DeletedAt: int64(m.DeletedAt),
+		Users: slices.To(m.Users, func(i *model.SysUser) *UserBO {
+			return UserModelToBO(i)
 		}),
 	}
 }

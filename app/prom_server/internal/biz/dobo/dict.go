@@ -142,3 +142,21 @@ func (d *DictDO) ToModel() *model.PromDict {
 		},
 	}
 }
+
+// DictModelToBO 字典model数据对象转换为字典业务对象
+func DictModelToBO(m *model.PromDict) *DictBO {
+	if m == nil {
+		return nil
+	}
+	return &DictBO{
+		Id:        uint32(m.ID),
+		Name:      m.Name,
+		Category:  valueobj2.Category(m.Category),
+		Status:    valueobj2.Status(m.Status),
+		Remark:    m.Remark,
+		Color:     m.Color,
+		CreatedAt: m.CreatedAt.Unix(),
+		UpdatedAt: m.UpdatedAt.Unix(),
+		DeletedAt: int64(m.DeletedAt),
+	}
+}

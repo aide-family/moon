@@ -2,12 +2,12 @@ package repositiryimple
 
 import (
 	"github.com/google/wire"
-	"prometheus-manager/app/prom_server/internal/data/alarmsuppress"
-	"prometheus-manager/app/prom_server/internal/data/alarmupgrade"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmhistory"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmintervene"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmpage"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmrealtime"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmsuppress"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmupgrade"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/api"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/cache"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/captcha"
