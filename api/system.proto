@@ -21,6 +21,52 @@ enum CaptchaType {
   CaptchaTypeDigit = 5;
 }
 
+// 领域类型枚举
+enum DomainType {
+  // 未知领域类型
+  DomainTypeUnknown = 0;
+  // 系统领域
+  DomainTypeSystem = 1;
+  // 监控领域
+  DomainTypeMonitor = 2;
+  // 业务领域
+  DomainTypeBusiness = 3;
+  // 其他领域
+  DomainTypeOther = 4;
+}
+
+// 模块类型枚举
+enum ModuleType {
+  // 未知模块类型
+  ModuleTypeUnknown = 0;
+  // 接口模块
+  ModelTypeApi = 1;
+  // 菜单模块
+  ModelTypeMenu = 2;
+  // 角色模块
+  ModelTypeRole = 3;
+  // 用户模块
+  ModelTypeUser = 4;
+  // 字典模块
+  ModelTypeDict = 5;
+  // 配置模块
+  ModelTypeConfig = 6;
+  // 日志模块
+  ModelTypeLog = 7;
+  // 任务模块
+  ModelTypeJob = 8;
+  // 通知模块
+  ModelTypeNotify = 9;
+  // 系统模块
+  ModelTypeSystem = 10;
+  // 监控模块
+  ModelTypeMonitor = 11;
+  // 业务模块
+  ModelTypeBusiness = 12;
+  // 其他模块
+  ModelTypeOther = 13;
+}
+
 // 系统用户信息
 message UserV1 {
   // 用户ID
@@ -125,6 +171,10 @@ message ApiV1 {
   int64 updatedAt = 8;
   // 删除时间, unix时间戳
   int64 deletedAt = 9;
+  // 所属模块
+  int32 module = 10;
+  // 所属领域
+  int32 domain = 11;
 }
 
 // 系统接口下拉信息
@@ -137,4 +187,8 @@ message ApiSelectV1 {
   int32 status = 3;
   // 备注
   string remark = 4;
+  // 所属模块
+  int32 module = 5;
+  // 所属领域
+  int32 domain = 6;
 }
