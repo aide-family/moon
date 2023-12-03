@@ -29,31 +29,31 @@ func NewRoleService(roleBiz *biz.RoleBiz, logger log.Logger) *RoleService {
 }
 
 func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest) (*pb.CreateRoleReply, error) {
-	bo := &bo.RoleBO{
+	b := &bo.RoleBO{
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 	}
-	bo, err := s.roleBiz.CreateRole(ctx, bo)
+	b, err := s.roleBiz.CreateRole(ctx, b)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.CreateRoleReply{
-		Id: uint32(bo.Id),
+		Id: uint32(b.Id),
 	}, nil
 }
 
 func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest) (*pb.UpdateRoleReply, error) {
-	bo := &bo.RoleBO{
+	b := &bo.RoleBO{
 		Id:     uint(req.GetId()),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 		Status: valueobj.Status(req.GetStatus()),
 	}
-	bo, err := s.roleBiz.UpdateRoleById(ctx, bo)
+	b, err := s.roleBiz.UpdateRoleById(ctx, b)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UpdateRoleReply{Id: uint32(bo.Id)}, nil
+	return &pb.UpdateRoleReply{Id: uint32(b.Id)}, nil
 }
 
 func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest) (*pb.DeleteRoleReply, error) {
@@ -66,12 +66,12 @@ func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest)
 }
 
 func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.GetRoleReply, error) {
-	bo, err := s.roleBiz.GetRoleById(ctx, req.GetId())
+	roleBO, err := s.roleBiz.GetRoleById(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	return &pb.GetRoleReply{
-		Detail: bo.ToApiV1(),
+		Detail: roleBO.ToApiV1(),
 	}, nil
 }
 

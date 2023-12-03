@@ -13,6 +13,7 @@ type SysRole struct {
 	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:角色名称"`
 	Status int32      `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Users  []*SysUser `gorm:"many2many:sys_user_roles;comment:用户角色"`
+	Apis   []*SysAPI  `gorm:"many2many:sys_role_apis;comment:角色api"`
 }
 
 // TableName 表名
