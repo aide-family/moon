@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -79,7 +80,24 @@ func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes
 	return list, nil
 }
 
-func (l *roleRepoImpl) RelateApi(_ context.Context, roleId uint, apiList []*bo.ApiBO) error {
+func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint, apiList []*bo.ApiBO) error {
+	if roleId == 1 {
+		return perrors.ErrorPermissionDenied("超级管理员角色不允许操作")
+	}
+	roleDetail, err := l.WithContext(ctx).FirstByID(roleId)
+	if err != nil {
+		return err
+	}
+
+	apiModelList := slices.To(apiList, func(api *bo.ApiBO) *model.SysAPI {
+		return api.ToModel()
+	})
+
+	err = l.DB().WithContext(ctx).Model(roleDetail).Association(system.RoleAssociationReplaceApis).Replace(&apiModelList)
+	if err != nil {
+		return err
+	}
+
 	enforcer := l.data.Enforcer()
 	polices := make([][]string, 0, len(apiList))
 	roleIdStr := strconv.Itoa(int(roleId))

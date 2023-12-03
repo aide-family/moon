@@ -59,7 +59,7 @@ func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes 
 
 // GetRoleById 获取角色
 func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Get(ctx, system.RoleInIds(id), system.RolePreloadUsers[uint32]())
+	roleBO, err := b.roleRepo.Get(ctx, system.RoleInIds(id), system.RolePreloadUsers[uint32](), system.RolePreloadApis[uint32]())
 	if err != nil {
 		return nil, err
 	}

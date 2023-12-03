@@ -83,7 +83,7 @@ func ApiModelToBO(m *model.SysAPI) *ApiBO {
 		Name:      m.Name,
 		Path:      m.Path,
 		Method:    m.Method,
-		Status:    valueobj.Status(m.Status),
+		Status:    m.Status,
 		Remark:    m.Remark,
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),

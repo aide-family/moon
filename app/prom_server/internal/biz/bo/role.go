@@ -18,6 +18,7 @@ type (
 		UpdatedAt int64           `json:"updatedAt"`
 		DeletedAt int64           `json:"deletedAt"`
 		Users     []*UserBO       `json:"users"`
+		Apis      []*ApiBO        `json:"apis"`
 	}
 )
 
@@ -48,6 +49,9 @@ func (l *RoleBO) ToApiV1() *api.RoleV1 {
 		Users: slices.To(l.Users, func(i *UserBO) *api.UserSelectV1 {
 			return i.ToApiSelectV1()
 		}),
+		Apis: slices.To(l.Apis, func(i *ApiBO) *api.ApiSelectV1 {
+			return i.ToApiSelectV1()
+		}),
 	}
 }
 
@@ -63,6 +67,9 @@ func (l *RoleBO) ToModel() *model.SysRole {
 		Name:   l.Name,
 		Status: l.Status.Value(),
 		Users: slices.To(l.Users, func(i *UserBO) *model.SysUser {
+			return i.ToModel()
+		}),
+		Apis: slices.To(l.Apis, func(i *ApiBO) *model.SysAPI {
 			return i.ToModel()
 		}),
 	}
@@ -83,6 +90,9 @@ func RoleModelToBO(m *model.SysRole) *RoleBO {
 		DeletedAt: int64(m.DeletedAt),
 		Users: slices.To(m.Users, func(i *model.SysUser) *UserBO {
 			return UserModelToBO(i)
+		}),
+		Apis: slices.To(m.Apis, func(i *model.SysAPI) *ApiBO {
+			return ApiModelToBO(i)
 		}),
 	}
 }

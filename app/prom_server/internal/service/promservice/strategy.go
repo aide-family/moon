@@ -128,7 +128,7 @@ func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStra
 	return &pb.SelectStrategyReply{Page: pg, List: list}, nil
 }
 
-func (s *StrategyService) ExportStrategy(ctx context.Context, req *pb.ExportStrategyRequest) (*pb.ExportStrategyReply, error) {
+func (s *StrategyService) ExportStrategy(_ context.Context, req *pb.ExportStrategyRequest) (*pb.ExportStrategyReply, error) {
 	fmt.Println("ids: ", req.GetIds())
 	filename := "config.yaml"
 

@@ -46,6 +46,25 @@ func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	return enforcer, nil
 }
 
+// NewCasbinModel new casbin model
+func NewCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
+	var adapter *gormadapter.Adapter
+	var rbacModel casbinModel.Model
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	if err != nil {
+		return nil, err
+	}
+	rbacModel, err = casbinModel.NewModelFromString(rbacModelConf)
+	if err != nil {
+		return nil, err
+	}
+	enforcer, err = casbin.NewSyncedEnforcer(rbacModel, adapter)
+	if err != nil {
+		return nil, err
+	}
+	return enforcer, nil
+}
+
 // Enforcer casbin enforcer
 func Enforcer() *casbin.SyncedEnforcer {
 	if enforcer == nil {

@@ -89,6 +89,8 @@ message RoleV1 {
   int64 deletedAt = 7;
   // 用户列表
   repeated UserSelectV1 users = 8;
+  // 权限列表
+  repeated ApiSelectV1 apis = 9;
 }
 
 // 系统角色下拉信息

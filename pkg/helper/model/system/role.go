@@ -8,6 +8,7 @@ import (
 
 const (
 	RoleAssociationReplaceUsers query.AssociationKey = "Users"
+	RoleAssociationReplaceApis                       = "Apis"
 )
 
 // RoleInIds id列表
@@ -37,5 +38,15 @@ func RolePreloadUsers[T types.Int](userIds ...T) query.ScopeMethod {
 			return db.Preload("Users", query.WhereInColumn("id", userIds...))
 		}
 		return db.Preload("Users")
+	}
+}
+
+// RolePreloadApis 预加载api
+func RolePreloadApis[T types.Int](apiIds ...T) query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(apiIds) > 0 {
+			return db.Preload(RoleAssociationReplaceApis, query.WhereInColumn("id", apiIds...))
+		}
+		return db.Preload(RoleAssociationReplaceApis)
 	}
 }
