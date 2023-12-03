@@ -75,6 +75,10 @@ message CreateApiRequest {
 	}];
 	// 备注 长度限制0-255
 	string remark = 6 [(validate.rules).string.max_len = 255];
+	// 所属模块
+	ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
+	// 所属领域
+	DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
 }
 // 创建API数据响应参数
 message CreateApiReply {
@@ -104,6 +108,10 @@ message UpdateApiRequest {
 	Status status = 5 [(validate.rules).enum = {defined_only: true}];
 	// 备注 长度限制0-255
 	string remark = 6 [(validate.rules).string.max_len = 255];
+	// 所属模块
+	ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
+	// 所属领域
+	DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
 }
 // 更新API数据响应参数
 message UpdateApiReply {

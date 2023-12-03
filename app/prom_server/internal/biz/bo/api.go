@@ -9,15 +9,18 @@ import (
 
 type (
 	ApiBO struct {
-		Id        uint            `json:"id"`
-		Name      string          `json:"name"`
-		Path      string          `json:"path"`
-		Method    string          `json:"method"`
-		Status    valueobj.Status `json:"status"`
-		Remark    string          `json:"remark"`
-		CreatedAt int64           `json:"createdAt"`
-		UpdatedAt int64           `json:"updatedAt"`
-		DeletedAt int64           `json:"deletedAt"`
+		Id     uint            `json:"id"`
+		Name   string          `json:"name"`
+		Path   string          `json:"path"`
+		Method string          `json:"method"`
+		Status valueobj.Status `json:"status"`
+		Remark string          `json:"remark"`
+		Module valueobj.Module `json:"module"`
+		Domain valueobj.Domain `json:"domain"`
+
+		CreatedAt int64 `json:"createdAt"`
+		UpdatedAt int64 `json:"updatedAt"`
+		DeletedAt int64 `json:"deletedAt"`
 	}
 )
 
@@ -32,6 +35,8 @@ func (b *ApiBO) ToApiSelectV1() *api.ApiSelectV1 {
 		Label:  b.Name,
 		Status: b.Status.Value(),
 		Remark: b.Remark,
+		Module: b.Module.Value(),
+		Domain: b.Domain.Value(),
 	}
 }
 
@@ -48,6 +53,8 @@ func (b *ApiBO) ToApiV1() *api.ApiV1 {
 		Method:    b.Method,
 		Status:    b.Status.Value(),
 		Remark:    b.Remark,
+		Module:    b.Module.Value(),
+		Domain:    b.Domain.Value(),
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
 		DeletedAt: b.DeletedAt,
@@ -69,6 +76,8 @@ func (b *ApiBO) ToModel() *model.SysAPI {
 		Method: b.Method,
 		Status: b.Status,
 		Remark: b.Remark,
+		Module: b.Module,
+		Domain: b.Domain,
 	}
 }
 
@@ -85,6 +94,8 @@ func ApiModelToBO(m *model.SysAPI) *ApiBO {
 		Method:    m.Method,
 		Status:    m.Status,
 		Remark:    m.Remark,
+		Module:    m.Module,
+		Domain:    m.Domain,
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),

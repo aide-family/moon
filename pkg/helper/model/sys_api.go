@@ -28,6 +28,8 @@ type SysAPI struct {
 	Method string          `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
 	Status valueobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark string          `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
+	Module valueobj.Module `gorm:"column:module;type:int;not null;default:0;comment:模块"`
+	Domain valueobj.Domain `gorm:"column:domain;type:int;not null;default:0;comment:领域"`
 }
 
 // TableName 表名
