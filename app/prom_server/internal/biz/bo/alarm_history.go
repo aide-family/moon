@@ -55,7 +55,7 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 		Note:       b.GetInfo().GetAnnotations().Description(),
 		Level:      b.Level,
 		EventAt:    b.StartAt,
-		Status:     valueobj.Status(b.Status), // TODO 告警状态要特殊处理
+		Status:     b.Status,
 		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
 		HistoryID:  uint(b.Id),
 		StrategyID: uint(b.StrategyId),

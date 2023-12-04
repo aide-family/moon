@@ -16,7 +16,7 @@ type (
 		Note                 string                            `json:"note"`
 		Level                *DictBO                           `json:"level"`
 		EventAt              int64                             `json:"eventAt"`
-		Status               valueobj.Status                   `json:"status"`
+		Status               valueobj.AlarmStatus              `json:"status"`
 		AlarmPages           []*AlarmPageBO                    `json:"alarmPages"`
 		AlarmIntervenes      []*AlarmInterveneBO               `json:"alarmIntervenes"`
 		BeNotifyMemberDetail []*AlarmBeenNotifyMemberBO        `json:"beNotifyMemberDetail"`
@@ -43,7 +43,7 @@ func (l *AlarmRealtimeBO) ToModel() *model.PromAlarmRealtime {
 		StrategyID:        l.StrategyID,
 		Instance:          l.Instance,
 		Note:              l.Note,
-		Status:            l.Status.Value(),
+		Status:            l.Status,
 		EventAt:           l.EventAt,
 		BeenNotifyMembers: slices.To(l.BeNotifyMemberDetail, func(i *AlarmBeenNotifyMemberBO) *model.PromAlarmBeenNotifyMember { return i.ToModel() }),
 		BeenChatGroups:    slices.To(l.BeNotifiedChatGroups, func(i *PromAlarmBeenNotifyChatGroupBO) *model.PromAlarmBeenNotifyChatGroup { return i.ToModel() }),
@@ -76,7 +76,7 @@ func AlarmRealtimeModelToBO(m *model.PromAlarmRealtime) *AlarmRealtimeBO {
 		Note:            m.Note,
 		Level:           DictModelToBO(m.GetStrategy().GetAlertLevel()),
 		EventAt:         m.EventAt,
-		Status:          valueobj.Status(m.Status),
+		Status:          m.Status,
 		AlarmPages:      slices.To(m.GetStrategy().GetAlarmPages(), func(i *model.PromAlarmPage) *AlarmPageBO { return AlarmPageModelToBO(i) }),
 		AlarmIntervenes: slices.To(m.AlarmIntervenes, func(i *model.PromAlarmIntervene) *AlarmInterveneBO { return AlarmInterveneModelToBO(i) }),
 		BeNotifyMemberDetail: slices.To(m.BeenNotifyMembers, func(i *model.PromAlarmBeenNotifyMember) *AlarmBeenNotifyMemberBO {
