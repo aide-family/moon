@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -89,7 +90,17 @@ func (l *userRepoImpl) Update(ctx context.Context, user *bo.UserBO, scopes ...qu
 }
 
 func (l *userRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
-	return l.WithContext(ctx).Delete(scopes...)
+	return l.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 删除关联关系
+		if err := tx.WithContext(ctx).Model(&model.SysUser{}).Association(string(system.UserAssociationReplaceRoles)).Clear(); err != nil {
+			return err
+		}
+		// 删除主数据
+		if err := tx.WithContext(ctx).Scopes(scopes...).Delete(&model.SysUser{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func NewUserRepo(data *data.Data, logger log.Logger) repository.UserRepo {

@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	RoleAssociationReplaceUsers query.AssociationKey = "Users"
-	RoleAssociationReplaceApis                       = "Apis"
+	RoleAssociationReplaceUsers = "Users"
+	RoleAssociationReplaceApis  = "Apis"
 )
 
 // RoleInIds id列表

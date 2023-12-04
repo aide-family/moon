@@ -6,6 +6,10 @@ import (
 	"prometheus-manager/pkg/util/types"
 )
 
+const (
+	ApiAssociationReplaceRoles = "Roles"
+)
+
 // ApiInIds id列表
 func ApiInIds[T types.Int](ids ...T) query.ScopeMethod {
 	return query.WhereInColumn("id", ids...)

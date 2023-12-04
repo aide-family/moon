@@ -7,10 +7,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/model/system"
 )
 
 var _ repository.ApiRepo = (*apiRepoImpl)(nil)
@@ -88,7 +90,17 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 	if len(scopes) == 0 {
 		return status.Error(codes.InvalidArgument, "not allow not condition delete")
 	}
-	return l.WithContext(ctx).Delete(scopes...)
+	return l.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 删除关联关系
+		if err := tx.Model(&model.SysAPI{}).WithContext(ctx).Scopes(scopes...).Association(system.ApiAssociationReplaceRoles).Clear(); err != nil {
+			return err
+		}
+		// 删除主数据
+		if err := tx.Model(&model.SysAPI{}).WithContext(ctx).Scopes(scopes...).Delete(model.SysAPI{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) (*bo.ApiBO, error) {

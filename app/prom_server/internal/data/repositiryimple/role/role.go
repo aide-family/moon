@@ -8,6 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -62,7 +63,27 @@ func (l *roleRepoImpl) UpdateAll(ctx context.Context, role *bo.RoleBO, scopes ..
 }
 
 func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
-	return l.WithContext(ctx).Delete(scopes...)
+	if len(scopes) == 0 {
+		return status.Error(codes.InvalidArgument, "删除角色时，必须指定删除条件")
+	}
+
+	return l.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 清除关联关系
+		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(system.RoleAssociationReplaceApis).Clear(); err != nil {
+			return err
+		}
+
+		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(system.RoleAssociationReplaceUsers).Clear(); err != nil {
+			return err
+		}
+
+		// 删除主数据
+		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Delete(&model.SysRole{}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
