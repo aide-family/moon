@@ -10,6 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type ApiService struct {
@@ -130,5 +131,17 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
+	}, nil
+}
+
+// EditApiStatus 编辑api状态
+func (s *ApiService) EditApiStatus(ctx context.Context, req *pb.EditApiStatusRequest) (*pb.EditApiStatusReply, error) {
+	apiIds := slices.To(req.GetIds(), func(i uint32) uint { return uint(i) })
+	if err := s.apiBiz.UpdateApiStatusById(ctx, valueobj.Status(req.GetStatus()), apiIds); err != nil {
+		return nil, err
+	}
+
+	return &pb.EditApiStatusReply{
+		Ids: req.GetIds(),
 	}, nil
 }

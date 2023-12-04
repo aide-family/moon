@@ -10,6 +10,7 @@ import (
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -99,4 +100,19 @@ func (b *ApiBiz) cacheApiByIds(apiIds ...uint) {
 			b.log.Error(err)
 		}
 	}()
+}
+
+// UpdateApiStatusById 更新api状态
+func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status valueobj.Status, ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	apiBo := &bo.ApiBO{
+		Status: status,
+	}
+	if err := b.apiRepo.UpdateAll(ctx, apiBo, system.ApiInIds(ids...)); err != nil {
+		return err
+	}
+	b.cacheApiByIds(ids...)
+	return nil
 }

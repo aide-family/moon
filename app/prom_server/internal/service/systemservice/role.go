@@ -133,3 +133,13 @@ func (s *RoleService) RelateApi(ctx context.Context, req *pb.RelateApiRequest) (
 		Id: req.GetId(),
 	}, nil
 }
+
+// EditRoleStatus 编辑角色状态
+func (s *RoleService) EditRoleStatus(ctx context.Context, req *pb.EditRoleStatusRequest) (*pb.EditRoleStatusReply, error) {
+	if err := s.roleBiz.UpdateRoleStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+		return nil, err
+	}
+	return &pb.EditRoleStatusReply{
+		Ids: req.GetIds(),
+	}, nil
+}

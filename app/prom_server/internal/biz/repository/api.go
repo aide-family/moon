@@ -26,33 +26,39 @@ type (
 		Delete(ctx context.Context, scopes ...query.ScopeMethod) error
 		// Update 更新api
 		Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) (*bo.ApiBO, error)
+		// UpdateAll 更新所有api
+		UpdateAll(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) error
 	}
 
 	UnimplementedApiRepo struct{}
 )
 
+func (UnimplementedApiRepo) UpdateAll(_ context.Context, _ *bo.ApiBO, _ ...query.ScopeMethod) error {
+	return status.Error(codes.Unimplemented, "method UpdateAll not implemented")
+}
+
 func (UnimplementedApiRepo) Find(_ context.Context, _ ...query.ScopeMethod) ([]*bo.ApiBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
+	return nil, status.Error(codes.Unimplemented, "method Find not implemented")
 }
 
 func (UnimplementedApiRepo) Create(_ context.Context, _ ...*bo.ApiBO) ([]*bo.ApiBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
 }
 
 func (UnimplementedApiRepo) Get(_ context.Context, _ ...query.ScopeMethod) (*bo.ApiBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 
 func (UnimplementedApiRepo) List(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*bo.ApiBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 
 func (UnimplementedApiRepo) Delete(_ context.Context, _ ...query.ScopeMethod) error {
-	return status.Errorf(codes.Unimplemented, "method Delete not implemented")
+	return status.Error(codes.Unimplemented, "method Delete not implemented")
 }
 
 func (UnimplementedApiRepo) Update(_ context.Context, _ *bo.ApiBO, _ ...query.ScopeMethod) (*bo.ApiBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+	return nil, status.Error(codes.Unimplemented, "method Update not implemented")
 }
 
 func (UnimplementedApiRepo) unimplementedApiRepo() {}

@@ -5,9 +5,10 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/system"
 	"prometheus-manager/pkg/helper/valueobj"
 )
@@ -18,14 +19,16 @@ type (
 
 		roleRepo repository.RoleRepo
 		apiRepo  repository.ApiRepo
+		dataRepo repository.DataRepo
 	}
 )
 
-func NewRoleBiz(roleRepo repository.RoleRepo, apiRepo repository.ApiRepo, logger log.Logger) *RoleBiz {
+func NewRoleBiz(roleRepo repository.RoleRepo, apiRepo repository.ApiRepo, dataRepo repository.DataRepo, logger log.Logger) *RoleBiz {
 	return &RoleBiz{
 		log:      log.NewHelper(logger),
 		roleRepo: roleRepo,
 		apiRepo:  apiRepo,
+		dataRepo: dataRepo,
 	}
 }
 
@@ -73,19 +76,36 @@ func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.Ro
 	if err != nil {
 		return nil, err
 	}
-
+	b.cacheRoleByIds(uint32(roleBO.Id))
 	return roleBO, nil
 }
 
 // UpdateRoleStatusById 更新角色状态
-func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status api.Status, ids []uint32) error {
-	do := &bo.RoleBO{Status: valueobj.Status(status)}
-	do, err := b.roleRepo.Update(ctx, do, system.RoleInIds(ids...))
-	if err != nil {
+func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
+	roleBo := &bo.RoleBO{Status: status}
+	if err := b.roleRepo.UpdateAll(ctx, roleBo, system.RoleInIds(ids...)); err != nil {
 		return err
 	}
-
+	b.cacheRoleByIds(ids...)
 	return nil
+}
+
+// cacheRoleByIds 缓存角色信息
+func (b *RoleBiz) cacheRoleByIds(roleIds ...uint32) {
+	go func() {
+		defer helper.Recover(b.log)
+		db, err := b.dataRepo.DB()
+		if err != nil {
+			return
+		}
+		cacheClient, err := b.dataRepo.Client()
+		if err != nil {
+			return
+		}
+		if err = model.CacheDisabledRoles(db, cacheClient, roleIds...); err != nil {
+			b.log.Error(err)
+		}
+	}()
 }
 
 // RelateApiById 关联角色和api

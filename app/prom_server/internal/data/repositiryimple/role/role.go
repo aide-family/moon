@@ -6,6 +6,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -34,11 +36,29 @@ func (l *roleRepoImpl) Create(ctx context.Context, role *bo.RoleBO) (*bo.RoleBO,
 }
 
 func (l *roleRepoImpl) Update(ctx context.Context, role *bo.RoleBO, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
+	if len(scopes) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "更新角色时，必须指定更新条件")
+	}
+
+	// 判断要修改的数据是否只有一条
+	total, err := l.WithContext(ctx).Count(scopes...)
+	if err != nil {
+		return nil, err
+	}
+	if total != 1 {
+		return nil, status.Error(codes.InvalidArgument, "更新角色时，必须指定一条数据")
+	}
+
 	newRole := role.ToModel()
-	if err := l.WithContext(ctx).Update(newRole, scopes...); err != nil {
+	if err = l.WithContext(ctx).Update(newRole, scopes...); err != nil {
 		return nil, err
 	}
 	return bo.RoleModelToBO(newRole), nil
+}
+
+func (l *roleRepoImpl) UpdateAll(ctx context.Context, role *bo.RoleBO, scopes ...query.ScopeMethod) error {
+	newRole := role.ToModel()
+	return l.WithContext(ctx).Update(newRole, scopes...)
 }
 
 func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {

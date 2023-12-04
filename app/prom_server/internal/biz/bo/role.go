@@ -65,7 +65,7 @@ func (l *RoleBO) ToModel() *model.SysRole {
 		},
 		Remark: l.Remark,
 		Name:   l.Name,
-		Status: l.Status.Value(),
+		Status: l.Status,
 		Users: slices.To(l.Users, func(i *UserBO) *model.SysUser {
 			return i.ToModel()
 		}),
@@ -83,7 +83,7 @@ func RoleModelToBO(m *model.SysRole) *RoleBO {
 	return &RoleBO{
 		Id:        m.ID,
 		Name:      m.Name,
-		Status:    valueobj.Status(m.Status),
+		Status:    m.Status,
 		Remark:    m.Remark,
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
