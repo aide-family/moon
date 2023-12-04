@@ -2,6 +2,7 @@ package model
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 const TableNamePromAlarmRealtime = "prom_alarm_realtime"
@@ -15,7 +16,7 @@ type PromAlarmRealtime struct {
 	Instance   string        `gorm:"column:instance;type:varchar(64);not null;index:idx__instance,priority:1;comment:instance名称"`
 	Note       string        `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
 	// Status 告警状态: 1告警;2恢复
-	Status int32 `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
+	Status valueobj.AlarmStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// EventAt 告警时间
 	EventAt int64 `gorm:"column:event_at;type:bigint;not null;comment:告警时间"`
 	// 通知对象, 记录事件发生时候实际的通知人员
