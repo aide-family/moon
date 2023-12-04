@@ -20,3 +20,11 @@ type PromAlarmBeenNotifyChatGroup struct {
 func (*PromAlarmBeenNotifyChatGroup) TableName() string {
 	return TableNamePromAlarmBeenNotifyChatGroup
 }
+
+// GetChatGroup .
+func (p *PromAlarmBeenNotifyChatGroup) GetChatGroup() *PromAlarmChatGroup {
+	if p.ChatGroup == nil {
+		return nil
+	}
+	return p.ChatGroup
+}

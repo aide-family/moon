@@ -21,6 +21,22 @@ type (
 	}
 )
 
+// GetChatGroups 获取通知的群组
+func (d *NotifyBO) GetChatGroups() []*ChatGroupBO {
+	if d == nil {
+		return nil
+	}
+	return d.ChatGroups
+}
+
+// GetBeNotifyMembers 获取通知的成员
+func (d *NotifyBO) GetBeNotifyMembers() []*NotifyMemberBO {
+	if d == nil {
+		return nil
+	}
+	return d.BeNotifyMembers
+}
+
 // ToModel ...
 func (d *NotifyBO) ToModel() *model.PromAlarmNotify {
 	return &model.PromAlarmNotify{
@@ -28,8 +44,8 @@ func (d *NotifyBO) ToModel() *model.PromAlarmNotify {
 		Name:            d.Name,
 		Status:          d.Status,
 		Remark:          d.Remark,
-		ChatGroups:      slices.To(d.ChatGroups, func(d *ChatGroupBO) *model.PromAlarmChatGroup { return d.ToModel() }),
-		BeNotifyMembers: slices.To(d.BeNotifyMembers, func(d *NotifyMemberBO) *model.PromAlarmNotifyMember { return d.ToModel() }),
+		ChatGroups:      slices.To(d.GetChatGroups(), func(d *ChatGroupBO) *model.PromAlarmChatGroup { return d.ToModel() }),
+		BeNotifyMembers: slices.To(d.GetBeNotifyMembers(), func(d *NotifyMemberBO) *model.PromAlarmNotifyMember { return d.ToModel() }),
 	}
 }
 
@@ -43,8 +59,8 @@ func (d *NotifyBO) ToApi() *api.NotifyV1 {
 		Name:       d.Name,
 		Remark:     d.Remark,
 		Status:     d.Status,
-		Members:    nil,
-		ChatGroups: slices.To(d.ChatGroups, func(d *ChatGroupBO) *api.ChatGroupSelectV1 { return d.ToSelectApi() }),
+		Members:    slices.To(d.GetBeNotifyMembers(), func(d *NotifyMemberBO) *api.BeNotifyMemberDetail { return d.ToApi() }),
+		ChatGroups: slices.To(d.GetChatGroups(), func(d *ChatGroupBO) *api.ChatGroupSelectV1 { return d.ToSelectApi() }),
 		CreatedAt:  d.CreatedAt,
 		UpdatedAt:  d.UpdatedAt,
 		DeletedAt:  d.DeletedAt,
@@ -77,7 +93,7 @@ func NotifyModelToBO(m *model.PromAlarmNotify) *NotifyBO {
 		CreatedAt:       m.CreatedAt.Unix(),
 		UpdatedAt:       m.UpdatedAt.Unix(),
 		DeletedAt:       int64(m.DeletedAt),
-		ChatGroups:      slices.To(m.ChatGroups, func(m *model.PromAlarmChatGroup) *ChatGroupBO { return ChatGroupModelToBO(m) }),
-		BeNotifyMembers: slices.To(m.BeNotifyMembers, func(m *model.PromAlarmNotifyMember) *NotifyMemberBO { return NotifyMemberModelToBO(m) }),
+		ChatGroups:      slices.To(m.GetChatGroups(), func(m *model.PromAlarmChatGroup) *ChatGroupBO { return ChatGroupModelToBO(m) }),
+		BeNotifyMembers: slices.To(m.GetBeNotifyMembers(), func(m *model.PromAlarmNotifyMember) *NotifyMemberBO { return NotifyMemberModelToBO(m) }),
 	}
 }

@@ -19,3 +19,19 @@ type PromAlarmNotify struct {
 func (*PromAlarmNotify) TableName() string {
 	return TableNamePromNotify
 }
+
+// GetChatGroups 获取通知组
+func (p *PromAlarmNotify) GetChatGroups() []*PromAlarmChatGroup {
+	if p == nil {
+		return nil
+	}
+	return p.ChatGroups
+}
+
+// GetBeNotifyMembers 获取被通知成员
+func (p *PromAlarmNotify) GetBeNotifyMembers() []*PromAlarmNotifyMember {
+	if p == nil {
+		return nil
+	}
+	return p.BeNotifyMembers
+}

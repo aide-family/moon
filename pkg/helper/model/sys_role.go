@@ -21,3 +21,19 @@ type SysRole struct {
 func (*SysRole) TableName() string {
 	return TableNameRole
 }
+
+// GetUsers 获取用户
+func (r *SysRole) GetUsers() []*SysUser {
+	if r == nil {
+		return nil
+	}
+	return r.Users
+}
+
+// GetApis 获取api
+func (r *SysRole) GetApis() []*SysAPI {
+	if r == nil {
+		return nil
+	}
+	return r.Apis
+}

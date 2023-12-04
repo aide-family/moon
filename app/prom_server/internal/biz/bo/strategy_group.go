@@ -20,8 +20,34 @@ type (
 		CreatedAt     int64           `json:"createdAt"`
 		UpdatedAt     int64           `json:"updatedAt"`
 		DeletedAt     int64           `json:"deletedAt"`
+
+		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}
 )
+
+// GetPromStrategies 获取策略列表
+func (b *StrategyGroupBO) GetPromStrategies() []*StrategyBO {
+	if b == nil {
+		return nil
+	}
+	return b.PromStrategies
+}
+
+// GetCategoryIds 获取分类ID列表
+func (b *StrategyGroupBO) GetCategoryIds() []uint32 {
+	if b == nil {
+		return nil
+	}
+	return b.CategoryIds
+}
+
+// GetCategories 获取分类列表
+func (b *StrategyGroupBO) GetCategories() []*DictBO {
+	if b == nil {
+		return nil
+	}
+	return b.Categories
+}
 
 // ToApiSelectV1 .
 func (b *StrategyGroupBO) ToApiSelectV1() *api.PromGroupSelectV1 {
@@ -32,7 +58,7 @@ func (b *StrategyGroupBO) ToApiSelectV1() *api.PromGroupSelectV1 {
 	return &api.PromGroupSelectV1{
 		Value:    b.Id,
 		Label:    b.Name,
-		Category: ListToApiDictSelectV1(b.Categories...),
+		Category: ListToApiDictSelectV1(b.GetCategories()...),
 		Status:   b.Status.Value(),
 		Remark:   b.Remark,
 	}
@@ -47,7 +73,7 @@ func (b *StrategyGroupBO) ToApiV1() *api.PromGroup {
 	return &api.PromGroup{
 		Id:   b.Id,
 		Name: b.Name,
-		Categories: slices.To(b.Categories, func(t *DictBO) *api.DictSelectV1 {
+		Categories: slices.To(b.GetCategories(), func(t *DictBO) *api.DictSelectV1 {
 			return t.ToApiSelectV1()
 		}),
 		Status:        b.Status.Value(),
@@ -67,12 +93,14 @@ func (b *StrategyGroupBO) ToModel() *model.PromStrategyGroup {
 		BaseModel: query.BaseModel{
 			ID: uint(b.Id),
 		},
-		Name:           b.Name,
-		StrategyCount:  b.StrategyCount,
-		Status:         b.Status,
-		Remark:         b.Remark,
-		PromStrategies: nil,
-		Categories: slices.To(b.Categories, func(u *DictBO) *model.PromDict {
+		Name:          b.Name,
+		StrategyCount: b.StrategyCount,
+		Status:        b.Status,
+		Remark:        b.Remark,
+		PromStrategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *model.PromStrategy {
+			return u.ToModel()
+		}),
+		Categories: slices.To(b.GetCategories(), func(u *DictBO) *model.PromDict {
 			return u.ToModel()
 		}),
 	}
@@ -90,14 +118,17 @@ func StrategyGroupModelToBO(m *model.PromStrategyGroup) *StrategyGroupBO {
 		Remark:        m.Remark,
 		Status:        m.Status,
 		StrategyCount: m.StrategyCount,
-		CategoryIds: slices.To(m.Categories, func(u *model.PromDict) uint32 {
+		CategoryIds: slices.To(m.GetCategories(), func(u *model.PromDict) uint32 {
 			return uint32(u.ID)
 		}),
-		Categories: slices.To(m.Categories, func(u *model.PromDict) *DictBO {
+		Categories: slices.To(m.GetCategories(), func(u *model.PromDict) *DictBO {
 			return DictModelToBO(u)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
+		PromStrategies: slices.To(m.GetPromStrategies(), func(u *model.PromStrategy) *StrategyBO {
+			return StrategyModelToBO(u)
+		}),
 	}
 }

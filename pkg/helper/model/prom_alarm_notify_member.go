@@ -19,3 +19,19 @@ type PromAlarmNotifyMember struct {
 func (*PromAlarmNotifyMember) TableName() string {
 	return TableNamePromNotifyMember
 }
+
+// GetMember 获取成员
+func (p *PromAlarmNotifyMember) GetMember() *SysUser {
+	if p == nil {
+		return nil
+	}
+	return p.Member
+}
+
+// GetNotifyTypes 获取通知方式
+func (p *PromAlarmNotifyMember) GetNotifyTypes() valueobj.NotifyTypes {
+	if p == nil {
+		return nil
+	}
+	return p.NotifyTypes
+}

@@ -33,6 +33,46 @@ type (
 	}
 )
 
+// GetBeNotifyMemberDetail 获取通知成员详情
+func (l *AlarmRealtimeBO) GetBeNotifyMemberDetail() []*AlarmBeenNotifyMemberBO {
+	if l == nil {
+		return nil
+	}
+	return l.BeNotifyMemberDetail
+}
+
+// GetBeNotifiedChatGroups 获取通知群组详情
+func (l *AlarmRealtimeBO) GetBeNotifiedChatGroups() []*PromAlarmBeenNotifyChatGroupBO {
+	if l == nil {
+		return nil
+	}
+	return l.BeNotifiedChatGroups
+}
+
+// GetAlarmIntervenes 获取告警干预详情
+func (l *AlarmRealtimeBO) GetAlarmIntervenes() []*AlarmInterveneBO {
+	if l == nil {
+		return nil
+	}
+	return l.AlarmIntervenes
+}
+
+// GetAlarmUpgradeInfo 获取告警升级详情
+func (l *AlarmRealtimeBO) GetAlarmUpgradeInfo() *AlarmUpgradeBO {
+	if l == nil {
+		return nil
+	}
+	return l.AlarmUpgradeInfo
+}
+
+// GetAlarmSuppressInfo 获取告警抑制详情
+func (l *AlarmRealtimeBO) GetAlarmSuppressInfo() *AlarmSuppressBO {
+	if l == nil {
+		return nil
+	}
+	return l.AlarmSuppressInfo
+}
+
 func (l *AlarmRealtimeBO) ToModel() *model.PromAlarmRealtime {
 	if l == nil {
 		return nil
@@ -45,13 +85,13 @@ func (l *AlarmRealtimeBO) ToModel() *model.PromAlarmRealtime {
 		Note:              l.Note,
 		Status:            l.Status,
 		EventAt:           l.EventAt,
-		BeenNotifyMembers: slices.To(l.BeNotifyMemberDetail, func(i *AlarmBeenNotifyMemberBO) *model.PromAlarmBeenNotifyMember { return i.ToModel() }),
-		BeenChatGroups:    slices.To(l.BeNotifiedChatGroups, func(i *PromAlarmBeenNotifyChatGroupBO) *model.PromAlarmBeenNotifyChatGroup { return i.ToModel() }),
+		BeenNotifyMembers: slices.To(l.GetBeNotifyMemberDetail(), func(i *AlarmBeenNotifyMemberBO) *model.PromAlarmBeenNotifyMember { return i.ToModel() }),
+		BeenChatGroups:    slices.To(l.GetBeNotifiedChatGroups(), func(i *PromAlarmBeenNotifyChatGroupBO) *model.PromAlarmBeenNotifyChatGroup { return i.ToModel() }),
 		NotifiedAt:        l.NotifiedAt,
 		HistoryID:         uint32(l.HistoryID),
-		AlarmIntervenes:   slices.To(l.AlarmIntervenes, func(i *AlarmInterveneBO) *model.PromAlarmIntervene { return i.ToModel() }),
-		AlarmUpgradeInfo:  l.AlarmUpgradeInfo.ToModel(),
-		AlarmSuppressInfo: l.AlarmSuppressInfo.ToModel(),
+		AlarmIntervenes:   slices.To(l.GetAlarmIntervenes(), func(i *AlarmInterveneBO) *model.PromAlarmIntervene { return i.ToModel() }),
+		AlarmUpgradeInfo:  l.GetAlarmUpgradeInfo().ToModel(),
+		AlarmSuppressInfo: l.GetAlarmSuppressInfo().ToModel(),
 	}
 }
 
@@ -78,16 +118,16 @@ func AlarmRealtimeModelToBO(m *model.PromAlarmRealtime) *AlarmRealtimeBO {
 		EventAt:         m.EventAt,
 		Status:          m.Status,
 		AlarmPages:      slices.To(m.GetStrategy().GetAlarmPages(), func(i *model.PromAlarmPage) *AlarmPageBO { return AlarmPageModelToBO(i) }),
-		AlarmIntervenes: slices.To(m.AlarmIntervenes, func(i *model.PromAlarmIntervene) *AlarmInterveneBO { return AlarmInterveneModelToBO(i) }),
-		BeNotifyMemberDetail: slices.To(m.BeenNotifyMembers, func(i *model.PromAlarmBeenNotifyMember) *AlarmBeenNotifyMemberBO {
+		AlarmIntervenes: slices.To(m.GetAlarmIntervenes(), func(i *model.PromAlarmIntervene) *AlarmInterveneBO { return AlarmInterveneModelToBO(i) }),
+		BeNotifyMemberDetail: slices.To(m.GetBeenNotifyMembers(), func(i *model.PromAlarmBeenNotifyMember) *AlarmBeenNotifyMemberBO {
 			return AlarmBeenNotifyMemberModelToBO(i)
 		}),
 		NotifiedAt:        m.NotifiedAt,
 		HistoryID:         uint(m.HistoryID),
-		AlarmUpgradeInfo:  AlarmUpgradeModelToBO(m.AlarmUpgradeInfo),
-		AlarmSuppressInfo: AlarmSuppressModelToBO(m.AlarmSuppressInfo),
+		AlarmUpgradeInfo:  AlarmUpgradeModelToBO(m.GetAlarmUpgradeInfo()),
+		AlarmSuppressInfo: AlarmSuppressModelToBO(m.GetAlarmSuppressInfo()),
 		StrategyID:        m.StrategyID,
-		BeNotifiedChatGroups: slices.To(m.BeenChatGroups, func(i *model.PromAlarmBeenNotifyChatGroup) *PromAlarmBeenNotifyChatGroupBO {
+		BeNotifiedChatGroups: slices.To(m.GetBeenChatGroups(), func(i *model.PromAlarmBeenNotifyChatGroup) *PromAlarmBeenNotifyChatGroupBO {
 			return PromAlarmBeenNotifyChatGroupModelToBO(i)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),

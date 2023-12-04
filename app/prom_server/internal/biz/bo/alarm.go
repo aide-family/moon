@@ -73,3 +73,10 @@ func (b *AlertBo) ToAnnotationsMap() map[string]string {
 	}
 	return *b.Annotations
 }
+
+// StringToAlertBo .
+func StringToAlertBo(str string) *AlertBo {
+	var alertBo AlertBo
+	_ = json.Unmarshal([]byte(str), &alertBo)
+	return &alertBo
+}

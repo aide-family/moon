@@ -35,14 +35,22 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 	return &api.AlarmHistoryV1{
 		Id:          b.Id,
 		AlarmId:     b.StrategyId,
-		AlarmName:   b.StrategyBO.Alert,
-		AlarmLevel:  b.Level.ToApiSelectV1(),
-		AlarmStatus: b.Info.GetStatus(),
-		Labels:      b.Info.ToLabelsMap(),
-		Annotations: b.Info.ToAnnotationsMap(),
+		AlarmName:   b.GetStrategyBO().GetAlert(),
+		AlarmLevel:  b.GetLevel().ToApiSelectV1(),
+		AlarmStatus: b.GetInfo().GetStatus(),
+		Labels:      b.GetInfo().ToLabelsMap(),
+		Annotations: b.GetInfo().ToAnnotationsMap(),
 		StartAt:     b.StartAt,
 		EndAt:       b.EndAt,
 	}
+}
+
+// GetLevel .
+func (b *AlarmHistoryBO) GetLevel() *DictBO {
+	if b == nil {
+		return nil
+	}
+	return b.Level
 }
 
 // NewAlarmRealtimeBO .
@@ -53,7 +61,7 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 	return &AlarmRealtimeBO{
 		Instance:   b.Instance,
 		Note:       b.GetInfo().GetAnnotations().Description(),
-		Level:      b.Level,
+		Level:      b.GetLevel(),
 		EventAt:    b.StartAt,
 		Status:     b.Status,
 		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
@@ -87,13 +95,15 @@ func (b *AlarmHistoryBO) ToModel() *model.PromAlarmHistory {
 		BaseModel:  query.BaseModel{ID: uint(b.Id)},
 		Instance:   b.Instance,
 		Status:     b.Status,
-		Info:       b.Info.String(),
+		Info:       b.GetInfo().String(),
 		StartAt:    b.StartAt,
 		EndAt:      b.EndAt,
 		Duration:   b.Duration,
 		StrategyID: uint(b.StrategyId),
 		LevelID:    uint(b.LevelId),
 		Md5:        b.Md5,
+		Strategy:   b.GetStrategyBO().ToModel(),
+		Level:      b.GetLevel().ToModel(),
 	}
 }
 
@@ -103,16 +113,19 @@ func AlarmHistoryModelToBO(m *model.PromAlarmHistory) *AlarmHistoryBO {
 		return nil
 	}
 	return &AlarmHistoryBO{
-		Id:       uint32(m.ID),
-		Instance: m.Instance,
-		Status:   m.Status,
-		// TODO Info:       AlertModelToBO(m.Info),
-		//Info:       AlertModelToBO(m.Info),
+		Id:         uint32(m.ID),
+		Md5:        m.Md5,
+		StrategyId: uint32(m.StrategyID),
+		StrategyBO: StrategyModelToBO(m.GetStrategy()),
+		LevelId:    uint32(m.LevelID),
+		Level:      DictModelToBO(m.GetLevel()),
+		Status:     m.Status,
 		StartAt:    m.StartAt,
 		EndAt:      m.EndAt,
+		Instance:   m.Instance,
 		Duration:   m.Duration,
-		StrategyId: uint32(m.StrategyID),
-		LevelId:    uint32(m.LevelID),
-		Md5:        m.Md5,
+		Info:       StringToAlertBo(m.Info),
+		CreatedAt:  m.CreatedAt.Unix(),
+		UpdatedAt:  m.UpdatedAt.Unix(),
 	}
 }

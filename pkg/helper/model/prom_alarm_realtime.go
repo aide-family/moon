@@ -47,3 +47,51 @@ func (p *PromAlarmRealtime) GetStrategy() *PromStrategy {
 	}
 	return p.Strategy
 }
+
+// GetAlarmIntervenes 获取运维介入信息
+func (p *PromAlarmRealtime) GetAlarmIntervenes() []*PromAlarmIntervene {
+	if p == nil {
+		return nil
+	}
+	return p.AlarmIntervenes
+}
+
+// GetBeenNotifyMembers 获取通知对象
+func (p *PromAlarmRealtime) GetBeenNotifyMembers() []*PromAlarmBeenNotifyMember {
+	if p == nil {
+		return nil
+	}
+	return p.BeenNotifyMembers
+}
+
+// GetBeenChatGroups 获取通知群组
+func (p *PromAlarmRealtime) GetBeenChatGroups() []*PromAlarmBeenNotifyChatGroup {
+	if p == nil {
+		return nil
+	}
+	return p.BeenChatGroups
+}
+
+// GetHistory 获取历史记录
+func (p *PromAlarmRealtime) GetHistory() *PromAlarmHistory {
+	if p == nil {
+		return nil
+	}
+	return p.History
+}
+
+// GetAlarmUpgradeInfo 获取告警升级信息
+func (p *PromAlarmRealtime) GetAlarmUpgradeInfo() *PromAlarmUpgrade {
+	if p == nil {
+		return nil
+	}
+	return p.AlarmUpgradeInfo
+}
+
+// GetAlarmSuppressInfo 获取告警抑制信息
+func (p *PromAlarmRealtime) GetAlarmSuppressInfo() *PromAlarmSuppress {
+	if p == nil {
+		return nil
+	}
+	return p.AlarmSuppressInfo
+}
