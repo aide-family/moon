@@ -25,10 +25,28 @@ type (
 		AppendAlarmBeenNotifyChatGroups(ctx context.Context, realtimeAlarmID uint32, req *bo.PromAlarmBeenNotifyChatGroupBO) error
 		// GetRealtimeCount 统计相关
 		GetRealtimeCount(ctx context.Context, scopes ...query.ScopeMethod) (int64, error)
+		// Create 创建实时告警信息, 并缓存
+		Create(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error)
+		// CacheByHistoryId 缓存
+		CacheByHistoryId(ctx context.Context, req ...*bo.AlarmRealtimeBO) error
+		// DeleteCacheByHistoryId 删除
+		DeleteCacheByHistoryId(ctx context.Context, historyId ...uint32) error
 	}
 
 	UnimplementedAlarmRealtimeRepo struct{}
 )
+
+func (UnimplementedAlarmRealtimeRepo) CacheByHistoryId(_ context.Context, _ ...*bo.AlarmRealtimeBO) error {
+	return status.Error(codes.Unimplemented, "method CacheByHistoryId not implemented")
+}
+
+func (UnimplementedAlarmRealtimeRepo) Create(_ context.Context, _ ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
+}
+
+func (UnimplementedAlarmRealtimeRepo) DeleteCacheByHistoryId(_ context.Context, _ ...uint32) error {
+	return status.Error(codes.Unimplemented, "method DeleteCacheByHistoryId not implemented")
+}
 
 func (UnimplementedAlarmRealtimeRepo) AppendAlarmBeenNotifyChatGroups(_ context.Context, _ uint32, _ *bo.PromAlarmBeenNotifyChatGroupBO) error {
 	return status.Error(codes.Unimplemented, "method AppendAlarmBeenNotifyChatGroups not implemented")

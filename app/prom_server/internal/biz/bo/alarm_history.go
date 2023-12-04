@@ -31,17 +31,51 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 	if b == nil {
 		return nil
 	}
+
 	return &api.AlarmHistoryV1{
 		Id:          b.Id,
 		AlarmId:     b.StrategyId,
 		AlarmName:   b.StrategyBO.Alert,
 		AlarmLevel:  b.Level.ToApiSelectV1(),
 		AlarmStatus: b.Info.GetStatus(),
-		Labels:      b.Info.GetLabels(),
-		Annotations: b.Info.GetAnnotations(),
+		Labels:      b.Info.ToLabelsMap(),
+		Annotations: b.Info.ToAnnotationsMap(),
 		StartAt:     b.StartAt,
 		EndAt:       b.EndAt,
 	}
+}
+
+// NewAlarmRealtimeBO .
+func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
+	if b == nil {
+		return nil
+	}
+	return &AlarmRealtimeBO{
+		Instance:   b.Instance,
+		Note:       b.GetInfo().GetAnnotations().Description(),
+		Level:      b.Level,
+		EventAt:    b.StartAt,
+		Status:     valueobj.Status(b.Status), // TODO 告警状态要特殊处理
+		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
+		HistoryID:  uint(b.Id),
+		StrategyID: uint(b.StrategyId),
+	}
+}
+
+// GetStrategyBO .
+func (b *AlarmHistoryBO) GetStrategyBO() *StrategyBO {
+	if b == nil {
+		return nil
+	}
+	return b.StrategyBO
+}
+
+// GetInfo .
+func (b *AlarmHistoryBO) GetInfo() *AlertBo {
+	if b == nil {
+		return nil
+	}
+	return b.Info
 }
 
 // ToModel .

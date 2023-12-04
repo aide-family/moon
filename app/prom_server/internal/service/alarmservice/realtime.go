@@ -11,7 +11,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/model/alarm"
+	"prometheus-manager/pkg/helper/model/alarmscopes"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -46,8 +46,8 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	wheres := []query.ScopeMethod{
-		alarm.RealtimeLike(req.GetKeyword()),
-		alarm.RealtimeEventAtDesc(),
+		alarmscopes.RealtimeLike(req.GetKeyword()),
+		alarmscopes.RealtimeEventAtDesc(),
 	}
 
 	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)

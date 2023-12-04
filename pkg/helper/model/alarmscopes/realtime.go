@@ -1,8 +1,9 @@
-package alarm
+package alarmscopes
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"prometheus-manager/pkg/util/types"
 )
 
@@ -34,4 +35,14 @@ func RealtimeEventAtDesc() query.ScopeMethod {
 // InIds 查询ID列表
 func InIds[T types.Int](ids ...T) query.ScopeMethod {
 	return query.WhereInColumn("id", ids)
+}
+
+// ClauseOnConflict 冲突处理
+func ClauseOnConflict() query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.OnConflict{
+			UpdateAll: true,
+			Columns:   []clause.Column{{Name: "id", Raw: true}, {Name: "history_id", Raw: true}},
+		})
+	}
 }

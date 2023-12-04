@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	valueobj2 "prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
@@ -93,8 +93,8 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		system.UserLike(req.GetKeyword()),
-		system.CreatedAtDesc(),
+		systemscopes.UserLike(req.GetKeyword()),
+		systemscopes.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -117,8 +117,8 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		system.UserLike(req.GetKeyword()),
-		system.CreatedAtDesc(),
+		systemscopes.UserLike(req.GetKeyword()),
+		systemscopes.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {

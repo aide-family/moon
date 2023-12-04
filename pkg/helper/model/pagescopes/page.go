@@ -1,4 +1,4 @@
-package page
+package pagescopes
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"

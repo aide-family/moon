@@ -27,13 +27,13 @@ type (
 	}
 
 	AlertBo struct {
-		Status       string               `json:"status"`
-		Labels       strategy.Labels      `json:"labels"`
-		Annotations  strategy.Annotations `json:"annotations"`
-		StartsAt     int64                `json:"startsAt"`
-		EndsAt       int64                `json:"endsAt"`
-		GeneratorURL string               `json:"generatorURL"`
-		Fingerprint  string               `json:"fingerprint"`
+		Status       string                `json:"status"`
+		Labels       *strategy.Labels      `json:"labels"`
+		Annotations  *strategy.Annotations `json:"annotations"`
+		StartsAt     int64                 `json:"startsAt"`
+		EndsAt       int64                 `json:"endsAt"`
+		GeneratorURL string                `json:"generatorURL"`
+		Fingerprint  string                `json:"fingerprint"`
 	}
 )
 
@@ -49,11 +49,27 @@ func (b *AlertBo) GetStatus() string {
 }
 
 // GetLabels .
-func (b *AlertBo) GetLabels() strategy.Labels {
+func (b *AlertBo) GetLabels() *strategy.Labels {
 	return b.Labels
 }
 
+// ToLabelsMap .
+func (b *AlertBo) ToLabelsMap() map[string]string {
+	if b.Labels == nil {
+		return nil
+	}
+	return *b.Labels
+}
+
 // GetAnnotations .
-func (b *AlertBo) GetAnnotations() strategy.Annotations {
+func (b *AlertBo) GetAnnotations() *strategy.Annotations {
 	return b.Annotations
+}
+
+// ToAnnotationsMap .
+func (b *AlertBo) ToAnnotationsMap() map[string]string {
+	if b.Annotations == nil {
+		return nil
+	}
+	return *b.Annotations
 }

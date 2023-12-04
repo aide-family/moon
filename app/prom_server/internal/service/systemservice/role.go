@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -79,7 +79,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		system.RoleLike(req.GetKeyword()),
+		systemscopes.RoleLike(req.GetKeyword()),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
@@ -104,7 +104,7 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		system.RoleLike(req.GetKeyword()),
+		systemscopes.RoleLike(req.GetKeyword()),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)

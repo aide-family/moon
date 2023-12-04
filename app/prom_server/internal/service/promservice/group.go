@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/pkg/helper/model/strategygroup"
+	"prometheus-manager/pkg/helper/model/strategygroupscopes"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -98,7 +98,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		strategygroup.Like(req.GetKeyword()),
+		strategygroupscopes.Like(req.GetKeyword()),
 	}
 	list, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		strategygroup.Like(req.GetKeyword()),
+		strategygroupscopes.Like(req.GetKeyword()),
 	}
 	selectList, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
 	if err != nil {

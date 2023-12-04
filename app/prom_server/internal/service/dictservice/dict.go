@@ -49,6 +49,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*p
 		Category: valueobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
+		Status:   valueobj.Status(req.GetStatus()),
 	}
 	newDict, err := s.dictBiz.UpdateDict(ctx, dictBo)
 	if err != nil {
@@ -95,17 +96,9 @@ func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetD
 		s.log.Errorf("get dict err: %v", err)
 		return nil, err
 	}
-	reply := &pb.GetDictReply{PromDict: &api.DictV1{
-		Id:        dictBo.Id,
-		Name:      dictBo.Name,
-		Category:  dictBo.Category.Value(),
-		Color:     dictBo.Color,
-		Status:    dictBo.Status.Value(),
-		Remark:    dictBo.Remark,
-		CreatedAt: dictBo.CreatedAt,
-		UpdatedAt: dictBo.UpdatedAt,
-		DeletedAt: dictBo.DeletedAt,
-	}}
+	reply := &pb.GetDictReply{
+		PromDict: dictBo.ToApiV1(),
+	}
 	return reply, nil
 }
 
@@ -117,17 +110,7 @@ func (s *Service) ListDict(ctx context.Context, req *pb.ListDictRequest) (*pb.Li
 	}
 	list := make([]*api.DictV1, 0, len(dictBoList))
 	for _, dictBo := range dictBoList {
-		list = append(list, &api.DictV1{
-			Id:        dictBo.Id,
-			Name:      dictBo.Name,
-			Category:  dictBo.Category.Value(),
-			Color:     dictBo.Color,
-			Status:    dictBo.Status.Value(),
-			Remark:    dictBo.Remark,
-			CreatedAt: dictBo.CreatedAt,
-			UpdatedAt: dictBo.UpdatedAt,
-			DeletedAt: dictBo.DeletedAt,
-		})
+		list = append(list, dictBo.ToApiV1())
 	}
 
 	pg := req.GetPage()
@@ -149,14 +132,7 @@ func (s *Service) SelectDict(ctx context.Context, req *pb.SelectDictRequest) (*p
 	}
 	list := make([]*api.DictSelectV1, 0, len(dictBoList))
 	for _, dictBo := range dictBoList {
-		list = append(list, &api.DictSelectV1{
-			Value:    dictBo.Id,
-			Label:    dictBo.Name,
-			Category: api.Category(dictBo.Category),
-			Color:    dictBo.Color,
-			Status:   api.Status(dictBo.Status),
-			Remark:   dictBo.Remark,
-		})
+		list = append(list, dictBo.ToApiSelectV1())
 	}
 	pg := req.GetPage()
 	return &pb.SelectDictReply{

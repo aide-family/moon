@@ -1,4 +1,4 @@
-package history
+package historyscopes
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"

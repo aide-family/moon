@@ -61,6 +61,24 @@ func (d *DictBO) ToModel() *model.PromDict {
 	}
 }
 
+// ToApiV1 转换为api字典对象
+func (d *DictBO) ToApiV1() *api.DictV1 {
+	if d == nil {
+		return nil
+	}
+	return &api.DictV1{
+		Id:        d.Id,
+		Name:      d.Name,
+		Category:  d.Category.Value(),
+		Color:     d.Color,
+		Status:    d.Status.Value(),
+		Remark:    d.Remark,
+		CreatedAt: d.CreatedAt,
+		UpdatedAt: d.UpdatedAt,
+		DeletedAt: d.DeletedAt,
+	}
+}
+
 // DictModelToBO 字典model数据对象转换为字典业务对象
 func DictModelToBO(m *model.PromDict) *DictBO {
 	if m == nil {

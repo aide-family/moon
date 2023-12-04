@@ -12,7 +12,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 )
 
 var _ repository.ApiRepo = (*apiRepoImpl)(nil)
@@ -92,7 +92,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 	}
 	return l.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 删除关联关系
-		if err := tx.Model(&model.SysAPI{}).WithContext(ctx).Scopes(scopes...).Association(system.ApiAssociationReplaceRoles).Clear(); err != nil {
+		if err := tx.Model(&model.SysAPI{}).WithContext(ctx).Scopes(scopes...).Association(systemscopes.ApiAssociationReplaceRoles).Clear(); err != nil {
 			return err
 		}
 		// 删除主数据

@@ -13,7 +13,7 @@ import (
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
@@ -45,7 +45,7 @@ func NewUserBiz(
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Get(ctx, system.UserInIds(id), system.UserPreloadRoles[uint32]())
+	userBo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(id), systemscopes.UserPreloadRoles[uint32]())
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +59,9 @@ func (b *UserBiz) CheckNewUser(ctx context.Context, userBo *bo.UserBO) error {
 	}
 
 	wheres := []query.ScopeMethod{
-		system.UserEqName(userBo.Username),
-		system.UserEqEmail(userBo.Email),
-		system.UserEqPhone(userBo.Phone),
+		systemscopes.UserEqName(userBo.Username),
+		systemscopes.UserEqEmail(userBo.Email),
+		systemscopes.UserEqPhone(userBo.Phone),
 	}
 	list, err := b.userRepo.Find(ctx, wheres...)
 	if err != nil {
@@ -105,7 +105,7 @@ func (b *UserBiz) CreateUser(ctx context.Context, userBo *bo.UserBO) (*bo.UserBO
 
 // UpdateUserById 更新用户信息
 func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.UserBO) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Update(ctx, userBo, system.RoleInIds(id))
+	userBo, err := b.userRepo.Update(ctx, userBo, systemscopes.RoleInIds(id))
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status valueobj.Stat
 		return nil
 	}
 	userBo := &bo.UserBO{Status: status}
-	_, err := b.userRepo.Update(ctx, userBo, system.RoleInIds(ids...))
+	_, err := b.userRepo.Update(ctx, userBo, systemscopes.RoleInIds(ids...))
 	return err
 }
 
@@ -127,7 +127,7 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.userRepo.Delete(ctx, system.RoleInIds(ids...))
+	return b.userRepo.Delete(ctx, systemscopes.RoleInIds(ids...))
 }
 
 // GetUserList 获取用户列表
@@ -141,7 +141,7 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 
 // LoginByUsernameAndPassword 登录
 func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *bo.UserBO, token string, err error) {
-	userBO, err = b.userRepo.Get(ctx, system.UserEqName(username), system.UserPreloadRoles[uint32]())
+	userBO, err = b.userRepo.Get(ctx, systemscopes.UserEqName(username), systemscopes.UserPreloadRoles[uint32]())
 	if err != nil {
 		return
 	}
@@ -207,7 +207,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userBO, err = b.userRepo.Get(context.Background(), system.UserInIds(authClaims.ID), system.UserPreloadRoles[uint32]())
+	userBO, err = b.userRepo.Get(context.Background(), systemscopes.UserInIds(authClaims.ID), systemscopes.UserPreloadRoles[uint32]())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return
@@ -245,7 +245,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 
 // EditUserPassword 修改密码
 func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.AuthClaims, oldPassword, newPassword string) (*bo.UserBO, error) {
-	userDo, err := b.userRepo.Get(ctx, system.UserInIds(authClaims.ID))
+	userDo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(authClaims.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 	}
 
 	// 更新密码
-	if newUserDo, err = b.userRepo.Update(ctx, newUserDo, system.UserInIds(userDo.Id)); err != nil {
+	if newUserDo, err = b.userRepo.Update(ctx, newUserDo, systemscopes.UserInIds(userDo.Id)); err != nil {
 		return nil, err
 	}
 
@@ -296,14 +296,14 @@ func (b *UserBiz) UpdateUserRoleRelation(userId uint) {
 // RelateRoles 关联角色
 func (b *UserBiz) RelateRoles(ctx context.Context, userId uint32, roleIds []uint32) error {
 	defer b.UpdateUserRoleRelation(uint(userId))
-	userDo, err := b.userRepo.Get(ctx, system.UserInIds(userId))
+	userDo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(userId))
 	if err != nil {
 		return err
 	}
 
 	// 查询角色
 	if len(roleIds) > 0 {
-		roleDos, err := b.roleRepo.Find(ctx, system.RoleInIds(roleIds...))
+		roleDos, err := b.roleRepo.Find(ctx, systemscopes.RoleInIds(roleIds...))
 		if err != nil {
 			return err
 		}

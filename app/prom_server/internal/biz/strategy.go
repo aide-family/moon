@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/strategy"
+	"prometheus-manager/pkg/helper/model/strategyscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
@@ -88,8 +88,8 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 
 	scopes := []query.ScopeMethod{
-		strategy.LikeStrategy(req.GetKeyword()),
-		strategy.StatusEQ(int32(req.GetStatus())),
+		strategyscopes.LikeStrategy(req.GetKeyword()),
+		strategyscopes.StatusEQ(int32(req.GetStatus())),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
@@ -106,8 +106,8 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 
 	scopes := []query.ScopeMethod{
-		strategy.LikeStrategy(req.GetKeyword()),
-		strategy.StatusEQ(int32(api.Status_STATUS_ENABLED)),
+		strategyscopes.LikeStrategy(req.GetKeyword()),
+		strategyscopes.StatusEQ(int32(api.Status_STATUS_ENABLED)),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)

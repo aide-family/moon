@@ -14,7 +14,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -69,11 +69,11 @@ func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) 
 
 	return l.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 清除关联关系
-		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(system.RoleAssociationReplaceApis).Clear(); err != nil {
+		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(systemscopes.RoleAssociationReplaceApis).Clear(); err != nil {
 			return err
 		}
 
-		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(system.RoleAssociationReplaceUsers).Clear(); err != nil {
+		if err := tx.Model(&model.SysRole{}).Scopes(scopes...).Association(systemscopes.RoleAssociationReplaceUsers).Clear(); err != nil {
 			return err
 		}
 
@@ -134,7 +134,7 @@ func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint, apiList []*bo
 		return api.ToModel()
 	})
 
-	err = l.DB().WithContext(ctx).Model(roleDetail).Association(system.RoleAssociationReplaceApis).Replace(&apiModelList)
+	err = l.DB().WithContext(ctx).Model(roleDetail).Association(systemscopes.RoleAssociationReplaceApis).Replace(&apiModelList)
 	if err != nil {
 		return err
 	}

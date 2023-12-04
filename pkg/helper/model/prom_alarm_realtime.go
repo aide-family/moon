@@ -23,7 +23,7 @@ type PromAlarmRealtime struct {
 	BeenChatGroups    []*PromAlarmBeenNotifyChatGroup `gorm:"foreignKey:RealtimeAlarmID;comment:已通知群组"`
 	NotifiedAt        int64                           `gorm:"column:notified_at;type:bigint;not null;default:0;comment:通知时间"`
 	// HistoryID 对应的报警历史数据
-	HistoryID uint32            `gorm:"column:history_id;type:int unsigned;not null;index:idx__history_id,priority:1;comment:历史记录ID"`
+	HistoryID uint32            `gorm:"column:history_id;type:int unsigned;not null;unique:idx__history_id,priority:1;comment:历史记录ID"`
 	History   *PromAlarmHistory `gorm:"foreignKey:HistoryID"`
 	// Intervenes 运维介入信息
 	AlarmIntervenes []*PromAlarmIntervene `gorm:"foreignKey:RealtimeAlarmID"`

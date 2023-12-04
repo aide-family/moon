@@ -43,6 +43,14 @@ func (b *StrategyBO) CategoryInfoToApiSelectV1() []*api.DictSelectV1 {
 	return ListToApiDictSelectV1(b.Categories...)
 }
 
+// GetAlarmPages .
+func (b *StrategyBO) GetAlarmPages() []*AlarmPageBO {
+	if b == nil {
+		return nil
+	}
+	return b.AlarmPages
+}
+
 // ToApiV1 策略转换为api策略
 func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 	if b == nil {
