@@ -1,4 +1,4 @@
-package system
+package systemscopes
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"

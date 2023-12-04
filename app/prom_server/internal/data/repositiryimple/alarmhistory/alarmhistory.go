@@ -6,7 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/history"
+	"prometheus-manager/pkg/helper/model/historyscopes"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -44,13 +44,13 @@ func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo query.Pag
 	return boList, nil
 }
 
-func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyBOs ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
+func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
 	newModels := make([]*model.PromAlarmHistory, 0, len(historyBOs))
 	for _, historyBO := range historyBOs {
 		newModel := historyBO.ToModel()
 		newModels = append(newModels, newModel)
 	}
-	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).BatchCreate(newModels, 50); err != nil {
+	if err := l.WithContext(ctx).Scopes(historyscopes.ClausesOnConflict()).BatchCreate(newModels, 50); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func (l *alarmHistoryRepoImpl) CreateHistory(ctx context.Context, historyBOs ...
 
 func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
 	newModel := historyBO.ToModel()
-	if err := l.WithContext(ctx).Scopes(history.ClausesOnConflict()).UpdateByID(id, newModel); err != nil {
+	if err := l.WithContext(ctx).Scopes(historyscopes.ClausesOnConflict()).UpdateByID(id, newModel); err != nil {
 		return nil, err
 	}
 	return bo.AlarmHistoryModelToBO(newModel), nil

@@ -14,6 +14,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/chatgroup"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/dataimpl"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/endpoint"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimple/msg"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/notify"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/ping"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/promdict"
@@ -44,4 +45,5 @@ var ProviderSetRepository = wire.NewSet(
 	alarmintervene.NewAlarmIntervene,
 	alarmsuppress.NewAlarmSuppress,
 	alarmupgrade.NewAlarmUpgrade,
+	msg.NewMsgRepo,
 )

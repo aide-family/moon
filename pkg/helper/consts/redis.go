@@ -24,6 +24,8 @@ const (
 	APICacheKey RedisKey = "api:cache"
 	// RoleDisabledKey 角色禁用列表缓存
 	RoleDisabledKey RedisKey = "role:disabled:hash"
+	// AlarmRealtimeCacheByHistoryId 告警实时数据缓存
+	AlarmRealtimeCacheByHistoryId RedisKey = "alarm:realtime:history_id"
 )
 
 func (r RedisKey) String() string {

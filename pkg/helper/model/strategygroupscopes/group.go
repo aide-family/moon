@@ -1,4 +1,4 @@
-package strategygroup
+package strategygroupscopes
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"

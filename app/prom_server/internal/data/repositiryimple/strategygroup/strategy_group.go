@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/strategygroup"
+	"prometheus-manager/pkg/helper/model/strategygroupscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -43,14 +43,14 @@ func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strateg
 }
 
 func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint) error {
-	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroup.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroupscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint) error {
-	if err := l.WithContext(ctx).Delete(strategygroup.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Delete(strategygroupscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil

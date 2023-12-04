@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/page"
+	"prometheus-manager/pkg/helper/model/pagescopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -82,8 +82,8 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		page.LikePageName(req.GetKeyword()),
-		page.StatusEQ(int32(req.GetStatus())),
+		pagescopes.LikePageName(req.GetKeyword()),
+		pagescopes.StatusEQ(int32(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
@@ -99,8 +99,8 @@ func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageReq
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		page.LikePageName(req.GetKeyword()),
-		page.StatusEQ(int32(req.GetStatus())),
+		pagescopes.LikePageName(req.GetKeyword()),
+		pagescopes.StatusEQ(int32(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)

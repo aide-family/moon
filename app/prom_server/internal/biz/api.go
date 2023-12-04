@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -46,7 +46,7 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 
 // GetApiById 获取api
 func (b *ApiBiz) GetApiById(ctx context.Context, id uint) (*bo.ApiBO, error) {
-	apiBO, err := b.apiRepo.Get(ctx, system.ApiInIds(id))
+	apiBO, err := b.apiRepo.Get(ctx, systemscopes.ApiInIds(id))
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ..
 
 // DeleteApiById 删除api
 func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
-	if err := b.apiRepo.Delete(ctx, system.ApiInIds(id)); err != nil {
+	if err := b.apiRepo.Delete(ctx, systemscopes.ApiInIds(id)); err != nil {
 		return err
 	}
 	b.cacheApiByIds(id)
@@ -75,7 +75,7 @@ func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
 
 // UpdateApiById 更新api
 func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBO *bo.ApiBO) (*bo.ApiBO, error) {
-	apiBO, err := b.apiRepo.Update(ctx, apiBO, system.ApiInIds(id))
+	apiBO, err := b.apiRepo.Update(ctx, apiBO, systemscopes.ApiInIds(id))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status valueobj.Status
 	apiBo := &bo.ApiBO{
 		Status: status,
 	}
-	if err := b.apiRepo.UpdateAll(ctx, apiBo, system.ApiInIds(ids...)); err != nil {
+	if err := b.apiRepo.UpdateAll(ctx, apiBo, systemscopes.ApiInIds(ids...)); err != nil {
 		return err
 	}
 	b.cacheApiByIds(ids...)

@@ -54,3 +54,21 @@ func (l *AlarmRealtimeBiz) AlarmUpgrade(ctx context.Context, id uint32, req *bo.
 func (l *AlarmRealtimeBiz) AlarmSuppress(ctx context.Context, id uint32, req *bo.AlarmSuppressBO) error {
 	return l.realtimeRepo.AlarmSuppress(ctx, id, req)
 }
+
+// HandleRealtime 创建实时告警
+func (l *AlarmRealtimeBiz) HandleRealtime(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error) {
+	if len(req) == 0 {
+		return nil, nil
+	}
+	realtimeAlarmBOs, err := l.realtimeRepo.Create(ctx, req...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = l.realtimeRepo.CacheByHistoryId(ctx, realtimeAlarmBOs...); err != nil {
+		// TODO 需要告警, 一般不会失败, 失败时可能缓存组件异常了
+		return nil, err
+	}
+
+	return realtimeAlarmBOs, nil
+}

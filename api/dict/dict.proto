@@ -108,6 +108,8 @@ message UpdateDictRequest {
 	string color = 4 [(validate.rules).string = {max_len: 10}];
 	// 字典备注
 	string remark = 6 [(validate.rules).string = {max_len: 255}];
+	// 状态
+	Status status = 7 [(validate.rules).enum = {defined_only: true}];
 }
 // 更新字典响应参数
 message UpdateDictReply {

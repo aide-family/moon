@@ -6,7 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/strategy"
+	"prometheus-manager/pkg/helper/model/strategyscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -57,14 +57,14 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, stra
 }
 
 func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
-	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategy.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategyscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint) error {
-	if err := l.WithContext(ctx).Delete(strategy.InIds(id)); err != nil {
+	if err := l.WithContext(ctx).Delete(strategyscopes.InIds(id)); err != nil {
 		return err
 	}
 	return nil

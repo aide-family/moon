@@ -8,7 +8,8 @@ import (
 	pb "prometheus-manager/api/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/history"
+	"prometheus-manager/pkg/helper/model/historyscopes"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -17,16 +18,25 @@ type (
 	HistoryBiz struct {
 		log *log.Helper
 
-		historyRepo repository.HistoryRepo
+		historyRepo      repository.HistoryRepo
+		msgRepo          repository.MsgRepo
+		alarmRealtimeBiz *AlarmRealtimeBiz
 	}
 )
 
 // NewHistoryBiz .
-func NewHistoryBiz(historyRepo repository.HistoryRepo, logger log.Logger) *HistoryBiz {
+func NewHistoryBiz(
+	historyRepo repository.HistoryRepo,
+	msgRepo repository.MsgRepo,
+	alarmRealtimeBiz *AlarmRealtimeBiz,
+	logger log.Logger,
+) *HistoryBiz {
 	return &HistoryBiz{
 		log: log.NewHelper(log.With(logger, "module", "biz.alarmHistory")),
 
-		historyRepo: historyRepo,
+		historyRepo:      historyRepo,
+		msgRepo:          msgRepo,
+		alarmRealtimeBiz: alarmRealtimeBiz,
 	}
 }
 
@@ -44,8 +54,8 @@ func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
 	scopes := []query.ScopeMethod{
-		history.LikeInstance(req.GetKeyword()),
-		history.TimeRange(req.GetStartAt(), req.GetEndAt()),
+		historyscopes.LikeInstance(req.GetKeyword()),
+		historyscopes.TimeRange(req.GetStartAt(), req.GetEndAt()),
 	}
 	historyList, err := a.historyRepo.ListHistory(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -60,12 +70,26 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 		return nil, nil
 	}
 
-	historyBos, err := a.historyRepo.CreateHistory(ctx, historyBO...)
+	// 创建历史记录 or 更新历史记录
+	historyBos, err := a.historyRepo.StorageHistory(ctx, historyBO...)
+	if err != nil {
+		return nil, err
+	}
+
+	realtimeAlarmBOs := slices.To(historyBos, func(alarmHistoryBO *bo.AlarmHistoryBO) *bo.AlarmRealtimeBO {
+		return alarmHistoryBO.NewAlarmRealtimeBO()
+	})
+
+	// 处理实时告警
+	realtimeAlarmBOs, err = a.alarmRealtimeBiz.HandleRealtime(ctx, realtimeAlarmBOs...)
 	if err != nil {
 		return nil, err
 	}
 
 	// 发送告警
+	if err = a.msgRepo.SendAlarm(ctx, realtimeAlarmBOs...); err != nil {
+		return nil, err
+	}
 
 	return historyBos, nil
 }

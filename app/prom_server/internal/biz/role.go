@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/system"
+	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 )
 
@@ -47,7 +47,7 @@ func (b *RoleBiz) DeleteRoleByIds(ctx context.Context, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.roleRepo.Delete(ctx, system.RoleInIds(ids...))
+	return b.roleRepo.Delete(ctx, systemscopes.RoleInIds(ids...))
 }
 
 // ListRole 角色列表
@@ -62,7 +62,7 @@ func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes 
 
 // GetRoleById 获取角色
 func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Get(ctx, system.RoleInIds(id), system.RolePreloadUsers[uint32](), system.RolePreloadApis[uint32]())
+	roleBO, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(id), systemscopes.RolePreloadUsers[uint32](), systemscopes.RolePreloadApis[uint32]())
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error
 
 // UpdateRoleById 更新角色
 func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Update(ctx, roleBO, system.RoleInIds(roleBO.Id))
+	roleBO, err := b.roleRepo.Update(ctx, roleBO, systemscopes.RoleInIds(roleBO.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.Ro
 // UpdateRoleStatusById 更新角色状态
 func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	roleBo := &bo.RoleBO{Status: status}
-	if err := b.roleRepo.UpdateAll(ctx, roleBo, system.RoleInIds(ids...)); err != nil {
+	if err := b.roleRepo.UpdateAll(ctx, roleBo, systemscopes.RoleInIds(ids...)); err != nil {
 		return err
 	}
 	b.cacheRoleByIds(ids...)
@@ -117,13 +117,13 @@ func (b *RoleBiz) RelateApiById(ctx context.Context, roleId uint32, apiIds []uin
 
 	if len(apiIds) > 0 {
 		// 查询API
-		findBoList, err = b.apiRepo.Find(ctx, system.ApiInIds(apiIds...))
+		findBoList, err = b.apiRepo.Find(ctx, systemscopes.ApiInIds(apiIds...))
 		if err != nil {
 			return err
 		}
 	}
 
-	roleBoInfo, err := b.roleRepo.Get(ctx, system.RoleInIds(roleId))
+	roleBoInfo, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(roleId))
 	if err != nil {
 		return err
 	}

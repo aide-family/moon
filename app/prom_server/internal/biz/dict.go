@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/dict"
+	"prometheus-manager/pkg/helper/model/dictscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
@@ -73,9 +73,9 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
 
 	wheres := []query.ScopeMethod{
-		dict.WhereCategory(int32(req.GetCategory())),
-		dict.LikeName(req.GetKeyword()),
-		dict.WithTrashed(req.GetIsDeleted()),
+		dictscopes.WhereCategory(int32(req.GetCategory())),
+		dictscopes.LikeName(req.GetKeyword()),
+		dictscopes.WithTrashed(req.GetIsDeleted()),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
@@ -91,9 +91,9 @@ func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest)
 	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
 
 	wheres := []query.ScopeMethod{
-		dict.WhereCategory(int32(req.GetCategory())),
-		dict.LikeName(req.GetKeyword()),
-		dict.WithTrashed(req.GetIsDeleted()),
+		dictscopes.WhereCategory(int32(req.GetCategory())),
+		dictscopes.LikeName(req.GetKeyword()),
+		dictscopes.WithTrashed(req.GetIsDeleted()),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
