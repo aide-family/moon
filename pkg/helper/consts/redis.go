@@ -22,6 +22,8 @@ const (
 	UserRolesKey RedisKey = "user:roles:rbac"
 	// APICacheKey 接口缓存
 	APICacheKey RedisKey = "api:cache"
+	// RoleDisabledKey 角色禁用列表缓存
+	RoleDisabledKey RedisKey = "role:disabled:hash"
 )
 
 func (r RedisKey) String() string {

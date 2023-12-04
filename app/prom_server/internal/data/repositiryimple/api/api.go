@@ -96,12 +96,26 @@ func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...que
 		return nil, status.Error(codes.InvalidArgument, "not allow not condition update")
 	}
 
+	// 根据条件查询即将修改的条数, 超过1条则不允许修改
+	count, err := l.WithContext(ctx).Count(scopes...)
+	if err != nil {
+		return nil, err
+	}
+	if count > 1 {
+		return nil, status.Error(codes.InvalidArgument, "not allow update more than one")
+	}
+
 	newModelInfo := apiBO.ToModel()
-	if err := l.WithContext(ctx).Update(newModelInfo, scopes...); err != nil {
+	if err = l.WithContext(ctx).Update(newModelInfo, scopes...); err != nil {
 		return nil, err
 	}
 
 	return bo.ApiModelToBO(newModelInfo), nil
+}
+
+func (l *apiRepoImpl) UpdateAll(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) error {
+	newModelInfo := apiBO.ToModel()
+	return l.WithContext(ctx).Update(newModelInfo, scopes...)
 }
 
 func NewApiRepo(data *data.Data, logger log.Logger) repository.ApiRepo {

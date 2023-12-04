@@ -13,160 +13,189 @@ option java_package = "api.system";
 
 // 内部API管理模块, 用于权限管理子数据
 service Api {
-	// 创建API数据
-	rpc CreateApi (CreateApiRequest) returns (CreateApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/create"
-			body: "*"
-		};
-	}
-	// 更新API数据
-	rpc UpdateApi (UpdateApiRequest) returns (UpdateApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/update"
-			body: "*"
-		};
-	}
-	// 删除API数据
-	rpc DeleteApi (DeleteApiRequest) returns (DeleteApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/delete"
-			body: "*"
-		};
-	}
-	// 获取API数据
-	rpc GetApi (GetApiRequest) returns (GetApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/get"
-			body: "*"
-		};
-	}
-	// 获取API列表
-	rpc ListApi (ListApiRequest) returns (ListApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/list"
-			body: "*"
-		};
-	}
-	// 获取API下拉列表
-	rpc SelectApi (SelectApiRequest) returns (SelectApiReply) {
-		option (google.api.http) = {
-			post: "/api/v1/system/api/select"
-			body: "*"
-		};
-	}
+  // 创建API数据
+  rpc CreateApi (CreateApiRequest) returns (CreateApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/create"
+      body: "*"
+    };
+  }
+  // 更新API数据
+  rpc UpdateApi (UpdateApiRequest) returns (UpdateApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/update"
+      body: "*"
+    };
+  }
+  // 删除API数据
+  rpc DeleteApi (DeleteApiRequest) returns (DeleteApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/delete"
+      body: "*"
+    };
+  }
+  // 获取API数据
+  rpc GetApi (GetApiRequest) returns (GetApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/get"
+      body: "*"
+    };
+  }
+  // 获取API列表
+  rpc ListApi (ListApiRequest) returns (ListApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/list"
+      body: "*"
+    };
+  }
+  // 获取API下拉列表
+  rpc SelectApi (SelectApiRequest) returns (SelectApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/select"
+      body: "*"
+    };
+  }
+  // 修改API状态
+  rpc EditApiStatus (EditApiStatusRequest) returns (EditApiStatusReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/status/edit"
+      body: "*"
+    };
+  }
 }
 
 // 创建API数据请求参数
 message CreateApiRequest {
-	// 接口名称, 长度限制2-20
-	string name = 2 [(validate.rules).string = {
-		min_len: 2,
-		max_len: 20,
-	}];
-	// 接口路径, 长度限制1-255
-	string path = 3 [(validate.rules).string = {
-		min_len: 1,
-		max_len: 255,
-	}];
-	// 接口请求方法, GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS
-	string method = 4 [(validate.rules).string = {
-		in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
-	}];
-	// 备注 长度限制0-255
-	string remark = 6 [(validate.rules).string.max_len = 255];
-	// 所属模块
-	ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
-	// 所属领域
-	DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
+  // 接口名称, 长度限制2-20
+  string name = 2 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 20,
+  }];
+  // 接口路径, 长度限制1-255
+  string path = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255,
+  }];
+  // 接口请求方法, GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS
+  string method = 4 [(validate.rules).string = {
+    in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
+  }];
+  // 备注 长度限制0-255
+  string remark = 6 [(validate.rules).string.max_len = 255];
+  // 所属模块
+  ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
+  // 所属领域
+  DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
 }
 // 创建API数据响应参数
 message CreateApiReply {
-	// id 接口ID, 创建成功后返回
-	uint32 id = 1;
+  // id 接口ID, 创建成功后返回
+  uint32 id = 1;
 }
 
 // 更新API数据请求参数
 message UpdateApiRequest {
-	// 需要更新数据的接口ID, 必填, 大于0, 路径参数
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
-	// 接口名称, 长度限制2-20
-	string name = 2 [(validate.rules).string = {
-		min_len: 2,
-		max_len: 20,
-	}];
-	// 接口路径, 长度限制1-255
-	string path = 3 [(validate.rules).string = {
-		min_len: 1,
-		max_len: 255,
-	}];
-	// 接口方法, GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS
-	string method = 4 [(validate.rules).string = {
-		in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
-	}];
-	// 接口状态, 启用, 禁用, 对应Status枚举
-	Status status = 5 [(validate.rules).enum = {defined_only: true}];
-	// 备注 长度限制0-255
-	string remark = 6 [(validate.rules).string.max_len = 255];
-	// 所属模块
-	ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
-	// 所属领域
-	DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
+  // 需要更新数据的接口ID, 必填, 大于0, 路径参数
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 接口名称, 长度限制2-20
+  string name = 2 [(validate.rules).string = {
+    min_len: 2,
+    max_len: 20,
+  }];
+  // 接口路径, 长度限制1-255
+  string path = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255,
+  }];
+  // 接口方法, GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS
+  string method = 4 [(validate.rules).string = {
+    in: ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"],
+  }];
+  // 接口状态, 启用, 禁用, 对应Status枚举
+  Status status = 5 [(validate.rules).enum = {defined_only: true}];
+  // 备注 长度限制0-255
+  string remark = 6 [(validate.rules).string.max_len = 255];
+  // 所属模块
+  ModuleType module = 7 [(validate.rules).enum = {defined_only: true}];
+  // 所属领域
+  DomainType domain = 8 [(validate.rules).enum = {defined_only: true}];
 }
 // 更新API数据响应参数
 message UpdateApiReply {
-	// 接口ID, 更新成功后返回
-	uint32 id = 1;
+  // 接口ID, 更新成功后返回
+  uint32 id = 1;
 }
 
 // 删除API数据请求参数
 message DeleteApiRequest {
-	// 需要删除的接口ID, 必填, 大于0, 路径参数
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 需要删除的接口ID, 必填, 大于0, 路径参数
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 // 删除API数据响应参数
 message DeleteApiReply {
-	// 接口ID, 删除成功后返回
-	uint32 id = 1;
+  // 接口ID, 删除成功后返回
+  uint32 id = 1;
 }
 
 // 获取API数据请求参数
 message GetApiRequest {
-	// 接口ID
-	uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 接口ID
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
 }
 // 获取API数据响应参数
 message GetApiReply {
-	// 接口信息
-	ApiV1 detail = 1;
+  // 接口信息
+  ApiV1 detail = 1;
 }
 
 // 获取API列表请求参数
 message ListApiRequest {
-	// 分页参数, 必填
-	PageRequest page = 1 [(validate.rules).message.required = true];
-	// 关键字, 长度限制0-20
-	string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 分页参数, 必填
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制0-20
+  string keyword = 2 [(validate.rules).string.max_len = 20];
 }
 // 获取API列表响应参数
 message ListApiReply {
-	// 分页参数
-	PageReply page = 1;
-	// API列表
-	repeated ApiV1 list = 2;
+  // 分页参数
+  PageReply page = 1;
+  // API列表
+  repeated ApiV1 list = 2;
 }
 
 // 获取API下拉列表请求参数
 message SelectApiRequest {
-	// 分页参数, 必填
-	PageRequest page = 1 [(validate.rules).message.required = true];
-	// 关键字, 长度限制0-20
-	string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 分页参数, 必填
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  // 关键字, 长度限制0-20
+  string keyword = 2 [(validate.rules).string.max_len = 20];
 }
 // 获取API下拉列表响应参数
 message SelectApiReply {
-	// 分页参数
-	PageReply page = 1;
-	// API下拉列表
-	repeated ApiSelectV1 list = 2;
+  // 分页参数
+  PageReply page = 1;
+  // API下拉列表
+  repeated ApiSelectV1 list = 2;
+}
+
+// 修改API状态请求参数
+message EditApiStatusRequest {
+  // 接口ID列表, 数量限制 1-100, 必填, 唯一, 大于0
+  repeated uint32 ids = 1 [(validate.rules) = {
+    repeated: {
+      min_items: 1,
+      max_items: 100,
+      unique: true,
+      items: {
+        uint32: {gt: 0}
+      },
+    },
+  }];
+  // 接口状态, 启用, 禁用, 对应Status枚举
+  Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+// 修改API状态响应参数
+message EditApiStatusReply {
+  // 接口ID列表, 修改成功后返回
+  repeated uint32 ids = 1;
 }

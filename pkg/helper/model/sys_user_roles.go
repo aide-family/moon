@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"strconv"
 
+	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/helper/consts"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -146,5 +148,47 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 
+	// 判断角色是否存在, 且状态为启用状态
+	if err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID).Err(); err != nil && err != redis.Nil {
+		return err
+	}
+
 	return nil
+}
+
+// CacheDisabledRoles 缓存角色禁用列表
+func CacheDisabledRoles(db *gorm.DB, cacheClient *redis.Client, roleIds ...uint32) error {
+	wheres := []query.ScopeMethod{
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("status != ?", valueobj.StatusEnabled)
+		},
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("deleted_at != ?", 0)
+		},
+	}
+	if len(roleIds) > 0 {
+		wheres = append(wheres, query.WhereInColumn("id", roleIds...))
+	}
+	var roles []*SysRole
+	if err := db.Unscoped().Select("id,status,deleted_at").Scopes(wheres...).Find(&roles).Error; err != nil {
+		return err
+	}
+
+	if len(roles) == 0 {
+		// 删除找不到的角色
+		if len(roleIds) > 0 {
+			idsString := slices.To(roleIds, func(v uint32) string { return strconv.FormatUint(uint64(v), 10) })
+			if err := cacheClient.HDel(context.Background(), consts.RoleDisabledKey.String(), idsString...).Err(); err != nil {
+				return err
+			}
+		}
+		return cacheClient.Del(context.Background(), consts.RoleDisabledKey.String()).Err()
+	}
+
+	args := make([]interface{}, 0, len(roles))
+	for _, role := range roles {
+		args = append(args, role.ID, true)
+	}
+
+	return cacheClient.HMSet(context.Background(), consts.RoleDisabledKey.String(), args).Err()
 }

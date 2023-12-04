@@ -68,6 +68,14 @@ service Role {
       body: "*"
     };
   }
+
+  // 修改角色状态
+  rpc EditRoleStatus (EditRoleStatusRequest) returns (EditRoleStatusReply) {
+    option (google.api.http) = {
+      post: "/api/v1/role/status/edit"
+      body: "*"
+    };
+  }
 }
 
 // 创建角色请求参数
@@ -171,4 +179,26 @@ message RelateApiRequest {
 message RelateApiReply {
   // 角色ID, 关联成功后返回
   uint32 id = 1;
+}
+
+// 修改角色状态请求参数
+message EditRoleStatusRequest {
+  // 用于修改状态的角色ID列表, 数量限制 1-100, 必填, 唯一, 大于0
+  repeated uint32 ids = 1 [(validate.rules).repeated = {
+    min_items: 1,
+    max_items: 100,
+    unique: true,
+    items: {
+      uint32: {
+        gt: 0,
+      }
+    }
+  }];
+  // 角色状态, 枚举下的值
+  Status status = 2 [(validate.rules).enum = {defined_only: true, not_in: [0]}];
+}
+// 修改角色状态响应参数
+message EditRoleStatusReply {
+  // 角色ID列表, 修改成功后返回
+  repeated uint32 ids = 1;
 }
