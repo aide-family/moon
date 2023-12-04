@@ -22,12 +22,20 @@ type (
 	}
 )
 
+// GetChatGroup .
+func (l *PromAlarmBeenNotifyChatGroupBO) GetChatGroup() *ChatGroupBO {
+	if l.ChatGroup == nil {
+		return nil
+	}
+	return l.ChatGroup
+}
+
 // ToModel 转换为模型
 func (l *PromAlarmBeenNotifyChatGroupBO) ToModel() *model.PromAlarmBeenNotifyChatGroup {
 	return &model.PromAlarmBeenNotifyChatGroup{
 		BaseModel:         query.BaseModel{ID: l.ID},
 		RealtimeAlarmID:   l.RealtimeAlarmID,
-		ChatGroup:         l.ChatGroup.ToModel(),
+		ChatGroup:         l.GetChatGroup().ToModel(),
 		ChatGroupId:       l.ChatGroupId,
 		Status:            l.Status,
 		Msg:               l.Msg,
@@ -43,7 +51,7 @@ func PromAlarmBeenNotifyChatGroupModelToBO(m *model.PromAlarmBeenNotifyChatGroup
 		Msg:               m.Msg,
 		PromAlarmNotifyID: m.PromAlarmNotifyID,
 		RealtimeAlarmID:   m.RealtimeAlarmID,
-		ChatGroup:         ChatGroupModelToBO(m.ChatGroup),
+		ChatGroup:         ChatGroupModelToBO(m.GetChatGroup()),
 		ChatGroupId:       m.ChatGroupId,
 		CreatedAt:         m.CreatedAt.Unix(),
 		UpdatedAt:         m.UpdatedAt.Unix(),

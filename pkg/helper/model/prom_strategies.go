@@ -45,16 +45,64 @@ func (*PromStrategy) TableName() string {
 
 // GetAlertLevel 获取告警等级
 func (p *PromStrategy) GetAlertLevel() *PromDict {
-	if p.AlertLevel == nil {
-		return &PromDict{}
+	if p == nil {
+		return nil
 	}
 	return p.AlertLevel
 }
 
 // GetAlarmPages 获取告警页面
 func (p *PromStrategy) GetAlarmPages() []*PromAlarmPage {
-	if p.AlarmPages == nil {
-		return []*PromAlarmPage{}
+	if p == nil {
+		return nil
 	}
 	return p.AlarmPages
+}
+
+// GetLabels 获取标签
+func (p *PromStrategy) GetLabels() *strategy.Labels {
+	if p == nil {
+		return nil
+	}
+	return p.Labels
+}
+
+// GetAnnotations 获取告警文案
+func (p *PromStrategy) GetAnnotations() *strategy.Annotations {
+	if p == nil {
+		return nil
+	}
+	return p.Annotations
+}
+
+// GetCategories 获取分类
+func (p *PromStrategy) GetCategories() []*PromDict {
+	if p == nil {
+		return nil
+	}
+	return p.Categories
+}
+
+// GetPromNotifies 获取通知对象
+func (p *PromStrategy) GetPromNotifies() []*PromAlarmNotify {
+	if p == nil {
+		return nil
+	}
+	return p.PromNotifies
+}
+
+// GetPromNotifyUpgrade 获取告警升级后的通知对象
+func (p *PromStrategy) GetPromNotifyUpgrade() []*PromAlarmNotify {
+	if p == nil {
+		return nil
+	}
+	return p.PromNotifyUpgrade
+}
+
+// GetGroupInfo 获取所属规则组
+func (p *PromStrategy) GetGroupInfo() *PromStrategyGroup {
+	if p == nil {
+		return nil
+	}
+	return p.GroupInfo
 }

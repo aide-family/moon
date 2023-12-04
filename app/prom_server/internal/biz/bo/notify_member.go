@@ -21,6 +21,22 @@ type (
 	}
 )
 
+// GetMember 获取用户详情
+func (b *NotifyMemberBO) GetMember() *UserBO {
+	if b == nil {
+		return nil
+	}
+	return b.Member
+}
+
+// GetNotifyTypes 获取通知类型
+func (b *NotifyMemberBO) GetNotifyTypes() valueobj.NotifyTypes {
+	if b == nil {
+		return nil
+	}
+	return b.NotifyTypes
+}
+
 func (b *NotifyMemberBO) ToModel() *model.PromAlarmNotifyMember {
 	if b == nil {
 		return nil
@@ -28,9 +44,9 @@ func (b *NotifyMemberBO) ToModel() *model.PromAlarmNotifyMember {
 	return &model.PromAlarmNotifyMember{
 		BaseModel:   query.BaseModel{ID: b.Id},
 		Status:      b.Status,
-		NotifyTypes: b.NotifyTypes,
+		NotifyTypes: b.GetNotifyTypes(),
 		MemberId:    b.MemberId,
-		Member:      b.Member.ToModel(),
+		Member:      b.GetMember().ToModel(),
 	}
 }
 
@@ -42,8 +58,8 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 
 	return &api.BeNotifyMemberDetail{
 		MemberId:    uint32(b.MemberId),
-		NotifyTypes: slices.To(b.NotifyTypes, func(i valueobj.NotifyType) int32 { return i.Value() }),
-		User:        b.Member.ToApiSelectV1(),
+		NotifyTypes: slices.To(b.GetNotifyTypes(), func(i valueobj.NotifyType) int32 { return i.Value() }),
+		User:        b.GetMember().ToApiSelectV1(),
 		Status:      b.Status.Value(),
 		Id:          uint32(b.Id),
 	}
@@ -56,13 +72,9 @@ func NotifyMemberApiToBO(a *api.BeNotifyMember) *NotifyMemberBO {
 	}
 	return &NotifyMemberBO{
 		Id:          uint(a.Id),
-		Status:      0,
-		CreatedAt:   0,
-		UpdatedAt:   0,
-		DeletedAt:   0,
-		MemberId:    uint(a.MemberId),
-		Member:      &UserBO{Id: uint(a.MemberId)},
-		NotifyTypes: slices.To(a.NotifyTypes, func(i api.NotifyType) valueobj.NotifyType { return valueobj.NotifyType(i) }),
+		MemberId:    uint(a.GetMemberId()),
+		Member:      &UserBO{Id: uint(a.GetMemberId())},
+		NotifyTypes: slices.To(a.GetNotifyTypes(), func(i api.NotifyType) valueobj.NotifyType { return valueobj.NotifyType(i) }),
 	}
 }
 
@@ -78,7 +90,7 @@ func NotifyMemberModelToBO(m *model.PromAlarmNotifyMember) *NotifyMemberBO {
 		UpdatedAt:   m.UpdatedAt.Unix(),
 		DeletedAt:   int64(m.DeletedAt),
 		MemberId:    m.MemberId,
-		Member:      UserModelToBO(m.Member),
-		NotifyTypes: m.NotifyTypes,
+		Member:      UserModelToBO(m.GetMember()),
+		NotifyTypes: m.GetNotifyTypes(),
 	}
 }

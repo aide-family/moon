@@ -22,27 +22,36 @@ type (
 	}
 )
 
+// GetNotifyTypes .
+func (l *AlarmBeenNotifyMemberBO) GetNotifyTypes() valueobj.NotifyTypes {
+	if l == nil {
+		return valueobj.NotifyTypes{}
+	}
+	return l.NotifyTypes
+}
+
 // ToModel 转换为model
 func (l *AlarmBeenNotifyMemberBO) ToModel() *model.PromAlarmBeenNotifyMember {
 	return &model.PromAlarmBeenNotifyMember{
 		BaseModel:         query.BaseModel{ID: l.ID},
 		RealtimeAlarmID:   l.RealtimeAlarmID,
-		NotifyTypes:       l.NotifyTypes,
+		NotifyTypes:       l.GetNotifyTypes(),
 		MemberId:          l.MemberId,
-		Member:            nil,
 		Msg:               l.Msg,
 		Status:            l.Status,
 		PromAlarmNotifyID: l.PromAlarmNotifyID,
-		PromAlarmNotify:   nil,
 	}
 }
 
 func AlarmBeenNotifyMemberModelToBO(m *model.PromAlarmBeenNotifyMember) *AlarmBeenNotifyMemberBO {
+	if m == nil {
+		return nil
+	}
 	return &AlarmBeenNotifyMemberBO{
 		ID:                m.ID,
 		RealtimeAlarmID:   m.RealtimeAlarmID,
 		Status:            m.Status,
-		NotifyTypes:       m.NotifyTypes,
+		NotifyTypes:       m.GetNotifyTypes(),
 		MemberId:          m.MemberId,
 		PromAlarmNotifyID: m.PromAlarmNotifyID,
 		Msg:               m.Msg,

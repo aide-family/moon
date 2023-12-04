@@ -22,3 +22,19 @@ type PromStrategyGroup struct {
 func (*PromStrategyGroup) TableName() string {
 	return TableNamePromGroup
 }
+
+// GetPromStrategies 获取策略组下的策略
+func (p *PromStrategyGroup) GetPromStrategies() []*PromStrategy {
+	if p == nil {
+		return nil
+	}
+	return p.PromStrategies
+}
+
+// GetCategories 获取策略组的分类
+func (p *PromStrategyGroup) GetCategories() []*PromDict {
+	if p == nil {
+		return nil
+	}
+	return p.Categories
+}

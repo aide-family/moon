@@ -22,6 +22,22 @@ type (
 	}
 )
 
+// GetUsers 获取用户列表
+func (l *RoleBO) GetUsers() []*UserBO {
+	if l == nil {
+		return nil
+	}
+	return l.Users
+}
+
+// GetApis 获取api列表
+func (l *RoleBO) GetApis() []*ApiBO {
+	if l == nil {
+		return nil
+	}
+	return l.Apis
+}
+
 func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
 	if l == nil {
 		return nil
@@ -46,10 +62,10 @@ func (l *RoleBO) ToApiV1() *api.RoleV1 {
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
 		DeletedAt: l.DeletedAt,
-		Users: slices.To(l.Users, func(i *UserBO) *api.UserSelectV1 {
+		Users: slices.To(l.GetUsers(), func(i *UserBO) *api.UserSelectV1 {
 			return i.ToApiSelectV1()
 		}),
-		Apis: slices.To(l.Apis, func(i *ApiBO) *api.ApiSelectV1 {
+		Apis: slices.To(l.GetApis(), func(i *ApiBO) *api.ApiSelectV1 {
 			return i.ToApiSelectV1()
 		}),
 	}
@@ -66,10 +82,10 @@ func (l *RoleBO) ToModel() *model.SysRole {
 		Remark: l.Remark,
 		Name:   l.Name,
 		Status: l.Status,
-		Users: slices.To(l.Users, func(i *UserBO) *model.SysUser {
+		Users: slices.To(l.GetUsers(), func(i *UserBO) *model.SysUser {
 			return i.ToModel()
 		}),
-		Apis: slices.To(l.Apis, func(i *ApiBO) *model.SysAPI {
+		Apis: slices.To(l.GetApis(), func(i *ApiBO) *model.SysAPI {
 			return i.ToModel()
 		}),
 	}
@@ -88,10 +104,10 @@ func RoleModelToBO(m *model.SysRole) *RoleBO {
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
-		Users: slices.To(m.Users, func(i *model.SysUser) *UserBO {
+		Users: slices.To(m.GetUsers(), func(i *model.SysUser) *UserBO {
 			return UserModelToBO(i)
 		}),
-		Apis: slices.To(m.Apis, func(i *model.SysAPI) *ApiBO {
+		Apis: slices.To(m.GetApis(), func(i *model.SysAPI) *ApiBO {
 			return ApiModelToBO(i)
 		}),
 	}

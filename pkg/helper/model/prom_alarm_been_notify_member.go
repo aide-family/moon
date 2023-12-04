@@ -22,3 +22,27 @@ type PromAlarmBeenNotifyMember struct {
 func (*PromAlarmBeenNotifyMember) TableName() string {
 	return TableNamePromAlarmNotifyMember
 }
+
+// GetNotifyTypes .
+func (p *PromAlarmBeenNotifyMember) GetNotifyTypes() valueobj.NotifyTypes {
+	if p.NotifyTypes == nil {
+		return valueobj.NotifyTypes{}
+	}
+	return p.NotifyTypes
+}
+
+// GetMember .
+func (p *PromAlarmBeenNotifyMember) GetMember() *SysUser {
+	if p.Member == nil {
+		return nil
+	}
+	return p.Member
+}
+
+// GetPromAlarmNotify .
+func (p *PromAlarmBeenNotifyMember) GetPromAlarmNotify() *PromAlarmNotify {
+	if p.PromAlarmNotify == nil {
+		return nil
+	}
+	return p.PromAlarmNotify
+}
