@@ -30,6 +30,7 @@ type SysAPI struct {
 	Remark string          `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
 	Module valueobj.Module `gorm:"column:module;type:int;not null;default:0;comment:模块"`
 	Domain valueobj.Domain `gorm:"column:domain;type:int;not null;default:0;comment:领域"`
+	Roles  []*SysRole      `gorm:"many2many:sys_role_apis;comment:角色api"`
 }
 
 // TableName 表名
