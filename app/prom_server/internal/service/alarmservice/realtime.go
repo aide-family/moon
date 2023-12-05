@@ -48,6 +48,7 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 	wheres := []query.ScopeMethod{
 		alarmscopes.RealtimeLike(req.GetKeyword()),
 		alarmscopes.RealtimeEventAtDesc(),
+		// 其他条件
 	}
 
 	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)

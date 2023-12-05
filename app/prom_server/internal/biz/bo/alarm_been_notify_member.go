@@ -2,8 +2,10 @@ package bo
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -15,6 +17,7 @@ type (
 		MemberId          uint                 `json:"memberId"`
 		PromAlarmNotifyID uint                 `json:"promAlarmNotifyID"`
 		Msg               string               `json:"msg"`
+		Member            *UserBO              `json:"member"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -30,6 +33,14 @@ func (l *AlarmBeenNotifyMemberBO) GetNotifyTypes() valueobj.NotifyTypes {
 	return l.NotifyTypes
 }
 
+// GetMember 获取用户
+func (l *AlarmBeenNotifyMemberBO) GetMember() *UserBO {
+	if l == nil {
+		return nil
+	}
+	return l.Member
+}
+
 // ToModel 转换为model
 func (l *AlarmBeenNotifyMemberBO) ToModel() *model.PromAlarmBeenNotifyMember {
 	return &model.PromAlarmBeenNotifyMember{
@@ -40,6 +51,17 @@ func (l *AlarmBeenNotifyMemberBO) ToModel() *model.PromAlarmBeenNotifyMember {
 		Msg:               l.Msg,
 		Status:            l.Status,
 		PromAlarmNotifyID: l.PromAlarmNotifyID,
+	}
+}
+
+// ToApi 转换为api
+func (l *AlarmBeenNotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
+	return &api.BeNotifyMemberDetail{
+		MemberId:    uint32(l.MemberId),
+		NotifyTypes: slices.To(l.GetNotifyTypes(), func(i valueobj.NotifyType) int32 { return int32(i) }),
+		User:        l.GetMember().ToApiSelectV1(),
+		Status:      l.Status.Value(),
+		Id:          uint32(l.ID),
 	}
 }
 

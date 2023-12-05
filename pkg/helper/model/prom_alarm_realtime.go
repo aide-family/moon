@@ -13,8 +13,11 @@ type PromAlarmRealtime struct {
 	// StrategyID 发生这条告警的具体策略信息
 	StrategyID uint          `gorm:"column:strategy_id;type:int unsigned;not null;index:idx__strategy_id,priority:1;comment:策略ID"`
 	Strategy   *PromStrategy `gorm:"foreignKey:StrategyID"`
-	Instance   string        `gorm:"column:instance;type:varchar(64);not null;index:idx__instance,priority:1;comment:instance名称"`
-	Note       string        `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
+	LevelId    uint          `gorm:"column:level_id;type:int unsigned;not null;index:idx__level_id,priority:1;comment:告警等级ID"`
+	Level      *PromDict     `gorm:"foreignKey:LevelId"`
+	// Instance 发生这条告警的具体实例信息
+	Instance string `gorm:"column:instance;type:varchar(64);not null;index:idx__instance,priority:1;comment:instance名称"`
+	Note     string `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
 	// Status 告警状态: 1告警;2恢复
 	Status valueobj.AlarmStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// EventAt 告警时间
@@ -32,6 +35,8 @@ type PromAlarmRealtime struct {
 	AlarmUpgradeInfo *PromAlarmUpgrade `gorm:"foreignKey:RealtimeAlarmID"`
 	// AlarmSuppressInfo 告警抑制信息
 	AlarmSuppressInfo *PromAlarmSuppress `gorm:"foreignKey:RealtimeAlarmID"`
+	// AlarmPages 告警页面信息(多对多)
+	AlarmPages []*PromAlarmPage `gorm:"many2many:prom_alarm_page_realtime_alarms"`
 }
 
 // TableName 表名
@@ -54,6 +59,14 @@ func (p *PromAlarmRealtime) GetAlarmIntervenes() []*PromAlarmIntervene {
 		return nil
 	}
 	return p.AlarmIntervenes
+}
+
+// GetAlarmPages 获取告警页面信息
+func (p *PromAlarmRealtime) GetAlarmPages() []*PromAlarmPage {
+	if p == nil {
+		return nil
+	}
+	return p.AlarmPages
 }
 
 // GetBeenNotifyMembers 获取通知对象

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	query "github.com/aide-cloud/gorm-normalize"
+	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
 )
 
@@ -13,11 +14,12 @@ var _ encoding.BinaryUnmarshaler = (*AlarmUpgradeBO)(nil)
 
 type (
 	AlarmUpgradeBO struct {
-		ID              uint   `json:"id"`
-		RealtimeAlarmID uint   `json:"realtimeAlarmID"`
-		UserID          uint   `json:"userID"`
-		UpgradedAt      int64  `json:"upgradedAt"`
-		Remark          string `json:"remark"`
+		ID              uint    `json:"id"`
+		RealtimeAlarmID uint    `json:"realtimeAlarmID"`
+		UserID          uint    `json:"userID"`
+		UpgradedAt      int64   `json:"upgradedAt"`
+		Remark          string  `json:"remark"`
+		User            *UserBO `json:"user"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -44,6 +46,27 @@ func (l *AlarmUpgradeBO) ToModel() *model.PromAlarmUpgrade {
 		UserID:          l.UserID,
 		UpgradedAt:      l.UpgradedAt,
 		Remark:          l.Remark,
+	}
+}
+
+// GetUser 获取用户
+func (l *AlarmUpgradeBO) GetUser() *UserBO {
+	if l == nil {
+		return nil
+	}
+	return l.User
+}
+
+// ToApi 转换为api
+func (l *AlarmUpgradeBO) ToApi() *api.AlarmUpgradeInfo {
+	if l == nil {
+		return nil
+	}
+	return &api.AlarmUpgradeInfo{
+		UpgradedUser: l.GetUser().ToApiSelectV1(),
+		UpgradedAt:   l.UpgradedAt,
+		Remark:       l.Remark,
+		Id:           uint32(l.ID),
 	}
 }
 
