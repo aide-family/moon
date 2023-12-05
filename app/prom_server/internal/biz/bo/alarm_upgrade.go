@@ -1,9 +1,15 @@
 package bo
 
 import (
+	"encoding"
+	"encoding/json"
+
 	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/pkg/helper/model"
 )
+
+var _ encoding.BinaryMarshaler = (*AlarmUpgradeBO)(nil)
+var _ encoding.BinaryUnmarshaler = (*AlarmUpgradeBO)(nil)
 
 type (
 	AlarmUpgradeBO struct {
@@ -19,9 +25,17 @@ type (
 	}
 )
 
+func (l *AlarmUpgradeBO) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, l)
+}
+
+func (l *AlarmUpgradeBO) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(l)
+}
+
 // ToModel 转换为model
 func (l *AlarmUpgradeBO) ToModel() *model.PromAlarmUpgrade {
-	if l != nil {
+	if l == nil {
 		return nil
 	}
 	return &model.PromAlarmUpgrade{

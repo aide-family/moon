@@ -1,6 +1,9 @@
 package bo
 
 import (
+	"encoding"
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/valueobj"
@@ -8,6 +11,9 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 )
+
+var _ encoding.BinaryMarshaler = (*AlarmRealtimeBO)(nil)
+var _ encoding.BinaryUnmarshaler = (*AlarmRealtimeBO)(nil)
 
 type (
 	AlarmRealtimeBO struct {
@@ -32,6 +38,14 @@ type (
 		DeletedAt int64 `json:"deletedAt"`
 	}
 )
+
+func (l *AlarmRealtimeBO) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, l)
+}
+
+func (l *AlarmRealtimeBO) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(l)
+}
 
 // GetBeNotifyMemberDetail 获取通知成员详情
 func (l *AlarmRealtimeBO) GetBeNotifyMemberDetail() []*AlarmBeenNotifyMemberBO {

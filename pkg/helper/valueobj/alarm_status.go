@@ -50,6 +50,16 @@ func (s AlarmStatus) Value() int32 {
 	return int32(s)
 }
 
+// IsResolved 是否已恢复
+func (s AlarmStatus) IsResolved() bool {
+	return s == AlarmStatusResolved
+}
+
+// IsFiring 是否告警
+func (s AlarmStatus) IsFiring() bool {
+	return s == AlarmStatusAlarm
+}
+
 // ToAlarmStatus 转换为AlarmStatus
 func ToAlarmStatus(status string) AlarmStatus {
 	switch status {

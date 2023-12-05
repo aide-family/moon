@@ -12,6 +12,7 @@ message Bootstrap {
   Log log = 4;
   ApiWhite apiWhite = 5;
   Email email = 6;
+  MQ mq = 7;
 }
 
 message Server {
@@ -42,7 +43,7 @@ message Data {
     google.protobuf.Duration writeTimeout = 4;
     uint32 db = 5;
     string password = 6;
-  google.protobuf.Duration dialTimeout = 7;
+    google.protobuf.Duration dialTimeout = 7;
   }
   Database database = 1;
   Redis redis = 2;
@@ -86,4 +87,14 @@ message Email {
   uint32 port = 2;
   string user = 3;
   string pass = 4;
+}
+
+message MQ {
+  Kafka kafka = 1;
+}
+
+message Kafka {
+  repeated string endpoints = 1;
+  repeated string topics = 2;
+  string groupId = 3;
 }

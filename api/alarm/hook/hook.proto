@@ -3,6 +3,7 @@ syntax = "proto3";
 package api.alarm.hook;
 
 import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "prometheus-manager/api/alarm/hook;hook";
 option java_multiple_files = true;
@@ -24,9 +25,11 @@ message HookV1Request {
 	// 接收者
 	string receiver = 1;
 	// 报警状态, firing, resolved
-	string status = 2;
+	string status = 2 [(validate.rules).string = {
+		in: ["firing", "resolved"]
+	}];
 	// 告警列表
-	repeated AlertV1 alerts = 3;
+	repeated AlertV1 alerts = 3 [(validate.rules).repeated.min_items = 1];
 	// 告警组标签
 	map<string,string> groupLabels = 4;
 	// 公共标签
@@ -46,7 +49,9 @@ message HookV1Request {
 // 告警明细
 message AlertV1 {
 	// 告警状态, firing, resolved
-	string status = 1;
+	string status = 1 [(validate.rules).string = {
+		in: ["firing", "resolved"]
+	}];
 	// 标签
 	map<string,string> labels = 2;
 	// 注解
@@ -58,7 +63,7 @@ message AlertV1 {
 	// 告警生成链接
 	string generatorURL = 6;
 	// 指纹
-	string fingerprint = 7;
+	string fingerprint = 7 [(validate.rules).string.min_len = 1];
 }
 
 // 接收prometheus报警hook请求返回

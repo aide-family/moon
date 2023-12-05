@@ -26,6 +26,11 @@ func TimeRange(startTime, endTime int64) query.ScopeMethod {
 	}
 }
 
+// WhereInMd5 根据md5查询
+func WhereInMd5(md5s ...string) query.ScopeMethod {
+	return query.WhereInColumn("md5", md5s...)
+}
+
 // WhereAlarmPages 根据告警页面查询
 func WhereAlarmPages(ids []uint) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {

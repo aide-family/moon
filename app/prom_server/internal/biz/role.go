@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
@@ -93,7 +93,7 @@ func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status valueobj.Stat
 // cacheRoleByIds 缓存角色信息
 func (b *RoleBiz) cacheRoleByIds(roleIds ...uint32) {
 	go func() {
-		defer helper.Recover(b.log)
+		defer after.Recover(b.log)
 		db, err := b.dataRepo.DB()
 		if err != nil {
 			return

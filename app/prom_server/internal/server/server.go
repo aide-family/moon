@@ -12,17 +12,20 @@ var ProviderSetServer = wire.NewSet(
 	RegisterHttpServer,
 	RegisterGrpcServer,
 	NewServer,
+	NewAlarmEvent,
 )
 
 type Server struct {
-	hSrv *HttpServer
-	gSrv *GrpcServer
+	hSrv       *HttpServer
+	gSrv       *GrpcServer
+	alarmEvent *AlarmEvent
 }
 
-func NewServer(hSrv *HttpServer, gSrv *GrpcServer) *Server {
+func NewServer(hSrv *HttpServer, gSrv *GrpcServer, alarmEvent *AlarmEvent) *Server {
 	return &Server{
-		hSrv: hSrv,
-		gSrv: gSrv,
+		hSrv:       hSrv,
+		gSrv:       gSrv,
+		alarmEvent: alarmEvent,
 	}
 }
 
@@ -30,5 +33,6 @@ func (l *Server) List() []transport.Server {
 	return []transport.Server{
 		l.hSrv,
 		l.gSrv,
+		l.alarmEvent,
 	}
 }

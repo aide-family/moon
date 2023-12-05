@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/uuid"
 )
 
 var kafkaEndpoints = []string{"localhost:9092"}
@@ -14,19 +14,42 @@ var kafkaEndpoints = []string{"localhost:9092"}
 func Test_push(t *testing.T) {
 	topic := "test"
 
-	consumer, err := NewKafkaConsumer(kafkaEndpoints, []string{topic}, log.DefaultLogger)
-	if err != nil {
-		fmt.Println("kafka消费者初始化失败")
-		return
-	}
-	defer consumer.Close()
+	groupId := "consumer-" + uuid.New().String()
+	fmt.Println(groupId)
 
-	consumer.Consume(func(et *kafka.Message) bool {
-		fmt.Printf("message at topic:%v time:%d %s = %s\n", et.TopicPartition, et.Timestamp.Unix(), string(et.Key), string(et.Value))
-		return true
-	})
+	//consumer, err := NewKafkaConsumer(kafkaEndpoints, groupId)
+	//if err != nil {
+	//	fmt.Println("kafka消费者初始化失败")
+	//	return
+	//}
+	//defer consumer.Close()
 
-	producer, err := NewKafkaProducer(kafkaEndpoints, log.DefaultLogger)
+	//if err = consumer.SubscribeTopics([]string{topic}, func(consumer *kafka.Consumer, event kafka.Event) error {
+	//	fmt.Println("kafka消费者开始消费", event)
+	//	return nil
+	//}); err != nil {
+	//	fmt.Println("kafka消费者订阅失败")
+	//	return
+	//}
+
+	//go func() {
+	//	event := consumer.Poll(1000)
+	//	for event != nil {
+	//		switch e := event.(type) {
+	//		case *kafka.Message:
+	//			fmt.Printf("Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+	//		case kafka.PartitionEOF:
+	//			fmt.Printf("Reached %v\n", e)
+	//		case kafka.Error:
+	//			fmt.Printf("%% Error: %v\n", e)
+	//		default:
+	//			fmt.Printf("Ignored %v\n", e)
+	//		}
+	//		event = consumer.Poll(1000)
+	//	}
+	//}()
+
+	producer, err := NewKafkaProducer(kafkaEndpoints)
 	if err != nil {
 		fmt.Println("kafka生产者初始化失败")
 		return
@@ -42,12 +65,16 @@ func Test_push(t *testing.T) {
 					Topic:     &topic,
 					Partition: 0, // kafka.PartitionAny
 				},
-			})
+			}, nil)
+
 			if err != nil {
 				fmt.Println("kafka生产失败", err)
+				break
 			}
-			time.Sleep(3 * time.Second)
+			fmt.Println("kafka生产成功", count)
+			time.Sleep(1 * time.Second)
 			count++
+			go producer.Flush(15 * 1000)
 		}
 	}()
 
