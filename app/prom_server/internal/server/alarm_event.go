@@ -7,11 +7,13 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
+
 	alarmhookPb "prometheus-manager/api/alarm/hook"
-	"prometheus-manager/app/prom_server/internal/conf"
-	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/servers"
+
+	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 )
 
 type EventHandler func(msg *kafka.Message) error

@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/google/wire"
+
 	"prometheus-manager/pkg/helper/plog"
 )
 

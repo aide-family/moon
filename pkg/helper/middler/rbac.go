@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/redis/go-redis/v9"
+
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper/model"

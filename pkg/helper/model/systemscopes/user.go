@@ -3,7 +3,6 @@ package systemscopes
 import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/util/types"
 )
 
 const (
@@ -11,7 +10,7 @@ const (
 )
 
 // UserInIds id列表
-func UserInIds[T types.Int](ids ...T) query.ScopeMethod {
+func UserInIds(ids ...uint32) query.ScopeMethod {
 	return query.WhereInColumn("id", ids...)
 }
 
@@ -41,7 +40,7 @@ func UserEqPhone(phone string) query.ScopeMethod {
 }
 
 // UserPreloadRoles 预加载角色
-func UserPreloadRoles[T types.Int](roleIds ...T) query.ScopeMethod {
+func UserPreloadRoles(roleIds ...uint32) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		if len(roleIds) > 0 {
 			return db.Preload("Roles", query.WhereInColumn("id", roleIds...))

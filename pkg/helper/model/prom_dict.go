@@ -2,6 +2,7 @@ package model
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+
 	"prometheus-manager/pkg/helper/valueobj"
 )
 

@@ -5,12 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
+
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
+
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
 type (
@@ -62,7 +64,7 @@ func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes 
 
 // GetRoleById 获取角色
 func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(id), systemscopes.RolePreloadUsers[uint32](), systemscopes.RolePreloadApis[uint32]())
+	roleBO, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(id), systemscopes.RolePreloadUsers(), systemscopes.RolePreloadApis())
 	if err != nil {
 		return nil, err
 	}

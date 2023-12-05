@@ -6,9 +6,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
@@ -17,6 +16,9 @@ import (
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
+
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
 type (
@@ -45,7 +47,7 @@ func NewUserBiz(
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(id), systemscopes.UserPreloadRoles[uint32]())
+	userBo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(id), systemscopes.UserPreloadRoles())
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +143,7 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 
 // LoginByUsernameAndPassword 登录
 func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *bo.UserBO, token string, err error) {
-	userBO, err = b.userRepo.Get(ctx, systemscopes.UserEqName(username), systemscopes.UserPreloadRoles[uint32]())
+	userBO, err = b.userRepo.Get(ctx, systemscopes.UserEqName(username), systemscopes.UserPreloadRoles())
 	if err != nil {
 		return
 	}
@@ -207,7 +209,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userBO, err = b.userRepo.Get(context.Background(), systemscopes.UserInIds(authClaims.ID), systemscopes.UserPreloadRoles[uint32]())
+	userBO, err = b.userRepo.Get(context.Background(), systemscopes.UserInIds(authClaims.ID), systemscopes.UserPreloadRoles())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return

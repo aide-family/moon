@@ -5,12 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/util/slices"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/util/slices"
 )
 
 var _ repository.NotifyRepo = (*notifyRepoImpl)(nil)

@@ -8,9 +8,11 @@ import (
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/conf"
+
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/helper/model"
+
+	"prometheus-manager/app/prom_server/internal/conf"
 )
 
 // ProviderSetData is data providers.

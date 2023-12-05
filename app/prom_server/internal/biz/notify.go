@@ -7,10 +7,12 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/pkg/helper/model/notifyscopes"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/notifyscopes"
 )
 
 type NotifyBiz struct {

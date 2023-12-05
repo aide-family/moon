@@ -6,13 +6,15 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/realtime"
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/alarmscopes"
 	"prometheus-manager/pkg/util/slices"
+
+	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
 
 type RealtimeService struct {
