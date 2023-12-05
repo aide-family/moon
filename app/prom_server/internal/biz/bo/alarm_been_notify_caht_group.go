@@ -2,6 +2,7 @@ package bo
 
 import (
 	query "github.com/aide-cloud/gorm-normalize"
+	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/valueobj"
 )
@@ -40,6 +41,19 @@ func (l *PromAlarmBeenNotifyChatGroupBO) ToModel() *model.PromAlarmBeenNotifyCha
 		Status:            l.Status,
 		Msg:               l.Msg,
 		PromAlarmNotifyID: l.PromAlarmNotifyID,
+	}
+}
+
+// ToApi 转换为api对象
+func (l *PromAlarmBeenNotifyChatGroupBO) ToApi() *api.ChatGroupSelectV1 {
+	if l == nil {
+		return nil
+	}
+	return &api.ChatGroupSelectV1{
+		Value:  uint32(l.ID),
+		App:    0,
+		Label:  "",
+		Status: l.Status.Value(),
 	}
 }
 

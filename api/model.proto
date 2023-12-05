@@ -379,6 +379,8 @@ message InterveneInfo {
   int64 intervenedAt = 2;
   // 介入备注
   string remark = 3;
+  // 主键
+  uint32 id = 4;
 }
 
 // 告警升级信息
@@ -389,6 +391,8 @@ message AlarmUpgradeInfo {
   int64 upgradedAt = 2;
   // 升级备注
   string remark = 3;
+  // 主键
+  uint32 id = 4;
 }
 
 // 告警抑制信息
@@ -401,6 +405,8 @@ message AlarmSuppressInfo {
   string remark = 3;
   // 抑制时长, 单位: 秒
   int64 duration = 4;
+  // 主键
+  uint32 id = 5;
 }
 
 // 实时告警数据明细
