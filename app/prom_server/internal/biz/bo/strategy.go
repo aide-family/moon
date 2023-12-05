@@ -202,15 +202,15 @@ func (b *StrategyBO) ToModel() *model.PromStrategy {
 	}
 	return &model.PromStrategy{
 		BaseModel: query.BaseModel{
-			ID: uint(b.Id),
+			ID: b.Id,
 		},
-		GroupID:      uint(b.GroupId),
+		GroupID:      b.GroupId,
 		Alert:        b.Alert,
 		Expr:         b.Expr,
 		For:          b.Duration,
 		Labels:       b.GetLabels(),
 		Annotations:  b.GetAnnotations(),
-		AlertLevelID: uint(b.AlarmLevelId),
+		AlertLevelID: b.AlarmLevelId,
 		Status:       b.Status,
 		Remark:       b.Remark,
 		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *AlarmPageBO) *model.PromAlarmPage {
@@ -230,7 +230,7 @@ func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
 		return nil
 	}
 	return &StrategyBO{
-		Id:             uint32(m.ID),
+		Id:             m.ID,
 		Alert:          m.Alert,
 		Expr:           m.Expr,
 		Duration:       m.For,
@@ -238,18 +238,18 @@ func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
 		Annotations:    m.GetAnnotations(),
 		Status:         m.Status,
 		Remark:         m.Remark,
-		GroupId:        uint32(m.GroupID),
+		GroupId:        m.GroupID,
 		GroupInfo:      StrategyGroupModelToBO(m.GetGroupInfo()),
-		AlarmLevelId:   uint32(m.AlertLevelID),
+		AlarmLevelId:   m.AlertLevelID,
 		AlarmLevelInfo: DictModelToBO(m.GetAlertLevel()),
 		AlarmPageIds: slices.To(m.GetAlarmPages(), func(alarmPageInfo *model.PromAlarmPage) uint32 {
-			return uint32(alarmPageInfo.ID)
+			return alarmPageInfo.ID
 		}),
 		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *model.PromAlarmPage) *AlarmPageBO {
 			return AlarmPageModelToBO(dictInfo)
 		}),
 		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *model.PromDict) uint32 {
-			return uint32(dictInfo.ID)
+			return dictInfo.ID
 		}),
 		Categories: slices.To(m.GetCategories(), func(dictInfo *model.PromDict) *DictBO {
 			return DictModelToBO(dictInfo)

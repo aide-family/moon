@@ -9,13 +9,13 @@ import (
 
 type (
 	PromAlarmBeenNotifyChatGroupBO struct {
-		ID                uint            `json:"id"`
+		ID                uint32          `json:"id"`
 		Status            valueobj.Status `json:"status"`
 		Msg               string          `json:"msg"`
-		PromAlarmNotifyID uint            `json:"promAlarmNotifyID"`
-		RealtimeAlarmID   uint            `json:"realtimeAlarmID"`
+		PromAlarmNotifyID uint32          `json:"promAlarmNotifyID"`
+		RealtimeAlarmID   uint32          `json:"realtimeAlarmID"`
 		ChatGroup         *ChatGroupBO    `json:"chatGroup"`
-		ChatGroupId       uint            `json:"chatGroupId"`
+		ChatGroupId       uint32          `json:"chatGroupId"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -50,7 +50,7 @@ func (l *PromAlarmBeenNotifyChatGroupBO) ToApi() *api.ChatGroupSelectV1 {
 		return nil
 	}
 	return &api.ChatGroupSelectV1{
-		Value:  uint32(l.ID),
+		Value:  l.ID,
 		App:    0,
 		Label:  "",
 		Status: l.Status.Value(),

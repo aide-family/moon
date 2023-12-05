@@ -10,6 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/model/notifyscopes"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -56,16 +57,16 @@ func (s *NotifyService) CreateNotify(ctx context.Context, req *pb.CreateNotifyRe
 	}
 
 	return &pb.CreateNotifyReply{
-		Id: uint32(notifyBo.Id),
+		Id: notifyBo.Id,
 	}, nil
 }
 
 func (s *NotifyService) UpdateNotify(ctx context.Context, req *pb.UpdateNotifyRequest) (*pb.UpdateNotifyReply, error) {
 	notifyBo := &bo.NotifyBO{
-		Id:     uint(req.GetId()),
+		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		Status: int32(req.GetStatus()),
+		Status: valueobj.Status(req.GetStatus()),
 		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *bo.NotifyMemberBO {
 			return bo.NotifyMemberApiToBO(t)
 		}),
@@ -92,14 +93,14 @@ func (s *NotifyService) UpdateNotify(ctx context.Context, req *pb.UpdateNotifyRe
 }
 
 func (s *NotifyService) DeleteNotify(ctx context.Context, req *pb.DeleteNotifyRequest) (*pb.DeleteNotifyReply, error) {
-	if err := s.notifyBiz.DeleteNotifyById(ctx, uint(req.GetId())); err != nil {
+	if err := s.notifyBiz.DeleteNotifyById(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
 	return &pb.DeleteNotifyReply{Id: req.GetId()}, nil
 }
 
 func (s *NotifyService) GetNotify(ctx context.Context, req *pb.GetNotifyRequest) (*pb.GetNotifyReply, error) {
-	notifyBo, err := s.notifyBiz.GetNotifyById(ctx, uint(req.GetId()))
+	notifyBo, err := s.notifyBiz.GetNotifyById(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,7 @@ func (s *NotifyService) GetNotify(ctx context.Context, req *pb.GetNotifyRequest)
 
 func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyRequest) (*pb.ListNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []query.ScopeMethod{
 		notifyscopes.NotifyLike(req.GetKeyword()),
 	}
@@ -124,8 +125,8 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 	})
 	return &pb.ListNotifyReply{
 		Page: &api.PageReply{
-			Curr:  pgReq.GetCurr(),
-			Size:  pgReq.GetSize(),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
@@ -134,7 +135,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 
 func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRequest) (*pb.SelectNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []query.ScopeMethod{
 		notifyscopes.NotifyLike(req.GetKeyword()),
 	}
@@ -148,8 +149,8 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 	})
 	return &pb.SelectNotifyReply{
 		Page: &api.PageReply{
-			Curr:  pgReq.GetCurr(),
-			Size:  pgReq.GetSize(),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,

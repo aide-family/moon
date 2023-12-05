@@ -11,7 +11,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper/model/pagescopes"
 	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -43,7 +42,7 @@ func (p *PageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.A
 
 // UpdatePage 通过id更新页面
 func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
-	pageBO, err := p.pageRepo.UpdatePageById(ctx, uint(pageBO.Id), pageBO)
+	pageBO, err := p.pageRepo.UpdatePageById(ctx, pageBO.Id, pageBO)
 	if err != nil {
 		return nil, err
 	}
@@ -53,23 +52,17 @@ func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.A
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
 func (p *PageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	alarmPageIds := slices.To(ids, func(t uint32) uint {
-		return uint(t)
-	})
-	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, valueobj.Status(status), alarmPageIds)
+	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, valueobj.Status(status), ids)
 }
 
 // DeletePageByIds 通过id删除页面
 func (p *PageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error {
-	alarmPageIds := slices.To(ids, func(t uint32) uint {
-		return uint(t)
-	})
-	return p.pageRepo.DeletePageByIds(ctx, alarmPageIds...)
+	return p.pageRepo.DeletePageByIds(ctx, ids...)
 }
 
 // GetPageById 通过id获取页面详情
 func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
-	pageBO, err := p.pageRepo.GetPageById(ctx, uint(id))
+	pageBO, err := p.pageRepo.GetPageById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +73,7 @@ func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, 
 // ListPage 获取页面列表
 func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*bo.AlarmPageBO, query.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		pagescopes.LikePageName(req.GetKeyword()),
 		pagescopes.StatusEQ(int32(req.GetStatus())),
@@ -97,7 +90,7 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 // SelectPageList 获取页面列表
 func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, query.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		pagescopes.LikePageName(req.GetKeyword()),
 		pagescopes.StatusEQ(int32(req.GetStatus())),

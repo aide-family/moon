@@ -50,7 +50,7 @@ func (b *AlarmPageBO) ToModel() *model.PromAlarmPage {
 		return nil
 	}
 	return &model.PromAlarmPage{
-		BaseModel: query.BaseModel{ID: uint(b.Id)},
+		BaseModel: query.BaseModel{ID: b.Id},
 		Name:      b.Name,
 		Icon:      b.Icon,
 		Color:     b.Color,
@@ -65,7 +65,7 @@ func AlarmPageModelToBO(m *model.PromAlarmPage) *AlarmPageBO {
 		return nil
 	}
 	return &AlarmPageBO{
-		Id:        uint32(m.ID),
+		Id:        m.ID,
 		Name:      m.Name,
 		Icon:      m.Icon,
 		Color:     m.Color,

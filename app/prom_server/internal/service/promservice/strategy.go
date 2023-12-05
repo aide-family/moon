@@ -107,8 +107,8 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategy
 
 	list := bo.ListToApiPromStrategyV1(strategyBos...)
 	pg := &api.PageReply{
-		Curr:  int32(pgInfo.GetCurr()),
-		Size:  int32(pgInfo.GetSize()),
+		Curr:  pgInfo.GetCurr(),
+		Size:  pgInfo.GetSize(),
 		Total: pgInfo.GetTotal(),
 	}
 	return &pb.ListStrategyReply{Page: pg, List: list}, nil
@@ -121,8 +121,8 @@ func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStra
 	}
 	list := bo.ListToApiPromStrategySelectV1(strategyBos...)
 	pg := &api.PageReply{
-		Curr:  int32(pgInfo.GetCurr()),
-		Size:  int32(pgInfo.GetSize()),
+		Curr:  pgInfo.GetCurr(),
+		Size:  pgInfo.GetSize(),
 		Total: pgInfo.GetTotal(),
 	}
 	return &pb.SelectStrategyReply{Page: pg, List: list}, nil

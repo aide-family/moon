@@ -18,17 +18,17 @@ type (
 		// CreateStrategy 创建策略
 		CreateStrategy(ctx context.Context, strategy *bo.StrategyBO) (*bo.StrategyBO, error)
 		// UpdateStrategyById 通过id更新策略
-		UpdateStrategyById(ctx context.Context, id uint, strategy *bo.StrategyBO) (*bo.StrategyBO, error)
+		UpdateStrategyById(ctx context.Context, id uint32, strategy *bo.StrategyBO) (*bo.StrategyBO, error)
 		// BatchUpdateStrategyStatusByIds 通过id批量更新策略状态
-		BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error
+		BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error
 		// DeleteStrategyByIds 通过id删除策略
-		DeleteStrategyByIds(ctx context.Context, id ...uint) error
+		DeleteStrategyByIds(ctx context.Context, id ...uint32) error
 		// GetStrategyById 通过id获取策略详情
-		GetStrategyById(ctx context.Context, id uint) (*bo.StrategyBO, error)
+		GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error)
 		// ListStrategy 获取策略列表
 		ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyBO, error)
 		// ListStrategyByIds 通过id列表获取策略列表
-		ListStrategyByIds(ctx context.Context, ids []uint) ([]*bo.StrategyBO, error)
+		ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error)
 	}
 
 	UnimplementedStrategyRepo struct{}
@@ -41,19 +41,19 @@ func (UnimplementedStrategyRepo) CreateStrategy(_ context.Context, _ *bo.Strateg
 	panic("implement me")
 }
 
-func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint, _ *bo.StrategyBO) (*bo.StrategyBO, error) {
+func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint32, _ *bo.StrategyBO) (*bo.StrategyBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategyById not implemented")
 }
 
-func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ valueobj.Status, _ []uint) error {
+func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ valueobj.Status, _ []uint32) error {
 	return status.Errorf(codes.Unimplemented, "method BatchUpdateStrategyStatusByIds not implemented")
 }
 
-func (UnimplementedStrategyRepo) DeleteStrategyByIds(_ context.Context, _ ...uint) error {
+func (UnimplementedStrategyRepo) DeleteStrategyByIds(_ context.Context, _ ...uint32) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteStrategyByIds not implemented")
 }
 
-func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint) (*bo.StrategyBO, error) {
+func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint32) (*bo.StrategyBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyById not implemented")
 }
 
@@ -61,6 +61,6 @@ func (UnimplementedStrategyRepo) ListStrategy(_ context.Context, _ query.Paginat
 	return nil, status.Errorf(codes.Unimplemented, "method ListStrategy not implemented")
 }
 
-func (UnimplementedStrategyRepo) ListStrategyByIds(_ context.Context, _ []uint) ([]*bo.StrategyBO, error) {
+func (UnimplementedStrategyRepo) ListStrategyByIds(_ context.Context, _ []uint32) ([]*bo.StrategyBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStrategyByIds not implemented")
 }

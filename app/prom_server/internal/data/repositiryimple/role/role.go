@@ -121,7 +121,7 @@ func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes
 	return list, nil
 }
 
-func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint, apiList []*bo.ApiBO) error {
+func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint32, apiList []*bo.ApiBO) error {
 	if roleId == 1 {
 		return perrors.ErrorPermissionDenied("超级管理员角色不允许操作")
 	}

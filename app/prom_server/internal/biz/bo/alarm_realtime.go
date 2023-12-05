@@ -17,10 +17,10 @@ var _ encoding.BinaryUnmarshaler = (*AlarmRealtimeBO)(nil)
 
 type (
 	AlarmRealtimeBO struct {
-		ID                   uint                              `json:"id"`
+		ID                   uint32                            `json:"id"`
 		Instance             string                            `json:"instance"`
 		Note                 string                            `json:"note"`
-		LevelId              uint                              `json:"levelId"`
+		LevelId              uint32                            `json:"levelId"`
 		Level                *DictBO                           `json:"level"`
 		EventAt              int64                             `json:"eventAt"`
 		Status               valueobj.AlarmStatus              `json:"status"`
@@ -28,10 +28,10 @@ type (
 		AlarmIntervenes      []*AlarmInterveneBO               `json:"alarmIntervenes"`
 		BeNotifyMemberDetail []*AlarmBeenNotifyMemberBO        `json:"beNotifyMemberDetail"`
 		NotifiedAt           int64                             `json:"notifiedAt"`
-		HistoryID            uint                              `json:"historyId"`
+		HistoryID            uint32                            `json:"historyId"`
 		AlarmUpgradeInfo     *AlarmUpgradeBO                   `json:"alarmUpgradeInfo"`
 		AlarmSuppressInfo    *AlarmSuppressBO                  `json:"alarmSuppressInfo"`
-		StrategyID           uint                              `json:"strategyId"`
+		StrategyID           uint32                            `json:"strategyId"`
 		BeNotifiedChatGroups []*PromAlarmBeenNotifyChatGroupBO `json:"beNotifiedChatGroups"`
 
 		CreatedAt int64 `json:"createdAt"`
@@ -105,7 +105,7 @@ func (l *AlarmRealtimeBO) ToModel() *model.PromAlarmRealtime {
 		BeenNotifyMembers: slices.To(l.GetBeNotifyMemberDetail(), func(i *AlarmBeenNotifyMemberBO) *model.PromAlarmBeenNotifyMember { return i.ToModel() }),
 		BeenChatGroups:    slices.To(l.GetBeNotifiedChatGroups(), func(i *PromAlarmBeenNotifyChatGroupBO) *model.PromAlarmBeenNotifyChatGroup { return i.ToModel() }),
 		NotifiedAt:        l.NotifiedAt,
-		HistoryID:         uint32(l.HistoryID),
+		HistoryID:         l.HistoryID,
 		AlarmIntervenes:   slices.To(l.GetAlarmIntervenes(), func(i *AlarmInterveneBO) *model.PromAlarmIntervene { return i.ToModel() }),
 		AlarmUpgradeInfo:  l.GetAlarmUpgradeInfo().ToModel(),
 		AlarmSuppressInfo: l.GetAlarmSuppressInfo().ToModel(),
@@ -135,20 +135,20 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 	}
 
 	return &api.RealtimeAlarmData{
-		Id:                 uint32(l.ID),
+		Id:                 l.ID,
 		Instance:           l.Instance,
 		Note:               l.Note,
-		LevelId:            uint32(l.LevelId),
+		LevelId:            l.LevelId,
 		EventAt:            l.EventAt,
 		Status:             l.Status.Value(),
 		PageIds:            slices.To(l.GetAlarmPages(), func(i *AlarmPageBO) uint32 { return i.Id }),
 		IntervenedUser:     slices.To(l.GetAlarmIntervenes(), func(i *AlarmInterveneBO) *api.InterveneInfo { return i.ToApi() }),
 		BeenNotifyMembers:  slices.To(l.GetBeNotifyMemberDetail(), func(i *AlarmBeenNotifyMemberBO) *api.BeNotifyMemberDetail { return i.ToApi() }),
 		NotifiedAt:         l.NotifiedAt,
-		HistoryId:          uint32(l.HistoryID),
+		HistoryId:          l.HistoryID,
 		UpgradedUser:       l.GetAlarmUpgradeInfo().ToApi(),
 		SuppressedUser:     l.GetAlarmSuppressInfo().ToApi(),
-		StrategyId:         uint32(l.StrategyID),
+		StrategyId:         l.StrategyID,
 		NotifiedChatGroups: slices.To(l.GetBeNotifiedChatGroups(), func(i *PromAlarmBeenNotifyChatGroupBO) *api.ChatGroupSelectV1 { return i.ToApi() }),
 		CreatedAt:          l.CreatedAt,
 		UpdatedAt:          l.UpdatedAt,
@@ -176,7 +176,7 @@ func AlarmRealtimeModelToBO(m *model.PromAlarmRealtime) *AlarmRealtimeBO {
 			return AlarmBeenNotifyMemberModelToBO(i)
 		}),
 		NotifiedAt:        m.NotifiedAt,
-		HistoryID:         uint(m.HistoryID),
+		HistoryID:         m.HistoryID,
 		AlarmUpgradeInfo:  AlarmUpgradeModelToBO(m.GetAlarmUpgradeInfo()),
 		AlarmSuppressInfo: AlarmSuppressModelToBO(m.GetAlarmSuppressInfo()),
 		StrategyID:        m.StrategyID,

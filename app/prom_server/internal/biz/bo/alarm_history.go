@@ -62,12 +62,12 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 		Instance:   b.Instance,
 		Note:       b.GetInfo().GetAnnotations().Description(),
 		Level:      b.GetLevel(),
-		LevelId:    uint(b.LevelId),
+		LevelId:    b.LevelId,
 		EventAt:    b.StartAt,
 		Status:     b.Status,
 		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
-		HistoryID:  uint(b.Id),
-		StrategyID: uint(b.StrategyId),
+		HistoryID:  b.Id,
+		StrategyID: b.StrategyId,
 	}
 }
 
@@ -93,15 +93,15 @@ func (b *AlarmHistoryBO) ToModel() *model.PromAlarmHistory {
 		return nil
 	}
 	return &model.PromAlarmHistory{
-		BaseModel:  query.BaseModel{ID: uint(b.Id)},
+		BaseModel:  query.BaseModel{ID: b.Id},
 		Instance:   b.Instance,
 		Status:     b.Status,
 		Info:       b.GetInfo().String(),
 		StartAt:    b.StartAt,
 		EndAt:      b.EndAt,
 		Duration:   b.Duration,
-		StrategyID: uint(b.StrategyId),
-		LevelID:    uint(b.LevelId),
+		StrategyID: b.StrategyId,
+		LevelID:    b.LevelId,
 		Md5:        b.Md5,
 		Strategy:   b.GetStrategyBO().ToModel(),
 		Level:      b.GetLevel().ToModel(),
@@ -114,11 +114,11 @@ func AlarmHistoryModelToBO(m *model.PromAlarmHistory) *AlarmHistoryBO {
 		return nil
 	}
 	return &AlarmHistoryBO{
-		Id:         uint32(m.ID),
+		Id:         m.ID,
 		Md5:        m.Md5,
-		StrategyId: uint32(m.StrategyID),
+		StrategyId: m.StrategyID,
 		StrategyBO: StrategyModelToBO(m.GetStrategy()),
-		LevelId:    uint32(m.LevelID),
+		LevelId:    m.LevelID,
 		Level:      DictModelToBO(m.GetLevel()),
 		Status:     m.Status,
 		StartAt:    m.StartAt,

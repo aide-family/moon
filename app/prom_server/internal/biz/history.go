@@ -42,7 +42,7 @@ func NewHistoryBiz(
 
 // GetHistoryDetail 查询历史详情
 func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.AlarmHistoryBO, error) {
-	historyDetail, err := a.historyRepo.GetHistoryById(ctx, uint(id))
+	historyDetail, err := a.historyRepo.GetHistoryById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.Alarm
 // ListHistory 查询历史列表
 func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) ([]*bo.AlarmHistoryBO, query.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		historyscopes.LikeInstance(req.GetKeyword()),
 		historyscopes.TimeRange(req.GetStartAt(), req.GetEndAt()),

@@ -157,7 +157,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	}
 
 	// 获取上次默认角色
-	key := consts.UserRoleKey.KeyInt(userBO.Id).String()
+	key := consts.UserRoleKey.KeyUint32(userBO.Id).String()
 	client, err := b.dataRepo.Client()
 	if err != nil {
 		b.log.Error(err)
@@ -168,7 +168,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 	cacheRoleIdStr := client.Get(ctx, key).String()
 	searchRole := func(roleInfo *bo.RoleBO) bool {
 		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
-		return roleInfo.Id == uint(cacheRoleId)
+		return roleInfo.Id == uint32(cacheRoleId)
 	}
 	// 如果上次默认角色还在角色列表中
 	if slices.ContainsOf(userBO.Roles, searchRole) {
@@ -195,7 +195,7 @@ func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) er
 func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClaims, roleId uint32) (userBO *bo.UserBO, token string, err error) {
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
-		key := consts.UserRoleKey.KeyInt(authClaims.ID).String()
+		key := consts.UserRoleKey.KeyUint32(authClaims.ID).String()
 		client, err := b.dataRepo.Client()
 		if err != nil {
 			b.log.Error(err)
@@ -222,14 +222,14 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 
 	// 更改角色成功
 	compareFun := func(do *bo.RoleBO) bool {
-		return do.Id == uint(roleId)
+		return do.Id == roleId
 	}
 
 	// 切换的角色不存在, 则检查已有角色和token内角色
 	if !slices.ContainsOf(userBO.Roles, compareFun) {
 		compareFunCurrRoleId := func(do *bo.RoleBO) bool {
 			currRoleId, _ := strconv.Atoi(authClaims.Role)
-			return do.Id == uint(currRoleId)
+			return do.Id == uint32(currRoleId)
 		}
 		// 先默认为token内的角色
 		roleIdStr = authClaims.Role
@@ -273,7 +273,7 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 }
 
 // UpdateUserRoleRelation 更新用户角色关系
-func (b *UserBiz) UpdateUserRoleRelation(userId uint) {
+func (b *UserBiz) UpdateUserRoleRelation(userId uint32) {
 	go func() {
 		defer after.Recover(b.log)
 		db, err := b.dataRepo.DB()
@@ -295,7 +295,7 @@ func (b *UserBiz) UpdateUserRoleRelation(userId uint) {
 
 // RelateRoles 关联角色
 func (b *UserBiz) RelateRoles(ctx context.Context, userId uint32, roleIds []uint32) error {
-	defer b.UpdateUserRoleRelation(uint(userId))
+	defer b.UpdateUserRoleRelation(userId)
 	userDo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(userId))
 	if err != nil {
 		return err

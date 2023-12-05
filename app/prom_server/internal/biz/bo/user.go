@@ -10,7 +10,7 @@ import (
 
 type (
 	UserBO struct {
-		Id        uint            `json:"id"`
+		Id        uint32          `json:"id"`
 		Username  string          `json:"username"`
 		Nickname  string          `json:"nickname"`
 		Password  string          `json:"password"`
@@ -42,7 +42,7 @@ func (l *UserBO) ToApiSelectV1() *api.UserSelectV1 {
 	}
 
 	return &api.UserSelectV1{
-		Value:    uint32(l.Id),
+		Value:    l.Id,
 		Label:    l.Username,
 		Status:   l.Status.Value(),
 		Avatar:   l.Avatar,
@@ -57,7 +57,7 @@ func (l *UserBO) ToApiV1() *api.UserV1 {
 	}
 
 	return &api.UserV1{
-		Id:        uint32(l.Id),
+		Id:        l.Id,
 		Username:  l.Username,
 		Email:     l.Email,
 		Phone:     l.Phone,

@@ -9,7 +9,7 @@ import (
 
 type (
 	ApiBO struct {
-		Id     uint            `json:"id"`
+		Id     uint32          `json:"id"`
 		Name   string          `json:"name"`
 		Path   string          `json:"path"`
 		Method string          `json:"method"`
@@ -31,7 +31,7 @@ func (b *ApiBO) ToApiSelectV1() *api.ApiSelectV1 {
 	}
 
 	return &api.ApiSelectV1{
-		Value:  uint32(b.Id),
+		Value:  b.Id,
 		Label:  b.Name,
 		Status: b.Status.Value(),
 		Remark: b.Remark,
@@ -47,7 +47,7 @@ func (b *ApiBO) ToApiV1() *api.ApiV1 {
 	}
 
 	return &api.ApiV1{
-		Id:        uint32(b.Id),
+		Id:        b.Id,
 		Name:      b.Name,
 		Path:      b.Path,
 		Method:    b.Method,

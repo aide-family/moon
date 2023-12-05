@@ -4,14 +4,15 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	NotifyBO struct {
-		Id              uint              `json:"id"`
+		Id              uint32            `json:"id"`
 		Name            string            `json:"name"`
-		Status          int32             `json:"status"`
+		Status          valueobj.Status   `json:"status"`
 		Remark          string            `json:"remark"`
 		CreatedAt       int64             `json:"createdAt"`
 		UpdatedAt       int64             `json:"updatedAt"`
@@ -55,10 +56,10 @@ func (d *NotifyBO) ToApi() *api.NotifyV1 {
 		return nil
 	}
 	return &api.NotifyV1{
-		Id:         uint32(d.Id),
+		Id:         d.Id,
 		Name:       d.Name,
 		Remark:     d.Remark,
-		Status:     d.Status,
+		Status:     d.Status.Value(),
 		Members:    slices.To(d.GetBeNotifyMembers(), func(d *NotifyMemberBO) *api.BeNotifyMemberDetail { return d.ToApi() }),
 		ChatGroups: slices.To(d.GetChatGroups(), func(d *ChatGroupBO) *api.ChatGroupSelectV1 { return d.ToSelectApi() }),
 		CreatedAt:  d.CreatedAt,
@@ -73,10 +74,10 @@ func (d *NotifyBO) ToApiSelectV1() *api.NotifySelectV1 {
 		return nil
 	}
 	return &api.NotifySelectV1{
-		Value:  uint32(d.Id),
+		Value:  d.Id,
 		Label:  d.Name,
 		Remark: d.Remark,
-		Status: d.Status,
+		Status: d.Status.Value(),
 	}
 }
 

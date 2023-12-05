@@ -12,7 +12,6 @@ import (
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -44,7 +43,7 @@ func (b *StrategyXBiz) CreateStrategy(ctx context.Context, strategyBO *bo.Strate
 
 // UpdateStrategyById 更新策略
 func (b *StrategyXBiz) UpdateStrategyById(ctx context.Context, id uint32, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
-	strategyBO, err := b.strategyRepo.UpdateStrategyById(ctx, uint(id), strategyBO)
+	strategyBO, err := b.strategyRepo.UpdateStrategyById(ctx, id, strategyBO)
 	if err != nil {
 		return nil, err
 	}
@@ -54,27 +53,20 @@ func (b *StrategyXBiz) UpdateStrategyById(ctx context.Context, id uint32, strate
 
 // BatchUpdateStrategyStatusByIds 批量更新策略状态
 func (b *StrategyXBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	strategyIds := slices.To(ids, func(t uint32) uint {
-		return uint(t)
-	})
-	return b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, valueobj.Status(status), strategyIds)
+	return b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, valueobj.Status(status), ids)
 }
 
 // DeleteStrategyByIds 删除策略
-func (b *StrategyXBiz) DeleteStrategyByIds(ctx context.Context, id ...uint32) error {
-	if len(id) == 0 {
+func (b *StrategyXBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) error {
+	if len(ids) == 0 {
 		return nil
 	}
-	strategyIds := slices.To(id, func(t uint32) uint {
-		return uint(t)
-	})
-
-	return b.strategyRepo.DeleteStrategyByIds(ctx, strategyIds...)
+	return b.strategyRepo.DeleteStrategyByIds(ctx, ids...)
 }
 
 // GetStrategyById 获取策略详情
 func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
-	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, uint(id))
+	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +77,7 @@ func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Stra
 // ListStrategy 获取策略列表
 func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
 		strategyscopes.LikeStrategy(req.GetKeyword()),
@@ -103,7 +95,7 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 // SelectStrategy 查询策略
 func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
 		strategyscopes.LikeStrategy(req.GetKeyword()),
@@ -120,11 +112,7 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 
 // ExportStrategy 导出策略
 func (b *StrategyXBiz) ExportStrategy(ctx context.Context, req *pb.ExportStrategyRequest) ([]*bo.StrategyBO, error) {
-	strategyIds := slices.To(req.GetIds(), func(t uint32) uint {
-		return uint(t)
-	})
-
-	strategyBOs, err := b.strategyRepo.ListStrategyByIds(ctx, strategyIds)
+	strategyBOs, err := b.strategyRepo.ListStrategyByIds(ctx, req.GetIds())
 	if err != nil {
 		return nil, err
 	}

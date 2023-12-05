@@ -14,9 +14,9 @@ var _ encoding.BinaryUnmarshaler = (*AlarmUpgradeBO)(nil)
 
 type (
 	AlarmUpgradeBO struct {
-		ID              uint    `json:"id"`
-		RealtimeAlarmID uint    `json:"realtimeAlarmID"`
-		UserID          uint    `json:"userID"`
+		ID              uint32  `json:"id"`
+		RealtimeAlarmID uint32  `json:"realtimeAlarmID"`
+		UserID          uint32  `json:"userID"`
 		UpgradedAt      int64   `json:"upgradedAt"`
 		Remark          string  `json:"remark"`
 		User            *UserBO `json:"user"`
@@ -66,7 +66,7 @@ func (l *AlarmUpgradeBO) ToApi() *api.AlarmUpgradeInfo {
 		UpgradedUser: l.GetUser().ToApiSelectV1(),
 		UpgradedAt:   l.UpgradedAt,
 		Remark:       l.Remark,
-		Id:           uint32(l.ID),
+		Id:           l.ID,
 	}
 }
 

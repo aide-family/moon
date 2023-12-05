@@ -10,12 +10,12 @@ import (
 
 type (
 	NotifyMemberBO struct {
-		Id          uint                 `json:"id"`
+		Id          uint32               `json:"id"`
 		Status      valueobj.Status      `json:"status"`
 		CreatedAt   int64                `json:"createdAt"`
 		UpdatedAt   int64                `json:"updatedAt"`
 		DeletedAt   int64                `json:"deletedAt"`
-		MemberId    uint                 `json:"memberId"`
+		MemberId    uint32               `json:"memberId"`
 		Member      *UserBO              `json:"member"`
 		NotifyTypes valueobj.NotifyTypes `json:"notifyTypes"`
 	}
@@ -57,11 +57,11 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 	}
 
 	return &api.BeNotifyMemberDetail{
-		MemberId:    uint32(b.MemberId),
+		MemberId:    b.MemberId,
 		NotifyTypes: slices.To(b.GetNotifyTypes(), func(i valueobj.NotifyType) int32 { return i.Value() }),
 		User:        b.GetMember().ToApiSelectV1(),
 		Status:      b.Status.Value(),
-		Id:          uint32(b.Id),
+		Id:          b.Id,
 	}
 }
 
@@ -71,9 +71,9 @@ func NotifyMemberApiToBO(a *api.BeNotifyMember) *NotifyMemberBO {
 		return nil
 	}
 	return &NotifyMemberBO{
-		Id:          uint(a.Id),
-		MemberId:    uint(a.GetMemberId()),
-		Member:      &UserBO{Id: uint(a.GetMemberId())},
+		Id:          a.Id,
+		MemberId:    a.GetMemberId(),
+		Member:      &UserBO{Id: a.GetMemberId()},
 		NotifyTypes: slices.To(a.GetNotifyTypes(), func(i api.NotifyType) valueobj.NotifyType { return valueobj.NotifyType(i) }),
 	}
 }

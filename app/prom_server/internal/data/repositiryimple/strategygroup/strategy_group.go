@@ -34,7 +34,7 @@ func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.St
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
-func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
+func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, strategyGroupModel); err != nil {
 		return nil, err
@@ -42,21 +42,21 @@ func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint, strateg
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
-func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint) error {
+func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroupscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint) error {
+func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) error {
 	if err := l.WithContext(ctx).Delete(strategygroupscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint) (*bo.StrategyGroupBO, error) {
+func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error) {
 	first, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err

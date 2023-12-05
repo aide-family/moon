@@ -91,7 +91,7 @@ func (b *StrategyGroupBO) ToModel() *model.PromStrategyGroup {
 	}
 	return &model.PromStrategyGroup{
 		BaseModel: query.BaseModel{
-			ID: uint(b.Id),
+			ID: b.Id,
 		},
 		Name:          b.Name,
 		StrategyCount: b.StrategyCount,
@@ -113,13 +113,13 @@ func StrategyGroupModelToBO(m *model.PromStrategyGroup) *StrategyGroupBO {
 	}
 
 	return &StrategyGroupBO{
-		Id:            uint32(m.ID),
+		Id:            m.ID,
 		Name:          m.Name,
 		Remark:        m.Remark,
 		Status:        m.Status,
 		StrategyCount: m.StrategyCount,
 		CategoryIds: slices.To(m.GetCategories(), func(u *model.PromDict) uint32 {
-			return uint32(u.ID)
+			return u.ID
 		}),
 		Categories: slices.To(m.GetCategories(), func(u *model.PromDict) *DictBO {
 			return DictModelToBO(u)

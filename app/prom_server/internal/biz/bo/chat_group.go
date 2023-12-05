@@ -9,7 +9,7 @@ import (
 
 type (
 	ChatGroupBO struct {
-		Id        uint               `json:"id"`
+		Id        uint32             `json:"id"`
 		Name      string             `json:"name"`
 		Status    valueobj.Status    `json:"status"`
 		Remark    string             `json:"remark"`
@@ -28,7 +28,7 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		return nil
 	}
 	return &api.ChatGroup{
-		Id:        uint32(b.Id),
+		Id:        b.Id,
 		Name:      b.Name,
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt,
@@ -46,7 +46,7 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 		return nil
 	}
 	return &api.ChatGroupSelectV1{
-		Value:  uint32(b.Id),
+		Value:  b.Id,
 		App:    b.NotifyApp.Value(),
 		Label:  b.HookName,
 		Status: b.Status.Value(),
@@ -74,7 +74,7 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 		return nil
 	}
 	return &ChatGroupBO{
-		Id:        uint(a.Id),
+		Id:        a.Id,
 		Name:      a.Name,
 		Status:    valueobj.Status(a.Status),
 		Remark:    a.Remark,

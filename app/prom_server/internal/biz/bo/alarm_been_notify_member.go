@@ -10,12 +10,12 @@ import (
 
 type (
 	AlarmBeenNotifyMemberBO struct {
-		ID                uint                 `json:"id"`
-		RealtimeAlarmID   uint                 `json:"realtimeAlarmID"`
+		ID                uint32               `json:"id"`
+		RealtimeAlarmID   uint32               `json:"realtimeAlarmID"`
 		Status            valueobj.Status      `json:"status"`
 		NotifyTypes       valueobj.NotifyTypes `json:"notifyTypes"`
-		MemberId          uint                 `json:"memberId"`
-		PromAlarmNotifyID uint                 `json:"promAlarmNotifyID"`
+		MemberId          uint32               `json:"memberId"`
+		PromAlarmNotifyID uint32               `json:"promAlarmNotifyID"`
 		Msg               string               `json:"msg"`
 		Member            *UserBO              `json:"member"`
 
@@ -57,11 +57,11 @@ func (l *AlarmBeenNotifyMemberBO) ToModel() *model.PromAlarmBeenNotifyMember {
 // ToApi 转换为api
 func (l *AlarmBeenNotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 	return &api.BeNotifyMemberDetail{
-		MemberId:    uint32(l.MemberId),
+		MemberId:    l.MemberId,
 		NotifyTypes: slices.To(l.GetNotifyTypes(), func(i valueobj.NotifyType) int32 { return int32(i) }),
 		User:        l.GetMember().ToApiSelectV1(),
 		Status:      l.Status.Value(),
-		Id:          uint32(l.ID),
+		Id:          l.ID,
 	}
 }
 

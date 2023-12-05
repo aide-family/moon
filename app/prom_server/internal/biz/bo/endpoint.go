@@ -13,7 +13,7 @@ var _ encoding.BinaryUnmarshaler = (*EndpointBO)(nil)
 
 type (
 	EndpointBO struct {
-		Id            uint            `json:"id"`
+		Id            uint32          `json:"id"`
 		Uuid          string          `json:"uuid"`
 		Name          string          `json:"name"`
 		Endpoint      string          `json:"endpoint"`

@@ -10,7 +10,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type ApiService struct {
@@ -44,13 +43,13 @@ func (s *ApiService) CreateApi(ctx context.Context, req *pb.CreateApiRequest) (*
 	}
 
 	return &pb.CreateApiReply{
-		Id: uint32(apiBo.Id),
+		Id: apiBo.Id,
 	}, nil
 }
 
 func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*pb.UpdateApiReply, error) {
 	apiBo := &bo.ApiBO{
-		Id:     uint(req.GetId()),
+		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
@@ -62,12 +61,12 @@ func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*
 		return nil, err
 	}
 	return &pb.UpdateApiReply{
-		Id: uint32(apiBo.Id),
+		Id: apiBo.Id,
 	}, nil
 }
 
 func (s *ApiService) DeleteApi(ctx context.Context, req *pb.DeleteApiRequest) (*pb.DeleteApiReply, error) {
-	apiBo, err := s.apiBiz.GetApiById(ctx, uint(req.GetId()))
+	apiBo, err := s.apiBiz.GetApiById(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +81,7 @@ func (s *ApiService) DeleteApi(ctx context.Context, req *pb.DeleteApiRequest) (*
 }
 
 func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.GetApiReply, error) {
-	apiBo, err := s.apiBiz.GetApiById(ctx, uint(req.GetId()))
+	apiBo, err := s.apiBiz.GetApiById(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +93,7 @@ func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.Get
 
 func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.ListApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo)
 	if err != nil {
 		return nil, err
@@ -105,8 +104,8 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 	}
 	return &pb.ListApiReply{
 		Page: &api.PageReply{
-			Curr:  pgReq.GetCurr(),
-			Size:  pgReq.GetSize(),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
@@ -115,7 +114,7 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 
 func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*pb.SelectApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo)
 	if err != nil {
 		return nil, err
@@ -126,8 +125,8 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 	}
 	return &pb.SelectApiReply{
 		Page: &api.PageReply{
-			Curr:  pgReq.GetCurr(),
-			Size:  pgReq.GetSize(),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
@@ -136,8 +135,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 
 // EditApiStatus 编辑api状态
 func (s *ApiService) EditApiStatus(ctx context.Context, req *pb.EditApiStatusRequest) (*pb.EditApiStatusReply, error) {
-	apiIds := slices.To(req.GetIds(), func(i uint32) uint { return uint(i) })
-	if err := s.apiBiz.UpdateApiStatusById(ctx, valueobj.Status(req.GetStatus()), apiIds); err != nil {
+	if err := s.apiBiz.UpdateApiStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 

@@ -17,7 +17,7 @@ import (
 
 // AuthClaims jwt claims
 type AuthClaims struct {
-	ID   uint   `json:"id"`
+	ID   uint32 `json:"id"`
 	Role string `json:"role"`
 	*jwtv4.RegisteredClaims
 }
@@ -88,12 +88,12 @@ func GetAuthClaims(ctx context.Context) (*AuthClaims, bool) {
 }
 
 // IssueToken issue token
-func IssueToken(id uint, role string) (string, error) {
+func IssueToken(id uint32, role string) (string, error) {
 	return IssueTokenWithDuration(id, role, time.Hour*24)
 }
 
 // IssueTokenWithDuration issue token with duration
-func IssueTokenWithDuration(id uint, role string, duration time.Duration) (string, error) {
+func IssueTokenWithDuration(id uint32, role string, duration time.Duration) (string, error) {
 	claims := &AuthClaims{
 		ID:   id,
 		Role: role,

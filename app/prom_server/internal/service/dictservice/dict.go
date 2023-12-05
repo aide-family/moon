@@ -9,7 +9,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type Service struct {
@@ -61,10 +60,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*p
 }
 
 func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *pb.BatchUpdateDictStatusRequest) (*pb.BatchUpdateDictStatusReply, error) {
-	list := slices.To[uint32, uint](req.GetIds(), func(u uint32) uint {
-		return uint(u)
-	})
-	if err := s.dictBiz.BatchUpdateDictStatus(ctx, req.GetStatus(), list); err != nil {
+	if err := s.dictBiz.BatchUpdateDictStatus(ctx, req.GetStatus(), req.GetIds()); err != nil {
 		s.log.Errorf("batch update dict status err: %v", err)
 		return nil, err
 	}
@@ -72,7 +68,7 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *pb.BatchUpdate
 }
 
 func (s *Service) DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*pb.DeleteDictReply, error) {
-	if err := s.dictBiz.DeleteDictByIds(ctx, uint(req.GetId())); err != nil {
+	if err := s.dictBiz.DeleteDictByIds(ctx, req.GetId()); err != nil {
 		s.log.Errorf("delete dict err: %v", err)
 		return nil, err
 	}
@@ -80,10 +76,7 @@ func (s *Service) DeleteDict(ctx context.Context, req *pb.DeleteDictRequest) (*p
 }
 
 func (s *Service) BatchDeleteDict(ctx context.Context, req *pb.BatchDeleteDictRequest) (*pb.BatchDeleteDictReply, error) {
-	ids := slices.To[uint32, uint](req.GetIds(), func(u uint32) uint {
-		return uint(u)
-	})
-	if err := s.dictBiz.DeleteDictByIds(ctx, ids...); err != nil {
+	if err := s.dictBiz.DeleteDictByIds(ctx, req.GetIds()...); err != nil {
 		s.log.Errorf("batch delete dict err: %v", err)
 		return nil, err
 	}
@@ -91,7 +84,7 @@ func (s *Service) BatchDeleteDict(ctx context.Context, req *pb.BatchDeleteDictRe
 }
 
 func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetDictReply, error) {
-	dictBo, err := s.dictBiz.GetDictById(ctx, uint(req.GetId()))
+	dictBo, err := s.dictBiz.GetDictById(ctx, req.GetId())
 	if err != nil {
 		s.log.Errorf("get dict err: %v", err)
 		return nil, err

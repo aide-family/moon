@@ -4,7 +4,6 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"prometheus-manager/pkg/util/types"
 )
 
 const (
@@ -33,12 +32,12 @@ func RealtimeEventAtDesc() query.ScopeMethod {
 }
 
 // InIds 查询ID列表
-func InIds[T types.Int](ids ...T) query.ScopeMethod {
+func InIds(ids ...uint32) query.ScopeMethod {
 	return query.WhereInColumn("id", ids)
 }
 
 // InHistoryIds 查询历史ID列表
-func InHistoryIds(historyIds ...uint) query.ScopeMethod {
+func InHistoryIds(historyIds ...uint32) query.ScopeMethod {
 	return query.WhereInColumn("history_id", historyIds...)
 }
 

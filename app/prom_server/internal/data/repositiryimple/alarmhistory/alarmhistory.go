@@ -24,7 +24,7 @@ type alarmHistoryRepoImpl struct {
 	query.IAction[model.PromAlarmHistory]
 }
 
-func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint) (*bo.AlarmHistoryBO, error) {
+func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint32) (*bo.AlarmHistoryBO, error) {
 	detail, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 	return resList, nil
 }
 
-func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
+func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint32, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
 	newModel := historyBO.ToModel()
 	if err := l.WithContext(ctx).Scopes(historyscopes.ClausesOnConflict()).UpdateByID(id, newModel); err != nil {
 		return nil, err

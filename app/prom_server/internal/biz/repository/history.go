@@ -16,13 +16,13 @@ type (
 	HistoryRepo interface {
 		mustEmbedUnimplemented()
 		// GetHistoryById 通过id获取历史详情
-		GetHistoryById(ctx context.Context, id uint) (*bo.AlarmHistoryBO, error)
+		GetHistoryById(ctx context.Context, id uint32) (*bo.AlarmHistoryBO, error)
 		// ListHistory 获取历史列表
 		ListHistory(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmHistoryBO, error)
 		// StorageHistory 创建历史
 		StorageHistory(ctx context.Context, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error)
 		// UpdateHistoryById 通过id更新历史
-		UpdateHistoryById(ctx context.Context, id uint, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error)
+		UpdateHistoryById(ctx context.Context, id uint32, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error)
 	}
 
 	UnimplementedHistoryRepo struct{}
@@ -30,7 +30,7 @@ type (
 
 func (UnimplementedHistoryRepo) mustEmbedUnimplemented() {}
 
-func (UnimplementedHistoryRepo) GetHistoryById(_ context.Context, _ uint) (*bo.AlarmHistoryBO, error) {
+func (UnimplementedHistoryRepo) GetHistoryById(_ context.Context, _ uint32) (*bo.AlarmHistoryBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHistoryById not implemented")
 }
 
@@ -42,6 +42,6 @@ func (UnimplementedHistoryRepo) StorageHistory(_ context.Context, _ ...*bo.Alarm
 	return nil, status.Errorf(codes.Unimplemented, "method HandleHistory not implemented")
 }
 
-func (UnimplementedHistoryRepo) UpdateHistoryById(_ context.Context, _ uint, _ *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
+func (UnimplementedHistoryRepo) UpdateHistoryById(_ context.Context, _ uint32, _ *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateHistoryById not implemented")
 }
