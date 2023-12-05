@@ -53,12 +53,12 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CreateUserReply{Id: uint32(userBo.Id)}, nil
+	return &pb.CreateUserReply{Id: userBo.Id}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserReply, error) {
 	userBo := &bo.UserBO{
-		Id:       uint(req.GetId()),
+		Id:       req.GetId(),
 		Nickname: req.GetNickname(),
 		Avatar:   req.GetAvatar(),
 		Status:   valueobj2.Status(req.GetStatus()),
@@ -91,7 +91,7 @@ func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 
 func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
 		systemscopes.CreatedAtDesc(),
@@ -115,7 +115,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 
 func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest) (*pb.SelectUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
 		systemscopes.CreatedAtDesc(),
@@ -157,7 +157,7 @@ func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPass
 		return nil, err
 	}
 	return &pb.EditUserPasswordReply{
-		Id: uint32(userBo.Id),
+		Id: userBo.Id,
 	}, nil
 }
 

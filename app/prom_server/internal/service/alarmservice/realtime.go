@@ -44,7 +44,7 @@ func (l *RealtimeService) GetRealtime(ctx context.Context, req *pb.GetRealtimeRe
 // ListRealtime 实时告警列表
 func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtimeRequest) (*pb.ListRealtimeReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []query.ScopeMethod{
 		alarmscopes.RealtimeLike(req.GetKeyword()),
 		alarmscopes.RealtimeEventAtDesc(),
@@ -57,8 +57,8 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 	}
 	return &pb.ListRealtimeReply{
 		Page: &api.PageReply{
-			Curr:  pgReq.GetCurr(),
-			Size:  pgReq.GetSize(),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: slices.To(realtimeAlarmList, func(t *bo.AlarmRealtimeBO) *api.RealtimeAlarmData {
@@ -75,7 +75,7 @@ func (l *RealtimeService) Intervene(ctx context.Context, req *pb.InterveneReques
 	}
 
 	alarmInterveneBO := &bo.AlarmInterveneBO{
-		RealtimeAlarmID: uint(req.GetId()),
+		RealtimeAlarmID: req.GetId(),
 		UserID:          authClaims.ID,
 		IntervenedAt:    time.Now().Unix(),
 		Remark:          req.GetRemark(),
@@ -95,7 +95,7 @@ func (l *RealtimeService) Upgrade(ctx context.Context, req *pb.UpgradeRequest) (
 	}
 
 	alarmUpgradeBO := &bo.AlarmUpgradeBO{
-		RealtimeAlarmID: uint(req.GetId()),
+		RealtimeAlarmID: req.GetId(),
 		UserID:          authClaims.ID,
 		UpgradedAt:      time.Now().Unix(),
 		Remark:          req.GetRemark(),
@@ -115,7 +115,7 @@ func (l *RealtimeService) Suppress(ctx context.Context, req *pb.SuppressRequest)
 	}
 
 	alarmSuppressBO := &bo.AlarmSuppressBO{
-		RealtimeAlarmID: uint(req.GetId()),
+		RealtimeAlarmID: req.GetId(),
 		UserID:          authClaims.ID,
 		SuppressedAt:    time.Now().Unix(),
 		Remark:          req.GetRemark(),

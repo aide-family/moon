@@ -8,9 +8,9 @@ import (
 
 type (
 	AlarmInterveneBO struct {
-		ID              uint    `json:"id"`
-		RealtimeAlarmID uint    `json:"realtimeAlarmID"`
-		UserID          uint    `json:"userID"`
+		ID              uint32  `json:"id"`
+		RealtimeAlarmID uint32  `json:"realtimeAlarmID"`
+		UserID          uint32  `json:"userID"`
 		IntervenedAt    int64   `json:"intervenedAt"`
 		Remark          string  `json:"remark"`
 		IntervenedUser  *UserBO `json:"intervenedUser"`
@@ -52,7 +52,7 @@ func (l *AlarmInterveneBO) ToApi() *api.InterveneInfo {
 		IntervenedUser: l.GetIntervenedUser().ToApiSelectV1(),
 		IntervenedAt:   l.IntervenedAt,
 		Remark:         l.Remark,
-		Id:             uint32(l.ID),
+		Id:             l.ID,
 	}
 }
 

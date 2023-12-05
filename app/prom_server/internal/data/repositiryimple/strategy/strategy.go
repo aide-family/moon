@@ -27,7 +27,7 @@ type (
 	}
 )
 
-func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint) ([]*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error) {
 	modelList := make([]*model.PromStrategy, 0, len(ids))
 	if err := l.WithContext(ctx).DB().Find(&modelList).Error; err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
 	newStrategy := strategyBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
 		return nil, err
@@ -56,21 +56,21 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint, stra
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
+func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategyscopes.InIds(ids)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint) error {
+func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32) error {
 	if err := l.WithContext(ctx).Delete(strategyscopes.InIds(id)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint) (*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
 	firstStrategy, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err

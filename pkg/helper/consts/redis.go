@@ -36,6 +36,14 @@ func (r RedisKey) Key(args ...string) RedisKey {
 	return RedisKey(strings.Join(append([]string{r.String()}, args...), ":"))
 }
 
+func (r RedisKey) KeyUint32(args ...uint32) RedisKey {
+	var s []string
+	for _, v := range args {
+		s = append(s, strconv.FormatInt(int64(v), 10))
+	}
+	return r.Key(s...)
+}
+
 func (r RedisKey) KeyInt(args ...uint) RedisKey {
 	var s []string
 	for _, v := range args {

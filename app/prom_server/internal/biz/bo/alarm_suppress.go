@@ -8,9 +8,9 @@ import (
 
 type (
 	AlarmSuppressBO struct {
-		ID              uint    `json:"id"`
-		RealtimeAlarmID uint    `json:"realtimeAlarmID"`
-		UserID          uint    `json:"userID"`
+		ID              uint32  `json:"id"`
+		RealtimeAlarmID uint32  `json:"realtimeAlarmID"`
+		UserID          uint32  `json:"userID"`
 		SuppressedAt    int64   `json:"suppressedAt"`
 		Remark          string  `json:"remark"`
 		Duration        int64   `json:"duration"`
@@ -55,7 +55,7 @@ func (l *AlarmSuppressBO) ToApi() *api.AlarmSuppressInfo {
 		SuppressedAt:   l.SuppressedAt,
 		Remark:         l.Remark,
 		Duration:       l.Duration,
-		Id:             uint32(l.ID),
+		Id:             l.ID,
 	}
 }
 

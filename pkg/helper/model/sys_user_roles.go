@@ -21,8 +21,8 @@ var _ encoding.BinaryUnmarshaler = (*UserRoles)(nil)
 const TableNameUserRoles = "sys_user_roles"
 
 type UserRole struct {
-	UserID uint `json:"sys_role_id" gorm:"column:sys_role_id"`
-	RoleID uint `json:"sys_user_id" gorm:"column:sys_user_id"`
+	UserID uint32 `json:"sys_role_id" gorm:"column:sys_role_id"`
+	RoleID uint32 `json:"sys_user_id" gorm:"column:sys_user_id"`
 }
 
 func (*UserRole) TableName() string {
@@ -30,8 +30,8 @@ func (*UserRole) TableName() string {
 }
 
 type UserRoles struct {
-	UserID uint   `json:"user_id"`
-	Roles  []uint `json:"roles"`
+	UserID uint32   `json:"user_id"`
+	Roles  []uint32 `json:"roles"`
 }
 
 func (l *UserRoles) UnmarshalBinary(data []byte) error {
@@ -59,12 +59,12 @@ func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
 		return nil
 	}
 
-	roleMap := make(map[uint]*UserRoles)
+	roleMap := make(map[uint32]*UserRoles)
 	for _, ur := range uRoles {
 		if _, ok := roleMap[ur.UserID]; !ok {
 			roleMap[ur.UserID] = &UserRoles{
 				UserID: ur.UserID,
-				Roles:  make([]uint, 0),
+				Roles:  make([]uint32, 0),
 			}
 		}
 		roleMap[ur.UserID].Roles = append(roleMap[ur.UserID].Roles, ur.RoleID)
@@ -81,7 +81,7 @@ func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
 }
 
 // CacheUserRole 缓存用户角色关联关系
-func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
+func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error {
 	if userID == 0 {
 		return nil
 	}
@@ -100,7 +100,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
 		return nil
 	}
 
-	roleIds := make([]uint, 0, len(uRoles))
+	roleIds := make([]uint32, 0, len(uRoles))
 	for _, ur := range uRoles {
 		roleIds = append(roleIds, ur.RoleID)
 	}
@@ -115,12 +115,12 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint) error {
 	return nil
 }
 
-func generateUserCacheKey(userID uint) string {
+func generateUserCacheKey(userID uint32) string {
 	return strconv.FormatUint(uint64(userID), 10)
 }
 
 // CheckUserRoleExist 检查用户角色是否存在
-func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID uint, roleID string) error {
+func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID uint32, roleID string) error {
 	if userID == 0 || roleID == "" {
 		return nil
 	}
@@ -144,7 +144,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 	if err = json.Unmarshal([]byte(result), &ur); err != nil {
 		return err
 	}
-	if ur.UserID != userID || !slices.Contains(ur.Roles, uint(rID)) {
+	if ur.UserID != userID || !slices.Contains(ur.Roles, uint32(rID)) {
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 

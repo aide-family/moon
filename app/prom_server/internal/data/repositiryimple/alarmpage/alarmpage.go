@@ -31,7 +31,7 @@ func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageBO *bo.AlarmPage
 	return bo.AlarmPageModelToBO(newModel), nil
 }
 
-func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint32, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	newModel := pageBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newModel); err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint, pageBO 
 	return bo.AlarmPageModelToBO(newModel), nil
 }
 
-func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
+func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, stat
 	return nil
 }
 
-func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint) error {
+func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint) er
 	return nil
 }
 
-func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint) (*bo.AlarmPageBO, error) {
+func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
 	detail, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err

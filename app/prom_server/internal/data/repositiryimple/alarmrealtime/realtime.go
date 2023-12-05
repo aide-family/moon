@@ -27,7 +27,7 @@ type alarmRealtimeImpl struct {
 }
 
 func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error) {
-	historyIds := make([]uint, 0, len(req))
+	historyIds := make([]uint32, 0, len(req))
 	newRealtimeModels := slices.To(req, func(item *bo.AlarmRealtimeBO) *model.PromAlarmRealtime {
 		historyIds = append(historyIds, item.HistoryID)
 		return item.ToModel()
@@ -85,7 +85,7 @@ func (l *alarmRealtimeImpl) DeleteCacheByHistoryId(ctx context.Context, historyI
 }
 
 func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyMembers(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmBeenNotifyMemberBO) error {
-	first, err := l.WithContext(ctx).FirstByID(uint(realtimeAlarmID))
+	first, err := l.WithContext(ctx).FirstByID(realtimeAlarmID)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyMembers(ctx context.Context, re
 }
 
 func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyChatGroups(ctx context.Context, realtimeAlarmID uint32, req *bo.PromAlarmBeenNotifyChatGroupBO) error {
-	first, err := l.WithContext(ctx).FirstByID(uint(realtimeAlarmID))
+	first, err := l.WithContext(ctx).FirstByID(realtimeAlarmID)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (l *alarmRealtimeImpl) GetRealtimeList(ctx context.Context, pgInfo query.Pa
 }
 
 func (l *alarmRealtimeImpl) AlarmIntervene(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmInterveneBO) error {
-	first, err := l.WithContext(ctx).FirstByID(uint(realtimeAlarmID))
+	first, err := l.WithContext(ctx).FirstByID(realtimeAlarmID)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (l *alarmRealtimeImpl) AlarmIntervene(ctx context.Context, realtimeAlarmID 
 }
 
 func (l *alarmRealtimeImpl) AlarmUpgrade(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmUpgradeBO) error {
-	first, err := l.WithContext(ctx).FirstByID(uint(realtimeAlarmID))
+	first, err := l.WithContext(ctx).FirstByID(realtimeAlarmID)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (l *alarmRealtimeImpl) AlarmUpgrade(ctx context.Context, realtimeAlarmID ui
 }
 
 func (l *alarmRealtimeImpl) AlarmSuppress(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmSuppressBO) error {
-	first, err := l.WithContext(ctx).FirstByID(uint(realtimeAlarmID))
+	first, err := l.WithContext(ctx).FirstByID(realtimeAlarmID)
 	if err != nil {
 		return err
 	}

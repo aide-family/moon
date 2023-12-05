@@ -21,7 +21,7 @@ type (
 		Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.RoleBO, error)
 		Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error)
 		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error)
-		RelateApi(ctx context.Context, roleId uint, apiList []*bo.ApiBO) error
+		RelateApi(ctx context.Context, roleId uint32, apiList []*bo.ApiBO) error
 	}
 
 	UnimplementedRoleRepo struct{}
@@ -57,6 +57,6 @@ func (UnimplementedRoleRepo) List(_ context.Context, _ query.Pagination, _ ...qu
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 
-func (UnimplementedRoleRepo) RelateApi(_ context.Context, _ uint, _ []*bo.ApiBO) error {
+func (UnimplementedRoleRepo) RelateApi(_ context.Context, _ uint32, _ []*bo.ApiBO) error {
 	return status.Error(codes.Unimplemented, "method RelateApi not implemented")
 }

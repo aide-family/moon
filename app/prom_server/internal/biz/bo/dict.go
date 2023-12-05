@@ -56,7 +56,7 @@ func (d *DictBO) ToModel() *model.PromDict {
 		Remark:   d.Remark,
 		Color:    d.Color,
 		BaseModel: query.BaseModel{
-			ID: uint(d.Id),
+			ID: d.Id,
 		},
 	}
 }
@@ -85,7 +85,7 @@ func DictModelToBO(m *model.PromDict) *DictBO {
 		return nil
 	}
 	return &DictBO{
-		Id:        uint32(m.ID),
+		Id:        m.ID,
 		Name:      m.Name,
 		Category:  m.Category,
 		Status:    m.Status,

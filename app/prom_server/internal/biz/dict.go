@@ -41,7 +41,7 @@ func (b *DictBiz) CreateDict(ctx context.Context, dict *bo.DictBO) (*bo.DictBO, 
 
 // UpdateDict 更新字典
 func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO, error) {
-	newDictDO, err := b.dictRepo.UpdateDictById(ctx, uint(dictBO.Id), dictBO)
+	newDictDO, err := b.dictRepo.UpdateDictById(ctx, dictBO.Id, dictBO)
 	if err != nil {
 		return nil, err
 	}
@@ -49,17 +49,17 @@ func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO
 }
 
 // BatchUpdateDictStatus 批量更新字典状态
-func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint) error {
+func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint32) error {
 	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, valueobj.Status(status), ids)
 }
 
 // DeleteDictByIds 删除字典
-func (b *DictBiz) DeleteDictByIds(ctx context.Context, id ...uint) error {
+func (b *DictBiz) DeleteDictByIds(ctx context.Context, id ...uint32) error {
 	return b.dictRepo.DeleteDictByIds(ctx, id...)
 }
 
 // GetDictById 获取字典详情
-func (b *DictBiz) GetDictById(ctx context.Context, id uint) (*bo.DictBO, error) {
+func (b *DictBiz) GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error) {
 	dictDetail, err := b.dictRepo.GetDictById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (b *DictBiz) GetDictById(ctx context.Context, id uint) (*bo.DictBO, error) 
 // ListDict 获取字典列表
 func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*bo.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
-	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
+	pgInfo := query.NewPage(pageReq.GetCurr(), pageReq.GetSize())
 
 	wheres := []query.ScopeMethod{
 		dictscopes.WhereCategory(int32(req.GetCategory())),
@@ -88,7 +88,7 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 // SelectDict 获取字典列表
 func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*bo.DictBO, *query.Page, error) {
 	pageReq := req.GetPage()
-	pgInfo := query.NewPage(int(pageReq.GetCurr()), int(pageReq.GetSize()))
+	pgInfo := query.NewPage(pageReq.GetCurr(), pageReq.GetSize())
 
 	wheres := []query.ScopeMethod{
 		dictscopes.WhereCategory(int32(req.GetCategory())),

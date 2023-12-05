@@ -37,7 +37,7 @@ func (b *NotifyBiz) CreateNotify(ctx context.Context, notifyBo *bo.NotifyBO) (*b
 }
 
 // CheckNotifyName 检查通知名称是否存在
-func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint) error {
+func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint32) error {
 	total, err := b.notifyRepo.Count(ctx, notifyscopes.NotifyEqName(name), notifyscopes.NotifyNotInIds(id...))
 	if err != nil {
 		return err
@@ -50,17 +50,17 @@ func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint
 }
 
 // UpdateNotifyById 更新通知对象
-func (b *NotifyBiz) UpdateNotifyById(ctx context.Context, id uint, notifyBo *bo.NotifyBO) error {
+func (b *NotifyBiz) UpdateNotifyById(ctx context.Context, id uint32, notifyBo *bo.NotifyBO) error {
 	return b.notifyRepo.Update(ctx, notifyBo, notifyscopes.NotifyInIds(id))
 }
 
 // DeleteNotifyById 删除通知对象
-func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint) error {
+func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
 	return b.notifyRepo.Delete(ctx, notifyscopes.NotifyInIds(id))
 }
 
 // GetNotifyById 获取通知对象
-func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint) (*bo.NotifyBO, error) {
+func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO, error) {
 	notifyBo, err := b.notifyRepo.Get(ctx, notifyscopes.NotifyInIds(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

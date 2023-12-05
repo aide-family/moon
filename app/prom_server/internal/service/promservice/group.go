@@ -96,7 +96,7 @@ func (s *GroupService) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*
 
 func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*pb.ListGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		strategygroupscopes.Like(req.GetKeyword()),
 	}
@@ -118,7 +118,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 
 func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupRequest) (*pb.SelectGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		strategygroupscopes.Like(req.GetKeyword()),
 	}
@@ -131,8 +131,8 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 			return t.ToApiSelectV1()
 		}),
 		Page: &api.PageReply{
-			Curr:  int32(pgInfo.GetCurr()),
-			Size:  int32(pgInfo.GetSize()),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 	}, nil

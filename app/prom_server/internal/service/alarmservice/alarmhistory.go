@@ -48,8 +48,8 @@ func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryReq
 
 	return &pb.ListHistoryReply{
 		Page: &api.PageReply{
-			Curr:  int32(pgInfo.GetCurr()),
-			Size:  int32(pgInfo.GetSize()),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,

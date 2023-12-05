@@ -88,7 +88,7 @@ func CacheAllApiSimple(db *gorm.DB, cacheClient *redis.Client) error {
 }
 
 // CacheApiSimple 缓存单个api简单信息
-func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint) error {
+func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint32) error {
 	if len(apiIds) == 0 {
 		return nil
 	}

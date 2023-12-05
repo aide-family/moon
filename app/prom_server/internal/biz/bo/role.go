@@ -10,7 +10,7 @@ import (
 
 type (
 	RoleBO struct {
-		Id        uint            `json:"id"`
+		Id        uint32          `json:"id"`
 		Name      string          `json:"name"`
 		Status    valueobj.Status `json:"status"`
 		Remark    string          `json:"remark"`
@@ -43,7 +43,7 @@ func (l *RoleBO) ApiRoleSelectV1() *api.RoleSelectV1 {
 		return nil
 	}
 	return &api.RoleSelectV1{
-		Value:  uint32(l.Id),
+		Value:  l.Id,
 		Label:  l.Name,
 		Status: l.Status.Value(),
 		Remark: l.Remark,
@@ -55,7 +55,7 @@ func (l *RoleBO) ToApiV1() *api.RoleV1 {
 		return nil
 	}
 	return &api.RoleV1{
-		Id:        uint32(l.Id),
+		Id:        l.Id,
 		Name:      l.Name,
 		Status:    l.Status.Value(),
 		Remark:    l.Remark,

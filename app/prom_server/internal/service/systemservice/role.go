@@ -38,13 +38,13 @@ func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest)
 		return nil, err
 	}
 	return &pb.CreateRoleReply{
-		Id: uint32(b.Id),
+		Id: b.Id,
 	}, nil
 }
 
 func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest) (*pb.UpdateRoleReply, error) {
 	b := &bo.RoleBO{
-		Id:     uint(req.GetId()),
+		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 		Status: valueobj.Status(req.GetStatus()),
@@ -53,7 +53,7 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UpdateRoleReply{Id: uint32(b.Id)}, nil
+	return &pb.UpdateRoleReply{Id: b.Id}, nil
 }
 
 func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest) (*pb.DeleteRoleReply, error) {
@@ -77,7 +77,7 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 
 func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.RoleLike(req.GetKeyword()),
 	}
@@ -92,8 +92,8 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	})
 	return &pb.ListRoleReply{
 		Page: &api.PageReply{
-			Curr:  int32(pgInfo.GetCurr()),
-			Size:  int32(pgInfo.GetSize()),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,
@@ -102,7 +102,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 
 func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest) (*pb.SelectRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(int(pgReq.GetCurr()), int(pgReq.GetSize()))
+	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.RoleLike(req.GetKeyword()),
 	}
@@ -117,8 +117,8 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 	})
 	return &pb.SelectRoleReply{
 		Page: &api.PageReply{
-			Curr:  int32(pgInfo.GetCurr()),
-			Size:  int32(pgInfo.GetSize()),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: list,

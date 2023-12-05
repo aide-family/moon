@@ -37,7 +37,7 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 		return nil, err
 	}
 
-	ids := slices.To[*bo.ApiBO, uint](apiBoList, func(t *bo.ApiBO) uint {
+	ids := slices.To(apiBoList, func(t *bo.ApiBO) uint32 {
 		return t.Id
 	})
 	b.cacheApiByIds(ids...)
@@ -45,7 +45,7 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 }
 
 // GetApiById 获取api
-func (b *ApiBiz) GetApiById(ctx context.Context, id uint) (*bo.ApiBO, error) {
+func (b *ApiBiz) GetApiById(ctx context.Context, id uint32) (*bo.ApiBO, error) {
 	apiBO, err := b.apiRepo.Get(ctx, systemscopes.ApiInIds(id))
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ..
 }
 
 // DeleteApiById 删除api
-func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
+func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint32) error {
 	if err := b.apiRepo.Delete(ctx, systemscopes.ApiInIds(id)); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint) error {
 }
 
 // UpdateApiById 更新api
-func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBO *bo.ApiBO) (*bo.ApiBO, error) {
+func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint32, apiBO *bo.ApiBO) (*bo.ApiBO, error) {
 	apiBO, err := b.apiRepo.Update(ctx, apiBO, systemscopes.ApiInIds(id))
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint, apiBO *bo.ApiBO) (*
 }
 
 // cacheApiByIds 缓存api
-func (b *ApiBiz) cacheApiByIds(apiIds ...uint) {
+func (b *ApiBiz) cacheApiByIds(apiIds ...uint32) {
 	go func() {
 		defer after.Recover(b.log)
 		db, err := b.dataRepo.DB()
@@ -103,7 +103,7 @@ func (b *ApiBiz) cacheApiByIds(apiIds ...uint) {
 }
 
 // UpdateApiStatusById 更新api状态
-func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status valueobj.Status, ids []uint) error {
+func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}

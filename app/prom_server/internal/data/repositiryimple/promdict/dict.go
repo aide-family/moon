@@ -31,7 +31,7 @@ func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictBO *bo.DictBO) (*
 	return bo.DictModelToBO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictBO *bo.DictBO) (*bo.DictBO, error) {
+func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint32, dictBO *bo.DictBO) (*bo.DictBO, error) {
 	newModelData := dictBO.ToModel()
 	if err := l.WithContext(ctx).UpdateByID(id, newModelData); err != nil {
 		return nil, err
@@ -45,21 +45,21 @@ func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint, dictBO *
 	return bo.DictModelToBO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status valueobj.Status, ids []uint) error {
+func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if err := l.WithContext(ctx).Update(&model.PromDict{Status: status}, query.WhereID(ids...)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *promDictRepoImpl) DeleteDictByIds(ctx context.Context, id ...uint) error {
+func (l *promDictRepoImpl) DeleteDictByIds(ctx context.Context, id ...uint32) error {
 	if err := l.WithContext(ctx).Delete(query.WhereID(id...)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint) (*bo.DictBO, error) {
+func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error) {
 	detailModel, err := l.WithContext(ctx).FirstByID(id)
 	if err != nil {
 		return nil, err

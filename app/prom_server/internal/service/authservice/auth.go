@@ -62,7 +62,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 	}
 
 	return &pb.LogoutReply{
-		UserId: uint32(authClaims.ID),
+		UserId: authClaims.ID,
 	}, nil
 }
 
