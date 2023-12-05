@@ -7,6 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/historyscopes"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -37,27 +38,30 @@ func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo query.Pag
 	if err != nil {
 		return nil, err
 	}
-	boList := make([]*bo.AlarmHistoryBO, 0, len(list))
-	for _, v := range list {
-		boList = append(boList, bo.AlarmHistoryModelToBO(v))
-	}
+	boList := slices.To(list, func(v *model.PromAlarmHistory) *bo.AlarmHistoryBO {
+		return bo.AlarmHistoryModelToBO(v)
+	})
 	return boList, nil
 }
 
 func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
-	newModels := make([]*model.PromAlarmHistory, 0, len(historyBOs))
-	for _, historyBO := range historyBOs {
-		newModel := historyBO.ToModel()
-		newModels = append(newModels, newModel)
-	}
-	if err := l.WithContext(ctx).Scopes(historyscopes.ClausesOnConflict()).BatchCreate(newModels, 50); err != nil {
+	md5s := make([]string, 0, len(historyBOs))
+	newModels := slices.To(historyBOs, func(v *bo.AlarmHistoryBO) *model.PromAlarmHistory {
+		md5s = append(md5s, v.Md5)
+		return v.ToModel()
+	})
+	if err := l.DB().WithContext(ctx).Scopes(historyscopes.ClausesOnConflict()).CreateInBatches(newModels, 50).Error; err != nil {
 		return nil, err
 	}
 
-	resList := make([]*bo.AlarmHistoryBO, 0, len(newModels))
-	for _, v := range newModels {
-		resList = append(resList, bo.AlarmHistoryModelToBO(v))
+	var historyList []*model.PromAlarmHistory
+	if err := l.DB().WithContext(ctx).Scopes(historyscopes.WhereInMd5(md5s...)).Find(&historyList).Error; err != nil {
+		return nil, err
 	}
+
+	resList := slices.To(historyList, func(v *model.PromAlarmHistory) *bo.AlarmHistoryBO {
+		return bo.AlarmHistoryModelToBO(v)
+	})
 	return resList, nil
 }
 

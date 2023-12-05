@@ -37,12 +37,17 @@ func InIds[T types.Int](ids ...T) query.ScopeMethod {
 	return query.WhereInColumn("id", ids)
 }
 
+// InHistoryIds 查询历史ID列表
+func InHistoryIds(historyIds ...uint) query.ScopeMethod {
+	return query.WhereInColumn("history_id", historyIds...)
+}
+
 // ClauseOnConflict 冲突处理
 func ClauseOnConflict() query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Clauses(clause.OnConflict{
-			UpdateAll: true,
-			Columns:   []clause.Column{{Name: "id", Raw: true}, {Name: "history_id", Raw: true}},
+			Columns:   []clause.Column{{Name: "id"}, {Name: "history_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"status"}),
 		})
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper"
+	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model"
@@ -275,7 +275,7 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 // UpdateUserRoleRelation 更新用户角色关系
 func (b *UserBiz) UpdateUserRoleRelation(userId uint) {
 	go func() {
-		defer helper.Recover(b.log)
+		defer after.Recover(b.log)
 		db, err := b.dataRepo.DB()
 		if err != nil {
 			b.log.Errorf("cache user role err: %v", err)

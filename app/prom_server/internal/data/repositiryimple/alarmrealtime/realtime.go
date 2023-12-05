@@ -6,6 +6,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -26,27 +27,59 @@ type alarmRealtimeImpl struct {
 }
 
 func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error) {
-	newRealtimeModels := slices.To(req, func(req *bo.AlarmRealtimeBO) *model.PromAlarmRealtime { return req.ToModel() })
-	if err := l.WithContext(ctx).Scopes(alarmscopes.ClauseOnConflict()).BatchCreate(newRealtimeModels, 50); err != nil {
+	historyIds := make([]uint, 0, len(req))
+	newRealtimeModels := slices.To(req, func(item *bo.AlarmRealtimeBO) *model.PromAlarmRealtime {
+		historyIds = append(historyIds, item.HistoryID)
+		return item.ToModel()
+	})
+	if err := l.DB().WithContext(ctx).Scopes(alarmscopes.ClauseOnConflict()).CreateInBatches(newRealtimeModels, 50).Error; err != nil {
 		return nil, err
 	}
-	return slices.To(newRealtimeModels, func(m *model.PromAlarmRealtime) *bo.AlarmRealtimeBO { return bo.AlarmRealtimeModelToBO(m) }), nil
+
+	var realtimeAlarmList []*model.PromAlarmRealtime
+	// 查询插入的新数据
+	if err := l.DB().WithContext(ctx).Scopes(alarmscopes.InHistoryIds(historyIds...)).Find(&realtimeAlarmList).Error; err != nil {
+		return nil, err
+	}
+
+	return slices.To(realtimeAlarmList, func(m *model.PromAlarmRealtime) *bo.AlarmRealtimeBO { return bo.AlarmRealtimeModelToBO(m) }), nil
 }
 
 func (l *alarmRealtimeImpl) CacheByHistoryId(ctx context.Context, req ...*bo.AlarmRealtimeBO) error {
 	// 写入redis hash表中
-	args := make([]any, 0, len(req))
+	saveCacheArgs := make([]any, 0, len(req))
+	removeCacheArgs := make([]string, 0, len(req))
 	for _, alarmRealtimeBO := range req {
-		key := alarmRealtimeBO.ID
-		args = append(args, key, alarmRealtimeBO)
+		realtimeIdKey := strconv.Itoa(int(alarmRealtimeBO.ID))
+		if alarmRealtimeBO.Status.IsResolved() {
+			removeCacheArgs = append(removeCacheArgs, realtimeIdKey)
+			continue
+		}
+		saveCacheArgs = append(saveCacheArgs, realtimeIdKey, alarmRealtimeBO)
 	}
 
-	key := consts.AlarmRealtimeCacheByHistoryId.String()
-	return l.d.Client().HMSet(ctx, key, args...).Err()
+	key := consts.AlarmRealtimeCacheById.String()
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		// 插入新数据
+		if len(saveCacheArgs) == 0 {
+			return nil
+		}
+		return l.d.Client().HMSet(ctx, key, saveCacheArgs...).Err()
+	})
+	eg.Go(func() error {
+		// 删除已经恢复的告警数据
+		if len(removeCacheArgs) == 0 {
+			return nil
+		}
+		return l.d.Client().HDel(ctx, key, removeCacheArgs...).Err()
+	})
+
+	return eg.Wait()
 }
 
 func (l *alarmRealtimeImpl) DeleteCacheByHistoryId(ctx context.Context, historyId ...uint32) error {
-	key := consts.AlarmRealtimeCacheByHistoryId.String()
+	key := consts.AlarmRealtimeCacheById.String()
 	fields := slices.To(historyId, func(id uint32) string { return strconv.Itoa(int(id)) })
 	return l.d.Client().HDel(ctx, key, fields...).Err()
 }
