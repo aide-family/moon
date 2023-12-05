@@ -1,13 +1,18 @@
 package server
 
 import (
-	http2 "net/http"
+	nHttp "net/http"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/logging"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
@@ -20,6 +25,8 @@ import (
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
+	"prometheus-manager/pkg/helper/middler"
+
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service"
@@ -28,12 +35,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
-	"prometheus-manager/pkg/helper/middler"
-
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	"github.com/go-kratos/kratos/v2/transport/http"
-	jwtv4 "github.com/golang-jwt/jwt/v4"
 )
 
 type HttpServer struct {
@@ -124,6 +125,6 @@ func NewHTTPServer(
 	srv.HandlePrefix("/metrics", promhttp.Handler())
 	// doc
 	//srv.HandlePrefix("/q/", openapiv2.NewHandler())
-	srv.HandlePrefix("/doc/", http2.StripPrefix("/doc/", http2.FileServer(http2.Dir("../../third_party/swagger_ui"))))
+	srv.HandlePrefix("/doc/", nHttp.StripPrefix("/doc/", nHttp.FileServer(nHttp.Dir("../../third_party/swagger_ui"))))
 	return srv
 }

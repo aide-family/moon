@@ -3,11 +3,11 @@ package ping
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
-
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ repository.PingRepo = (*pingRepoImpl)(nil)

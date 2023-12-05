@@ -8,6 +8,9 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
+
+	"prometheus-manager/pkg/helper/plog"
+
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -19,7 +22,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
-	"prometheus-manager/pkg/helper/plog"
 )
 
 // wireApp init kratos application.

@@ -2,6 +2,7 @@ package repositiryimple
 
 import (
 	"github.com/google/wire"
+
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmhistory"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmintervene"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimple/alarmpage"

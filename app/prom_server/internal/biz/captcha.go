@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/pkg/util/captcha"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/util/captcha"
 )
 
 type (

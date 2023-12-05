@@ -4,12 +4,14 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+
 	pb "prometheus-manager/api/auth"
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/captcha"
 	"prometheus-manager/pkg/util/password"
+
+	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type AuthService struct {

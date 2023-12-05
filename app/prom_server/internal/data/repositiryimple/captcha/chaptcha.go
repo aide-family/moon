@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+
+	"prometheus-manager/pkg/helper/consts"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/helper/consts"
 )
 
 var _ repository.CaptchaRepo = (*captchaRepoImpl)(nil)

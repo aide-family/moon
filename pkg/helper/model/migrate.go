@@ -19,7 +19,6 @@ func Migrate(db *gorm.DB) error {
 		&PromStrategyGroup{},
 		&PromAlarmBeenNotifyMember{},
 		&PromAlarmBeenNotifyChatGroup{},
-
 		&SysUser{},
 		&SysRole{},
 		&SysAPI{},

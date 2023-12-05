@@ -4,12 +4,12 @@ import (
 	"encoding"
 	"encoding/json"
 
+	query "github.com/aide-cloud/gorm-normalize"
+
 	"prometheus-manager/api"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
-
-	query "github.com/aide-cloud/gorm-normalize"
 )
 
 var _ encoding.BinaryMarshaler = (*AlarmRealtimeBO)(nil)

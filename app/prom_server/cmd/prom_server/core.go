@@ -6,10 +6,11 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
-	"prometheus-manager/app/prom_server/internal/server"
+
 	"prometheus-manager/pkg/util/hello"
 
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/app/prom_server/internal/server"
 )
 
 var (

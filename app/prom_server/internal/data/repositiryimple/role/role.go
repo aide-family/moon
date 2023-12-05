@@ -9,13 +9,15 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
+
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/util/slices"
+
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/data"
 )
 
 var _ repository.RoleRepo = (*roleRepoImpl)(nil)

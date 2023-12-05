@@ -3,7 +3,6 @@ package systemscopes
 import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/util/types"
 )
 
 const (
@@ -11,7 +10,7 @@ const (
 )
 
 // ApiInIds id列表
-func ApiInIds[T types.Int](ids ...T) query.ScopeMethod {
+func ApiInIds(ids ...uint32) query.ScopeMethod {
 	return query.WhereInColumn("id", ids...)
 }
 

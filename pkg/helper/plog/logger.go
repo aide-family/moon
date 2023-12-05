@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
 	"prometheus-manager/pkg/util/hello"
 )
 

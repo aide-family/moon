@@ -5,11 +5,13 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+
 	pb "prometheus-manager/api/alarm/history"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/helper/model/historyscopes"
 	"prometheus-manager/pkg/util/slices"
+
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
 type (
