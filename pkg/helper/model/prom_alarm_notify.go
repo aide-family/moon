@@ -16,6 +16,8 @@ type PromAlarmNotify struct {
 	Remark          string                   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	ChatGroups      []*PromAlarmChatGroup    `gorm:"many2many:prom_notify_chat_groups;comment:通知组"`
 	BeNotifyMembers []*PromAlarmNotifyMember `gorm:"comment:被通知成员"`
+	// 外部体系通知对象(不在用户体系内的人和hook), 多对多
+	ExternalNotifyObjs []*ExternalNotifyObj `gorm:"many2many:prom_alarm_notify_external_notify_objs;comment:外部体系通知对象"`
 }
 
 func (*PromAlarmNotify) TableName() string {
@@ -36,4 +38,12 @@ func (p *PromAlarmNotify) GetBeNotifyMembers() []*PromAlarmNotifyMember {
 		return nil
 	}
 	return p.BeNotifyMembers
+}
+
+// GetExternalNotifyObjs 获取外部体系通知对象
+func (p *PromAlarmNotify) GetExternalNotifyObjs() []*ExternalNotifyObj {
+	if p == nil {
+		return nil
+	}
+	return p.ExternalNotifyObjs
 }

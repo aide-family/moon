@@ -357,6 +357,82 @@ message NotifyV1 {
   int64 updatedAt = 8;
   // 删除时间, unix时间戳
   int64 deletedAt = 9;
+  // 外部通知对象
+  repeated ExternalNotifyObj externalNotifyObjs = 10;
+}
+
+// 外部通知对象
+message ExternalNotifyObj {
+  // 外部通知对象ID
+  uint32 id = 1;
+  // 外部通知对象名称
+  string name = 2;
+  // 外部通知对象说明
+  string remark = 3;
+  // 外部通知对象状态
+  int32 status = 4;
+  // 外部客户列表
+  repeated ExternalCustomer externalCustomerList = 5;
+  // 外部客户hook列表
+  repeated ExternalCustomerHook externalCustomerHookList = 6;
+  // 创建时间
+  int64 createdAt = 7;
+  // 更新时间
+  int64 updatedAt = 10;
+  // 删除时间
+  int64 deletedAt = 11;
+}
+
+// 外部客户
+message ExternalCustomer {
+  // 外部客户ID
+  uint32 id = 1;
+  // 外部客户名称
+  string name = 2;
+  // 外部客户说明
+  string remark = 3;
+  // 外部客户状态
+  int32 status = 4;
+  // 外部客户地址
+  string addr = 5;
+  // 外部客户联系人
+  string contact = 6;
+  // 外部客户联系方式
+  string phone = 7;
+  // 外部客户邮箱
+  string email = 8;
+  // 创建时间
+  int64 createdAt = 9;
+  // 更新时间
+  int64 updatedAt = 10;
+  // 删除时间
+  int64 deletedAt = 11;
+  // 外部客户钩子列表
+  repeated ExternalCustomerHook externalCustomerHookList = 12;
+}
+
+// 外部客户钩子
+message ExternalCustomerHook {
+  // 外部客户钩子ID
+  uint32 id = 1;
+  // 外部客户钩子名称
+  string hookName = 2;
+  // 外部客户钩子说明
+  string remark = 3;
+  // 外部客户钩子状态
+  int32 status = 4;
+  // 外部客户ID
+  uint32 customerId = 5;
+  // 外部客户钩子地址
+  string hook = 6;
+  // 外部客户钩子类型
+  int32 notifyApp = 7;
+  // 创建时间
+  int64 createdAt = 8;
+  // 更新时间
+  int64 updatedAt = 9;
+  // 删除时间
+  int64 deletedAt = 10;
 }
 
 // 通知选择类型
