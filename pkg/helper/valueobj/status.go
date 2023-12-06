@@ -15,6 +15,11 @@ const (
 	StatusDisabled
 )
 
+// IsUnknown 是否未知状态
+func (s Status) IsUnknown() bool {
+	return s == StatusUnknown
+}
+
 // String 获取状态字符串
 func (s Status) String() string {
 	switch s {
