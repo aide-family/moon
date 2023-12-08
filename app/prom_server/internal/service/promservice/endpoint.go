@@ -33,7 +33,8 @@ func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndp
 	endpointBo := make([]*bo.EndpointBO, 0, len(req.Endpoints))
 	for _, endpoint := range req.GetEndpoints() {
 		endpointBo = append(endpointBo, &bo.EndpointBO{
-			Uuid:          endpoint.GetId(),
+			Id:            endpoint.GetId(),
+			Uuid:          endpoint.GetUuid(),
 			Name:          endpoint.GetName(),
 			Endpoint:      endpoint.GetEndpoint(),
 			Status:        valueobj.Status(endpoint.GetStatus()),
@@ -82,7 +83,7 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 	if err != nil {
 		return nil, err
 	}
-	list := make([]*api.PrometheusServer, 0, len(listEndpoint))
+	list := make([]*api.PrometheusServerItem, 0, len(listEndpoint))
 	for _, endpoint := range listEndpoint {
 		list = append(list, endpoint.ToApiSelectV1())
 	}

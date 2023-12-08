@@ -35,12 +35,12 @@ func (l *EndpointBO) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, l)
 }
 
-func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServer {
+func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServerItem {
 	if l == nil {
 		return nil
 	}
-	return &api.PrometheusServer{
-		Id:            l.Uuid,
+	return &api.PrometheusServerItem{
+		Id:            l.Id,
 		Name:          l.Name,
 		Endpoint:      l.Endpoint,
 		Status:        api.Status(l.Status),
@@ -49,5 +49,6 @@ func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServer {
 		UpdatedAt:     l.UpdatedAt,
 		AgentEndpoint: l.AgentEndpoint,
 		AgentCheck:    l.AgentCheck,
+		Uuid:          l.Uuid,
 	}
 }
