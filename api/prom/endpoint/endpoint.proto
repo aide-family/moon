@@ -46,7 +46,7 @@ message AppendEndpointRequest {
     max_len: 32,
   }];
   // 监控端点地址列表信息, 最少有一个, 不允许为空对象
-  repeated PrometheusServer endpoints = 2 [(validate.rules).repeated = {
+  repeated PrometheusServerItem endpoints = 2 [(validate.rules).repeated = {
     min_items: 1,
     items: {
       message: {
@@ -90,5 +90,5 @@ message ListEndpointReply {
   // 响应信息
   Response response = 1;
   // 监控端点列表
-  repeated PrometheusServer endpoints = 2;
+  repeated PrometheusServerItem endpoints = 2;
 }

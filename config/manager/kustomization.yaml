@@ -2,8 +2,7 @@ resources:
   - manager.yaml
   - namespace.yaml
   - config.yaml
-  - service.yaml
-  - mysql.yaml
+  - mysql-server.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
