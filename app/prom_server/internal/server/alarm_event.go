@@ -118,7 +118,7 @@ func (l *AlarmEvent) Consume() error {
 					l.log.Errorf("handle event error: %v", err)
 				}
 			case kafka.Error:
-				fmt.Printf("%% Error: %v\n", e)
+				l.log.Warnf("Error: %v\n", e)
 			}
 		}
 	}()
