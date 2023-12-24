@@ -70,7 +70,7 @@ api: errors validate
 .PHONY: build
 # build
 build:
-	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
+	mkdir -p bin/ &&  CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build  -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 .PHONY: test
 # test
@@ -125,7 +125,7 @@ help:
 
 
 TAG ?= latest
-REPO ?= docker.hub # TODO: set your repository address
+REPO ?= docker.hub# TODO: set your repository address
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -134,9 +134,10 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-.PHONY: docker-build
+.PHONY:
 docker-build: # test ## Build docker image with the manager.
-	docker build -t ${REPO}/prometheus-manager:${TAG} .
+	@echo "Building docker image with the manager..."
+	docker build -t "${REPO}/prometheus-manager:${TAG}" .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.

@@ -39,8 +39,7 @@ type (
 func (UnimplementedStrategyRepo) mustEmbedUnimplemented() {}
 
 func (UnimplementedStrategyRepo) CreateStrategy(_ context.Context, _ *bo.StrategyBO) (*bo.StrategyBO, error) {
-	//TODO implement me
-	panic("implement me")
+	return nil, status.Errorf(codes.Unimplemented, "method CreateStrategy not implemented")
 }
 
 func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint32, _ *bo.StrategyBO) (*bo.StrategyBO, error) {

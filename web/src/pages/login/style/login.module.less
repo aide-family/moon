@@ -1,0 +1,94 @@
+.Login {
+    display: flex;
+}
+
+.LoginCarousel {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 30%;
+    overflow: hidden;
+    // 上下渐变色
+    background: linear-gradient(163.85deg, #1d2129 0%, #00308f 100%);
+    color: #fff;
+
+    &Logo {
+        padding: 24px;
+        display: flex;
+        // 中轴线对齐
+        align-items: center;
+        gap: 8px;
+        // 字体大小
+        font-size: 24px;
+
+        &Img {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    .Content {
+        margin: 0;
+        padding: 24px;
+        color: #fff;
+
+        &Item {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            height: calc(100vh - 88px);
+
+            &Title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 12px;
+            }
+
+            &SubTitle {
+                font-size: 14px;
+                color: #bfbfbf;
+                margin-bottom: 24px;
+            }
+
+            &Image {
+                width: 320px;
+            }
+        }
+    }
+}
+
+.LoginForm {
+    width: 70%;
+    display: flex;
+    // 居中
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+
+    &Title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        color: #434343;
+    }
+
+    &Form {
+        width: 400px;
+    }
+
+    &Footer {
+        width: 100%;
+        position: absolute;
+        bottom: 12px;
+        right: 0;
+        text-align: center;
+        color: #434343;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+}
