@@ -1,4 +1,4 @@
-FROM golang:1.20 AS builder
+FROM golang:1.21.0 AS builder
 
 COPY . /src
 WORKDIR /src
@@ -21,4 +21,4 @@ EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
 
-CMD ["./server", "-conf", "/data/conf"]
+CMD ["./prom_server", "-conf", "/data/conf"]
