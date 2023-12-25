@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  prometheus_manager:
+    container_name: prometheus_manager
+    image: docker.hub/prometheus-manager:latest
+    restart: always
+    ports:
+      - "8002:8002"
+      - "9002:9002"
+    volumes:
+      - ./app/prom_server/configs_dev:/data/conf
