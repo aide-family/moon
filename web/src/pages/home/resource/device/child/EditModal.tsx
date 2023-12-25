@@ -114,7 +114,7 @@ const EditModal: FC<EditModalProps> = (props) => {
             footer={<Footer />}
         >
             <Spin spinning={loading}>
-                <Watermark content={user?.user_name} className="wh100">
+                <Watermark content={user?.username} className="wh100">
                     <DataForm
                         form={form}
                         items={editFormItems}

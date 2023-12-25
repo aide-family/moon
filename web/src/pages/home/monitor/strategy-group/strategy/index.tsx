@@ -1,21 +1,21 @@
-import { FC, Key, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button, Form } from 'antd'
-import { ColumnGroupType, ColumnType } from 'antd/es/table'
-import { OP_KEY_DETAIL } from '@/components/Data/DataTable/DataTable.tsx'
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
-import { Detail } from '@/pages/home/monitor/strategy-group/child/detail.tsx'
+import {FC, Key, useEffect, useRef, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {Button, Form} from 'antd'
+import {ColumnGroupType, ColumnType} from 'antd/es/table'
+import {DataOptionItem} from '@/components/Data/DataOption/DataOption.tsx'
+import {Detail} from '@/pages/home/monitor/strategy-group/child/detail.tsx'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { HeightLine, PaddingLine } from '@/components/HeightLine'
-import { DataOption, DataTable, SearchForm } from '@/components/Data'
-import { StrategyItemType } from '@/pages/home/monitor/strategy-group/strategy/type.ts'
+import {HeightLine, PaddingLine} from '@/components/HeightLine'
+import {DataOption, DataTable, SearchForm} from '@/components/Data'
+import {StrategyItemType} from '@/pages/home/monitor/strategy-group/strategy/type.ts'
 import {
     OP_KEY_STRATEGY_GROUP_LIST,
     searchItems,
     tableOperationItems
 } from '@/pages/home/monitor/strategy-group/strategy/options.tsx'
-import { defaultData } from '@/pages/home/monitor/strategy-group/strategy/data.ts'
-import { CopyOutlined } from '@ant-design/icons'
+import {defaultData} from '@/pages/home/monitor/strategy-group/strategy/data.ts'
+import {CopyOutlined} from '@ant-design/icons'
+import {ActionKey} from "@/apis/data.ts";
 
 const defaultPadding = 12
 
@@ -34,7 +34,7 @@ const Strategy: FC = () => {
     const columns: (
         | ColumnGroupType<StrategyItemType>
         | ColumnType<StrategyItemType>
-    )[] = [
+        )[] = [
         {
             title: '名称',
             dataIndex: 'alert',
@@ -134,7 +134,7 @@ const Strategy: FC = () => {
             case OP_KEY_STRATEGY_GROUP_LIST:
                 toStrategyGroupPage(record)
                 break
-            case OP_KEY_DETAIL:
+            case ActionKey.DETAIL:
                 handlerOpenDetail()
                 break
         }
@@ -176,10 +176,10 @@ const Strategy: FC = () => {
 
     return (
         <div className="bodyContent">
-            <Detail open={openDetail} onClose={handlerCloseDetail} id="1" />
+            <Detail open={openDetail} onClose={handlerCloseDetail} id="1"/>
             <div ref={operationRef}>
-                <RouteBreadcrumb />
-                <HeightLine />
+                <RouteBreadcrumb/>
+                <HeightLine/>
                 <SearchForm
                     form={queryForm}
                     items={searchItems}
@@ -187,7 +187,7 @@ const Strategy: FC = () => {
                         onValuesChange: handlerSearFormValuesChange
                     }}
                 />
-                <HeightLine />
+                <HeightLine/>
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}
@@ -203,7 +203,7 @@ const Strategy: FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                operationRef={operationRef}
+                // operationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={tableOperationItems}
@@ -215,8 +215,8 @@ const Strategy: FC = () => {
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
                         <div>
-                            <CopyOutlined />
-                            <p style={{ margin: 0 }}>{record.expr}</p>
+                            <CopyOutlined/>
+                            <p style={{margin: 0}}>{record.expr}</p>
                         </div>
                     )
                 }}

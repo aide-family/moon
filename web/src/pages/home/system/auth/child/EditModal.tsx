@@ -1,13 +1,14 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Spin, Watermark, message } from 'antd'
-import { FC, useContext, useEffect, useState } from 'react'
-import { GlobalContext } from '@/context'
+import {Button, Form, Modal, Spin, Watermark} from 'antd'
+import {FC, useContext, useEffect, useState} from 'react'
+import {GlobalContext} from '@/context'
 import authOptions from '../options'
-import { AES_Encrypt } from '@/utils/aes'
+import {AES_Encrypt} from '@/utils/aes'
 import authApi from '@/apis/home/system/auth'
-import type { ApiAuthListItem } from '@/apis/home/system/auth/types'
-const { authApiCreate, authApiUpdate, authApiDetail } = authApi
-const { addFormItems, editFormItems } = authOptions()
+import type {ApiAuthListItem} from '@/apis/home/system/auth/types'
+
+const {authApiCreate, authApiUpdate, authApiDetail} = authApi
+const {addFormItems, editFormItems} = authOptions()
 
 export type EditModalProps = {
     open: boolean
@@ -19,8 +20,8 @@ export type EditModalProps = {
 let timer: NodeJS.Timeout | null = null
 
 const EditModal: FC<EditModalProps> = (props) => {
-    const { user } = useContext(GlobalContext)
-    const { open, onClose, id, onOk } = props
+    const {user} = useContext(GlobalContext)
+    const {open, onClose, id, onOk} = props
     const [form] = Form.useForm()
     const [loading, setLoading] = useState<boolean>(false)
     const [data, setData] = useState<ApiAuthListItem | undefined>()
@@ -47,7 +48,7 @@ const EditModal: FC<EditModalProps> = (props) => {
                     ...val,
                     password: AES_Encrypt(val.password)
                 })
-                    .then((res) => {
+                    .then(() => {
                         onOk?.()
                     })
                     .finally(() => {
@@ -60,7 +61,7 @@ const EditModal: FC<EditModalProps> = (props) => {
                     ...val,
                     password: AES_Encrypt(val.password)
                 })
-                    .then((res) => {
+                    .then(() => {
                         onOk?.()
                     })
                     .finally(() => {
@@ -74,7 +75,7 @@ const EditModal: FC<EditModalProps> = (props) => {
         if (!id) {
             return
         }
-        authApiDetail({ id }).then((res) => {
+        authApiDetail({id}).then((res) => {
             setData(res.detail)
             form.setFieldsValue(res.detail)
         })
@@ -115,11 +116,11 @@ const EditModal: FC<EditModalProps> = (props) => {
 
     return (
         <Modal
-            title={<Title />}
+            title={<Title/>}
             open={open}
             onCancel={handleClose}
             width="50vw"
-            footer={<Footer />}
+            footer={<Footer/>}
         >
             <Spin spinning={loading}>
                 <Watermark content={user?.username} className="wh100">

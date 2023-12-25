@@ -1,4 +1,4 @@
-import { GET, POST } from '../request'
+import {GET} from '../request'
 
 export enum CaptchaType {
     CaptchaTypeUnknown,
