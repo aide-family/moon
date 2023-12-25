@@ -68,7 +68,7 @@ api: errors validate
 
 .PHONY: build
 # build
-build: init api
+build:
 	mkdir -p bin/ &&  CGO_ENABLED=1 GOOS=linux GOARCH=amd64  go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 .PHONY: test

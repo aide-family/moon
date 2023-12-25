@@ -4,8 +4,8 @@ COPY . /src
 WORKDIR /src
 
 # protocol buffer的头文件还有动态库都会放在/usr/local下
-RUN cd protobuf-3.11.2 && ./configure -prefix=/usr/local/ && make && make install
-RUN protoc --version
+#RUN cd protobuf-3.11.2 && ./configure -prefix=/usr/local/ && make && make install
+#RUN protoc --version
 
 RUN GOPROXY=https://goproxy.cn make build
 
