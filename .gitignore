@@ -41,7 +41,7 @@ bin/
 **/*_temp/
 **/dsn.yml
 **/*_test.db
-api/**/*.go
-**/**.pb.go
-**/cmd/**/**_gen.go
+#api/**/*.go
+#**/**.pb.go
+#**/cmd/**/**_gen.go
 **/configs_*/
