@@ -1,12 +1,12 @@
-import { useContext, useState, FC, useEffect } from 'react'
-import { DownOutlined } from '@ant-design/icons'
-import { Dropdown, Typography, Space, type MenuProps } from 'antd'
-import { GlobalContext, setSpaceID } from '@/context'
+import {FC, useContext, useEffect, useState} from 'react'
+import {DownOutlined} from '@ant-design/icons'
+import {Dropdown, type MenuProps, Space, Typography} from 'antd'
+import {GlobalContext, setSpaceID} from '@/context'
 
 import styles from './style/index.module.less'
 
 const SpaceInfo: FC = () => {
-    const { user, setSpaceInfo, spaces, spaceInfo } = useContext(GlobalContext)
+    const {user, setSpaceInfo, spaces, spaceInfo} = useContext(GlobalContext)
 
     const [selectedKeys, setSelectedKeys] = useState<string[]>([])
     const [selectedKey, setSelectedKey] = useState<string>(
@@ -78,7 +78,7 @@ const SpaceInfo: FC = () => {
                 <Typography.Link>
                     <Space className={styles.spaceInfoSpace}>
                         {selectedKey ?? '选择空间'}
-                        <DownOutlined />
+                        <DownOutlined/>
                     </Space>
                 </Typography.Link>
             </Dropdown>
@@ -86,4 +86,4 @@ const SpaceInfo: FC = () => {
     )
 }
 
-export { SpaceInfo }
+export {SpaceInfo}

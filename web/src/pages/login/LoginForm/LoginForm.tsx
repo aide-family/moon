@@ -41,6 +41,9 @@ const LoginForm: FC = () => {
                     setToken?.(data.token)
                     setUser?.(data.user)
                     navigate('/')
+                }).catch(() => {
+                    // 重新获取验证码
+                    handleCaptcha()
                 })
                 .finally(() => {
                     setLoading(false)

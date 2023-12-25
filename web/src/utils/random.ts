@@ -30,18 +30,8 @@ const defaultColors = [
     '#393d49'
 ]
 
-const md5 = (str: string) => {
-    const md5 = crypto.subtle('md5')
-    return md5.update(str).digest('hex')
-}
-
-const randomColor = (username?: string) => {
-    if (username) {
-        const hash = md5(username)
-        const color = parseInt(hash.substr(4, 4), 16)
-        return `rgb(${color}, ${color}, ${color})`
-    }
+const randomColor = () => {
     return defaultColors[random(0, defaultColors.length - 1)]
 }
 
-export { randomString, random, randomColor }
+export {randomString, random, randomColor}

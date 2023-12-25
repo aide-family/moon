@@ -18,7 +18,6 @@ import { SiderMenu } from './SiderMenu/SiderMenu'
 import { UserInfo } from './UserInfo/UserInfo'
 import { Msg } from './Msg/Msg'
 import { Setting } from './Setting/Setting'
-import { SpaceInfo } from './SpaceInfo/SpaceInfo'
 
 import styles from './style/index.module.less'
 
@@ -78,7 +77,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                 <Header className={styles.LayoutHeader}>
                     <HeaderTitle />
                     <Space size={12} direction="horizontal">
-                        <SpaceInfo />
+                        {/*<SpaceInfo />*/}
                         <Msg />
                         <Setting />
                         <UserInfo />
