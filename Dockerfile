@@ -3,14 +3,9 @@ FROM golang:1.21.0 AS builder
 COPY . /src
 WORKDIR /src
 
-
-RUN cd protobuf-3.11.2
 # protocol buffer的头文件还有动态库都会放在/usr/local下
-RUN ./configure -prefix=/usr/local/
-RUN autoreconf -ivf
-RUN sudo make && sudo make install
+RUN cd protobuf-3.11.2 && ./configure -prefix=/usr/local/ && autoreconf -ivf && sudo make && sudo make install
 RUN protoc --version
-RUN cd ..
 
 RUN GOPROXY=https://goproxy.cn make build
 
