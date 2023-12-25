@@ -1,33 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
+import React, {FC, useEffect, useRef, useState} from 'react'
 
-import type { ColumnType, ColumnGroupType } from 'antd/es/table'
-import { Button, Form, Modal, message } from 'antd'
-import { SearchForm, DataTable } from '@/components/Data'
+import type {ColumnGroupType, ColumnType} from 'antd/es/table'
+import {Button, Form, message, Modal} from 'antd'
+import {DataOption, DataTable, SearchForm} from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { DataOption } from '@/components/Data'
-import { HeightLine, PaddingLine } from '@/components/HeightLine'
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
+import {HeightLine, PaddingLine} from '@/components/HeightLine'
+import {DataOptionItem} from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
 import EditModal from './child/EditModal'
 import userOptions from './options'
 import userApi from '@/apis/home/system/user'
-import type {
-    UserListItem,
-    UserListParams
-} from '@/apis/home/system/user/types'
-import { Status, StatusMap } from '@/apis/types'
-import { ActionKey } from '@/apis/data'
-import { SelectedUserListTable } from './child/const SelectedUserListTable'
-import { Username } from './child/Username'
-import { StatusBadge } from './child/StatusBadge'
-import { UserAvatar } from './child/UserAvatar'
+import type {UserListItem, UserListParams} from '@/apis/home/system/user/types'
+import {Status, StatusMap} from '@/apis/types'
+import {ActionKey} from '@/apis/data'
+import {SelectedUserListTable} from './child/const SelectedUserListTable'
+import {Username} from './child/Username'
+import {StatusBadge} from './child/StatusBadge'
+import {UserAvatar} from './child/UserAvatar'
 
 export type UserColumnType =
     | ColumnType<UserListItem>
     | ColumnGroupType<UserListItem>
-const { confirm } = Modal
-const { userList, userStatusEdit, userDelete } = userApi
-const { searchItems, operationItems } = userOptions()
+const {confirm} = Modal
+const {userList, userStatusEdit, userDelete} = userApi
+const {searchItems, operationItems} = userOptions()
 
 const defaultPadding = 12
 
@@ -41,8 +37,8 @@ const defaultSearchParams = {
     keyword: ''
 }
 
-const Customer: React.FC = () => {
-    const oprationRef = useRef<HTMLDivElement>(null)
+const Customer: FC = () => {
+    const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<UserListItem[]>([])
@@ -134,7 +130,7 @@ const Customer: React.FC = () => {
     /** 获取数据 */
     const handlerGetData = () => {
         setLoading(true)
-        userList({ ...search })
+        userList({...search})
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
@@ -168,7 +164,7 @@ const Customer: React.FC = () => {
     }
 
     const EditConfirmTitle: React.FC<UserListItem> = (props) => {
-        const { status } = props
+        const {status} = props
         const s =
             status === Status.STATUS_ENABLED
                 ? StatusMap[Status.STATUS_DISABLED]
@@ -176,7 +172,7 @@ const Customer: React.FC = () => {
         return (
             <span>
                 请确认是否修改状态为
-                <span style={{ color: s.color }}>{s.text}</span>?
+                <span style={{color: s.color}}>{s.text}</span>?
             </span>
         )
     }
@@ -188,7 +184,7 @@ const Customer: React.FC = () => {
     }
 
     const cancelAction = () => {
-        message.info('取消操作')
+        return message.info('取消操作')
     }
 
     const handleBatchChangeUserStatus = (status: Status, ids: number[]) => {
@@ -198,8 +194,7 @@ const Customer: React.FC = () => {
         }).then(() => {
             setTableSelectedRows([])
             setConfirmOpen(false)
-            message.success(`操作成功`)
-            handlerRefresh()
+            message.success(`操作成功`).then(handlerRefresh)
         })
     }
 
@@ -218,8 +213,7 @@ const Customer: React.FC = () => {
         userDelete({
             id: record.id
         }).then(() => {
-            message.success('删除成功')
-            handlerRefresh()
+            message.success('删除成功').then(handlerRefresh)
         })
     }
 
@@ -228,7 +222,7 @@ const Customer: React.FC = () => {
             title: `请确认是否删除 ${record.nickname || record.username} ?`,
             content: '操作不可逆, 请谨慎操作!',
             okText: '确认删除',
-            okButtonProps: { danger: true },
+            okButtonProps: {danger: true},
             type: 'error',
             onOk: () => handleDeleteUserInfo(record),
             onCancel: cancelAction
@@ -324,8 +318,7 @@ const Customer: React.FC = () => {
 
     const openBatchChangeStatusConfirm = (status: Status) => {
         if (!tableSelectedRows.length) {
-            message.error('请选择要操作的数据')
-            return
+            return message.error('请选择要操作的数据')
         }
         setBatchChangeStatus(status)
         setConfirmOpen(true)
@@ -334,7 +327,7 @@ const Customer: React.FC = () => {
     // 操作栏按钮
     const handleOptionClick = (val: ActionKey) => {
         switch (val) {
-            case ActionKey.BATCH_IMPORT:
+            case ActionKey.ADD:
                 setOpenEdit(true)
                 setEditId(undefined)
                 break
@@ -342,11 +335,9 @@ const Customer: React.FC = () => {
                 setSearch(defaultSearchParams)
                 break
             case ActionKey.BATCH_ENABLE:
-                openBatchChangeStatusConfirm(Status.STATUS_ENABLED)
-                break
+                return openBatchChangeStatusConfirm(Status.STATUS_ENABLED)
             case ActionKey.BATCH_DISABLE:
-                openBatchChangeStatusConfirm(Status.STATUS_DISABLED)
-                break
+                return openBatchChangeStatusConfirm(Status.STATUS_DISABLED)
         }
     }
 
@@ -356,7 +347,7 @@ const Customer: React.FC = () => {
 
     const handleSelectedUserListTableOnCancel = () => {
         setConfirmOpen(false)
-        message.info('取消操作')
+        return message.info('取消操作')
     }
 
     useEffect(() => {
@@ -384,9 +375,9 @@ const Customer: React.FC = () => {
                 id={editId}
                 onOk={handleEditOnOk}
             />
-            <div ref={oprationRef}>
-                <RouteBreadcrumb />
-                <HeightLine />
+            <div ref={operationRef}>
+                <RouteBreadcrumb/>
+                <HeightLine/>
                 <SearchForm
                     form={queryForm}
                     items={searchItems}
@@ -394,7 +385,7 @@ const Customer: React.FC = () => {
                         onValuesChange: handlerSearFormValuesChange
                     }}
                 />
-                <HeightLine />
+                <HeightLine/>
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}
@@ -410,7 +401,7 @@ const Customer: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                oprationRef={oprationRef}
+                oprationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}
