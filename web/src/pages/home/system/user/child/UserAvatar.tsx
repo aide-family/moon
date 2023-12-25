@@ -10,7 +10,7 @@ export const UserAvatar: React.FC<UserListItem> = (props: UserListItem) => {
             <Avatar
                 size={40}
                 style={{
-                    backgroundColor: randomColor(username),
+                    backgroundColor: randomColor(),
                     fontSize: 14,
                     lineHeight: '40px',
                     textAlign: 'center'

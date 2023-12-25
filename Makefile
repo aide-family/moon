@@ -66,11 +66,15 @@ api: errors validate
 	      --openapi_out=fq_schema_naming=true,default_response=false:./third_party/swagger_ui \
 	       $(API_PROTO_FILES)
 
+.PHONY: lib
+# generate wire
+lib:
+	cd librdkafka && ./configure && make && make install
 
 .PHONY: build
 # build
-build:
-	mkdir -p bin/ &&  CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build  -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
+build: init api
+	mkdir -p bin/ &&  CGO_ENABLED=1 GOOS=linux GOARCH=amd64  go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 .PHONY: test
 # test
