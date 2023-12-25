@@ -11,7 +11,7 @@ export interface EditStrategyModalProps {
 export const EditStrategyModal: FC<EditStrategyModalProps> = (props) => {
     const { open, onCancel, onOk, id } = props
     const [values, setValues] = useState({})
-
+    console.log(setValues)
     const handleOk = () => {
         onOk(values)
     }

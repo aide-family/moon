@@ -1,37 +1,30 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, {useContext, useEffect, useState} from 'react'
 
-import { Form, message } from 'antd'
-import { defaultPageReqInfo, type Map, type PageReq } from '@/apis/types'
-import type { DeviceItemType } from './type'
-import { DataTable, SearchForm } from '@/components/Data'
+import {Form, message} from 'antd'
+import {defaultPageReqInfo, type Map, type PageReq} from '@/apis/types'
+import type {DeviceItemType} from './type'
+import {DataOption, DataTable, SearchForm} from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { DataOption } from '@/components/Data'
-import { HeightLine, PaddingLine } from '@/components/HeightLine'
-import { operationItems } from '@/components/Data/DataOption/option'
-import {
-    columns,
-    leftOptions,
-    refreshActionKey,
-    rightOptions,
-    searchItems
-} from './options'
-import { useSearchParams } from 'react-router-dom'
+import {HeightLine, PaddingLine} from '@/components/HeightLine'
+import {operationItems} from '@/components/Data/DataOption/option'
+import {columns, leftOptions, rightOptions, searchItems} from './options'
+import {useSearchParams} from 'react-router-dom'
 import QueryString from 'qs'
-import { GlobalContext } from '@/context'
+import {GlobalContext} from '@/context'
 import EditModal from './child/EditModal'
 import DetailModal from './child/DetailModal'
-import { EquipmentListReq } from '@/apis/home/resource/device/types'
-import { DeleteEquipment, GetEquipmentList } from '@/apis/home/resource/device'
-import { ActionKey } from '@/apis/data'
+import {EquipmentListReq} from '@/apis/home/resource/device/types'
+import {DeleteEquipment, GetEquipmentList} from '@/apis/home/resource/device'
+import {ActionKey} from '@/apis/data'
 
 const defaultPadding = 12
 
 let timer: NodeJS.Timeout | null = null
 
 const Device: React.FC = () => {
-    const { spaceInfo } = useContext(GlobalContext)
+    const {spaceInfo} = useContext(GlobalContext)
 
-    const oprationRef = React.useRef<HTMLDivElement>(null)
+    const operationRef = React.useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
     const [urlSearchParams, setUrlSearchParams] = useSearchParams()
     const formData = QueryString.parse(urlSearchParams.toString(), {
@@ -74,7 +67,7 @@ const Device: React.FC = () => {
     // 获取数据
     const handlerGetData = () => {
         GetEquipmentList(
-            { ...searchParams },
+            {...searchParams},
             {
                 setLoading: setLoading,
                 OK(res) {
@@ -160,7 +153,7 @@ const Device: React.FC = () => {
                 handlerOpenEdit()
                 break
             case ActionKey.RESET:
-                setSearchParams({ ...defaultPageReqInfo })
+                setSearchParams({...defaultPageReqInfo})
                 handlerRefresh()
                 break
         }
@@ -212,9 +205,9 @@ const Device: React.FC = () => {
                 onClose={handlerCloseDetail}
                 id={detailId}
             />
-            <div ref={oprationRef}>
-                <RouteBreadcrumb />
-                <HeightLine />
+            <div ref={operationRef}>
+                <RouteBreadcrumb/>
+                <HeightLine/>
                 <SearchForm
                     form={queryForm}
                     items={searchItems}
@@ -222,7 +215,7 @@ const Device: React.FC = () => {
                         onValuesChange: handlerSearFormValuesChange
                     }}
                 />
-                <HeightLine />
+                <HeightLine/>
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}
@@ -238,7 +231,7 @@ const Device: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                oprationRef={oprationRef}
+                oprationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}
@@ -251,7 +244,7 @@ const Device: React.FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record) => (
-                        <p style={{ margin: 0 }}>{record.remark}</p>
+                        <p style={{margin: 0}}>{record.remark}</p>
                     )
                 }}
             />

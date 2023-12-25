@@ -47,7 +47,7 @@ const DetailModal: FC<DetailModalProps> = (props) => {
             width="50vw"
         >
             <Spin spinning={loading}>
-                <Watermark content={user?.user_name} className="wh100">
+                <Watermark content={user?.username} className="wh100">
                     <Descriptions
                         bordered
                         column={2}

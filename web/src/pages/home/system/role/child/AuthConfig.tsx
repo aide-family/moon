@@ -1,29 +1,13 @@
 /**分配权限 */
-import { FC, useEffect, useState } from 'react'
-import {
-    Descriptions,
-    DescriptionsProps,
-    Modal,
-    Button,
-    Badge,
-    Avatar,
-    Tooltip,
-    Select,
-    SelectProps,
-    message,
-    Spin
-} from 'antd'
+import {FC, useEffect, useState} from 'react'
+import {message, Modal, Select, Spin} from 'antd'
 
 import roleApi from '@/apis/home/system/role'
-import type { RoleListItem } from '@/apis/home/system/role/types'
-import { StatusMap } from '@/apis/types'
 import authApi from '@/apis/home/system/auth'
-import {
-    ApiAuthListReq,
-    ApiAuthSelectItem
-} from '@/apis/home/system/auth/types'
-const { roleDetail, roleRelateApi } = roleApi
-const { authApiSelect } = authApi
+import {ApiAuthListReq, ApiAuthSelectItem} from '@/apis/home/system/auth/types'
+
+const {roleDetail, roleRelateApi} = roleApi
+const {authApiSelect} = authApi
 
 export type DetailProps = {
     roleId: number
@@ -39,7 +23,7 @@ export type DetailProps = {
  *
  */
 const AuthConfigModal: FC<DetailProps> = (props) => {
-    const { open, onClose, onOk, roleId } = props
+    const {open, onClose, onOk, roleId} = props
 
     const defaultSearchData = {
         page: {
@@ -57,7 +41,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
 
     const fetchUserDetail = async () => {
-        const res = await roleDetail({ id: roleId })
+        const res = await roleDetail({id: roleId})
         setSelectedApi(res.detail.apis?.map((item) => item.value) || [])
         setOptions([...new Set([...options, ...(res.detail.apis || [])])])
     }
@@ -90,13 +74,13 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
         setSelectedApi(value)
     }
     const handleScroll = (e: any) => {
-        const { scrollTop, clientHeight, scrollHeight } = e.target
+        const {scrollTop, clientHeight, scrollHeight} = e.target
         // 滚动到底部时加载更多数据
         if (scrollHeight - scrollTop === clientHeight) {
             // setPage((prevPage) => prevPage + 1)
             setSearchData({
                 ...searchData,
-                page: { curr: searchData.page.curr + 1, size: 10 }
+                page: {curr: searchData.page.curr + 1, size: 10}
             })
             console.log('滚动到底部')
         }
@@ -104,7 +88,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     const handleAuthConfig = () => {
         setSubmitLoading(true)
         console.log('分配权限')
-        roleRelateApi({ id: roleId, apiIds: selectedApi })
+        roleRelateApi({id: roleId, apiIds: selectedApi})
             .then(() => {
                 onOk()
                 message.success('分配权限成功')
@@ -128,7 +112,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
                 <Select
                     loading={fetchLoading}
                     mode="multiple"
-                    style={{ width: '100%', height: 300 }}
+                    style={{width: '100%', height: 300}}
                     placeholder="请选择权限"
                     value={selectedApi}
                     onChange={handleChange}

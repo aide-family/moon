@@ -56,7 +56,7 @@ const roleDelete = (data: RoleByIdType) => {
 
 /** 获取角色下拉列表 */
 const roleSelect = (data: RoleSelectReq) => {
-    return POST<RoleSelectRes>(URL.roleSelect)
+    return POST<RoleSelectRes>(URL.roleSelect, data)
 }
 
 /** 角色关联接口 */
