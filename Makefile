@@ -66,11 +66,6 @@ api: errors validate
 	      --openapi_out=fq_schema_naming=true,default_response=false:./third_party/swagger_ui \
 	       $(API_PROTO_FILES)
 
-.PHONY: lib
-# generate wire
-lib:
-	cd librdkafka && ./configure && make && make install
-
 .PHONY: build
 # build
 build: init api
