@@ -1,6 +1,6 @@
 FROM golang:1.21.0 AS builder
 
-COPY ./bin /src
+COPY ./bin /usr/local/bin
 COPY . /src
 WORKDIR /src
 
