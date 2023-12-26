@@ -1,19 +1,19 @@
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
-import { Button, Tag } from 'antd'
-import { IconFont } from '@/components/IconFont/IconFont.tsx'
-import { operationItems } from '@/components/Data/DataOption/option.tsx'
-import { DataFormItem } from '@/components/Data'
+import {Button, MenuProps, Tag} from 'antd'
+import {IconFont} from '@/components/IconFont/IconFont.tsx'
+import {operationItems} from '@/components/Data/DataOption/option.tsx'
+import {DataFormItem} from '@/components/Data'
+import {StrategyGroupItemType} from "@/apis/home/monitor/strategy-group/types.ts";
 
 export const OP_KEY_STRATEGY_LIST = 'strategy-list'
 
-export const tableOperationItems: DataOptionItem[] = [
+export const tableOperationItems = (_: StrategyGroupItemType): MenuProps['items'] => [
     {
         key: OP_KEY_STRATEGY_LIST,
         label: (
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-linkedin-fill" />}
+                icon={<IconFont type="icon-linkedin-fill"/>}
             >
                 策略列表
             </Button>

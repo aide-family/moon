@@ -108,6 +108,10 @@ export const defaultMenuItems: ItemType[] = [
             {
                 label: '报警规则',
                 key: '/home/monitor/strategy-group/strategy'
+            },
+            {
+                label: '数据源',
+                key: '/home/monitor/endpoint'
             }
         ]
     }
@@ -121,6 +125,7 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/flow': '流程管理',
     '/home/monitor/strategy-group': '策略组',
     '/home/monitor/strategy-group/strategy': '报警规则',
+    '/home/monitor/endpoint': '数据源',
     '/home/system/user': '用户管理',
     '/home/system/dict': '字典管理',
     '/home/system/role': '角色管理',

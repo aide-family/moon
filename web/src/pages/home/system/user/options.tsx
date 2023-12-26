@@ -1,9 +1,10 @@
-import { ActionKey } from '@/apis/data'
-import { DataFormItem } from '@/components/Data'
+import {ActionKey} from '@/apis/data'
+import {DataFormItem} from '@/components/Data'
 
-import { IconFont } from '@/components/IconFont/IconFont'
-import { ManOutlined, WomanOutlined } from '@ant-design/icons'
-import { Button, MenuProps } from 'antd'
+import {IconFont} from '@/components/IconFont/IconFont'
+import {ManOutlined, WomanOutlined} from '@ant-design/icons'
+import {Button, MenuProps} from 'antd'
+import {UserListItem} from "@/apis/home/system/user/types.ts";
 
 const searchItems: DataFormItem[] = [
     {
@@ -81,7 +82,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                         {
                             label: (
                                 <span>
-                                    <ManOutlined style={{ color: '#1890ff' }} />
+                                    <ManOutlined style={{color: '#1890ff'}}/>
                                     {' 男'}
                                 </span>
                             ),
@@ -91,7 +92,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                             label: (
                                 <span>
                                     <WomanOutlined
-                                        style={{ color: '#f759ab' }}
+                                        style={{color: '#f759ab'}}
                                     />
                                     {' 女'}
                                 </span>
@@ -178,14 +179,14 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
     ]
 ]
 
-const operationItems: MenuProps['items'] = [
+const operationItems = (_: UserListItem): MenuProps['items'] => [
     {
         key: ActionKey.CHANGE_STATUS,
         label: (
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-edit" />}
+                icon={<IconFont type="icon-edit"/>}
             >
                 状态修改
             </Button>
@@ -201,7 +202,7 @@ const operationItems: MenuProps['items'] = [
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
-                        style={{ color: 'red' }}
+                        style={{color: 'red'}}
                     />
                 }
             >

@@ -7,8 +7,6 @@ import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import { Detail } from '@/pages/home/monitor/strategy-group/child/detail.tsx'
-import { StrategyGroupItemType } from '@/pages/home/monitor/strategy-group/type.ts'
-import { defaultData } from '@/pages/home/monitor/strategy-group/data.ts'
 import {
     OP_KEY_STRATEGY_LIST,
     searchItems,
@@ -16,8 +14,10 @@ import {
 } from '@/pages/home/monitor/strategy-group/options.tsx'
 import { DictSelectItem } from '@/apis/home/system/dict/types.ts'
 import { ActionKey } from '@/apis/data.ts'
+import {StrategyGroupItemType} from "@/apis/home/monitor/strategy-group/types.ts";
 
 const defaultPadding = 12
+const defaultData: any = []
 
 const StrategyGroup: React.FC = () => {
     const navigate = useNavigate()

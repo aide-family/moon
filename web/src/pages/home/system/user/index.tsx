@@ -401,7 +401,7 @@ const Customer: FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                oprationRef={operationRef}
+                operationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}

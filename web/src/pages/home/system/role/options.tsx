@@ -1,9 +1,10 @@
-import { ActionKey } from '@/apis/data'
-import { Status, StatusMap } from '@/apis/types'
-import { DataFormItem } from '@/components/Data'
+import {ActionKey} from '@/apis/data'
+import {Status, StatusMap} from '@/apis/types'
+import {DataFormItem} from '@/components/Data'
 
-import { IconFont } from '@/components/IconFont/IconFont'
-import { Button, MenuProps } from 'antd'
+import {IconFont} from '@/components/IconFont/IconFont'
+import {Button, MenuProps} from 'antd'
+import {RoleListItem} from "@/apis/home/system/role/types.ts";
 
 const searchItems: DataFormItem[] = [
     {
@@ -106,14 +107,17 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
     ]
 ]
 
-const operationItems: MenuProps['items'] = [
+const ADMIN_ROLE_ID = 1
+
+const operationItems = (item: RoleListItem): MenuProps['items'] => [
     {
         key: ActionKey.EDIT,
         label: (
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-edit" />}
+                icon={<IconFont type="icon-edit"/>}
+                disabled={item.id === ADMIN_ROLE_ID}
             >
                 编辑
             </Button>
@@ -125,7 +129,8 @@ const operationItems: MenuProps['items'] = [
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-configure" />}
+                icon={<IconFont type="icon-configure"/>}
+                disabled={item.id === ADMIN_ROLE_ID}
             >
                 分配权限
             </Button>
@@ -138,10 +143,11 @@ const operationItems: MenuProps['items'] = [
                 size="small"
                 danger
                 type="link"
+                disabled={item.id === ADMIN_ROLE_ID}
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
-                        style={{ color: 'red' }}
+                        style={{color: 'red'}}
                     />
                 }
             >

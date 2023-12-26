@@ -8,16 +8,17 @@ import { GlobalContext } from '@/context'
 import { IconFont } from '@/components/IconFont/IconFont'
 import { MoreMenu } from '../'
 import { ActionKey } from '@/apis/data'
+import {RoleListItem} from "@/apis/home/system/role/types.ts";
 
-export type DataTableProps = TableProps<any> & {
+export type DataTableProps<T = any> = TableProps<T> & {
     // 是否显示序号
     showIndex?: boolean
     // 是否显示操作列
     showOperation?: boolean
     // 操作区Ref
-    oprationRef?: RefObject<HTMLDivElement>
+    operationRef?: RefObject<HTMLDivElement>
     defaultPadding?: number
-    operationItems?: any[]
+    operationItems?: (item?: T) => MenuProps['items']
     action?: (key: ActionKey, record: any) => void
     // 数据分页
     total?: number
@@ -40,7 +41,7 @@ const defaultIndexColumn = (
 })
 
 const defaultOperation = (
-    items: MenuProps['items'],
+    items: (item?: RoleListItem) => MenuProps['items'],
     action?: (key: ActionKey, record: any) => void
 ): ColumnGroupType<any> | ColumnType<any> => ({
     title: '操作',
@@ -61,7 +62,7 @@ const defaultOperation = (
                 </Tooltip>
                 {items && items?.length > 0 && (
                     <MoreMenu
-                        items={items}
+                        items={items(record)}
                         onClick={(key) =>
                             action?.(key as ActionKey.ACTION, record)
                         }
@@ -79,9 +80,9 @@ const DataTable: FC<DataTableProps> = (props) => {
         columns = [],
         showIndex = true,
         showOperation = true,
-        oprationRef,
+        operationRef,
         defaultPadding = 12,
-        operationItems = [],
+        operationItems = () => [],
         action,
         total,
         pageSize,
@@ -93,7 +94,7 @@ const DataTable: FC<DataTableProps> = (props) => {
     >([])
     const [tableHigh, setTableHigh] = useState<number>(
         (layoutContentElement?.clientHeight || 20) -
-            (oprationRef?.current?.clientHeight || 20)
+            (operationRef?.current?.clientHeight || 20)
     )
 
     useEffect(() => {
@@ -118,7 +119,7 @@ const DataTable: FC<DataTableProps> = (props) => {
                     ?.clientHeight || 30
             setTableHigh(
                 height -
-                    (oprationRef?.current?.clientHeight || 20) -
+                    (operationRef?.current?.clientHeight || 20) -
                     paginationHeight
             )
         }
@@ -131,7 +132,7 @@ const DataTable: FC<DataTableProps> = (props) => {
         return () => {
             resizeObserver.disconnect()
         }
-    }, [layoutContentElement, size, oprationRef])
+    }, [layoutContentElement, size, operationRef])
 
     return (
         <>

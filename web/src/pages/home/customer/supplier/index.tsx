@@ -19,7 +19,7 @@ import { ActionKey } from '@/apis/data'
 const defaultPadding = 12
 
 const Supplier: React.FC = () => {
-    const oprationRef = React.useRef<HTMLDivElement>(null)
+    const operationRef = React.useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const columns: (
@@ -147,7 +147,7 @@ const Supplier: React.FC = () => {
                 onClose={handlerCloseDetail}
                 supplierId={supplierDetail?.id}
             />
-            <div ref={oprationRef}>
+            <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm form={queryForm} items={searchItems} />
@@ -166,7 +166,7 @@ const Supplier: React.FC = () => {
             <DataTable
                 columns={columns}
                 loading={loading}
-                oprationRef={oprationRef}
+                operationRef={operationRef}
                 dataSource={dataSource}
                 operationItems={operationItems}
                 total={total}
