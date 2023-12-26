@@ -1,19 +1,19 @@
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
-import {Button, Tag} from 'antd'
-import { IconFont } from '@/components/IconFont/IconFont.tsx'
-import { operationItems } from '@/components/Data/DataOption/option.tsx'
-import { DataFormItem } from '@/components/Data'
+import {Button, MenuProps, Tag} from 'antd'
+import {IconFont} from '@/components/IconFont/IconFont.tsx'
+import {operationItems} from '@/components/Data/DataOption/option.tsx'
+import {DataFormItem} from '@/components/Data'
+import {StrategyItemType} from "@/pages/home/monitor/strategy-group/strategy/type.ts";
 
 export const OP_KEY_STRATEGY_GROUP_LIST = 'strategy-group-list'
 
-export const tableOperationItems: DataOptionItem[] = [
+export const tableOperationItems = (_: StrategyItemType): MenuProps['items'] => [
     {
         key: OP_KEY_STRATEGY_GROUP_LIST,
         label: (
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-linkedin-fill" />}
+                icon={<IconFont type="icon-linkedin-fill"/>}
             >
                 规则组列表
             </Button>
@@ -50,16 +50,16 @@ export const searchItems: DataFormItem[] = [
     },
     {
         name: "duration",
-        label:"持续时间",
-        dataProps:{
-            type:"select",
-            parentProps:{
-                mode:'multiple',
-                placeholder:"请选择规则持续时间的范围",
-                options:[
+        label: "持续时间",
+        dataProps: {
+            type: "select",
+            parentProps: {
+                mode: 'multiple',
+                placeholder: "请选择规则持续时间的范围",
+                options: [
                     {
-                        label:"3m<",
-                        value:"3m<"
+                        label: "3m<",
+                        value: "3m<"
                     }
                 ]
             }

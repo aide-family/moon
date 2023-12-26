@@ -1,6 +1,6 @@
-import { FC, useEffect, useState } from 'react'
-import { StrategyGroupItemType } from '@/pages/home/monitor/strategy-group/type.ts'
-import { Modal } from 'antd'
+import {FC, useEffect, useState} from 'react'
+import {Modal} from 'antd'
+import {StrategyGroupItemType} from "@/apis/home/monitor/strategy-group/types.ts";
 
 export interface DetailProps {
     open: boolean
@@ -11,7 +11,7 @@ export interface DetailProps {
 const defaultData: StrategyGroupItemType[] = [{}]
 
 export const Detail: FC<DetailProps> = (props) => {
-    const { open, onClose, id } = props
+    const {open, onClose, id} = props
 
     const [detail, setDetail] = useState<StrategyGroupItemType>({})
 

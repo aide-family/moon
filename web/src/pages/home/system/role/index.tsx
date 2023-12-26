@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { ColumnType, ColumnGroupType } from 'antd/es/table'
 import { Badge, Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
@@ -22,7 +22,7 @@ const { searchItems, operationItems } = roleOptions()
 
 const defaultPadding = 12
 
-let timer: any
+let timer: NodeJS.Timeout
 
 type RoleColumnType = ColumnType<RoleListItem> | ColumnGroupType<RoleListItem>
 
@@ -30,7 +30,7 @@ type RoleColumnType = ColumnType<RoleListItem> | ColumnGroupType<RoleListItem>
  * 角色管理
  */
 const Role: React.FC = () => {
-    const oprationRef = useRef<HTMLDivElement>(null)
+    const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<RoleListItem[]>([])
@@ -265,7 +265,7 @@ const Role: React.FC = () => {
                 onOk={handleAuthConfig}
                 roleId={roleId}
             />
-            <div ref={oprationRef}>
+            <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm
@@ -291,7 +291,7 @@ const Role: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                oprationRef={oprationRef}
+                operationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}

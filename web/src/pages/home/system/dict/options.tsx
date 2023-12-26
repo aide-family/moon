@@ -1,9 +1,10 @@
-import { ActionKey, categoryData } from '@/apis/data'
-import { Status, StatusMap } from '@/apis/types'
-import { DataFormItem } from '@/components/Data'
+import {ActionKey, categoryData} from '@/apis/data'
+import {Status, StatusMap} from '@/apis/types'
+import {DataFormItem} from '@/components/Data'
 
-import { IconFont } from '@/components/IconFont/IconFont'
-import { Button, MenuProps } from 'antd'
+import {IconFont} from '@/components/IconFont/IconFont'
+import {Button, MenuProps} from 'antd'
+import {DictListItem} from "@/apis/home/system/dict/types.ts";
 
 const searchItems: DataFormItem[] = [
     {
@@ -40,7 +41,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     placeholder: '请选择字典类别',
                     options: Object.entries(categoryData).map(
-                        ([key, value]) => ({ label: value, value: Number(key) })
+                        ([key, value]) => ({label: value, value: Number(key)})
                     )
                 }
             }
@@ -108,7 +109,7 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     placeholder: '请选择字典类别',
                     options: Object.entries(categoryData).map(
-                        ([key, value]) => ({ label: value, value: Number(key) })
+                        ([key, value]) => ({label: value, value: Number(key)})
                     )
                 }
             }
@@ -170,14 +171,14 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
     ]
 ]
 
-const operationItems: MenuProps['items'] = [
+const operationItems = (_: DictListItem): MenuProps['items'] => [
     {
         key: ActionKey.EDIT,
         label: (
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-edit" />}
+                icon={<IconFont type="icon-edit"/>}
             >
                 编辑
             </Button>
@@ -193,7 +194,7 @@ const operationItems: MenuProps['items'] = [
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
-                        style={{ color: 'red' }}
+                        style={{color: 'red'}}
                     />
                 }
             >

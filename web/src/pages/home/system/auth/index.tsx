@@ -275,7 +275,7 @@ const Auth: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                oprationRef={oprationRef}
+                operationRef={oprationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}

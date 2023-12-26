@@ -23,9 +23,9 @@ export const EditStrategyModal: FC<EditStrategyModalProps> = (props) => {
     const Title = () => {
         if (id) {
             return <div>编辑规则</div>
-        } else {
-            return <div>新增规则</div>
         }
+
+        return <div>新增规则</div>
     }
 
     return (

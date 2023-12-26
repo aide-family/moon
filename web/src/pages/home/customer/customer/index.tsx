@@ -182,7 +182,7 @@ const Customer: FC = () => {
             <DataTable
                 columns={columns}
                 loading={loading}
-                oprationRef={oprationRef}
+                operationRef={oprationRef}
                 dataSource={dataSource}
                 operationItems={operationItems}
                 total={total}
