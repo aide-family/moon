@@ -1,6 +1,6 @@
 import { FC, useContext, useState, useEffect } from 'react'
 
-import { Button, Input } from 'antd'
+import { Button, Form, Input } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import { useNavigate } from 'react-router-dom'
 import { CopyrightOutlined } from '@ant-design/icons'
@@ -41,7 +41,8 @@ const LoginForm: FC = () => {
                     setToken?.(data.token)
                     setUser?.(data.user)
                     navigate('/')
-                }).catch(() => {
+                })
+                .catch(() => {
                     // 重新获取验证码
                     handleCaptcha()
                 })

@@ -1,7 +1,7 @@
 import { FC } from 'react'
 
 import type { FormInstance } from 'antd'
-import type { Rule } from 'antd/es/form'
+import type { FormItemProps, Rule } from 'antd/es/form'
 import type { DataInputProps } from '../DataInput/DataInput'
 import type { FormProps } from 'antd/lib'
 
@@ -12,6 +12,7 @@ import React from 'react'
 export type DataFormItem = {
     name: string
     label: string
+    formItemProps?: FormItemProps
     dataProps?: DataInputProps
     rules?: Rule[]
 }
@@ -32,6 +33,7 @@ const DataForm: FC<DataFormProps> = (props) => {
             name,
             label,
             rules,
+            formItemProps,
             dataProps = {
                 type: 'input',
                 parentProps: {
@@ -42,7 +44,13 @@ const DataForm: FC<DataFormProps> = (props) => {
 
         return (
             <Col span={span} key={name}>
-                <Form.Item name={name} label={label} rules={rules} key={name}>
+                <Form.Item
+                    {...formItemProps}
+                    name={name}
+                    label={label}
+                    rules={rules}
+                    key={name}
+                >
                     {props[name] || <DataInput {...dataProps} />}
                 </Form.Item>
             </Col>

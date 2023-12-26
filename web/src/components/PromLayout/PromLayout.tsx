@@ -54,7 +54,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
 
     useEffect(() => {
         // TODO 做路由权限认证
-        console.log('local.pathname', local)
+        console.log('TODO 做路由权限认证', local)
     }, [local.pathname])
 
     return (
