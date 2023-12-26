@@ -79,7 +79,9 @@ export enum ActionKey {
     /** 状态修改 */
     CHANGE_STATUS = '__change_status__',
     /** IKUAI */
-    IKUAI = '__ikuai__'
+    IKUAI = '__ikuai__',
+    /** 规则组列表 */
+    STRATEGY_GROUP_LIST = '__strategy_group_list__'
 }
 
 export { categoryData, domainTypeData, moduleTypeData }

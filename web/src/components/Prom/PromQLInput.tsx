@@ -113,6 +113,11 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         disabled,
         promValidate
     } = props
+
+    if (pathPrefix === '') {
+        return <div>数据源为空, 不予渲染PromQL输入框</div>
+    }
+
     const { theme } = useContext(GlobalContext)
     const containerRef = useRef<HTMLDivElement>(null)
     const viewRef = useRef<EditorView | null>(null)
@@ -251,7 +256,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 })
             )
         }
-    }, [containerRef])
+    }, [containerRef, pathPrefix])
 
     useEffect(() => {
         onChange?.(doc)

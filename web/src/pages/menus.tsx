@@ -102,11 +102,11 @@ export const defaultMenuItems: ItemType[] = [
         icon: <IconFont type="icon-Prometheus" />,
         children: [
             {
-                label: '规则组',
+                label: '策略组',
                 key: '/home/monitor/strategy-group'
             },
             {
-                label: '报警规则',
+                label: '策略',
                 key: '/home/monitor/strategy-group/strategy'
             },
             {
@@ -124,7 +124,7 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/resource': '资源管理',
     '/home/flow': '流程管理',
     '/home/monitor/strategy-group': '策略组',
-    '/home/monitor/strategy-group/strategy': '报警规则',
+    '/home/monitor/strategy-group/strategy': '策略',
     '/home/monitor/endpoint': '数据源',
     '/home/system/user': '用户管理',
     '/home/system/dict': '字典管理',
