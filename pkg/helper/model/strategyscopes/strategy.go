@@ -25,6 +25,11 @@ func StatusEQ(status int32) query.ScopeMethod {
 	}
 }
 
+// GroupIdsEQ 策略组ID
+func GroupIdsEQ(ids ...uint32) query.ScopeMethod {
+	return query.WhereInColumn("group_id", ids)
+}
+
 // InIds id列表
 func InIds(ids []uint32) query.ScopeMethod {
 	return query.WhereInColumn("id", ids)

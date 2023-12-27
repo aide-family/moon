@@ -108,8 +108,8 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	}
 	return &pb.ListGroupReply{
 		Page: &api.PageReply{
-			Curr:  int32(pgInfo.GetCurr()),
-			Size:  int32(pgInfo.GetSize()),
+			Curr:  pgInfo.GetCurr(),
+			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
 		List: slices.To(list, func(t *bo.StrategyGroupBO) *api.PromGroup {
