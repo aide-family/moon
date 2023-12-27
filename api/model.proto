@@ -187,8 +187,6 @@ message PromGroup {
   int64 deletedAt = 8;
   // 策略数量
   int64 strategyCount = 9;
-  // 监控端点列表
-  repeated PrometheusServerItem endpoints = 10;
 }
 
 // 策略组选择类型

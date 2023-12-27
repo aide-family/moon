@@ -108,8 +108,6 @@ message CreateGroupRequest {
   }];
   // 策略组备注, 长度0-255
   string remark = 3 [(validate.rules).string.max_len = 255];
-  // 监控端点列表
-  repeated uint32 endpointIds = 4;
 }
 // 创建策略组响应参数
 message CreateGroupReply {
@@ -133,8 +131,6 @@ message UpdateGroupRequest {
   }];
   // 策略组备注, 长度0-255
   string remark = 4 [(validate.rules).string.max_len = 255];
-  // 监控端点列表
-  repeated uint32 endpointIds = 5;
 }
 // 更新策略组响应参数
 message UpdateGroupReply {
