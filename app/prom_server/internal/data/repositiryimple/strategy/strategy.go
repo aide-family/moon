@@ -5,7 +5,6 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-
 	"prometheus-manager/pkg/helper/model"
 	"prometheus-manager/pkg/helper/model/strategyscopes"
 	"prometheus-manager/pkg/helper/valueobj"
@@ -25,6 +24,8 @@ type (
 
 		data *data.Data
 		log  *log.Helper
+
+		strategyGroupRepo repository.StrategyGroupRepo
 	}
 )
 
@@ -46,6 +47,12 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 	if err := l.WithContext(ctx).Create(newStrategy); err != nil {
 		return nil, err
 	}
+
+	// 更新策略组的策略数量
+	if err := l.strategyGroupRepo.UpdateStrategyCount(ctx, strategyBO.GroupId); err != nil {
+		return nil, err
+	}
+
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
@@ -65,7 +72,18 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 }
 
 func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32) error {
+	var detailList []*model.PromStrategy
+	if err := l.data.DB().Scopes(strategyscopes.InIds(id)).Find(&detailList).Error; err != nil {
+		return err
+	}
 	if err := l.WithContext(ctx).Delete(strategyscopes.InIds(id)); err != nil {
+		return err
+	}
+	groupIds := slices.To(detailList, func(i *model.PromStrategy) uint32 {
+		return i.GroupID
+	})
+	// 更新策略组的策略数量
+	if err := l.strategyGroupRepo.UpdateStrategyCount(ctx, groupIds...); err != nil {
 		return err
 	}
 	return nil
@@ -93,12 +111,13 @@ func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagina
 	return list, nil
 }
 
-func NewStrategyRepo(data *data.Data, logger log.Logger) repository.StrategyRepo {
+func NewStrategyRepo(data *data.Data, strategyGroupRepo repository.StrategyGroupRepo, logger log.Logger) repository.StrategyRepo {
 	return &strategyRepoImpl{
 		data: data,
 		log:  log.NewHelper(logger),
 		IAction: query.NewAction[model.PromStrategy](
 			query.WithDB[model.PromStrategy](data.DB()),
 		),
+		strategyGroupRepo: strategyGroupRepo,
 	}
 }
