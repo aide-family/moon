@@ -56,7 +56,7 @@ service Strategy {
   // 获取策略
   rpc GetStrategy (GetStrategyRequest) returns (GetStrategyReply) {
     option (google.api.http) = {
-      post: "/api/v1/strategy/get/{id}"
+      post: "/api/v1/strategy/detail"
       body: "*"
     };
   }

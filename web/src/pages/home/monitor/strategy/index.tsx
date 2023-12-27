@@ -1,17 +1,20 @@
 import { FC, Key, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form } from 'antd'
-import { ColumnGroupType, ColumnType } from 'antd/es/table'
+import { Button, Form, Space } from 'antd'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import { CopyOutlined } from '@ant-design/icons'
 import { ActionKey } from '@/apis/data.ts'
-import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
-import { defaultData } from './data'
-import { searchItems, tableOperationItems } from './options'
+import {
+    StrategyItemType,
+    defaultStrategyListRequest
+} from '@/apis/home/monitor/strategy/types'
+import { columns, searchItems, tableOperationItems } from './options'
 import { Detail } from './child/Detail'
+import strategyApi from '@/apis/home/monitor/strategy'
+import { Status } from '@/apis/types'
 
 const defaultPadding = 12
 
@@ -23,62 +26,13 @@ const Strategy: FC = () => {
     const [dataSource, setDataSource] = useState<StrategyItemType[]>([])
 
     const [loading, setLoading] = useState<boolean>(false)
-    const [total, setTotal] = useState<number>(0)
+    const [total, setTotal] = useState<number | string>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
     const [openDetail, setOpenDetail] = useState<boolean>(false)
     const [operateId, setOperateId] = useState<number | undefined>()
-    const [actionKey, setActionKey] = useState<ActionKey | undefined>()
-
-    const columns: (
-        | ColumnGroupType<StrategyItemType>
-        | ColumnType<StrategyItemType>
-    )[] = [
-        {
-            title: '名称',
-            dataIndex: 'alert',
-            key: 'alert',
-            width: 160,
-            render: (alert: string) => {
-                return alert
-            }
-        },
-        {
-            title: '持续时间',
-            dataIndex: 'duration',
-            key: 'duration',
-            width: 160,
-            render: (duration: string) => {
-                return duration
-            }
-        },
-        {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 160,
-            render: (status: string) => {
-                return status
-            }
-        },
-        {
-            title: '创建时间',
-            dataIndex: 'created_at',
-            key: 'created_at',
-            width: 160,
-            render: (created_at: string) => {
-                return created_at
-            }
-        },
-        {
-            title: '更新时间',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
-            width: 160,
-            render: (updated_at: string) => {
-                return updated_at
-            }
-        }
-    ]
+    const [actionKey, setActionKey] = useState<ActionKey | undefined>(
+        ActionKey.ADD
+    )
 
     const handlerOpenDetail = (id?: number) => {
         setOperateId(id)
@@ -92,11 +46,15 @@ const Strategy: FC = () => {
     // 获取数据
     const handlerGetData = () => {
         setLoading(true)
-        setTimeout(() => {
-            setDataSource(defaultData)
-            setTotal(203)
-            setLoading(false)
-        }, 500)
+        strategyApi
+            .getStrategyList(defaultStrategyListRequest)
+            .then((res) => {
+                setDataSource(res.list)
+                setTotal(res.page.total)
+            })
+            .finally(() => {
+                setLoading(false)
+            })
     }
 
     useEffect(() => {
@@ -131,6 +89,13 @@ const Strategy: FC = () => {
         console.log(ids)
     }
 
+    // 批量修改状态
+    const handlebatchChangeStatus = (ids: number[], status: Status) => {
+        strategyApi.batchChangeStrategyStatus(ids, status).then(() => {
+            handlerRefresh()
+        })
+    }
+
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: StrategyItemType) => {
         console.log(key, record)
@@ -148,11 +113,17 @@ const Strategy: FC = () => {
             case ActionKey.DELETE:
                 handlerBatchDelete([record.id])
                 break
+            case ActionKey.DISABLE:
+                handlebatchChangeStatus([record.id], Status.STATUS_DISABLED)
+                break
+            case ActionKey.ENABLE:
+                handlebatchChangeStatus([record.id], Status.STATUS_ENABLED)
+                break
         }
     }
 
     const handlerDataOptionAction = (key: ActionKey) => {
-        console.log(key)
+        setActionKey(key)
         switch (key) {
             case ActionKey.ADD:
                 handlerOpenDetail()
@@ -201,6 +172,7 @@ const Strategy: FC = () => {
                 onClose={handlerCloseDetail}
                 id={operateId}
                 actionKey={actionKey}
+                refresh={handlerRefresh}
             />
             <div ref={operationRef}>
                 <RouteBreadcrumb />
@@ -230,7 +202,7 @@ const Strategy: FC = () => {
                 dataSource={dataSource}
                 columns={columns}
                 operationRef={operationRef}
-                total={total}
+                total={+total}
                 loading={loading}
                 operationItems={tableOperationItems}
                 pageOnChange={handlerTablePageChange}
@@ -240,10 +212,10 @@ const Strategy: FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
-                        <div>
+                        <Space>
                             <CopyOutlined />
                             <p style={{ margin: 0 }}>{record.expr}</p>
-                        </div>
+                        </Space>
                     )
                 }}
             />

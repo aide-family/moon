@@ -48,7 +48,7 @@ func RegisterStrategyHTTPServer(s *http.Server, srv StrategyHTTPServer) {
 	r.POST("/api/v1/strategy/status/batch/update", _Strategy_BatchUpdateStrategyStatus0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/delete", _Strategy_DeleteStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/batch/delete", _Strategy_BatchDeleteStrategy0_HTTP_Handler(srv))
-	r.POST("/api/v1/strategy/get/{id}", _Strategy_GetStrategy0_HTTP_Handler(srv))
+	r.POST("/api/v1/strategy/detail", _Strategy_GetStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/list", _Strategy_ListStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/select", _Strategy_SelectStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/export", _Strategy_ExportStrategy0_HTTP_Handler(srv))
@@ -153,9 +153,6 @@ func _Strategy_GetStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.C
 	return func(ctx http.Context) error {
 		var in GetStrategyRequest
 		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationStrategyGetStrategy)
@@ -315,7 +312,7 @@ func (c *StrategyHTTPClientImpl) ExportStrategy(ctx context.Context, in *ExportS
 
 func (c *StrategyHTTPClientImpl) GetStrategy(ctx context.Context, in *GetStrategyRequest, opts ...http.CallOption) (*GetStrategyReply, error) {
 	var out GetStrategyReply
-	pattern := "/api/v1/strategy/get/{id}"
+	pattern := "/api/v1/strategy/detail"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategyGetStrategy))
 	opts = append(opts, http.PathTemplate(pattern))

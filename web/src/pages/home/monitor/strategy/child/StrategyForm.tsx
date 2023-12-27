@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, ReactNode, useEffect, useState } from 'react'
 import {
     Button,
     Col,
@@ -14,23 +14,63 @@ import PromQLInput, {
     formatExpressionFunc,
     PromValidate
 } from '@/components/Prom/PromQLInput.tsx'
-import { durationOptions } from '../options'
+import {
+    alarmPageOptions,
+    categoryOptions,
+    durationOptions,
+    endpoIntOptions,
+    restrainOptions,
+    strategyGroupOptions,
+    sverityOptions
+} from '../options'
 import { DeleteOutlined } from '@ant-design/icons'
+import AddLabelModal from './AddLabelModal'
 
+export type UintType = 's' | 'm' | 'h' | 'd'
+
+export type FormValuesType = {
+    alert: string
+    annotations: {
+        title: string
+        description: string
+        [key: string]: string
+    }
+    duration: { value: number; unit: UintType }
+    endpoint: string
+    groupId: number
+    lables: { sverity: string; [key: string]: string }
+    expr: string
+    restrain: number[]
+    alarmPageIds: number[]
+    categoryIds: number[]
+}
 export interface StrategyFormProps {
     form: FormInstance
     disabled?: boolean
+    initValues?: FormValuesType
+}
+
+export type labelsType = {
+    label: string | ReactNode
+    name: string
 }
 
 let timeout: NodeJS.Timeout
 export const StrategyForm: FC<StrategyFormProps> = (props) => {
-    const { disabled, form } = props
+    const { disabled, form, initValues } = props
 
     const handleOnChang = (values: any) => {
         console.log('values', values)
     }
 
     const [promValidate, setPromValidate] = useState<PromValidate | undefined>()
+    const [labelFormItemList, setLabelFormItemList] = useState<labelsType[]>([])
+    const [annotationFormItemList, setAnnotationFormItemList] = useState<
+        labelsType[]
+    >([])
+    const [addLabelModalOpen, setAddLabelModalOpen] = useState<boolean>(false)
+    const [isLabelModalOpen, setIsLabelModalOpen] = useState<boolean>(false)
+
     const endpoint = Form.useWatch('endpoint', form)
 
     const fetchValidateExpr = async (value?: string) => {
@@ -73,32 +113,34 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         }
     ]
 
-    // TODO 获取数据源
-    const options = [
-        {
-            label: 'Prometheus',
-            value: 'http://124.223.104.203:9090'
-        },
-        {
-            label: 'Grafana',
-            value: 'http://124.223.104.203:3000'
+    const handleAddLabel = (data: labelsType) => {
+        if (data.label && data.name) {
+            if (isLabelModalOpen) {
+                setLabelFormItemList([...labelFormItemList, data])
+            } else {
+                setAnnotationFormItemList([...annotationFormItemList, data])
+            }
+            setAddLabelModalOpen(false)
         }
-    ]
-    // TODO 获取策略组列表
-    const strategyGroupOptions = [
-        {
-            label: 'Default',
-            value: 'default'
-        },
-        {
-            label: '网络',
-            value: 'network'
-        },
-        {
-            label: '存储',
-            value: 'storage'
-        }
-    ]
+    }
+
+    const handleCloseAddLabelModal = () => {
+        setAddLabelModalOpen(false)
+    }
+
+    const openAddLabelModal = () => {
+        setAddLabelModalOpen(true)
+        setIsLabelModalOpen(true)
+    }
+
+    const openAddAnnotationModal = () => {
+        setAddLabelModalOpen(true)
+        setIsLabelModalOpen(false)
+    }
+
+    useEffect(() => {
+        form.setFieldsValue(initValues)
+    }, [initValues])
 
     useEffect(() => {
         if (!endpoint) {
@@ -108,6 +150,11 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
 
     return (
         <>
+            <AddLabelModal
+                open={addLabelModalOpen}
+                onCancel={handleCloseAddLabelModal}
+                onOk={handleAddLabel}
+            />
             <Form
                 form={form}
                 onFinish={handleOnChang}
@@ -115,17 +162,14 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 disabled={disabled}
             >
                 <Row gutter={16}>
-                    <Col span={6}>
+                    <Col span={12}>
                         <Form.Item
                             name="endpoint"
                             label="数据源"
                             tooltip={
-                                <>
-                                    <p>
-                                        请选择Prometheus数据源,
-                                        目前仅支持Prometheus
-                                    </p>
-                                </>
+                                <p>
+                                    请选择Prometheus数据源, 目前仅支持Prometheus
+                                </p>
                             }
                             rules={[
                                 {
@@ -137,14 +181,14 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             <Select
                                 disabled={false}
                                 allowClear
-                                options={options}
+                                options={endpoIntOptions}
                                 placeholder="请选择Prometheus数据源"
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={12}>
                         <Form.Item
-                            name="strategyGroupId"
+                            name="groupId"
                             label="策略组"
                             tooltip={
                                 <>
@@ -169,7 +213,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={12}>
                         <Form.Item
                             name="alert"
                             label="策略名称"
@@ -191,9 +235,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             <Input placeholder="请输入策略名称" />
                         </Form.Item>
                     </Col>
-                    <Col span={6}>
+                    <Col span={12}>
                         <Form.Item
-                            name="duration"
                             label="持续时间"
                             tooltip={
                                 <>
@@ -213,17 +256,83 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             ]}
                         >
                             <Space.Compact style={{ width: '100%' }}>
-                                <InputNumber
-                                    placeholder="请输入持续时间"
-                                    style={{ width: '80%' }}
-                                    defaultValue={3}
-                                />
-                                <Select
-                                    defaultValue="m"
-                                    options={durationOptions}
-                                    style={{ width: '20%', minWidth: 80 }}
-                                />
+                                <Form.Item
+                                    name={['duration', 'value']}
+                                    initialValue={3}
+                                    noStyle
+                                >
+                                    <InputNumber
+                                        placeholder="请输入持续时间"
+                                        style={{ width: '80%' }}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    name={['duration', 'unit']}
+                                    initialValue="m"
+                                    noStyle
+                                >
+                                    <Select
+                                        options={durationOptions}
+                                        style={{ width: '20%', minWidth: 80 }}
+                                    />
+                                </Form.Item>
                             </Space.Compact>
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            name="alarmPageIds"
+                            label="报警页面"
+                            tooltip={
+                                <>
+                                    <p>
+                                        报警页面: 当该规则触发时,
+                                        页面将跳转到报警页面
+                                    </p>
+                                </>
+                            }
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请选择报警页面'
+                                }
+                            ]}
+                        >
+                            <Select
+                                disabled={false}
+                                allowClear
+                                options={alarmPageOptions}
+                                mode="multiple"
+                                placeholder="请选择报警页面"
+                            />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            name="categoryIds"
+                            label="策略类型"
+                            tooltip={
+                                <>
+                                    <p>
+                                        策略类型: 选择策略类型, 例如:
+                                        网络、业务、系统等
+                                    </p>
+                                </>
+                            }
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请选择策略类型'
+                                }
+                            ]}
+                        >
+                            <Select
+                                disabled={false}
+                                allowClear
+                                options={categoryOptions}
+                                mode="multiple"
+                                placeholder="请选择策略类型"
+                            />
                         </Form.Item>
                     </Col>
                 </Row>
@@ -231,17 +340,22 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 <Form.Item
                     name="restrain"
                     label="抑制对象"
+                    initialValue={[]}
                     tooltip={
                         <div>
                             抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制
                         </div>
                     }
                 >
-                    <Select mode="multiple" placeholder="请选择抑制对象" />
+                    <Select
+                        mode="multiple"
+                        placeholder="请选择抑制对象"
+                        options={restrainOptions}
+                    />
                 </Form.Item>
 
                 <Form.Item
-                    name="promQL"
+                    name="expr"
                     label="PromQL"
                     {...promValidate}
                     tooltip={
@@ -265,63 +379,135 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     )}
                 </Form.Item>
 
-                <span style={{ color: '#E0E2E6' }}>
-                    <Button type="primary" size="small">
-                        添加标签
-                    </Button>
-                    <span>(可选)</span>
-                </span>
                 <Form.Item
-                    name="sverity"
-                    label="等级(sverity)"
-                    style={{ marginTop: 12 }}
-                    rules={[
-                        {
-                            required: true,
-                            message: '请输入告警等级'
-                        }
-                    ]}
+                    tooltip={
+                        <div>
+                            标签: 标签是Prometheus报警规则的附加信息, 例如:
+                            告警等级, 告警实例等, 也可以添加自定义标签
+                        </div>
+                    }
+                    label={
+                        <span style={{ color: '#E0E2E6' }}>
+                            <Button
+                                type="primary"
+                                size="small"
+                                onClick={openAddLabelModal}
+                            >
+                                告警标签
+                            </Button>
+                            <span>(可选)</span>
+                        </span>
+                    }
                 >
-                    <Space.Compact>
-                        <Input placeholder="请输入告警等级" />
-                        <Button
-                            type="primary"
-                            icon={<DeleteOutlined />}
-                            danger
-                        />
-                    </Space.Compact>
+                    <Row gutter={16}>
+                        <Col span={6}>
+                            <Form.Item
+                                name={['lables', 'sverity']}
+                                label="等级(sverity)"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请输入告警等级'
+                                    }
+                                ]}
+                            >
+                                <Select
+                                    placeholder="请选择告警等级"
+                                    options={sverityOptions}
+                                />
+                            </Form.Item>
+                        </Col>
+                        {labelFormItemList.map((item, index) => {
+                            return (
+                                <Col span={6} key={index}>
+                                    <Form.Item
+                                        name={['lables', item.name]}
+                                        label={item.label}
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: `请输入${item.label}`
+                                            }
+                                        ]}
+                                    >
+                                        <Space.Compact>
+                                            <Input
+                                                placeholder={`请输入${item.label}`}
+                                            />
+                                            <Button
+                                                type="primary"
+                                                danger
+                                                icon={<DeleteOutlined />}
+                                            />
+                                        </Space.Compact>
+                                    </Form.Item>
+                                </Col>
+                            )
+                        })}
+                    </Row>
                 </Form.Item>
-                <span style={{ color: '#E0E2E6' }}>
-                    <Button type="primary" size="small">
-                        告警注释
-                    </Button>
-                    <span style={{ color: '#E0E2E6' }}>(可选)</span>
-                </span>
+
                 <Form.Item
-                    name="title"
-                    label="告警标题模板"
-                    style={{ marginTop: 12 }}
-                    rules={[
-                        {
-                            required: true,
-                            message: '请输入告警标题模板'
-                        }
-                    ]}
+                    tooltip={
+                        <div>
+                            告警注释: 告警注释是Prometheus报警规则的附加信息,
+                            例如: 告警标题, 告警描述等, 也可以添加自定义注释
+                        </div>
+                    }
+                    label={
+                        <span style={{ color: '#E0E2E6' }}>
+                            <Button
+                                type="primary"
+                                size="small"
+                                onClick={openAddAnnotationModal}
+                            >
+                                告警注释
+                            </Button>
+                            <span style={{ color: '#E0E2E6' }}>(可选)</span>
+                        </span>
+                    }
                 >
-                    <Input.TextArea placeholder="请输入告警标题模板" />
-                </Form.Item>
-                <Form.Item
-                    name="title"
-                    label="告警内容模板"
-                    style={{ marginTop: 12 }}
-                    rules={[
-                        {
-                            required: true,
-                            message: '请输入告警内容模板'
-                        }
-                    ]}
-                >
-                    <Input.TextArea placeholder="请输入告警内容模板" />
+                    <Form.Item
+                        name={['annotations', 'title']}
+                        label="告警标题模板"
+                        rules={[
+                            {
+                                required: true,
+                                message: '请输入告警标题模板'
+                            }
+                        ]}
+                    >
+                        <Input.TextArea placeholder="请输入告警标题模板" />
+                    </Form.Item>
+                    <Form.Item
+                        name={['annotations', 'description']}
+                        label="告警内容模板"
+                        rules={[
+                            {
+                                required: true,
+                                message: '请输入告警内容模板'
+                            }
+                        ]}
+                    >
+                        <Input.TextArea placeholder="请输入告警内容模板" />
+                    </Form.Item>
+                    {annotationFormItemList.map((item, index) => {
+                        return (
+                            <Form.Item
+                                name={['annotations', item.name]}
+                                label={item.label}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: `请输入${item.label}`
+                                    }
+                                ]}
+                                key={index}
+                            >
+                                <Input placeholder={`请输入${item.label}`} />
+                            </Form.Item>
+                        )
+                    })}
                 </Form.Item>
             </Form>
         </>
