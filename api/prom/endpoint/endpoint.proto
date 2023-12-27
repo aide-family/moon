@@ -29,6 +29,30 @@ service Endpoint {
     };
   }
 
+  // 编辑端点信息
+  rpc EditEndpoint (EditEndpointRequest) returns (EditEndpointReply) {
+    option (google.api.http) = {
+      post: "/api/v1/endpoint/edit"
+      body: "*"
+    };
+  }
+
+  // 批量修改端点状态
+  rpc BatchEditEndpointStatus (BatchEditEndpointStatusRequest) returns (BatchEditEndpointStatusReply) {
+    option (google.api.http) = {
+      post: "/api/v1/endpoint/batch/status"
+      body: "*"
+    };
+  }
+
+  // 获取监控端点详情
+  rpc GetEndpoint (GetEndpointRequest) returns (GetEndpointReply) {
+    option (google.api.http) = {
+      post: "/api/v1/endpoint/detail"
+      body: "*"
+    };
+  }
+
   // 获取监控端点列表
   rpc ListEndpoint (ListEndpointRequest) returns (ListEndpointReply) {
     option (google.api.http) = {
@@ -36,59 +60,100 @@ service Endpoint {
       body: "*"
     };
   }
+
+  // 获取监控端点下拉列表
+  rpc SelectEndpoint (SelectEndpointRequest) returns (SelectEndpointReply) {
+    option (google.api.http) = {
+      post: "/api/v1/endpoint/select"
+      body: "*"
+    };
+  }
 }
 
 // 添加监控端点请求参数
 message AppendEndpointRequest {
-  // 监控端点名称
-  string agentName = 1 [(validate.rules).string = {
-    min_len: 2,
-    max_len: 32,
+  // 采集器名称
+  string name = 2 [(validate.rules).string = {
+    min_len: 2
+    max_len: 32
   }];
-  // 监控端点地址列表信息, 最少有一个, 不允许为空对象
-  repeated PrometheusServerItem endpoints = 2 [(validate.rules).repeated = {
-    min_items: 1,
-    items: {
-      message: {
-        required: true
-      }
-    }
-  }];
+  // 端点
+  string endpoint = 3;
+  // 备注
+  string remark = 5 [(validate.rules).string.max_len = 255];
 }
 // 添加监控端点响应参数
 message AppendEndpointReply {
-  // 响应信息
-  Response response = 1;
+  uint32 id = 1;
 }
 
 // 删除监控端点请求参数
 message DeleteEndpointRequest {
-  // 监控端点名称
-  string agentName = 1 [(validate.rules).string = {
-    min_len: 2,
-    max_len: 32,
-  }];
-  // 要删除的监控端点uuid列表, 最少有一个
-  repeated string uuids = 2 [(validate.rules).repeated = {
-    min_items: 1,
-    items: {
-      string: {
-        uuid: true,
-      }
-    }
-  }];
+  uint32 id = 1;
 }
 // 删除监控端点响应参数
 message DeleteEndpointReply {
-  // 响应信息
-  Response response = 1;
+  uint32 id = 1;
 }
 
-// 获取监控端点列表请求参数, 这里每次拉取都是全部, 所以不做分页查询等
-message ListEndpointRequest {}
+// 编辑端点信息请求参数
+message EditEndpointRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  string name = 2 [(validate.rules).string = {
+    min_len: 2
+    max_len: 32
+  }];
+  string endpoint = 3;
+  string remark = 5 [(validate.rules).string.max_len = 255];
+}
+// 编辑端点信息响应参数
+message EditEndpointReply {
+  uint32 id = 1;
+}
+
+// 批量修改端点状态请求参数
+message BatchEditEndpointStatusRequest {
+  repeated uint32 ids = 1 [(validate.rules).repeated.min_items = 1];
+  Status status = 2 [(validate.rules).enum = {
+    not_in: [0],
+    defined_only: true
+  }];
+}
+// 批量修改端点状态响应参数
+message BatchEditEndpointStatusReply {
+  repeated uint32 ids = 1;
+}
+
+// 获取监控端点详情请求参数
+message GetEndpointRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// 获取监控端点详情响应参数
+message GetEndpointReply {
+  // 监控端点信息
+  PrometheusServerItem detail = 1;
+}
+
+// 获取监控端点列表请求参数
+message ListEndpointRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 32];
+}
 message ListEndpointReply {
   // 响应信息
-  Response response = 1;
+  PageReply page = 1;
   // 监控端点列表
-  repeated PrometheusServerItem endpoints = 2;
+  repeated PrometheusServerItem list = 2;
+}
+
+// 获取监控端点下拉列表请求参数
+message SelectEndpointRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  string keyword = 2 [(validate.rules).string.max_len = 32];
+}
+message SelectEndpointReply {
+  // 响应信息
+  PageReply page = 1;
+  // 监控端点下拉列表
+  repeated PrometheusServerSelectItem list = 2;
 }

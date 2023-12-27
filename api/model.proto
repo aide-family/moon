@@ -150,6 +150,9 @@ message PromStrategyV1 {
   int64 deletedAt = 18;
   // 策略备注
   string remark = 19;
+  // 数据源
+  PrometheusServerSelectItem dataSource = 20;
+  uint32 dataSourceId = 21;
 }
 
 // 策略选择类型
@@ -267,14 +270,6 @@ message PrometheusServerItem {
   int64 createdAt = 6;
   // 更新时间, unix时间戳
   int64 updatedAt = 7;
-  // 采集器端点
-  string agentEndpoint = 8;
-  // 采集器检查
-  string agentCheck = 9;
-  // 端点ID
-  string uuid = 10 [(validate.rules).string = {
-    uuid: true
-  }];
 }
 
 // Prometheus服务端点选择类型(用于下拉列表)

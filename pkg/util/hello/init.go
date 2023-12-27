@@ -8,6 +8,7 @@ import (
 var (
 	name     = ""
 	version  = ""
+	env      = ""
 	metadata = map[string]string{}
 	id, _    = os.Hostname()
 )
@@ -21,6 +22,10 @@ func SetVersion(v string) {
 	version = v
 }
 
+func SetEnv(e string) {
+	env = e
+}
+
 func SetMetadata(m map[string]string) {
 	metadata = m
 }
@@ -32,6 +37,10 @@ func Name() string {
 
 func Version() string {
 	return version
+}
+
+func Env() string {
+	return env
 }
 
 func Metadata() map[string]string {
@@ -61,6 +70,7 @@ func FmtASCIIGenerator() {
 	detail += fmt.Sprintf("\n├── %s: %s", "Name", name)
 	detail += fmt.Sprintf("\n├── %s: %s", "Version", version)
 	detail += fmt.Sprintf("\n├── %s: %s", "ID", id)
+	detail += fmt.Sprintf("\n├── %s: %s", "Env", env)
 	if metadata != nil {
 		detail += fmt.Sprintf("\n├── %s: %s", "Metadata", "")
 		for k, p := range metadata {
