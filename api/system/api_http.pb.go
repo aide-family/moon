@@ -23,6 +23,7 @@ const OperationApiCreateApi = "/api.system.Api/CreateApi"
 const OperationApiDeleteApi = "/api.system.Api/DeleteApi"
 const OperationApiEditApiStatus = "/api.system.Api/EditApiStatus"
 const OperationApiGetApi = "/api.system.Api/GetApi"
+const OperationApiGetApiTree = "/api.system.Api/GetApiTree"
 const OperationApiListApi = "/api.system.Api/ListApi"
 const OperationApiSelectApi = "/api.system.Api/SelectApi"
 const OperationApiUpdateApi = "/api.system.Api/UpdateApi"
@@ -32,6 +33,7 @@ type ApiHTTPServer interface {
 	DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiReply, error)
 	EditApiStatus(context.Context, *EditApiStatusRequest) (*EditApiStatusReply, error)
 	GetApi(context.Context, *GetApiRequest) (*GetApiReply, error)
+	GetApiTree(context.Context, *GetApiTreeRequest) (*GetApiTreeReply, error)
 	ListApi(context.Context, *ListApiRequest) (*ListApiReply, error)
 	SelectApi(context.Context, *SelectApiRequest) (*SelectApiReply, error)
 	UpdateApi(context.Context, *UpdateApiRequest) (*UpdateApiReply, error)
@@ -46,6 +48,7 @@ func RegisterApiHTTPServer(s *http.Server, srv ApiHTTPServer) {
 	r.POST("/api/v1/system/api/list", _Api_ListApi0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/api/select", _Api_SelectApi0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/api/status/edit", _Api_EditApiStatus0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/api/tree", _Api_GetApiTree0_HTTP_Handler(srv))
 }
 
 func _Api_CreateApi0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) error {
@@ -181,11 +184,31 @@ func _Api_EditApiStatus0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) 
 	}
 }
 
+func _Api_GetApiTree0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetApiTreeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApiGetApiTree)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetApiTree(ctx, req.(*GetApiTreeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetApiTreeReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ApiHTTPClient interface {
 	CreateApi(ctx context.Context, req *CreateApiRequest, opts ...http.CallOption) (rsp *CreateApiReply, err error)
 	DeleteApi(ctx context.Context, req *DeleteApiRequest, opts ...http.CallOption) (rsp *DeleteApiReply, err error)
 	EditApiStatus(ctx context.Context, req *EditApiStatusRequest, opts ...http.CallOption) (rsp *EditApiStatusReply, err error)
 	GetApi(ctx context.Context, req *GetApiRequest, opts ...http.CallOption) (rsp *GetApiReply, err error)
+	GetApiTree(ctx context.Context, req *GetApiTreeRequest, opts ...http.CallOption) (rsp *GetApiTreeReply, err error)
 	ListApi(ctx context.Context, req *ListApiRequest, opts ...http.CallOption) (rsp *ListApiReply, err error)
 	SelectApi(ctx context.Context, req *SelectApiRequest, opts ...http.CallOption) (rsp *SelectApiReply, err error)
 	UpdateApi(ctx context.Context, req *UpdateApiRequest, opts ...http.CallOption) (rsp *UpdateApiReply, err error)
@@ -243,6 +266,19 @@ func (c *ApiHTTPClientImpl) GetApi(ctx context.Context, in *GetApiRequest, opts 
 	pattern := "/api/v1/system/api/get"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationApiGetApi))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ApiHTTPClientImpl) GetApiTree(ctx context.Context, in *GetApiTreeRequest, opts ...http.CallOption) (*GetApiTreeReply, error) {
+	var out GetApiTreeReply
+	pattern := "/api/v1/system/api/tree"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationApiGetApiTree))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

@@ -145,3 +145,49 @@ func (s *ApiService) EditApiStatus(ctx context.Context, req *pb.EditApiStatusReq
 		Ids: req.GetIds(),
 	}, nil
 }
+
+// GetApiTree 获取api权限树
+func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*pb.GetApiTreeReply, error) {
+	apiBoList, err := s.apiBiz.ListAllApi(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*api.ApiTree, 0, len(apiBoList))
+	domainMap := make(map[valueobj.Domain]map[valueobj.Module][]*bo.ApiBO)
+	for _, apiBo := range apiBoList {
+		if _, ok := domainMap[apiBo.Domain]; !ok {
+			domainMap[apiBo.Domain] = make(map[valueobj.Module][]*bo.ApiBO)
+		}
+		if _, ok := domainMap[apiBo.Domain][apiBo.Module]; !ok {
+			domainMap[apiBo.Domain][apiBo.Module] = make([]*bo.ApiBO, 0)
+		}
+		domainMap[apiBo.Domain][apiBo.Module] = append(domainMap[apiBo.Domain][apiBo.Module], apiBo)
+	}
+
+	for domain, moduleMap := range domainMap {
+		domainDetail := &api.ApiTree{
+			Domain:       api.DomainType(domain),
+			Module:       make([]*api.Module, 0),
+			DomainName:   domain.String(),
+			DomainRemark: domain.Remark(),
+		}
+		for module, apiItemList := range moduleMap {
+			moduleDetail := &api.Module{
+				Module: api.ModuleType(module),
+				Apis:   make([]*api.ApiSelectV1, 0),
+				Name:   module.String(),
+				Remark: module.Remark(),
+			}
+			for _, apiBo := range apiItemList {
+				moduleDetail.Apis = append(moduleDetail.Apis, apiBo.ToApiSelectV1())
+			}
+			domainDetail.Module = append(domainDetail.Module, moduleDetail)
+		}
+		list = append(list, domainDetail)
+	}
+
+	return &pb.GetApiTreeReply{
+		Tree: list,
+	}, nil
+}

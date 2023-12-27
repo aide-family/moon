@@ -62,6 +62,14 @@ service Api {
       body: "*"
     };
   }
+
+  // 获取API权限树
+  rpc GetApiTree (GetApiTreeRequest) returns (GetApiTreeReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/tree"
+      body: "*"
+    };
+  }
 }
 
 // 创建API数据请求参数
@@ -198,4 +206,12 @@ message EditApiStatusRequest {
 message EditApiStatusReply {
   // 接口ID列表, 修改成功后返回
   repeated uint32 ids = 1;
+}
+
+// 获取API权限树请求参数
+message GetApiTreeRequest {}
+// 获取API权限树响应参数
+message GetApiTreeReply {
+  // 权限树
+  repeated ApiTree tree = 1;
 }

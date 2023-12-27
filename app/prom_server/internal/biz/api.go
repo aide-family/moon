@@ -66,6 +66,16 @@ func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ..
 	return apiBOList, nil
 }
 
+// ListAllApi 获取api列表
+func (b *ApiBiz) ListAllApi(ctx context.Context) ([]*bo.ApiBO, error) {
+	apiBOList, err := b.apiRepo.Find(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiBOList, nil
+}
+
 // DeleteApiById 删除api
 func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint32) error {
 	if err := b.apiRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
