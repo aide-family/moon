@@ -22,7 +22,7 @@ const info = (msg?: AxiosError<ErrorRepose>) => {
         message: reason,
         description: message,
         type: 'error',
-        duration: 1,
+        duration: 3,
         role: 'alert'
     })
     if (code === 401) {
