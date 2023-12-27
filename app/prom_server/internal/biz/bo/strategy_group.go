@@ -11,16 +11,17 @@ import (
 
 type (
 	StrategyGroupBO struct {
-		Id            uint32          `json:"id"`
-		Name          string          `json:"name"`
-		Remark        string          `json:"remark"`
-		Status        valueobj.Status `json:"status"`
-		StrategyCount int64           `json:"strategyCount"`
-		CategoryIds   []uint32        `json:"categoryIds"`
-		Categories    []*DictBO       `json:"categories"`
-		CreatedAt     int64           `json:"createdAt"`
-		UpdatedAt     int64           `json:"updatedAt"`
-		DeletedAt     int64           `json:"deletedAt"`
+		Id                  uint32          `json:"id"`
+		Name                string          `json:"name"`
+		Remark              string          `json:"remark"`
+		Status              valueobj.Status `json:"status"`
+		StrategyCount       int64           `json:"strategyCount"`
+		EnableStrategyCount int64           `json:"enableStrategyCount"`
+		CategoryIds         []uint32        `json:"categoryIds"`
+		Categories          []*DictBO       `json:"categories"`
+		CreatedAt           int64           `json:"createdAt"`
+		UpdatedAt           int64           `json:"updatedAt"`
+		DeletedAt           int64           `json:"deletedAt"`
 
 		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}
@@ -77,12 +78,13 @@ func (b *StrategyGroupBO) ToApiV1() *api.PromGroup {
 		Categories: slices.To(b.GetCategories(), func(t *DictBO) *api.DictSelectV1 {
 			return t.ToApiSelectV1()
 		}),
-		Status:        b.Status.Value(),
-		Remark:        b.Remark,
-		CreatedAt:     b.CreatedAt,
-		UpdatedAt:     b.UpdatedAt,
-		DeletedAt:     b.DeletedAt,
-		StrategyCount: b.StrategyCount,
+		Status:              b.Status.Value(),
+		Remark:              b.Remark,
+		CreatedAt:           b.CreatedAt,
+		UpdatedAt:           b.UpdatedAt,
+		DeletedAt:           b.DeletedAt,
+		StrategyCount:       b.StrategyCount,
+		EnableStrategyCount: b.EnableStrategyCount,
 	}
 }
 
@@ -94,10 +96,11 @@ func (b *StrategyGroupBO) ToModel() *model.PromStrategyGroup {
 		BaseModel: query.BaseModel{
 			ID: b.Id,
 		},
-		Name:          b.Name,
-		StrategyCount: b.StrategyCount,
-		Status:        b.Status,
-		Remark:        b.Remark,
+		Name:                b.Name,
+		StrategyCount:       b.StrategyCount,
+		EnableStrategyCount: b.EnableStrategyCount,
+		Status:              b.Status,
+		Remark:              b.Remark,
 		PromStrategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *model.PromStrategy {
 			return u.ToModel()
 		}),
@@ -114,11 +117,12 @@ func StrategyGroupModelToBO(m *model.PromStrategyGroup) *StrategyGroupBO {
 	}
 
 	return &StrategyGroupBO{
-		Id:            m.ID,
-		Name:          m.Name,
-		Remark:        m.Remark,
-		Status:        m.Status,
-		StrategyCount: m.StrategyCount,
+		Id:                  m.ID,
+		Name:                m.Name,
+		Remark:              m.Remark,
+		Status:              m.Status,
+		StrategyCount:       m.StrategyCount,
+		EnableStrategyCount: m.EnableStrategyCount,
 		CategoryIds: slices.To(m.GetCategories(), func(u *model.PromDict) uint32 {
 			return u.ID
 		}),

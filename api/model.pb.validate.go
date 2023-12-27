@@ -1137,6 +1137,8 @@ func (m *PromGroup) validate(all bool) error {
 
 	// no validation rules for StrategyCount
 
+	// no validation rules for EnableStrategyCount
+
 	if len(errors) > 0 {
 		return PromGroupMultiError(errors)
 	}

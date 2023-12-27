@@ -24,10 +24,15 @@ type (
 		GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error)
 		List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		UpdateStrategyCount(ctx context.Context, ids ...uint32) error
+		UpdateEnableStrategyCount(ctx context.Context, ids ...uint32) error
 	}
 
 	UnimplementedStrategyGroupRepo struct{}
 )
+
+func (UnimplementedStrategyGroupRepo) UpdateEnableStrategyCount(_ context.Context, _ ...uint32) error {
+	return status.Error(codes.Unimplemented, "method UpdateEnableStrategyCount not implemented")
+}
 
 func (UnimplementedStrategyGroupRepo) UpdateStrategyCount(_ context.Context, _ ...uint32) error {
 	return status.Error(codes.Unimplemented, "method UpdateStrategyCount not implemented")

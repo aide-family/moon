@@ -187,6 +187,8 @@ message PromGroup {
   int64 deletedAt = 8;
   // 策略数量
   int64 strategyCount = 9;
+  // 启用中的策略数量
+  int64 enableStrategyCount = 10;
 }
 
 // 策略组选择类型

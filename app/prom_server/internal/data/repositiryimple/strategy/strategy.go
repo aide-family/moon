@@ -53,19 +53,41 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 		return nil, err
 	}
 
+	// 更新策略组的启用策略数量
+	if err := l.strategyGroupRepo.UpdateEnableStrategyCount(ctx, strategyBO.GroupId); err != nil {
+		return nil, err
+	}
+
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
 func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
-	newStrategy := strategyBO.ToModel()
-	if err := l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
+	detail, err := l.GetStrategyById(ctx, id)
+	if err != nil {
 		return nil, err
 	}
+
+	newStrategy := strategyBO.ToModel()
+	if err = l.WithContext(ctx).UpdateByID(id, newStrategy); err != nil {
+		return nil, err
+	}
+
+	if detail.Status != newStrategy.Status && !newStrategy.Status.IsUnknown() {
+		// 更新策略组的启用策略数量
+		if err = l.strategyGroupRepo.UpdateEnableStrategyCount(ctx, strategyBO.GroupId); err != nil {
+			return nil, err
+		}
+	}
+
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
 func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategyscopes.InIds(ids)); err != nil {
+		return err
+	}
+	// 更新策略组的启用策略数量
+	if err := l.strategyGroupRepo.UpdateEnableStrategyCount(ctx, ids...); err != nil {
 		return err
 	}
 	return nil
@@ -76,6 +98,7 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32
 	if err := l.data.DB().Scopes(strategyscopes.InIds(id)).Find(&detailList).Error; err != nil {
 		return err
 	}
+
 	if err := l.WithContext(ctx).Delete(strategyscopes.InIds(id)); err != nil {
 		return err
 	}
@@ -84,6 +107,11 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32
 	})
 	// 更新策略组的策略数量
 	if err := l.strategyGroupRepo.UpdateStrategyCount(ctx, groupIds...); err != nil {
+		return err
+	}
+
+	// 更新策略组的启用策略数量
+	if err := l.strategyGroupRepo.UpdateEnableStrategyCount(ctx, groupIds...); err != nil {
 		return err
 	}
 	return nil
