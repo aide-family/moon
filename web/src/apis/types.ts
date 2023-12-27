@@ -212,6 +212,15 @@ export enum ModuleType {
     /**  其他模块 */
     ModelTypeOther
 }
+
+interface IdReponse {
+    id: number
+}
+
+interface IdsReponse {
+    ids: number[]
+}
+
 export type {
     Map,
     BaseResp,
@@ -220,5 +229,7 @@ export type {
     PageReq,
     PageRes,
     PageResType,
-    PageReqType
+    PageReqType,
+    IdReponse,
+    IdsReponse
 }

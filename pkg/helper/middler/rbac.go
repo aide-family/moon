@@ -11,6 +11,8 @@ import (
 	"prometheus-manager/pkg/helper/model"
 )
 
+const AdminRole = "1"
+
 func RbacServer(cache ...*redis.Client) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
@@ -18,6 +20,10 @@ func RbacServer(cache ...*redis.Client) middleware.Middleware {
 			authClaims, ok := GetAuthClaims(ctx)
 			if !ok {
 				return nil, ErrTokenInvalid
+			}
+
+			if authClaims.Role == AdminRole {
+				return handler(ctx, req)
 			}
 
 			path := GetPath(ctx)
