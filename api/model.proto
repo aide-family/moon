@@ -250,22 +250,15 @@ message Alert {
 // Prometheus服务端点基础类型
 message PrometheusServerItem {
   // 端点ID
-  uint32 id = 1 [(validate.rules).uint32 = {
-    gt: 0
-  }];
+  uint32 id = 1;
   // 采集器名称
-  string name = 2 [(validate.rules).string = {
-    min_len: 2
-    max_len: 32
-  }];
+  string name = 2;
   // 端点
   string endpoint = 3;
   // 端点状态
-  Status status = 4 [(validate.rules).enum = {
-    defined_only: true
-  }];
+  int32 status = 4;
   // 备注
-  string remark = 5 [(validate.rules).string.max_len = 255];
+  string remark = 5;
   // 创建时间, unix时间戳
   int64 createdAt = 6;
   // 更新时间, unix时间戳
@@ -279,7 +272,7 @@ message PrometheusServerSelectItem {
   // 端点标签, 对应端点的name
   string label = 2;
   // 端点状态
-  Status status = 3;
+  int32 status = 3;
   // 备注
   string remark = 4;
   // 端点
