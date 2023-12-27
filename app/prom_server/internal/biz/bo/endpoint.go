@@ -42,7 +42,7 @@ func (l *EndpointBO) ToApiV1() *api.PrometheusServerItem {
 		Id:        l.Id,
 		Name:      l.Name,
 		Endpoint:  l.Endpoint,
-		Status:    api.Status(l.Status),
+		Status:    l.Status.Value(),
 		Remark:    l.Remark,
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
@@ -56,7 +56,7 @@ func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServerSelectItem {
 	return &api.PrometheusServerSelectItem{
 		Value:    l.Id,
 		Label:    l.Name,
-		Status:   api.Status(l.Status),
+		Status:   l.Status.Value(),
 		Remark:   l.Remark,
 		Endpoint: l.Endpoint,
 	}

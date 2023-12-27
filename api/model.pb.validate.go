@@ -1677,51 +1677,15 @@ func (m *PrometheusServerItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetId() <= 0 {
-		err := PrometheusServerItemValidationError{
-			field:  "Id",
-			reason: "value must be greater than 0",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
-	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 32 {
-		err := PrometheusServerItemValidationError{
-			field:  "Name",
-			reason: "value length must be between 2 and 32 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Name
 
 	// no validation rules for Endpoint
 
-	if _, ok := Status_name[int32(m.GetStatus())]; !ok {
-		err := PrometheusServerItemValidationError{
-			field:  "Status",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Status
 
-	if utf8.RuneCountInString(m.GetRemark()) > 255 {
-		err := PrometheusServerItemValidationError{
-			field:  "Remark",
-			reason: "value length must be at most 255 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Remark
 
 	// no validation rules for CreatedAt
 
