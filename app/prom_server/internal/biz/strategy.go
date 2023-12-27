@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
@@ -90,8 +91,8 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
-		strategyscopes.LikeStrategy(req.GetKeyword()),
-		strategyscopes.StatusEQ(int32(req.GetStatus())),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
@@ -108,8 +109,8 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
-		strategyscopes.LikeStrategy(req.GetKeyword()),
-		strategyscopes.StatusEQ(int32(api.Status_STATUS_ENABLED)),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(api.Status_STATUS_ENABLED)),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)

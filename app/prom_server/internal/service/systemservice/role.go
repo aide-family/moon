@@ -5,10 +5,10 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
-	"prometheus-manager/pkg/helper/model/systemscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -81,7 +81,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
-		systemscopes.RoleLike(req.GetKeyword()),
+		basescopes.NameLike(req.GetKeyword()),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
@@ -106,7 +106,7 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
-		systemscopes.RoleLike(req.GetKeyword()),
+		basescopes.NameLike(req.GetKeyword()),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)

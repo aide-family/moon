@@ -7,10 +7,9 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api/perrors"
-	"prometheus-manager/pkg/helper/model/notifyscopes"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
@@ -40,7 +39,7 @@ func (b *NotifyBiz) CreateNotify(ctx context.Context, notifyBo *bo.NotifyBO) (*b
 
 // CheckNotifyName 检查通知名称是否存在
 func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint32) error {
-	total, err := b.notifyRepo.Count(ctx, notifyscopes.NotifyEqName(name), notifyscopes.NotifyNotInIds(id...))
+	total, err := b.notifyRepo.Count(ctx, basescopes.NameEQ(name), basescopes.NotInIds(id...))
 	if err != nil {
 		return err
 	}
@@ -53,17 +52,17 @@ func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint
 
 // UpdateNotifyById 更新通知对象
 func (b *NotifyBiz) UpdateNotifyById(ctx context.Context, id uint32, notifyBo *bo.NotifyBO) error {
-	return b.notifyRepo.Update(ctx, notifyBo, notifyscopes.NotifyInIds(id))
+	return b.notifyRepo.Update(ctx, notifyBo, basescopes.InIds(id))
 }
 
 // DeleteNotifyById 删除通知对象
 func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
-	return b.notifyRepo.Delete(ctx, notifyscopes.NotifyInIds(id))
+	return b.notifyRepo.Delete(ctx, basescopes.InIds(id))
 }
 
 // GetNotifyById 获取通知对象
 func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO, error) {
-	notifyBo, err := b.notifyRepo.Get(ctx, notifyscopes.NotifyInIds(id))
+	notifyBo, err := b.notifyRepo.Get(ctx, basescopes.InIds(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, perrors.ErrorNotFound("通知对象不存在")

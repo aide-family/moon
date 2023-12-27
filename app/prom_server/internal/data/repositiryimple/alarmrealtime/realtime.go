@@ -7,6 +7,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/model"
@@ -105,7 +106,7 @@ func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyChatGroups(ctx context.Context,
 }
 
 func (l *alarmRealtimeImpl) GetRealtimeDetailById(ctx context.Context, id uint32, scopes ...query.ScopeMethod) (*bo.AlarmRealtimeBO, error) {
-	first, err := l.WithContext(ctx).First(append(scopes, alarmscopes.InIds(id))...)
+	first, err := l.WithContext(ctx).First(append(scopes, basescopes.InIds(id))...)
 	if err != nil {
 		return nil, err
 	}

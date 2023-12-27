@@ -6,6 +6,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/after"
@@ -47,7 +48,7 @@ func NewUserBiz(
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(id), systemscopes.UserPreloadRoles())
+	userBo, err := b.userRepo.Get(ctx, basescopes.InIds(id), systemscopes.UserPreloadRoles())
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func (b *UserBiz) CreateUser(ctx context.Context, userBo *bo.UserBO) (*bo.UserBO
 
 // UpdateUserById 更新用户信息
 func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.UserBO) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Update(ctx, userBo, systemscopes.RoleInIds(id))
+	userBo, err := b.userRepo.Update(ctx, userBo, basescopes.InIds(id))
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status valueobj.Stat
 		return nil
 	}
 	userBo := &bo.UserBO{Status: status}
-	_, err := b.userRepo.Update(ctx, userBo, systemscopes.RoleInIds(ids...))
+	_, err := b.userRepo.Update(ctx, userBo, basescopes.InIds(ids...))
 	return err
 }
 
@@ -129,7 +130,7 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.userRepo.Delete(ctx, systemscopes.RoleInIds(ids...))
+	return b.userRepo.Delete(ctx, basescopes.InIds(ids...))
 }
 
 // GetUserList 获取用户列表
@@ -209,7 +210,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userBO, err = b.userRepo.Get(context.Background(), systemscopes.UserInIds(authClaims.ID), systemscopes.UserPreloadRoles())
+	userBO, err = b.userRepo.Get(context.Background(), basescopes.InIds(authClaims.ID), systemscopes.UserPreloadRoles())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return
@@ -247,7 +248,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 
 // EditUserPassword 修改密码
 func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.AuthClaims, oldPassword, newPassword string) (*bo.UserBO, error) {
-	userDo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(authClaims.ID))
+	userDo, err := b.userRepo.Get(ctx, basescopes.InIds(authClaims.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +268,7 @@ func (b *UserBiz) EditUserPassword(ctx context.Context, authClaims *middler.Auth
 	}
 
 	// 更新密码
-	if newUserDo, err = b.userRepo.Update(ctx, newUserDo, systemscopes.UserInIds(userDo.Id)); err != nil {
+	if newUserDo, err = b.userRepo.Update(ctx, newUserDo, basescopes.InIds(userDo.Id)); err != nil {
 		return nil, err
 	}
 
@@ -298,14 +299,14 @@ func (b *UserBiz) UpdateUserRoleRelation(userId uint32) {
 // RelateRoles 关联角色
 func (b *UserBiz) RelateRoles(ctx context.Context, userId uint32, roleIds []uint32) error {
 	defer b.UpdateUserRoleRelation(userId)
-	userDo, err := b.userRepo.Get(ctx, systemscopes.UserInIds(userId))
+	userDo, err := b.userRepo.Get(ctx, basescopes.InIds(userId))
 	if err != nil {
 		return err
 	}
 
 	// 查询角色
 	if len(roleIds) > 0 {
-		roleDos, err := b.roleRepo.Find(ctx, systemscopes.RoleInIds(roleIds...))
+		roleDos, err := b.roleRepo.Find(ctx, basescopes.InIds(roleIds...))
 		if err != nil {
 			return err
 		}
