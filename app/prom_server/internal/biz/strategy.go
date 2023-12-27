@@ -67,7 +67,16 @@ func (b *StrategyXBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) e
 
 // GetStrategyById 获取策略详情
 func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
-	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, id)
+	wheres := []query.ScopeMethod{
+		strategyscopes.PreloadEndpoint,
+		strategyscopes.PreloadAlarmPages,
+		strategyscopes.PreloadCategories,
+		strategyscopes.PreloadAlertLevel,
+		strategyscopes.PreloadPromNotifies,
+		strategyscopes.PreloadPromNotifyUpgrade,
+		strategyscopes.PreloadGroupInfo,
+	}
+	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, id, wheres...)
 	if err != nil {
 		return nil, err
 	}

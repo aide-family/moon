@@ -26,7 +26,7 @@ type (
 		// DeleteStrategyByIds 通过id删除策略
 		DeleteStrategyByIds(ctx context.Context, id ...uint32) error
 		// GetStrategyById 通过id获取策略详情
-		GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error)
+		GetStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*bo.StrategyBO, error)
 		// ListStrategy 获取策略列表
 		ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyBO, error)
 		// ListStrategyByIds 通过id列表获取策略列表
@@ -54,7 +54,7 @@ func (UnimplementedStrategyRepo) DeleteStrategyByIds(_ context.Context, _ ...uin
 	return status.Errorf(codes.Unimplemented, "method DeleteStrategyByIds not implemented")
 }
 
-func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint32) (*bo.StrategyBO, error) {
+func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint32, _ ...query.ScopeMethod) (*bo.StrategyBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyById not implemented")
 }
 

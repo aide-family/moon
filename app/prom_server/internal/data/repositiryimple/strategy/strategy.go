@@ -71,8 +71,8 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32
 	return nil
 }
 
-func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
-	firstStrategy, err := l.WithContext(ctx).FirstByID(id)
+func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*bo.StrategyBO, error) {
+	firstStrategy, err := l.WithContext(ctx).FirstByID(id, wheres...)
 	if err != nil {
 		return nil, err
 	}
