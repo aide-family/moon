@@ -22,12 +22,14 @@ var (
 
 func before() conf.Before {
 	return func(bc *conf.Bootstrap) error {
+		env := bc.GetEnv()
 		once.Do(func() {
-			hello.SetName(bc.GetEnv().GetName())
+			hello.SetName(env.GetName())
 			hello.SetVersion(Version)
-			hello.SetMetadata(bc.GetEnv().GetMetadata())
+			hello.SetEnv(env.GetEnv())
+			hello.SetMetadata(env.GetMetadata())
+			hello.FmtASCIIGenerator()
 		})
-		hello.FmtASCIIGenerator()
 		return nil
 	}
 }

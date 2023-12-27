@@ -3,7 +3,10 @@ package biz
 import (
 	"context"
 
+	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -25,20 +28,52 @@ func NewEndpointBiz(endpointRepo repository.EndpointRepo, logger log.Logger) *En
 }
 
 // AppendEndpoint 新增
-func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoints []*bo.EndpointBO) error {
-	return b.endpointRepo.Append(ctx, endpoints)
+func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
+	return b.endpointRepo.Append(ctx, endpoint)
 }
 
-// DeleteEndpoint 删除
-func (b *EndpointBiz) DeleteEndpoint(ctx context.Context, endpoints []*bo.EndpointBO) error {
-	return b.endpointRepo.Delete(ctx, endpoints)
+// UpdateEndpointById 更新
+func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, id uint32, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
+	updateInfo := endpoint
+	updateInfo.Id = id
+	return b.endpointRepo.Update(ctx, updateInfo)
+}
+
+// UpdateStatusByIds 批量更新状态
+func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, status valueobj.Status) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	return b.endpointRepo.UpdateStatus(ctx, ids, status)
+}
+
+// DetailById 查询详情
+func (b *EndpointBiz) DetailById(ctx context.Context, id uint32) (*bo.EndpointBO, error) {
+	return b.endpointRepo.Get(ctx, basescopes.InIds(id))
+}
+
+// DeleteEndpointById 删除
+func (b *EndpointBiz) DeleteEndpointById(ctx context.Context, ids ...uint32) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	return b.endpointRepo.Delete(ctx, ids)
+}
+
+type ListEndpointParams struct {
+	Keyword string `form:"keyword"`
+	Curr    int32  `form:"curr"`
+	Size    int32  `form:"size"`
 }
 
 // ListEndpoint 查询
-func (b *EndpointBiz) ListEndpoint(ctx context.Context) ([]*bo.EndpointBO, error) {
-	list, err := b.endpointRepo.List(ctx)
+func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *ListEndpointParams) ([]*bo.EndpointBO, query.Pagination, error) {
+	pageInfo := query.NewPage(params.Curr, params.Size)
+	wheres := []query.ScopeMethod{basescopes.NameLike(params.Keyword)}
+
+	list, err := b.endpointRepo.List(ctx, pageInfo, wheres...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return list, nil
+	return list, pageInfo, nil
 }

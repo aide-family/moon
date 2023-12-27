@@ -35,9 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// define the regex for a UUID once up-front
-var _model_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on AlarmPageV1 with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -816,6 +813,37 @@ func (m *PromStrategyV1) validate(all bool) error {
 	// no validation rules for DeletedAt
 
 	// no validation rules for Remark
+
+	if all {
+		switch v := interface{}(m.GetDataSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PromStrategyV1ValidationError{
+					field:  "DataSource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PromStrategyV1ValidationError{
+					field:  "DataSource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDataSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PromStrategyV1ValidationError{
+				field:  "DataSource",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for DataSourceId
 
 	if len(errors) > 0 {
 		return PromStrategyV1MultiError(errors)
@@ -1699,32 +1727,8 @@ func (m *PrometheusServerItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
-	// no validation rules for AgentEndpoint
-
-	// no validation rules for AgentCheck
-
-	if err := m._validateUuid(m.GetUuid()); err != nil {
-		err = PrometheusServerItemValidationError{
-			field:  "Uuid",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return PrometheusServerItemMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *PrometheusServerItem) _validateUuid(uuid string) error {
-	if matched := _model_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil

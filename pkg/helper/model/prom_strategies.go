@@ -37,6 +37,10 @@ type PromStrategy struct {
 	SendRecover bool `gorm:"column:send_recover;type:tinyint;not null;default:0;comment:是否发送告警恢复通知"`
 	// 发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况
 	SendInterval int64 `gorm:"column:send_interval;type:bigint;not null;default:0;comment:发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况"`
+
+	// 数据源
+	EndpointID uint32    `gorm:"column:endpoint_id;type:int unsigned;not null;default:0;comment:数据源ID"`
+	Endpoint   *Endpoint `gorm:"foreignKey:EndpointID"`
 }
 
 // TableName PromStrategy's table name
@@ -106,4 +110,12 @@ func (p *PromStrategy) GetGroupInfo() *PromStrategyGroup {
 		return nil
 	}
 	return p.GroupInfo
+}
+
+// GetEndpoint 获取数据源
+func (p *PromStrategy) GetEndpoint() *Endpoint {
+	if p == nil {
+		return nil
+	}
+	return p.Endpoint
 }

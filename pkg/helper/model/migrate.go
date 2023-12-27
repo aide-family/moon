@@ -19,6 +19,7 @@ func Migrate(db *gorm.DB) error {
 		&PromStrategyGroup{},
 		&PromAlarmBeenNotifyMember{},
 		&PromAlarmBeenNotifyChatGroup{},
+		&Endpoint{},
 		&ExternalNotifyObj{},
 		&ExternalCustomerHook{},
 		&ExternalCustomer{},

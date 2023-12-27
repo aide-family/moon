@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	api "prometheus-manager/api"
 )
 
 // ensure the imports are used
@@ -33,10 +35,9 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
-)
 
-// define the regex for a UUID once up-front
-var _endpoint_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+	_ = api.Status(0)
+)
 
 // Validate checks the field values on AppendEndpointRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -60,9 +61,9 @@ func (m *AppendEndpointRequest) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetAgentName()); l < 2 || l > 32 {
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 32 {
 		err := AppendEndpointRequestValidationError{
-			field:  "AgentName",
+			field:  "Name",
 			reason: "value length must be between 2 and 32 runes, inclusive",
 		}
 		if !all {
@@ -71,60 +72,17 @@ func (m *AppendEndpointRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetEndpoints()) < 1 {
+	// no validation rules for Endpoint
+
+	if utf8.RuneCountInString(m.GetRemark()) > 255 {
 		err := AppendEndpointRequestValidationError{
-			field:  "Endpoints",
-			reason: "value must contain at least 1 item(s)",
+			field:  "Remark",
+			reason: "value length must be at most 255 runes",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
-	}
-
-	for idx, item := range m.GetEndpoints() {
-		_, _ = idx, item
-
-		if item == nil {
-			err := AppendEndpointRequestValidationError{
-				field:  fmt.Sprintf("Endpoints[%v]", idx),
-				reason: "value is required",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, AppendEndpointRequestValidationError{
-						field:  fmt.Sprintf("Endpoints[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, AppendEndpointRequestValidationError{
-						field:  fmt.Sprintf("Endpoints[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return AppendEndpointRequestValidationError{
-					field:  fmt.Sprintf("Endpoints[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
 	}
 
 	if len(errors) > 0 {
@@ -229,34 +187,7 @@ func (m *AppendEndpointReply) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetResponse()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AppendEndpointReplyValidationError{
-					field:  "Response",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, AppendEndpointReplyValidationError{
-					field:  "Response",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return AppendEndpointReplyValidationError{
-				field:  "Response",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return AppendEndpointReplyMultiError(errors)
@@ -360,55 +291,10 @@ func (m *DeleteEndpointRequest) validate(all bool) error {
 
 	var errors []error
 
-	if l := utf8.RuneCountInString(m.GetAgentName()); l < 2 || l > 32 {
-		err := DeleteEndpointRequestValidationError{
-			field:  "AgentName",
-			reason: "value length must be between 2 and 32 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(m.GetUuids()) < 1 {
-		err := DeleteEndpointRequestValidationError{
-			field:  "Uuids",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	for idx, item := range m.GetUuids() {
-		_, _ = idx, item
-
-		if err := m._validateUuid(item); err != nil {
-			err = DeleteEndpointRequestValidationError{
-				field:  fmt.Sprintf("Uuids[%v]", idx),
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteEndpointRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteEndpointRequest) _validateUuid(uuid string) error {
-	if matched := _endpoint_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -509,34 +395,7 @@ func (m *DeleteEndpointReply) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetResponse()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, DeleteEndpointReplyValidationError{
-					field:  "Response",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, DeleteEndpointReplyValidationError{
-					field:  "Response",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return DeleteEndpointReplyValidationError{
-				field:  "Response",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteEndpointReplyMultiError(errors)
@@ -618,6 +477,732 @@ var _ interface {
 	ErrorName() string
 } = DeleteEndpointReplyValidationError{}
 
+// Validate checks the field values on EditEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditEndpointRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditEndpointRequestMultiError, or nil if none found.
+func (m *EditEndpointRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditEndpointRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() <= 0 {
+		err := EditEndpointRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 2 || l > 32 {
+		err := EditEndpointRequestValidationError{
+			field:  "Name",
+			reason: "value length must be between 2 and 32 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Endpoint
+
+	if utf8.RuneCountInString(m.GetRemark()) > 255 {
+		err := EditEndpointRequestValidationError{
+			field:  "Remark",
+			reason: "value length must be at most 255 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EditEndpointRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditEndpointRequestMultiError is an error wrapping multiple validation
+// errors returned by EditEndpointRequest.ValidateAll() if the designated
+// constraints aren't met.
+type EditEndpointRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditEndpointRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditEndpointRequestMultiError) AllErrors() []error { return m }
+
+// EditEndpointRequestValidationError is the validation error returned by
+// EditEndpointRequest.Validate if the designated constraints aren't met.
+type EditEndpointRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditEndpointRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditEndpointRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditEndpointRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditEndpointRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditEndpointRequestValidationError) ErrorName() string {
+	return "EditEndpointRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditEndpointRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditEndpointRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditEndpointRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditEndpointRequestValidationError{}
+
+// Validate checks the field values on EditEndpointReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EditEndpointReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditEndpointReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditEndpointReplyMultiError, or nil if none found.
+func (m *EditEndpointReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditEndpointReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return EditEndpointReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditEndpointReplyMultiError is an error wrapping multiple validation errors
+// returned by EditEndpointReply.ValidateAll() if the designated constraints
+// aren't met.
+type EditEndpointReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditEndpointReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditEndpointReplyMultiError) AllErrors() []error { return m }
+
+// EditEndpointReplyValidationError is the validation error returned by
+// EditEndpointReply.Validate if the designated constraints aren't met.
+type EditEndpointReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditEndpointReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditEndpointReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditEndpointReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditEndpointReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditEndpointReplyValidationError) ErrorName() string {
+	return "EditEndpointReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditEndpointReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditEndpointReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditEndpointReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditEndpointReplyValidationError{}
+
+// Validate checks the field values on BatchEditEndpointStatusRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BatchEditEndpointStatusRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchEditEndpointStatusRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BatchEditEndpointStatusRequestMultiError, or nil if none found.
+func (m *BatchEditEndpointStatusRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchEditEndpointStatusRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetIds()) < 1 {
+		err := BatchEditEndpointStatusRequestValidationError{
+			field:  "Ids",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _BatchEditEndpointStatusRequest_Status_NotInLookup[m.GetStatus()]; ok {
+		err := BatchEditEndpointStatusRequestValidationError{
+			field:  "Status",
+			reason: "value must not be in list [0]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := BatchEditEndpointStatusRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return BatchEditEndpointStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchEditEndpointStatusRequestMultiError is an error wrapping multiple
+// validation errors returned by BatchEditEndpointStatusRequest.ValidateAll()
+// if the designated constraints aren't met.
+type BatchEditEndpointStatusRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchEditEndpointStatusRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchEditEndpointStatusRequestMultiError) AllErrors() []error { return m }
+
+// BatchEditEndpointStatusRequestValidationError is the validation error
+// returned by BatchEditEndpointStatusRequest.Validate if the designated
+// constraints aren't met.
+type BatchEditEndpointStatusRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchEditEndpointStatusRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchEditEndpointStatusRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchEditEndpointStatusRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchEditEndpointStatusRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchEditEndpointStatusRequestValidationError) ErrorName() string {
+	return "BatchEditEndpointStatusRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchEditEndpointStatusRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchEditEndpointStatusRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchEditEndpointStatusRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchEditEndpointStatusRequestValidationError{}
+
+var _BatchEditEndpointStatusRequest_Status_NotInLookup = map[api.Status]struct{}{
+	0: {},
+}
+
+// Validate checks the field values on BatchEditEndpointStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BatchEditEndpointStatusReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchEditEndpointStatusReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BatchEditEndpointStatusReplyMultiError, or nil if none found.
+func (m *BatchEditEndpointStatusReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchEditEndpointStatusReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return BatchEditEndpointStatusReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchEditEndpointStatusReplyMultiError is an error wrapping multiple
+// validation errors returned by BatchEditEndpointStatusReply.ValidateAll() if
+// the designated constraints aren't met.
+type BatchEditEndpointStatusReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchEditEndpointStatusReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchEditEndpointStatusReplyMultiError) AllErrors() []error { return m }
+
+// BatchEditEndpointStatusReplyValidationError is the validation error returned
+// by BatchEditEndpointStatusReply.Validate if the designated constraints
+// aren't met.
+type BatchEditEndpointStatusReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchEditEndpointStatusReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchEditEndpointStatusReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchEditEndpointStatusReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchEditEndpointStatusReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchEditEndpointStatusReplyValidationError) ErrorName() string {
+	return "BatchEditEndpointStatusReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchEditEndpointStatusReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchEditEndpointStatusReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchEditEndpointStatusReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchEditEndpointStatusReplyValidationError{}
+
+// Validate checks the field values on GetEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEndpointRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEndpointRequestMultiError, or nil if none found.
+func (m *GetEndpointRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEndpointRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() <= 0 {
+		err := GetEndpointRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetEndpointRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEndpointRequestMultiError is an error wrapping multiple validation errors
+// returned by GetEndpointRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetEndpointRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEndpointRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEndpointRequestMultiError) AllErrors() []error { return m }
+
+// GetEndpointRequestValidationError is the validation error returned by
+// GetEndpointRequest.Validate if the designated constraints aren't met.
+type GetEndpointRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEndpointRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEndpointRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEndpointRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEndpointRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEndpointRequestValidationError) ErrorName() string {
+	return "GetEndpointRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEndpointRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEndpointRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEndpointRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEndpointRequestValidationError{}
+
+// Validate checks the field values on GetEndpointReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetEndpointReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEndpointReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEndpointReplyMultiError, or nil if none found.
+func (m *GetEndpointReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEndpointReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetDetail()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEndpointReplyValidationError{
+					field:  "Detail",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEndpointReplyValidationError{
+					field:  "Detail",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDetail()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEndpointReplyValidationError{
+				field:  "Detail",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetEndpointReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEndpointReplyMultiError is an error wrapping multiple validation errors
+// returned by GetEndpointReply.ValidateAll() if the designated constraints
+// aren't met.
+type GetEndpointReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEndpointReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEndpointReplyMultiError) AllErrors() []error { return m }
+
+// GetEndpointReplyValidationError is the validation error returned by
+// GetEndpointReply.Validate if the designated constraints aren't met.
+type GetEndpointReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEndpointReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEndpointReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEndpointReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEndpointReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEndpointReplyValidationError) ErrorName() string { return "GetEndpointReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetEndpointReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEndpointReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEndpointReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEndpointReplyValidationError{}
+
 // Validate checks the field values on ListEndpointRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -639,6 +1224,57 @@ func (m *ListEndpointRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetPage() == nil {
+		err := ListEndpointRequestValidationError{
+			field:  "Page",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListEndpointRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListEndpointRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListEndpointRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetKeyword()) > 32 {
+		err := ListEndpointRequestValidationError{
+			field:  "Keyword",
+			reason: "value length must be at most 32 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return ListEndpointRequestMultiError(errors)
@@ -743,11 +1379,11 @@ func (m *ListEndpointReply) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetResponse()).(type) {
+		switch v := interface{}(m.GetPage()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ListEndpointReplyValidationError{
-					field:  "Response",
+					field:  "Page",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -755,23 +1391,23 @@ func (m *ListEndpointReply) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ListEndpointReplyValidationError{
-					field:  "Response",
+					field:  "Page",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetResponse()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ListEndpointReplyValidationError{
-				field:  "Response",
+				field:  "Page",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	for idx, item := range m.GetEndpoints() {
+	for idx, item := range m.GetList() {
 		_, _ = idx, item
 
 		if all {
@@ -779,7 +1415,7 @@ func (m *ListEndpointReply) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListEndpointReplyValidationError{
-						field:  fmt.Sprintf("Endpoints[%v]", idx),
+						field:  fmt.Sprintf("List[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -787,7 +1423,7 @@ func (m *ListEndpointReply) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListEndpointReplyValidationError{
-						field:  fmt.Sprintf("Endpoints[%v]", idx),
+						field:  fmt.Sprintf("List[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -796,7 +1432,7 @@ func (m *ListEndpointReply) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListEndpointReplyValidationError{
-					field:  fmt.Sprintf("Endpoints[%v]", idx),
+					field:  fmt.Sprintf("List[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -884,3 +1520,321 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListEndpointReplyValidationError{}
+
+// Validate checks the field values on SelectEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SelectEndpointRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SelectEndpointRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SelectEndpointRequestMultiError, or nil if none found.
+func (m *SelectEndpointRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SelectEndpointRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPage() == nil {
+		err := SelectEndpointRequestValidationError{
+			field:  "Page",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SelectEndpointRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SelectEndpointRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SelectEndpointRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetKeyword()) > 32 {
+		err := SelectEndpointRequestValidationError{
+			field:  "Keyword",
+			reason: "value length must be at most 32 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SelectEndpointRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SelectEndpointRequestMultiError is an error wrapping multiple validation
+// errors returned by SelectEndpointRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SelectEndpointRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SelectEndpointRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SelectEndpointRequestMultiError) AllErrors() []error { return m }
+
+// SelectEndpointRequestValidationError is the validation error returned by
+// SelectEndpointRequest.Validate if the designated constraints aren't met.
+type SelectEndpointRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SelectEndpointRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SelectEndpointRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SelectEndpointRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SelectEndpointRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SelectEndpointRequestValidationError) ErrorName() string {
+	return "SelectEndpointRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SelectEndpointRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSelectEndpointRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SelectEndpointRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SelectEndpointRequestValidationError{}
+
+// Validate checks the field values on SelectEndpointReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SelectEndpointReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SelectEndpointReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SelectEndpointReplyMultiError, or nil if none found.
+func (m *SelectEndpointReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SelectEndpointReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SelectEndpointReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SelectEndpointReplyValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SelectEndpointReplyValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SelectEndpointReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SelectEndpointReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SelectEndpointReplyValidationError{
+					field:  fmt.Sprintf("List[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return SelectEndpointReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// SelectEndpointReplyMultiError is an error wrapping multiple validation
+// errors returned by SelectEndpointReply.ValidateAll() if the designated
+// constraints aren't met.
+type SelectEndpointReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SelectEndpointReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SelectEndpointReplyMultiError) AllErrors() []error { return m }
+
+// SelectEndpointReplyValidationError is the validation error returned by
+// SelectEndpointReply.Validate if the designated constraints aren't met.
+type SelectEndpointReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SelectEndpointReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SelectEndpointReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SelectEndpointReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SelectEndpointReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SelectEndpointReplyValidationError) ErrorName() string {
+	return "SelectEndpointReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SelectEndpointReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSelectEndpointReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SelectEndpointReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SelectEndpointReplyValidationError{}

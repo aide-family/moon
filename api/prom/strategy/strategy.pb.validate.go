@@ -331,6 +331,17 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetDataSourceId() <= 0 {
+		err := CreateStrategyRequestValidationError{
+			field:  "DataSourceId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return CreateStrategyRequestMultiError(errors)
 	}
@@ -819,6 +830,17 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		err := UpdateStrategyRequestValidationError{
 			field:  "Remark",
 			reason: "value length must be at most 255 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetDataSourceId() <= 0 {
+		err := UpdateStrategyRequestValidationError{
+			field:  "DataSourceId",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err

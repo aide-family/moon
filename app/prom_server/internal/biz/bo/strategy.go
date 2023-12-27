@@ -34,8 +34,19 @@ type (
 
 		PromNotifies      []*NotifyBO `json:"promNotifies"`
 		PromNotifyUpgrade []*NotifyBO `json:"promNotifyUpgrade"`
+
+		EndpointId uint32      `json:"endpointId"`
+		Endpoint   *EndpointBO `json:"endpoint"`
 	}
 )
+
+// GetEndpoint 获取Endpoint
+func (b *StrategyBO) GetEndpoint() *EndpointBO {
+	if b == nil {
+		return nil
+	}
+	return b.Endpoint
+}
 
 // GetPromNotifies 获取通知信息列表
 func (b *StrategyBO) GetPromNotifies() []*NotifyBO {
@@ -142,18 +153,16 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 	}
 	strategyBO := b
 	return &api.PromStrategyV1{
-		Id:           strategyBO.Id,
-		Alert:        strategyBO.Alert,
-		Expr:         strategyBO.Expr,
-		Duration:     strategyBO.Duration,
-		Labels:       strategyBO.GetLabels().Map(),
-		Annotations:  strategyBO.GetAnnotations().Map(),
-		Remark:       strategyBO.Remark,
-		Status:       strategyBO.Status.Value(),
-		GroupId:      strategyBO.GroupId,
-		AlarmLevelId: strategyBO.AlarmLevelId,
-
+		Id:             strategyBO.Id,
+		Alert:          strategyBO.Alert,
+		Expr:           strategyBO.Expr,
+		Duration:       strategyBO.Duration,
+		Labels:         strategyBO.GetLabels().Map(),
+		Annotations:    strategyBO.GetAnnotations().Map(),
+		Status:         strategyBO.Status.Value(),
+		GroupId:        strategyBO.GroupId,
 		GroupInfo:      strategyBO.GetGroupInfo().ToApiSelectV1(),
+		AlarmLevelId:   strategyBO.AlarmLevelId,
 		AlarmLevelInfo: strategyBO.GetAlarmLevelInfo().ToApiSelectV1(),
 		AlarmPageIds:   strategyBO.GetAlarmPageIds(),
 		AlarmPageInfo:  strategyBO.ToApiSelectV1(),
@@ -162,6 +171,9 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 		CreatedAt:      strategyBO.CreatedAt,
 		UpdatedAt:      strategyBO.UpdatedAt,
 		DeletedAt:      strategyBO.DeletedAt,
+		Remark:         strategyBO.Remark,
+		DataSource:     strategyBO.GetEndpoint().ToApiSelectV1(),
+		DataSourceId:   strategyBO.EndpointId,
 	}
 }
 
@@ -222,6 +234,7 @@ func (b *StrategyBO) ToModel() *model.PromStrategy {
 		}),
 		AlertLevel: b.GetAlarmLevelInfo().ToModel(),
 		GroupInfo:  b.GetGroupInfo().ToModel(),
+		EndpointID: b.EndpointId,
 	}
 }
 
@@ -264,5 +277,7 @@ func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
 		PromNotifyUpgrade: slices.To(m.GetPromNotifyUpgrade(), func(notifyInfo *model.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
+		EndpointId: m.EndpointID,
+		Endpoint:   EndpointModelToBO(m.GetEndpoint()),
 	}
 }
