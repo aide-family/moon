@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
@@ -75,8 +76,8 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 
 	wheres := []query.ScopeMethod{
 		dictscopes.WhereCategory(int32(req.GetCategory())),
-		dictscopes.LikeName(req.GetKeyword()),
-		dictscopes.WithTrashed(req.GetIsDeleted()),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.WithTrashed(req.GetIsDeleted()),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
@@ -93,8 +94,8 @@ func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest)
 
 	wheres := []query.ScopeMethod{
 		dictscopes.WhereCategory(int32(req.GetCategory())),
-		dictscopes.LikeName(req.GetKeyword()),
-		dictscopes.WithTrashed(req.GetIsDeleted()),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.WithTrashed(req.GetIsDeleted()),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)

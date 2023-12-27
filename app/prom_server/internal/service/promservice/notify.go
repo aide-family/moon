@@ -5,10 +5,10 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/notify"
-	"prometheus-manager/pkg/helper/model/notifyscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -115,7 +115,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []query.ScopeMethod{
-		notifyscopes.NotifyLike(req.GetKeyword()),
+		basescopes.NameLike(req.GetKeyword()),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []query.ScopeMethod{
-		notifyscopes.NotifyLike(req.GetKeyword()),
+		basescopes.NameLike(req.GetKeyword()),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
 	if err != nil {

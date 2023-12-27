@@ -5,8 +5,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
-	"prometheus-manager/pkg/helper/model/pagescopes"
 	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
@@ -77,8 +77,8 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
-		pagescopes.LikePageName(req.GetKeyword()),
-		pagescopes.StatusEQ(int32(req.GetStatus())),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
@@ -94,8 +94,8 @@ func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageReq
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
-		pagescopes.LikePageName(req.GetKeyword()),
-		pagescopes.StatusEQ(int32(req.GetStatus())),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)

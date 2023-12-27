@@ -6,13 +6,8 @@ import (
 )
 
 const (
-	UserAssociationReplaceRoles query.AssociationKey = "Roles"
+	UserAssociationReplaceRoles = "Roles"
 )
-
-// UserInIds id列表
-func UserInIds(ids ...uint32) query.ScopeMethod {
-	return query.WhereInColumn("id", ids...)
-}
 
 // UserLike 模糊查询
 func UserLike(keyword string) query.ScopeMethod {
@@ -43,15 +38,8 @@ func UserEqPhone(phone string) query.ScopeMethod {
 func UserPreloadRoles(roleIds ...uint32) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		if len(roleIds) > 0 {
-			return db.Preload("Roles", query.WhereInColumn("id", roleIds...))
+			return db.Preload(UserAssociationReplaceRoles, query.WhereInColumn("id", roleIds...))
 		}
-		return db.Preload("Roles")
-	}
-}
-
-// CreatedAtDesc 按创建时间倒序
-func CreatedAtDesc() query.ScopeMethod {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Order("created_at desc")
+		return db.Preload(UserAssociationReplaceRoles)
 	}
 }

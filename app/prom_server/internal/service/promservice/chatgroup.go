@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/pkg/helper/model/notifyscopes"
+	"prometheus-manager/pkg/helper/model/basescopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -89,8 +89,8 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	wheres := []query.ScopeMethod{
-		notifyscopes.ChatGroupLike(req.GetKeyword()),
-		notifyscopes.ChatGroupStatusEq(valueobj.Status(req.GetStatus())),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)
@@ -115,8 +115,8 @@ func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectCh
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	wheres := []query.ScopeMethod{
-		notifyscopes.ChatGroupLike(req.GetKeyword()),
-		notifyscopes.ChatGroupStatusEq(valueobj.Status(req.GetStatus())),
+		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)

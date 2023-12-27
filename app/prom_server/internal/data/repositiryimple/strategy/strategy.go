@@ -6,7 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/strategyscopes"
+	"prometheus-manager/pkg/helper/model/basescopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -83,7 +83,7 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 }
 
 func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
-	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, strategyscopes.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Update(&model.PromStrategy{Status: status}, basescopes.InIds(ids...)); err != nil {
 		return err
 	}
 	// 更新策略组的启用策略数量
@@ -93,13 +93,13 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 	return nil
 }
 
-func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, id ...uint32) error {
+func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint32) error {
 	var detailList []*model.PromStrategy
-	if err := l.data.DB().Scopes(strategyscopes.InIds(id)).Find(&detailList).Error; err != nil {
+	if err := l.data.DB().Scopes(basescopes.InIds(ids...)).Find(&detailList).Error; err != nil {
 		return err
 	}
 
-	if err := l.WithContext(ctx).Delete(strategyscopes.InIds(id)); err != nil {
+	if err := l.WithContext(ctx).Delete(basescopes.InIds(ids...)); err != nil {
 		return err
 	}
 	groupIds := slices.To(detailList, func(i *model.PromStrategy) uint32 {

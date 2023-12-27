@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/model"
@@ -49,7 +50,7 @@ func (b *RoleBiz) DeleteRoleByIds(ctx context.Context, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.roleRepo.Delete(ctx, systemscopes.RoleInIds(ids...))
+	return b.roleRepo.Delete(ctx, basescopes.InIds(ids...))
 }
 
 // ListRole 角色列表
@@ -64,7 +65,7 @@ func (b *RoleBiz) ListRole(ctx context.Context, pgInfo query.Pagination, scopes 
 
 // GetRoleById 获取角色
 func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(id), systemscopes.RolePreloadUsers(), systemscopes.RolePreloadApis())
+	roleBO, err := b.roleRepo.Get(ctx, basescopes.InIds(id), systemscopes.RolePreloadUsers(), systemscopes.RolePreloadApis())
 	if err != nil {
 		return nil, err
 	}
@@ -74,18 +75,18 @@ func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error
 
 // UpdateRoleById 更新角色
 func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Update(ctx, roleBO, systemscopes.RoleInIds(roleBO.Id))
+	roleBO, err := b.roleRepo.Update(ctx, roleBO, basescopes.InIds(roleBO.Id))
 	if err != nil {
 		return nil, err
 	}
-	b.cacheRoleByIds(uint32(roleBO.Id))
+	b.cacheRoleByIds(roleBO.Id)
 	return roleBO, nil
 }
 
 // UpdateRoleStatusById 更新角色状态
 func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
 	roleBo := &bo.RoleBO{Status: status}
-	if err := b.roleRepo.UpdateAll(ctx, roleBo, systemscopes.RoleInIds(ids...)); err != nil {
+	if err := b.roleRepo.UpdateAll(ctx, roleBo, basescopes.InIds(ids...)); err != nil {
 		return err
 	}
 	b.cacheRoleByIds(ids...)
@@ -119,13 +120,13 @@ func (b *RoleBiz) RelateApiById(ctx context.Context, roleId uint32, apiIds []uin
 
 	if len(apiIds) > 0 {
 		// 查询API
-		findBoList, err = b.apiRepo.Find(ctx, systemscopes.ApiInIds(apiIds...))
+		findBoList, err = b.apiRepo.Find(ctx, basescopes.InIds(apiIds...))
 		if err != nil {
 			return err
 		}
 	}
 
-	roleBoInfo, err := b.roleRepo.Get(ctx, systemscopes.RoleInIds(roleId))
+	roleBoInfo, err := b.roleRepo.Get(ctx, basescopes.InIds(roleId))
 	if err != nil {
 		return err
 	}

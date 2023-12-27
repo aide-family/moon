@@ -8,10 +8,10 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/helper/model/basescopes"
 	"prometheus-manager/pkg/helper/model/strategyscopes"
 
 	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/strategygroupscopes"
 	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
@@ -58,7 +58,7 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 	}
 	caseSet.WriteString("END")
 	db := l.data.DB().Model(&model.PromStrategyGroup{}).WithContext(ctx)
-	return db.Scopes(strategygroupscopes.InIds(ids)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
+	return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
 }
 
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
@@ -78,14 +78,14 @@ func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strat
 }
 
 func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint32) error {
-	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, strategygroupscopes.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, basescopes.InIds(ids...)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) error {
-	if err := l.WithContext(ctx).Delete(strategygroupscopes.InIds(ids)); err != nil {
+	if err := l.WithContext(ctx).Delete(basescopes.InIds(ids...)); err != nil {
 		return err
 	}
 	return nil

@@ -31,11 +31,6 @@ func RealtimeEventAtDesc() query.ScopeMethod {
 	}
 }
 
-// InIds 查询ID列表
-func InIds(ids ...uint32) query.ScopeMethod {
-	return query.WhereInColumn("id", ids)
-}
-
 // InHistoryIds 查询历史ID列表
 func InHistoryIds(historyIds ...uint32) query.ScopeMethod {
 	return query.WhereInColumn("history_id", historyIds...)

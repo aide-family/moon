@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
@@ -96,7 +97,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
-		systemscopes.CreatedAtDesc(),
+		basescopes.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -120,7 +121,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
-		systemscopes.CreatedAtDesc(),
+		basescopes.CreatedAtDesc(),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
