@@ -1,0 +1,11 @@
+env:
+  name: prometheus-manager_prom_server
+  version: 0.0.1
+  env: dev
+  metadata:
+    description: Prometheus Manager Server APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager

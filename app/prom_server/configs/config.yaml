@@ -5,24 +5,46 @@ server:
   grpc:
     addr: 0.0.0.0:9002
     timeout: 1s
+
 data:
   database:
     driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test
+    source: root:6cd9aa521e1636b02dd1edd5e3ed22c8@tcp(localhost:33060)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
+    debug: true
   redis:
-    addr: 127.0.0.1:6379
+    addr: localhost:6379
+    password: redis#single#test
     read_timeout: 0.2s
     write_timeout: 0.2s
-env:
-  name: prometheus-manager_prom_server
-  version: 0.0.1
-  metadata:
-    description: Prometheus Manager Server APP
-    version: 0.0.1
-    author: 梧桐
-    license: MIT
-    email: aidecloud@163.com
-    url: https://github.com/aide-cloud/prometheus-manager
-whiteList:
-  api:
+
+apiWhite:
+  all:
     - /api.auth.Auth/Login
+    - /api.auth.Auth/Captcha
+
+  jwtApi:
+
+  rbacApi:
+    - /api.auth.Auth/Logout
+    - /api.auth.Auth/RefreshToken
+
+email:
+  host: smtp.163.com
+  port: 25
+  user: aidedevops@163.com
+  pass:
+
+log:
+  filename: ./log/prometheus-server.log
+  level: debug
+  encoder: json
+  maxSize: 2
+  compress: true
+
+mq:
+  kafka:
+    groupId: prometheus-server
+    endpoints:
+      - localhost:9092
+    topics:
+      - alert-hook

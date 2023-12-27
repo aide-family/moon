@@ -19,6 +19,10 @@ endif
 dev:
 	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_server -conf ./configs_dev
 
+.PHONY:
+local:
+	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_server -conf ./configs
+
 .PHONY: init
 # init env
 init:
