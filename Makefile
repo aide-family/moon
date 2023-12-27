@@ -27,6 +27,13 @@ dev:
 	@echo "VERSION: $(VERSION)"
 	@cd $(APP_NAME) && make dev
 
+.PHONY:
+local:
+	@echo "make local"
+	@echo "APP_NAME: $(APP_NAME)"
+	@echo "VERSION: $(VERSION)"
+	@cd $(APP_NAME) && make local
+
 .PHONY: init
 # init env
 init:
