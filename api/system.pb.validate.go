@@ -819,3 +819,279 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ApiSelectV1ValidationError{}
+
+// Validate checks the field values on ApiTree with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ApiTree) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ApiTree with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in ApiTreeMultiError, or nil if none found.
+func (m *ApiTree) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ApiTree) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Domain
+
+	for idx, item := range m.GetModule() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ApiTreeValidationError{
+						field:  fmt.Sprintf("Module[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ApiTreeValidationError{
+						field:  fmt.Sprintf("Module[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ApiTreeValidationError{
+					field:  fmt.Sprintf("Module[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for DomainName
+
+	// no validation rules for DomainRemark
+
+	if len(errors) > 0 {
+		return ApiTreeMultiError(errors)
+	}
+
+	return nil
+}
+
+// ApiTreeMultiError is an error wrapping multiple validation errors returned
+// by ApiTree.ValidateAll() if the designated constraints aren't met.
+type ApiTreeMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ApiTreeMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ApiTreeMultiError) AllErrors() []error { return m }
+
+// ApiTreeValidationError is the validation error returned by ApiTree.Validate
+// if the designated constraints aren't met.
+type ApiTreeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ApiTreeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ApiTreeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ApiTreeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ApiTreeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ApiTreeValidationError) ErrorName() string { return "ApiTreeValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ApiTreeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sApiTree.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ApiTreeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ApiTreeValidationError{}
+
+// Validate checks the field values on Module with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Module) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Module with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in ModuleMultiError, or nil if none found.
+func (m *Module) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Module) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Module
+
+	for idx, item := range m.GetApis() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ModuleValidationError{
+						field:  fmt.Sprintf("Apis[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ModuleValidationError{
+						field:  fmt.Sprintf("Apis[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ModuleValidationError{
+					field:  fmt.Sprintf("Apis[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Remark
+
+	if len(errors) > 0 {
+		return ModuleMultiError(errors)
+	}
+
+	return nil
+}
+
+// ModuleMultiError is an error wrapping multiple validation errors returned by
+// Module.ValidateAll() if the designated constraints aren't met.
+type ModuleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ModuleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ModuleMultiError) AllErrors() []error { return m }
+
+// ModuleValidationError is the validation error returned by Module.Validate if
+// the designated constraints aren't met.
+type ModuleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ModuleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ModuleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ModuleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ModuleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ModuleValidationError) ErrorName() string { return "ModuleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ModuleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sModule.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ModuleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ModuleValidationError{}

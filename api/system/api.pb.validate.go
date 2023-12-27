@@ -1967,3 +1967,239 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EditApiStatusReplyValidationError{}
+
+// Validate checks the field values on GetApiTreeRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetApiTreeRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetApiTreeRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetApiTreeRequestMultiError, or nil if none found.
+func (m *GetApiTreeRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetApiTreeRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GetApiTreeRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetApiTreeRequestMultiError is an error wrapping multiple validation errors
+// returned by GetApiTreeRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetApiTreeRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetApiTreeRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetApiTreeRequestMultiError) AllErrors() []error { return m }
+
+// GetApiTreeRequestValidationError is the validation error returned by
+// GetApiTreeRequest.Validate if the designated constraints aren't met.
+type GetApiTreeRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetApiTreeRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetApiTreeRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetApiTreeRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetApiTreeRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetApiTreeRequestValidationError) ErrorName() string {
+	return "GetApiTreeRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetApiTreeRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetApiTreeRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetApiTreeRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetApiTreeRequestValidationError{}
+
+// Validate checks the field values on GetApiTreeReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetApiTreeReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetApiTreeReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetApiTreeReplyMultiError, or nil if none found.
+func (m *GetApiTreeReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetApiTreeReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetTree() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetApiTreeReplyValidationError{
+						field:  fmt.Sprintf("Tree[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetApiTreeReplyValidationError{
+						field:  fmt.Sprintf("Tree[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetApiTreeReplyValidationError{
+					field:  fmt.Sprintf("Tree[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetApiTreeReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetApiTreeReplyMultiError is an error wrapping multiple validation errors
+// returned by GetApiTreeReply.ValidateAll() if the designated constraints
+// aren't met.
+type GetApiTreeReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetApiTreeReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetApiTreeReplyMultiError) AllErrors() []error { return m }
+
+// GetApiTreeReplyValidationError is the validation error returned by
+// GetApiTreeReply.Validate if the designated constraints aren't met.
+type GetApiTreeReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetApiTreeReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetApiTreeReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetApiTreeReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetApiTreeReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetApiTreeReplyValidationError) ErrorName() string { return "GetApiTreeReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetApiTreeReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetApiTreeReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetApiTreeReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetApiTreeReplyValidationError{}

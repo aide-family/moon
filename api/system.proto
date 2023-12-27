@@ -192,3 +192,26 @@ message ApiSelectV1 {
   // 所属领域
   int32 domain = 6;
 }
+
+// API权限树节点
+message ApiTree {
+  // 所属领域
+  DomainType domain = 1;
+  // 所属模块
+  repeated Module module = 2;
+  // 领域名称
+  string domainName = 3;
+  // 领域说明
+  string domainRemark = 4;
+}
+// API模块
+message Module {
+  // 所属模块
+  ModuleType module = 1;
+  // 接口列表
+  repeated ApiSelectV1 apis = 2;
+  // 模块名称
+  string name = 3;
+  // 模块说明
+  string remark = 4;
+}
