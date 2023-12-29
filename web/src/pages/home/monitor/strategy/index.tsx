@@ -15,6 +15,7 @@ import { columns, searchItems, tableOperationItems } from './options'
 import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
+import { BindNotifyObject } from './child/BindNotifyObject'
 
 const defaultPadding = 12
 
@@ -33,10 +34,20 @@ const Strategy: FC = () => {
     const [actionKey, setActionKey] = useState<ActionKey | undefined>(
         ActionKey.ADD
     )
+    const [openBindNotify, setOpenBindNotify] = useState<boolean>(false)
 
     const handlerOpenDetail = (id?: number) => {
         setOperateId(id)
         setOpenDetail(true)
+    }
+
+    const handleOpenBindNotify = (id?: number) => {
+        setOperateId(id)
+        setOpenBindNotify(true)
+    }
+
+    const handleCancelBindNotify = () => {
+        setOpenBindNotify(false)
     }
 
     const handlerCloseDetail = () => {
@@ -119,6 +130,9 @@ const Strategy: FC = () => {
             case ActionKey.ENABLE:
                 handlebatchChangeStatus([record.id], Status.STATUS_ENABLED)
                 break
+            case ActionKey.STRATEGY_NOTIFY_OBJECT:
+                handleOpenBindNotify(record.id)
+                break
         }
     }
 
@@ -167,6 +181,11 @@ const Strategy: FC = () => {
 
     return (
         <div className="bodyContent">
+            <BindNotifyObject
+                open={openBindNotify}
+                onClose={handleCancelBindNotify}
+                strategyId={operateId}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

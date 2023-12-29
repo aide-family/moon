@@ -81,7 +81,9 @@ export enum ActionKey {
     /** IKUAI */
     IKUAI = '__ikuai__',
     /** 规则组列表 */
-    STRATEGY_GROUP_LIST = '__strategy_group_list__'
+    STRATEGY_GROUP_LIST = '__strategy_group_list__',
+    /** 策略通知对象 */
+    STRATEGY_NOTIFY_OBJECT = '__strategy_notify_object__'
 }
 
 export { categoryData, domainTypeData, moduleTypeData }

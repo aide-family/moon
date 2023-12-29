@@ -57,6 +57,7 @@ export const Detail: FC<DetailProps> = (props) => {
                 strategyFormValues.duration.value +
                 strategyFormValues.duration.unit,
             alarmLevelId: +strategyFormValues.lables.sverity,
+            dataSourceId: 1,
             labels: strategyFormValues.lables,
             annotations: strategyFormValues.annotations
         }

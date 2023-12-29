@@ -37,7 +37,8 @@ interface StrategyCreateRequest {
     alarmPageIds: number[]
     categoryIds: number[]
     alarmLevelId: number
-    // remark: string
+    remark: string
+    dataSourceId: number
 }
 
 /** 策略创建响应参数 */

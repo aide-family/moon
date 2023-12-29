@@ -61,6 +61,35 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 	return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
 }
 
+func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, ids ...uint32) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	strategyDB := l.data.DB().Model(&model.PromStrategy{}).WithContext(ctx)
+	var strategyCountList []StrategyCount
+	wheres := []query.ScopeMethod{
+		strategyscopes.GroupIdsEQ(ids...),
+		basescopes.StatusEQ(valueobj.StatusEnabled),
+	}
+	if err := strategyDB.Scopes(wheres...).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
+		return err
+	}
+
+	var caseSet bytes.Buffer
+	caseSet.WriteString("CASE id ")
+	for _, strategyCount := range strategyCountList {
+		caseSet.WriteString("WHEN ")
+		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
+		caseSet.WriteString(" THEN ")
+		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
+		caseSet.WriteString(" ")
+	}
+	caseSet.WriteString("END")
+	db := l.data.DB().Model(&model.PromStrategyGroup{}).WithContext(ctx)
+	return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", gorm.Expr(caseSet.String())).Error
+}
+
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
 	if err := l.WithContext(ctx).Create(strategyGroupModel); err != nil {

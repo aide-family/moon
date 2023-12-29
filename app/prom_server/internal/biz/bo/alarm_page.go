@@ -77,3 +77,21 @@ func AlarmPageModelToBO(m *model.PromAlarmPage) *AlarmPageBO {
 		DeletedAt: int64(m.DeletedAt),
 	}
 }
+
+// ToApi .
+func (b *AlarmPageBO) ToApi() *api.AlarmPageV1 {
+	if b == nil {
+		return nil
+	}
+	return &api.AlarmPageV1{
+		Id:        b.Id,
+		Name:      b.Name,
+		Icon:      b.Icon,
+		Color:     b.Color,
+		Status:    b.Status.Value(),
+		Remark:    b.Remark,
+		CreatedAt: b.CreatedAt,
+		UpdatedAt: b.UpdatedAt,
+		DeletedAt: b.DeletedAt,
+	}
+}

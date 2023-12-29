@@ -1,11 +1,13 @@
 import { FC, ReactNode, useEffect, useState } from 'react'
 import {
     Button,
+    Checkbox,
     Col,
     Form,
     FormInstance,
     Input,
     InputNumber,
+    Radio,
     Row,
     Select,
     Space
@@ -19,6 +21,7 @@ import {
     categoryOptions,
     durationOptions,
     endpoIntOptions,
+    maxSuppressUnitOptions,
     restrainOptions,
     strategyGroupOptions,
     sverityOptions
@@ -43,6 +46,7 @@ export type FormValuesType = {
     restrain: number[]
     alarmPageIds: number[]
     categoryIds: number[]
+    remark: string
 }
 export interface StrategyFormProps {
     form: FormInstance
@@ -136,6 +140,16 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const openAddAnnotationModal = () => {
         setAddLabelModalOpen(true)
         setIsLabelModalOpen(false)
+    }
+
+    const handleDeleteLabelFormItemListByIndex = (index: number) => {
+        setLabelFormItemList(labelFormItemList.filter((_, i) => i !== index))
+    }
+
+    const handleDeleteAnnotationFormItemListByIndex = (index: number) => {
+        setAnnotationFormItemList(
+            annotationFormItemList.filter((_, i) => i !== index)
+        )
     }
 
     useEffect(() => {
@@ -335,6 +349,96 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             />
                         </Form.Item>
                     </Col>
+                    <Col span={9}>
+                        <Form.Item
+                            label="抑制时常"
+                            tooltip={
+                                <>
+                                    <p>
+                                        抑制时常: 报警发生时, 开启抑制后,
+                                        从开始告警时间加抑制时长,如果在抑制周期内,
+                                        则不再发送告警
+                                    </p>
+                                </>
+                            }
+                        >
+                            <Space.Compact style={{ width: '100%' }}>
+                                <Form.Item
+                                    name={['maxSuppress', 'value']}
+                                    initialValue={30}
+                                    noStyle
+                                >
+                                    <InputNumber
+                                        placeholder="请输入最大抑制时间"
+                                        style={{ width: '80%' }}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    noStyle
+                                    name={['maxSuppress', 'unit']}
+                                    initialValue="m"
+                                >
+                                    <Select
+                                        options={maxSuppressUnitOptions}
+                                        style={{ width: '20%', minWidth: 80 }}
+                                    />
+                                </Form.Item>
+                            </Space.Compact>
+                        </Form.Item>
+                    </Col>
+                    <Col span={9}>
+                        <Form.Item
+                            label="告警通知间隔"
+                            tooltip={
+                                <>
+                                    <p>
+                                        告警通知间隔: 告警通知间隔,
+                                        在一定时间内没有消警,
+                                        则再次触发告警通知的时间
+                                    </p>
+                                </>
+                            }
+                        >
+                            <Space.Compact style={{ width: '100%' }}>
+                                <Form.Item
+                                    name={['sendInterval', 'value']}
+                                    initialValue={30}
+                                    noStyle
+                                >
+                                    <InputNumber
+                                        placeholder="请输入最大抑制时间"
+                                        style={{ width: '80%' }}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    noStyle
+                                    name={['sendInterval', 'unit']}
+                                    initialValue="m"
+                                >
+                                    <Select
+                                        options={maxSuppressUnitOptions}
+                                        style={{ width: '20%', minWidth: 80 }}
+                                    />
+                                </Form.Item>
+                            </Space.Compact>
+                        </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                        <Form.Item
+                            label="告警恢复通知"
+                            name="sendRecover"
+                            tooltip={
+                                <>
+                                    <p>
+                                        发送告警恢复通知: 开启该选项,
+                                        告警恢复后, 发送告警恢复通知的时间
+                                    </p>
+                                </>
+                            }
+                        >
+                            <Checkbox>开启</Checkbox>
+                        </Form.Item>
+                    </Col>
                 </Row>
 
                 <Form.Item
@@ -378,7 +482,14 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         <div>数据源为空, 不予渲染PromQL输入框</div>
                     )}
                 </Form.Item>
-
+                <Form.Item label="备注" name="remark">
+                    <Input.TextArea
+                        placeholder="请输入备注"
+                        autoSize={{ minRows: 2, maxRows: 6 }}
+                        maxLength={255}
+                        showCount
+                    />
+                </Form.Item>
                 <Form.Item
                     tooltip={
                         <div>
@@ -422,7 +533,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 <Col span={6} key={index}>
                                     <Form.Item
                                         name={['lables', item.name]}
-                                        label={item.label}
+                                        label={`${item.label}(${item.name})`}
                                         rules={[
                                             {
                                                 required: true,
@@ -438,6 +549,11 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                                 type="primary"
                                                 danger
                                                 icon={<DeleteOutlined />}
+                                                onClick={() =>
+                                                    handleDeleteLabelFormItemListByIndex(
+                                                        index
+                                                    )
+                                                }
                                             />
                                         </Space.Compact>
                                     </Form.Item>
@@ -495,7 +611,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         return (
                             <Form.Item
                                 name={['annotations', item.name]}
-                                label={item.label}
+                                label={`${item.label}(${item.name})`}
                                 rules={[
                                     {
                                         required: true,
@@ -504,7 +620,21 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 ]}
                                 key={index}
                             >
-                                <Input placeholder={`请输入${item.label}`} />
+                                <Space.Compact style={{ width: '100%' }}>
+                                    <Input.TextArea
+                                        placeholder={`请输入${item.label}`}
+                                    />
+                                    <Button
+                                        type="primary"
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        onClick={() =>
+                                            handleDeleteAnnotationFormItemListByIndex(
+                                                index
+                                            )
+                                        }
+                                    />
+                                </Space.Compact>
                             </Form.Item>
                         )
                     })}
