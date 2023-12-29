@@ -10,10 +10,10 @@ import Detail from './child/Detail'
 import EditModal from './child/EditModal'
 import dictOptions from './options'
 import dictApi from '@/apis/home/system/dict'
-import { Status, StatusMap } from '@/apis/types'
+import { Category, Status, StatusMap } from '@/apis/types'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { DictListItem, DictListReq } from '@/apis/home/system/dict/types'
-import { ActionKey } from '@/apis/data'
+import { ActionKey, categoryData } from '@/apis/data'
 
 const { confirm } = Modal
 const { dictList, dictDelete, dictBatchUpdateStatus } = dictApi
@@ -21,7 +21,7 @@ const { searchItems, operationItems } = dictOptions()
 
 const defaultPadding = 12
 
-let timer: any
+let timer: NodeJS.Timeout
 
 type DictColumnType = ColumnGroupType<DictListItem> | ColumnType<DictListItem>
 
@@ -54,13 +54,43 @@ const Dict: React.FC = () => {
 
     const columns: DictColumnType[] = [
         {
-            title: '接口名称',
+            title: '字典名称',
             dataIndex: 'name',
             key: 'name',
             width: 220
         },
         {
-            title: '接口状态',
+            title: '字典类型',
+            dataIndex: 'category',
+            key: 'category',
+            width: 100,
+            render: (category: Category) => {
+                return categoryData[category]
+            }
+        },
+        {
+            title: '字典颜色',
+            dataIndex: 'color',
+            key: 'color',
+            align: 'center',
+            width: 220,
+            render: (color: string) => {
+                return (
+                    <Badge
+                        color={color}
+                        text={color}
+                        style={{
+                            backgroundColor: color,
+                            color: '#fff',
+                            width: '60%',
+                            textAlign: 'center'
+                        }}
+                    />
+                )
+            }
+        },
+        {
+            title: '字典状态',
             dataIndex: 'status',
             key: 'status',
             width: 100,

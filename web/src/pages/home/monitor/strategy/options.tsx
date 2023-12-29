@@ -7,6 +7,7 @@ import { ActionKey } from '@/apis/data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import { Status, StatusMap } from '@/apis/types'
+import { NotifyItem } from '@/apis/home/monitor/alarm-notify/types'
 
 export const OP_KEY_STRATEGY_GROUP_LIST = 'strategy-group-list'
 
@@ -51,6 +52,18 @@ export const tableOperationItems = (
                   </Button>
               )
           },
+    {
+        key: ActionKey.STRATEGY_NOTIFY_OBJECT,
+        label: (
+            <Button
+                type="link"
+                size="small"
+                icon={<IconFont type="icon-email1" />}
+            >
+                通知对象
+            </Button>
+        )
+    },
     ...(operationItems(item) as [])
 ]
 
@@ -205,8 +218,8 @@ export const endpoIntOptions = [
         value: 'http://124.223.104.203:9090'
     },
     {
-        label: 'Grafana',
-        value: 'http://124.223.104.203:3000'
+        label: 'Localhost',
+        value: 'http://localhost:9090'
     }
 ]
 
@@ -283,5 +296,48 @@ export const restrainOptions = [
     {
         label: '策略1',
         value: 1
+    }
+]
+
+export const maxSuppressUnitOptions = [
+    {
+        label: '秒',
+        value: 's'
+    },
+    {
+        label: '分钟',
+        value: 'm'
+    },
+    {
+        label: '小时',
+        value: 'h'
+    },
+    {
+        label: '天',
+        value: 'd'
+    }
+]
+
+export const notifyObjectTableColumns: (
+    | ColumnGroupType<NotifyItem>
+    | ColumnType<NotifyItem>
+)[] = [
+    {
+        title: '名称',
+        dataIndex: 'name',
+        key: 'name',
+        width: 160,
+        render: (name: string) => {
+            return name
+        }
+    },
+    {
+        title: '备注',
+        dataIndex: 'remark',
+        key: 'remark',
+        // width: 160,
+        render: (remark: string) => {
+            return remark
+        }
     }
 ]

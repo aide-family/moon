@@ -112,6 +112,10 @@ export const defaultMenuItems: ItemType[] = [
             {
                 label: '数据源',
                 key: '/home/monitor/endpoint'
+            },
+            {
+                label: '告警页面',
+                key: '/home/monitor/alarm-page'
             }
         ]
     }
@@ -126,6 +130,7 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/monitor/strategy-group': '策略组',
     '/home/monitor/strategy-group/strategy': '策略',
     '/home/monitor/endpoint': '数据源',
+    '/home/monitor/alarm-page': '告警页面',
     '/home/system/user': '用户管理',
     '/home/system/dict': '字典管理',
     '/home/system/role': '角色管理',

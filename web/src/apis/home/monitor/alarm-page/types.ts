@@ -10,9 +10,9 @@ interface BacthDeleteAlarmPageReply {
 
 interface CreateAlarmPageRequest {
     name: string
-    icon: string
-    color: string
-    remark: string
+    icon?: string
+    color?: string
+    remark?: string
 }
 
 interface CreateAlarmPageReply {
@@ -30,9 +30,9 @@ interface DeleteAlarmPageReply {
 interface UpdateAlarmPageRequest {
     id: number
     name: string
-    icon: string
-    color: string
-    remark: string
+    icon?: string
+    color?: string
+    remark?: string
 }
 
 interface UpdateAlarmPageReply {

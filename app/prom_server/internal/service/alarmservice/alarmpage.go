@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/page"
@@ -89,39 +90,7 @@ func (s *AlarmPageService) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPag
 		return nil, err
 	}
 
-	alarmPageInfo := alarmPageBOToAlarmPageInfo(alarmPageBO)
-
-	return &pb.GetAlarmPageReply{AlarmPage: alarmPageInfo}, nil
-}
-
-// alarmPageBOToAlarmPageInfo .
-func alarmPageBOToAlarmPageInfo(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageV1 {
-	if alarmPageBO == nil {
-		return nil
-	}
-	return &api.AlarmPageV1{
-		Id:     alarmPageBO.Id,
-		Name:   alarmPageBO.Name,
-		Icon:   alarmPageBO.Icon,
-		Color:  alarmPageBO.Color,
-		Status: alarmPageBO.Status.Value(),
-		Remark: alarmPageBO.Remark,
-	}
-}
-
-// alarmPageBOToAlarmPageInfoSelect .
-func alarmPageBOToAlarmPageInfoSelect(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageSelectV1 {
-	if alarmPageBO == nil {
-		return nil
-	}
-	return &api.AlarmPageSelectV1{
-		Value:  alarmPageBO.Id,
-		Label:  alarmPageBO.Name,
-		Icon:   alarmPageBO.Icon,
-		Color:  alarmPageBO.Color,
-		Status: alarmPageBO.Status.Value(),
-		Remark: alarmPageBO.Remark,
-	}
+	return &pb.GetAlarmPageReply{AlarmPage: alarmPageBO.ToApi()}, nil
 }
 
 func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error) {
@@ -130,11 +99,9 @@ func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmP
 		return nil, err
 	}
 
-	list := make([]*api.AlarmPageV1, 0, len(alarmPageBOs))
-	for _, alarmPageBO := range alarmPageBOs {
-		alarmPageInfo := alarmPageBOToAlarmPageInfo(alarmPageBO)
-		list = append(list, alarmPageInfo)
-	}
+	list := slices.To(alarmPageBOs, func(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageV1 {
+		return alarmPageBO.ToApi()
+	})
 
 	return &pb.ListAlarmPageReply{
 		List: list,
@@ -152,11 +119,9 @@ func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAl
 		return nil, err
 	}
 
-	list := make([]*api.AlarmPageSelectV1, 0, len(alarmPageBOs))
-	for _, alarmPageBO := range alarmPageBOs {
-		alarmPageInfo := alarmPageBOToAlarmPageInfoSelect(alarmPageBO)
-		list = append(list, alarmPageInfo)
-	}
+	list := slices.To(alarmPageBOs, func(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageSelectV1 {
+		return alarmPageBO.ToApiSelectV1()
+	})
 	return &pb.SelectAlarmPageReply{
 		List: list,
 		Page: &api.PageReply{
