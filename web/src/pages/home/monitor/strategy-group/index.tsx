@@ -1,97 +1,52 @@
 import React, { Key, useEffect, useRef, useState } from 'react'
-import { Button, Form } from 'antd'
-import { ColumnGroupType, ColumnType } from 'antd/es/table'
+import { Form } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
-import { Detail } from '@/pages/home/monitor/strategy-group/child/detail.tsx'
 import {
-    OP_KEY_STRATEGY_LIST,
+    defaultStrategyGroupListRequest,
+    leftOptions,
+    rightOptions,
     searchItems,
     tableOperationItems
 } from '@/pages/home/monitor/strategy-group/options.tsx'
-import { DictSelectItem } from '@/apis/home/system/dict/types.ts'
 import { ActionKey } from '@/apis/data.ts'
-import {StrategyGroupItemType} from "@/apis/home/monitor/strategy-group/types.ts";
+import { columns } from './options'
+import strategyGroupApi from '@/apis/home/monitor/strategy-group'
+import {
+    StrategyGroupItemType,
+    StrategyGroupListRequest
+} from '@/apis/home/monitor/strategy-group/types'
+import { Detail } from './child/detail'
+import EditGroupModal from './child/EditGroupModal'
+import { Status } from '@/apis/types'
 
 const defaultPadding = 12
-const defaultData: any = []
 
+let timer: NodeJS.Timeout
 const StrategyGroup: React.FC = () => {
     const navigate = useNavigate()
     const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<StrategyGroupItemType[]>([])
-
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
     const [openDetail, setOpenDetail] = useState<boolean>(false)
+    const [search, setSearch] = useState<StrategyGroupListRequest>(
+        defaultStrategyGroupListRequest
+    )
+    const [openEditModal, setOpenEditModal] = useState<boolean>(false)
+    const [editItem, setEditItem] = useState<
+        StrategyGroupItemType | undefined
+    >()
 
-    const columns: (
-        | ColumnGroupType<StrategyGroupItemType>
-        | ColumnType<StrategyGroupItemType>
-    )[] = [
-        {
-            title: '名称',
-            dataIndex: 'name',
-            key: 'name',
-            width: 160,
-            render: (name: string) => {
-                return name
-            }
-        },
-        {
-            title: '描述',
-            dataIndex: 'remark',
-            key: 'remark',
-            width: 160,
-            render: (description: string) => {
-                return description
-            }
-        },
-        {
-            title: '类型',
-            dataIndex: 'categories',
-            key: 'categories',
-            width: 160,
-            render: (categories?: DictSelectItem[]) => {
-                return categories?.map((item: DictSelectItem) => {
-                    return item?.label
-                })
-            }
-        },
-        {
-            title: '策略组状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 160,
-            render: (status: string) => {
-                return status
-            }
-        },
-        {
-            title: '策略组创建时间',
-            dataIndex: 'created_at',
-            key: 'created_at',
-            width: 160,
-            render: (created_at: string) => {
-                return created_at
-            }
-        },
-        {
-            title: '策略组更新时间',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
-            width: 160,
-            render: (updated_at: string) => {
-                return updated_at
-            }
-        }
-    ]
+    // 刷新
+    const handlerRefresh = () => {
+        setRefresh(!refresh)
+    }
 
     const handlerOpenDetail = () => {
         setOpenDetail(true)
@@ -101,23 +56,33 @@ const StrategyGroup: React.FC = () => {
         setOpenDetail(false)
     }
 
+    const handleOpenEditModal = (record?: StrategyGroupItemType) => {
+        setEditItem(record)
+        setOpenEditModal(true)
+    }
+
+    const handleCloseEditModal = () => {
+        setOpenEditModal(false)
+        setEditItem(undefined)
+    }
+
+    const handleEditModalOnOK = () => {
+        handleCloseEditModal()
+        handlerRefresh()
+    }
+
     // 获取数据
     const handlerGetData = () => {
         setLoading(true)
-        setTimeout(() => {
-            setDataSource(defaultData)
-            setTotal(203)
-            setLoading(false)
-        }, 500)
-    }
-
-    useEffect(() => {
-        handlerGetData()
-    }, [refresh])
-
-    // 刷新
-    const handlerRefresh = () => {
-        setRefresh((prev) => !prev)
+        strategyGroupApi
+            .getStrategyGroupList(search)
+            .then((res) => {
+                setDataSource(res.list)
+                setTotal(res.page.total)
+            })
+            .finally(() => {
+                setLoading(false)
+            })
     }
 
     // 分页变化
@@ -135,59 +100,82 @@ const StrategyGroup: React.FC = () => {
 
     const toStrategyListPage = (record: StrategyGroupItemType) => {
         console.log(record)
-        navigate(`/home/monitor/strategy-group/strategy?groupId=${record.id}`)
+        navigate(`/home/monitor/strategy?groupId=${record.id}`)
+    }
+
+    const handlebatchChangeStatus = (ids: number[], status: Status) => {
+        return strategyGroupApi.batchChangeStatus({ ids, status })
     }
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: string, record: StrategyGroupItemType) => {
-        console.log(key, record)
         switch (key) {
-            case OP_KEY_STRATEGY_LIST:
+            case ActionKey.OP_KEY_STRATEGY_LIST:
                 toStrategyListPage(record)
                 break
             case ActionKey.DETAIL:
                 handlerOpenDetail()
                 break
+            case ActionKey.EDIT:
+                handleOpenEditModal(record)
+                break
+            case ActionKey.DISABLE:
+                handlebatchChangeStatus(
+                    [record.id],
+                    Status.STATUS_DISABLED
+                ).then(handlerRefresh)
+                break
+            case ActionKey.ENABLE:
+                handlebatchChangeStatus(
+                    [record.id],
+                    Status.STATUS_ENABLED
+                ).then(handlerRefresh)
+                break
+        }
+    }
+
+    const hendleDataAction = (key: ActionKey) => {
+        switch (key) {
+            case ActionKey.REFRESH:
+                handlerRefresh()
+                break
+            case ActionKey.ADD:
+                handleOpenEditModal()
+                break
+            case ActionKey.BATCH_IMPORT:
+                break
+            default:
+                break
         }
     }
 
     // 处理搜索表单的值变化
-    const handlerSearFormValuesChange = (
-        changedValues: any,
-        allValues: any
-    ) => {
-        console.log(changedValues, allValues)
+    const handlerSearFormValuesChange = (_: any, allValues: any) => {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+            setSearch({
+                ...search,
+                ...allValues
+            })
+            handlerRefresh()
+        }, 500)
     }
 
-    const leftOptions: DataOptionItem[] = [
-        {
-            key: '批量导入',
-            label: (
-                <Button type="primary" loading={loading}>
-                    批量导入
-                </Button>
-            )
-        }
-    ]
-
-    const rightOptions: DataOptionItem[] = [
-        {
-            key: 'refresh',
-            label: (
-                <Button
-                    type="primary"
-                    loading={loading}
-                    onClick={handlerRefresh}
-                >
-                    刷新
-                </Button>
-            )
-        }
-    ]
+    useEffect(() => {
+        handlerGetData()
+    }, [refresh])
 
     return (
         <div className="bodyContent">
             <Detail open={openDetail} onClose={handlerCloseDetail} id="1" />
+            <EditGroupModal
+                open={openEditModal}
+                onCancel={handleCloseEditModal}
+                onOk={handleEditModalOnOK}
+                groupId={editItem?.id}
+            />
             <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
@@ -201,17 +189,20 @@ const StrategyGroup: React.FC = () => {
                 <HeightLine />
                 <DataOption
                     queryForm={queryForm}
-                    rightOptions={rightOptions}
-                    leftOptions={leftOptions}
+                    rightOptions={rightOptions(loading)}
+                    leftOptions={leftOptions(loading)}
+                    action={hendleDataAction}
                 />
                 <PaddingLine
                     padding={defaultPadding}
                     height={1}
                     borderRadius={4}
                 />
+                DE
             </div>
 
             <DataTable
+                rowKey="id"
                 dataSource={dataSource}
                 columns={columns}
                 total={total}

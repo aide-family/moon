@@ -8,7 +8,7 @@ import { GlobalContext } from '@/context'
 import { IconFont } from '@/components/IconFont/IconFont'
 import { MoreMenu } from '../'
 import { ActionKey } from '@/apis/data'
-import {RoleListItem} from "@/apis/home/system/role/types.ts";
+import { RoleListItem } from '@/apis/home/system/role/types.ts'
 
 export type DataTableProps<T = any> = TableProps<T> & {
     // 是否显示序号
@@ -106,7 +106,15 @@ const DataTable: FC<DataTableProps> = (props) => {
             ]
         }
         if (showOperation) {
-            columnsTmp.push(defaultOperation(operationItems, action))
+            // 判断最后一个是否为操作列
+            if (columnsTmp[columnsTmp.length - 1]?.key === ActionKey.ACTION) {
+                columnsTmp[columnsTmp.length - 1] = {
+                    ...columnsTmp[columnsTmp.length - 1],
+                    fixed: 'right'
+                }
+            } else {
+                columnsTmp.push(defaultOperation(operationItems, action))
+            }
         }
         setColumns([...columnsTmp])
     }, [columns, pageSize, current])

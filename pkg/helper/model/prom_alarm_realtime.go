@@ -109,3 +109,11 @@ func (p *PromAlarmRealtime) GetAlarmSuppressInfo() *PromAlarmSuppress {
 	}
 	return p.AlarmSuppressInfo
 }
+
+// GetLevel 获取告警等级
+func (p *PromAlarmRealtime) GetLevel() *PromDict {
+	if p == nil {
+		return nil
+	}
+	return p.Level
+}

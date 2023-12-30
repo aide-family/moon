@@ -55,6 +55,15 @@ interface AlarmPageItem {
     deletedAt: number
 }
 
+interface AlarmPageSelectItem {
+    value: number
+    label: string
+    icon: string
+    color: string
+    status: number
+    remark: string
+}
+
 interface GetAlarmPageReply {
     alarmPage: AlarmPageItem
 }
@@ -77,7 +86,7 @@ interface SelectAlarmPageRequest {
 }
 
 interface SelectAlarmPageReply {
-    list: AlarmPageItem[]
+    list: AlarmPageSelectItem[]
     page: PageResType
 }
 
@@ -107,5 +116,6 @@ export type {
     BacthDeleteAlarmPageRequest,
     AlarmPageItem,
     ListAlarmPageReply,
-    ListAlarmPageRequest
+    ListAlarmPageRequest,
+    AlarmPageSelectItem
 }

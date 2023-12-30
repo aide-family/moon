@@ -87,8 +87,17 @@ export const columns: AlarmPageTableColumnType[] = [
         dataIndex: 'icon',
         key: 'icon',
         width: 100,
-        render: (icon: string) => {
-            return icon ? <IconFont type={icon} /> : '-'
+        render: (icon: string, item: AlarmPageItem) => {
+            return icon ? (
+                <Button
+                    type="link"
+                    icon={
+                        <IconFont type={icon} style={{ color: item.color }} />
+                    }
+                />
+            ) : (
+                '-'
+            )
         }
     },
     {

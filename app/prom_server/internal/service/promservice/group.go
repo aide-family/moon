@@ -6,6 +6,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/pkg/helper/model/strategygroupscopes"
+	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy/group"
@@ -101,6 +103,8 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		strategygroupscopes.PreloadCategories(),
 	}
 	list, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
 	if err != nil {

@@ -14,11 +14,11 @@ import type {
 } from './types'
 
 enum URL {
-    DETAIL = '',
-    LIST = '',
-    INTERVENE = '',
-    SUPPRESS = '',
-    UPGRADE = ''
+    DETAIL = '/api/v1/alarm/realtime/detail',
+    LIST = '/api/v1/alarm/realtime/list',
+    INTERVENE = '/api/v1/alarm/realtime/intervene',
+    SUPPRESS = '/api/v1/alarm/realtime/suppress',
+    UPGRADE = '/api/v1/alarm/realtime/upgrade'
 }
 
 const getAlarmRealtimeDetail = (params: AlarmRealtimeDetailRequest) => {

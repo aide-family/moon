@@ -83,7 +83,15 @@ export enum ActionKey {
     /** 规则组列表 */
     STRATEGY_GROUP_LIST = '__strategy_group_list__',
     /** 策略通知对象 */
-    STRATEGY_NOTIFY_OBJECT = '__strategy_notify_object__'
+    STRATEGY_NOTIFY_OBJECT = '__strategy_notify_object__',
+    /** 告警介入 */
+    ALARM_INTERVENTION = '__alarm_intervention__',
+    /** 告警升级 */
+    ALARM_UPGRADE = '__alarm_upgrade__',
+    /** 告警标记 */
+    ALARM_MARK = '__alarm_mark__',
+    /** 跳转告警规则列表 */
+    OP_KEY_STRATEGY_LIST = 'strategy-list'
 }
 
 export { categoryData, domainTypeData, moduleTypeData }

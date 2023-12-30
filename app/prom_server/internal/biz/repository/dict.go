@@ -7,9 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/pkg/helper/valueobj"
 )
 
 var _ PromDictRepo = (*UnimplementedPromDictRepo)(nil)

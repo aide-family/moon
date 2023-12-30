@@ -1,48 +1,89 @@
-import {Button, MenuProps, Tag} from 'antd'
-import {IconFont} from '@/components/IconFont/IconFont.tsx'
-import {operationItems} from '@/components/Data/DataOption/option.tsx'
-import {DataFormItem} from '@/components/Data'
-import {StrategyGroupItemType} from "@/apis/home/monitor/strategy-group/types.ts";
+import { Button, MenuProps, Tag } from 'antd'
+import { IconFont } from '@/components/IconFont/IconFont.tsx'
+import { operationItems } from '@/components/Data/DataOption/option.tsx'
+import { DataFormItem } from '@/components/Data'
+import {
+    StrategyGroupItemType,
+    StrategyGroupListRequest
+} from '@/apis/home/monitor/strategy-group/types.ts'
+import { DictSelectItem } from '@/apis/home/system/dict/types'
+import { ColumnGroupType, ColumnType } from 'antd/es/table'
+import dayjs from 'dayjs'
+import { Status, StatusMap } from '@/apis/types'
+import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
+import { ActionKey } from '@/apis/data'
 
-export const OP_KEY_STRATEGY_LIST = 'strategy-list'
-
-export const tableOperationItems = (_: StrategyGroupItemType): MenuProps['items'] => [
+export const tableOperationItems = (
+    record: StrategyGroupItemType
+): MenuProps['items'] => [
     {
-        key: OP_KEY_STRATEGY_LIST,
+        key: ActionKey.OP_KEY_STRATEGY_LIST,
         label: (
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-linkedin-fill"/>}
+                icon={<IconFont type="icon-linkedin-fill" />}
             >
                 策略列表
             </Button>
         )
     },
-    ...(operationItems as any)
+    record.status === Status.STATUS_DISABLED
+        ? {
+              key: ActionKey.ENABLE,
+              label: (
+                  <Button
+                      type="link"
+                      size="small"
+                      icon={<IconFont type="icon-Enable" />}
+                  >
+                      启用
+                  </Button>
+              )
+          }
+        : {
+              key: ActionKey.DISABLE,
+              label: (
+                  <Button
+                      type="link"
+                      size="small"
+                      danger
+                      icon={<IconFont type="icon-disable2" />}
+                  >
+                      禁用
+                  </Button>
+              )
+          },
+    {
+        type: 'divider'
+    },
+    ...(operationItems(record) as any[])
 ]
 
 export const searchItems: DataFormItem[] = [
     {
-        name: 'name',
+        name: 'keyword',
         label: '规则组名称'
     },
     {
         name: 'status',
         label: '规则组状态',
         dataProps: {
-            type: 'select',
+            type: 'radio-group',
             parentProps: {
-                placeholder: '请选择规则状态',
-                mode: 'multiple',
+                optionType: 'button',
                 options: [
                     {
-                        label: <Tag color="success">启用</Tag>,
-                        value: '1'
+                        label: '全部',
+                        value: Status.STATUS_UNKNOWN
                     },
                     {
-                        label: <Tag color="error">禁用</Tag>,
-                        value: '0'
+                        label: '启用',
+                        value: Status.STATUS_ENABLED
+                    },
+                    {
+                        label: '禁用',
+                        value: Status.STATUS_DISABLED
                     }
                 ]
             }
@@ -64,28 +105,151 @@ export const searchItems: DataFormItem[] = [
                 ]
             }
         }
+    }
+]
+
+export const columns: (
+    | ColumnGroupType<StrategyGroupItemType>
+    | ColumnType<StrategyGroupItemType>
+)[] = [
+    {
+        title: '名称',
+        dataIndex: 'name',
+        key: 'name',
+        width: 160,
+        render: (name: string) => {
+            return name
+        }
+    },
+
+    {
+        title: '类型',
+        dataIndex: 'categories',
+        key: 'categories',
+        width: 160,
+        render: (
+            categories: DictSelectItem[],
+            record: StrategyGroupItemType
+        ) => {
+            if (!categories || categories.length === 0) return '-'
+            return categories?.map((item: DictSelectItem) => {
+                return (
+                    <Tag key={record.id} color={item.color}>
+                        {item.label}
+                    </Tag>
+                )
+            })
+        }
     },
     {
-        name: 'strategy_total',
-        label: '规则数量',
+        title: '策略组状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 160,
+        align: 'center',
+        render: (status: Status, record: StrategyGroupItemType) => {
+            const { color, text } = StatusMap[status]
+            return (
+                <Tag key={record.id} color={color}>
+                    {text}
+                </Tag>
+            )
+        }
+    },
+    {
+        title: '描述',
+        dataIndex: 'remark',
+        key: 'remark',
+        render: (description: string) => {
+            return description
+        }
+    },
+    {
+        title: '创建时间',
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        width: 160,
+        render: (createdAt: string | number) => {
+            return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        }
+    },
+    {
+        title: '策略组更新时间',
+        dataIndex: 'updatedAt',
+        key: 'updatedAt',
+        width: 160,
+        render: (updatedAt: string | number) => {
+            return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        }
+    }
+]
+
+export const defaultStrategyGroupListRequest: StrategyGroupListRequest = {
+    page: {
+        size: 10,
+        curr: 1
+    }
+}
+
+export const rightOptions = (loading: boolean): DataOptionItem[] => [
+    {
+        key: ActionKey.REFRESH,
+        label: (
+            <Button type="primary" loading={loading}>
+                刷新
+            </Button>
+        )
+    }
+]
+
+export const leftOptions = (loading: boolean): DataOptionItem[] => [
+    {
+        key: ActionKey.BATCH_IMPORT,
+        label: (
+            <Button type="primary" loading={loading}>
+                批量导入
+            </Button>
+        )
+    }
+]
+
+export const editStrategyGroupDataFormItems: DataFormItem[] = [
+    {
+        name: 'name',
+        label: '规则组名称',
+        rules: [
+            {
+                required: true,
+                message: '请输入规则组名称'
+            }
+        ]
+    },
+    {
+        name: 'categories',
+        label: '规则分类',
         dataProps: {
             type: 'select',
             parentProps: {
-                placeholder: '请选择规则数量',
+                placeholder: '请选择规则分类',
                 options: [
                     {
                         label: '全部',
-                        value: ''
-                    },
-                    {
-                        label: '0-10',
-                        value: '<10'
-                    },
-                    {
-                        label: '10-20',
-                        value: '10-20'
+                        value: 0
                     }
+                    // TODO 需要从接口加载
                 ]
+            }
+        }
+    },
+    {
+        name: 'remark',
+        label: '规则组描述',
+        dataProps: {
+            type: 'textarea',
+            parentProps: {
+                placeholder: '请输入200字以内的规则组描述',
+                maxLength: 200,
+                showCount: true
             }
         }
     }

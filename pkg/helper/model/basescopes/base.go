@@ -26,7 +26,7 @@ func NotInIds(ids ...uint32) query.ScopeMethod {
 // StatusEQ 状态
 func StatusEQ(status valueobj.Status) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		if status == 0 {
+		if status == valueobj.StatusUnknown {
 			return db
 		}
 		return db.Where("status = ?", status)

@@ -12,6 +12,7 @@ const (
 	RealtimeAssociationSuppressInfo      = "AlarmSuppressInfo"
 	RealtimeAssociationBeenNotifyMembers = "BeenNotifyMembers"
 	RealtimeAssociationBeenChatGroups    = "BeenChatGroups"
+	RealtimeAssociationLevel             = "Level"
 )
 
 // RealtimeLike 查询关键字
@@ -43,5 +44,12 @@ func ClauseOnConflict() query.ScopeMethod {
 			Columns:   []clause.Column{{Name: "id"}, {Name: "history_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"status"}),
 		})
+	}
+}
+
+// PreloadLevel 预加载级别
+func PreloadLevel() query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(RealtimeAssociationLevel)
 	}
 }

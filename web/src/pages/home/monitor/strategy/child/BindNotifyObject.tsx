@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/Data'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
-import { Alert, Checkbox, Col, Modal, Row, Space } from 'antd'
+import { Alert, Checkbox, Col, Modal, Row } from 'antd'
 import { FC, useEffect, useState } from 'react'
 import { notifyObjectTableColumns } from '../options'
 import {

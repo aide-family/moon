@@ -1,6 +1,6 @@
-import {PageReqType, PageResType} from '@/apis/types'
-import {DictSelectItem} from '../../system/dict/types'
-import {UserSelectItem} from '../../system/user/types'
+import { PageReqType, PageResType } from '@/apis/types'
+import { DictSelectItem } from '../../system/dict/types'
+import { UserSelectItem } from '../../system/user/types'
 
 interface InterveneItem {
     intervenedUser: {
@@ -80,15 +80,14 @@ interface AlarmRealtimeInterveneRequest {
     remark: string
 }
 
-interface AlarmRealtimeInterveneResponse {
-}
+interface AlarmRealtimeInterveneResponse {}
 
 interface AlarmRealtimeListRequest {
     page: PageReqType
-    keyword: string
-    alarmPages: number[]
-    startAt: number
-    endAt: number
+    keyword?: string
+    alarmPages?: number[]
+    startAt?: number
+    endAt?: number
 }
 
 interface AlarmRealtimeListResponse {
@@ -102,16 +101,14 @@ interface AlarmRealtimeSuppressRequest {
     duration: number
 }
 
-interface AlarmRealtimeSuppressResponse {
-}
+interface AlarmRealtimeSuppressResponse {}
 
 interface AlarmRealtimeUpgradeRequest {
     id: number
     remark: string
 }
 
-interface AlarmRealtimeUpgradeResponse {
-}
+interface AlarmRealtimeUpgradeResponse {}
 
 export type {
     AlarmRealtimeItem,
