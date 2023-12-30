@@ -122,7 +122,7 @@ const LoginForm: FC = () => {
 
             <div className={styles.LoginFormFooter}>
                 <CopyrightOutlined />
-                {window.location.host}i
+                {window.location.host}
             </div>
         </div>
     )

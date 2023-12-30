@@ -64,8 +64,8 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                     token: {},
                     components: {
                         Layout: {
-                            colorBgHeader: '#FFF',
-                            colorBgBody: '#f0f0f0'
+                            headerBg: '#FFF',
+                            bodyBg: '#f0f0f0'
                         },
                         Menu: {
                             colorBgContainer: '#fafafa',

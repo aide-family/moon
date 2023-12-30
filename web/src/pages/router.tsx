@@ -20,7 +20,7 @@ export const routers: RouteObject[] = [
                 children: []
             },
             {
-                path: '/home/monitor/strategy-group/strategy',
+                path: '/home/monitor/strategy',
                 Component: lazy(() => import('@/pages/home/monitor/strategy'))
             },
             {
@@ -30,6 +30,12 @@ export const routers: RouteObject[] = [
             {
                 path: '/home/monitor/alarm-page',
                 Component: lazy(() => import('@/pages/home/monitor/alarm-page'))
+            },
+            {
+                path: '/home/monitor/alarm-realtime',
+                Component: lazy(
+                    () => import('@/pages/home/monitor/alarm-realtime')
+                )
             },
             {
                 path: '/home/system/user',

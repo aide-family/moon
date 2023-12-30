@@ -3,6 +3,7 @@ package bo
 import (
 	"encoding"
 	"encoding/json"
+	"fmt"
 
 	query "github.com/aide-cloud/gorm-normalize"
 
@@ -134,6 +135,9 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 		return nil
 	}
 
+	fmt.Println("-------------")
+	fmt.Println(l.LevelId, l.GetLevel())
+
 	return &api.RealtimeAlarmData{
 		Id:                 l.ID,
 		Instance:           l.Instance,
@@ -167,7 +171,7 @@ func AlarmRealtimeModelToBO(m *model.PromAlarmRealtime) *AlarmRealtimeBO {
 		Instance:        m.Instance,
 		Note:            m.Note,
 		LevelId:         m.LevelId,
-		Level:           DictModelToBO(m.GetStrategy().GetAlertLevel()),
+		Level:           DictModelToBO(m.GetLevel()),
 		EventAt:         m.EventAt,
 		Status:          m.Status,
 		AlarmPages:      slices.To(m.GetAlarmPages(), func(i *model.PromAlarmPage) *AlarmPageBO { return AlarmPageModelToBO(i) }),

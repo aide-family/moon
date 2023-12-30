@@ -102,12 +102,16 @@ export const defaultMenuItems: ItemType[] = [
         icon: <IconFont type="icon-Prometheus" />,
         children: [
             {
+                label: '实时告警',
+                key: '/home/monitor/alarm-realtime'
+            },
+            {
                 label: '策略组',
                 key: '/home/monitor/strategy-group'
             },
             {
-                label: '策略',
-                key: '/home/monitor/strategy-group/strategy'
+                label: '策略列表',
+                key: '/home/monitor/strategy'
             },
             {
                 label: '数据源',
@@ -127,8 +131,9 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/customer': '客户管理',
     '/home/resource': '资源管理',
     '/home/flow': '流程管理',
+    '/home/monitor/alarm-realtime': '实时告警',
     '/home/monitor/strategy-group': '策略组',
-    '/home/monitor/strategy-group/strategy': '策略',
+    '/home/monitor/strategy': '策略',
     '/home/monitor/endpoint': '数据源',
     '/home/monitor/alarm-page': '告警页面',
     '/home/system/user': '用户管理',
