@@ -91,7 +91,8 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
+		strategyscopes.AlertLike(req.GetKeyword()),
+		strategyscopes.GroupIdsEQ(req.GetGroupId()),
 		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 

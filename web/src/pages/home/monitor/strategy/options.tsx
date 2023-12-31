@@ -8,6 +8,7 @@ import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import { Status, StatusMap } from '@/apis/types'
 import { NotifyItem } from '@/apis/home/monitor/alarm-notify/types'
+import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 
 export const OP_KEY_STRATEGY_GROUP_LIST = 'strategy-group-list'
 
@@ -22,7 +23,7 @@ export const tableOperationItems = (
                 size="small"
                 icon={<IconFont type="icon-linkedin-fill" />}
             >
-                规则组列表
+                策略组列表
             </Button>
         )
     },
@@ -69,42 +70,33 @@ export const tableOperationItems = (
 
 export const searchItems: DataFormItem[] = [
     {
-        name: 'alert',
-        label: '规则名称'
+        name: 'keyword',
+        label: '策略名称'
+    },
+    {
+        name: 'groupId',
+        label: '策略组'
     },
     {
         name: 'status',
-        label: '规则状态',
+        label: '策略状态',
         dataProps: {
-            type: 'select',
+            type: 'radio-group',
             parentProps: {
-                placeholder: '请选择规则状态',
-                mode: 'multiple',
+                optionType: 'button',
+                defaultValue: 0,
                 options: [
                     {
-                        label: <Tag color="success">启用</Tag>,
-                        value: '1'
+                        label: '全部',
+                        value: 0
                     },
                     {
-                        label: <Tag color="error">禁用</Tag>,
-                        value: '0'
-                    }
-                ]
-            }
-        }
-    },
-    {
-        name: 'duration',
-        label: '持续时间',
-        dataProps: {
-            type: 'select',
-            parentProps: {
-                mode: 'multiple',
-                placeholder: '请选择规则持续时间的范围',
-                options: [
+                        label: '启用',
+                        value: 1
+                    },
                     {
-                        label: '3m<',
-                        value: '3m<'
+                        label: '禁用',
+                        value: 2
                     }
                 ]
             }
@@ -339,5 +331,27 @@ export const notifyObjectTableColumns: (
         render: (remark: string) => {
             return remark
         }
+    }
+]
+
+export const leftOptions = (loading: boolean): DataOptionItem[] => [
+    {
+        key: ActionKey.BATCH_IMPORT,
+        label: (
+            <Button type="primary" loading={loading}>
+                批量导入
+            </Button>
+        )
+    }
+]
+
+export const rightOptions = (loading: boolean): DataOptionItem[] => [
+    {
+        key: ActionKey.REFRESH,
+        label: (
+            <Button type="primary" loading={loading}>
+                刷新
+            </Button>
+        )
     }
 ]

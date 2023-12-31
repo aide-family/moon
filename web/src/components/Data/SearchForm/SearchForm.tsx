@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, FC } from 'react'
+import { useContext, useEffect, useState, FC, ReactNode } from 'react'
 
 import type { FormInstance } from 'antd'
 import type { FormProps, Rule } from 'antd/es/form'
@@ -22,6 +22,7 @@ export type SearchFormProps = {
     items?: SearchFormItem[]
     formProps?: FormProps
     onClear?: () => void
+    [key: string]: ReactNode | any
 }
 
 let timerId: NodeJS.Timeout | null = null
@@ -88,7 +89,7 @@ const SearchForm: FC<SearchFormProps> = (props) => {
                 key={name}
                 className={styles.Item}
             >
-                <DataInput {...dataProps} width={inputWidth} />
+                {props[name] || <DataInput {...dataProps} width={inputWidth} />}
             </Form.Item>
         )
     }
