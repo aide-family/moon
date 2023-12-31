@@ -7,7 +7,29 @@ import (
 
 // GroupIdsEQ 策略组ID
 func GroupIdsEQ(ids ...uint32) query.ScopeMethod {
+	tmpIds := make([]uint32, 0, len(ids))
+	for _, id := range ids {
+		if id > 0 {
+			tmpIds = append(tmpIds, id)
+		}
+	}
+	if len(tmpIds) == 0 {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
+
 	return query.WhereInColumn("group_id", ids)
+}
+
+// AlertLike 策略名称匹配
+func AlertLike(keyword string) query.ScopeMethod {
+	if keyword == "" {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
+	return query.WhereLikeKeyword(keyword+"%", "alert")
 }
 
 // PreloadEndpoint 预加载endpoint
