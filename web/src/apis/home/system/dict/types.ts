@@ -57,10 +57,10 @@ interface DictDetailRes {
 }
 /** 获取字典列表, 用于下拉选择*/
 interface DictSelectReq {
-    isDeleted: boolean
+    isDeleted?: boolean
     page: PageReqType
-    keyword: string
-    category: number
+    keyword?: string
+    category?: number
 }
 /**获取字典列表, 用于下拉选择返回数据 */
 interface DictSelectRes {

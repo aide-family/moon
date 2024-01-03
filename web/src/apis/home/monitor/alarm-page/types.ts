@@ -82,7 +82,7 @@ interface ListAlarmPageReply {
 interface SelectAlarmPageRequest {
     page: PageReqType
     keyword: string
-    status: number
+    status?: Status
 }
 
 interface SelectAlarmPageReply {

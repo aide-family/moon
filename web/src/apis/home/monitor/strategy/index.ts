@@ -104,7 +104,7 @@ const batchExportStrategy = (ids: number[]) => {
  * 获取策略组列表
  * @param params
  */
-const getStrategyGroupList = (params: StrategySelectListRequest) => {
+const getStrategySelectList = (params: StrategySelectListRequest) => {
     return POST<StrategySelectListResponse>(URL.SELECT_LIST, params)
 }
 
@@ -118,7 +118,7 @@ const strategyApi = {
     batchDeleteStrategy,
     batchChangeStrategyStatus,
     batchExportStrategy,
-    getStrategyGroupList
+    getStrategySelectList
 }
 
 export default strategyApi

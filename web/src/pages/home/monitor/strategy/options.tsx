@@ -6,11 +6,14 @@ import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { ActionKey } from '@/apis/data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { Status, StatusMap } from '@/apis/types'
+import { Category, PageReqType, Status, StatusMap } from '@/apis/types'
 import { NotifyItem } from '@/apis/home/monitor/alarm-notify/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
-
-export const OP_KEY_STRATEGY_GROUP_LIST = 'strategy-group-list'
+import endpointApi from '@/apis/home/monitor/endpoint'
+import strategyGroupApi from '@/apis/home/monitor/strategy-group'
+import dictApi from '@/apis/home/system/dict'
+import alarmPageApi from '@/apis/home/monitor/alarm-page'
+import strategyApi from '@/apis/home/monitor/strategy'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -67,6 +70,11 @@ export const tableOperationItems = (
     },
     ...(operationItems(item) as [])
 ]
+
+export const defaultPageReq: PageReqType = {
+    curr: 1,
+    size: 10
+}
 
 export const searchItems: DataFormItem[] = [
     {
@@ -284,13 +292,6 @@ export const sverityOptions = [
     }
 ]
 
-export const restrainOptions = [
-    {
-        label: '策略1',
-        value: 1
-    }
-]
-
 export const maxSuppressUnitOptions = [
     {
         label: '秒',
@@ -355,3 +356,271 @@ export const rightOptions = (loading: boolean): DataOptionItem[] => [
         )
     }
 ]
+
+export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
+    [
+        {
+            name: 'endpoint',
+            label: '数据源',
+            formItemProps: {
+                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择Prometheus数据源'
+                }
+            ]
+        },
+        {
+            name: 'groupId',
+            label: '策略组',
+            formItemProps: {
+                tooltip: <p>把当前规则归类到不同的策略组, 便于业务关联</p>
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略组'
+                }
+            ]
+        }
+    ],
+    [
+        {
+            name: 'alert',
+            label: '告警名称',
+            formItemProps: {
+                tooltip: (
+                    <p>请输入策略名称, 策略名称必须唯一, 例如: 'cpu_usage'</p>
+                )
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请输入策略名称'
+                }
+            ]
+        },
+        {
+            name: 'duration',
+            label: '持续时间',
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        持续时间是下面PromQL规则连续匹配,
+                        建议为此规则采集周期的整数倍, 例如采集周期为15s,
+                        持续时间为30s, 则表示连续2个周期匹配
+                    </p>
+                )
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请输入持续时间'
+                }
+            ]
+        }
+    ],
+    [
+        {
+            name: 'levelId',
+            label: '策略等级',
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略等级'
+                }
+            ]
+        },
+        {
+            name: 'categoryIds',
+            label: '策略类型',
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略类型'
+                }
+            ]
+        }
+    ],
+    {
+        name: 'alarmPageIds',
+        label: '告警页面',
+        formItemProps: {
+            tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
+        },
+        rules: [
+            {
+                required: true,
+                message: '请选择报警页面'
+            }
+        ]
+    },
+    [
+        {
+            name: 'maxSuppress',
+            label: '抑制策略',
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        抑制时常: 报警发生时, 开启抑制后,
+                        从开始告警时间加抑制时长,如果在抑制周期内,
+                        则不再发送告警
+                    </p>
+                )
+            }
+        },
+        {
+            name: 'sendInterval',
+            label: '告警通知间隔',
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
+                        则再次触发告警通知的时间
+                    </p>
+                )
+            }
+        },
+        {
+            name: 'sendRecover',
+            label: '告警恢复通知',
+            dataProps: {
+                type: 'checkbox',
+                parentProps: {
+                    children: '发送告警恢复通知'
+                }
+            },
+            formItemProps: {
+                valuePropName: 'checked',
+                tooltip: (
+                    <p>
+                        发送告警恢复通知: 开启该选项, 告警恢复后,
+                        发送告警恢复通知的时间
+                    </p>
+                )
+            }
+        }
+    ],
+    {
+        name: 'restrain',
+        label: '抑制对象',
+        formItemProps: {
+            tooltip: <p>抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制</p>
+        }
+    },
+    {
+        name: 'remark',
+        label: '备注',
+        formItemProps: {
+            tooltip: <p>请输入备注</p>
+        },
+        dataProps: {
+            type: 'textarea',
+            parentProps: {
+                autoSize: { minRows: 2, maxRows: 6 },
+                maxLength: 200,
+                showCount: true,
+                placeholder: '请输入备注'
+            }
+        }
+    }
+]
+
+export const getEndponts = (keyword: string) => {
+    return endpointApi
+        .selectEndpoint({ keyword, page: defaultPageReq })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { value, label, endpoint } = item
+                return {
+                    value: value,
+                    label: label,
+                    title: endpoint
+                }
+            })
+        })
+}
+
+export const getStrategyGroups = (keyword: string) => {
+    return strategyGroupApi
+        .getStrategyGroupSelect({ keyword, page: defaultPageReq })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color="blue">{label}</Tag>
+                }
+            })
+        })
+}
+
+export const getLevels = (keyword: string) => {
+    return dictApi
+        .dictSelect({
+            keyword,
+            page: defaultPageReq,
+            category: Category.CATEGORY_ALARM_LEVEL
+        })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { color, value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color={color}>{label}</Tag>
+                }
+            })
+        })
+}
+
+export const getCategories = (keyword: string) => {
+    return dictApi
+        .dictSelect({
+            keyword,
+            page: defaultPageReq,
+            category: Category.CATEGORY_PROM_STRATEGY
+        })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { color, value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color={color}>{label}</Tag>
+                }
+            })
+        })
+}
+
+export const getAlarmPages = (keyword: string) => {
+    return alarmPageApi
+        .getAlarmPageSelect({
+            keyword,
+            page: defaultPageReq,
+            status: Status.STATUS_ENABLED
+        })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { color, value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color={color}>{label}</Tag>
+                }
+            })
+        })
+}
+
+export const getRestrain = (keyword: string) => {
+    return strategyApi
+        .getStrategySelectList({ keyword, page: defaultPageReq })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { color, value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color={color}>{label}</Tag>
+                }
+            })
+        })
+}

@@ -1,6 +1,7 @@
 import { DictSelectItem } from '../../system/dict/types'
-import { AlarmPageItem } from '../alarm-page/types'
-import { StrategyGroupItemType } from '../strategy-group/types'
+import { AlarmPageSelectItem } from '../alarm-page/types'
+import { PrometheusServerSelectItem } from '../endpoint/types'
+import { StrategyGroupSelectItemType } from '../strategy-group/types'
 import { Map, PageReqType, PageResType } from '@/apis/types'
 
 /** 策略详情 */
@@ -13,17 +14,28 @@ interface StrategyItemType {
     annotations: Map
     status: number
     groupId: number
-    groupInfo?: StrategyGroupItemType
+    groupInfo?: StrategyGroupSelectItemType
     alarmLevelId: number
     alarmLevelInfo?: DictSelectItem
     alarmPageIds: number[]
-    alarmPageInfo?: AlarmPageItem
+    alarmPageInfo?: AlarmPageSelectItem[]
     categoryIds: number[]
     categoryInfo?: DictSelectItem[]
+    endpoint?: PrometheusServerSelectItem
     createdAt: number
     updatedAt: number
     deletedAt: number
     remark: string
+}
+
+interface StrategySelectItemType {
+    value: number
+    label: string
+    category: number
+    color: string
+    status: number
+    remark: string
+    isDeleted: boolean
 }
 
 /** 策略创建请求参数 */
@@ -58,6 +70,7 @@ interface StrategyUpdateRequest {
     alarmPageIds: number[]
     categoryIds: number[]
     alarmLevelId: Number
+    remark?: string
 }
 
 /** 策略更新响应参数 */
@@ -111,7 +124,7 @@ interface StrategySelectListRequest {
 }
 
 interface StrategySelectListResponse {
-    list: StrategyItemType[]
+    list: StrategySelectItemType[]
     page: PageResType
 }
 
@@ -131,5 +144,6 @@ export type {
     StrategyListResponse,
     StrategySelectListRequest,
     StrategySelectListResponse,
-    StrategyDetailResponse
+    StrategyDetailResponse,
+    StrategySelectItemType
 }

@@ -6,6 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
@@ -35,6 +36,13 @@ func NewStrategyBiz(strategyRepo repository.StrategyRepo, logger log.Logger) *St
 
 // CreateStrategy 创建策略
 func (b *StrategyXBiz) CreateStrategy(ctx context.Context, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
+	newStrategyBO := strategyBO
+	newStrategyBO.AlarmPages = slices.To(strategyBO.AlarmPageIds, func(id uint32) *bo.AlarmPageBO {
+		return &bo.AlarmPageBO{Id: id}
+	})
+	newStrategyBO.Categories = slices.To(strategyBO.CategoryIds, func(id uint32) *bo.DictBO {
+		return &bo.DictBO{Id: id}
+	})
 	strategyBO, err := b.strategyRepo.CreateStrategy(ctx, strategyBO)
 	if err != nil {
 		return nil, err
@@ -110,7 +118,7 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
+		strategyscopes.AlertLike(req.GetKeyword()),
 		basescopes.StatusEQ(valueobj.Status(api.Status_STATUS_ENABLED)),
 	}
 

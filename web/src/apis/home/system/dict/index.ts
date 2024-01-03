@@ -6,6 +6,8 @@ import type {
     DictDetailRes,
     DictListReq,
     DictListRes,
+    DictSelectReq,
+    DictSelectRes,
     UpdateDict,
     dictBatchDeleteType
 } from './types'
@@ -52,8 +54,8 @@ const dictUpdate = (data: UpdateDict) => {
     return POST<DictById>(URL.dictUpdate, data)
 }
 /** 字典下拉列表 */
-const dictSelect = (data: DictListReq) => {
-    return POST<DictListRes>(URL.dictSelect, data)
+const dictSelect = (data: DictSelectReq) => {
+    return POST<DictSelectRes>(URL.dictSelect, data)
 }
 const dictBatchDelete = (data: dictBatchDeleteType) => {
     return POST<dictBatchDeleteType>(URL.dictBatchDelete, data)
