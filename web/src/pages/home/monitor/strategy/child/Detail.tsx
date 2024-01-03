@@ -1,11 +1,11 @@
 import { FC, useEffect, useState } from 'react'
-import { Form, Modal, Spin } from 'antd'
+import { Form, Modal, Spin, Tag } from 'antd'
 import {
     StrategyCreateRequest,
     StrategyItemType,
     StrategyUpdateRequest
 } from '@/apis/home/monitor/strategy/types'
-import { FormValuesType, StrategyForm, UintType } from './StrategyForm'
+import { FormValuesType, StrategyForm } from './StrategyForm'
 import { ActionKey } from '@/apis/data'
 import strategyApi from '@/apis/home/monitor/strategy'
 
@@ -33,6 +33,7 @@ export const Detail: FC<DetailProps> = (props) => {
             .getStrategyDetail(id)
             .then((detail) => {
                 setDetail(detail)
+                form.setFieldsValue(buildInitvalue(detail))
             })
             .finally(() => {
                 setLoading(false)
@@ -53,13 +54,19 @@ export const Detail: FC<DetailProps> = (props) => {
     const handleAddStrategy = (strategyFormValues: FormValuesType) => {
         const strategyInfo: StrategyCreateRequest = {
             ...strategyFormValues,
-            duration:
-                strategyFormValues.duration.value +
-                strategyFormValues.duration.unit,
-            alarmLevelId: +strategyFormValues.lables.sverity,
+            duration: strategyFormValues.duration || '',
+            alarmLevelId: strategyFormValues?.lables?.sverity
+                ? +strategyFormValues.lables.sverity
+                : 0,
             dataSourceId: 1,
-            labels: strategyFormValues.lables,
-            annotations: strategyFormValues.annotations
+            labels: strategyFormValues?.lables || {},
+            annotations: strategyFormValues?.annotations || {},
+            expr: strategyFormValues.expr || '',
+            groupId: strategyFormValues?.groupId || 0,
+            alert: strategyFormValues.alert || '',
+            alarmPageIds: strategyFormValues?.alarmPageIds || [],
+            categoryIds: strategyFormValues?.categoryIds || [],
+            remark: strategyFormValues.remark || ''
         }
         strategyApi.addStrategy(strategyInfo).then(() => {
             onClose()
@@ -72,12 +79,13 @@ export const Detail: FC<DetailProps> = (props) => {
         const strategyInfo: StrategyUpdateRequest = {
             ...detail,
             ...strategyFormValues,
-            duration:
-                strategyFormValues.duration.value +
-                strategyFormValues.duration.unit,
-            alarmLevelId: +strategyFormValues.lables.sverity,
-            labels: strategyFormValues.lables,
-            annotations: strategyFormValues.annotations
+            duration: strategyFormValues.duration || '',
+            alarmLevelId: strategyFormValues?.lables?.sverity
+                ? +strategyFormValues?.lables?.sverity
+                : 0,
+            labels: strategyFormValues.lables || {},
+            annotations: strategyFormValues.annotations || {},
+            expr: strategyFormValues.expr || ''
         }
         strategyApi.updateStrategy(strategyInfo).then(() => {
             onClose()
@@ -106,28 +114,94 @@ export const Detail: FC<DetailProps> = (props) => {
             })
     }
 
-    const buildInitvalue = (): FormValuesType => {
-        if (!detail) return {} as FormValuesType
-        // duration : 1s, 1m, 1h, 1d => [1, s], [1, m], [1, h], [1, d]
-        // 截取字符串最后一个字符作为单位, 前面的字符作为数值
-        const value = parseInt(detail.duration.slice(0, -1))
-        const unit = detail.duration.slice(-1) as UintType
-        return {
-            ...detail,
-            lables: { ...detail?.labels, sverity: `${detail?.alarmLevelId}` },
-            annotations: {
-                ...detail?.annotations,
-                title: detail?.annotations['title'],
-                description: detail?.annotations['description']
-            },
-            endpoint: 'http://124.223.104.203:9090',
-            restrain: [1],
-            alert: detail?.alert,
-            duration: {
+    const buildInitvalue = (value: StrategyItemType): FormValuesType => ({
+        ...value,
+        lables: {
+            ...value?.labels,
+            sverity: value?.alarmLevelId ? value.alarmLevelId + '' : undefined
+        },
+        annotations: {
+            ...value?.annotations,
+            title: value?.annotations['title'],
+            description: value?.annotations['description']
+        },
+        endpoint: {
+            value: 0,
+            label: 'localhost',
+            title: 'http://localhost:9090'
+        },
+        restrain: [],
+        alert: value?.alert,
+        duration: value?.duration,
+        levelId: value?.alarmLevelId,
+        alarmPageIds: value?.alarmPageIds,
+        expr: value?.expr,
+        groupId: value?.groupId,
+        categoryIds: value?.categoryIds
+    })
+
+    const buildAlamrPageIdsOptions = () => {
+        if (!detail?.alarmLevelInfo) return []
+        return detail.alarmPageInfo?.map((item) => {
+            const { color, value, label } = item
+            return {
                 value: value,
-                unit: unit
+                label: <Tag color={color}>{label}</Tag>
             }
+        })
+    }
+
+    const buildGroupIdOptions = () => {
+        if (!detail?.groupId) return []
+        return [
+            {
+                value: detail?.groupId,
+                label: (
+                    <Tag color="blue">{detail?.groupInfo?.label || '默认'}</Tag>
+                )
+            }
+        ]
+    }
+
+    const categoryIdsOptions = () => {
+        if (!detail?.categoryIds) return []
+        return detail?.categoryInfo?.map((item) => {
+            const { color, value, label } = item
+            return {
+                value: value,
+                label: <Tag color={color}>{label}</Tag>
+            }
+        })
+    }
+    const buildEndpointOptions = () => {
+        if (!detail?.endpoint) {
+            return [
+                {
+                    value: 0,
+                    label: <Tag color="blue">localhost</Tag>,
+                    title: 'http://localhost:9090'
+                }
+            ]
         }
+        const { value, label, endpoint } = detail?.endpoint
+        return [
+            {
+                value: value,
+                label: <Tag color="blue">{label || '未知'}</Tag>,
+                title: endpoint
+            }
+        ]
+    }
+
+    const buildLevelOptions = () => {
+        if (!detail?.alarmLevelInfo) return []
+        const { value, color, label } = detail?.alarmLevelInfo
+        return [
+            {
+                value: value,
+                label: <Tag color={color}>{label}</Tag>
+            }
+        ]
     }
 
     useEffect(() => {
@@ -149,7 +223,11 @@ export const Detail: FC<DetailProps> = (props) => {
                 <StrategyForm
                     form={form}
                     disabled={disabled}
-                    initValues={buildInitvalue()}
+                    groupIdOptions={buildGroupIdOptions()}
+                    alarmPageIdsOptions={buildAlamrPageIdsOptions()}
+                    categoryIdsOptions={categoryIdsOptions()}
+                    endpointOptions={buildEndpointOptions()}
+                    levelOptions={buildLevelOptions()}
                 />
             </Spin>
         </Modal>

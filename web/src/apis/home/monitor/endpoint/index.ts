@@ -1,10 +1,17 @@
-import {POST} from '@/apis/request'
-import {AppendEndpointRequest, deleteEndpointRequest, ListEndpointRequest} from "@/apis/home/monitor/endpoint/types.ts";
+import { POST } from '@/apis/request'
+import {
+    AppendEndpointRequest,
+    deleteEndpointRequest,
+    ListEndpointRequest,
+    SelectEndpointRequest,
+    SelectEndpointResponse
+} from '@/apis/home/monitor/endpoint/types.ts'
 
 enum URL {
     APPEND = '/api/v1/endpoint/append',
     DELETE = '/api/v1/endpoint/delete',
-    LIST = '/api/v1/endpoint/list'
+    LIST = '/api/v1/endpoint/list',
+    SELECT = '/api/v1/endpoint/select'
 }
 
 /** 增加数据源 */
@@ -22,11 +29,16 @@ const listEndpoint = (data: ListEndpointRequest) => {
     return POST(URL.LIST, data)
 }
 
+const selectEndpoint = (data: SelectEndpointRequest) => {
+    return POST<SelectEndpointResponse>(URL.SELECT, data)
+}
+
 /** 数据源端点接口导出 */
 const endpointApi = {
     appendEndpoint,
     deleteEndpoint,
-    listEndpoint
+    listEndpoint,
+    selectEndpoint
 }
 
 export default endpointApi

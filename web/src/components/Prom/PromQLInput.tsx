@@ -39,7 +39,7 @@ import {
 } from './CMTheme'
 import { GlobalContext } from '@/context'
 import { HistoryCompleteStrategy } from '@/components/Prom/HistoryCompleteStrategy'
-import { Button, Input } from 'antd'
+import { Button, Form, Input } from 'antd'
 
 import PromValueModal from '@/components/Prom/PromValueModal'
 import { ThunderboltOutlined } from '@ant-design/icons'
@@ -56,9 +56,9 @@ export type PromValidate = {
 export interface PromQLInputProps {
     pathPrefix: string
     onChange?: (expression?: string) => void
+    onBlur?: (v: string) => void
+    onFocus?: (v: string) => void
     formatExpression?: boolean
-    promValidate?: PromValidate
-    setPromValidate?: (promValidate?: PromValidate) => void
     placeholderString?: string
     value?: string
     defaultValue?: string
@@ -68,12 +68,20 @@ export interface PromQLInputProps {
 const promqlExtension = new PromQLExtension()
 const dynamicConfigCompartment = new Compartment()
 
+const buildPathPrefix = (s: string) => {
+    // 去除末尾/
+    const promPathPrefix = s.replace(/\/$/, '')
+    return promPathPrefix
+}
+
 export const formatExpressionFunc = (pathPrefix: string, doc?: string) => {
     if (!doc || !pathPrefix || pathPrefix === '') {
         return Promise.reject('empty expression')
     }
     return fetch(
-        `${pathPrefix}/api/v1/format_query?${new URLSearchParams({
+        `${buildPathPrefix(
+            pathPrefix
+        )}/api/v1/format_query?${new URLSearchParams({
             query: doc || ''
         })}`,
         {
@@ -90,12 +98,19 @@ export const formatExpressionFunc = (pathPrefix: string, doc?: string) => {
 
             return resp.json()
         })
-        .then((json) => {
-            if (json.status !== 'success') {
-                return Promise.reject(json.error || 'invalid response JSON')
+        .then(
+            (json: {
+                data: string
+                status: 'success' | 'error'
+                error: string
+                errorType: string
+            }) => {
+                if (json.status !== 'success') {
+                    return Promise.reject(json.error || 'invalid response JSON')
+                }
+                return json
             }
-            return json
-        })
+        )
         .catch((err) => {
             return Promise.reject(err.toString())
         })
@@ -106,17 +121,13 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         pathPrefix,
         onChange,
         formatExpression,
-        setPromValidate,
         placeholderString = 'Please input your PromQL',
         value,
         defaultValue,
         disabled,
-        promValidate
+        onBlur,
+        onFocus
     } = props
-
-    if (pathPrefix === '') {
-        return <div>数据源为空, 不予渲染PromQL输入框</div>
-    }
 
     const { theme } = useContext(GlobalContext)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -126,39 +137,20 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         setDoc(expression)
     }
 
-    const [isFormatLoading, setIsFormatLoading] = useState(false)
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false)
 
     const handleOnCancelModal = () => {
         setIsModalVisible(false)
     }
 
-    const handleFormatExpression = () => {
-        setIsFormatLoading(true)
-        formatExpressionFunc(pathPrefix, doc)
-            .then(() => {
-                setPromValidate?.({
-                    validateStatus: 'success',
-                    help: 'Your PromQL is formatted correctly.'
-                })
-                setIsModalVisible(true)
-            })
-            .catch((err) => {
-                setPromValidate?.({
-                    validateStatus: 'error',
-                    help: err
-                })
-            })
-            .finally(() => {
-                setIsFormatLoading(false)
-            })
+    const handleOpenModal = () => {
+        setIsModalVisible(true)
     }
 
     useEffect(() => {
-        promqlExtension
-            .activateCompletion(true)
-            .activateLinter(true)
-            .setComplete({
+        promqlExtension.activateCompletion(true).activateLinter(true)
+        if (pathPrefix) {
+            promqlExtension.setComplete({
                 completeStrategy: new HistoryCompleteStrategy(
                     newCompleteStrategy({
                         remote: {
@@ -168,6 +160,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                     []
                 )
             })
+        }
 
         let highlighter = syntaxHighlighting(
             theme === 'dark' ? darkPromqlHighlighter : promqlHighlighter
@@ -225,7 +218,6 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                             {
                                 key: 'Shift-Enter',
                                 run: (): boolean => {
-                                    handleFormatExpression()
                                     return true
                                 }
                             },
@@ -248,11 +240,17 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
             })
 
             viewRef['current'] = view
-            view?.focus()
+            // view?.focus()
         } else {
             view.dispatch(
                 view.state.update({
-                    effects: dynamicConfigCompartment.reconfigure(dynamicConfig)
+                    effects:
+                        dynamicConfigCompartment.reconfigure(dynamicConfig),
+                    changes: {
+                        from: 0,
+                        to: view.state.doc.length,
+                        insert: doc
+                    }
                 })
             )
         }
@@ -261,6 +259,12 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     useEffect(() => {
         onChange?.(doc)
     }, [doc])
+
+    useEffect(() => {
+        setDoc(value || defaultValue)
+    }, [value, defaultValue])
+
+    const { status } = Form.Item.useStatus()
 
     return (
         <>
@@ -272,8 +276,9 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 height={400}
             />
             <div className={styles.promInputContent}>
-                {disabled && (
-                    <Input
+                {disabled ? (
+                    <Input.TextArea
+                        ref={containerRef}
                         size="large"
                         defaultValue={defaultValue}
                         value={value}
@@ -281,33 +286,31 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                         placeholder={placeholderString}
                         className="cm-expression-input ant-input"
                     />
+                ) : (
+                    <div
+                        className={'cm-expression-input ' + styles.promInput}
+                        style={{
+                            borderColor: status === 'error' ? 'red' : ''
+                        }}
+                        ref={containerRef}
+                        onBlur={() => {
+                            onBlur?.(doc || '')
+                        }}
+                        onFocus={() => {
+                            onFocus?.(doc || '')
+                        }}
+                    />
                 )}
-
-                <div
-                    className={['cm-expression-input ', styles.promInput].join(
-                        ' '
-                    )}
-                    style={{
-                        borderColor:
-                            promValidate?.validateStatus === 'error'
-                                ? 'red'
-                                : ''
-                    }}
-                    ref={containerRef}
-                />
 
                 {formatExpression && (
                     <Button
-                        onClick={handleFormatExpression}
+                        onClick={handleOpenModal}
                         type="primary"
                         size="large"
                         style={{
                             borderRadius: '0 6px 6px 0'
                         }}
-                        disabled={
-                            !doc || promValidate?.validateStatus !== 'success'
-                        }
-                        loading={isFormatLoading}
+                        disabled={!doc || status !== 'success'}
                         icon={<ThunderboltOutlined />}
                     />
                 )}

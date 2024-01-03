@@ -237,8 +237,10 @@ const Strategy: FC = () => {
                     }}
                     groupId={
                         <FetchSelect
-                            onFetch={getGroupSelctOptions}
-                            placeholder="请选择策略组"
+                            handleFetch={getGroupSelctOptions}
+                            selectProps={{
+                                placeholder: '请选择策略组'
+                            }}
                         />
                     }
                 />

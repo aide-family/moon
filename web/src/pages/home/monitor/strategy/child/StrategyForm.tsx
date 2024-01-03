@@ -1,57 +1,65 @@
-import { FC, ReactNode, useEffect, useState } from 'react'
+import { FC, ReactNode, useState } from 'react'
 import {
     Button,
-    Checkbox,
     Col,
     Form,
     FormInstance,
     Input,
-    InputNumber,
-    Radio,
     Row,
     Select,
     Space
 } from 'antd'
 import PromQLInput, {
-    formatExpressionFunc,
-    PromValidate
+    PromValidate,
+    formatExpressionFunc
 } from '@/components/Prom/PromQLInput.tsx'
 import {
-    alarmPageOptions,
-    categoryOptions,
     durationOptions,
-    endpoIntOptions,
+    getAlarmPages,
+    getCategories,
+    getEndponts,
+    getLevels,
+    getRestrain,
+    getStrategyGroups,
     maxSuppressUnitOptions,
-    restrainOptions,
-    strategyGroupOptions,
+    strategyEditOptions,
     sverityOptions
 } from '../options'
 import { DeleteOutlined } from '@ant-design/icons'
 import AddLabelModal from './AddLabelModal'
-
-export type UintType = 's' | 'm' | 'h' | 'd'
+import DataForm from '@/components/Data/DataForm/DataForm'
+import FetchSelect from '@/components/Data/FetchSelect'
+import { DefaultOptionType } from 'antd/es/select'
+import TimeUintInput from './TimeUintInput'
+import { Rule } from 'antd/es/form'
 
 export type FormValuesType = {
-    alert: string
-    annotations: {
+    alert?: string
+    annotations?: {
         title: string
         description: string
         [key: string]: string
     }
-    duration: { value: number; unit: UintType }
-    endpoint: string
-    groupId: number
-    lables: { sverity: string; [key: string]: string }
-    expr: string
-    restrain: number[]
-    alarmPageIds: number[]
-    categoryIds: number[]
-    remark: string
+    duration?: string
+    endpoint?: DefaultOptionType
+    groupId?: number
+    lables?: { sverity?: string; [key: string]: string | undefined }
+    expr?: string
+    restrain?: number[]
+    alarmPageIds?: number[]
+    categoryIds?: number[]
+    remark?: string
+    levelId?: number
 }
 export interface StrategyFormProps {
     form: FormInstance
     disabled?: boolean
-    initValues?: FormValuesType
+    groupIdOptions?: DefaultOptionType[]
+    alarmPageIdsOptions?: DefaultOptionType[]
+    categoryIdsOptions?: DefaultOptionType[]
+    endpointOptions?: DefaultOptionType[]
+    restrainOptions?: DefaultOptionType[]
+    levelOptions?: DefaultOptionType[]
 }
 
 export type labelsType = {
@@ -61,58 +69,81 @@ export type labelsType = {
 
 let timeout: NodeJS.Timeout
 export const StrategyForm: FC<StrategyFormProps> = (props) => {
-    const { disabled, form, initValues } = props
+    const {
+        disabled,
+        form,
+        groupIdOptions,
+        alarmPageIdsOptions,
+        categoryIdsOptions,
+        endpointOptions,
+        restrainOptions,
+        levelOptions
+    } = props
 
     const handleOnChang = (values: any) => {
         console.log('values', values)
     }
 
-    const [promValidate, setPromValidate] = useState<PromValidate | undefined>()
     const [labelFormItemList, setLabelFormItemList] = useState<labelsType[]>([])
     const [annotationFormItemList, setAnnotationFormItemList] = useState<
         labelsType[]
     >([])
     const [addLabelModalOpen, setAddLabelModalOpen] = useState<boolean>(false)
     const [isLabelModalOpen, setIsLabelModalOpen] = useState<boolean>(false)
+    const [validatePromQL, setValidatePromQL] = useState<PromValidate>({})
 
-    const endpoint = Form.useWatch('endpoint', form)
+    const endpoint = Form.useWatch<DefaultOptionType>('endpoint', form)
 
     const fetchValidateExpr = async (value?: string) => {
-        setPromValidate({
-            help: 'Your PromQL is validating',
-            validateStatus: 'validating'
-        })
-        try {
-            const resp = await formatExpressionFunc(endpoint, value)
-            setPromValidate({
-                help: 'Your PromQL is valid',
-                validateStatus: 'success'
-            })
-            return resp
-        } catch (err: any) {
-            setPromValidate({
-                help: err,
-                validateStatus: 'error'
-            })
-            return err
+        if (!value) {
+            return
         }
+
+        let msg: PromValidate = {}
+        try {
+            const resp = await formatExpressionFunc(endpoint.title, value)
+            switch (resp.status) {
+                case 'error':
+                    msg = {
+                        help: `[${resp.errorType}] ${resp.error}`,
+                        validateStatus: 'error'
+                    }
+                    break
+                case 'success':
+                    msg = {
+                        help: `语法校验通过✅`,
+                        validateStatus: 'success'
+                    }
+                    break
+            }
+        } catch (err: any) {
+            msg = {
+                help: `${err}`,
+                validateStatus: 'error'
+            }
+        }
+        setValidatePromQL(msg)
     }
 
-    const PromQLRule = [
+    const PromQLRule: Rule[] = [
         {
-            validator: (_: any, value: string) => {
-                clearTimeout(timeout)
-                if (!value) {
-                    setPromValidate({
-                        help: 'PromQL不能为空, 请填写PromQL',
-                        validateStatus: 'error'
-                    })
-                    return Promise.reject('PromQL不能为空, 请填写PromQL')
+            required: true,
+            message: 'PromQL不能为空, 请填写PromQL'
+        },
+        {
+            validator: (
+                _: any,
+                value: string,
+                callback: (error?: string) => void
+            ) => {
+                if (timeout) {
+                    clearTimeout(timeout)
                 }
+
                 timeout = setTimeout(() => {
                     fetchValidateExpr(value)
                 }, 1000)
-                return Promise.resolve()
+                return callback()
             }
         }
     ]
@@ -152,15 +183,11 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         )
     }
 
-    useEffect(() => {
-        form.setFieldsValue(initValues)
-    }, [initValues])
-
-    useEffect(() => {
-        if (!endpoint) {
-            setPromValidate(undefined)
-        }
-    }, [endpoint])
+    const buildPathPrefix = () => {
+        // 去除末尾/
+        const promPathPrefix = endpoint?.title.replace(/\/$/, '')
+        return promPathPrefix
+    }
 
     return (
         <>
@@ -169,299 +196,104 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 onCancel={handleCloseAddLabelModal}
                 onOk={handleAddLabel}
             />
-            <Form
+            <DataForm
                 form={form}
-                onFinish={handleOnChang}
-                layout="vertical"
-                disabled={disabled}
-            >
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item
-                            name="endpoint"
-                            label="数据源"
-                            tooltip={
-                                <p>
-                                    请选择Prometheus数据源, 目前仅支持Prometheus
-                                </p>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请选择Prometheus数据源'
-                                }
-                            ]}
-                        >
-                            <Select
-                                disabled={false}
-                                allowClear
-                                options={endpoIntOptions}
-                                placeholder="请选择Prometheus数据源"
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            name="groupId"
-                            label="策略组"
-                            tooltip={
-                                <>
-                                    <p>
-                                        把当前规则归类到不同的策略组,
-                                        便于业务关联
-                                    </p>
-                                </>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请选择策略组'
-                                }
-                            ]}
-                        >
-                            <Select
-                                disabled={false}
-                                allowClear
-                                options={strategyGroupOptions}
-                                placeholder="请选择策略组"
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            name="alert"
-                            label="策略名称"
-                            tooltip={
-                                <>
-                                    <p>
-                                        请输入策略名称, 策略名称必须唯一, 例如:
-                                        'cpu_usage'
-                                    </p>
-                                </>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请输入策略名称'
-                                }
-                            ]}
-                        >
-                            <Input placeholder="请输入策略名称" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            label="持续时间"
-                            tooltip={
-                                <>
-                                    <p>
-                                        持续时间是下面PromQL规则连续匹配,
-                                        建议为此规则采集周期的整数倍,
-                                        例如采集周期为15s, 持续时间为30s,
-                                        则表示连续2个周期匹配
-                                    </p>
-                                </>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请输入持续时间'
-                                }
-                            ]}
-                        >
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item
-                                    name={['duration', 'value']}
-                                    initialValue={3}
-                                    noStyle
-                                >
-                                    <InputNumber
-                                        placeholder="请输入持续时间"
-                                        style={{ width: '80%' }}
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    name={['duration', 'unit']}
-                                    initialValue="m"
-                                    noStyle
-                                >
-                                    <Select
-                                        options={durationOptions}
-                                        style={{ width: '20%', minWidth: 80 }}
-                                    />
-                                </Form.Item>
-                            </Space.Compact>
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            name="alarmPageIds"
-                            label="报警页面"
-                            tooltip={
-                                <>
-                                    <p>
-                                        报警页面: 当该规则触发时,
-                                        页面将跳转到报警页面
-                                    </p>
-                                </>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请选择报警页面'
-                                }
-                            ]}
-                        >
-                            <Select
-                                disabled={false}
-                                allowClear
-                                options={alarmPageOptions}
-                                mode="multiple"
-                                placeholder="请选择报警页面"
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item
-                            name="categoryIds"
-                            label="策略类型"
-                            tooltip={
-                                <>
-                                    <p>
-                                        策略类型: 选择策略类型, 例如:
-                                        网络、业务、系统等
-                                    </p>
-                                </>
-                            }
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请选择策略类型'
-                                }
-                            ]}
-                        >
-                            <Select
-                                disabled={false}
-                                allowClear
-                                options={categoryOptions}
-                                mode="multiple"
-                                placeholder="请选择策略类型"
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col span={9}>
-                        <Form.Item
-                            label="抑制时常"
-                            tooltip={
-                                <>
-                                    <p>
-                                        抑制时常: 报警发生时, 开启抑制后,
-                                        从开始告警时间加抑制时长,如果在抑制周期内,
-                                        则不再发送告警
-                                    </p>
-                                </>
-                            }
-                        >
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item
-                                    name={['maxSuppress', 'value']}
-                                    initialValue={30}
-                                    noStyle
-                                >
-                                    <InputNumber
-                                        placeholder="请输入最大抑制时间"
-                                        style={{ width: '80%' }}
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    noStyle
-                                    name={['maxSuppress', 'unit']}
-                                    initialValue="m"
-                                >
-                                    <Select
-                                        options={maxSuppressUnitOptions}
-                                        style={{ width: '20%', minWidth: 80 }}
-                                    />
-                                </Form.Item>
-                            </Space.Compact>
-                        </Form.Item>
-                    </Col>
-                    <Col span={9}>
-                        <Form.Item
-                            label="告警通知间隔"
-                            tooltip={
-                                <>
-                                    <p>
-                                        告警通知间隔: 告警通知间隔,
-                                        在一定时间内没有消警,
-                                        则再次触发告警通知的时间
-                                    </p>
-                                </>
-                            }
-                        >
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Form.Item
-                                    name={['sendInterval', 'value']}
-                                    initialValue={30}
-                                    noStyle
-                                >
-                                    <InputNumber
-                                        placeholder="请输入最大抑制时间"
-                                        style={{ width: '80%' }}
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    noStyle
-                                    name={['sendInterval', 'unit']}
-                                    initialValue="m"
-                                >
-                                    <Select
-                                        options={maxSuppressUnitOptions}
-                                        style={{ width: '20%', minWidth: 80 }}
-                                    />
-                                </Form.Item>
-                            </Space.Compact>
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
-                        <Form.Item
-                            label="告警恢复通知"
-                            name="sendRecover"
-                            tooltip={
-                                <>
-                                    <p>
-                                        发送告警恢复通知: 开启该选项,
-                                        告警恢复后, 发送告警恢复通知的时间
-                                    </p>
-                                </>
-                            }
-                        >
-                            <Checkbox>开启</Checkbox>
-                        </Form.Item>
-                    </Col>
-                </Row>
-
-                <Form.Item
-                    name="restrain"
-                    label="抑制对象"
-                    initialValue={[]}
-                    tooltip={
-                        <div>
-                            抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制
-                        </div>
-                    }
-                >
-                    <Select
-                        mode="multiple"
-                        placeholder="请选择抑制对象"
-                        options={restrainOptions}
+                items={strategyEditOptions}
+                formProps={{
+                    onFinish: handleOnChang,
+                    layout: 'vertical',
+                    disabled: disabled
+                }}
+                endpoint={
+                    <FetchSelect
+                        selectProps={{
+                            placeholder: '请选择数据源',
+                            labelInValue: true
+                        }}
+                        width="100%"
+                        handleFetch={getEndponts}
+                        defaultOptions={endpointOptions}
                     />
-                </Form.Item>
-
+                }
+                groupId={
+                    <FetchSelect
+                        width="100%"
+                        selectProps={{
+                            placeholder: '请选择策略分组'
+                        }}
+                        handleFetch={getStrategyGroups}
+                        defaultOptions={groupIdOptions}
+                    />
+                }
+                levelId={
+                    <FetchSelect
+                        selectProps={{
+                            placeholder: '请选择告警级别'
+                        }}
+                        width="100%"
+                        handleFetch={getLevels}
+                        defaultOptions={levelOptions}
+                    />
+                }
+                categoryIds={
+                    <FetchSelect
+                        selectProps={{
+                            placeholder: '请选择告警类型',
+                            mode: 'multiple'
+                        }}
+                        width="100%"
+                        handleFetch={getCategories}
+                        defaultOptions={categoryIdsOptions}
+                    />
+                }
+                restrain={
+                    <FetchSelect
+                        selectProps={{
+                            placeholder: '请选择抑制对象',
+                            mode: 'multiple'
+                        }}
+                        width="100%"
+                        handleFetch={getRestrain}
+                        defaultOptions={restrainOptions}
+                    />
+                }
+                alarmPageIds={
+                    <FetchSelect
+                        selectProps={{
+                            placeholder: '请选择告警页面',
+                            mode: 'multiple'
+                        }}
+                        width="100%"
+                        handleFetch={getAlarmPages}
+                        defaultOptions={alarmPageIdsOptions}
+                    />
+                }
+                duration={
+                    <TimeUintInput
+                        width="100%"
+                        placeholder={['请输入持续时间', '选择单位']}
+                        unitOptions={durationOptions}
+                    />
+                }
+                maxSuppress={
+                    <TimeUintInput
+                        width="100%"
+                        placeholder={['请输入最大抑制时间', '选择单位']}
+                        unitOptions={maxSuppressUnitOptions}
+                    />
+                }
+                sendInterval={
+                    <TimeUintInput
+                        width="100%"
+                        placeholder={['请输入最大通知间隔时间', '选择单位']}
+                        unitOptions={maxSuppressUnitOptions}
+                    />
+                }
+            >
                 <Form.Item
                     name="expr"
                     label="PromQL"
-                    {...promValidate}
+                    {...validatePromQL}
                     tooltip={
                         <div>
                             正确的PromQL表达式,
@@ -471,23 +303,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     rules={PromQLRule}
                     dependencies={['endpoint']}
                 >
-                    {!!endpoint ? (
-                        <PromQLInput
-                            disabled={disabled}
-                            pathPrefix={endpoint}
-                            formatExpression={true}
-                            promValidate={promValidate}
-                        />
-                    ) : (
-                        <div>数据源为空, 不予渲染PromQL输入框</div>
-                    )}
-                </Form.Item>
-                <Form.Item label="备注" name="remark">
-                    <Input.TextArea
-                        placeholder="请输入备注"
-                        autoSize={{ minRows: 2, maxRows: 6 }}
-                        maxLength={255}
-                        showCount
+                    <PromQLInput
+                        disabled={disabled}
+                        pathPrefix={buildPathPrefix()}
+                        formatExpression={true}
                     />
                 </Form.Item>
                 <Form.Item
@@ -639,7 +458,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         )
                     })}
                 </Form.Item>
-            </Form>
+            </DataForm>
         </>
     )
 }
