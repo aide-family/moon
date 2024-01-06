@@ -27,7 +27,7 @@ enum URL {
     BATCH_DELETE = '/api/v1/strategy/batch/delete',
     /** 批量导出策略 */
     BATCH_EXPORT = '/api/v1/strategy/export',
-    /** 获取策略组列表 */
+    /** 获取策略列表 */
     SELECT_LIST = '/api/v1/strategy/select'
 }
 
