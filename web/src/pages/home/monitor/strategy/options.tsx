@@ -360,7 +360,7 @@ export const rightOptions = (loading: boolean): DataOptionItem[] => [
 export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
     [
         {
-            name: 'endpoint',
+            name: 'dataSource',
             label: '数据源',
             formItemProps: {
                 tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>
@@ -482,26 +482,26 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
                     </p>
                 )
             }
-        },
-        {
-            name: 'sendRecover',
-            label: '告警恢复通知',
-            dataProps: {
-                type: 'checkbox',
-                parentProps: {
-                    children: '发送告警恢复通知'
-                }
-            },
-            formItemProps: {
-                valuePropName: 'checked',
-                tooltip: (
-                    <p>
-                        发送告警恢复通知: 开启该选项, 告警恢复后,
-                        发送告警恢复通知的时间
-                    </p>
-                )
-            }
         }
+        // {
+        //     name: 'sendRecover',
+        //     label: '告警恢复通知',
+        //     dataProps: {
+        //         type: 'checkbox',
+        //         parentProps: {
+        //             children: '发送告警恢复通知'
+        //         }
+        //     },
+        //     formItemProps: {
+        //         valuePropName: 'checked',
+        //         tooltip: (
+        //             <p>
+        //                 发送告警恢复通知: 开启该选项, 告警恢复后,
+        //                 发送告警恢复通知的时间
+        //             </p>
+        //         )
+        //     }
+        // }
     ],
     {
         name: 'restrain',
