@@ -56,8 +56,6 @@ export type PromValidate = {
 export interface PromQLInputProps {
     pathPrefix: string
     onChange?: (expression?: string) => void
-    onBlur?: (v: string) => void
-    onFocus?: (v: string) => void
     formatExpression?: boolean
     placeholderString?: string
     value?: string
@@ -70,7 +68,7 @@ const dynamicConfigCompartment = new Compartment()
 
 const buildPathPrefix = (s: string) => {
     // 去除末尾/
-    const promPathPrefix = s.replace(/\/$/, '')
+    const promPathPrefix = s?.replace(/\/$/, '')
     return promPathPrefix
 }
 
@@ -124,9 +122,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         placeholderString = 'Please input your PromQL',
         value,
         defaultValue,
-        disabled,
-        onBlur,
-        onFocus
+        disabled
     } = props
 
     const { theme } = useContext(GlobalContext)
@@ -138,6 +134,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     }
 
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false)
+    const { status } = Form.Item.useStatus()
 
     const handleOnCancelModal = () => {
         setIsModalVisible(false)
@@ -183,7 +180,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 )
             }
             const startState = EditorState.create({
-                doc: doc,
+                doc: doc || 'xx',
                 extensions: [
                     baseTheme,
                     highlightSpecialChars(),
@@ -239,18 +236,12 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 parent: containerRef.current
             })
 
-            viewRef['current'] = view
-            // view?.focus()
+            viewRef.current = view
+            view?.focus()
         } else {
             view.dispatch(
                 view.state.update({
-                    effects:
-                        dynamicConfigCompartment.reconfigure(dynamicConfig),
-                    changes: {
-                        from: 0,
-                        to: view.state.doc.length,
-                        insert: doc
-                    }
+                    effects: dynamicConfigCompartment.reconfigure(dynamicConfig)
                 })
             )
         }
@@ -259,12 +250,6 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     useEffect(() => {
         onChange?.(doc)
     }, [doc])
-
-    useEffect(() => {
-        setDoc(value || defaultValue)
-    }, [value, defaultValue])
-
-    const { status } = Form.Item.useStatus()
 
     return (
         <>
@@ -293,12 +278,6 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                             borderColor: status === 'error' ? 'red' : ''
                         }}
                         ref={containerRef}
-                        onBlur={() => {
-                            onBlur?.(doc || '')
-                        }}
-                        onFocus={() => {
-                            onFocus?.(doc || '')
-                        }}
                     />
                 )}
 

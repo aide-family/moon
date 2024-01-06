@@ -125,10 +125,10 @@ export const Detail: FC<DetailProps> = (props) => {
             title: value?.annotations['title'],
             description: value?.annotations['description']
         },
-        endpoint: {
-            value: 0,
-            label: 'localhost',
-            title: 'http://localhost:9090'
+        dataSource: {
+            value: value.dataSource?.value,
+            label: value.dataSource?.label,
+            title: value.dataSource?.endpoint
         },
         restrain: [],
         alert: value?.alert,
@@ -137,7 +137,8 @@ export const Detail: FC<DetailProps> = (props) => {
         alarmPageIds: value?.alarmPageIds,
         expr: value?.expr,
         groupId: value?.groupId,
-        categoryIds: value?.categoryIds
+        categoryIds: value?.categoryIds,
+        sendRecover: false
     })
 
     const buildAlamrPageIdsOptions = () => {
@@ -174,16 +175,10 @@ export const Detail: FC<DetailProps> = (props) => {
         })
     }
     const buildEndpointOptions = () => {
-        if (!detail?.endpoint) {
-            return [
-                {
-                    value: 0,
-                    label: <Tag color="blue">localhost</Tag>,
-                    title: 'http://localhost:9090'
-                }
-            ]
+        if (!detail?.dataSourceId) {
+            return []
         }
-        const { value, label, endpoint } = detail?.endpoint
+        const { value, label, endpoint } = detail?.dataSource
         return [
             {
                 value: value,
@@ -205,7 +200,7 @@ export const Detail: FC<DetailProps> = (props) => {
     }
 
     useEffect(() => {
-        form.resetFields()
+        form?.resetFields()
         setDetail(undefined)
         fetchDetail()
     }, [open])
@@ -228,6 +223,7 @@ export const Detail: FC<DetailProps> = (props) => {
                     categoryIdsOptions={categoryIdsOptions()}
                     endpointOptions={buildEndpointOptions()}
                     levelOptions={buildLevelOptions()}
+                    initialValue={detail ? buildInitvalue(detail) : undefined}
                 />
             </Spin>
         </Modal>

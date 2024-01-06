@@ -2,8 +2,6 @@ module prometheus-manager
 
 go 1.21.0
 
-toolchain go1.21.1
-
 require (
 	github.com/aide-cloud/gorm-normalize v0.5.1
 	github.com/aide-cloud/universal v1.2.2

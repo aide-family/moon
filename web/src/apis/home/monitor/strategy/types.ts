@@ -21,11 +21,12 @@ interface StrategyItemType {
     alarmPageInfo?: AlarmPageSelectItem[]
     categoryIds: number[]
     categoryInfo?: DictSelectItem[]
-    endpoint?: PrometheusServerSelectItem
     createdAt: number
     updatedAt: number
     deletedAt: number
     remark: string
+    dataSourceId: number
+    dataSource: PrometheusServerSelectItem
 }
 
 interface StrategySelectItemType {

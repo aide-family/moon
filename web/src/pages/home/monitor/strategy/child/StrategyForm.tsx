@@ -41,7 +41,7 @@ export type FormValuesType = {
         [key: string]: string
     }
     duration?: string
-    endpoint?: DefaultOptionType
+    dataSource?: DefaultOptionType
     groupId?: number
     lables?: { sverity?: string; [key: string]: string | undefined }
     expr?: string
@@ -50,6 +50,7 @@ export type FormValuesType = {
     categoryIds?: number[]
     remark?: string
     levelId?: number
+    sendRecover?: boolean
 }
 export interface StrategyFormProps {
     form: FormInstance
@@ -60,6 +61,7 @@ export interface StrategyFormProps {
     endpointOptions?: DefaultOptionType[]
     restrainOptions?: DefaultOptionType[]
     levelOptions?: DefaultOptionType[]
+    initialValue?: FormValuesType
 }
 
 export type labelsType = {
@@ -77,7 +79,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         categoryIdsOptions,
         endpointOptions,
         restrainOptions,
-        levelOptions
+        levelOptions,
+        initialValue
     } = props
 
     const handleOnChang = (values: any) => {
@@ -92,16 +95,16 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const [isLabelModalOpen, setIsLabelModalOpen] = useState<boolean>(false)
     const [validatePromQL, setValidatePromQL] = useState<PromValidate>({})
 
-    const endpoint = Form.useWatch<DefaultOptionType>('endpoint', form)
+    const dataSource = Form.useWatch<DefaultOptionType>('dataSource', form)
 
     const fetchValidateExpr = async (value?: string) => {
-        if (!value) {
+        if (!value || !dataSource?.title) {
             return
         }
 
         let msg: PromValidate = {}
         try {
-            const resp = await formatExpressionFunc(endpoint.title, value)
+            const resp = await formatExpressionFunc(dataSource?.title, value)
             switch (resp.status) {
                 case 'error':
                     msg = {
@@ -185,7 +188,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
 
     const buildPathPrefix = () => {
         // 去除末尾/
-        const promPathPrefix = endpoint?.title.replace(/\/$/, '')
+        const promPathPrefix = dataSource?.title?.replace(/\/$/, '')
         return promPathPrefix
     }
 
@@ -202,9 +205,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 formProps={{
                     onFinish: handleOnChang,
                     layout: 'vertical',
-                    disabled: disabled
+                    disabled: disabled,
+                    initialValues: initialValue
                 }}
-                endpoint={
+                dataSource={
                     <FetchSelect
                         selectProps={{
                             placeholder: '请选择数据源',
@@ -301,11 +305,12 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         </div>
                     }
                     rules={PromQLRule}
-                    dependencies={['endpoint']}
+                    dependencies={['dataSource']}
                 >
                     <PromQLInput
                         disabled={disabled}
                         pathPrefix={buildPathPrefix()}
+                        // pathPrefix="http://124.223.104.203:9090/"
                         formatExpression={true}
                     />
                 </Form.Item>
