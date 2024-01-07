@@ -8,6 +8,7 @@ export interface FetchSelectProps {
     handleFetch?: (value: string) => Promise<DefaultOptionType[]>
     selectProps?: SelectProps
     value?: any
+    defaultValue?: any
     onChange?: (
         value: any,
         option: DefaultOptionType | DefaultOptionType[]
@@ -22,6 +23,7 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
         handleFetch,
         width = 400,
         selectProps,
+        defaultValue,
         defaultOptions = []
     } = props
     const [options, setOptions] =
@@ -53,6 +55,7 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
     }
 
     useEffect(() => {
+        console.log('=========')
         // TODO 当没有选中时候, 需要更新options
         // TODO 被执行了两次
         getOptions('')
@@ -80,6 +83,7 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
                 }}
                 value={value}
                 onChange={onChange}
+                defaultValue={defaultValue}
                 autoFocus={defaultGroupSelectOpen}
                 // defaultOpen={defaultGroupSelectOpen}
                 loading={loading}

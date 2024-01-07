@@ -184,8 +184,8 @@ export const columns: (
     },
     {
         title: '策略类型',
-        dataIndex: 'level',
-        key: 'level',
+        dataIndex: 'categoryInfo',
+        key: 'categoryInfo',
         width: 260,
         render: (_: number, record: StrategyItemType) => {
             if (!record.categoryInfo || !record.categoryInfo.length) return '-'
@@ -375,14 +375,15 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             name: 'dataSource',
             label: '数据源',
             formItemProps: {
-                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>
-            },
-            rules: [
-                {
-                    required: true,
-                    message: '请选择Prometheus数据源'
-                }
-            ]
+                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>,
+                dependencies: ['expr'],
+                rules: [
+                    {
+                        required: true,
+                        message: '请选择Prometheus数据源'
+                    }
+                ]
+            }
         },
         {
             name: 'groupId',
@@ -450,8 +451,12 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             label: '策略类型',
             rules: [
                 {
-                    required: true,
-                    message: '请选择策略类型'
+                    validator(_, value) {
+                        if (value?.length === 0) {
+                            return Promise.reject('请选择策略类型')
+                        }
+                        return Promise.resolve()
+                    }
                 }
             ]
         }

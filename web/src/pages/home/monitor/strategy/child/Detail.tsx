@@ -27,13 +27,17 @@ export const Detail: FC<DetailProps> = (props) => {
     const [loading, setLoading] = useState<boolean>(false)
 
     const fetchDetail = () => {
-        if (!id) return
+        console.log('fetchDetail', id)
+        form?.resetFields()
+        setDetail(undefined)
+        if (!id) {
+            return
+        }
         setLoading(true)
         strategyApi
             .getStrategyDetail(id)
             .then((detail) => {
                 setDetail(detail)
-                form.setFieldsValue(buildInitvalue(detail))
             })
             .finally(() => {
                 setLoading(false)
@@ -98,12 +102,12 @@ export const Detail: FC<DetailProps> = (props) => {
         setLoading(true)
         form.validateFields()
             .then((values) => {
+                // 单独校验expr字段
                 switch (actionKey) {
                     case ActionKey.ADD:
                         handleAddStrategy(values)
                         break
                     case ActionKey.EDIT:
-                        console.log('edit: ', 123)
                         handleEditStrategy(values)
                         break
                 }
@@ -113,33 +117,6 @@ export const Detail: FC<DetailProps> = (props) => {
                 setLoading(false)
             })
     }
-
-    const buildInitvalue = (value: StrategyItemType): FormValuesType => ({
-        ...value,
-        lables: {
-            ...value?.labels,
-            sverity: value?.alarmLevelId ? value.alarmLevelId + '' : undefined
-        },
-        annotations: {
-            ...value?.annotations,
-            title: value?.annotations['title'],
-            description: value?.annotations['description']
-        },
-        dataSource: {
-            value: value.dataSource?.value,
-            label: value.dataSource?.label,
-            title: value.dataSource?.endpoint
-        },
-        restrain: [],
-        alert: value?.alert,
-        duration: value?.duration,
-        levelId: value?.alarmLevelId,
-        alarmPageIds: value?.alarmPageIds,
-        expr: value?.expr,
-        groupId: value?.groupId,
-        categoryIds: value?.categoryIds,
-        sendRecover: false
-    })
 
     const buildAlamrPageIdsOptions = () => {
         if (!detail?.alarmLevelInfo) return []
@@ -213,14 +190,8 @@ export const Detail: FC<DetailProps> = (props) => {
             onCancel={onClose}
             onOk={handleSubmit}
             width="66%"
-            // centered={true}
-            // focusTriggerAfterClose
-            afterClose={() => {
-                form?.resetFields()
-                setDetail(undefined)
-            }}
-            // destroyOnClose={true}
-            // forceRender={true}
+            centered={true}
+            destroyOnClose={true}
         >
             <Spin spinning={loading}>
                 <StrategyForm
@@ -231,7 +202,7 @@ export const Detail: FC<DetailProps> = (props) => {
                     categoryIdsOptions={categoryIdsOptions()}
                     endpointOptions={buildEndpointOptions()}
                     levelOptions={buildLevelOptions()}
-                    initialValue={detail ? buildInitvalue(detail) : undefined}
+                    initialValue={detail}
                 />
             </Spin>
         </Modal>

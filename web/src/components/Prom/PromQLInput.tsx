@@ -39,7 +39,7 @@ import {
 } from './CMTheme'
 import { GlobalContext } from '@/context'
 import { HistoryCompleteStrategy } from '@/components/Prom/HistoryCompleteStrategy'
-import { Button, Form, Input } from 'antd'
+import { Button, Form } from 'antd'
 
 import PromValueModal from '@/components/Prom/PromValueModal'
 import { ThunderboltOutlined } from '@ant-design/icons'
@@ -66,20 +66,22 @@ export interface PromQLInputProps {
 const promqlExtension = new PromQLExtension()
 const dynamicConfigCompartment = new Compartment()
 
-const buildPathPrefix = (s: string) => {
+const buildPathPrefix = (s?: string) => {
+    if (!s) {
+        return ''
+    }
     // 去除末尾/
     const promPathPrefix = s?.replace(/\/$/, '')
     return promPathPrefix
 }
 
 export const formatExpressionFunc = (pathPrefix: string, doc?: string) => {
-    if (!doc || !pathPrefix || pathPrefix === '') {
+    const prefix = buildPathPrefix(pathPrefix)
+    if (!doc || !prefix || prefix === '') {
         return Promise.reject('empty expression')
     }
     return fetch(
-        `${buildPathPrefix(
-            pathPrefix
-        )}/api/v1/format_query?${new URLSearchParams({
+        `${prefix}/api/v1/format_query?${new URLSearchParams({
             query: doc || ''
         })}`,
         {
@@ -121,9 +123,10 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         formatExpression,
         placeholderString = 'Please input your PromQL',
         value,
-        defaultValue,
-        disabled
+        defaultValue
     } = props
+
+    const prefix = buildPathPrefix(pathPrefix)
 
     const { theme } = useContext(GlobalContext)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -145,22 +148,17 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     }
 
     useEffect(() => {
-        // if (!pathPrefix) {
-        //     return
-        // }
         promqlExtension.activateCompletion(true).activateLinter(true)
-        if (pathPrefix) {
-            promqlExtension.setComplete({
-                completeStrategy: new HistoryCompleteStrategy(
-                    newCompleteStrategy({
-                        remote: {
-                            url: pathPrefix
-                        }
-                    }),
-                    []
-                )
-            })
-        }
+        promqlExtension.setComplete({
+            completeStrategy: new HistoryCompleteStrategy(
+                newCompleteStrategy({
+                    remote: {
+                        url: prefix
+                    }
+                }),
+                []
+            )
+        })
 
         let highlighter = syntaxHighlighting(
             theme === 'dark' ? darkPromqlHighlighter : promqlHighlighter
@@ -244,7 +242,14 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         } else {
             view.dispatch(
                 view.state.update({
-                    effects: dynamicConfigCompartment.reconfigure(dynamicConfig)
+                    effects:
+                        dynamicConfigCompartment.reconfigure(dynamicConfig),
+                    scrollIntoView: true,
+                    changes: {
+                        from: 0,
+                        to: view.state.doc.length,
+                        insert: defaultValue || value
+                    }
                 })
             )
         }
@@ -254,39 +259,30 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         onChange?.(doc)
     }, [doc])
 
-    // if (!pathPrefix) {
-    //     return <div>未配置数据源</div>
-    // }
+    useEffect(() => {
+        if (!defaultValue && !value) {
+            return
+        }
+        setDoc(defaultValue || value)
+    }, [defaultValue, value])
 
     return (
         <>
             <PromValueModal
                 visible={isModalVisible}
                 onCancel={handleOnCancelModal}
-                pathPrefix={pathPrefix}
+                pathPrefix={prefix}
                 expr={doc}
                 height={400}
             />
             <div className={styles.promInputContent}>
-                {disabled ? (
-                    <Input.TextArea
-                        ref={containerRef}
-                        size="large"
-                        defaultValue={defaultValue}
-                        value={value}
-                        disabled={disabled}
-                        placeholder={placeholderString}
-                        className="cm-expression-input ant-input"
-                    />
-                ) : (
-                    <div
-                        className={'cm-expression-input ' + styles.promInput}
-                        style={{
-                            borderColor: status === 'error' ? 'red' : ''
-                        }}
-                        ref={containerRef}
-                    />
-                )}
+                <div
+                    className={'cm-expression-input ' + styles.promInput}
+                    style={{
+                        borderColor: status === 'error' ? 'red' : ''
+                    }}
+                    ref={containerRef}
+                />
 
                 {formatExpression && (
                     <Button
@@ -296,7 +292,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                         style={{
                             borderRadius: '0 6px 6px 0'
                         }}
-                        disabled={!doc || status !== 'success'}
+                        disabled={!doc || status !== 'success' || !prefix}
                         icon={<ThunderboltOutlined />}
                     />
                 )}
