@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from 'react'
+import { FC, ReactNode, useEffect, useState } from 'react'
 import {
     Button,
     Col,
@@ -32,6 +32,7 @@ import FetchSelect from '@/components/Data/FetchSelect'
 import { DefaultOptionType } from 'antd/es/select'
 import TimeUintInput from './TimeUintInput'
 import { Rule } from 'antd/es/form'
+import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 
 export type FormValuesType = {
     alert?: string
@@ -61,7 +62,7 @@ export interface StrategyFormProps {
     endpointOptions?: DefaultOptionType[]
     restrainOptions?: DefaultOptionType[]
     levelOptions?: DefaultOptionType[]
-    initialValue?: FormValuesType
+    initialValue?: StrategyItemType
 }
 
 export type labelsType = {
@@ -79,13 +80,9 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         categoryIdsOptions,
         endpointOptions,
         restrainOptions,
-        levelOptions
-        // initialValue
+        levelOptions,
+        initialValue
     } = props
-
-    const handleOnChang = (values: any) => {
-        console.log('values', values)
-    }
 
     const [labelFormItemList, setLabelFormItemList] = useState<labelsType[]>([])
     const [annotationFormItemList, setAnnotationFormItemList] = useState<
@@ -97,35 +94,92 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
 
     const dataSource = Form.useWatch<DefaultOptionType>('dataSource', form)
 
-    const fetchValidateExpr = async (value?: string) => {
+    const buildInitvalue = () => {
+        const value = initialValue
         if (!value) {
+            form?.resetFields()
             return
         }
-
-        let msg: PromValidate = {}
-        try {
-            const resp = await formatExpressionFunc(dataSource?.title, value)
-            switch (resp.status) {
-                case 'error':
-                    msg = {
-                        help: `[${resp.errorType}] ${resp.error}`,
-                        validateStatus: 'error'
-                    }
-                    break
-                case 'success':
-                    msg = {
-                        help: `语法校验通过✅`,
-                        validateStatus: 'success'
-                    }
-                    break
-            }
-        } catch (err: any) {
-            msg = {
-                help: `${err}`,
-                validateStatus: 'error'
-            }
+        const init = {
+            ...value,
+            lables: {
+                ...value?.labels,
+                sverity: value?.alarmLevelId
+                    ? value.alarmLevelId + ''
+                    : undefined
+            },
+            annotations: {
+                ...value?.annotations,
+                title: value?.annotations['title'],
+                description: value?.annotations['description']
+            },
+            dataSource: {
+                value: value.dataSource?.value,
+                label: value.dataSource?.label,
+                title: value.dataSource?.endpoint
+            },
+            restrain: [],
+            alert: value?.alert,
+            duration: value?.duration,
+            levelId: value?.alarmLevelId,
+            alarmPageIds: value?.alarmPageIds,
+            expr: value?.expr,
+            groupId: value?.groupId,
+            categoryIds: value?.categoryIds,
+            sendRecover: false
         }
-        setValidatePromQL(msg)
+        form?.setFieldsValue(init)
+    }
+
+    const fetchValidateExpr = (value?: string) => {
+        if (timeout) {
+            clearTimeout(timeout)
+        }
+        if (!dataSource || !dataSource.title) {
+            setValidatePromQL({
+                help: '请先选择数据源',
+                validateStatus: 'error'
+            })
+            return Promise.resolve()
+        }
+
+        if (!value) {
+            setValidatePromQL({
+                help: '请填写PromQL',
+                validateStatus: 'error'
+            })
+            return Promise.resolve()
+        }
+
+        timeout = setTimeout(() => {
+            formatExpressionFunc(dataSource?.title, value)
+                .then((resp) => {
+                    if (resp.status === 'error') {
+                        const msg = `[${resp.errorType}] ${resp.error}`
+                        setValidatePromQL({
+                            help: `[${resp.errorType}] ${resp.error}`,
+                            validateStatus: 'error'
+                        })
+                        return Promise.reject(new Error(msg))
+                    }
+                    if (resp.status === 'success') {
+                        setValidatePromQL({
+                            help: '语法校验通过✅',
+                            validateStatus: 'success'
+                        })
+                    }
+                    return resp
+                })
+                .catch((err: any) => {
+                    setValidatePromQL({
+                        help: `${err}`,
+                        validateStatus: 'error'
+                    })
+                    return err
+                })
+        }, 200)
+
+        return Promise.resolve()
     }
 
     const PromQLRule: Rule[] = [
@@ -134,22 +188,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             message: 'PromQL不能为空, 请填写PromQL'
         },
         {
-            validator: (
-                _: any,
-                value: string,
-                callback: (error?: string) => void
-            ) => {
-                if (!value) {
-                    return callback()
-                }
-                if (timeout) {
-                    clearTimeout(timeout)
-                }
-
-                timeout = setTimeout(() => {
-                    fetchValidateExpr(value)
-                }, 1000)
-                return callback()
+            validator: (_: Rule, value: string) => {
+                return fetchValidateExpr(value)
             }
         }
     ]
@@ -189,11 +229,9 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         )
     }
 
-    const buildPathPrefix = () => {
-        // 去除末尾/
-        const promPathPrefix = dataSource?.title?.replace(/\/$/, '')
-        return promPathPrefix
-    }
+    useEffect(() => {
+        buildInitvalue()
+    }, [initialValue])
 
     return (
         <>
@@ -206,10 +244,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 form={form}
                 items={strategyEditOptions}
                 formProps={{
-                    onFinish: handleOnChang,
                     layout: 'vertical',
                     disabled: disabled
-                    // initialValues: initialValue
                 }}
                 dataSource={
                     <FetchSelect
@@ -245,7 +281,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 categoryIds={
                     <FetchSelect
                         selectProps={{
-                            placeholder: '请选择告警类型',
+                            placeholder: '请选择策略类型',
                             mode: 'multiple'
                         }}
                         width="100%"
@@ -301,6 +337,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     name="expr"
                     label="PromQL"
                     {...validatePromQL}
+                    required
                     tooltip={
                         <div>
                             正确的PromQL表达式,
@@ -309,12 +346,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     }
                     rules={PromQLRule}
                     dependencies={['dataSource']}
-                    // initialValue={initialValue?.expr}
                 >
                     <PromQLInput
                         disabled={disabled}
-                        pathPrefix={buildPathPrefix()}
-                        // pathPrefix="http://124.223.104.203:9090/"
+                        pathPrefix={dataSource?.title}
                         formatExpression={true}
                     />
                 </Form.Item>

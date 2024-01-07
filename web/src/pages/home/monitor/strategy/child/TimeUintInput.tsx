@@ -33,8 +33,9 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
     const [unitValue, setUnitValue] = React.useState<string>()
 
     const handleTimeValueOnChange = (v?: string | null) => {
-        setTimeValue(v || undefined)
-        if (unitValue && unitValue) {
+        console.log('v', v)
+        // setTimeValue(v || undefined)
+        if (v && unitValue) {
             onChange?.(v + unitValue)
             return
         }
@@ -49,7 +50,7 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
     }
 
     const handleUnitValueOnChange = (v?: string) => {
-        setUnitValue(v)
+        // setUnitValue(v)
         if (timeValue && v) {
             onChange?.(timeValue + v)
             return
@@ -87,20 +88,29 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
         return res
     }
 
-    useEffect(() => {
-        if (!value) {
-            return
-        }
-        const [time, unit] = buildTimeAndUnit(value)
-        setTimeValue(time)
-        setUnitValue(unit)
-    }, [value])
+    // useEffect(() => {
+    //     if (!value) {
+    //         return
+    //     }
+    //     console.log('value+++', value)
+    //     const [time, unit] = buildTimeAndUnit(value)
+    //     console.log('time', time)
+    //     console.log('unit', unit)
+    //     setTimeValue(time)
+    //     setUnitValue(unit)
+    // }, [value])
 
     useEffect(() => {
-        const [time, unit] = buildTimeAndUnit(defaultValue)
+        if (!defaultValue && !value) {
+            return
+        }
+
+        const [time, unit] = buildTimeAndUnit(defaultValue || value)
+        console.log('time', time)
+        console.log('unit', unit)
         setTimeValue(time)
         setUnitValue(unit)
-    }, [defaultValue])
+    }, [value, defaultValue])
 
     return (
         <Space.Compact style={{ ...style, width }} defaultValue={defaultValue}>

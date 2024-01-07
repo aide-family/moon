@@ -45,11 +45,11 @@ const DataForm: FC<DataFormProps> = (props) => {
         return (
             <Col span={span} key={name}>
                 <Form.Item
-                    {...formItemProps}
                     name={name}
                     label={label}
                     rules={rules}
                     key={name}
+                    {...formItemProps}
                 >
                     {props[name] || <DataInput {...dataProps} />}
                 </Form.Item>
