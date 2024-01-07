@@ -6,8 +6,6 @@ import React, { useEffect } from 'react'
 export interface TimeUintInputProps {
     value?: string
     onChange?: (v: string) => void
-    onBlur?: (v: string) => void
-    onFocus?: (v: string) => void
     placeholder?: [string, string]
     disabled?: boolean
     width?: number | string
@@ -16,6 +14,8 @@ export interface TimeUintInputProps {
     style?: React.CSSProperties
     unitOptions?: DefaultOptionType[]
 }
+
+type timeUintType = [string?, string?]
 
 export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
     const {
@@ -29,48 +29,77 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
         style,
         unitOptions
     } = props
-    const [timeValue, setTimeValue] = React.useState<string>('')
-    const [unitValue, setUnitValue] = React.useState<string>('')
+    const [timeValue, setTimeValue] = React.useState<string>()
+    const [unitValue, setUnitValue] = React.useState<string>()
 
-    const handleTimeValueOnChange = (v: string | null) => {
-        if (!v) {
-            setTimeValue('')
+    const handleTimeValueOnChange = (v?: string | null) => {
+        setTimeValue(v || undefined)
+        if (unitValue && unitValue) {
+            onChange?.(v + unitValue)
             return
         }
-        setTimeValue(v)
-        onChange?.(v + unitValue)
+        if (v) {
+            onChange?.(v)
+            return
+        }
+        if (unitValue) {
+            onChange?.(unitValue)
+            return
+        }
     }
 
-    const handleUnitValueOnChange = (v: string) => {
+    const handleUnitValueOnChange = (v?: string) => {
         setUnitValue(v)
-        onChange?.(timeValue + v)
+        if (timeValue && v) {
+            onChange?.(timeValue + v)
+            return
+        }
+        if (timeValue) {
+            onChange?.(timeValue)
+            return
+        }
+        if (v) {
+            onChange?.(v)
+            return
+        }
     }
 
-    const buildTimeAndUnit = (v?: string): [string, string] => {
+    const buildTimeAndUnit = (v?: string | number): [string?, string?] => {
+        let res: timeUintType = [undefined, undefined]
         if (!v) {
-            return ['', '']
+            return res
         }
-        const unit =
-            unitOptions?.find(
-                (item) => item.value === v?.substring(v.length - 1)
-            )?.value || ''
-        let time = value?.substring(0, value.length - 1) || ''
-        if (!unit) {
-            time = v
+        if (typeof v !== 'string') {
+            v = v + ''
         }
-        return [time.toString(), unit.toString()]
+        const u = v?.charAt(v.length - 1)
+        const index = unitOptions?.findIndex((item) => item.value === u) ?? -1
+        if (index !== -1) {
+            res[1] = u
+        }
+        if (index !== -1) {
+            res[0] = v.slice(0, -1)
+        }
+        if (index === -1 && v.length > 1) {
+            res[0] = v
+        }
+
+        return res
     }
 
     useEffect(() => {
+        if (!value) {
+            return
+        }
         const [time, unit] = buildTimeAndUnit(value)
-        setTimeValue(time.toString())
-        setUnitValue(unit.toString())
+        setTimeValue(time)
+        setUnitValue(unit)
     }, [value])
 
     useEffect(() => {
         const [time, unit] = buildTimeAndUnit(defaultValue)
-        setTimeValue(time.toString())
-        setUnitValue(unit.toString())
+        setTimeValue(time)
+        setUnitValue(unit)
     }, [defaultValue])
 
     return (
@@ -81,12 +110,6 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
                 disabled={disabled}
                 value={timeValue}
                 onChange={handleTimeValueOnChange}
-                onBlur={() => {
-                    props.onBlur?.(timeValue + unitValue)
-                }}
-                onFocus={() => {
-                    props.onFocus?.(timeValue + unitValue)
-                }}
             />
             <Select
                 {...selectProps}
@@ -95,13 +118,8 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
                 disabled={disabled}
                 value={unitValue}
                 onChange={handleUnitValueOnChange}
-                onBlur={() => {
-                    props.onBlur?.(timeValue + unitValue)
-                }}
-                onFocus={() => {
-                    props.onFocus?.(timeValue + unitValue)
-                }}
                 placeholder={placeholder?.[1]}
+                allowClear
             />
         </Space.Compact>
     )

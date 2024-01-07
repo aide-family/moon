@@ -127,14 +127,11 @@ export const columns: (
         dataIndex: 'categories',
         key: 'categories',
         width: 160,
-        render: (
-            categories: DictSelectItem[],
-            record: StrategyGroupItemType
-        ) => {
+        render: (categories: DictSelectItem[], _: StrategyGroupItemType) => {
             if (!categories || categories.length === 0) return '-'
             return categories?.map((item: DictSelectItem) => {
                 return (
-                    <Tag key={record.id} color={item.color}>
+                    <Tag key={item.value} color={item.color}>
                         {item.label}
                     </Tag>
                 )
@@ -147,10 +144,10 @@ export const columns: (
         key: 'status',
         width: 160,
         align: 'center',
-        render: (status: Status, record: StrategyGroupItemType) => {
+        render: (status: Status, _: StrategyGroupItemType) => {
             const { color, text } = StatusMap[status]
             return (
-                <Tag key={record.id} color={color}>
+                <Tag key={text} color={color}>
                     {text}
                 </Tag>
             )

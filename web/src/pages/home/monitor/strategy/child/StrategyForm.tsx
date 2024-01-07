@@ -98,7 +98,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const dataSource = Form.useWatch<DefaultOptionType>('dataSource', form)
 
     const fetchValidateExpr = async (value?: string) => {
-        if (!value || !dataSource?.title) {
+        if (!value) {
             return
         }
 
@@ -139,6 +139,9 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 value: string,
                 callback: (error?: string) => void
             ) => {
+                if (!value) {
+                    return callback()
+                }
                 if (timeout) {
                     clearTimeout(timeout)
                 }
@@ -205,8 +208,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 formProps={{
                     onFinish: handleOnChang,
                     layout: 'vertical',
-                    disabled: disabled,
-                    initialValues: initialValue
+                    disabled: disabled
+                    // initialValues: initialValue
                 }}
                 dataSource={
                     <FetchSelect
@@ -306,6 +309,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     }
                     rules={PromQLRule}
                     dependencies={['dataSource']}
+                    // initialValue={initialValue?.expr}
                 >
                     <PromQLInput
                         disabled={disabled}
