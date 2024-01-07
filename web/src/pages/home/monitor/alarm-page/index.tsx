@@ -7,7 +7,6 @@ import {
     columns,
     defaultListAlarmPageRequest,
     defaultPadding,
-    defaultPageReqest,
     leftOptions,
     rightOptions,
     searchItems,

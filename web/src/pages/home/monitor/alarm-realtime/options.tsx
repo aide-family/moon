@@ -128,7 +128,7 @@ export const rightOptions: DataOptionItem[] = [
     }
 ]
 
-export const operationItems = (item: AlarmRealtimeItem): MenuProps['items'] => [
+export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
     {
         key: ActionKey.ALARM_INTERVENTION,
         label: (

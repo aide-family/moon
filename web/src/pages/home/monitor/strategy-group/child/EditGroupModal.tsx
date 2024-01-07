@@ -5,7 +5,7 @@ import {
 } from '@/apis/home/monitor/strategy-group/types'
 import DataForm from '@/components/Data/DataForm/DataForm'
 import { Form, Modal } from 'antd'
-import React, { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import { editStrategyGroupDataFormItems } from '../options'
 
 export interface EditGroupModalProps {
@@ -59,6 +59,12 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
             })
     }
 
+    const handleCancel = () => {
+        form.resetFields()
+        setDetail(undefined)
+        onCancel()
+    }
+
     useEffect(() => {
         hendleGetDetail()
     }, [groupId, open])
@@ -71,11 +77,15 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
         }
     }
 
+    useEffect(() => {
+        form.setFieldsValue(detail)
+    }, [open])
+
     return (
         <Modal
             title={<Title />}
             open={open}
-            onCancel={props.onCancel}
+            onCancel={handleCancel}
             onOk={handleOk}
             confirmLoading={loading}
         >
