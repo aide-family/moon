@@ -160,7 +160,11 @@ export const columns: (
         width: 160,
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
-            return <Tag color={color}>{text}</Tag>
+            return (
+                <Tag key={text} color={color}>
+                    {text}
+                </Tag>
+            )
         }
     },
     {
@@ -170,8 +174,12 @@ export const columns: (
         width: 160,
         render: (_: number, record: StrategyItemType) => {
             if (!record.alarmLevelInfo) return '-'
-            const { color, label } = record.alarmLevelInfo
-            return <Tag color={color}>{label}</Tag>
+            const { color, label, value } = record.alarmLevelInfo
+            return (
+                <Tag key={value} color={color}>
+                    {label}
+                </Tag>
+            )
         }
     },
     {
@@ -185,7 +193,11 @@ export const columns: (
             return (
                 <Space direction="horizontal">
                     {categyList.map((item) => {
-                        return <Tag color={item.color}>{item.label}</Tag>
+                        return (
+                            <Tag key={item.value} color={item.color}>
+                                {item.label}
+                            </Tag>
+                        )
                     })}
                 </Space>
             )

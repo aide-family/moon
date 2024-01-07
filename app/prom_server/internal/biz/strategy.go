@@ -102,6 +102,8 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 		strategyscopes.AlertLike(req.GetKeyword()),
 		strategyscopes.GroupIdsEQ(req.GetGroupId()),
 		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		strategyscopes.PreloadAlertLevel,
+		strategyscopes.PreloadCategories,
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)

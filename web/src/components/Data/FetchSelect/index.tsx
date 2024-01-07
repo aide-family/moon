@@ -14,8 +14,8 @@ export interface FetchSelectProps {
     ) => void
 }
 
-let fetchTimeout: NodeJS.Timeout
 const FetchSelect: React.FC<FetchSelectProps> = (props) => {
+    let fetchTimeout: NodeJS.Timeout
     const {
         value,
         onChange,
@@ -30,22 +30,33 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
     const [defaultGroupSelectOpen, setDefaultGroupSelectOpen] =
         React.useState(false)
 
+    const getOptions = (keyword: string) => {
+        setLoading(true)
+        handleFetch?.(keyword)
+            .then((items) => {
+                setOptions(items)
+            })
+            .finally(() => {
+                setLoading(false)
+            })
+    }
+
     const debounceFetcher = (keyword: string) => {
         if (fetchTimeout) {
             clearTimeout(fetchTimeout)
         }
-        setLoading(true)
+
         setDefaultGroupSelectOpen(true)
         fetchTimeout = setTimeout(() => {
-            handleFetch?.(keyword)
-                .then((items) => {
-                    setOptions(items)
-                })
-                .finally(() => {
-                    setLoading(false)
-                })
+            getOptions(keyword)
         }, 300)
     }
+
+    useEffect(() => {
+        // TODO 当没有选中时候, 需要更新options
+        // TODO 被执行了两次
+        getOptions('')
+    }, [])
 
     useEffect(() => {
         // 判断defaultOptions和option是否相同, 如果不同则更新
@@ -69,7 +80,8 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
                 }}
                 value={value}
                 onChange={onChange}
-                defaultOpen={defaultGroupSelectOpen}
+                autoFocus={defaultGroupSelectOpen}
+                // defaultOpen={defaultGroupSelectOpen}
                 loading={loading}
                 options={options}
                 {...selectProps}

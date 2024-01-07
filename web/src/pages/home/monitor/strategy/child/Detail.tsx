@@ -200,8 +200,9 @@ export const Detail: FC<DetailProps> = (props) => {
     }
 
     useEffect(() => {
-        form?.resetFields()
-        setDetail(undefined)
+        if (!open) {
+            return
+        }
         fetchDetail()
     }, [open])
 
@@ -212,7 +213,14 @@ export const Detail: FC<DetailProps> = (props) => {
             onCancel={onClose}
             onOk={handleSubmit}
             width="66%"
-            destroyOnClose={true}
+            // centered={true}
+            // focusTriggerAfterClose
+            afterClose={() => {
+                form?.resetFields()
+                setDetail(undefined)
+            }}
+            // destroyOnClose={true}
+            // forceRender={true}
         >
             <Spin spinning={loading}>
                 <StrategyForm

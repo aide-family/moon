@@ -145,6 +145,9 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     }
 
     useEffect(() => {
+        // if (!pathPrefix) {
+        //     return
+        // }
         promqlExtension.activateCompletion(true).activateLinter(true)
         if (pathPrefix) {
             promqlExtension.setComplete({
@@ -180,7 +183,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 )
             }
             const startState = EditorState.create({
-                doc: doc || 'xx',
+                doc: doc,
                 extensions: [
                     baseTheme,
                     highlightSpecialChars(),
@@ -250,6 +253,10 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     useEffect(() => {
         onChange?.(doc)
     }, [doc])
+
+    // if (!pathPrefix) {
+    //     return <div>未配置数据源</div>
+    // }
 
     return (
         <>
