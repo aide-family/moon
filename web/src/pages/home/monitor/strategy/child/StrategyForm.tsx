@@ -79,8 +79,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         categoryIdsOptions,
         endpointOptions,
         restrainOptions,
-        levelOptions,
-        initialValue
+        levelOptions
+        // initialValue
     } = props
 
     const handleOnChang = (values: any) => {

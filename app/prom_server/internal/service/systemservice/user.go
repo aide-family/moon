@@ -5,6 +5,8 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
@@ -76,6 +78,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserReply, error) {
+	if req.GetId() == 1 {
+		return nil, status.Error(codes.Unimplemented, "cannot delete super user")
+	}
 	if err := s.userBiz.DeleteUserByIds(ctx, []uint32{req.GetId()}); err != nil {
 		return nil, err
 	}
