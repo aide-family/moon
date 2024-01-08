@@ -7,18 +7,18 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/model/systemscopes"
-	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 )
 
 type UserService struct {
@@ -47,7 +47,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
 		Nickname: req.GetNickname(),
-		Gender:   valueobj.Gender(req.GetGender()),
+		Gender:   vo.Gender(req.GetGender()),
 	}
 
 	if err = s.userBiz.CheckNewUser(ctx, userBo); err != nil {
@@ -66,9 +66,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 		Id:       req.GetId(),
 		Nickname: req.GetNickname(),
 		Avatar:   req.GetAvatar(),
-		Status:   valueobj.Status(req.GetStatus()),
+		Status:   vo.Status(req.GetStatus()),
 		Remark:   req.GetRemark(),
-		Gender:   valueobj.Gender(req.GetGender()),
+		Gender:   vo.Gender(req.GetGender()),
 	}
 	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 		systemscopes.UserLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 		systemscopes.UserLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(valueobj.StatusEnabled),
+		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -174,7 +174,7 @@ func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPass
 }
 
 func (s *UserService) EditUserStatus(ctx context.Context, req *pb.EditUserStatusRequest) (*pb.EditUserStatusReply, error) {
-	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.userBiz.UpdateUserStatusById(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.EditUserStatusReply{Ids: req.GetIds()}, nil

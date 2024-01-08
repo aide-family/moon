@@ -9,12 +9,11 @@ import (
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/realtime"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/model/alarmscopes"
-	"prometheus-manager/pkg/util/slices"
-
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/alarmscopes"
+	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type RealtimeService struct {

@@ -4,21 +4,21 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
 	DictBO struct {
-		Id        uint32            `json:"id"`
-		Name      string            `json:"name"`
-		Category  valueobj.Category `json:"category"`
-		Status    valueobj.Status   `json:"status"`
-		Remark    string            `json:"remark"`
-		Color     string            `json:"color"`
-		CreatedAt int64             `json:"createdAt"`
-		UpdatedAt int64             `json:"updatedAt"`
-		DeletedAt int64             `json:"deletedAt"`
+		Id        uint32      `json:"id"`
+		Name      string      `json:"name"`
+		Category  vo.Category `json:"category"`
+		Status    vo.Status   `json:"status"`
+		Remark    string      `json:"remark"`
+		Color     string      `json:"color"`
+		CreatedAt int64       `json:"createdAt"`
+		UpdatedAt int64       `json:"updatedAt"`
+		DeletedAt int64       `json:"deletedAt"`
 	}
 )
 
@@ -46,11 +46,11 @@ func ListToApiDictSelectV1(values ...*DictBO) []*api.DictSelectV1 {
 	return list
 }
 
-func (d *DictBO) ToModel() *model.PromDict {
+func (d *DictBO) ToModel() *do.PromDict {
 	if d == nil {
 		return nil
 	}
-	return &model.PromDict{
+	return &do.PromDict{
 		Name:     d.Name,
 		Category: d.Category,
 		Status:   d.Status,
@@ -81,7 +81,7 @@ func (d *DictBO) ToApiV1() *api.DictV1 {
 }
 
 // DictModelToBO 字典model数据对象转换为字典业务对象
-func DictModelToBO(m *model.PromDict) *DictBO {
+func DictModelToBO(m *do.PromDict) *DictBO {
 	if m == nil {
 		return nil
 	}

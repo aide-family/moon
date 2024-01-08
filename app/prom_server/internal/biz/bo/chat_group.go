@@ -4,22 +4,22 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
 	ChatGroupBO struct {
-		Id        uint32             `json:"id"`
-		Name      string             `json:"name"`
-		Status    valueobj.Status    `json:"status"`
-		Remark    string             `json:"remark"`
-		CreatedAt int64              `json:"createdAt"`
-		UpdatedAt int64              `json:"updatedAt"`
-		DeletedAt int64              `json:"deletedAt"`
-		Hook      string             `json:"hook"`
-		NotifyApp valueobj.NotifyApp `json:"notifyApp"`
-		HookName  string             `json:"hookName"`
+		Id        uint32       `json:"id"`
+		Name      string       `json:"name"`
+		Status    vo.Status    `json:"status"`
+		Remark    string       `json:"remark"`
+		CreatedAt int64        `json:"createdAt"`
+		UpdatedAt int64        `json:"updatedAt"`
+		DeletedAt int64        `json:"deletedAt"`
+		Hook      string       `json:"hook"`
+		NotifyApp vo.NotifyApp `json:"notifyApp"`
+		HookName  string       `json:"hookName"`
 	}
 )
 
@@ -54,11 +54,11 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 	}
 }
 
-func (b *ChatGroupBO) ToModel() *model.PromAlarmChatGroup {
+func (b *ChatGroupBO) ToModel() *do.PromAlarmChatGroup {
 	if b == nil {
 		return nil
 	}
-	return &model.PromAlarmChatGroup{
+	return &do.PromAlarmChatGroup{
 		BaseModel: query.BaseModel{ID: b.Id},
 		Status:    b.Status,
 		Remark:    b.Remark,
@@ -77,18 +77,18 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 	return &ChatGroupBO{
 		Id:        a.Id,
 		Name:      a.Name,
-		Status:    valueobj.Status(a.Status),
+		Status:    vo.Status(a.Status),
 		Remark:    a.Remark,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 		Hook:      a.Hook,
-		NotifyApp: valueobj.NotifyApp(a.App),
+		NotifyApp: vo.NotifyApp(a.App),
 		HookName:  a.HookName,
 	}
 }
 
 // ChatGroupModelToBO .
-func ChatGroupModelToBO(m *model.PromAlarmChatGroup) *ChatGroupBO {
+func ChatGroupModelToBO(m *do.PromAlarmChatGroup) *ChatGroupBO {
 	if m == nil {
 		return nil
 	}

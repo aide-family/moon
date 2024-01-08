@@ -4,20 +4,20 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
 	ApiBO struct {
-		Id     uint32          `json:"id"`
-		Name   string          `json:"name"`
-		Path   string          `json:"path"`
-		Method string          `json:"method"`
-		Status valueobj.Status `json:"status"`
-		Remark string          `json:"remark"`
-		Module valueobj.Module `json:"module"`
-		Domain valueobj.Domain `json:"domain"`
+		Id     uint32    `json:"id"`
+		Name   string    `json:"name"`
+		Path   string    `json:"path"`
+		Method string    `json:"method"`
+		Status vo.Status `json:"status"`
+		Remark string    `json:"remark"`
+		Module vo.Module `json:"module"`
+		Domain vo.Domain `json:"domain"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -63,12 +63,12 @@ func (b *ApiBO) ToApiV1() *api.ApiV1 {
 }
 
 // ToModel .
-func (b *ApiBO) ToModel() *model.SysAPI {
+func (b *ApiBO) ToModel() *do.SysAPI {
 	if b == nil {
 		return nil
 	}
 
-	return &model.SysAPI{
+	return &do.SysAPI{
 		BaseModel: query.BaseModel{
 			ID: b.Id,
 		},
@@ -83,7 +83,7 @@ func (b *ApiBO) ToModel() *model.SysAPI {
 }
 
 // ApiModelToBO .
-func ApiModelToBO(m *model.SysAPI) *ApiBO {
+func ApiModelToBO(m *do.SysAPI) *ApiBO {
 	if m == nil {
 		return nil
 	}

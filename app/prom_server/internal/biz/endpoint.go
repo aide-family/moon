@@ -5,11 +5,11 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
-	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
@@ -40,7 +40,7 @@ func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, id uint32, endpoin
 }
 
 // UpdateStatusByIds 批量更新状态
-func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, status valueobj.Status) error {
+func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, status vo.Status) error {
 	if len(ids) == 0 {
 		return nil
 	}

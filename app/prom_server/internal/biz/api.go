@@ -5,15 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
-
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type ApiBiz struct {
@@ -108,14 +107,14 @@ func (b *ApiBiz) cacheApiByIds(apiIds ...uint32) {
 		if err != nil {
 			return
 		}
-		if err = model.CacheApiSimple(db, cacheClient, apiIds...); err != nil {
+		if err = do.CacheApiSimple(db, cacheClient, apiIds...); err != nil {
 			b.log.Error(err)
 		}
 	}()
 }
 
 // UpdateApiStatusById 更新api状态
-func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
+func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}

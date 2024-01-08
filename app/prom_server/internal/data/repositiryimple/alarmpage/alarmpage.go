@@ -6,12 +6,13 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/pkg/util/slices"
 )
 
 var _ repository.PageRepo = (*alarmPageRepoImpl)(nil)
@@ -21,12 +22,11 @@ type alarmPageRepoImpl struct {
 	log *log.Helper
 
 	data *data.Data
-	query.IAction[model.PromAlarmPage]
 }
 
 func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	newModel := pageBO.ToModel()
-	if err := l.WithContext(ctx).Create(newModel); err != nil {
+	if err := l.data.DB().WithContext(ctx).Create(newModel).Error; err != nil {
 		return nil, err
 	}
 	return bo.AlarmPageModelToBO(newModel), nil
@@ -34,17 +34,17 @@ func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageBO *bo.AlarmPage
 
 func (l *alarmPageRepoImpl) UpdatePageById(ctx context.Context, id uint32, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	newModel := pageBO.ToModel()
-	if err := l.WithContext(ctx).UpdateByID(id, newModel); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id)).Updates(newModel).Error; err != nil {
 		return nil, err
 	}
 	return bo.AlarmPageModelToBO(newModel), nil
 }
 
-func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
+func (l *alarmPageRepoImpl) BatchUpdatePageStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	if err := l.WithContext(ctx).Update(&model.PromAlarmPage{Status: status}, query.WhereInColumn("id", ids)); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromAlarmPage{Status: status}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -55,29 +55,35 @@ func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint32) 
 		return nil
 	}
 
-	if err := l.WithContext(ctx).Delete(query.WhereInColumn("id", ids)); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(query.WhereInColumn("id", ids)).Delete(&do.PromAlarmPage{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
-	detail, err := l.WithContext(ctx).FirstByID(id)
-	if err != nil {
+	var detail do.PromAlarmPage
+	if err := l.data.DB().WithContext(ctx).First(&detail, id).Error; err != nil {
 		return nil, err
 	}
-	return bo.AlarmPageModelToBO(detail), nil
+	return bo.AlarmPageModelToBO(&detail), nil
 }
 
 func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmPageBO, error) {
-	list, err := l.WithContext(ctx).List(pgInfo, scopes...)
-	if err != nil {
+	var list []*do.PromAlarmPage
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&list).Error; err != nil {
 		return nil, err
 	}
-	doList := make([]*bo.AlarmPageBO, 0, len(list))
-	for _, m := range list {
-		doList = append(doList, bo.AlarmPageModelToBO(m))
+	if pgInfo != nil {
+		var total int64
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmPage{}).Count(&total).Error; err != nil {
+			return nil, err
+		}
+		pgInfo.SetTotal(total)
 	}
+	doList := slices.To(list, func(item *do.PromAlarmPage) *bo.AlarmPageBO {
+		return bo.AlarmPageModelToBO(item)
+	})
 	return doList, nil
 }
 
@@ -86,8 +92,5 @@ func NewAlarmPageRepo(d *data.Data, logger log.Logger) repository.PageRepo {
 	return &alarmPageRepoImpl{
 		data: d,
 		log:  log.NewHelper(log.With(logger, "module", "data.alarmPage")),
-		IAction: query.NewAction[model.PromAlarmPage](
-			query.WithDB[model.PromAlarmPage](d.DB()),
-		),
 	}
 }

@@ -6,20 +6,19 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/systemscopes"
-	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
-
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
 type (
@@ -116,7 +115,7 @@ func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.User
 }
 
 // UpdateUserStatusById 更新用户状态
-func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
+func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -289,7 +288,7 @@ func (b *UserBiz) UpdateUserRoleRelation(userId uint32) {
 			b.log.Errorf("cache user role err: %v", err)
 			return
 		}
-		if err = model.CacheUserRole(db, client, userId); err != nil {
+		if err = do.CacheUserRole(db, client, userId); err != nil {
 			b.log.Errorf("cache user role err: %v", err)
 			return
 		}

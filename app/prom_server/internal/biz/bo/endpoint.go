@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 
 	query "github.com/aide-cloud/gorm-normalize"
+
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 var _ encoding.BinaryMarshaler = (*EndpointBO)(nil)
@@ -15,14 +16,14 @@ var _ encoding.BinaryUnmarshaler = (*EndpointBO)(nil)
 
 type (
 	EndpointBO struct {
-		Id        uint32          `json:"id"`
-		Name      string          `json:"name"`
-		Endpoint  string          `json:"endpoint"`
-		Status    valueobj.Status `json:"status"`
-		Remark    string          `json:"remark"`
-		CreatedAt int64           `json:"createdAt"`
-		UpdatedAt int64           `json:"updatedAt"`
-		DeletedAt int64           `json:"deletedAt"`
+		Id        uint32    `json:"id"`
+		Name      string    `json:"name"`
+		Endpoint  string    `json:"endpoint"`
+		Status    vo.Status `json:"status"`
+		Remark    string    `json:"remark"`
+		CreatedAt int64     `json:"createdAt"`
+		UpdatedAt int64     `json:"updatedAt"`
+		DeletedAt int64     `json:"deletedAt"`
 	}
 )
 
@@ -62,12 +63,12 @@ func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServerSelectItem {
 	}
 }
 
-// ToModel EndpointBO to model.PromEndpoint
-func (l *EndpointBO) ToModel() *model.Endpoint {
+// ToModel EndpointBO to do.PromEndpoint
+func (l *EndpointBO) ToModel() *do.Endpoint {
 	if l == nil {
 		return nil
 	}
-	return &model.Endpoint{
+	return &do.Endpoint{
 		BaseModel: query.BaseModel{ID: l.Id},
 		Name:      l.Name,
 		Endpoint:  l.Endpoint,
@@ -76,8 +77,8 @@ func (l *EndpointBO) ToModel() *model.Endpoint {
 	}
 }
 
-// EndpointModelToBO model.PromEndpoint to EndpointBO
-func EndpointModelToBO(m *model.Endpoint) *EndpointBO {
+// EndpointModelToBO do.PromEndpoint to EndpointBO
+func EndpointModelToBO(m *do.Endpoint) *EndpointBO {
 	if m == nil {
 		return nil
 	}

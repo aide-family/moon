@@ -4,8 +4,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
@@ -13,8 +13,8 @@ type (
 		Id         uint32              `json:"id"`
 		Hook       string              `json:"hook"`
 		HookName   string              `json:"hookName"`
-		NotifyApp  valueobj.NotifyApp  `json:"notifyApp"`
-		Status     valueobj.Status     `json:"status"`
+		NotifyApp  vo.NotifyApp        `json:"notifyApp"`
+		Status     vo.Status           `json:"status"`
 		Remark     string              `json:"remark"`
 		CustomerId uint32              `json:"customerId"`
 		Customer   *ExternalCustomerBO `json:"externalCustomer"`
@@ -33,11 +33,11 @@ func (d *ExternalCustomerHookBO) GetCustomer() *ExternalCustomerBO {
 }
 
 // ToModel 转换为模型
-func (d *ExternalCustomerHookBO) ToModel() *model.ExternalCustomerHook {
+func (d *ExternalCustomerHookBO) ToModel() *do.ExternalCustomerHook {
 	if d == nil {
 		return nil
 	}
-	return &model.ExternalCustomerHook{
+	return &do.ExternalCustomerHook{
 		BaseModel:  query.BaseModel{ID: d.Id},
 		Hook:       d.Hook,
 		HookName:   d.HookName,
@@ -69,7 +69,7 @@ func (d *ExternalCustomerHookBO) ToApi() *api.ExternalCustomerHook {
 }
 
 // ExternalCustomerHookModelToBO 模型转换为BO
-func ExternalCustomerHookModelToBO(m *model.ExternalCustomerHook) *ExternalCustomerHookBO {
+func ExternalCustomerHookModelToBO(m *do.ExternalCustomerHook) *ExternalCustomerHookBO {
 	if m == nil {
 		return nil
 	}

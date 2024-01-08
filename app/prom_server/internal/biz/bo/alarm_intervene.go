@@ -4,7 +4,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 )
 
 type (
@@ -31,11 +31,11 @@ func (l *AlarmInterveneBO) GetIntervenedUser() *UserBO {
 }
 
 // ToModel ...
-func (l *AlarmInterveneBO) ToModel() *model.PromAlarmIntervene {
+func (l *AlarmInterveneBO) ToModel() *do.PromAlarmIntervene {
 	if l == nil {
 		return nil
 	}
-	return &model.PromAlarmIntervene{
+	return &do.PromAlarmIntervene{
 		BaseModel:       query.BaseModel{ID: l.ID},
 		RealtimeAlarmID: l.RealtimeAlarmID,
 		UserID:          l.UserID,
@@ -58,7 +58,7 @@ func (l *AlarmInterveneBO) ToApi() *api.InterveneInfo {
 }
 
 // AlarmInterveneModelToBO ...
-func AlarmInterveneModelToBO(l *model.PromAlarmIntervene) *AlarmInterveneBO {
+func AlarmInterveneModelToBO(l *do.PromAlarmIntervene) *AlarmInterveneBO {
 	if l == nil {
 		return nil
 	}

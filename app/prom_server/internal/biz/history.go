@@ -7,11 +7,10 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 
 	pb "prometheus-manager/api/alarm/history"
-	"prometheus-manager/pkg/helper/model/historyscopes"
-	"prometheus-manager/pkg/util/slices"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/historyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (

@@ -8,15 +8,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/helper/model/basescopes"
-	"prometheus-manager/pkg/util/slices"
-
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/systemscopes"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/pkg/util/slices"
 )
 
 var _ repository.ApiRepo = (*apiRepoImpl)(nil)
@@ -29,7 +28,7 @@ type apiRepoImpl struct {
 }
 
 func (l *apiRepoImpl) Create(ctx context.Context, apiBOList ...*bo.ApiBO) ([]*bo.ApiBO, error) {
-	newModelDataList := slices.To(apiBOList, func(item *bo.ApiBO) *model.SysAPI {
+	newModelDataList := slices.To(apiBOList, func(item *bo.ApiBO) *do.SysAPI {
 		return item.ToModel()
 	})
 
@@ -38,14 +37,14 @@ func (l *apiRepoImpl) Create(ctx context.Context, apiBOList ...*bo.ApiBO) ([]*bo
 		return nil, err
 	}
 
-	list := slices.To(newModelDataList, func(item *model.SysAPI) *bo.ApiBO {
+	list := slices.To(newModelDataList, func(item *do.SysAPI) *bo.ApiBO {
 		return bo.ApiModelToBO(item)
 	})
 	return list, nil
 }
 
 func (l *apiRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.ApiBO, error) {
-	var apiModelInfo model.SysAPI
+	var apiModelInfo do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&apiModelInfo).Error; err != nil {
 		return nil, err
 	}
@@ -54,12 +53,12 @@ func (l *apiRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo
 }
 
 func (l *apiRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
-	var apiModelInfoList []*model.SysAPI
+	var apiModelInfoList []*do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&apiModelInfoList).Error; err != nil {
 		return nil, err
 	}
 
-	list := slices.To(apiModelInfoList, func(item *model.SysAPI) *bo.ApiBO {
+	list := slices.To(apiModelInfoList, func(item *do.SysAPI) *bo.ApiBO {
 		return bo.ApiModelToBO(item)
 	})
 
@@ -67,20 +66,20 @@ func (l *apiRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]
 }
 
 func (l *apiRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
-	var apiModelInfoList []*model.SysAPI
+	var apiModelInfoList []*do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&apiModelInfoList).Error; err != nil {
 		return nil, err
 	}
 
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Model(&model.SysAPI{}).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Model(&do.SysAPI{}).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
 	}
 
-	list := slices.To(apiModelInfoList, func(item *model.SysAPI) *bo.ApiBO {
+	list := slices.To(apiModelInfoList, func(item *do.SysAPI) *bo.ApiBO {
 		return bo.ApiModelToBO(item)
 	})
 	return list, nil
@@ -91,7 +90,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 	if len(scopes) == 0 {
 		return status.Error(codes.InvalidArgument, "not allow not condition delete")
 	}
-	var detail model.SysAPI
+	var detail do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&detail).Error; err != nil {
 		return err
 	}
@@ -102,7 +101,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 			return err
 		}
 		// 删除主数据
-		if err := tx.Model(&detail).WithContext(txCtx).Delete(model.SysAPI{}, detail.ID).Error; err != nil {
+		if err := tx.Model(&detail).WithContext(txCtx).Delete(do.SysAPI{}, detail.ID).Error; err != nil {
 			return err
 		}
 		return nil

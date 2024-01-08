@@ -5,14 +5,13 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type ApiService struct {
@@ -57,7 +56,7 @@ func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
 		Remark: req.GetRemark(),
-		Status: valueobj.Status(req.GetStatus()),
+		Status: vo.Status(req.GetStatus()),
 	}
 	apiBo, err := s.apiBiz.UpdateApiById(ctx, apiBo.Id, apiBo)
 	if err != nil {
@@ -144,7 +143,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 
 // EditApiStatus 编辑api状态
 func (s *ApiService) EditApiStatus(ctx context.Context, req *pb.EditApiStatusRequest) (*pb.EditApiStatusReply, error) {
-	if err := s.apiBiz.UpdateApiStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.apiBiz.UpdateApiStatusById(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 
@@ -161,10 +160,10 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 	}
 
 	list := make([]*api.ApiTree, 0, len(apiBoList))
-	domainMap := make(map[valueobj.Domain]map[valueobj.Module][]*bo.ApiBO)
+	domainMap := make(map[vo.Domain]map[vo.Module][]*bo.ApiBO)
 	for _, apiBo := range apiBoList {
 		if _, ok := domainMap[apiBo.Domain]; !ok {
-			domainMap[apiBo.Domain] = make(map[valueobj.Module][]*bo.ApiBO)
+			domainMap[apiBo.Domain] = make(map[vo.Module][]*bo.ApiBO)
 		}
 		if _, ok := domainMap[apiBo.Domain][apiBo.Module]; !ok {
 			domainMap[apiBo.Domain][apiBo.Module] = make([]*bo.ApiBO, 0)

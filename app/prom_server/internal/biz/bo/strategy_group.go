@@ -4,24 +4,24 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	StrategyGroupBO struct {
-		Id                  uint32          `json:"id"`
-		Name                string          `json:"name"`
-		Remark              string          `json:"remark"`
-		Status              valueobj.Status `json:"status"`
-		StrategyCount       int64           `json:"strategyCount"`
-		EnableStrategyCount int64           `json:"enableStrategyCount"`
-		CategoryIds         []uint32        `json:"categoryIds"`
-		Categories          []*DictBO       `json:"categories"`
-		CreatedAt           int64           `json:"createdAt"`
-		UpdatedAt           int64           `json:"updatedAt"`
-		DeletedAt           int64           `json:"deletedAt"`
+		Id                  uint32    `json:"id"`
+		Name                string    `json:"name"`
+		Remark              string    `json:"remark"`
+		Status              vo.Status `json:"status"`
+		StrategyCount       int64     `json:"strategyCount"`
+		EnableStrategyCount int64     `json:"enableStrategyCount"`
+		CategoryIds         []uint32  `json:"categoryIds"`
+		Categories          []*DictBO `json:"categories"`
+		CreatedAt           int64     `json:"createdAt"`
+		UpdatedAt           int64     `json:"updatedAt"`
+		DeletedAt           int64     `json:"deletedAt"`
 
 		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}
@@ -88,11 +88,11 @@ func (b *StrategyGroupBO) ToApiV1() *api.PromGroup {
 	}
 }
 
-func (b *StrategyGroupBO) ToModel() *model.PromStrategyGroup {
+func (b *StrategyGroupBO) ToModel() *do.PromStrategyGroup {
 	if b == nil {
 		return nil
 	}
-	return &model.PromStrategyGroup{
+	return &do.PromStrategyGroup{
 		BaseModel: query.BaseModel{
 			ID: b.Id,
 		},
@@ -101,17 +101,17 @@ func (b *StrategyGroupBO) ToModel() *model.PromStrategyGroup {
 		EnableStrategyCount: b.EnableStrategyCount,
 		Status:              b.Status,
 		Remark:              b.Remark,
-		PromStrategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *model.PromStrategy {
+		PromStrategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *do.PromStrategy {
 			return u.ToModel()
 		}),
-		Categories: slices.To(b.GetCategories(), func(u *DictBO) *model.PromDict {
+		Categories: slices.To(b.GetCategories(), func(u *DictBO) *do.PromDict {
 			return u.ToModel()
 		}),
 	}
 }
 
 // StrategyGroupModelToBO .
-func StrategyGroupModelToBO(m *model.PromStrategyGroup) *StrategyGroupBO {
+func StrategyGroupModelToBO(m *do.PromStrategyGroup) *StrategyGroupBO {
 	if m == nil {
 		return nil
 	}
@@ -123,16 +123,16 @@ func StrategyGroupModelToBO(m *model.PromStrategyGroup) *StrategyGroupBO {
 		Status:              m.Status,
 		StrategyCount:       m.StrategyCount,
 		EnableStrategyCount: m.EnableStrategyCount,
-		CategoryIds: slices.To(m.GetCategories(), func(u *model.PromDict) uint32 {
+		CategoryIds: slices.To(m.GetCategories(), func(u *do.PromDict) uint32 {
 			return u.ID
 		}),
-		Categories: slices.To(m.GetCategories(), func(u *model.PromDict) *DictBO {
+		Categories: slices.To(m.GetCategories(), func(u *do.PromDict) *DictBO {
 			return DictModelToBO(u)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
-		PromStrategies: slices.To(m.GetPromStrategies(), func(u *model.PromStrategy) *StrategyBO {
+		PromStrategies: slices.To(m.GetPromStrategies(), func(u *do.PromStrategy) *StrategyBO {
 			return StrategyModelToBO(u)
 		}),
 	}

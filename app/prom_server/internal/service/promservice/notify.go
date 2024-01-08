@@ -5,15 +5,15 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/notify"
-	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type NotifyService struct {
@@ -68,7 +68,7 @@ func (s *NotifyService) UpdateNotify(ctx context.Context, req *pb.UpdateNotifyRe
 		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		Status: valueobj.Status(req.GetStatus()),
+		Status: vo.Status(req.GetStatus()),
 		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *bo.NotifyMemberBO {
 			return bo.NotifyMemberApiToBO(t)
 		}),

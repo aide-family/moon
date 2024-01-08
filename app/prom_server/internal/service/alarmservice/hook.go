@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	pb "prometheus-manager/api/alarm/hook"
-	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/times"
 
@@ -41,7 +41,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			Md5:        alert.GetFingerprint(),
 			StrategyId: uint32(labels.StrategyId()),
 			LevelId:    uint32(labels.LevelId()),
-			Status:     valueobj.ToAlarmStatus(alert.GetStatus()),
+			Status:     vo.ToAlarmStatus(alert.GetStatus()),
 			StartAt:    startTime.Unix(),
 			EndAt:      endTime.Unix(),
 			Instance:   strategy.MapToLabels(alert.GetLabels()).GetInstance(),

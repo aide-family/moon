@@ -4,26 +4,26 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
 	AlarmHistoryBO struct {
-		Id         uint32               `json:"id"`
-		Md5        string               `json:"md5"`
-		StrategyId uint32               `json:"strategyId"`
-		StrategyBO *StrategyBO          `json:"strategyBO"`
-		LevelId    uint32               `json:"levelId"`
-		Level      *DictBO              `json:"level"`
-		Status     valueobj.AlarmStatus `json:"status"`
-		StartAt    int64                `json:"startAt"`
-		EndAt      int64                `json:"endAt"`
-		Instance   string               `json:"instance"`
-		Duration   int64                `json:"duration"`
-		Info       *AlertBo             `json:"info"`
-		CreatedAt  int64                `json:"createdAt"`
-		UpdatedAt  int64                `json:"UpdatedAt"`
+		Id         uint32         `json:"id"`
+		Md5        string         `json:"md5"`
+		StrategyId uint32         `json:"strategyId"`
+		StrategyBO *StrategyBO    `json:"strategyBO"`
+		LevelId    uint32         `json:"levelId"`
+		Level      *DictBO        `json:"level"`
+		Status     vo.AlarmStatus `json:"status"`
+		StartAt    int64          `json:"startAt"`
+		EndAt      int64          `json:"endAt"`
+		Instance   string         `json:"instance"`
+		Duration   int64          `json:"duration"`
+		Info       *AlertBo       `json:"info"`
+		CreatedAt  int64          `json:"createdAt"`
+		UpdatedAt  int64          `json:"UpdatedAt"`
 	}
 )
 
@@ -89,11 +89,11 @@ func (b *AlarmHistoryBO) GetInfo() *AlertBo {
 }
 
 // ToModel .
-func (b *AlarmHistoryBO) ToModel() *model.PromAlarmHistory {
+func (b *AlarmHistoryBO) ToModel() *do.PromAlarmHistory {
 	if b == nil {
 		return nil
 	}
-	return &model.PromAlarmHistory{
+	return &do.PromAlarmHistory{
 		BaseModel:  query.BaseModel{ID: b.Id},
 		Instance:   b.Instance,
 		Status:     b.Status,
@@ -110,7 +110,7 @@ func (b *AlarmHistoryBO) ToModel() *model.PromAlarmHistory {
 }
 
 // AlarmHistoryModelToBO .
-func AlarmHistoryModelToBO(m *model.PromAlarmHistory) *AlarmHistoryBO {
+func AlarmHistoryModelToBO(m *do.PromAlarmHistory) *AlarmHistoryBO {
 	if m == nil {
 		return nil
 	}

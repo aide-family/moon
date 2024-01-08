@@ -4,22 +4,22 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	AlarmPageBO struct {
-		Id        uint32          `json:"id"`
-		Name      string          `json:"name"`
-		Icon      string          `json:"icon"`
-		Color     string          `json:"color"`
-		Remark    string          `json:"remark"`
-		Status    valueobj.Status `json:"status"`
-		CreatedAt int64           `json:"createdAt"`
-		UpdatedAt int64           `json:"updatedAt"`
-		DeletedAt int64           `json:"deletedAt"`
+		Id        uint32    `json:"id"`
+		Name      string    `json:"name"`
+		Icon      string    `json:"icon"`
+		Color     string    `json:"color"`
+		Remark    string    `json:"remark"`
+		Status    vo.Status `json:"status"`
+		CreatedAt int64     `json:"createdAt"`
+		UpdatedAt int64     `json:"updatedAt"`
+		DeletedAt int64     `json:"deletedAt"`
 	}
 )
 
@@ -46,11 +46,11 @@ func ListToApiAlarmPageSelectV1(values ...*AlarmPageBO) []*api.AlarmPageSelectV1
 }
 
 // ToModel .
-func (b *AlarmPageBO) ToModel() *model.PromAlarmPage {
+func (b *AlarmPageBO) ToModel() *do.PromAlarmPage {
 	if b == nil {
 		return nil
 	}
-	return &model.PromAlarmPage{
+	return &do.PromAlarmPage{
 		BaseModel: query.BaseModel{ID: b.Id},
 		Name:      b.Name,
 		Icon:      b.Icon,
@@ -61,7 +61,7 @@ func (b *AlarmPageBO) ToModel() *model.PromAlarmPage {
 }
 
 // AlarmPageModelToBO .
-func AlarmPageModelToBO(m *model.PromAlarmPage) *AlarmPageBO {
+func AlarmPageModelToBO(m *do.PromAlarmPage) *AlarmPageBO {
 	if m == nil {
 		return nil
 	}

@@ -7,7 +7,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 )
 
 var _ encoding.BinaryMarshaler = (*AlarmUpgradeBO)(nil)
@@ -37,11 +37,11 @@ func (l *AlarmUpgradeBO) MarshalBinary() (data []byte, err error) {
 }
 
 // ToModel 转换为model
-func (l *AlarmUpgradeBO) ToModel() *model.PromAlarmUpgrade {
+func (l *AlarmUpgradeBO) ToModel() *do.PromAlarmUpgrade {
 	if l == nil {
 		return nil
 	}
-	return &model.PromAlarmUpgrade{
+	return &do.PromAlarmUpgrade{
 		BaseModel:       query.BaseModel{ID: l.ID},
 		RealtimeAlarmID: l.RealtimeAlarmID,
 		UserID:          l.UserID,
@@ -72,7 +72,7 @@ func (l *AlarmUpgradeBO) ToApi() *api.AlarmUpgradeInfo {
 }
 
 // AlarmUpgradeModelToBO .
-func AlarmUpgradeModelToBO(m *model.PromAlarmUpgrade) *AlarmUpgradeBO {
+func AlarmUpgradeModelToBO(m *do.PromAlarmUpgrade) *AlarmUpgradeBO {
 	if m == nil {
 		return nil
 	}

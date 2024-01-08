@@ -5,15 +5,15 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
-	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type RoleService struct {
@@ -49,7 +49,7 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest)
 		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		Status: valueobj.Status(req.GetStatus()),
+		Status: vo.Status(req.GetStatus()),
 	}
 	b, err := s.roleBiz.UpdateRoleById(ctx, b)
 	if err != nil {
@@ -83,7 +83,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
@@ -110,7 +110,7 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
-		basescopes.StatusEQ(valueobj.StatusEnabled),
+		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
@@ -142,7 +142,7 @@ func (s *RoleService) RelateApi(ctx context.Context, req *pb.RelateApiRequest) (
 
 // EditRoleStatus 编辑角色状态
 func (s *RoleService) EditRoleStatus(ctx context.Context, req *pb.EditRoleStatusRequest) (*pb.EditRoleStatusReply, error) {
-	if err := s.roleBiz.UpdateRoleStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.roleBiz.UpdateRoleStatusById(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.EditRoleStatusReply{

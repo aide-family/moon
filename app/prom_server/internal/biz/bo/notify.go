@@ -4,8 +4,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -13,7 +13,7 @@ type (
 	NotifyBO struct {
 		Id                 uint32                 `json:"id"`
 		Name               string                 `json:"name"`
-		Status             valueobj.Status        `json:"status"`
+		Status             vo.Status              `json:"status"`
 		Remark             string                 `json:"remark"`
 		CreatedAt          int64                  `json:"createdAt"`
 		UpdatedAt          int64                  `json:"updatedAt"`
@@ -49,15 +49,15 @@ func (d *NotifyBO) GetBeNotifyMembers() []*NotifyMemberBO {
 }
 
 // ToModel ...
-func (d *NotifyBO) ToModel() *model.PromAlarmNotify {
-	return &model.PromAlarmNotify{
+func (d *NotifyBO) ToModel() *do.PromAlarmNotify {
+	return &do.PromAlarmNotify{
 		BaseModel:          query.BaseModel{ID: d.Id},
 		Name:               d.Name,
 		Status:             d.Status,
 		Remark:             d.Remark,
-		ChatGroups:         slices.To(d.GetChatGroups(), func(d *ChatGroupBO) *model.PromAlarmChatGroup { return d.ToModel() }),
-		BeNotifyMembers:    slices.To(d.GetBeNotifyMembers(), func(d *NotifyMemberBO) *model.PromAlarmNotifyMember { return d.ToModel() }),
-		ExternalNotifyObjs: slices.To(d.GetExternalNotifyObjs(), func(d *ExternalNotifyObjBO) *model.ExternalNotifyObj { return d.ToModel() }),
+		ChatGroups:         slices.To(d.GetChatGroups(), func(d *ChatGroupBO) *do.PromAlarmChatGroup { return d.ToModel() }),
+		BeNotifyMembers:    slices.To(d.GetBeNotifyMembers(), func(d *NotifyMemberBO) *do.PromAlarmNotifyMember { return d.ToModel() }),
+		ExternalNotifyObjs: slices.To(d.GetExternalNotifyObjs(), func(d *ExternalNotifyObjBO) *do.ExternalNotifyObj { return d.ToModel() }),
 	}
 }
 
@@ -94,7 +94,7 @@ func (d *NotifyBO) ToApiSelectV1() *api.NotifySelectV1 {
 }
 
 // NotifyModelToBO ...
-func NotifyModelToBO(m *model.PromAlarmNotify) *NotifyBO {
+func NotifyModelToBO(m *do.PromAlarmNotify) *NotifyBO {
 	if m == nil {
 		return nil
 	}
@@ -106,8 +106,8 @@ func NotifyModelToBO(m *model.PromAlarmNotify) *NotifyBO {
 		CreatedAt:          m.CreatedAt.Unix(),
 		UpdatedAt:          m.UpdatedAt.Unix(),
 		DeletedAt:          int64(m.DeletedAt),
-		ChatGroups:         slices.To(m.GetChatGroups(), func(m *model.PromAlarmChatGroup) *ChatGroupBO { return ChatGroupModelToBO(m) }),
-		BeNotifyMembers:    slices.To(m.GetBeNotifyMembers(), func(m *model.PromAlarmNotifyMember) *NotifyMemberBO { return NotifyMemberModelToBO(m) }),
-		ExternalNotifyObjs: slices.To(m.GetExternalNotifyObjs(), func(m *model.ExternalNotifyObj) *ExternalNotifyObjBO { return ExternalNotifyObjModelToBO(m) }),
+		ChatGroups:         slices.To(m.GetChatGroups(), func(m *do.PromAlarmChatGroup) *ChatGroupBO { return ChatGroupModelToBO(m) }),
+		BeNotifyMembers:    slices.To(m.GetBeNotifyMembers(), func(m *do.PromAlarmNotifyMember) *NotifyMemberBO { return NotifyMemberModelToBO(m) }),
+		ExternalNotifyObjs: slices.To(m.GetExternalNotifyObjs(), func(m *do.ExternalNotifyObj) *ExternalNotifyObjBO { return ExternalNotifyObjModelToBO(m) }),
 	}
 }

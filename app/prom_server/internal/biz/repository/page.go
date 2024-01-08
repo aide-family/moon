@@ -6,8 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -22,7 +21,7 @@ type (
 		// UpdatePageById 通过id更新页面
 		UpdatePageById(ctx context.Context, id uint32, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error)
 		// BatchUpdatePageStatusByIds 通过id批量更新页面状态
-		BatchUpdatePageStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error
+		BatchUpdatePageStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error
 		// DeletePageByIds 通过id删除页面
 		DeletePageByIds(ctx context.Context, id ...uint32) error
 		// GetPageById 通过id获取页面详情
@@ -44,7 +43,7 @@ func (UnimplementedPageRepo) UpdatePageById(_ context.Context, _ uint32, _ *bo.A
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePageById not implemented")
 }
 
-func (UnimplementedPageRepo) BatchUpdatePageStatusByIds(_ context.Context, _ valueobj.Status, _ []uint32) error {
+func (UnimplementedPageRepo) BatchUpdatePageStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
 	return status.Errorf(codes.Unimplemented, "method BatchUpdatePageStatusByIds not implemented")
 }
 
