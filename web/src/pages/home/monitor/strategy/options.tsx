@@ -1,4 +1,4 @@
-import { Button, MenuProps, Space, Tag } from 'antd'
+import { Button, MenuProps, Space, Tag, Tooltip } from 'antd'
 import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
 import { DataFormItem } from '@/components/Data'
@@ -21,6 +21,7 @@ import dictApi from '@/apis/home/system/dict'
 import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
+import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -143,10 +144,32 @@ export const columns: (
     | ColumnType<StrategyItemType>
 )[] = [
     {
+        title: '数据源',
+        dataIndex: 'dataSource',
+        key: 'dataSource',
+        align: 'start',
+        width: 200,
+        render: (dataSource?: PrometheusServerSelectItem) => {
+            if (!dataSource) return '-'
+            const { label, value, endpoint, status } = dataSource
+            return (
+                <Tooltip title={endpoint}>
+                    <Button
+                        key={value}
+                        type="link"
+                        disabled={status !== Status.STATUS_ENABLED}
+                    >
+                        {label}
+                    </Button>
+                </Tooltip>
+            )
+        }
+    },
+    {
         title: '名称',
         dataIndex: 'alert',
         key: 'alert',
-        // width: 160,
+        width: 200,
         render: (alert: string) => {
             return alert
         }
@@ -193,7 +216,7 @@ export const columns: (
         title: '策略类型',
         dataIndex: 'categoryInfo',
         key: 'categoryInfo',
-        width: 260,
+        // width: 260,
         render: (_: number, record: StrategyItemType) => {
             if (!record.categoryInfo || !record.categoryInfo.length) return '-'
             const categyList = record.categoryInfo
