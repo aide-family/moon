@@ -1,10 +1,10 @@
 import { FC, Key, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Space } from 'antd'
+import { Button, Form, Space } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
-import { CopyOutlined } from '@ant-design/icons'
+import { CopyOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { ActionKey } from '@/apis/data.ts'
 import {
     StrategyItemType,
@@ -272,10 +272,24 @@ const Strategy: FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
-                        <Space>
-                            <CopyOutlined />
-                            <p style={{ margin: 0 }}>{record.expr}</p>
-                        </Space>
+                        <div>
+                            <Space style={{ width: '100%' }}>
+                                <Button icon={<CopyOutlined />} type="link">
+                                    expr
+                                </Button>
+
+                                <p style={{ margin: 0 }}>{record?.expr}</p>
+                            </Space>
+                            <Space style={{ width: '100%' }}>
+                                <Button
+                                    icon={<InfoCircleOutlined />}
+                                    type="link"
+                                >
+                                    备注
+                                </Button>
+                                <p style={{ margin: 0 }}>{record?.remark}</p>
+                            </Space>
+                        </div>
                     )
                 }}
             />
