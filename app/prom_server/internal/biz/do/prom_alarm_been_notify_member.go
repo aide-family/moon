@@ -1,14 +1,13 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromAlarmNotifyMember = "prom_alarm_been_notify_members"
 
 type PromAlarmBeenNotifyMember struct {
-	query.BaseModel
+	BaseModel
 	RealtimeAlarmID   uint32           `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__realtime_alarm_id,priority:1;comment:告警ID"`
 	NotifyTypes       vo.NotifyTypes   `gorm:"column:notify_types;type:json;not null;comment:通知方式"`
 	MemberId          uint32           `gorm:"column:member_id;type:int unsigned;not null;comment:通知人员ID"`

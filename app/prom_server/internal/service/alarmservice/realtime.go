@@ -4,14 +4,13 @@ import (
 	"context"
 	"time"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/alarmscopes"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -45,12 +44,12 @@ func (l *RealtimeService) GetRealtime(ctx context.Context, req *pb.GetRealtimeRe
 // ListRealtime 实时告警列表
 func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtimeRequest) (*pb.ListRealtimeReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []query.ScopeMethod{
-		alarmscopes.RealtimeLike(req.GetKeyword()),
-		alarmscopes.RealtimeEventAtDesc(),
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	wheres := []basescopes.ScopeMethod{
+		basescopes.RealtimeLike(req.GetKeyword()),
+		basescopes.RealtimeEventAtDesc(),
 		//预加载告警等级
-		alarmscopes.PreloadLevel(),
+		basescopes.PreloadLevel(),
 	}
 
 	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)

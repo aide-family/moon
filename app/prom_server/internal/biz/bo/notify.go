@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -51,7 +49,7 @@ func (d *NotifyBO) GetBeNotifyMembers() []*NotifyMemberBO {
 // ToModel ...
 func (d *NotifyBO) ToModel() *do.PromAlarmNotify {
 	return &do.PromAlarmNotify{
-		BaseModel:          query.BaseModel{ID: d.Id},
+		BaseModel:          do.BaseModel{ID: d.Id},
 		Name:               d.Name,
 		Status:             d.Status,
 		Remark:             d.Remark,

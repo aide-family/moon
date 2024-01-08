@@ -3,8 +3,8 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
@@ -65,7 +65,7 @@ func (l *StrategyGroupBiz) GetById(ctx context.Context, id uint32) (*bo.Strategy
 	return strategyGroupBO, nil
 }
 
-func (l *StrategyGroupBiz) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+func (l *StrategyGroupBiz) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	strategyGroupBoList, err := l.strategyGroupRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err

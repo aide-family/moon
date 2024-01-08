@@ -38,3 +38,14 @@ func Contains[T comparable](list []T, v T) bool {
 func ContainsOf[T any](list []T, f func(T) bool) bool {
 	return IndexOf(list, f) != -1
 }
+
+// Filter 过滤
+func Filter[T any](list []T, f func(T) bool) []T {
+	rs := make([]T, 0, len(list))
+	for _, v := range list {
+		if f(v) {
+			rs = append(rs, v)
+		}
+	}
+	return rs
+}

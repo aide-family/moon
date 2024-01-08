@@ -3,7 +3,6 @@ package systemservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,7 +17,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 )
 
 type UserService struct {
@@ -99,9 +97,9 @@ func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 
 func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
-		systemscopes.UserLike(req.GetKeyword()),
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
+		basescopes.UserLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
@@ -125,9 +123,9 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 
 func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest) (*pb.SelectUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
-		systemscopes.UserLike(req.GetKeyword()),
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
+		basescopes.UserLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 		basescopes.StatusEQ(vo.StatusEnabled),

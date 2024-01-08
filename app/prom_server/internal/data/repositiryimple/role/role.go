@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,7 +13,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/util/slices"
@@ -37,7 +35,7 @@ func (l *roleRepoImpl) Create(ctx context.Context, role *bo.RoleBO) (*bo.RoleBO,
 	return bo.RoleModelToBO(newRole), nil
 }
 
-func (l *roleRepoImpl) Update(ctx context.Context, role *bo.RoleBO, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
+func (l *roleRepoImpl) Update(ctx context.Context, role *bo.RoleBO, scopes ...basescopes.ScopeMethod) (*bo.RoleBO, error) {
 	if len(scopes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "更新角色时，必须指定更新条件")
 	}
@@ -58,23 +56,23 @@ func (l *roleRepoImpl) Update(ctx context.Context, role *bo.RoleBO, scopes ...qu
 	return bo.RoleModelToBO(newRole), nil
 }
 
-func (l *roleRepoImpl) UpdateAll(ctx context.Context, role *bo.RoleBO, scopes ...query.ScopeMethod) error {
+func (l *roleRepoImpl) UpdateAll(ctx context.Context, role *bo.RoleBO, scopes ...basescopes.ScopeMethod) error {
 	newRole := role.ToModel()
 	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(newRole).Error
 }
 
-func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
+func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return status.Error(codes.InvalidArgument, "删除角色时，必须指定删除条件")
 	}
 
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 清除关联关系
-		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(systemscopes.RoleAssociationReplaceApis).Clear(); err != nil {
+		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(basescopes.RoleAssociationReplaceApis).Clear(); err != nil {
 			return err
 		}
 
-		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(systemscopes.RoleAssociationReplaceUsers).Clear(); err != nil {
+		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(basescopes.RoleAssociationReplaceUsers).Clear(); err != nil {
 			return err
 		}
 
@@ -87,7 +85,7 @@ func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) 
 	})
 }
 
-func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.RoleBO, error) {
+func (l *roleRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.RoleBO, error) {
 	var roleDetail do.SysRole
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&roleDetail).Error; err != nil {
 		return nil, err
@@ -95,7 +93,7 @@ func (l *roleRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*b
 	return bo.RoleModelToBO(&roleDetail), nil
 }
 
-func (l *roleRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error) {
+func (l *roleRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
 	var roleModelList []*do.SysRole
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&roleModelList).Error; err != nil {
 		return nil, err
@@ -108,7 +106,7 @@ func (l *roleRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([
 	return list, nil
 }
 
-func (l *roleRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.RoleBO, error) {
+func (l *roleRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
 	var roleList []*do.SysRole
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&roleList).Error; err != nil {
 		return nil, err
@@ -141,7 +139,7 @@ func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint32, apiList []*
 		return api.ToModel()
 	})
 
-	if err := l.data.DB().WithContext(ctx).Model(roleDetail).Association(systemscopes.RoleAssociationReplaceApis).Replace(&apiModelList); err != nil {
+	if err := l.data.DB().WithContext(ctx).Model(roleDetail).Association(basescopes.RoleAssociationReplaceApis).Replace(&apiModelList); err != nil {
 		return err
 	}
 

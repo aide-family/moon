@@ -4,8 +4,6 @@ import (
 	"encoding"
 	"encoding/json"
 
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -69,7 +67,7 @@ func (l *EndpointBO) ToModel() *do.Endpoint {
 		return nil
 	}
 	return &do.Endpoint{
-		BaseModel: query.BaseModel{ID: l.Id},
+		BaseModel: do.BaseModel{ID: l.Id},
 		Name:      l.Name,
 		Endpoint:  l.Endpoint,
 		Remark:    l.Remark,

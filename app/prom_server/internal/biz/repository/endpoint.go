@@ -3,10 +3,10 @@ package repository
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -19,14 +19,14 @@ type (
 		Update(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
 		UpdateStatus(ctx context.Context, ids []uint32, status vo.Status) error
 		Delete(ctx context.Context, ids []uint32) error
-		List(ctx context.Context, pagination query.Pagination, scopes ...query.ScopeMethod) ([]*bo.EndpointBO, error)
-		Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.EndpointBO, error)
+		List(ctx context.Context, pagination basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
+		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error)
 	}
 
 	UnimplementedEndpointRepo struct{}
 )
 
-func (r UnimplementedEndpointRepo) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.EndpointBO, error) {
+func (r UnimplementedEndpointRepo) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 
@@ -46,7 +46,7 @@ func (UnimplementedEndpointRepo) Delete(_ context.Context, _ []uint32) error {
 	return status.Error(codes.Unimplemented, "method Delete not implemented")
 }
 
-func (UnimplementedEndpointRepo) List(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*bo.EndpointBO, error) {
+func (UnimplementedEndpointRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

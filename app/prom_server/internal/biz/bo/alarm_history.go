@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -94,7 +92,7 @@ func (b *AlarmHistoryBO) ToModel() *do.PromAlarmHistory {
 		return nil
 	}
 	return &do.PromAlarmHistory{
-		BaseModel:  query.BaseModel{ID: b.Id},
+		BaseModel:  do.BaseModel{ID: b.Id},
 		Instance:   b.Instance,
 		Status:     b.Status,
 		Info:       b.GetInfo().String(),

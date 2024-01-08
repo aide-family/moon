@@ -1,14 +1,13 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNameExternalCustomer = "external_customers"
 
 type ExternalCustomer struct {
-	query.BaseModel
+	BaseModel
 	// 外部客户名称
 	Name string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx_name,priority:1;comment:外部客户名称"`
 	// 外部客户地址

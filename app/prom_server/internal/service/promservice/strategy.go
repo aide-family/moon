@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
@@ -46,7 +47,7 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 		EndpointId:   req.GetDataSourceId(),
 		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
 		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
-		SendRecover:  req.GetSendRecover(),
+		SendRecover:  vo.NewIsSendRecover(req.GetSendRecover()),
 	})
 
 	if err != nil {
@@ -71,7 +72,7 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 		EndpointId:   req.GetDataSourceId(),
 		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
 		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
-		SendRecover:  req.GetSendRecover(),
+		SendRecover:  vo.NewIsSendRecover(req.GetSendRecover()),
 	})
 	if err != nil {
 		return nil, err

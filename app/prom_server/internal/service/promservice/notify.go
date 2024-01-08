@@ -3,7 +3,6 @@ package promservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
@@ -113,8 +112,8 @@ func (s *NotifyService) GetNotify(ctx context.Context, req *pb.GetNotifyRequest)
 
 func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyRequest) (*pb.ListNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
@@ -137,8 +136,8 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 
 func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRequest) (*pb.SelectNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)

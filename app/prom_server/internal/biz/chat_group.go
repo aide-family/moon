@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api/perrors"
@@ -42,7 +41,7 @@ func (b *ChatGroupBiz) GetChatGroupById(ctx context.Context, id uint32) (*bo.Cha
 }
 
 // ListChatGroup 获取通知群机器人hook列表
-func (b *ChatGroupBiz) ListChatGroup(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ChatGroupBO, error) {
+func (b *ChatGroupBiz) ListChatGroup(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	return b.chatGroupRepo.List(ctx, pgInfo, scopes...)
 }
 

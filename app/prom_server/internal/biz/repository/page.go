@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -27,7 +27,7 @@ type (
 		// GetPageById 通过id获取页面详情
 		GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error)
 		// ListPage 获取页面列表
-		ListPage(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmPageBO, error)
+		ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
 	}
 
 	UnimplementedPageRepo struct{}
@@ -55,6 +55,6 @@ func (UnimplementedPageRepo) GetPageById(_ context.Context, _ uint32) (*bo.Alarm
 	return nil, status.Errorf(codes.Unimplemented, "method GetPageById not implemented")
 }
 
-func (UnimplementedPageRepo) ListPage(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+func (UnimplementedPageRepo) ListPage(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPage not implemented")
 }

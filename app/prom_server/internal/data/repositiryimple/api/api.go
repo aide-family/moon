@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,7 +11,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/util/slices"
@@ -43,7 +41,7 @@ func (l *apiRepoImpl) Create(ctx context.Context, apiBOList ...*bo.ApiBO) ([]*bo
 	return list, nil
 }
 
-func (l *apiRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.ApiBO, error) {
+func (l *apiRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.ApiBO, error) {
 	var apiModelInfo do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&apiModelInfo).Error; err != nil {
 		return nil, err
@@ -52,7 +50,7 @@ func (l *apiRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo
 	return bo.ApiModelToBO(&apiModelInfo), nil
 }
 
-func (l *apiRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
+func (l *apiRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
 	var apiModelInfoList []*do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&apiModelInfoList).Error; err != nil {
 		return nil, err
@@ -65,7 +63,7 @@ func (l *apiRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]
 	return list, nil
 }
 
-func (l *apiRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
+func (l *apiRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
 	var apiModelInfoList []*do.SysAPI
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&apiModelInfoList).Error; err != nil {
 		return nil, err
@@ -85,7 +83,7 @@ func (l *apiRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes 
 	return list, nil
 }
 
-func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
+func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	// 不允许不带条件执行
 	if len(scopes) == 0 {
 		return status.Error(codes.InvalidArgument, "not allow not condition delete")
@@ -97,7 +95,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
 		// 删除关联关系
-		if err := tx.Model(&detail).WithContext(txCtx).Association(systemscopes.ApiAssociationReplaceRoles).Clear(); err != nil {
+		if err := tx.Model(&detail).WithContext(txCtx).Association(basescopes.ApiAssociationReplaceRoles).Clear(); err != nil {
 			return err
 		}
 		// 删除主数据
@@ -108,7 +106,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) e
 	})
 }
 
-func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) (*bo.ApiBO, error) {
+func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...basescopes.ScopeMethod) (*bo.ApiBO, error) {
 	if len(scopes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "not allow not condition update")
 	}
@@ -130,7 +128,7 @@ func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...que
 	return bo.ApiModelToBO(newModelInfo), nil
 }
 
-func (l *apiRepoImpl) UpdateAll(ctx context.Context, apiBO *bo.ApiBO, scopes ...query.ScopeMethod) error {
+func (l *apiRepoImpl) UpdateAll(ctx context.Context, apiBO *bo.ApiBO, scopes ...basescopes.ScopeMethod) error {
 	newModelInfo := apiBO.ToModel()
 	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(newModelInfo).Error
 }

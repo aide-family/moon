@@ -3,14 +3,12 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api"
 	strategyPB "prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/strategyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
@@ -75,14 +73,14 @@ func (b *StrategyXBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) e
 
 // GetStrategyById 获取策略详情
 func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
-	wheres := []query.ScopeMethod{
-		strategyscopes.PreloadEndpoint,
-		strategyscopes.PreloadAlarmPages,
-		strategyscopes.PreloadCategories,
-		strategyscopes.PreloadAlertLevel,
-		strategyscopes.PreloadPromNotifies,
-		strategyscopes.PreloadPromNotifyUpgrade,
-		strategyscopes.PreloadGroupInfo,
+	wheres := []basescopes.ScopeMethod{
+		basescopes.StrategyTablePreloadEndpoint,
+		basescopes.StrategyTablePreloadAlarmPages,
+		basescopes.StrategyTablePreloadCategories,
+		basescopes.StrategyTablePreloadAlertLevel,
+		basescopes.StrategyTablePreloadPromNotifies,
+		basescopes.StrategyTablePreloadPromNotifyUpgrade,
+		basescopes.StrategyTablePreloadGroupInfo,
 	}
 	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, id, wheres...)
 	if err != nil {
@@ -93,17 +91,17 @@ func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Stra
 }
 
 // ListStrategy 获取策略列表
-func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
+func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	scopes := []query.ScopeMethod{
-		strategyscopes.AlertLike(req.GetKeyword()),
-		strategyscopes.GroupIdsEQ(req.GetGroupId()),
+	scopes := []basescopes.ScopeMethod{
+		basescopes.StrategyTableAlertLike(req.GetKeyword()),
+		basescopes.StrategyTableGroupIdsEQ(req.GetGroupId()),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-		strategyscopes.PreloadAlertLevel,
-		strategyscopes.PreloadCategories,
-		strategyscopes.PreloadEndpoint,
+		basescopes.StrategyTablePreloadAlertLevel,
+		basescopes.StrategyTablePreloadCategories,
+		basescopes.StrategyTablePreloadEndpoint,
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}
@@ -117,12 +115,12 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStr
 }
 
 // SelectStrategy 查询策略
-func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *strategyPB.SelectStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
+func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *strategyPB.SelectStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	scopes := []query.ScopeMethod{
-		strategyscopes.AlertLike(req.GetKeyword()),
+	scopes := []basescopes.ScopeMethod{
+		basescopes.StrategyTableAlertLike(req.GetKeyword()),
 		basescopes.StatusEQ(vo.Status(api.Status_STATUS_ENABLED)),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),

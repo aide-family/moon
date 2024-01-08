@@ -49,10 +49,11 @@ export type DataInputProps =
           width?: number | string
           value?: any
           onChange?: (value: any) => void
+          defaultValue?: any
       }
 
 const DataInput: FC<DataInputProps> = (props) => {
-    const { type, parentProps, width, value, onChange } = props
+    const { type, parentProps, width, value, defaultValue, onChange } = props
 
     const renderInput = () => {
         switch (type) {
@@ -60,10 +61,11 @@ const DataInput: FC<DataInputProps> = (props) => {
                 return (
                     <Select
                         allowClear
-                        {...parentProps}
                         style={{ width }}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'radio':
@@ -71,8 +73,9 @@ const DataInput: FC<DataInputProps> = (props) => {
                     <Radio
                         {...parentProps}
                         style={{ width }}
-                        value={value}
+                        defaultChecked={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'checkbox':
@@ -80,27 +83,30 @@ const DataInput: FC<DataInputProps> = (props) => {
                     <Checkbox
                         {...parentProps}
                         style={{ width }}
-                        value={value}
+                        defaultChecked={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'date':
                 return (
                     <DatePicker
                         allowClear
-                        {...parentProps}
                         style={{ width }}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'radio-group':
                 return (
                     <Radio.Group
-                        {...parentProps}
                         style={{ width }}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'password':
@@ -108,10 +114,11 @@ const DataInput: FC<DataInputProps> = (props) => {
                     <Input.Password
                         autoComplete="off"
                         allowClear
-                        {...parentProps}
                         style={{ width }}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             case 'textarea':
@@ -119,9 +126,10 @@ const DataInput: FC<DataInputProps> = (props) => {
                     <Input.TextArea
                         autoComplete="off"
                         allowClear
-                        {...parentProps}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
             default:
@@ -129,10 +137,11 @@ const DataInput: FC<DataInputProps> = (props) => {
                     <Input
                         autoComplete="off"
                         allowClear
-                        {...parentProps}
                         style={{ width }}
                         value={value}
+                        defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
                     />
                 )
         }

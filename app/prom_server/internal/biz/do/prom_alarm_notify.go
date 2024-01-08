@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNamePromNotify = "prom_alarm_notifies"
 
 // PromAlarmNotify 告警通知对象
 type PromAlarmNotify struct {
-	query.BaseModel
+	BaseModel
 	Name            string                   `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:通知名称"`
 	Status          vo.Status                `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark          string                   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`

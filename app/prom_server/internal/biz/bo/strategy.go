@@ -3,8 +3,6 @@ package bo
 import (
 	"strconv"
 
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -40,9 +38,9 @@ type (
 		EndpointId uint32      `json:"endpointId"`
 		Endpoint   *EndpointBO `json:"endpoint"`
 
-		MaxSuppress  string `json:"maxSuppress"`
-		SendInterval string `json:"sendInterval"`
-		SendRecover  bool   `json:"sendRecover"`
+		MaxSuppress  string           `json:"maxSuppress"`
+		SendInterval string           `json:"sendInterval"`
+		SendRecover  vo.IsSendRecover `json:"sendRecover"`
 	}
 )
 
@@ -205,7 +203,7 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 		DataSourceId:   strategyBO.EndpointId,
 		MaxSuppress:    BuildApiDuration(strategyBO.MaxSuppress),
 		SendInterval:   BuildApiDuration(strategyBO.SendInterval),
-		SendRecover:    strategyBO.SendRecover,
+		SendRecover:    strategyBO.SendRecover.Value(),
 	}
 }
 
@@ -246,7 +244,7 @@ func (b *StrategyBO) ToModel() *do.PromStrategy {
 		return nil
 	}
 	return &do.PromStrategy{
-		BaseModel: query.BaseModel{
+		BaseModel: do.BaseModel{
 			ID: b.Id,
 		},
 		GroupID:      b.GroupId,

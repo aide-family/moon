@@ -3,7 +3,6 @@ package systemservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
@@ -79,8 +78,8 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 
 func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
@@ -106,8 +105,8 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 
 func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest) (*pb.SelectRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 		basescopes.StatusEQ(vo.StatusEnabled),

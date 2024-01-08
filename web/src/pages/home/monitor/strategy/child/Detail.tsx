@@ -83,6 +83,7 @@ export const Detail: FC<DetailProps> = (props) => {
 
     const handleEditStrategy = (strategyFormValues: FormValuesType) => {
         if (!detail) return
+
         const strategyInfo: StrategyUpdateRequest = {
             ...detail,
             ...strategyFormValues,
@@ -94,8 +95,24 @@ export const Detail: FC<DetailProps> = (props) => {
             annotations: strategyFormValues.annotations || {},
             expr: strategyFormValues.expr || '',
             dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
-            maxSuppress: strategyFormValues?.maxSuppress,
-            sendInterval: strategyFormValues?.sendInterval,
+            maxSuppress:
+                strategyFormValues?.maxSuppress &&
+                strategyFormValues?.maxSuppress.unit &&
+                strategyFormValues?.maxSuppress.value
+                    ? {
+                          unit: strategyFormValues?.maxSuppress.unit,
+                          value: +strategyFormValues?.maxSuppress.value
+                      }
+                    : undefined,
+            sendInterval:
+                strategyFormValues?.sendInterval &&
+                strategyFormValues?.sendInterval.unit &&
+                strategyFormValues?.sendInterval.value
+                    ? {
+                          unit: strategyFormValues?.sendInterval.unit,
+                          value: +strategyFormValues?.sendInterval.value
+                      }
+                    : undefined,
             sendRecover: strategyFormValues?.sendRecover
         }
         strategyApi.updateStrategy(strategyInfo).then(() => {

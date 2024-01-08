@@ -1,14 +1,13 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromAlarmBeenNotifyChatGroup = "prom_alarm_been_notify_chat_groups"
 
 type PromAlarmBeenNotifyChatGroup struct {
-	query.BaseModel
+	BaseModel
 	RealtimeAlarmID   uint32              `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__realtime_alarm_id,priority:1;comment:告警ID"`
 	ChatGroup         *PromAlarmChatGroup `gorm:"foreignKey:ChatGroupId;comment:通知组"`
 	ChatGroupId       uint32              `gorm:"column:chat_group_id;type:int unsigned;not null;index:idx__chat_group_id,priority:1;comment:通知组ID"`

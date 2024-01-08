@@ -3,7 +3,6 @@ module prometheus-manager
 go 1.21.0
 
 require (
-	github.com/aide-cloud/gorm-normalize v0.5.1
 	github.com/aide-cloud/universal v1.2.2
 	github.com/casbin/casbin/v2 v2.79.0
 	github.com/casbin/gorm-adapter/v3 v3.20.0
@@ -34,6 +33,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/gorm v1.25.5
+	gorm.io/plugin/soft_delete v1.2.1
 )
 
 require (
@@ -107,7 +107,6 @@ require (
 	gorm.io/driver/sqlite v1.4.3 // indirect
 	gorm.io/driver/sqlserver v1.4.1 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
-	gorm.io/plugin/soft_delete v1.2.1 // indirect
 	modernc.org/libc v1.22.2 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect

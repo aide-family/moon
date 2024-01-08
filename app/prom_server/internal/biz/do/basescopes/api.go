@@ -1,4 +1,4 @@
-package systemscopes
+package basescopes
 
 import (
 	"gorm.io/gorm"

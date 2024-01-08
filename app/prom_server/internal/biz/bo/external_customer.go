@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -41,7 +39,7 @@ func (d *ExternalCustomerBO) ToModel() *do.ExternalCustomer {
 		return nil
 	}
 	return &do.ExternalCustomer{
-		BaseModel: query.BaseModel{ID: d.Id},
+		BaseModel: do.BaseModel{ID: d.Id},
 		Name:      d.Name,
 		Address:   d.Address,
 		Contact:   d.Contact,

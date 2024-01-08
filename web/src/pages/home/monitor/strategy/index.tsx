@@ -1,6 +1,6 @@
 import { FC, Key, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Form, Space } from 'antd'
+import { Form, Space, Tag } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
@@ -272,24 +272,18 @@ const Strategy: FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
-                        <div>
+                        <Space wrap size="middle">
                             <Space style={{ width: '100%' }}>
-                                <Button icon={<CopyOutlined />} type="link">
+                                <Tag icon={<CopyOutlined />} color="blue">
                                     expr
-                                </Button>
-
+                                </Tag>
                                 <p style={{ margin: 0 }}>{record?.expr}</p>
                             </Space>
                             <Space style={{ width: '100%' }}>
-                                <Button
-                                    icon={<InfoCircleOutlined />}
-                                    type="link"
-                                >
-                                    备注
-                                </Button>
+                                <Tag icon={<InfoCircleOutlined />}>备注</Tag>
                                 <p style={{ margin: 0 }}>{record?.remark}</p>
                             </Space>
-                        </div>
+                        </Space>
                     )
                 }}
             />

@@ -3,7 +3,6 @@ package chatgroup
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api/perrors"
@@ -36,7 +35,7 @@ func (l *chatGroupRepoImpl) Create(ctx context.Context, chatGroup *bo.ChatGroupB
 	return bo.ChatGroupModelToBO(newChatGroup), nil
 }
 
-func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.ChatGroupBO, error) {
+func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.ChatGroupBO, error) {
 	var chatGroupDetail do.PromAlarmChatGroup
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&chatGroupDetail).Error; err != nil {
 		return nil, err
@@ -45,7 +44,7 @@ func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod
 	return bo.ChatGroupModelToBO(&chatGroupDetail), nil
 }
 
-func (l *chatGroupRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.ChatGroupBO, error) {
+func (l *chatGroupRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	var chatGroupList []*do.PromAlarmChatGroup
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&chatGroupList).Error; err != nil {
 		return nil, err
@@ -56,21 +55,21 @@ func (l *chatGroupRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMetho
 	return list, nil
 }
 
-func (l *chatGroupRepoImpl) Update(ctx context.Context, chatGroup *bo.ChatGroupBO, scopes ...query.ScopeMethod) error {
+func (l *chatGroupRepoImpl) Update(ctx context.Context, chatGroup *bo.ChatGroupBO, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
 	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(chatGroup.ToModel()).Error
 }
 
-func (l *chatGroupRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
+func (l *chatGroupRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
 	return l.data.DB().WithContext(ctx).Scopes(scopes...).Delete(&do.PromAlarmChatGroup{}).Error
 }
 
-func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ChatGroupBO, error) {
+func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	var chatGroupList []*do.PromAlarmChatGroup
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&chatGroupList).Error; err != nil {
 		return nil, err

@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNamePromAlarmRealtime = "prom_alarm_realtime"
 
 // PromAlarmRealtime 实时告警信息
 type PromAlarmRealtime struct {
-	query.BaseModel
+	BaseModel
 	// StrategyID 发生这条告警的具体策略信息
 	StrategyID uint32        `gorm:"column:strategy_id;type:int unsigned;not null;index:idx__strategy_id,priority:1;comment:策略ID"`
 	Strategy   *PromStrategy `gorm:"foreignKey:StrategyID"`

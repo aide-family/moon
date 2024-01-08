@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNamePromChatGroup = "prom_alarm_chat_groups"
 
 // PromAlarmChatGroup 告警通知群组机器人信息
 type PromAlarmChatGroup struct {
-	query.BaseModel
+	BaseModel
 	Status    vo.Status    `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark    string       `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	Name      string       `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx_name,priority:1;comment:名称"`

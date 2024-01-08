@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -56,7 +54,7 @@ func (d *DictBO) ToModel() *do.PromDict {
 		Status:   d.Status,
 		Remark:   d.Remark,
 		Color:    d.Color,
-		BaseModel: query.BaseModel{
+		BaseModel: do.BaseModel{
 			ID: d.Id,
 		},
 	}

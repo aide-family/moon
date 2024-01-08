@@ -3,14 +3,12 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/dictscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
@@ -69,14 +67,16 @@ func (b *DictBiz) GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error
 }
 
 // ListDict 获取字典列表
-func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*bo.DictBO, *query.Page, error) {
+func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*bo.DictBO, basescopes.Pagination, error) {
 	pageReq := req.GetPage()
-	pgInfo := query.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	pgInfo := basescopes.NewPage(pageReq.GetCurr(), pageReq.GetSize())
 
-	wheres := []query.ScopeMethod{
-		dictscopes.WhereCategory(int32(req.GetCategory())),
+	wheres := []basescopes.ScopeMethod{
+		basescopes.WhereCategory(vo.Category(req.GetCategory())),
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.WithTrashed(req.GetIsDeleted()),
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
@@ -87,14 +87,16 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 }
 
 // SelectDict 获取字典列表
-func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*bo.DictBO, *query.Page, error) {
+func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*bo.DictBO, basescopes.Pagination, error) {
 	pageReq := req.GetPage()
-	pgInfo := query.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	pgInfo := basescopes.NewPage(pageReq.GetCurr(), pageReq.GetSize())
 
-	wheres := []query.ScopeMethod{
-		dictscopes.WhereCategory(int32(req.GetCategory())),
+	wheres := []basescopes.ScopeMethod{
+		basescopes.WhereCategory(vo.Category(req.GetCategory())),
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.WithTrashed(req.GetIsDeleted()),
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)

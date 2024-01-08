@@ -3,7 +3,6 @@ package endpoint
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -60,7 +59,7 @@ func (l *endpointRepoImpl) Delete(ctx context.Context, ids []uint32) error {
 	return l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Delete(&do.Endpoint{}).Error
 }
 
-func (l *endpointRepoImpl) List(ctx context.Context, pagination query.Pagination, scopes ...query.ScopeMethod) ([]*bo.EndpointBO, error) {
+func (l *endpointRepoImpl) List(ctx context.Context, pagination basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
 	var endpointList []*do.Endpoint
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pagination))...).Find(&endpointList).Error; err != nil {
 		return nil, err
@@ -79,7 +78,7 @@ func (l *endpointRepoImpl) List(ctx context.Context, pagination query.Pagination
 	return boList, nil
 }
 
-func (l *endpointRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.EndpointBO, error) {
+func (l *endpointRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error) {
 	var detail do.Endpoint
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&detail).Error; err != nil {
 		return nil, err

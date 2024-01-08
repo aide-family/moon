@@ -1,13 +1,9 @@
 package do
 
-import (
-	query "github.com/aide-cloud/gorm-normalize"
-)
-
 const TableNamePromAlarmSuppress = "prom_alarm_suppress"
 
 type PromAlarmSuppress struct {
-	query.BaseModel
+	BaseModel
 	RealtimeAlarmID uint32   `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__realtime_alarm_id,priority:1;comment:告警ID"`
 	UserID          uint32   `gorm:"column:user_id;type:int unsigned;not null;index:idx__user_id,priority:1;comment:用户ID"`
 	UserInfo        *SysUser `gorm:"foreignKey:UserID"`

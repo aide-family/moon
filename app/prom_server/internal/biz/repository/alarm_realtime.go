@@ -3,11 +3,11 @@ package repository
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 var _ AlarmRealtimeRepo = (*UnimplementedAlarmRealtimeRepo)(nil)
@@ -15,8 +15,8 @@ var _ AlarmRealtimeRepo = (*UnimplementedAlarmRealtimeRepo)(nil)
 type (
 	AlarmRealtimeRepo interface {
 		unimplementedAlarmRealtimeRepo()
-		GetRealtimeDetailById(ctx context.Context, id uint32, scopes ...query.ScopeMethod) (*bo.AlarmRealtimeBO, error)
-		GetRealtimeList(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmRealtimeBO, error)
+		GetRealtimeDetailById(ctx context.Context, id uint32, scopes ...basescopes.ScopeMethod) (*bo.AlarmRealtimeBO, error)
+		GetRealtimeList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error)
 		AlarmIntervene(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmInterveneBO) error
 		AlarmUpgrade(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmUpgradeBO) error
 		AlarmSuppress(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmSuppressBO) error
@@ -25,7 +25,7 @@ type (
 		// AppendAlarmBeenNotifyChatGroups 添加发送记录-通知群组
 		AppendAlarmBeenNotifyChatGroups(ctx context.Context, realtimeAlarmID uint32, req *bo.PromAlarmBeenNotifyChatGroupBO) error
 		// GetRealtimeCount 统计相关
-		GetRealtimeCount(ctx context.Context, scopes ...query.ScopeMethod) (int64, error)
+		GetRealtimeCount(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error)
 		// Create 创建实时告警信息, 并缓存
 		Create(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error)
 		// CacheByHistoryId 缓存
@@ -57,15 +57,15 @@ func (UnimplementedAlarmRealtimeRepo) AppendAlarmBeenNotifyMembers(_ context.Con
 	return status.Error(codes.Unimplemented, "method AlarmBeenNotifyMembers not implemented")
 }
 
-func (UnimplementedAlarmRealtimeRepo) GetRealtimeCount(_ context.Context, _ ...query.ScopeMethod) (int64, error) {
+func (UnimplementedAlarmRealtimeRepo) GetRealtimeCount(_ context.Context, _ ...basescopes.ScopeMethod) (int64, error) {
 	return 0, status.Error(codes.Unimplemented, "method GetRealtimeCount not implemented")
 }
 
-func (UnimplementedAlarmRealtimeRepo) GetRealtimeDetailById(_ context.Context, _ uint32, _ ...query.ScopeMethod) (*bo.AlarmRealtimeBO, error) {
+func (UnimplementedAlarmRealtimeRepo) GetRealtimeDetailById(_ context.Context, _ uint32, _ ...basescopes.ScopeMethod) (*bo.AlarmRealtimeBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRealtimeDetail not implemented")
 }
 
-func (UnimplementedAlarmRealtimeRepo) GetRealtimeList(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
+func (UnimplementedAlarmRealtimeRepo) GetRealtimeList(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRealtimeList not implemented")
 }
 

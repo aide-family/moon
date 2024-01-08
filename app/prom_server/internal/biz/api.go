@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -56,7 +55,7 @@ func (b *ApiBiz) GetApiById(ctx context.Context, id uint32) (*bo.ApiBO, error) {
 }
 
 // ListApi 获取api列表
-func (b *ApiBiz) ListApi(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.ApiBO, error) {
+func (b *ApiBiz) ListApi(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
 	apiBOList, err := b.apiRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding"
 	"encoding/json"
+	"errors"
 	"strconv"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/pkg/helper/consts"
@@ -150,7 +151,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 	}
 
 	// 判断角色是否存在, 且状态为启用状态
-	if err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID).Err(); err != nil && err != redis.Nil {
+	if err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID).Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return err
 	}
 
@@ -159,16 +160,12 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 
 // CacheDisabledRoles 缓存角色禁用列表
 func CacheDisabledRoles(db *gorm.DB, cacheClient *redis.Client, roleIds ...uint32) error {
-	wheres := []query.ScopeMethod{
-		func(db *gorm.DB) *gorm.DB {
-			return db.Where("status != ?", vo.StatusEnabled)
-		},
-		func(db *gorm.DB) *gorm.DB {
-			return db.Where("deleted_at != ?", 0)
-		},
+	wheres := []func(tx *gorm.DB) *gorm.DB{
+		basescopes.StatusNotEQ(vo.StatusEnabled),
+		basescopes.DeleteAtGT0(),
 	}
 	if len(roleIds) > 0 {
-		wheres = append(wheres, query.WhereInColumn("id", roleIds...))
+		wheres = append(wheres, basescopes.WhereInColumn("id", roleIds...))
 	}
 	var roles []*SysRole
 	if err := db.Unscoped().Select("id,status,deleted_at").Scopes(wheres...).Find(&roles).Error; err != nil {

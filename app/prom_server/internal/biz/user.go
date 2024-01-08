@@ -4,14 +4,12 @@ import (
 	"context"
 	"strconv"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/after"
@@ -47,7 +45,7 @@ func NewUserBiz(
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Get(ctx, basescopes.InIds(id), systemscopes.UserPreloadRoles())
+	userBo, err := b.userRepo.Get(ctx, basescopes.InIds(id), basescopes.UserPreloadRoles())
 	if err != nil {
 		return nil, err
 	}
@@ -60,10 +58,10 @@ func (b *UserBiz) CheckNewUser(ctx context.Context, userBo *bo.UserBO) error {
 		return perrors.ErrorInvalidParams("用户信息不能为空")
 	}
 
-	wheres := []query.ScopeMethod{
-		systemscopes.UserEqName(userBo.Username),
-		systemscopes.UserEqEmail(userBo.Email),
-		systemscopes.UserEqPhone(userBo.Phone),
+	wheres := []basescopes.ScopeMethod{
+		basescopes.UserEqName(userBo.Username),
+		basescopes.UserEqEmail(userBo.Email),
+		basescopes.UserEqPhone(userBo.Phone),
 	}
 	list, err := b.userRepo.Find(ctx, wheres...)
 	if err != nil {
@@ -133,7 +131,7 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 }
 
 // GetUserList 获取用户列表
-func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.UserBO, error) {
+func (b *UserBiz) GetUserList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
 	userBos, err := b.userRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err
@@ -143,7 +141,7 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo query.Pagination, scop
 
 // LoginByUsernameAndPassword 登录
 func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *bo.UserBO, token string, err error) {
-	userBO, err = b.userRepo.Get(ctx, systemscopes.UserEqName(username), systemscopes.UserPreloadRoles())
+	userBO, err = b.userRepo.Get(ctx, basescopes.UserEqName(username), basescopes.UserPreloadRoles())
 	if err != nil {
 		return
 	}
@@ -209,7 +207,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userBO, err = b.userRepo.Get(context.Background(), basescopes.InIds(authClaims.ID), systemscopes.UserPreloadRoles())
+	userBO, err = b.userRepo.Get(context.Background(), basescopes.InIds(authClaims.ID), basescopes.UserPreloadRoles())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return
