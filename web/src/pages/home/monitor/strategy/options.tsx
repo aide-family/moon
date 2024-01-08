@@ -6,7 +6,13 @@ import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { ActionKey } from '@/apis/data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { Category, PageReqType, Status, StatusMap } from '@/apis/types'
+import {
+    Category,
+    Duration,
+    PageReqType,
+    Status,
+    StatusMap
+} from '@/apis/types'
 import { NotifyItem } from '@/apis/home/monitor/alarm-notify/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import endpointApi from '@/apis/home/monitor/endpoint'
@@ -14,6 +20,7 @@ import strategyGroupApi from '@/apis/home/monitor/strategy-group'
 import dictApi from '@/apis/home/system/dict'
 import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import strategyApi from '@/apis/home/monitor/strategy'
+import { DictSelectItem } from '@/apis/home/system/dict/types'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -149,8 +156,8 @@ export const columns: (
         dataIndex: 'duration',
         key: 'duration',
         width: 160,
-        render: (duration: string) => {
-            return duration
+        render: (duration: Duration) => {
+            return duration.value + '' + duration.unit
         }
     },
     {
@@ -169,12 +176,12 @@ export const columns: (
     },
     {
         title: '策略等级',
-        dataIndex: 'level',
-        key: 'level',
+        dataIndex: 'alarmLevelInfo',
+        key: 'alarmLevelInfo',
         width: 160,
-        render: (_: number, record: StrategyItemType) => {
-            if (!record.alarmLevelInfo) return '-'
-            const { color, label, value } = record.alarmLevelInfo
+        render: (alarmLevelInfo: DictSelectItem) => {
+            if (!alarmLevelInfo) return '-'
+            const { color, label, value } = alarmLevelInfo
             return (
                 <Tag key={value} color={color}>
                     {label}
@@ -304,25 +311,6 @@ export const sverityOptions = [
     }
 ]
 
-export const maxSuppressUnitOptions = [
-    {
-        label: '秒',
-        value: 's'
-    },
-    {
-        label: '分钟',
-        value: 'm'
-    },
-    {
-        label: '小时',
-        value: 'h'
-    },
-    {
-        label: '天',
-        value: 'd'
-    }
-]
-
 export const notifyObjectTableColumns: (
     | ColumnGroupType<NotifyItem>
     | ColumnType<NotifyItem>
@@ -437,7 +425,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
     ],
     [
         {
-            name: 'levelId',
+            name: 'alarmLevelId',
             label: '策略等级',
             rules: [
                 {

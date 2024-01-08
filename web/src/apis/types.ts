@@ -221,6 +221,11 @@ interface IdsReponse {
     ids: number[]
 }
 
+interface Duration {
+    value?: number | string | null
+    unit?: string
+}
+
 export type {
     Map,
     BaseResp,
@@ -231,5 +236,6 @@ export type {
     PageResType,
     PageReqType,
     IdReponse,
-    IdsReponse
+    IdsReponse,
+    Duration
 }
