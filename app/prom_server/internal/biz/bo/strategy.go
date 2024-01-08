@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"strconv"
+
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
@@ -37,6 +39,10 @@ type (
 
 		EndpointId uint32      `json:"endpointId"`
 		Endpoint   *EndpointBO `json:"endpoint"`
+
+		MaxSuppress  string `json:"maxSuppress"`
+		SendInterval string `json:"sendInterval"`
+		SendRecover  bool   `json:"sendRecover"`
 	}
 )
 
@@ -146,6 +152,29 @@ func (b *StrategyBO) CategoryInfoToApiSelectV1() []*api.DictSelectV1 {
 	return ListToApiDictSelectV1(b.GetCategories()...)
 }
 
+// BuildApiDuration 字符串转为api时间
+func BuildApiDuration(duration string) *api.Duration {
+	durationLen := len(duration)
+	if duration == "" || durationLen < 2 {
+		return nil
+	}
+	value, _ := strconv.Atoi(duration[:durationLen-1])
+	// 获取字符串最后一个字符
+	unit := string(duration[durationLen-1])
+	return &api.Duration{
+		Value: int64(value),
+		Unit:  unit,
+	}
+}
+
+// BuildApiDurationString 时间转换为字符串
+func BuildApiDurationString(duration *api.Duration) string {
+	if duration == nil {
+		return ""
+	}
+	return strconv.FormatInt(duration.Value, 10) + duration.Unit
+}
+
 // ToApiV1 策略转换为api策略
 func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 	if b == nil {
@@ -156,7 +185,7 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 		Id:             strategyBO.Id,
 		Alert:          strategyBO.Alert,
 		Expr:           strategyBO.Expr,
-		Duration:       strategyBO.Duration,
+		Duration:       BuildApiDuration(strategyBO.Duration),
 		Labels:         strategyBO.GetLabels().Map(),
 		Annotations:    strategyBO.GetAnnotations().Map(),
 		Status:         strategyBO.Status.Value(),
@@ -174,6 +203,9 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 		Remark:         strategyBO.Remark,
 		DataSource:     strategyBO.GetEndpoint().ToApiSelectV1(),
 		DataSourceId:   strategyBO.EndpointId,
+		MaxSuppress:    BuildApiDuration(strategyBO.MaxSuppress),
+		SendInterval:   BuildApiDuration(strategyBO.SendInterval),
+		SendRecover:    strategyBO.SendRecover,
 	}
 }
 
@@ -232,9 +264,12 @@ func (b *StrategyBO) ToModel() *model.PromStrategy {
 		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *model.PromDict {
 			return dictInfo.ToModel()
 		}),
-		AlertLevel: b.GetAlarmLevelInfo().ToModel(),
-		GroupInfo:  b.GetGroupInfo().ToModel(),
-		EndpointID: b.EndpointId,
+		AlertLevel:   b.GetAlarmLevelInfo().ToModel(),
+		GroupInfo:    b.GetGroupInfo().ToModel(),
+		MaxSuppress:  b.MaxSuppress,
+		SendRecover:  b.SendRecover,
+		SendInterval: b.SendInterval,
+		EndpointID:   b.EndpointId,
 	}
 }
 
@@ -277,7 +312,10 @@ func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
 		PromNotifyUpgrade: slices.To(m.GetPromNotifyUpgrade(), func(notifyInfo *model.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
-		EndpointId: m.EndpointID,
-		Endpoint:   EndpointModelToBO(m.GetEndpoint()),
+		EndpointId:   m.EndpointID,
+		Endpoint:     EndpointModelToBO(m.GetEndpoint()),
+		MaxSuppress:  m.MaxSuppress,
+		SendInterval: m.SendInterval,
+		SendRecover:  m.SendRecover,
 	}
 }

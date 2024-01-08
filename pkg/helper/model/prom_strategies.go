@@ -32,11 +32,11 @@ type PromStrategy struct {
 	// 告警升级后的通知对象
 	PromNotifyUpgrade []*PromAlarmNotify `gorm:"many2many:prom_strategy_notify_upgrades;comment:告警升级后的通知对象"`
 	// 最大抑制时长(s)
-	MaxSuppress int64 `gorm:"column:max_suppress;type:bigint;not null;default:0;comment:最大抑制时长(s)"`
+	MaxSuppress string `gorm:"column:max_suppress;type:varchar(255);not null;default:1m;comment:最大抑制时长(s)"`
 	// 是否发送告警恢复通知
 	SendRecover bool `gorm:"column:send_recover;type:tinyint;not null;default:0;comment:是否发送告警恢复通知"`
 	// 发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况
-	SendInterval int64 `gorm:"column:send_interval;type:bigint;not null;default:0;comment:发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况"`
+	SendInterval string `gorm:"column:send_interval;type:varchar(255);not null;default:1m;comment:发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况"`
 
 	// 数据源
 	EndpointID uint32    `gorm:"column:endpoint_id;type:int unsigned;not null;default:0;comment:数据源ID"`

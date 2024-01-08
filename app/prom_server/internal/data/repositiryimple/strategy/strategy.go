@@ -64,10 +64,10 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 			return err
 		}
 
-		if err := tx.WithContext(txCtx).Model(newStrategy).Scopes(basescopes.InIds(newStrategy.ID)).Association(strategyscopes.PreloadKeyAlarmPages).Replace(alarmPages); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(strategyscopes.PreloadKeyAlarmPages).Replace(alarmPages); err != nil {
 			return err
 		}
-		if err := tx.WithContext(txCtx).Model(newStrategy).Scopes(basescopes.InIds(newStrategy.ID)).Association(strategyscopes.PreloadKeyCategories).Replace(categories); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(strategyscopes.PreloadKeyCategories).Replace(categories); err != nil {
 			return err
 		}
 

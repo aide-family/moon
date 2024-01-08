@@ -1040,6 +1040,8 @@ func (m *ListRoleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for Status
+
 	if len(errors) > 0 {
 		return ListRoleRequestMultiError(errors)
 	}

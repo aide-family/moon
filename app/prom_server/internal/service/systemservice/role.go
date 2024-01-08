@@ -82,6 +82,8 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.UpdateAtDesc(),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
@@ -107,6 +109,8 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.UpdateAtDesc(),
+		basescopes.StatusEQ(valueobj.StatusEnabled),
 	}
 
 	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)

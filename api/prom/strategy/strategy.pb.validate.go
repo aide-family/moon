@@ -105,10 +105,10 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if l := utf8.RuneCountInString(m.GetDuration()); l < 1 || l > 10 {
+	if m.GetDuration() == nil {
 		err := CreateStrategyRequestValidationError{
 			field:  "Duration",
-			reason: "value length must be between 1 and 10 runes, inclusive",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -116,15 +116,33 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CreateStrategyRequest_Duration_Pattern.MatchString(m.GetDuration()) {
-		err := CreateStrategyRequestValidationError{
-			field:  "Duration",
-			reason: "value does not match regex pattern \"^[1-9][0-9]*[smhd]$\"",
+	if all {
+		switch v := interface{}(m.GetDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateStrategyRequestValidationError{
+				field:  "Duration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if l := len(m.GetLabels()); l < 1 || l > 100 {
@@ -342,6 +360,66 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if all {
+		switch v := interface{}(m.GetMaxSuppress()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "MaxSuppress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "MaxSuppress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMaxSuppress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateStrategyRequestValidationError{
+				field:  "MaxSuppress",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSendInterval()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "SendInterval",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateStrategyRequestValidationError{
+					field:  "SendInterval",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendInterval()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateStrategyRequestValidationError{
+				field:  "SendInterval",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for SendRecover
+
 	if len(errors) > 0 {
 		return CreateStrategyRequestMultiError(errors)
 	}
@@ -423,8 +501,6 @@ var _ interface {
 } = CreateStrategyRequestValidationError{}
 
 var _CreateStrategyRequest_Alert_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _CreateStrategyRequest_Duration_Pattern = regexp.MustCompile("^[1-9][0-9]*[smhd]$")
 
 var _CreateStrategyRequest_Labels_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
@@ -611,10 +687,10 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if l := utf8.RuneCountInString(m.GetDuration()); l < 1 || l > 10 {
+	if m.GetDuration() == nil {
 		err := UpdateStrategyRequestValidationError{
 			field:  "Duration",
-			reason: "value length must be between 1 and 10 runes, inclusive",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -622,15 +698,33 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_UpdateStrategyRequest_Duration_Pattern.MatchString(m.GetDuration()) {
-		err := UpdateStrategyRequestValidationError{
-			field:  "Duration",
-			reason: "value does not match regex pattern \"^[1-9][0-9]*[smhd]$\"",
+	if all {
+		switch v := interface{}(m.GetDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateStrategyRequestValidationError{
+				field:  "Duration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if l := len(m.GetLabels()); l < 1 || l > 100 {
@@ -848,6 +942,66 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if all {
+		switch v := interface{}(m.GetMaxSuppress()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "MaxSuppress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "MaxSuppress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMaxSuppress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateStrategyRequestValidationError{
+				field:  "MaxSuppress",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSendInterval()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "SendInterval",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateStrategyRequestValidationError{
+					field:  "SendInterval",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendInterval()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateStrategyRequestValidationError{
+				field:  "SendInterval",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for SendRecover
+
 	if len(errors) > 0 {
 		return UpdateStrategyRequestMultiError(errors)
 	}
@@ -929,8 +1083,6 @@ var _ interface {
 } = UpdateStrategyRequestValidationError{}
 
 var _UpdateStrategyRequest_Alert_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _UpdateStrategyRequest_Duration_Pattern = regexp.MustCompile("^[1-9][0-9]*[smhd]$")
 
 var _UpdateStrategyRequest_Labels_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 

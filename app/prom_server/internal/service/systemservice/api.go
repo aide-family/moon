@@ -5,6 +5,7 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/system"
@@ -96,7 +97,10 @@ func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.Get
 func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.ListApiReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo)
+	wheres := []query.ScopeMethod{
+		basescopes.UpdateAtDesc(),
+	}
+	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +121,10 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*pb.SelectApiReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo)
+	wheres := []query.ScopeMethod{
+		basescopes.UpdateAtDesc(),
+	}
+	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
 	if err != nil {
 		return nil, err
 	}

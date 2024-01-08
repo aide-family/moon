@@ -68,6 +68,13 @@ func CreatedAtDesc() query.ScopeMethod {
 	}
 }
 
+// UpdateAtDesc 按更新时间倒序
+func UpdateAtDesc() query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Order("updated_at desc")
+	}
+}
+
 // Page 分页
 func Page(pgInfo query.Pagination) query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
