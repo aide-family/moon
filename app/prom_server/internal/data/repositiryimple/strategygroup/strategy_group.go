@@ -25,7 +25,6 @@ var _ repository.StrategyGroupRepo = (*strategyGroupRepoImpl)(nil)
 type (
 	strategyGroupRepoImpl struct {
 		repository.UnimplementedStrategyGroupRepo
-		query.IAction[model.PromStrategyGroup]
 
 		data *data.Data
 		log  *log.Helper
@@ -42,7 +41,8 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 		return nil
 	}
 
-	strategyDB := l.data.DB().Model(&model.PromStrategy{}).WithContext(ctx)
+	tx := basescopes.GetTx(ctx, l.data.DB())
+	strategyDB := tx.Model(&model.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
 	if err := strategyDB.Scopes(strategyscopes.GroupIdsEQ(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
@@ -57,7 +57,7 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 		caseSet.WriteString(" ")
 	}
 	caseSet.WriteString("END")
-	db := l.data.DB().Model(&model.PromStrategyGroup{}).WithContext(ctx)
+	db := tx.Model(&model.PromStrategyGroup{}).WithContext(ctx)
 	return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
 }
 
@@ -66,7 +66,8 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 		return nil
 	}
 
-	strategyDB := l.data.DB().Model(&model.PromStrategy{}).WithContext(ctx)
+	tx := basescopes.GetTx(ctx, l.data.DB())
+	strategyDB := tx.Model(&model.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
 	wheres := []query.ScopeMethod{
 		strategyscopes.GroupIdsEQ(ids...),
@@ -86,13 +87,13 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 		caseSet.WriteString(" ")
 	}
 	caseSet.WriteString("END")
-	db := l.data.DB().Model(&model.PromStrategyGroup{}).WithContext(ctx)
+	db := tx.Model(&model.PromStrategyGroup{}).WithContext(ctx)
 	return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", gorm.Expr(caseSet.String())).Error
 }
 
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
-	if err := l.WithContext(ctx).Create(strategyGroupModel); err != nil {
+	if err := l.data.DB().WithContext(ctx).Create(strategyGroupModel).Error; err != nil {
 		return nil, err
 	}
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
@@ -100,38 +101,46 @@ func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.St
 
 func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
-	if err := l.WithContext(ctx).UpdateByID(id, strategyGroupModel); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id)).Updates(strategyGroupModel).Error; err != nil {
 		return nil, err
 	}
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
 func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status valueobj.Status, ids []uint32) error {
-	if err := l.WithContext(ctx).Update(&model.PromStrategyGroup{Status: status}, basescopes.InIds(ids...)); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&model.PromStrategyGroup{Status: status}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) error {
-	if err := l.WithContext(ctx).Delete(basescopes.InIds(ids...)); err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Delete(&model.PromStrategyGroup{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error) {
-	first, err := l.WithContext(ctx).FirstByID(id)
-	if err != nil {
+	var first model.PromStrategyGroup
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id)).First(id).Error; err != nil {
 		return nil, err
 	}
-	return bo.StrategyGroupModelToBO(first), nil
+
+	return bo.StrategyGroupModelToBO(&first), nil
 }
 
 func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
-	strategyModelList, err := l.WithContext(ctx).List(pgInfo, scopes...)
-	if err != nil {
+	var strategyModelList []*model.PromStrategyGroup
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&strategyModelList).Error; err != nil {
 		return nil, err
+	}
+	if pgInfo != nil {
+		var total int64
+		if err := l.data.DB().WithContext(ctx).Model(&model.PromStrategyGroup{}).WithContext(ctx).Count(&total).Error; err != nil {
+			return nil, err
+		}
+		pgInfo.SetTotal(total)
 	}
 	list := slices.To(strategyModelList, func(m *model.PromStrategyGroup) *bo.StrategyGroupBO {
 		return bo.StrategyGroupModelToBO(m)
@@ -141,9 +150,6 @@ func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Paginatio
 
 func NewStrategyGroupRepo(data *data.Data, logger log.Logger) repository.StrategyGroupRepo {
 	return &strategyGroupRepoImpl{
-		IAction: query.NewAction[model.PromStrategyGroup](
-			query.WithDB[model.PromStrategyGroup](data.DB()),
-		),
 		data: data,
 		log:  log.NewHelper(logger),
 	}

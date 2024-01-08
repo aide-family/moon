@@ -62,7 +62,7 @@ export const Detail: FC<DetailProps> = (props) => {
             alarmLevelId: strategyFormValues?.lables?.sverity
                 ? +strategyFormValues.lables.sverity
                 : 0,
-            dataSourceId: 1,
+            dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
             labels: strategyFormValues?.lables || {},
             annotations: strategyFormValues?.annotations || {},
             expr: strategyFormValues.expr || '',
@@ -89,7 +89,8 @@ export const Detail: FC<DetailProps> = (props) => {
                 : 0,
             labels: strategyFormValues.lables || {},
             annotations: strategyFormValues.annotations || {},
-            expr: strategyFormValues.expr || ''
+            expr: strategyFormValues.expr || '',
+            dataSourceId: (strategyFormValues.dataSource?.value as number) || 0
         }
         strategyApi.updateStrategy(strategyInfo).then(() => {
             onClose()

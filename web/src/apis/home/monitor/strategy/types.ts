@@ -72,6 +72,7 @@ interface StrategyUpdateRequest {
     categoryIds: number[]
     alarmLevelId: Number
     remark?: string
+    dataSourceId?: number
 }
 
 /** 策略更新响应参数 */

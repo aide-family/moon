@@ -22,6 +22,6 @@ type PromAlarmPage struct {
 }
 
 // TableName PromAlarmPage's table name
-func (*PromAlarmPage) TableName() string {
+func (PromAlarmPage) TableName() string {
 	return TableNamePromAlarmPage
 }

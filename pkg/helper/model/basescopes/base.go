@@ -1,6 +1,8 @@
 package basescopes
 
 import (
+	"context"
+
 	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
 	"prometheus-manager/pkg/helper/valueobj"
@@ -64,4 +66,30 @@ func CreatedAtDesc() query.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at desc")
 	}
+}
+
+// Page 分页
+func Page(pgInfo query.Pagination) query.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if pgInfo == nil {
+			return db
+		}
+		return db.Offset(int((pgInfo.GetCurr() - 1) * pgInfo.GetSize())).Limit(int(pgInfo.GetSize()))
+	}
+}
+
+type TxContext struct{}
+
+// WithTx 上下文中设置tx
+func WithTx(ctx context.Context, tx *gorm.DB) context.Context {
+	return context.WithValue(ctx, TxContext{}, tx)
+}
+
+// GetTx 从上下文中获取tx
+func GetTx(ctx context.Context, db *gorm.DB) *gorm.DB {
+	tx, ok := ctx.Value(TxContext{}).(*gorm.DB)
+	if ok {
+		return tx
+	}
+	return db
 }
