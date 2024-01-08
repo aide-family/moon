@@ -4,19 +4,19 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
 	PromAlarmBeenNotifyChatGroupBO struct {
-		ID                uint32          `json:"id"`
-		Status            valueobj.Status `json:"status"`
-		Msg               string          `json:"msg"`
-		PromAlarmNotifyID uint32          `json:"promAlarmNotifyID"`
-		RealtimeAlarmID   uint32          `json:"realtimeAlarmID"`
-		ChatGroup         *ChatGroupBO    `json:"chatGroup"`
-		ChatGroupId       uint32          `json:"chatGroupId"`
+		ID                uint32       `json:"id"`
+		Status            vo.Status    `json:"status"`
+		Msg               string       `json:"msg"`
+		PromAlarmNotifyID uint32       `json:"promAlarmNotifyID"`
+		RealtimeAlarmID   uint32       `json:"realtimeAlarmID"`
+		ChatGroup         *ChatGroupBO `json:"chatGroup"`
+		ChatGroupId       uint32       `json:"chatGroupId"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -33,8 +33,8 @@ func (l *PromAlarmBeenNotifyChatGroupBO) GetChatGroup() *ChatGroupBO {
 }
 
 // ToModel 转换为模型
-func (l *PromAlarmBeenNotifyChatGroupBO) ToModel() *model.PromAlarmBeenNotifyChatGroup {
-	return &model.PromAlarmBeenNotifyChatGroup{
+func (l *PromAlarmBeenNotifyChatGroupBO) ToModel() *do.PromAlarmBeenNotifyChatGroup {
+	return &do.PromAlarmBeenNotifyChatGroup{
 		BaseModel:         query.BaseModel{ID: l.ID},
 		RealtimeAlarmID:   l.RealtimeAlarmID,
 		ChatGroup:         l.GetChatGroup().ToModel(),
@@ -59,7 +59,7 @@ func (l *PromAlarmBeenNotifyChatGroupBO) ToApi() *api.ChatGroupSelectV1 {
 }
 
 // PromAlarmBeenNotifyChatGroupModelToBO 转换为业务对象
-func PromAlarmBeenNotifyChatGroupModelToBO(m *model.PromAlarmBeenNotifyChatGroup) *PromAlarmBeenNotifyChatGroupBO {
+func PromAlarmBeenNotifyChatGroupModelToBO(m *do.PromAlarmBeenNotifyChatGroup) *PromAlarmBeenNotifyChatGroupBO {
 	return &PromAlarmBeenNotifyChatGroupBO{
 		ID:                m.ID,
 		Status:            m.Status,

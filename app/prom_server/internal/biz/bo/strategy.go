@@ -6,8 +6,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -20,7 +20,7 @@ type (
 		Duration       string                `json:"duration"`
 		Labels         *strategy.Labels      `json:"labels"`
 		Annotations    *strategy.Annotations `json:"annotations"`
-		Status         valueobj.Status       `json:"status"`
+		Status         vo.Status             `json:"status"`
 		Remark         string                `json:"remark"`
 		GroupId        uint32                `json:"groupId"`
 		GroupInfo      *StrategyGroupBO      `json:"groupInfo"`
@@ -241,11 +241,11 @@ func ListToApiPromStrategySelectV1(values ...*StrategyBO) []*api.PromStrategySel
 	return list
 }
 
-func (b *StrategyBO) ToModel() *model.PromStrategy {
+func (b *StrategyBO) ToModel() *do.PromStrategy {
 	if b == nil {
 		return nil
 	}
-	return &model.PromStrategy{
+	return &do.PromStrategy{
 		BaseModel: query.BaseModel{
 			ID: b.Id,
 		},
@@ -258,10 +258,10 @@ func (b *StrategyBO) ToModel() *model.PromStrategy {
 		AlertLevelID: b.AlarmLevelId,
 		Status:       b.Status,
 		Remark:       b.Remark,
-		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *AlarmPageBO) *model.PromAlarmPage {
+		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *AlarmPageBO) *do.PromAlarmPage {
 			return alarmPageInfo.ToModel()
 		}),
-		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *model.PromDict {
+		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *do.PromDict {
 			return dictInfo.ToModel()
 		}),
 		AlertLevel:   b.GetAlarmLevelInfo().ToModel(),
@@ -274,7 +274,7 @@ func (b *StrategyBO) ToModel() *model.PromStrategy {
 }
 
 // StrategyModelToBO .
-func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
+func StrategyModelToBO(m *do.PromStrategy) *StrategyBO {
 	if m == nil {
 		return nil
 	}
@@ -291,25 +291,25 @@ func StrategyModelToBO(m *model.PromStrategy) *StrategyBO {
 		GroupInfo:      StrategyGroupModelToBO(m.GetGroupInfo()),
 		AlarmLevelId:   m.AlertLevelID,
 		AlarmLevelInfo: DictModelToBO(m.GetAlertLevel()),
-		AlarmPageIds: slices.To(m.GetAlarmPages(), func(alarmPageInfo *model.PromAlarmPage) uint32 {
+		AlarmPageIds: slices.To(m.GetAlarmPages(), func(alarmPageInfo *do.PromAlarmPage) uint32 {
 			return alarmPageInfo.ID
 		}),
-		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *model.PromAlarmPage) *AlarmPageBO {
+		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *do.PromAlarmPage) *AlarmPageBO {
 			return AlarmPageModelToBO(dictInfo)
 		}),
-		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *model.PromDict) uint32 {
+		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *do.PromDict) uint32 {
 			return dictInfo.ID
 		}),
-		Categories: slices.To(m.GetCategories(), func(dictInfo *model.PromDict) *DictBO {
+		Categories: slices.To(m.GetCategories(), func(dictInfo *do.PromDict) *DictBO {
 			return DictModelToBO(dictInfo)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
-		PromNotifies: slices.To(m.GetPromNotifies(), func(notifyInfo *model.PromAlarmNotify) *NotifyBO {
+		PromNotifies: slices.To(m.GetPromNotifies(), func(notifyInfo *do.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
-		PromNotifyUpgrade: slices.To(m.GetPromNotifyUpgrade(), func(notifyInfo *model.PromAlarmNotify) *NotifyBO {
+		PromNotifyUpgrade: slices.To(m.GetPromNotifyUpgrade(), func(notifyInfo *do.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
 		EndpointId:   m.EndpointID,

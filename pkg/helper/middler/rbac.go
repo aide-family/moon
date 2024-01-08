@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/redis/go-redis/v9"
-
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/conn"
-	"prometheus-manager/pkg/helper/model"
 )
 
 const AdminRole = "1"
 
-func RbacServer(cache ...*redis.Client) middleware.Middleware {
+type CheckUserRoleExistFun func(ctx context.Context, userID uint32, roleID string) error
+type GetApiIDByPathAndMethodFun func(ctx context.Context, path, method string) (uint64, error)
+
+func RbacServer(checkFun CheckUserRoleExistFun, getApiFun GetApiIDByPathAndMethodFun) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			// 1. 解析jwt
@@ -39,11 +39,13 @@ func RbacServer(cache ...*redis.Client) middleware.Middleware {
 			}
 
 			// 3. 校验用户是否具备这个角色, 避免角色被删除后, 用户仍然具备这个角色
-			if len(cache) > 0 && cache[0] != nil {
-				if err = model.CheckUserRoleExist(ctx, cache[0], authClaims.ID, authClaims.Role); err != nil {
+			if checkFun != nil {
+				if err = checkFun(ctx, authClaims.ID, authClaims.Role); err != nil {
 					return nil, perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 				}
-				if _, err = model.GetApiIDByPathAndMethod(cache[0], path, method); err != nil {
+			}
+			if getApiFun != nil {
+				if _, err = getApiFun(ctx, path, method); err != nil {
 					return nil, err
 				}
 			}

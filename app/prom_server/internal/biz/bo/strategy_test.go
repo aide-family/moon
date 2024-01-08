@@ -5,9 +5,9 @@ import (
 )
 
 func TestBuildApiDuration(t *testing.T) {
-	t.Log(buildApiDuration("1m"))
-	t.Log(buildApiDuration("1h"))
-	t.Log(buildApiDuration("1d"))
-	t.Log(buildApiDuration("d"))
-	t.Log(buildApiDuration("1"))
+	t.Log(BuildApiDuration("1m"))
+	t.Log(BuildApiDuration("1h"))
+	t.Log(BuildApiDuration("1d"))
+	t.Log(BuildApiDuration("d"))
+	t.Log(BuildApiDuration("1"))
 }

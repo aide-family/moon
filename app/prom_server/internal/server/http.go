@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	nHttp "net/http"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
@@ -100,7 +102,14 @@ func NewHTTPServer(
 		middler.JwtServer(),
 		middler.MustLogin(d.Client()),
 	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
-	rbacMiddle := selector.Server(middler.RbacServer(d.Client())).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
+	rbacMiddle := selector.Server(middler.RbacServer(
+		func(ctx context.Context, userID uint32, roleID string) error {
+			return do.CheckUserRoleExist(ctx, d.Client(), userID, roleID)
+		},
+		func(ctx context.Context, path, method string) (uint64, error) {
+			return do.GetApiIDByPathAndMethod(d.Client(), path, method)
+		},
+	)).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
 
 	var opts = []http.ServerOption{
 		http.Filter(middler.Cors(), middler.Context()),

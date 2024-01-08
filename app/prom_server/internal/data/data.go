@@ -9,10 +9,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"prometheus-manager/pkg/conn"
-	"prometheus-manager/pkg/helper/model"
-
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/pkg/conn"
 )
 
 // ProviderSetData is data providers.
@@ -58,7 +57,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	}
 
 	if env.GetEnv() == "dev" || env.GetEnv() == "test" {
-		if err = model.Migrate(db); err != nil {
+		if err = do.Migrate(db); err != nil {
 			d.log.Errorf("db migrate error: %v", err)
 			return nil, nil, err
 		}
@@ -75,13 +74,13 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 
-	if err = model.CacheUserRoles(d.DB(), d.Client()); err != nil {
+	if err = do.CacheUserRoles(d.DB(), d.Client()); err != nil {
 		return nil, nil, err
 	}
-	if err = model.CacheAllApiSimple(d.DB(), d.Client()); err != nil {
+	if err = do.CacheAllApiSimple(d.DB(), d.Client()); err != nil {
 		return nil, nil, err
 	}
-	if err = model.CacheDisabledRoles(d.DB(), d.Client()); err != nil {
+	if err = do.CacheDisabledRoles(d.DB(), d.Client()); err != nil {
 		return nil, nil, err
 	}
 

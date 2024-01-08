@@ -5,15 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
 
 	"prometheus-manager/api"
 	dictpb "prometheus-manager/api/dict"
-	"prometheus-manager/pkg/helper/model/dictscopes"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/dictscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
@@ -52,7 +51,7 @@ func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO
 
 // BatchUpdateDictStatus 批量更新字典状态
 func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint32) error {
-	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, valueobj.Status(status), ids)
+	return b.dictRepo.BatchUpdateDictStatusByIds(ctx, vo.Status(status), ids)
 }
 
 // DeleteDictByIds 删除字典

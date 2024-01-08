@@ -5,10 +5,9 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
@@ -45,7 +44,7 @@ func (l *StrategyGroupBiz) UpdateById(ctx context.Context, strategyGroup *bo.Str
 }
 
 func (l *StrategyGroupBiz) BatchUpdateStatus(ctx context.Context, status api.Status, ids []uint32) error {
-	if err := l.strategyGroupRepo.BatchUpdateStatus(ctx, valueobj.Status(status), ids); err != nil {
+	if err := l.strategyGroupRepo.BatchUpdateStatus(ctx, vo.Status(status), ids); err != nil {
 		return err
 	}
 	return nil

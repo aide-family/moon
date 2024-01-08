@@ -11,13 +11,13 @@ var _ repository.AlarmSuppressRepo = (*alarmSuppressImpl)(nil)
 
 type alarmSuppressImpl struct {
 	repository.UnimplementedAlarmSuppressRepo
-	log *log.Helper
-	d   *data.Data
+	log  *log.Helper
+	data *data.Data
 }
 
 func NewAlarmSuppress(data *data.Data, logger log.Logger) repository.AlarmSuppressRepo {
 	return &alarmSuppressImpl{
-		log: log.NewHelper(log.With(logger, "module", "repository.alarm.suppress")),
-		d:   data,
+		log:  log.NewHelper(log.With(logger, "module", "repository.alarm.suppress")),
+		data: data,
 	}
 }

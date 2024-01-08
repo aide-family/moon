@@ -6,8 +6,7 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -22,7 +21,7 @@ type (
 		// UpdateStrategyById 通过id更新策略
 		UpdateStrategyById(ctx context.Context, id uint32, strategy *bo.StrategyBO) (*bo.StrategyBO, error)
 		// BatchUpdateStrategyStatusByIds 通过id批量更新策略状态
-		BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error
+		BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error
 		// DeleteStrategyByIds 通过id删除策略
 		DeleteStrategyByIds(ctx context.Context, id ...uint32) error
 		// GetStrategyById 通过id获取策略详情
@@ -46,7 +45,7 @@ func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint32,
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategyById not implemented")
 }
 
-func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ valueobj.Status, _ []uint32) error {
+func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
 	return status.Errorf(codes.Unimplemented, "method BatchUpdateStrategyStatusByIds not implemented")
 }
 

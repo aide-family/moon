@@ -5,15 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/pkg/helper/model/basescopes"
-	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
-
 	pb "prometheus-manager/api/prom/notify"
-
 	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type ChatGroupService struct {
@@ -35,7 +34,7 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 		Name:      req.GetName(),
 		Remark:    req.GetRemark(),
 		Hook:      req.GetHook(),
-		NotifyApp: valueobj.NotifyApp(req.GetApp()),
+		NotifyApp: vo.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
 	}
 	chatGroupBo, err := s.chatGroupBiz.CreateChatGroup(ctx, chatGroupBo)
@@ -53,9 +52,9 @@ func (s *ChatGroupService) UpdateChatGroup(ctx context.Context, req *pb.UpdateCh
 		Id:        req.GetId(),
 		Name:      req.GetName(),
 		Remark:    req.GetRemark(),
-		Status:    valueobj.Status(req.GetStatus()),
+		Status:    vo.Status(req.GetStatus()),
 		Hook:      req.GetHook(),
-		NotifyApp: valueobj.NotifyApp(req.GetApp()),
+		NotifyApp: vo.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
 	}
 	if err := s.chatGroupBiz.UpdateChatGroupById(ctx, chatGroupBo, chatGroupBo.Id); err != nil {
@@ -90,7 +89,7 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 
 	wheres := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)
@@ -116,7 +115,7 @@ func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectCh
 
 	wheres := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)

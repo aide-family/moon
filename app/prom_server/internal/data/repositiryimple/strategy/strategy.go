@@ -6,15 +6,15 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/basescopes"
-	"prometheus-manager/pkg/helper/model/strategyscopes"
-	"prometheus-manager/pkg/helper/valueobj"
-	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/strategyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/pkg/util/slices"
 )
 
 var _ repository.StrategyRepo = (*strategyRepoImpl)(nil)
@@ -31,15 +31,14 @@ type (
 )
 
 func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error) {
-	modelList := make([]*model.PromStrategy, 0, len(ids))
+	modelList := make([]*do.PromStrategy, 0, len(ids))
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Find(&modelList).Error; err != nil {
 		return nil, err
 	}
 
-	list := make([]*bo.StrategyBO, 0, len(modelList))
-	for _, m := range modelList {
-		list = append(list, bo.StrategyModelToBO(m))
-	}
+	list := slices.To(modelList, func(item *do.PromStrategy) *bo.StrategyBO {
+		return bo.StrategyModelToBO(item)
+	})
 	return list, nil
 }
 
@@ -47,13 +46,13 @@ func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) 
 func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
 	newStrategy := strategyBO.ToModel()
 	// 替换报警页面和分类
-	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *model.PromAlarmPage {
-		return &model.PromAlarmPage{
+	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *do.PromAlarmPage {
+		return &do.PromAlarmPage{
 			BaseModel: query.BaseModel{ID: pageId},
 		}
 	})
-	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *model.PromDict {
-		return &model.PromDict{
+	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
+		return &do.PromDict{
 			BaseModel: query.BaseModel{ID: categoryId},
 		}
 	})
@@ -99,13 +98,13 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 	newStrategy := strategyBO.ToModel()
 	newStrategy.ID = detail.ID
 	// 替换报警页面和分类
-	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *model.PromAlarmPage {
-		return &model.PromAlarmPage{
+	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *do.PromAlarmPage {
+		return &do.PromAlarmPage{
 			BaseModel: query.BaseModel{ID: pageId},
 		}
 	})
-	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *model.PromDict {
-		return &model.PromDict{
+	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
+		return &do.PromDict{
 			BaseModel: query.BaseModel{ID: categoryId},
 		}
 	})
@@ -137,10 +136,10 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status valueobj.Status, ids []uint32) error {
+func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Updates(&model.PromStrategy{Status: status}).Error; err != nil {
+		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromStrategy{Status: status}).Error; err != nil {
 			return err
 		}
 		// 更新策略组的启用策略数量
@@ -152,17 +151,17 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 }
 
 func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint32) error {
-	var detailList []*model.PromStrategy
+	var detailList []*do.PromStrategy
 	if err := l.data.DB().Scopes(basescopes.InIds(ids...)).Find(&detailList).Error; err != nil {
 		return err
 	}
 
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&model.PromStrategy{}).Error; err != nil {
+		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&do.PromStrategy{}).Error; err != nil {
 			return err
 		}
-		groupIds := slices.To(detailList, func(i *model.PromStrategy) uint32 {
+		groupIds := slices.To(detailList, func(i *do.PromStrategy) uint32 {
 			return i.GroupID
 		})
 		// 更新策略组的策略数量
@@ -186,8 +185,8 @@ func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, where
 	return bo.StrategyModelToBO(firstStrategy), nil
 }
 
-func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*model.PromStrategy, error) {
-	var first model.PromStrategy
+func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*do.PromStrategy, error) {
+	var first do.PromStrategy
 	if err := l.data.DB().WithContext(ctx).Scopes(append(wheres, basescopes.InIds(id))...).First(&first).Error; err != nil {
 		return nil, err
 	}
@@ -195,19 +194,19 @@ func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, where
 }
 
 func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyBO, error) {
-	var listStrategy []*model.PromStrategy
+	var listStrategy []*do.PromStrategy
 
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&model.PromStrategy{}).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromStrategy{}).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
 	}
-	list := slices.To(listStrategy, func(i *model.PromStrategy) *bo.StrategyBO {
+	list := slices.To(listStrategy, func(i *do.PromStrategy) *bo.StrategyBO {
 		return bo.StrategyModelToBO(i)
 	})
 	return list, nil

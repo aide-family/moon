@@ -5,15 +5,14 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
-
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/model/systemscopes"
-	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/systemscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/after"
 )
 
 type (
@@ -84,7 +83,7 @@ func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.Ro
 }
 
 // UpdateRoleStatusById 更新角色状态
-func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status valueobj.Status, ids []uint32) error {
+func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
 	roleBo := &bo.RoleBO{Status: status}
 	if err := b.roleRepo.UpdateAll(ctx, roleBo, basescopes.InIds(ids...)); err != nil {
 		return err
@@ -105,7 +104,7 @@ func (b *RoleBiz) cacheRoleByIds(roleIds ...uint32) {
 		if err != nil {
 			return
 		}
-		if err = model.CacheDisabledRoles(db, cacheClient, roleIds...); err != nil {
+		if err = do.CacheDisabledRoles(db, cacheClient, roleIds...); err != nil {
 			b.log.Error(err)
 		}
 	}()

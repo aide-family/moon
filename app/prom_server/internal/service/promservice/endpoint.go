@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/endpoint"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type EndpointService struct {
@@ -73,7 +72,7 @@ func (s *EndpointService) EditEndpoint(ctx context.Context, req *pb.EditEndpoint
 
 // BatchEditEndpointStatus 批量编辑状态
 func (s *EndpointService) BatchEditEndpointStatus(ctx context.Context, req *pb.BatchEditEndpointStatusRequest) (*pb.BatchEditEndpointStatusReply, error) {
-	if err := s.endpointBiz.UpdateStatusByIds(ctx, req.GetIds(), valueobj.Status(req.GetStatus())); err != nil {
+	if err := s.endpointBiz.UpdateStatusByIds(ctx, req.GetIds(), vo.Status(req.GetStatus())); err != nil {
 		return nil, err
 	}
 	return &pb.BatchEditEndpointStatusReply{

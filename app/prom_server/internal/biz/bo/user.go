@@ -4,28 +4,28 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	UserBO struct {
-		Id        uint32          `json:"id"`
-		Username  string          `json:"username"`
-		Nickname  string          `json:"nickname"`
-		Password  string          `json:"password"`
-		Salt      string          `json:"salt"`
-		Email     string          `json:"email"`
-		Phone     string          `json:"phone"`
-		Status    valueobj.Status `json:"status"`
-		Remark    string          `json:"remark"`
-		Avatar    string          `json:"avatar"`
-		CreatedAt int64           `json:"createdAt"`
-		UpdatedAt int64           `json:"updatedAt"`
-		DeletedAt int64           `json:"deletedAt"`
-		Roles     []*RoleBO       `json:"roles"`
-		Gender    valueobj.Gender `json:"gender"`
+		Id        uint32    `json:"id"`
+		Username  string    `json:"username"`
+		Nickname  string    `json:"nickname"`
+		Password  string    `json:"password"`
+		Salt      string    `json:"salt"`
+		Email     string    `json:"email"`
+		Phone     string    `json:"phone"`
+		Status    vo.Status `json:"status"`
+		Remark    string    `json:"remark"`
+		Avatar    string    `json:"avatar"`
+		CreatedAt int64     `json:"createdAt"`
+		UpdatedAt int64     `json:"updatedAt"`
+		DeletedAt int64     `json:"deletedAt"`
+		Roles     []*RoleBO `json:"roles"`
+		Gender    vo.Gender `json:"gender"`
 	}
 )
 
@@ -76,12 +76,12 @@ func (l *UserBO) ToApiV1() *api.UserV1 {
 	}
 }
 
-func (l *UserBO) ToModel() *model.SysUser {
+func (l *UserBO) ToModel() *do.SysUser {
 	if l == nil {
 		return nil
 	}
 
-	return &model.SysUser{
+	return &do.SysUser{
 		BaseModel: query.BaseModel{
 			ID: l.Id,
 		},
@@ -95,14 +95,14 @@ func (l *UserBO) ToModel() *model.SysUser {
 		Remark:   l.Remark,
 		Avatar:   l.Avatar,
 		Gender:   l.Gender,
-		Roles: slices.To(l.GetRoles(), func(bo *RoleBO) *model.SysRole {
+		Roles: slices.To(l.GetRoles(), func(bo *RoleBO) *do.SysRole {
 			return bo.ToModel()
 		}),
 	}
 }
 
 // UserModelToBO .
-func UserModelToBO(m *model.SysUser) *UserBO {
+func UserModelToBO(m *do.SysUser) *UserBO {
 	if m == nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ func UserModelToBO(m *model.SysUser) *UserBO {
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
-		Roles: slices.To(m.GetRoles(), func(m *model.SysRole) *RoleBO {
+		Roles: slices.To(m.GetRoles(), func(m *do.SysRole) *RoleBO {
 			return RoleModelToBO(m)
 		}),
 		Gender: m.Gender,

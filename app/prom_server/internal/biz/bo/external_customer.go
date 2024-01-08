@@ -4,8 +4,8 @@ import (
 	query "github.com/aide-cloud/gorm-normalize"
 
 	"prometheus-manager/api"
-	"prometheus-manager/pkg/helper/model"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -18,7 +18,7 @@ type (
 		Phone   string                    `json:"phone"`
 		Email   string                    `json:"email"`
 		Remark  string                    `json:"remark"`
-		Status  valueobj.Status           `json:"status"`
+		Status  vo.Status                 `json:"status"`
 		Hooks   []*ExternalCustomerHookBO `json:"hooks"`
 
 		CreatedAt int64 `json:"createdAt"`
@@ -36,11 +36,11 @@ func (d *ExternalCustomerBO) GetHooks() []*ExternalCustomerHookBO {
 }
 
 // ToModel 转换为模型
-func (d *ExternalCustomerBO) ToModel() *model.ExternalCustomer {
+func (d *ExternalCustomerBO) ToModel() *do.ExternalCustomer {
 	if d == nil {
 		return nil
 	}
-	return &model.ExternalCustomer{
+	return &do.ExternalCustomer{
 		BaseModel: query.BaseModel{ID: d.Id},
 		Name:      d.Name,
 		Address:   d.Address,
@@ -49,7 +49,7 @@ func (d *ExternalCustomerBO) ToModel() *model.ExternalCustomer {
 		Email:     d.Email,
 		Remark:    d.Remark,
 		Status:    d.Status,
-		Hooks: slices.To(d.GetHooks(), func(item *ExternalCustomerHookBO) *model.ExternalCustomerHook {
+		Hooks: slices.To(d.GetHooks(), func(item *ExternalCustomerHookBO) *do.ExternalCustomerHook {
 			return item.ToModel()
 		}),
 	}
@@ -78,7 +78,7 @@ func (d *ExternalCustomerBO) ToApi() *api.ExternalCustomer {
 }
 
 // ExternalCustomerModelToBO 模型转换为BO
-func ExternalCustomerModelToBO(m *model.ExternalCustomer) *ExternalCustomerBO {
+func ExternalCustomerModelToBO(m *do.ExternalCustomer) *ExternalCustomerBO {
 	if m == nil {
 		return nil
 	}
@@ -91,7 +91,7 @@ func ExternalCustomerModelToBO(m *model.ExternalCustomer) *ExternalCustomerBO {
 		Email:   m.Email,
 		Remark:  m.Remark,
 		Status:  m.Status,
-		Hooks: slices.To(m.GetHooks(), func(item *model.ExternalCustomerHook) *ExternalCustomerHookBO {
+		Hooks: slices.To(m.GetHooks(), func(item *do.ExternalCustomerHook) *ExternalCustomerHookBO {
 			return ExternalCustomerHookModelToBO(item)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),

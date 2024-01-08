@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/dict"
-	"prometheus-manager/pkg/helper/valueobj"
-
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -31,7 +30,7 @@ func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
 func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
 	dictBo := &bo.DictBO{
 		Name:     req.GetName(),
-		Category: valueobj.Category(req.GetCategory()),
+		Category: vo.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
@@ -47,10 +46,10 @@ func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*p
 	dictBo := &bo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
-		Category: valueobj.Category(req.GetCategory()),
+		Category: vo.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
-		Status:   valueobj.Status(req.GetStatus()),
+		Status:   vo.Status(req.GetStatus()),
 	}
 	newDict, err := s.dictBiz.UpdateDict(ctx, dictBo)
 	if err != nil {

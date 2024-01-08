@@ -5,16 +5,15 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
-	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/prom/strategy"
-
+	strategyPB "prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/do/strategyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/helper/model/strategyscopes"
-	"prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -63,7 +62,7 @@ func (b *StrategyXBiz) UpdateStrategyById(ctx context.Context, id uint32, strate
 
 // BatchUpdateStrategyStatusByIds 批量更新策略状态
 func (b *StrategyXBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	return b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, valueobj.Status(status), ids)
+	return b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, vo.Status(status), ids)
 }
 
 // DeleteStrategyByIds 删除策略
@@ -94,14 +93,14 @@ func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Stra
 }
 
 // ListStrategy 获取策略列表
-func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
+func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
 		strategyscopes.AlertLike(req.GetKeyword()),
 		strategyscopes.GroupIdsEQ(req.GetGroupId()),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 		strategyscopes.PreloadAlertLevel,
 		strategyscopes.PreloadCategories,
 		basescopes.UpdateAtDesc(),
@@ -116,13 +115,13 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 }
 
 // SelectStrategy 查询策略
-func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
+func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *strategyPB.SelectStrategyRequest) ([]*bo.StrategyBO, query.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
 	scopes := []query.ScopeMethod{
 		strategyscopes.AlertLike(req.GetKeyword()),
-		basescopes.StatusEQ(valueobj.Status(api.Status_STATUS_ENABLED)),
+		basescopes.StatusEQ(vo.Status(api.Status_STATUS_ENABLED)),
 		basescopes.UpdateAtDesc(),
 	}
 
@@ -135,7 +134,7 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 }
 
 // ExportStrategy 导出策略
-func (b *StrategyXBiz) ExportStrategy(ctx context.Context, req *pb.ExportStrategyRequest) ([]*bo.StrategyBO, error) {
+func (b *StrategyXBiz) ExportStrategy(ctx context.Context, req *strategyPB.ExportStrategyRequest) ([]*bo.StrategyBO, error) {
 	strategyBOs, err := b.strategyRepo.ListStrategyByIds(ctx, req.GetIds())
 	if err != nil {
 		return nil, err

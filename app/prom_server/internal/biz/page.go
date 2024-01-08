@@ -5,14 +5,13 @@ import (
 
 	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/model/basescopes"
-
-	"prometheus-manager/pkg/helper/valueobj"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
@@ -54,7 +53,7 @@ func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.A
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
 func (p *PageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, valueobj.Status(status), ids)
+	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, vo.Status(status), ids)
 }
 
 // DeletePageByIds 通过id删除页面
@@ -78,7 +77,7 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
@@ -95,7 +94,7 @@ func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageReq
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
