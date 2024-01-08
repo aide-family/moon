@@ -2,16 +2,16 @@ import { DictSelectItem } from '../../system/dict/types'
 import { AlarmPageSelectItem } from '../alarm-page/types'
 import { PrometheusServerSelectItem } from '../endpoint/types'
 import { StrategyGroupSelectItemType } from '../strategy-group/types'
-import { Map, PageReqType, PageResType } from '@/apis/types'
+import { Duration, Map, PageReqType, PageResType } from '@/apis/types'
 
 /** 策略详情 */
 interface StrategyItemType {
     id: number
     alert: string
     expr: string
-    duration: string
-    labels: Map
-    annotations: Map
+    duration?: Duration
+    labels?: Map
+    annotations?: Map
     status: number
     groupId: number
     groupInfo?: StrategyGroupSelectItemType
@@ -27,6 +27,11 @@ interface StrategyItemType {
     remark: string
     dataSourceId: number
     dataSource: PrometheusServerSelectItem
+    maxSuppress?: Duration
+    // 告警通知间隔
+    sendInterval?: Duration
+    // 是否发送告警通知
+    sendRecover?: boolean
 }
 
 interface StrategySelectItemType {
@@ -44,14 +49,20 @@ interface StrategyCreateRequest {
     groupId: number
     alert: string
     expr: string
-    duration: string
-    labels: Map
-    annotations: Map
+    duration?: Duration
+    labels?: Map
+    annotations?: Map
     alarmPageIds: number[]
     categoryIds: number[]
     alarmLevelId: number
-    remark: string
+    remark?: string
     dataSourceId: number
+    // 最大抑制时常
+    maxSuppress?: Duration
+    // 告警通知间隔
+    sendInterval?: Duration
+    // 是否发送告警通知
+    sendRecover?: boolean
 }
 
 /** 策略创建响应参数 */
@@ -65,14 +76,20 @@ interface StrategyUpdateRequest {
     groupId: number
     alert: string
     expr: string
-    duration: string
-    labels: Map
-    annotations: Map
+    duration?: Duration
+    labels?: Map
+    annotations?: Map
     alarmPageIds: number[]
     categoryIds: number[]
     alarmLevelId: Number
     remark?: string
     dataSourceId?: number
+    // 最大抑制时常
+    maxSuppress?: Duration
+    // 告警通知间隔
+    sendInterval?: Duration
+    // 是否发送告警通知
+    sendRecover?: boolean
 }
 
 /** 策略更新响应参数 */

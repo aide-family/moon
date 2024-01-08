@@ -21,7 +21,6 @@ import {
     getLevels,
     getRestrain,
     getStrategyGroups,
-    maxSuppressUnitOptions,
     strategyEditOptions,
     sverityOptions
 } from '../options'
@@ -33,6 +32,7 @@ import { DefaultOptionType } from 'antd/es/select'
 import TimeUintInput from './TimeUintInput'
 import { Rule } from 'antd/es/form'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
+import { Duration } from '@/apis/types'
 
 export type FormValuesType = {
     alert?: string
@@ -41,7 +41,7 @@ export type FormValuesType = {
         description: string
         [key: string]: string
     }
-    duration?: string
+    duration?: Duration
     dataSource?: DefaultOptionType
     groupId?: number
     lables?: { sverity?: string; [key: string]: string | undefined }
@@ -50,7 +50,13 @@ export type FormValuesType = {
     alarmPageIds?: number[]
     categoryIds?: number[]
     remark?: string
-    levelId?: number
+    alarmLevelId?: number
+    dataSourceId: number
+    // 最大抑制时常
+    maxSuppress?: Duration
+    // 告警通知间隔
+    sendInterval?: Duration
+    // 是否发送告警通知
     sendRecover?: boolean
 }
 export interface StrategyFormProps {
@@ -100,7 +106,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             form?.resetFields()
             return
         }
-        const init = {
+        const init: FormValuesType = {
             ...value,
             lables: {
                 ...value?.labels,
@@ -110,8 +116,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             },
             annotations: {
                 ...value?.annotations,
-                title: value?.annotations['title'],
-                description: value?.annotations['description']
+                title: value?.annotations?.['title'],
+                description: value?.annotations?.['description']
             },
             dataSource: {
                 value: value.dataSource?.value,
@@ -121,7 +127,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             restrain: [],
             alert: value?.alert,
             duration: value?.duration,
-            levelId: value?.alarmLevelId,
+            alarmLevelId: value?.alarmLevelId,
             alarmPageIds: value?.alarmPageIds,
             expr: value?.expr,
             groupId: value?.groupId,
@@ -268,7 +274,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         defaultOptions={groupIdOptions}
                     />
                 }
-                levelId={
+                alarmLevelId={
                     <FetchSelect
                         selectProps={{
                             placeholder: '请选择告警级别'
@@ -313,6 +319,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 }
                 duration={
                     <TimeUintInput
+                        name="duration"
                         width="100%"
                         placeholder={['请输入持续时间', '选择单位']}
                         unitOptions={durationOptions}
@@ -320,16 +327,18 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 }
                 maxSuppress={
                     <TimeUintInput
+                        name="maxSuppress"
                         width="100%"
                         placeholder={['请输入最大抑制时间', '选择单位']}
-                        unitOptions={maxSuppressUnitOptions}
+                        unitOptions={durationOptions}
                     />
                 }
                 sendInterval={
                     <TimeUintInput
+                        name="sendInterval"
                         width="100%"
                         placeholder={['请输入最大通知间隔时间', '选择单位']}
-                        unitOptions={maxSuppressUnitOptions}
+                        unitOptions={durationOptions}
                     />
                 }
             >

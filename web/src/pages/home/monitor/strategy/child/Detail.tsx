@@ -58,7 +58,7 @@ export const Detail: FC<DetailProps> = (props) => {
     const handleAddStrategy = (strategyFormValues: FormValuesType) => {
         const strategyInfo: StrategyCreateRequest = {
             ...strategyFormValues,
-            duration: strategyFormValues.duration || '',
+            duration: strategyFormValues.duration,
             alarmLevelId: strategyFormValues?.lables?.sverity
                 ? +strategyFormValues.lables.sverity
                 : 0,
@@ -70,7 +70,10 @@ export const Detail: FC<DetailProps> = (props) => {
             alert: strategyFormValues.alert || '',
             alarmPageIds: strategyFormValues?.alarmPageIds || [],
             categoryIds: strategyFormValues?.categoryIds || [],
-            remark: strategyFormValues.remark || ''
+            remark: strategyFormValues.remark || '',
+            maxSuppress: strategyFormValues?.maxSuppress,
+            sendInterval: strategyFormValues?.sendInterval,
+            sendRecover: strategyFormValues?.sendRecover
         }
         strategyApi.addStrategy(strategyInfo).then(() => {
             onClose()
@@ -83,14 +86,17 @@ export const Detail: FC<DetailProps> = (props) => {
         const strategyInfo: StrategyUpdateRequest = {
             ...detail,
             ...strategyFormValues,
-            duration: strategyFormValues.duration || '',
+            duration: strategyFormValues.duration,
             alarmLevelId: strategyFormValues?.lables?.sverity
                 ? +strategyFormValues?.lables?.sverity
                 : 0,
             labels: strategyFormValues.lables || {},
             annotations: strategyFormValues.annotations || {},
             expr: strategyFormValues.expr || '',
-            dataSourceId: (strategyFormValues.dataSource?.value as number) || 0
+            dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
+            maxSuppress: strategyFormValues?.maxSuppress,
+            sendInterval: strategyFormValues?.sendInterval,
+            sendRecover: strategyFormValues?.sendRecover
         }
         strategyApi.updateStrategy(strategyInfo).then(() => {
             onClose()
@@ -103,6 +109,7 @@ export const Detail: FC<DetailProps> = (props) => {
         setLoading(true)
         form.validateFields()
             .then((values) => {
+                console.log('values', values)
                 // 单独校验expr字段
                 switch (actionKey) {
                     case ActionKey.ADD:
