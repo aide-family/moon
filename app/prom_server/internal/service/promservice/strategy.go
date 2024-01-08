@@ -42,6 +42,7 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 		AlarmLevelId: req.GetAlarmLevelId(),
 		AlarmPageIds: req.GetAlarmPageIds(),
 		CategoryIds:  req.GetCategoryIds(),
+		EndpointId:   req.GetDataSourceId(),
 	})
 
 	if err != nil {
@@ -60,6 +61,9 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 		Remark:       req.GetRemark(),
 		GroupId:      req.GetGroupId(),
 		AlarmLevelId: req.GetAlarmLevelId(),
+		EndpointId:   req.GetDataSourceId(),
+		AlarmPageIds: req.GetAlarmPageIds(),
+		CategoryIds:  req.GetCategoryIds(),
 	})
 	if err != nil {
 		return nil, err
