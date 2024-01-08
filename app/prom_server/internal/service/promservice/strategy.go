@@ -32,9 +32,10 @@ func NewStrategyService(strategyBiz *biz.StrategyXBiz, logger log.Logger) *Strat
 
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error) {
 	strategyBO, err := s.strategyBiz.CreateStrategy(ctx, &bo.StrategyBO{
+
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
-		Duration:     req.GetDuration(),
+		Duration:     bo.BuildApiDurationString(req.GetDuration()),
 		Labels:       strategy.MapToLabels(req.GetLabels()),
 		Annotations:  strategy.MapToAnnotations(req.GetAnnotations()),
 		Remark:       req.GetRemark(),
@@ -43,6 +44,9 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 		AlarmPageIds: req.GetAlarmPageIds(),
 		CategoryIds:  req.GetCategoryIds(),
 		EndpointId:   req.GetDataSourceId(),
+		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
+		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
+		SendRecover:  req.GetSendRecover(),
 	})
 
 	if err != nil {
@@ -53,17 +57,21 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 
 func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStrategyRequest) (*pb.UpdateStrategyReply, error) {
 	strategyBO, err := s.strategyBiz.UpdateStrategyById(ctx, req.GetId(), &bo.StrategyBO{
+		Id:           req.GetId(),
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
-		Duration:     req.GetDuration(),
+		Duration:     bo.BuildApiDurationString(req.GetDuration()),
 		Labels:       strategy.MapToLabels(req.GetLabels()),
 		Annotations:  strategy.MapToAnnotations(req.GetAnnotations()),
 		Remark:       req.GetRemark(),
 		GroupId:      req.GetGroupId(),
 		AlarmLevelId: req.GetAlarmLevelId(),
-		EndpointId:   req.GetDataSourceId(),
 		AlarmPageIds: req.GetAlarmPageIds(),
 		CategoryIds:  req.GetCategoryIds(),
+		EndpointId:   req.GetDataSourceId(),
+		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
+		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
+		SendRecover:  req.GetSendRecover(),
 	})
 	if err != nil {
 		return nil, err

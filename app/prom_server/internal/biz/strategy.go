@@ -104,6 +104,7 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *pb.ListStrategyReq
 		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 		strategyscopes.PreloadAlertLevel,
 		strategyscopes.PreloadCategories,
+		basescopes.UpdateAtDesc(),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
@@ -122,6 +123,7 @@ func (b *StrategyXBiz) SelectStrategy(ctx context.Context, req *pb.SelectStrateg
 	scopes := []query.ScopeMethod{
 		strategyscopes.AlertLike(req.GetKeyword()),
 		basescopes.StatusEQ(valueobj.Status(api.Status_STATUS_ENABLED)),
+		basescopes.UpdateAtDesc(),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)

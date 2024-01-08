@@ -13,7 +13,7 @@ import (
 	pb "prometheus-manager/api/system"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/model/systemscopes"
-	valueobj2 "prometheus-manager/pkg/helper/valueobj"
+	"prometheus-manager/pkg/helper/valueobj"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
 
@@ -47,7 +47,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Email:    req.GetEmail(),
 		Phone:    req.GetPhone(),
 		Nickname: req.GetNickname(),
-		Gender:   valueobj2.Gender(req.GetGender()),
+		Gender:   valueobj.Gender(req.GetGender()),
 	}
 
 	if err = s.userBiz.CheckNewUser(ctx, userBo); err != nil {
@@ -66,9 +66,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 		Id:       req.GetId(),
 		Nickname: req.GetNickname(),
 		Avatar:   req.GetAvatar(),
-		Status:   valueobj2.Status(req.GetStatus()),
+		Status:   valueobj.Status(req.GetStatus()),
 		Remark:   req.GetRemark(),
-		Gender:   valueobj2.Gender(req.GetGender()),
+		Gender:   valueobj.Gender(req.GetGender()),
 	}
 	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
 	if err != nil {
@@ -102,7 +102,9 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
+		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -126,7 +128,9 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		systemscopes.UserLike(req.GetKeyword()),
+		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(valueobj.StatusEnabled),
 	}
 	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -170,7 +174,7 @@ func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPass
 }
 
 func (s *UserService) EditUserStatus(ctx context.Context, req *pb.EditUserStatusRequest) (*pb.EditUserStatusReply, error) {
-	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj2.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.userBiz.UpdateUserStatusById(ctx, valueobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.EditUserStatusReply{Ids: req.GetIds()}, nil

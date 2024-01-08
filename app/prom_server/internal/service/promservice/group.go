@@ -105,6 +105,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.StatusEQ(valueobj.Status(req.GetStatus())),
 		strategygroupscopes.PreloadCategories(),
+		basescopes.UpdateAtDesc(),
 	}
 	list, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
 	if err != nil {
@@ -127,6 +128,7 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []query.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.UpdateAtDesc(),
 	}
 	selectList, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
 	if err != nil {

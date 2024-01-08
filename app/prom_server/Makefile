@@ -21,7 +21,7 @@ dev:
 
 .PHONY:
 local:
-	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_server -conf ./configs
+	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_server -conf ./configs_local
 
 .PHONY: init
 # init env

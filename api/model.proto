@@ -119,7 +119,7 @@ message PromStrategyV1 {
   // 表达式
   string expr = 3;
   // 持续时间
-  string duration = 4;
+  Duration duration = 4;
   // 标签
   map<string, string> labels = 5;
   // 注解
@@ -153,6 +153,12 @@ message PromStrategyV1 {
   // 数据源
   PrometheusServerSelectItem dataSource = 20;
   uint32 dataSourceId = 21;
+  // 最大抑制时常
+  Duration maxSuppress = 22;
+  // 告警通知间隔
+  Duration sendInterval = 23;
+  // 是否发送告警通知
+  bool sendRecover = 24;
 }
 
 // 策略选择类型
@@ -531,4 +537,11 @@ message RealtimeAlarmData {
   int64 updatedAt = 17;
   // 告警等级
   DictSelectV1 level = 18;
+}
+
+message Duration {
+  int64 value = 1 [(validate.rules).int64.gt = 0];
+  string unit = 2 [(validate.rules).string = {
+    in: ["s", "m", "h", "d"]
+  }];
 }
