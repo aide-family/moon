@@ -3,8 +3,8 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -36,7 +36,7 @@ func (l *AlarmRealtimeBiz) GetRealtimeDetailById(ctx context.Context, id uint32)
 }
 
 // GetRealtimeList 获取实时告警列表
-func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
+func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
 	return l.realtimeRepo.GetRealtimeList(ctx, pgInfo, scopes...)
 }
 

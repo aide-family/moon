@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNamePromAlarmHistory = "prom_alarm_histories"
 
 // PromAlarmHistory 报警历史数据
 type PromAlarmHistory struct {
-	query.BaseModel
+	BaseModel
 	Instance   string         `gorm:"column:instance;type:varchar(64);not null;comment:instance名称;index:idx__instance"`
 	Status     vo.AlarmStatus `gorm:"column:status;type:varchar(16);not null;comment:告警消息状态, 报警和恢复"`
 	Info       string         `gorm:"column:info;type:json;not null;comment:原始告警消息"`

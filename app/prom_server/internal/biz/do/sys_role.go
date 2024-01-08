@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNameRole = "sys_roles"
 
 // SysRole 角色表
 type SysRole struct {
-	query.BaseModel
+	BaseModel
 	Remark string     `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:角色名称"`
 	Status vo.Status  `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -95,7 +93,7 @@ func (l *AlarmRealtimeBO) ToModel() *do.PromAlarmRealtime {
 	}
 
 	return &do.PromAlarmRealtime{
-		BaseModel:         query.BaseModel{ID: l.ID},
+		BaseModel:         do.BaseModel{ID: l.ID},
 		StrategyID:        l.StrategyID,
 		LevelId:           l.LevelId,
 		Instance:          l.Instance,

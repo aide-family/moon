@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNameSystemUser = "sys_users"
 
 // SysUser 用户表
 type SysUser struct {
-	query.BaseModel
+	BaseModel
 	Username string     `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx__username,priority:1;comment:用户名"`
 	Nickname string     `gorm:"column:nickname;type:varchar(64);not null;comment:昵称"`
 	Password string     `gorm:"column:password;type:varchar(255);not null;comment:密码"`

@@ -3,7 +3,6 @@ package notify
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api/perrors"
@@ -28,7 +27,7 @@ type notifyRepoImpl struct {
 	data *data.Data
 }
 
-func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (*bo.NotifyBO, error) {
+func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.NotifyBO, error) {
 	var notifyDetail do.PromAlarmNotify
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&notifyDetail).Error; err != nil {
 		return nil, err
@@ -37,7 +36,7 @@ func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...query.ScopeMethod) (
 	return bo.NotifyModelToBO(&notifyDetail), nil
 }
 
-func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) ([]*bo.NotifyBO, error) {
+func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*do.PromAlarmNotify
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&notifyList).Error; err != nil {
 		return nil, err
@@ -48,7 +47,7 @@ func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...query.ScopeMethod) 
 	}), nil
 }
 
-func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...query.ScopeMethod) (int64, error) {
+func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error) {
 	var total int64
 	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Count(&total).Error; err != nil {
 		return 0, err
@@ -56,7 +55,7 @@ func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...query.ScopeMethod)
 	return total, nil
 }
 
-func (l *notifyRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.NotifyBO, error) {
+func (l *notifyRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*do.PromAlarmNotify
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&notifyList).Error; err != nil {
 		return nil, err
@@ -83,14 +82,14 @@ func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.N
 	return bo.NotifyModelToBO(newNotify), nil
 }
 
-func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes ...query.ScopeMethod) error {
+func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
 	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(notify.ToModel()).Error
 }
 
-func (l *notifyRepoImpl) Delete(ctx context.Context, scopes ...query.ScopeMethod) error {
+func (l *notifyRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}

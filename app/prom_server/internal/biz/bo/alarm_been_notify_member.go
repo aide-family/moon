@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -45,7 +43,7 @@ func (l *AlarmBeenNotifyMemberBO) GetMember() *UserBO {
 // ToModel 转换为model
 func (l *AlarmBeenNotifyMemberBO) ToModel() *do.PromAlarmBeenNotifyMember {
 	return &do.PromAlarmBeenNotifyMember{
-		BaseModel:         query.BaseModel{ID: l.ID},
+		BaseModel:         do.BaseModel{ID: l.ID},
 		RealtimeAlarmID:   l.RealtimeAlarmID,
 		NotifyTypes:       l.GetNotifyTypes(),
 		MemberId:          l.MemberId,

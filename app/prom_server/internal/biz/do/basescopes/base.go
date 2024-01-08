@@ -2,19 +2,43 @@ package basescopes
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
+type Field string
+
+const (
+	BaseFieldID        Field = "id"
+	BaseFieldCreatedAt Field = "created_at"
+	BaseFieldUpdatedAt Field = "updated_at"
+	BaseFieldDeletedAt Field = "deleted_at"
+	BaseFieldStatus    Field = "status"
+	BaseFieldName      Field = "name"
+)
+
+// String string
+func (f Field) String() string {
+	return string(f)
+}
+
+// Format string
+func (f Field) Format(str ...string) Field {
+	return Field(fmt.Sprintf("`%s` %s", f, strings.Join(str, " ")))
+}
+
 // InIds id列表
-func InIds(ids ...uint32) query.ScopeMethod {
-	return query.WhereInColumn("id", ids)
+func InIds(ids ...uint32) ScopeMethod {
+	newIds := slices.Filter(ids, func(id uint32) bool { return id > 0 })
+	return WhereInColumn(BaseFieldID, newIds...)
 }
 
 // NotInIds id列表
-func NotInIds(ids ...uint32) query.ScopeMethod {
+func NotInIds(ids ...uint32) ScopeMethod {
 	if len(ids) == 0 {
 		return func(db *gorm.DB) *gorm.DB {
 			return db
@@ -26,62 +50,70 @@ func NotInIds(ids ...uint32) query.ScopeMethod {
 }
 
 // StatusEQ 状态
-func StatusEQ(status vo.Status) query.ScopeMethod {
+func StatusEQ(status vo.Status) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		if status == vo.StatusUnknown {
 			return db
 		}
-		return db.Where("status = ?", status)
+		return db.Where(BaseFieldStatus.String(), status)
+	}
+}
+
+// StatusNotEQ 状态
+func StatusNotEQ(status vo.Status) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if status == vo.StatusUnknown {
+			return db
+		}
+		return db.Where(BaseFieldStatus.Format("!=", "?").String(), status)
 	}
 }
 
 // NameLike 名称
-func NameLike(name string) query.ScopeMethod {
-	return func(db *gorm.DB) *gorm.DB {
-		if name == "" {
-			return db
-		}
-		return db.Where("name like?", name+"%")
-	}
+func NameLike(name string) ScopeMethod {
+	return WhereLikePrefixKeyword(name, BaseFieldName)
 }
 
 // NameEQ 名称相等
-func NameEQ(name string) query.ScopeMethod {
-	return query.WhereInColumn("name", name)
+func NameEQ(name string) ScopeMethod {
+	return WhereInColumn(BaseFieldName, name)
 }
 
 // WithTrashed 查询已删除的记录
-func WithTrashed(isDelete bool) query.ScopeMethod {
-	if isDelete {
-		return query.WithTrashed
-	}
-
+func WithTrashed(isDelete bool) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
+		if isDelete {
+			return db.Unscoped()
+		}
 		return db
 	}
 }
 
 // CreatedAtDesc 按创建时间倒序
-func CreatedAtDesc() query.ScopeMethod {
+func CreatedAtDesc() ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Order("created_at desc")
+		return db.Order(BaseFieldCreatedAt.Format(DESC).String())
 	}
 }
 
 // UpdateAtDesc 按更新时间倒序
-func UpdateAtDesc() query.ScopeMethod {
+func UpdateAtDesc() ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Order("updated_at desc")
+		return db.Order(BaseFieldUpdatedAt.Format(DESC).String())
 	}
 }
 
-// Page 分页
-func Page(pgInfo query.Pagination) query.ScopeMethod {
+// DeletedAtDesc 按删除时间倒序
+func DeletedAtDesc() ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		if pgInfo == nil {
-			return db
-		}
-		return db.Offset(int((pgInfo.GetCurr() - 1) * pgInfo.GetSize())).Limit(int(pgInfo.GetSize()))
+		return db.Order(BaseFieldDeletedAt.Format(DESC).String())
+	}
+}
+
+// DeleteAtGT0 删除时间大于0
+func DeleteAtGT0() ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(BaseFieldDeletedAt.Format(">= 0").String())
 	}
 }
 
@@ -99,4 +131,56 @@ func GetTx(ctx context.Context, db *gorm.DB) *gorm.DB {
 		return tx
 	}
 	return db
+}
+
+// WhereLikePrefixKeyword 前缀模糊查询
+func WhereLikePrefixKeyword(keyword string, columns ...Field) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if keyword == "" || len(columns) == 0 {
+			return db
+		}
+
+		dbTmp := db
+		for _, column := range columns {
+			dbTmp = dbTmp.Or(column.Format(LIKE, "?").String(), keyword+"%")
+		}
+		return db.Where(dbTmp)
+	}
+}
+
+// WhereLikeSuffixKeyword 后缀模糊查询
+func WhereLikeSuffixKeyword(keyword string, columns ...Field) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if keyword == "" || len(columns) == 0 {
+			return db
+		}
+
+		dbTmp := db
+		for _, column := range columns {
+			dbTmp = dbTmp.Or(column.Format(LIKE, "?").String(), "%"+keyword)
+		}
+		return db.Where(dbTmp)
+	}
+}
+
+// WhereLikeKeyword 前后缀模糊查询
+func WhereLikeKeyword(keyword string, columns ...Field) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if keyword == "" || len(columns) == 0 {
+			return db
+		}
+
+		dbTmp := db
+		for _, column := range columns {
+			dbTmp = dbTmp.Or(column.Format(LIKE, "?").String(), "%"+keyword+"%")
+		}
+		return db.Where(dbTmp)
+	}
+}
+
+// BetweenColumn 通过字段名和值列表进行查询
+func BetweenColumn(column Field, min, max any) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(column.Format(BETWEEN, "?", AND, "?").String(), min, max)
+	}
 }

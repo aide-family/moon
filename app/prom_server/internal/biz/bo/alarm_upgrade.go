@@ -4,8 +4,6 @@ import (
 	"encoding"
 	"encoding/json"
 
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 )
@@ -42,7 +40,7 @@ func (l *AlarmUpgradeBO) ToModel() *do.PromAlarmUpgrade {
 		return nil
 	}
 	return &do.PromAlarmUpgrade{
-		BaseModel:       query.BaseModel{ID: l.ID},
+		BaseModel:       do.BaseModel{ID: l.ID},
 		RealtimeAlarmID: l.RealtimeAlarmID,
 		UserID:          l.UserID,
 		UpgradedAt:      l.UpgradedAt,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
@@ -74,7 +73,7 @@ func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO,
 }
 
 // ListNotify 获取通知对象列表
-func (b *NotifyBiz) ListNotify(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.NotifyBO, error) {
+func (b *NotifyBiz) ListNotify(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	notifyBos, err := b.notifyRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
 		return nil, err

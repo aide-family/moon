@@ -3,7 +3,6 @@ package systemservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
@@ -95,8 +94,8 @@ func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.Get
 
 func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.ListApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	wheres := []basescopes.ScopeMethod{
 		basescopes.UpdateAtDesc(),
 	}
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
@@ -119,8 +118,8 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 
 func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*pb.SelectApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	wheres := []basescopes.ScopeMethod{
 		basescopes.UpdateAtDesc(),
 	}
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)

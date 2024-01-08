@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -46,7 +44,7 @@ func (d *ExternalNotifyObjBO) ToModel() *do.ExternalNotifyObj {
 		return nil
 	}
 	return &do.ExternalNotifyObj{
-		BaseModel: query.BaseModel{
+		BaseModel: do.BaseModel{
 			ID: d.Id,
 		},
 		Name:   d.Name,

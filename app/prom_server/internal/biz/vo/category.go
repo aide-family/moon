@@ -80,3 +80,8 @@ func (c Category) Value() int32 {
 func (c Category) ApiCategory() api.Category {
 	return api.Category(c)
 }
+
+// IsUnknown 是否未知
+func (c Category) IsUnknown() bool {
+	return c == CategoryUnknown
+}

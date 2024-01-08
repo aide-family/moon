@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -35,7 +33,7 @@ func (l *PromAlarmBeenNotifyChatGroupBO) GetChatGroup() *ChatGroupBO {
 // ToModel 转换为模型
 func (l *PromAlarmBeenNotifyChatGroupBO) ToModel() *do.PromAlarmBeenNotifyChatGroup {
 	return &do.PromAlarmBeenNotifyChatGroup{
-		BaseModel:         query.BaseModel{ID: l.ID},
+		BaseModel:         do.BaseModel{ID: l.ID},
 		RealtimeAlarmID:   l.RealtimeAlarmID,
 		ChatGroup:         l.GetChatGroup().ToModel(),
 		ChatGroupId:       l.ChatGroupId,

@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -27,7 +27,7 @@ type (
 		// GetDictById 通过id获取字典详情
 		GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error)
 		// ListDict 获取字典列表
-		ListDict(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.DictBO, error)
+		ListDict(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error)
 	}
 
 	UnimplementedPromDictRepo struct{}
@@ -55,6 +55,6 @@ func (UnimplementedPromDictRepo) GetDictById(_ context.Context, _ uint32) (*bo.D
 	return nil, status.Errorf(codes.Unimplemented, "method GetDictById not implemented")
 }
 
-func (UnimplementedPromDictRepo) ListDict(_ context.Context, _ query.Pagination, _ ...query.ScopeMethod) ([]*bo.DictBO, error) {
+func (UnimplementedPromDictRepo) ListDict(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDict not implemented")
 }

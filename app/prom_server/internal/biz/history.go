@@ -3,12 +3,11 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 
 	pb "prometheus-manager/api/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/historyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -51,12 +50,12 @@ func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.Alarm
 }
 
 // ListHistory 查询历史列表
-func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) ([]*bo.AlarmHistoryBO, query.Pagination, error) {
+func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) ([]*bo.AlarmHistoryBO, basescopes.Pagination, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
-		historyscopes.LikeInstance(req.GetKeyword()),
-		historyscopes.TimeRange(req.GetStartAt(), req.GetEndAt()),
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
+		basescopes.LikeInstance(req.GetKeyword()),
+		basescopes.TimeRange(req.GetStartAt(), req.GetEndAt()),
 	}
 	historyList, err := a.historyRepo.ListHistory(ctx, pgInfo, scopes...)
 	if err != nil {

@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -67,9 +66,9 @@ type ListEndpointParams struct {
 }
 
 // ListEndpoint 查询
-func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *ListEndpointParams) ([]*bo.EndpointBO, query.Pagination, error) {
-	pageInfo := query.NewPage(params.Curr, params.Size)
-	wheres := []query.ScopeMethod{basescopes.NameLike(params.Keyword)}
+func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *ListEndpointParams) ([]*bo.EndpointBO, basescopes.Pagination, error) {
+	pageInfo := basescopes.NewPage(params.Curr, params.Size)
+	wheres := []basescopes.ScopeMethod{basescopes.NameLike(params.Keyword)}
 
 	list, err := b.endpointRepo.List(ctx, pageInfo, wheres...)
 	if err != nil {

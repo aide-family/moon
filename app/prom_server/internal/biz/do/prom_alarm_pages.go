@@ -1,7 +1,6 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
@@ -9,7 +8,7 @@ const TableNamePromAlarmPage = "prom_alarm_pages"
 
 // PromAlarmPage 报警页面
 type PromAlarmPage struct {
-	query.BaseModel
+	BaseModel
 	Name               string               `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:报警页面名称"`
 	Remark             string               `gorm:"column:remark;type:varchar(255);not null;comment:描述信息"`
 	Icon               string               `gorm:"column:icon;type:varchar(1024);not null;comment:图表"`

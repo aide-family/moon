@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api/perrors"
@@ -24,7 +24,7 @@ const TableNameSysApi = "sys_apis"
 
 // SysAPI 系统api
 type SysAPI struct {
-	query.BaseModel
+	BaseModel
 	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:api名称"`
 	Path   string     `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__path,priority:1;comment:api路径"`
 	Method string     `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
@@ -96,7 +96,7 @@ func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint32) er
 	}
 
 	var apiList []*ApiSimple
-	if err := db.Model(&SysAPI{}).Where("status", vo.StatusEnabled).Scopes(query.WhereID(apiIds...)).Find(&apiList).Error; err != nil {
+	if err := db.Model(&SysAPI{}).Where("status", vo.StatusEnabled).Scopes(basescopes.InIds(apiIds...)).Find(&apiList).Error; err != nil {
 		return err
 	}
 

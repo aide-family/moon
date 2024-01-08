@@ -3,7 +3,6 @@ package promservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/api"
@@ -85,9 +84,9 @@ func (s *ChatGroupService) GetChatGroup(ctx context.Context, req *pb.GetChatGrou
 
 func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGroupRequest) (*pb.ListChatGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	wheres := []query.ScopeMethod{
+	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
@@ -111,9 +110,9 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 
 func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectChatGroupRequest) (*pb.SelectChatGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	wheres := []query.ScopeMethod{
+	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}

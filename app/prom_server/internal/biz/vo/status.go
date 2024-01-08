@@ -53,3 +53,41 @@ func (s Status) Value() int32 {
 func (s Status) ApiStatus() api.Status {
 	return api.Status(s)
 }
+
+type IsSendRecover uint8
+
+const (
+	// IsSendRecoverUnknown 未知
+	IsSendRecoverUnknown IsSendRecover = iota
+	// IsSendRecoverYes 发送恢复通知
+	IsSendRecoverYes
+	// IsSendRecoverNo 不发送恢复通知
+	IsSendRecoverNo
+)
+
+// String 获取状态字符串
+func (s IsSendRecover) String() string {
+	switch s {
+	case IsSendRecoverUnknown:
+		return "未知"
+	case IsSendRecoverYes:
+		return "发送恢复通知"
+	case IsSendRecoverNo:
+		return "不发送恢复通知"
+	default:
+		return "未定义"
+	}
+}
+
+// Value 获取状态值
+func (s IsSendRecover) Value() bool {
+	return s == IsSendRecoverYes
+}
+
+// NewIsSendRecover 转换为IsSendRecover
+func NewIsSendRecover(value bool) IsSendRecover {
+	if value {
+		return IsSendRecoverYes
+	}
+	return IsSendRecoverNo
+}

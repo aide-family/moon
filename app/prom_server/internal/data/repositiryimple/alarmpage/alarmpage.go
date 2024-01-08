@@ -3,7 +3,6 @@ package alarmpage
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -55,7 +54,7 @@ func (l *alarmPageRepoImpl) DeletePageByIds(ctx context.Context, ids ...uint32) 
 		return nil
 	}
 
-	if err := l.data.DB().WithContext(ctx).Scopes(query.WhereInColumn("id", ids)).Delete(&do.PromAlarmPage{}).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.WhereInColumn("id", ids)).Delete(&do.PromAlarmPage{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -69,7 +68,7 @@ func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint32) (*bo.Ala
 	return bo.AlarmPageModelToBO(&detail), nil
 }
 
-func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
 	var list []*do.PromAlarmPage
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&list).Error; err != nil {
 		return nil, err

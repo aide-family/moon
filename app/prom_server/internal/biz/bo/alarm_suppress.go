@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 )
@@ -37,7 +35,7 @@ func (l *AlarmSuppressBO) ToModel() *do.PromAlarmSuppress {
 		return nil
 	}
 	return &do.PromAlarmSuppress{
-		BaseModel:       query.BaseModel{ID: l.ID},
+		BaseModel:       do.BaseModel{ID: l.ID},
 		RealtimeAlarmID: l.RealtimeAlarmID,
 		UserID:          l.UserID,
 		SuppressedAt:    l.SuppressedAt,

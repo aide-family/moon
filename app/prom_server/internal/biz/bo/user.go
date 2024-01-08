@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -82,7 +80,7 @@ func (l *UserBO) ToModel() *do.SysUser {
 	}
 
 	return &do.SysUser{
-		BaseModel: query.BaseModel{
+		BaseModel: do.BaseModel{
 			ID: l.Id,
 		},
 		Username: l.Username,

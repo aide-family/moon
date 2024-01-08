@@ -3,14 +3,12 @@ package strategy
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/strategyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -48,12 +46,12 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 	// 替换报警页面和分类
 	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *do.PromAlarmPage {
 		return &do.PromAlarmPage{
-			BaseModel: query.BaseModel{ID: pageId},
+			BaseModel: do.BaseModel{ID: pageId},
 		}
 	})
 	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
 		return &do.PromDict{
-			BaseModel: query.BaseModel{ID: categoryId},
+			BaseModel: do.BaseModel{ID: categoryId},
 		}
 	})
 
@@ -63,10 +61,10 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 			return err
 		}
 
-		if err := tx.WithContext(txCtx).Model(newStrategy).Association(strategyscopes.PreloadKeyAlarmPages).Replace(alarmPages); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(basescopes.PreloadKeyAlarmPages).Replace(alarmPages); err != nil {
 			return err
 		}
-		if err := tx.WithContext(txCtx).Model(newStrategy).Association(strategyscopes.PreloadKeyCategories).Replace(categories); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(basescopes.PreloadKeyCategories).Replace(categories); err != nil {
 			return err
 		}
 
@@ -97,27 +95,30 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 
 	newStrategy := strategyBO.ToModel()
 	newStrategy.ID = detail.ID
+	newStrategy.Status = detail.Status
 	// 替换报警页面和分类
 	alarmPages := slices.To(strategyBO.AlarmPageIds, func(pageId uint32) *do.PromAlarmPage {
 		return &do.PromAlarmPage{
-			BaseModel: query.BaseModel{ID: pageId},
+			BaseModel: do.BaseModel{ID: pageId},
 		}
 	})
 	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
 		return &do.PromDict{
-			BaseModel: query.BaseModel{ID: categoryId},
+			BaseModel: do.BaseModel{ID: categoryId},
 		}
 	})
+
+	newStrategyMap := newStrategy.ToMap()
 	err = l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(id)).Updates(newStrategy).Error; err != nil {
+		if err = tx.WithContext(txCtx).Model(detail).Scopes(basescopes.InIds(id)).Updates(newStrategyMap).Error; err != nil {
 			return err
 		}
 
-		if err = tx.WithContext(txCtx).Model(detail).Association(strategyscopes.PreloadKeyAlarmPages).Replace(&alarmPages); err != nil {
+		if err = tx.WithContext(txCtx).Model(detail).Association(basescopes.PreloadKeyAlarmPages).Replace(&alarmPages); err != nil {
 			return err
 		}
-		if err = tx.WithContext(txCtx).Model(detail).Association(strategyscopes.PreloadKeyCategories).Replace(&categories); err != nil {
+		if err = tx.WithContext(txCtx).Model(detail).Association(basescopes.PreloadKeyCategories).Replace(&categories); err != nil {
 			return err
 		}
 
@@ -177,7 +178,7 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 	})
 }
 
-func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*bo.StrategyBO, error) {
 	firstStrategy, err := l.getStrategyById(ctx, id, wheres...)
 	if err != nil {
 		return nil, err
@@ -185,7 +186,7 @@ func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, where
 	return bo.StrategyModelToBO(firstStrategy), nil
 }
 
-func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, wheres ...query.ScopeMethod) (*do.PromStrategy, error) {
+func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*do.PromStrategy, error) {
 	var first do.PromStrategy
 	if err := l.data.DB().WithContext(ctx).Scopes(append(wheres, basescopes.InIds(id))...).First(&first).Error; err != nil {
 		return nil, err
@@ -193,7 +194,7 @@ func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, where
 	return &first, nil
 }
 
-func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	var listStrategy []*do.PromStrategy
 
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {

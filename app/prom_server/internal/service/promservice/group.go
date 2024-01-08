@@ -3,7 +3,6 @@ package promservice
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
@@ -14,7 +13,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/strategygroupscopes"
 )
 
 type GroupService struct {
@@ -100,11 +98,11 @@ func (s *GroupService) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*
 
 func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*pb.ListGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-		strategygroupscopes.PreloadCategories(),
+		basescopes.StrategyTablePreloadCategories,
 		basescopes.UpdateAtDesc(),
 	}
 	list, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
@@ -125,8 +123,8 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 
 func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupRequest) (*pb.SelectGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := query.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []query.ScopeMethod{
+	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	scopes := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
 		basescopes.UpdateAtDesc(),
 	}

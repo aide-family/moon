@@ -5,14 +5,12 @@ import (
 	"context"
 	"fmt"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/do/strategyscopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/app/prom_server/internal/data"
@@ -43,7 +41,7 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 	tx := basescopes.GetTx(ctx, l.data.DB())
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
-	if err := strategyDB.Scopes(strategyscopes.GroupIdsEQ(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
+	if err := strategyDB.Scopes(basescopes.InIds(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
 	}
 	var caseSet bytes.Buffer
@@ -68,12 +66,16 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 	tx := basescopes.GetTx(ctx, l.data.DB())
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
-	wheres := []query.ScopeMethod{
-		strategyscopes.GroupIdsEQ(ids...),
+	wheres := []basescopes.ScopeMethod{
+		basescopes.InIds(ids...),
 		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 	if err := strategyDB.Scopes(wheres...).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
+	}
+
+	if len(strategyCountList) == 0 {
+		return nil
 	}
 
 	var caseSet bytes.Buffer
@@ -129,7 +131,7 @@ func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.Str
 	return bo.StrategyGroupModelToBO(&first), nil
 }
 
-func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	var strategyModelList []*do.PromStrategyGroup
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&strategyModelList).Error; err != nil {
 		return nil, err

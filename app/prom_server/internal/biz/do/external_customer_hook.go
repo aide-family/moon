@@ -1,14 +1,13 @@
 package do
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNameExternalCustomerHook = "external_customer_hooks"
 
 type ExternalCustomerHook struct {
-	query.BaseModel
+	BaseModel
 	Hook      string       `gorm:"column:hook;type:varchar(255);not null;comment:钩子地址"`
 	HookName  string       `gorm:"column:hook_name;type:varchar(64);not null;comment:钩子名称"`
 	NotifyApp vo.NotifyApp `gorm:"column:notify_app;type:tinyint;not null;default:1;comment:通知方式"`

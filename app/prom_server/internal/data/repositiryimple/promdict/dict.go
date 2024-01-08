@@ -3,7 +3,6 @@ package promdict
 import (
 	"context"
 
-	query "github.com/aide-cloud/gorm-normalize"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -41,14 +40,14 @@ func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint32, dictBO
 }
 
 func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
-	if err := l.data.DB().WithContext(ctx).Scopes(query.WhereID(ids...)).Updates(&do.PromDict{Status: status}).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromDict{Status: status}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *promDictRepoImpl) DeleteDictByIds(ctx context.Context, id ...uint32) error {
-	if err := l.data.DB().WithContext(ctx).Scopes(query.WhereID(id...)).Delete(&do.PromDict{}).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id...)).Delete(&do.PromDict{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -62,7 +61,7 @@ func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint32) (*bo.Dict
 	return bo.DictModelToBO(&detailModel), nil
 }
 
-func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo query.Pagination, scopes ...query.ScopeMethod) ([]*bo.DictBO, error) {
+func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
 	var dictModelList []*do.PromDict
 	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&dictModelList).Error; err != nil {
 		return nil, err

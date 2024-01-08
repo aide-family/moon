@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -38,7 +36,7 @@ func (d *ExternalCustomerHookBO) ToModel() *do.ExternalCustomerHook {
 		return nil
 	}
 	return &do.ExternalCustomerHook{
-		BaseModel:  query.BaseModel{ID: d.Id},
+		BaseModel:  do.BaseModel{ID: d.Id},
 		Hook:       d.Hook,
 		HookName:   d.HookName,
 		NotifyApp:  d.NotifyApp,

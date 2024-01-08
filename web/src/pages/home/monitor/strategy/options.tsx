@@ -22,6 +22,7 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
+import { checkDuration } from './child/TimeUintInput'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -153,14 +154,19 @@ export const columns: (
             if (!dataSource) return '-'
             const { label, value, endpoint, status } = dataSource
             return (
-                <Tooltip title={endpoint}>
-                    <Button
+                <Tooltip
+                    title={status !== Status.STATUS_ENABLED ? '' : endpoint}
+                >
+                    <Tag
                         key={value}
-                        type="link"
-                        disabled={status !== Status.STATUS_ENABLED}
+                        color={
+                            status !== Status.STATUS_ENABLED
+                                ? '#CD9A6A'
+                                : '#1677ff'
+                        }
                     >
                         {label}
-                    </Button>
+                    </Tag>
                 </Tooltip>
             )
         }
@@ -216,12 +222,12 @@ export const columns: (
         title: '策略类型',
         dataIndex: 'categoryInfo',
         key: 'categoryInfo',
-        // width: 260,
+        width: 300,
         render: (_: number, record: StrategyItemType) => {
             if (!record.categoryInfo || !record.categoryInfo.length) return '-'
             const categyList = record.categoryInfo
             return (
-                <Space direction="horizontal">
+                <Space size={[8, 16]} wrap>
                     {categyList.map((item) => {
                         return (
                             <Tag key={item.value} color={item.color}>
@@ -231,6 +237,16 @@ export const columns: (
                     })}
                 </Space>
             )
+        }
+    },
+    {
+        title: '告警恢复通知',
+        dataIndex: 'sendRecover',
+        key: 'sendRecover',
+        width: 160,
+        align: 'center',
+        render: (sendRecover: boolean) => {
+            return sendRecover ? '是' : '否'
         }
     },
     {
@@ -250,72 +266,6 @@ export const columns: (
         render: (updatedAt: string) => {
             return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
-    }
-]
-
-// TODO 获取数据源
-export const endpoIntOptions = [
-    {
-        label: 'Prometheus',
-        value: 'http://124.223.104.203:9090'
-    },
-    {
-        label: 'Localhost',
-        value: 'http://localhost:9090'
-    }
-]
-
-// TODO 获取策略组列表
-export const strategyGroupOptions = [
-    {
-        label: 'Default',
-        value: 1
-    },
-    {
-        label: '网络',
-        value: 2
-    },
-    {
-        label: '存储',
-        value: 3
-    }
-]
-
-export const alarmPageOptions = [
-    {
-        label: '实时告警',
-        value: 1
-    },
-    {
-        label: '测试页面',
-        value: 2
-    },
-    {
-        label: '值班页面',
-        value: 3
-    }
-]
-
-export const categoryOptions = [
-    {
-        label: '业务监控',
-        value: 1
-    },
-    {
-        label: '系统监控',
-        value: 2
-    },
-    {
-        label: '业务日志',
-        value: 3
-    },
-    {
-        label: '业务告警',
-        value: 4
-    },
-    {
-        label: '系统告警',
-        value: 5
     }
 ]
 
@@ -436,12 +386,12 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
                         建议为此规则采集周期的整数倍, 例如采集周期为15s,
                         持续时间为30s, 则表示连续2个周期匹配
                     </p>
-                )
+                ),
+                required: true
             },
             rules: [
                 {
-                    required: true,
-                    message: '请输入持续时间'
+                    validator: checkDuration('持续时间', true)
                 }
             ]
         }
@@ -462,6 +412,8 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             label: '策略类型',
             rules: [
                 {
+                    required: true,
+                    message: '请选择策略类型',
                     validator(_, value) {
                         if (value?.length === 0) {
                             return Promise.reject('请选择策略类型')
@@ -497,7 +449,12 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
                         则不再发送告警
                     </p>
                 )
-            }
+            },
+            rules: [
+                {
+                    validator: checkDuration('抑制时间')
+                }
+            ]
         },
         {
             name: 'sendInterval',
@@ -509,35 +466,40 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
                         则再次触发告警通知的时间
                     </p>
                 )
+            },
+            rules: [
+                {
+                    validator: checkDuration('告警通知间隔时间')
+                }
+            ]
+        },
+        {
+            name: 'sendRecover',
+            label: '告警恢复通知',
+            dataProps: {
+                type: 'checkbox',
+                parentProps: {
+                    children: '发送告警恢复通知'
+                }
+            },
+            formItemProps: {
+                valuePropName: 'checked',
+                tooltip: (
+                    <p>
+                        发送告警恢复通知: 开启该选项, 告警恢复后,
+                        发送告警恢复通知的时间
+                    </p>
+                )
             }
         }
-        // {
-        //     name: 'sendRecover',
-        //     label: '告警恢复通知',
-        //     dataProps: {
-        //         type: 'checkbox',
-        //         parentProps: {
-        //             children: '发送告警恢复通知'
-        //         }
-        //     },
-        //     formItemProps: {
-        //         valuePropName: 'checked',
-        //         tooltip: (
-        //             <p>
-        //                 发送告警恢复通知: 开启该选项, 告警恢复后,
-        //                 发送告警恢复通知的时间
-        //             </p>
-        //         )
-        //     }
-        // }
     ],
-    {
-        name: 'restrain',
-        label: '抑制对象',
-        formItemProps: {
-            tooltip: <p>抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制</p>
-        }
-    },
+    // {
+    //     name: 'restrain',
+    //     label: '抑制对象',
+    //     formItemProps: {
+    //         tooltip: <p>抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制</p>
+    //     }
+    // },
     {
         name: 'remark',
         label: '备注',

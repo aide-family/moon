@@ -1,8 +1,6 @@
 package bo
 
 import (
-	query "github.com/aide-cloud/gorm-normalize"
-
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -51,7 +49,7 @@ func (b *AlarmPageBO) ToModel() *do.PromAlarmPage {
 		return nil
 	}
 	return &do.PromAlarmPage{
-		BaseModel: query.BaseModel{ID: b.Id},
+		BaseModel: do.BaseModel{ID: b.Id},
 		Name:      b.Name,
 		Icon:      b.Icon,
 		Color:     b.Color,
