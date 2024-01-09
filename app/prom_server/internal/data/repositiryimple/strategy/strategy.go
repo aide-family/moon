@@ -108,6 +108,11 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 		}
 	})
 
+	var groupIds []uint32
+	if detail.GroupID != strategyBO.GroupId {
+		groupIds = []uint32{detail.GroupID, newStrategy.GroupID}
+	}
+
 	newStrategyMap := newStrategy.ToMap()
 	err = l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
@@ -122,9 +127,14 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 			return err
 		}
 
-		if detail.Status != newStrategy.Status && !newStrategy.Status.IsUnknown() {
+		// 如果策略组发生变更
+		if len(groupIds) > 0 {
 			// 更新策略组的启用策略数量
-			if err = l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, strategyBO.GroupId); err != nil {
+			if err = l.strategyGroupRepo.UpdateStrategyCount(txCtx, groupIds...); err != nil {
+				return err
+			}
+
+			if err = l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, groupIds...); err != nil {
 				return err
 			}
 		}
@@ -138,40 +148,59 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 }
 
 func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+	// 查询规则组ID列表
+	groupIds, err := l.getStrategyGroupIdsByStrategyIds(ctx, ids)
+	if err != nil {
+		return err
+	}
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromStrategy{Status: status}).Error; err != nil {
+		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromStrategy{Status: status}).Error; err != nil {
 			return err
 		}
 		// 更新策略组的启用策略数量
-		if err := l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, ids...); err != nil {
+		if err = l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, groupIds...); err != nil {
 			return err
 		}
 		return nil
 	})
 }
 
+// getStrategyGroupIds 获取策略组ID列表
+func (l *strategyRepoImpl) getStrategyGroupIdsByStrategyIds(ctx context.Context, ids []uint32) ([]uint32, error) {
+	// 查询规则组ID列表
+	var groupIds []uint32
+	field := basescopes.StrategyTableFieldGroupID.String()
+	if err := l.data.DB().WithContext(ctx).
+		Model(&do.PromStrategy{}).
+		Scopes(basescopes.InIds(ids...)).
+		Select(field).
+		Pluck(field, &groupIds).Error; err != nil {
+		return nil, err
+	}
+	return groupIds, nil
+}
+
 func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint32) error {
-	var detailList []*do.PromStrategy
-	if err := l.data.DB().Scopes(basescopes.InIds(ids...)).Find(&detailList).Error; err != nil {
+	// 查询规则组ID列表
+	groupIds, err := l.getStrategyGroupIdsByStrategyIds(ctx, ids)
+	if err != nil {
 		return err
 	}
 
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err := tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&do.PromStrategy{}).Error; err != nil {
+		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&do.PromStrategy{}).Error; err != nil {
 			return err
 		}
-		groupIds := slices.To(detailList, func(i *do.PromStrategy) uint32 {
-			return i.GroupID
-		})
+
 		// 更新策略组的策略数量
-		if err := l.strategyGroupRepo.UpdateStrategyCount(txCtx, groupIds...); err != nil {
+		if err = l.strategyGroupRepo.UpdateStrategyCount(txCtx, groupIds...); err != nil {
 			return err
 		}
 
 		// 更新策略组的启用策略数量
-		if err := l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, groupIds...); err != nil {
+		if err = l.strategyGroupRepo.UpdateEnableStrategyCount(txCtx, groupIds...); err != nil {
 			return err
 		}
 		return nil

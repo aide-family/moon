@@ -13,6 +13,7 @@ import {
 } from '@/apis/home/monitor/strategy/types'
 import {
     columns,
+    getStrategyGroups,
     leftOptions,
     rightOptions,
     searchItems,
@@ -22,9 +23,6 @@ import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
-import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/types'
-import strategyGroupApi from '@/apis/home/monitor/strategy-group'
-import { DefaultOptionType } from 'antd/es/select'
 import FetchSelect from '@/components/Data/FetchSelect'
 
 const defaultPadding = 12
@@ -180,34 +178,6 @@ const Strategy: FC = () => {
         handlerRefresh()
     }
 
-    const buildSelectOptions = (
-        list: StrategyGroupSelectItemType[]
-    ): DefaultOptionType[] => {
-        const items: DefaultOptionType[] = []
-        items.push(
-            ...list.map((item) => {
-                return {
-                    value: item.value,
-                    label: item.label
-                }
-            })
-        )
-
-        // 根据value去重
-        return items
-    }
-
-    const getGroupSelctOptions = (keyword: string) => {
-        return strategyGroupApi
-            .getStrategyGroupSelect({
-                keyword,
-                page: { size: 10, curr: 1 }
-            })
-            .then((res) => {
-                return buildSelectOptions(res.list)
-            })
-    }
-
     useEffect(() => {
         handlerGetData()
     }, [refresh])
@@ -237,10 +207,11 @@ const Strategy: FC = () => {
                     }}
                     groupId={
                         <FetchSelect
-                            handleFetch={getGroupSelctOptions}
+                            handleFetch={getStrategyGroups()}
                             selectProps={{
                                 placeholder: '请选择策略组'
                             }}
+                            defaultOptions={[]}
                         />
                     }
                 />

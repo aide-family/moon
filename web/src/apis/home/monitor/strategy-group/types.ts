@@ -1,14 +1,13 @@
 import { DictSelectItem } from '@/apis/home/system/dict/types.ts'
 import { PageReqType, PageResType, Status } from '@/apis/types'
-import { StrategyItemType } from '../strategy/types'
 
 type StrategyGroupItemType = {
     name: string
     id: number
     remark?: string
     categories?: DictSelectItem[]
-    prom_strategies?: StrategyItemType[]
-    strategy_total?: number
+    enableStrategyCount: number | string
+    strategyCount: number | string
     status?: Status
     createdAt?: string | number
     updatedAt?: string | number
@@ -78,6 +77,7 @@ interface DeleteStrategyGroupResponse {
 interface SelectStrategyGroupRequest {
     page: PageReqType
     keyword?: string
+    status?: Status
 }
 
 interface SelectStrategyGroupResponse {

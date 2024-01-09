@@ -154,6 +154,26 @@ export const columns: (
         }
     },
     {
+        // 策略数量
+        title: '策略数量',
+        dataIndex: 'strategyCount',
+        key: 'strategyCount',
+        width: 120,
+        render: (strategyCount: number | string) => {
+            return strategyCount
+        }
+    },
+    {
+        // 开启中的策略数量
+        title: '开启的策略数量',
+        dataIndex: 'enableStrategyCount',
+        key: 'enableStrategyCount',
+        width: 120,
+        render: (strategyCount: number | string) => {
+            return strategyCount
+        }
+    },
+    {
         title: '描述',
         dataIndex: 'remark',
         key: 'remark',

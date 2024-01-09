@@ -29,8 +29,6 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
     const [options, setOptions] =
         React.useState<DefaultOptionType[]>(defaultOptions)
     const [loading, setLoading] = React.useState(false)
-    const [defaultGroupSelectOpen, setDefaultGroupSelectOpen] =
-        React.useState(false)
 
     const getOptions = (keyword: string) => {
         setLoading(true)
@@ -48,7 +46,6 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
             clearTimeout(fetchTimeout)
         }
 
-        setDefaultGroupSelectOpen(true)
         fetchTimeout = setTimeout(() => {
             getOptions(keyword)
         }, 300)
@@ -71,24 +68,24 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
     return (
         <>
             <Select
+                {...selectProps}
                 style={{ width: width }}
                 filterOption={false}
                 onSearch={debounceFetcher}
                 allowClear
                 showSearch
                 notFoundContent={loading ? <Spin size="small" /> : null}
-                onSelect={(v, e) => {
-                    setDefaultGroupSelectOpen(false)
-                    selectProps?.onSelect?.(v, e)
-                }}
+                // onSelect={(v, e) => {
+                //     setDefaultGroupSelectOpen(false)
+                //     selectProps?.onSelect?.(v, e)
+                // }}
                 value={value}
                 onChange={onChange}
                 defaultValue={defaultValue}
-                autoFocus={defaultGroupSelectOpen}
+                // autoFocus={defaultGroupSelectOpen}
                 // defaultOpen={defaultGroupSelectOpen}
                 loading={loading}
                 options={options}
-                {...selectProps}
             />
         </>
     )

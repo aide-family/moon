@@ -234,6 +234,8 @@ message SelectGroupRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   // 关键字, 长度0-32
   string keyword = 2 [(validate.rules).string.max_len = 32];
+  // 状态
+  Status status = 3 [(validate.rules).enum.defined_only = true];
 }
 // 获取策略组下拉列表响应列表
 message SelectGroupReply {

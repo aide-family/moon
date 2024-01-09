@@ -827,6 +827,8 @@ type SelectGroupRequest struct {
 	Page *api.PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	// 关键字, 长度0-32
 	Keyword string `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// 状态
+	Status api.Status `protobuf:"varint,3,opt,name=status,proto3,enum=api.Status" json:"status,omitempty"`
 }
 
 func (x *SelectGroupRequest) Reset() {
@@ -873,6 +875,13 @@ func (x *SelectGroupRequest) GetKeyword() string {
 		return x.Keyword
 	}
 	return ""
+}
+
+func (x *SelectGroupRequest) GetStatus() api.Status {
+	if x != nil {
+		return x.Status
+	}
+	return api.Status(0)
 }
 
 // 获取策略组下拉列表响应列表
@@ -1224,14 +1233,17 @@ var file_prom_strategy_group_group_proto_rawDesc = []byte{
 	0x0b, 0x32, 0x0e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6c,
 	0x79, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x22, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x18,
 	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x72, 0x6f, 0x6d,
-	0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x22, 0x67, 0x0a, 0x12, 0x53,
-	0x65, 0x6c, 0x65, 0x63, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x2e, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x10, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x04, 0x70, 0x61, 0x67,
-	0x65, 0x12, 0x21, 0x0a, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x07, 0xfa, 0x42, 0x04, 0x72, 0x02, 0x18, 0x20, 0x52, 0x07, 0x6b, 0x65, 0x79,
-	0x77, 0x6f, 0x72, 0x64, 0x22, 0x62, 0x0a, 0x10, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x47, 0x72,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x22, 0x96, 0x01, 0x0a, 0x12,
+	0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x2e, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x10, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x04, 0x70, 0x61,
+	0x67, 0x65, 0x12, 0x21, 0x0a, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x42, 0x07, 0xfa, 0x42, 0x04, 0x72, 0x02, 0x18, 0x20, 0x52, 0x07, 0x6b, 0x65,
+	0x79, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x2d, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0b, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x53, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x82, 0x01, 0x02, 0x10, 0x01, 0x52, 0x06, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x22, 0x62, 0x0a, 0x10, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x47, 0x72,
 	0x6f, 0x75, 0x70, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x22, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67,
 	0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x2a, 0x0a, 0x04,
@@ -1403,33 +1415,34 @@ var file_prom_strategy_group_group_proto_depIdxs = []int32{
 	23, // 4: api.prom.strategy.group.ListGroupReply.page:type_name -> api.PageReply
 	21, // 5: api.prom.strategy.group.ListGroupReply.list:type_name -> api.PromGroup
 	22, // 6: api.prom.strategy.group.SelectGroupRequest.page:type_name -> api.PageRequest
-	23, // 7: api.prom.strategy.group.SelectGroupReply.page:type_name -> api.PageReply
-	24, // 8: api.prom.strategy.group.SelectGroupReply.list:type_name -> api.PromGroupSelectV1
-	0,  // 9: api.prom.strategy.group.Group.CreateGroup:input_type -> api.prom.strategy.group.CreateGroupRequest
-	2,  // 10: api.prom.strategy.group.Group.UpdateGroup:input_type -> api.prom.strategy.group.UpdateGroupRequest
-	4,  // 11: api.prom.strategy.group.Group.BatchUpdateGroupStatus:input_type -> api.prom.strategy.group.BatchUpdateGroupStatusRequest
-	6,  // 12: api.prom.strategy.group.Group.DeleteGroup:input_type -> api.prom.strategy.group.DeleteGroupRequest
-	8,  // 13: api.prom.strategy.group.Group.BatchDeleteGroup:input_type -> api.prom.strategy.group.BatchDeleteGroupRequest
-	10, // 14: api.prom.strategy.group.Group.GetGroup:input_type -> api.prom.strategy.group.GetGroupRequest
-	12, // 15: api.prom.strategy.group.Group.ListGroup:input_type -> api.prom.strategy.group.ListGroupRequest
-	14, // 16: api.prom.strategy.group.Group.SelectGroup:input_type -> api.prom.strategy.group.SelectGroupRequest
-	16, // 17: api.prom.strategy.group.Group.ImportGroup:input_type -> api.prom.strategy.group.ImportGroupRequest
-	18, // 18: api.prom.strategy.group.Group.ExportGroup:input_type -> api.prom.strategy.group.ExportGroupRequest
-	1,  // 19: api.prom.strategy.group.Group.CreateGroup:output_type -> api.prom.strategy.group.CreateGroupReply
-	3,  // 20: api.prom.strategy.group.Group.UpdateGroup:output_type -> api.prom.strategy.group.UpdateGroupReply
-	5,  // 21: api.prom.strategy.group.Group.BatchUpdateGroupStatus:output_type -> api.prom.strategy.group.BatchUpdateGroupStatusReply
-	7,  // 22: api.prom.strategy.group.Group.DeleteGroup:output_type -> api.prom.strategy.group.DeleteGroupReply
-	9,  // 23: api.prom.strategy.group.Group.BatchDeleteGroup:output_type -> api.prom.strategy.group.BatchDeleteGroupReply
-	11, // 24: api.prom.strategy.group.Group.GetGroup:output_type -> api.prom.strategy.group.GetGroupReply
-	13, // 25: api.prom.strategy.group.Group.ListGroup:output_type -> api.prom.strategy.group.ListGroupReply
-	15, // 26: api.prom.strategy.group.Group.SelectGroup:output_type -> api.prom.strategy.group.SelectGroupReply
-	17, // 27: api.prom.strategy.group.Group.ImportGroup:output_type -> api.prom.strategy.group.ImportGroupReply
-	19, // 28: api.prom.strategy.group.Group.ExportGroup:output_type -> api.prom.strategy.group.ExportGroupReply
-	19, // [19:29] is the sub-list for method output_type
-	9,  // [9:19] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	20, // 7: api.prom.strategy.group.SelectGroupRequest.status:type_name -> api.Status
+	23, // 8: api.prom.strategy.group.SelectGroupReply.page:type_name -> api.PageReply
+	24, // 9: api.prom.strategy.group.SelectGroupReply.list:type_name -> api.PromGroupSelectV1
+	0,  // 10: api.prom.strategy.group.Group.CreateGroup:input_type -> api.prom.strategy.group.CreateGroupRequest
+	2,  // 11: api.prom.strategy.group.Group.UpdateGroup:input_type -> api.prom.strategy.group.UpdateGroupRequest
+	4,  // 12: api.prom.strategy.group.Group.BatchUpdateGroupStatus:input_type -> api.prom.strategy.group.BatchUpdateGroupStatusRequest
+	6,  // 13: api.prom.strategy.group.Group.DeleteGroup:input_type -> api.prom.strategy.group.DeleteGroupRequest
+	8,  // 14: api.prom.strategy.group.Group.BatchDeleteGroup:input_type -> api.prom.strategy.group.BatchDeleteGroupRequest
+	10, // 15: api.prom.strategy.group.Group.GetGroup:input_type -> api.prom.strategy.group.GetGroupRequest
+	12, // 16: api.prom.strategy.group.Group.ListGroup:input_type -> api.prom.strategy.group.ListGroupRequest
+	14, // 17: api.prom.strategy.group.Group.SelectGroup:input_type -> api.prom.strategy.group.SelectGroupRequest
+	16, // 18: api.prom.strategy.group.Group.ImportGroup:input_type -> api.prom.strategy.group.ImportGroupRequest
+	18, // 19: api.prom.strategy.group.Group.ExportGroup:input_type -> api.prom.strategy.group.ExportGroupRequest
+	1,  // 20: api.prom.strategy.group.Group.CreateGroup:output_type -> api.prom.strategy.group.CreateGroupReply
+	3,  // 21: api.prom.strategy.group.Group.UpdateGroup:output_type -> api.prom.strategy.group.UpdateGroupReply
+	5,  // 22: api.prom.strategy.group.Group.BatchUpdateGroupStatus:output_type -> api.prom.strategy.group.BatchUpdateGroupStatusReply
+	7,  // 23: api.prom.strategy.group.Group.DeleteGroup:output_type -> api.prom.strategy.group.DeleteGroupReply
+	9,  // 24: api.prom.strategy.group.Group.BatchDeleteGroup:output_type -> api.prom.strategy.group.BatchDeleteGroupReply
+	11, // 25: api.prom.strategy.group.Group.GetGroup:output_type -> api.prom.strategy.group.GetGroupReply
+	13, // 26: api.prom.strategy.group.Group.ListGroup:output_type -> api.prom.strategy.group.ListGroupReply
+	15, // 27: api.prom.strategy.group.Group.SelectGroup:output_type -> api.prom.strategy.group.SelectGroupReply
+	17, // 28: api.prom.strategy.group.Group.ImportGroup:output_type -> api.prom.strategy.group.ImportGroupReply
+	19, // 29: api.prom.strategy.group.Group.ExportGroup:output_type -> api.prom.strategy.group.ExportGroupReply
+	20, // [20:30] is the sub-list for method output_type
+	10, // [10:20] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_prom_strategy_group_group_proto_init() }

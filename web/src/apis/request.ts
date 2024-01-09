@@ -17,7 +17,11 @@ const request = axios.create({
 
 const info = (msg?: AxiosError<ErrorRepose>) => {
     if (!msg || !msg.response) return
-    const { code, message, reason } = msg?.response?.data
+    const {
+        code,
+        message = '系统错误',
+        reason = 'SYSTEM_ERROR'
+    } = msg?.response?.data
     notification.open({
         message: reason,
         description: message,

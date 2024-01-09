@@ -41,21 +41,30 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 	tx := basescopes.GetTx(ctx, l.data.DB())
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
-	if err := strategyDB.Scopes(basescopes.InIds(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
+	if err := strategyDB.Scopes(basescopes.StrategyTableGroupIdsEQ(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
 	}
-	var caseSet bytes.Buffer
-	caseSet.WriteString("CASE id ")
-	for _, strategyCount := range strategyCountList {
-		caseSet.WriteString("WHEN ")
-		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
-		caseSet.WriteString(" THEN ")
-		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
-		caseSet.WriteString(" ")
-	}
-	caseSet.WriteString("END")
+
 	db := tx.Model(&do.PromStrategyGroup{}).WithContext(ctx)
-	return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
+	switch len(strategyCountList) {
+	case 0:
+		return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", 0).Error
+	case 1:
+		return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", strategyCountList[0].Count).Error
+	default:
+		var caseSet bytes.Buffer
+		caseSet.WriteString("CASE id ")
+		for _, strategyCount := range strategyCountList {
+			caseSet.WriteString("WHEN ")
+			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
+			caseSet.WriteString(" THEN ")
+			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
+			caseSet.WriteString(" ")
+		}
+		caseSet.WriteString("END")
+
+		return db.Scopes(basescopes.InIds(ids...)).Update("strategy_count", gorm.Expr(caseSet.String())).Error
+	}
 }
 
 func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, ids ...uint32) error {
@@ -67,29 +76,33 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
 	wheres := []basescopes.ScopeMethod{
-		basescopes.InIds(ids...),
+		basescopes.StrategyTableGroupIdsEQ(ids...),
 		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 	if err := strategyDB.Scopes(wheres...).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
 	}
 
-	if len(strategyCountList) == 0 {
-		return nil
-	}
-
-	var caseSet bytes.Buffer
-	caseSet.WriteString("CASE id ")
-	for _, strategyCount := range strategyCountList {
-		caseSet.WriteString("WHEN ")
-		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
-		caseSet.WriteString(" THEN ")
-		caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
-		caseSet.WriteString(" ")
-	}
-	caseSet.WriteString("END")
 	db := tx.Model(&do.PromStrategyGroup{}).WithContext(ctx)
-	return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", gorm.Expr(caseSet.String())).Error
+	switch len(strategyCountList) {
+	case 0:
+		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", 0).Error
+	case 1:
+		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", strategyCountList[0].Count).Error
+	default:
+		var caseSet bytes.Buffer
+		caseSet.WriteString("CASE id ")
+		for _, strategyCount := range strategyCountList {
+			caseSet.WriteString("WHEN ")
+			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
+			caseSet.WriteString(" THEN ")
+			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
+			caseSet.WriteString(" ")
+		}
+		caseSet.WriteString("END")
+
+		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", gorm.Expr(caseSet.String())).Error
+	}
 }
 
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
@@ -124,7 +137,7 @@ func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) 
 
 func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error) {
 	var first do.PromStrategyGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id)).First(id).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).First(&first, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -138,7 +151,7 @@ func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagi
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&do.PromStrategyGroup{}).WithContext(ctx).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromStrategyGroup{}).WithContext(ctx).Scopes(scopes...).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
