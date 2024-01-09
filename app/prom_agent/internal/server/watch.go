@@ -96,11 +96,11 @@ func (w *Watch) eval() {
 				w.log.Info("[Watch] server tick results: %v", len(results))
 				alarmList := make([]*agent.AlarmInfo, 0, len(results))
 				for _, result := range results {
-					timeUnix := int64(result.Value[0].(float64))
-					metricValue, _ := strconv.ParseInt(result.Value[1].(string), 10, 64)
+					timeUnix := result.Value[0].(float64)
+					metricValue, _ := strconv.ParseFloat(result.Value[1].(string), 64)
 					alarmItem := &agent.AlarmInfo{
 						Metric:     result.Metric,
-						Value:      []int64{timeUnix, metricValue},
+						Value:      []float64{timeUnix, metricValue},
 						StrategyId: rule.Labels.StrategyId(),
 						Expr:       rule.Expr,
 						Duration:   bo.BuildApiDuration(rule.For),

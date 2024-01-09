@@ -24,56 +24,56 @@ func (s *LoadService) StrategyGroupAll(ctx context.Context, req *pb.StrategyGrou
 	s.log.Info("load service StrategyGroupAll")
 	return &pb.StrategyGroupAllReply{
 		Items: []*api.PromGroup{{
-			Id:                  1,
-			Name:                "test-alarm-group",
-			Categories:          nil,
-			Status:              0,
-			Remark:              "",
-			CreatedAt:           0,
-			UpdatedAt:           0,
-			DeletedAt:           0,
-			StrategyCount:       0,
-			EnableStrategyCount: 0,
-			Strategies: []*api.PromStrategyV1{{
-				Id:    1,
-				Alert: "UpAlertTest",
-				Expr:  "up == 1",
-				Duration: &api.Duration{
-					Value: 30,
-					Unit:  "s",
+			Id:   1,
+			Name: "test-alarm-group",
+			// TODO 放进告警label里面
+			Categories: nil,
+			Strategies: []*api.PromStrategyV1{
+				{
+					Id:           1,
+					Alert:        "UpAlertTest",
+					Expr:         "up == 1",
+					AlarmLevelId: 1,
+					Duration: &api.Duration{
+						Value: 30,
+						Unit:  "s",
+					},
+					Labels: map[string]string{
+						"job": "prometheus",
+					},
+					Annotations: map[string]string{
+						"summary":     "up == 1",
+						"description": "{{ $label.instance }} up == 1, value {{ $value }}",
+					},
+					DataSource: &api.PrometheusServerSelectItem{
+						Value:    1,
+						Label:    "PrometheusServer",
+						Endpoint: "https://prom-server.aide-cloud.cn/",
+					},
 				},
-				Labels: map[string]string{
-					"job": "prometheus",
+				{
+					Id:           2,
+					Alert:        "RateCpuTotal",
+					Expr:         "rate(process_cpu_seconds_total[5m])",
+					AlarmLevelId: 2,
+					Duration: &api.Duration{
+						Value: 30,
+						Unit:  "s",
+					},
+					Labels: map[string]string{
+						"job": "prometheus",
+					},
+					Annotations: map[string]string{
+						"summary":     "rate(process_cpu_seconds_total[5m])",
+						"description": "{{ $label.instance }} cpu rate total, value {{ $value }}",
+					},
+					DataSource: &api.PrometheusServerSelectItem{
+						Value:    1,
+						Label:    "PrometheusServer",
+						Endpoint: "https://prom-server.aide-cloud.cn/",
+					},
 				},
-				Annotations: map[string]string{
-					"summary":     "up == 1",
-					"description": "{{ $label.instance }} up == 1, value {{ $value }}",
-				},
-				Status:         0,
-				GroupId:        1,
-				GroupInfo:      nil,
-				AlarmLevelId:   1,
-				AlarmLevelInfo: nil,
-				AlarmPageIds:   nil,
-				AlarmPageInfo:  nil,
-				CategoryIds:    nil,
-				CategoryInfo:   nil,
-				CreatedAt:      0,
-				UpdatedAt:      0,
-				DeletedAt:      0,
-				Remark:         "",
-				DataSource: &api.PrometheusServerSelectItem{
-					Value:    1,
-					Label:    "PrometheusServer",
-					Status:   0,
-					Remark:   "",
-					Endpoint: "https://prom-server.aide-cloud.cn/",
-				},
-				DataSourceId: 1,
-				MaxSuppress:  nil,
-				SendInterval: nil,
-				SendRecover:  false,
-			}},
+			},
 		}},
 		Page: &api.PageReply{
 			Curr:  1,
