@@ -20,11 +20,18 @@ export type DataOptionProps = {
     leftOptions?: DataOptionItem[]
     rightOptions?: DataOptionItem[]
     action?: (key: ActionKey) => void
+    showAdd?: boolean
 }
 
 const DataOption: FC<DataOptionProps> = (props) => {
     const { size, setSize } = useContext(GlobalContext)
-    const { queryForm, leftOptions, rightOptions, action } = props
+    const {
+        queryForm,
+        leftOptions,
+        rightOptions,
+        action,
+        showAdd = true
+    } = props
 
     const handleSizeChange = (sizeVal: SegmentedValue) => {
         setSize?.(sizeVal as SizeType)
@@ -38,9 +45,14 @@ const DataOption: FC<DataOptionProps> = (props) => {
     return (
         <Row className={styles.Row}>
             <Col span={8} className={styles.LeftCol}>
-                <Button type="primary" onClick={() => action?.(ActionKey.ADD)}>
-                    添加
-                </Button>
+                {showAdd && (
+                    <Button
+                        type="primary"
+                        onClick={() => action?.(ActionKey.ADD)}
+                    >
+                        添加
+                    </Button>
+                )}
                 {leftOptions?.map(({ key, label }, index) => {
                     return (
                         <div
