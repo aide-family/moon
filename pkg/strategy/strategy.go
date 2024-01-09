@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	strategyId  = "strategy_id"
-	levelId     = "level_id"
-	summary     = "summary"
-	description = "description"
-	instance    = "instance"
+	LabelKeyStrategyId       = "strategy_id"
+	LabelKeyLevelId          = "level_id"
+	LabelKeyInstance         = "instance"
+	AnnotationKeyDescription = "description"
+	AnnotationKeySummary     = "summary"
 )
 
 var (
@@ -27,8 +27,8 @@ var (
 
 type (
 	Label interface {
-		StrategyId() uint
-		LevelId() uint
+		StrategyId() uint32
+		LevelId() uint32
 		Get(key string) string
 		GetInstance() string
 		Map() map[string]string
@@ -144,7 +144,7 @@ func (l *Labels) GetInstance() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[instance]
+	return (*l)[LabelKeyInstance]
 }
 
 func (l *Annotations) Get(key string) string {
@@ -165,34 +165,34 @@ func (l *Annotations) Summary() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[summary]
+	return (*l)[AnnotationKeySummary]
 }
 
 func (l *Annotations) Description() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[description]
+	return (*l)[AnnotationKeyDescription]
 }
 
-func (l *Labels) LevelId() uint {
+func (l *Labels) LevelId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[levelId]; ok {
+	if id, ok := (*l)[LabelKeyLevelId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
-		return uint(uid)
+		return uint32(uid)
 	}
 	return 0
 }
 
-func (l *Labels) StrategyId() uint {
+func (l *Labels) StrategyId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[strategyId]; ok {
+	if id, ok := (*l)[LabelKeyStrategyId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
-		return uint(uid)
+		return uint32(uid)
 	}
 	return 0
 }

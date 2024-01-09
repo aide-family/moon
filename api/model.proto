@@ -195,6 +195,8 @@ message PromGroup {
   int64 strategyCount = 9;
   // 启用中的策略数量
   int64 enableStrategyCount = 10;
+  // 策略列表(用于agent加载规则, 普通列表查询时候没有数据)
+  repeated PromStrategyV1 strategies = 11;
 }
 
 // 策略组选择类型

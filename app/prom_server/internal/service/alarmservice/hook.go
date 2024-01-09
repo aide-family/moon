@@ -39,8 +39,8 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 		annotations := strategy.Annotations(alert.GetAnnotations())
 		historyBos = append(historyBos, &bo.AlarmHistoryBO{
 			Md5:        alert.GetFingerprint(),
-			StrategyId: uint32(labels.StrategyId()),
-			LevelId:    uint32(labels.LevelId()),
+			StrategyId: labels.StrategyId(),
+			LevelId:    labels.LevelId(),
 			Status:     vo.ToAlarmStatus(alert.GetStatus()),
 			StartAt:    startTime.Unix(),
 			EndAt:      endTime.Unix(),
