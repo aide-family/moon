@@ -44,7 +44,8 @@ func (l *Timer) Stop(ctx context.Context) error {
 }
 
 // NewTimer 创建一个定时器
-func NewTimer(ticker *time.Ticker, call TimerCall, logger log.Logger) *Timer {
+func NewTimer(interval time.Duration, call TimerCall, logger log.Logger) *Timer {
+	var ticker = time.NewTicker(interval)
 	return &Timer{
 		call:   call,
 		ticker: ticker,
