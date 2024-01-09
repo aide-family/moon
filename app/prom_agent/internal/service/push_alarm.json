@@ -14,7 +14,7 @@
           "job": "prometheus_server"
         },
         "value": [
-          1704816390,
+          1704817077,
           1
         ],
         "strategyId": 1,
@@ -36,11 +36,53 @@
           "job": "pushgateway"
         },
         "value": [
-          1704816390,
+          1704817077,
           1
         ],
         "strategyId": 1,
         "expr": "up == 1",
+        "duration": {
+          "value": 30,
+          "unit": "s"
+        }
+      },
+      {
+        "metric": {
+          "__alert__": "RateCpuTotal",
+          "__group_name__": "test-alarm-group",
+          "__rule_label__job": "prometheus",
+          "__rule_label__level_id": "2",
+          "__rule_label__strategy_id": "2",
+          "instance": "prom:9090",
+          "job": "prometheus_server"
+        },
+        "value": [
+          1704817077,
+          0.0007368421052631858
+        ],
+        "strategyId": 2,
+        "expr": "rate(process_cpu_seconds_total[5m])",
+        "duration": {
+          "value": 30,
+          "unit": "s"
+        }
+      },
+      {
+        "metric": {
+          "__alert__": "RateCpuTotal",
+          "__group_name__": "test-alarm-group",
+          "__rule_label__job": "prometheus",
+          "__rule_label__level_id": "2",
+          "__rule_label__strategy_id": "2",
+          "instance": "pushgateway:9091",
+          "job": "pushgateway"
+        },
+        "value": [
+          1704817077,
+          0.0001379310344827557
+        ],
+        "strategyId": 2,
+        "expr": "rate(process_cpu_seconds_total[5m])",
         "duration": {
           "value": 30,
           "unit": "s"
