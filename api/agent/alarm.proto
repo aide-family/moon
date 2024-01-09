@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package api.agent;
+
+import "validate/validate.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/agent;agent";
+option java_multiple_files = true;
+option java_package = "api.agent";
+
+service Alarm {
+  rpc Push (PushRequest) returns (PushReply);
+}
+
+message PushRequest {
+  AlarmGroup group = 1 [(validate.rules).message.required = true];
+}
+message PushReply {}
+
+message AlarmGroup {
+  uint32 strategyGroupId = 1 [(validate.rules) = {uint32: {gt: 0}}];
+  repeated AlarmInfo alarms = 2;
+}
+
+message AlarmInfo {
+  map<string, string> metric = 1;
+  repeated int64 value = 2 [(validate.rules).repeated = {min_items: 2, max_items: 2}];
+  uint32 strategyId = 3 [(validate.rules) = {uint32: {gt: 0}}];
+  string expr = 4;
+  Duration duration = 5;
+}

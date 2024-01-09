@@ -1226,6 +1226,40 @@ func (m *PromGroup) validate(all bool) error {
 
 	// no validation rules for EnableStrategyCount
 
+	for idx, item := range m.GetStrategies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PromGroupValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PromGroupValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PromGroupValidationError{
+					field:  fmt.Sprintf("Strategies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return PromGroupMultiError(errors)
 	}

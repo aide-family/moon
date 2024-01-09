@@ -18,7 +18,6 @@ type Alerter interface {
 type Alerting struct {
 	groups []*Group
 
-	CacheAlerter
 	exitCh chan struct{}
 	log    *log.Helper
 }

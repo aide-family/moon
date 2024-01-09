@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package api.agent;
+
+import "validate/validate.proto";
+import "model.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/agent;agent";
+option java_multiple_files = true;
+option java_package = "api.agent";
+
+service Load {
+  // 第一次全部加载
+  rpc StrategyGroupAll (StrategyGroupAllRequest) returns (StrategyGroupAllReply);
+  // 加载变化的规则
+  rpc StrategyGroupDiff (StrategyGroupDiffRequest) returns (StrategyGroupDiffReply);
+}
+
+message StrategyGroupAllRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+}
+message StrategyGroupAllReply {
+  repeated PromGroup items = 1;
+  PageReply page = 2;
+}
+
+message StrategyGroupDiffRequest {
+  // TODO 如果变更频率过快, 考虑加入参数消除抖动
+}
+message StrategyGroupDiffReply {
+  repeated PromGroup appendItems = 1;
+  repeated PromGroup deleteItems = 2;
+  repeated PromGroup updateItems = 3;
+}
