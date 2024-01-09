@@ -3,8 +3,8 @@ package data
 import (
 	"context"
 
-	"prometheus-manager/app/demo/internal/biz/bo"
-	"prometheus-manager/app/demo/internal/biz/repository"
+	"prometheus-manager/app/prom_agent/internal/biz/bo"
+	"prometheus-manager/app/prom_agent/internal/biz/repository"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

@@ -60,15 +60,20 @@ const AlarmRealtime: FC = () => {
     }
 
     const buildTabsItems = () => {
-        return alarmPageList.map((item) => {
+        return alarmPageList.map((item, index) => {
             const { label, value, color, icon } = item
             return {
-                label: label,
-                key: `${value}`,
+                label: label || `报警页面${index}`,
+                key: `${value}_${index}`,
                 icon: (
                     <Button
                         type="link"
-                        icon={<IconFont type={icon} style={{ color: color }} />}
+                        icon={
+                            <IconFont
+                                type={icon}
+                                style={{ color: color || '' }}
+                            />
+                        }
                     />
                 )
             }
@@ -106,6 +111,18 @@ const AlarmRealtime: FC = () => {
         }
     }
 
+    const onRow = (record?: AlarmRealtimeItem) => {
+        if (!record || !record.level) return {}
+        const {
+            level: { color }
+        } = record
+        return {
+            style: {
+                background: color || ''
+            }
+        }
+    }
+
     useEffect(() => {
         handleGetAlarmRealtime()
     }, [refresh])
@@ -125,6 +142,7 @@ const AlarmRealtime: FC = () => {
                 queryForm={queryForm}
                 rightOptions={rightOptions}
                 action={handleOptionClick}
+                showAdd={false}
             />
             <PaddingLine padding={12} height={1} borderRadius={4} />
             <Tabs items={buildTabsItems()} onChange={handleOnChangeTabs} />
@@ -137,13 +155,7 @@ const AlarmRealtime: FC = () => {
                 loading={loading}
                 operationItems={operationItems}
                 action={handlerTableAction}
-                onRow={(record: AlarmRealtimeItem) => {
-                    return {
-                        style: {
-                            background: record.level.color
-                        }
-                    }
-                }}
+                onRow={onRow}
             />
         </div>
     )

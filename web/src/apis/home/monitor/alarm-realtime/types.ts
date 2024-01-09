@@ -64,7 +64,7 @@ interface AlarmRealtimeItem {
     notifiedChatGroups: NotifiedChatGroup[]
     createdAt: number
     updatedAt: number
-    level: DictSelectItem
+    level?: DictSelectItem
 }
 
 interface AlarmRealtimeDetailRequest {

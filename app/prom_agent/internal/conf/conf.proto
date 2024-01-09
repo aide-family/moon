@@ -1,0 +1,71 @@
+syntax = "proto3";
+package kratos.api;
+
+option go_package = "prometheus-manager/cmd/demo/internal/conf;conf";
+
+import "google/protobuf/duration.proto";
+
+message Bootstrap {
+  Server server = 1;
+  Data data = 2;
+  Env env = 3;
+  Log log = 4;
+}
+
+message Server {
+  message HTTP {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration timeout = 3;
+  }
+  message GRPC {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration timeout = 3;
+  }
+  HTTP http = 1;
+  GRPC grpc = 2;
+}
+
+message Data {
+  message Database {
+    string driver = 1;
+    string source = 2;
+  }
+  message Redis {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration read_timeout = 3;
+    google.protobuf.Duration write_timeout = 4;
+  }
+  Database database = 1;
+  Redis redis = 2;
+}
+
+message Env {
+  string name = 1;
+  map<string, string> metadata = 2;
+  string version = 3;
+  string namespace = 4;
+  string env = 5;
+}
+
+message Log {
+  // 默认: ./server.log
+  string filename = 1;
+  // 日志最大体积MB, 默认: 100MB
+  int32 maxSize = 2;
+  // 日志保留天数, 默认: 7
+  int32 maxAge = 3;
+  // 日志保留个数, 默认: 10
+  int32 maxBackups = 4;
+  // 是否压缩, 默认: true
+  bool compress = 5;
+  // 是否使用本地时间戳, 默认: true
+  bool localTime = 6;
+  // 日志级别, 默认: info
+  string level = 7;
+  // Encoder 类型, 默认: json
+  string encoder = 8;
+}
+

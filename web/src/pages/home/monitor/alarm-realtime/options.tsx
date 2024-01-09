@@ -49,9 +49,9 @@ export const columns:
     {
         title: '告警等级',
         dataIndex: 'level',
-        width: 100,
-        render: (level: DictSelectItem) => {
-            return level.label
+        width: 160,
+        render: (level?: DictSelectItem) => {
+            return level?.label || '-'
         }
     },
     {

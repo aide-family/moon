@@ -1,4 +1,4 @@
-package dobo
+package bo
 
 // Ping is a Ping model.
 type Ping struct {

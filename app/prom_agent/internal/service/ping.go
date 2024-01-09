@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+
 	"prometheus-manager/api/ping"
-	"prometheus-manager/app/demo/internal/biz"
-	"prometheus-manager/app/demo/internal/biz/bo"
+	"prometheus-manager/app/prom_agent/internal/biz"
+	"prometheus-manager/app/prom_agent/internal/biz/bo"
 )
 
 // PingService is a Ping service.

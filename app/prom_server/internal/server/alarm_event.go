@@ -69,6 +69,7 @@ func NewAlarmEvent(
 // alertHook 处理alert hook数据
 func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
 	var req alarmhookPb.HookV1Request
+	// TODO 后期是否判断key
 	err := json.Unmarshal(msg.Value, &req)
 	if err != nil {
 		return err
