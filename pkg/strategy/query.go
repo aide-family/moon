@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,13 +21,15 @@ type (
 	}
 
 	Data struct {
-		ResultType string   `json:"resultType"`
-		Result     []Result `json:"result"`
+		ResultType string    `json:"resultType"`
+		Result     []*Result `json:"result"`
 	}
 
 	QueryResponse struct {
-		Status string `json:"status"`
-		Data   Data   `json:"data"`
+		Status    string `json:"status"`
+		Data      *Data  `json:"data"`
+		ErrorType string `json:"errorType"`
+		Error     string `json:"error"`
 	}
 )
 
@@ -35,7 +38,10 @@ const (
 )
 
 const (
-	metricName = "__name__"
+	metricName            = "__name__"
+	metricGroupName       = "__group_name__"
+	metricAlert           = "__alert__"
+	metricRuleLabelPrefix = "__rule_label__"
 )
 
 // Bytes QueryResponse to []byte
@@ -59,8 +65,16 @@ func (m Metric) Get(key string) string {
 	return m[key]
 }
 
+// Set Metric set tag value
+func (m Metric) Set(key, value string) {
+	m[key] = value
+}
+
 // Bytes Metric to []byte
 func (m Metric) Bytes() []byte {
+	if m == nil {
+		return nil
+	}
 	bs, _ := json.Marshal(m)
 	return bs
 }
@@ -68,6 +82,19 @@ func (m Metric) Bytes() []byte {
 // String Metric to string
 func (m Metric) String() string {
 	return string(m.Bytes())
+}
+
+// MD5 Metric to md5
+func (m Metric) MD5() string {
+	return fmt.Sprintf("%x", md5.Sum(m.Bytes()))
+}
+
+// GetMetric Result to Metric
+func (r *Result) GetMetric() Metric {
+	if r == nil {
+		return nil
+	}
+	return r.Metric
 }
 
 // ParseQuery 处理结构体转为query参数

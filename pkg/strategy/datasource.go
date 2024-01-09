@@ -9,9 +9,13 @@ import (
 	"prometheus-manager/pkg/httpx"
 )
 
-var _ Query = (*Datasource)(nil)
+var _ Query = (*PromDatasource)(nil)
 
-type Datasource struct {
+const (
+	PrometheusDatasource = "prometheus"
+)
+
+type PromDatasource struct {
 	// 数据源类型
 	Category string
 	// 地址
@@ -21,7 +25,7 @@ type Datasource struct {
 // Query 调用数据源查询数据
 //
 //	curl 'https://<domain>/api/v1/query?query=go_memstats_sys_bytes&time=1704785907'
-func (d *Datasource) Query(_ context.Context, expr string, duration int64) (*QueryResponse, error) {
+func (d *PromDatasource) Query(_ context.Context, expr string, duration int64) (*QueryResponse, error) {
 	params, err := ParseQuery(map[string]any{
 		"query": expr,
 		"time":  duration,
@@ -48,9 +52,9 @@ func (d *Datasource) Query(_ context.Context, expr string, duration int64) (*Que
 }
 
 // NewDatasource 实例化数据源对象
-func NewDatasource(category, domain string) *Datasource {
-	return &Datasource{
-		Category: category,
+func NewDatasource(domain string) *PromDatasource {
+	return &PromDatasource{
+		Category: PrometheusDatasource,
 		Domain:   strings.TrimSuffix(domain, "/"),
 	}
 }

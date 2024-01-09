@@ -36,6 +36,7 @@ func NewLogger(c Config) log.Logger {
 	}
 
 	return log.With(l,
+		"ts", log.Timestamp("2006-01-02 15:04:05"),
 		"caller", log.DefaultCaller,
 		"service.id", hello.ID(),
 		"service.name", hello.Name(),

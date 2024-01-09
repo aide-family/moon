@@ -9,6 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 	"prometheus-manager/app/prom_agent/internal/conf"
+	"prometheus-manager/app/prom_agent/internal/server"
 	"prometheus-manager/pkg/util/hello"
 )
 
@@ -33,13 +34,13 @@ func before() conf.Before {
 	}
 }
 
-func newApp(gs *grpc.Server, hs *http.Server, logger log.Logger) *kratos.App {
+func newApp(gs *grpc.Server, hs *http.Server, watch *server.Watch, logger log.Logger) *kratos.App {
 	return kratos.New(
 		kratos.ID(hello.ID()),
 		kratos.Name(hello.Name()),
 		kratos.Version(hello.Version()),
 		kratos.Metadata(hello.Metadata()),
 		kratos.Logger(logger),
-		kratos.Server(gs, hs),
+		kratos.Server(gs, hs, watch),
 	)
 }

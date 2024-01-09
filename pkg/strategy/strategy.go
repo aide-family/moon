@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -61,11 +62,34 @@ type (
 		For         string      `json:"for"`
 		Labels      Labels      `json:"labels"`
 		Annotations Annotations `json:"annotations"`
+		// 数据源
+		endpoint string
+		lock     sync.RWMutex
 	}
 
 	Labels      map[string]string
 	Annotations map[string]string
 )
+
+// SetEndpoint 设置数据源
+func (r *Rule) SetEndpoint(endpoint string) {
+	if r == nil {
+		return
+	}
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.endpoint = endpoint
+}
+
+// Endpoint 获取数据源
+func (r *Rule) Endpoint() string {
+	if r == nil {
+		return ""
+	}
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.endpoint
+}
 
 func (l *Annotations) Map() map[string]string {
 	if l == nil {
