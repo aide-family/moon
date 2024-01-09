@@ -10,6 +10,7 @@ message Bootstrap {
   Data data = 2;
   Env env = 3;
   Log log = 4;
+  WatchProm watchProm = 5;
 }
 
 message Server {
@@ -67,5 +68,10 @@ message Log {
   string level = 7;
   // Encoder 类型, 默认: json
   string encoder = 8;
+}
+
+message WatchProm {
+  // 频率
+  google.protobuf.Duration interval = 1;
 }
 

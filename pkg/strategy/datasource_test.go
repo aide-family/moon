@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
+const defaultDatasource = "https://prom-server.aide-cloud.cn"
+
 func TestNewDatasource(t *testing.T) {
-	d := NewDatasource("prometheus", "https://prom-server.aide-cloud.cn")
+	d := NewDatasource(defaultDatasource)
 	queryResponse, err := d.Query(context.Background(), "up == 1", time.Now().Unix())
 	if err != nil {
 		t.Error(err)

@@ -42,7 +42,9 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	pingService := service.NewPingService(pingBiz, logger)
 	grpcServer := server.NewGRPCServer(confServer, pingService, logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, logger)
-	app := newApp(grpcServer, httpServer, logger)
+	watchProm := bootstrap.WatchProm
+	watch := server.NewWatch(watchProm, logger)
+	app := newApp(grpcServer, httpServer, watch, logger)
 	return app, func() {
 		cleanup()
 	}, nil
