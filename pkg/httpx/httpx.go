@@ -1,0 +1,78 @@
+package httpx
+
+import (
+	"bytes"
+	"errors"
+	"net/http"
+	"net/url"
+	"time"
+)
+
+type HttpX struct {
+	http.Client
+
+	headers map[string]string
+}
+
+func NewHttpX() *HttpX {
+	return &HttpX{
+		Client: http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				MaxIdleConnsPerHost: 100,
+				IdleConnTimeout:     50 * time.Second,
+			},
+		},
+	}
+}
+
+// SetHeader 设置请求头
+func (h *HttpX) SetHeader(headers map[string]string) *HttpX {
+	h.headers = headers
+	return h
+}
+
+// POST 发起post请求
+func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
+	reader := bytes.NewReader(data)
+	// 设置请求头
+	req, err := http.NewRequest(http.MethodPost, url, reader)
+	if err != nil {
+		return nil, err
+	}
+	if h.headers != nil {
+		for k, v := range h.headers {
+			req.Header.Set(k, v)
+		}
+	} else {
+		// 没有请求头时候, 默认设置请求头json, utf-8
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	}
+	return h.Do(req)
+}
+
+// GET 发起get请求
+func (h *HttpX) GET(u string) (*http.Response, error) {
+	// 验证URL是否有效
+	if u == "" || !isValidURL(u) {
+		return nil, errors.New("invalid URL")
+	}
+	// 设置请求头
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	if h.headers != nil {
+		for k, v := range h.headers {
+			req.Header.Set(k, v)
+		}
+	}
+
+	return h.Do(req)
+}
+
+// isValidURL 检查URL是否有效
+func isValidURL(u string) bool {
+	_, err := url.ParseRequestURI(u)
+	return err == nil
+}
