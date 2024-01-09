@@ -102,16 +102,16 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
             })
             .finally(() => setLoading(false))
 
-        if (basescopes.status !== 'success') {
-            setErr(basescopes.error)
+        if (query.status !== 'success') {
+            setErr(query.error)
             return
         }
 
-        setDatasource(basescopes.data.result)
+        setDatasource(query.data.result)
         setErr(undefined)
 
-        if (basescopes.data) {
-            const { result } = basescopes.data
+        if (query.data) {
+            const { result } = query.data
             setData([...result])
         }
     }

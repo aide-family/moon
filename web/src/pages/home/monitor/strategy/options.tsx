@@ -23,6 +23,7 @@ import strategyApi from '@/apis/home/monitor/strategy'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
 import { checkDuration } from './child/TimeUintInput'
+import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/types'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -184,7 +185,7 @@ export const columns: (
         title: '持续时间',
         dataIndex: 'duration',
         key: 'duration',
-        width: 160,
+        width: 120,
         render: (duration: Duration) => {
             return duration.value + '' + duration.unit
         }
@@ -193,7 +194,7 @@ export const columns: (
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        width: 160,
+        width: 80,
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
             return (
@@ -250,14 +251,37 @@ export const columns: (
         }
     },
     {
-        title: '创建时间',
-        dataIndex: 'createdAt',
-        key: 'createdAt',
+        title: '策略组',
+        dataIndex: 'groupInfo',
+        key: 'groupInfo',
         width: 160,
-        render: (createdAt: string) => {
-            return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        align: 'center',
+        render: (groupInfo?: StrategyGroupSelectItemType) => {
+            if (!groupInfo) return '-'
+            const { label, value, status, color, remark } = groupInfo
+            return (
+                <Tooltip title={remark}>
+                    <Button
+                        key={value}
+                        type="link"
+                        color={color}
+                        disabled={status !== Status.STATUS_ENABLED}
+                    >
+                        {label}
+                    </Button>
+                </Tooltip>
+            )
         }
     },
+    // {
+    //     title: '创建时间',
+    //     dataIndex: 'createdAt',
+    //     key: 'createdAt',
+    //     width: 160,
+    //     render: (createdAt: string) => {
+    //         return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+    //     }
+    // },
     {
         title: '更新时间',
         dataIndex: 'updatedAt',
@@ -533,18 +557,21 @@ export const getEndponts = (keyword: string) => {
         })
 }
 
-export const getStrategyGroups = (keyword: string) => {
-    return strategyGroupApi
-        .getStrategyGroupSelect({ keyword, page: defaultPageReq })
-        .then((items) => {
-            return items.list.map((item) => {
-                const { value, label } = item
-                return {
-                    value: value,
-                    label: <Tag color="blue">{label}</Tag>
-                }
+export const getStrategyGroups = (status?: Status) => {
+    const selectFetch = (keyword: string) => {
+        return strategyGroupApi
+            .getStrategyGroupSelect({ keyword, page: defaultPageReq, status })
+            .then((items) => {
+                return items.list.map((item) => {
+                    const { value, label } = item
+                    return {
+                        value: value,
+                        label: <Tag color="blue">{label}</Tag>
+                    }
+                })
             })
-        })
+    }
+    return selectFetch
 }
 
 export const getLevels = (keyword: string) => {

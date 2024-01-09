@@ -32,7 +32,7 @@ import { DefaultOptionType } from 'antd/es/select'
 import TimeUintInput from './TimeUintInput'
 import { Rule } from 'antd/es/form'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
-import { Duration } from '@/apis/types'
+import { Duration, Status } from '@/apis/types'
 
 export type FormValuesType = {
     alert?: string
@@ -270,7 +270,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         selectProps={{
                             placeholder: '请选择策略分组'
                         }}
-                        handleFetch={getStrategyGroups}
+                        handleFetch={getStrategyGroups(Status.STATUS_ENABLED)}
                         defaultOptions={groupIdOptions}
                     />
                 }
