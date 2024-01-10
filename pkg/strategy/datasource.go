@@ -26,13 +26,10 @@ type PromDatasource struct {
 //
 //	curl 'https://<domain>/api/v1/query?query=go_memstats_sys_bytes&time=1704785907'
 func (d *PromDatasource) Query(_ context.Context, expr string, duration int64) (*QueryResponse, error) {
-	params, err := ParseQuery(map[string]any{
+	params := ParseQuery(map[string]any{
 		"query": expr,
 		"time":  duration,
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	hx := httpx.NewHttpX()
 	hx.SetHeader(map[string]string{

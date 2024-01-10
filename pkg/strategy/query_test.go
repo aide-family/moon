@@ -6,13 +6,10 @@ import (
 )
 
 func TestParseQuery(t *testing.T) {
-	p, err := ParseQuery(map[string]any{
+	p := ParseQuery(map[string]any{
 		"expr": "up == 1",
 		"time": time.Now().Unix(),
 	})
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
+
 	t.Log(p)
 }
