@@ -98,13 +98,13 @@ func (r *Result) GetMetric() Metric {
 }
 
 // ParseQuery 处理结构体转为query参数
-func ParseQuery(qr map[string]any) (string, error) {
-	if len(qr) == 0 {
-		return "", fmt.Errorf("query is empty")
+func ParseQuery(qr map[string]any) string {
+	if qr == nil || len(qr) == 0 {
+		return ""
 	}
 	query := url.Values{}
 	for k, v := range qr {
 		query.Add(k, fmt.Sprintf("%v", v))
 	}
-	return query.Encode(), nil
+	return query.Encode()
 }
