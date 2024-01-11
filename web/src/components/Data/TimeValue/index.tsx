@@ -50,7 +50,7 @@ export const TimeUintInput: React.FC<TimeUintInputProps> = (props) => {
         name,
         placeholder,
         disabled,
-        width,
+        width = '100%',
         selectProps,
         style,
         unitOptions

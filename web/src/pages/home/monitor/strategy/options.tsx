@@ -22,8 +22,8 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
-import { checkDuration } from './child/TimeUintInput'
 import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/types'
+import { checkDuration } from '@/components/Data/TimeValue'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -354,194 +354,6 @@ export const rightOptions = (loading: boolean): DataOptionItem[] => [
     }
 ]
 
-export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
-    [
-        {
-            name: 'dataSource',
-            label: '数据源',
-            formItemProps: {
-                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>,
-                dependencies: ['expr'],
-                rules: [
-                    {
-                        required: true,
-                        message: '请选择Prometheus数据源'
-                    }
-                ]
-            }
-        },
-        {
-            name: 'groupId',
-            label: '策略组',
-            formItemProps: {
-                tooltip: <p>把当前规则归类到不同的策略组, 便于业务关联</p>
-            },
-            rules: [
-                {
-                    required: true,
-                    message: '请选择策略组'
-                }
-            ]
-        }
-    ],
-    [
-        {
-            name: 'alert',
-            label: '告警名称',
-            formItemProps: {
-                tooltip: (
-                    <p>请输入策略名称, 策略名称必须唯一, 例如: 'cpu_usage'</p>
-                )
-            },
-            rules: [
-                {
-                    required: true,
-                    message: '请输入策略名称'
-                }
-            ]
-        },
-        {
-            name: 'duration',
-            label: '持续时间',
-            formItemProps: {
-                tooltip: (
-                    <p>
-                        持续时间是下面PromQL规则连续匹配,
-                        建议为此规则采集周期的整数倍, 例如采集周期为15s,
-                        持续时间为30s, 则表示连续2个周期匹配
-                    </p>
-                ),
-                required: true
-            },
-            rules: [
-                {
-                    validator: checkDuration('持续时间', true)
-                }
-            ]
-        }
-    ],
-    [
-        {
-            name: 'alarmLevelId',
-            label: '策略等级',
-            rules: [
-                {
-                    required: true,
-                    message: '请选择策略等级'
-                }
-            ]
-        },
-        {
-            name: 'categoryIds',
-            label: '策略类型',
-            rules: [
-                {
-                    required: true,
-                    message: '请选择策略类型',
-                    validator(_, value) {
-                        if (value?.length === 0) {
-                            return Promise.reject('请选择策略类型')
-                        }
-                        return Promise.resolve()
-                    }
-                }
-            ]
-        }
-    ],
-    {
-        name: 'alarmPageIds',
-        label: '告警页面',
-        formItemProps: {
-            tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
-        },
-        rules: [
-            {
-                required: true,
-                message: '请选择报警页面'
-            }
-        ]
-    },
-    [
-        {
-            name: 'maxSuppress',
-            label: '抑制策略',
-            formItemProps: {
-                tooltip: (
-                    <p>
-                        抑制时常: 报警发生时, 开启抑制后,
-                        从开始告警时间加抑制时长,如果在抑制周期内,
-                        则不再发送告警
-                    </p>
-                )
-            },
-            rules: [
-                {
-                    validator: checkDuration('抑制时间')
-                }
-            ]
-        },
-        {
-            name: 'sendInterval',
-            label: '告警通知间隔',
-            formItemProps: {
-                tooltip: (
-                    <p>
-                        告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
-                        则再次触发告警通知的时间
-                    </p>
-                )
-            },
-            rules: [
-                {
-                    validator: checkDuration('告警通知间隔时间')
-                }
-            ]
-        },
-        {
-            name: 'sendRecover',
-            label: '告警恢复通知',
-            dataProps: {
-                type: 'checkbox',
-                parentProps: {
-                    children: '发送告警恢复通知'
-                }
-            },
-            formItemProps: {
-                valuePropName: 'checked',
-                tooltip: (
-                    <p>
-                        发送告警恢复通知: 开启该选项, 告警恢复后,
-                        发送告警恢复通知的时间
-                    </p>
-                )
-            }
-        }
-    ],
-    // {
-    //     name: 'restrain',
-    //     label: '抑制对象',
-    //     formItemProps: {
-    //         tooltip: <p>抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制</p>
-    //     }
-    // },
-    {
-        name: 'remark',
-        label: '备注',
-        formItemProps: {
-            tooltip: <p>请输入备注</p>
-        },
-        dataProps: {
-            type: 'textarea',
-            parentProps: {
-                autoSize: { minRows: 2, maxRows: 6 },
-                maxLength: 200,
-                showCount: true,
-                placeholder: '请输入备注'
-            }
-        }
-    }
-]
-
 export const getEndponts = (keyword: string) => {
     return endpointApi
         .selectEndpoint({ keyword, page: defaultPageReq })
@@ -641,3 +453,269 @@ export const getRestrain = (keyword: string) => {
             })
         })
 }
+
+export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
+    [
+        {
+            name: 'dataSource',
+            label: '数据源',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择数据源',
+                        labelInValue: true
+                    },
+                    width: '100%',
+                    handleFetch: getEndponts,
+                    defaultOptions: []
+                }
+            },
+            formItemProps: {
+                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>,
+                dependencies: ['expr'],
+                rules: [
+                    {
+                        required: true,
+                        message: '请选择Prometheus数据源'
+                    }
+                ]
+            }
+        },
+        {
+            name: 'groupId',
+            label: '策略组',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择策略分组'
+                    },
+                    handleFetch: getStrategyGroups(Status.STATUS_ENABLED),
+                    defaultOptions: []
+                }
+            },
+            formItemProps: {
+                tooltip: <p>把当前规则归类到不同的策略组, 便于业务关联</p>
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略组'
+                }
+            ]
+        }
+    ],
+    [
+        {
+            name: 'alert',
+            label: '告警名称',
+            formItemProps: {
+                tooltip: (
+                    <p>请输入策略名称, 策略名称必须唯一, 例如: 'cpu_usage'</p>
+                )
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请输入策略名称'
+                }
+            ]
+        },
+        {
+            name: 'duration',
+            label: '持续时间',
+            dataProps: {
+                type: 'time-value',
+                parentProps: {
+                    name: 'duration',
+                    placeholder: ['请输入持续时间', '选择单位'],
+                    unitOptions: durationOptions
+                }
+            },
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        持续时间是下面PromQL规则连续匹配,
+                        建议为此规则采集周期的整数倍, 例如采集周期为15s,
+                        持续时间为30s, 则表示连续2个周期匹配
+                    </p>
+                ),
+                required: true
+            },
+            rules: [
+                {
+                    validator: checkDuration('持续时间', true)
+                }
+            ]
+        }
+    ],
+    [
+        {
+            name: 'alarmLevelId',
+            label: '策略等级',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择告警级别'
+                    },
+                    handleFetch: getLevels,
+                    defaultOptions: []
+                }
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略等级'
+                }
+            ]
+        },
+        {
+            name: 'categoryIds',
+            label: '策略类型',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择策略类型',
+                        mode: 'multiple'
+                    },
+                    handleFetch: getCategories,
+                    defaultOptions: []
+                }
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略类型',
+                    validator(_, value) {
+                        if (value?.length === 0) {
+                            return Promise.reject('请选择策略类型')
+                        }
+                        return Promise.resolve()
+                    }
+                }
+            ]
+        }
+    ],
+    {
+        name: 'alarmPageIds',
+        label: '告警页面',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                selectProps: {
+                    placeholder: '请选择告警页面',
+                    mode: 'multiple'
+                },
+                handleFetch: getAlarmPages,
+                defaultOptions: []
+            }
+        },
+        formItemProps: {
+            tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
+        },
+        rules: [
+            {
+                required: true,
+                message: '请选择报警页面'
+            }
+        ]
+    },
+    [
+        {
+            name: 'maxSuppress',
+            label: '抑制策略',
+            dataProps: {
+                type: 'time-value',
+                parentProps: {
+                    name: 'maxSuppress',
+                    placeholder: ['请输入最大抑制时间', '选择单位'],
+                    unitOptions: durationOptions
+                }
+            },
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        抑制时常: 报警发生时, 开启抑制后,
+                        从开始告警时间加抑制时长,如果在抑制周期内,
+                        则不再发送告警
+                    </p>
+                )
+            },
+            rules: [
+                {
+                    validator: checkDuration('抑制时间')
+                }
+            ]
+        },
+        {
+            name: 'sendInterval',
+            label: '告警通知间隔',
+            dataProps: {
+                type: 'time-value',
+                parentProps: {
+                    name: 'sendInterval',
+                    placeholder: ['请输入通知间隔时间', '选择单位'],
+                    unitOptions: durationOptions
+                }
+            },
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
+                        则再次触发告警通知的时间
+                    </p>
+                )
+            },
+            rules: [
+                {
+                    validator: checkDuration('告警通知间隔时间')
+                }
+            ]
+        },
+        {
+            name: 'sendRecover',
+            label: '告警恢复通知',
+            dataProps: {
+                type: 'checkbox',
+                parentProps: {
+                    children: '发送告警恢复通知'
+                }
+            },
+            formItemProps: {
+                valuePropName: 'checked',
+                tooltip: (
+                    <p>
+                        发送告警恢复通知: 开启该选项, 告警恢复后,
+                        发送告警恢复通知的时间
+                    </p>
+                )
+            }
+        }
+    ],
+    // {
+    //     name: 'restrain',
+    //     label: '抑制对象',
+    //     formItemProps: {
+    //         tooltip: <p>抑制对象: 当该规则触发时, 此列表对象的告警将会被抑制</p>
+    //     }
+    // },
+    {
+        name: 'remark',
+        label: '备注',
+        formItemProps: {
+            tooltip: <p>请输入备注</p>
+        },
+        dataProps: {
+            type: 'textarea',
+            parentProps: {
+                autoSize: { minRows: 2, maxRows: 6 },
+                maxLength: 200,
+                showCount: true,
+                placeholder: '请输入备注'
+            }
+        }
+    }
+]
