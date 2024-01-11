@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/pkg/httpx"
 )
 
-var _ Query = (*PromDatasource)(nil)
+var _ Datasource = (*PromDatasource)(nil)
 
 const (
 	PrometheusDatasource = "prometheus"

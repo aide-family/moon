@@ -10,6 +10,8 @@ import type {
 } from 'antd'
 import { Input, Select, Radio, Checkbox, DatePicker } from 'antd'
 import { PasswordProps, TextAreaProps } from 'antd/lib/input'
+import FetchSelect, { FetchSelectProps } from '../FetchSelect'
+import TimeUintInput, { TimeUintInputProps } from '../TimeValue'
 
 export type DataInputProps =
     | (
@@ -26,6 +28,10 @@ export type DataInputProps =
                 parentProps?: SelectProps
             }
           | {
+                type: 'select-fetch'
+                parentProps?: FetchSelectProps
+            }
+          | {
                 type: 'radio'
                 parentProps?: RadioProps
             }
@@ -40,6 +46,10 @@ export type DataInputProps =
           | {
                 type: 'date'
                 parentProps?: DatePickerProps
+            }
+          | {
+                type: 'time-value'
+                parentProps: TimeUintInputProps
             }
           | {
                 type: 'textarea'
@@ -68,6 +78,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                         {...parentProps}
                     />
                 )
+            case 'select-fetch':
+                return <FetchSelect {...props} {...parentProps} />
             case 'radio':
                 return (
                     <Radio
@@ -99,6 +111,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                         {...parentProps}
                     />
                 )
+            case 'time-value':
+                return <TimeUintInput {...parentProps} />
             case 'radio-group':
                 return (
                     <Radio.Group

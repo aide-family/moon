@@ -13,26 +13,14 @@ import PromQLInput, {
     PromValidate,
     formatExpressionFunc
 } from '@/components/Prom/PromQLInput.tsx'
-import {
-    durationOptions,
-    getAlarmPages,
-    getCategories,
-    getEndponts,
-    getLevels,
-    getRestrain,
-    getStrategyGroups,
-    strategyEditOptions,
-    sverityOptions
-} from '../options'
+import { strategyEditOptions, sverityOptions } from '../options'
 import { DeleteOutlined } from '@ant-design/icons'
 import AddLabelModal from './AddLabelModal'
 import DataForm from '@/components/Data/DataForm/DataForm'
-import FetchSelect from '@/components/Data/FetchSelect'
 import { DefaultOptionType } from 'antd/es/select'
-import TimeUintInput from './TimeUintInput'
 import { Rule } from 'antd/es/form'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
-import { Duration, Status } from '@/apis/types'
+import { Duration } from '@/apis/types'
 
 export type FormValuesType = {
     alert?: string
@@ -62,12 +50,6 @@ export type FormValuesType = {
 export interface StrategyFormProps {
     form: FormInstance
     disabled?: boolean
-    groupIdOptions?: DefaultOptionType[]
-    alarmPageIdsOptions?: DefaultOptionType[]
-    categoryIdsOptions?: DefaultOptionType[]
-    endpointOptions?: DefaultOptionType[]
-    restrainOptions?: DefaultOptionType[]
-    levelOptions?: DefaultOptionType[]
     initialValue?: StrategyItemType
 }
 
@@ -78,17 +60,7 @@ export type labelsType = {
 
 let timeout: NodeJS.Timeout
 export const StrategyForm: FC<StrategyFormProps> = (props) => {
-    const {
-        disabled,
-        form,
-        groupIdOptions,
-        alarmPageIdsOptions,
-        categoryIdsOptions,
-        endpointOptions,
-        restrainOptions,
-        levelOptions,
-        initialValue
-    } = props
+    const { disabled, form, initialValue } = props
 
     const [labelFormItemList, setLabelFormItemList] = useState<labelsType[]>([])
     const [annotationFormItemList, setAnnotationFormItemList] = useState<
@@ -253,94 +225,6 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     layout: 'vertical',
                     disabled: disabled
                 }}
-                dataSource={
-                    <FetchSelect
-                        selectProps={{
-                            placeholder: '请选择数据源',
-                            labelInValue: true
-                        }}
-                        width="100%"
-                        handleFetch={getEndponts}
-                        defaultOptions={endpointOptions}
-                    />
-                }
-                groupId={
-                    <FetchSelect
-                        width="100%"
-                        selectProps={{
-                            placeholder: '请选择策略分组'
-                        }}
-                        handleFetch={getStrategyGroups(Status.STATUS_ENABLED)}
-                        defaultOptions={groupIdOptions}
-                    />
-                }
-                alarmLevelId={
-                    <FetchSelect
-                        selectProps={{
-                            placeholder: '请选择告警级别'
-                        }}
-                        width="100%"
-                        handleFetch={getLevels}
-                        defaultOptions={levelOptions}
-                    />
-                }
-                categoryIds={
-                    <FetchSelect
-                        selectProps={{
-                            placeholder: '请选择策略类型',
-                            mode: 'multiple'
-                        }}
-                        width="100%"
-                        handleFetch={getCategories}
-                        defaultOptions={categoryIdsOptions}
-                    />
-                }
-                restrain={
-                    <FetchSelect
-                        selectProps={{
-                            placeholder: '请选择抑制对象',
-                            mode: 'multiple'
-                        }}
-                        width="100%"
-                        handleFetch={getRestrain}
-                        defaultOptions={restrainOptions}
-                    />
-                }
-                alarmPageIds={
-                    <FetchSelect
-                        selectProps={{
-                            placeholder: '请选择告警页面',
-                            mode: 'multiple'
-                        }}
-                        width="100%"
-                        handleFetch={getAlarmPages}
-                        defaultOptions={alarmPageIdsOptions}
-                    />
-                }
-                duration={
-                    <TimeUintInput
-                        name="duration"
-                        width="100%"
-                        placeholder={['请输入持续时间', '选择单位']}
-                        unitOptions={durationOptions}
-                    />
-                }
-                maxSuppress={
-                    <TimeUintInput
-                        name="maxSuppress"
-                        width="100%"
-                        placeholder={['请输入最大抑制时间', '选择单位']}
-                        unitOptions={durationOptions}
-                    />
-                }
-                sendInterval={
-                    <TimeUintInput
-                        name="sendInterval"
-                        width="100%"
-                        placeholder={['请输入最大通知间隔时间', '选择单位']}
-                        unitOptions={durationOptions}
-                    />
-                }
             >
                 <Form.Item
                     name="expr"

@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react'
-import { Form, Modal, Spin, Tag } from 'antd'
+import { Form, Modal, Spin } from 'antd'
 import {
     StrategyCreateRequest,
     StrategyItemType,
@@ -143,64 +143,6 @@ export const Detail: FC<DetailProps> = (props) => {
             })
     }
 
-    const buildAlamrPageIdsOptions = () => {
-        if (!detail?.alarmLevelInfo) return []
-        return detail.alarmPageInfo?.map((item) => {
-            const { color, value, label } = item
-            return {
-                value: value,
-                label: <Tag color={color}>{label}</Tag>
-            }
-        })
-    }
-
-    const buildGroupIdOptions = () => {
-        if (!detail?.groupId) return []
-        return [
-            {
-                value: detail?.groupId,
-                label: (
-                    <Tag color="blue">{detail?.groupInfo?.label || '默认'}</Tag>
-                )
-            }
-        ]
-    }
-
-    const categoryIdsOptions = () => {
-        if (!detail?.categoryIds) return []
-        return detail?.categoryInfo?.map((item) => {
-            const { color, value, label } = item
-            return {
-                value: value,
-                label: <Tag color={color}>{label}</Tag>
-            }
-        })
-    }
-    const buildEndpointOptions = () => {
-        if (!detail?.dataSourceId) {
-            return []
-        }
-        const { value, label, endpoint } = detail?.dataSource
-        return [
-            {
-                value: value,
-                label: <Tag color="blue">{label || '未知'}</Tag>,
-                title: endpoint
-            }
-        ]
-    }
-
-    const buildLevelOptions = () => {
-        if (!detail?.alarmLevelInfo) return []
-        const { value, color, label } = detail?.alarmLevelInfo
-        return [
-            {
-                value: value,
-                label: <Tag color={color}>{label}</Tag>
-            }
-        ]
-    }
-
     useEffect(() => {
         if (!open) {
             return
@@ -216,17 +158,12 @@ export const Detail: FC<DetailProps> = (props) => {
             onOk={handleSubmit}
             width="66%"
             centered={true}
-            destroyOnClose={true}
+            // destroyOnClose={true}
         >
             <Spin spinning={loading}>
                 <StrategyForm
                     form={form}
                     disabled={disabled}
-                    groupIdOptions={buildGroupIdOptions()}
-                    alarmPageIdsOptions={buildAlamrPageIdsOptions()}
-                    categoryIdsOptions={categoryIdsOptions()}
-                    endpointOptions={buildEndpointOptions()}
-                    levelOptions={buildLevelOptions()}
                     initialValue={detail}
                 />
             </Spin>

@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-type Query interface {
+type Datasource interface {
 	Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
 }
 

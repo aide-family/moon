@@ -21,7 +21,7 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
         value,
         onChange,
         handleFetch,
-        width = 400,
+        width = '100%',
         selectProps,
         defaultValue,
         defaultOptions = []
