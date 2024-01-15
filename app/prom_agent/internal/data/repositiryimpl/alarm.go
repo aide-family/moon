@@ -27,7 +27,7 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 		return status.Error(codes.Unavailable, "producer is not ready")
 	}
 
-	if len(l.producerConf.GetTopics()) == 0 {
+	if len(l.producerConf.GetAlarmTopic()) == 0 {
 		return status.Error(codes.Unavailable, "topics is not ready")
 	}
 
@@ -35,14 +35,12 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 		return status.Error(codes.InvalidArgument, "alarm do is nil")
 	}
 
-	for _, topic := range l.producerConf.GetTopics() {
-		msg := l.genMsg(alarmDo, topic)
-		if err := l.data.Producer().Produce(msg, nil); err != nil {
-			l.log.Errorf("failed to produce message to topic %s: %v", topic, err)
-			continue
-		}
+	topic := l.producerConf.GetAlarmTopic()
+	msg := l.genMsg(alarmDo, topic)
+	if err := l.data.Producer().Produce(msg, nil); err != nil {
+		l.log.Errorf("failed to produce message to topic %s: %v", topic, err)
+		return err
 	}
-
 	return nil
 }
 

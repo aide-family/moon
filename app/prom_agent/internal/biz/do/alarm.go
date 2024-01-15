@@ -8,7 +8,7 @@ import (
 
 type (
 	AlarmDo struct {
-		strategy.Alarm
+		*strategy.Alarm
 	}
 )
 

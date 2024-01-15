@@ -475,6 +475,8 @@ func (m *StrategySimple) validate(all bool) error {
 
 	// no validation rules for AlarmLevelId
 
+	// no validation rules for Endpoint
+
 	if len(errors) > 0 {
 		return StrategySimpleMultiError(errors)
 	}
@@ -881,33 +883,38 @@ func (m *EvaluateRequest) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetGroupList()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, EvaluateRequestValidationError{
-					field:  "GroupList",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetGroupList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EvaluateRequestValidationError{
+						field:  fmt.Sprintf("GroupList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EvaluateRequestValidationError{
+						field:  fmt.Sprintf("GroupList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, EvaluateRequestValidationError{
-					field:  "GroupList",
+				return EvaluateRequestValidationError{
+					field:  fmt.Sprintf("GroupList[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetGroupList()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return EvaluateRequestValidationError{
-				field:  "GroupList",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if len(errors) > 0 {

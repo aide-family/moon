@@ -20,5 +20,6 @@ func NewHookService(logger log.Logger) *HookService {
 }
 
 func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1Reply, error) {
+	// 直接转发到prom
 	return &pb.HookV1Reply{}, nil
 }
