@@ -1,0 +1,65 @@
+{
+  "receiver": "test-group",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "__alert_id__": "1",
+        "__group_id__": "1",
+        "__group_name__": "test-group",
+        "__level_id__": "1",
+        "__name__": "up",
+        "alertname": "test-alert",
+        "instance": "pushgateway:9091",
+        "job": "pushgateway"
+      },
+      "annotations": {
+        "description": "This value is 1",
+        "summary": "instance pushgateway:9091 is up"
+      },
+      "startAt": "2024-01-15T18:29:22+08:00",
+      "endAt": "",
+      "generatorURL": "",
+      "fingerprint": "8aa84fd93dcde07bfef789c9205851e0"
+    },
+    {
+      "status": "firing",
+      "labels": {
+        "__alert_id__": "1",
+        "__group_id__": "1",
+        "__group_name__": "test-group",
+        "__level_id__": "1",
+        "__name__": "up",
+        "alertname": "test-alert",
+        "instance": "pushgateway:9091",
+        "job": "pushgateway"
+      },
+      "annotations": {
+        "description": "This value is 1",
+        "summary": "instance pushgateway:9091 is up"
+      },
+      "startAt": "2024-01-15T18:29:22+08:00",
+      "endAt": "",
+      "generatorURL": "",
+      "fingerprint": "4785639985ece54bfff9c05cc0281ad6"
+    }
+  ],
+  "groupLabels": {
+    "__alert_id__": "1",
+    "__group_id__": "1",
+    "__group_name__": "test-group",
+    "alertname": "test-alert"
+  },
+  "commonLabels": {
+    "__level_id__": "1"
+  },
+  "commonAnnotations": {
+    "description": "This value is {{ $value }}",
+    "summary": "instance {{ $labels.instance }} is up"
+  },
+  "externalURL": "",
+  "version": "",
+  "groupKey": "__group_name__:test-group",
+  "truncate": 0
+}

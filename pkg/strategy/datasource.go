@@ -41,10 +41,15 @@ const (
 )
 
 const (
-	metricName            = "__name__"
-	metricGroupName       = "__group_name__"
-	metricAlert           = "__alert__"
-	metricRuleLabelPrefix = "__rule_label__"
+	metricName        = "__name__"
+	metricGroupName   = "__group_name__"
+	metricGroupId     = "__group_id__"
+	metricAlert       = "alertname"
+	metricAlertId     = "__alert_id__"
+	metricLevelId     = "__level_id__"
+	metricInstance    = "instance"
+	metricDescription = "description"
+	metricSummary     = "summary"
 )
 
 // Bytes QueryResponse to []byte
@@ -90,6 +95,11 @@ func (m Metric) String() string {
 // MD5 Metric to md5
 func (m Metric) MD5() string {
 	return fmt.Sprintf("%x", md5.Sum(m.Bytes()))
+}
+
+// Map Metric to map[string]string
+func (m Metric) Map() map[string]string {
+	return m
 }
 
 // GetMetric Result to Metric

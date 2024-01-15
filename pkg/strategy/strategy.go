@@ -10,14 +10,6 @@ import (
 	"sync"
 )
 
-const (
-	LabelKeyStrategyId       = "strategy_id"
-	LabelKeyLevelId          = "level_id"
-	LabelKeyInstance         = "instance"
-	AnnotationKeyDescription = "description"
-	AnnotationKeySummary     = "summary"
-)
-
 var (
 	_ fmt.Stringer = (*Labels)(nil)
 	_ Label        = (*Labels)(nil)
@@ -54,9 +46,11 @@ type (
 	Group struct {
 		Name  string  `json:"name"`
 		Rules []*Rule `json:"rules"`
+		Id    uint32  `json:"-"`
 	}
 
 	Rule struct {
+		Id          uint32      `json:"-"`
 		Alert       string      `json:"alert"`
 		Expr        string      `json:"expr"`
 		For         string      `json:"for"`
@@ -145,7 +139,7 @@ func (l *Labels) GetInstance() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[LabelKeyInstance]
+	return (*l)[metricInstance]
 }
 
 func (l *Annotations) Get(key string) string {
@@ -166,21 +160,21 @@ func (l *Annotations) Summary() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[AnnotationKeySummary]
+	return (*l)[metricSummary]
 }
 
 func (l *Annotations) Description() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[AnnotationKeyDescription]
+	return (*l)[metricDescription]
 }
 
 func (l *Labels) LevelId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[LabelKeyLevelId]; ok {
+	if id, ok := (*l)[metricLevelId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
 		return uint32(uid)
 	}
@@ -191,7 +185,7 @@ func (l *Labels) StrategyId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[LabelKeyStrategyId]; ok {
+	if id, ok := (*l)[metricAlertId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
 		return uint32(uid)
 	}
@@ -220,22 +214,8 @@ func MapToLabels(m map[string]string) *Labels {
 	return &labels
 }
 
-// ToLabels 将字符串转换为标签
-func ToLabels(str string) *Labels {
-	labels := make(Labels)
-	_ = json.Unmarshal([]byte(str), &labels)
-	return &labels
-}
-
 // MapToAnnotations 将map转换为注解
 func MapToAnnotations(m map[string]string) *Annotations {
 	annotations := Annotations(m)
-	return &annotations
-}
-
-// ToAnnotations 将字符串转换为注解
-func ToAnnotations(str string) *Annotations {
-	annotations := make(Annotations)
-	_ = json.Unmarshal([]byte(str), &annotations)
 	return &annotations
 }
