@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/util/slices"
 )
 
 var _ Alerter = (*Alerting)(nil)
@@ -29,21 +28,7 @@ func (a *Alerting) Eval(ctx context.Context, rule *Rule) ([]*Result, error) {
 		return nil, err
 	}
 
-	list := slices.To(queryResponse.Data.Result, func(item *Result) *Result {
-		// 把规则组属性加入到数据中
-		newItem := item
-		if newItem.Metric == nil {
-			newItem.Metric = make(Metric)
-		}
-		newItem.Metric.Set(metricGroupName, a.group.Name)
-		newItem.Metric.Set(metricAlert, rule.Alert)
-		for k, v := range rule.Labels {
-			newItem.Metric.Set(metricRuleLabelPrefix+k, v)
-		}
-		return newItem
-	})
-
-	return list, nil
+	return queryResponse.Data.Result, nil
 }
 
 // NewAlerting 初始化策略告警实例

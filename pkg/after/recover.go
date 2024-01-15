@@ -5,14 +5,22 @@ import (
 )
 
 type (
-	RecoverCallback func(log *log.Helper, err error)
+	RecoverCallback func(err error)
 )
 
 func Recover(logHelper *log.Helper, calls ...RecoverCallback) {
 	if err := recover(); err != nil {
 		logHelper.Errorf("panic error: %v", err)
 		for _, call := range calls {
-			call(logHelper, err.(error))
+			call(err.(error))
+		}
+	}
+}
+
+func RecoverX(calls ...RecoverCallback) {
+	if err := recover(); err != nil {
+		for _, call := range calls {
+			call(err.(error))
 		}
 	}
 }

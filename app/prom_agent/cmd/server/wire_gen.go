@@ -31,10 +31,9 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 		return nil, nil, err
 	}
 	confServer := bootstrap.Server
-	confData := bootstrap.Data
 	log := bootstrap.Log
 	logger := plog.NewLogger(log)
-	dataData, cleanup, err := data.NewData(confData, logger)
+	dataData, cleanup, err := data.NewData(bootstrap, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -45,7 +44,9 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	hookService := service.NewHookService(logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, hookService, logger)
 	watchProm := bootstrap.WatchProm
-	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, logger)
+	mq := bootstrap.Mq
+	kafka := mq.Kafka
+	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, kafka, logger)
 	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
 	loadService := service.NewLoadService(alarmBiz, logger)
 	watch := server.NewWatch(watchProm, loadService, logger)

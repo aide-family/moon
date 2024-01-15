@@ -33,8 +33,14 @@ func TestNewAlerting(t *testing.T) {
 		Name:  "test-group",
 		Rules: []*Rule{rule},
 	}
-	a := NewAlerting(nil)
+	a := NewAlerting(group, PrometheusDatasource, nil)
 
-	a.Eval(context.Background(), group, rule)
+	for _, r := range group.Rules {
+		results, err := a.Eval(context.Background(), r)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(results)
+	}
 	time.Sleep(time.Second * 60)
 }
