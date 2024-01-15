@@ -12,18 +12,18 @@ import (
 var _ Alerter = (*Alerting)(nil)
 
 type Alerter interface {
-	Eval(ctx context.Context, group *Group, rule *Rule) ([]*Result, error)
+	Eval(ctx context.Context, rule *Rule) ([]*Result, error)
 }
 
 type Alerting struct {
-	groups []*Group
-
-	exitCh chan struct{}
-	log    *log.Helper
+	exitCh         chan struct{}
+	log            *log.Helper
+	datasourceName DatasourceName
+	group          *Group
 }
 
-func (a *Alerting) Eval(ctx context.Context, group *Group, rule *Rule) ([]*Result, error) {
-	datasource := NewDatasource(rule.Endpoint())
+func (a *Alerting) Eval(ctx context.Context, rule *Rule) ([]*Result, error) {
+	datasource := NewDatasource(a.datasourceName, rule.Endpoint())
 	queryResponse, err := datasource.Query(ctx, rule.Expr, time.Now().Unix())
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (a *Alerting) Eval(ctx context.Context, group *Group, rule *Rule) ([]*Resul
 		if newItem.Metric == nil {
 			newItem.Metric = make(Metric)
 		}
-		newItem.Metric.Set(metricGroupName, group.Name)
+		newItem.Metric.Set(metricGroupName, a.group.Name)
 		newItem.Metric.Set(metricAlert, rule.Alert)
 		for k, v := range rule.Labels {
 			newItem.Metric.Set(metricRuleLabelPrefix+k, v)
@@ -47,14 +47,17 @@ func (a *Alerting) Eval(ctx context.Context, group *Group, rule *Rule) ([]*Resul
 }
 
 // NewAlerting 初始化策略告警实例
-func NewAlerting(logger log.Logger) *Alerting {
-	a := &Alerting{
-		exitCh: make(chan struct{}),
-		log:    log.NewHelper(log.With(logger, "module", "strategy.alerting")),
-	}
+func NewAlerting(group *Group, datasourceName DatasourceName, logger log.Logger) *Alerting {
 	if logger == nil {
-		a.log = log.NewHelper(log.With(log.DefaultLogger, "module", "strategy.alerting"))
+		logger = log.DefaultLogger
 	}
+	a := &Alerting{
+		exitCh:         make(chan struct{}),
+		datasourceName: datasourceName,
+		group:          group,
+		log:            log.NewHelper(log.With(logger, "module", "strategy.alerting")),
+	}
+
 	return a
 }
 

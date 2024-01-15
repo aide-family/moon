@@ -3,6 +3,7 @@ package httpx
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -75,4 +76,16 @@ func (h *HttpX) GET(u string) (*http.Response, error) {
 func isValidURL(u string) bool {
 	_, err := url.ParseRequestURI(u)
 	return err == nil
+}
+
+// ParseQuery 处理结构体转为query参数
+func ParseQuery(qr map[string]any) string {
+	if qr == nil || len(qr) == 0 {
+		return ""
+	}
+	query := url.Values{}
+	for k, v := range qr {
+		query.Add(k, fmt.Sprintf("%v", v))
+	}
+	return query.Encode()
 }

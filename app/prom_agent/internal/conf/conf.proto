@@ -11,6 +11,7 @@ message Bootstrap {
   Env env = 3;
   Log log = 4;
   WatchProm watchProm = 5;
+  MQ mq = 6;
 }
 
 message Server {
@@ -32,12 +33,16 @@ message Data {
   message Database {
     string driver = 1;
     string source = 2;
+    bool debug = 3;
   }
   message Redis {
     string network = 1;
     string addr = 2;
-    google.protobuf.Duration read_timeout = 3;
-    google.protobuf.Duration write_timeout = 4;
+    google.protobuf.Duration readTimeout = 3;
+    google.protobuf.Duration writeTimeout = 4;
+    uint32 db = 5;
+    string password = 6;
+    google.protobuf.Duration dialTimeout = 7;
   }
   Database database = 1;
   Redis redis = 2;
@@ -75,3 +80,12 @@ message WatchProm {
   google.protobuf.Duration interval = 1;
 }
 
+message MQ {
+  Kafka kafka = 1;
+}
+
+message Kafka {
+  repeated string endpoints = 1;
+  repeated string topics = 2;
+  string groupId = 3;
+}

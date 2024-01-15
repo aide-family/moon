@@ -2,9 +2,7 @@ syntax = "proto3";
 
 package api.agent;
 
-import "validate/validate.proto";
 import "model.proto";
-import "base.proto";
 
 option go_package = "prometheus-manager/api/agent;agent";
 option java_multiple_files = true;
@@ -15,21 +13,51 @@ service Load {
   rpc StrategyGroupAll (StrategyGroupAllRequest) returns (StrategyGroupAllReply);
   // 加载变化的规则
   rpc StrategyGroupDiff (StrategyGroupDiffRequest) returns (StrategyGroupDiffReply);
+  // 校验规则
+  rpc Evaluate (EvaluateRequest) returns (EvaluateReply);
 }
 
-message StrategyGroupAllRequest {
-  PageRequest page = 1 [(validate.rules).message.required = true];
-}
+message StrategyGroupAllRequest {}
 message StrategyGroupAllReply {
-  repeated PromGroup items = 1;
-  PageReply page = 2;
+  repeated GroupSimple groupList = 1;
+}
+message GroupSimple {
+  // 策略组ID
+  uint32 id = 1;
+  // 策略组名称
+  string name = 2;
+  repeated StrategySimple strategies = 3;
+}
+
+message StrategySimple {
+  // 策略ID
+  uint32 id = 1;
+  // 告警名称
+  string alert = 2;
+  // 表达式
+  string expr = 3;
+  // 持续时间
+  Duration duration = 4;
+  // 标签
+  map<string, string> labels = 5;
+  // 注解
+  map<string, string> annotations = 6;
+  // 策略组ID
+  uint32 groupId = 7;
+  // 告警级别ID
+  uint32 alarmLevelId = 8;
 }
 
 message StrategyGroupDiffRequest {
   // TODO 如果变更频率过快, 考虑加入参数消除抖动
 }
 message StrategyGroupDiffReply {
-  repeated PromGroup appendItems = 1;
-  repeated PromGroup deleteItems = 2;
-  repeated PromGroup updateItems = 3;
+  repeated GroupSimple appendItems = 1;
+  repeated GroupSimple deleteItems = 2;
+  repeated GroupSimple updateItems = 3;
 }
+
+message EvaluateRequest {
+  GroupSimple groupList = 1;
+}
+message EvaluateReply {}
