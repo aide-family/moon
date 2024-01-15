@@ -22,9 +22,10 @@ export type DataFormProps = {
     items: (DataFormItem[] | DataFormItem)[] | DataFormItem
     formProps?: FormProps
     children?: React.ReactNode
+    [key:string]: React.ReactNode | any
 }
 
-const renderFormItem = (item: DataFormItem, span: number = 24) => {
+const renderFormItem = (props: DataFormProps, item: DataFormItem, span: number = 24) => {
     const {
         name,
         label,
@@ -47,15 +48,15 @@ const renderFormItem = (item: DataFormItem, span: number = 24) => {
                 key={name}
                 {...formItemProps}
             >
-                <DataInput {...dataProps} />
+                {props[name] || <DataInput {...dataProps} />}
             </Form.Item>
         </Col>
     )
 }
 
-const renderFormItems = (items: DataFormItem[], span: number = 24) => {
+const renderFormItems = (props: DataFormProps, items: DataFormItem[], span: number = 24) => {
     return items.map((item) => {
-        return renderFormItem(item, span)
+        return renderFormItem(props,item, span)
     })
 }
 
@@ -66,12 +67,12 @@ const RenderForm: FC<DataFormProps> = (props) => {
         return items.map((item) => {
             const span = 24
             if (Array.isArray(item)) {
-                return renderFormItems(item, span / item.length)
+                return renderFormItems(props, item, span / item.length)
             }
-            return renderFormItem(item, span)
+            return renderFormItem(props, item, span)
         })
     } else {
-        return renderFormItem(items, 24)
+        return renderFormItem(props, items, 24)
     }
 }
 

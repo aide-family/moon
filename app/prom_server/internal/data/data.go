@@ -85,6 +85,13 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	}
 
 	cleanup := func() {
+		sqlDb, err := d.DB().DB()
+		if err != nil {
+			log.NewHelper(logger).Errorf("close db error: %v", err)
+		}
+		if err = sqlDb.Close(); err != nil {
+			log.NewHelper(logger).Errorf("close db error: %v", err)
+		}
 		log.NewHelper(logger).Info("closing the data resources")
 	}
 

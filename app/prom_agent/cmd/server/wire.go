@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/app/prom_agent/internal/biz"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/data"
+	"prometheus-manager/app/prom_agent/internal/data/repositiryimpl"
 	"prometheus-manager/app/prom_agent/internal/server"
 	"prometheus-manager/app/prom_agent/internal/service"
 	"prometheus-manager/pkg/helper/plog"
@@ -26,6 +27,7 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		service.ProviderSetService,
 		conf.ProviderSetConf,
 		plog.ProviderSetPLog,
+		repositiryimpl.ProviderSetRepoImpl,
 		newApp,
 	))
 }

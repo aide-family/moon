@@ -57,46 +57,6 @@ func (m *StrategyGroupAllRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetPage() == nil {
-		err := StrategyGroupAllRequestValidationError{
-			field:  "Page",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetPage()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, StrategyGroupAllRequestValidationError{
-					field:  "Page",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, StrategyGroupAllRequestValidationError{
-					field:  "Page",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return StrategyGroupAllRequestValidationError{
-				field:  "Page",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	if len(errors) > 0 {
 		return StrategyGroupAllRequestMultiError(errors)
 	}
@@ -199,7 +159,7 @@ func (m *StrategyGroupAllReply) validate(all bool) error {
 
 	var errors []error
 
-	for idx, item := range m.GetItems() {
+	for idx, item := range m.GetGroupList() {
 		_, _ = idx, item
 
 		if all {
@@ -207,7 +167,7 @@ func (m *StrategyGroupAllReply) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, StrategyGroupAllReplyValidationError{
-						field:  fmt.Sprintf("Items[%v]", idx),
+						field:  fmt.Sprintf("GroupList[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -215,7 +175,7 @@ func (m *StrategyGroupAllReply) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, StrategyGroupAllReplyValidationError{
-						field:  fmt.Sprintf("Items[%v]", idx),
+						field:  fmt.Sprintf("GroupList[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -224,42 +184,13 @@ func (m *StrategyGroupAllReply) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return StrategyGroupAllReplyValidationError{
-					field:  fmt.Sprintf("Items[%v]", idx),
+					field:  fmt.Sprintf("GroupList[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	}
-
-	if all {
-		switch v := interface{}(m.GetPage()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, StrategyGroupAllReplyValidationError{
-					field:  "Page",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, StrategyGroupAllReplyValidationError{
-					field:  "Page",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return StrategyGroupAllReplyValidationError{
-				field:  "Page",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
 	}
 
 	if len(errors) > 0 {
@@ -341,6 +272,286 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StrategyGroupAllReplyValidationError{}
+
+// Validate checks the field values on GroupSimple with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GroupSimple) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GroupSimple with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GroupSimpleMultiError, or
+// nil if none found.
+func (m *GroupSimple) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GroupSimple) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	for idx, item := range m.GetStrategies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GroupSimpleValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GroupSimpleValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GroupSimpleValidationError{
+					field:  fmt.Sprintf("Strategies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GroupSimpleMultiError(errors)
+	}
+
+	return nil
+}
+
+// GroupSimpleMultiError is an error wrapping multiple validation errors
+// returned by GroupSimple.ValidateAll() if the designated constraints aren't met.
+type GroupSimpleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GroupSimpleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GroupSimpleMultiError) AllErrors() []error { return m }
+
+// GroupSimpleValidationError is the validation error returned by
+// GroupSimple.Validate if the designated constraints aren't met.
+type GroupSimpleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GroupSimpleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GroupSimpleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GroupSimpleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GroupSimpleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GroupSimpleValidationError) ErrorName() string { return "GroupSimpleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GroupSimpleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGroupSimple.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GroupSimpleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GroupSimpleValidationError{}
+
+// Validate checks the field values on StrategySimple with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *StrategySimple) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StrategySimple with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in StrategySimpleMultiError,
+// or nil if none found.
+func (m *StrategySimple) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StrategySimple) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Alert
+
+	// no validation rules for Expr
+
+	if all {
+		switch v := interface{}(m.GetDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StrategySimpleValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StrategySimpleValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StrategySimpleValidationError{
+				field:  "Duration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Labels
+
+	// no validation rules for Annotations
+
+	// no validation rules for GroupId
+
+	// no validation rules for AlarmLevelId
+
+	if len(errors) > 0 {
+		return StrategySimpleMultiError(errors)
+	}
+
+	return nil
+}
+
+// StrategySimpleMultiError is an error wrapping multiple validation errors
+// returned by StrategySimple.ValidateAll() if the designated constraints
+// aren't met.
+type StrategySimpleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StrategySimpleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StrategySimpleMultiError) AllErrors() []error { return m }
+
+// StrategySimpleValidationError is the validation error returned by
+// StrategySimple.Validate if the designated constraints aren't met.
+type StrategySimpleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StrategySimpleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StrategySimpleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StrategySimpleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StrategySimpleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StrategySimpleValidationError) ErrorName() string { return "StrategySimpleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e StrategySimpleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStrategySimple.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StrategySimpleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StrategySimpleValidationError{}
 
 // Validate checks the field values on StrategyGroupDiffRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -647,3 +858,232 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StrategyGroupDiffReplyValidationError{}
+
+// Validate checks the field values on EvaluateRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EvaluateRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EvaluateRequestMultiError, or nil if none found.
+func (m *EvaluateRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetGroupList()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EvaluateRequestValidationError{
+					field:  "GroupList",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EvaluateRequestValidationError{
+					field:  "GroupList",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGroupList()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EvaluateRequestValidationError{
+				field:  "GroupList",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EvaluateRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateRequestMultiError is an error wrapping multiple validation errors
+// returned by EvaluateRequest.ValidateAll() if the designated constraints
+// aren't met.
+type EvaluateRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateRequestMultiError) AllErrors() []error { return m }
+
+// EvaluateRequestValidationError is the validation error returned by
+// EvaluateRequest.Validate if the designated constraints aren't met.
+type EvaluateRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateRequestValidationError) ErrorName() string { return "EvaluateRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EvaluateRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateRequestValidationError{}
+
+// Validate checks the field values on EvaluateReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EvaluateReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EvaluateReplyMultiError, or
+// nil if none found.
+func (m *EvaluateReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return EvaluateReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateReplyMultiError is an error wrapping multiple validation errors
+// returned by EvaluateReply.ValidateAll() if the designated constraints
+// aren't met.
+type EvaluateReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateReplyMultiError) AllErrors() []error { return m }
+
+// EvaluateReplyValidationError is the validation error returned by
+// EvaluateReply.Validate if the designated constraints aren't met.
+type EvaluateReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateReplyValidationError) ErrorName() string { return "EvaluateReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EvaluateReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateReplyValidationError{}

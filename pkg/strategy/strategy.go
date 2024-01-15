@@ -63,8 +63,9 @@ type (
 		Labels      Labels      `json:"labels"`
 		Annotations Annotations `json:"annotations"`
 		// 数据源
-		endpoint string
-		lock     sync.RWMutex
+		endpoint       string
+		datasourceName string
+		lock           sync.RWMutex
 	}
 
 	Labels      map[string]string

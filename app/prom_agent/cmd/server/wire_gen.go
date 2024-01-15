@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/app/prom_agent/internal/biz"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/data"
+	"prometheus-manager/app/prom_agent/internal/data/repositiryimpl"
 	"prometheus-manager/app/prom_agent/internal/server"
 	"prometheus-manager/app/prom_agent/internal/service"
 	"prometheus-manager/pkg/helper/plog"
@@ -44,9 +45,10 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	hookService := service.NewHookService(logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, hookService, logger)
 	watchProm := bootstrap.WatchProm
-	loadService := service.NewLoadService(logger)
-	alarmService := service.NewAlarmService(logger)
-	watch := server.NewWatch(watchProm, loadService, alarmService, logger)
+	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, logger)
+	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
+	loadService := service.NewLoadService(alarmBiz, logger)
+	watch := server.NewWatch(watchProm, loadService, logger)
 	app := newApp(grpcServer, httpServer, watch, logger)
 	return app, func() {
 		cleanup()

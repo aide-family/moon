@@ -2,56 +2,109 @@ package strategy
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"strings"
-
-	"prometheus-manager/pkg/httpx"
 )
 
-var _ Datasource = (*PromDatasource)(nil)
+type Datasource interface {
+	Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
+	GetCategory() string
+	GetEndpoint() string
+}
+
+type (
+	Metric map[string]string
+
+	Result struct {
+		Metric Metric `json:"metric"`
+		Value  []any  `json:"value"`
+	}
+
+	Data struct {
+		ResultType string    `json:"resultType"`
+		Result     []*Result `json:"result"`
+	}
+
+	QueryResponse struct {
+		Status    string `json:"status"`
+		Data      *Data  `json:"data"`
+		ErrorType string `json:"errorType"`
+		Error     string `json:"error"`
+	}
+)
+
+type DatasourceName string
 
 const (
-	PrometheusDatasource = "prometheus"
+	PrometheusDatasource DatasourceName = "prometheus"
 )
 
-type PromDatasource struct {
-	// 数据源类型
-	Category string
-	// 地址
-	Domain string
+const (
+	metricName            = "__name__"
+	metricGroupName       = "__group_name__"
+	metricAlert           = "__alert__"
+	metricRuleLabelPrefix = "__rule_label__"
+)
+
+// Bytes QueryResponse to []byte
+func (qr *QueryResponse) Bytes() []byte {
+	bs, _ := json.Marshal(qr)
+	return bs
 }
 
-// Query 调用数据源查询数据
-//
-//	curl 'https://<domain>/api/v1/query?query=go_memstats_sys_bytes&time=1704785907'
-func (d *PromDatasource) Query(_ context.Context, expr string, duration int64) (*QueryResponse, error) {
-	params := ParseQuery(map[string]any{
-		"query": expr,
-		"time":  duration,
-	})
-
-	hx := httpx.NewHttpX()
-	hx.SetHeader(map[string]string{
-		"Accept":          "*/*",
-		"Accept-Language": "zh-CN,zh;q=0.9",
-	})
-	getResponse, err := hx.GET(fmt.Sprintf("%s%s?%s", d.Domain, apiV1Query, params))
-	if err != nil {
-		return nil, err
-	}
-	defer getResponse.Body.Close()
-	var allResp QueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
-		return nil, err
-	}
-	return &allResp, nil
+// String QueryResponse to string
+func (qr *QueryResponse) String() string {
+	return string(qr.Bytes())
 }
 
-// NewDatasource 实例化数据源对象
-func NewDatasource(domain string) *PromDatasource {
-	return &PromDatasource{
-		Category: PrometheusDatasource,
-		Domain:   strings.TrimSuffix(domain, "/"),
+// Name Metric __name__
+func (m Metric) Name() string {
+	return m.Get(metricName)
+}
+
+// Get get tag value
+func (m Metric) Get(key string) string {
+	return m[key]
+}
+
+// Set Metric set tag value
+func (m Metric) Set(key, value string) {
+	m[key] = value
+}
+
+// Bytes Metric to []byte
+func (m Metric) Bytes() []byte {
+	if m == nil {
+		return nil
+	}
+	bs, _ := json.Marshal(m)
+	return bs
+}
+
+// String Metric to string
+func (m Metric) String() string {
+	return string(m.Bytes())
+}
+
+// MD5 Metric to md5
+func (m Metric) MD5() string {
+	return fmt.Sprintf("%x", md5.Sum(m.Bytes()))
+}
+
+// GetMetric Result to Metric
+func (r *Result) GetMetric() Metric {
+	if r == nil {
+		return nil
+	}
+	return r.Metric
+}
+
+func NewDatasource(datasourceName DatasourceName, endpoint string) Datasource {
+	switch datasourceName {
+	case PrometheusDatasource:
+		return NewPrometheusDatasource(endpoint)
+	default:
+		return NewPrometheusDatasource(endpoint)
 	}
 }
