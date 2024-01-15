@@ -7,7 +7,6 @@ import (
 )
 
 func TestNewDatasource(t *testing.T) {
-	expr := "up == 1"
 	d := NewDatasource(PrometheusDatasource, defaultDatasource)
 	queryResponse, err := d.Query(context.Background(), expr, time.Now().Unix())
 	if err != nil {

@@ -67,7 +67,7 @@ func (w *Watch) Start(ctx context.Context) error {
 						return true
 					}
 					eg.Go(func() error {
-						_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: groupDetail})
+						_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: []*agent.GroupSimple{groupDetail}})
 						return nil
 					})
 					return true

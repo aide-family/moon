@@ -23,3 +23,12 @@ log:
 
 watchProm:
   interval: 10s
+
+mq:
+  kafka:
+    groupId: prometheus-agent
+    endpoints:
+      - localhost:9092
+    alarmTopic: alert-hook
+    strategyGroupAllTopic: strategy-group-all
+    onlineTopic: online

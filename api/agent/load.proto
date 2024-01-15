@@ -46,6 +46,8 @@ message StrategySimple {
   uint32 groupId = 7;
   // 告警级别ID
   uint32 alarmLevelId = 8;
+  // 数据源
+  string endpoint = 9;
 }
 
 message StrategyGroupDiffRequest {
@@ -58,6 +60,6 @@ message StrategyGroupDiffReply {
 }
 
 message EvaluateRequest {
-  GroupSimple groupList = 1;
+  repeated GroupSimple groupList = 1;
 }
 message EvaluateReply {}
