@@ -11,12 +11,15 @@ import (
 type Load struct {
 	source config.Source
 	kvs    []*config.KeyValue
+	vi     *viper.Viper
 }
 
 // NewStrategyLoad 初始化规则加载器
 func NewStrategyLoad(source config.Source) *Load {
+	vi := viper.New()
 	return &Load{
 		source: source,
+		vi:     vi,
 	}
 }
 
@@ -33,7 +36,6 @@ func (l *Load) Load() ([]*Group, error) {
 	if err := l.load(); err != nil {
 		return nil, err
 	}
-	vi := viper.New()
 
 	list := make([]*Group, 0)
 	for _, kv := range l.kvs {
@@ -43,13 +45,11 @@ func (l *Load) Load() ([]*Group, error) {
 		if !ok {
 			continue
 		}
-		vi.SetConfigType(ext)
-
-		if err := vi.ReadConfig(bytes.NewBuffer(kv.Value)); err != nil {
+		l.vi.SetConfigType(ext)
+		if err := l.vi.ReadConfig(bytes.NewBuffer(kv.Value)); err != nil {
 			return nil, err
 		}
-
-		if err := vi.Unmarshal(&groups); err != nil {
+		if err := l.vi.Unmarshal(&groups); err != nil {
 			return nil, err
 		}
 

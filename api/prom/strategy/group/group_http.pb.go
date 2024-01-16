@@ -26,6 +26,7 @@ const OperationGroupDeleteGroup = "/api.prom.strategy.group.Group/DeleteGroup"
 const OperationGroupExportGroup = "/api.prom.strategy.group.Group/ExportGroup"
 const OperationGroupGetGroup = "/api.prom.strategy.group.Group/GetGroup"
 const OperationGroupImportGroup = "/api.prom.strategy.group.Group/ImportGroup"
+const OperationGroupListAllGroupDetail = "/api.prom.strategy.group.Group/ListAllGroupDetail"
 const OperationGroupListGroup = "/api.prom.strategy.group.Group/ListGroup"
 const OperationGroupSelectGroup = "/api.prom.strategy.group.Group/SelectGroup"
 const OperationGroupUpdateGroup = "/api.prom.strategy.group.Group/UpdateGroup"
@@ -38,6 +39,7 @@ type GroupHTTPServer interface {
 	ExportGroup(context.Context, *ExportGroupRequest) (*ExportGroupReply, error)
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupReply, error)
 	ImportGroup(context.Context, *ImportGroupRequest) (*ImportGroupReply, error)
+	ListAllGroupDetail(context.Context, *ListAllGroupDetailRequest) (*ListAllGroupDetailReply, error)
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
 	SelectGroup(context.Context, *SelectGroupRequest) (*SelectGroupReply, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupReply, error)
@@ -52,6 +54,7 @@ func RegisterGroupHTTPServer(s *http.Server, srv GroupHTTPServer) {
 	r.POST("/api/v1/strategy/group/batch/delete", _Group_BatchDeleteGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/group/get", _Group_GetGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/group/list", _Group_ListGroup0_HTTP_Handler(srv))
+	r.POST("/api/v1/strategy/group/all/list", _Group_ListAllGroupDetail0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/group/select", _Group_SelectGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/group/import", _Group_ImportGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/group/export", _Group_ExportGroup0_HTTP_Handler(srv))
@@ -190,6 +193,25 @@ func _Group_ListGroup0_HTTP_Handler(srv GroupHTTPServer) func(ctx http.Context) 
 	}
 }
 
+func _Group_ListAllGroupDetail0_HTTP_Handler(srv GroupHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAllGroupDetailRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationGroupListAllGroupDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAllGroupDetail(ctx, req.(*ListAllGroupDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAllGroupDetailReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Group_SelectGroup0_HTTP_Handler(srv GroupHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SelectGroupRequest
@@ -255,6 +277,7 @@ type GroupHTTPClient interface {
 	ExportGroup(ctx context.Context, req *ExportGroupRequest, opts ...http.CallOption) (rsp *ExportGroupReply, err error)
 	GetGroup(ctx context.Context, req *GetGroupRequest, opts ...http.CallOption) (rsp *GetGroupReply, err error)
 	ImportGroup(ctx context.Context, req *ImportGroupRequest, opts ...http.CallOption) (rsp *ImportGroupReply, err error)
+	ListAllGroupDetail(ctx context.Context, req *ListAllGroupDetailRequest, opts ...http.CallOption) (rsp *ListAllGroupDetailReply, err error)
 	ListGroup(ctx context.Context, req *ListGroupRequest, opts ...http.CallOption) (rsp *ListGroupReply, err error)
 	SelectGroup(ctx context.Context, req *SelectGroupRequest, opts ...http.CallOption) (rsp *SelectGroupReply, err error)
 	UpdateGroup(ctx context.Context, req *UpdateGroupRequest, opts ...http.CallOption) (rsp *UpdateGroupReply, err error)
@@ -351,6 +374,19 @@ func (c *GroupHTTPClientImpl) ImportGroup(ctx context.Context, in *ImportGroupRe
 	pattern := "/api/v1/strategy/group/import"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationGroupImportGroup))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *GroupHTTPClientImpl) ListAllGroupDetail(ctx context.Context, in *ListAllGroupDetailRequest, opts ...http.CallOption) (*ListAllGroupDetailReply, error) {
+	var out ListAllGroupDetailReply
+	pattern := "/api/v1/strategy/group/all/list"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationGroupListAllGroupDetail))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

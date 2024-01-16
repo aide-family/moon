@@ -49,7 +49,11 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, kafka, logger)
 	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
 	loadService := service.NewLoadService(alarmBiz, logger)
-	watch := server.NewWatch(watchProm, loadService, logger)
+	watch, err := server.NewWatch(watchProm, mq, loadService, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	app := newApp(grpcServer, httpServer, watch, logger)
 	return app, func() {
 		cleanup()

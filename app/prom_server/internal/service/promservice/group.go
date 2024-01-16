@@ -122,6 +122,34 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	}, nil
 }
 
+func (s *GroupService) ListAllGroupDetail(ctx context.Context, _ *pb.ListAllGroupDetailRequest) (*pb.ListAllGroupDetailReply, error) {
+	list := make([]*api.PromGroup, 0)
+	wheres := []basescopes.ScopeMethod{
+		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.PreloadStrategyGroupPromStrategies(
+			basescopes.PreloadKeyEndpoint,
+		),
+	}
+	defaultId := uint32(0)
+	for {
+		strategyGroupBOS, err := s.strategyGroupBiz.ListAllLimit(ctx, 1000, append(wheres, basescopes.IdGT(defaultId))...)
+		if err != nil {
+			s.log.Errorf("ListAllGroupDetail error: %v", err)
+			break
+		}
+		if len(strategyGroupBOS) == 0 {
+			break
+		}
+		list = append(list, slices.To(strategyGroupBOS, func(t *bo.StrategyGroupBO) *api.PromGroup {
+			return t.ToApiV1()
+		})...)
+		defaultId = strategyGroupBOS[len(strategyGroupBOS)-1].Id
+	}
+	return &pb.ListAllGroupDetailReply{
+		List: list,
+	}, nil
+}
+
 func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupRequest) (*pb.SelectGroupReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())

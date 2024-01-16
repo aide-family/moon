@@ -162,6 +162,17 @@ func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagi
 	return list, nil
 }
 
+func (l *strategyGroupRepoImpl) ListAllLimit(ctx context.Context, limit int, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+	var strategyModelList []*do.PromStrategyGroup
+	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Limit(limit).Find(&strategyModelList).Error; err != nil {
+		return nil, err
+	}
+	list := slices.To(strategyModelList, func(m *do.PromStrategyGroup) *bo.StrategyGroupBO {
+		return bo.StrategyGroupModelToBO(m)
+	})
+	return list, nil
+}
+
 func NewStrategyGroupRepo(data *data.Data, logger log.Logger) repository.StrategyGroupRepo {
 	return &strategyGroupRepoImpl{
 		data: data,

@@ -1880,6 +1880,244 @@ var _ interface {
 	ErrorName() string
 } = ListGroupReplyValidationError{}
 
+// Validate checks the field values on ListAllGroupDetailRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAllGroupDetailRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAllGroupDetailRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAllGroupDetailRequestMultiError, or nil if none found.
+func (m *ListAllGroupDetailRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAllGroupDetailRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListAllGroupDetailRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListAllGroupDetailRequestMultiError is an error wrapping multiple validation
+// errors returned by ListAllGroupDetailRequest.ValidateAll() if the
+// designated constraints aren't met.
+type ListAllGroupDetailRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAllGroupDetailRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAllGroupDetailRequestMultiError) AllErrors() []error { return m }
+
+// ListAllGroupDetailRequestValidationError is the validation error returned by
+// ListAllGroupDetailRequest.Validate if the designated constraints aren't met.
+type ListAllGroupDetailRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAllGroupDetailRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAllGroupDetailRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAllGroupDetailRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAllGroupDetailRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAllGroupDetailRequestValidationError) ErrorName() string {
+	return "ListAllGroupDetailRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAllGroupDetailRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAllGroupDetailRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAllGroupDetailRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAllGroupDetailRequestValidationError{}
+
+// Validate checks the field values on ListAllGroupDetailReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAllGroupDetailReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAllGroupDetailReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAllGroupDetailReplyMultiError, or nil if none found.
+func (m *ListAllGroupDetailReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAllGroupDetailReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListAllGroupDetailReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListAllGroupDetailReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListAllGroupDetailReplyValidationError{
+					field:  fmt.Sprintf("List[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListAllGroupDetailReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListAllGroupDetailReplyMultiError is an error wrapping multiple validation
+// errors returned by ListAllGroupDetailReply.ValidateAll() if the designated
+// constraints aren't met.
+type ListAllGroupDetailReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAllGroupDetailReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAllGroupDetailReplyMultiError) AllErrors() []error { return m }
+
+// ListAllGroupDetailReplyValidationError is the validation error returned by
+// ListAllGroupDetailReply.Validate if the designated constraints aren't met.
+type ListAllGroupDetailReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAllGroupDetailReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAllGroupDetailReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAllGroupDetailReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAllGroupDetailReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAllGroupDetailReplyValidationError) ErrorName() string {
+	return "ListAllGroupDetailReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAllGroupDetailReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAllGroupDetailReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAllGroupDetailReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAllGroupDetailReplyValidationError{}
+
 // Validate checks the field values on SelectGroupRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

@@ -7,6 +7,9 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
+	"prometheus-manager/api/prom/strategy/group"
+	"prometheus-manager/app/prom_server/internal/service/promservice"
 
 	alarmhookPb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/pkg/helper/consts"
@@ -24,11 +27,13 @@ type AlarmEvent struct {
 	*servers.KafkaMQServer
 	eventHandlers map[consts.TopicType]EventHandler
 	hookService   *alarmservice.HookService
+	groupService  *promservice.GroupService
 }
 
 func NewAlarmEvent(
 	c *conf.Bootstrap,
 	hookService *alarmservice.HookService,
+	groupService *promservice.GroupService,
 	logger log.Logger,
 ) (*AlarmEvent, error) {
 	kafkaConf := c.GetMq().GetKafka()
@@ -43,6 +48,7 @@ func NewAlarmEvent(
 		eventHandlers: make(map[consts.TopicType]EventHandler),
 		KafkaMQServer: kafkaMqServer,
 		hookService:   hookService,
+		groupService:  groupService,
 	}
 
 	// 注册topic处理器
@@ -50,6 +56,8 @@ func NewAlarmEvent(
 		switch topic {
 		case string(consts.AlertHookTopic):
 			l.eventHandlers[consts.AlertHookTopic] = l.alertHookHandler
+		case string(consts.AgentOnlineTopic):
+			l.eventHandlers[consts.AgentOnlineTopic] = l.agentOnlineEventHandler
 		default:
 			return nil, fmt.Errorf("topic %s not support", topic)
 		}
@@ -83,6 +91,41 @@ func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
 	}
 	l.log.Debugf("hook resp: %s", resp.String())
 	return nil
+}
+
+// agentOnlineEventHandler 处理agent online消息
+func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
+	// TODO 1. 记录节点状态
+
+	// 2. 拉取全量规则组及规则
+	listAllGroupDetail, err := l.groupService.ListAllGroupDetail(context.Background(), &group.ListAllGroupDetailRequest{})
+	if err != nil {
+		return err
+	}
+
+	eg := new(errgroup.Group)
+	eg.SetLimit(100)
+	for _, groupDetail := range listAllGroupDetail.GetList() {
+		if groupDetail == nil {
+			continue
+		}
+		groupDetailBytes, _ := json.Marshal(groupDetail)
+		eg.Go(func() error {
+			// 3. 推送规则组消息(按规则组粒度)
+			topic := string(msg.Value)
+			sendMsg := &kafka.Message{
+				TopicPartition: kafka.TopicPartition{
+					Topic:     &topic,
+					Partition: kafka.PartitionAny,
+				},
+				Value: groupDetailBytes,
+				Key:   msg.Key,
+			}
+			return l.Produce(sendMsg)
+		})
+	}
+
+	return eg.Wait()
 }
 
 // Subscribe 订阅消息
@@ -119,7 +162,7 @@ func (l *AlarmEvent) Consume() error {
 					l.log.Errorf("handle event error: %v", err)
 				}
 			case kafka.Error:
-				l.log.Warnf("Error: %v\n", e)
+				//l.log.Warnf("Error: %v\n", e)
 			}
 		}
 	}()
