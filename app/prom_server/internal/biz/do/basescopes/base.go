@@ -49,6 +49,13 @@ func NotInIds(ids ...uint32) ScopeMethod {
 	}
 }
 
+// IdGT idGT
+func IdGT(id uint32) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(BaseFieldID.Format(">", "?").String(), id)
+	}
+}
+
 // StatusEQ 状态
 func StatusEQ(status vo.Status) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {

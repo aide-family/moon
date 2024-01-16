@@ -69,6 +69,14 @@ service Group {
     };
   }
 
+  // 获取策略组列表明细
+  rpc ListAllGroupDetail (ListAllGroupDetailRequest) returns (ListAllGroupDetailReply) {
+    option (google.api.http) = {
+      post: "/api/v1/strategy/group/all/list"
+      body: "*"
+    };
+  }
+
   // 获取策略组下拉列表
   rpc SelectGroup (SelectGroupRequest) returns (SelectGroupReply) {
     option (google.api.http) = {
@@ -226,6 +234,12 @@ message ListGroupReply {
   PageReply page = 1;
   // 策略组列表
   repeated PromGroup list = 2;
+}
+
+// 获取策略组列表明细请求参数
+message ListAllGroupDetailRequest {}
+message ListAllGroupDetailReply {
+  repeated PromGroup list = 1;
 }
 
 // 获取策略组下拉列表请求参数

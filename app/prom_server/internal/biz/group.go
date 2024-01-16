@@ -72,3 +72,7 @@ func (l *StrategyGroupBiz) List(ctx context.Context, pgInfo basescopes.Paginatio
 	}
 	return strategyGroupBoList, nil
 }
+
+func (l *StrategyGroupBiz) ListAllLimit(ctx context.Context, limit int, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+	return l.strategyGroupRepo.ListAllLimit(ctx, limit, scopes...)
+}

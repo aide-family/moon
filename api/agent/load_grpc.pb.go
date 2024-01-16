@@ -19,19 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Load_StrategyGroupAll_FullMethodName  = "/api.agent.Load/StrategyGroupAll"
-	Load_StrategyGroupDiff_FullMethodName = "/api.agent.Load/StrategyGroupDiff"
-	Load_Evaluate_FullMethodName          = "/api.agent.Load/Evaluate"
+	Load_Evaluate_FullMethodName = "/api.agent.Load/Evaluate"
 )
 
 // LoadClient is the client API for Load service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LoadClient interface {
-	// 第一次全部加载
-	StrategyGroupAll(ctx context.Context, in *StrategyGroupAllRequest, opts ...grpc.CallOption) (*StrategyGroupAllReply, error)
-	// 加载变化的规则
-	StrategyGroupDiff(ctx context.Context, in *StrategyGroupDiffRequest, opts ...grpc.CallOption) (*StrategyGroupDiffReply, error)
 	// 校验规则
 	Evaluate(ctx context.Context, in *EvaluateRequest, opts ...grpc.CallOption) (*EvaluateReply, error)
 }
@@ -42,24 +36,6 @@ type loadClient struct {
 
 func NewLoadClient(cc grpc.ClientConnInterface) LoadClient {
 	return &loadClient{cc}
-}
-
-func (c *loadClient) StrategyGroupAll(ctx context.Context, in *StrategyGroupAllRequest, opts ...grpc.CallOption) (*StrategyGroupAllReply, error) {
-	out := new(StrategyGroupAllReply)
-	err := c.cc.Invoke(ctx, Load_StrategyGroupAll_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *loadClient) StrategyGroupDiff(ctx context.Context, in *StrategyGroupDiffRequest, opts ...grpc.CallOption) (*StrategyGroupDiffReply, error) {
-	out := new(StrategyGroupDiffReply)
-	err := c.cc.Invoke(ctx, Load_StrategyGroupDiff_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *loadClient) Evaluate(ctx context.Context, in *EvaluateRequest, opts ...grpc.CallOption) (*EvaluateReply, error) {
@@ -75,10 +51,6 @@ func (c *loadClient) Evaluate(ctx context.Context, in *EvaluateRequest, opts ...
 // All implementations must embed UnimplementedLoadServer
 // for forward compatibility
 type LoadServer interface {
-	// 第一次全部加载
-	StrategyGroupAll(context.Context, *StrategyGroupAllRequest) (*StrategyGroupAllReply, error)
-	// 加载变化的规则
-	StrategyGroupDiff(context.Context, *StrategyGroupDiffRequest) (*StrategyGroupDiffReply, error)
 	// 校验规则
 	Evaluate(context.Context, *EvaluateRequest) (*EvaluateReply, error)
 	mustEmbedUnimplementedLoadServer()
@@ -88,12 +60,6 @@ type LoadServer interface {
 type UnimplementedLoadServer struct {
 }
 
-func (UnimplementedLoadServer) StrategyGroupAll(context.Context, *StrategyGroupAllRequest) (*StrategyGroupAllReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StrategyGroupAll not implemented")
-}
-func (UnimplementedLoadServer) StrategyGroupDiff(context.Context, *StrategyGroupDiffRequest) (*StrategyGroupDiffReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StrategyGroupDiff not implemented")
-}
 func (UnimplementedLoadServer) Evaluate(context.Context, *EvaluateRequest) (*EvaluateReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Evaluate not implemented")
 }
@@ -108,42 +74,6 @@ type UnsafeLoadServer interface {
 
 func RegisterLoadServer(s grpc.ServiceRegistrar, srv LoadServer) {
 	s.RegisterService(&Load_ServiceDesc, srv)
-}
-
-func _Load_StrategyGroupAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StrategyGroupAllRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LoadServer).StrategyGroupAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Load_StrategyGroupAll_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoadServer).StrategyGroupAll(ctx, req.(*StrategyGroupAllRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Load_StrategyGroupDiff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StrategyGroupDiffRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LoadServer).StrategyGroupDiff(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Load_StrategyGroupDiff_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoadServer).StrategyGroupDiff(ctx, req.(*StrategyGroupDiffRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Load_Evaluate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -171,14 +101,6 @@ var Load_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "api.agent.Load",
 	HandlerType: (*LoadServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "StrategyGroupAll",
-			Handler:    _Load_StrategyGroupAll_Handler,
-		},
-		{
-			MethodName: "StrategyGroupDiff",
-			Handler:    _Load_StrategyGroupDiff_Handler,
-		},
 		{
 			MethodName: "Evaluate",
 			Handler:    _Load_Evaluate_Handler,

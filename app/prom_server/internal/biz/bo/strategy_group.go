@@ -83,6 +83,9 @@ func (b *StrategyGroupBO) ToApiV1() *api.PromGroup {
 		DeletedAt:           b.DeletedAt,
 		StrategyCount:       b.StrategyCount,
 		EnableStrategyCount: b.EnableStrategyCount,
+		Strategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *api.PromStrategyV1 {
+			return u.ToApiV1()
+		}),
 	}
 }
 
