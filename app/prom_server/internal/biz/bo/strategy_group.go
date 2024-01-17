@@ -89,6 +89,21 @@ func (b *StrategyGroupBO) ToApiV1() *api.PromGroup {
 	}
 }
 
+// ToSimpleApi .
+func (b *StrategyGroupBO) ToSimpleApi() *api.GroupSimple {
+	if b == nil {
+		return nil
+	}
+
+	return &api.GroupSimple{
+		Id:   b.Id,
+		Name: b.Name,
+		Strategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *api.StrategySimple {
+			return u.ToSimpleApi()
+		}),
+	}
+}
+
 func (b *StrategyGroupBO) ToModel() *do.PromStrategyGroup {
 	if b == nil {
 		return nil

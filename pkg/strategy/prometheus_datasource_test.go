@@ -20,11 +20,11 @@ var ruleInfo = &Rule{
 	Expr:  expr,
 	For:   "3m",
 	Labels: map[string]string{
-		metricLevelId: "1",
+		MetricLevelId: "1",
 	},
 	Annotations: map[string]string{
-		metricSummary:     "instance {{ $labels.instance }} is up",
-		metricDescription: "This value is {{ $value }}",
+		MetricSummary:     "instance {{ $labels.instance }} is up",
+		MetricDescription: "This value is {{ $value }}",
 	},
 	endpoint:       defaultDatasource,
 	datasourceName: string(PrometheusDatasource),

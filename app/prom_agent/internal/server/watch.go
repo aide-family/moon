@@ -10,27 +10,31 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"golang.org/x/sync/errgroup"
+	"prometheus-manager/api"
 	"prometheus-manager/api/agent"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/service"
 	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/helper/consts"
+	"prometheus-manager/pkg/servers"
 )
 
 var _ transport.Server = (*Watch)(nil)
+
+type EventHandler func(msg *kafka.Message) error
 
 type Watch struct {
 	conf      *conf.WatchProm
 	kafkaConf *conf.Kafka
 	ticker    *time.Ticker
-	producer  *kafka.Producer
-	consumer  *kafka.Consumer
 	log       *log.Helper
 
-	loadService *service.LoadService
+	loadService   *service.LoadService
+	kafkaMqServer *servers.KafkaMQServer
 
-	groups *sync.Map
-	exitCh chan struct{}
+	groups        *sync.Map
+	exitCh        chan struct{}
+	eventHandlers map[consts.TopicType]EventHandler
 }
 
 func NewWatch(
@@ -39,32 +43,61 @@ func NewWatch(
 	loadService *service.LoadService,
 	logger log.Logger,
 ) (*Watch, error) {
-	producer, err := conn.NewKafkaProducer(mqConf.GetKafka().GetEndpoints())
+	kafkaConf := mqConf.GetKafka()
+	kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
 	if err != nil {
 		return nil, err
 	}
-	consumer, err := conn.NewKafkaConsumer(mqConf.GetKafka().GetEndpoints(), mqConf.GetKafka().GetGroupId())
-	if err != nil {
+
+	kafkaMqConf := mqConf.GetKafka()
+
+	w := &Watch{
+		conf:          c,
+		exitCh:        make(chan struct{}, 1),
+		ticker:        time.NewTicker(c.GetInterval().AsDuration()),
+		log:           log.NewHelper(log.With(logger, "module", "server.watch")),
+		loadService:   loadService,
+		groups:        new(sync.Map),
+		kafkaConf:     mqConf.GetKafka(),
+		kafkaMqServer: kafkaMqServer,
+		eventHandlers: make(map[consts.TopicType]EventHandler),
+	}
+	w.eventHandlers = map[consts.TopicType]EventHandler{
+		consts.TopicType(kafkaMqConf.GetStrategyGroupAllTopic()): w.loadGroupAllEventHandler,
+	}
+
+	topics := []string{
+		kafkaMqConf.GetStrategyGroupAllTopic(),
+	}
+	w.log.Info("topics", topics)
+	if err = w.Subscribe(topics); err != nil {
 		return nil, err
 	}
-	return &Watch{
-		conf:        c,
-		exitCh:      make(chan struct{}, 1),
-		ticker:      time.NewTicker(c.GetInterval().AsDuration()),
-		log:         log.NewHelper(log.With(logger, "module", "server.watch")),
-		loadService: loadService,
-		groups:      new(sync.Map),
-		kafkaConf:   mqConf.GetKafka(),
-		producer:    producer,
-		consumer:    consumer,
-	}, nil
+	w.receiveMessage()
+
+	return w, nil
+}
+
+func (w *Watch) Subscribe(topics []string) error {
+	return w.kafkaMqServer.Consume(topics, w.handleMessage)
+}
+
+func (w *Watch) loadGroupAllEventHandler(msg *kafka.Message) error {
+	return nil
+}
+
+func (w *Watch) handleMessage(msg *kafka.Message) bool {
+	topic := *msg.TopicPartition.Topic
+	w.log.Infow("topic", topic)
+	if handler, ok := w.eventHandlers[consts.TopicType(topic)]; ok {
+		if err := handler(msg); err != nil {
+			w.log.Errorf("handle message error: %s", err.Error())
+		}
+	}
+	return true
 }
 
 func (w *Watch) Start(_ context.Context) error {
-	if err := w.onlineNotify(); err != nil {
-		return err
-	}
-	w.receiveMessage()
 	go func() {
 		defer after.Recover(w.log)
 		for {
@@ -73,15 +106,16 @@ func (w *Watch) Start(_ context.Context) error {
 				w.shutdown()
 				return
 			case <-w.ticker.C:
+				w.log.Info("[Watch] server tick")
 				eg := new(errgroup.Group)
 				eg.SetLimit(100)
 				w.groups.Range(func(key, value any) bool {
-					groupDetail, ok := value.(*agent.GroupSimple)
+					groupDetail, ok := value.(*api.GroupSimple)
 					if !ok {
 						return true
 					}
 					eg.Go(func() error {
-						_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: []*agent.GroupSimple{groupDetail}})
+						_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: []*api.GroupSimple{groupDetail}})
 						return nil
 					})
 					return true
@@ -91,7 +125,7 @@ func (w *Watch) Start(_ context.Context) error {
 		}
 	}()
 	w.log.Info("[Watch] server started")
-	return nil
+	return w.onlineNotify()
 }
 
 func (w *Watch) Stop(_ context.Context) error {
@@ -108,44 +142,48 @@ func (w *Watch) shutdown() {
 
 // onlineNotify 上线通知
 func (w *Watch) onlineNotify() error {
+	w.log.Info("[Watch] server online notify")
 	topic := w.kafkaConf.GetOnlineTopic()
-	return w.producer.Produce(&kafka.Message{
+	return w.kafkaMqServer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{
 			Topic:     &topic,
 			Partition: kafka.PartitionAny,
 		},
 		Value: []byte(w.kafkaConf.GetStrategyGroupAllTopic()),
 		Key:   []byte(w.kafkaConf.GetGroupId()),
-	}, nil)
+	})
 }
 
 // 接受mq消息
 func (w *Watch) receiveMessage() {
+	consumer := w.kafkaMqServer.Consumer()
 	go func() {
 		defer after.Recover(w.log)
-		events := w.consumer.Events()
+		events := consumer.Events()
 		strategyGroupAllTopic := w.kafkaConf.GetStrategyGroupAllTopic()
 		for event := range events {
-			if w.consumer.IsClosed() {
+			if consumer.IsClosed() {
 				w.log.Warnf("consumer is closed")
 				return
 			}
 			switch e := event.(type) {
 			case *kafka.Message:
+				w.log.Infow("topic", *e.TopicPartition.Topic, "key", string(e.Key), "value", string(e.Value))
 				if string(e.Key) != w.kafkaConf.GetGroupId() {
 					break
 				}
 				switch *e.TopicPartition.Topic {
 				case strategyGroupAllTopic:
+					w.log.Info("strategyGroupAllTopic", string(e.Value))
 					// 把新规则刷进内存
 					groupBytes := e.Value
-					var groupList []*agent.GroupSimple
-					if err := json.Unmarshal(groupBytes, &groupList); err != nil {
+					var groupDetail *api.GroupSimple
+					if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
+						w.log.Warnf("unmarshal groupList error: %s", err.Error())
 						break
 					}
-					for _, group := range groupList {
-						w.groups.Store(group.GetId(), group)
-					}
+					w.log.Info("groupDetail", groupDetail)
+					w.groups.Store(groupDetail.GetId(), groupDetail)
 				}
 			}
 		}

@@ -139,7 +139,7 @@ func (l *Labels) GetInstance() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[metricInstance]
+	return (*l)[MetricInstance]
 }
 
 func (l *Annotations) Get(key string) string {
@@ -160,21 +160,21 @@ func (l *Annotations) Summary() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[metricSummary]
+	return (*l)[MetricSummary]
 }
 
 func (l *Annotations) Description() string {
 	if l == nil {
 		return ""
 	}
-	return (*l)[metricDescription]
+	return (*l)[MetricDescription]
 }
 
 func (l *Labels) LevelId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[metricLevelId]; ok {
+	if id, ok := (*l)[MetricLevelId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
 		return uint32(uid)
 	}
@@ -185,7 +185,7 @@ func (l *Labels) StrategyId() uint32 {
 	if l == nil {
 		return 0
 	}
-	if id, ok := (*l)[metricAlertId]; ok {
+	if id, ok := (*l)[MetricAlertId]; ok {
 		uid, _ := strconv.Atoi(strings.TrimSpace(id))
 		return uint32(uid)
 	}

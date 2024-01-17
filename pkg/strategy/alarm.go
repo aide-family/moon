@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/util/times"
 )
 
 type (
@@ -46,9 +47,9 @@ type (
 		// 注解
 		Annotations Annotations `json:"annotations"`
 		// 开始时间
-		StartAt string `json:"startAt"`
+		StartsAt string `json:"startsAt"`
 		// 结束时间, 如果为空, 则表示未结束
-		EndAt string `json:"endAt"`
+		EndsAt string `json:"endsAt"`
 		// 告警生成链接
 		GeneratorURL string `json:"generatorURL"`
 		// 指纹
@@ -69,10 +70,10 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		Status:   AlarmStatusFiring,
 		Alerts:   make([]*Alert, 0, len(results)),
 		GroupLabels: map[string]string{
-			metricGroupName: group.Name,
-			metricGroupId:   strconv.Itoa(int(group.Id)),
-			metricAlert:     rule.Alert,
-			metricAlertId:   strconv.Itoa(int(rule.Id)),
+			MetricGroupName: group.Name,
+			MetricGroupId:   strconv.Itoa(int(group.Id)),
+			MetricAlert:     rule.Alert,
+			MetricAlertId:   strconv.Itoa(int(rule.Id)),
 		},
 		// 公共标签
 		CommonLabels: rule.Labels,
@@ -82,7 +83,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		ExternalURL: "",
 		// TODO 显示正确的系统版本
 		Version:  "",
-		GroupKey: fmt.Sprintf("%s:%s", metricGroupName, group.Name),
+		GroupKey: fmt.Sprintf("%s:%s", MetricGroupName, group.Name),
 		// TODO 后main再考虑增加截断告警数
 		TruncatedAlerts: 0,
 	}
@@ -97,6 +98,9 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		allLabels[key] = value
 	}
 	for key, value := range alarmInfo.CommonLabels {
+		allLabels[key] = value
+	}
+	for key, value := range rule.Labels {
 		allLabels[key] = value
 	}
 
@@ -120,8 +124,8 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 			Status:       AlarmStatusFiring,
 			Labels:       allLabels,
 			Annotations:  annotations,
-			StartAt:      time.Unix(int64(timeUnix), 0).Format(time.RFC3339),
-			EndAt:        "",
+			StartsAt:     time.Unix(int64(timeUnix), 0).Format(times.ParseLayout),
+			EndsAt:       time.Unix(int64(timeUnix), 0).Format(times.ParseLayout),
 			GeneratorURL: "",
 			Fingerprint:  result.Metric.MD5(),
 		}

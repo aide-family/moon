@@ -207,6 +207,25 @@ func (b *StrategyBO) ToApiV1() *api.PromStrategyV1 {
 	}
 }
 
+// ToSimpleApi .
+func (b *StrategyBO) ToSimpleApi() *api.StrategySimple {
+	if b == nil {
+		return nil
+	}
+
+	return &api.StrategySimple{
+		Id:           b.Id,
+		Alert:        b.Alert,
+		Expr:         b.Expr,
+		Duration:     BuildApiDuration(b.Duration),
+		Labels:       b.GetLabels().Map(),
+		Annotations:  b.GetAnnotations().Map(),
+		GroupId:      b.GroupId,
+		AlarmLevelId: b.AlarmLevelId,
+		Endpoint:     b.GetEndpoint().Endpoint,
+	}
+}
+
 // ToApiPromStrategySelectV1 策略转换为api策略
 func (b *StrategyBO) ToApiPromStrategySelectV1() *api.PromStrategySelectV1 {
 	if b == nil {

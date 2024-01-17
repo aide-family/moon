@@ -123,7 +123,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 }
 
 func (s *GroupService) ListAllGroupDetail(ctx context.Context, _ *pb.ListAllGroupDetailRequest) (*pb.ListAllGroupDetailReply, error) {
-	list := make([]*api.PromGroup, 0)
+	list := make([]*api.GroupSimple, 0)
 	wheres := []basescopes.ScopeMethod{
 		basescopes.StatusEQ(vo.StatusEnabled),
 		basescopes.PreloadStrategyGroupPromStrategies(
@@ -140,13 +140,13 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, _ *pb.ListAllGrou
 		if len(strategyGroupBOS) == 0 {
 			break
 		}
-		list = append(list, slices.To(strategyGroupBOS, func(t *bo.StrategyGroupBO) *api.PromGroup {
-			return t.ToApiV1()
+		list = append(list, slices.To(strategyGroupBOS, func(t *bo.StrategyGroupBO) *api.GroupSimple {
+			return t.ToSimpleApi()
 		})...)
 		defaultId = strategyGroupBOS[len(strategyGroupBOS)-1].Id
 	}
 	return &pb.ListAllGroupDetailReply{
-		List: list,
+		GroupList: list,
 	}, nil
 }
 

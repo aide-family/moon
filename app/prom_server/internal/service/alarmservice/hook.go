@@ -2,6 +2,8 @@ package alarmservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -30,6 +32,8 @@ func NewHookService(historyBiz *biz.HistoryBiz, logger log.Logger) *HookService 
 }
 
 func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1Reply, error) {
+	reqBytes, _ := json.Marshal(req)
+	fmt.Println(string(reqBytes))
 	alertList := req.GetAlerts()
 	historyBos := make([]*bo.AlarmHistoryBO, 0, len(alertList))
 	for _, alert := range alertList {
@@ -42,8 +46,8 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			StrategyId: labels.StrategyId(),
 			LevelId:    labels.LevelId(),
 			Status:     vo.ToAlarmStatus(alert.GetStatus()),
-			StartAt:    startTime.Unix(),
-			EndAt:      endTime.Unix(),
+			StartsAt:   startTime.Unix(),
+			EndsAt:     endTime.Unix(),
 			Instance:   strategy.MapToLabels(alert.GetLabels()).GetInstance(),
 			Duration:   int64(endTime.Sub(startTime).Seconds()),
 			Info: &bo.AlertBo{

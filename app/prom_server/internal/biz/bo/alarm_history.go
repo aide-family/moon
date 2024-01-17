@@ -15,8 +15,8 @@ type (
 		LevelId    uint32         `json:"levelId"`
 		Level      *DictBO        `json:"level"`
 		Status     vo.AlarmStatus `json:"status"`
-		StartAt    int64          `json:"startAt"`
-		EndAt      int64          `json:"endAt"`
+		StartsAt   int64          `json:"startAt"`
+		EndsAt     int64          `json:"endAt"`
 		Instance   string         `json:"instance"`
 		Duration   int64          `json:"duration"`
 		Info       *AlertBo       `json:"info"`
@@ -39,8 +39,8 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 		AlarmStatus: b.GetInfo().GetStatus(),
 		Labels:      b.GetInfo().ToLabelsMap(),
 		Annotations: b.GetInfo().ToAnnotationsMap(),
-		StartAt:     b.StartAt,
-		EndAt:       b.EndAt,
+		StartAt:     b.StartsAt,
+		EndAt:       b.EndsAt,
 	}
 }
 
@@ -62,7 +62,7 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 		Note:       b.GetInfo().GetAnnotations().Description(),
 		Level:      b.GetLevel(),
 		LevelId:    b.LevelId,
-		EventAt:    b.StartAt,
+		EventAt:    b.StartsAt,
 		Status:     b.Status,
 		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
 		HistoryID:  b.Id,
@@ -96,8 +96,8 @@ func (b *AlarmHistoryBO) ToModel() *do.PromAlarmHistory {
 		Instance:   b.Instance,
 		Status:     b.Status,
 		Info:       b.GetInfo().String(),
-		StartAt:    b.StartAt,
-		EndAt:      b.EndAt,
+		StartAt:    b.StartsAt,
+		EndAt:      b.EndsAt,
 		Duration:   b.Duration,
 		StrategyID: b.StrategyId,
 		LevelID:    b.LevelId,
@@ -120,8 +120,8 @@ func AlarmHistoryModelToBO(m *do.PromAlarmHistory) *AlarmHistoryBO {
 		LevelId:    m.LevelID,
 		Level:      DictModelToBO(m.GetLevel()),
 		Status:     m.Status,
-		StartAt:    m.StartAt,
-		EndAt:      m.EndAt,
+		StartsAt:   m.StartAt,
+		EndsAt:     m.EndAt,
 		Instance:   m.Instance,
 		Duration:   m.Duration,
 		Info:       StringToAlertBo(m.Info),

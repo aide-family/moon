@@ -15,6 +15,14 @@ func ParseAlertTime(timeStr string) time.Time {
 	return t
 }
 
+func ParseAlertTimeUnix(timeStr string) int64 {
+	t, err := time.Parse(ParseLayout, timeStr)
+	if err != nil {
+		return 0
+	}
+	return t.Unix()
+}
+
 // TimeToUnix convert time.Time to unix timestamp
 func TimeToUnix(t UnixTime) int64 {
 	if t == nil {
