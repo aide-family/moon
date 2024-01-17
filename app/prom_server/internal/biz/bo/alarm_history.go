@@ -57,9 +57,11 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 	if b == nil {
 		return nil
 	}
+	// TODO 先简单实现, 后面替换成可视化强的, 能表达所有annotations的数据格式
+	note := b.GetInfo().GetAnnotations().Summary() + "; " + b.GetInfo().GetAnnotations().Description()
 	return &AlarmRealtimeBO{
 		Instance:   b.Instance,
-		Note:       b.GetInfo().GetAnnotations().Description(),
+		Note:       note,
 		Level:      b.GetLevel(),
 		LevelId:    b.LevelId,
 		EventAt:    b.StartsAt,
