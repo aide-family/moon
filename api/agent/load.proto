@@ -17,34 +17,6 @@ message StrategyGroupAllRequest {}
 message StrategyGroupAllReply {
   repeated GroupSimple groupList = 1;
 }
-message GroupSimple {
-  // 策略组ID
-  uint32 id = 1;
-  // 策略组名称
-  string name = 2;
-  repeated StrategySimple strategies = 3;
-}
-
-message StrategySimple {
-  // 策略ID
-  uint32 id = 1;
-  // 告警名称
-  string alert = 2;
-  // 表达式
-  string expr = 3;
-  // 持续时间
-  Duration duration = 4;
-  // 标签
-  map<string, string> labels = 5;
-  // 注解
-  map<string, string> annotations = 6;
-  // 策略组ID
-  uint32 groupId = 7;
-  // 告警级别ID
-  uint32 alarmLevelId = 8;
-  // 数据源
-  string endpoint = 9;
-}
 
 message StrategyGroupDiffRequest {
   // TODO 如果变更频率过快, 考虑加入参数消除抖动

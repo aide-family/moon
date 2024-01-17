@@ -43,7 +43,7 @@ func ClauseOnConflict() ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: BaseFieldID.String()}, {Name: RealtimeTableFieldHistoryId.String()}},
-			DoUpdates: clause.AssignmentColumns([]string{BaseFieldStatus.String()}),
+			DoUpdates: clause.AssignmentColumns([]string{BaseFieldStatus.String(), RealtimeTableFieldNote.String()}),
 		})
 	}
 }

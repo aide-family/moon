@@ -12,7 +12,7 @@ func NewKafkaConsumer(kafkaEndpoints []string, kafkaGroupID string) (*kafka.Cons
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":               strings.Join(kafkaEndpoints, ","),
 		"group.id":                        kafkaGroupID,
-		"auto.offset.reset":               "earliest", // earliest, latest, none
+		"auto.offset.reset":               "latest", // earliest, latest, none
 		"session.timeout.ms":              6000,
 		"go.events.channel.enable":        true,
 		"go.application.rebalance.enable": true,

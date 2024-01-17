@@ -20,7 +20,6 @@ type KafkaMQServer struct {
 
 type KafkaMQServerConfig interface {
 	GetEndpoints() []string
-	GetTopics() []string
 	GetGroupId() string
 }
 
@@ -88,6 +87,7 @@ func (l *KafkaMQServer) Consume(topics []string, callback func(msg *kafka.Messag
 			}
 			return nil
 		default:
+			l.log.Info("Unhandled event: %v", e)
 			return nil
 		}
 	})

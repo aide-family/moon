@@ -30,7 +30,8 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	for _, group := range req.GetGroupList() {
-		for _, strategyInfo := range group.GetStrategies() {
+		for _, strategyItem := range group.GetStrategies() {
+			strategyInfo := &*strategyItem
 			eg.Go(func() error {
 				d := strategy.NewDatasource(strategy.PrometheusDatasource, strategyInfo.GetEndpoint())
 				expr := strategyInfo.GetExpr()
@@ -40,6 +41,8 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 					return err
 				}
 				duration := strategyInfo.GetDuration()
+				ruleLabels := strategyInfo.GetLabels()
+				ruleLabels[strategy.MetricLevelId] = strconv.Itoa(int(strategyInfo.GetAlarmLevelId()))
 				alarmInfo := strategy.NewAlarm(&strategy.Group{
 					Name: group.GetName(),
 					Id:   group.GetId(),
@@ -48,7 +51,7 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 					Alert:       strategyInfo.GetAlert(),
 					Expr:        expr,
 					For:         strconv.Itoa(int(duration.GetValue())) + duration.GetUnit(),
-					Labels:      strategyInfo.GetLabels(),
+					Labels:      ruleLabels,
 					Annotations: strategyInfo.GetAnnotations(),
 				}, queryResponse.Data.Result)
 				if err = s.alarmBiz.SendAlarm(alarmInfo); err != nil {

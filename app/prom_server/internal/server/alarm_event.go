@@ -74,6 +74,17 @@ func NewAlarmEvent(
 	return l, nil
 }
 
+func (l *AlarmEvent) handleMessage(msg *kafka.Message) bool {
+	topic := *msg.TopicPartition.Topic
+	l.log.Infow("topic", topic)
+	if handler, ok := l.eventHandlers[consts.TopicType(topic)]; ok {
+		if err := handler(msg); err != nil {
+			l.log.Errorf("handle message error: %s", err.Error())
+		}
+	}
+	return true
+}
+
 // alertHook 处理alert hook数据
 func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
 	var req alarmhookPb.HookV1Request
@@ -96,23 +107,24 @@ func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
 // agentOnlineEventHandler 处理agent online消息
 func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
 	// TODO 1. 记录节点状态
-
+	l.log.Infof("agent online: %s", string(msg.Key))
 	// 2. 拉取全量规则组及规则
 	listAllGroupDetail, err := l.groupService.ListAllGroupDetail(context.Background(), &group.ListAllGroupDetailRequest{})
 	if err != nil {
 		return err
 	}
 
+	topic := string(msg.Value)
+	l.log.Infow("topic", topic)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
-	for _, groupDetail := range listAllGroupDetail.GetList() {
+	for _, groupDetail := range listAllGroupDetail.GetGroupList() {
 		if groupDetail == nil {
 			continue
 		}
 		groupDetailBytes, _ := json.Marshal(groupDetail)
 		eg.Go(func() error {
 			// 3. 推送规则组消息(按规则组粒度)
-			topic := string(msg.Value)
 			sendMsg := &kafka.Message{
 				TopicPartition: kafka.TopicPartition{
 					Topic:     &topic,
@@ -130,9 +142,7 @@ func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
 
 // Subscribe 订阅消息
 func (l *AlarmEvent) Subscribe(topics []string) error {
-	return l.KafkaMQServer.Consumer().SubscribeTopics(topics, func(consumer *kafka.Consumer, event kafka.Event) error {
-		return nil
-	})
+	return l.KafkaMQServer.Consume(topics, l.handleMessage)
 }
 
 // Consume 消费消息
@@ -148,7 +158,7 @@ func (l *AlarmEvent) Consume() error {
 			switch e := event.(type) {
 			case *kafka.Message:
 				// 处理消息, 根据不同的topic做不同的处理
-				l.log.Debugf("Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+				l.log.Debugf("Message on %s\n", e.TopicPartition)
 				if e.TopicPartition.Topic == nil {
 					break
 				}

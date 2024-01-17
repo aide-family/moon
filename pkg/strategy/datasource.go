@@ -41,15 +41,15 @@ const (
 )
 
 const (
-	metricName        = "__name__"
-	metricGroupName   = "__group_name__"
-	metricGroupId     = "__group_id__"
-	metricAlert       = "alertname"
-	metricAlertId     = "__alert_id__"
-	metricLevelId     = "__level_id__"
-	metricInstance    = "instance"
-	metricDescription = "description"
-	metricSummary     = "summary"
+	MetricName        = "__name__"
+	MetricGroupName   = "__group_name__"
+	MetricGroupId     = "__group_id__"
+	MetricAlert       = "alertname"
+	MetricAlertId     = "__alert_id__"
+	MetricLevelId     = "__level_id__"
+	MetricInstance    = "instance"
+	MetricDescription = "description"
+	MetricSummary     = "summary"
 )
 
 // Bytes QueryResponse to []byte
@@ -65,7 +65,7 @@ func (qr *QueryResponse) String() string {
 
 // Name Metric __name__
 func (m Metric) Name() string {
-	return m.Get(metricName)
+	return m.Get(MetricName)
 }
 
 // Get get tag value

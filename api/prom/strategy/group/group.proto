@@ -239,7 +239,7 @@ message ListGroupReply {
 // 获取策略组列表明细请求参数
 message ListAllGroupDetailRequest {}
 message ListAllGroupDetailReply {
-  repeated PromGroup list = 1;
+  repeated GroupSimple groupList = 1;
 }
 
 // 获取策略组下拉列表请求参数

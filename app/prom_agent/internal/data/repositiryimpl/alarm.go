@@ -35,6 +35,10 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 		return status.Error(codes.InvalidArgument, "alarm do is nil")
 	}
 
+	if len(alarmDo.Alerts) == 0 {
+		return nil
+	}
+
 	topic := l.producerConf.GetAlarmTopic()
 	msg := l.genMsg(alarmDo, topic)
 	if err := l.data.Producer().Produce(msg, nil); err != nil {

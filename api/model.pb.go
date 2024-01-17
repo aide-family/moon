@@ -3005,6 +3005,191 @@ func (x *Duration) GetUnit() string {
 	return ""
 }
 
+type GroupSimple struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 策略组ID
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 策略组名称
+	Name       string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Strategies []*StrategySimple `protobuf:"bytes,3,rep,name=strategies,proto3" json:"strategies,omitempty"`
+}
+
+func (x *GroupSimple) Reset() {
+	*x = GroupSimple{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_model_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GroupSimple) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupSimple) ProtoMessage() {}
+
+func (x *GroupSimple) ProtoReflect() protoreflect.Message {
+	mi := &file_model_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupSimple.ProtoReflect.Descriptor instead.
+func (*GroupSimple) Descriptor() ([]byte, []int) {
+	return file_model_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GroupSimple) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GroupSimple) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GroupSimple) GetStrategies() []*StrategySimple {
+	if x != nil {
+		return x.Strategies
+	}
+	return nil
+}
+
+type StrategySimple struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 策略ID
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 告警名称
+	Alert string `protobuf:"bytes,2,opt,name=alert,proto3" json:"alert,omitempty"`
+	// 表达式
+	Expr string `protobuf:"bytes,3,opt,name=expr,proto3" json:"expr,omitempty"`
+	// 持续时间
+	Duration *Duration `protobuf:"bytes,4,opt,name=duration,proto3" json:"duration,omitempty"`
+	// 标签
+	Labels map[string]string `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// 注解
+	Annotations map[string]string `protobuf:"bytes,6,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// 策略组ID
+	GroupId uint32 `protobuf:"varint,7,opt,name=groupId,proto3" json:"groupId,omitempty"`
+	// 告警级别ID
+	AlarmLevelId uint32 `protobuf:"varint,8,opt,name=alarmLevelId,proto3" json:"alarmLevelId,omitempty"`
+	// 数据源
+	Endpoint string `protobuf:"bytes,9,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+}
+
+func (x *StrategySimple) Reset() {
+	*x = StrategySimple{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_model_proto_msgTypes[28]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StrategySimple) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StrategySimple) ProtoMessage() {}
+
+func (x *StrategySimple) ProtoReflect() protoreflect.Message {
+	mi := &file_model_proto_msgTypes[28]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StrategySimple.ProtoReflect.Descriptor instead.
+func (*StrategySimple) Descriptor() ([]byte, []int) {
+	return file_model_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *StrategySimple) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *StrategySimple) GetAlert() string {
+	if x != nil {
+		return x.Alert
+	}
+	return ""
+}
+
+func (x *StrategySimple) GetExpr() string {
+	if x != nil {
+		return x.Expr
+	}
+	return ""
+}
+
+func (x *StrategySimple) GetDuration() *Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
+func (x *StrategySimple) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *StrategySimple) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
+	}
+	return nil
+}
+
+func (x *StrategySimple) GetGroupId() uint32 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *StrategySimple) GetAlarmLevelId() uint32 {
+	if x != nil {
+		return x.AlarmLevelId
+	}
+	return 0
+}
+
+func (x *StrategySimple) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
 var File_model_proto protoreflect.FileDescriptor
 
 var file_model_proto_rawDesc = []byte{
@@ -3506,10 +3691,45 @@ var file_model_proto_rawDesc = []byte{
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x42, 0x07, 0xfa, 0x42, 0x04, 0x22, 0x02, 0x20, 0x00, 0x52,
 	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x25, 0x0a, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x18, 0x02,
 	0x20, 0x01, 0x28, 0x09, 0x42, 0x11, 0xfa, 0x42, 0x0e, 0x72, 0x0c, 0x52, 0x01, 0x73, 0x52, 0x01,
-	0x6d, 0x52, 0x01, 0x68, 0x52, 0x01, 0x64, 0x52, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x42, 0x23, 0x0a,
-	0x03, 0x61, 0x70, 0x69, 0x50, 0x01, 0x5a, 0x1a, 0x70, 0x72, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x65,
-	0x75, 0x73, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x2f, 0x61, 0x70, 0x69, 0x3b, 0x61,
-	0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6d, 0x52, 0x01, 0x68, 0x52, 0x01, 0x64, 0x52, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x22, 0x66, 0x0a,
+	0x0b, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x12, 0x0e, 0x0a, 0x02,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x12, 0x33, 0x0a, 0x0a, 0x73, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x69, 0x65, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x53, 0x74, 0x72, 0x61, 0x74,
+	0x65, 0x67, 0x79, 0x53, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x52, 0x0a, 0x73, 0x74, 0x72, 0x61, 0x74,
+	0x65, 0x67, 0x69, 0x65, 0x73, 0x22, 0xcb, 0x03, 0x0a, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x65,
+	0x67, 0x79, 0x53, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0d, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x6c, 0x65, 0x72,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x12, 0x12,
+	0x0a, 0x04, 0x65, 0x78, 0x70, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x65, 0x78,
+	0x70, 0x72, 0x12, 0x29, 0x0a, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x37, 0x0a,
+	0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e,
+	0x61, 0x70, 0x69, 0x2e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x53, 0x69, 0x6d, 0x70,
+	0x6c, 0x65, 0x2e, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06,
+	0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x46, 0x0a, 0x0b, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x53, 0x69, 0x6d, 0x70, 0x6c, 0x65,
+	0x2e, 0x41, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x52, 0x0b, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x18,
+	0x0a, 0x07, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x49, 0x64, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x07, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x49, 0x64, 0x12, 0x22, 0x0a, 0x0c, 0x61, 0x6c, 0x61, 0x72,
+	0x6d, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x49, 0x64, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0c,
+	0x61, 0x6c, 0x61, 0x72, 0x6d, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08,
+	0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08,
+	0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x1a, 0x39, 0x0a, 0x0b, 0x4c, 0x61, 0x62, 0x65,
+	0x6c, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a,
+	0x02, 0x38, 0x01, 0x1a, 0x3e, 0x0a, 0x10, 0x41, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a,
+	0x02, 0x38, 0x01, 0x42, 0x23, 0x0a, 0x03, 0x61, 0x70, 0x69, 0x50, 0x01, 0x5a, 0x1a, 0x70, 0x72,
+	0x6f, 0x6d, 0x65, 0x74, 0x68, 0x65, 0x75, 0x73, 0x2d, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72,
+	0x2f, 0x61, 0x70, 0x69, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3524,7 +3744,7 @@ func file_model_proto_rawDescGZIP() []byte {
 	return file_model_proto_rawDescData
 }
 
-var file_model_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_model_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_model_proto_goTypes = []interface{}{
 	(*AlarmPageV1)(nil),                // 0: api.AlarmPageV1
 	(*AlarmPageSelectV1)(nil),          // 1: api.AlarmPageSelectV1
@@ -3553,29 +3773,33 @@ var file_model_proto_goTypes = []interface{}{
 	(*AlarmSuppressInfo)(nil),          // 24: api.AlarmSuppressInfo
 	(*RealtimeAlarmData)(nil),          // 25: api.RealtimeAlarmData
 	(*Duration)(nil),                   // 26: api.Duration
-	nil,                                // 27: api.AlarmHistoryV1.LabelsEntry
-	nil,                                // 28: api.AlarmHistoryV1.AnnotationsEntry
-	nil,                                // 29: api.PromStrategyV1.LabelsEntry
-	nil,                                // 30: api.PromStrategyV1.AnnotationsEntry
-	nil,                                // 31: api.AlarmData.GroupLabelsEntry
-	nil,                                // 32: api.AlarmData.CommonLabelsEntry
-	nil,                                // 33: api.AlarmData.CommonAnnotationsEntry
-	nil,                                // 34: api.Alert.LabelsEntry
-	nil,                                // 35: api.Alert.AnnotationsEntry
-	(Category)(0),                      // 36: api.Category
-	(Status)(0),                        // 37: api.Status
-	(NotifyType)(0),                    // 38: api.NotifyType
-	(*UserSelectV1)(nil),               // 39: api.UserSelectV1
+	(*GroupSimple)(nil),                // 27: api.GroupSimple
+	(*StrategySimple)(nil),             // 28: api.StrategySimple
+	nil,                                // 29: api.AlarmHistoryV1.LabelsEntry
+	nil,                                // 30: api.AlarmHistoryV1.AnnotationsEntry
+	nil,                                // 31: api.PromStrategyV1.LabelsEntry
+	nil,                                // 32: api.PromStrategyV1.AnnotationsEntry
+	nil,                                // 33: api.AlarmData.GroupLabelsEntry
+	nil,                                // 34: api.AlarmData.CommonLabelsEntry
+	nil,                                // 35: api.AlarmData.CommonAnnotationsEntry
+	nil,                                // 36: api.Alert.LabelsEntry
+	nil,                                // 37: api.Alert.AnnotationsEntry
+	nil,                                // 38: api.StrategySimple.LabelsEntry
+	nil,                                // 39: api.StrategySimple.AnnotationsEntry
+	(Category)(0),                      // 40: api.Category
+	(Status)(0),                        // 41: api.Status
+	(NotifyType)(0),                    // 42: api.NotifyType
+	(*UserSelectV1)(nil),               // 43: api.UserSelectV1
 }
 var file_model_proto_depIdxs = []int32{
 	4,  // 0: api.AlarmHistoryV1.alarmLevel:type_name -> api.DictSelectV1
-	27, // 1: api.AlarmHistoryV1.labels:type_name -> api.AlarmHistoryV1.LabelsEntry
-	28, // 2: api.AlarmHistoryV1.annotations:type_name -> api.AlarmHistoryV1.AnnotationsEntry
-	36, // 3: api.DictSelectV1.category:type_name -> api.Category
-	37, // 4: api.DictSelectV1.status:type_name -> api.Status
+	29, // 1: api.AlarmHistoryV1.labels:type_name -> api.AlarmHistoryV1.LabelsEntry
+	30, // 2: api.AlarmHistoryV1.annotations:type_name -> api.AlarmHistoryV1.AnnotationsEntry
+	40, // 3: api.DictSelectV1.category:type_name -> api.Category
+	41, // 4: api.DictSelectV1.status:type_name -> api.Status
 	26, // 5: api.PromStrategyV1.duration:type_name -> api.Duration
-	29, // 6: api.PromStrategyV1.labels:type_name -> api.PromStrategyV1.LabelsEntry
-	30, // 7: api.PromStrategyV1.annotations:type_name -> api.PromStrategyV1.AnnotationsEntry
+	31, // 6: api.PromStrategyV1.labels:type_name -> api.PromStrategyV1.LabelsEntry
+	32, // 7: api.PromStrategyV1.annotations:type_name -> api.PromStrategyV1.AnnotationsEntry
 	8,  // 8: api.PromStrategyV1.groupInfo:type_name -> api.PromGroupSelectV1
 	4,  // 9: api.PromStrategyV1.alarmLevelInfo:type_name -> api.DictSelectV1
 	1,  // 10: api.PromStrategyV1.alarmPageInfo:type_name -> api.AlarmPageSelectV1
@@ -3588,33 +3812,37 @@ var file_model_proto_depIdxs = []int32{
 	5,  // 17: api.PromGroup.strategies:type_name -> api.PromStrategyV1
 	4,  // 18: api.PromGroupSelectV1.category:type_name -> api.DictSelectV1
 	10, // 19: api.AlarmData.alerts:type_name -> api.Alert
-	31, // 20: api.AlarmData.groupLabels:type_name -> api.AlarmData.GroupLabelsEntry
-	32, // 21: api.AlarmData.commonLabels:type_name -> api.AlarmData.CommonLabelsEntry
-	33, // 22: api.AlarmData.commonAnnotations:type_name -> api.AlarmData.CommonAnnotationsEntry
-	34, // 23: api.Alert.labels:type_name -> api.Alert.LabelsEntry
-	35, // 24: api.Alert.annotations:type_name -> api.Alert.AnnotationsEntry
-	38, // 25: api.BeNotifyMember.notifyTypes:type_name -> api.NotifyType
-	39, // 26: api.BeNotifyMemberDetail.user:type_name -> api.UserSelectV1
+	33, // 20: api.AlarmData.groupLabels:type_name -> api.AlarmData.GroupLabelsEntry
+	34, // 21: api.AlarmData.commonLabels:type_name -> api.AlarmData.CommonLabelsEntry
+	35, // 22: api.AlarmData.commonAnnotations:type_name -> api.AlarmData.CommonAnnotationsEntry
+	36, // 23: api.Alert.labels:type_name -> api.Alert.LabelsEntry
+	37, // 24: api.Alert.annotations:type_name -> api.Alert.AnnotationsEntry
+	42, // 25: api.BeNotifyMember.notifyTypes:type_name -> api.NotifyType
+	43, // 26: api.BeNotifyMemberDetail.user:type_name -> api.UserSelectV1
 	16, // 27: api.NotifyV1.members:type_name -> api.BeNotifyMemberDetail
 	14, // 28: api.NotifyV1.chatGroups:type_name -> api.ChatGroupSelectV1
 	18, // 29: api.NotifyV1.externalNotifyObjs:type_name -> api.ExternalNotifyObj
 	19, // 30: api.ExternalNotifyObj.externalCustomerList:type_name -> api.ExternalCustomer
 	20, // 31: api.ExternalNotifyObj.externalCustomerHookList:type_name -> api.ExternalCustomerHook
 	20, // 32: api.ExternalCustomer.externalCustomerHookList:type_name -> api.ExternalCustomerHook
-	39, // 33: api.InterveneInfo.intervenedUser:type_name -> api.UserSelectV1
-	39, // 34: api.AlarmUpgradeInfo.upgradedUser:type_name -> api.UserSelectV1
-	39, // 35: api.AlarmSuppressInfo.suppressedUser:type_name -> api.UserSelectV1
+	43, // 33: api.InterveneInfo.intervenedUser:type_name -> api.UserSelectV1
+	43, // 34: api.AlarmUpgradeInfo.upgradedUser:type_name -> api.UserSelectV1
+	43, // 35: api.AlarmSuppressInfo.suppressedUser:type_name -> api.UserSelectV1
 	22, // 36: api.RealtimeAlarmData.intervenedUser:type_name -> api.InterveneInfo
 	16, // 37: api.RealtimeAlarmData.beenNotifyMembers:type_name -> api.BeNotifyMemberDetail
 	23, // 38: api.RealtimeAlarmData.upgradedUser:type_name -> api.AlarmUpgradeInfo
 	24, // 39: api.RealtimeAlarmData.suppressedUser:type_name -> api.AlarmSuppressInfo
 	14, // 40: api.RealtimeAlarmData.notifiedChatGroups:type_name -> api.ChatGroupSelectV1
 	4,  // 41: api.RealtimeAlarmData.level:type_name -> api.DictSelectV1
-	42, // [42:42] is the sub-list for method output_type
-	42, // [42:42] is the sub-list for method input_type
-	42, // [42:42] is the sub-list for extension type_name
-	42, // [42:42] is the sub-list for extension extendee
-	0,  // [0:42] is the sub-list for field type_name
+	28, // 42: api.GroupSimple.strategies:type_name -> api.StrategySimple
+	26, // 43: api.StrategySimple.duration:type_name -> api.Duration
+	38, // 44: api.StrategySimple.labels:type_name -> api.StrategySimple.LabelsEntry
+	39, // 45: api.StrategySimple.annotations:type_name -> api.StrategySimple.AnnotationsEntry
+	46, // [46:46] is the sub-list for method output_type
+	46, // [46:46] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_model_proto_init() }
@@ -3949,6 +4177,30 @@ func file_model_proto_init() {
 				return nil
 			}
 		}
+		file_model_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GroupSimple); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_model_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StrategySimple); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -3956,7 +4208,7 @@ func file_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_model_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
