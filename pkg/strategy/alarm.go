@@ -57,9 +57,19 @@ type (
 		Fingerprint string `json:"fingerprint"`
 	}
 
-	AlarmList struct {
+	Alarms struct {
 		Alarms []*Alarm
 		lock   sync.RWMutex
+	}
+
+	AlarmCache interface {
+		// Get 获取当前规则下所有告警数据
+		Get(ruleId uint32) (*Alarm, bool)
+		// Set 当前规则下追加告警数据
+		Set(ruleId uint32, alarm *Alarm) bool
+		SetAlert(ruleId uint32, alert *Alert) bool
+		// RemoveAlert 告警恢复, 删除告警缓存
+		RemoveAlert(ruleId uint32, alert *Alert) bool
 	}
 )
 
@@ -71,21 +81,21 @@ const (
 )
 
 // Append append alarm
-func (l *AlarmList) Append(alarm *Alarm) {
+func (l *Alarms) Append(alarm *Alarm) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.Alarms = append(l.Alarms, alarm)
 }
 
 // List  alarm list
-func (l *AlarmList) List() []*Alarm {
+func (l *Alarms) List() []*Alarm {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 	return l.Alarms
 }
 
-func NewAlarmList(alarms ...*Alarm) *AlarmList {
-	return &AlarmList{
+func NewAlarmList(alarms ...*Alarm) *Alarms {
+	return &Alarms{
 		Alarms: alarms,
 	}
 }

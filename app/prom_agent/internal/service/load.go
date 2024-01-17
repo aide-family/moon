@@ -46,7 +46,8 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 			ruleInfo.SetEndpoint(strategyInfo.GetEndpoint())
 			groupInfo.Rules = append(groupInfo.Rules, ruleInfo)
 		}
-		alerting := strategy.NewAlerting(groupInfo, strategy.PrometheusDatasource, s.log)
+		// TODO 实现alarmCache
+		alerting := strategy.NewAlerting(groupInfo, nil, s.log)
 		alarms, err := alerting.Eval(context.Background())
 		if err != nil {
 			s.log.Error("eval error ", err)

@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"prometheus-manager/pkg/util/hash"
 )
 
 var (
@@ -84,6 +86,14 @@ func (r *Rule) Endpoint() string {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	return r.endpoint
+}
+
+// MD5 Rule MD5
+func (r *Rule) MD5() string {
+	if r == nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", hash.MD5(r.Labels.String()))
 }
 
 func (l *Annotations) Map() map[string]string {
