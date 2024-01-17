@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -55,6 +56,11 @@ type (
 		// 指纹
 		Fingerprint string `json:"fingerprint"`
 	}
+
+	AlarmList struct {
+		Alarms []*Alarm
+		lock   sync.RWMutex
+	}
 )
 
 const (
@@ -63,6 +69,26 @@ const (
 	// AlarmStatusResolved resolved
 	AlarmStatusResolved AlarmStatus = "resolved"
 )
+
+// Append append alarm
+func (l *AlarmList) Append(alarm *Alarm) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.Alarms = append(l.Alarms, alarm)
+}
+
+// List  alarm list
+func (l *AlarmList) List() []*Alarm {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	return l.Alarms
+}
+
+func NewAlarmList(alarms ...*Alarm) *AlarmList {
+	return &AlarmList{
+		Alarms: alarms,
+	}
+}
 
 func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 	alarmInfo := &Alarm{
@@ -84,7 +110,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		// TODO 显示正确的系统版本
 		Version:  "",
 		GroupKey: fmt.Sprintf("%s:%s", MetricGroupName, group.Name),
-		// TODO 后main再考虑增加截断告警数
+		// TODO 后面再考虑增加截断告警数
 		TruncatedAlerts: 0,
 	}
 
@@ -125,7 +151,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 			Labels:       allLabels,
 			Annotations:  annotations,
 			StartsAt:     time.Unix(int64(timeUnix), 0).Format(times.ParseLayout),
-			EndsAt:       time.Unix(int64(timeUnix), 0).Format(times.ParseLayout),
+			EndsAt:       "",
 			GeneratorURL: "",
 			Fingerprint:  result.Metric.MD5(),
 		}
