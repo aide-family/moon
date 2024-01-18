@@ -237,7 +237,9 @@ message ListGroupReply {
 }
 
 // 获取策略组列表明细请求参数
-message ListAllGroupDetailRequest {}
+message ListAllGroupDetailRequest {
+  repeated uint32 groupIds = 1;
+}
 message ListAllGroupDetailReply {
   repeated GroupSimple groupList = 1;
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/conf"
@@ -15,7 +16,36 @@ import (
 )
 
 // ProviderSetData is data providers.
-var ProviderSetData = wire.NewSet(NewData)
+var ProviderSetData = wire.NewSet(
+	NewData,
+	GetReadChangeGroupChannel,
+	GetWriteChangeGroupChannel,
+	GetReadRemoveGroupChannel,
+	GetWriteRemoveGroupChannel,
+)
+
+var changeGroupChannel = make(chan uint32, 100)
+var removeGroupChannel = make(chan bo.RemoveStrategyGroupBO, 100)
+
+// GetReadChangeGroupChannel 获取changeGroupChannel的读取通道
+func GetReadChangeGroupChannel() <-chan uint32 {
+	return changeGroupChannel
+}
+
+// GetWriteChangeGroupChannel 获取changeGroupChannel的写入通道
+func GetWriteChangeGroupChannel() chan<- uint32 {
+	return changeGroupChannel
+}
+
+// GetReadRemoveGroupChannel 获取removeGroupChannel的读取通道
+func GetReadRemoveGroupChannel() <-chan bo.RemoveStrategyGroupBO {
+	return removeGroupChannel
+}
+
+// GetWriteRemoveGroupChannel 获取removeGroupChannel的写入通道
+func GetWriteRemoveGroupChannel() chan<- bo.RemoveStrategyGroupBO {
+	return removeGroupChannel
+}
 
 // Data .
 type Data struct {

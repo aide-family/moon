@@ -9,6 +9,18 @@ func To[T, R any](list []T, f func(T) R) []R {
 	return rs
 }
 
+// ToFilter 过滤
+func ToFilter[T, R any](list []T, f func(T) (R, bool)) []R {
+	rs := make([]R, 0, len(list))
+	for _, v := range list {
+		okVal, ok := f(v)
+		if ok {
+			rs = append(rs, okVal)
+		}
+	}
+	return rs
+}
+
 // Index 查找元素的索引
 func Index[T comparable](list []T, v T) int {
 	for i, item := range list {

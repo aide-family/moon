@@ -33,7 +33,6 @@ func NewStrategyService(strategyBiz *biz.StrategyXBiz, logger log.Logger) *Strat
 
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStrategyRequest) (*pb.CreateStrategyReply, error) {
 	strategyBO, err := s.strategyBiz.CreateStrategy(ctx, &bo.StrategyBO{
-
 		Alert:        req.GetAlert(),
 		Expr:         req.GetExpr(),
 		Duration:     bo.BuildApiDurationString(req.GetDuration()),

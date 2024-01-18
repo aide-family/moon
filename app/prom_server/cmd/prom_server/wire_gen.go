@@ -65,8 +65,10 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	promDictRepo := promdict.NewPromDictRepo(dataData, logger)
 	dictBiz := biz.NewDictBiz(promDictRepo, logger)
 	dictserviceService := dictservice.NewDictService(dictBiz, logger)
-	strategyGroupRepo := strategygroup.NewStrategyGroupRepo(dataData, logger)
-	strategyRepo := strategy.NewStrategyRepo(dataData, strategyGroupRepo, logger)
+	v := data.GetWriteChangeGroupChannel()
+	v2 := data.GetWriteRemoveGroupChannel()
+	strategyGroupRepo := strategygroup.NewStrategyGroupRepo(dataData, v, v2, logger)
+	strategyRepo := strategy.NewStrategyRepo(dataData, v, v2, strategyGroupRepo, logger)
 	strategyXBiz := biz.NewStrategyBiz(strategyRepo, logger)
 	strategyService := promservice.NewStrategyService(strategyXBiz, logger)
 	strategyGroupBiz := biz.NewStrategyGroupBiz(strategyGroupRepo, logger)
@@ -107,7 +109,9 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
-	alarmEvent, err := server.NewAlarmEvent(bootstrap, hookService, groupService, logger)
+	v3 := data.GetReadChangeGroupChannel()
+	v4 := data.GetReadRemoveGroupChannel()
+	alarmEvent, err := server.NewAlarmEvent(bootstrap, v3, v4, hookService, groupService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
