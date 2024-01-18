@@ -33,7 +33,7 @@ func TestNewAlerting(t *testing.T) {
 		Name:  "test-group",
 		Rules: []*Rule{rule},
 	}
-	a := NewAlerting(group, nil, nil)
+	a := NewAlerting(group)
 
 	results, err := a.Eval(context.Background())
 	if err != nil {

@@ -65,11 +65,8 @@ type (
 	AlarmCache interface {
 		// Get 获取当前规则下所有告警数据
 		Get(ruleId uint32) (*Alarm, bool)
-		// Set 当前规则下追加告警数据
+		// Set 当前规则下告警数据
 		Set(ruleId uint32, alarm *Alarm) bool
-		SetAlert(ruleId uint32, alert *Alert) bool
-		// RemoveAlert 告警恢复, 删除告警缓存
-		RemoveAlert(ruleId uint32, alert *Alert) bool
 	}
 )
 
