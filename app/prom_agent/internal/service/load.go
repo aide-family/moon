@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/api"
 	pb "prometheus-manager/api/agent"
 	"prometheus-manager/app/prom_agent/internal/biz"
 	"prometheus-manager/pkg/strategy"
@@ -25,8 +26,30 @@ func NewLoadService(alarmBiz *biz.AlarmBiz, logger log.Logger) *LoadService {
 }
 
 func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.EvaluateReply, error) {
-	alarmList := make([]*strategy.Alarm, 0)
-	for _, group := range req.GetGroupList() {
+	groups := generateGroups(req.GetGroupList())
+	alerting := strategy.NewAlerting(groups...)
+	alarms, err := alerting.Eval(context.Background())
+	if err != nil {
+		s.log.Error("eval error ", err)
+		return nil, err
+	}
+
+	if len(alarms) == 0 {
+		return &pb.EvaluateReply{}, nil
+	}
+
+	if err = s.alarmBiz.SendAlarm(alarms...); err != nil {
+		s.log.Error("send alarm error ", err)
+		return nil, err
+	}
+
+	return &pb.EvaluateReply{}, nil
+}
+
+// generateGroups 处理groupList
+func generateGroups(groupList []*api.GroupSimple) []*strategy.Group {
+	groups := make([]*strategy.Group, 0, len(groupList))
+	for _, group := range groupList {
 		groupInfo := &strategy.Group{
 			Name: group.GetName(),
 			Id:   group.GetId(),
@@ -46,21 +69,7 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 			ruleInfo.SetEndpoint(strategyInfo.GetEndpoint())
 			groupInfo.Rules = append(groupInfo.Rules, ruleInfo)
 		}
-		// TODO 实现alarmCache
-		alerting := strategy.NewAlerting(groupInfo, nil, s.log)
-		alarms, err := alerting.Eval(context.Background())
-		if err != nil {
-			s.log.Error("eval error ", err)
-			continue
-		}
-		alarmList = append(alarmList, alarms...)
+		groups = append(groups, groupInfo)
 	}
-	if len(alarmList) > 0 {
-		if err := s.alarmBiz.SendAlarm(alarmList...); err != nil {
-			s.log.Error("send alarm error ", err)
-			return nil, err
-		}
-	}
-
-	return &pb.EvaluateReply{}, nil
+	return groups
 }
