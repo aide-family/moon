@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/after"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -20,6 +21,9 @@ var _ repository.StrategyRepo = (*strategyRepoImpl)(nil)
 type (
 	strategyRepoImpl struct {
 		repository.UnimplementedStrategyRepo
+
+		changeGroupChannel chan<- uint32
+		removeGroupChannel chan<- bo.RemoveStrategyGroupBO
 
 		data *data.Data
 		log  *log.Helper
@@ -82,6 +86,10 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 	if err != nil {
 		return nil, err
 	}
+	go func() {
+		after.Recover(l.log)
+		l.changeGroupChannel <- strategyBO.GroupId
+	}()
 
 	return bo.StrategyModelToBO(newStrategy), nil
 }
@@ -143,6 +151,12 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 	if err != nil {
 		return nil, err
 	}
+	go func() {
+		after.Recover(l.log)
+		for _, groupId := range groupIds {
+			l.changeGroupChannel <- groupId
+		}
+	}()
 
 	return bo.StrategyModelToBO(newStrategy), nil
 }
@@ -153,7 +167,7 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 	if err != nil {
 		return err
 	}
-	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err = l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
 		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromStrategy{Status: status}).Error; err != nil {
 			return err
@@ -164,6 +178,22 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	go func() {
+		after.Recover(l.log)
+		if status.IsEnabled() {
+			for _, groupId := range groupIds {
+				l.changeGroupChannel <- groupId
+			}
+		} else {
+			for _, groupId := range groupIds {
+				l.removeGroupChannel <- bo.RemoveStrategyGroupBO{Id: groupId}
+			}
+		}
+	}()
+	return nil
 }
 
 // getStrategyGroupIds 获取策略组ID列表
@@ -188,7 +218,7 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 		return err
 	}
 
-	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err = l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
 		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&do.PromStrategy{}).Error; err != nil {
 			return err
@@ -205,6 +235,18 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		after.Recover(l.log)
+		for _, groupId := range groupIds {
+			l.changeGroupChannel <- groupId
+		}
+	}()
+
+	return nil
 }
 
 func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*bo.StrategyBO, error) {
@@ -242,10 +284,18 @@ func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo basescopes.P
 	return list, nil
 }
 
-func NewStrategyRepo(data *data.Data, strategyGroupRepo repository.StrategyGroupRepo, logger log.Logger) repository.StrategyRepo {
+func NewStrategyRepo(
+	data *data.Data,
+	changeGroupChannel chan<- uint32,
+	removeGroupChannel chan<- bo.RemoveStrategyGroupBO,
+	strategyGroupRepo repository.StrategyGroupRepo,
+	logger log.Logger,
+) repository.StrategyRepo {
 	return &strategyRepoImpl{
-		data:              data,
-		log:               log.NewHelper(logger),
-		strategyGroupRepo: strategyGroupRepo,
+		data:               data,
+		log:                log.NewHelper(logger),
+		strategyGroupRepo:  strategyGroupRepo,
+		changeGroupChannel: changeGroupChannel,
+		removeGroupChannel: removeGroupChannel,
 	}
 }

@@ -8,6 +8,9 @@ import (
 )
 
 type (
+	RemoveStrategyGroupBO struct {
+		Id uint32 `json:"id"`
+	}
 	StrategyGroupBO struct {
 		Id                  uint32    `json:"id"`
 		Name                string    `json:"name"`

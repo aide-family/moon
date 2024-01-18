@@ -213,6 +213,10 @@ func (b *StrategyBO) ToSimpleApi() *api.StrategySimple {
 		return nil
 	}
 
+	endpoint := ""
+	if b.GetEndpoint() != nil {
+		endpoint = b.GetEndpoint().Endpoint
+	}
 	return &api.StrategySimple{
 		Id:           b.Id,
 		Alert:        b.Alert,
@@ -222,7 +226,7 @@ func (b *StrategyBO) ToSimpleApi() *api.StrategySimple {
 		Annotations:  b.GetAnnotations().Map(),
 		GroupId:      b.GroupId,
 		AlarmLevelId: b.AlarmLevelId,
-		Endpoint:     b.GetEndpoint().Endpoint,
+		Endpoint:     endpoint,
 	}
 }
 

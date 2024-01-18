@@ -90,4 +90,6 @@ message Kafka {
   string groupId = 3;
   string strategyGroupAllTopic = 4;
   string onlineTopic = 5;
+  string offlineTopic = 6;
+  string removeGroupTopic = 7;
 }

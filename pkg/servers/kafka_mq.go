@@ -5,12 +5,8 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport"
-
 	"prometheus-manager/pkg/conn"
 )
-
-var _ transport.Server = (*KafkaMQServer)(nil)
 
 type KafkaMQServer struct {
 	log      *log.Helper
@@ -21,22 +17,6 @@ type KafkaMQServer struct {
 type KafkaMQServerConfig interface {
 	GetEndpoints() []string
 	GetGroupId() string
-}
-
-func (l *KafkaMQServer) Start(ctx context.Context) (err error) {
-	l.log.WithContext(ctx).Info("[KafkaMQServer] server starting")
-	for {
-		select {
-		case <-ctx.Done():
-			l.close(ctx)
-			return
-		}
-	}
-}
-
-func (l *KafkaMQServer) Stop(ctx context.Context) error {
-	l.log.WithContext(ctx).Info("[KafkaMQServer] server stopping")
-	return nil
 }
 
 func (l *KafkaMQServer) close(ctx context.Context) {
@@ -71,15 +51,15 @@ func (l *KafkaMQServer) Consume(topics []string, callback func(msg *kafka.Messag
 		switch e := event.(type) {
 		case kafka.AssignedPartitions:
 			// kafka.AssignedPartitions 指定分区
-			l.log.Info("AssignedPartitions: %v", e)
+			l.log.Infof("AssignedPartitions: %v", e)
 			return nil
 		case kafka.RevokedPartitions:
 			// kafka.RevokedPartitions 撤销分区
-			l.log.Info("RevokedPartitions: %v", e)
+			l.log.Infof("RevokedPartitions: %v", e)
 			return nil
 		case *kafka.Message:
 			// kafka.Message 消息
-			l.log.Info("Message on %s: %s\n", e.TopicPartition, string(e.Value))
+			l.log.Infof("Message on %s: %s\n", e.TopicPartition, string(e.Value))
 			if callback(e) {
 				// 确认消息已经收到并处理
 				_, err := consumer.CommitMessage(e)
@@ -87,7 +67,7 @@ func (l *KafkaMQServer) Consume(topics []string, callback func(msg *kafka.Messag
 			}
 			return nil
 		default:
-			l.log.Info("Unhandled event: %v", e)
+			l.log.Infof("Unhandled event: %v", e)
 			return nil
 		}
 	})

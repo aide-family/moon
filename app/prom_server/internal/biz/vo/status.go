@@ -44,6 +44,11 @@ func (s Status) Key() string {
 	}
 }
 
+// IsEnabled 是否启用
+func (s Status) IsEnabled() bool {
+	return s == StatusEnabled
+}
+
 // Value 获取状态值
 func (s Status) Value() int32 {
 	return int32(s)

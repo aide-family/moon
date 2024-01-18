@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 	"time"
 
@@ -64,10 +65,12 @@ func NewWatch(
 	}
 	w.eventHandlers = map[consts.TopicType]EventHandler{
 		consts.TopicType(kafkaMqConf.GetStrategyGroupAllTopic()): w.loadGroupAllEventHandler,
+		consts.TopicType(kafkaMqConf.GetRemoveGroupTopic()):      w.removeGroupEventHandler,
 	}
 
 	topics := []string{
 		kafkaMqConf.GetStrategyGroupAllTopic(),
+		kafkaMqConf.GetRemoveGroupTopic(),
 	}
 	w.log.Info("topics", topics)
 	if err = w.Subscribe(topics); err != nil {
@@ -83,6 +86,30 @@ func (w *Watch) Subscribe(topics []string) error {
 }
 
 func (w *Watch) loadGroupAllEventHandler(msg *kafka.Message) error {
+	w.log.Info("strategyGroupAllTopic", string(msg.Value))
+	// 把新规则刷进内存
+	groupBytes := msg.Value
+	var groupDetail *api.GroupSimple
+	if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
+		w.log.Warnf("unmarshal groupList error: %s", err.Error())
+		return err
+	}
+	w.log.Info("groupDetail", groupDetail)
+	w.groups.Store(groupDetail.GetId(), groupDetail)
+	return nil
+}
+
+func (w *Watch) removeGroupEventHandler(msg *kafka.Message) error {
+	w.log.Info("removeGroupTopic", string(msg.Value))
+	value := string(msg.Value)
+	groupId, err := strconv.ParseUint(value, 10, 64)
+	if err != nil {
+		w.log.Warnf("parse groupId error: %s", value)
+		return nil
+	}
+	if groupId > 0 {
+		w.groups.Delete(uint32(groupId))
+	}
 	return nil
 }
 
@@ -130,6 +157,9 @@ func (w *Watch) Start(_ context.Context) error {
 
 func (w *Watch) Stop(_ context.Context) error {
 	w.log.Info("[Watch] server stopping")
+	if err := w.offlineNotify(); err != nil {
+		return err
+	}
 	close(w.exitCh)
 	return nil
 }
@@ -154,13 +184,33 @@ func (w *Watch) onlineNotify() error {
 	})
 }
 
+// offlineNotify 下线通知
+func (w *Watch) offlineNotify() error {
+	w.log.Info("[Watch] server offline notify")
+	topic := w.kafkaConf.GetOfflineTopic()
+	w.log.Infow("topic", topic)
+	err := w.kafkaMqServer.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{
+			Topic:     &topic,
+			Partition: kafka.PartitionAny,
+		},
+		Value: nil,
+		Key:   []byte(w.kafkaConf.GetGroupId()),
+	})
+	if err != nil {
+		return err
+	}
+	// 等待1秒，等kafka消费完消息
+	time.Sleep(1 * time.Second)
+	return nil
+}
+
 // 接受mq消息
 func (w *Watch) receiveMessage() {
 	consumer := w.kafkaMqServer.Consumer()
 	go func() {
 		defer after.Recover(w.log)
 		events := consumer.Events()
-		strategyGroupAllTopic := w.kafkaConf.GetStrategyGroupAllTopic()
 		for event := range events {
 			if consumer.IsClosed() {
 				w.log.Warnf("consumer is closed")
@@ -168,22 +218,17 @@ func (w *Watch) receiveMessage() {
 			}
 			switch e := event.(type) {
 			case *kafka.Message:
-				w.log.Infow("topic", *e.TopicPartition.Topic, "key", string(e.Key), "value", string(e.Value))
+				w.log.Infow("topic", *e.TopicPartition.Topic, "key", string(e.Key))
 				if string(e.Key) != w.kafkaConf.GetGroupId() {
 					break
 				}
-				switch *e.TopicPartition.Topic {
-				case strategyGroupAllTopic:
-					w.log.Info("strategyGroupAllTopic", string(e.Value))
-					// 把新规则刷进内存
-					groupBytes := e.Value
-					var groupDetail *api.GroupSimple
-					if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
-						w.log.Warnf("unmarshal groupList error: %s", err.Error())
-						break
-					}
-					w.log.Info("groupDetail", groupDetail)
-					w.groups.Store(groupDetail.GetId(), groupDetail)
+				handle, ok := w.eventHandlers[consts.TopicType(*e.TopicPartition.Topic)]
+				if !ok {
+					w.log.Warnf("topic not found: %s", *e.TopicPartition.Topic)
+					break
+				}
+				if err := handle(e); err != nil {
+					w.log.Warnf("handle message error: %s", err.Error())
 				}
 			}
 		}

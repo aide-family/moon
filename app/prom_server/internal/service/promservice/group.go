@@ -2,8 +2,11 @@ package promservice
 
 import (
 	"context"
+	"sort"
+	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
@@ -122,15 +125,31 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	}, nil
 }
 
-func (s *GroupService) ListAllGroupDetail(ctx context.Context, _ *pb.ListAllGroupDetailRequest) (*pb.ListAllGroupDetailReply, error) {
+func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGroupDetailRequest) (*pb.ListAllGroupDetailReply, error) {
 	list := make([]*api.GroupSimple, 0)
 	wheres := []basescopes.ScopeMethod{
 		basescopes.StatusEQ(vo.StatusEnabled),
-		basescopes.PreloadStrategyGroupPromStrategies(
-			basescopes.PreloadKeyEndpoint,
-		),
+		func(db *gorm.DB) *gorm.DB {
+			return db.Preload(basescopes.PromStrategyGroupReplacePromStrategies, basescopes.StatusEQ(vo.StatusEnabled))
+		},
+		func(db *gorm.DB) *gorm.DB {
+			return db.Preload(strings.Join([]string{
+				basescopes.PromStrategyGroupReplacePromStrategies,
+				basescopes.PreloadKeyEndpoint}, "."), basescopes.StatusEQ(vo.StatusEnabled))
+		},
 	}
-	defaultId := uint32(0)
+
+	defaultId := uint32(1)
+	if len(req.GetGroupIds()) > 0 {
+		wheres = append(wheres, basescopes.InIds(req.GetGroupIds()...))
+		ids := req.GetGroupIds()
+		// 排序
+		sort.Slice(ids, func(i, j int) bool {
+			return ids[i] > ids[j]
+		})
+		defaultId = ids[0] - 1
+	}
+
 	for {
 		strategyGroupBOS, err := s.strategyGroupBiz.ListAllLimit(ctx, 1000, append(wheres, basescopes.IdGT(defaultId))...)
 		if err != nil {
@@ -140,8 +159,17 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, _ *pb.ListAllGrou
 		if len(strategyGroupBOS) == 0 {
 			break
 		}
-		list = append(list, slices.To(strategyGroupBOS, func(t *bo.StrategyGroupBO) *api.GroupSimple {
-			return t.ToSimpleApi()
+		list = append(list, slices.ToFilter(strategyGroupBOS, func(t *bo.StrategyGroupBO) (*api.GroupSimple, bool) {
+			if t.Status != vo.StatusEnabled {
+				return nil, false
+			}
+			t.PromStrategies = slices.ToFilter(t.GetPromStrategies(), func(ru *bo.StrategyBO) (*bo.StrategyBO, bool) {
+				if ru == nil || ru.Status != vo.StatusEnabled || ru.Endpoint == nil || ru.Endpoint.Endpoint == "" {
+					return nil, false
+				}
+				return ru, true
+			})
+			return t.ToSimpleApi(), true
 		})...)
 		defaultId = strategyGroupBOS[len(strategyGroupBOS)-1].Id
 	}
