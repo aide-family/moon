@@ -14,7 +14,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/app/prom_server/internal/data/repositiryimple"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimpl"
 	"prometheus-manager/app/prom_server/internal/server"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
@@ -39,7 +39,7 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		authservice.ProviderSetAuthService,
 		systemservice.ProviderSetSystem,
 		biz.ProviderSetBiz,
-		repositiryimple.ProviderSetRepository,
+		repositiryimpl.ProviderSetRepository,
 		newApp,
 	))
 }
