@@ -136,17 +136,14 @@ func (w *Watch) Start(_ context.Context) error {
 				w.log.Info("[Watch] server tick")
 				eg := new(errgroup.Group)
 				eg.SetLimit(100)
+				groupList := make([]*api.GroupSimple, 0)
 				w.groups.Range(func(key, value any) bool {
-					groupDetail, ok := value.(*api.GroupSimple)
-					if !ok {
-						return true
+					if group, ok := value.(*api.GroupSimple); ok {
+						groupList = append(groupList, group)
 					}
-					eg.Go(func() error {
-						_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: []*api.GroupSimple{groupDetail}})
-						return nil
-					})
 					return true
 				})
+				_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: groupList})
 				_ = eg.Wait()
 			}
 		}

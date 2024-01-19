@@ -35,6 +35,7 @@ func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.
 	}
 
 	if len(alarms) == 0 {
+		s.log.Warnf("eval success, but no alarm")
 		return &pb.EvaluateReply{}, nil
 	}
 

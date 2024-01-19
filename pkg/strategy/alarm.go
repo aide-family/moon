@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/util/hash"
 	"prometheus-manager/pkg/util/times"
 )
 
@@ -98,7 +99,21 @@ func (l *Alarms) Append(alarm *Alarm) {
 func (l *Alarms) List() []*Alarm {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
-	return l.Alarms
+	list := make([]*Alarm, 0, len(l.Alarms))
+	// 处理alert指纹
+	for _, alarm := range l.Alarms {
+		alarmTmp := *alarm
+		alerts := make([]*Alert, 0, len(alarm.Alerts))
+		for _, alert := range alarm.Alerts {
+			alertTmp := *alert
+			alertTmp.Fingerprint = hash.MD5(alertTmp.Fingerprint + hash.MD5(alertTmp.StartsAt))
+			alerts = append(alerts, &alertTmp)
+		}
+		alarmTmp.Alerts = alerts
+		list = append(list, &alarmTmp)
+	}
+
+	return list
 }
 
 func NewAlarmList(alarms ...*Alarm) *Alarms {
@@ -147,6 +162,15 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		allLabels[key] = value
 	}
 
+	// 获取该策略下所有已经产生的告警数据
+	existAlarmInfo, exist := alarmCache.Get(rule.Id)
+	existAlertMap := make(map[string]*Alert)
+	if exist {
+		for _, alert := range existAlarmInfo.Alerts {
+			existAlertMap[alert.Fingerprint] = alert
+		}
+	}
+
 	for _, result := range results {
 		if len(result.Value) != 2 {
 			continue
@@ -167,10 +191,13 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 			Status:       AlarmStatusFiring,
 			Labels:       allLabels,
 			Annotations:  annotations,
-			StartsAt:     time.Unix(int64(timeUnix), 0).Format(times.ParseLayout),
-			EndsAt:       "",
 			GeneratorURL: "",
 			Fingerprint:  result.Metric.MD5(),
+		}
+		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok {
+			alert.StartsAt = existAlert.StartsAt
+		} else {
+			alert.StartsAt = time.Unix(int64(timeUnix), 0).Format(times.ParseLayout)
 		}
 		alarmInfo.Alerts = append(alarmInfo.Alerts, alert)
 	}
