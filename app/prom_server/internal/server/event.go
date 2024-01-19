@@ -144,7 +144,8 @@ func (l *AlarmEvent) storeGroups() error {
 
 func (l *AlarmEvent) watchChangeGroup() error {
 	// 一分钟执行一次
-	ticker := time.NewTicker(time.Minute * 1)
+	//ticker := time.NewTicker(time.Minute * 1)
+	ticker := time.NewTicker(time.Second * 10)
 	go func() {
 		defer after.Recover(l.log)
 		for {
@@ -180,11 +181,14 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					continue
 				}
 
+				l.log.Infof("synce store groups success %v", len(changeGroupIds))
+
 				for _, groupItem := range listAllGroupDetail.GetGroupList() {
 					l.groups.Store(groupItem.GetId(), groupItem)
 					if err = l.sendChangeGroup(groupItem); err != nil {
 						l.log.Errorf("send change group error: %s", err.Error())
 					}
+					l.changeGroupIds.Delete(groupItem.GetId())
 				}
 			}
 		}
@@ -273,6 +277,7 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 	groupDetailBytes, _ := json.Marshal(groupDetail)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
+	topic := string(consts.StrategyGroupAllTopic)
 	l.agentNames.Range(func(key, value any) bool {
 		agentInfo, ok := value.(*AgentInfo)
 		if !ok || agentInfo == nil {
@@ -282,7 +287,7 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 			// 3. 推送规则组消息(按规则组粒度)
 			sendMsg := &kafka.Message{
 				TopicPartition: kafka.TopicPartition{
-					Topic:     agentInfo.Topic,
+					Topic:     &topic,
 					Partition: kafka.PartitionAny,
 				},
 				Value: groupDetailBytes,

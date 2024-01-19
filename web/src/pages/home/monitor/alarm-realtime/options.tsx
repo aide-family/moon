@@ -47,6 +47,15 @@ export const columns:
         }
     },
     {
+        title: '策略ID',
+        dataIndex: 'strategyId',
+        key: 'strategyId',
+        width: 200,
+        render: (strategyId: number | string) => {
+            return strategyId
+        }
+    },
+    {
         title: '告警等级',
         dataIndex: 'level',
         width: 160,

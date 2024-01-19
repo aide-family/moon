@@ -218,7 +218,8 @@ func (w *Watch) receiveMessage() {
 			}
 			switch e := event.(type) {
 			case *kafka.Message:
-				w.log.Infow("topic", *e.TopicPartition.Topic, "key", string(e.Key))
+				w.log.Info("=========================")
+				w.log.Infow("topic", *e.TopicPartition.Topic, "key", string(e.Key), "value", string(e.Value))
 				if string(e.Key) != w.kafkaConf.GetGroupId() {
 					break
 				}
