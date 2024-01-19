@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 	"prometheus-manager/pkg/util/times"
 )
@@ -19,19 +20,18 @@ type (
 	Alerting struct {
 		datasourceName DatasourceName
 		groups         []*Group
-
-		alarmCache AlarmCache
 	}
 
 	AlertingOption func(*Alerting)
 )
+
+var alarmCache = NewDefaultAlarmCache()
 
 // NewAlerting 初始化策略告警实例
 func NewAlerting(groups ...*Group) Alerter {
 	a := &Alerting{
 		datasourceName: PrometheusDatasource,
 		groups:         groups,
-		alarmCache:     NewDefaultAlarmCache(),
 	}
 
 	return a
@@ -42,9 +42,11 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	eg.SetLimit(100)
 	alarms := NewAlarmList()
 	timeNowUnix := time.Now().Unix()
+	strategyIds := make(map[uint32]struct{})
 	for _, groupItem := range a.groups {
-		group := &*groupItem
+		group := groupItem
 		for _, strategyItem := range group.Rules {
+			strategyIds[strategyItem.Id] = struct{}{}
 			strategyInfo := &*strategyItem
 			eg.Go(func() error {
 				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
@@ -54,11 +56,13 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				}
 				newAlarmInfo := NewAlarm(group, strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
-				existAlarmInfo, exist := a.alarmCache.Get(strategyInfo.Id)
+				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist {
+					log.Info("不存在数据, 存入缓存")
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
-					a.alarmCache.Set(strategyInfo.Id, newAlarmInfo)
-					alarms.Append(newAlarmInfo)
+					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
+					// 不需要立即告警
+					//alarms.Append(newAlarmInfo)
 					return nil
 				}
 
@@ -74,6 +78,36 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 		return nil, err
 	}
 
+	timeUnix := time.Now().Unix()
+	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)
+	resolvedAlarmMap := make(map[uint32]*Alarm)
+	// 不存在的告警规则直接发送告警恢复通知
+	alarmCache.RangeNotifyAlerts(func(alertItem *Alert) {
+		ruleId := alertItem.Labels.StrategyId()
+		if _, ok := strategyIds[ruleId]; !ok {
+			// 告警恢复
+			resolvedAlarm, stored := resolvedAlarmMap[ruleId]
+			if !stored {
+				alarmInfo, exist := alarmCache.Get(ruleId)
+				if !exist || alarmInfo == nil {
+					return
+				}
+				resolvedAlarm = alarmInfo
+				resolvedAlarm.Alerts = make([]*Alert, 0, 10)
+				resolvedAlarmMap[ruleId] = resolvedAlarm
+			}
+			alertResolvedDetail := alertItem
+			alertResolvedDetail.Status = AlarmStatusResolved
+			alertResolvedDetail.EndsAt = endsAt
+			resolvedAlarm.Alerts = append(resolvedAlarm.Alerts, alertResolvedDetail)
+			alarms.Append(resolvedAlarm)
+			alarmCache.RemoveNotifyAlert(alertResolvedDetail)
+		}
+	})
+	for ruleId := range resolvedAlarmMap {
+		alarmCache.Remove(ruleId)
+	}
+
 	return alarms.List(), nil
 }
 
@@ -82,40 +116,68 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 	if newAlarmInfo == nil || existAlarmInfo == nil {
 		return nil
 	}
-
-	alarm := &*newAlarmInfo
+	alarm := newAlarmInfo
 	existAlertMap := make(map[string]*Alert)
 	for _, alert := range existAlarmInfo.Alerts {
 		existAlertMap[alert.Fingerprint] = alert
 	}
-	// 初始化一个最大值
-	alarm.Alerts = make([]*Alert, 0, len(newAlarmInfo.Alerts)+len(existAlarmInfo.Alerts))
-	// 把新告警set到缓存中
-	alarm.Alerts = append(alarm.Alerts, newAlarmInfo.Alerts...)
-	a.alarmCache.Set(ruleInfo.Id, alarm)
 
+	log.Infow("ruleId", ruleInfo.Id, "existAlarmInfo.Alerts.len", len(existAlarmInfo.Alerts))
+
+	// 初始化一个最大值
+	alerts := make([]*Alert, 0, len(newAlarmInfo.Alerts)+len(existAlarmInfo.Alerts))
+	// 把新告警set到缓存中
+	alarmCache.Set(ruleInfo.Id, newAlarmInfo)
+	nowTimeUnix := time.Now().Unix()
+	ruleDuration := BuildDuration(ruleInfo.For)
 	newAlertMap := make(map[string]*Alert)
 	for _, alert := range newAlarmInfo.Alerts {
-		alertTmp := &*alert
-		newAlertMap[alert.Fingerprint] = alertTmp
-	}
-	timeUnix := time.Now().Unix()
-	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)
-	for _, alert := range existAlarmInfo.Alerts {
-		if alertTmp, ok := newAlertMap[alert.Fingerprint]; !ok {
-			alertTmp = &*alert
-			// 如果告警不存在, 则告警已经恢复, 告警恢复
-			alertTmp.Status = AlarmStatusResolved
-			alertTmp.EndsAt = endsAt
-			alarm.Alerts = append(alarm.Alerts, alertTmp)
+		alertInfo := alert
+		newAlertMap[alert.Fingerprint] = alertInfo
+		// 判断告警时常是否满足告警条件, 满足则加入新告警列表
+		var eventAt int64
+		// 判断告警是否已存在
+		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok {
+			eventAt = times.ParseAlertTimeUnix(existAlert.StartsAt)
+		} else {
+			eventAt = times.ParseAlertTimeUnix(alertInfo.StartsAt)
+		}
+
+		//log.Infow("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix)
+
+		if nowTimeUnix-eventAt >= ruleDuration {
+			alerts = append(alerts, alertInfo)
+			alarmCache.SetNotifyAlert(alertInfo)
 		}
 	}
+
+	endsAt := time.Unix(nowTimeUnix, 0).Format(times.ParseLayout)
+	for _, oldAlert := range existAlarmInfo.Alerts {
+		log.Info("判段告警恢复")
+		existAlertTmp, ok := newAlertMap[oldAlert.Fingerprint]
+		log.Infow("existAlertTmp", existAlertTmp, "exist", ok, "strategyId", oldAlert.Labels.StrategyId())
+		if !ok {
+			log.Infow("===============告警恢复通知")
+			// 判断是否发送过告警, 如果没有发送过, 不算告警恢复事件
+			notifyAlert, notifyOK := alarmCache.GetNotifyAlert(oldAlert)
+			if notifyOK && notifyAlert.Status == AlarmStatusFiring {
+				notifyAlert.Status = AlarmStatusResolved
+				notifyAlert.EndsAt = endsAt
+				alerts = append(alerts, notifyAlert)
+				alarmCache.RemoveNotifyAlert(notifyAlert)
+			}
+			continue
+		}
+
+	}
+
+	alarm.Alerts = alerts
 
 	return alarm
 }
 
 // BuildDuration 字符串转为api时间
-func BuildDuration(duration string) time.Duration {
+func BuildDuration(duration string) int64 {
 	durationLen := len(duration)
 	if duration == "" || durationLen < 2 {
 		return 0
@@ -125,15 +187,15 @@ func BuildDuration(duration string) time.Duration {
 	unit := string(duration[durationLen-1])
 	switch unit {
 	case "s":
-		return time.Duration(value) * time.Second
+		return int64(value)
 	case "m":
-		return time.Duration(value) * time.Minute
+		return int64(value) * 60
 	case "h":
-		return time.Duration(value) * time.Hour
+		return int64(value) * 60 * 60
 	case "d":
-		return time.Duration(value) * time.Hour * 24
+		return int64(value) * 60 * 60 * 24
 	default:
-		return time.Duration(value) * time.Second
+		return 0
 	}
 }
 
@@ -144,9 +206,7 @@ func WithDatasourceName(datasourceName DatasourceName) AlertingOption {
 	}
 }
 
-// WithAlarmCache 设置告警缓存
-func WithAlarmCache(alarmCache AlarmCache) AlertingOption {
-	return func(a *Alerting) {
-		a.alarmCache = alarmCache
-	}
+// SetAlarmCache 设置告警缓存
+func SetAlarmCache(cache AlarmCache) {
+	alarmCache = cache
 }

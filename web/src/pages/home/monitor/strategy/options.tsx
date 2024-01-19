@@ -146,6 +146,13 @@ export const columns: (
     | ColumnType<StrategyItemType>
 )[] = [
     {
+        title: 'ID',
+        dataIndex: 'id',
+        key: 'id',
+        align: 'start',
+        width: 100
+    },
+    {
         title: '数据源',
         dataIndex: 'dataSource',
         key: 'dataSource',

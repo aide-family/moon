@@ -67,6 +67,16 @@ type (
 		Get(ruleId uint32) (*Alarm, bool)
 		// Set 当前规则下告警数据
 		Set(ruleId uint32, alarm *Alarm) bool
+		// Remove 删除告警
+		Remove(ruleId uint32) bool
+		// SetNotifyAlert 当前规则下告警数据
+		SetNotifyAlert(alert *Alert) bool
+		// RemoveNotifyAlert 删除告警
+		RemoveNotifyAlert(alert *Alert) bool
+		// GetNotifyAlert 获取告警数据
+		GetNotifyAlert(alert *Alert) (*Alert, bool)
+		// RangeNotifyAlerts range notify alerts
+		RangeNotifyAlerts(f func(*Alert))
 	}
 )
 

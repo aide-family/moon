@@ -139,7 +139,7 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGr
 		},
 	}
 
-	defaultId := uint32(1)
+	defaultId := uint32(0)
 	if len(req.GetGroupIds()) > 0 {
 		wheres = append(wheres, basescopes.InIds(req.GetGroupIds()...))
 		ids := req.GetGroupIds()
