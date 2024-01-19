@@ -30,8 +30,8 @@ type (
 		Status       string                `json:"status"`
 		Labels       *strategy.Labels      `json:"labels"`
 		Annotations  *strategy.Annotations `json:"annotations"`
-		StartsAt     int64                 `json:"startsAt"`
-		EndsAt       int64                 `json:"endsAt"`
+		StartsAt     string                `json:"startsAt"`
+		EndsAt       string                `json:"endsAt"`
 		GeneratorURL string                `json:"generatorURL"`
 		Fingerprint  string                `json:"fingerprint"`
 	}

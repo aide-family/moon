@@ -78,11 +78,13 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 		return nil, err
 	}
 
+	log.Infow("告警", strategyIds)
 	timeUnix := time.Now().Unix()
 	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)
 	resolvedAlarmMap := make(map[uint32]*Alarm)
 	// 不存在的告警规则直接发送告警恢复通知
-	alarmCache.RangeNotifyAlerts(func(alertItem *Alert) {
+	alarmCache.RangeNotifyAlerts(func(alertInfo *Alert) {
+		alertItem := *alertInfo
 		ruleId := alertItem.Labels.StrategyId()
 		if _, ok := strategyIds[ruleId]; !ok {
 			// 告警恢复
@@ -94,17 +96,19 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				}
 				resolvedAlarm = alarmInfo
 				resolvedAlarm.Alerts = make([]*Alert, 0, 10)
-				resolvedAlarmMap[ruleId] = resolvedAlarm
 			}
-			alertResolvedDetail := alertItem
-			alertResolvedDetail.Status = AlarmStatusResolved
-			alertResolvedDetail.EndsAt = endsAt
-			resolvedAlarm.Alerts = append(resolvedAlarm.Alerts, alertResolvedDetail)
+
+			alertItem.Status = AlarmStatusResolved
+			alertItem.EndsAt = endsAt
+
+			resolvedAlarm.Alerts = append(resolvedAlarm.Alerts, &alertItem)
 			alarms.Append(resolvedAlarm)
-			alarmCache.RemoveNotifyAlert(alertResolvedDetail)
+			alarmCache.RemoveNotifyAlert(&alertItem)
+			resolvedAlarmMap[ruleId] = resolvedAlarm
 		}
 	})
 	for ruleId := range resolvedAlarmMap {
+		log.Infow("告警恢复", ruleId)
 		alarmCache.Remove(ruleId)
 	}
 
@@ -168,7 +172,6 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 			}
 			continue
 		}
-
 	}
 
 	alarm.Alerts = alerts
