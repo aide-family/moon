@@ -16,11 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && apt-get autoremove -y && apt-get autoclean -y
 
 COPY --from=builder /src/bin/${APP_NAME} /app/${APP_NAME}
+RUN mv /app/${APP_NAME} /app/server
 
 WORKDIR /app
 
 EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
-RUN echo "hello ${APP_NAME}"
-ENTRYPOINT ["./${APP_NAME}", "-conf", "/data/conf"]
+
+CMD ["./server", "-conf", "/data/conf"]
