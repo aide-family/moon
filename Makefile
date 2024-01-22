@@ -6,6 +6,8 @@ path := $(shell pwd)
 
 # 获取输入的参数
 APP_NAME ?= $(app)
+# 从app/prom_server字符串 to prom_server
+APP := $(subst app/,,$(APP_NAME))
 
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
@@ -143,7 +145,7 @@ endif
 .PHONY:
 docker-build: # test ## Build docker image with the manager.
 	@echo "Building docker image with the manager..."
-	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" --build-arg APP_NAME=${APP_NAME} .
+	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" --build-arg APP_NAME=${APP} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
