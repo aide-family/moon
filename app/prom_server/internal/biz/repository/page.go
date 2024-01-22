@@ -28,10 +28,22 @@ type (
 		GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error)
 		// ListPage 获取页面列表
 		ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
+		// Get 获取详情
+		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error)
+		// GetStrategyIds 获取策略id列表
+		GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error)
 	}
 
 	UnimplementedPageRepo struct{}
 )
+
+func (UnimplementedPageRepo) GetStrategyIds(_ context.Context, _ ...basescopes.ScopeMethod) ([]uint32, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyIds not implemented")
+}
+
+func (UnimplementedPageRepo) Get(_ context.Context, _ ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
 
 func (UnimplementedPageRepo) mustEmbedUnimplemented() {}
 

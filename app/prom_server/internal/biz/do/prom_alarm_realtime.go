@@ -34,8 +34,6 @@ type PromAlarmRealtime struct {
 	AlarmUpgradeInfo *PromAlarmUpgrade `gorm:"foreignKey:RealtimeAlarmID"`
 	// AlarmSuppressInfo 告警抑制信息
 	AlarmSuppressInfo *PromAlarmSuppress `gorm:"foreignKey:RealtimeAlarmID"`
-	// AlarmPages 告警页面信息(多对多)
-	AlarmPages []*PromAlarmPage `gorm:"many2many:prom_alarm_page_realtime_alarms"`
 }
 
 // TableName 表名
@@ -58,14 +56,6 @@ func (p *PromAlarmRealtime) GetAlarmIntervenes() []*PromAlarmIntervene {
 		return nil
 	}
 	return p.AlarmIntervenes
-}
-
-// GetAlarmPages 获取告警页面信息
-func (p *PromAlarmRealtime) GetAlarmPages() []*PromAlarmPage {
-	if p == nil {
-		return nil
-	}
-	return p.AlarmPages
 }
 
 // GetBeenNotifyMembers 获取通知对象

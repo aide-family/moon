@@ -147,6 +147,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 	}
 
 	allLabels := make(map[string]string)
+	allLabels[MetricAlertId] = strconv.Itoa(int(rule.Id))
 	for _, result := range results {
 		for key, value := range result.Metric.Map() {
 			allLabels[key] = value

@@ -341,6 +341,8 @@ func (m *ListRealtimeRequest) validate(all bool) error {
 
 	// no validation rules for Keyword
 
+	// no validation rules for AlarmPageId
+
 	// no validation rules for StartAt
 
 	// no validation rules for EndAt

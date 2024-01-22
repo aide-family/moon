@@ -15,10 +15,11 @@ const (
 )
 
 const (
-	RealtimeTableFieldEventAt   Field = "event_at"
-	RealtimeTableFieldHistoryId Field = "history_id"
-	RealtimeTableFieldNote      Field = "note"
-	RealtimeTableFieldInstance  Field = "instance"
+	RealtimeTableFieldEventAt    Field = "event_at"
+	RealtimeTableFieldHistoryId  Field = "history_id"
+	RealtimeTableFieldNote       Field = "note"
+	RealtimeTableFieldInstance   Field = "instance"
+	RealtimeTableFieldStrategyId Field = "strategy_id"
 )
 
 // RealtimeLike 查询关键字
@@ -53,4 +54,9 @@ func PreloadLevel() ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Preload(RealtimeAssociationLevel)
 	}
+}
+
+// InStrategyIds 查询策略ID列表
+func InStrategyIds(strategyIds ...uint32) ScopeMethod {
+	return WhereInColumn(RealtimeTableFieldStrategyId, strategyIds...)
 }

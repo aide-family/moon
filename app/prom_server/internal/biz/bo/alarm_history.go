@@ -73,7 +73,6 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 		LevelId:    b.LevelId,
 		EventAt:    b.StartsAt,
 		Status:     status,
-		AlarmPages: b.GetStrategyBO().GetAlarmPages(),
 		HistoryID:  b.Id,
 		StrategyID: b.StrategyId,
 	}

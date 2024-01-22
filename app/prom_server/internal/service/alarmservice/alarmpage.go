@@ -18,11 +18,11 @@ type AlarmPageService struct {
 
 	log *log.Helper
 
-	pageBiz *biz.PageBiz
+	pageBiz *biz.AlarmPageBiz
 }
 
 // NewAlarmPageService 实例化AlarmPageService
-func NewAlarmPageService(pageBiz *biz.PageBiz, logger log.Logger) *AlarmPageService {
+func NewAlarmPageService(pageBiz *biz.AlarmPageBiz, logger log.Logger) *AlarmPageService {
 	return &AlarmPageService{
 		log:     log.NewHelper(log.With(logger, "module", "service.alarm.page")),
 		pageBiz: pageBiz,

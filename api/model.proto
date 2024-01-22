@@ -515,8 +515,6 @@ message RealtimeAlarmData {
   int64 eventAt = 5;
   // 告警状态
   int32 status = 6;
-  // 告警页面
-  repeated uint32 pageIds = 7;
   // 介入信息
   repeated InterveneInfo intervenedUser = 8;
   // 已通知的对象

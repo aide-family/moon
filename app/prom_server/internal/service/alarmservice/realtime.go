@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/realtime"
@@ -20,13 +21,15 @@ type RealtimeService struct {
 
 	log           *log.Helper
 	alarmRealtime *biz.AlarmRealtimeBiz
+	alarmPageBiz  *biz.AlarmPageBiz
 }
 
 // NewRealtimeService 实时告警服务
-func NewRealtimeService(alarmRealtime *biz.AlarmRealtimeBiz, logger log.Logger) *RealtimeService {
+func NewRealtimeService(alarmRealtime *biz.AlarmRealtimeBiz, alarmPageBiz *biz.AlarmPageBiz, logger log.Logger) *RealtimeService {
 	return &RealtimeService{
 		log:           log.NewHelper(log.With(logger, "module", "service.alarm.realtime")),
 		alarmRealtime: alarmRealtime,
+		alarmPageBiz:  alarmPageBiz,
 	}
 }
 
@@ -43,6 +46,10 @@ func (l *RealtimeService) GetRealtime(ctx context.Context, req *pb.GetRealtimeRe
 
 // ListRealtime 实时告警列表
 func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtimeRequest) (*pb.ListRealtimeReply, error) {
+	strategyIds, err := l.alarmPageBiz.GetStrategyIds(ctx, req.GetAlarmPageId())
+	if err != nil {
+		return nil, err
+	}
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
@@ -50,6 +57,9 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 		basescopes.RealtimeEventAtDesc(),
 		//预加载告警等级
 		basescopes.PreloadLevel(),
+		basescopes.InStrategyIds(strategyIds...),
+		// 还在告警的数据
+		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 
 	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)
