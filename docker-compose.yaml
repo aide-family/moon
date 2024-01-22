@@ -18,3 +18,5 @@ services:
       - "9002:9000"
     volumes:
       - ./app/prom_agent/configs_dev:/data/conf
+    depends_on:
+      - prometheus_manager

@@ -26,5 +26,5 @@ WORKDIR /app
 EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
-
+RUN echo "hello ${APP_NAME}"
 CMD ["${APP_NAME}", "-conf", "/data/conf"]
