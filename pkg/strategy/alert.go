@@ -57,7 +57,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				newAlarmInfo := NewAlarm(group, strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
-				if !exist {
+				if !exist && len(queryResponse.Data.Result) > 0 {
 					log.Info("不存在数据, 存入缓存")
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
 					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
@@ -158,12 +158,12 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 	endsAt := time.Unix(nowTimeUnix, 0).Format(times.ParseLayout)
 	for _, oldAlert := range existAlarmInfo.Alerts {
 		log.Info("判段告警恢复")
-		existAlertTmp, ok := newAlertMap[oldAlert.Fingerprint]
-		log.Infow("existAlertTmp", existAlertTmp, "exist", ok, "strategyId", oldAlert.Labels.StrategyId())
+		oldAlertTmp := *oldAlert
+		_, ok := newAlertMap[oldAlertTmp.Fingerprint]
 		if !ok {
 			log.Infow("===============告警恢复通知")
 			// 判断是否发送过告警, 如果没有发送过, 不算告警恢复事件
-			notifyAlert, notifyOK := alarmCache.GetNotifyAlert(oldAlert)
+			notifyAlert, notifyOK := alarmCache.GetNotifyAlert(&oldAlertTmp)
 			if notifyOK && notifyAlert.Status == AlarmStatusFiring {
 				notifyAlert.Status = AlarmStatusResolved
 				notifyAlert.EndsAt = endsAt

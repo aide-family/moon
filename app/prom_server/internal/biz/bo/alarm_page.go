@@ -18,8 +18,18 @@ type (
 		CreatedAt int64     `json:"createdAt"`
 		UpdatedAt int64     `json:"updatedAt"`
 		DeletedAt int64     `json:"deletedAt"`
+
+		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}
 )
+
+// GetPromStrategies 策略列表
+func (b *AlarmPageBO) GetPromStrategies() []*StrategyBO {
+	if b == nil {
+		return nil
+	}
+	return b.PromStrategies
+}
 
 // ToApiSelectV1 .
 func (b *AlarmPageBO) ToApiSelectV1() *api.AlarmPageSelectV1 {
@@ -73,6 +83,9 @@ func AlarmPageModelToBO(m *do.PromAlarmPage) *AlarmPageBO {
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
+		PromStrategies: slices.To(m.PromStrategies, func(info *do.PromStrategy) *StrategyBO {
+			return StrategyModelToBO(info)
+		}),
 	}
 }
 

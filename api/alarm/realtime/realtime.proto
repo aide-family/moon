@@ -67,7 +67,7 @@ message ListRealtimeRequest {
 	// 关键字
 	string keyword = 2;
 	// 告警页面, 对应AlarmPageV1 id
-	repeated uint32 alarmPages = 4;
+	uint32 alarmPageId = 4;
 	// 开始时间, unix时间戳
 	int64 startAt = 5;
 	// 结束时间, unix时间戳

@@ -3,7 +3,6 @@ package bo
 import (
 	"encoding"
 	"encoding/json"
-	"fmt"
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -23,7 +22,6 @@ type (
 		Level                *DictBO                           `json:"level"`
 		EventAt              int64                             `json:"eventAt"`
 		Status               vo.AlarmStatus                    `json:"status"`
-		AlarmPages           []*AlarmPageBO                    `json:"alarmPages"`
 		AlarmIntervenes      []*AlarmInterveneBO               `json:"alarmIntervenes"`
 		BeNotifyMemberDetail []*AlarmBeenNotifyMemberBO        `json:"beNotifyMemberDetail"`
 		NotifiedAt           int64                             `json:"notifiedAt"`
@@ -100,7 +98,6 @@ func (l *AlarmRealtimeBO) ToModel() *do.PromAlarmRealtime {
 		Note:              l.Note,
 		Status:            l.Status,
 		EventAt:           l.EventAt,
-		AlarmPages:        slices.To(l.GetAlarmPages(), func(i *AlarmPageBO) *do.PromAlarmPage { return i.ToModel() }),
 		BeenNotifyMembers: slices.To(l.GetBeNotifyMemberDetail(), func(i *AlarmBeenNotifyMemberBO) *do.PromAlarmBeenNotifyMember { return i.ToModel() }),
 		BeenChatGroups:    slices.To(l.GetBeNotifiedChatGroups(), func(i *PromAlarmBeenNotifyChatGroupBO) *do.PromAlarmBeenNotifyChatGroup { return i.ToModel() }),
 		NotifiedAt:        l.NotifiedAt,
@@ -109,14 +106,6 @@ func (l *AlarmRealtimeBO) ToModel() *do.PromAlarmRealtime {
 		AlarmUpgradeInfo:  l.GetAlarmUpgradeInfo().ToModel(),
 		AlarmSuppressInfo: l.GetAlarmSuppressInfo().ToModel(),
 	}
-}
-
-// GetAlarmPages 获取告警页面详情
-func (l *AlarmRealtimeBO) GetAlarmPages() []*AlarmPageBO {
-	if l == nil {
-		return nil
-	}
-	return l.AlarmPages
 }
 
 // GetLevel 获取告警等级详情
@@ -133,9 +122,6 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 		return nil
 	}
 
-	fmt.Println("-------------")
-	fmt.Println(l.LevelId, l.GetLevel())
-
 	return &api.RealtimeAlarmData{
 		Id:                 l.ID,
 		Instance:           l.Instance,
@@ -143,7 +129,6 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 		LevelId:            l.LevelId,
 		EventAt:            l.EventAt,
 		Status:             l.Status.Value(),
-		PageIds:            slices.To(l.GetAlarmPages(), func(i *AlarmPageBO) uint32 { return i.Id }),
 		IntervenedUser:     slices.To(l.GetAlarmIntervenes(), func(i *AlarmInterveneBO) *api.InterveneInfo { return i.ToApi() }),
 		BeenNotifyMembers:  slices.To(l.GetBeNotifyMemberDetail(), func(i *AlarmBeenNotifyMemberBO) *api.BeNotifyMemberDetail { return i.ToApi() }),
 		NotifiedAt:         l.NotifiedAt,
@@ -172,7 +157,6 @@ func AlarmRealtimeModelToBO(m *do.PromAlarmRealtime) *AlarmRealtimeBO {
 		Level:           DictModelToBO(m.GetLevel()),
 		EventAt:         m.EventAt,
 		Status:          m.Status,
-		AlarmPages:      slices.To(m.GetAlarmPages(), func(i *do.PromAlarmPage) *AlarmPageBO { return AlarmPageModelToBO(i) }),
 		AlarmIntervenes: slices.To(m.GetAlarmIntervenes(), func(i *do.PromAlarmIntervene) *AlarmInterveneBO { return AlarmInterveneModelToBO(i) }),
 		BeNotifyMemberDetail: slices.To(m.GetBeenNotifyMembers(), func(i *do.PromAlarmBeenNotifyMember) *AlarmBeenNotifyMemberBO {
 			return AlarmBeenNotifyMemberModelToBO(i)

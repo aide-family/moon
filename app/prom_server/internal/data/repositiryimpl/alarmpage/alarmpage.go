@@ -23,6 +23,28 @@ type alarmPageRepoImpl struct {
 	data *data.Data
 }
 
+func (l *alarmPageRepoImpl) GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error) {
+	var strategyIds []uint32
+	if err := l.data.DB().
+		Model(&do.PromStrategyAlarmPage{}).
+		WithContext(ctx).
+		Scopes(scopes...).
+		Pluck(basescopes.TableNamePromStrategyAlarmPageFieldPromStrategyID.String(), &strategyIds).
+		Error; err != nil {
+		return nil, err
+	}
+	return strategyIds, nil
+}
+
+func (l *alarmPageRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error) {
+	var model do.PromAlarmPage
+	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&model).Error; err != nil {
+		return nil, err
+	}
+
+	return bo.AlarmPageModelToBO(&model), nil
+}
+
 func (l *alarmPageRepoImpl) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	newModel := pageBO.ToModel()
 	if err := l.data.DB().WithContext(ctx).Create(newModel).Error; err != nil {

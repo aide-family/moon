@@ -248,6 +248,28 @@ export const columns: (
         }
     },
     {
+        title: '告警页面',
+        dataIndex: 'alarmPageInfo',
+        key: 'alarmPageInfo',
+        width: 300,
+        render: (_: number, record: StrategyItemType) => {
+            if (!record.alarmPageInfo || !record.alarmPageInfo.length)
+                return '-'
+            const alarmPageInfoList = record.alarmPageInfo
+            return (
+                <Space size={[8, 16]} wrap>
+                    {alarmPageInfoList.map((item) => {
+                        return (
+                            <Tag key={item.value} color={item.color}>
+                                {item.label}
+                            </Tag>
+                        )
+                    })}
+                </Space>
+            )
+        }
+    },
+    {
         title: '告警恢复通知',
         dataIndex: 'sendRecover',
         key: 'sendRecover',

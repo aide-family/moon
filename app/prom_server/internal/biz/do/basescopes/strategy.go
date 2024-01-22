@@ -20,6 +20,11 @@ const (
 	StrategyTableFieldAlert   Field = "alert"
 )
 
+const (
+	TableNamePromStrategyAlarmPageFieldPromAlarmPageID Field = "alarm_page_id"
+	TableNamePromStrategyAlarmPageFieldPromStrategyID  Field = "prom_strategy_id"
+)
+
 // StrategyTableGroupIdsEQ 策略组ID
 func StrategyTableGroupIdsEQ(ids ...uint32) ScopeMethod {
 	// 过滤0值
@@ -65,4 +70,14 @@ func StrategyTablePreloadPromNotifyUpgrade(db *gorm.DB) *gorm.DB {
 // StrategyTablePreloadGroupInfo 预加载group_info
 func StrategyTablePreloadGroupInfo(db *gorm.DB) *gorm.DB {
 	return db.Preload(PreloadKeyGroupInfo)
+}
+
+// InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds in alarm_page_ids
+func InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds(ids ...uint32) ScopeMethod {
+	return WhereInColumn(TableNamePromStrategyAlarmPageFieldPromAlarmPageID, ids...)
+}
+
+// InTableNamePromStrategyAlarmPageFieldPromStrategyID in prom_strategy_ids
+func InTableNamePromStrategyAlarmPageFieldPromStrategyID(ids ...uint32) ScopeMethod {
+	return WhereInColumn(TableNamePromStrategyAlarmPageFieldPromStrategyID, ids...)
 }

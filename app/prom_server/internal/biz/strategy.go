@@ -103,6 +103,7 @@ func (b *StrategyXBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStr
 		basescopes.StrategyTablePreloadCategories,
 		basescopes.StrategyTablePreloadEndpoint,
 		basescopes.StrategyTablePreloadGroupInfo,
+		basescopes.StrategyTablePreloadAlarmPages,
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}

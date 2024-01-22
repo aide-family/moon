@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	PageBiz struct {
+	AlarmPageBiz struct {
 		log *log.Helper
 
 		pageRepo repository.PageRepo
@@ -22,16 +22,21 @@ type (
 )
 
 // NewPageBiz 实例化页面业务
-func NewPageBiz(pageRepo repository.PageRepo, logger log.Logger) *PageBiz {
-	return &PageBiz{
+func NewPageBiz(pageRepo repository.PageRepo, logger log.Logger) *AlarmPageBiz {
+	return &AlarmPageBiz{
 		log: log.NewHelper(log.With(logger, "module", "biz.alarm.page")),
 
 		pageRepo: pageRepo,
 	}
 }
 
+// GetStrategyIds 获取策略id列表
+func (p *AlarmPageBiz) GetStrategyIds(ctx context.Context, ids ...uint32) ([]uint32, error) {
+	return p.pageRepo.GetStrategyIds(ctx, basescopes.InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds(ids...))
+}
+
 // CreatePage 创建页面
-func (p *PageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+func (p *AlarmPageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	pageBO, err := p.pageRepo.CreatePage(ctx, pageBO)
 	if err != nil {
 		return nil, err
@@ -41,7 +46,7 @@ func (p *PageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.A
 }
 
 // UpdatePage 通过id更新页面
-func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
+func (p *AlarmPageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
 	pageBO, err := p.pageRepo.UpdatePageById(ctx, pageBO.Id, pageBO)
 	if err != nil {
 		return nil, err
@@ -51,17 +56,17 @@ func (p *PageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.A
 }
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
-func (p *PageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
+func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
 	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, vo.Status(status), ids)
 }
 
 // DeletePageByIds 通过id删除页面
-func (p *PageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error {
+func (p *AlarmPageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error {
 	return p.pageRepo.DeletePageByIds(ctx, ids...)
 }
 
 // GetPageById 通过id获取页面详情
-func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
+func (p *AlarmPageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error) {
 	pageBO, err := p.pageRepo.GetPageById(ctx, id)
 	if err != nil {
 		return nil, err
@@ -70,8 +75,18 @@ func (p *PageBiz) GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, 
 	return pageBO, nil
 }
 
+// GetPageRealtimeById 通过id获取页面详情
+func (p *AlarmPageBiz) GetPageRealtimeById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error) {
+	pageBO, err := p.pageRepo.Get(ctx, append(wheres, basescopes.InIds(id))...)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageBO, nil
+}
+
 // ListPage 获取页面列表
-func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
+func (p *AlarmPageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []basescopes.ScopeMethod{
@@ -88,7 +103,7 @@ func (p *PageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([
 }
 
 // SelectPageList 获取页面列表
-func (p *PageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
+func (p *AlarmPageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	scopes := []basescopes.ScopeMethod{
