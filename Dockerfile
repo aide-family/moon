@@ -5,10 +5,6 @@ FROM golang:1.21.0 AS builder
 COPY . /src
 WORKDIR /src
 
-# protocol buffer的头文件还有动态库都会放在/usr/local下
-#RUN cd protobuf-3.11.2 && ./configure -prefix=/usr/local/ && make && make install
-#RUN protoc --version
-
 RUN GOPROXY=https://goproxy.cn make build
 
 FROM debian:stable-slim
@@ -27,4 +23,4 @@ EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
 RUN echo "hello ${APP_NAME}"
-ENTRYPOINT ["${APP_NAME}", "-conf", "/data/conf"]
+ENTRYPOINT ["./${APP_NAME}", "-conf", "/data/conf"]
