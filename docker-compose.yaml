@@ -3,7 +3,7 @@ version: '3'
 services:
   prometheus_manager:
     container_name: prometheus_manager
-    image: docker.hub/prometheus-manager/prom_server:latest
+    image: docker.hub/prometheus-manager/app/prom_server:latest
     ports:
       - "8001:8000"
       - "9001:9000"
@@ -12,7 +12,7 @@ services:
 
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
-    image: docker.hub/prometheus-manager/prom_agent:latest
+    image: docker.hub/prometheus-manager/app/prom_agent:latest
     ports:
       - "8002:8000"
       - "9002:9000"
