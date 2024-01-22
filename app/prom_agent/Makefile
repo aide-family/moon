@@ -17,11 +17,11 @@ endif
 
 .PHONY:
 dev:
-	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/server -conf ./configs_dev
+	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_agent -conf ./configs_dev
 
 .PHONY:
 local:
-	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/server -conf ./configs_local
+	go run -ldflags "-X main.Version=$(VERSION)" ./cmd/prom_agent -conf ./configs_local
 
 .PHONY: init
 # init env

@@ -3,9 +3,18 @@ version: '3'
 services:
   prometheus_manager:
     container_name: prometheus_manager
-    image: docker.hub/prometheus-manager:latest
+    image: docker.hub/prometheus-manager/prom_server:latest
+    ports:
+      - "8002:8001"
+      - "9002:9001"
+    volumes:
+      - ./app/prom_server/configs_dev:/data/conf
+
+  prometheus_manager_agent:
+    container_name: prometheus_manager_agent
+    image: docker.hub/prometheus-manager/prom_agent:latest
     ports:
       - "8002:8002"
       - "9002:9002"
     volumes:
-      - ./app/prom_server/configs_dev:/data/conf
+      - ./app/prom_agent/configs_dev:/data/conf

@@ -107,7 +107,7 @@ all:
 .PHONY: web
 # start web
 web:
-	@cd apps/master/web && yarn start
+	@cd web && yarn dev
 
 # show help
 help:
@@ -143,11 +143,11 @@ endif
 .PHONY:
 docker-build: # test ## Build docker image with the manager.
 	@echo "Building docker image with the manager..."
-	docker build -t "${REPO}/prometheus-manager:${TAG}" .
+	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" --build-arg APP_NAME=$APP_NAME .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${REPO}/prometheus-manager:${TAG}
+	docker push ${REPO}/prometheus-manager/${APP_NAME}}:${TAG}
 
 
 SHELL = /usr/bin/env bash -o pipefail
