@@ -1,5 +1,7 @@
 FROM golang:1.21.0 AS builder
 
+ARG APP_NAME
+
 COPY . /src
 WORKDIR /src
 
@@ -25,4 +27,4 @@ EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
 
-CMD ["./prom_server", "-conf", "/data/conf"]
+CMD ["${APP_NAME}", "-conf", "/data/conf"]
