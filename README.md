@@ -24,36 +24,26 @@ cd prometheus-manager
 make init
 
 # 启动服务
-kratos run
+# 服务端
+make local app=app/prom_server
+# 代理端
+make local app=app/prom_agent
 ```
 
-## 创建 api
+## 运行效果
 
-```bash
- kratos proto add api/<module-name>/<version>/<api-name>.proto
-```
+![策略列表](doc/img/runtime/strategy-list.png)
 
-## 生成 api 文件
+![策略编辑](doc/img/runtime/update-strategy.png)
 
-```bash
-# 生成 api pb
-make api
+![指标编辑](doc/img/runtime/metric-update.png)
 
-# 生成 service
-kratos proto server api/<module-name>/<version>/<api-name>.proto -t apps/<server-app-name>/internal/service
+![指标列表](doc/img/runtime/metric-list.png)
 
-# 生成 config
-make config
-```
+![指标图表](doc/img/runtime/metric-chart.png)
 
-## Docker
+![实时告警页面](doc/img/runtime/realtime-alarm.png)
 
-```bash
-# build
-docker build -t <your-docker-image-name> .
 
-# run
-docker run --rm -p 8000:8000 -p 9000:9000 -v </path/to/your/configs>:/data/conf <your-docker-image-name>
-```
 
 
