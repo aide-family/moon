@@ -143,7 +143,7 @@ endif
 .PHONY:
 docker-build: # test ## Build docker image with the manager.
 	@echo "Building docker image with the manager..."
-	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" --build-arg APP_NAME=$APP_NAME .
+	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" --build-arg APP_NAME=${APP_NAME} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
