@@ -1,6 +1,6 @@
-FROM golang:1.21.0 AS builder
-
 ARG APP_NAME
+
+FROM golang:1.21.0 AS builder
 
 COPY . /src
 WORKDIR /src
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && rm -rf /var/lib/apt/lists/ \
         && apt-get autoremove -y && apt-get autoclean -y
 
-COPY --from=builder /src/bin /app
+COPY --from=builder /src/bin/${APP_NAME} /app/${APP_NAME}
 
 WORKDIR /app
 
