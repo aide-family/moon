@@ -16,9 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && apt-get autoremove -y && apt-get autoclean -y
 
 COPY --from=builder /src/bin/${APP_NAME} /app/${APP_NAME}
-RUN mv /app/${APP_NAME} /app/server
+
 
 WORKDIR /app
+
+RUN sudo mv ${APP_NAME} server
 
 EXPOSE 8000
 EXPOSE 9000
