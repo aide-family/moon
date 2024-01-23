@@ -153,9 +153,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 			case <-l.exitCh:
 				return
 			case groupId := <-l.changeGroupChannel:
-				if _, ok := l.changeGroupIds.Load(groupId); !ok {
-					l.changeGroupIds.Store(groupId, true)
-				}
+				l.changeGroupIds.Store(groupId, true)
 			case groupInfo := <-l.removeGroupChannel:
 				if err := l.sendRemoveGroup(groupInfo.Id); err != nil {
 					l.log.Errorf("send remove group error: %s", err.Error())
