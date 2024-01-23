@@ -68,6 +68,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
 				usableAlarmInfo := a.mergeAlarm(&strategyInfo, newAlarmInfo, existAlarmInfo)
+				alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
 				alarms.Append(usableAlarmInfo)
 				return nil
 			})
@@ -141,7 +142,7 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 		// 判断告警时常是否满足告警条件, 满足则加入新告警列表
 		var eventAt int64
 		// 判断告警是否已存在
-		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok {
+		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok && existAlert.Status == AlarmStatusFiring {
 			eventAt = times.ParseAlertTimeUnix(existAlert.StartsAt)
 		} else {
 			eventAt = times.ParseAlertTimeUnix(alertInfo.StartsAt)
