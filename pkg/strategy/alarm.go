@@ -176,7 +176,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 	existAlertMap := make(map[string]*Alert)
 	if exist {
 		for _, alert := range existAlarmInfo.Alerts {
-			if alert == nil {
+			if alert == nil || alert.Status != AlarmStatusFiring {
 				continue
 			}
 			alertTmp := *alert

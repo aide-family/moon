@@ -65,7 +65,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				newAlarmInfo := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
-				if !exist && len(queryResponse.Data.Result) > 0 {
+				if !exist || len(existAlarmInfo.Alerts) == 0 {
 					log.Info("不存在数据, 存入缓存")
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
 					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
