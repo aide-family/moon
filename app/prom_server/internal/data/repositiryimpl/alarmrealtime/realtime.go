@@ -30,7 +30,7 @@ func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtime
 		historyIds = append(historyIds, item.HistoryID)
 		return item.ToModel()
 	})
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.ClauseOnConflict()).CreateInBatches(newRealtimeModels, 50).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Clauses(basescopes.RealtimeAlarmClauseOnConflict()).CreateInBatches(newRealtimeModels, 50).Error; err != nil {
 		return nil, err
 	}
 

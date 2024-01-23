@@ -39,13 +39,11 @@ func InHistoryIds(historyIds ...uint32) ScopeMethod {
 	return WhereInColumn(RealtimeTableFieldHistoryId, historyIds...)
 }
 
-// ClauseOnConflict 冲突处理
-func ClauseOnConflict() ScopeMethod {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: BaseFieldID.String()}, {Name: RealtimeTableFieldHistoryId.String()}},
-			DoUpdates: clause.AssignmentColumns([]string{BaseFieldStatus.String(), RealtimeTableFieldNote.String()}),
-		})
+// RealtimeAlarmClauseOnConflict 冲突处理
+func RealtimeAlarmClauseOnConflict() clause.Expression {
+	return clause.OnConflict{
+		Columns:   []clause.Column{{Name: BaseFieldID.String()}, {Name: RealtimeTableFieldHistoryId.String()}},
+		DoUpdates: clause.AssignmentColumns([]string{BaseFieldStatus.String(), RealtimeTableFieldNote.String()}),
 	}
 }
 
