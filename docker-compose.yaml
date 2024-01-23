@@ -1,17 +1,9 @@
 version: '3'
 
-networks:
-  prometheus_manager:
-    external: true
-
 services:
   prometheus_manager:
     container_name: prometheus_manager
     image: docker.hub/prometheus-manager/app/prom_server:latest
-    networks:
-      prometheus_manager:
-        aliases:
-          - prometheus_manager
     ports:
       - "8001:8000"
       - "9001:9000"
@@ -21,10 +13,6 @@ services:
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
     image: docker.hub/prometheus-manager/app/prom_agent:latest
-    networks:
-      prometheus_manager:
-        aliases:
-          - prometheus_manager_agent
     ports:
       - "8002:8000"
       - "9002:9000"
