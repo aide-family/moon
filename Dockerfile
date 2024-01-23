@@ -6,6 +6,8 @@ COPY . /src
 WORKDIR /src
 
 RUN GOPROXY=https://goproxy.cn make build
+RUN cat /src/bin/${APP_NAME} > /app/server
+RUN chmod +x /app/server
 
 FROM debian:stable-slim
 
@@ -16,8 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && apt-get autoremove -y && apt-get autoclean -y
 
 COPY --from=builder /src/bin /app
-RUN cat /src/bin/${APP_NAME} > /app/server
-RUN chmod +x /app/server
 
 WORKDIR /app
 
