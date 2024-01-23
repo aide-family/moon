@@ -10,7 +10,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
-	"golang.org/x/sync/errgroup"
 	"prometheus-manager/api"
 	"prometheus-manager/api/agent"
 	"prometheus-manager/app/prom_agent/internal/conf"
@@ -126,9 +125,9 @@ func (w *Watch) handleMessage(msg *kafka.Message) bool {
 
 func (w *Watch) Start(_ context.Context) error {
 	go func() {
-		defer after.Recover(w.log, func(err error) {
-			w.log.Errorf("recover error: %s", err.Error())
-		})
+		//defer after.Recover(w.log, func(err error) {
+		//	w.log.Errorf("recover error: %s", err.Error())
+		//})
 		for {
 			select {
 			case <-w.exitCh:
@@ -136,17 +135,14 @@ func (w *Watch) Start(_ context.Context) error {
 				return
 			case <-w.ticker.C:
 				w.log.Info("[Watch] server tick")
-				eg := new(errgroup.Group)
-				eg.SetLimit(100)
 				groupList := make([]*api.GroupSimple, 0)
 				w.groups.Range(func(key, value any) bool {
-					if group, ok := value.(*api.GroupSimple); ok {
+					if group, ok := value.(*api.GroupSimple); ok && group != nil {
 						groupList = append(groupList, group)
 					}
 					return true
 				})
 				_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: groupList})
-				_ = eg.Wait()
 			}
 		}
 	}()
