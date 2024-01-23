@@ -169,9 +169,12 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					}
 					return true
 				})
+
 				if len(changeGroupIds) == 0 {
+					l.log.Info("no change group")
 					continue
 				}
+				l.log.Infow("changeGroupIds", changeGroupIds)
 				// 重新拉取全量规则组及规则
 				listAllGroupDetail, err := l.groupService.ListAllGroupDetail(context.Background(), &group.ListAllGroupDetailRequest{
 					GroupIds: changeGroupIds,
