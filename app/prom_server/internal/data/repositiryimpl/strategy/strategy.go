@@ -154,9 +154,8 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 
 	go func() {
 		defer after.Recover(l.log)
-		for _, groupId := range groupIds {
-			l.changeGroupChannel <- groupId
-		}
+		l.changeGroupChannel <- detail.GroupID
+		l.changeGroupChannel <- strategyBO.GroupId
 	}()
 
 	return bo.StrategyModelToBO(newStrategy), nil
