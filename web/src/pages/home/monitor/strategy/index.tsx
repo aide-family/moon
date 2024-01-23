@@ -13,7 +13,6 @@ import {
 } from '@/apis/home/monitor/strategy/types'
 import {
     columns,
-    getStrategyGroups,
     leftOptions,
     rightOptions,
     searchItems,
@@ -23,7 +22,6 @@ import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
-import FetchSelect from '@/components/Data/FetchSelect'
 
 const defaultPadding = 12
 
@@ -205,15 +203,6 @@ const Strategy: FC = () => {
                     formProps={{
                         onValuesChange: handlerSearFormValuesChange
                     }}
-                    groupId={
-                        <FetchSelect
-                            handleFetch={getStrategyGroups()}
-                            selectProps={{
-                                placeholder: '请选择策略组'
-                            }}
-                            defaultOptions={[]}
-                        />
-                    }
                 />
                 <HeightLine />
                 <DataOption
