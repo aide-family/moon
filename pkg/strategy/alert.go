@@ -68,8 +68,10 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
 				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
-				alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
-				alarms.Append(usableAlarmInfo)
+				if existAlarmInfo != nil {
+					alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
+					alarms.Append(usableAlarmInfo)
+				}
 				return nil
 			})
 		}
