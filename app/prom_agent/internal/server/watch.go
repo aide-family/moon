@@ -125,9 +125,9 @@ func (w *Watch) handleMessage(msg *kafka.Message) bool {
 
 func (w *Watch) Start(_ context.Context) error {
 	go func() {
-		//defer after.Recover(w.log, func(err error) {
-		//	w.log.Errorf("recover error: %s", err.Error())
-		//})
+		defer after.Recover(w.log, func(err error) {
+			w.log.Errorf("recover error: %s", err.Error())
+		})
 		for {
 			select {
 			case <-w.exitCh:
