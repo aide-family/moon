@@ -1,13 +1,7 @@
-
-
 FROM golang:1.21.0 AS builder
 
 COPY . /src
 WORKDIR /src
-
-ARG APP_NAME
-
-RUN echo "APP_NAME=${APP_NAME}"
 
 RUN GOPROXY=https://goproxy.cn make build
 
@@ -26,6 +20,5 @@ WORKDIR /app
 EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
-ENV APP=${APP_NAME}
 
-CMD ["${APP}", "-conf", "/data/conf"]
+CMD ["./prom_server", "-conf", "/data/conf"]
