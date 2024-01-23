@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  prometheus_manager_agent:
+    container_name: prometheus_manager_agent
+    image: docker.hub/prometheus-manager/app/prom_agent:latest
+    ports:
+      - "8002:8000"
+      - "9002:9000"
+    volumes:
+      - "./app/prom_agent/configs_dev/:/data/conf/"
