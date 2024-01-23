@@ -25,6 +25,7 @@ import { Detail } from './child/Detail'
 const defaultPadding = 12
 
 let timer: NodeJS.Timeout
+let refreshTimer: NodeJS.Timeout
 const StrategyGroup: React.FC = () => {
     const navigate = useNavigate()
     const operationRef = useRef<HTMLDivElement>(null)
@@ -45,7 +46,12 @@ const StrategyGroup: React.FC = () => {
 
     // 刷新
     const handlerRefresh = () => {
-        setRefresh(!refresh)
+        if (refreshTimer) {
+            clearTimeout(refreshTimer)
+        }
+        refreshTimer = setTimeout(() => {
+            setRefresh((prv) => !prv)
+        }, 500)
     }
 
     const handlerOpenDetail = () => {

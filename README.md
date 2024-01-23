@@ -1,15 +1,41 @@
 # Prometheus-manager
 
-> prometheus unified rules and alarms management platform
+> prometheus 统一监控告警平台
 
 <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
     <img alt="Prometheus" src="doc/img/logo.svg">
     <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
 </h1>
 
-## Architecture overview
+## 系统介绍
 
-![Architecture overview](doc/img/Prometheus-manager.png)
+1. 一款基于Prometheus的监控平台，支持多种告警策略，集成告警通知、告警历史、告警图表
+
+## 项目简介
+
+### PromServer 服务端
+
+> 操作平台， 提供服务端接口，提供告警策略管理， 告警通知，告警历史，告警图表等服务
+
+* 登录模块
+* 系统模块
+  * 用户管理
+  * 角色管理
+  * 权限管理
+* 告警模块
+  * 实时告警
+  * 历史告警
+  * 告警策略组
+  * 告警策略
+  * 数据源
+
+### PromAgent 代理端
+
+> 适配不同数据源，完成策略识别，生成告警/告警恢复事件
+
+## 系统架构
+
+![架构概览](doc/img/Prometheus-manager.png)
 
 ## 开发
 
