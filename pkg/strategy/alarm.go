@@ -90,6 +90,9 @@ const (
 
 // Append append alarm
 func (l *Alarms) Append(alarm *Alarm) {
+	if alarm == nil {
+		return
+	}
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.Alarms = append(l.Alarms, alarm)
@@ -102,6 +105,9 @@ func (l *Alarms) List() []*Alarm {
 	list := make([]*Alarm, 0, len(l.Alarms))
 	// 处理alert指纹
 	for _, alarm := range l.Alarms {
+		if alarm == nil {
+			continue
+		}
 		alarmTmp := *alarm
 		alerts := make([]*Alert, 0, len(alarm.Alerts))
 		for _, alert := range alarm.Alerts {
