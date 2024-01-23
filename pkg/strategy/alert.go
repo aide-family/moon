@@ -44,8 +44,14 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	timeNowUnix := time.Now().Unix()
 	strategyIds := make(map[uint32]struct{})
 	for _, groupItem := range a.groups {
-		group := groupItem
+		if groupItem == nil {
+			continue
+		}
+		group := *groupItem
 		for _, strategyItem := range group.Rules {
+			if strategyItem == nil {
+				continue
+			}
 			strategyInfo := &*strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
 			eg.Go(func() error {
@@ -54,7 +60,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				if err != nil {
 					return err
 				}
-				newAlarmInfo := NewAlarm(group, strategyInfo, queryResponse.Data.Result)
+				newAlarmInfo := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist && len(queryResponse.Data.Result) > 0 {
@@ -62,7 +68,6 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
 					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
 					// 不需要立即告警
-					//alarms.Append(newAlarmInfo)
 					return nil
 				}
 
