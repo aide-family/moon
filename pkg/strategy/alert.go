@@ -46,15 +46,15 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	for _, groupItem := range a.groups {
 		group := groupItem
 		for _, strategyItem := range group.Rules {
+			strategyInfo := *strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
-			strategyInfo := &*strategyItem
 			eg.Go(func() error {
 				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
 				queryResponse, err := datasource.Query(ctx, strategyInfo.Expr, timeNowUnix)
 				if err != nil {
 					return err
 				}
-				newAlarmInfo := NewAlarm(group, strategyInfo, queryResponse.Data.Result)
+				newAlarmInfo := NewAlarm(group, &strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist && len(queryResponse.Data.Result) > 0 {
@@ -67,7 +67,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				}
 
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
-				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
+				usableAlarmInfo := a.mergeAlarm(&strategyInfo, newAlarmInfo, existAlarmInfo)
 				alarms.Append(usableAlarmInfo)
 				return nil
 			})
@@ -136,8 +136,8 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 	ruleDuration := BuildDuration(ruleInfo.For)
 	newAlertMap := make(map[string]*Alert)
 	for _, alert := range newAlarmInfo.Alerts {
-		alertInfo := alert
-		newAlertMap[alert.Fingerprint] = alertInfo
+		alertInfo := *alert
+		newAlertMap[alertInfo.Fingerprint] = &alertInfo
 		// 判断告警时常是否满足告警条件, 满足则加入新告警列表
 		var eventAt int64
 		// 判断告警是否已存在
@@ -150,8 +150,8 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 		//log.Infow("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix)
 
 		if nowTimeUnix-eventAt >= ruleDuration {
-			alerts = append(alerts, alertInfo)
-			alarmCache.SetNotifyAlert(alertInfo)
+			alerts = append(alerts, &alertInfo)
+			alarmCache.SetNotifyAlert(&alertInfo)
 		}
 	}
 
@@ -160,17 +160,17 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 		log.Info("判段告警恢复")
 		oldAlertTmp := *oldAlert
 		_, ok := newAlertMap[oldAlertTmp.Fingerprint]
-		if !ok {
-			log.Infow("===============告警恢复通知")
-			// 判断是否发送过告警, 如果没有发送过, 不算告警恢复事件
-			notifyAlert, notifyOK := alarmCache.GetNotifyAlert(&oldAlertTmp)
-			if notifyOK && notifyAlert.Status == AlarmStatusFiring {
-				notifyAlert.Status = AlarmStatusResolved
-				notifyAlert.EndsAt = endsAt
-				alerts = append(alerts, notifyAlert)
-				alarmCache.RemoveNotifyAlert(notifyAlert)
-			}
+		if ok {
 			continue
+		}
+		log.Info("告警恢复通知")
+		// 判断是否发送过告警, 如果没有发送过, 不算告警恢复事件
+		notifyAlert, notifyOK := alarmCache.GetNotifyAlert(&oldAlertTmp)
+		if notifyOK && notifyAlert.Status == AlarmStatusFiring {
+			notifyAlert.Status = AlarmStatusResolved
+			notifyAlert.EndsAt = endsAt
+			alerts = append(alerts, notifyAlert)
+			alarmCache.RemoveNotifyAlert(notifyAlert)
 		}
 	}
 
