@@ -6,8 +6,8 @@ COPY . /src
 WORKDIR /src
 
 RUN GOPROXY=https://goproxy.cn make build
-RUN cat /src/bin/${APP_NAME} > /app/server
-RUN chmod +x /app/server
+RUN cat /src/bin/${APP_NAME} > /src/bin/server
+RUN chmod +x /src/bin/server
 
 FROM debian:stable-slim
 
