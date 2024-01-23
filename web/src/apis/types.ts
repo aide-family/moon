@@ -93,6 +93,8 @@ export enum AlarmStatus {
 
 /** 分类, 区分字典中的各个模块数据 */
 export enum Category {
+    // UNKNOWN 未知, 用于默认值
+    CATEGORY_UNKNOWN,
     /** PromLabel 标签*/
     CATEGORY_PROM_LABEL,
 

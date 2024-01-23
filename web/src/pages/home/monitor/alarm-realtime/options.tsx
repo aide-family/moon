@@ -4,6 +4,7 @@ import {
     AlarmRealtimeItem,
     AlarmRealtimeListRequest
 } from '@/apis/home/monitor/alarm-realtime/types'
+import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { Status } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
@@ -28,7 +29,7 @@ export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
         size: 200,
         curr: 1
     },
-    alarmPages: [],
+    alarmPageId: 1,
     keyword: '',
     startAt: 0,
     endAt: 0
@@ -47,12 +48,22 @@ export const columns:
         }
     },
     {
-        title: '策略ID',
-        dataIndex: 'strategyId',
-        key: 'strategyId',
+        title: '持续时间',
+        dataIndex: 'duration',
+        key: 'duration',
+        align: 'center',
+        width: 80,
+        render: (_, { eventAt }) => {
+            return dayjs().diff(dayjs(+eventAt * 1000), 'm') + 'm'
+        }
+    },
+    {
+        title: '策略名称',
+        dataIndex: 'strategy',
+        key: 'strategy',
         width: 200,
-        render: (strategyId: number | string) => {
-            return strategyId
+        render: (strategy?: StrategyItemType) => {
+            return strategy?.alert || '-'
         }
     },
     {

@@ -12,6 +12,7 @@ const (
 	RealtimeAssociationBeenNotifyMembers = "BeenNotifyMembers"
 	RealtimeAssociationBeenChatGroups    = "BeenChatGroups"
 	RealtimeAssociationLevel             = "Level"
+	RealtimeAssociationStrategy          = "Strategy"
 )
 
 const (
@@ -57,4 +58,11 @@ func PreloadLevel() ScopeMethod {
 // InStrategyIds 查询策略ID列表
 func InStrategyIds(strategyIds ...uint32) ScopeMethod {
 	return WhereInColumn(RealtimeTableFieldStrategyId, strategyIds...)
+}
+
+// PreloadRealtimeAssociationStrategy 预加载关联策略
+func PreloadRealtimeAssociationStrategy() ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(RealtimeAssociationStrategy)
+	}
 }

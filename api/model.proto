@@ -537,6 +537,8 @@ message RealtimeAlarmData {
   int64 updatedAt = 17;
   // 告警等级
   DictSelectV1 level = 18;
+  // 策略详情
+  PromStrategyV1 strategy = 19;
 }
 
 message Duration {

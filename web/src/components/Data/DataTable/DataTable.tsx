@@ -74,14 +74,14 @@ const defaultOperation = (
 })
 
 const DataTable: FC<DataTableProps> = (props) => {
-    const { size, layoutContentElement } = useContext(GlobalContext)
+    const { size } = useContext(GlobalContext)
     const {
         dataSource = [],
         columns = [],
         showIndex = true,
         showOperation = true,
-        operationRef,
-        defaultPadding = 12,
+        // operationRef,
+        // defaultPadding = 12,
         operationItems = () => [],
         action,
         total,
@@ -92,10 +92,10 @@ const DataTable: FC<DataTableProps> = (props) => {
     const [_columns, setColumns] = useState<
         (ColumnGroupType<any> | ColumnType<any>)[]
     >([])
-    const [tableHigh, setTableHigh] = useState<number>(
-        (layoutContentElement?.clientHeight || 20) -
-            (operationRef?.current?.clientHeight || 20)
-    )
+    // const [tableHigh, setTableHigh] = useState<number>(
+    //     (layoutContentElement?.clientHeight || 20) -
+    //         (operationRef?.current?.clientHeight || 20)
+    // )
 
     useEffect(() => {
         let columnsTmp = columns
@@ -119,28 +119,28 @@ const DataTable: FC<DataTableProps> = (props) => {
         setColumns([...columnsTmp])
     }, [columns, pageSize, current])
 
-    const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-            const { height } = entry.contentRect
-            let paginationHeight =
-                document.getElementsByClassName('ant-table-pagination')?.[0]
-                    ?.clientHeight || 30
-            setTableHigh(
-                height -
-                    (operationRef?.current?.clientHeight || 20) -
-                    paginationHeight
-            )
-        }
-    })
+    // const resizeObserver = new ResizeObserver((entries) => {
+    //     for (const entry of entries) {
+    //         const { height } = entry.contentRect
+    //         let paginationHeight =
+    //             document.getElementsByClassName('ant-table-pagination')?.[0]
+    //                 ?.clientHeight || 30
+    //         setTableHigh(
+    //             height -
+    //                 (operationRef?.current?.clientHeight || 20) -
+    //                 paginationHeight
+    //         )
+    //     }
+    // })
 
-    useEffect(() => {
-        if (layoutContentElement) {
-            resizeObserver.observe(layoutContentElement)
-        }
-        return () => {
-            resizeObserver.disconnect()
-        }
-    }, [layoutContentElement, size, operationRef])
+    // useEffect(() => {
+    //     if (layoutContentElement) {
+    //         resizeObserver.observe(layoutContentElement)
+    //     }
+    //     return () => {
+    //         resizeObserver.disconnect()
+    //     }
+    // }, [layoutContentElement, size, operationRef])
 
     return (
         <>
@@ -150,7 +150,8 @@ const DataTable: FC<DataTableProps> = (props) => {
                     rowKey={(record) => record?.id}
                     dataSource={dataSource}
                     columns={_columns}
-                    scroll={{ x: 1500, y: tableHigh - defaultPadding * 8 }}
+                    // scroll={{ x: 1500, y: tableHigh - defaultPadding * 8 }}
+                    scroll={{ x: 1500, y: 480 }}
                     size={size}
                     sticky
                     pagination={{
