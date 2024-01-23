@@ -46,7 +46,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	for _, groupItem := range a.groups {
 		group := groupItem
 		for _, strategyItem := range group.Rules {
-			strategyInfo := *strategyItem
+			strategyInfo := &*strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
 			eg.Go(func() error {
 				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
@@ -54,7 +54,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				if err != nil {
 					return err
 				}
-				newAlarmInfo := NewAlarm(group, &strategyInfo, queryResponse.Data.Result)
+				newAlarmInfo := NewAlarm(group, strategyInfo, queryResponse.Data.Result)
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist && len(queryResponse.Data.Result) > 0 {
@@ -67,7 +67,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				}
 
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
-				usableAlarmInfo := a.mergeAlarm(&strategyInfo, newAlarmInfo, existAlarmInfo)
+				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
 				alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
 				alarms.Append(usableAlarmInfo)
 				return nil
