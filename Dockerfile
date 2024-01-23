@@ -1,13 +1,15 @@
-ARG APP_NAME
+
 
 FROM golang:1.21.0 AS builder
 
 COPY . /src
 WORKDIR /src
 
+ARG APP_NAME
+
+RUN echo "APP_NAME=${APP_NAME}"
+
 RUN GOPROXY=https://goproxy.cn make build
-RUN cat /src/bin/${APP_NAME} > /src/bin/server
-RUN chmod +x /src/bin/server
 
 FROM debian:stable-slim
 
@@ -24,5 +26,6 @@ WORKDIR /app
 EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
+ENV APP=${APP_NAME}
 
-CMD ["./server", "-conf", "/data/conf"]
+CMD ["${APP}", "-conf", "/data/conf"]
