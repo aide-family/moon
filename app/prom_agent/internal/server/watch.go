@@ -126,7 +126,9 @@ func (w *Watch) handleMessage(msg *kafka.Message) bool {
 
 func (w *Watch) Start(_ context.Context) error {
 	go func() {
-		defer after.Recover(w.log)
+		defer after.Recover(w.log, func(err error) {
+			w.log.Errorf("recover error: %s", err.Error())
+		})
 		for {
 			select {
 			case <-w.exitCh:
@@ -206,7 +208,9 @@ func (w *Watch) offlineNotify() error {
 func (w *Watch) receiveMessage() {
 	consumer := w.kafkaMqServer.Consumer()
 	go func() {
-		defer after.Recover(w.log)
+		defer after.Recover(w.log, func(err error) {
+			w.log.Warnf("receiveMessage panic")
+		})
 		events := consumer.Events()
 		for event := range events {
 			if consumer.IsClosed() {
