@@ -52,7 +52,7 @@ export const columns:
         dataIndex: 'duration',
         key: 'duration',
         align: 'center',
-        width: 80,
+        width: 100,
         render: (_, { eventAt }) => {
             return dayjs().diff(dayjs(+eventAt * 1000), 'm') + 'm'
         }
@@ -89,55 +89,7 @@ export const columns:
 export const searchFormItems: DataFormItem[] = [
     {
         name: 'keyword',
-        label: '机器名称'
-    },
-    {
-        name: 'starategyId',
-        label: '告警规则',
-        dataProps: {
-            type: 'select',
-            parentProps: {
-                placeholder: '请选择告警规则',
-                options: [
-                    {
-                        label: '告警规则1',
-                        value: '1'
-                    },
-                    {
-                        label: '告警规则2',
-                        value: '2'
-                    }
-                ]
-            }
-        }
-    },
-    {
-        name: 'enventAt',
-        label: '告警持续时间',
-        dataProps: {
-            type: 'select',
-            parentProps: {
-                placeholder: '请选择告警持续时间',
-                options: [
-                    {
-                        label: '全部',
-                        value: ''
-                    },
-                    {
-                        label: '1分钟',
-                        value: '1m'
-                    },
-                    {
-                        label: '5分钟',
-                        value: '5m'
-                    },
-                    {
-                        label: '10分钟',
-                        value: '1m'
-                    }
-                ]
-            }
-        }
+        label: '模糊查询'
     }
 ]
 

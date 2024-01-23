@@ -86,42 +86,6 @@ export const defaultPageReq: PageReqType = {
     size: 10
 }
 
-export const searchItems: DataFormItem[] = [
-    {
-        name: 'keyword',
-        label: '策略名称'
-    },
-    {
-        name: 'groupId',
-        label: '策略组'
-    },
-    {
-        name: 'status',
-        label: '策略状态',
-        dataProps: {
-            type: 'radio-group',
-            parentProps: {
-                optionType: 'button',
-                defaultValue: 0,
-                options: [
-                    {
-                        label: '全部',
-                        value: 0
-                    },
-                    {
-                        label: '启用',
-                        value: 1
-                    },
-                    {
-                        label: '禁用',
-                        value: 2
-                    }
-                ]
-            }
-        }
-    }
-]
-
 export const durationOptions = [
     {
         label: '秒',
@@ -744,6 +708,52 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
                 maxLength: 200,
                 showCount: true,
                 placeholder: '请输入备注'
+            }
+        }
+    }
+]
+
+export const searchItems: DataFormItem[] = [
+    {
+        name: 'keyword',
+        label: '策略名称'
+    },
+    {
+        name: 'groupId',
+        label: '策略组',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                handleFetch: getStrategyGroups(),
+                selectProps: {
+                    placeholder: '请选择策略组'
+                },
+                defaultOptions: []
+            }
+        }
+    },
+    {
+        name: 'status',
+        label: '策略状态',
+        dataProps: {
+            type: 'radio-group',
+            parentProps: {
+                optionType: 'button',
+                defaultValue: 0,
+                options: [
+                    {
+                        label: '全部',
+                        value: 0
+                    },
+                    {
+                        label: '启用',
+                        value: 1
+                    },
+                    {
+                        label: '禁用',
+                        value: 2
+                    }
+                ]
             }
         }
     }
