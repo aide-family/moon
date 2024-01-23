@@ -4,6 +4,7 @@ import { Category, DomainType, ModuleType } from './types'
  * 字典分类数据
  */
 const categoryData: Record<Category, string> = {
+    [Category.CATEGORY_UNKNOWN]: '全部',
     [Category.CATEGORY_PROM_LABEL]: '标签',
     [Category.CATEGORY_PROM_ANNOTATION]: '注解',
     [Category.CATEGORY_PROM_STRATEGY]: '策略',

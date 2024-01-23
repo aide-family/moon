@@ -14,10 +14,14 @@ import {
 } from './options'
 import { IconFont } from '@/components/IconFont/IconFont'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
-import { AlarmRealtimeItem } from '@/apis/home/monitor/alarm-realtime/types'
+import {
+    AlarmRealtimeItem,
+    AlarmRealtimeListRequest
+} from '@/apis/home/monitor/alarm-realtime/types'
 import alarmRealtimeApi from '@/apis/home/monitor/alarm-realtime'
 import { ActionKey } from '@/apis/data'
 
+let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
 
@@ -28,6 +32,9 @@ const AlarmRealtime: FC = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
+    const [queryParams, setQueryParams] = useState<AlarmRealtimeListRequest>(
+        defaultAlarmRealtimeListRequest
+    )
 
     const handleRefresh = () => {
         setRefresh(!refresh)
@@ -42,21 +49,30 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleGetAlarmRealtime = () => {
-        setLoading(true)
-        alarmRealtimeApi
-            .getAlarmRealtimeList(defaultAlarmRealtimeListRequest)
-            .then((res) => {
-                setDataSource(res.list)
-                setTotal(res.page.total)
-                return res
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+        if (fetchTimer) {
+            clearTimeout(fetchTimer)
+        }
+        fetchTimer = setTimeout(() => {
+            setLoading(true)
+            alarmRealtimeApi
+                .getAlarmRealtimeList({ ...queryParams })
+                .then((res) => {
+                    setDataSource(res.list)
+                    setTotal(res.page.total)
+                    return res
+                })
+                .finally(() => {
+                    setLoading(false)
+                })
+        }, 1000)
     }
 
     const handleOnChangeTabs = (key: string) => {
-        console.log(key)
+        setQueryParams({
+            ...queryParams,
+            alarmPageId: +key || 1
+        })
+        handleRefresh()
     }
 
     const buildTabsItems = () => {
@@ -64,7 +80,7 @@ const AlarmRealtime: FC = () => {
             const { label, value, color, icon } = item
             return {
                 label: label || `报警页面${index}`,
-                key: `${value}_${index}`,
+                key: `${value}`,
                 icon: (
                     <Button
                         type="link"
@@ -111,6 +127,15 @@ const AlarmRealtime: FC = () => {
         }
     }
 
+    // 处理搜索表单的值变化
+    const handlerSearFormValuesChange = (_: any, allValues: any) => {
+        setQueryParams({
+            ...queryParams,
+            ...allValues
+        })
+        handleRefresh()
+    }
+
     const onRow = (record?: AlarmRealtimeItem) => {
         if (!record || !record.level) return {}
         const {
@@ -136,7 +161,13 @@ const AlarmRealtime: FC = () => {
         <div className="bodyContent">
             <RouteBreadcrumb />
             <HeightLine />
-            <SearchForm form={queryForm} items={searchFormItems} />
+            <SearchForm
+                form={queryForm}
+                items={searchFormItems}
+                formProps={{
+                    onValuesChange: handlerSearFormValuesChange
+                }}
+            />
             <HeightLine />
             <DataOption
                 queryForm={queryForm}

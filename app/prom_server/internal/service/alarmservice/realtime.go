@@ -51,6 +51,17 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 		return nil, err
 	}
 	pgReq := req.GetPage()
+	if len(strategyIds) == 0 {
+		return &pb.ListRealtimeReply{
+			Page: &api.PageReply{
+				Curr:  pgReq.GetCurr(),
+				Size:  pgReq.GetSize(),
+				Total: 0,
+			},
+			List: []*api.RealtimeAlarmData{},
+		}, nil
+	}
+
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.RealtimeLike(req.GetKeyword()),
@@ -60,6 +71,7 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 		basescopes.InStrategyIds(strategyIds...),
 		// 还在告警的数据
 		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.PreloadRealtimeAssociationStrategy(),
 	}
 
 	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)

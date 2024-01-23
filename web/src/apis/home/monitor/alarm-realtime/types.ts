@@ -1,6 +1,7 @@
 import { PageReqType, PageResType } from '@/apis/types'
 import { DictSelectItem } from '../../system/dict/types'
 import { UserSelectItem } from '../../system/user/types'
+import { StrategyItemType } from '../strategy/types'
 
 interface InterveneItem {
     intervenedUser: {
@@ -65,6 +66,7 @@ interface AlarmRealtimeItem {
     createdAt: number
     updatedAt: number
     level?: DictSelectItem
+    strategy?: StrategyItemType
 }
 
 interface AlarmRealtimeDetailRequest {
@@ -85,7 +87,7 @@ interface AlarmRealtimeInterveneResponse {}
 interface AlarmRealtimeListRequest {
     page: PageReqType
     keyword?: string
-    alarmPages?: number[]
+    alarmPageId?: number
     startAt?: number
     endAt?: number
 }

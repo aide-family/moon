@@ -29,6 +29,7 @@ type (
 		AlarmUpgradeInfo     *AlarmUpgradeBO                   `json:"alarmUpgradeInfo"`
 		AlarmSuppressInfo    *AlarmSuppressBO                  `json:"alarmSuppressInfo"`
 		StrategyID           uint32                            `json:"strategyId"`
+		Strategy             *StrategyBO                       `json:"strategy"`
 		BeNotifiedChatGroups []*PromAlarmBeenNotifyChatGroupBO `json:"beNotifiedChatGroups"`
 
 		CreatedAt int64 `json:"createdAt"`
@@ -83,6 +84,14 @@ func (l *AlarmRealtimeBO) GetAlarmSuppressInfo() *AlarmSuppressBO {
 		return nil
 	}
 	return l.AlarmSuppressInfo
+}
+
+// GetStrategy 获取策略详情
+func (l *AlarmRealtimeBO) GetStrategy() *StrategyBO {
+	if l == nil {
+		return nil
+	}
+	return l.Strategy
 }
 
 func (l *AlarmRealtimeBO) ToModel() *do.PromAlarmRealtime {
@@ -140,6 +149,7 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 		CreatedAt:          l.CreatedAt,
 		UpdatedAt:          l.UpdatedAt,
 		Level:              l.GetLevel().ToApiSelectV1(),
+		Strategy:           l.GetStrategy().ToApiV1(),
 	}
 }
 
