@@ -129,15 +129,17 @@ func NewAlarmList(alarms ...*Alarm) *Alarms {
 }
 
 func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
+	groupIdStr := strconv.Itoa(int(group.Id))
+	ruleIdStr := strconv.Itoa(int(rule.Id))
 	alarmInfo := &Alarm{
 		Receiver: group.Name,
 		Status:   AlarmStatusFiring,
 		Alerts:   make([]*Alert, 0, len(results)),
 		GroupLabels: map[string]string{
 			MetricGroupName: group.Name,
-			MetricGroupId:   strconv.Itoa(int(group.Id)),
+			MetricGroupId:   groupIdStr,
 			MetricAlert:     rule.Alert,
-			MetricAlertId:   strconv.Itoa(int(rule.Id)),
+			MetricAlertId:   ruleIdStr,
 		},
 		// 公共标签
 		CommonLabels: rule.Labels,
@@ -153,7 +155,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 	}
 
 	allLabels := make(map[string]string)
-	allLabels[MetricAlertId] = strconv.Itoa(int(rule.Id))
+	allLabels[MetricAlertId] = ruleIdStr
 	for _, result := range results {
 		for key, value := range result.Metric.Map() {
 			allLabels[key] = value
@@ -174,7 +176,11 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 	existAlertMap := make(map[string]*Alert)
 	if exist {
 		for _, alert := range existAlarmInfo.Alerts {
-			existAlertMap[alert.Fingerprint] = alert
+			if alert == nil {
+				continue
+			}
+			alertTmp := *alert
+			existAlertMap[alertTmp.Fingerprint] = &alertTmp
 		}
 	}
 
@@ -199,7 +205,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 			Labels:       allLabels,
 			Annotations:  annotations,
 			GeneratorURL: "",
-			Fingerprint:  result.Metric.MD5(),
+			Fingerprint:  hash.MD5(result.Metric.MD5() + ":" + ruleIdStr + ":" + groupIdStr),
 		}
 		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok {
 			alert.StartsAt = existAlert.StartsAt

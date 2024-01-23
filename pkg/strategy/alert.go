@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 	"prometheus-manager/pkg/util/times"
 )
 
@@ -37,6 +38,9 @@ func NewAlerting(groups ...*Group) Alerter {
 }
 
 func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
+	log.Info("开始执行告警")
+	eg := new(errgroup.Group)
+	eg.SetLimit(100)
 	alarms := NewAlarmList()
 	timeNowUnix := time.Now().Unix()
 	strategyIds := make(map[uint32]struct{})
@@ -51,30 +55,37 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 			}
 			strategyInfo := &*strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
-			datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
-			queryResponse, err := datasource.Query(ctx, strategyInfo.Expr, timeNowUnix)
-			if err != nil {
-				log.Warnf("查询失败, %v, %s, %s", strategyInfo.Id, strategyInfo.Expr, err)
-				continue
-			}
-			newAlarmInfo := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
-			// 获取该策略下所有已经产生的告警数据
-			existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
-			if !exist && len(queryResponse.Data.Result) > 0 {
-				log.Info("不存在数据, 存入缓存")
-				// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
-				alarmCache.Set(strategyInfo.Id, newAlarmInfo)
-				// 不需要立即告警
-				continue
-			}
+			eg.Go(func() error {
+				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
+				queryResponse, err := datasource.Query(ctx, strategyInfo.Expr, timeNowUnix)
+				if err != nil {
+					log.Warnf("查询失败, %v, %s, %s", strategyInfo.Id, strategyInfo.Expr, err)
+					return err
+				}
+				newAlarmInfo := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
+				// 获取该策略下所有已经产生的告警数据
+				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
+				if !exist && len(queryResponse.Data.Result) > 0 {
+					log.Info("不存在数据, 存入缓存")
+					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
+					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
+					// 不需要立即告警
+					return err
+				}
 
-			// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
-			usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
-			if existAlarmInfo != nil {
-				alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
-				alarms.Append(usableAlarmInfo)
-			}
+				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
+				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
+				if existAlarmInfo != nil {
+					alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
+					alarms.Append(usableAlarmInfo)
+				}
+				return nil
+			})
 		}
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	log.Infow("告警", strategyIds)
