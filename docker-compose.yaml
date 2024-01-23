@@ -8,7 +8,7 @@ services:
       - "8001:8000"
       - "9001:9000"
     volumes:
-      - ./app/prom_server/configs_dev:/data/conf
+      - "./app/prom_server/configs_dev/:/data/conf/"
 
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
@@ -17,6 +17,6 @@ services:
       - "8002:8000"
       - "9002:9000"
     volumes:
-      - ./app/prom_agent/configs_dev:/data/conf
+      - "./app/prom_agent/configs_dev/:/data/conf/"
     depends_on:
       - prometheus_manager
