@@ -2,8 +2,7 @@ version: '3'
 
 networks:
   prometheus_manager:
-    external:
-      name: prometheus_manager
+    external: true
 
 services:
   prometheus_manager:
