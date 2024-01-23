@@ -176,6 +176,7 @@ func AlarmRealtimeModelToBO(m *do.PromAlarmRealtime) *AlarmRealtimeBO {
 		AlarmUpgradeInfo:  AlarmUpgradeModelToBO(m.GetAlarmUpgradeInfo()),
 		AlarmSuppressInfo: AlarmSuppressModelToBO(m.GetAlarmSuppressInfo()),
 		StrategyID:        m.StrategyID,
+		Strategy:          StrategyModelToBO(m.GetStrategy()),
 		BeNotifiedChatGroups: slices.To(m.GetBeenChatGroups(), func(i *do.PromAlarmBeenNotifyChatGroup) *PromAlarmBeenNotifyChatGroupBO {
 			return PromAlarmBeenNotifyChatGroupModelToBO(i)
 		}),
