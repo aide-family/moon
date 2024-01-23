@@ -9,6 +9,8 @@ services:
       - "9001:9000"
     volumes:
       - ./app/prom_server/configs_dev:/data/conf
+    environment:
+      - APP:prom_server
 
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
@@ -20,3 +22,5 @@ services:
       - ./app/prom_agent/configs_dev:/data/conf
     depends_on:
       - prometheus_manager
+    environment:
+      - APP:prom_agent
