@@ -87,7 +87,7 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 		return nil, err
 	}
 	go func() {
-		after.Recover(l.log)
+		defer after.Recover(l.log)
 		l.changeGroupChannel <- strategyBO.GroupId
 	}()
 
@@ -151,8 +151,9 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 	if err != nil {
 		return nil, err
 	}
+
 	go func() {
-		after.Recover(l.log)
+		defer after.Recover(l.log)
 		for _, groupId := range groupIds {
 			l.changeGroupChannel <- groupId
 		}
@@ -182,7 +183,7 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 		return err
 	}
 	go func() {
-		after.Recover(l.log)
+		defer after.Recover(l.log)
 		if status.IsEnabled() {
 			for _, groupId := range groupIds {
 				l.changeGroupChannel <- groupId
@@ -240,7 +241,7 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 	}
 
 	go func() {
-		after.Recover(l.log)
+		defer after.Recover(l.log)
 		for _, groupId := range groupIds {
 			l.changeGroupChannel <- groupId
 		}
