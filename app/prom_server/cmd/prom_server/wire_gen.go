@@ -111,7 +111,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
-	alarmEvent, err := server.NewAlarmEvent(bootstrap, v3, v4, hookService, groupService, logger)
+	alarmEvent, err := server.NewAlarmEvent(bootstrap, dataData, v3, v4, hookService, groupService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

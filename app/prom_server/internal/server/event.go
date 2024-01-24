@@ -5,24 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"golang.org/x/sync/errgroup"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
 
 	"prometheus-manager/api"
 	alarmhookPb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/prom/strategy/group"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/servers"
+	"prometheus-manager/pkg/util/cache"
 )
 
 var _ transport.Server = (*AlarmEvent)(nil)
@@ -33,6 +34,12 @@ type AgentInfo struct {
 	AgentName string
 	Topic     *string
 	Key       []byte
+}
+
+// String AgentInfo to string
+func (a *AgentInfo) String() string {
+	bs, _ := json.Marshal(a)
+	return string(bs)
 }
 
 type AlarmEvent struct {
@@ -46,9 +53,9 @@ type AlarmEvent struct {
 	changeGroupChannel <-chan uint32
 	removeGroupChannel <-chan bo.RemoveStrategyGroupBO
 
-	agentNames     sync.Map
-	groups         sync.Map
-	changeGroupIds sync.Map
+	agentNames     cache.Cache
+	groups         cache.Cache
+	changeGroupIds cache.Cache
 	eventHandlers  map[consts.TopicType]EventHandler
 }
 
@@ -87,6 +94,7 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 
 func NewAlarmEvent(
 	c *conf.Bootstrap,
+	d *data.Data,
 	changeGroupChannel <-chan uint32,
 	removeGroupChannel <-chan bo.RemoveStrategyGroupBO,
 	hookService *alarmservice.HookService,
@@ -109,6 +117,9 @@ func NewAlarmEvent(
 		groupService:       groupService,
 		changeGroupChannel: changeGroupChannel,
 		removeGroupChannel: removeGroupChannel,
+		agentNames:         cache.NewRedisCache(d.Client(), consts.AgentNames),
+		groups:             cache.NewRedisCache(d.Client(), consts.StrategyGroups),
+		changeGroupIds:     cache.NewRedisCache(d.Client(), consts.ChangeGroupIds),
 	}
 
 	// 注册topic处理器
@@ -136,7 +147,12 @@ func (l *AlarmEvent) storeGroups() error {
 		return err
 	}
 	for _, groupItem := range listAllGroupDetail.GetGroupList() {
-		l.groups.Store(groupItem.GetId(), groupItem)
+		groupIdStr := strconv.FormatUint(uint64(groupItem.GetId()), 10)
+		groupItemBytes, err := json.Marshal(groupItem)
+		if err != nil {
+			continue
+		}
+		l.groups.Store(groupIdStr, string(groupItemBytes))
 	}
 
 	return nil
@@ -153,7 +169,8 @@ func (l *AlarmEvent) watchChangeGroup() error {
 			case <-l.exitCh:
 				return
 			case groupId := <-l.changeGroupChannel:
-				l.changeGroupIds.Store(groupId, true)
+				groupIdStr := strconv.FormatUint(uint64(groupId), 10)
+				l.changeGroupIds.Store(groupIdStr, "")
 			case groupInfo := <-l.removeGroupChannel:
 				if err := l.sendRemoveGroup(groupInfo.Id); err != nil {
 					l.log.Errorf("send remove group error: %s", err.Error())
@@ -161,10 +178,13 @@ func (l *AlarmEvent) watchChangeGroup() error {
 			case <-ticker.C:
 				l.log.Infof("start synce store groups")
 				changeGroupIds := make([]uint32, 0, 128)
-				l.changeGroupIds.Range(func(key, value interface{}) bool {
-					if groupId, ok := key.(uint32); ok {
-						changeGroupIds = append(changeGroupIds, groupId)
+				l.changeGroupIds.Range(func(key, value string) bool {
+					groupId, err := strconv.ParseUint(key, 10, 64)
+					if err != nil {
+						l.log.Errorf("parse group id error: %v", err)
+						return true
 					}
+					changeGroupIds = append(changeGroupIds, uint32(groupId))
 					return true
 				})
 
@@ -185,11 +205,16 @@ func (l *AlarmEvent) watchChangeGroup() error {
 				l.log.Infof("synce store groups success %v", len(changeGroupIds))
 
 				for _, groupItem := range listAllGroupDetail.GetGroupList() {
-					l.groups.Store(groupItem.GetId(), groupItem)
+					groupIdStr := strconv.FormatUint(uint64(groupItem.GetId()), 10)
+					groupItemBytes, err := json.Marshal(groupItem)
+					if err != nil {
+						continue
+					}
+					l.groups.Store(groupIdStr, string(groupItemBytes))
 					if err = l.sendChangeGroup(groupItem); err != nil {
 						l.log.Errorf("send change group error: %s", err.Error())
 					}
-					l.changeGroupIds.Delete(groupItem.GetId())
+					l.changeGroupIds.Delete(groupIdStr)
 				}
 			}
 		}
@@ -244,16 +269,12 @@ func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
 		Topic:     &topic,
 		Key:       msg.Key,
 	}
-	l.agentNames.Store(string(msg.Key), agentInfo)
+
+	l.agentNames.Store(string(msg.Key), agentInfo.String())
 
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
-	l.groups.Range(func(key, value any) bool {
-		groupDetail, ok := value.(*api.GroupSimple)
-		if !ok || groupDetail == nil {
-			return true
-		}
-		groupDetailBytes, _ := json.Marshal(groupDetail)
+	l.groups.Range(func(key, groupDetail string) bool {
 		eg.Go(func() error {
 			// 3. 推送规则组消息(按规则组粒度)
 			sendMsg := &kafka.Message{
@@ -261,7 +282,7 @@ func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
 					Topic:     agentInfo.Topic,
 					Partition: kafka.PartitionAny,
 				},
-				Value: groupDetailBytes,
+				Value: []byte(groupDetail),
 				Key:   agentInfo.Key,
 			}
 			return l.kafkaMQServer.Produce(sendMsg)
@@ -279,9 +300,9 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.StrategyGroupAllTopic)
-	l.agentNames.Range(func(key, value any) bool {
-		agentInfo, ok := value.(*AgentInfo)
-		if !ok || agentInfo == nil {
+	l.agentNames.Range(func(key, agentInfoStr string) bool {
+		var agentInfo AgentInfo
+		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true
 		}
 		eg.Go(func() error {
@@ -304,15 +325,16 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 
 // sendRemoveGroup 发送移除规则组消息
 func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
-	l.groups.Delete(groupId)
+	groupIdStr := strconv.FormatUint(uint64(groupId), 10)
+	l.groups.Delete(groupIdStr)
 	l.log.Infof("send remove group: %d", groupId)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.RemoveGroupTopic)
 	msgValue := []byte(strconv.FormatUint(uint64(groupId), 10))
-	l.agentNames.Range(func(key, value any) bool {
-		agentInfo, ok := value.(*AgentInfo)
-		if !ok || agentInfo == nil {
+	l.agentNames.Range(func(key, agentInfoStr string) bool {
+		var agentInfo AgentInfo
+		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true
 		}
 		eg.Go(func() error {
