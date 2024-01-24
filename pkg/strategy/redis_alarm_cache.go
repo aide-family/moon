@@ -43,7 +43,7 @@ func (l *redisAlarmCache) SetNotifyAlert(alert *Alert) bool {
 	if err != nil {
 		return false
 	}
-	return l.cache.HSet(context.Background(), consts.NotifyAlarmCache.String(), alert.Fingerprint, string(alertBytes), 0).Err() == nil
+	return l.cache.HSet(context.Background(), consts.NotifyAlarmCache.String(), alert.Fingerprint, string(alertBytes)).Err() == nil
 }
 
 func (l *redisAlarmCache) RemoveNotifyAlert(alert *Alert) bool {
