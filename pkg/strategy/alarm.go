@@ -205,7 +205,7 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 			Labels:       allLabels,
 			Annotations:  annotations,
 			GeneratorURL: "",
-			Fingerprint:  hash.MD5(result.Metric.MD5() + ":" + ruleIdStr + ":" + groupIdStr),
+			Fingerprint:  hash.MD5(result.Metric.String() + ":" + ruleIdStr + ":" + groupIdStr),
 		}
 		if existAlert, ok := existAlertMap[alert.Fingerprint]; ok {
 			alert.StartsAt = existAlert.StartsAt
