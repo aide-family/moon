@@ -99,6 +99,14 @@ interface BatchChangeAlarmPageStatusReply {
     ids: number[]
 }
 
+interface CountAlarmPageRequest {
+    ids: number[]
+}
+
+interface CountAlarmPageReply {
+    alarmCount: Map<number, number | string>
+}
+
 export type {
     SelectAlarmPageRequest,
     SelectAlarmPageReply,
@@ -117,5 +125,7 @@ export type {
     AlarmPageItem,
     ListAlarmPageReply,
     ListAlarmPageRequest,
-    AlarmPageSelectItem
+    AlarmPageSelectItem,
+    CountAlarmPageReply,
+    CountAlarmPageRequest
 }

@@ -32,10 +32,16 @@ type (
 		CacheByHistoryId(ctx context.Context, req ...*bo.AlarmRealtimeBO) error
 		// DeleteCacheByHistoryId 删除
 		DeleteCacheByHistoryId(ctx context.Context, historyId ...uint32) error
+		// CountRealtimeAlarmByStrategyIds 统计
+		CountRealtimeAlarmByStrategyIds(ctx context.Context, strategyIds ...uint32) (map[uint32]int64, error)
 	}
 
 	UnimplementedAlarmRealtimeRepo struct{}
 )
+
+func (UnimplementedAlarmRealtimeRepo) CountRealtimeAlarmByStrategyIds(_ context.Context, _ ...uint32) (map[uint32]int64, error) {
+	return nil, status.Error(codes.Unimplemented, "method CountRealtimeAlarmByStrategyIds not implemented")
+}
 
 func (UnimplementedAlarmRealtimeRepo) CacheByHistoryId(_ context.Context, _ ...*bo.AlarmRealtimeBO) error {
 	return status.Error(codes.Unimplemented, "method CacheByHistoryId not implemented")

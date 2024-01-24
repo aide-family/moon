@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationAlarmPageBatchDeleteAlarmPage = "/api.alarm.page.AlarmPage/BatchDeleteAlarmPage"
 const OperationAlarmPageBatchUpdateAlarmPageStatus = "/api.alarm.page.AlarmPage/BatchUpdateAlarmPageStatus"
+const OperationAlarmPageCountAlarmPage = "/api.alarm.page.AlarmPage/CountAlarmPage"
 const OperationAlarmPageCreateAlarmPage = "/api.alarm.page.AlarmPage/CreateAlarmPage"
 const OperationAlarmPageDeleteAlarmPage = "/api.alarm.page.AlarmPage/DeleteAlarmPage"
 const OperationAlarmPageGetAlarmPage = "/api.alarm.page.AlarmPage/GetAlarmPage"
@@ -31,6 +32,7 @@ const OperationAlarmPageUpdateAlarmPage = "/api.alarm.page.AlarmPage/UpdateAlarm
 type AlarmPageHTTPServer interface {
 	BatchDeleteAlarmPage(context.Context, *BatchDeleteAlarmPageRequest) (*BatchDeleteAlarmPageReply, error)
 	BatchUpdateAlarmPageStatus(context.Context, *BatchUpdateAlarmPageStatusRequest) (*BatchUpdateAlarmPageStatusReply, error)
+	CountAlarmPage(context.Context, *CountAlarmPageRequest) (*CountAlarmPageReply, error)
 	CreateAlarmPage(context.Context, *CreateAlarmPageRequest) (*CreateAlarmPageReply, error)
 	DeleteAlarmPage(context.Context, *DeleteAlarmPageRequest) (*DeleteAlarmPageReply, error)
 	GetAlarmPage(context.Context, *GetAlarmPageRequest) (*GetAlarmPageReply, error)
@@ -49,6 +51,7 @@ func RegisterAlarmPageHTTPServer(s *http.Server, srv AlarmPageHTTPServer) {
 	r.POST("/api/v1/alarm_page/get", _AlarmPage_GetAlarmPage0_HTTP_Handler(srv))
 	r.POST("/api/v1/alarm_page/list", _AlarmPage_ListAlarmPage0_HTTP_Handler(srv))
 	r.POST("/api/v1/alarm_page/select", _AlarmPage_SelectAlarmPage0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/alarm/count", _AlarmPage_CountAlarmPage0_HTTP_Handler(srv))
 }
 
 func _AlarmPage_CreateAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
@@ -203,9 +206,29 @@ func _AlarmPage_SelectAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx 
 	}
 }
 
+func _AlarmPage_CountAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CountAlarmPageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlarmPageCountAlarmPage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CountAlarmPage(ctx, req.(*CountAlarmPageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CountAlarmPageReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AlarmPageHTTPClient interface {
 	BatchDeleteAlarmPage(ctx context.Context, req *BatchDeleteAlarmPageRequest, opts ...http.CallOption) (rsp *BatchDeleteAlarmPageReply, err error)
 	BatchUpdateAlarmPageStatus(ctx context.Context, req *BatchUpdateAlarmPageStatusRequest, opts ...http.CallOption) (rsp *BatchUpdateAlarmPageStatusReply, err error)
+	CountAlarmPage(ctx context.Context, req *CountAlarmPageRequest, opts ...http.CallOption) (rsp *CountAlarmPageReply, err error)
 	CreateAlarmPage(ctx context.Context, req *CreateAlarmPageRequest, opts ...http.CallOption) (rsp *CreateAlarmPageReply, err error)
 	DeleteAlarmPage(ctx context.Context, req *DeleteAlarmPageRequest, opts ...http.CallOption) (rsp *DeleteAlarmPageReply, err error)
 	GetAlarmPage(ctx context.Context, req *GetAlarmPageRequest, opts ...http.CallOption) (rsp *GetAlarmPageReply, err error)
@@ -240,6 +263,19 @@ func (c *AlarmPageHTTPClientImpl) BatchUpdateAlarmPageStatus(ctx context.Context
 	pattern := "/api/v1/alarm_page/status/batch/update"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAlarmPageBatchUpdateAlarmPageStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AlarmPageHTTPClientImpl) CountAlarmPage(ctx context.Context, in *CountAlarmPageRequest, opts ...http.CallOption) (*CountAlarmPageReply, error) {
+	var out CountAlarmPageReply
+	pattern := "/api/v1/alarm_page/alarm/count"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAlarmPageCountAlarmPage))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

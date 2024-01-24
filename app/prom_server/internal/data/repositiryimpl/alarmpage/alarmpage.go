@@ -23,6 +23,18 @@ type alarmPageRepoImpl struct {
 	data *data.Data
 }
 
+func (l *alarmPageRepoImpl) GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error) {
+	var m []*do.PromStrategyAlarmPage
+	if err := l.data.DB().
+		WithContext(ctx).
+		Scopes(scopes...).
+		Find(&m).
+		Error; err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (l *alarmPageRepoImpl) GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error) {
 	var strategyIds []uint32
 	if err := l.data.DB().
