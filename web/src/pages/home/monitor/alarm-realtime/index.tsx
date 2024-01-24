@@ -51,9 +51,6 @@ const AlarmRealtime: FC = () => {
                 setAlarmPageList(res.list)
                 setAlarmPageIds(res.list.map((item) => item.value))
             })
-            .then(() => {
-                handleCountAlarmByPageIds()
-            })
     }
 
     const handleCountAlarmByPageIds = () => {
@@ -82,6 +79,9 @@ const AlarmRealtime: FC = () => {
                     setTotal(res.page.total)
                     return res
                 })
+                .then(() => {
+                    handleCountAlarmByPageIds()
+                })
                 .finally(() => {
                     setLoading(false)
                 })
@@ -106,6 +106,7 @@ const AlarmRealtime: FC = () => {
                     <Badge
                         count={alarmCountMap?.[value] || 0}
                         overflowCount={999}
+                        size="small"
                     >
                         <Button
                             type="link"
@@ -176,7 +177,6 @@ const AlarmRealtime: FC = () => {
 
     useEffect(() => {
         handleGetAlarmRealtime()
-        handleCountAlarmByPageIds()
     }, [refresh])
 
     useEffect(() => {

@@ -70,6 +70,8 @@ make local app=app/prom_agent
 
 ![实时告警页面](doc/img/runtime/realtime-alarm.png)
 
+![实时告警统计](doc/img/runtime/realtime-alarm-count.png)
+
 
 
 
