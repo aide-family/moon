@@ -30,6 +30,12 @@ const (
 	AlarmTmpCache RedisKey = "alarm:realtime:tmp"
 	// NotifyAlarmCache 告警缓存
 	NotifyAlarmCache RedisKey = "alarm:realtime:notify"
+	// AgentNames agent名称缓存
+	AgentNames RedisKey = "agent:names"
+	// StrategyGroups 策略组缓存
+	StrategyGroups RedisKey = "strategy:groups"
+	// ChangeGroupIds 更新规则, 用于记录更新的ID列表数据
+	ChangeGroupIds RedisKey = "prom:group:change:ids"
 )
 
 func (r RedisKey) String() string {
