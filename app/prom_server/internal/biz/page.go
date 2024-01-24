@@ -17,16 +17,18 @@ type (
 	AlarmPageBiz struct {
 		log *log.Helper
 
-		pageRepo repository.PageRepo
+		pageRepo     repository.PageRepo
+		realtimeRepo repository.AlarmRealtimeRepo
 	}
 )
 
 // NewPageBiz 实例化页面业务
-func NewPageBiz(pageRepo repository.PageRepo, logger log.Logger) *AlarmPageBiz {
+func NewPageBiz(pageRepo repository.PageRepo, realtimeRepo repository.AlarmRealtimeRepo, logger log.Logger) *AlarmPageBiz {
 	return &AlarmPageBiz{
 		log: log.NewHelper(log.With(logger, "module", "biz.alarm.page")),
 
-		pageRepo: pageRepo,
+		pageRepo:     pageRepo,
+		realtimeRepo: realtimeRepo,
 	}
 }
 
@@ -116,4 +118,38 @@ func (p *AlarmPageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPa
 		return nil, nil, err
 	}
 	return pageBos, pgInfo, nil
+}
+
+// CountAlarmPageByIds 通过id列表获取各页面报警数量
+func (p *AlarmPageBiz) CountAlarmPageByIds(ctx context.Context, ids ...uint32) (map[uint32]int64, error) {
+	strategyAlarmPages, err := p.pageRepo.GetPromStrategyAlarmPage(ctx, basescopes.InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds(ids...))
+	if err != nil {
+		return nil, err
+	}
+	if len(strategyAlarmPages) == 0 {
+		return nil, nil
+	}
+	alarmPageIdMap := make(map[uint32]map[uint32]struct{})
+	strategyIds := make([]uint32, 0, len(strategyAlarmPages))
+	for _, strategyAlarmPage := range strategyAlarmPages {
+		if _, ok := alarmPageIdMap[strategyAlarmPage.PromAlarmPageID]; !ok {
+			alarmPageIdMap[strategyAlarmPage.PromAlarmPageID] = make(map[uint32]struct{})
+		}
+		alarmPageIdMap[strategyAlarmPage.PromAlarmPageID][strategyAlarmPage.PromStrategyID] = struct{}{}
+		strategyIds = append(strategyIds, strategyAlarmPage.PromStrategyID)
+	}
+	// 按策略id统计实时告警数量
+	realtimeAlarmCount, err := p.realtimeRepo.CountRealtimeAlarmByStrategyIds(ctx, strategyIds...)
+	if err != nil {
+		return nil, err
+	}
+
+	alarmNumCount := make(map[uint32]int64)
+	for alarmId, m := range alarmPageIdMap {
+		for strategyId := range m {
+			alarmNumCount[alarmId] += realtimeAlarmCount[strategyId]
+		}
+	}
+
+	return alarmNumCount, nil
 }

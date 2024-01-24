@@ -24,6 +24,26 @@ type alarmRealtimeImpl struct {
 	data *data.Data
 }
 
+type CountRealtime struct {
+	StrategyID uint32 `gorm:"column:strategy_id;type:bigint(20);not null;comment:策略id"`
+	Count      int64  `gorm:"column:count;type:bigint(20);not null;comment:数量"`
+}
+
+func (l *alarmRealtimeImpl) CountRealtimeAlarmByStrategyIds(ctx context.Context, strategyIds ...uint32) (map[uint32]int64, error) {
+	var countRealtimeList []CountRealtime
+	if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmRealtime{}).
+		Where("strategy_id in (?)", strategyIds).
+		Group("strategy_id").
+		Select("strategy_id, count(*) as count").Scan(&countRealtimeList).Error; err != nil {
+		return nil, err
+	}
+	resMap := make(map[uint32]int64, len(countRealtimeList))
+	for _, item := range countRealtimeList {
+		resMap[item.StrategyID] = item.Count
+	}
+	return resMap, nil
+}
+
 func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtimeBO) ([]*bo.AlarmRealtimeBO, error) {
 	historyIds := make([]uint32, 0, len(req))
 	newRealtimeModels := slices.To(req, func(item *bo.AlarmRealtimeBO) *do.PromAlarmRealtime {

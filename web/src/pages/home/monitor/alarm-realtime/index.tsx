@@ -2,7 +2,7 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import { AlarmPageSelectItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Button, Form, Tabs } from 'antd'
+import { Badge, Button, Form, Tabs } from 'antd'
 import { FC, useEffect, useState } from 'react'
 import {
     columns,
@@ -35,6 +35,9 @@ const AlarmRealtime: FC = () => {
     const [queryParams, setQueryParams] = useState<AlarmRealtimeListRequest>(
         defaultAlarmRealtimeListRequest
     )
+    const [alarmPageIds, setAlarmPageIds] = useState<number[]>([])
+    const [alarmCountMap, setAlarmCountMap] =
+        useState<Map<number, number | string>>()
 
     const handleRefresh = () => {
         setRefresh(!refresh)
@@ -45,6 +48,17 @@ const AlarmRealtime: FC = () => {
             .getAlarmPageSelect(defaultAlarmPageSelectReq)
             .then((res) => {
                 setAlarmPageList(res.list)
+                setAlarmPageIds(res.list.map((item) => item.value))
+            })
+    }
+
+    const handleCountAlarmByPageIds = () => {
+        alarmPageApi
+            .countAlarmPage({
+                ids: alarmPageIds
+            })
+            .then((res) => {
+                setAlarmCountMap(res.alarmCount)
             })
     }
 
@@ -82,15 +96,20 @@ const AlarmRealtime: FC = () => {
                 label: label || `报警页面${index}`,
                 key: `${value}`,
                 icon: (
-                    <Button
-                        type="link"
-                        icon={
-                            <IconFont
-                                type={icon}
-                                style={{ color: color || '' }}
-                            />
-                        }
-                    />
+                    <Badge
+                        count={alarmCountMap?.get(value) || 0}
+                        overflowCount={999}
+                    >
+                        <Button
+                            type="link"
+                            icon={
+                                <IconFont
+                                    type={icon}
+                                    style={{ color: color || '' }}
+                                />
+                            }
+                        />
+                    </Badge>
                 )
             }
         })
@@ -154,6 +173,7 @@ const AlarmRealtime: FC = () => {
 
     useEffect(() => {
         handleGetAlarmPageList()
+        handleCountAlarmByPageIds()
         handleRefresh()
     }, [])
 

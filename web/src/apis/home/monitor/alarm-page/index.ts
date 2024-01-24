@@ -15,7 +15,9 @@ import type {
     BacthDeleteAlarmPageReply,
     BacthDeleteAlarmPageRequest,
     ListAlarmPageReply,
-    ListAlarmPageRequest
+    ListAlarmPageRequest,
+    CountAlarmPageReply,
+    CountAlarmPageRequest
 } from './types'
 
 enum URL {
@@ -26,7 +28,8 @@ enum URL {
     GET = '/api/v1/alarm_page/get',
     UPDATE = '/api/v1/alarm_page/update',
     LIST = '/api/v1/alarm_page/list',
-    SELECT = '/api/v1/alarm_page/select'
+    SELECT = '/api/v1/alarm_page/select',
+    COUNT_ALARM_PAGE = '/api/v1/alarm_page/alarm/count'
 }
 
 const getAlarmPageDetail = (params: GetAlarmPageRequest) => {
@@ -63,6 +66,10 @@ const batchUpdateAlarmPageStatus = (
     return POST<BatchChangeAlarmPageStatusReply>(URL.BATCH_STATUS, params)
 }
 
+const countAlarmPage = (params: CountAlarmPageRequest) => {
+    return POST<CountAlarmPageReply>(URL.COUNT_ALARM_PAGE, params)
+}
+
 const alarmPageApi = {
     batchDeleteAlarmPage,
     batchUpdateAlarmPageStatus,
@@ -71,7 +78,8 @@ const alarmPageApi = {
     createAlarmPage,
     updateAlarmPage,
     deleteAlarmPage,
-    getAlarmPageSelect
+    getAlarmPageSelect,
+    countAlarmPage
 }
 
 export default alarmPageApi

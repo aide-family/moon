@@ -77,6 +77,14 @@ service AlarmPage {
 			body: "*"
 		};
 	}
+
+	// 统计各告警页面告警的数量
+	rpc CountAlarmPage (CountAlarmPageRequest) returns (CountAlarmPageReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm_page/alarm/count"
+			body: "*"
+		};
+	}
 }
 
 // 创建告警页面请求参数
@@ -193,4 +201,19 @@ message SelectAlarmPageReply {
 	PageReply page = 1;
 	// 告警页面列表
 	repeated AlarmPageSelectV1 list = 2;
+}
+
+// 统计各告警页面告警的数量请求参数
+message CountAlarmPageRequest {
+	// 告警页面ID列表(大于0)
+	repeated uint32 ids = 1 [(validate.rules).repeated = {
+		min_items: 1,
+		unique: true,
+		// 不能超过1000
+		max_items: 30,
+	}];
+}
+// 统计各告警页面告警的数量响应参数
+message CountAlarmPageReply {
+	map<uint32, int64> alarmCount = 1;
 }

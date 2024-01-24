@@ -120,7 +120,13 @@ const AlarmPage: FC = () => {
     }
 
     const handlerTablePageChange = (page: number, size: number) => {
-        console.log(page, size)
+        setSearchRequest({
+            ...searchRequest,
+            page: {
+                curr: page,
+                size: size
+            }
+        })
     }
 
     const getAlarmPageList = () => {

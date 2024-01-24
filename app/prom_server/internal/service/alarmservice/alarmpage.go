@@ -131,3 +131,14 @@ func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAl
 		},
 	}, nil
 }
+
+// CountAlarmPage 统计各告警页面的告警数量
+func (s *AlarmPageService) CountAlarmPage(ctx context.Context, req *pb.CountAlarmPageRequest) (*pb.CountAlarmPageReply, error) {
+	count, err := s.pageBiz.CountAlarmPageByIds(ctx, req.GetIds()...)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.CountAlarmPageReply{
+		AlarmCount: count,
+	}, nil
+}

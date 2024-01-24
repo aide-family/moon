@@ -27,6 +27,7 @@ const (
 	AlarmPage_GetAlarmPage_FullMethodName               = "/api.alarm.page.AlarmPage/GetAlarmPage"
 	AlarmPage_ListAlarmPage_FullMethodName              = "/api.alarm.page.AlarmPage/ListAlarmPage"
 	AlarmPage_SelectAlarmPage_FullMethodName            = "/api.alarm.page.AlarmPage/SelectAlarmPage"
+	AlarmPage_CountAlarmPage_FullMethodName             = "/api.alarm.page.AlarmPage/CountAlarmPage"
 )
 
 // AlarmPageClient is the client API for AlarmPage service.
@@ -49,6 +50,8 @@ type AlarmPageClient interface {
 	ListAlarmPage(ctx context.Context, in *ListAlarmPageRequest, opts ...grpc.CallOption) (*ListAlarmPageReply, error)
 	// 获取告警页面下拉列表
 	SelectAlarmPage(ctx context.Context, in *SelectAlarmPageRequest, opts ...grpc.CallOption) (*SelectAlarmPageReply, error)
+	// 统计各告警页面告警的数量
+	CountAlarmPage(ctx context.Context, in *CountAlarmPageRequest, opts ...grpc.CallOption) (*CountAlarmPageReply, error)
 }
 
 type alarmPageClient struct {
@@ -131,6 +134,15 @@ func (c *alarmPageClient) SelectAlarmPage(ctx context.Context, in *SelectAlarmPa
 	return out, nil
 }
 
+func (c *alarmPageClient) CountAlarmPage(ctx context.Context, in *CountAlarmPageRequest, opts ...grpc.CallOption) (*CountAlarmPageReply, error) {
+	out := new(CountAlarmPageReply)
+	err := c.cc.Invoke(ctx, AlarmPage_CountAlarmPage_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlarmPageServer is the server API for AlarmPage service.
 // All implementations must embed UnimplementedAlarmPageServer
 // for forward compatibility
@@ -151,6 +163,8 @@ type AlarmPageServer interface {
 	ListAlarmPage(context.Context, *ListAlarmPageRequest) (*ListAlarmPageReply, error)
 	// 获取告警页面下拉列表
 	SelectAlarmPage(context.Context, *SelectAlarmPageRequest) (*SelectAlarmPageReply, error)
+	// 统计各告警页面告警的数量
+	CountAlarmPage(context.Context, *CountAlarmPageRequest) (*CountAlarmPageReply, error)
 	mustEmbedUnimplementedAlarmPageServer()
 }
 
@@ -181,6 +195,9 @@ func (UnimplementedAlarmPageServer) ListAlarmPage(context.Context, *ListAlarmPag
 }
 func (UnimplementedAlarmPageServer) SelectAlarmPage(context.Context, *SelectAlarmPageRequest) (*SelectAlarmPageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectAlarmPage not implemented")
+}
+func (UnimplementedAlarmPageServer) CountAlarmPage(context.Context, *CountAlarmPageRequest) (*CountAlarmPageReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CountAlarmPage not implemented")
 }
 func (UnimplementedAlarmPageServer) mustEmbedUnimplementedAlarmPageServer() {}
 
@@ -339,6 +356,24 @@ func _AlarmPage_SelectAlarmPage_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlarmPage_CountAlarmPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CountAlarmPageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlarmPageServer).CountAlarmPage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlarmPage_CountAlarmPage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlarmPageServer).CountAlarmPage(ctx, req.(*CountAlarmPageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlarmPage_ServiceDesc is the grpc.ServiceDesc for AlarmPage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -377,6 +412,10 @@ var AlarmPage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectAlarmPage",
 			Handler:    _AlarmPage_SelectAlarmPage_Handler,
+		},
+		{
+			MethodName: "CountAlarmPage",
+			Handler:    _AlarmPage_CountAlarmPage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

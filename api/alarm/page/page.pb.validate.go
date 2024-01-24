@@ -2171,3 +2171,241 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SelectAlarmPageReplyValidationError{}
+
+// Validate checks the field values on CountAlarmPageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CountAlarmPageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CountAlarmPageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CountAlarmPageRequestMultiError, or nil if none found.
+func (m *CountAlarmPageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CountAlarmPageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetIds()); l < 1 || l > 30 {
+		err := CountAlarmPageRequestValidationError{
+			field:  "Ids",
+			reason: "value must contain between 1 and 30 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_CountAlarmPageRequest_Ids_Unique := make(map[uint32]struct{}, len(m.GetIds()))
+
+	for idx, item := range m.GetIds() {
+		_, _ = idx, item
+
+		if _, exists := _CountAlarmPageRequest_Ids_Unique[item]; exists {
+			err := CountAlarmPageRequestValidationError{
+				field:  fmt.Sprintf("Ids[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_CountAlarmPageRequest_Ids_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for Ids[idx]
+	}
+
+	if len(errors) > 0 {
+		return CountAlarmPageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CountAlarmPageRequestMultiError is an error wrapping multiple validation
+// errors returned by CountAlarmPageRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CountAlarmPageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CountAlarmPageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CountAlarmPageRequestMultiError) AllErrors() []error { return m }
+
+// CountAlarmPageRequestValidationError is the validation error returned by
+// CountAlarmPageRequest.Validate if the designated constraints aren't met.
+type CountAlarmPageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CountAlarmPageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CountAlarmPageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CountAlarmPageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CountAlarmPageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CountAlarmPageRequestValidationError) ErrorName() string {
+	return "CountAlarmPageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CountAlarmPageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCountAlarmPageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CountAlarmPageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CountAlarmPageRequestValidationError{}
+
+// Validate checks the field values on CountAlarmPageReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CountAlarmPageReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CountAlarmPageReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CountAlarmPageReplyMultiError, or nil if none found.
+func (m *CountAlarmPageReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CountAlarmPageReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AlarmCount
+
+	if len(errors) > 0 {
+		return CountAlarmPageReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// CountAlarmPageReplyMultiError is an error wrapping multiple validation
+// errors returned by CountAlarmPageReply.ValidateAll() if the designated
+// constraints aren't met.
+type CountAlarmPageReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CountAlarmPageReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CountAlarmPageReplyMultiError) AllErrors() []error { return m }
+
+// CountAlarmPageReplyValidationError is the validation error returned by
+// CountAlarmPageReply.Validate if the designated constraints aren't met.
+type CountAlarmPageReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CountAlarmPageReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CountAlarmPageReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CountAlarmPageReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CountAlarmPageReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CountAlarmPageReplyValidationError) ErrorName() string {
+	return "CountAlarmPageReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CountAlarmPageReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCountAlarmPageReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CountAlarmPageReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CountAlarmPageReplyValidationError{}

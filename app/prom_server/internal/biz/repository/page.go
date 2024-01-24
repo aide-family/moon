@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
@@ -32,10 +33,15 @@ type (
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error)
 		// GetStrategyIds 获取策略id列表
 		GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error)
+		GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error)
 	}
 
 	UnimplementedPageRepo struct{}
 )
+
+func (UnimplementedPageRepo) GetPromStrategyAlarmPage(_ context.Context, _ ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPromStrategyAlarmPage not implemented")
+}
 
 func (UnimplementedPageRepo) GetStrategyIds(_ context.Context, _ ...basescopes.ScopeMethod) ([]uint32, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyIds not implemented")
