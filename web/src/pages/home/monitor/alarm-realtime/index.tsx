@@ -36,8 +36,9 @@ const AlarmRealtime: FC = () => {
         defaultAlarmRealtimeListRequest
     )
     const [alarmPageIds, setAlarmPageIds] = useState<number[]>([])
-    const [alarmCountMap, setAlarmCountMap] =
-        useState<Map<number, number | string>>()
+    const [alarmCountMap, setAlarmCountMap] = useState<{
+        [key: number]: number | string
+    }>()
 
     const handleRefresh = () => {
         setRefresh(!refresh)
@@ -50,9 +51,15 @@ const AlarmRealtime: FC = () => {
                 setAlarmPageList(res.list)
                 setAlarmPageIds(res.list.map((item) => item.value))
             })
+            .then(() => {
+                handleCountAlarmByPageIds()
+            })
     }
 
     const handleCountAlarmByPageIds = () => {
+        if (alarmPageIds.length === 0) {
+            return
+        }
         alarmPageApi
             .countAlarmPage({
                 ids: alarmPageIds
@@ -97,7 +104,7 @@ const AlarmRealtime: FC = () => {
                 key: `${value}`,
                 icon: (
                     <Badge
-                        count={alarmCountMap?.get(value) || 0}
+                        count={alarmCountMap?.[value] || 0}
                         overflowCount={999}
                     >
                         <Button
@@ -169,11 +176,11 @@ const AlarmRealtime: FC = () => {
 
     useEffect(() => {
         handleGetAlarmRealtime()
+        handleCountAlarmByPageIds()
     }, [refresh])
 
     useEffect(() => {
         handleGetAlarmPageList()
-        handleCountAlarmByPageIds()
         handleRefresh()
     }, [])
 

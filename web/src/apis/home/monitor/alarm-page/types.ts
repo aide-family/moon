@@ -104,7 +104,7 @@ interface CountAlarmPageRequest {
 }
 
 interface CountAlarmPageReply {
-    alarmCount: Map<number, number | string>
+    alarmCount: { [key: number]: number | string }
 }
 
 export type {

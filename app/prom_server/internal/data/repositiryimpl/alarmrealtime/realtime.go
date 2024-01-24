@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -33,6 +34,7 @@ func (l *alarmRealtimeImpl) CountRealtimeAlarmByStrategyIds(ctx context.Context,
 	var countRealtimeList []CountRealtime
 	if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmRealtime{}).
 		Where("strategy_id in (?)", strategyIds).
+		Where("status = ?", vo.AlarmStatusAlarm).
 		Group("strategy_id").
 		Select("strategy_id, count(*) as count").Scan(&countRealtimeList).Error; err != nil {
 		return nil, err
