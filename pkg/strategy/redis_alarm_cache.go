@@ -43,15 +43,15 @@ func (l *redisAlarmCache) SetNotifyAlert(alert *Alert) bool {
 	if err != nil {
 		return false
 	}
-	return l.cache.Set(context.Background(), consts.NotifyAlarmCache.Key(alert.Fingerprint).String(), string(alertBytes), 0).Err() == nil
+	return l.cache.HSet(context.Background(), consts.NotifyAlarmCache.String(), alert.Fingerprint, string(alertBytes), 0).Err() == nil
 }
 
 func (l *redisAlarmCache) RemoveNotifyAlert(alert *Alert) bool {
-	return l.cache.Del(context.Background(), consts.NotifyAlarmCache.Key(alert.Fingerprint).String()).Err() == nil
+	return l.cache.HDel(context.Background(), consts.NotifyAlarmCache.String(), alert.Fingerprint).Err() == nil
 }
 
 func (l *redisAlarmCache) GetNotifyAlert(alert *Alert) (*Alert, bool) {
-	alertStr, err := l.cache.Get(context.Background(), consts.NotifyAlarmCache.Key(alert.Fingerprint).String()).Result()
+	alertStr, err := l.cache.HGet(context.Background(), consts.NotifyAlarmCache.String(), alert.Fingerprint).Result()
 	if err != nil {
 		return nil, false
 	}
@@ -63,18 +63,14 @@ func (l *redisAlarmCache) GetNotifyAlert(alert *Alert) (*Alert, bool) {
 }
 
 func (l *redisAlarmCache) RangeNotifyAlerts(f func(*Alert)) {
-	res, err := l.cache.Keys(context.Background(), consts.NotifyAlarmCache.String()).Result()
+	alerts, err := l.cache.HGetAll(context.Background(), consts.NotifyAlarmCache.String()).Result()
 	if err != nil {
 		return
 	}
-	for _, v := range res {
-		alertStr, err := l.cache.Get(context.Background(), v).Result()
-		if err != nil {
-			continue
-		}
+	for _, alert := range alerts {
 		var alert2 Alert
-		if err = json.Unmarshal([]byte(alertStr), &alert2); err != nil {
-			continue
+		if err = json.Unmarshal([]byte(alert), &alert2); err != nil {
+			break
 		}
 		f(&alert2)
 	}
