@@ -8,6 +8,7 @@ import {
 import { FormValuesType, StrategyForm } from './StrategyForm'
 import { ActionKey } from '@/apis/data'
 import strategyApi from '@/apis/home/monitor/strategy'
+import { Duration } from '@/apis/types'
 
 export interface DetailProps {
     open: boolean
@@ -16,6 +17,15 @@ export interface DetailProps {
     disabled?: boolean
     actionKey?: ActionKey
     refresh?: () => void
+}
+
+const buildTimeDuration = (d?: Duration) => {
+    return d && d.unit && d.value
+        ? {
+              unit: d.unit,
+              value: +d.value
+          }
+        : undefined
 }
 
 export const Detail: FC<DetailProps> = (props) => {
@@ -59,9 +69,7 @@ export const Detail: FC<DetailProps> = (props) => {
         const strategyInfo: StrategyCreateRequest = {
             ...strategyFormValues,
             duration: strategyFormValues.duration,
-            alarmLevelId: strategyFormValues?.lables?.sverity
-                ? +strategyFormValues.lables.sverity
-                : 0,
+            alarmLevelId: strategyFormValues?.alarmLevelId || 0,
             dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
             labels: strategyFormValues?.lables || {},
             annotations: strategyFormValues?.annotations || {},
@@ -88,31 +96,13 @@ export const Detail: FC<DetailProps> = (props) => {
             ...detail,
             ...strategyFormValues,
             duration: strategyFormValues.duration,
-            alarmLevelId: strategyFormValues?.lables?.sverity
-                ? +strategyFormValues?.lables?.sverity
-                : 0,
+            alarmLevelId: strategyFormValues.alarmLevelId || 0,
             labels: strategyFormValues.lables || {},
             annotations: strategyFormValues.annotations || {},
             expr: strategyFormValues.expr || '',
             dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
-            maxSuppress:
-                strategyFormValues?.maxSuppress &&
-                strategyFormValues?.maxSuppress.unit &&
-                strategyFormValues?.maxSuppress.value
-                    ? {
-                          unit: strategyFormValues?.maxSuppress.unit,
-                          value: +strategyFormValues?.maxSuppress.value
-                      }
-                    : undefined,
-            sendInterval:
-                strategyFormValues?.sendInterval &&
-                strategyFormValues?.sendInterval.unit &&
-                strategyFormValues?.sendInterval.value
-                    ? {
-                          unit: strategyFormValues?.sendInterval.unit,
-                          value: +strategyFormValues?.sendInterval.value
-                      }
-                    : undefined,
+            maxSuppress: buildTimeDuration(strategyFormValues?.maxSuppress),
+            sendInterval: buildTimeDuration(strategyFormValues?.sendInterval),
             sendRecover: strategyFormValues?.sendRecover
         }
         strategyApi.updateStrategy(strategyInfo).then(() => {

@@ -176,6 +176,10 @@ const AlarmRealtime: FC = () => {
     }
 
     useEffect(() => {
+        handleCountAlarmByPageIds()
+    }, [alarmPageIds])
+
+    useEffect(() => {
         handleGetAlarmRealtime()
     }, [refresh])
 

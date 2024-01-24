@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/app/prom_agent/internal/conf"
 )
@@ -55,6 +56,9 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		storeDB:     db,
 		mqProducer:  kafkaProducer,
 	}
+	// 注册全局告警缓存组件
+	alarmCache := strategy.NewRedisAlarmCache(d.CacheClient())
+	strategy.SetAlarmCache(alarmCache)
 
 	cleanup := func() {
 		sqlDb, err := d.StoreDB().DB()
