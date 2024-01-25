@@ -36,6 +36,8 @@ const (
 	StrategyGroups RedisKey = "strategy:groups"
 	// ChangeGroupIds 更新规则, 用于记录更新的ID列表数据
 	ChangeGroupIds RedisKey = "prom:group:change:ids"
+	// AlarmNotifyCache 告警通知缓存
+	AlarmNotifyCache RedisKey = "alarm:notify:alert"
 )
 
 func (r RedisKey) String() string {

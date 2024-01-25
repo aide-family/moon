@@ -20,6 +20,7 @@ type (
 
 		historyRepo      repository.HistoryRepo
 		msgRepo          repository.MsgRepo
+		strategyRepo     repository.StrategyRepo
 		alarmRealtimeBiz *AlarmRealtimeBiz
 	}
 )
@@ -28,6 +29,7 @@ type (
 func NewHistoryBiz(
 	historyRepo repository.HistoryRepo,
 	msgRepo repository.MsgRepo,
+	strategyRepo repository.StrategyRepo,
 	alarmRealtimeBiz *AlarmRealtimeBiz,
 	logger log.Logger,
 ) *HistoryBiz {
@@ -36,6 +38,7 @@ func NewHistoryBiz(
 
 		historyRepo:      historyRepo,
 		msgRepo:          msgRepo,
+		strategyRepo:     strategyRepo,
 		alarmRealtimeBiz: alarmRealtimeBiz,
 	}
 }
@@ -65,7 +68,7 @@ func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest
 }
 
 // HandleHistory 维护告警数据
-func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
+func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
 	if len(historyBO) == 0 {
 		return nil, nil
 	}
@@ -85,9 +88,44 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 	if err != nil {
 		return nil, err
 	}
+	strategyIds := slices.To(historyBos, func(alarmHistoryBO *bo.AlarmHistoryBO) uint32 {
+		return alarmHistoryBO.StrategyId
+	})
+	// 通过策略ID查询策略及下属通知对象信息
+	wheres := []basescopes.ScopeMethod{
+		basescopes.InIds(strategyIds...),
+		basescopes.StrategyTablePreloadPromNotifies(
+			basescopes.NotifyTablePreloadKeyChatGroups,
+			basescopes.NotifyTablePreloadKeyBeNotifyMembers,
+		),
+	}
+	strategyBOs, err := a.strategyRepo.List(ctx, wheres...)
+	if err != nil {
+		return nil, err
+	}
+	strategyBOsMap := make(map[uint32]*bo.StrategyBO)
+	for _, strategyBO := range strategyBOs {
+		strategyBOsMap[strategyBO.Id] = strategyBO
+	}
 
+	// TODO 构建告警消息
+	alarmMsgList := make([]*bo.AlarmMsgBo, 0, len(historyBos))
+	for _, historyBOItem := range historyBos {
+		var promNotifies []*bo.NotifyBO
+		if strategyBO, ok := strategyBOsMap[historyBOItem.StrategyId]; ok {
+			promNotifies = strategyBO.GetPromNotifies()
+		}
+		alarmMsgList = append(alarmMsgList, &bo.AlarmMsgBo{
+			AlarmStatus:  historyBOItem.Status,
+			AlarmInfo:    historyBOItem.Info,
+			StartsAt:     historyBOItem.StartsAt,
+			EndsAt:       historyBOItem.EndsAt,
+			StrategyBO:   strategyBOsMap[historyBOItem.StrategyId],
+			PromNotifies: promNotifies,
+		})
+	}
 	// 发送告警
-	if err = a.msgRepo.SendAlarm(ctx, realtimeAlarmBOs...); err != nil {
+	if err = a.msgRepo.SendAlarm(ctx, hookBytes, alarmMsgList...); err != nil {
 		return nil, err
 	}
 

@@ -307,6 +307,10 @@ message ChatGroup {
   int32 app = 8;
   // 钩子名称
   string hookName = 9;
+  // 消息模板
+  string template = 10;
+  // 消息标题
+  string title = 11;
 }
 
 // 告警通知的hook群组选择类型

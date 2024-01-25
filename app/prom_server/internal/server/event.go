@@ -30,18 +30,6 @@ var _ transport.Server = (*AlarmEvent)(nil)
 
 type EventHandler func(msg *kafka.Message) error
 
-type AgentInfo struct {
-	AgentName string
-	Topic     *string
-	Key       []byte
-}
-
-// String AgentInfo to string
-func (a *AgentInfo) String() string {
-	bs, _ := json.Marshal(a)
-	return string(bs)
-}
-
 type AlarmEvent struct {
 	log    *log.Helper
 	c      *conf.Bootstrap
@@ -392,4 +380,16 @@ func (l *AlarmEvent) Consume() error {
 		}
 	}()
 	return nil
+}
+
+type AgentInfo struct {
+	AgentName string  `json:"agent_name"`
+	Topic     *string `json:"topic"`
+	Key       []byte  `json:"key"`
+}
+
+// String AgentInfo to string
+func (a *AgentInfo) String() string {
+	bs, _ := json.Marshal(a)
+	return string(bs)
 }

@@ -2012,6 +2012,10 @@ func (m *ChatGroup) validate(all bool) error {
 
 	// no validation rules for HookName
 
+	// no validation rules for Template
+
+	// no validation rules for Title
+
 	if len(errors) > 0 {
 		return ChatGroupMultiError(errors)
 	}

@@ -30,6 +30,8 @@ type (
 		ListStrategy(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error)
 		// ListStrategyByIds 通过id列表获取策略列表
 		ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error)
+		// List 获取策略列表
+		List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error)
 	}
 
 	UnimplementedStrategyRepo struct{}
@@ -37,30 +39,34 @@ type (
 
 func (UnimplementedStrategyRepo) mustEmbedUnimplemented() {}
 
+func (UnimplementedStrategyRepo) List(_ context.Context, _ ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method List not implemented")
+}
+
 func (UnimplementedStrategyRepo) CreateStrategy(_ context.Context, _ *bo.StrategyBO) (*bo.StrategyBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateStrategy not implemented")
+	return nil, status.Error(codes.Unimplemented, "method CreateStrategy not implemented")
 }
 
 func (UnimplementedStrategyRepo) UpdateStrategyById(_ context.Context, _ uint32, _ *bo.StrategyBO) (*bo.StrategyBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateStrategyById not implemented")
+	return nil, status.Error(codes.Unimplemented, "method UpdateStrategyById not implemented")
 }
 
 func (UnimplementedStrategyRepo) BatchUpdateStrategyStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
-	return status.Errorf(codes.Unimplemented, "method BatchUpdateStrategyStatusByIds not implemented")
+	return status.Error(codes.Unimplemented, "method BatchUpdateStrategyStatusByIds not implemented")
 }
 
 func (UnimplementedStrategyRepo) DeleteStrategyByIds(_ context.Context, _ ...uint32) error {
-	return status.Errorf(codes.Unimplemented, "method DeleteStrategyByIds not implemented")
+	return status.Error(codes.Unimplemented, "method DeleteStrategyByIds not implemented")
 }
 
 func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint32, _ ...basescopes.ScopeMethod) (*bo.StrategyBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyById not implemented")
+	return nil, status.Error(codes.Unimplemented, "method GetStrategyById not implemented")
 }
 
 func (UnimplementedStrategyRepo) ListStrategy(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListStrategy not implemented")
+	return nil, status.Error(codes.Unimplemented, "method ListStrategy not implemented")
 }
 
 func (UnimplementedStrategyRepo) ListStrategyByIds(_ context.Context, _ []uint32) ([]*bo.StrategyBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListStrategyByIds not implemented")
+	return nil, status.Error(codes.Unimplemented, "method ListStrategyByIds not implemented")
 }

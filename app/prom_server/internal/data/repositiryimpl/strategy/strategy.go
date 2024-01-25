@@ -32,6 +32,17 @@ type (
 	}
 )
 
+func (l *strategyRepoImpl) List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
+	var modelList []*do.PromStrategy
+	if err := l.data.DB().WithContext(ctx).Scopes(wheres...).Find(&modelList).Error; err != nil {
+		return nil, err
+	}
+	list := slices.To(modelList, func(item *do.PromStrategy) *bo.StrategyBO {
+		return bo.StrategyModelToBO(item)
+	})
+	return list, nil
+}
+
 func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error) {
 	modelList := make([]*do.PromStrategy, 0, len(ids))
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Find(&modelList).Error; err != nil {
