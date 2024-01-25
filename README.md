@@ -72,6 +72,27 @@ make local app=app/prom_agent
 
 ![实时告警统计](doc/img/runtime/realtime-alarm-count.png)
 
+## 告警通知
+
+* 通知模板
+
+```markdown
+## prometheus监控告警【{{ $status }}】
+
+* 告警时间: {{ $startsAt }}
+* 恢复时间: {{ $endsAt }}
+* 告警标题: {{ $annotations.title }}
+* 告警内容: {{ $annotations.description }}
+* 唯一指纹: {{ $fingerprint }}
+* 告警标识
+    * 规则名称: {{ $labels.alertname }}
+    * 机器名称: {{ $labels.endpoint }}
+    * 实例名称: {{ $labels.instance }}
+```
+
+* 通知示例
+![企微告警通知](doc/img/runtime/alarm-hook-info.png)
+
 
 
 
