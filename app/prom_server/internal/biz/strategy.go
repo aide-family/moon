@@ -78,7 +78,7 @@ func (b *StrategyXBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Stra
 		basescopes.StrategyTablePreloadAlarmPages,
 		basescopes.StrategyTablePreloadCategories,
 		basescopes.StrategyTablePreloadAlertLevel,
-		basescopes.StrategyTablePreloadPromNotifies,
+		basescopes.StrategyTablePreloadPromNotifies(),
 		basescopes.StrategyTablePreloadPromNotifyUpgrade,
 		basescopes.StrategyTablePreloadGroupInfo,
 	}

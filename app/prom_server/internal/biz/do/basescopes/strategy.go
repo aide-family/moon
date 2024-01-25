@@ -1,6 +1,8 @@
 package basescopes
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -58,8 +60,17 @@ func StrategyTablePreloadAlertLevel(db *gorm.DB) *gorm.DB {
 }
 
 // StrategyTablePreloadPromNotifies 预加载prom_notifies
-func StrategyTablePreloadPromNotifies(db *gorm.DB) *gorm.DB {
-	return db.Preload(PreloadKeyPromNotifies)
+func StrategyTablePreloadPromNotifies(preloadKeys ...string) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(preloadKeys) == 0 {
+			return db.Preload(PreloadKeyPromNotifies)
+		}
+		tx := db
+		for _, key := range preloadKeys {
+			tx = tx.Preload(strings.Join([]string{PreloadKeyPromNotifies, key}, "."))
+		}
+		return tx
+	}
 }
 
 // StrategyTablePreloadPromNotifyUpgrade 预加载prom_notify_upgrade

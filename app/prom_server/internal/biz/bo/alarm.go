@@ -43,6 +43,13 @@ func (b *AlertBo) String() string {
 	return string(bytes)
 }
 
+// ToMap .
+func (b *AlertBo) ToMap() map[string]any {
+	m := make(map[string]any)
+	_ = json.Unmarshal([]byte(b.String()), &m)
+	return m
+}
+
 // GetStatus .
 func (b *AlertBo) GetStatus() string {
 	return b.Status

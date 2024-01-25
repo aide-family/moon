@@ -18,6 +18,10 @@ type (
 		Hook      string       `json:"hook"`
 		NotifyApp vo.NotifyApp `json:"notifyApp"`
 		HookName  string       `json:"hookName"`
+		// 消息模板
+		Template string `json:"template"`
+		// 消息标题
+		Title string `json:"title"`
 	}
 )
 
@@ -36,6 +40,8 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		Status:    b.Status.Value(),
 		App:       b.NotifyApp.Value(),
 		HookName:  b.HookName,
+		Template:  b.Template,
+		Title:     b.Title,
 	}
 }
 
@@ -64,6 +70,8 @@ func (b *ChatGroupBO) ToModel() *do.PromAlarmChatGroup {
 		Hook:      b.Hook,
 		NotifyApp: b.NotifyApp,
 		HookName:  b.HookName,
+		Template:  b.Template,
+		Title:     b.Title,
 	}
 }
 
@@ -82,6 +90,8 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 		Hook:      a.Hook,
 		NotifyApp: vo.NotifyApp(a.App),
 		HookName:  a.HookName,
+		Template:  a.Template,
+		Title:     a.Title,
 	}
 }
 
@@ -101,5 +111,7 @@ func ChatGroupModelToBO(m *do.PromAlarmChatGroup) *ChatGroupBO {
 		Hook:      m.Hook,
 		NotifyApp: m.NotifyApp,
 		HookName:  m.HookName,
+		Template:  m.Template,
+		Title:     m.Title,
 	}
 }

@@ -69,8 +69,8 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 	return &AlarmRealtimeBO{
 		Instance:   b.Instance,
 		Note:       note,
-		Level:      b.GetLevel(),
 		LevelId:    b.LevelId,
+		Level:      b.GetLevel(),
 		EventAt:    b.StartsAt,
 		Status:     status,
 		HistoryID:  b.Id,
