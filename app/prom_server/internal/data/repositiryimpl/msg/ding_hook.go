@@ -40,7 +40,7 @@ func (l *dingNotify) Alarm(url string, msg *HookNotifyMsg) error {
 		MsgType: markdown,
 		Markdown: DingMarkdown{
 			Title: msg.Title,
-			Text:  msg.Context,
+			Text:  msg.Content,
 		},
 		At: DingAt{
 			AtMobiles: []string{},

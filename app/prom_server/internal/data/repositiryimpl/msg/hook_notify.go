@@ -6,10 +6,11 @@ import (
 )
 
 type HookNotifyMsg struct {
-	Context   string      `json:"context"`
+	Content   string      `json:"content"`
 	Title     string      `json:"title"`
 	AlarmInfo *bo.AlertBo `json:"-"`
 	HookBytes []byte      `json:"-"`
+	Secret    string      `json:"-"`
 }
 
 type HookNotify interface {
@@ -26,6 +27,8 @@ func NewHookNotify(app vo.NotifyApp) HookNotify {
 		return NewWechatNotify()
 	case vo.NotifyAppDingDing:
 		return NewDingNotify()
+	case vo.NotifyAppFeiShu:
+		return NewFeishuNotify()
 	default:
 		return NewOtherNotify()
 	}
