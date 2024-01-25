@@ -93,6 +93,35 @@ make local app=app/prom_agent
 * 通知示例
 ![企微告警通知](doc/img/runtime/alarm-hook-info.png)
 
+* 飞书通知模板
+
+```json
+{
+  "msg_type": "interactive",
+  "card": {
+    "elements": [
+      {
+        "tag": "div",
+        "text": {
+          "content": "* 告警时间: {{ $startsAt }}\n* 恢复时间: {{ $endsAt }}\n* 告警标题: {{ $annotations.title }}\n* 告警内容: {{ $annotations.description }}\n* 唯一指纹: {{ $fingerprint }}\n* 告警标识\n    * 规则名称: {{ $labels.alertname }}\n    * 机器名称: {{ $labels.endpoint }}\n    * 实例名称: {{ $labels.instance }}",
+          "tag": "lark_md"
+        }
+      }
+    ],
+    "header": {
+      "title": {
+        "content": "prometheus监控告警【{{ $status }}】",
+        "tag": "plain_text"
+      }
+    }
+  }
+}
+```
+
+* 飞书通知示例
+
+![飞书通知示例](doc/img/runtime/feishu-alert-hook.png)
+
 
 
 

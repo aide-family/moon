@@ -311,6 +311,8 @@ message ChatGroup {
   string template = 10;
   // 消息标题
   string title = 11;
+  // 密钥
+  string secret = 12;
 }
 
 // 告警通知的hook群组选择类型

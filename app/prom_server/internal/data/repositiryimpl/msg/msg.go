@@ -50,25 +50,27 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(hookBytes []byte, chatGroups []*bo.C
 		if v == nil {
 			continue
 		}
+
+		chatInfo := *v
 		msg := &HookNotifyMsg{
-			Context:   content,
+			Content:   content,
 			Title:     "",
 			AlarmInfo: alarmInfo,
 			HookBytes: hookBytes,
+			Secret:    chatInfo.Secret,
 		}
-		chatInfo := *v
 		if chatInfo.Template != "" {
-			msg.Context = strategy.Formatter(chatInfo.Template, alarmInfo.ToMap())
+			msg.Content = strategy.Formatter(chatInfo.Template, alarmInfo.ToMap())
 		}
 		if chatInfo.Title != "" {
 			msg.Title = strategy.Formatter(chatInfo.Title, alarmInfo.ToMap())
 		}
 		eg.Go(func() error {
-			return NewHookNotify(v.NotifyApp).Alarm(v.Hook, msg)
+			return NewHookNotify(chatInfo.NotifyApp).Alarm(chatInfo.Hook, msg)
 		})
 	}
 	if err := eg.Wait(); err != nil {
-		l.log.Errorf("send alarm to chat groups error, %v", err)
+		l.log.Warnf("send alarm to chat groups error, %v", err)
 	}
 }
 

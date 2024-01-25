@@ -28,7 +28,7 @@ func (v *WechatMsg) Bytes() []byte {
 func (l *wechatNotify) Alarm(url string, msg *HookNotifyMsg) error {
 	wechatMsg := &WechatMsg{
 		MsgType:  markdown,
-		Markdown: WechatMarkdown{Content: msg.Context},
+		Markdown: WechatMarkdown{Content: msg.Content},
 	}
 	_, err := httpx.NewHttpX().POST(url, wechatMsg.Bytes())
 	return err
