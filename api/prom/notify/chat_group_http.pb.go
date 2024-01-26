@@ -40,7 +40,7 @@ func RegisterChatGroupHTTPServer(s *http.Server, srv ChatGroupHTTPServer) {
 	r.POST("/api/v1/chat/group/create", _ChatGroup_CreateChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/update", _ChatGroup_UpdateChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/delete", _ChatGroup_DeleteChatGroup0_HTTP_Handler(srv))
-	r.GET("/api/v1/chat/group/get", _ChatGroup_GetChatGroup0_HTTP_Handler(srv))
+	r.POST("/api/v1/chat/group/get", _ChatGroup_GetChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/list", _ChatGroup_ListChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/select", _ChatGroup_SelectChatGroup0_HTTP_Handler(srv))
 }
@@ -105,7 +105,7 @@ func _ChatGroup_DeleteChatGroup0_HTTP_Handler(srv ChatGroupHTTPServer) func(ctx 
 func _ChatGroup_GetChatGroup0_HTTP_Handler(srv ChatGroupHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetChatGroupRequest
-		if err := ctx.BindQuery(&in); err != nil {
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationChatGroupGetChatGroup)
@@ -205,10 +205,10 @@ func (c *ChatGroupHTTPClientImpl) DeleteChatGroup(ctx context.Context, in *Delet
 func (c *ChatGroupHTTPClientImpl) GetChatGroup(ctx context.Context, in *GetChatGroupRequest, opts ...http.CallOption) (*GetChatGroupReply, error) {
 	var out GetChatGroupReply
 	pattern := "/api/v1/chat/group/get"
-	path := binding.EncodeURL(pattern, in, true)
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationChatGroupGetChatGroup))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

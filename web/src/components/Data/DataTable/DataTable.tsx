@@ -25,6 +25,8 @@ export type DataTableProps<T = any> = TableProps<T> & {
     pageSize?: number
     current?: number
     pageOnChange?: (page: number, pageSize: number) => void
+    x?: number | string
+    y?: number | string
 }
 
 const defaultIndexColumn = (
@@ -87,7 +89,9 @@ const DataTable: FC<DataTableProps> = (props) => {
         total,
         pageSize,
         current,
-        pageOnChange
+        pageOnChange,
+        x = 1500,
+        y = 480
     } = props
     const [_columns, setColumns] = useState<
         (ColumnGroupType<any> | ColumnType<any>)[]
@@ -151,7 +155,7 @@ const DataTable: FC<DataTableProps> = (props) => {
                     dataSource={dataSource}
                     columns={_columns}
                     // scroll={{ x: 1500, y: tableHigh - defaultPadding * 8 }}
-                    scroll={{ x: 1500, y: 480 }}
+                    scroll={{ x: x, y: y }}
                     size={size}
                     sticky
                     pagination={{

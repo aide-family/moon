@@ -35,6 +35,9 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 		Hook:      req.GetHook(),
 		NotifyApp: vo.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
+		Template:  req.GetTemplate(),
+		Title:     req.GetTitle(),
+		Secret:    req.GetSecret(),
 	}
 	chatGroupBo, err := s.chatGroupBiz.CreateChatGroup(ctx, chatGroupBo)
 	if err != nil {
@@ -48,13 +51,12 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 
 func (s *ChatGroupService) UpdateChatGroup(ctx context.Context, req *pb.UpdateChatGroupRequest) (*pb.UpdateChatGroupReply, error) {
 	chatGroupBo := &bo.ChatGroupBO{
-		Id:        req.GetId(),
-		Name:      req.GetName(),
-		Remark:    req.GetRemark(),
-		Status:    vo.Status(req.GetStatus()),
-		Hook:      req.GetHook(),
-		NotifyApp: vo.NotifyApp(req.GetApp()),
-		HookName:  req.GetHookName(),
+		Id:       req.GetId(),
+		Name:     req.GetName(),
+		Remark:   req.GetRemark(),
+		HookName: req.GetHookName(),
+		Template: req.GetTemplate(),
+		Title:    req.GetTitle(),
 	}
 	if err := s.chatGroupBiz.UpdateChatGroupById(ctx, chatGroupBo, chatGroupBo.Id); err != nil {
 		s.log.Errorf("UpdateChatGroup err: %v", err)

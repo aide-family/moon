@@ -120,6 +120,14 @@ export const defaultMenuItems: ItemType[] = [
             {
                 label: '告警页面',
                 key: '/home/monitor/alarm-page'
+            },
+            {
+                label: '告警组',
+                key: '/home/monitor/alarm-group'
+            },
+            {
+                label: '机器人组',
+                key: '/home/monitor/chat-group'
             }
         ]
     }
@@ -131,11 +139,14 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/customer': '客户管理',
     '/home/resource': '资源管理',
     '/home/flow': '流程管理',
+    '/home/monitor': '监控',
     '/home/monitor/alarm-realtime': '实时告警',
     '/home/monitor/strategy-group': '策略组',
     '/home/monitor/strategy': '策略',
     '/home/monitor/endpoint': '数据源',
     '/home/monitor/alarm-page': '告警页面',
+    '/home/monitor/alarm-group': '告警组',
+    '/home/monitor/chat-group': '机器人组',
     '/home/system/user': '用户管理',
     '/home/system/dict': '字典管理',
     '/home/system/role': '角色管理',

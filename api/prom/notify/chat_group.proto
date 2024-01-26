@@ -37,7 +37,8 @@ service ChatGroup {
 	// 获取通知群组
 	rpc GetChatGroup (GetChatGroupRequest) returns (GetChatGroupReply) {
 		option (google.api.http) = {
-			get: "/api/v1/chat/group/get"
+			post: "/api/v1/chat/group/get"
+			body: "*"
 		};
 	}
 	// 获取通知群组列表
@@ -76,6 +77,14 @@ message CreateChatGroupRequest {
 		min_len: 2,
 		max_len: 32,
 	}];
+	// 告警文案标题， 支持模板语法
+	string title = 6 [(validate.rules).string = {
+		max_len: 64,
+	}];
+	// 告警文案模板, 支持模板语法
+	string template = 7;
+	// secret , hook通知密钥
+	string secret = 8;
 }
 // 创建通知群组响应参数
 message CreateChatGroupReply {
@@ -94,19 +103,17 @@ message UpdateChatGroupRequest {
 	}];
 	// 群组备注, 不允许超过255字符
 	string remark = 3 [(validate.rules).string.max_len = 255];
-	// 群组webhook地址(机器人地址)
-	string hook = 4 [(validate.rules).string = {
-		pattern: "^https?://",
-	}];
-	// 这个群组所属的应用
-	NotifyApp app = 5 [(validate.rules).enum.defined_only = true];
 	// hook一般是机器人, 这个字段是机器人的名称(也可以是hook别名)
-	string hookName = 6 [(validate.rules).string = {
+	string hookName = 4 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
 	}];
-	// 群组状态
-	Status status = 7 [(validate.rules).enum.defined_only = true];
+	// 告警文案标题， 支持模板语法
+	string title = 5 [(validate.rules).string = {
+		max_len: 64,
+	}];
+	// 告警文案模板, 支持模板语法
+	string template = 6;
 }
 // 更新通知群组响应参数
 message UpdateChatGroupReply {

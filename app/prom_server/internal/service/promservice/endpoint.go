@@ -98,6 +98,7 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 		Keyword: req.GetKeyword(),
 		Curr:    pgReq.GetCurr(),
 		Size:    pgReq.GetSize(),
+		Status:  vo.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -123,6 +124,7 @@ func (s *EndpointService) SelectEndpoint(ctx context.Context, req *pb.SelectEndp
 		Keyword: req.GetKeyword(),
 		Curr:    pgReq.GetCurr(),
 		Size:    pgReq.GetSize(),
+		Status:  vo.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

@@ -61,7 +61,12 @@ func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
 
 // GetNotifyById 获取通知对象
 func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO, error) {
-	notifyBo, err := b.notifyRepo.Get(ctx, basescopes.InIds(id))
+	wheres := []basescopes.ScopeMethod{
+		basescopes.InIds(id),
+		basescopes.NotifyPreloadChatGroups(),
+		basescopes.NotifyPreloadBeNotifyMembers(),
+	}
+	notifyBo, err := b.notifyRepo.Get(ctx, wheres...)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, perrors.ErrorNotFound("通知对象不存在")

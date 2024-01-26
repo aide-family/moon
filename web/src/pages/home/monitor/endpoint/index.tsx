@@ -1,19 +1,28 @@
-import React, {useEffect, useRef, useState} from 'react'
-import RouteBreadcrumb from "@/components/PromLayout/RouteBreadcrumb";
-import {DataOption, DataTable, SearchForm} from "@/components/Data";
-import type {ColumnGroupType, ColumnType} from "antd/es/table";
-import {ListEndpointRequest, PrometheusServerItem} from "@/apis/home/monitor/endpoint/types.ts";
-import dayjs from "dayjs";
-import {ActionKey} from "@/apis/data.ts";
-import {Form} from "antd";
-import {options} from "./options.tsx"
-import {HeightLine, PaddingLine} from "@/components/HeightLine";
+import React, { useEffect, useRef, useState } from 'react'
+import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
+import { DataOption, DataTable, SearchForm } from '@/components/Data'
 
-type EndpointColumnType = ColumnType<PrometheusServerItem> | ColumnGroupType<PrometheusServerItem>
+import {
+    ListEndpointRequest,
+    PrometheusServerItem,
+    defaultListEndpointRequest
+} from '@/apis/home/monitor/endpoint/types.ts'
+import { ActionKey } from '@/apis/data.ts'
+import { Form } from 'antd'
+import { HeightLine, PaddingLine } from '@/components/HeightLine'
+import endpointApi from '@/apis/home/monitor/endpoint/index.ts'
+import {
+    columns,
+    defaultPadding,
+    leftOptions,
+    operationItems,
+    rightOptions,
+    searchItems
+} from './options'
+import EditEndpointModal from './child/EditEnpointModal'
+import { Status } from '@/apis/types'
 
 let timer: NodeJS.Timeout
-const {leftOptions, rightOptions, searchItems} = options
-const defaultPadding = 12
 
 const Endpoint: React.FC = () => {
     const operationRef = useRef<HTMLDivElement>(null)
@@ -22,74 +31,56 @@ const Endpoint: React.FC = () => {
     const [dataSource, setDataSource] = useState<PrometheusServerItem[]>([])
     const [refresh, setRefresh] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
-    const [search, setSearch] = useState<ListEndpointRequest>({
-        page: {
-            curr: 1,
-            size: 10
-        },
-        keyword: ''
-    })
-    const columns: EndpointColumnType[] = [
-        {
-            title: '数据源名称',
-            dataIndex: 'name',
-            key: 'name',
-            width: 220
-        },
-        {
-            title: '端点',
-            dataIndex: 'endpoint',
-            key: 'endpoint',
-            width: 220
-        },
-        {
-            title: '端点状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 220
-        },
-        {
-            title: '备注',
-            dataIndex: 'remark',
-            key: 'remark',
-            ellipsis: true
-        },
-        {
-            title: '创建时间',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            width: 220,
-            render: (createdAt: number | string) => {
-                return dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss')
-            }
-        },
-        {
-            title: '更新时间',
-            dataIndex: 'updatedAt',
-            key: 'updatedAt',
-            width: 220,
-            render: (updatedAt: number | string) => {
-                return dayjs(updatedAt).format('YYYY-MM-DD HH:mm:ss')
-            }
-        }
-    ]
-
-    const handlerGetData = () => {
-        setLoading(true)
-        // const {data} = await endpointApi.list()
-        setDataSource([])
-        setLoading(false)
-    }
+    const [search, setSearch] = useState<ListEndpointRequest>(
+        defaultListEndpointRequest
+    )
+    const [total, setTotal] = useState<number>(0)
+    const [openEditModal, setEditModal] = useState<boolean>(false)
+    const [opEndpointId, setOpEndpointId] = useState<number>()
 
     // 刷新
     const handlerRefresh = () => {
         setRefresh((prev) => !prev)
     }
 
+    const hanleOpenEditModal = (id?: number) => {
+        setOpEndpointId(id)
+        setEditModal(true)
+    }
+
+    const handleOnCloseEditModal = () => {
+        setEditModal(false)
+        setOpEndpointId(undefined)
+    }
+
+    const handleEditModalOnOk = () => {
+        handleOnCloseEditModal()
+        handlerRefresh()
+    }
+
+    const handlerGetData = () => {
+        if (timer) {
+            clearTimeout(timer)
+        }
+        setLoading(true)
+        timer = setTimeout(() => {
+            endpointApi
+                .listEndpoint(search)
+                .then((data) => {
+                    setDataSource(data?.list || [])
+                    setTotal(data.page.total)
+                })
+                .finally(() => {
+                    setLoading(false)
+                })
+        }, 500)
+    }
+
     //操作栏按钮
     const handleOptionClick = (val: ActionKey) => {
         switch (val) {
             case ActionKey.ADD:
+                hanleOpenEditModal()
                 break
             case ActionKey.REFRESH:
                 handlerRefresh()
@@ -106,30 +97,66 @@ const Endpoint: React.FC = () => {
         }
     }
 
-    // 处理搜索表单的值变化
-    const handlerSearFormValuesChange = (
-        changedValues: any, // TODO 不要any
-        allValues: any
-    ) => {
-        timer && clearTimeout(timer)
-        timer = setTimeout(() => {
-            setSearch({
-                ...search,
-                ...changedValues
-            })
-            console.log(changedValues, allValues)
-        }, 500)
+    const handlerTablePageChange = (page: number, size: number) => {
+        setSearch({
+            ...search,
+            page: {
+                curr: page,
+                size: size
+            }
+        })
     }
 
+    // 处理搜索表单的值变化
+    const handlerSearFormValuesChange = (changedValues: any) => {
+        setSearch({
+            ...search,
+            ...changedValues
+        })
+    }
+
+    const handleChangeStatus = (ids: number[], status: Status) => {
+        endpointApi.batchChangeStatus(ids, status).then(() => {
+            handlerRefresh()
+        })
+    }
+
+    const handlerTableAction = (key: ActionKey, item: PrometheusServerItem) => {
+        switch (key) {
+            case ActionKey.EDIT:
+                hanleOpenEditModal(item.id)
+                break
+            case ActionKey.DELETE:
+                break
+            case ActionKey.ENABLE:
+                handleChangeStatus([item.id], Status.STATUS_ENABLED)
+                break
+            case ActionKey.DISABLE:
+                handleChangeStatus([item.id], Status.STATUS_DISABLED)
+                break
+            default:
+                break
+        }
+    }
+
+    useEffect(() => {
+        handlerRefresh()
+    }, [search])
 
     useEffect(() => {
         handlerGetData()
-    }, [refresh, search])
+    }, [refresh])
 
     return (
         <div className="bodyContent">
+            <EditEndpointModal
+                endpointId={opEndpointId}
+                open={openEditModal}
+                onClose={handleOnCloseEditModal}
+                onOk={handleEditModalOnOk}
+            />
             <div ref={operationRef}>
-                <RouteBreadcrumb/>
+                <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm
                     form={queryForm}
@@ -155,15 +182,11 @@ const Endpoint: React.FC = () => {
                 dataSource={dataSource}
                 columns={columns}
                 operationRef={operationRef}
-                // total={total}
+                total={total}
                 loading={loading}
-                // operationItems={operationItems}
-                // pageOnChange={handlerTablePageChange}
-                // rowSelection={{
-                //     onChange: handlerBatchData,
-                //     selectedRowKeys: tableSelectedRows.map((item) => item.id)
-                // }}
-                // action={handlerTableAction}
+                operationItems={operationItems}
+                pageOnChange={handlerTablePageChange}
+                action={handlerTableAction}
             />
         </div>
     )

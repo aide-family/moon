@@ -1,4 +1,4 @@
-import { Category, DomainType, ModuleType } from './types'
+import { Category, DomainType, ModuleType, NotifyApp } from './types'
 
 /**
  * 字典分类数据
@@ -36,6 +36,14 @@ const moduleTypeData: Record<ModuleType, string> = {
     [ModuleType.ModelTypeBusiness]: '业务模块',
     [ModuleType.ModelTypeRole]: '角色模块',
     [ModuleType.ModelTypeConfig]: '配置模块'
+}
+
+/** NotifyApp */
+const NotifyAppData: Record<NotifyApp, string> = {
+    [NotifyApp.NOTIFY_APP_UNKNOWN]: '未知',
+    [NotifyApp.NOTIFY_APP_DINGTALK]: '钉钉',
+    [NotifyApp.NOTIFY_APP_WECHATWORK]: '企业微信',
+    [NotifyApp.NOTIFY_APP_FEISHU]: '飞书'
 }
 
 export enum ActionKey {
@@ -95,4 +103,4 @@ export enum ActionKey {
     OP_KEY_STRATEGY_LIST = 'strategy-list'
 }
 
-export { categoryData, domainTypeData, moduleTypeData }
+export { categoryData, domainTypeData, moduleTypeData, NotifyAppData }
