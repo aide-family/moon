@@ -45,7 +45,7 @@ func NotInIds(ids ...uint32) ScopeMethod {
 		}
 	}
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Not(InIds(ids...))
+		return db.Not("id", ids)
 	}
 }
 

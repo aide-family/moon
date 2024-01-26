@@ -37,7 +37,8 @@ service Notify {
   // 获取通知对象详情
   rpc GetNotify (GetNotifyRequest) returns (GetNotifyReply) {
     option (google.api.http) = {
-      get: "/api/v1/prom/notify/get"
+      post: "/api/v1/prom/notify/get"
+      body: "*"
     };
   }
   // 获取通知对象列表

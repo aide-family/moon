@@ -40,7 +40,7 @@ func RegisterNotifyHTTPServer(s *http.Server, srv NotifyHTTPServer) {
 	r.POST("/api/v1/prom/notify/create", _Notify_CreateNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/prom/notify/update", _Notify_UpdateNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/prom/notify/delete", _Notify_DeleteNotify0_HTTP_Handler(srv))
-	r.GET("/api/v1/prom/notify/get", _Notify_GetNotify0_HTTP_Handler(srv))
+	r.POST("/api/v1/prom/notify/get", _Notify_GetNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/prom/notify/list", _Notify_ListNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/prom/notify/select", _Notify_SelectNotify0_HTTP_Handler(srv))
 }
@@ -105,7 +105,7 @@ func _Notify_DeleteNotify0_HTTP_Handler(srv NotifyHTTPServer) func(ctx http.Cont
 func _Notify_GetNotify0_HTTP_Handler(srv NotifyHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetNotifyRequest
-		if err := ctx.BindQuery(&in); err != nil {
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, OperationNotifyGetNotify)
@@ -205,10 +205,10 @@ func (c *NotifyHTTPClientImpl) DeleteNotify(ctx context.Context, in *DeleteNotif
 func (c *NotifyHTTPClientImpl) GetNotify(ctx context.Context, in *GetNotifyRequest, opts ...http.CallOption) (*GetNotifyReply, error) {
 	var out GetNotifyReply
 	pattern := "/api/v1/prom/notify/get"
-	path := binding.EncodeURL(pattern, in, true)
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationNotifyGetNotify))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

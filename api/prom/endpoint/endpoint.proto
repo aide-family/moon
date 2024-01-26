@@ -138,6 +138,9 @@ message GetEndpointReply {
 message ListEndpointRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   string keyword = 2 [(validate.rules).string.max_len = 32];
+  Status status = 3 [(validate.rules).enum = {
+    defined_only: true
+  }];
 }
 message ListEndpointReply {
   // 响应信息
@@ -150,6 +153,9 @@ message ListEndpointReply {
 message SelectEndpointRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   string keyword = 2 [(validate.rules).string.max_len = 32];
+  Status status = 3 [(validate.rules).enum = {
+    defined_only: true
+  }];
 }
 message SelectEndpointReply {
   // 响应信息

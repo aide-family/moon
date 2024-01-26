@@ -1,6 +1,7 @@
 import {
     AlarmApp,
     AlarmStatus,
+    NotifyApp,
     PageReqType,
     PageResType,
     Status
@@ -16,6 +17,9 @@ interface ChatGroupItem {
     status: number
     app: number
     hookName: string
+    title: string
+    template: string
+    secret: string
 }
 
 interface GetChatGroupDetailRequest {
@@ -38,10 +42,9 @@ interface UpdateChatGroupRequest {
     id: number
     name: string
     remark: string
-    hook: string
-    app: number
     hookName: string
-    status: Status
+    title: string
+    template: string
 }
 
 interface UpdateChatGroupResponse {
@@ -55,18 +58,25 @@ interface ListChatGroupRequest {
 }
 
 interface ListChatGroupResponse {
-    list: ChatGroupItem[]
+    list?: ChatGroupItem[]
     page: PageResType
+}
+
+interface ChatGroupSelectItem {
+    value: number
+    app: NotifyApp
+    label: string
+    status: number
 }
 
 interface SelectChatGroupRequest {
     page: PageReqType
     keyword?: string
-    status?: AlarmStatus
+    status?: Status
 }
 
 interface SelectChatGroupResponse {
-    list: ChatGroupItem[]
+    list: ChatGroupSelectItem[]
     page: PageResType
 }
 
@@ -82,6 +92,20 @@ interface CreateChatGroupResponse {
     id: number
 }
 
+export const defaultSelectChatGroupReques: SelectChatGroupRequest = {
+    page: {
+        curr: 1,
+        size: 10
+    }
+}
+
+export const defaultListChatGroupRequest: ListChatGroupRequest = {
+    page: {
+        curr: 1,
+        size: 10
+    }
+}
+
 export type {
     ListChatGroupRequest,
     ListChatGroupResponse,
@@ -95,5 +119,6 @@ export type {
     GetChatGroupDetailResponse,
     CreateChatGroupRequest,
     CreateChatGroupResponse,
-    ChatGroupItem
+    ChatGroupItem,
+    ChatGroupSelectItem
 }

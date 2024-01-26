@@ -1,4 +1,4 @@
-import { PageReqType, PageRes } from '@/apis/types'
+import { PageReqType, PageRes, PageResType, Status } from '@/apis/types'
 
 interface PrometheusServerItem {
     id: number
@@ -22,27 +22,47 @@ interface PrometheusServerSelectItem {
 }
 
 interface AppendEndpointRequest {
-    agentName: string
-    endpoints: PrometheusServerItem[]
+    name: string
+    endpoint: string
+    remark: string
 }
 
 interface deleteEndpointRequest {}
 
-interface ListEndpointRequest {}
+interface ListEndpointRequest {
+    page: PageReqType
+    keyword?: string
+    status?: Status
+}
 
 interface ListEndpointResponse {
-    list: PrometheusServerItem[]
-    page: PageReqType
+    list?: PrometheusServerItem[]
+    page: PageResType
 }
 
 interface SelectEndpointRequest {
     page: PageReqType
     keyword?: string
+    status?: Status
 }
 
 interface SelectEndpointResponse {
     list: PrometheusServerSelectItem[]
     page: PageRes
+}
+
+interface UpdateEndpointRequest {
+    id: number
+    name: string
+    endpoint: string
+    remark: string
+}
+
+export const defaultListEndpointRequest: ListEndpointRequest = {
+    page: {
+        curr: 1,
+        size: 10
+    }
 }
 
 export type {
@@ -53,5 +73,6 @@ export type {
     ListEndpointResponse,
     SelectEndpointResponse,
     SelectEndpointRequest,
-    PrometheusServerSelectItem
+    PrometheusServerSelectItem,
+    UpdateEndpointRequest
 }

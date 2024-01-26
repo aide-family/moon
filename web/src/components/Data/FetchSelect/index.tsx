@@ -60,7 +60,10 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
 
     useEffect(() => {
         // 判断defaultOptions和option是否相同, 如果不同则更新
-        if (defaultOptions.length !== options.length) {
+        if (
+            defaultOptions.length > 0 &&
+            defaultOptions.length !== options.length
+        ) {
             setOptions(defaultOptions)
         }
     }, [defaultOptions])

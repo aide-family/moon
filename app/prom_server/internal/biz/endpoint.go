@@ -60,15 +60,20 @@ func (b *EndpointBiz) DeleteEndpointById(ctx context.Context, ids ...uint32) err
 }
 
 type ListEndpointParams struct {
-	Keyword string `form:"keyword"`
-	Curr    int32  `form:"curr"`
-	Size    int32  `form:"size"`
+	Keyword string
+	Curr    int32
+	Size    int32
+	Status  vo.Status
 }
 
 // ListEndpoint 查询
 func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *ListEndpointParams) ([]*bo.EndpointBO, basescopes.Pagination, error) {
 	pageInfo := basescopes.NewPage(params.Curr, params.Size)
-	wheres := []basescopes.ScopeMethod{basescopes.NameLike(params.Keyword)}
+	wheres := []basescopes.ScopeMethod{
+		basescopes.NameLike(params.Keyword),
+		basescopes.StatusEQ(params.Status),
+		basescopes.UpdateAtDesc(),
+	}
 
 	list, err := b.endpointRepo.List(ctx, pageInfo, wheres...)
 	if err != nil {

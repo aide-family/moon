@@ -116,6 +116,21 @@ func (m *CreateChatGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if utf8.RuneCountInString(m.GetTitle()) > 64 {
+		err := CreateChatGroupRequestValidationError{
+			field:  "Title",
+			reason: "value length must be at most 64 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Template
+
+	// no validation rules for Secret
+
 	if len(errors) > 0 {
 		return CreateChatGroupRequestMultiError(errors)
 	}
@@ -357,28 +372,6 @@ func (m *UpdateChatGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_UpdateChatGroupRequest_Hook_Pattern.MatchString(m.GetHook()) {
-		err := UpdateChatGroupRequestValidationError{
-			field:  "Hook",
-			reason: "value does not match regex pattern \"^https?://\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := api.NotifyApp_name[int32(m.GetApp())]; !ok {
-		err := UpdateChatGroupRequestValidationError{
-			field:  "App",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if l := utf8.RuneCountInString(m.GetHookName()); l < 2 || l > 32 {
 		err := UpdateChatGroupRequestValidationError{
 			field:  "HookName",
@@ -390,16 +383,18 @@ func (m *UpdateChatGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+	if utf8.RuneCountInString(m.GetTitle()) > 64 {
 		err := UpdateChatGroupRequestValidationError{
-			field:  "Status",
-			reason: "value must be one of the defined enum values",
+			field:  "Title",
+			reason: "value length must be at most 64 runes",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for Template
 
 	if len(errors) > 0 {
 		return UpdateChatGroupRequestMultiError(errors)
@@ -480,8 +475,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateChatGroupRequestValidationError{}
-
-var _UpdateChatGroupRequest_Hook_Pattern = regexp.MustCompile("^https?://")
 
 // Validate checks the field values on UpdateChatGroupReply with the rules
 // defined in the proto definition for this message. If any rules are

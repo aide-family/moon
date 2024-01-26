@@ -1,4 +1,4 @@
-import {POST} from '@/apis/request'
+import { POST } from '@/apis/request'
 import type {
     CreateChatGroupRequest,
     CreateChatGroupResponse,
@@ -15,7 +15,7 @@ import type {
 } from './types'
 
 enum URL {
-    LIST = '/api/v1/chat/group/create',
+    LIST = '/api/v1/chat/group/list',
     SELECT = '/api/v1/chat/group/select',
     UPDATE = '/api/v1/chat/group/update',
     DELETE = '/api/v1/chat/group/delete',

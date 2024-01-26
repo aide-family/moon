@@ -349,7 +349,11 @@ export const rightOptions = (loading: boolean): DataOptionItem[] => [
 
 export const getEndponts = (keyword: string) => {
     return endpointApi
-        .selectEndpoint({ keyword, page: defaultPageReq })
+        .selectEndpoint({
+            keyword,
+            page: defaultPageReq,
+            status: Status.STATUS_ENABLED
+        })
         .then((items) => {
             return items.list.map((item) => {
                 const { value, label, endpoint } = item
