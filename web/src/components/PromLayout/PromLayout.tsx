@@ -8,7 +8,7 @@ import {
 } from 'react'
 
 import { ConfigProvider, Layout, Space, Watermark } from 'antd'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { CopyrightOutlined } from '@ant-design/icons'
 
 import { GlobalContext } from '@/context'
@@ -31,9 +31,9 @@ export type PromLayoutProps = {
 export const LayoutContentID = 'LayoutContent'
 
 const PromLayout: FC<PromLayoutProps> = (props) => {
-    const { user, setLayoutContentElement, setToken, setIntervalId } =
+    const { user, setLayoutContentElement, setToken, token, setIntervalId } =
         useContext(GlobalContext)
-
+    const navigator = useNavigate()
     const { watermark = user?.username } = props
     const [collapsed, setCollapsed] = useState(true)
 
@@ -57,6 +57,9 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
     useEffect(() => {
         // TODO 做路由权限认证
         console.log('TODO 做路由权限认证', local)
+        if (!token) {
+            navigator('/login')
+        }
     }, [local.pathname])
 
     const handleRefreshToken = () => {

@@ -4,7 +4,7 @@ import { createHashRouter, RouterProvider } from 'react-router-dom'
 import zhCN from 'antd/locale/zh_CN'
 
 import Loading from '@/components/Loading'
-import { GlobalContext, GlobalContextType, setToken } from '@/context'
+import { GlobalContext, GlobalContextType } from '@/context'
 import useStorage from '@/utils/storage'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { breadcrumbNameMap, defaultMenuItems } from './menus'
@@ -63,6 +63,7 @@ const Index: React.FC = () => {
     const [spaces, setSpaces] = useStorage<SpaceType[]>('spaces', [])
     const [layoutContentElement, setLayoutContentElement] =
         useState<HTMLElement | null>(null)
+    const [token, setToken, removeToken] = useStorage<string>('token', '')
     const [intervalId, setIntervalId] = useState<any>()
 
     const contextValue: GlobalContextType = {
@@ -78,9 +79,11 @@ const Index: React.FC = () => {
         breadcrumbNameMap: breadcrumbNameMap,
         spaces: spaces,
         setSpaces: setSpaces,
-        setToken: setToken,
         intervalId: intervalId,
-        setIntervalId: setIntervalId
+        setIntervalId: setIntervalId,
+        token: token,
+        setToken: setToken,
+        removeToken: removeToken
     }
 
     return (
