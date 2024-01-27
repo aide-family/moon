@@ -11,6 +11,11 @@
 
 1. 一款基于Prometheus的监控平台，支持多种告警策略，集成告警通知、告警历史、告警图表
 
+* 体验demo
+  > https://prometheus.aide-cloud.cn/
+  > 账号：prometheus
+  > 密码：123456
+
 ## 项目简介
 
 ### PromServer 服务端
