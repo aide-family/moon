@@ -2,13 +2,14 @@ import { FC } from 'react'
 
 import type {
     CheckboxProps,
+    ColorPickerProps,
     DatePickerProps,
     InputProps,
     RadioGroupProps,
     RadioProps,
     SelectProps
 } from 'antd'
-import { Input, Select, Radio, Checkbox, DatePicker } from 'antd'
+import { Input, Select, Radio, Checkbox, DatePicker, ColorPicker } from 'antd'
 import { PasswordProps, TextAreaProps } from 'antd/lib/input'
 import FetchSelect, { FetchSelectProps } from '../FetchSelect'
 import TimeUintInput, { TimeUintInputProps } from '../TimeValue'
@@ -54,6 +55,10 @@ export type DataInputProps =
           | {
                 type: 'textarea'
                 parentProps?: TextAreaProps
+            }
+          | {
+                type: 'color'
+                parentProps?: ColorPickerProps
             }
       ) & {
           width?: number | string
@@ -143,6 +148,16 @@ const DataInput: FC<DataInputProps> = (props) => {
                         value={value}
                         defaultValue={defaultValue}
                         onChange={onChange}
+                        {...parentProps}
+                    />
+                )
+            case 'color':
+                return (
+                    <ColorPicker
+                        allowClear
+                        value={value}
+                        defaultValue={defaultValue}
+                        onChange={(val) => onChange?.(val.toHexString())}
                         {...parentProps}
                     />
                 )

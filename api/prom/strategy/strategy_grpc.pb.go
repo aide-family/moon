@@ -40,6 +40,10 @@ type StrategyClient interface {
 	SelectStrategy(ctx context.Context, in *SelectStrategyRequest, opts ...grpc.CallOption) (*SelectStrategyReply, error)
 	// ExportStrategy 导出策略
 	ExportStrategy(ctx context.Context, in *ExportStrategyRequest, opts ...grpc.CallOption) (*ExportStrategyReply, error)
+	// 获取策略通知对象明细
+	GetStrategyNotifyObject(ctx context.Context, in *GetStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*GetStrategyNotifyObjectReply, error)
+	// 绑定通知对象
+	BindStrategyNotifyObject(ctx context.Context, in *BindStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*BindStrategyNotifyObjectReply, error)
 }
 
 type strategyClient struct {
@@ -131,6 +135,24 @@ func (c *strategyClient) ExportStrategy(ctx context.Context, in *ExportStrategyR
 	return out, nil
 }
 
+func (c *strategyClient) GetStrategyNotifyObject(ctx context.Context, in *GetStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*GetStrategyNotifyObjectReply, error) {
+	out := new(GetStrategyNotifyObjectReply)
+	err := c.cc.Invoke(ctx, "/api.prom.strategy.Strategy/GetStrategyNotifyObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *strategyClient) BindStrategyNotifyObject(ctx context.Context, in *BindStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*BindStrategyNotifyObjectReply, error) {
+	out := new(BindStrategyNotifyObjectReply)
+	err := c.cc.Invoke(ctx, "/api.prom.strategy.Strategy/BindStrategyNotifyObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StrategyServer is the server API for Strategy service.
 // All implementations must embed UnimplementedStrategyServer
 // for forward compatibility
@@ -153,6 +175,10 @@ type StrategyServer interface {
 	SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error)
 	// ExportStrategy 导出策略
 	ExportStrategy(context.Context, *ExportStrategyRequest) (*ExportStrategyReply, error)
+	// 获取策略通知对象明细
+	GetStrategyNotifyObject(context.Context, *GetStrategyNotifyObjectRequest) (*GetStrategyNotifyObjectReply, error)
+	// 绑定通知对象
+	BindStrategyNotifyObject(context.Context, *BindStrategyNotifyObjectRequest) (*BindStrategyNotifyObjectReply, error)
 	mustEmbedUnimplementedStrategyServer()
 }
 
@@ -186,6 +212,12 @@ func (UnimplementedStrategyServer) SelectStrategy(context.Context, *SelectStrate
 }
 func (UnimplementedStrategyServer) ExportStrategy(context.Context, *ExportStrategyRequest) (*ExportStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExportStrategy not implemented")
+}
+func (UnimplementedStrategyServer) GetStrategyNotifyObject(context.Context, *GetStrategyNotifyObjectRequest) (*GetStrategyNotifyObjectReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyNotifyObject not implemented")
+}
+func (UnimplementedStrategyServer) BindStrategyNotifyObject(context.Context, *BindStrategyNotifyObjectRequest) (*BindStrategyNotifyObjectReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindStrategyNotifyObject not implemented")
 }
 func (UnimplementedStrategyServer) mustEmbedUnimplementedStrategyServer() {}
 
@@ -362,6 +394,42 @@ func _Strategy_ExportStrategy_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Strategy_GetStrategyNotifyObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStrategyNotifyObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StrategyServer).GetStrategyNotifyObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.strategy.Strategy/GetStrategyNotifyObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StrategyServer).GetStrategyNotifyObject(ctx, req.(*GetStrategyNotifyObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Strategy_BindStrategyNotifyObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindStrategyNotifyObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StrategyServer).BindStrategyNotifyObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.prom.strategy.Strategy/BindStrategyNotifyObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StrategyServer).BindStrategyNotifyObject(ctx, req.(*BindStrategyNotifyObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Strategy_ServiceDesc is the grpc.ServiceDesc for Strategy service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -404,6 +472,14 @@ var Strategy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportStrategy",
 			Handler:    _Strategy_ExportStrategy_Handler,
+		},
+		{
+			MethodName: "GetStrategyNotifyObject",
+			Handler:    _Strategy_GetStrategyNotifyObject_Handler,
+		},
+		{
+			MethodName: "BindStrategyNotifyObject",
+			Handler:    _Strategy_BindStrategyNotifyObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

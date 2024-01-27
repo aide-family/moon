@@ -1,12 +1,14 @@
 import { POST } from '@/apis/request'
 import {
+    StrategyBindNotifyRequest,
     StrategyCreateRequest,
     StrategyDetailResponse,
     StrategyListRequest,
     StrategyListResponse,
     StrategySelectListRequest,
     StrategySelectListResponse,
-    StrategyUpdateRequest
+    StrategyUpdateRequest,
+    StrategyWithNOtifyItemType
 } from './types'
 import { IdReponse, IdsReponse, Status } from '@/apis/types'
 
@@ -28,7 +30,11 @@ enum URL {
     /** 批量导出策略 */
     BATCH_EXPORT = '/api/v1/strategy/export',
     /** 获取策略列表 */
-    SELECT_LIST = '/api/v1/strategy/select'
+    SELECT_LIST = '/api/v1/strategy/select',
+    /** 获取通知对象明细 */
+    NOTIFY_DETAIL = '/api/v1/strategy/notify/object',
+    /** 绑定通知对象 */
+    BIND_NOTIFY = '/api/v1/strategy/notify/object/bind'
 }
 
 /**
@@ -108,6 +114,24 @@ const getStrategySelectList = (params: StrategySelectListRequest) => {
     return POST<StrategySelectListResponse>(URL.SELECT_LIST, params)
 }
 
+/**
+ * 获取通知对象详情
+ * @param id 策略ID
+ * @returns  通知对象详情
+ */
+const getNotifyDetail = (id: number) => {
+    return POST<StrategyWithNOtifyItemType>(URL.NOTIFY_DETAIL, { id })
+}
+
+/**
+ *  绑定通知对象
+ * @param params
+ * @returns
+ */
+const bindNotify = (params: StrategyBindNotifyRequest) => {
+    return POST<{ id: number }>(URL.BIND_NOTIFY, params)
+}
+
 /** 策略模块API */
 const strategyApi = {
     getStrategyList,
@@ -118,7 +142,9 @@ const strategyApi = {
     batchDeleteStrategy,
     batchChangeStrategyStatus,
     batchExportStrategy,
-    getStrategySelectList
+    getStrategySelectList,
+    getNotifyDetail,
+    bindNotify
 }
 
 export default strategyApi

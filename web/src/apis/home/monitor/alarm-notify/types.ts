@@ -67,12 +67,12 @@ interface NotifyItem {
     name: string
     remark: string
     status: number
-    members: NotifyMember[]
-    chatGroups: ChatGroup[]
+    members?: NotifyMember[]
+    chatGroups?: ChatGroup[]
     createdAt: number
     updatedAt: number
     deletedAt: number
-    externalNotifyObjs: EexternalNotifyObj[]
+    externalNotifyObjs?: EexternalNotifyObj[]
 }
 
 /** 通知对象详情获取请求 */
@@ -178,5 +178,6 @@ export type {
     NotifySelectItem,
     EexternalNotifyObj,
     ExternalCustomer,
-    NotifyMember
+    NotifyMember,
+    ChatGroup
 }

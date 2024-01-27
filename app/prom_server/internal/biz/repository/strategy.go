@@ -32,12 +32,18 @@ type (
 		ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error)
 		// List 获取策略列表
 		List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error)
+		// BindStrategyNotifyObject 绑定策略和通知对象
+		BindStrategyNotifyObject(ctx context.Context, strategyBo *bo.StrategyBO, notifyBo []*bo.NotifyBO) error
 	}
 
 	UnimplementedStrategyRepo struct{}
 )
 
 func (UnimplementedStrategyRepo) mustEmbedUnimplemented() {}
+
+func (UnimplementedStrategyRepo) BindStrategyNotifyObject(_ context.Context, _ *bo.StrategyBO, _ []*bo.NotifyBO) error {
+	return status.Error(codes.Unimplemented, "method BindStrategyNotifyObject not implemented")
+}
 
 func (UnimplementedStrategyRepo) List(_ context.Context, _ ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")

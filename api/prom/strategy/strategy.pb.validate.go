@@ -3117,3 +3117,534 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ExportStrategyReplyValidationError{}
+
+// Validate checks the field values on GetStrategyNotifyObjectRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetStrategyNotifyObjectRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetStrategyNotifyObjectRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetStrategyNotifyObjectRequestMultiError, or nil if none found.
+func (m *GetStrategyNotifyObjectRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetStrategyNotifyObjectRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() <= 0 {
+		err := GetStrategyNotifyObjectRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetStrategyNotifyObjectRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetStrategyNotifyObjectRequestMultiError is an error wrapping multiple
+// validation errors returned by GetStrategyNotifyObjectRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetStrategyNotifyObjectRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetStrategyNotifyObjectRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetStrategyNotifyObjectRequestMultiError) AllErrors() []error { return m }
+
+// GetStrategyNotifyObjectRequestValidationError is the validation error
+// returned by GetStrategyNotifyObjectRequest.Validate if the designated
+// constraints aren't met.
+type GetStrategyNotifyObjectRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetStrategyNotifyObjectRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetStrategyNotifyObjectRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetStrategyNotifyObjectRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetStrategyNotifyObjectRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetStrategyNotifyObjectRequestValidationError) ErrorName() string {
+	return "GetStrategyNotifyObjectRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetStrategyNotifyObjectRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetStrategyNotifyObjectRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetStrategyNotifyObjectRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetStrategyNotifyObjectRequestValidationError{}
+
+// Validate checks the field values on GetStrategyNotifyObjectReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetStrategyNotifyObjectReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetStrategyNotifyObjectReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetStrategyNotifyObjectReplyMultiError, or nil if none found.
+func (m *GetStrategyNotifyObjectReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetStrategyNotifyObjectReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetDetail()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetStrategyNotifyObjectReplyValidationError{
+					field:  "Detail",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetStrategyNotifyObjectReplyValidationError{
+					field:  "Detail",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDetail()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetStrategyNotifyObjectReplyValidationError{
+				field:  "Detail",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetNotifyObjectList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetStrategyNotifyObjectReplyValidationError{
+						field:  fmt.Sprintf("NotifyObjectList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetStrategyNotifyObjectReplyValidationError{
+						field:  fmt.Sprintf("NotifyObjectList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetStrategyNotifyObjectReplyValidationError{
+					field:  fmt.Sprintf("NotifyObjectList[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetStrategyNotifyObjectReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetStrategyNotifyObjectReplyMultiError is an error wrapping multiple
+// validation errors returned by GetStrategyNotifyObjectReply.ValidateAll() if
+// the designated constraints aren't met.
+type GetStrategyNotifyObjectReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetStrategyNotifyObjectReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetStrategyNotifyObjectReplyMultiError) AllErrors() []error { return m }
+
+// GetStrategyNotifyObjectReplyValidationError is the validation error returned
+// by GetStrategyNotifyObjectReply.Validate if the designated constraints
+// aren't met.
+type GetStrategyNotifyObjectReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetStrategyNotifyObjectReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetStrategyNotifyObjectReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetStrategyNotifyObjectReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetStrategyNotifyObjectReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetStrategyNotifyObjectReplyValidationError) ErrorName() string {
+	return "GetStrategyNotifyObjectReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetStrategyNotifyObjectReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetStrategyNotifyObjectReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetStrategyNotifyObjectReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetStrategyNotifyObjectReplyValidationError{}
+
+// Validate checks the field values on BindStrategyNotifyObjectRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BindStrategyNotifyObjectRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BindStrategyNotifyObjectRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BindStrategyNotifyObjectRequestMultiError, or nil if none found.
+func (m *BindStrategyNotifyObjectRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BindStrategyNotifyObjectRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() <= 0 {
+		err := BindStrategyNotifyObjectRequestValidationError{
+			field:  "Id",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetNotifyObjectIds()) < 1 {
+		err := BindStrategyNotifyObjectRequestValidationError{
+			field:  "NotifyObjectIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_BindStrategyNotifyObjectRequest_NotifyObjectIds_Unique := make(map[uint32]struct{}, len(m.GetNotifyObjectIds()))
+
+	for idx, item := range m.GetNotifyObjectIds() {
+		_, _ = idx, item
+
+		if _, exists := _BindStrategyNotifyObjectRequest_NotifyObjectIds_Unique[item]; exists {
+			err := BindStrategyNotifyObjectRequestValidationError{
+				field:  fmt.Sprintf("NotifyObjectIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_BindStrategyNotifyObjectRequest_NotifyObjectIds_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for NotifyObjectIds[idx]
+	}
+
+	if len(errors) > 0 {
+		return BindStrategyNotifyObjectRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BindStrategyNotifyObjectRequestMultiError is an error wrapping multiple
+// validation errors returned by BindStrategyNotifyObjectRequest.ValidateAll()
+// if the designated constraints aren't met.
+type BindStrategyNotifyObjectRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BindStrategyNotifyObjectRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BindStrategyNotifyObjectRequestMultiError) AllErrors() []error { return m }
+
+// BindStrategyNotifyObjectRequestValidationError is the validation error
+// returned by BindStrategyNotifyObjectRequest.Validate if the designated
+// constraints aren't met.
+type BindStrategyNotifyObjectRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BindStrategyNotifyObjectRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BindStrategyNotifyObjectRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BindStrategyNotifyObjectRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BindStrategyNotifyObjectRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BindStrategyNotifyObjectRequestValidationError) ErrorName() string {
+	return "BindStrategyNotifyObjectRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BindStrategyNotifyObjectRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBindStrategyNotifyObjectRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BindStrategyNotifyObjectRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BindStrategyNotifyObjectRequestValidationError{}
+
+// Validate checks the field values on BindStrategyNotifyObjectReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BindStrategyNotifyObjectReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BindStrategyNotifyObjectReply with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BindStrategyNotifyObjectReplyMultiError, or nil if none found.
+func (m *BindStrategyNotifyObjectReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BindStrategyNotifyObjectReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return BindStrategyNotifyObjectReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// BindStrategyNotifyObjectReplyMultiError is an error wrapping multiple
+// validation errors returned by BindStrategyNotifyObjectReply.ValidateAll()
+// if the designated constraints aren't met.
+type BindStrategyNotifyObjectReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BindStrategyNotifyObjectReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BindStrategyNotifyObjectReplyMultiError) AllErrors() []error { return m }
+
+// BindStrategyNotifyObjectReplyValidationError is the validation error
+// returned by BindStrategyNotifyObjectReply.Validate if the designated
+// constraints aren't met.
+type BindStrategyNotifyObjectReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BindStrategyNotifyObjectReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BindStrategyNotifyObjectReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BindStrategyNotifyObjectReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BindStrategyNotifyObjectReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BindStrategyNotifyObjectReplyValidationError) ErrorName() string {
+	return "BindStrategyNotifyObjectReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BindStrategyNotifyObjectReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBindStrategyNotifyObjectReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BindStrategyNotifyObjectReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BindStrategyNotifyObjectReplyValidationError{}

@@ -21,10 +21,12 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationStrategyBatchDeleteStrategy = "/api.prom.strategy.Strategy/BatchDeleteStrategy"
 const OperationStrategyBatchUpdateStrategyStatus = "/api.prom.strategy.Strategy/BatchUpdateStrategyStatus"
+const OperationStrategyBindStrategyNotifyObject = "/api.prom.strategy.Strategy/BindStrategyNotifyObject"
 const OperationStrategyCreateStrategy = "/api.prom.strategy.Strategy/CreateStrategy"
 const OperationStrategyDeleteStrategy = "/api.prom.strategy.Strategy/DeleteStrategy"
 const OperationStrategyExportStrategy = "/api.prom.strategy.Strategy/ExportStrategy"
 const OperationStrategyGetStrategy = "/api.prom.strategy.Strategy/GetStrategy"
+const OperationStrategyGetStrategyNotifyObject = "/api.prom.strategy.Strategy/GetStrategyNotifyObject"
 const OperationStrategyListStrategy = "/api.prom.strategy.Strategy/ListStrategy"
 const OperationStrategySelectStrategy = "/api.prom.strategy.Strategy/SelectStrategy"
 const OperationStrategyUpdateStrategy = "/api.prom.strategy.Strategy/UpdateStrategy"
@@ -32,10 +34,12 @@ const OperationStrategyUpdateStrategy = "/api.prom.strategy.Strategy/UpdateStrat
 type StrategyHTTPServer interface {
 	BatchDeleteStrategy(context.Context, *BatchDeleteStrategyRequest) (*BatchDeleteStrategyReply, error)
 	BatchUpdateStrategyStatus(context.Context, *BatchUpdateStrategyStatusRequest) (*BatchUpdateStrategyStatusReply, error)
+	BindStrategyNotifyObject(context.Context, *BindStrategyNotifyObjectRequest) (*BindStrategyNotifyObjectReply, error)
 	CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error)
 	DeleteStrategy(context.Context, *DeleteStrategyRequest) (*DeleteStrategyReply, error)
 	ExportStrategy(context.Context, *ExportStrategyRequest) (*ExportStrategyReply, error)
 	GetStrategy(context.Context, *GetStrategyRequest) (*GetStrategyReply, error)
+	GetStrategyNotifyObject(context.Context, *GetStrategyNotifyObjectRequest) (*GetStrategyNotifyObjectReply, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error)
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
@@ -52,6 +56,8 @@ func RegisterStrategyHTTPServer(s *http.Server, srv StrategyHTTPServer) {
 	r.POST("/api/v1/strategy/list", _Strategy_ListStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/select", _Strategy_SelectStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/export", _Strategy_ExportStrategy0_HTTP_Handler(srv))
+	r.POST("/api/v1/strategy/notify/object", _Strategy_GetStrategyNotifyObject0_HTTP_Handler(srv))
+	r.POST("/api/v1/strategy/notify/object/bind", _Strategy_BindStrategyNotifyObject0_HTTP_Handler(srv))
 }
 
 func _Strategy_CreateStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
@@ -225,13 +231,53 @@ func _Strategy_ExportStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx htt
 	}
 }
 
+func _Strategy_GetStrategyNotifyObject0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetStrategyNotifyObjectRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStrategyGetStrategyNotifyObject)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetStrategyNotifyObject(ctx, req.(*GetStrategyNotifyObjectRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetStrategyNotifyObjectReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Strategy_BindStrategyNotifyObject0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BindStrategyNotifyObjectRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStrategyBindStrategyNotifyObject)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BindStrategyNotifyObject(ctx, req.(*BindStrategyNotifyObjectRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BindStrategyNotifyObjectReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type StrategyHTTPClient interface {
 	BatchDeleteStrategy(ctx context.Context, req *BatchDeleteStrategyRequest, opts ...http.CallOption) (rsp *BatchDeleteStrategyReply, err error)
 	BatchUpdateStrategyStatus(ctx context.Context, req *BatchUpdateStrategyStatusRequest, opts ...http.CallOption) (rsp *BatchUpdateStrategyStatusReply, err error)
+	BindStrategyNotifyObject(ctx context.Context, req *BindStrategyNotifyObjectRequest, opts ...http.CallOption) (rsp *BindStrategyNotifyObjectReply, err error)
 	CreateStrategy(ctx context.Context, req *CreateStrategyRequest, opts ...http.CallOption) (rsp *CreateStrategyReply, err error)
 	DeleteStrategy(ctx context.Context, req *DeleteStrategyRequest, opts ...http.CallOption) (rsp *DeleteStrategyReply, err error)
 	ExportStrategy(ctx context.Context, req *ExportStrategyRequest, opts ...http.CallOption) (rsp *ExportStrategyReply, err error)
 	GetStrategy(ctx context.Context, req *GetStrategyRequest, opts ...http.CallOption) (rsp *GetStrategyReply, err error)
+	GetStrategyNotifyObject(ctx context.Context, req *GetStrategyNotifyObjectRequest, opts ...http.CallOption) (rsp *GetStrategyNotifyObjectReply, err error)
 	ListStrategy(ctx context.Context, req *ListStrategyRequest, opts ...http.CallOption) (rsp *ListStrategyReply, err error)
 	SelectStrategy(ctx context.Context, req *SelectStrategyRequest, opts ...http.CallOption) (rsp *SelectStrategyReply, err error)
 	UpdateStrategy(ctx context.Context, req *UpdateStrategyRequest, opts ...http.CallOption) (rsp *UpdateStrategyReply, err error)
@@ -263,6 +309,19 @@ func (c *StrategyHTTPClientImpl) BatchUpdateStrategyStatus(ctx context.Context, 
 	pattern := "/api/v1/strategy/status/batch/update"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategyBatchUpdateStrategyStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *StrategyHTTPClientImpl) BindStrategyNotifyObject(ctx context.Context, in *BindStrategyNotifyObjectRequest, opts ...http.CallOption) (*BindStrategyNotifyObjectReply, error) {
+	var out BindStrategyNotifyObjectReply
+	pattern := "/api/v1/strategy/notify/object/bind"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationStrategyBindStrategyNotifyObject))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -315,6 +374,19 @@ func (c *StrategyHTTPClientImpl) GetStrategy(ctx context.Context, in *GetStrateg
 	pattern := "/api/v1/strategy/detail"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategyGetStrategy))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *StrategyHTTPClientImpl) GetStrategyNotifyObject(ctx context.Context, in *GetStrategyNotifyObjectRequest, opts ...http.CallOption) (*GetStrategyNotifyObjectReply, error) {
+	var out GetStrategyNotifyObjectReply
+	pattern := "/api/v1/strategy/notify/object"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationStrategyGetStrategyNotifyObject))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
