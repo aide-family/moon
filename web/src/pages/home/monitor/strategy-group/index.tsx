@@ -20,7 +20,7 @@ import {
 } from '@/apis/home/monitor/strategy-group/types'
 import EditGroupModal from './child/EditGroupModal'
 import { Status } from '@/apis/types'
-import Detail from './child/Detail'
+// import Detail from './child/Detail'
 
 const defaultPadding = 12
 
@@ -35,7 +35,7 @@ const StrategyGroup: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
-    const [openDetail, setOpenDetail] = useState<boolean>(false)
+    // const [openDetail, setOpenDetail] = useState<boolean>(false)
     const [search, setSearch] = useState<StrategyGroupListRequest>(
         defaultStrategyGroupListRequest
     )
@@ -55,12 +55,12 @@ const StrategyGroup: React.FC = () => {
     }
 
     const handlerOpenDetail = () => {
-        setOpenDetail(true)
+        // setOpenDetail(true)
     }
 
-    const handlerCloseDetail = () => {
-        setOpenDetail(false)
-    }
+    // const handlerCloseDetail = () => {
+    //     setOpenDetail(false)
+    // }
 
     const handleOpenEditModal = (record?: StrategyGroupItemType) => {
         setEditItem(record)
@@ -175,7 +175,7 @@ const StrategyGroup: React.FC = () => {
 
     return (
         <div className="bodyContent">
-            <Detail open={openDetail} onClose={handlerCloseDetail} id="1" />
+            {/* <Detail open={openDetail} onClose={handlerCloseDetail} id="1" /> */}
             <EditGroupModal
                 open={openEditModal}
                 onCancel={handleCloseEditModal}
