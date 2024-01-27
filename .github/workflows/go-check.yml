@@ -21,6 +21,11 @@ jobs:
       with:
         go-version: '1.20'
 
-    - name: Build
-      run: make build
+    - name: Build server
+      run: make docker-build app=app/prom_server
 
+    - name: Build agent
+      run: make docker-build app=app/prom_agent
+
+    - name: Build web
+      run: make docker-build-web
