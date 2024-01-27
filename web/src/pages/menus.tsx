@@ -24,10 +24,10 @@ export const defaultMenuItems: ItemType[] = [
                 label: '字典管理',
                 key: '/home/system/dict'
             },
-            {
-                label: '菜单管理',
-                key: '/home/system/menu'
-            },
+            // {
+            //     label: '菜单管理',
+            //     key: '/home/system/menu'
+            // },
             {
                 label: '权限管理',
                 key: '/home/system/auth'
@@ -35,67 +35,67 @@ export const defaultMenuItems: ItemType[] = [
         ]
     },
 
-    {
-        label: '客户管理',
-        key: '/home/customer',
-        icon: <IconFont type="icon-kehuguanli" />,
-        children: [
-            {
-                label: '客户列表',
-                key: '/home/customer/list'
-            },
-            {
-                label: '供应商',
-                key: '/home/customer/supplier'
-            }
-        ]
-    },
-    {
-        label: '资源管理',
-        key: '/home/resource',
-        icon: <IconFont type="icon-zichanguanli" />,
-        children: [
-            {
-                label: '设备列表',
-                key: '/home/resource/device'
-            },
-            {
-                label: '节点列表',
-                key: '/home/resource/node'
-            },
-            {
-                label: '账号列表',
-                key: '/home/resource/account'
-            }
-        ]
-    },
-    {
-        label: '流程管理',
-        key: '/home/flow',
-        icon: <IconFont type="icon-bpm" />,
-        children: [
-            {
-                label: '流程模板',
-                key: '/home/flow/template'
-            },
-            {
-                label: '流程实例',
-                key: '/home/flow/instance'
-            },
-            {
-                label: '任务大厅',
-                key: '/home/flow/task'
-            },
-            {
-                label: '我的任务',
-                key: '/home/flow/mytask'
-            },
-            {
-                label: '流程表单',
-                key: '/home/home/flow/form'
-            }
-        ]
-    },
+    // {
+    //     label: '客户管理',
+    //     key: '/home/customer',
+    //     icon: <IconFont type="icon-kehuguanli" />,
+    //     children: [
+    //         {
+    //             label: '客户列表',
+    //             key: '/home/customer/list'
+    //         },
+    //         {
+    //             label: '供应商',
+    //             key: '/home/customer/supplier'
+    //         }
+    //     ]
+    // },
+    // {
+    //     label: '资源管理',
+    //     key: '/home/resource',
+    //     icon: <IconFont type="icon-zichanguanli" />,
+    //     children: [
+    //         {
+    //             label: '设备列表',
+    //             key: '/home/resource/device'
+    //         },
+    //         {
+    //             label: '节点列表',
+    //             key: '/home/resource/node'
+    //         },
+    //         {
+    //             label: '账号列表',
+    //             key: '/home/resource/account'
+    //         }
+    //     ]
+    // },
+    // {
+    //     label: '流程管理',
+    //     key: '/home/flow',
+    //     icon: <IconFont type="icon-bpm" />,
+    //     children: [
+    //         {
+    //             label: '流程模板',
+    //             key: '/home/flow/template'
+    //         },
+    //         {
+    //             label: '流程实例',
+    //             key: '/home/flow/instance'
+    //         },
+    //         {
+    //             label: '任务大厅',
+    //             key: '/home/flow/task'
+    //         },
+    //         {
+    //             label: '我的任务',
+    //             key: '/home/flow/mytask'
+    //         },
+    //         {
+    //             label: '流程表单',
+    //             key: '/home/home/flow/form'
+    //         }
+    //     ]
+    // },
     {
         label: '监控',
         key: '/home/monitor',
