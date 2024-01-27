@@ -20,7 +20,7 @@ import {
 } from '@/apis/home/monitor/strategy-group/types'
 import EditGroupModal from './child/EditGroupModal'
 import { Status } from '@/apis/types'
-import { Detail } from './child/Detail'
+import Detail from './child/Detail'
 
 const defaultPadding = 12
 
