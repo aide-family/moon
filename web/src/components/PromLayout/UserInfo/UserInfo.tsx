@@ -8,7 +8,7 @@ import { IconFont } from '@/components/IconFont/IconFont'
 import { GlobalContext, removeToken } from '@/context'
 
 const UserInfo: FC = () => {
-    const { user } = useContext(GlobalContext)
+    const { user, intervalId } = useContext(GlobalContext)
     const navigate = useNavigate()
 
     const items: MenuProps['items'] = [
@@ -40,6 +40,7 @@ const UserInfo: FC = () => {
     const handleMenuOnClick: MenuProps['onClick'] = ({ key }) => {
         switch (key) {
             case 'self-logout':
+                clearInterval(intervalId)
                 removeToken()
                 navigate('/login')
                 break

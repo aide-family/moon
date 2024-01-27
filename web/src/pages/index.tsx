@@ -63,6 +63,7 @@ const Index: React.FC = () => {
     const [spaces, setSpaces] = useStorage<SpaceType[]>('spaces', [])
     const [layoutContentElement, setLayoutContentElement] =
         useState<HTMLElement | null>(null)
+    const [intervalId, setIntervalId] = useState<any>()
 
     const contextValue: GlobalContextType = {
         size: size,
@@ -77,7 +78,9 @@ const Index: React.FC = () => {
         breadcrumbNameMap: breadcrumbNameMap,
         spaces: spaces,
         setSpaces: setSpaces,
-        setToken: setToken
+        setToken: setToken,
+        intervalId: intervalId,
+        setIntervalId: setIntervalId
     }
 
     return (

@@ -11,3 +11,8 @@ export type LoginRes = {
     token: string
     user: UserListItem
 }
+
+export type RefreshTokenResponse = {
+    token: string
+    user: UserListItem
+}
