@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/helper/middler"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -30,7 +31,8 @@ type notifyRepoImpl struct {
 
 func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.NotifyBO, error) {
 	var notifyDetail do.PromAlarmNotify
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&notifyDetail).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).First(&notifyDetail).Error; err != nil {
 		return nil, err
 	}
 
@@ -39,7 +41,8 @@ func (l *notifyRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMeth
 
 func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*do.PromAlarmNotify
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&notifyList).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).Find(&notifyList).Error; err != nil {
 		return nil, err
 	}
 
@@ -50,7 +53,8 @@ func (l *notifyRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMet
 
 func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error) {
 	var total int64
-	if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmNotify{}).Scopes(scopes...).Count(&total).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmNotify{}).Scopes(whereList...).Count(&total).Error; err != nil {
 		return 0, err
 	}
 	return total, nil
@@ -58,12 +62,13 @@ func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...basescopes.ScopeMe
 
 func (l *notifyRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*do.PromAlarmNotify
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&notifyList).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&notifyList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmNotify{}).Scopes(scopes...).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmNotify{}).Scopes(whereList...).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
@@ -78,6 +83,7 @@ func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.N
 	newNotify := notify.ToModel()
 	chatGroupModels := slices.To(notify.GetChatGroups(), func(i *bo.ChatGroupBO) *do.PromAlarmChatGroup { return i.ToModel() })
 	notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember { return i.ToModel() })
+	newNotify.CreateBy = middler.GetUserId(ctx)
 	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(newNotify).Create(newNotify).Error; err != nil {
 			return err
@@ -98,19 +104,20 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
 	newModel := notify.ToModel()
 	chatGroupModels := slices.To(notify.GetChatGroups(), func(i *bo.ChatGroupBO) *do.PromAlarmChatGroup { return i.ToModel() })
 	notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember { return i.ToModel() })
 	return l.data.DB().Model(newModel).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(newModel).Scopes(scopes...).Updates(newModel).Error; err != nil {
+		if err := tx.Model(newModel).Scopes(whereList...).Updates(newModel).Error; err != nil {
 			l.log.Warnf("update notify error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
+		if err := tx.Model(newModel).Scopes(whereList...).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
 			l.log.Warnf("update notify chat group error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
+		if err := tx.Model(newModel).Scopes(whereList...).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
 			l.log.Warnf("update notify member error: %v", err)
 			return err
 		}
@@ -122,8 +129,8 @@ func (l *notifyRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeM
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
-
-	return l.data.DB().WithContext(ctx).Scopes(scopes...).Delete(&do.PromAlarmNotify{}).Error
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	return l.data.DB().WithContext(ctx).Scopes(whereList...).Delete(&do.PromAlarmNotify{}).Error
 }
 
 func NewNotifyRepo(d *data.Data, logger log.Logger) repository.NotifyRepo {

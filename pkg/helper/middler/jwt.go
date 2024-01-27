@@ -88,6 +88,24 @@ func GetAuthClaims(ctx context.Context) (*AuthClaims, bool) {
 	return authClaims, true
 }
 
+// GetUserId get user id
+func GetUserId(ctx context.Context) uint32 {
+	claims, ok := GetAuthClaims(ctx)
+	if !ok {
+		return 0
+	}
+	return claims.ID
+}
+
+// GetRoleId get role id
+func GetRoleId(ctx context.Context) string {
+	claims, ok := GetAuthClaims(ctx)
+	if !ok {
+		return ""
+	}
+	return claims.Role
+}
+
 // IssueToken issue token
 func IssueToken(id uint32, role string) (string, error) {
 	return IssueTokenWithDuration(id, role, time.Hour*24)

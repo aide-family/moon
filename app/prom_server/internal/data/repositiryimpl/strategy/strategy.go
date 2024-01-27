@@ -6,6 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/helper/middler"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -42,7 +43,8 @@ func (l *strategyRepoImpl) BindStrategyNotifyObject(ctx context.Context, strateg
 
 func (l *strategyRepoImpl) List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	var modelList []*do.PromStrategy
-	if err := l.data.DB().WithContext(ctx).Scopes(wheres...).Find(&modelList).Error; err != nil {
+	whereList := append(wheres, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).Find(&modelList).Error; err != nil {
 		return nil, err
 	}
 	list := slices.To(modelList, func(item *do.PromStrategy) *bo.StrategyBO {
@@ -53,7 +55,11 @@ func (l *strategyRepoImpl) List(ctx context.Context, wheres ...basescopes.ScopeM
 
 func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error) {
 	modelList := make([]*do.PromStrategy, 0, len(ids))
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Find(&modelList).Error; err != nil {
+	whereList := []basescopes.ScopeMethod{
+		basescopes.InIds(ids...),
+		basescopes.WithCreateBy(ctx),
+	}
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).Find(&modelList).Error; err != nil {
 		return nil, err
 	}
 
@@ -77,6 +83,7 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 			BaseModel: do.BaseModel{ID: categoryId},
 		}
 	})
+	newStrategy.CreateBy = middler.GetUserId(ctx)
 
 	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
@@ -220,9 +227,13 @@ func (l *strategyRepoImpl) getStrategyGroupIdsByStrategyIds(ctx context.Context,
 	// 查询规则组ID列表
 	var groupIds []uint32
 	field := basescopes.StrategyTableFieldGroupID.String()
+	whereList := []basescopes.ScopeMethod{
+		basescopes.InIds(ids...),
+		basescopes.WithCreateBy(ctx),
+	}
 	if err := l.data.DB().WithContext(ctx).
 		Model(&do.PromStrategy{}).
-		Scopes(basescopes.InIds(ids...)).
+		Scopes(whereList...).
 		Select(field).
 		Pluck(field, &groupIds).Error; err != nil {
 		return nil, err
@@ -236,10 +247,14 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 	if err != nil {
 		return err
 	}
+	whereList := []basescopes.ScopeMethod{
+		basescopes.InIds(groupIds...),
+		basescopes.WithCreateBy(ctx),
+	}
 
 	err = l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
-		if err = tx.WithContext(txCtx).Scopes(basescopes.InIds(ids...)).Delete(&do.PromStrategy{}).Error; err != nil {
+		if err = tx.WithContext(txCtx).Scopes(whereList...).Delete(&do.PromStrategy{}).Error; err != nil {
 			return err
 		}
 
@@ -269,7 +284,8 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 }
 
 func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*bo.StrategyBO, error) {
-	firstStrategy, err := l.getStrategyById(ctx, id, wheres...)
+	whereList := append(wheres, basescopes.WithCreateBy(ctx))
+	firstStrategy, err := l.getStrategyById(ctx, id, whereList...)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +294,8 @@ func (l *strategyRepoImpl) GetStrategyById(ctx context.Context, id uint32, where
 
 func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*do.PromStrategy, error) {
 	var first do.PromStrategy
-	if err := l.data.DB().WithContext(ctx).Scopes(append(wheres, basescopes.InIds(id))...).First(&first).Error; err != nil {
+	whereList := append(wheres, basescopes.WithCreateBy(ctx), basescopes.InIds(id))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).First(&first).Error; err != nil {
 		return nil, err
 	}
 	return &first, nil
@@ -286,13 +303,13 @@ func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, where
 
 func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	var listStrategy []*do.PromStrategy
-
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&do.PromStrategy{}).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromStrategy{}).Scopes(whereList...).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
