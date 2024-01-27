@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/middler"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -29,6 +30,7 @@ type chatGroupRepoImpl struct {
 
 func (l *chatGroupRepoImpl) Create(ctx context.Context, chatGroup *bo.ChatGroupBO) (*bo.ChatGroupBO, error) {
 	newChatGroup := chatGroup.ToModel()
+	newChatGroup.CreateBy = middler.GetUserId(ctx)
 	if err := l.data.DB().WithContext(ctx).Create(newChatGroup).Error; err != nil {
 		return nil, err
 	}
@@ -37,7 +39,8 @@ func (l *chatGroupRepoImpl) Create(ctx context.Context, chatGroup *bo.ChatGroupB
 
 func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.ChatGroupBO, error) {
 	var chatGroupDetail do.PromAlarmChatGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&chatGroupDetail).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).First(&chatGroupDetail).Error; err != nil {
 		return nil, err
 	}
 
@@ -46,7 +49,8 @@ func (l *chatGroupRepoImpl) Get(ctx context.Context, scopes ...basescopes.ScopeM
 
 func (l *chatGroupRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	var chatGroupList []*do.PromAlarmChatGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&chatGroupList).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(whereList...).Find(&chatGroupList).Error; err != nil {
 		return nil, err
 	}
 	list := slices.To(chatGroupList, func(i *do.PromAlarmChatGroup) *bo.ChatGroupBO {
@@ -59,24 +63,27 @@ func (l *chatGroupRepoImpl) Update(ctx context.Context, chatGroup *bo.ChatGroupB
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
-	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(chatGroup.ToModel()).Error
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	return l.data.DB().WithContext(ctx).Scopes(whereList...).Updates(chatGroup.ToModel()).Error
 }
 
 func (l *chatGroupRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
-	return l.data.DB().WithContext(ctx).Scopes(scopes...).Delete(&do.PromAlarmChatGroup{}).Error
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	return l.data.DB().WithContext(ctx).Scopes(whereList...).Delete(&do.PromAlarmChatGroup{}).Error
 }
 
 func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	var chatGroupList []*do.PromAlarmChatGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&chatGroupList).Error; err != nil {
+	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&chatGroupList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Model(&do.PromAlarmChatGroup{}).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Scopes(whereList...).Model(&do.PromAlarmChatGroup{}).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)

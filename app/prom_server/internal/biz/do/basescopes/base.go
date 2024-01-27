@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -19,6 +20,7 @@ const (
 	BaseFieldDeletedAt Field = "deleted_at"
 	BaseFieldStatus    Field = "status"
 	BaseFieldName      Field = "name"
+	BaseFieldCreateBy  Field = "create_by"
 )
 
 // String string
@@ -189,5 +191,17 @@ func WhereLikeKeyword(keyword string, columns ...Field) ScopeMethod {
 func BetweenColumn(column Field, min, max any) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where(column.Format(BETWEEN, "?", AND, "?").String(), min, max)
+	}
+}
+
+// WithCreateBy 创建人查询
+func WithCreateBy(ctx context.Context) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		roleId := middler.GetRoleId(ctx)
+		if roleId == "1" {
+			return db
+		}
+		userId := middler.GetUserId(ctx)
+		return db.Where(BaseFieldCreateBy.String(), userId)
 	}
 }

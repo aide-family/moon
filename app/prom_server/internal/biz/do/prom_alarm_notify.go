@@ -16,6 +16,8 @@ type PromAlarmNotify struct {
 	BeNotifyMembers []*PromAlarmNotifyMember `gorm:"comment:被通知成员"`
 	// 外部体系通知对象(不在用户体系内的人和hook), 多对多
 	ExternalNotifyObjs []*ExternalNotifyObj `gorm:"many2many:prom_alarm_notify_external_notify_objs;comment:外部体系通知对象"`
+	// 创建人ID
+	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
 }
 
 func (*PromAlarmNotify) TableName() string {

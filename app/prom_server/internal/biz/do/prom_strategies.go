@@ -42,6 +42,9 @@ type PromStrategy struct {
 	// 数据源
 	EndpointID uint32    `gorm:"column:endpoint_id;type:int unsigned;not null;default:0;comment:数据源ID" json:"endpoint_id"`
 	Endpoint   *Endpoint `gorm:"foreignKey:EndpointID" json:"-"`
+
+	// 创建人ID
+	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
 }
 
 // TableName PromStrategy's table name
