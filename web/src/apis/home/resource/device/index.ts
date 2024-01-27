@@ -1,7 +1,7 @@
 import { GET, POST, PostForm } from '@/apis/request'
 import { EquipmentAddReq, EquipmentListItem, EquipmentListReq } from './types'
 import { Callback, PageRes, Response } from '@/apis/types'
-import { getSpaceID } from '@/context'
+
 enum URL {
     equipmentPage = '/assets/equipment/v1/select/page',
     equipmentAdd = '/assets/equipment/v1/insert',
@@ -34,8 +34,7 @@ const AddEquipment = async (
 ) => {
     call?.setLoading?.(true)
     const response = await POST<Response>(URL.equipmentAdd, {
-        ...params,
-        space_instance: getSpaceID()
+        ...params
     })
     call?.setLoading?.(false)
     if (response?.code !== 0) {
@@ -54,7 +53,6 @@ const UpdateEquipment = async (
     call?.setLoading?.(true)
     const response = await POST<Response>(URL.equipmentUpdate, {
         ...params,
-        space_instance: getSpaceID(),
         id
     })
     call?.setLoading?.(false)
@@ -88,8 +86,7 @@ const GetEquipmentDetail = async (id: string, call?: Callback) => {
 
 const DeleteEquipment = async (id: string) => {
     const response = await PostForm<Response>(URL.equipmentDelete, {
-        id,
-        space_instance: getSpaceID()
+        id
     })
     if (response?.code !== 0) {
         return Promise.reject(response.message)

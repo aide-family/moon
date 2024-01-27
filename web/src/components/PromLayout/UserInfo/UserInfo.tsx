@@ -5,10 +5,10 @@ import type { MenuProps } from 'antd'
 import { Avatar, Dropdown } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { GlobalContext, removeToken } from '@/context'
+import { GlobalContext } from '@/context'
 
 const UserInfo: FC = () => {
-    const { user, intervalId } = useContext(GlobalContext)
+    const { user, intervalId, removeToken } = useContext(GlobalContext)
     const navigate = useNavigate()
 
     const items: MenuProps['items'] = [
@@ -41,7 +41,7 @@ const UserInfo: FC = () => {
         switch (key) {
             case 'self-logout':
                 clearInterval(intervalId)
-                removeToken()
+                removeToken?.()
                 navigate('/login')
                 break
         }

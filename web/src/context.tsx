@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import type { ItemType } from 'antd/es/menu/hooks/useItems'
-import type { SpaceType, UserType } from './pages'
+import type { SpaceType } from './pages'
 import { UserListItem } from './apis/home/system/user/types'
 
 export type GlobalContextType = {
@@ -22,6 +22,8 @@ export type GlobalContextType = {
     spaces?: SpaceType[]
     setSpaces?: (spaces: SpaceType[]) => void
     setToken?: (token: string) => void
+    token?: string
+    removeToken?: () => void
     intervalId?: any
     setIntervalId?: (intervalId: any) => void
 }
@@ -32,36 +34,35 @@ export const GlobalContext = createContext<GlobalContextType>({
     theme: 'light',
     setTheme: () => {},
     size: 'middle',
-    setSize: () => {},
-    setToken: setToken
+    setSize: () => {}
 })
 
-const tokenKey = 'token'
+// const tokenKey = 'token'
 
-export function getToken() {
-    return localStorage.getItem(tokenKey) || ''
-}
+// export function getToken() {
+//     return localStorage.getItem(tokenKey) || ''
+// }
 
-export function setToken(token: string) {
-    localStorage.setItem(tokenKey, token)
-}
+// export function setToken(token: string) {
+//     localStorage.setItem(tokenKey, token)
+// }
 
-export function removeToken() {
-    localStorage.removeItem(tokenKey)
-}
+// export function removeToken() {
+//     localStorage.removeItem(tokenKey)
+// }
 
-export function getSpaceID() {
-    return localStorage.getItem('spaceId') || ''
-}
+// export function getSpaceID() {
+//     return localStorage.getItem('spaceId') || ''
+// }
 
-export function setSpaceID(spaceId: string) {
-    localStorage.setItem('spaceId', spaceId)
-}
+// export function setSpaceID(spaceId: string) {
+//     localStorage.setItem('spaceId', spaceId)
+// }
 
-export function setUserInfo(userInfo: UserType) {
-    localStorage.setItem('user', JSON.stringify(userInfo))
-}
+// export function setUserInfo(userInfo: UserType) {
+//     localStorage.setItem('user', JSON.stringify(userInfo))
+// }
 
-export function setSpaces(spaces: SpaceType[]) {
-    localStorage.setItem('spaces', JSON.stringify(spaces))
-}
+// export function setSpaces(spaces: SpaceType[]) {
+//     localStorage.setItem('spaces', JSON.stringify(spaces))
+// }

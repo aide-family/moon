@@ -1,7 +1,6 @@
 import { GET, POST, PostForm } from '@/apis/request'
 import { NodeEditReq, NodeItem, NodeListReq, NodeListRes } from './types'
 import { Callback, PageRes, Response } from '@/apis/types'
-import { getSpaceID } from '@/context'
 
 enum URL {
     nodePage = '/assets/node/v1/select/page',
@@ -28,8 +27,7 @@ const GetNodeList = async (
 
 const AddNode = async (params: NodeEditReq) => {
     const res = await POST<Response>(URL.nodeAdd, {
-        ...params,
-        space_instance: getSpaceID()
+        ...params
     })
     if (res?.code !== 0) {
         return Promise.reject(res?.message)
@@ -40,8 +38,7 @@ const AddNode = async (params: NodeEditReq) => {
 const UpdateNode = async (id: string, params: NodeEditReq) => {
     const res = await POST<Response>(URL.nodeUpdate, {
         id,
-        ...params,
-        space_instance: getSpaceID()
+        ...params
     })
     if (res?.code !== 0) {
         return Promise.reject(res?.message)
@@ -74,8 +71,7 @@ const GetNodeDetail = async (id: string, call?: Callback) => {
 
 const DeleteNode = async (id: string) => {
     const res = await PostForm<Response>(URL.nodeDelete, {
-        id,
-        space_instance: getSpaceID()
+        id
     })
 
     if (res?.code !== 0) {

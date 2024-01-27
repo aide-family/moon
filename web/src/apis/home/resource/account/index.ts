@@ -6,7 +6,6 @@ import {
     EditAccountReq
 } from './types'
 import { Callback, Response } from '@/apis/types'
-import { getSpaceID } from '@/context'
 
 enum URL {
     accountPage = '/assets/pcdn/account/v1/select/page',
@@ -19,8 +18,7 @@ enum URL {
 const GetAccountList = async (params: AccountListReq, call?: Callback) => {
     call?.setLoading?.(true)
     const res = await GET<AccountListRes>(URL.accountPage, {
-        ...params,
-        space_instance: getSpaceID()
+        ...params
     })
     call?.setLoading?.(false)
     if (res?.code !== 0) {
@@ -34,8 +32,7 @@ const GetAccountList = async (params: AccountListReq, call?: Callback) => {
 const GetAccountDetail = async (id: string, call?: Callback) => {
     call?.setLoading?.(true)
     const res = await GET<Response<AccountItem[]>>(URL.accountDetail, {
-        id,
-        space_instance: getSpaceID()
+        id
     })
     call?.setLoading?.(false)
     if (res.code !== 0) {
@@ -60,8 +57,7 @@ const GetAccountDetail = async (id: string, call?: Callback) => {
 const AddAccount = async (params: EditAccountReq, call?: Callback) => {
     call?.setLoading?.(true)
     const res = await POST<Response>(URL.accountInsert, {
-        ...params,
-        space_instance: getSpaceID()
+        ...params
     })
     call?.setLoading?.(false)
     if (res.code !== 0) {
@@ -80,8 +76,7 @@ const UpdateAccount = async (
     call?.setLoading?.(true)
     const res = await POST<Response>(URL.accountUpdate, {
         ...params,
-        id,
-        space_instance: getSpaceID()
+        id
     })
     call?.setLoading?.(false)
     if (res.code !== 0) {
@@ -94,8 +89,7 @@ const UpdateAccount = async (
 
 export const DeleteAccount = async (id: string) => {
     const res = await PostForm<Response>(URL.accountDelete, {
-        id,
-        space_instance: getSpaceID()
+        id
     })
     if (res?.code !== 0) {
         return Promise.reject(res?.message)
