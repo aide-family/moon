@@ -1,14 +1,18 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import {Button, Form, Modal, Spin, Watermark} from 'antd'
-import {FC, useContext, useEffect, useState} from 'react'
-import {GlobalContext} from '@/context'
+import { Button, Form, Modal, Spin, Watermark } from 'antd'
+import { FC, useContext, useEffect, useState } from 'react'
+import { GlobalContext } from '@/context'
 import userOptions from '../options'
 import userApi from '@/apis/home/system/user'
-import {AES_Encrypt} from '@/utils/aes'
-import type {UserListItem} from '@/apis/home/system/user/types'
+import { AES_Encrypt } from '@/utils/aes'
+import type {
+    UserCreateParams,
+    UserListItem,
+    UserUpdateParams
+} from '@/apis/home/system/user/types'
 
-const {userDetail, userCreate} = userApi
-const {addFormItems, editFormItems} = userOptions()
+const { userDetail, userCreate, userUpdate } = userApi
+const { addFormItems, editFormItems } = userOptions()
 
 export type EditModalProps = {
     open: boolean
@@ -20,8 +24,8 @@ export type EditModalProps = {
 let timer: NodeJS.Timeout | null = null
 
 const EditModal: FC<EditModalProps> = (props) => {
-    const {user} = useContext(GlobalContext)
-    const {open, onClose, id, onOk} = props
+    const { user } = useContext(GlobalContext)
+    const { open, onClose, id, onOk } = props
     const [form] = Form.useForm()
     const [loading, setLoading] = useState<boolean>(false)
     const [data, setData] = useState<UserListItem | undefined>()
@@ -38,25 +42,33 @@ const EditModal: FC<EditModalProps> = (props) => {
         setLoading(false)
     }
 
+    const createUser = (userItem: UserCreateParams) => {
+        setLoading(true)
+        userCreate(userItem)
+            .then(onOk)
+            .finally(() => {
+                setLoading(false)
+            })
+    }
+
+    const updateUser = (userItem: UserUpdateParams) => {
+        setLoading(true)
+        userUpdate(userItem)
+            .then(onOk)
+            .finally(() => {
+                setLoading(false)
+            })
+    }
+
     const handleSubmit = () => {
         form.validateFields().then((val) => {
             if (id) {
-                // 编辑
-                console.log('编辑', val)
+                updateUser({ ...val, id })
             } else {
-                // 创建
-                console.log('创建', val)
-                setLoading(true)
-                userCreate({
+                createUser({
                     ...val,
                     password: AES_Encrypt(val.password)
                 })
-                    .then(() => {
-                        onOk?.()
-                    })
-                    .finally(() => {
-                        setLoading(false)
-                    })
             }
         })
     }
@@ -65,9 +77,13 @@ const EditModal: FC<EditModalProps> = (props) => {
         if (!id) {
             return
         }
-        userDetail({id}).then((res) => {
-            setData(res.detail)
-            form.setFieldsValue(res)
+        userDetail({ id }).then((res) => {
+            const { detail } = res
+            setData(detail)
+            form.setFieldsValue({
+                ...detail,
+                roleIds: detail.roles?.map((item) => item.value)
+            })
         })
     }
 
@@ -106,11 +122,11 @@ const EditModal: FC<EditModalProps> = (props) => {
 
     return (
         <Modal
-            title={<Title/>}
+            title={<Title />}
             open={open}
             onCancel={handleClose}
             width="50vw"
-            footer={<Footer/>}
+            footer={<Footer />}
         >
             <Spin spinning={loading}>
                 <Watermark content={user?.username} className="wh100">

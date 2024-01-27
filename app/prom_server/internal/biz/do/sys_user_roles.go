@@ -23,8 +23,8 @@ var _ encoding.BinaryUnmarshaler = (*UserRoles)(nil)
 const TableNameUserRoles = "sys_user_roles"
 
 type UserRole struct {
-	UserID uint32 `json:"sys_role_id" gorm:"column:sys_role_id"`
-	RoleID uint32 `json:"sys_user_id" gorm:"column:sys_user_id"`
+	UserID uint32 `json:"sys_user_id" gorm:"column:sys_user_id"`
+	RoleID uint32 `json:"sys_role_id" gorm:"column:sys_role_id"`
 }
 
 func (*UserRole) TableName() string {
@@ -96,7 +96,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error 
 
 	if len(uRoles) == 0 {
 		// 清除缓存
-		if err := cacheClient.HDel(context.Background(), consts.UserRoleKey.String(), generateUserCacheKey(userID)).Err(); err != nil {
+		if err := cacheClient.HDel(context.Background(), consts.UserRolesKey.String(), generateUserCacheKey(userID)).Err(); err != nil {
 			return err
 		}
 		return nil
@@ -107,7 +107,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error 
 		roleIds = append(roleIds, ur.RoleID)
 	}
 
-	if err := cacheClient.HSet(context.Background(), consts.UserRoleKey.String(), generateUserCacheKey(userID), &UserRoles{
+	if err := cacheClient.HSet(context.Background(), consts.UserRolesKey.String(), generateUserCacheKey(userID), &UserRoles{
 		UserID: userID,
 		Roles:  roleIds,
 	}).Err(); err != nil {

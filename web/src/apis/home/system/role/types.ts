@@ -67,6 +67,13 @@ interface RoleUpdateReq {
     status: number
 }
 
+export const defaultRoleSelectReq: RoleSelectReq = {
+    page: {
+        curr: 1,
+        size: 10
+    }
+}
+
 export type {
     RoleSelectItem,
     RoleCreateReq,

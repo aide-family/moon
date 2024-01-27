@@ -104,6 +104,10 @@ message CreateUserRequest {
   string nickname = 5 [(validate.rules).string.max_len = 32];
   // 性别
   Gender gender = 6 [(validate.rules).enum = {defined_only: true}];
+  // 角色ID列表
+  repeated uint32 roleIds = 7 [(validate.rules).repeated = {
+    unique: true
+  }];
 }
 // 创建用户响应参数
 message CreateUserReply {
@@ -121,13 +125,16 @@ message UpdateUserRequest {
   string remark = 3 [(validate.rules).string.max_len = 255];
   // 头像, 格式: http(s)?://.*
   string avatar = 4 [(validate.rules).string = {
-    pattern: "^http(s)?://.*",
     max_len: 255
   }];
   // 状态, 必须为系统枚举类型数据, 参考Status
   Status status = 5 [(validate.rules).enum = {defined_only: true}];
   // 性别
   Gender gender = 6 [(validate.rules).enum = {defined_only: true}];
+  // 角色ID列表
+  repeated uint32 roleIds = 7 [(validate.rules).repeated = {
+    unique: true
+  }];
 }
 // 更新用户响应参数
 message UpdateUserReply {

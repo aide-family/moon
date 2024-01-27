@@ -1,10 +1,17 @@
-import {ActionKey} from '@/apis/data'
-import {DataFormItem} from '@/components/Data'
+import { ActionKey } from '@/apis/data'
+import { DataFormItem } from '@/components/Data'
 
-import {IconFont} from '@/components/IconFont/IconFont'
-import {ManOutlined, WomanOutlined} from '@ant-design/icons'
-import {Button, MenuProps} from 'antd'
-import {UserListItem} from "@/apis/home/system/user/types.ts";
+import { IconFont } from '@/components/IconFont/IconFont'
+import { ManOutlined, WomanOutlined } from '@ant-design/icons'
+import { Button, MenuProps } from 'antd'
+import { UserListItem } from '@/apis/home/system/user/types.ts'
+import { StatusBadge } from './child/StatusBadge'
+import { Username } from './child/Username'
+import { ColumnGroupType, ColumnType } from 'antd/es/table'
+import { UserAvatar } from './child/UserAvatar'
+import roleApi from '@/apis/home/system/role'
+import { defaultRoleSelectReq } from '@/apis/home/system/role/types'
+import { DefaultOptionType } from 'antd/es/select'
 
 const searchItems: DataFormItem[] = [
     {
@@ -12,6 +19,18 @@ const searchItems: DataFormItem[] = [
         label: '关键词'
     }
 ]
+
+const getRoleSelect = (keyword: string): Promise<DefaultOptionType[]> => {
+    return roleApi
+        .roleSelect({ ...defaultRoleSelectReq, keyword: keyword })
+        .then((data) => {
+            if (!data || !data.list) return []
+            return data.list.map((item) => ({
+                value: item.value,
+                label: item.label
+            }))
+        })
+}
 
 const addFormItems: (DataFormItem | DataFormItem[])[] = [
     [
@@ -82,7 +101,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                         {
                             label: (
                                 <span>
-                                    <ManOutlined style={{color: '#1890ff'}}/>
+                                    <ManOutlined style={{ color: '#1890ff' }} />
                                     {' 男'}
                                 </span>
                             ),
@@ -92,7 +111,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                             label: (
                                 <span>
                                     <WomanOutlined
-                                        style={{color: '#f759ab'}}
+                                        style={{ color: '#f759ab' }}
                                     />
                                     {' 女'}
                                 </span>
@@ -103,7 +122,22 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                 }
             }
         }
-    ]
+    ],
+    {
+        name: 'roleIds',
+        label: '用户角色',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                handleFetch: getRoleSelect,
+                defaultOptions: [],
+                selectProps: {
+                    mode: 'multiple',
+                    placeholder: '请选择用户角色'
+                }
+            }
+        }
+    }
 ]
 const editFormItems: (DataFormItem | DataFormItem[])[] = [
     [
@@ -123,7 +157,7 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
     ],
     [
         {
-            name: 'mobile_phone',
+            name: 'phone',
             label: '手机号'
         },
         {
@@ -176,21 +210,53 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
             name: 'avatars',
             label: '用户头像'
         }
-    ]
+    ],
+    {
+        name: 'roleIds',
+        label: '用户角色',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                handleFetch: getRoleSelect,
+                defaultOptions: [],
+                selectProps: {
+                    mode: 'multiple',
+                    placeholder: '请选择用户角色'
+                }
+            }
+        }
+    }
 ]
 
-const operationItems = (_: UserListItem): MenuProps['items'] => [
+const operationItems = (userItem: UserListItem): MenuProps['items'] => [
     {
         key: ActionKey.CHANGE_STATUS,
         label: (
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-edit"/>}
+                icon={<IconFont type="icon-edit" />}
+                disabled={userItem.id === 1}
             >
                 状态修改
             </Button>
         )
+    },
+    {
+        key: ActionKey.EDIT,
+        label: (
+            <Button
+                size="small"
+                type="link"
+                icon={<IconFont type="icon-edit" />}
+                disabled={userItem.id === 1}
+            >
+                编辑用户
+            </Button>
+        )
+    },
+    {
+        type: 'divider'
     },
     {
         key: ActionKey.DELETE,
@@ -202,13 +268,69 @@ const operationItems = (_: UserListItem): MenuProps['items'] => [
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
-                        style={{color: 'red'}}
+                        style={{ color: 'red' }}
                     />
                 }
             >
                 删除用户
             </Button>
         )
+    }
+]
+
+export type UserColumnType =
+    | ColumnType<UserListItem>
+    | ColumnGroupType<UserListItem>
+
+export const columns: UserColumnType[] = [
+    {
+        title: '头像',
+        dataIndex: 'avatar',
+        key: 'avatar',
+        width: 100,
+        render: (_: string, item: UserListItem) => {
+            return <UserAvatar {...item} />
+        }
+    },
+    {
+        title: '姓名',
+        dataIndex: 'username',
+        key: 'username',
+        width: 120,
+        render: (_: string, record: UserListItem) => {
+            return <Username {...record} />
+        }
+    },
+    {
+        title: '昵称',
+        dataIndex: 'nickname',
+        key: 'nickname',
+        width: 200,
+        ellipsis: true,
+        render: (text: String) => {
+            return <>{text || '-'}</>
+        }
+    },
+    {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 120,
+        render: (_: string, record: UserListItem) => {
+            return <StatusBadge {...record} />
+        }
+    },
+    {
+        title: '手机号',
+        dataIndex: 'phone',
+        key: 'phone',
+        width: 200
+    },
+    {
+        title: '邮箱',
+        dataIndex: 'email',
+        key: 'email',
+        width: 300
     }
 ]
 

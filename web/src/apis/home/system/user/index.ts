@@ -26,9 +26,9 @@ enum URL {
     /**删除用户 */
     userDelete = '/api/v1/user/delete',
     /**修改密码 */
-    userPasswordEdit = '//api/v1/user/password/edit',
+    userPasswordEdit = '/api/v1/user/password/edit',
     /**用户关联角色 */
-    userRolesRelate = 'api/v1/user/roles/relate',
+    userRolesRelate = '/api/v1/user/roles/relate',
     /**获取用户下拉列表 */
     userSelect = '/api/v1/user/select',
     /**修改状态 */
