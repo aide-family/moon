@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # 将前端应用程序代码复制到容器中
 COPY ./web .
 
+# 设置yarn源
+RUN yarn config set registry https://registry.npmmirror.com/
+
 # 安装依赖
 RUN yarn install
 
