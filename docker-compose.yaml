@@ -26,3 +26,5 @@ services:
     image: docker.hub/prometheus-manager/web:latest
     ports:
       - "8000:80"
+    depends_on:
+      - prometheus_manager
