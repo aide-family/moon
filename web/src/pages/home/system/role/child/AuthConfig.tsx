@@ -41,10 +41,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
             detail: { apis }
         } = await roleDetail({ id: roleId })
         if (!apis) return
-        const optionList = apis?.filter((item) => {
-            return item.status === 1 && options.indexOf(item) === -1
-        })
-        setOptions([...options, ...optionList])
+        form.setFieldsValue({ roleIds: apis.map((item) => item.value) })
     }
 
     const handleGetApiSelect = () => {
@@ -83,6 +80,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     }
 
     useEffect(() => {
+        form.resetFields()
         setOptions([])
         setSearchData(defaultSearchData)
         if (open) {
