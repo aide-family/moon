@@ -7,14 +7,14 @@ WORKDIR /usr/src/app
 # 将前端应用程序代码复制到容器中
 COPY ./web .
 
-# 设置yarn源
-RUN yarn config set registry https://registry.npmmirror.com/
+# 设置npm源
+RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
 
 # 安装依赖
-RUN yarn install
+RUN npm install
 
 # 编译前端应用程序
-RUN yarn run build-docker
+RUN npm run build-docker
 
 # 部署到nginx最小系统
 FROM nginx:stable-perl
