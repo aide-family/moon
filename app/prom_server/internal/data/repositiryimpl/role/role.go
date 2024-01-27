@@ -139,7 +139,7 @@ func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint32, apiList []*
 		return api.ToModel()
 	})
 
-	if err := l.data.DB().WithContext(ctx).Model(roleDetail).Association(basescopes.RoleAssociationReplaceApis).Replace(&apiModelList); err != nil {
+	if err := l.data.DB().WithContext(ctx).Model(&roleDetail).Association(basescopes.RoleAssociationReplaceApis).Replace(&apiModelList); err != nil {
 		return err
 	}
 
