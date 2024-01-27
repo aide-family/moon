@@ -10,7 +10,7 @@ export interface DetailProps {
 
 const defaultData: StrategyGroupItemType[] = []
 
-export const Detail: FC<DetailProps> = (props) => {
+const Detail: FC<DetailProps> = (props) => {
     const { open, onClose, id } = props
 
     const [detail, setDetail] = useState<StrategyGroupItemType>()
@@ -39,3 +39,5 @@ export const Detail: FC<DetailProps> = (props) => {
         </Modal>
     )
 }
+
+export default Detail
