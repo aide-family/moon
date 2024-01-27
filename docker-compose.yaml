@@ -20,3 +20,9 @@ services:
       - "./app/prom_agent/configs_dev/:/data/conf/"
     depends_on:
       - prometheus_manager
+
+  prometheus_manager_web:
+    container_name: prometheus_manager_web
+    image: docker.hub/prometheus-manager/web:latest
+    ports:
+      - "8000:80"
