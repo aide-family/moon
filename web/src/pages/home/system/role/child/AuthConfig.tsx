@@ -122,6 +122,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
                     onChange={handleChange}
                     options={options}
                     onPopupScroll={handleScroll}
+                    allowClear
                 />
             </Spin>
         </Modal>
