@@ -22,6 +22,8 @@ export type GlobalContextType = {
     spaces?: SpaceType[]
     setSpaces?: (spaces: SpaceType[]) => void
     setToken?: (token: string) => void
+    intervalId?: any
+    setIntervalId?: (intervalId: any) => void
 }
 
 export const GlobalContext = createContext<GlobalContextType>({

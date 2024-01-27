@@ -20,6 +20,7 @@ import { Msg } from './Msg/Msg'
 import { Setting } from './Setting/Setting'
 
 import styles from './style/index.module.less'
+import { refreshToken } from '@/apis/login/login.api'
 
 const { Header, Footer, Sider, Content } = Layout
 
@@ -30,7 +31,8 @@ export type PromLayoutProps = {
 export const LayoutContentID = 'LayoutContent'
 
 const PromLayout: FC<PromLayoutProps> = (props) => {
-    const { user, setLayoutContentElement } = useContext(GlobalContext)
+    const { user, setLayoutContentElement, setToken, setIntervalId } =
+        useContext(GlobalContext)
 
     const { watermark = user?.username } = props
     const [collapsed, setCollapsed] = useState(true)
@@ -56,6 +58,19 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
         // TODO 做路由权限认证
         console.log('TODO 做路由权限认证', local)
     }, [local.pathname])
+
+    const handleRefreshToken = () => {
+        refreshToken().then((data) => {
+            setToken?.(data.token)
+        })
+    }
+
+    useEffect(() => {
+        const id = setInterval(() => {
+            handleRefreshToken()
+        }, 1000 * 60 * 10) // 10分钟
+        setIntervalId?.(id)
+    }, [])
 
     return (
         <Layout className={[styles.widthHight100, styles.Layout].join(' ')}>
