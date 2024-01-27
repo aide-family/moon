@@ -20,7 +20,7 @@ export type DetailProps = {
 const defaultSearchData = {
     page: {
         curr: 1,
-        size: 10
+        size: 200
     },
     keyword: ''
 }
@@ -47,18 +47,12 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     const handleGetApiSelect = () => {
         setFetchLoading(true)
         authApiSelect(searchData)
-            .then(({ list, page: { total } }) => {
+            .then(({ list }) => {
                 if (!list || list.length === 0) return
                 const optionList = list?.filter((item) => {
                     return item.status === 1 && options.indexOf(item) === -1
                 })
                 setOptions([...options, ...optionList])
-                if (total > 0) {
-                    setSearchData({
-                        ...searchData,
-                        page: { curr: searchData.page.curr + 1, size: 200 }
-                    })
-                }
             })
             .finally(() => {
                 setFetchLoading(false)
@@ -85,13 +79,10 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
         setSearchData(defaultSearchData)
         if (open) {
             fetchUserDetail()
+            handleGetApiSelect()
             return
         }
     }, [open])
-
-    useEffect(() => {
-        handleGetApiSelect()
-    }, [searchData])
 
     return (
         <Modal
