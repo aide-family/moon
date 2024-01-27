@@ -56,6 +56,9 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	if err != nil {
 		return nil, err
 	}
+	if err = s.userBiz.RelateRoles(ctx, userBo.Id, req.GetRoleIds()); err != nil {
+		return nil, err
+	}
 	return &pb.CreateUserReply{Id: userBo.Id}, nil
 }
 
@@ -70,6 +73,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 	}
 	userBo, err := s.userBiz.UpdateUserById(ctx, req.GetId(), userBo)
 	if err != nil {
+		return nil, err
+	}
+	if err = s.userBiz.RelateRoles(ctx, req.GetId(), req.GetRoleIds()); err != nil {
 		return nil, err
 	}
 	return &pb.UpdateUserReply{Id: req.GetId()}, nil

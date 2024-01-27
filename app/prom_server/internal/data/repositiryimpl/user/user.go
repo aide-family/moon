@@ -27,6 +27,8 @@ func (l *userRepoImpl) RelateRoles(ctx context.Context, userBO *bo.UserBO, roleL
 		return roleInfo.ToModel()
 	})
 
+	defer do.CacheUserRole(l.data.DB(), l.data.Client(), userBO.Id)
+
 	return l.data.DB().WithContext(ctx).Model(userBO.ToModel()).
 		Association(basescopes.UserAssociationReplaceRoles).
 		Replace(&roleModelList)

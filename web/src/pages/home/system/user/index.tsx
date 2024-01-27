@@ -1,29 +1,25 @@
-import React, {FC, useEffect, useRef, useState} from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 
-import type {ColumnGroupType, ColumnType} from 'antd/es/table'
-import {Button, Form, message, Modal} from 'antd'
-import {DataOption, DataTable, SearchForm} from '@/components/Data'
+import { Button, Form, message, Modal } from 'antd'
+import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import {HeightLine, PaddingLine} from '@/components/HeightLine'
-import {DataOptionItem} from '@/components/Data/DataOption/DataOption'
+import { HeightLine, PaddingLine } from '@/components/HeightLine'
+import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
 import EditModal from './child/EditModal'
-import userOptions from './options'
+import userOptions, { columns } from './options'
 import userApi from '@/apis/home/system/user'
-import type {UserListItem, UserListParams} from '@/apis/home/system/user/types'
-import {Status, StatusMap} from '@/apis/types'
-import {ActionKey} from '@/apis/data'
-import {SelectedUserListTable} from './child/const SelectedUserListTable'
-import {Username} from './child/Username'
-import {StatusBadge} from './child/StatusBadge'
-import {UserAvatar} from './child/UserAvatar'
+import type {
+    UserListItem,
+    UserListParams
+} from '@/apis/home/system/user/types'
+import { Status, StatusMap } from '@/apis/types'
+import { ActionKey } from '@/apis/data'
+import { SelectedUserListTable } from './child/SelectedUserListTable'
 
-export type UserColumnType =
-    | ColumnType<UserListItem>
-    | ColumnGroupType<UserListItem>
-const {confirm} = Modal
-const {userList, userStatusEdit, userDelete} = userApi
-const {searchItems, operationItems} = userOptions()
+const { confirm } = Modal
+const { userList, userStatusEdit, userDelete } = userApi
+const { searchItems, operationItems } = userOptions()
 
 const defaultPadding = 12
 
@@ -58,61 +54,14 @@ const Customer: FC = () => {
         Status.STATUS_UNKNOWN
     )
 
+    /** 刷新 */
+    const handlerRefresh = () => {
+        setRefresh((prev) => !prev)
+    }
+
     const isSelected = () => {
         return tableSelectedRows.length == 0
     }
-
-    const columns: UserColumnType[] = [
-        {
-            title: '头像',
-            dataIndex: 'avatar',
-            key: 'avatar',
-            width: 100,
-            render: (_: string, item: UserListItem) => {
-                return <UserAvatar {...item} />
-            }
-        },
-        {
-            title: '姓名',
-            dataIndex: 'username',
-            key: 'username',
-            width: 120,
-            render: (_: string, record: UserListItem) => {
-                return <Username {...record} />
-            }
-        },
-        {
-            title: '昵称',
-            dataIndex: 'nickname',
-            key: 'nickname',
-            width: 200,
-            ellipsis: true,
-            render: (text: String) => {
-                return <>{text || '-'}</>
-            }
-        },
-        {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 120,
-            render: (_: string, record: UserListItem) => {
-                return <StatusBadge {...record} />
-            }
-        },
-        {
-            title: '手机号',
-            dataIndex: 'phone',
-            key: 'phone',
-            width: 200
-        },
-        {
-            title: '邮箱',
-            dataIndex: 'email',
-            key: 'email',
-            width: 300
-        }
-    ]
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -130,20 +79,14 @@ const Customer: FC = () => {
     /** 获取数据 */
     const handlerGetData = () => {
         setLoading(true)
-        userList({...search})
+        userList({ ...search })
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
-                console.log('res', res)
             })
             .finally(() => {
                 setLoading(false)
             })
-    }
-
-    /** 刷新 */
-    const handlerRefresh = () => {
-        setRefresh((prev) => !prev)
     }
 
     /** 分页变化 */
@@ -164,7 +107,7 @@ const Customer: FC = () => {
     }
 
     const EditConfirmTitle: React.FC<UserListItem> = (props) => {
-        const {status} = props
+        const { status } = props
         const s =
             status === Status.STATUS_ENABLED
                 ? StatusMap[Status.STATUS_DISABLED]
@@ -172,7 +115,7 @@ const Customer: FC = () => {
         return (
             <span>
                 请确认是否修改状态为
-                <span style={{color: s.color}}>{s.text}</span>?
+                <span style={{ color: s.color }}>{s.text}</span>?
             </span>
         )
     }
@@ -222,7 +165,7 @@ const Customer: FC = () => {
             title: `请确认是否删除 ${record.nickname || record.username} ?`,
             content: '操作不可逆, 请谨慎操作!',
             okText: '确认删除',
-            okButtonProps: {danger: true},
+            okButtonProps: { danger: true },
             type: 'error',
             onOk: () => handleDeleteUserInfo(record),
             onCancel: cancelAction
@@ -231,11 +174,14 @@ const Customer: FC = () => {
 
     /** 处理表格操作栏的点击事件 */
     const handlerTableAction = (key: ActionKey, record: UserListItem) => {
-        console.log(key, record)
         switch (key) {
             case ActionKey.DETAIL:
                 setOpenDetail(true)
                 setUserId(record.id)
+                break
+            case ActionKey.EDIT:
+                setOpenEdit(true)
+                setEditId(record.id)
                 break
             case ActionKey.CHANGE_STATUS:
                 openChangeStatusConfirm(record)
@@ -376,8 +322,8 @@ const Customer: FC = () => {
                 onOk={handleEditOnOk}
             />
             <div ref={operationRef}>
-                <RouteBreadcrumb/>
-                <HeightLine/>
+                <RouteBreadcrumb />
+                <HeightLine />
                 <SearchForm
                     form={queryForm}
                     items={searchItems}
@@ -385,7 +331,7 @@ const Customer: FC = () => {
                         onValuesChange: handlerSearFormValuesChange
                     }}
                 />
-                <HeightLine/>
+                <HeightLine />
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}

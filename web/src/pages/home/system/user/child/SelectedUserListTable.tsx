@@ -1,10 +1,10 @@
 import { UserListItem } from '@/apis/home/system/user/types'
 import React from 'react'
-import { UserColumnType } from '..'
 import { Button, Modal, Table } from 'antd'
 import { UserAvatar } from './UserAvatar'
 import { Username } from './Username'
 import { Status, StatusMap } from '@/apis/types'
+import { UserColumnType } from '../options'
 
 export interface SelectedUserListTableProps {
     setTableSelectedRows?: React.Dispatch<React.SetStateAction<UserListItem[]>>

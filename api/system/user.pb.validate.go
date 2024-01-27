@@ -140,6 +140,27 @@ func (m *CreateUserRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	_CreateUserRequest_RoleIds_Unique := make(map[uint32]struct{}, len(m.GetRoleIds()))
+
+	for idx, item := range m.GetRoleIds() {
+		_, _ = idx, item
+
+		if _, exists := _CreateUserRequest_RoleIds_Unique[item]; exists {
+			err := CreateUserRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_CreateUserRequest_RoleIds_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for RoleIds[idx]
+	}
+
 	if len(errors) > 0 {
 		return CreateUserRequestMultiError(errors)
 	}
@@ -440,17 +461,6 @@ func (m *UpdateUserRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_UpdateUserRequest_Avatar_Pattern.MatchString(m.GetAvatar()) {
-		err := UpdateUserRequestValidationError{
-			field:  "Avatar",
-			reason: "value does not match regex pattern \"^http(s)?://.*\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
 		err := UpdateUserRequestValidationError{
 			field:  "Status",
@@ -471,6 +481,27 @@ func (m *UpdateUserRequest) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	_UpdateUserRequest_RoleIds_Unique := make(map[uint32]struct{}, len(m.GetRoleIds()))
+
+	for idx, item := range m.GetRoleIds() {
+		_, _ = idx, item
+
+		if _, exists := _UpdateUserRequest_RoleIds_Unique[item]; exists {
+			err := UpdateUserRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_UpdateUserRequest_RoleIds_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for RoleIds[idx]
 	}
 
 	if len(errors) > 0 {
@@ -552,8 +583,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateUserRequestValidationError{}
-
-var _UpdateUserRequest_Avatar_Pattern = regexp.MustCompile("^http(s)?://.*")
 
 // Validate checks the field values on UpdateUserReply with the rules defined
 // in the proto definition for this message. If any rules are violated, the
