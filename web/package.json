@@ -18,7 +18,7 @@
         "@codemirror/search": "6.5.0",
         "@prometheus-io/codemirror-promql": "^0.47.2",
         "@types/crypto-js": "^4.1.1",
-        "antd": "^5.12.5",
+        "antd": "^5.13.2",
         "axios": "^1.5.0",
         "crypto-js": "^4.1.1",
         "dayjs": "^1.11.9",

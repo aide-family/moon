@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy"
@@ -21,10 +22,10 @@ type StrategyService struct {
 
 	log *log.Helper
 
-	strategyBiz *biz.StrategyXBiz
+	strategyBiz *biz.StrategyBiz
 }
 
-func NewStrategyService(strategyBiz *biz.StrategyXBiz, logger log.Logger) *StrategyService {
+func NewStrategyService(strategyBiz *biz.StrategyBiz, logger log.Logger) *StrategyService {
 	return &StrategyService{
 		log:         log.NewHelper(log.With(logger, "module", "service.prom.strategy")),
 		strategyBiz: strategyBiz,
@@ -156,4 +157,26 @@ func (s *StrategyService) ExportStrategy(_ context.Context, req *pb.ExportStrate
 		File:     buff,
 		FileName: filename,
 	}, nil
+}
+
+// GetStrategyNotifyObject 获取策略的告警对象
+func (s *StrategyService) GetStrategyNotifyObject(ctx context.Context, req *pb.GetStrategyNotifyObjectRequest) (*pb.GetStrategyNotifyObjectReply, error) {
+	strategyBo, err := s.strategyBiz.GetStrategyWithNotifyObjectById(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetStrategyNotifyObjectReply{
+		Detail: strategyBo.ToApiV1(),
+		NotifyObjectList: slices.To(strategyBo.GetPromNotifies(), func(item *bo.NotifyBO) *api.NotifyV1 {
+			return item.ToApi()
+		}),
+	}, nil
+}
+
+// BindStrategyNotifyObject 绑定策略的告警对象
+func (s *StrategyService) BindStrategyNotifyObject(ctx context.Context, req *pb.BindStrategyNotifyObjectRequest) (*pb.BindStrategyNotifyObjectReply, error) {
+	if err := s.strategyBiz.BindStrategyNotifyObject(ctx, req.GetId(), req.GetNotifyObjectIds()); err != nil {
+		return nil, err
+	}
+	return &pb.BindStrategyNotifyObjectReply{Id: req.GetId()}, nil
 }

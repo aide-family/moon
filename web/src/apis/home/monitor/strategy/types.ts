@@ -1,4 +1,5 @@
 import { DictSelectItem } from '../../system/dict/types'
+import { NotifyItem } from '../alarm-notify/types'
 import { AlarmPageSelectItem } from '../alarm-page/types'
 import { PrometheusServerSelectItem } from '../endpoint/types'
 import { StrategyGroupSelectItemType } from '../strategy-group/types'
@@ -32,6 +33,11 @@ interface StrategyItemType {
     sendInterval?: Duration
     // 是否发送告警通知
     sendRecover?: boolean
+}
+
+interface StrategyWithNOtifyItemType {
+    detail: StrategyItemType
+    notifyObjectList: NotifyItem[]
 }
 
 interface StrategySelectItemType {
@@ -151,6 +157,11 @@ interface StrategyDetailResponse {
     detail: StrategyItemType
 }
 
+interface StrategyBindNotifyRequest {
+    id: number
+    notifyObjectIds: number[]
+}
+
 export type {
     StrategyItemType,
     StrategyCreateRequest,
@@ -164,5 +175,7 @@ export type {
     StrategySelectListRequest,
     StrategySelectListResponse,
     StrategyDetailResponse,
-    StrategySelectItemType
+    StrategySelectItemType,
+    StrategyWithNOtifyItemType,
+    StrategyBindNotifyRequest
 }

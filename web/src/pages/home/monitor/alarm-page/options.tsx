@@ -229,7 +229,7 @@ export type alarmPageDataFormType = {
     remark?: string
 }
 
-export const alarmPageDataFormItems: DataFormItem[] = [
+export const alarmPageDataFormItems: (DataFormItem[] | DataFormItem)[] = [
     {
         label: '告警页面名称',
         name: 'name',
@@ -240,16 +240,25 @@ export const alarmPageDataFormItems: DataFormItem[] = [
             }
         ]
     },
-    {
-        label: '图标',
-        name: 'icon',
-        rules: []
-    },
-    {
-        label: '页面识别颜色',
-        name: 'color',
-        rules: []
-    },
+    [
+        {
+            label: '图标',
+            name: 'icon',
+            rules: []
+        },
+        {
+            label: '页面识别颜色',
+            name: 'color',
+            rules: [],
+            dataProps: {
+                type: 'color',
+                parentProps: {
+                    showText: true,
+                    defaultFormat: 'hex'
+                }
+            }
+        }
+    ],
     {
         label: '说明信息',
         name: 'remark',

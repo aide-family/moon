@@ -301,15 +301,16 @@ export const sverityOptions = [
     }
 ]
 
-export const notifyObjectTableColumns: (
+export type NotifyObjectTableColumnType =
     | ColumnGroupType<NotifyItem>
     | ColumnType<NotifyItem>
-)[] = [
+
+export const notifyObjectTableColumns: NotifyObjectTableColumnType[] = [
     {
         title: '名称',
         dataIndex: 'name',
         key: 'name',
-        width: 160,
+        width: 200,
         render: (name: string) => {
             return name
         }
@@ -318,7 +319,8 @@ export const notifyObjectTableColumns: (
         title: '备注',
         dataIndex: 'remark',
         key: 'remark',
-        // width: 160,
+        // width: '30%',
+        ellipsis: true,
         render: (remark: string) => {
             return remark
         }

@@ -84,6 +84,22 @@ service Strategy {
       body: "*"
     };
   }
+
+  // 获取策略通知对象明细
+  rpc GetStrategyNotifyObject (GetStrategyNotifyObjectRequest) returns (GetStrategyNotifyObjectReply) {
+    option (google.api.http) = {
+      post: "/api/v1/strategy/notify/object"
+      body: "*"
+    };
+  }
+
+  // 绑定通知对象
+  rpc BindStrategyNotifyObject (BindStrategyNotifyObjectRequest) returns (BindStrategyNotifyObjectReply) {
+    option (google.api.http) = {
+      post: "/api/v1/strategy/notify/object/bind"
+      body: "*"
+    };
+  }
 }
 
 // 创建策略请求参数
@@ -319,4 +335,32 @@ message ExportStrategyReply {
   bytes file = 1;
   // 导出的策略文件名
   string fileName = 2;
+}
+
+// 获取策略通知对象请求参数
+message GetStrategyNotifyObjectRequest {
+  // 策略ID, 路径参数, 必填, 大于0
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// 获取策略通知对象响应参数
+message GetStrategyNotifyObjectReply {
+  // 策略通知对象列表
+  PromStrategyV1 detail = 1;
+  repeated NotifyV1 notifyObjectList = 2;
+}
+
+// 绑定通知对象请求参数
+message BindStrategyNotifyObjectRequest {
+  // 策略ID, 路径参数, 必填, 大于0
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 通知对象列表
+  repeated uint32 notifyObjectIds = 2 [(validate.rules).repeated = {
+    min_items: 1,
+    unique: true,
+  }];
+}
+// 绑定通知对象响应参数
+message BindStrategyNotifyObjectReply {
+  // 策略ID, 成功返回策略ID
+  uint32 id = 1;
 }

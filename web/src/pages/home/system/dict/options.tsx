@@ -63,14 +63,13 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'color',
             label: '字典颜色',
-            rules: [
-                //正则校验css颜色
-                {
-                    pattern:
-                        /^(#([0-9a-fA-F]{3}){1,2}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$/,
-                    message: '请输入正确的颜色'
+            dataProps: {
+                type: 'color',
+                parentProps: {
+                    showText: true,
+                    defaultFormat: 'hex'
                 }
-            ]
+            }
         }
     ],
     [
@@ -133,14 +132,13 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'color',
             label: '字典颜色',
-            rules: [
-                //正则校验css颜色
-                {
-                    pattern:
-                        /^(#([0-9a-fA-F]{3}){1,2}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$/,
-                    message: '请输入正确的颜色'
+            dataProps: {
+                type: 'color',
+                parentProps: {
+                    showText: true,
+                    defaultFormat: 'hex'
                 }
-            ]
+            }
         },
         {
             name: 'status',
@@ -150,12 +148,12 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     options: [
                         {
-                            label: StatusMap[Status['STATUS_ENABLED']].text,
-                            value: Status['STATUS_ENABLED']
+                            label: StatusMap[Status.STATUS_ENABLED].text,
+                            value: Status.STATUS_ENABLED
                         },
                         {
-                            label: StatusMap[Status['STATUS_DISABLED']].text,
-                            value: Status['STATUS_DISABLED']
+                            label: StatusMap[Status.STATUS_DISABLED].text,
+                            value: Status.STATUS_DISABLED
                         }
                     ]
                 }

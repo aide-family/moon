@@ -32,6 +32,14 @@ type (
 	}
 )
 
+func (l *strategyRepoImpl) BindStrategyNotifyObject(ctx context.Context, strategyBo *bo.StrategyBO, notifyBo []*bo.NotifyBO) error {
+	strategyModel := strategyBo.ToModel()
+	notifyModels := slices.To(notifyBo, func(item *bo.NotifyBO) *do.PromAlarmNotify {
+		return item.ToModel()
+	})
+	return l.data.DB().WithContext(ctx).Model(strategyModel).Association(basescopes.PreloadKeyPromNotifies).Replace(notifyModels)
+}
+
 func (l *strategyRepoImpl) List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	var modelList []*do.PromStrategy
 	if err := l.data.DB().WithContext(ctx).Scopes(wheres...).Find(&modelList).Error; err != nil {
