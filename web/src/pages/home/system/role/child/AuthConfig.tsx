@@ -1,13 +1,11 @@
 /**分配权限 */
 import { FC, useEffect, useState } from 'react'
-import { message, Modal, Select, Spin } from 'antd'
+import { Form, message, Modal, Select, Spin } from 'antd'
 
 import roleApi from '@/apis/home/system/role'
 import authApi from '@/apis/home/system/auth'
-import {
-    ApiAuthListReq,
-    ApiAuthSelectItem
-} from '@/apis/home/system/auth/types'
+import { ApiAuthListReq } from '@/apis/home/system/auth/types'
+import { DefaultOptionType } from 'antd/es/select'
 
 const { roleDetail, roleRelateApi } = roleApi
 const { authApiSelect } = authApi
@@ -18,36 +16,72 @@ export type DetailProps = {
     onClose: () => void
     onOk: () => void
 }
-/** 权限配置组件
- * @param props type: DetailProps
- * @type roleId : number   // 用户id
- * @type open : boolean    // 是否显示
- * @type onClose : () => void // 关闭回调
- *
- */
+
+const defaultSearchData = {
+    page: {
+        curr: 1,
+        size: 10
+    },
+    keyword: ''
+}
+
 const AuthConfigModal: FC<DetailProps> = (props) => {
     const { open, onClose, onOk, roleId } = props
-
-    const defaultSearchData = {
-        page: {
-            curr: 1,
-            size: 10
-        },
-        keyword: ''
-    }
-    const [options, setOptions] = useState<ApiAuthSelectItem[]>([])
+    const [form] = Form.useForm<{ roleIds: number[] }>()
+    const [options, setOptions] = useState<DefaultOptionType[]>([])
     const [searchData, setSearchData] =
         useState<ApiAuthListReq>(defaultSearchData)
 
-    const [selectedApi, setSelectedApi] = useState<number[]>([])
     const [fetchLoading, setFetchLoading] = useState<boolean>(false)
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
 
     const fetchUserDetail = async () => {
-        const res = await roleDetail({ id: roleId })
-        setSelectedApi(res.detail.apis?.map((item) => item.value) || [])
-        setOptions([...new Set([...options, ...(res.detail.apis || [])])])
+        if (!roleId) return
+        const {
+            detail: { apis }
+        } = await roleDetail({ id: roleId })
+        if (!apis) return
+        const optionList = apis?.filter((item) => {
+            return item.status === 1 && options.indexOf(item) === -1
+        })
+        setOptions([...options, ...optionList])
     }
+
+    const handleGetApiSelect = () => {
+        setFetchLoading(true)
+        authApiSelect(searchData)
+            .then(({ list, page: { total } }) => {
+                if (!list || list.length === 0) return
+                const optionList = list?.filter((item) => {
+                    return item.status === 1 && options.indexOf(item) === -1
+                })
+                setOptions([...options, ...optionList])
+                if (total > 0) {
+                    setSearchData({
+                        ...searchData,
+                        page: { curr: searchData.page.curr + 1, size: 200 }
+                    })
+                }
+            })
+            .finally(() => {
+                setFetchLoading(false)
+            })
+    }
+
+    const handleAuthConfig = () => {
+        setSubmitLoading(true)
+        form.validateFields().then((data) => {
+            roleRelateApi({ id: roleId, apiIds: data.roleIds })
+                .then(() => {
+                    onOk()
+                    message.success('分配权限成功')
+                })
+                .finally(() => {
+                    setSubmitLoading(false)
+                })
+        })
+    }
+
     useEffect(() => {
         setOptions([])
         setSearchData(defaultSearchData)
@@ -55,51 +89,11 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
             fetchUserDetail()
             return
         }
-        setSelectedApi([])
-    }, [open, roleId])
+    }, [open])
 
     useEffect(() => {
-        if (open) {
-            setFetchLoading(true)
-            authApiSelect(searchData)
-                .then((res) => {
-                    console.log(res)
-                    //追加 赋值给options 并去重
-                    setOptions([...new Set([...options, ...res.list])])
-                })
-                .finally(() => {
-                    setFetchLoading(false)
-                })
-        }
-    }, [searchData, open, roleId])
-
-    const handleChange = (value: number[]) => {
-        setSelectedApi(value)
-    }
-    const handleScroll = (e: any) => {
-        const { scrollTop, clientHeight, scrollHeight } = e.target
-        // 滚动到底部时加载更多数据
-        if (scrollHeight - scrollTop === clientHeight) {
-            // setPage((prevPage) => prevPage + 1)
-            setSearchData({
-                ...searchData,
-                page: { curr: searchData.page.curr + 1, size: 10 }
-            })
-            console.log('滚动到底部')
-        }
-    }
-    const handleAuthConfig = () => {
-        setSubmitLoading(true)
-        console.log('分配权限')
-        roleRelateApi({ id: roleId, apiIds: selectedApi })
-            .then(() => {
-                onOk()
-                message.success('分配权限成功')
-            })
-            .finally(() => {
-                setSubmitLoading(false)
-            })
-    }
+        handleGetApiSelect()
+    }, [searchData])
 
     return (
         <Modal
@@ -112,18 +106,21 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
             confirmLoading={submitLoading}
         >
             <Spin spinning={fetchLoading} tip="加载中...">
-                <Select
-                    loading={fetchLoading}
-                    mode="multiple"
-                    // style={{width: '100%', height: 300}}
-                    style={{ width: '100%' }}
-                    placeholder="请选择权限"
-                    value={selectedApi}
-                    onChange={handleChange}
-                    options={options}
-                    onPopupScroll={handleScroll}
-                    allowClear
-                />
+                <Form form={form} layout="vertical">
+                    <Form.Item label="权限" name="roleIds">
+                        <Select
+                            // loading={fetchLoading}
+                            mode="multiple"
+                            // style={{width: '100%', height: 300}}
+                            style={{ width: '100%' }}
+                            placeholder="请选择权限"
+                            // value={selectedApi}
+                            // onChange={handleChange}
+                            options={options}
+                            allowClear
+                        />
+                    </Form.Item>
+                </Form>
             </Spin>
         </Modal>
     )
