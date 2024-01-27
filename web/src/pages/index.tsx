@@ -1,6 +1,6 @@
 import React, { Suspense, useState } from 'react'
 import { App, ConfigProvider } from 'antd'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createHashRouter, RouterProvider } from 'react-router-dom'
 import zhCN from 'antd/locale/zh_CN'
 
 import Loading from '@/components/Loading'
@@ -90,7 +90,7 @@ const Index: React.FC = () => {
                     <App className={styles.widthHight100}>
                         <Suspense fallback={<Loading />}>
                             <RouterProvider
-                                router={createBrowserRouter(routers)}
+                                router={createHashRouter(routers)}
                             />
                         </Suspense>
                     </App>

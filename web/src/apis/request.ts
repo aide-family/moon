@@ -31,7 +31,7 @@ const info = (msg?: AxiosError<ErrorRepose>) => {
     })
     if (code === 401) {
         setTimeout(() => {
-            window.location.href = '/login'
+            window.location.href = '/#/login'
         }, 1000)
     }
 }
