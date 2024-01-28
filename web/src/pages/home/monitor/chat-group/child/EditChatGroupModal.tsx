@@ -69,7 +69,10 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
         values: CreateChatGroupRequest | UpdateChatGroupRequest
     ) => {
         if (chatGroupId) {
-            handleUpdateChatGroup(values as UpdateChatGroupRequest)
+            handleUpdateChatGroup({
+                ...values,
+                id: chatGroupId
+            } as UpdateChatGroupRequest)
         } else {
             handleCreateChatGroup(values as CreateChatGroupRequest)
         }
