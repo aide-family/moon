@@ -38,6 +38,14 @@ type (
 	}
 )
 
+func (l *AlarmRealtimeBO) Bytes() []byte {
+	if l == nil {
+		return nil
+	}
+	bs, _ := json.Marshal(l)
+	return bs
+}
+
 func (l *AlarmRealtimeBO) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, l)
 }

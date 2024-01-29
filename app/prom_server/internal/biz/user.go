@@ -158,14 +158,20 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 	// 获取上次默认角色
 	key := consts.UserRoleKey.KeyUint32(userBO.Id).String()
-	client, err := b.dataRepo.Client()
+	client, err := b.dataRepo.Cache()
 	if err != nil {
 		b.log.Error(err)
 		err = perrors.ErrorUnknown("系统错误")
 		return
 	}
 
-	cacheRoleIdStr := client.Get(ctx, key).String()
+	cacheRoleIdBytes, err := client.Get(ctx, key)
+	if err != nil {
+		b.log.Error(err)
+		err = perrors.ErrorUnknown("系统错误")
+		return
+	}
+	cacheRoleIdStr := string(cacheRoleIdBytes)
 	searchRole := func(roleInfo *bo.RoleBO) bool {
 		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
 		return roleInfo.Id == uint32(cacheRoleId)
@@ -184,7 +190,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 // Logout 退出登录
 func (b *UserBiz) Logout(ctx context.Context, authClaims *middler.AuthClaims) error {
-	client, err := b.dataRepo.Client()
+	client, err := b.dataRepo.Cache()
 	if err != nil {
 		return err
 	}
@@ -196,12 +202,12 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 	roleIdStr := strconv.Itoa(int(roleId))
 	defer func() {
 		key := consts.UserRoleKey.KeyUint32(authClaims.ID).String()
-		client, err := b.dataRepo.Client()
+		client, err := b.dataRepo.Cache()
 		if err != nil {
 			b.log.Error(err)
 			return
 		}
-		if err = client.Set(ctx, key, roleIdStr, 0).Err(); err != nil {
+		if err = client.Set(ctx, key, []byte(roleIdStr), 0); err != nil {
 			b.log.Errorf("cache user role err: %v", err)
 			return
 		}
@@ -281,7 +287,7 @@ func (b *UserBiz) UpdateUserRoleRelation(userId uint32) {
 			b.log.Errorf("cache user role err: %v", err)
 			return
 		}
-		client, err := b.dataRepo.Client()
+		client, err := b.dataRepo.Cache()
 		if err != nil {
 			b.log.Errorf("cache user role err: %v", err)
 			return

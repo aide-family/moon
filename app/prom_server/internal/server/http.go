@@ -100,14 +100,14 @@ func NewHTTPServer(
 
 	jwtMiddle := selector.Server(
 		middler.JwtServer(),
-		middler.MustLogin(d.Client()),
+		middler.MustLogin(d.Cache()),
 	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
 	rbacMiddle := selector.Server(middler.RbacServer(
 		func(ctx context.Context, userID uint32, roleID string) error {
-			return do.CheckUserRoleExist(ctx, d.Client(), userID, roleID)
+			return do.CheckUserRoleExist(ctx, d.Cache(), userID, roleID)
 		},
 		func(ctx context.Context, path, method string) (uint64, error) {
-			return do.GetApiIDByPathAndMethod(d.Client(), path, method)
+			return do.GetApiIDByPathAndMethod(d.Cache(), path, method)
 		},
 	)).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
 

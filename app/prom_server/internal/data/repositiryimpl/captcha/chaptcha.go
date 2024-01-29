@@ -2,6 +2,7 @@ package captcha
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -24,13 +25,17 @@ type captchaRepoImpl struct {
 
 func (l *captchaRepoImpl) CreateCaptcha(ctx context.Context, captcha *bo.CaptchaBO) error {
 	key := consts.AuthCaptchaKey.Key(captcha.Id).String()
-	return l.data.Client().Set(ctx, key, captcha, time.Minute*3).Err()
+	return l.data.Cache().Set(ctx, key, captcha.Bytes(), time.Minute*3)
 }
 
 func (l *captchaRepoImpl) GetCaptchaById(ctx context.Context, id string) (*bo.CaptchaBO, error) {
 	key := consts.AuthCaptchaKey.Key(id).String()
 	var captcha bo.CaptchaBO
-	if err := l.data.Client().Get(ctx, key).Scan(&captcha); err != nil {
+	value, err := l.data.Cache().Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(value, &captcha); err != nil {
 		return nil, err
 	}
 

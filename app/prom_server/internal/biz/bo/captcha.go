@@ -17,6 +17,15 @@ type (
 	}
 )
 
+// Bytes 用于redis映射
+func (c *CaptchaBO) Bytes() []byte {
+	if c == nil {
+		return nil
+	}
+	bs, _ := json.Marshal(c)
+	return bs
+}
+
 // UnmarshalBinary 用于redis映射
 func (c *CaptchaBO) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)

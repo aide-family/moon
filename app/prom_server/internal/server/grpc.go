@@ -82,7 +82,7 @@ func NewGRPCServer(
 
 	allApi := apiWhite.GetAll()
 	jwtApis := append(allApi, apiWhite.GetJwtApi()...)
-	jwtMiddle := selector.Server(middler.JwtServer(), middler.MustLogin(d.Client())).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
+	jwtMiddle := selector.Server(middler.JwtServer(), middler.MustLogin(d.Cache())).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
 
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(

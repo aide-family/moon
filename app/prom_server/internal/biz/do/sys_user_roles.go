@@ -12,6 +12,7 @@ import (
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/util/slices"
@@ -36,6 +37,15 @@ type UserRoles struct {
 	Roles  []uint32 `json:"roles"`
 }
 
+// Bytes binary marshaling
+func (l *UserRoles) Bytes() []byte {
+	if l == nil {
+		return nil
+	}
+	bs, _ := json.Marshal(l)
+	return bs
+}
+
 func (l *UserRoles) UnmarshalBinary(data []byte) error {
 	if l == nil {
 		return nil
@@ -51,7 +61,7 @@ func (l *UserRoles) MarshalBinary() (data []byte, err error) {
 }
 
 // CacheUserRoles 缓存用户角色关联关系
-func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
+func CacheUserRoles(db *gorm.DB, cacheClient cache.GlobalCache) error {
 	var uRoles []*UserRole
 	if err := db.Find(&uRoles).Error; err != nil {
 		return err
@@ -72,18 +82,18 @@ func CacheUserRoles(db *gorm.DB, cacheClient *redis.Client) error {
 		roleMap[ur.UserID].Roles = append(roleMap[ur.UserID].Roles, ur.RoleID)
 	}
 	// 写入redis hash表中
-	args := make([]interface{}, 0, len(roleMap))
+	args := make([][]byte, 0, len(roleMap))
 	for userId, ur := range roleMap {
 		key := generateUserCacheKey(userId)
-		args = append(args, key, ur)
+		args = append(args, []byte(key), ur.Bytes())
 	}
 
 	key := consts.UserRolesKey
-	return cacheClient.HSet(context.Background(), key.String(), args).Err()
+	return cacheClient.HSet(context.Background(), key.String(), args...)
 }
 
 // CacheUserRole 缓存用户角色关联关系
-func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error {
+func CacheUserRole(db *gorm.DB, cacheClient cache.GlobalCache, userID uint32) error {
 	if userID == 0 {
 		return nil
 	}
@@ -96,7 +106,7 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error 
 
 	if len(uRoles) == 0 {
 		// 清除缓存
-		if err := cacheClient.HDel(context.Background(), consts.UserRolesKey.String(), generateUserCacheKey(userID)).Err(); err != nil {
+		if err := cacheClient.HDel(context.Background(), consts.UserRolesKey.String(), generateUserCacheKey(userID)); err != nil {
 			return err
 		}
 		return nil
@@ -107,10 +117,12 @@ func CacheUserRole(db *gorm.DB, cacheClient *redis.Client, userID uint32) error 
 		roleIds = append(roleIds, ur.RoleID)
 	}
 
-	if err := cacheClient.HSet(context.Background(), consts.UserRolesKey.String(), generateUserCacheKey(userID), &UserRoles{
+	userRole := &UserRoles{
 		UserID: userID,
 		Roles:  roleIds,
-	}).Err(); err != nil {
+	}
+	fieldKey := generateUserCacheKey(userID)
+	if err := cacheClient.HSet(context.Background(), consts.UserRolesKey.String(), []byte(fieldKey), userRole.Bytes()); err != nil {
 		return err
 	}
 
@@ -122,19 +134,19 @@ func generateUserCacheKey(userID uint32) string {
 }
 
 // CheckUserRoleExist 检查用户角色是否存在
-func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID uint32, roleID string) error {
+func CheckUserRoleExist(ctx context.Context, cacheClient cache.GlobalCache, userID uint32, roleID string) error {
 	if userID == 0 || roleID == "" {
 		return nil
 	}
 
 	// 从redis hash表中获取
 	key := generateUserCacheKey(userID)
-	result, err := cacheClient.HGet(ctx, consts.UserRolesKey.String(), key).Result()
+	result, err := cacheClient.HGet(ctx, consts.UserRolesKey.String(), key)
 	if err != nil {
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 
-	if result == "" {
+	if len(result) == 0 {
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 
@@ -143,7 +155,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 		return err
 	}
 	var ur UserRoles
-	if err = json.Unmarshal([]byte(result), &ur); err != nil {
+	if err = json.Unmarshal(result, &ur); err != nil {
 		return err
 	}
 	if ur.UserID != userID || !slices.Contains(ur.Roles, uint32(rID)) {
@@ -151,7 +163,8 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 	}
 
 	// 判断角色是否存在, 且状态为启用状态
-	if err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID).Err(); err != nil && !errors.Is(err, redis.Nil) {
+	_, err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID)
+	if err != nil && !errors.Is(err, redis.Nil) {
 		return err
 	}
 
@@ -159,7 +172,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient *redis.Client, userID u
 }
 
 // CacheDisabledRoles 缓存角色禁用列表
-func CacheDisabledRoles(db *gorm.DB, cacheClient *redis.Client, roleIds ...uint32) error {
+func CacheDisabledRoles(db *gorm.DB, cacheClient cache.GlobalCache, roleIds ...uint32) error {
 	wheres := []func(tx *gorm.DB) *gorm.DB{
 		basescopes.StatusNotEQ(vo.StatusEnabled),
 		basescopes.DeleteAtGT0(),
@@ -176,17 +189,17 @@ func CacheDisabledRoles(db *gorm.DB, cacheClient *redis.Client, roleIds ...uint3
 		// 删除找不到的角色
 		if len(roleIds) > 0 {
 			idsString := slices.To(roleIds, func(v uint32) string { return strconv.FormatUint(uint64(v), 10) })
-			if err := cacheClient.HDel(context.Background(), consts.RoleDisabledKey.String(), idsString...).Err(); err != nil {
+			if err := cacheClient.HDel(context.Background(), consts.RoleDisabledKey.String(), idsString...); err != nil {
 				return err
 			}
 		}
-		return cacheClient.Del(context.Background(), consts.RoleDisabledKey.String()).Err()
+		return cacheClient.Del(context.Background(), consts.RoleDisabledKey.String())
 	}
 
-	args := make([]interface{}, 0, len(roles))
+	args := make([][]byte, 0, len(roles))
 	for _, role := range roles {
-		args = append(args, role.ID, true)
+		args = append(args, []byte(strconv.FormatUint(uint64(role.ID), 10)), []byte("true"))
 	}
 
-	return cacheClient.HMSet(context.Background(), consts.RoleDisabledKey.String(), args).Err()
+	return cacheClient.HSet(context.Background(), consts.RoleDisabledKey.String(), args...)
 }
