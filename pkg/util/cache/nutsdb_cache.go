@@ -77,11 +77,28 @@ func (l *nutsDbCache) SetNX(_ context.Context, key string, value []byte, ttl tim
 	return true
 }
 
-func (l *nutsDbCache) HGet(ctx context.Context, prefix string, keys string) ([]byte, error) {
+func (l *nutsDbCache) HGet(_ context.Context, prefix string, keys string) ([]byte, error) {
 	if err := l.newBucket(l.bucket); err != nil {
 		return nil, err
 	}
-	return l.Get(ctx, prefix+keys)
+	var res []byte
+	if err := l.db.View(func(tx *nutsdb.Tx) error {
+		if v, err := tx.MGet(l.bucket, []byte(prefix+keys)); err != nil {
+			if errors.Is(err, nutsdb.ErrKeyNotFound) {
+				return nil
+			}
+			return err
+		} else {
+			if len(v) == 0 {
+				return nutsdb.ErrKeyNotFound
+			}
+			res = v[0]
+			return nil
+		}
+	}); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (l *nutsDbCache) Del(_ context.Context, keys ...string) error {
@@ -174,14 +191,11 @@ func (l *nutsDbCache) Get(_ context.Context, key string) ([]byte, error) {
 	}
 	var value []byte
 	err := l.db.View(func(tx *nutsdb.Tx) error {
-		mGet, err := tx.MGet(l.bucket, []byte(key))
+		mGet, err := tx.Get(l.bucket, []byte(key))
 		if err != nil {
 			return err
 		}
-		if len(mGet) == 0 {
-			return nutsdb.ErrKeyNotFound
-		}
-		value = mGet[0]
+		value = mGet
 		return nil
 	})
 	return value, err
