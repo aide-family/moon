@@ -9,7 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
-	"github.com/redis/go-redis/v9"
+	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/helper/consts"
@@ -36,12 +36,19 @@ func (l *AuthClaims) MD5() string {
 	return hash.MD5(l.String())
 }
 
+func (l *AuthClaims) Bytes() []byte {
+	if l == nil {
+		return nil
+	}
+	jsonByte, _ := json.Marshal(l)
+	return jsonByte
+}
+
 func (l *AuthClaims) String() string {
 	if l == nil {
 		return "{}"
 	}
-	jsonByte, _ := json.Marshal(l)
-	return string(jsonByte)
+	return string(l.Bytes())
 }
 
 // SetSecret set secret
@@ -50,7 +57,7 @@ func SetSecret(s string) {
 }
 
 // Expire 把token过期掉
-func Expire(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims) error {
+func Expire(ctx context.Context, rdsClient cache.GlobalCache, authClaims *AuthClaims) error {
 	timeUnix := authClaims.ExpiresAt.Time.Unix()
 	if timeUnix <= time.Now().Unix() {
 		return nil
@@ -62,13 +69,13 @@ func Expire(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims
 	}
 
 	key := consts.UserLogoutKey.Key(authClaims.MD5()).String()
-	return rdsClient.Set(ctx, key, authClaims.String(), time.Duration(diffTimeUnix)*time.Second).Err()
+	return rdsClient.Set(ctx, key, authClaims.Bytes(), time.Duration(diffTimeUnix)*time.Second)
 }
 
 // IsLogout 判断token是否被logout
-func IsLogout(ctx context.Context, rdsClient *redis.Client, authClaims *AuthClaims) error {
+func IsLogout(ctx context.Context, rdsClient cache.GlobalCache, authClaims *AuthClaims) error {
 	key := consts.UserLogoutKey.Key(authClaims.MD5()).String()
-	if rdsClient.Exists(ctx, key).Val() == 1 {
+	if rdsClient.Exists(ctx, key) == 1 {
 		return ErrLogout
 	}
 	return nil
@@ -138,7 +145,7 @@ func JwtServer() middleware.Middleware {
 }
 
 // MustLogin 必须登录
-func MustLogin(cache ...*redis.Client) middleware.Middleware {
+func MustLogin(cache ...cache.GlobalCache) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			// 1. 解析jwt

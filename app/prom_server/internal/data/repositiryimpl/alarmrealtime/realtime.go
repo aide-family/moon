@@ -67,7 +67,7 @@ func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtime
 
 func (l *alarmRealtimeImpl) CacheByHistoryId(ctx context.Context, req ...*bo.AlarmRealtimeBO) error {
 	// 写入redis hash表中
-	saveCacheArgs := make([]any, 0, len(req))
+	saveCacheArgs := make([][]byte, 0, len(req))
 	removeCacheArgs := make([]string, 0, len(req))
 	for _, alarmRealtimeBO := range req {
 		realtimeIdKey := strconv.Itoa(int(alarmRealtimeBO.ID))
@@ -75,7 +75,7 @@ func (l *alarmRealtimeImpl) CacheByHistoryId(ctx context.Context, req ...*bo.Ala
 			removeCacheArgs = append(removeCacheArgs, realtimeIdKey)
 			continue
 		}
-		saveCacheArgs = append(saveCacheArgs, realtimeIdKey, alarmRealtimeBO)
+		saveCacheArgs = append(saveCacheArgs, []byte(realtimeIdKey), alarmRealtimeBO.Bytes())
 	}
 
 	key := consts.AlarmRealtimeCacheById.String()
@@ -85,14 +85,14 @@ func (l *alarmRealtimeImpl) CacheByHistoryId(ctx context.Context, req ...*bo.Ala
 		if len(saveCacheArgs) == 0 {
 			return nil
 		}
-		return l.data.Client().HMSet(ctx, key, saveCacheArgs...).Err()
+		return l.data.Cache().HSet(ctx, key, saveCacheArgs...)
 	})
 	eg.Go(func() error {
 		// 删除已经恢复的告警数据
 		if len(removeCacheArgs) == 0 {
 			return nil
 		}
-		return l.data.Client().HDel(ctx, key, removeCacheArgs...).Err()
+		return l.data.Cache().HDel(ctx, key, removeCacheArgs...)
 	})
 
 	return eg.Wait()
@@ -101,7 +101,7 @@ func (l *alarmRealtimeImpl) CacheByHistoryId(ctx context.Context, req ...*bo.Ala
 func (l *alarmRealtimeImpl) DeleteCacheByHistoryId(ctx context.Context, historyId ...uint32) error {
 	key := consts.AlarmRealtimeCacheById.String()
 	fields := slices.To(historyId, func(id uint32) string { return strconv.Itoa(int(id)) })
-	return l.data.Client().HDel(ctx, key, fields...).Err()
+	return l.data.Cache().HDel(ctx, key, fields...)
 }
 
 func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyMembers(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmBeenNotifyMemberBO) error {

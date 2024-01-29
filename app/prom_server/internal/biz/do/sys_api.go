@@ -5,12 +5,14 @@ import (
 	"encoding"
 	"encoding/json"
 	"errors"
+	"strconv"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/helper/consts"
@@ -63,7 +65,7 @@ func (l *ApiSimple) MarshalBinary() (data []byte, err error) {
 }
 
 // CacheAllApiSimple 缓存所有api简单信息
-func CacheAllApiSimple(db *gorm.DB, cacheClient *redis.Client) error {
+func CacheAllApiSimple(db *gorm.DB, cacheClient cache.GlobalCache) error {
 	var apiList []*ApiSimple
 	if err := db.Model(&SysAPI{}).Where("status", vo.StatusEnabled).Find(&apiList).Error; err != nil {
 		return err
@@ -71,7 +73,7 @@ func CacheAllApiSimple(db *gorm.DB, cacheClient *redis.Client) error {
 
 	apiCacheKey := consts.APICacheKey.String()
 	// 删除redis hash表中所有数据
-	if err := cacheClient.Del(context.Background(), apiCacheKey).Err(); err != nil {
+	if err := cacheClient.Del(context.Background(), apiCacheKey); err != nil {
 		return err
 	}
 
@@ -80,17 +82,17 @@ func CacheAllApiSimple(db *gorm.DB, cacheClient *redis.Client) error {
 	}
 
 	// 写入redis hash表中
-	args := make([]interface{}, 0, len(apiList))
+	args := make([][]byte, 0, len(apiList))
 	for _, api := range apiList {
 		key := generateApiCacheKey(api.Path, api.Method)
-		args = append(args, key, api.ID)
+		args = append(args, []byte(key), []byte(strconv.FormatUint(uint64(api.ID), 10)))
 	}
 
-	return cacheClient.HSet(context.Background(), apiCacheKey, args).Err()
+	return cacheClient.HSet(context.Background(), apiCacheKey, args...)
 }
 
 // CacheApiSimple 缓存单个api简单信息
-func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint32) error {
+func CacheApiSimple(db *gorm.DB, cacheClient cache.GlobalCache, apiIds ...uint32) error {
 	if len(apiIds) == 0 {
 		return nil
 	}
@@ -105,27 +107,28 @@ func CacheApiSimple(db *gorm.DB, cacheClient *redis.Client, apiIds ...uint32) er
 	}
 
 	// 写入redis hash表中
-	args := make([]interface{}, 0, len(apiList))
+	args := make([][]byte, 0, len(apiList))
 	for _, api := range apiList {
 		key := generateApiCacheKey(api.Path, api.Method)
-		args = append(args, key, api.ID)
+		args = append(args, []byte(key), []byte(strconv.FormatUint(uint64(api.ID), 10)))
 	}
 
 	key := consts.APICacheKey.String()
-	return cacheClient.HSet(context.Background(), key, args).Err()
+	return cacheClient.HSet(context.Background(), key, args...)
 }
 
 // GetApiIDByPathAndMethod 根据api路径和请求方法获取api id
-func GetApiIDByPathAndMethod(cacheClient *redis.Client, path, method string) (uint64, error) {
+func GetApiIDByPathAndMethod(cacheClient cache.GlobalCache, path, method string) (uint64, error) {
 	key := generateApiCacheKey(path, method)
-	id, err := cacheClient.HGet(context.Background(), consts.APICacheKey.String(), key).Uint64()
+	idBytes, err := cacheClient.HGet(context.Background(), consts.APICacheKey.String(), key)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return 0, perrors.ErrorUnauthorized("API暂未授权, 请联系管理员开通")
 		}
 		return 0, perrors.ErrorUnknown("系统错误")
 	}
-	return id, nil
+
+	return strconv.ParseUint(string(idBytes), 10, 64)
 }
 
 // generateApiCacheKey 生成api缓存key

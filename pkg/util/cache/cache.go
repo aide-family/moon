@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 
-	"github.com/redis/go-redis/v9"
 	"prometheus-manager/pkg/helper/consts"
 )
 
@@ -16,32 +15,32 @@ type Cache interface {
 var _ Cache = (*redisCache)(nil)
 
 type redisCache struct {
-	cache  *redis.Client
+	cache  GlobalCache
 	prefix consts.RedisKey
 }
 
 func (l *redisCache) Delete(key string) {
-	l.cache.HDel(context.Background(), l.prefix.String(), key)
+	_ = l.cache.HDel(context.Background(), l.prefix.String(), key)
 }
 
 func (l *redisCache) Store(key string, value string) {
-	args := []any{key, value}
-	l.cache.HSet(context.Background(), l.prefix.String(), args)
+	args := [][]byte{[]byte(key), []byte(value)}
+	_ = l.cache.HSet(context.Background(), l.prefix.String(), args...)
 }
 
 func (l *redisCache) Range(f func(key string, value string) bool) {
-	resMap, err := l.cache.HGetAll(context.Background(), l.prefix.String()).Result()
+	resMap, err := l.cache.HGetAll(context.Background(), l.prefix.String())
 	if err != nil {
 		return
 	}
 	for k, v := range resMap {
-		if !f(k, v) {
+		if !f(k, string(v)) {
 			continue
 		}
 	}
 }
 
-func NewRedisCache(cache *redis.Client, prefix consts.RedisKey) Cache {
+func NewRedisCache(cache GlobalCache, prefix consts.RedisKey) Cache {
 	return &redisCache{
 		cache:  cache,
 		prefix: prefix,

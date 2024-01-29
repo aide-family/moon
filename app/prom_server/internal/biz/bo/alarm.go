@@ -37,10 +37,15 @@ type (
 	}
 )
 
+// Bytes .
+func (b *AlertBo) Bytes() []byte {
+	bytes, _ := json.Marshal(b)
+	return bytes
+}
+
 // String .
 func (b *AlertBo) String() string {
-	bytes, _ := json.Marshal(b)
-	return string(bytes)
+	return string(b.Bytes())
 }
 
 // ToMap .

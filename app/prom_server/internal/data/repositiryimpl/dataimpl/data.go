@@ -2,8 +2,8 @@ package dataimpl
 
 import (
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/api/perrors"
 
@@ -28,8 +28,8 @@ func (l *dataRepoImpl) DB() (*gorm.DB, error) {
 	return db, nil
 }
 
-func (l *dataRepoImpl) Client() (*redis.Client, error) {
-	client := l.d.Client()
+func (l *dataRepoImpl) Cache() (cache.GlobalCache, error) {
+	client := l.d.Cache()
 	if client == nil {
 		return nil, perrors.ErrorUnknown("client is nil")
 	}

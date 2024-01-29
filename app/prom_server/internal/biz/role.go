@@ -98,7 +98,7 @@ func (b *RoleBiz) cacheRoleByIds(roleIds ...uint32) {
 		if err != nil {
 			return
 		}
-		cacheClient, err := b.dataRepo.Client()
+		cacheClient, err := b.dataRepo.Cache()
 		if err != nil {
 			return
 		}

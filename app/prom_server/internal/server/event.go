@@ -95,6 +95,8 @@ func NewAlarmEvent(
 		return nil, err
 	}
 
+	globalCache := d.Cache()
+
 	l := &AlarmEvent{
 		log:                log.NewHelper(log.With(logger, "module", "server.alarm.event")),
 		c:                  c,
@@ -105,9 +107,9 @@ func NewAlarmEvent(
 		groupService:       groupService,
 		changeGroupChannel: changeGroupChannel,
 		removeGroupChannel: removeGroupChannel,
-		agentNames:         cache.NewRedisCache(d.Client(), consts.AgentNames),
-		groups:             cache.NewRedisCache(d.Client(), consts.StrategyGroups),
-		changeGroupIds:     cache.NewRedisCache(d.Client(), consts.ChangeGroupIds),
+		agentNames:         cache.NewRedisCache(globalCache, consts.AgentNames),
+		groups:             cache.NewRedisCache(globalCache, consts.StrategyGroups),
+		changeGroupIds:     cache.NewRedisCache(globalCache, consts.ChangeGroupIds),
 	}
 
 	// 注册topic处理器
