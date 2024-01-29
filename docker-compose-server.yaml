@@ -9,3 +9,4 @@ services:
       - "9001:9000"
     volumes:
       - "./app/prom_server/configs_dev/:/data/conf/"
+      - "./app/prom_server/cache:/app/cache"
