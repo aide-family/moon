@@ -165,12 +165,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 		return
 	}
 
-	cacheRoleIdBytes, err := client.Get(ctx, key)
-	if err != nil {
-		b.log.Error(err)
-		err = perrors.ErrorUnknown("系统错误")
-		return
-	}
+	cacheRoleIdBytes, _ := client.Get(ctx, key)
 	cacheRoleIdStr := string(cacheRoleIdBytes)
 	searchRole := func(roleInfo *bo.RoleBO) bool {
 		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
