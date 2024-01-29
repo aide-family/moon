@@ -63,9 +63,66 @@ func TestSetNx(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	defer c.Close()
 	t.Log(c.SetNX(context.Background(), "test", []byte("1"), 10*time.Second))
 	time.Sleep(1 * time.Second)
 	t.Log(c.SetNX(context.Background(), "test", []byte("1"), 10*time.Second))
 	time.Sleep(9 * time.Second)
 	t.Log(c.SetNX(context.Background(), "test", []byte("1"), 10*time.Second))
+}
+
+func TestExists(t *testing.T) {
+	c, err := NewNutsDbCache()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer c.Close()
+	if err = c.Set(context.Background(), "test", []byte("1"), 0); err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(c.Exists(context.Background(), "test"))
+	if err = c.HSet(context.Background(), "test", []byte("1"), []byte("1")); err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(c.Exists(context.Background(), "test", "test1"))
+}
+
+func TestHGet(t *testing.T) {
+	c, err := NewNutsDbCache()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer c.Close()
+	if err = c.HSet(context.Background(), "test", []byte("1"), []byte("1")); err != nil {
+		t.Error(err)
+		return
+	}
+	if value, err := c.HGet(context.Background(), "test", "1"); err != nil {
+		t.Error(err)
+	} else {
+		t.Log(string(value))
+	}
+}
+
+func TestGet(t *testing.T) {
+	c, err := NewNutsDbCache()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer c.Close()
+	if err = c.Set(context.Background(), "test", []byte("1"), 0); err != nil {
+		t.Error(err)
+		return
+	}
+	if value, err := c.Get(context.Background(), "test"); err != nil {
+		t.Error(err)
+	} else {
+		t.Log(string(value))
+	}
 }
