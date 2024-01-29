@@ -46,10 +46,16 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(hookBytes []byte, chatGroups []*bo.C
 	eg := new(errgroup.Group)
 	eg.SetLimit(10)
 	content := alarmInfo.String()
+	notifiedHooks := make(map[string]struct{})
 	for _, v := range chatGroups {
 		if v == nil {
 			continue
 		}
+
+		if _, ok := notifiedHooks[v.Hook]; ok {
+			continue
+		}
+		notifiedHooks[v.Hook] = struct{}{}
 
 		chatInfo := *v
 		msg := &HookNotifyMsg{
@@ -59,11 +65,12 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(hookBytes []byte, chatGroups []*bo.C
 			HookBytes: hookBytes,
 			Secret:    chatInfo.Secret,
 		}
+		alarmInfoMap := alarmInfo.ToMap()
 		if chatInfo.Template != "" {
-			msg.Content = strategy.Formatter(chatInfo.Template, alarmInfo.ToMap())
+			msg.Content = strategy.Formatter(chatInfo.Template, alarmInfoMap)
 		}
 		if chatInfo.Title != "" {
-			msg.Title = strategy.Formatter(chatInfo.Title, alarmInfo.ToMap())
+			msg.Title = strategy.Formatter(chatInfo.Title, alarmInfoMap)
 		}
 		eg.Go(func() error {
 			return NewHookNotify(chatInfo.NotifyApp).Alarm(chatInfo.Hook, msg)
