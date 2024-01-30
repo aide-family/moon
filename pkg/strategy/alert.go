@@ -157,9 +157,10 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 			eventAt = times.ParseAlertTimeUnix(alertInfo.StartsAt)
 		}
 
-		//log.Infow("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix)
+		diff := nowTimeUnix - eventAt
+		log.Infow("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix, "diff", diff)
 
-		if nowTimeUnix-eventAt >= ruleDuration {
+		if diff >= ruleDuration {
 			alerts = append(alerts, &alertInfo)
 			alarmCache.SetNotifyAlert(&alertInfo)
 		}
