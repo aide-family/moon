@@ -21,11 +21,10 @@ func NewHookInterflowService(logger log.Logger) *HookInterflowService {
 
 func (s *HookInterflowService) Receive(ctx context.Context, req *pb.ReceiveRequest) (*pb.ReceiveResponse, error) {
 	sendCh := interflow.GetSendInterflowCh()
-	agentUrl := "http://localhost:8001/api/v1/interflows/receive"
 	msg := &interflow.HookMsg{
-		Topic: req.Topic,
-		Value: req.Value,
-		Key:   []byte(agentUrl),
+		Topic: req.GetTopic(),
+		Value: req.GetValue(),
+		Key:   req.GetKey(),
 	}
 	sendCh <- msg
 	return &pb.ReceiveResponse{}, nil

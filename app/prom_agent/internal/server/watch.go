@@ -146,7 +146,12 @@ func (w *Watch) onlineNotify() error {
 	topic := string(consts.AgentOnlineTopic)
 	serverUrl := w.interflowConf.GetServer()
 	agentUrl := w.interflowConf.GetAgent()
-	return w.interflowInstance.Send(context.Background(), topic, []byte(serverUrl), []byte(agentUrl))
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: []byte(agentUrl),
+		Key:   []byte(agentUrl),
+	}
+	return w.interflowInstance.Send(context.Background(), serverUrl, msg)
 }
 
 // offlineNotify 下线通知
@@ -155,7 +160,13 @@ func (w *Watch) offlineNotify() error {
 	topic := string(consts.AgentOfflineTopic)
 	w.log.Infow("topic", topic)
 	serverUrl := w.interflowConf.GetServer()
-	err := w.interflowInstance.Send(context.Background(), topic, []byte(serverUrl), nil)
+	agentUrl := w.interflowConf.GetAgent()
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: nil,
+		Key:   []byte(agentUrl),
+	}
+	err := w.interflowInstance.Send(context.Background(), serverUrl, msg)
 	if err != nil {
 		return err
 	}
