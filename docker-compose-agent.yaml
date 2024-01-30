@@ -8,5 +8,5 @@ services:
       - "8002:8000"
       - "9002:9000"
     volumes:
-      - "./app/prom_agent/configs_dev/:/data/conf/"
+      - "./app/prom_agent/configs_dev:/data/conf"
       - "./app/prom_agent/cache:/app/cache"
