@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -79,7 +80,17 @@ func NewMysqlDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 		})
 	}
 
-	conn, err := gorm.Open(mysql.Open(cfg.GetSource()), opts...)
+	var dialector gorm.Dialector
+	switch cfg.GetDriver() {
+	case "mysql":
+		dialector = mysql.Open(cfg.GetSource())
+	case "sqlite":
+		dialector = sqlite.Open(cfg.GetSource())
+	default:
+		return nil, fmt.Errorf("invalid driver: %s", cfg.GetDriver())
+	}
+
+	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
 		return nil, err
 	}
