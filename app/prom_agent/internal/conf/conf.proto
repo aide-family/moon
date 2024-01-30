@@ -31,11 +31,6 @@ message Server {
 }
 
 message Data {
-  message Database {
-    string driver = 1;
-    string source = 2;
-    bool debug = 3;
-  }
   message Redis {
     string network = 1;
     string addr = 2;
@@ -45,8 +40,7 @@ message Data {
     string password = 6;
     google.protobuf.Duration dialTimeout = 7;
   }
-  Database database = 1;
-  Redis redis = 2;
+  Redis redis = 1;
 }
 
 message Env {

@@ -124,7 +124,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		d.interflowInstance = interflowInstance
 	}
 
-	if env.GetEnv() == "dev" || env.GetEnv() == "test" {
+	if env.GetEnv() == "dev" || env.GetEnv() == "local" {
 		if err = do.Migrate(db); err != nil {
 			d.log.Errorf("db migrate error: %v", err)
 			return nil, nil, err

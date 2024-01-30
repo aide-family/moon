@@ -5,11 +5,8 @@ server:
   grpc:
     addr: 0.0.0.0:9001
     timeout: 1s
-data:
-  database:
-    driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test
-  # 配置redis， 缓存使用redis， 否则使用本地存储
+#data:
+#  # 配置redis， 缓存使用redis， 否则使用本地存储
 #  redis:
 #    addr: 127.0.0.1:6379
 #    read_timeout: 0.2s

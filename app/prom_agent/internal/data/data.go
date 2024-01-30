@@ -3,7 +3,6 @@ package data
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
-	"gorm.io/gorm"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/pkg/conn"
 	"prometheus-manager/pkg/servers"
@@ -17,15 +16,10 @@ var ProviderSetData = wire.NewSet(NewData, NewPingRepo)
 
 // Data .
 type Data struct {
-	storeDB           *gorm.DB
 	cache             cache.GlobalCache
 	interflowInstance interflow.Interflow
 
 	log *log.Helper
-}
-
-func (d *Data) StoreDB() *gorm.DB {
-	return d.storeDB
 }
 
 func (d *Data) Cache() cache.GlobalCache {
@@ -38,15 +32,8 @@ func (d *Data) Interflow() interflow.Interflow {
 
 // NewData .
 func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
-	databaseConf := c.GetData().GetDatabase()
-	db, err := conn.NewMysqlDB(databaseConf, logger)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	d := &Data{
-		log:     log.NewHelper(log.With(logger, "module", "data")),
-		storeDB: db,
+		log: log.NewHelper(log.With(logger, "module", "data")),
 	}
 	redisConf := c.GetData().GetRedis()
 	if redisConf != nil {
@@ -81,17 +68,10 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	strategy.SetAlarmCache(alarmCache)
 
 	cleanup := func() {
-		sqlDb, err := d.StoreDB().DB()
-		if err != nil {
-			d.log.Errorf("close db error: %v", err)
-		}
-		if err = sqlDb.Close(); err != nil {
-			d.log.Errorf("close db error: %v", err)
-		}
-		if err = d.Cache().Close(); err != nil {
+		if err := d.Cache().Close(); err != nil {
 			d.log.Errorf("close redis error: %v", err)
 		}
-		if err = d.Interflow().Close(); err != nil {
+		if err := d.Interflow().Close(); err != nil {
 			d.log.Errorf("close interflow error: %v", err)
 		}
 		d.log.Info("closing the data resources")
