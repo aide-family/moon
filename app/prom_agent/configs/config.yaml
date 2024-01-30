@@ -1,18 +1,19 @@
 server:
   http:
-    addr: 0.0.0.0:8000
+    addr: 0.0.0.0:8001
     timeout: 1s
   grpc:
-    addr: 0.0.0.0:9000
+    addr: 0.0.0.0:9001
     timeout: 1s
 data:
   database:
     driver: mysql
     source: root:root@tcp(127.0.0.1:3306)/test
-  redis:
-    addr: 127.0.0.1:6379
-    read_timeout: 0.2s
-    write_timeout: 0.2s
+  # 配置redis， 缓存使用redis， 否则使用本地存储
+#  redis:
+#    addr: 127.0.0.1:6379
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
 
 log:
   filename: ./log/prometheus-server.log
@@ -24,11 +25,15 @@ log:
 watchProm:
   interval: 10s
 
-mq:
-  kafka:
-    groupId: prometheus-agent
-    endpoints:
-      - localhost:9092
-    alarmTopic: alert-hook
-    strategyGroupAllTopic: strategy-group-all
-    onlineTopic: online
+# 配置mq后走高可用模式
+#mq:
+#  kafka:
+#    groupId: prometheus-agent
+#    endpoints:
+#      - localhost:9092
+
+interflow:
+  # prom_server的通信地址
+  server: http://localhost:8000/api/v1/interflows/receive
+  # 自身的通信地址
+  agent: http://localhost:8001/api/v1/interflows/receive

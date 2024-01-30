@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api.interflows;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "prometheus-manager/api/interflows;interflows";
+option java_multiple_files = true;
+option java_package = "api.interflows";
+
+service HookInterflow {
+	rpc Receive(ReceiveRequest) returns (ReceiveResponse) {
+		option (google.api.http) = {
+			post: "/api/v1/interflows/receive"
+			body: "*"
+		};
+	}
+}
+
+message ReceiveRequest {
+	string topic = 1 [(validate.rules).string.min_len = 1];
+	bytes value = 2;
+}
+message ReceiveResponse {
+	uint32 code = 1;
+	string message = 2;
+}

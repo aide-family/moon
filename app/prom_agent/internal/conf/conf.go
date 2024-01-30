@@ -16,6 +16,7 @@ var ProviderSetConf = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "Log"),
 	wire.FieldsOf(new(*Bootstrap), "WatchProm"),
+	wire.FieldsOf(new(*Bootstrap), "Interflow"),
 	wire.FieldsOf(new(*Bootstrap), "MQ"),
 	wire.FieldsOf(new(*MQ), "Kafka"),
 	wire.Bind(new(plog.Config), new(*Log)),
