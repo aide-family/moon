@@ -21,6 +21,7 @@ service HookInterflow {
 message ReceiveRequest {
 	string topic = 1 [(validate.rules).string.min_len = 1];
 	bytes value = 2;
+	bytes key = 3;
 }
 message ReceiveResponse {
 	uint32 code = 1;

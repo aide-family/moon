@@ -25,11 +25,10 @@ func NewHookInterflowService(interflowConf *conf.Interflow, logger log.Logger) *
 
 func (s *HookInterflowService) Receive(ctx context.Context, req *pb.ReceiveRequest) (*pb.ReceiveResponse, error) {
 	sendCh := interflow.GetSendInterflowCh()
-	serverUrl := s.interflowConf.GetServer()
 	msg := &interflow.HookMsg{
-		Topic: req.Topic,
-		Value: req.Value,
-		Key:   []byte(serverUrl),
+		Topic: req.GetTopic(),
+		Value: req.GetValue(),
+		Key:   req.GetKey(),
 	}
 	sendCh <- msg
 	return &pb.ReceiveResponse{}, nil

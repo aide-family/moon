@@ -226,7 +226,12 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 	eg.SetLimit(100)
 	l.groups.Range(func(key, groupDetail string) bool {
 		eg.Go(func() error {
-			return l.interflowInstance.Send(context.Background(), string(consts.StrategyGroupAllTopic), agentInfo.Key, []byte(groupDetail))
+			msg := &interflow.HookMsg{
+				Topic: string(consts.StrategyGroupAllTopic),
+				Value: []byte(groupDetail),
+				Key:   agentInfo.Key,
+			}
+			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
 		})
 		return true
 	})
@@ -247,7 +252,12 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 			return true
 		}
 		eg.Go(func() error {
-			return l.interflowInstance.Send(context.Background(), topic, agentInfo.Key, groupDetailBytes)
+			msg := &interflow.HookMsg{
+				Topic: topic,
+				Value: groupDetailBytes,
+				Key:   agentInfo.Key,
+			}
+			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
 		})
 		return true
 	})
@@ -270,7 +280,12 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 			return true
 		}
 		eg.Go(func() error {
-			return l.interflowInstance.Send(context.Background(), topic, agentInfo.Key, msgValue)
+			msg := &interflow.HookMsg{
+				Topic: topic,
+				Value: msgValue,
+				Key:   agentInfo.Key,
+			}
+			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
 		})
 		return true
 	})

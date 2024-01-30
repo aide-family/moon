@@ -74,15 +74,14 @@ func (l *kafkaInterflow) Receive() error {
 	return nil
 }
 
-func (l *kafkaInterflow) Send(_ context.Context, topic string, key, value []byte) error {
-	// 3. 推送规则组消息(按规则组粒度)
+func (l *kafkaInterflow) Send(_ context.Context, _ string, msg *HookMsg) error {
 	sendMsg := &kafka.Message{
 		TopicPartition: kafka.TopicPartition{
-			Topic:     &topic,
+			Topic:     &msg.Topic,
 			Partition: kafka.PartitionAny,
 		},
-		Value: value,
-		Key:   key,
+		Value: msg.Value,
+		Key:   msg.Key,
 	}
 	return l.kafkaMQServer.Produce(sendMsg)
 }

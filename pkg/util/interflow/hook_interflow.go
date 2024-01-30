@@ -22,12 +22,6 @@ type (
 		lock    sync.RWMutex
 		closeCh chan struct{}
 	}
-
-	HookMsg struct {
-		Topic string `json:"topic"`
-		Value []byte `json:"value"`
-		Key   []byte `json:"key"`
-	}
 )
 
 // GetSendInterflowCh 获取发送消息的通道
@@ -54,17 +48,10 @@ func (l *hookInterflow) Close() error {
 	return nil
 }
 
-func (l *hookInterflow) Send(ctx context.Context, topic string, key []byte, value []byte) error {
-	api := string(key)
-	msg := &HookMsg{
-		Topic: topic,
-		Value: value,
-		Key:   key,
-	}
-
-	_, err := httpx.NewHttpX().POST(api, msg.Bytes())
+func (l *hookInterflow) Send(ctx context.Context, to string, msg *HookMsg) error {
+	_, err := httpx.NewHttpX().POST(to, msg.Bytes())
 	if err != nil {
-		l.log.Errorw("err", err, "key", string(key), "topic", topic, "value", string(value))
+		l.log.Errorw("err", err, "key", msg.Key, "topic", msg.Topic, "value", string(msg.Value))
 		return err
 	}
 	return nil

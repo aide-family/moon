@@ -11,6 +11,7 @@ import (
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/data"
 	"prometheus-manager/pkg/helper/consts"
+	"prometheus-manager/pkg/util/interflow"
 )
 
 var _ repository.AlarmRepo = (*alarmRepoImpl)(nil)
@@ -34,17 +35,21 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 		return nil
 	}
 
-	topic, key, value := l.genMsg(alarmDo, string(consts.AlertHookTopic))
-	if err := l.data.Interflow().Send(context.Background(), topic, key, value); err != nil {
-		l.log.Errorf("failed to produce message to topic %s: %v", topic, err)
+	msg := l.genMsg(alarmDo, string(consts.AlertHookTopic))
+	if err := l.data.Interflow().Send(context.Background(), l.interflowConf.GetServer(), msg); err != nil {
+		l.log.Errorf("failed to produce message to topic %s: %v", msg.Topic, err)
 		return err
 	}
 	return nil
 }
 
-func (l *alarmRepoImpl) genMsg(alarmDo *do.AlarmDo, topic string) (string, []byte, []byte) {
+func (l *alarmRepoImpl) genMsg(alarmDo *do.AlarmDo, topic string) *interflow.HookMsg {
 	serverUrl := l.interflowConf.GetServer()
-	return topic, []byte(serverUrl), alarmDo.Bytes()
+	return &interflow.HookMsg{
+		Topic: topic,
+		Value: alarmDo.Bytes(),
+		Key:   []byte(serverUrl),
+	}
 }
 
 func NewAlarmRepo(data *data.Data, interflowConf *conf.Interflow, logger log.Logger) repository.AlarmRepo {

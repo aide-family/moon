@@ -70,6 +70,8 @@ func (m *ReceiveRequest) validate(all bool) error {
 
 	// no validation rules for Value
 
+	// no validation rules for Key
+
 	if len(errors) > 0 {
 		return ReceiveRequestMultiError(errors)
 	}
