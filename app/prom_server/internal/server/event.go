@@ -129,6 +129,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 		for {
 			select {
 			case <-l.exitCh:
+				ticker.Stop()
 				return
 			case groupId := <-l.changeGroupChannel:
 				groupIdStr := strconv.FormatUint(uint64(groupId), 10)
