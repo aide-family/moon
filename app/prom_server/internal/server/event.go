@@ -3,11 +3,9 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"golang.org/x/sync/errgroup"
@@ -16,26 +14,22 @@ import (
 	alarmhookPb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/servers"
 	"prometheus-manager/pkg/util/cache"
+	"prometheus-manager/pkg/util/interflow"
 )
 
 var _ transport.Server = (*AlarmEvent)(nil)
 
-type EventHandler func(msg *kafka.Message) error
-
 type AlarmEvent struct {
 	log    *log.Helper
-	c      *conf.Bootstrap
 	exitCh chan struct{}
 
-	kafkaMQServer      *servers.KafkaMQServer
+	d                  *data.Data
 	hookService        *alarmservice.HookService
 	groupService       *promservice.GroupService
 	changeGroupChannel <-chan uint32
@@ -44,20 +38,17 @@ type AlarmEvent struct {
 	agentNames     cache.Cache
 	groups         cache.Cache
 	changeGroupIds cache.Cache
-	eventHandlers  map[consts.TopicType]EventHandler
+	eventHandlers  map[consts.TopicType]interflow.Callback
+
+	interflowInstance interflow.Interflow
 }
 
 func (l *AlarmEvent) Start(_ context.Context) error {
-	kafkaConf := l.c.GetMq().GetKafka()
 	if err := l.storeGroups(); err != nil {
 		return err
 	}
 
-	if err := l.Subscribe(kafkaConf.GetTopics()); err != nil {
-		return err
-	}
-
-	if err := l.Consume(); err != nil {
+	if err := l.interflowInstance.Receive(); err != nil {
 		return err
 	}
 
@@ -70,18 +61,12 @@ func (l *AlarmEvent) Start(_ context.Context) error {
 
 func (l *AlarmEvent) Stop(_ context.Context) error {
 	l.log.Info("AlarmEvent stopping")
-	l.kafkaMQServer.Producer().Close()
-	if err := l.kafkaMQServer.Consumer().Close(); err != nil {
-		return err
-	}
-
 	close(l.exitCh)
 	l.log.Info("AlarmEvent stopped")
 	return nil
 }
 
 func NewAlarmEvent(
-	c *conf.Bootstrap,
 	d *data.Data,
 	changeGroupChannel <-chan uint32,
 	removeGroupChannel <-chan bo.RemoveStrategyGroupBO,
@@ -89,20 +74,11 @@ func NewAlarmEvent(
 	groupService *promservice.GroupService,
 	logger log.Logger,
 ) (*AlarmEvent, error) {
-	kafkaConf := c.GetMq().GetKafka()
-	kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
-	if err != nil {
-		return nil, err
-	}
-
 	globalCache := d.Cache()
-
 	l := &AlarmEvent{
 		log:                log.NewHelper(log.With(logger, "module", "server.alarm.event")),
-		c:                  c,
 		exitCh:             make(chan struct{}),
-		eventHandlers:      make(map[consts.TopicType]EventHandler),
-		kafkaMQServer:      kafkaMqServer,
+		eventHandlers:      make(map[consts.TopicType]interflow.Callback),
 		hookService:        hookService,
 		groupService:       groupService,
 		changeGroupChannel: changeGroupChannel,
@@ -110,20 +86,16 @@ func NewAlarmEvent(
 		agentNames:         cache.NewRedisCache(globalCache, consts.AgentNames),
 		groups:             cache.NewRedisCache(globalCache, consts.StrategyGroups),
 		changeGroupIds:     cache.NewRedisCache(globalCache, consts.ChangeGroupIds),
+		interflowInstance:  d.Interflow(),
 	}
 
 	// 注册topic处理器
-	for _, topic := range kafkaConf.GetTopics() {
-		switch topic {
-		case string(consts.AlertHookTopic):
-			l.eventHandlers[consts.AlertHookTopic] = l.alertHookHandler
-		case string(consts.AgentOnlineTopic):
-			l.eventHandlers[consts.AgentOnlineTopic] = l.agentOnlineEventHandler
-		case string(consts.AgentOfflineTopic):
-			l.eventHandlers[consts.AgentOfflineTopic] = l.agentOfflineEventHandler
-		default:
-			return nil, fmt.Errorf("topic %s not support", topic)
-		}
+	l.eventHandlers[consts.AlertHookTopic] = l.alertHookHandler
+	l.eventHandlers[consts.AgentOnlineTopic] = l.agentOnlineEventHandler
+	l.eventHandlers[consts.AgentOfflineTopic] = l.agentOfflineEventHandler
+
+	if err := l.interflowInstance.SetHandles(l.eventHandlers); err != nil {
+		return nil, err
 	}
 
 	return l, nil
@@ -150,7 +122,7 @@ func (l *AlarmEvent) storeGroups() error {
 
 func (l *AlarmEvent) watchChangeGroup() error {
 	// 一分钟执行一次
-	//ticker := time.NewTicker(time.Minute * 1)
+	//ticker := time.NewTicker(time.Minute * 10)
 	ticker := time.NewTicker(time.Second * 10)
 	go func() {
 		defer after.Recover(l.log)
@@ -212,22 +184,11 @@ func (l *AlarmEvent) watchChangeGroup() error {
 	return nil
 }
 
-func (l *AlarmEvent) handleMessage(msg *kafka.Message) bool {
-	topic := *msg.TopicPartition.Topic
-	l.log.Infow("topic", topic)
-	if handler, ok := l.eventHandlers[consts.TopicType(topic)]; ok {
-		if err := handler(msg); err != nil {
-			l.log.Errorf("handle message error: %s", err.Error())
-		}
-	}
-	return true
-}
-
 // alertHook 处理alert hook数据
-func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
+func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte) error {
 	var req alarmhookPb.HookV1Request
 	// TODO 后期是否判断key
-	err := json.Unmarshal(msg.Value, &req)
+	err := json.Unmarshal(value, &req)
 	if err != nil {
 		return err
 	}
@@ -243,39 +204,29 @@ func (l *AlarmEvent) alertHookHandler(msg *kafka.Message) error {
 }
 
 // agentOfflineEventHandler 处理agent offline消息
-func (l *AlarmEvent) agentOfflineEventHandler(msg *kafka.Message) error {
-	l.log.Infof("agent offline: %s", string(msg.Key))
-	l.agentNames.Delete(string(msg.Key))
+func (l *AlarmEvent) agentOfflineEventHandler(topic consts.TopicType, key, value []byte) error {
+	l.log.Infof("agent offline: %s", string(key))
+	l.agentNames.Delete(string(key))
 	return nil
 }
 
 // agentOnlineEventHandler 处理agent online消息
-func (l *AlarmEvent) agentOnlineEventHandler(msg *kafka.Message) error {
+func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value []byte) error {
 	// 记录节点状态
-	topic := string(msg.Value)
-	l.log.Infof("agent online: %s, topic: %s", string(msg.Key), topic)
+	sendTopic := string(value)
+	l.log.Infof("agent online: %s, topic: %s", string(key), topic)
 	agentInfo := &AgentInfo{
-		AgentName: string(msg.Key),
-		Topic:     &topic,
-		Key:       msg.Key,
+		Topic: &sendTopic,
+		Key:   key,
 	}
 
-	l.agentNames.Store(string(msg.Key), agentInfo.String())
+	l.agentNames.Store(string(key), agentInfo.String())
 
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	l.groups.Range(func(key, groupDetail string) bool {
 		eg.Go(func() error {
-			// 3. 推送规则组消息(按规则组粒度)
-			sendMsg := &kafka.Message{
-				TopicPartition: kafka.TopicPartition{
-					Topic:     agentInfo.Topic,
-					Partition: kafka.PartitionAny,
-				},
-				Value: []byte(groupDetail),
-				Key:   agentInfo.Key,
-			}
-			return l.kafkaMQServer.Produce(sendMsg)
+			return l.interflowInstance.Send(context.Background(), string(consts.StrategyGroupAllTopic), agentInfo.Key, []byte(groupDetail))
 		})
 		return true
 	})
@@ -296,16 +247,7 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 			return true
 		}
 		eg.Go(func() error {
-			// 3. 推送规则组消息(按规则组粒度)
-			sendMsg := &kafka.Message{
-				TopicPartition: kafka.TopicPartition{
-					Topic:     &topic,
-					Partition: kafka.PartitionAny,
-				},
-				Value: groupDetailBytes,
-				Key:   agentInfo.Key,
-			}
-			return l.kafkaMQServer.Produce(sendMsg)
+			return l.interflowInstance.Send(context.Background(), topic, agentInfo.Key, groupDetailBytes)
 		})
 		return true
 	})
@@ -328,16 +270,7 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 			return true
 		}
 		eg.Go(func() error {
-			// 3. 推送规则组消息(按规则组粒度)
-			sendMsg := &kafka.Message{
-				TopicPartition: kafka.TopicPartition{
-					Topic:     &topic,
-					Partition: kafka.PartitionAny,
-				},
-				Value: msgValue,
-				Key:   agentInfo.Key,
-			}
-			return l.kafkaMQServer.Produce(sendMsg)
+			return l.interflowInstance.Send(context.Background(), topic, agentInfo.Key, msgValue)
 		})
 		return true
 	})
@@ -345,49 +278,9 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 	return eg.Wait()
 }
 
-// Subscribe 订阅消息
-func (l *AlarmEvent) Subscribe(topics []string) error {
-	return l.kafkaMQServer.Consume(topics, l.handleMessage)
-}
-
-// Consume 消费消息
-func (l *AlarmEvent) Consume() error {
-	consumer := l.kafkaMQServer.Consumer()
-	go func() {
-		events := consumer.Events()
-		for event := range events {
-			if consumer.IsClosed() {
-				l.log.Warnf("consumer is closed")
-				return
-			}
-			switch e := event.(type) {
-			case *kafka.Message:
-				// 处理消息, 根据不同的topic做不同的处理
-				l.log.Debugf("Message on %s\n", e.TopicPartition)
-				if e.TopicPartition.Topic == nil {
-					break
-				}
-				topic := consts.TopicType(*e.TopicPartition.Topic)
-				handler, ok := l.eventHandlers[topic]
-				if !ok {
-					l.log.Warnf("no handler found for topic: %s, event: %v", topic, e)
-					break
-				}
-				if err := handler(e); err != nil {
-					l.log.Errorf("handle event error: %v", err)
-				}
-			case kafka.Error:
-				//l.log.Warnf("Error: %v\n", e)
-			}
-		}
-	}()
-	return nil
-}
-
 type AgentInfo struct {
-	AgentName string  `json:"agent_name"`
-	Topic     *string `json:"topic"`
-	Key       []byte  `json:"key"`
+	Topic *string `json:"topic"`
+	Key   []byte  `json:"key"`
 }
 
 // String AgentInfo to string

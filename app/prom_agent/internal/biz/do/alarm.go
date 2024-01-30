@@ -13,6 +13,9 @@ type (
 )
 
 func (a *AlarmDo) Bytes() []byte {
+	if a == nil {
+		return []byte("{}")
+	}
 	bs, _ := json.Marshal(a)
 	return bs
 }

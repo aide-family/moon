@@ -1,14 +1,15 @@
 package data
 
 import (
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/pkg/conn"
+	"prometheus-manager/pkg/servers"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/cache"
+	"prometheus-manager/pkg/util/interflow"
 )
 
 // ProviderSetData is data providers.
@@ -16,9 +17,9 @@ var ProviderSetData = wire.NewSet(NewData, NewPingRepo)
 
 // Data .
 type Data struct {
-	storeDB    *gorm.DB
-	cache      cache.GlobalCache
-	mqProducer *kafka.Producer
+	storeDB           *gorm.DB
+	cache             cache.GlobalCache
+	interflowInstance interflow.Interflow
 
 	log *log.Helper
 }
@@ -31,34 +32,48 @@ func (d *Data) Cache() cache.GlobalCache {
 	return d.cache
 }
 
-func (d *Data) Producer() *kafka.Producer {
-	return d.mqProducer
+func (d *Data) Interflow() interflow.Interflow {
+	return d.interflowInstance
 }
 
 // NewData .
 func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	databaseConf := c.GetData().GetDatabase()
-	mqConf := c.GetMq().GetKafka()
 	db, err := conn.NewMysqlDB(databaseConf, logger)
-	if err != nil {
-		return nil, nil, err
-	}
-	kafkaProducer, err := conn.NewKafkaProducer(mqConf.GetEndpoints())
-	if err != nil {
-		return nil, nil, err
-	}
-	//redisConf := c.GetData().GetRedis()
-	//globalCache :=cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
-	globalCache, err := cache.NewNutsDbCache()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	d := &Data{
-		log:        log.NewHelper(log.With(logger, "module", "data")),
-		cache:      globalCache,
-		storeDB:    db,
-		mqProducer: kafkaProducer,
+		log:     log.NewHelper(log.With(logger, "module", "data")),
+		storeDB: db,
+	}
+	redisConf := c.GetData().GetRedis()
+	if redisConf != nil {
+		globalCache := cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
+		d.cache = globalCache
+	} else {
+		globalCache, err := cache.NewNutsDbCache()
+		if err != nil {
+			return nil, nil, err
+		}
+		d.cache = globalCache
+	}
+
+	kafkaConf := c.GetMq().GetKafka()
+	if kafkaConf != nil {
+		kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
+		if err != nil {
+			return nil, nil, err
+		}
+		interflowInstance, err := interflow.NewKafkaInterflow(kafkaMqServer, d.log)
+		if err != nil {
+			return nil, nil, err
+		}
+		d.interflowInstance = interflowInstance
+	} else {
+		interflowInstance := interflow.NewHookInterflow(d.log)
+		d.interflowInstance = interflowInstance
 	}
 
 	// 注册全局告警缓存组件
@@ -76,7 +91,9 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		if err = d.Cache().Close(); err != nil {
 			d.log.Errorf("close redis error: %v", err)
 		}
-		d.mqProducer.Close()
+		if err = d.Interflow().Close(); err != nil {
+			d.log.Errorf("close interflow error: %v", err)
+		}
 		d.log.Info("closing the data resources")
 	}
 	return d, cleanup, nil

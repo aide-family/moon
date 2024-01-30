@@ -3,7 +3,6 @@ package repositiryimpl
 import (
 	"context"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,24 +10,20 @@ import (
 	"prometheus-manager/app/prom_agent/internal/biz/repository"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/data"
+	"prometheus-manager/pkg/helper/consts"
 )
 
 var _ repository.AlarmRepo = (*alarmRepoImpl)(nil)
 
 type alarmRepoImpl struct {
-	log  *log.Helper
-	data *data.Data
-
-	producerConf *conf.Kafka
+	log           *log.Helper
+	data          *data.Data
+	interflowConf *conf.Interflow
 }
 
 func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
-	if l.data.Producer() == nil {
-		return status.Error(codes.Unavailable, "producer is not ready")
-	}
-
-	if len(l.producerConf.GetAlarmTopic()) == 0 {
-		return status.Error(codes.Unavailable, "topics is not ready")
+	if l.data.Interflow() == nil {
+		return status.Error(codes.Unavailable, "interflow is not ready")
 	}
 
 	if alarmDo == nil {
@@ -39,30 +34,23 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 		return nil
 	}
 
-	topic := l.producerConf.GetAlarmTopic()
-	msg := l.genMsg(alarmDo, topic)
-	if err := l.data.Producer().Produce(msg, nil); err != nil {
+	topic, key, value := l.genMsg(alarmDo, string(consts.AlertHookTopic))
+	if err := l.data.Interflow().Send(context.Background(), topic, key, value); err != nil {
 		l.log.Errorf("failed to produce message to topic %s: %v", topic, err)
 		return err
 	}
 	return nil
 }
 
-func (l *alarmRepoImpl) genMsg(alarmDo *do.AlarmDo, topic string) *kafka.Message {
-	return &kafka.Message{
-		Key: []byte(alarmDo.Receiver),
-		TopicPartition: kafka.TopicPartition{
-			Topic:     &topic,
-			Partition: kafka.PartitionAny,
-		},
-		Value: alarmDo.Bytes(),
-	}
+func (l *alarmRepoImpl) genMsg(alarmDo *do.AlarmDo, topic string) (string, []byte, []byte) {
+	serverUrl := l.interflowConf.GetServer()
+	return topic, []byte(serverUrl), alarmDo.Bytes()
 }
 
-func NewAlarmRepo(data *data.Data, producerConf *conf.Kafka, logger log.Logger) repository.AlarmRepo {
+func NewAlarmRepo(data *data.Data, interflowConf *conf.Interflow, logger log.Logger) repository.AlarmRepo {
 	return &alarmRepoImpl{
-		log:          log.NewHelper(log.With(logger, "module", "alarmRepoImpl")),
-		data:         data,
-		producerConf: producerConf,
+		log:           log.NewHelper(log.With(logger, "module", "alarmRepoImpl")),
+		data:          data,
+		interflowConf: interflowConf,
 	}
 }

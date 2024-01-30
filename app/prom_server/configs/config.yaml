@@ -1,38 +1,33 @@
 server:
   http:
-    addr: 0.0.0.0:8002
+    addr: 0.0.0.0:8000
     timeout: 1s
   grpc:
-    addr: 0.0.0.0:9002
+    addr: 0.0.0.0:9000
     timeout: 1s
 
 data:
   database:
     driver: mysql
-    source: root:6cd9aa521e1636b02dd1edd5e3ed22c8@tcp(localhost:33060)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
+    source: root:123456@tcp(localhost:3306)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
     debug: true
-  redis:
-    addr: localhost:6379
-    password: redis#single#test
-    read_timeout: 0.2s
-    write_timeout: 0.2s
+    # 配置redis则使用redis作为缓存
+#  redis:
+#    addr: localhost:6379
+#    password: redis#single#test
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
 
 apiWhite:
   all:
     - /api.auth.Auth/Login
     - /api.auth.Auth/Captcha
-
+    - /api.interflows.HookInterflow/Receive
   jwtApi:
 
   rbacApi:
     - /api.auth.Auth/Logout
     - /api.auth.Auth/RefreshToken
-
-email:
-  host: smtp.163.com
-  port: 25
-  user: aidedevops@163.com
-  pass:
 
 log:
   filename: ./log/prometheus-server.log
@@ -41,10 +36,9 @@ log:
   maxSize: 2
   compress: true
 
-mq:
-  kafka:
-    groupId: prometheus-server
-    endpoints:
-      - localhost:9092
-    topics:
-      - alert-hook
+# 配置mq则使用mq通信， 否则使用内部hook通信
+#mq:
+#  kafka:
+#    groupId: prometheus-server
+#    endpoints:
+#      - localhost:9092

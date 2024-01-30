@@ -95,6 +95,5 @@ message MQ {
 
 message Kafka {
   repeated string endpoints = 1;
-  repeated string topics = 2;
-  string groupId = 3;
+  string groupId = 2;
 }

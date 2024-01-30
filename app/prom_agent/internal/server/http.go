@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"prometheus-manager/api/alarm/hook"
+	"prometheus-manager/api/interflows"
 
 	"prometheus-manager/api/ping"
 	"prometheus-manager/app/prom_agent/internal/conf"
@@ -16,6 +17,7 @@ func NewHTTPServer(
 	c *conf.Server,
 	pingService *service.PingService,
 	hookService *service.HookService,
+	interflowService *service.HookInterflowService,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -37,6 +39,7 @@ func NewHTTPServer(
 	srv := http.NewServer(opts...)
 	ping.RegisterPingHTTPServer(srv, pingService)
 	hook.RegisterHookHTTPServer(srv, hookService)
+	interflows.RegisterHookInterflowHTTPServer(srv, interflowService)
 
 	return srv
 }

@@ -32,6 +32,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
+	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
 	"prometheus-manager/pkg/helper/plog"
@@ -106,12 +107,13 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	notifyBiz := biz.NewNotifyBiz(notifyRepo, logger)
 	notifyService := promservice.NewNotifyService(notifyBiz, logger)
 	realtimeService := alarmservice.NewRealtimeService(alarmRealtimeBiz, alarmPageBiz, logger)
-	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
+	hookInterflowService := interflowservice.NewHookInterflowService(logger)
+	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
-	alarmEvent, err := server.NewAlarmEvent(bootstrap, dataData, v3, v4, hookService, groupService, logger)
+	alarmEvent, err := server.NewAlarmEvent(dataData, v3, v4, hookService, groupService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

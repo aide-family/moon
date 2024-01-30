@@ -12,6 +12,7 @@ message Bootstrap {
   Log log = 4;
   WatchProm watchProm = 5;
   MQ mq = 6;
+  Interflow interflow = 7;
 }
 
 message Server {
@@ -86,10 +87,10 @@ message MQ {
 
 message Kafka {
   repeated string endpoints = 1;
-  string alarmTopic = 2;
-  string groupId = 3;
-  string strategyGroupAllTopic = 4;
-  string onlineTopic = 5;
-  string offlineTopic = 6;
-  string removeGroupTopic = 7;
+  string groupId = 2;
+}
+
+message Interflow {
+  string server = 1;
+  string agent = 2;
 }
