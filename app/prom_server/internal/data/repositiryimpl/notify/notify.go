@@ -113,11 +113,11 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 			l.log.Warnf("update notify error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Scopes(scopes...).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
+		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
 			l.log.Warnf("update notify chat group error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Scopes(scopes...).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
+		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
 			l.log.Warnf("update notify member error: %v", err)
 			return err
 		}
