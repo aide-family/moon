@@ -104,20 +104,20 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 	if len(scopes) == 0 {
 		return ErrNoCondition
 	}
-	whereList := append(scopes, basescopes.WithCreateBy(ctx))
+
 	newModel := notify.ToModel()
 	chatGroupModels := slices.To(notify.GetChatGroups(), func(i *bo.ChatGroupBO) *do.PromAlarmChatGroup { return i.ToModel() })
 	notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember { return i.ToModel() })
 	return l.data.DB().Model(newModel).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(newModel).Scopes(whereList...).Updates(newModel).Error; err != nil {
+		if err := tx.Model(newModel).Scopes(append(scopes, basescopes.WithCreateBy(ctx))...).Updates(newModel).Error; err != nil {
 			l.log.Warnf("update notify error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Scopes(whereList...).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
+		if err := tx.Model(newModel).Scopes(scopes...).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
 			l.log.Warnf("update notify chat group error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Scopes(whereList...).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
+		if err := tx.Model(newModel).Scopes(scopes...).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
 			l.log.Warnf("update notify member error: %v", err)
 			return err
 		}
