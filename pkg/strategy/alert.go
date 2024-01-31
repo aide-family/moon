@@ -66,17 +66,19 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				// 获取该策略下所有已经产生的告警数据
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist || len(existAlarmInfo.Alerts) == 0 {
-					log.Info("不存在数据, 存入缓存")
+					// TODO 需要区分告警的和正在判断告警的数据， 不能批量一起处理， 两处set导致数据被清洗了
+					log.Info("不存在数据, 存入缓存", exist, "", existAlarmInfo.Alerts)
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
 					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
 					// 不需要立即告警
-					return err
+					return nil
 				}
 
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
 				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
 				if existAlarmInfo != nil {
-					alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
+					// TODO 需要区分告警的和正在判断告警的数据， 不能批量一起处理
+					//alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
 					alarms.Append(usableAlarmInfo)
 				}
 				return nil
