@@ -67,7 +67,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
 				if !exist || len(existAlarmInfo.Alerts) == 0 {
 					// TODO 需要区分告警的和正在判断告警的数据， 不能批量一起处理， 两处set导致数据被清洗了
-					log.Info("不存在数据, 存入缓存", exist, "", existAlarmInfo.Alerts)
+					log.Info("不存在数据, 存入缓存", exist)
 					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
 					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
 					// 不需要立即告警
