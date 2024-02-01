@@ -198,7 +198,7 @@ func BetweenColumn(column Field, min, max any) ScopeMethod {
 func WithCreateBy(ctx context.Context) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		roleId := middler.GetRoleId(ctx)
-		if roleId == "1" {
+		if roleId == "1" || roleId == "" || roleId == "0" {
 			return db
 		}
 		userId := middler.GetUserId(ctx)
