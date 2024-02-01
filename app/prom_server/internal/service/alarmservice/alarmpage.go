@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
@@ -141,4 +142,27 @@ func (s *AlarmPageService) CountAlarmPage(ctx context.Context, req *pb.CountAlar
 	return &pb.CountAlarmPageReply{
 		AlarmCount: count,
 	}, nil
+}
+
+// ListMyAlarmPage 获取我的告警页面列表
+func (s *AlarmPageService) ListMyAlarmPage(ctx context.Context, _ *pb.ListMyAlarmPageRequest) (*pb.ListMyAlarmPageReply, error) {
+	userId := middler.GetUserId(ctx)
+	userAlarmPages, err := s.pageBiz.GetUserAlarmPages(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ListMyAlarmPageReply{
+		List: slices.To(userAlarmPages, func(alarmPageBO *bo.AlarmPageBO) *api.AlarmPageV1 {
+			return alarmPageBO.ToApi()
+		}),
+	}, nil
+}
+
+// MyAlarmPagesConfig 我的告警页面列表配置
+func (s *AlarmPageService) MyAlarmPagesConfig(ctx context.Context, req *pb.MyAlarmPagesConfigRequest) (*pb.MyAlarmPagesConfigReply, error) {
+	userId := middler.GetUserId(ctx)
+	if err := s.pageBiz.BindUserPages(ctx, userId, req.GetAlarmIds()); err != nil {
+		return nil, err
+	}
+	return &pb.MyAlarmPagesConfigReply{}, nil
 }

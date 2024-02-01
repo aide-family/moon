@@ -85,6 +85,22 @@ service AlarmPage {
 			body: "*"
 		};
 	}
+
+	// 我的告警页面列表
+	rpc ListMyAlarmPage (ListMyAlarmPageRequest) returns (ListMyAlarmPageReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm_page/my/list"
+			body: "*"
+		};
+	}
+
+	// 配置我的告警页面列表
+	rpc MyAlarmPagesConfig (MyAlarmPagesConfigRequest) returns (MyAlarmPagesConfigReply) {
+		option (google.api.http) = {
+			post: "/api/v1/alarm_page/my/list/config"
+			body: "*"
+		};
+	}
 }
 
 // 创建告警页面请求参数
@@ -217,3 +233,24 @@ message CountAlarmPageRequest {
 message CountAlarmPageReply {
 	map<uint32, int64> alarmCount = 1;
 }
+
+// 我的告警页面列表请求参数
+message ListMyAlarmPageRequest {}
+// 我的告警页面列表响应参数
+message ListMyAlarmPageReply {
+	// 我的告警页面列表
+	repeated AlarmPageV1 list = 1;
+}
+
+// 配置我的告警页面列表请求参数
+message MyAlarmPagesConfigRequest {
+	// 告警页面ID列表(大于0)
+	repeated uint32 alarmIds = 1 [(validate.rules).repeated = {
+		min_items: 1,
+		unique: true,
+		// 不能超过1000
+		max_items: 30,
+	}];
+}
+// 配置我的告警页面列表响应参数
+message MyAlarmPagesConfigReply {}

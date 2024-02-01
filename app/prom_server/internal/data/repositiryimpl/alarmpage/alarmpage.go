@@ -23,6 +23,29 @@ type alarmPageRepoImpl struct {
 	data *data.Data
 }
 
+func (l *alarmPageRepoImpl) UserPageList(ctx context.Context, userId uint32) ([]*bo.AlarmPageBO, error) {
+	var userInfo do.SysUser
+	if err := l.data.DB().
+		WithContext(ctx).
+		Scopes(basescopes.UserPreloadAlarmPages(), basescopes.InIds(userId)).
+		First(&userInfo).
+		Error; err != nil {
+		return nil, err
+	}
+	return slices.To(userInfo.GetAlarmPages(), func(p *do.PromAlarmPage) *bo.AlarmPageBO {
+		return bo.AlarmPageModelToBO(p)
+	}), nil
+}
+
+func (l *alarmPageRepoImpl) BindUserPages(ctx context.Context, userId uint32, pageIds []uint32) error {
+	pagesDo := slices.To(pageIds, func(id uint32) *do.PromAlarmPage {
+		return &do.PromAlarmPage{BaseModel: do.BaseModel{ID: id}}
+	})
+	return l.data.DB().WithContext(ctx).
+		Model(&do.SysUser{BaseModel: do.BaseModel{ID: userId}}).
+		Association(basescopes.UserAssociationReplaceAlarmPages).Replace(pagesDo)
+}
+
 func (l *alarmPageRepoImpl) GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error) {
 	var m []*do.PromStrategyAlarmPage
 	if err := l.data.DB().
