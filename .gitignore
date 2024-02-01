@@ -45,3 +45,6 @@ bin/
 #**/**.pb.go
 #**/cmd/**/**_gen.go
 **/configs_*/
+
+# temp dir for building image
+temp/
