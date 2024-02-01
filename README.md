@@ -20,6 +20,7 @@
   * mysql数据库：8.0+
   * redis数据库（可选）
   * kafka消息队列（可选）
+  > 如果没有这些环境，可以直接进入`./rely`录下， 执行`docker-compose up -d`启动本地默认依赖
 
 ### 2.2 安装部署
 
@@ -33,7 +34,7 @@ env:
   name: prometheus-manager_prom_server
   version: 0.0.1
   # local dev两种模式会自动migrate数据库
-  env: local
+  env: pro
   metadata:
     description: Prometheus Manager Server APP
     version: 0.0.1
@@ -95,7 +96,7 @@ log:
 env:
   name: prometheus-manager_prom_agent
   version: 0.0.1
-  env: local
+  env: pro
   metadata:
     description: Prometheus Manager Agent APP
     version: 0.0.1
@@ -131,8 +132,10 @@ watchProm:
 
 # mq替代配置， 二选一
 interflow:
-  server: http://localhost:8000/api/v1/interflows/receive
-  agent: http://localhost:8001/api/v1/interflows/receive
+  # prom_server的通信地址
+  server: http://prometheus_manager:8000/api/v1/interflows/receive
+  # 自身的通信地址
+  agent: http://prometheus_manager_agent:8000/api/v1/interflows/receive
 ```
 
 * 按顺序执行启动命令
