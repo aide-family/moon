@@ -22,7 +22,7 @@ type msgRepoImpl struct {
 	d   *data.Data
 }
 
-func (l *msgRepoImpl) SendAlarm(ctx context.Context, hookBytes []byte, req ...*bo.AlarmMsgBo) error {
+func (l *msgRepoImpl) SendAlarm(_ context.Context, hookBytes []byte, req ...*bo.AlarmMsgBo) error {
 	for _, v := range req {
 		if !l.cacheNotify(v.AlarmInfo) {
 			continue
