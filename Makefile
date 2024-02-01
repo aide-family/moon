@@ -3,6 +3,9 @@ GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 APPS ?= $(shell ls app)
 path := $(shell pwd)
+PROM-SERVER-VERSION:=0.0.1-$(VERSION)
+PROM-AGENT-VERSION:=0.0.1-$(VERSION)
+TEMP_BUILD_DIR:=./temp
 
 # 获取输入的参数
 APP_NAME ?= $(app)
@@ -28,6 +31,14 @@ dev:
 	@echo "APP_NAME: $(APP_NAME)"
 	@echo "VERSION: $(VERSION)"
 	@cd $(APP_NAME) && make dev
+
+all-docker-build:
+	make web-docker-build && make prom-server-docker-build && make prom-agent-docker-build
+
+# TODO: 
+#   1. dev-docker-compose-up 一站式拉起本地镜像
+#   2. all-up 本地构建所有组件镜像并启动
+all-docker-compose-up:
 
 .PHONY:
 local:
@@ -153,9 +164,26 @@ docker-push: ## Push docker image with the manager.
 
 
 .PHONY:
-docker-build-web: # test ## Build docker image with the manager-web.
+web-docker-build: # test ## Build docker image with the manager-web.
 	@echo "Building docker image with the manager-web..."
 	docker build -t "${REPO}/prometheus-manager/web:${TAG}" -f "./deploy/docker/Dockerfile.prom_web" .
+	@echo "Successfully build docker image with the web."
+
+prom-server-docker-build: # test ## Build docker image with the prom-server.
+	@echo "Building docker image with the prom-server..."
+	rm -rf $(TEMP_BUILD_DIR)
+	mkdir -p $(TEMP_BUILD_DIR)
+	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
+	docker build -t ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION} -f ./docker/prom-server/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
+	@echo "Successfully build docker image with the prom-server."
+
+prom-agent-docker-build: # test ## Build docker image with the prom-agent.
+	@echo "Building docker image with the prom-server..."
+	rm -rf $(TEMP_BUILD_DIR)
+	mkdir -p $(TEMP_BUILD_DIR)
+	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
+	docker build -t ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION} -f ./docker/prom-agent/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
+	@echo "Successfully build docker image with the prom-agent."
 
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
