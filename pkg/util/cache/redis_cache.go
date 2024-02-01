@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -20,7 +21,11 @@ func (l *redisGlobalCache) Exists(ctx context.Context, keys ...string) int64 {
 }
 
 func (l *redisGlobalCache) SetNX(ctx context.Context, key string, value []byte, ttl time.Duration) bool {
-	return l.client.SetNX(ctx, key, value, ttl).Val()
+	ok, err := l.client.SetNX(ctx, key, value, ttl).Result()
+	if err != nil {
+		log.Errorf("cache err %v", err)
+	}
+	return ok
 }
 
 func (l *redisGlobalCache) HGet(ctx context.Context, prefix string, keys string) ([]byte, error) {

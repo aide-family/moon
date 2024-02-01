@@ -3,6 +3,7 @@ package msg
 import (
 	"encoding/json"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/httpx"
 )
 
@@ -30,7 +31,21 @@ func (l *wechatNotify) Alarm(url string, msg *HookNotifyMsg) error {
 		MsgType:  markdown,
 		Markdown: WechatMarkdown{Content: msg.Content},
 	}
-	_, err := httpx.NewHttpX().POST(url, wechatMsg.Bytes())
+	response, err := httpx.NewHttpX().POST(url, wechatMsg.Bytes())
+	var resBytes []byte
+	body := response.Body
+	for {
+		tmp := make([]byte, 0, 4096)
+		read, err := body.Read(tmp)
+		if err != nil {
+			return err
+		}
+		resBytes = append(resBytes, tmp...)
+		if read == 0 {
+			break
+		}
+	}
+	log.Infow("notify", string(resBytes))
 	return err
 }
 
