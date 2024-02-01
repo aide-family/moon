@@ -5,8 +5,18 @@
 * 项目简介
 
   Prometheus Manager 是由Aide-Cloud团队开发并维护的一款管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
+* 体验demo
+  > https://prometheus.aide-cloud.cn/
+  >
+  > 账号：prometheus
+  >
+  > 密码：123456
+ 
+  > 账号：num1
+  >
+  > 密码：68b329da9893e34099c7d8ad5cb9c940
 
-* 主要功能
+* [相关博文](https://juejin.cn/post/7329734768258760719)
 
 ## 2. 快速开始
 
