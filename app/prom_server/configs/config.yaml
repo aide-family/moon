@@ -6,6 +6,7 @@ server:
     addr: 0.0.0.0:9000
     timeout: 1s
 
+# TODO 添加你自己的数据库，并增加prometheus-manager库
 data:
   database:
     driver: mysql
