@@ -9,6 +9,7 @@ import { GlobalContext } from '@/context'
 
 import styles from '../style/data.module.less'
 import { ActionKey } from '@/apis/data'
+import { ClearOutlined } from '@ant-design/icons'
 
 export type DataOptionItem = {
     label: ReactNode
@@ -75,9 +76,11 @@ const DataOption: FC<DataOptionProps> = (props) => {
                         </div>
                     )
                 })}
-                <Button type="dashed" onClick={clearQueryForm}>
-                    重置搜索
-                </Button>
+                <Button
+                    type="dashed"
+                    onClick={clearQueryForm}
+                    icon={<ClearOutlined />}
+                />
                 <Segmented
                     onChange={handleSizeChange}
                     value={size}

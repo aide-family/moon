@@ -100,7 +100,9 @@ export enum ActionKey {
     /** 告警标记 */
     ALARM_MARK = '__alarm_mark__',
     /** 跳转告警规则列表 */
-    OP_KEY_STRATEGY_LIST = 'strategy-list'
+    OP_KEY_STRATEGY_LIST = 'strategy-list',
+    /** 绑定我的告警页面 */
+    BIND_MY_ALARM_PAGES = '__bind_my_alarm_pages__'
 }
 
 export { categoryData, domainTypeData, moduleTypeData, NotifyAppData }

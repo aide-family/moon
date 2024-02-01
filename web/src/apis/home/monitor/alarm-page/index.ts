@@ -17,7 +17,9 @@ import type {
     ListAlarmPageReply,
     ListAlarmPageRequest,
     CountAlarmPageReply,
-    CountAlarmPageRequest
+    CountAlarmPageRequest,
+    MyAlarmPageListResponse,
+    BindMyAlarmPagesRequest
 } from './types'
 
 enum URL {
@@ -29,7 +31,11 @@ enum URL {
     UPDATE = '/api/v1/alarm_page/update',
     LIST = '/api/v1/alarm_page/list',
     SELECT = '/api/v1/alarm_page/select',
-    COUNT_ALARM_PAGE = '/api/v1/alarm_page/alarm/count'
+    COUNT_ALARM_PAGE = '/api/v1/alarm_page/alarm/count',
+    /** 我的告警页面列表 */
+    LIST_MY_ALARM_PAGE = '/api/v1/alarm_page/my/list',
+    /** 我的告警页面列表配置 */
+    CONFIG_MY_ALARM_PAGE = '/api/v1/alarm_page/my/list/config'
 }
 
 const getAlarmPageDetail = (params: GetAlarmPageRequest) => {
@@ -70,6 +76,14 @@ const countAlarmPage = (params: CountAlarmPageRequest) => {
     return POST<CountAlarmPageReply>(URL.COUNT_ALARM_PAGE, params)
 }
 
+const myAlarmPageList = () => {
+    return POST<MyAlarmPageListResponse>(URL.LIST_MY_ALARM_PAGE, {})
+}
+
+const myAlarmPageConfig = (params: BindMyAlarmPagesRequest) => {
+    return POST<{}>(URL.CONFIG_MY_ALARM_PAGE, params)
+}
+
 const alarmPageApi = {
     batchDeleteAlarmPage,
     batchUpdateAlarmPageStatus,
@@ -79,7 +93,9 @@ const alarmPageApi = {
     updateAlarmPage,
     deleteAlarmPage,
     getAlarmPageSelect,
-    countAlarmPage
+    countAlarmPage,
+    myAlarmPageList,
+    myAlarmPageConfig
 }
 
 export default alarmPageApi
