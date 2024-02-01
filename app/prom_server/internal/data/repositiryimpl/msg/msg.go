@@ -38,7 +38,7 @@ func (l *msgRepoImpl) SendAlarm(_ context.Context, hookBytes []byte, req ...*bo.
 
 func (l *msgRepoImpl) cacheNotify(alarmInfo *bo.AlertBo) bool {
 	fingerprint := hash.MD5(alarmInfo.Fingerprint + ":" + alarmInfo.Status)
-	// 判断十分发送过告警， 如果已经发送过， 不再发送
+	// 判断是否发送过告警， 如果已经发送过， 不再发送
 	return l.d.Cache().SetNX(context.Background(), consts.AlarmNotifyCache.Key(fingerprint).String(), alarmInfo.Bytes(), 2*time.Hour)
 }
 
