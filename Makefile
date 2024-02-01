@@ -145,7 +145,7 @@ endif
 .PHONY:
 docker-build: # test ## Build docker image with the manager.
 	@echo "Building docker image with the manager..."
-	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" -f "Dockerfile.${APP}" .
+	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" -f "./deploy/docker/Dockerfile.${APP}" .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -155,7 +155,7 @@ docker-push: ## Push docker image with the manager.
 .PHONY:
 docker-build-web: # test ## Build docker image with the manager-web.
 	@echo "Building docker image with the manager-web..."
-	docker build -t "${REPO}/prometheus-manager/web:${TAG}" -f "Dockerfile.prom_web" .
+	docker build -t "${REPO}/prometheus-manager/web:${TAG}" -f "/deploy/docker/Dockerfile.prom_web" .
 
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec

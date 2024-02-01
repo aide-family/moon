@@ -1,5 +1,9 @@
 version: '3'
 
+networks:
+  prometheus_manager_net:
+    driver: bridge
+
 services:
   prometheus_manager:
     container_name: prometheus_manager
@@ -10,6 +14,8 @@ services:
     volumes:
       - "./app/prom_server/configs_dev:/data/conf"
       - "./app/prom_server/cache:/app/cache"
+    networks:
+      prometheus_manager_net:
 
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
@@ -22,6 +28,8 @@ services:
       - "./app/prom_agent/cache:/app/cache"
     depends_on:
       - prometheus_manager
+    networks:
+      prometheus_manager_net:
 
   prometheus_manager_web:
     container_name: prometheus_manager_web
@@ -30,3 +38,5 @@ services:
       - "8000:80"
     depends_on:
       - prometheus_manager
+    networks:
+      prometheus_manager_net:

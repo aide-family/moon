@@ -1,6 +1,6 @@
 FROM golang:1.21.0 AS builder
 
-COPY . /src
+COPY ../.. /src
 WORKDIR /src
 
 RUN GOPROXY=https://goproxy.cn make build
@@ -25,4 +25,4 @@ VOLUME /app/cache
 # TZ=Asia/Shanghai
 ENV TZ=Asia/Shanghai
 
-CMD ["./prom_server", "-conf", "/data/conf"]
+CMD ["./prom_agent", "-conf", "/data/conf"]

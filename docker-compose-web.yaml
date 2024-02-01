@@ -1,8 +1,0 @@
-version: '3'
-
-services:
-  prometheus_manager_web:
-    container_name: prometheus_manager_web
-    image: docker.hub/prometheus-manager/web:latest
-    ports:
-      - "8000:80"
