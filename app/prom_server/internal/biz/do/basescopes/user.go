@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	UserAssociationReplaceRoles = "Roles"
+	UserAssociationReplaceRoles      = "Roles"
+	UserAssociationReplaceAlarmPages = "AlarmPages"
 )
 
 const (
@@ -42,5 +43,15 @@ func UserPreloadRoles(roleIds ...uint32) ScopeMethod {
 			return db.Preload(UserAssociationReplaceRoles, WhereInColumn(BaseFieldID, roleIds...))
 		}
 		return db.Preload(UserAssociationReplaceRoles)
+	}
+}
+
+// UserPreloadAlarmPages 预加载报警页面
+func UserPreloadAlarmPages(alarmPageIds ...uint32) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(alarmPageIds) > 0 {
+			return db.Preload(UserAssociationReplaceAlarmPages, WhereInColumn(BaseFieldID, alarmPageIds...))
+		}
+		return db.Preload(UserAssociationReplaceAlarmPages)
 	}
 }

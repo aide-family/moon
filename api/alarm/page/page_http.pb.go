@@ -26,6 +26,8 @@ const OperationAlarmPageCreateAlarmPage = "/api.alarm.page.AlarmPage/CreateAlarm
 const OperationAlarmPageDeleteAlarmPage = "/api.alarm.page.AlarmPage/DeleteAlarmPage"
 const OperationAlarmPageGetAlarmPage = "/api.alarm.page.AlarmPage/GetAlarmPage"
 const OperationAlarmPageListAlarmPage = "/api.alarm.page.AlarmPage/ListAlarmPage"
+const OperationAlarmPageListMyAlarmPage = "/api.alarm.page.AlarmPage/ListMyAlarmPage"
+const OperationAlarmPageMyAlarmPagesConfig = "/api.alarm.page.AlarmPage/MyAlarmPagesConfig"
 const OperationAlarmPageSelectAlarmPage = "/api.alarm.page.AlarmPage/SelectAlarmPage"
 const OperationAlarmPageUpdateAlarmPage = "/api.alarm.page.AlarmPage/UpdateAlarmPage"
 
@@ -37,6 +39,8 @@ type AlarmPageHTTPServer interface {
 	DeleteAlarmPage(context.Context, *DeleteAlarmPageRequest) (*DeleteAlarmPageReply, error)
 	GetAlarmPage(context.Context, *GetAlarmPageRequest) (*GetAlarmPageReply, error)
 	ListAlarmPage(context.Context, *ListAlarmPageRequest) (*ListAlarmPageReply, error)
+	ListMyAlarmPage(context.Context, *ListMyAlarmPageRequest) (*ListMyAlarmPageReply, error)
+	MyAlarmPagesConfig(context.Context, *MyAlarmPagesConfigRequest) (*MyAlarmPagesConfigReply, error)
 	SelectAlarmPage(context.Context, *SelectAlarmPageRequest) (*SelectAlarmPageReply, error)
 	UpdateAlarmPage(context.Context, *UpdateAlarmPageRequest) (*UpdateAlarmPageReply, error)
 }
@@ -52,6 +56,8 @@ func RegisterAlarmPageHTTPServer(s *http.Server, srv AlarmPageHTTPServer) {
 	r.POST("/api/v1/alarm_page/list", _AlarmPage_ListAlarmPage0_HTTP_Handler(srv))
 	r.POST("/api/v1/alarm_page/select", _AlarmPage_SelectAlarmPage0_HTTP_Handler(srv))
 	r.POST("/api/v1/alarm_page/alarm/count", _AlarmPage_CountAlarmPage0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/my/list", _AlarmPage_ListMyAlarmPage0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/my/list/config", _AlarmPage_MyAlarmPagesConfig0_HTTP_Handler(srv))
 }
 
 func _AlarmPage_CreateAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
@@ -225,6 +231,44 @@ func _AlarmPage_CountAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx h
 	}
 }
 
+func _AlarmPage_ListMyAlarmPage0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyAlarmPageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlarmPageListMyAlarmPage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyAlarmPage(ctx, req.(*ListMyAlarmPageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyAlarmPageReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlarmPage_MyAlarmPagesConfig0_HTTP_Handler(srv AlarmPageHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MyAlarmPagesConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlarmPageMyAlarmPagesConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MyAlarmPagesConfig(ctx, req.(*MyAlarmPagesConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MyAlarmPagesConfigReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AlarmPageHTTPClient interface {
 	BatchDeleteAlarmPage(ctx context.Context, req *BatchDeleteAlarmPageRequest, opts ...http.CallOption) (rsp *BatchDeleteAlarmPageReply, err error)
 	BatchUpdateAlarmPageStatus(ctx context.Context, req *BatchUpdateAlarmPageStatusRequest, opts ...http.CallOption) (rsp *BatchUpdateAlarmPageStatusReply, err error)
@@ -233,6 +277,8 @@ type AlarmPageHTTPClient interface {
 	DeleteAlarmPage(ctx context.Context, req *DeleteAlarmPageRequest, opts ...http.CallOption) (rsp *DeleteAlarmPageReply, err error)
 	GetAlarmPage(ctx context.Context, req *GetAlarmPageRequest, opts ...http.CallOption) (rsp *GetAlarmPageReply, err error)
 	ListAlarmPage(ctx context.Context, req *ListAlarmPageRequest, opts ...http.CallOption) (rsp *ListAlarmPageReply, err error)
+	ListMyAlarmPage(ctx context.Context, req *ListMyAlarmPageRequest, opts ...http.CallOption) (rsp *ListMyAlarmPageReply, err error)
+	MyAlarmPagesConfig(ctx context.Context, req *MyAlarmPagesConfigRequest, opts ...http.CallOption) (rsp *MyAlarmPagesConfigReply, err error)
 	SelectAlarmPage(ctx context.Context, req *SelectAlarmPageRequest, opts ...http.CallOption) (rsp *SelectAlarmPageReply, err error)
 	UpdateAlarmPage(ctx context.Context, req *UpdateAlarmPageRequest, opts ...http.CallOption) (rsp *UpdateAlarmPageReply, err error)
 }
@@ -328,6 +374,32 @@ func (c *AlarmPageHTTPClientImpl) ListAlarmPage(ctx context.Context, in *ListAla
 	pattern := "/api/v1/alarm_page/list"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAlarmPageListAlarmPage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AlarmPageHTTPClientImpl) ListMyAlarmPage(ctx context.Context, in *ListMyAlarmPageRequest, opts ...http.CallOption) (*ListMyAlarmPageReply, error) {
+	var out ListMyAlarmPageReply
+	pattern := "/api/v1/alarm_page/my/list"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAlarmPageListMyAlarmPage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AlarmPageHTTPClientImpl) MyAlarmPagesConfig(ctx context.Context, in *MyAlarmPagesConfigRequest, opts ...http.CallOption) (*MyAlarmPagesConfigReply, error) {
+	var out MyAlarmPagesConfigReply
+	pattern := "/api/v1/alarm_page/my/list/config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAlarmPageMyAlarmPagesConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

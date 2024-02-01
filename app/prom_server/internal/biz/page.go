@@ -153,3 +153,18 @@ func (p *AlarmPageBiz) CountAlarmPageByIds(ctx context.Context, ids ...uint32) (
 
 	return alarmNumCount, nil
 }
+
+// GetUserAlarmPages 获取用户告警页面列表
+func (p *AlarmPageBiz) GetUserAlarmPages(ctx context.Context, userId uint32) ([]*bo.AlarmPageBO, error) {
+	pageBos, err := p.pageRepo.UserPageList(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageBos, nil
+}
+
+// BindUserPages 绑定用户页面
+func (p *AlarmPageBiz) BindUserPages(ctx context.Context, userId uint32, pageIds []uint32) error {
+	return p.pageRepo.BindUserPages(ctx, userId, pageIds)
+}

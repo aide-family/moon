@@ -34,45 +34,57 @@ type (
 		// GetStrategyIds 获取策略id列表
 		GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error)
 		GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error)
+		// UserPageList 获取用户页面列表
+		UserPageList(ctx context.Context, userId uint32) ([]*bo.AlarmPageBO, error)
+		// BindUserPages 绑定用户页面
+		BindUserPages(ctx context.Context, userId uint32, pageIds []uint32) error
 	}
 
 	UnimplementedPageRepo struct{}
 )
 
+func (UnimplementedPageRepo) BindUserPages(_ context.Context, _ uint32, _ []uint32) error {
+	return status.Error(codes.Unimplemented, "method BindUserPages not implemented")
+}
+
+func (UnimplementedPageRepo) UserPageList(_ context.Context, _ uint32) ([]*bo.AlarmPageBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method UserPageList not implemented")
+}
+
 func (UnimplementedPageRepo) GetPromStrategyAlarmPage(_ context.Context, _ ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPromStrategyAlarmPage not implemented")
+	return nil, status.Error(codes.Unimplemented, "method GetPromStrategyAlarmPage not implemented")
 }
 
 func (UnimplementedPageRepo) GetStrategyIds(_ context.Context, _ ...basescopes.ScopeMethod) ([]uint32, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyIds not implemented")
+	return nil, status.Error(codes.Unimplemented, "method GetStrategyIds not implemented")
 }
 
 func (UnimplementedPageRepo) Get(_ context.Context, _ ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 
 func (UnimplementedPageRepo) mustEmbedUnimplemented() {}
 
 func (UnimplementedPageRepo) CreatePage(_ context.Context, _ *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePage not implemented")
+	return nil, status.Error(codes.Unimplemented, "method CreatePage not implemented")
 }
 
 func (UnimplementedPageRepo) UpdatePageById(_ context.Context, _ uint32, _ *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdatePageById not implemented")
+	return nil, status.Error(codes.Unimplemented, "method UpdatePageById not implemented")
 }
 
 func (UnimplementedPageRepo) BatchUpdatePageStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
-	return status.Errorf(codes.Unimplemented, "method BatchUpdatePageStatusByIds not implemented")
+	return status.Error(codes.Unimplemented, "method BatchUpdatePageStatusByIds not implemented")
 }
 
 func (UnimplementedPageRepo) DeletePageByIds(_ context.Context, _ ...uint32) error {
-	return status.Errorf(codes.Unimplemented, "method DeletePageByIds not implemented")
+	return status.Error(codes.Unimplemented, "method DeletePageByIds not implemented")
 }
 
 func (UnimplementedPageRepo) GetPageById(_ context.Context, _ uint32) (*bo.AlarmPageBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPageById not implemented")
+	return nil, status.Error(codes.Unimplemented, "method GetPageById not implemented")
 }
 
 func (UnimplementedPageRepo) ListPage(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPage not implemented")
+	return nil, status.Error(codes.Unimplemented, "method ListPage not implemented")
 }

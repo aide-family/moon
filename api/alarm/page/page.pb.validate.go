@@ -2409,3 +2409,477 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CountAlarmPageReplyValidationError{}
+
+// Validate checks the field values on ListMyAlarmPageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListMyAlarmPageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListMyAlarmPageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListMyAlarmPageRequestMultiError, or nil if none found.
+func (m *ListMyAlarmPageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListMyAlarmPageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListMyAlarmPageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListMyAlarmPageRequestMultiError is an error wrapping multiple validation
+// errors returned by ListMyAlarmPageRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListMyAlarmPageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListMyAlarmPageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListMyAlarmPageRequestMultiError) AllErrors() []error { return m }
+
+// ListMyAlarmPageRequestValidationError is the validation error returned by
+// ListMyAlarmPageRequest.Validate if the designated constraints aren't met.
+type ListMyAlarmPageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListMyAlarmPageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListMyAlarmPageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListMyAlarmPageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListMyAlarmPageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListMyAlarmPageRequestValidationError) ErrorName() string {
+	return "ListMyAlarmPageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListMyAlarmPageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListMyAlarmPageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListMyAlarmPageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListMyAlarmPageRequestValidationError{}
+
+// Validate checks the field values on ListMyAlarmPageReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListMyAlarmPageReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListMyAlarmPageReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListMyAlarmPageReplyMultiError, or nil if none found.
+func (m *ListMyAlarmPageReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListMyAlarmPageReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListMyAlarmPageReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListMyAlarmPageReplyValidationError{
+						field:  fmt.Sprintf("List[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListMyAlarmPageReplyValidationError{
+					field:  fmt.Sprintf("List[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListMyAlarmPageReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListMyAlarmPageReplyMultiError is an error wrapping multiple validation
+// errors returned by ListMyAlarmPageReply.ValidateAll() if the designated
+// constraints aren't met.
+type ListMyAlarmPageReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListMyAlarmPageReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListMyAlarmPageReplyMultiError) AllErrors() []error { return m }
+
+// ListMyAlarmPageReplyValidationError is the validation error returned by
+// ListMyAlarmPageReply.Validate if the designated constraints aren't met.
+type ListMyAlarmPageReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListMyAlarmPageReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListMyAlarmPageReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListMyAlarmPageReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListMyAlarmPageReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListMyAlarmPageReplyValidationError) ErrorName() string {
+	return "ListMyAlarmPageReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListMyAlarmPageReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListMyAlarmPageReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListMyAlarmPageReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListMyAlarmPageReplyValidationError{}
+
+// Validate checks the field values on MyAlarmPagesConfigRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MyAlarmPagesConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MyAlarmPagesConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MyAlarmPagesConfigRequestMultiError, or nil if none found.
+func (m *MyAlarmPagesConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MyAlarmPagesConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetAlarmIds()); l < 1 || l > 30 {
+		err := MyAlarmPagesConfigRequestValidationError{
+			field:  "AlarmIds",
+			reason: "value must contain between 1 and 30 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_MyAlarmPagesConfigRequest_AlarmIds_Unique := make(map[uint32]struct{}, len(m.GetAlarmIds()))
+
+	for idx, item := range m.GetAlarmIds() {
+		_, _ = idx, item
+
+		if _, exists := _MyAlarmPagesConfigRequest_AlarmIds_Unique[item]; exists {
+			err := MyAlarmPagesConfigRequestValidationError{
+				field:  fmt.Sprintf("AlarmIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_MyAlarmPagesConfigRequest_AlarmIds_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for AlarmIds[idx]
+	}
+
+	if len(errors) > 0 {
+		return MyAlarmPagesConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// MyAlarmPagesConfigRequestMultiError is an error wrapping multiple validation
+// errors returned by MyAlarmPagesConfigRequest.ValidateAll() if the
+// designated constraints aren't met.
+type MyAlarmPagesConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MyAlarmPagesConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MyAlarmPagesConfigRequestMultiError) AllErrors() []error { return m }
+
+// MyAlarmPagesConfigRequestValidationError is the validation error returned by
+// MyAlarmPagesConfigRequest.Validate if the designated constraints aren't met.
+type MyAlarmPagesConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MyAlarmPagesConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MyAlarmPagesConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MyAlarmPagesConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MyAlarmPagesConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MyAlarmPagesConfigRequestValidationError) ErrorName() string {
+	return "MyAlarmPagesConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MyAlarmPagesConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMyAlarmPagesConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MyAlarmPagesConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MyAlarmPagesConfigRequestValidationError{}
+
+// Validate checks the field values on MyAlarmPagesConfigReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MyAlarmPagesConfigReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MyAlarmPagesConfigReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MyAlarmPagesConfigReplyMultiError, or nil if none found.
+func (m *MyAlarmPagesConfigReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MyAlarmPagesConfigReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return MyAlarmPagesConfigReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// MyAlarmPagesConfigReplyMultiError is an error wrapping multiple validation
+// errors returned by MyAlarmPagesConfigReply.ValidateAll() if the designated
+// constraints aren't met.
+type MyAlarmPagesConfigReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MyAlarmPagesConfigReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MyAlarmPagesConfigReplyMultiError) AllErrors() []error { return m }
+
+// MyAlarmPagesConfigReplyValidationError is the validation error returned by
+// MyAlarmPagesConfigReply.Validate if the designated constraints aren't met.
+type MyAlarmPagesConfigReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MyAlarmPagesConfigReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MyAlarmPagesConfigReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MyAlarmPagesConfigReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MyAlarmPagesConfigReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MyAlarmPagesConfigReplyValidationError) ErrorName() string {
+	return "MyAlarmPagesConfigReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MyAlarmPagesConfigReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMyAlarmPagesConfigReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MyAlarmPagesConfigReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MyAlarmPagesConfigReplyValidationError{}
