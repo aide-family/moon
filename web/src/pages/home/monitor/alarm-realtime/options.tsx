@@ -14,6 +14,7 @@ import { Button, MenuProps } from 'antd'
 import { ColumnType } from 'antd/es/table'
 import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
+import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
 
 export const defaultAlarmPageSelectReq: SelectAlarmPageRequest = {
     page: {
@@ -93,10 +94,14 @@ export const searchFormItems: DataFormItem[] = [
     }
 ]
 
-export const rightOptions: DataOptionItem[] = [
+export const rightOptions = (refresh: () => void): DataOptionItem[] => [
     {
         key: ActionKey.REFRESH,
         label: <Button type="primary">刷新</Button>
+    },
+    {
+        key: ActionKey.BIND_MY_ALARM_PAGES,
+        label: <SelectAalrmPageModal refresh={refresh} />
     }
 ]
 

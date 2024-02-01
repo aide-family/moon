@@ -107,6 +107,23 @@ interface CountAlarmPageReply {
     alarmCount: { [key: number]: number | string }
 }
 
+interface BindMyAlarmPagesRequest {
+    alarmIds: number[]
+}
+
+interface MyAlarmPageListResponse {
+    list: AlarmPageItem[]
+}
+
+export const defaultSelectAlarmPageRequest: SelectAlarmPageRequest = {
+    page: {
+        curr: 1,
+        size: 200
+    },
+    keyword: '',
+    status: Status.STATUS_ENABLED
+}
+
 export type {
     SelectAlarmPageRequest,
     SelectAlarmPageReply,
@@ -127,5 +144,7 @@ export type {
     ListAlarmPageRequest,
     AlarmPageSelectItem,
     CountAlarmPageReply,
-    CountAlarmPageRequest
+    CountAlarmPageRequest,
+    BindMyAlarmPagesRequest,
+    MyAlarmPageListResponse
 }

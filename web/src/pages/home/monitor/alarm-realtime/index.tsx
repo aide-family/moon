@@ -1,12 +1,11 @@
 import alarmPageApi from '@/apis/home/monitor/alarm-page'
-import { AlarmPageSelectItem } from '@/apis/home/monitor/alarm-page/types'
+import { AlarmPageItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { Badge, Button, Form, Tabs } from 'antd'
 import { FC, useEffect, useState } from 'react'
 import {
     columns,
-    defaultAlarmPageSelectReq,
     defaultAlarmRealtimeListRequest,
     operationItems,
     rightOptions,
@@ -25,9 +24,7 @@ let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
 
-    const [alarmPageList, setAlarmPageList] = useState<AlarmPageSelectItem[]>(
-        []
-    )
+    const [alarmPageList, setAlarmPageList] = useState<AlarmPageItem[]>([])
     const [dataSource, setDataSource] = useState<AlarmRealtimeItem[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
@@ -45,12 +42,10 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleGetAlarmPageList = () => {
-        alarmPageApi
-            .getAlarmPageSelect(defaultAlarmPageSelectReq)
-            .then((res) => {
-                setAlarmPageList(res.list)
-                setAlarmPageIds(res.list.map((item) => item.value))
-            })
+        alarmPageApi.myAlarmPageList().then((res) => {
+            setAlarmPageList(res.list)
+            setAlarmPageIds(res.list.map((item) => item.id))
+        })
     }
 
     const handleCountAlarmByPageIds = () => {
@@ -98,13 +93,13 @@ const AlarmRealtime: FC = () => {
 
     const buildTabsItems = () => {
         return alarmPageList.map((item, index) => {
-            const { label, value, color, icon } = item
+            const { name, id, color, icon } = item
             return {
-                label: label || `报警页面${index}`,
-                key: `${value}`,
+                label: name || `报警页面${index}`,
+                key: `${id}`,
                 icon: (
                     <Badge
-                        count={alarmCountMap?.[value] || 0}
+                        count={alarmCountMap?.[id] || 0}
                         overflowCount={999}
                         size="small"
                     >
@@ -127,6 +122,8 @@ const AlarmRealtime: FC = () => {
         switch (action) {
             case ActionKey.REFRESH:
                 handleRefresh()
+                break
+            case ActionKey.BIND_MY_ALARM_PAGES:
                 break
         }
     }
@@ -202,7 +199,7 @@ const AlarmRealtime: FC = () => {
             <HeightLine />
             <DataOption
                 queryForm={queryForm}
-                rightOptions={rightOptions}
+                rightOptions={rightOptions(handleGetAlarmPageList)}
                 action={handleOptionClick}
                 showAdd={false}
             />
