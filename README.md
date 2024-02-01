@@ -1,174 +1,241 @@
-# Prometheus-manager
+# Prometheus Manager 技术文档
 
-> prometheus 统一监控告警平台
+## 1. 概述
 
-<h1 style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; text-align: center;">
-    <img alt="Prometheus" src="doc/img/logo.svg">
-    <img alt="Prometheus" src="doc/img/prometheus-logo.svg">
-</h1>
+* 项目简介
 
-## 系统介绍
+  Prometheus Manager 是由Aide-Cloud团队开发并维护的一款管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
 
-1. 一款基于Prometheus的监控平台，支持多种告警策略，集成告警通知、告警历史、告警图表
+* 主要功能
 
-* 体验demo
-  > https://prometheus.aide-cloud.cn/
-  > 
-  > 账号：prometheus
-  > 
-  > 密码：123456
+## 2. 快速开始
 
-* [相关博文](https://juejin.cn/post/7329734768258760719) 
+### 2.1 系统要求
 
-*  👉 [快速开始](doc/quick-start.md)
+* 操作系统：Linux、macOS、Windows
+* Go语言环境：Go 1.20+
+* Docker (可选，用于快速部署)
+* K8s (暂时未尝试)
+* 环境依赖：
+  * mysql数据库：8.0+
+  * redis数据库（可选）
+  * kafka消息队列（可选）
 
-## 项目简介
+### 2.2 安装部署
 
-### PromServer 服务端
+#### 本地开发方式启动
 
-> 操作平台， 提供服务端接口，提供告警策略管理， 告警通知，告警历史，告警图表等服务
+* 准备如下配置文件
 
-* 登录模块
-* 系统模块
-  * 用户管理
-  * 角色管理
-  * 权限管理
-* 告警模块
-  * 实时告警
-    * 编辑规则时候可以关联报警页面， 当告警事件发生时候，会把此类告警展示到平台的制定页面，支持同一个告警展示到多个页面
-  * 历史告警
-    * 用于查看告警历史，作为复盘的数据支撑
-  * 告警策略组
-    * 对应prometheus告警的规则组，规则组下可以配置多个告警策略（规则）
-  * 告警策略
-    * 实际的报警规则管理功能， 在这里可以可视化编辑告警规则， 也能实时查看告警规则对应的数据图表，告警规则编辑过程中支持语法校验、智能提示等， 可以帮助我们更快更准确的配置告警
-  * 数据源
-    * 在实际生活中，我们可能面临有多个prom数据源的问题， 这里直接提供了数据源管理功能， 可以方便的添加、删除、修改数据源，然后在编辑规则过程中，对规则直接使用对应的数据源即可
-  * hook管理
-    * hook是告警通知的一种重要手段， 方便我们集成告警到其他系统，这里提供了常见的hook管理， 例如：钉钉、企业微信、飞书、第三方自定义hook等，hook本身还支持告警模板功能， 为我们定制告警内容提供了更加方便的姿势
-  * 告警组管理
-    * 用于把相同属性的一类通知对象进行分组， 然后在配置告警策略时候直接绑定告警组， 这样告警发生时候，能直接把告警信息发生给指定的通知对象了
+```yaml
+# app/prom_server/configs_local/config.yaml
+env:
+  name: prometheus-manager_prom_server
+  version: 0.0.1
+  # local dev两种模式会自动migrate数据库
+  env: local
+  metadata:
+    description: Prometheus Manager Server APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager
+    
+server:
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 1s
 
-### PromAgent 代理端
+data:
+  database:
+    driver: mysql
+    # mysql数据库地址，替换为自己的数据库实际连接，并创建prometheus-manager数据库
+    source: root:123456@tcp(localhost:3306)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
+    debug: true
+# 开启redis配置，则使用redis作为缓存组件
+#  redis:
+#    addr: localhost:6379
+#    password: redis#single#test
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
 
-> 适配不同数据源，完成策略识别，生成告警/告警恢复事件
+apiWhite:
+  all:
+    - /api.auth.Auth/Login
+    - /api.auth.Auth/Captcha
+    - /api.interflows.HookInterflow/Receive
 
-## 系统架构
+  jwtApi:
 
-![架构概览](doc/img/Prometheus-manager.png)
+  rbacApi:
+    - /api.auth.Auth/Logout
+    - /api.auth.Auth/RefreshToken
 
-## 开发
+log:
+  filename: ./log/prometheus-server.log
+  level: debug
+  encoder: json
+  maxSize: 2
+  compress: true
+  
+# 添加mq配置，则会使用mq通信
+#mq:
+#  kafka:
+#    groupId: http://localhost:8001/api/v1/interflows/receive
+#    endpoints:
+#      - localhost:9092
+```
 
-```bash
-# 克隆代码
-git clone https://github.com/aide-cloud/prometheus-manager.git
+```yaml
+# app/prom_agent/configs_local/config.yaml
+env:
+  name: prometheus-manager_prom_agent
+  version: 0.0.1
+  env: local
+  metadata:
+    description: Prometheus Manager Agent APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager
+server:
+  http:
+    addr: 0.0.0.0:8001
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9001
+    timeout: 1s
 
-# 进入项目目录
-cd prometheus-manager
+# 开启redis配置，则使用redis作为缓存组件
+#data:
+#  redis:
+#    addr: localhost:6379
+#    password: redis#single#test
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
 
-# 安装依赖
-make init
+watchProm:
+  interval: 10s
 
-# 启动服务
-# 服务端
+# mq配置
+#mq:
+#  kafka:
+#    groupId: prometheus-agent
+#    endpoints:
+#      - localhost:9092
+
+# mq替代配置， 二选一
+interflow:
+  server: http://localhost:8000/api/v1/interflows/receive
+  agent: http://localhost:8001/api/v1/interflows/receive
+```
+
+* 按顺序执行启动命令
+
+```shell
+# 1. 服务端启动
 make local app=app/prom_server
-# 代理端
+# 2. agent启动
 make local app=app/prom_agent
+# 3. web端启动
+make web
 ```
 
-## 运行效果
+##### docker方式启动
 
-* 策略列表
+* 准备上述类似配置
 
-![策略列表](doc/img/runtime/strategy-list.png)
+* 执行打包命令
 
-* 策略编辑
-
-![策略编辑](doc/img/runtime/update-strategy.png)
-
-* 指标编辑
-
-![指标编辑](doc/img/runtime/metric-update.png)
-
-* 指标列表
-
-![指标列表](doc/img/runtime/metric-list.png)
-
-* 指标列表
-
-![指标图表](doc/img/runtime/metric-chart.png)
-
-* 实时告警页面
-
-![实时告警页面](doc/img/runtime/realtime-alarm.png)
-
-* 实时告警统计
-
-![实时告警统计](doc/img/runtime/realtime-alarm-count.png)
-
-## 告警通知
-
-* 通知模板
-
-```markdown
-## prometheus监控告警【{{ $status }}】
-
-* 告警时间: {{ $startsAt }}
-* 恢复时间: {{ $endsAt }}
-* 告警标题: {{ $annotations.title }}
-* 告警内容: {{ $annotations.description }}
-* 唯一指纹: {{ $fingerprint }}
-* 告警标识
-    * 规则名称: {{ $labels.alertname }}
-    * 机器名称: {{ $labels.endpoint }}
-    * 实例名称: {{ $labels.instance }}
+```shell
+# 打包服务端
+make docker-build app=app/prom_server
+# 打包agent
+make docker-build app=app/prom_agent
+# 打包web
+make docker-build-web
 ```
 
-* 通知示例
-![企微告警通知](doc/img/runtime/alarm-hook-info.png)
+* 执行启动命令
 
-* 飞书通知模板
+> 如果配置文件目录不一致， 请对应修改根目录下docker-compose.yaml文件
 
-```json
-{
-  "msg_type": "interactive",
-  "card": {
-    "elements": [
-      {
-        "tag": "div",
-        "text": {
-          "content": "* 告警时间: {{ $startsAt }}\n* 恢复时间: {{ $endsAt }}\n* 告警标题: {{ $annotations.title }}\n* 告警内容: {{ $annotations.description }}\n* 唯一指纹: {{ $fingerprint }}\n* 告警标识\n    * 规则名称: {{ $labels.alertname }}\n    * 机器名称: {{ $labels.endpoint }}\n    * 实例名称: {{ $labels.instance }}",
-          "tag": "lark_md"
-        }
-      }
-    ],
-    "header": {
-      "title": {
-        "content": "prometheus监控告警【{{ $status }}】",
-        "tag": "plain_text"
-      }
-    }
-  }
-}
+```shell
+# 启动
+docker-compose up -d
+# 停止
+docker-compose down
+# 重启
+docker-compose restart
 ```
 
-* 飞书通知示例
+## 3. 功能详解
 
-![飞书通知示例](doc/img/runtime/feishu-alert-hook.png)
+### 3.1 系统管理
 
-* 策略绑定告警通知组
+#### 用户管理
 
-![策略绑定告警通知组](doc/img/runtime/strategy-bind-notify.png)
+* 功能说明：
 
-* 告警组管理
+主要管理用户信息，包括新增、修改、删除等操作。该系统不提供用户注册功能，用户信息由管理员添加。
 
-![告警组管理](doc/img/runtime/notify-group-manage.png)
+* 注意事项：
 
-* hook机器人管理
+无
 
-![hook机器人管理](doc/img/runtime/hook-manage.png)
+#### 角色管理
 
-* 数据源管理
+* 功能说明：
 
-![数据源管理](doc/img/runtime/datasource-manage.png)
+主要管理角色信息，包括新增、修改、删除等操作。通过权限和角色绑定，实现权限控制，精确到接口粒度。
+采用RBAC模式实现，具体请参见[RBAC](..)。
 
+* 注意事项：
+
+无
+
+#### 权限管理
+
+* 功能说明：
+
+主要管理权限信息，包括新增、修改、删除等操作。这里维护系统全部需要权限控制的接口。系统新增接口， 需要再次录入到权限管理中。
+
+#### 字典管理
+
+* 功能说明：
+
+主要管理字典信息，包括新增、修改、删除等操作。字典信息主要用于系统中需要使用到的枚举值，比如状态、类型、告警等级等。
+
+### 3.2 告警配置
+
+* 功能说明：
+
+主要维护告警规则组、告警规则，通过表单方式维护prometheus规则信息，并支持多数据源场景，我们在配置规则时候，可以选择不同数据源，编写不同的报警规则，完成告警规则配置。
+同时，还支持配置报警页面，告警事件发生后，能够把相同类型的各种规则事件归类到同一个报警页面，帮助我们运维同学集中处理告警。
+
+### 3.3 实时告警
+
+* 功能说明：
+
+主要是展示产生的告警数据，并按照不同报警页面分类展示。每一条告警数据除了展示基本信息外， 还可以展示持续时常，支持告警静默、强制删除、告警升级等操作。
+
+### 3.4 历史告警（开发中）
+
+* 功能说明：
+
+主要用于查询历史告警，提供统计数据大盘，为复盘提供数据支撑
+
+### 3.5 告警通知
+
+* 功能说明：
+
+主要提供报警组、报警hook等通信方式维护，为报警策略提供通知对象数据。
+
+## 4. 功能TODO
+
+## 5. 常见问题解答
