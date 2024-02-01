@@ -1,9 +1,9 @@
 server:
   http:
-    addr: 0.0.0.0:8001
+    addr: 0.0.0.0:8000
     timeout: 1s
   grpc:
-    addr: 0.0.0.0:9001
+    addr: 0.0.0.0:9000
     timeout: 1s
 #data:
 #  # 配置redis， 缓存使用redis， 否则使用本地存储
@@ -29,8 +29,9 @@ watchProm:
 #    endpoints:
 #      - localhost:9092
 
+# TODO 实际运行中需要替换为容器可访问地址
 interflow:
   # prom_server的通信地址
-  server: http://localhost:8000/api/v1/interflows/receive
+  server: http://prometheus_manager/api/v1/interflows/receive
   # 自身的通信地址
-  agent: http://localhost:8001/api/v1/interflows/receive
+  agent: http://prometheus_manager_agent/api/v1/interflows/receive
