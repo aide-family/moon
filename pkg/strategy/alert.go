@@ -38,7 +38,7 @@ func NewAlerting(groups ...*Group) Alerter {
 }
 
 func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
-	log.Info("开始执行告警")
+	log.Info("开始执行告警事件判断")
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	alarms := NewAlarmList()
@@ -62,35 +62,26 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 					log.Warnf("查询失败, %v, %s, %s", strategyInfo.Id, strategyInfo.Expr, err)
 					return err
 				}
-				newAlarmInfo := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
-				// 获取该策略下所有已经产生的告警数据
-				existAlarmInfo, exist := alarmCache.Get(strategyInfo.Id)
-				if !exist || len(existAlarmInfo.Alerts) == 0 {
-					// TODO 需要区分告警的和正在判断告警的数据， 不能批量一起处理， 两处set导致数据被清洗了
-					log.Info("不存在数据, 存入缓存", exist)
-					// 不存在历史数据, 则直接把新告警数据缓存到alarmCache
-					alarmCache.Set(strategyInfo.Id, newAlarmInfo)
+				newAlarmInfo, existAlarmInfo, exist := NewAlarm(&group, strategyInfo, queryResponse.Data.Result)
+				if !exist {
 					// 不需要立即告警
 					return nil
 				}
-
 				// 比较两次告警数据, 新数据需要加入alerts, 旧数据需要删除, 并标记为告警恢复
 				usableAlarmInfo := a.mergeAlarm(strategyInfo, newAlarmInfo, existAlarmInfo)
-				if existAlarmInfo != nil {
-					// TODO 需要区分告警的和正在判断告警的数据， 不能批量一起处理
-					//alarmCache.Set(strategyInfo.Id, usableAlarmInfo)
+				if usableAlarmInfo != nil && len(usableAlarmInfo.Alerts) != 0 {
 					alarms.Append(usableAlarmInfo)
 				}
+
 				return nil
 			})
 		}
 	}
 
 	if err := eg.Wait(); err != nil {
-		return nil, err
+		log.Warnw("err", err)
 	}
 
-	log.Infow("告警", strategyIds)
 	timeUnix := time.Now().Unix()
 	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)
 	resolvedAlarmMap := make(map[uint32]*Alarm)
@@ -123,6 +114,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 		log.Infow("告警恢复", ruleId)
 		alarmCache.Remove(ruleId)
 	}
+	log.Infow("告警规则", strategyIds)
 
 	return alarms.List(), nil
 }

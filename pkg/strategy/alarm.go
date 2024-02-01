@@ -128,7 +128,7 @@ func NewAlarmList(alarms ...*Alarm) *Alarms {
 	}
 }
 
-func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
+func NewAlarm(group *Group, rule *Rule, results []*Result) (*Alarm, *Alarm, bool) {
 	groupIdStr := strconv.Itoa(int(group.Id))
 	ruleIdStr := strconv.Itoa(int(rule.Id))
 	alarmInfo := &Alarm{
@@ -171,9 +171,9 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		allLabels[key] = value
 	}
 
+	existAlertMap := make(map[string]*Alert)
 	// 获取该策略下所有已经产生的告警数据
 	existAlarmInfo, exist := alarmCache.Get(rule.Id)
-	existAlertMap := make(map[string]*Alert)
 	if exist {
 		for _, alert := range existAlarmInfo.Alerts {
 			if alert == nil || alert.Status != AlarmStatusFiring {
@@ -215,7 +215,9 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) *Alarm {
 		alarmInfo.Alerts = append(alarmInfo.Alerts, alert)
 	}
 
-	return alarmInfo
+	alarmCache.Set(rule.Id, alarmInfo)
+
+	return alarmInfo, existAlarmInfo, exist && len(existAlarmInfo.Alerts) > 0
 }
 
 // ReplaceString 替换字符串中的$为.
