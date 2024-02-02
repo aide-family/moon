@@ -13,7 +13,7 @@ func TestNewDatasource(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	alarm := NewAlarm(&Group{
+	alarm, _, _ := NewAlarm(&Group{
 		Name: "test-group",
 		Id:   1,
 	}, &Rule{
