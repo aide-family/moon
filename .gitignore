@@ -48,3 +48,6 @@ bin/
 
 # temp dir for building image
 temp/
+
+# some cache file
+cache/

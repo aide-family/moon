@@ -1,5 +1,5 @@
 FROM golang:1.21.0 AS builder
-ARG VERSION
+ARG VERSION=v0.0.0
 
 COPY ../../ /src
 WORKDIR /src

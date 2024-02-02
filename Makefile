@@ -3,6 +3,7 @@ GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 APPS ?= $(shell ls app)
 path := $(shell pwd)
+PROM-WEB-VERSION:=0.0.1-$(VERSION)
 PROM-SERVER-VERSION:=0.0.1-$(VERSION)
 PROM-AGENT-VERSION:=0.0.1-$(VERSION)
 TEMP_BUILD_DIR:=./temp
@@ -35,10 +36,11 @@ dev:
 all-docker-build:
 	make web-docker-build && make prom-server-docker-build && make prom-agent-docker-build
 
-# TODO: 
-#   1. dev-docker-compose-up 一站式拉起本地镜像
-#   2. all-up 本地构建所有组件镜像并启动
+all-docker-push:
+	make web-docker-push && make prom-server-docker-push && make prom-agent-docker-push
+
 all-docker-compose-up:
+	docker-compose -f ./docker/docker-compose.yaml up
 
 .PHONY:
 local:
@@ -153,37 +155,46 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-.PHONY:
-docker-build: # test ## Build docker image with the manager.
-	@echo "Building docker image with the manager..."
-	docker build -t "${REPO}/prometheus-manager/${APP_NAME}:${TAG}" -f "./deploy/docker/Dockerfile.${APP}" .
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${REPO}/prometheus-manager/${APP_NAME}}:${TAG}
-
-
-.PHONY:
-web-docker-build: # test ## Build docker image with the manager-web.
+# ------------------ PORM-WEB ------------------
+web-docker-build:
 	@echo "Building docker image with the manager-web..."
-	docker build -t "${REPO}/prometheus-manager/web:${TAG}" -f "./deploy/docker/Dockerfile.prom_web" .
+	docker build -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./docker/prom-web/Dockerfile .
 	@echo "Successfully build docker image with the web."
 
-prom-server-docker-build: # test ## Build docker image with the prom-server.
+web-docker-push:
+	@echo "start push image [${REPO}/prometheus-manager/web:${TAG}]"
+	docker push ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION}
+	@echo "Successfully push image [${REPO}/prometheus-manager/web:${TAG}] to target repo."
+
+# ------------------ PROM-SERVER ------------------
+prom-server-docker-build:
 	@echo "Building docker image with the prom-server..."
 	rm -rf $(TEMP_BUILD_DIR)
 	mkdir -p $(TEMP_BUILD_DIR)
 	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
 	docker build -t ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION} -f ./docker/prom-server/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
+	rm -rf $(TEMP_BUILD_DIR)
 	@echo "Successfully build docker image with the prom-server."
 
-prom-agent-docker-build: # test ## Build docker image with the prom-agent.
+prom-server-docker-push:
+	@echo "start push image [${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}]"
+	docker push ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}
+	@echo "Successfully push image [${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}] to target repo."
+
+# ------------------ PROM-AGENT ------------------
+prom-agent-docker-build:
 	@echo "Building docker image with the prom-server..."
 	rm -rf $(TEMP_BUILD_DIR)
 	mkdir -p $(TEMP_BUILD_DIR)
 	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
 	docker build -t ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION} -f ./docker/prom-agent/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
+	rm -rf $(TEMP_BUILD_DIR)
 	@echo "Successfully build docker image with the prom-agent."
+
+prom-agent-docker-push: # test ## push docker image with the prom-server.
+	@echo "start push image [${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}]"
+	docker push ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}
+	@echo "Successfully push image [${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}] to target repo."
 
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
