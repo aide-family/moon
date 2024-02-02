@@ -161,30 +161,22 @@ make web
 
 ##### docker方式启动
 
-* 准备上述类似配置
+1. 如果本地没有mysql数据库，可以通过以下命令在本地快速拉起一个mysql容器，然后通过工具创建一个名为 **prometheus-manager** 的数据库，如果执行完这步则直接跳过第2步，直接执行执行第3步
 
-* 执行打包命令
+   ```shell
+   docker run -d -p 3306:3306 --name mysql-container -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0
+   ```
 
-```shell
-# 打包服务端
-make docker-build app=app/prom_server
-# 打包agent
-make docker-build app=app/prom_agent
-# 打包web
-make docker-build-web
-```
+2. 准备上述类似配置，通过容器体验该项目时的配置文件地址
 
-* 执行启动命令
+* prometheus-manager/app/prom_agent/configs/config.yaml
 
-> 如果配置文件目录不一致， 请对应修改根目录下docker-compose.yaml文件
+* prometheus-manager/app/prom_server/configs/config.yaml
+
+3. 进入到项目根目录下执行下述命令，在本地一站式启动服务
 
 ```shell
-# 启动
-docker-compose up -d
-# 停止
-docker-compose down
-# 重启
-docker-compose restart
+make all-docker-compose-up
 ```
 
 ## 3. 功能详解
