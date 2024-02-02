@@ -204,7 +204,6 @@ const StrategyGroup: React.FC = () => {
                     height={1}
                     borderRadius={4}
                 />
-                DE
             </div>
 
             <DataTable

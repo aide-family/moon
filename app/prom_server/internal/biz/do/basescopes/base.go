@@ -21,6 +21,8 @@ const (
 	BaseFieldStatus    Field = "status"
 	BaseFieldName      Field = "name"
 	BaseFieldCreateBy  Field = "create_by"
+	BaseFieldTitle     Field = "title"
+	BaseFieldUserId    Field = "user_id"
 )
 
 // String string
@@ -81,6 +83,11 @@ func StatusNotEQ(status vo.Status) ScopeMethod {
 // NameLike 名称
 func NameLike(name string) ScopeMethod {
 	return WhereLikePrefixKeyword(name, BaseFieldName)
+}
+
+// TitleLike 标题
+func TitleLike(title string) ScopeMethod {
+	return WhereLikePrefixKeyword(title, BaseFieldTitle)
 }
 
 // NameEQ 名称相等
@@ -203,5 +210,17 @@ func WithCreateBy(ctx context.Context) ScopeMethod {
 		}
 		userId := middler.GetUserId(ctx)
 		return db.Where(BaseFieldCreateBy.String(), userId)
+	}
+}
+
+// WithUserId 创建人查询
+func WithUserId(ctx context.Context) ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		roleId := middler.GetRoleId(ctx)
+		if roleId == "1" || roleId == "" || roleId == "0" {
+			return db
+		}
+		userId := middler.GetUserId(ctx)
+		return db.Where(BaseFieldUserId.String(), userId)
 	}
 }
