@@ -7,6 +7,8 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
+	"prometheus-manager/api/dashboard"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
@@ -51,6 +53,8 @@ func RegisterGrpcServer(
 	chatGroupService *promservice.ChatGroupService,
 	notifyService *promservice.NotifyService,
 	realtimeService *alarmservice.RealtimeService,
+	chartService *dashboardservice.ChartService,
+	dashboardService *dashboardservice.DashboardService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -66,6 +70,8 @@ func RegisterGrpcServer(
 	notify.RegisterNotifyServer(srv, notifyService)
 	notify.RegisterChatGroupServer(srv, chatGroupService)
 	realtime.RegisterRealtimeServer(srv, realtimeService)
+	dashboard.RegisterDashboardServer(srv, dashboardService)
+	dashboard.RegisterChartServer(srv, chartService)
 
 	return &GrpcServer{Server: srv}
 }
