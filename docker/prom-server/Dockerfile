@@ -5,7 +5,7 @@ COPY ../../ /src
 WORKDIR /src
 
 RUN go env -w GOPROXY=https://goproxy.io,direct
-RUN ls -a && mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_server/...
+RUN mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_server/...
 
 FROM debian:stable-slim
 
