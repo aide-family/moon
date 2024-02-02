@@ -138,7 +138,7 @@ const Home: FC = () => {
     }, [])
 
     return (
-        <div className="bodyContent">
+        <div className="bodyContent" style={{ overflowY: 'auto' }}>
             <ConfigDashboardChartModal
                 dashboardId={+activeKey}
                 open={oepnConfigModal}
