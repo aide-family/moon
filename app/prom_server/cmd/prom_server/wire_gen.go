@@ -17,6 +17,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/api"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/captcha"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/chatgroup"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/dashboard"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/dataimpl"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/endpoint"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/msg"
@@ -31,6 +32,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
@@ -108,9 +110,14 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	notifyService := promservice.NewNotifyService(notifyBiz, logger)
 	realtimeService := alarmservice.NewRealtimeService(alarmRealtimeBiz, alarmPageBiz, logger)
 	hookInterflowService := interflowservice.NewHookInterflowService(logger)
-	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService)
+	dashboardRepo := dashboard.NewDashboardRepo(dataData)
+	chartRepo := dashboard.NewChartRepo(dataData)
+	dashboardBiz := biz.NewDashboardBiz(dashboardRepo, chartRepo, logger)
+	chartService := dashboardservice.NewChartService(dashboardBiz, logger)
+	dashboardService := dashboardservice.NewDashboardService(dashboardBiz, logger)
+	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
-	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService)
+	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService)
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
 	alarmEvent, err := server.NewAlarmEvent(dataData, v3, v4, hookService, groupService, logger)

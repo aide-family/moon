@@ -22,6 +22,8 @@ export type DataOptionProps = {
     rightOptions?: DataOptionItem[]
     action?: (key: ActionKey) => void
     showAdd?: boolean
+    showClear?: boolean
+    showSegmented?: boolean
 }
 
 const DataOption: FC<DataOptionProps> = (props) => {
@@ -31,7 +33,9 @@ const DataOption: FC<DataOptionProps> = (props) => {
         leftOptions,
         rightOptions,
         action,
-        showAdd = true
+        showAdd = true,
+        showClear = true,
+        showSegmented = true
     } = props
 
     const handleSizeChange = (sizeVal: SegmentedValue) => {
@@ -76,29 +80,34 @@ const DataOption: FC<DataOptionProps> = (props) => {
                         </div>
                     )
                 })}
-                <Button
-                    type="dashed"
-                    onClick={clearQueryForm}
-                    icon={<ClearOutlined />}
-                />
-                <Segmented
-                    onChange={handleSizeChange}
-                    value={size}
-                    options={[
-                        {
-                            label: '大',
-                            value: 'large'
-                        },
-                        {
-                            label: '中',
-                            value: 'middle'
-                        },
-                        {
-                            label: '小',
-                            value: 'small'
-                        }
-                    ]}
-                />
+                {showClear && (
+                    <Button
+                        type="dashed"
+                        onClick={clearQueryForm}
+                        icon={<ClearOutlined />}
+                    />
+                )}
+
+                {showSegmented && (
+                    <Segmented
+                        onChange={handleSizeChange}
+                        value={size}
+                        options={[
+                            {
+                                label: '大',
+                                value: 'large'
+                            },
+                            {
+                                label: '中',
+                                value: 'middle'
+                            },
+                            {
+                                label: '小',
+                                value: 'small'
+                            }
+                        ]}
+                    />
+                )}
             </Col>
         </Row>
     )

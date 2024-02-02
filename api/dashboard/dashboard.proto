@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package api.dashboard;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "model.proto";
+import "base.proto";
+
+option go_package = "prometheus-manager/api/dashboard;dashboard";
+option java_multiple_files = true;
+option java_package = "api.dashboard";
+
+// 仪表盘模块
+service Dashboard {
+	// 创建新的大盘
+	rpc CreateDashboard (CreateDashboardRequest) returns (CreateDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/create"
+			body: "*"
+		};
+	}
+	// 更新大盘
+	rpc UpdateDashboard (UpdateDashboardRequest) returns (UpdateDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/update"
+			body: "*"
+		};
+	}
+	// 删除大盘
+	rpc DeleteDashboard (DeleteDashboardRequest) returns (DeleteDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/delete"
+			body: "*"
+		};
+	}
+	// 大盘详情
+	rpc GetDashboard (GetDashboardRequest) returns (GetDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/detail"
+			body: "*"
+		};
+	}
+	// 大盘列表
+	rpc ListDashboard (ListDashboardRequest) returns (ListDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/list"
+			body: "*"
+		};
+	}
+	// 大盘下拉列表
+	rpc ListDashboardSelect (ListDashboardSelectRequest) returns (ListDashboardSelectReply) {
+		option (google.api.http) = {
+			post: "/api/v1/dashboard/select"
+			body: "*"
+		};
+	}
+}
+
+// 创建大盘请求参数
+message CreateDashboardRequest {
+	string title = 1 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 32,
+	}];
+	string color = 2 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 32,
+		// #FF0000
+		pattern: "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+	}];
+	string remark = 3 [(validate.rules).string = {
+		max_len: 255,
+	}];
+	repeated uint32 chartIds = 4;
+}
+// 创建大盘响应参数
+message CreateDashboardReply {
+	uint32 id = 1;
+}
+
+// 更新大盘请求参数
+message UpdateDashboardRequest {
+	uint32 id = 1 [(validate.rules).uint32 = {
+		gte: 1,
+	}];
+	string title = 2 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 32,
+	}];
+	string color = 3 [(validate.rules).string = {
+		min_len: 1,
+		max_len: 32,
+		// #FF0000
+		pattern: "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+	}];
+	string remark = 4 [(validate.rules).string = {
+		max_len: 255,
+	}];
+	repeated uint32 chartIds = 5;
+}
+// 更新大盘响应参数
+message UpdateDashboardReply {
+	uint32 id = 1;
+}
+
+// 删除大盘请求参数
+message DeleteDashboardRequest {
+	uint32 id = 1 [(validate.rules).uint32 = {
+		gte: 1,
+	}];
+}
+// 删除大盘响应参数
+message DeleteDashboardReply {
+	uint32 id = 1;
+}
+
+// 大盘详情请求参数
+message GetDashboardRequest {
+	uint32 id = 1 [(validate.rules).uint32 = {
+		gte: 1,
+	}];
+}
+// 大盘详情响应参数
+message GetDashboardReply {
+	MyDashboardConfig detail = 1;
+}
+
+// 大盘列表请求参数
+message ListDashboardRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	Status status = 2 [(validate.rules).enum.defined_only = true];
+	string keyword = 3 [(validate.rules).string = {
+		max_len: 255,
+	}];
+}
+// 大盘列表响应参数
+message ListDashboardReply {
+	PageReply page = 1;
+	repeated MyDashboardConfig list = 2;
+}
+
+// 大盘下拉列表请求参数
+message ListDashboardSelectRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	Status status = 2 [(validate.rules).enum.defined_only = true];
+	string keyword = 3 [(validate.rules).string = {
+		max_len: 255,
+	}];
+}
+// 大盘下拉列表响应参数
+message ListDashboardSelectReply {
+	PageReply page = 1;
+	repeated MyDashboardConfigOption list = 2;
+}

@@ -38,7 +38,7 @@ func TestNewPrometheusDatasource(t *testing.T) {
 		return
 	}
 
-	alarm := NewAlarm(groupInfo, ruleInfo, queryResponse.Data.Result)
+	alarm, _, _ := NewAlarm(groupInfo, ruleInfo, queryResponse.Data.Result)
 
 	t.Log(string(alarm.Bytes()))
 }

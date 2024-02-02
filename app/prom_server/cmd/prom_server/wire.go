@@ -8,6 +8,7 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 
 	"prometheus-manager/pkg/helper/plog"
@@ -40,6 +41,7 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		alarmservice.ProviderSetAlarm,
 		authservice.ProviderSetAuthService,
 		systemservice.ProviderSetSystem,
+		dashboardservice.ProviderSetDashboardService,
 		biz.ProviderSetBiz,
 		repositiryimpl.ProviderSetRepository,
 		newApp,

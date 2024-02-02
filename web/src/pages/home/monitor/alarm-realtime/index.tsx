@@ -2,8 +2,8 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import { AlarmPageItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Badge, Button, Form, Tabs } from 'antd'
-import { FC, useEffect, useState } from 'react'
+import { Badge, Form, Tabs, Tag } from 'antd'
+import { FC, useContext, useEffect, useState } from 'react'
 import {
     columns,
     defaultAlarmRealtimeListRequest,
@@ -19,10 +19,12 @@ import {
 } from '@/apis/home/monitor/alarm-realtime/types'
 import alarmRealtimeApi from '@/apis/home/monitor/alarm-realtime'
 import { ActionKey } from '@/apis/data'
+import { GlobalContext } from '@/context'
 
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
+    const { size } = useContext(GlobalContext)
 
     const [alarmPageList, setAlarmPageList] = useState<AlarmPageItem[]>([])
     const [dataSource, setDataSource] = useState<AlarmRealtimeItem[]>([])
@@ -103,14 +105,10 @@ const AlarmRealtime: FC = () => {
                         overflowCount={999}
                         size="small"
                     >
-                        <Button
-                            type="link"
-                            icon={
-                                <IconFont
-                                    type={icon}
-                                    style={{ color: color || '' }}
-                                />
-                            }
+                        <Tag
+                            color={color || ''}
+                            style={{ width: 28, textAlign: 'center' }}
+                            icon={<IconFont type={icon} />}
                         />
                     </Badge>
                 )
@@ -204,7 +202,14 @@ const AlarmRealtime: FC = () => {
                 showAdd={false}
             />
             <PaddingLine padding={12} height={1} borderRadius={4} />
-            <Tabs items={buildTabsItems()} onChange={handleOnChangeTabs} />
+            <Tabs
+                items={buildTabsItems()}
+                onChange={handleOnChangeTabs}
+                tabBarStyle={{
+                    boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.1)'
+                }}
+                size={size}
+            />
             <DataTable
                 showIndex={false}
                 // showOperation={false}

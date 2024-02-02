@@ -2,6 +2,7 @@ package repositiryimpl
 
 import (
 	"github.com/google/wire"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/dashboard"
 
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/alarmhistory"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/alarmintervene"
@@ -47,4 +48,6 @@ var ProviderSetRepository = wire.NewSet(
 	alarmsuppress.NewAlarmSuppress,
 	alarmupgrade.NewAlarmUpgrade,
 	msg.NewMsgRepo,
+	dashboard.NewDashboardRepo,
+	dashboard.NewChartRepo,
 )

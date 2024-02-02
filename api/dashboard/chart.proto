@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package api.dashboard;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/dashboard;dashboard";
+option java_multiple_files = true;
+option java_package = "api.dashboard";
+
+// 图表管理模块
+service Chart {
+  // 创建新图表
+  rpc CreateChart (CreateChartRequest) returns (CreateChartReply) {
+    option (google.api.http) = {
+      post: "/api/v1/dashboard/chart/create"
+      body: "*"
+    };
+  }
+  // 更新图表
+  rpc UpdateChart (UpdateChartRequest) returns (UpdateChartReply) {
+    option (google.api.http) = {
+      post: "/api/v1/dashboard/chart/update"
+      body: "*"
+    };
+  }
+  // 删除图表
+  rpc DeleteChart (DeleteChartRequest) returns (DeleteChartReply) {
+    option (google.api.http) = {
+      post: "/api/v1/dashboard/chart/delete"
+      body: "*"
+    };
+  }
+  // 图表详情
+  rpc GetChart (GetChartRequest) returns (GetChartReply) {
+    option (google.api.http) = {
+      post: "/api/v1/dashboard/chart/detail"
+      body: "*"
+    };
+  }
+  // 图表列表
+  rpc ListChart (ListChartRequest) returns (ListChartReply) {
+    option (google.api.http) = {
+      post: "/api/v1/dashboard/chart/list"
+      body: "*"
+    };
+  }
+}
+
+// 创建新图表请求参数
+message CreateChartRequest {
+  // 图表标题
+  string title = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 32
+  }];
+  // 图表说明
+  string remark = 2 [(validate.rules).string.max_len = 128];
+  // 图表url
+  string url = 3 [(validate.rules).string = {
+    pattern: "^(http|https)://.*"
+  }];
+}
+// 创建新图表响应参数
+message CreateChartReply {
+  uint32 id = 1;
+}
+
+// 更新图表请求参数
+message UpdateChartRequest {
+  uint32 id = 1 [(validate.rules).uint32 = {
+    gt: 0
+  }];
+  // 图表标题
+  string title = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 32
+  }];
+  // 图表说明
+  string remark = 3 [(validate.rules).string.max_len = 128];
+  // 图表url
+  string url = 4 [(validate.rules).string = {
+    pattern: "^(http|https)://.*"
+  }];
+}
+// 更新图表响应参数
+message UpdateChartReply {
+  uint32 id = 1;
+}
+
+// 删除图表请求参数
+message DeleteChartRequest {
+  uint32 id = 1 [(validate.rules).uint32 = {
+    gt: 0
+  }];
+}
+// 删除图表响应参数
+message DeleteChartReply {
+  uint32 id = 1;
+}
+
+// 图表详情请求参数
+message GetChartRequest {
+  uint32 id = 1 [(validate.rules).uint32 = {
+    gt: 0
+  }];
+}
+// 图表详情响应参数
+message GetChartReply {
+  MyChart detail = 1;
+}
+
+// 图表列表请求参数
+message ListChartRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  Status status = 2 [(validate.rules).enum.defined_only = true];
+  string keyword = 3 [(validate.rules).string.max_len = 32];
+}
+// 图表列表响应参数
+message ListChartReply {
+  PageReply page = 1;
+  repeated MyChart list = 2;
+}

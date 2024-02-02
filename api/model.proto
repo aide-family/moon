@@ -582,3 +582,39 @@ message StrategySimple {
   // 数据源
   string endpoint = 9;
 }
+
+message MyChart {
+  // 图表标题
+  string title = 1;
+  // 图表说明
+  string remark = 2;
+  // 图表url
+  string url = 3;
+  uint32 id = 4;
+  int32 status = 5;
+}
+
+message MyDashboardConfig {
+  // 仪表板ID
+  uint32 id = 1;
+  // 仪表板名称
+  string title = 2;
+  // 仪表板说明
+  string remark = 3;
+  // 仪表板创建时间, unix时间戳
+  int64 createdAt = 4;
+  // 仪表板更新时间, unix时间戳
+  int64 updatedAt = 5;
+  // 仪表板删除时间, unix时间戳
+  int64 deletedAt = 6;
+  string color = 7;
+  // 图表列表
+  repeated MyChart charts = 8;
+  int32 status = 9;
+}
+
+message MyDashboardConfigOption {
+  uint32 value = 1;
+  string label = 2;
+  string color = 3;
+}

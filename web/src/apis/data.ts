@@ -102,7 +102,9 @@ export enum ActionKey {
     /** 跳转告警规则列表 */
     OP_KEY_STRATEGY_LIST = 'strategy-list',
     /** 绑定我的告警页面 */
-    BIND_MY_ALARM_PAGES = '__bind_my_alarm_pages__'
+    BIND_MY_ALARM_PAGES = '__bind_my_alarm_pages__',
+    /** 配置大盘图表 */
+    CONFIG_DASHBOARD_CHART = '__config_dashboard_chart__'
 }
 
 export { categoryData, domainTypeData, moduleTypeData, NotifyAppData }
