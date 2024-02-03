@@ -4457,3 +4457,371 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StrategySimpleValidationError{}
+
+// Validate checks the field values on MyChart with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MyChart) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MyChart with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in MyChartMultiError, or nil if none found.
+func (m *MyChart) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MyChart) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Title
+
+	// no validation rules for Remark
+
+	// no validation rules for Url
+
+	// no validation rules for Id
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return MyChartMultiError(errors)
+	}
+
+	return nil
+}
+
+// MyChartMultiError is an error wrapping multiple validation errors returned
+// by MyChart.ValidateAll() if the designated constraints aren't met.
+type MyChartMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MyChartMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MyChartMultiError) AllErrors() []error { return m }
+
+// MyChartValidationError is the validation error returned by MyChart.Validate
+// if the designated constraints aren't met.
+type MyChartValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MyChartValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MyChartValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MyChartValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MyChartValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MyChartValidationError) ErrorName() string { return "MyChartValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MyChartValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMyChart.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MyChartValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MyChartValidationError{}
+
+// Validate checks the field values on MyDashboardConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MyDashboardConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MyDashboardConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MyDashboardConfigMultiError, or nil if none found.
+func (m *MyDashboardConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MyDashboardConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for Remark
+
+	// no validation rules for CreatedAt
+
+	// no validation rules for UpdatedAt
+
+	// no validation rules for DeletedAt
+
+	// no validation rules for Color
+
+	for idx, item := range m.GetCharts() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MyDashboardConfigValidationError{
+						field:  fmt.Sprintf("Charts[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MyDashboardConfigValidationError{
+						field:  fmt.Sprintf("Charts[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MyDashboardConfigValidationError{
+					field:  fmt.Sprintf("Charts[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return MyDashboardConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MyDashboardConfigMultiError is an error wrapping multiple validation errors
+// returned by MyDashboardConfig.ValidateAll() if the designated constraints
+// aren't met.
+type MyDashboardConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MyDashboardConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MyDashboardConfigMultiError) AllErrors() []error { return m }
+
+// MyDashboardConfigValidationError is the validation error returned by
+// MyDashboardConfig.Validate if the designated constraints aren't met.
+type MyDashboardConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MyDashboardConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MyDashboardConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MyDashboardConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MyDashboardConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MyDashboardConfigValidationError) ErrorName() string {
+	return "MyDashboardConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MyDashboardConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMyDashboardConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MyDashboardConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MyDashboardConfigValidationError{}
+
+// Validate checks the field values on MyDashboardConfigOption with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MyDashboardConfigOption) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MyDashboardConfigOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MyDashboardConfigOptionMultiError, or nil if none found.
+func (m *MyDashboardConfigOption) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MyDashboardConfigOption) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	// no validation rules for Label
+
+	// no validation rules for Color
+
+	if len(errors) > 0 {
+		return MyDashboardConfigOptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MyDashboardConfigOptionMultiError is an error wrapping multiple validation
+// errors returned by MyDashboardConfigOption.ValidateAll() if the designated
+// constraints aren't met.
+type MyDashboardConfigOptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MyDashboardConfigOptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MyDashboardConfigOptionMultiError) AllErrors() []error { return m }
+
+// MyDashboardConfigOptionValidationError is the validation error returned by
+// MyDashboardConfigOption.Validate if the designated constraints aren't met.
+type MyDashboardConfigOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MyDashboardConfigOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MyDashboardConfigOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MyDashboardConfigOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MyDashboardConfigOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MyDashboardConfigOptionValidationError) ErrorName() string {
+	return "MyDashboardConfigOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MyDashboardConfigOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMyDashboardConfigOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MyDashboardConfigOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MyDashboardConfigOptionValidationError{}

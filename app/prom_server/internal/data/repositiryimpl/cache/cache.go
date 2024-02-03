@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/redis/go-redis/v9"
 
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/pkg/util/cache"
 )
 
 var _ repository.CacheRepo = (*cacheRepoImpl)(nil)
@@ -28,14 +28,14 @@ func NewCacheRepo(data *data.Data, logger log.Logger) repository.CacheRepo {
 	}
 }
 
-func (l *cacheRepoImpl) Client() (*redis.Client, error) {
-	return l.data.Client(), nil
+func (l *cacheRepoImpl) Client() (cache.GlobalCache, error) {
+	return l.data.Cache(), nil
 }
 
-func (l *cacheRepoImpl) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
+func (l *cacheRepoImpl) Set(ctx context.Context, key string, value []byte, expiration time.Duration) error {
 	client, err := l.Client()
 	if err != nil {
 		return err
 	}
-	return client.Set(ctx, key, value, expiration).Err()
+	return client.Set(ctx, key, value, expiration)
 }

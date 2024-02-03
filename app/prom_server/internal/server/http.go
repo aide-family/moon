@@ -13,8 +13,10 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"prometheus-manager/api/dashboard"
 	"prometheus-manager/api/interflows"
 	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 
 	"prometheus-manager/api/alarm/history"
@@ -64,6 +66,8 @@ func RegisterHttpServer(
 	notifyService *promservice.NotifyService,
 	realtimeService *alarmservice.RealtimeService,
 	interflowService *interflowservice.HookInterflowService,
+	chartService *dashboardservice.ChartService,
+	dashboardService *dashboardservice.DashboardService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -81,6 +85,8 @@ func RegisterHttpServer(
 	notify.RegisterChatGroupHTTPServer(srv, chatGroupService)
 	realtime.RegisterRealtimeHTTPServer(srv, realtimeService)
 	interflows.RegisterHookInterflowHTTPServer(srv, interflowService)
+	dashboard.RegisterDashboardHTTPServer(srv, dashboardService)
+	dashboard.RegisterChartHTTPServer(srv, chartService)
 
 	return &HttpServer{Server: srv}
 }

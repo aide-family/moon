@@ -4,8 +4,9 @@ import {
     defaultSelectAlarmPageRequest
 } from '@/apis/home/monitor/alarm-page/types'
 import FetchSelect from '@/components/Data/FetchSelect'
+import { IconFont } from '@/components/IconFont/IconFont'
 import { SettingOutlined } from '@ant-design/icons'
-import { Button, Form, Modal } from 'antd'
+import { Button, Form, Modal, Tag } from 'antd'
 import { DefaultOptionType } from 'antd/es/select'
 import React, { useEffect, useState } from 'react'
 
@@ -51,8 +52,15 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
             })
             .then(({ list }): DefaultOptionType[] => {
                 if (!list || list.length === 0) return []
-                return list.map(({ value, label }) => ({
-                    label: label,
+                return list.map(({ value, label, color, icon }) => ({
+                    label: (
+                        <Tag
+                            color={color}
+                            icon={icon ? <IconFont type={icon} /> : null}
+                        >
+                            {label}
+                        </Tag>
+                    ),
                     value: value
                 }))
             })
