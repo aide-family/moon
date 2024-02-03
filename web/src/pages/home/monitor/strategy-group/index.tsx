@@ -218,6 +218,8 @@ const StrategyGroup: React.FC = () => {
                     onChange: handlerBatchData
                 }}
                 action={handlerTableAction}
+                pageSize={search?.page?.size}
+                current={search?.page?.curr}
             />
         </div>
     )

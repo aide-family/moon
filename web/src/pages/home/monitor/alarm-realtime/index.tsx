@@ -220,6 +220,8 @@ const AlarmRealtime: FC = () => {
                 operationItems={operationItems}
                 action={handlerTableAction}
                 onRow={onRow}
+                pageSize={queryParams?.page?.size}
+                current={queryParams?.page?.curr}
             />
         </div>
     )

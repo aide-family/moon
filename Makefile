@@ -158,7 +158,7 @@ endif
 # ------------------ PORM-WEB ------------------
 web-docker-build:
 	@echo "Building docker image with the manager-web..."
-	docker build -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./docker/prom-web/Dockerfile .
+	docker build --no-cache -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./docker/prom-web/Dockerfile .
 	@echo "Successfully build docker image with the web."
 
 web-docker-push:

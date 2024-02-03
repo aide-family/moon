@@ -187,6 +187,8 @@ const Endpoint: React.FC = () => {
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
                 action={handlerTableAction}
+                pageSize={search?.page?.size}
+                current={search?.page?.curr}
             />
         </div>
     )

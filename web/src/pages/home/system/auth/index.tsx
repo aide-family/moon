@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ColumnType, ColumnGroupType } from 'antd/es/table'
-import { Badge, Button, Form, Modal, message } from 'antd'
+import { Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { DataOption } from '@/components/Data'
@@ -8,9 +7,8 @@ import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
 import EditModal from './child/EditModal'
-import authOptions from './options'
+import authOptions, { columns } from './options'
 import authApi from '@/apis/home/system/auth'
-import { Status, StatusMap } from '@/apis/types'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { ApiAuthListItem, ApiAuthListReq } from '@/apis/home/system/auth/types'
 import { ActionKey } from '@/apis/data'
@@ -49,40 +47,6 @@ const Auth: React.FC = () => {
     const [tableSelectedRows, setTableSelectedRows] = useState<
         ApiAuthListItem[]
     >([])
-
-    const columns: (
-        | ColumnGroupType<ApiAuthListItem>
-        | ColumnType<ApiAuthListItem>
-    )[] = [
-        {
-            title: '接口名称',
-            dataIndex: 'name',
-            key: 'name',
-            width: 220
-        },
-        {
-            title: '接口状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 100,
-            render: (status: Status) => {
-                return (
-                    <Badge
-                        color={StatusMap[status].color}
-                        text={StatusMap[status].text}
-                    />
-                )
-            }
-        },
-        {
-            // TODO 两行后省略
-            title: '备注',
-            dataIndex: 'remark',
-            key: 'remark',
-            // width: 200,
-            ellipsis: true
-        }
-    ]
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -218,7 +182,6 @@ const Auth: React.FC = () => {
     ]
     //操作栏按钮
     const handleOptionClick = (val: ActionKey) => {
-        console.log('val----', val)
         switch (val) {
             case ActionKey.ADD:
                 setOpenEdit(true)
@@ -278,6 +241,8 @@ const Auth: React.FC = () => {
                 operationRef={oprationRef}
                 total={total}
                 loading={loading}
+                pageSize={search?.page?.size}
+                current={search?.page?.curr}
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
                 rowSelection={{

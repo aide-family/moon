@@ -43,7 +43,7 @@ const Strategy: FC = () => {
     )
     const [openBindNotify, setOpenBindNotify] = useState<boolean>(false)
 
-    const [searchparams, setSearchParams] = useState<StrategyListRequest>(
+    const [searchParams, setSearchParams] = useState<StrategyListRequest>(
         defaultStrategyListRequest
     )
 
@@ -73,7 +73,7 @@ const Strategy: FC = () => {
         fetchTimer = setTimeout(() => {
             setLoading(true)
             strategyApi
-                .getStrategyList(searchparams)
+                .getStrategyList(searchParams)
                 .then((res) => {
                     setDataSource(res.list)
                     setTotal(res.page.total)
@@ -92,10 +92,10 @@ const Strategy: FC = () => {
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
         setSearchParams({
-            ...searchparams,
+            ...searchParams,
             page: {
                 curr: page,
-                size: pageSize || searchparams.page.size
+                size: pageSize || searchParams?.page?.size
             }
         })
         handlerRefresh()
@@ -170,7 +170,7 @@ const Strategy: FC = () => {
     // 处理搜索表单的值变化
     const handlerSearFormValuesChange = (_: any, allValues: any) => {
         setSearchParams({
-            ...searchparams,
+            ...searchParams,
             ...allValues
         })
         handlerRefresh()
@@ -229,6 +229,8 @@ const Strategy: FC = () => {
                 rowSelection={{
                     onChange: handlerBatchData
                 }}
+                pageSize={searchParams?.page?.size}
+                current={searchParams?.page?.curr}
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
