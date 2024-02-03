@@ -1,10 +1,12 @@
-import {ActionKey} from '@/apis/data'
-import {Status, StatusMap} from '@/apis/types'
-import {DataFormItem} from '@/components/Data'
+import { ActionKey } from '@/apis/data'
+import { Status, StatusMap } from '@/apis/types'
+import { DataFormItem } from '@/components/Data'
 
-import {IconFont} from '@/components/IconFont/IconFont'
-import {Button, MenuProps} from 'antd'
-import {RoleListItem} from "@/apis/home/system/role/types.ts";
+import { IconFont } from '@/components/IconFont/IconFont'
+import { Badge, Button, MenuProps } from 'antd'
+import { RoleListItem } from '@/apis/home/system/role/types.ts'
+import { ColumnGroupType, ColumnType } from 'antd/es/table'
+import dayjs from 'dayjs'
 
 const searchItems: DataFormItem[] = [
     {
@@ -116,7 +118,7 @@ const operationItems = (item: RoleListItem): MenuProps['items'] => [
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-edit"/>}
+                icon={<IconFont type="icon-edit" />}
                 disabled={item.id === ADMIN_ROLE_ID}
             >
                 编辑
@@ -129,7 +131,7 @@ const operationItems = (item: RoleListItem): MenuProps['items'] => [
             <Button
                 size="small"
                 type="link"
-                icon={<IconFont type="icon-configure"/>}
+                icon={<IconFont type="icon-configure" />}
                 disabled={item.id === ADMIN_ROLE_ID}
             >
                 分配权限
@@ -147,13 +149,65 @@ const operationItems = (item: RoleListItem): MenuProps['items'] => [
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
-                        style={{color: 'red'}}
+                        style={{ color: 'red' }}
                     />
                 }
             >
                 删除
             </Button>
         )
+    }
+]
+
+export type RoleColumnType =
+    | ColumnType<RoleListItem>
+    | ColumnGroupType<RoleListItem>
+
+export const columns: RoleColumnType[] = [
+    {
+        title: '角色名称',
+        dataIndex: 'name',
+        key: 'name',
+        width: 220
+    },
+    {
+        title: '角色状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 100,
+        render: (status: Status) => {
+            return (
+                <Badge
+                    color={StatusMap[status].color}
+                    text={StatusMap[status].text}
+                />
+            )
+        }
+    },
+    {
+        title: '备注',
+        dataIndex: 'remark',
+        key: 'remark',
+        // width: 200,
+        ellipsis: true
+    },
+    {
+        title: '创建时间',
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        width: 180,
+        render: (createdAt: number | string) => {
+            return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        }
+    },
+    {
+        title: '更新时间',
+        dataIndex: 'updatedAt',
+        key: 'updatedAt',
+        width: 180,
+        render: (updatedAt: number | string) => {
+            return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        }
     }
 ]
 

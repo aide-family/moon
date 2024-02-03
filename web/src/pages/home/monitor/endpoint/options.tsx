@@ -167,7 +167,7 @@ export const columns: EndpointColumnType[] = [
         key: 'createdAt',
         width: 220,
         render: (createdAt: number | string) => {
-            return dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss')
+            return dayjs(+createdAt*1000).format('YYYY-MM-DD HH:mm:ss')
         }
     },
     {
@@ -176,7 +176,7 @@ export const columns: EndpointColumnType[] = [
         key: 'updatedAt',
         width: 220,
         render: (updatedAt: number | string) => {
-            return dayjs(updatedAt).format('YYYY-MM-DD HH:mm:ss')
+            return dayjs(+updatedAt*1000).format('YYYY-MM-DD HH:mm:ss')
         }
     }
 ]

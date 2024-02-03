@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import type { ColumnType, ColumnGroupType } from 'antd/es/table'
-import { Badge, Button, Form, Modal, message } from 'antd'
+import { Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { DataOption } from '@/components/Data'
@@ -8,9 +7,8 @@ import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
 import EditModal from './child/EditModal'
-import roleOptions from './options'
+import roleOptions, { columns } from './options'
 import roleApi from '@/apis/home/system/role'
-import { Status, StatusMap } from '@/apis/types'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { RoleListItem, RoleListReq } from '@/apis/home/system/role/types'
 import AuthConfigModal from './child/AuthConfig'
@@ -23,8 +21,6 @@ const { searchItems, operationItems } = roleOptions()
 const defaultPadding = 12
 
 let timer: NodeJS.Timeout
-
-type RoleColumnType = ColumnType<RoleListItem> | ColumnGroupType<RoleListItem>
 
 /**
  * 角色管理
@@ -53,36 +49,6 @@ const Role: React.FC = () => {
         []
     )
     const [authVisible, setAuthVisible] = useState<boolean>(false)
-
-    const columns: RoleColumnType[] = [
-        {
-            title: '角色名称',
-            dataIndex: 'name',
-            key: 'name',
-            width: 220
-        },
-        {
-            title: '角色状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 100,
-            render: (status: Status) => {
-                return (
-                    <Badge
-                        color={StatusMap[status].color}
-                        text={StatusMap[status].text}
-                    />
-                )
-            }
-        },
-        {
-            title: '备注',
-            dataIndex: 'remark',
-            key: 'remark',
-            // width: 200,
-            ellipsis: true
-        }
-    ]
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -296,6 +262,8 @@ const Role: React.FC = () => {
                 loading={loading}
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
+                pageSize={search?.page?.size}
+                current={search?.page?.curr}
                 rowSelection={{
                     onChange: handlerBatchData,
                     selectedRowKeys: tableSelectedRows.map((item) => item.id)

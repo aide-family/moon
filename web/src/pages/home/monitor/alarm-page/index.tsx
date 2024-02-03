@@ -183,6 +183,8 @@ const AlarmPage: FC = () => {
                 operationItems={tableOperationItems}
                 pageOnChange={handlerTablePageChange}
                 action={handlerTableAction}
+                pageSize={searchRequest?.page?.size}
+                current={searchRequest?.page?.curr}
             />
         </div>
     )

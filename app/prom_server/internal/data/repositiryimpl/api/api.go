@@ -113,7 +113,7 @@ func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...bas
 
 	// 根据条件查询即将修改的条数, 超过1条则不允许修改
 	var total int64
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Count(&total).Error; err != nil {
+	if err := l.data.DB().Model(&do.SysAPI{}).WithContext(ctx).Scopes(scopes...).Count(&total).Error; err != nil {
 		return nil, err
 	}
 	if total > 1 {
@@ -121,7 +121,7 @@ func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...bas
 	}
 
 	newModelInfo := apiBO.ToModel()
-	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(newModelInfo).Error; err != nil {
+	if err := l.data.DB().Model(&do.SysAPI{}).WithContext(ctx).Scopes(scopes...).Updates(newModelInfo).Error; err != nil {
 		return nil, err
 	}
 
@@ -130,7 +130,7 @@ func (l *apiRepoImpl) Update(ctx context.Context, apiBO *bo.ApiBO, scopes ...bas
 
 func (l *apiRepoImpl) UpdateAll(ctx context.Context, apiBO *bo.ApiBO, scopes ...basescopes.ScopeMethod) error {
 	newModelInfo := apiBO.ToModel()
-	return l.data.DB().WithContext(ctx).Scopes(scopes...).Updates(newModelInfo).Error
+	return l.data.DB().Model(&do.SysAPI{}).WithContext(ctx).Scopes(scopes...).Updates(newModelInfo).Error
 }
 
 func NewApiRepo(data *data.Data, logger log.Logger) repository.ApiRepo {

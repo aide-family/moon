@@ -178,6 +178,8 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
                 operationItems={tableOperationItems}
                 pageOnChange={handlerTablePageChange}
                 action={handlerTableAction}
+                pageSize={searchRequest?.page?.size}
+                current={searchRequest?.page?.curr}
             />
         </div>
     )

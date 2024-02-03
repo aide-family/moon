@@ -114,7 +114,7 @@ export const defaultListDashboardRequest: ListDashboardRequest = {
 export const defaultListChartRequest: ListChartRequest = {
     page: {
         curr: 1,
-        size: 10
+        size: 200
     },
     status: Status.STATUS_ENABLED
 }

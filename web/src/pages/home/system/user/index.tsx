@@ -350,6 +350,8 @@ const Customer: FC = () => {
                 operationRef={operationRef}
                 total={total}
                 loading={loading}
+                pageSize={search?.page?.size}
+                current={search?.page?.curr}
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
                 rowSelection={{

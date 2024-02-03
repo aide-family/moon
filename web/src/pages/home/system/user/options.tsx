@@ -207,7 +207,7 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
     ],
     [
         {
-            name: 'avatars',
+            name: 'avatar',
             label: '用户头像'
         }
     ],

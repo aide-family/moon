@@ -7,6 +7,8 @@ WORKDIR /usr/src/app
 # 将前端应用程序代码复制到容器中
 COPY ../../web .
 
+RUN rm -rf node_modules
+
 # 设置npm源
 RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
 
