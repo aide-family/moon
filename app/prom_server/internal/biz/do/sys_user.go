@@ -1,7 +1,13 @@
 package do
 
 import (
+	"sync"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/password"
 )
 
 const TableNameSystemUser = "sys_users"
@@ -42,4 +48,42 @@ func (u *SysUser) GetAlarmPages() []*PromAlarmPage {
 		return nil
 	}
 	return u.AlarmPages
+}
+
+var once sync.Once
+
+// InitSuperUser 初始化超级管理员账号
+func InitSuperUser(db *gorm.DB) (err error) {
+	once.Do(func() {
+		adminUser := &SysUser{
+			BaseModel: BaseModel{ID: 1},
+			Username:  "admin",
+			Nickname:  "超级管理员",
+			Password:  "123456",
+			Email:     "admin@prometheus.com",
+			Phone:     "13800000000",
+			Status:    vo.StatusEnabled,
+			Remark:    "超级管理员账号",
+			Avatar:    "https://img0.baidu.com/it/u=640865303,1189373079&fm=253&fmt=auto&app=138&f=JPEG?w=300&h=300",
+			Salt:      "",
+			Gender:    vo.GenderMale,
+			Roles: []*SysRole{
+				{
+					BaseModel: BaseModel{ID: 1},
+					Remark:    "超级管理员角色",
+					Name:      "超级管理员角色",
+					Status:    vo.StatusEnabled,
+				},
+			},
+		}
+		adminUser.Salt = password.GenerateSalt()
+		adminUser.Password, err = password.GeneratePassword(adminUser.Password, adminUser.Salt)
+		if err != nil {
+			return
+		}
+		err = db.Model(&SysUser{}).Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Create(adminUser).Error
+	})
+	return err
 }

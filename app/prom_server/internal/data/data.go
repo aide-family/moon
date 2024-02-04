@@ -131,6 +131,11 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		}
 	}
 
+	if err = do.InitSuperUser(d.DB()); err != nil {
+		d.log.Errorf("init super user error: %v", err)
+		return nil, nil, err
+	}
+
 	d.enforcer, err = conn.InitCasbinModel(d.DB())
 	if err != nil {
 		d.log.Errorf("casbin init error: %v", err)
