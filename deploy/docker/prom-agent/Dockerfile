@@ -1,7 +1,7 @@
 FROM golang:1.21.0 AS builder
 ARG VERSION=v0.0.0
 
-COPY ../../.. /src
+COPY ../../../.. /src
 WORKDIR /src
 
 RUN go env -w GOPROXY=https://goproxy.io,direct

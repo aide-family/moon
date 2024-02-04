@@ -58,11 +58,12 @@ func SetSecret(s string) {
 
 // Expire 把token过期掉
 func Expire(ctx context.Context, rdsClient cache.GlobalCache, authClaims *AuthClaims) error {
+	nowUnix := time.Now().Unix()
 	timeUnix := authClaims.ExpiresAt.Time.Unix()
-	if timeUnix <= time.Now().Unix() {
+	if timeUnix <= nowUnix {
 		return nil
 	}
-	diffTimeUnix := timeUnix - time.Now().Unix()
+	diffTimeUnix := timeUnix - nowUnix
 	// 如果小于1m, 则设置1m
 	if diffTimeUnix < 60 {
 		diffTimeUnix = 60

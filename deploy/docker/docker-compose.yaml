@@ -9,7 +9,7 @@ services:
     container_name: prometheus_manager
     build: 
       context: ../..
-      dockerfile: prom-server/Dockerfile
+      dockerfile: ./deploy/docker/prom-server/Dockerfile
     # image: docker.hub/prometheus-manager/app/prom-server:v0.0.0
     ports:
       - "8001:8000"
@@ -24,7 +24,7 @@ services:
     container_name: prometheus_manager_agent
     build: 
       context: ../..
-      dockerfile: prom-agent/Dockerfile
+      dockerfile: ./deploy/docker/prom-agent/Dockerfile
     # image: docker.hub/prometheus-manager/app/prom-agent:v0.0.0
     ports:
       - "8002:8000"
@@ -41,7 +41,7 @@ services:
     container_name: prometheus_manager_web
     build: 
       context: ../..
-      dockerfile: prom-web/Dockerfile
+      dockerfile: ./deploy/docker/prom-web/Dockerfile
     # image: docker.hub/prometheus-manager/web:v0.0.0
     ports:
       - "8000:80"
