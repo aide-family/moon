@@ -6,41 +6,39 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
-	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"prometheus-manager/api/dashboard"
-	"prometheus-manager/api/interflows"
-	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
-	"prometheus-manager/app/prom_server/internal/service/interflowservice"
-
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
 	"prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/api/auth"
+	"prometheus-manager/api/dashboard"
 	"prometheus-manager/api/dict"
+	"prometheus-manager/api/interflows"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/prom/endpoint"
 	"prometheus-manager/api/prom/notify"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
 	"prometheus-manager/api/system"
-	"prometheus-manager/pkg/helper/middler"
-
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 	"prometheus-manager/app/prom_server/internal/service/dictservice"
+	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
+	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/helper/prom"
 )
 
 type HttpServer struct {
@@ -122,10 +120,11 @@ func NewHTTPServer(
 	)).Match(middler.NewWhiteListMatcher(rbacApis)).Build()
 
 	var opts = []http.ServerOption{
-		http.Filter(middler.Cors(), middler.Context()),
+		http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter()),
 		http.Middleware(
+			middler.IpMetric(prom.IpMetricCounter),
 			recovery.Recovery(),
-			logging.Server(logger),
+			middler.Logging(logger),
 			jwtMiddle,
 			rbacMiddle,
 			validate.Validator(),

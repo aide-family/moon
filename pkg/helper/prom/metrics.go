@@ -7,8 +7,8 @@ var (
 		Namespace: "server",
 		Subsystem: "requests",
 		Name:      "duration_ms",
-		Help:      "server requests duration(ms).",
-		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 1000},
+		Help:      "server requests duration(µs).",
+		Buckets:   []float64{100, 250, 500, 1000, 2500, 5000, 10000, 20000},
 	}, []string{"kind", "operation"})
 
 	MetricRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
