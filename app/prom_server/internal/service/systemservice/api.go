@@ -33,6 +33,8 @@ func (s *ApiService) CreateApi(ctx context.Context, req *pb.CreateApiRequest) (*
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
 		Remark: req.GetRemark(),
+		Module: vo.Module(req.GetModule()),
+		Domain: vo.Domain(req.GetDomain()),
 	}
 
 	apiBoList, err := s.apiBiz.CreateApi(ctx, apiBo)
@@ -56,6 +58,8 @@ func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*
 		Method: req.GetMethod(),
 		Remark: req.GetRemark(),
 		Status: vo.Status(req.GetStatus()),
+		Module: vo.Module(req.GetModule()),
+		Domain: vo.Domain(req.GetDomain()),
 	}
 	apiBo, err := s.apiBiz.UpdateApiById(ctx, apiBo.Id, apiBo)
 	if err != nil {
