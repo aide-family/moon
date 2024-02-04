@@ -5,7 +5,7 @@ FROM node:latest as builder
 WORKDIR /usr/src/app
 
 # 将前端应用程序代码复制到容器中
-COPY ../../web .
+COPY ../../../web .
 
 RUN rm -rf node_modules
 

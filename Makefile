@@ -41,7 +41,7 @@ all-docker-push:
 	make web-docker-push && make prom-server-docker-push && make prom-agent-docker-push
 
 all-docker-compose-up:
-	docker-compose -f ./docker/docker-compose.yaml $(ARGS)
+	docker-compose -f ./deploy/docker/docker-compose.yaml $(ARGS)
 
 .PHONY:
 local:
@@ -159,7 +159,7 @@ endif
 # ------------------ PORM-WEB ------------------
 web-docker-build:
 	@echo "Building docker image with the manager-web..."
-	docker build --no-cache -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./docker/prom-web/Dockerfile .
+	docker build --no-cache -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./deploy/docker/prom-web/Dockerfile .
 	@echo "Successfully build docker image with the web."
 
 web-docker-push:
@@ -170,11 +170,7 @@ web-docker-push:
 # ------------------ PROM-SERVER ------------------
 prom-server-docker-build:
 	@echo "Building docker image with the prom-server..."
-	rm -rf $(TEMP_BUILD_DIR)
-	mkdir -p $(TEMP_BUILD_DIR)
-	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
-	docker build -t ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION} -f ./docker/prom-server/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
-	rm -rf $(TEMP_BUILD_DIR)
+	docker build -t ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION} -f ./deploy/docker/prom-server/Dockerfile --build-arg VERSION=$(VERSION) .
 	@echo "Successfully build docker image with the prom-server."
 
 prom-server-docker-push:
@@ -185,11 +181,7 @@ prom-server-docker-push:
 # ------------------ PROM-AGENT ------------------
 prom-agent-docker-build:
 	@echo "Building docker image with the prom-server..."
-	rm -rf $(TEMP_BUILD_DIR)
-	mkdir -p $(TEMP_BUILD_DIR)
-	ls ./ | grep -v temp | xargs -i cp -r ./{} $(TEMP_BUILD_DIR)
-	docker build -t ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION} -f ./docker/prom-agent/Dockerfile --build-arg VERSION=$(VERSION) $(TEMP_BUILD_DIR)
-	rm -rf $(TEMP_BUILD_DIR)
+	docker build -t ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION} -f ./deploy/docker/prom-agent/Dockerfile --build-arg VERSION=$(VERSION) .
 	@echo "Successfully build docker image with the prom-agent."
 
 prom-agent-docker-push: # test ## push docker image with the prom-server.

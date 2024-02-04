@@ -8,30 +8,30 @@ services:
   prometheus_manager:
     container_name: prometheus_manager
     build: 
-      context: ../
-      dockerfile: ./docker/prom-server/Dockerfile
+      context: ../..
+      dockerfile: prom-server/Dockerfile
     # image: docker.hub/prometheus-manager/app/prom-server:v0.0.0
     ports:
       - "8001:8000"
       - "9001:9000"
     volumes:
-      - "../app/prom_server/configs/:/data/conf"
-      - "../cache/app/prom_server/cache:/app/cache"
+      - "../../app/prom_server/configs/:/data/conf"
+      - "../../app/prom_server/cache:/app/cache"
     networks:
       prometheus_manager_net:
 
   prometheus_manager_agent:
     container_name: prometheus_manager_agent
     build: 
-      context: ../
-      dockerfile: ./docker/prom-agent/Dockerfile
+      context: ../..
+      dockerfile: prom-agent/Dockerfile
     # image: docker.hub/prometheus-manager/app/prom-agent:v0.0.0
     ports:
       - "8002:8000"
       - "9002:9000"
     volumes:
-      - "../app/prom_agent/configs/:/data/conf"
-      - "../cache/app/prom_agent/cache:/app/cache"
+      - "../../app/prom_agent/configs/:/data/conf"
+      - "../../app/prom_agent/cache:/app/cache"
     depends_on:
       - prometheus_manager
     networks:
@@ -40,8 +40,8 @@ services:
   prometheus_manager_web:
     container_name: prometheus_manager_web
     build: 
-      context: ../
-      dockerfile: ./docker/prom-web/Dockerfile
+      context: ../..
+      dockerfile: prom-web/Dockerfile
     # image: docker.hub/prometheus-manager/web:v0.0.0
     ports:
       - "8000:80"
