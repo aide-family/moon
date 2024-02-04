@@ -12,6 +12,7 @@ TEMP_BUILD_DIR:=./temp
 APP_NAME ?= $(app)
 # 从app/prom_server字符串 to prom_server
 APP := $(subst app/,,$(APP_NAME))
+ARGS ?= $(args)
 
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
@@ -40,7 +41,7 @@ all-docker-push:
 	make web-docker-push && make prom-server-docker-push && make prom-agent-docker-push
 
 all-docker-compose-up:
-	docker-compose -f ./docker/docker-compose.yaml up
+	docker-compose -f ./docker/docker-compose.yaml $(ARGS)
 
 .PHONY:
 local:
