@@ -152,12 +152,12 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     options: [
                         {
-                            label: StatusMap[Status['STATUS_ENABLED']].text,
+                            label: StatusMap[Status.STATUS_ENABLED].text,
                             value: Status.STATUS_ENABLED
                         },
                         {
-                            label: StatusMap[Status.STATUS_ENABLED].text,
-                            value: Status.STATUS_ENABLED
+                            label: StatusMap[Status.STATUS_DISABLED].text,
+                            value: Status.STATUS_DISABLED
                         }
                     ]
                 }
