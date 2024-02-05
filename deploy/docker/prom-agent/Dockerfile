@@ -1,10 +1,11 @@
 FROM golang:1.21.0 AS builder
-ARG VERSION=v0.0.0
+ARG VERSION=v0.0.1
 
-COPY ../../../.. /src
 WORKDIR /src
 
-RUN go env -w GOPROXY=https://goproxy.io,direct
+COPY ../../../go.mod ../../../go.sum .
+RUN go env -w GOPROXY=https://goproxy.io,direct && go mod download
+COPY ../../../.. /src
 RUN mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_agent/...
 
 FROM debian:stable-slim

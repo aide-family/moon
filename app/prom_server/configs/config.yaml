@@ -6,11 +6,11 @@ server:
     addr: 0.0.0.0:9000
     timeout: 1s
 
-# NOTE: 添加你自己的数据库，并增加prometheus-manager库，主机配置需要根据自身的mysql地址进行配置，下方redis配置同理
+# NOTE: 添加你自己的数据库，并增加prometheus_manager库，主机配置需要根据自身的mysql地址进行配置，下方redis配置同理
 data:
   database:
     driver: mysql
-    source: root:123456@tcp(host.docker.internal:3306)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
+    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
     debug: true
     # 配置redis则使用redis作为缓存
 #  redis:
