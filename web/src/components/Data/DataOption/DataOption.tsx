@@ -69,7 +69,11 @@ const DataOption: FC<DataOptionProps> = (props) => {
                     )
                 })}
             </Col>
-            <Col span={16} className={styles.RightCol}>
+            <Col
+                span={16}
+                className={styles.RightCol}
+                style={{ alignItems: 'center' }}
+            >
                 {rightOptions?.map(({ key, label }, index) => {
                     return (
                         <div

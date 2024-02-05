@@ -26,6 +26,9 @@ export type GlobalContextType = {
     removeToken?: () => void
     intervalId?: any
     setIntervalId?: (intervalId: any) => void
+    // 自动刷新
+    autoRefresh?: boolean
+    setAutoRefresh?: (autoRefresh: boolean) => void
 }
 
 export const GlobalContext = createContext<GlobalContextType>({

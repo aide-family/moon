@@ -1,7 +1,7 @@
 import { ActionKey } from '@/apis/data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { SettingOutlined } from '@ant-design/icons'
-import { Button } from 'antd'
+import { Button, Space, Switch } from 'antd'
 import { AddChartButton } from './child/AddChartButton'
 import { DataFormItem } from '@/components/Data'
 import { AddDashboardButton } from './child/AddDashboardModal'
@@ -9,7 +9,20 @@ import dashboardApi from '@/apis/home/dashboard'
 import { defaultListChartRequest } from '@/apis/home/dashboard/types'
 import { DefaultOptionType } from 'antd/es/select'
 
-export const rightOptions: DataOptionItem[] = [
+export const rightOptions = (autoRefresh?: boolean): DataOptionItem[] => [
+    {
+        label: (
+            <Space>
+                自动刷新:
+                <Switch
+                    checked={autoRefresh}
+                    checkedChildren="开"
+                    unCheckedChildren="关"
+                />
+            </Space>
+        ),
+        key: ActionKey.AUTO_REFRESH
+    },
     {
         label: <Button type="primary">刷新</Button>,
         key: ActionKey.REFRESH
