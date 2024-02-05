@@ -22,7 +22,7 @@ function useStorage<T = string>(
 
     useEffect(() => {
         const localValue = localStorage.getItem(key)
-        const storage = getValue<T>(localValue || undefined) || defaultValue
+        const storage = getValue(localValue, defaultValue)
         if (storage) {
             setStorageValue(storage)
             return
@@ -43,6 +43,7 @@ function useStorage<T = string>(
             default:
                 setStorageValue(defaultValue as T)
         }
+        return () => {}
     }, [key])
 
     return [storedValue, setStorageValue, removeStorage]
@@ -52,9 +53,6 @@ function toString<T = string>(val: T): string {
     const t = typeof val
     let res = ''
     switch (t) {
-        case 'string' || 'symbol' || 'boolean' || 'number' || 'bigint':
-            res = `${val}`
-            break
         case 'undefined' || 'null' || 'function':
             res = ''
             break
@@ -65,20 +63,32 @@ function toString<T = string>(val: T): string {
                 console.log('toString err', e)
             }
             break
+        default:
+            res = `${val}`
+            break
     }
 
     return res
 }
 
-function getValue<T>(val?: string): T | undefined {
-    if (val === undefined) return val
-    try {
-        // 尝试将输入字符串解析为 JSON 对象
-        const parsedValue: T = JSON.parse(val)
-        return parsedValue
-    } catch (error) {
-        // 如果解析失败，返回 undefined
-        return undefined
+function getValue<T>(value: string | null, defalutVal: T): any {
+    if (value === null) {
+        return defalutVal
+    }
+
+    switch (typeof defalutVal) {
+        case 'number':
+            return +value
+        case 'boolean':
+            return value === 'true'
+        case 'object':
+            try {
+                return JSON.parse(value)
+            } catch (e) {
+                return defalutVal
+            }
+        default:
+            return value
     }
 }
 

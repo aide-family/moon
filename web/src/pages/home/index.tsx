@@ -50,8 +50,10 @@ const renderBox = (item: ChartItem, key: any): React.ReactNode => {
     return <Box {...item} key={key} />
 }
 
+let autoRefreshTimer: NodeJS.Timeout | null = null
+
 const Home: FC = () => {
-    const { size } = useContext(GlobalContext)
+    const { size, autoRefresh, setAutoRefresh } = useContext(GlobalContext)
     const [dashboards, setDashboards] = useState<ChartItem[]>([])
     const [dashboardList, setDashboardList] = useState<DashboardConfigItem[]>(
         []
@@ -111,6 +113,19 @@ const Home: FC = () => {
         })
     }
 
+    const handleAutoRefresh = () => {
+        const isAutoRefresh = !!autoRefresh
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer)
+        }
+        if (isAutoRefresh) {
+            autoRefreshTimer = setInterval(() => {
+                handleRefresh()
+                // 1min
+            }, 1000 * 10 * 6)
+        }
+    }
+
     const handleAction = (action: ActionKey) => {
         switch (action) {
             case ActionKey.REFRESH:
@@ -118,6 +133,10 @@ const Home: FC = () => {
                 break
             case ActionKey.CONFIG_DASHBOARD_CHART:
                 handleOpenConfigModal()
+                break
+            case ActionKey.AUTO_REFRESH:
+                setAutoRefresh?.(!autoRefresh)
+                handleAutoRefresh()
                 break
         }
     }
@@ -135,6 +154,7 @@ const Home: FC = () => {
 
     useEffect(() => {
         handleGetDashboards()
+        handleAutoRefresh()
     }, [])
 
     return (
@@ -152,7 +172,7 @@ const Home: FC = () => {
                 showClear={false}
                 action={handleAction}
                 // showSegmented={false}
-                rightOptions={rightOptions}
+                rightOptions={rightOptions(autoRefresh)}
                 leftOptions={leftOptions(handleRefresh)}
             />
             <PaddingLine />

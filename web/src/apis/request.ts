@@ -9,9 +9,18 @@ type ErrorRepose = {
     metadata: Map<string>
     reason: string
 }
+const localhost = 'http://localhost:5173'
+const localhostDocker = 'http://localhost:8000'
+const host =
+    window.location.origin || process.env.REACT_APP_ASSET_API || localhostDocker
+
+const hostMap: { [key: string]: string } = {
+    [localhost]: 'http://localhost:8000',
+    [localhostDocker]: 'http://localhost:8001'
+}
 
 const request = axios.create({
-    baseURL: process.env.REACT_APP_ASSET_API,
+    baseURL: hostMap[host] || host,
     timeout: 10000
 })
 
@@ -22,6 +31,13 @@ const info = (msg?: AxiosError<ErrorRepose>) => {
         message = '系统错误',
         reason = 'SYSTEM_ERROR'
     } = msg?.response?.data
+
+    if (code === 401) {
+        setTimeout(() => {
+            window.location.href = '/#/login'
+        }, 1000)
+        return
+    }
     notification.open({
         message: reason,
         description: message,
@@ -29,11 +45,6 @@ const info = (msg?: AxiosError<ErrorRepose>) => {
         duration: 3,
         role: 'alert'
     })
-    if (code === 401) {
-        setTimeout(() => {
-            window.location.href = '/#/login'
-        }, 1000)
-    }
 }
 
 request.interceptors.request.use((config) => {
