@@ -30,7 +30,7 @@
   * mysql数据库：8.0+
   * redis数据库（可选）
   * kafka消息队列（可选）
-  > 如果没有这些环境，可以直接进入`./rely`录下， 执行`docker-compose up -d`启动本地默认依赖
+  > 如果没有这些环境，可以直接进入`./deploy/rely`录下， 执行`docker-compose up -d`启动本地默认依赖, 该依赖包含了mysql，redis，kafka等，你可以选择屏蔽掉redis和kafka， 只启动mysql部分
 
 ### 2.2 安装部署
 
