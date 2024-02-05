@@ -5,8 +5,8 @@ networks:
     driver: bridge
 
 services:
-  prometheus_manager:
-    container_name: prometheus_manager
+  prometheus_manager_server:
+    container_name: prometheus_manager_server
     build: 
       context: ../..
       dockerfile: ./deploy/docker/prom-server/Dockerfile
@@ -37,7 +37,7 @@ services:
       - "../../app/prom_agent/configs/:/data/conf"
       - "../../app/prom_agent/cache:/app/cache"
     depends_on:
-      - prometheus_manager
+      - prometheus_manager_server
     networks:
       prometheus_manager_net:
 
@@ -50,6 +50,6 @@ services:
     ports:
       - "8000:80"
     depends_on:
-      - prometheus_manager
+      - prometheus_manager_server
     networks:
       prometheus_manager_net:
