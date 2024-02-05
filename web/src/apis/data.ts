@@ -49,6 +49,8 @@ const NotifyAppData: Record<NotifyApp, string> = {
 export enum ActionKey {
     /** 刷新 */
     REFRESH = '__refresh__',
+    /** 自动刷新 */
+    AUTO_REFRESH = '__auto_refresh__',
     /** 重置 */
     RESET = '__reset__',
     /** 操作 */

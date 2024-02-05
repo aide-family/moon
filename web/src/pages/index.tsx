@@ -64,6 +64,7 @@ const Index: React.FC = () => {
     const [layoutContentElement, setLayoutContentElement] =
         useState<HTMLElement | null>(null)
     const [token, setToken, removeToken] = useStorage<string>('token', '')
+    const [autoRefresh, setAutoRefresh] = useStorage('autoRefresh', false)
     const [intervalId, setIntervalId] = useState<any>()
 
     const contextValue: GlobalContextType = {
@@ -83,7 +84,9 @@ const Index: React.FC = () => {
         setIntervalId: setIntervalId,
         token: token,
         setToken: setToken,
-        removeToken: removeToken
+        removeToken: removeToken,
+        autoRefresh: autoRefresh,
+        setAutoRefresh: setAutoRefresh
     }
 
     return (
