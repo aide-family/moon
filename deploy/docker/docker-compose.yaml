@@ -10,6 +10,8 @@ services:
     build: 
       context: ../..
       dockerfile: ./deploy/docker/prom-server/Dockerfile
+      args:
+        VERSION: ${VERSION}
     # image: docker.hub/prometheus-manager/app/prom-server:v0.0.0
     ports:
       - "8001:8000"
@@ -25,6 +27,8 @@ services:
     build: 
       context: ../..
       dockerfile: ./deploy/docker/prom-agent/Dockerfile
+      args:
+        VERSION: ${VERSION}
     # image: docker.hub/prometheus-manager/app/prom-agent:v0.0.0
     ports:
       - "8002:8000"

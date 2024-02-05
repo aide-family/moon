@@ -28,6 +28,10 @@ else
 endif
 
 .PHONY:
+env:
+	@echo "VERSION=$(VERSION)" > ./deploy/docker/.env
+
+.PHONY:
 dev:
 	@echo "make dev"
 	@echo "APP_NAME: $(APP_NAME)"
@@ -40,8 +44,8 @@ all-docker-build:
 all-docker-push:
 	make web-docker-push && make prom-server-docker-push && make prom-agent-docker-push
 
-all-docker-compose-up:
-	docker-compose -f ./deploy/docker/docker-compose.yaml $(ARGS)
+all-docker-compose-up: env
+	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env $(ARGS)
 
 .PHONY:
 local:
