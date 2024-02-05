@@ -200,7 +200,10 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
                                 )}
                                 <List
                                     loading={loading}
-                                    style={{ height: height }}
+                                    style={{
+                                        height: height,
+                                        overflowY: 'auto'
+                                    }}
                                     dataSource={data}
                                     renderItem={(
                                         item: PromValue,
