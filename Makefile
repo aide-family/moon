@@ -1,12 +1,41 @@
-GOHOSTOS:=$(shell go env GOHOSTOS)
-GOPATH:=$(shell go env GOPATH)
-VERSION=$(shell git describe --tags --always)
+# NOTE: set your repository address
+REPO ?= docker.hub
+
+# local
+LOCAL_OS:=$(shell go env GOOS)
+LOCAL_ARCH:=$(shell go env GOARCH)
+
+# golang build arg
+# TODO: go_cc
+CGO_ENABLED?=0
+GOOS:=linux
+GOARCH:=amd64
+
+ifdef BUILD_GOOS
+	GOOS=${BUILD_GOOS}
+endif
+
+ifdef BUILD_GOARCH
+	GOARCH=${BUILD_GOARCH}
+endif
+
+GO_BUILD_ARG:=CGO_ENABLED=$(CGO_ENABLED)  GOOS=$(GOOS) GOARCH=$(BUILD_GOARCH)
+
+# version
+VERSION:=v0.0.1
+GIT_TAG=$(shell git describe --tags --always)
+GIT_MOD=$(shell if ! git diff-index --quiet HEAD;then echo "-dirty";fi)
+PROM-WEB-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
+PROM-SERVER-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
+PROM-AGENT-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
+
+# image
+PROM-WEB-IMAGE:=${REPO}/prometheus-manager/web:${PROM-WEB-VERSION}
+PROM-SERVER-IMAGE:=${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}
+PROM-AGENT-IMAGE:=${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}
+
 APPS ?= $(shell ls app)
 path := $(shell pwd)
-PROM-WEB-VERSION:=0.0.1-$(VERSION)
-PROM-SERVER-VERSION:=0.0.1-$(VERSION)
-PROM-AGENT-VERSION:=0.0.1-$(VERSION)
-TEMP_BUILD_DIR:=./temp
 
 # 获取输入的参数
 APP_NAME ?= $(app)
@@ -14,7 +43,7 @@ APP_NAME ?= $(app)
 APP := $(subst app/,,$(APP_NAME))
 ARGS ?= $(args)
 
-ifeq ($(GOHOSTOS), windows)
+ifeq ($(LOCAL_OS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
 	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
 	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
@@ -38,15 +67,65 @@ dev:
 	@echo "VERSION: $(VERSION)"
 	@cd $(APP_NAME) && make dev
 
-all-docker-build:
-	make web-docker-build && make prom-server-docker-build && make prom-agent-docker-build
+# ------------------ DOCKER ------------------
+all-docker-build: prom-web-docker-build prom-server-docker-build prom-agent-docker-build
 
-all-docker-push:
-	make web-docker-push && make prom-server-docker-push && make prom-agent-docker-push
+all-docker-push: prom-web-docker-push prom-server-docker-push prom-agent-docker-push
 
+prom-web-docker-build:
+	@echo "Building docker image with the manager-web..."
+	docker build --no-cache -t $(PROM-WEB-IMAGE) -f ./deploy/docker/prom-web/Dockerfile .
+	@echo "Successfully build docker image with the web."
+
+prom-web-docker-push:
+	@echo "start push image [$(PROM-WEB-IMAGE)]"
+	docker push $(PROM-WEB-IMAGE)
+	@echo "Successfully push image [$(PROM-WEB-IMAGE)] to target repo."
+
+prom-server-docker-build:
+	@echo "Building docker image with the prom-server..."
+	docker build --build-arg VERSION=$(VERSION) -t $(PROM-SERVER-IMAGE) -f ./deploy/docker/prom-server/Dockerfile .
+	@echo "Successfully build docker image with the prom-server."
+
+prom-server-docker-push:
+	@echo "start push image [$(PROM-SERVER-IMAGE)]"
+	docker push $(PROM-SERVER-IMAGE)
+	@echo "Successfully push image [$(PROM-SERVER-IMAGE)] to target repo."
+
+prom-agent-docker-build:
+	@echo "Building docker image with the prom-server..."
+	docker build --build-arg VERSION=$(VERSION) -t $(PROM-AGENT-IMAGE) -f ./deploy/docker/prom-agent/Dockerfile .
+	@echo "Successfully build docker image with the prom-agent."
+
+prom-agent-docker-push: # test ## push docker image with the prom-server.
+	@echo "start push image [$(PROM-AGENT-IMAGE)]"
+	docker push $(PROM-AGENT-IMAGE)
+	@echo "Successfully push image [$(PROM-AGENT-IMAGE)] to target repo."
+
+# ------------------ DOCKER-COMPOSE ------------------
 all-docker-compose-up: env
-	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env $(ARGS)
+	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env $(ARGS) up
 
+prom-server-compose-up: clean-server-cache prom-server-docker-build
+	docker tag $(PROM-SERVER-IMAGE) docker-prometheus_manager_server:latest
+	docker-compose -f ./deploy/docker/docker-compose.yaml up prometheus_manager_server -d --no-build
+
+prom-web-compose-up: prom-web-docker-build
+	docker tag $(PROM-WEB-IMAGE) docker-prometheus_manager_web:latest
+	docker-compose -f ./deploy/docker/docker-compose.yaml up prometheus_manager_web -d --no-build
+
+prom-agent-compose-up: prom-agent-docker-build
+	docker tag $(PROM-AGENT-IMAGE) docker-prometheus_manager_agent:latest
+	docker-compose -f ./deploy/docker/docker-compose.yaml up prometheus_manager_agent -d --no-build
+
+# The prom-server container has a problem that when it is restarted, 
+# the cache file cannot be mounted into the container. It needs to clean up the cache.
+# Other services rely on the prom-server, so they also need to do this make action.
+# WARNNING: If there is important test data in the cache file, please back it up yourself.
+clean-server-cache:
+	rm -rf ./app/prom_server/cache/
+
+# ------------------ LOCAL ------------------
 .PHONY:
 local:
 	@echo "make local"
@@ -148,50 +227,13 @@ help:
 
 .DEFAULT_GOAL := help
 
-
-
-TAG ?= latest
-REPO ?= docker.hub# TODO: set your repository address
-
+# ------------------ KUBERNETES ------------------
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
-
-# ------------------ PORM-WEB ------------------
-web-docker-build:
-	@echo "Building docker image with the manager-web..."
-	docker build --no-cache -t ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION} -f ./deploy/docker/prom-web/Dockerfile .
-	@echo "Successfully build docker image with the web."
-
-web-docker-push:
-	@echo "start push image [${REPO}/prometheus-manager/web:${TAG}]"
-	docker push ${REPO}/prometheus-manager/web:${PROM-WEB-VERSION}
-	@echo "Successfully push image [${REPO}/prometheus-manager/web:${TAG}] to target repo."
-
-# ------------------ PROM-SERVER ------------------
-prom-server-docker-build:
-	@echo "Building docker image with the prom-server..."
-	docker build -t ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION} -f ./deploy/docker/prom-server/Dockerfile --build-arg VERSION=$(VERSION) .
-	@echo "Successfully build docker image with the prom-server."
-
-prom-server-docker-push:
-	@echo "start push image [${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}]"
-	docker push ${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}
-	@echo "Successfully push image [${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}] to target repo."
-
-# ------------------ PROM-AGENT ------------------
-prom-agent-docker-build:
-	@echo "Building docker image with the prom-server..."
-	docker build -t ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION} -f ./deploy/docker/prom-agent/Dockerfile --build-arg VERSION=$(VERSION) .
-	@echo "Successfully build docker image with the prom-agent."
-
-prom-agent-docker-push: # test ## push docker image with the prom-server.
-	@echo "start push image [${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}]"
-	docker push ${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}
-	@echo "Successfully push image [${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}] to target repo."
 
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec

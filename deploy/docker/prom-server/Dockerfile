@@ -1,11 +1,11 @@
 FROM golang:1.21.0 AS builder
 ARG VERSION=v0.0.0
 
-COPY ../../../.. /src
 WORKDIR /src
-
-RUN go env -w GOPROXY=https://goproxy.io,direct
-RUN ls -a && mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_server/...
+COPY ../../../go.mod ../../../go.sum .
+RUN go env -w GOPROXY=https://goproxy.io,direct && go mod download
+COPY ../../../.. /src
+RUN  ls -a && mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_server/...
 
 FROM debian:stable-slim
 
@@ -28,4 +28,3 @@ VOLUME /app/cache
 ENV TZ=Asia/Shanghai
 
 CMD ["./prom_server", "-conf", "/data/conf"]
-

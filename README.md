@@ -64,8 +64,8 @@ server:
 data:
   database:
     driver: mysql
-    # mysql数据库地址，替换为自己的数据库实际连接，并创建prometheus-manager数据库
-    source: root:123456@tcp(localhost:3306)/prometheus-manager?charset=utf8mb4&parseTime=True&loc=Local
+    # mysql数据库地址，替换为自己的数据库实际连接，并创建prometheus_manager数据库
+    source: root:123456@tcp(localhost:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
     debug: true
 # 开启redis配置，则使用redis作为缓存组件
 #  redis:
@@ -161,7 +161,7 @@ make web
 
 ##### docker方式启动
 
-1. 如果本地没有mysql数据库，可以通过以下命令在本地快速拉起一个mysql容器，然后通过工具创建一个名为 **prometheus-manager** 的数据库，如果执行完这步则直接跳过第2步，直接执行执行第3步
+1. 如果本地没有mysql数据库，可以通过以下命令在本地快速拉起一个mysql容器，然后通过工具创建一个名为 **prometheus_manager** 的数据库，如果执行完这步则直接跳过第2步，直接执行执行第3步
 
    ```shell
    docker run -d -p 3306:3306 --name mysql-container -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0
