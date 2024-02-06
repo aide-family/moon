@@ -56,10 +56,36 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	if err = s.userBiz.RelateRoles(ctx, userBo.Id, req.GetRoleIds()); err != nil {
+
+	validRoleIds, err := s.mergeRoleIds(ctx, req.GetRoleIds())
+	if err != nil {
+		return nil, err
+	}
+	// 需要判断用户自己有没有这些角色， 如果没有， 新增的用户也不能拥有
+	if err = s.userBiz.RelateRoles(ctx, userBo.Id, validRoleIds); err != nil {
 		return nil, err
 	}
 	return &pb.CreateUserReply{Id: userBo.Id}, nil
+}
+
+func (s *UserService) mergeRoleIds(ctx context.Context, roleIds []uint32) ([]uint32, error) {
+	userId := middler.GetUserId(ctx)
+	userInfo, err := s.userBiz.GetUserInfoById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	userInfoRoles := make(map[uint32]struct{})
+	for _, roleInfo := range userInfo.GetRoles() {
+		userInfoRoles[roleInfo.Id] = struct{}{}
+	}
+	validRoleIds := make([]uint32, 0, len(roleIds))
+	for _, roleId := range roleIds {
+		if _, ok := userInfoRoles[roleId]; !ok {
+			continue
+		}
+		validRoleIds = append(validRoleIds, roleId)
+	}
+	return validRoleIds, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserReply, error) {
@@ -75,7 +101,12 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	if err = s.userBiz.RelateRoles(ctx, req.GetId(), req.GetRoleIds()); err != nil {
+	validRoleIds, err := s.mergeRoleIds(ctx, req.GetRoleIds())
+	if err != nil {
+		return nil, err
+	}
+	// 需要判断用户自己有没有这些角色， 如果没有， 修改的用户也不能拥有
+	if err = s.userBiz.RelateRoles(ctx, req.GetId(), validRoleIds); err != nil {
 		return nil, err
 	}
 	return &pb.UpdateUserReply{Id: req.GetId()}, nil

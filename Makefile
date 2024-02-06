@@ -22,12 +22,13 @@ endif
 GO_BUILD_ARG:=CGO_ENABLED=$(CGO_ENABLED)  GOOS=$(GOOS) GOARCH=$(BUILD_GOARCH)
 
 # version
-VERSION:=v0.0.1
+V := v0.0.1
 GIT_TAG=$(shell git describe --tags --always)
 GIT_MOD=$(shell if ! git diff-index --quiet HEAD;then echo "-dirty";fi)
-PROM-WEB-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
-PROM-SERVER-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
-PROM-AGENT-VERSION:=$(VERSION)-$(GIT_TAG)$(GIT_MOD)
+VERSION:=$(V)-$(GIT_TAG)$(GIT_MOD)
+PROM-WEB-VERSION:=$(VERSION)
+PROM-SERVER-VERSION:=$(VERSION)
+PROM-AGENT-VERSION:=$(VERSION)
 
 # image
 PROM-WEB-IMAGE:=${REPO}/prometheus-manager/web:${PROM-WEB-VERSION}
@@ -104,7 +105,10 @@ prom-agent-docker-push: # test ## push docker image with the prom-server.
 
 # ------------------ DOCKER-COMPOSE ------------------
 all-docker-compose-up: env
-	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env $(ARGS) up
+	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env up
+
+all-docker-compose: env
+	docker-compose -f ./deploy/docker/docker-compose.yaml --env-file ./deploy/docker/.env $(ARGS)
 
 prom-server-compose-up: clean-server-cache prom-server-docker-build
 	docker tag $(PROM-SERVER-IMAGE) docker-prometheus_manager_server:latest
