@@ -8,7 +8,7 @@ server:
 #data:
 #  # 配置redis， 缓存使用redis， 否则使用本地存储
 #  redis:
-#    addr: 127.0.0.1:6379
+#    addr: host.docker.internal:6379
 #    read_timeout: 0.2s
 #    write_timeout: 0.2s
 
@@ -27,11 +27,11 @@ watchProm:
 #  kafka:
 #    groupId: prometheus-agent
 #    endpoints:
-#      - localhost:9092
+#      - host.docker.internal:9092
 
 # NOTE: 实际运行中需要替换为容器可访问地址，当前主机为容器在本地一站式拉起可访问的主机地址，生产根据自身配置修改
 interflow:
   # prom_server的通信地址
-  server: http://host.docker.internal:8000/api/v1/interflows/receive
+  server: http://host.docker.internal:8001/api/v1/interflows/receive
   # 自身的通信地址
-  agent: http://host.docker.internal:8000/api/v1/interflows/receive
+  agent: http://host.docker.internal:8002/api/v1/interflows/receive

@@ -14,7 +14,7 @@ data:
     debug: true
     # 配置redis则使用redis作为缓存
 #  redis:
-#    addr: localhost:6379
+#    addr: host.docker.internal:6379
 #    password: redis#single#test
 #    read_timeout: 0.2s
 #    write_timeout: 0.2s
@@ -42,4 +42,4 @@ log:
 #  kafka:
 #    groupId: prometheus-server
 #    endpoints:
-#      - localhost:9092
+#      - host.docker.internal:9092
