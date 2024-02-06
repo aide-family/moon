@@ -4,7 +4,7 @@ ARG VERSION=v0.0.1
 WORKDIR /src
 
 COPY ../../../go.mod ../../../go.sum .
-RUN GOPROXY=https://goproxy.cn && go mod tidy
+RUN go env -w GOPROXY=https://goproxy.cn,direct && go mod tidy && go mod download
 COPY ../../../.. /src
 RUN mkdir -p bin/ && go build -ldflags "-X main.Version=$VERSION" -o ./bin/ ./app/prom_agent/...
 
