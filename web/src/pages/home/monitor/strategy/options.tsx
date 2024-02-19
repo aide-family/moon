@@ -1,4 +1,4 @@
-import { Button, MenuProps, Space, Tag, Tooltip } from 'antd'
+import { Avatar, Badge, Button, MenuProps, Tag, Tooltip } from 'antd'
 import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
 import { DataFormItem } from '@/components/Data'
@@ -24,6 +24,8 @@ import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
 import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/types'
 import { checkDuration } from '@/components/Data/TimeValue'
+import { SizeType } from 'antd/es/config-provider/SizeContext'
+import { AvatarSize } from 'antd/es/avatar/AvatarContext'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -105,43 +107,15 @@ export const durationOptions = [
     }
 ]
 
-export const columns: (
-    | ColumnGroupType<StrategyItemType>
-    | ColumnType<StrategyItemType>
-)[] = [
+export const columns = (
+    size: SizeType
+): (ColumnGroupType<StrategyItemType> | ColumnType<StrategyItemType>)[] => [
     {
         title: 'ID',
         dataIndex: 'id',
         key: 'id',
         align: 'start',
         width: 100
-    },
-    {
-        title: '数据源',
-        dataIndex: 'dataSource',
-        key: 'dataSource',
-        align: 'start',
-        width: 200,
-        render: (dataSource?: PrometheusServerSelectItem) => {
-            if (!dataSource) return '-'
-            const { label, value, endpoint, status } = dataSource
-            return (
-                <Tooltip
-                    title={status !== Status.STATUS_ENABLED ? '' : endpoint}
-                >
-                    <Tag
-                        key={value}
-                        color={
-                            status !== Status.STATUS_ENABLED
-                                ? '#CD9A6A'
-                                : '#1677ff'
-                        }
-                    >
-                        {label}
-                    </Tag>
-                </Tooltip>
-            )
-        }
     },
     {
         title: '名称',
@@ -153,94 +127,27 @@ export const columns: (
         }
     },
     {
-        title: '持续时间',
-        dataIndex: 'duration',
-        key: 'duration',
-        width: 120,
-        render: (duration: Duration) => {
-            return duration.value + '' + duration.unit
-        }
-    },
-    {
-        title: '状态',
-        dataIndex: 'status',
-        key: 'status',
-        width: 80,
-        render: (status: Status) => {
-            const { color, text } = StatusMap[status]
-            return (
-                <Tag key={text} color={color}>
-                    {text}
-                </Tag>
-            )
-        }
-    },
-    {
-        title: '策略等级',
-        dataIndex: 'alarmLevelInfo',
-        key: 'alarmLevelInfo',
-        width: 160,
-        render: (alarmLevelInfo: DictSelectItem) => {
-            if (!alarmLevelInfo) return '-'
-            const { color, label, value } = alarmLevelInfo
-            return (
-                <Tag key={value} color={color}>
-                    {label}
-                </Tag>
-            )
-        }
-    },
-    {
-        title: '策略类型',
-        dataIndex: 'categoryInfo',
-        key: 'categoryInfo',
-        width: 300,
-        render: (_: number, record: StrategyItemType) => {
-            if (!record.categoryInfo || !record.categoryInfo.length) return '-'
-            const categyList = record.categoryInfo
-            return (
-                <Space size={[8, 16]} wrap>
-                    {categyList.map((item) => {
-                        return (
-                            <Tag key={item.value} color={item.color}>
-                                {item.label}
-                            </Tag>
-                        )
-                    })}
-                </Space>
-            )
-        }
-    },
-    {
-        title: '告警页面',
-        dataIndex: 'alarmPageInfo',
-        key: 'alarmPageInfo',
-        width: 300,
-        render: (_: number, record: StrategyItemType) => {
-            if (!record.alarmPageInfo || !record.alarmPageInfo.length)
-                return '-'
-            const alarmPageInfoList = record.alarmPageInfo
-            return (
-                <Space size={[8, 16]} wrap>
-                    {alarmPageInfoList.map((item) => {
-                        return (
-                            <Tag key={item.value} color={item.color}>
-                                {item.label}
-                            </Tag>
-                        )
-                    })}
-                </Space>
-            )
-        }
-    },
-    {
-        title: '告警恢复通知',
-        dataIndex: 'sendRecover',
-        key: 'sendRecover',
-        width: 160,
+        title: '数据源',
+        dataIndex: 'dataSource',
+        key: 'dataSource',
+        width: 200,
         align: 'center',
-        render: (sendRecover: boolean) => {
-            return sendRecover ? '是' : '否'
+        render: (dataSource?: PrometheusServerSelectItem) => {
+            if (!dataSource) return '-'
+            const { label, value, endpoint, status } = dataSource
+            return (
+                <Tooltip
+                    title={status !== Status.STATUS_ENABLED ? '' : endpoint}
+                >
+                    <Button
+                        type="link"
+                        key={value}
+                        disabled={status !== Status.STATUS_ENABLED}
+                    >
+                        {label}
+                    </Button>
+                </Tooltip>
+            )
         }
     },
     {
@@ -266,20 +173,138 @@ export const columns: (
             )
         }
     },
-    // {
-    //     title: '创建时间',
-    //     dataIndex: 'createdAt',
-    //     key: 'createdAt',
-    //     width: 160,
-    //     render: (createdAt: string) => {
-    //         return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
-    //     }
-    // },
+    {
+        title: '持续时间',
+        dataIndex: 'duration',
+        key: 'duration',
+        width: 120,
+        align: 'center',
+        render: (duration: Duration) => {
+            return duration.value + '' + duration.unit
+        }
+    },
+    {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 80,
+        render: (status: Status) => {
+            const { color, text } = StatusMap[status]
+            return <Badge color={color} text={text} />
+        }
+    },
+    {
+        title: '策略等级',
+        dataIndex: 'alarmLevelInfo',
+        key: 'alarmLevelInfo',
+        width: 160,
+        render: (alarmLevelInfo: DictSelectItem) => {
+            if (!alarmLevelInfo) return '-'
+            const { color, label } = alarmLevelInfo
+            return <Badge color={color} text={label} />
+        }
+    },
+    {
+        title: '策略类型',
+        dataIndex: 'categoryInfo',
+        key: 'categoryInfo',
+        width: 120,
+        render: (_: number, record: StrategyItemType) => {
+            if (!record.categoryInfo || !record.categoryInfo.length) return '-'
+            const categyList = record.categoryInfo
+            if (categyList.length === 1) {
+                const { label, value, color } = categyList[0]
+                return (
+                    <Tag key={value} color={color}>
+                        {label}
+                    </Tag>
+                )
+            }
+            return (
+                <Avatar.Group
+                    maxCount={2}
+                    shape="square"
+                    size={size as AvatarSize}
+                >
+                    {categyList.map((item) => {
+                        return (
+                            <Tooltip title={item.label}>
+                                <Avatar
+                                    key={item.value}
+                                    style={{ backgroundColor: item.color }}
+                                >
+                                    {item.label}
+                                </Avatar>
+                            </Tooltip>
+                        )
+                    })}
+                </Avatar.Group>
+            )
+        }
+    },
+    {
+        title: '告警页面',
+        dataIndex: 'alarmPageInfo',
+        key: 'alarmPageInfo',
+        width: 120,
+        render: (_: number, record: StrategyItemType) => {
+            if (!record.alarmPageInfo || !record.alarmPageInfo.length)
+                return '-'
+            const alarmPageInfoList = record.alarmPageInfo
+            if (alarmPageInfoList.length === 1) {
+                const { label, value, color } = alarmPageInfoList[0]
+                return (
+                    <Tag key={value} color={color}>
+                        {label}
+                    </Tag>
+                )
+            }
+            return (
+                <Avatar.Group
+                    maxCount={2}
+                    shape="square"
+                    size={size as AvatarSize}
+                >
+                    {alarmPageInfoList.map((item) => {
+                        return (
+                            <Tooltip title={item.label}>
+                                <Avatar
+                                    key={item.value}
+                                    style={{ backgroundColor: item.color }}
+                                >
+                                    {item.label}
+                                </Avatar>
+                            </Tooltip>
+                        )
+                    })}
+                </Avatar.Group>
+            )
+        }
+    },
+    {
+        title: '告警恢复通知',
+        dataIndex: 'sendRecover',
+        key: 'sendRecover',
+        width: 160,
+        align: 'center',
+        render: (sendRecover: boolean) => {
+            return sendRecover ? '是' : '否'
+        }
+    },
+    {
+        title: '创建时间',
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        width: 170,
+        render: (createdAt: string | number) => {
+            return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
+        }
+    },
     {
         title: '更新时间',
         dataIndex: 'updatedAt',
         key: 'updatedAt',
-        width: 160,
+        width: 170,
         render: (updatedAt: string) => {
             return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }

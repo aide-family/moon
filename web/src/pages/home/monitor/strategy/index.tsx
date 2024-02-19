@@ -1,4 +1,4 @@
-import { FC, Key, useEffect, useRef, useState } from 'react'
+import { FC, Key, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Form, Space, Tag } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -22,11 +22,13 @@ import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
+import { GlobalContext } from '@/context'
 
 const defaultPadding = 12
 
 let fetchTimer: NodeJS.Timeout
 const Strategy: FC = () => {
+    const { size } = useContext(GlobalContext)
     const navigate = useNavigate()
     const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
@@ -220,7 +222,7 @@ const Strategy: FC = () => {
 
             <DataTable
                 dataSource={dataSource}
-                columns={columns}
+                columns={columns(size)}
                 operationRef={operationRef}
                 total={+total}
                 loading={loading}
@@ -229,12 +231,13 @@ const Strategy: FC = () => {
                 rowSelection={{
                     onChange: handlerBatchData
                 }}
+                showIndex={false}
                 pageSize={searchParams?.page?.size}
                 current={searchParams?.page?.curr}
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
-                        <Space wrap size="middle">
+                        <Space size="middle" direction="vertical">
                             <Space style={{ width: '100%' }}>
                                 <Tag icon={<CopyOutlined />} color="blue">
                                     expr
