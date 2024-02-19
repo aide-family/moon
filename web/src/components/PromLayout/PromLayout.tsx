@@ -111,7 +111,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                         onMouseLeave={handleOnMouseEnter}
                         collapsedWidth={60}
                     >
-                        <SiderMenu />
+                        <SiderMenu inlineCollapsed={collapsed} />
                     </Sider>
 
                     <Layout>
