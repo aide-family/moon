@@ -16,7 +16,7 @@ interface PrometheusServerItem {
 interface PrometheusServerSelectItem {
     value: number
     label: string
-    status: number
+    status: Status
     remark: string
     endpoint: string
 }
