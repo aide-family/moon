@@ -76,65 +76,70 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
     }, [])
 
     return (
-        <Watermark content={watermark} className="wh100">
-            <Layout className={[styles.widthHight100, styles.Layout].join(' ')}>
-                <ConfigProvider
-                    theme={{
-                        token: {},
-                        components: {
-                            Layout: {
-                                headerBg: '#FFF',
-                                bodyBg: '#f0f0f0'
-                            },
-                            Menu: {
-                                colorBgContainer: '#fafafa',
-                                itemBorderRadius: 8
-                            }
+        <Layout className={[styles.widthHight100, styles.Layout].join(' ')}>
+            <ConfigProvider
+                theme={{
+                    token: {},
+                    components: {
+                        Layout: {
+                            headerBg: '#FFF',
+                            bodyBg: '#f0f0f0'
+                        },
+                        Menu: {
+                            colorBgContainer: '#fafafa',
+                            itemBorderRadius: 8
                         }
-                    }}
-                >
-                    <Header className={styles.LayoutHeader}>
-                        <HeaderTitle />
-                        <Space size={12} direction="horizontal">
-                            {/*<SpaceInfo />*/}
-                            <Msg />
-                            <Setting />
-                            <UserInfo />
-                        </Space>
-                    </Header>
+                    }
+                }}
+            >
+                <Header className={styles.LayoutHeader}>
+                    <HeaderTitle />
+                    <Space size={12} direction="horizontal">
+                        {/*<SpaceInfo />*/}
+                        <Msg />
+                        <Setting />
+                        <UserInfo />
+                    </Space>
+                </Header>
+
+                <Layout>
+                    <Sider
+                        defaultCollapsed
+                        collapsed={collapsed}
+                        className={styles.LayoutSider}
+                        onMouseEnter={handleOnMouseEnter}
+                        onMouseLeave={handleOnMouseEnter}
+                        collapsedWidth={60}
+                    >
+                        <Watermark content={watermark} className="wh100">
+                            <SiderMenu inlineCollapsed={collapsed} />
+                        </Watermark>
+                    </Sider>
 
                     <Layout>
-                        <Sider
-                            defaultCollapsed
-                            collapsed={collapsed}
-                            className={styles.LayoutSider}
-                            onMouseEnter={handleOnMouseEnter}
-                            onMouseLeave={handleOnMouseEnter}
-                            collapsedWidth={60}
-                        >
-                            <SiderMenu inlineCollapsed={collapsed} />
-                        </Sider>
-
-                        <Layout>
-                            <Content>
-                                <Suspense fallback={<Loading />}>
-                                    <div
-                                        className={styles.LayoutContent}
-                                        id={LayoutContentID}
+                        <Content>
+                            <Suspense fallback={<Loading />}>
+                                <div
+                                    className={styles.LayoutContent}
+                                    id={LayoutContentID}
+                                >
+                                    <Watermark
+                                        content={watermark}
+                                        className="wh100"
                                     >
                                         <Outlet />
-                                    </div>
-                                </Suspense>
-                            </Content>
-                            <Footer className={styles.LayoutFooter}>
-                                <CopyrightOutlined />
-                                {window.location.host}
-                            </Footer>
-                        </Layout>
+                                    </Watermark>
+                                </div>
+                            </Suspense>
+                        </Content>
+                        <Footer className={styles.LayoutFooter}>
+                            <CopyrightOutlined />
+                            {window.location.host}
+                        </Footer>
                     </Layout>
-                </ConfigProvider>
-            </Layout>
-        </Watermark>
+                </Layout>
+            </ConfigProvider>
+        </Layout>
     )
 }
 
