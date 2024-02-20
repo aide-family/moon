@@ -113,7 +113,6 @@ const Auth: React.FC = () => {
                 // handlerOpenDetail()
                 setOpenDetail(true)
                 setRoleId(record.id)
-
                 break
             case ActionKey.EDIT:
                 setOpenEdit(true)
@@ -121,9 +120,9 @@ const Auth: React.FC = () => {
                 break
             case ActionKey.DELETE:
                 confirm({
-                    title: `请确认是否删除该用户?`,
+                    title: `请确认是否删除该权限?`,
                     icon: <ExclamationCircleFilled />,
-                    content: '用什么影响。。。。',
+                    content: '删除后不可恢复，请谨慎操作',
                     onOk() {
                         authApiDelete({
                             id: record.id
