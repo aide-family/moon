@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
@@ -98,18 +96,9 @@ func (l *userRepoImpl) Update(ctx context.Context, user *bo.UserBO, scopes ...ba
 }
 
 func (l *userRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
-	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		txCtx := basescopes.WithTx(ctx, tx)
-		// 删除关联关系
-		if err := tx.WithContext(txCtx).Model(&do.SysUser{}).Association(basescopes.UserAssociationReplaceRoles).Clear(); err != nil {
-			return err
-		}
-		// 删除主数据
-		if err := tx.WithContext(txCtx).Scopes(scopes...).Delete(&do.SysUser{}).Error; err != nil {
-			return err
-		}
-		return nil
-	})
+	return l.data.DB().WithContext(ctx).
+		Select(basescopes.UserAssociationReplaceRoles).
+		Scopes(scopes...).Delete(&do.SysUser{}).Error
 }
 
 func NewUserRepo(data *data.Data, logger log.Logger) repository.UserRepo {

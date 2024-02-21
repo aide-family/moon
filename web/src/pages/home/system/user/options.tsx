@@ -265,6 +265,7 @@ const operationItems = (userItem: UserListItem): MenuProps['items'] => [
                 size="small"
                 danger
                 type="link"
+                disabled={userItem.id === 1}
                 icon={
                     <IconFont
                         type="icon-shanchu-copy"
