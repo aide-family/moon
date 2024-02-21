@@ -148,7 +148,7 @@ const Endpoint: React.FC = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             <EditEndpointModal
                 endpointId={opEndpointId}
                 open={openEditModal}

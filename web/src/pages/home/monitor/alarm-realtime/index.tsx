@@ -184,7 +184,7 @@ const AlarmRealtime: FC = () => {
     }, [])
 
     return (
-        <div className="bodyContent">
+        <div>
             <RouteBreadcrumb />
             <HeightLine />
             <SearchForm

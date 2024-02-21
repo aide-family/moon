@@ -143,7 +143,7 @@ const AlarmPage: FC = () => {
     }, [refresh, searchRequest])
 
     return (
-        <div className="bodyContent">
+        <div>
             <EditAlarmPageModal
                 open={openEditModal}
                 onCancel={handleCancelEditModal}

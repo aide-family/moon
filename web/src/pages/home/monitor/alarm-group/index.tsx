@@ -146,7 +146,7 @@ const AlarmGroup: FC = () => {
                 onClose={handleCancelEditAlarmGroupModal}
                 onOk={handOnOkEditAlarmGroupModal}
             />
-            <div className="bodyContent">
+            <div>
                 <div ref={operationRef}>
                     <RouteBreadcrumb />
                     <HeightLine />

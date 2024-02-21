@@ -11,7 +11,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@ant-design/icons": "^5.2.5",
+        "@ant-design/icons": "^5.3.0",
         "@codemirror/autocomplete": "6.7.1",
         "@codemirror/commands": "6.2.4",
         "@codemirror/language": "6.7.0",

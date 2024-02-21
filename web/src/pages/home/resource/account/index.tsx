@@ -193,7 +193,7 @@ const Account: FC = () => {
     }, [refresh, urlSearchParams])
 
     return (
-        <div className="bodyContent">
+        <div>
             <DetailModal
                 open={openDetail}
                 onClose={handlerCloseDetail}

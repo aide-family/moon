@@ -1,6 +1,6 @@
 import { FC, useContext, useState, useEffect } from 'react'
 
-import { Button, Input } from 'antd'
+import { Button, Input, theme } from 'antd'
 import { useForm } from 'antd/es/form/Form'
 import { useNavigate } from 'react-router-dom'
 import { CopyrightOutlined } from '@ant-design/icons'
@@ -18,8 +18,11 @@ export type LoginParams = {
     code: string
 }
 
+const { useToken } = theme
+
 const LoginForm: FC = () => {
-    const { setUser, setToken } = useContext(GlobalContext)
+    const { token } = useToken()
+    const { setUser, setAuthToken } = useContext(GlobalContext)
     const [loginForm] = useForm<LoginParams>()
     const navigate = useNavigate()
 
@@ -38,7 +41,7 @@ const LoginForm: FC = () => {
                 captchaId: captcha.captchaId
             })
                 .then((data) => {
-                    setToken?.(data.token)
+                    setAuthToken?.(data.token)
                     setUser?.(data.user)
                     navigate('/')
                 })
@@ -71,7 +74,13 @@ const LoginForm: FC = () => {
     }
 
     return (
-        <div className={styles.LoginForm}>
+        <div
+            className={styles.LoginForm}
+            style={{
+                background: token.colorBgBase,
+                color: token.colorTextBase
+            }}
+        >
             <div>
                 <div className={styles.LoginFormTitle}>登录</div>
                 <DataForm
@@ -119,7 +128,6 @@ const LoginForm: FC = () => {
                     }
                 />
             </div>
-
             <div className={styles.LoginFormFooter}>
                 <CopyrightOutlined />
                 {window.location.host}

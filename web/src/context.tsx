@@ -4,11 +4,13 @@ import type { ItemType } from 'antd/es/menu/hooks/useItems'
 import type { SpaceType } from './pages'
 import { UserListItem } from './apis/home/system/user/types'
 
+export type ThemeType = 'light' | 'dark'
+
 export type GlobalContextType = {
     lang?: string
     setLang?: (value: string) => void
-    theme?: string
-    setTheme?: (value: string) => void
+    sysTheme?: ThemeType
+    setSysTheme?: (value: ThemeType) => void
     size?: SizeType
     setSize?: (size?: SizeType) => void
     user?: UserListItem
@@ -21,9 +23,9 @@ export type GlobalContextType = {
     breadcrumbNameMap?: Record<string, string>
     spaces?: SpaceType[]
     setSpaces?: (spaces: SpaceType[]) => void
-    setToken?: (token: string) => void
-    token?: string
-    removeToken?: () => void
+    setAuthToken?: (token: string) => void
+    autToken?: string
+    removeAuthToken?: () => void
     intervalId?: any
     setIntervalId?: (intervalId: any) => void
     // 自动刷新
@@ -34,8 +36,8 @@ export type GlobalContextType = {
 export const GlobalContext = createContext<GlobalContextType>({
     lang: 'zh-CN',
     setLang: () => {},
-    theme: 'light',
-    setTheme: () => {},
+    sysTheme: 'light',
+    setSysTheme: () => {},
     size: 'middle',
     setSize: () => {}
 })
