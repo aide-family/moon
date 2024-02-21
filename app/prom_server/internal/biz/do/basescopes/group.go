@@ -21,6 +21,9 @@ func PreloadStrategyGroupCategories() ScopeMethod {
 // PreloadStrategyGroupPromStrategies 预加载策略组下的策略
 func PreloadStrategyGroupPromStrategies(childPreload ...string) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
+		if len(childPreload) == 0 {
+			return db.Preload(PromStrategyGroupReplacePromStrategies)
+		}
 		for _, preload := range childPreload {
 			db = db.Preload(strings.Join([]string{PromStrategyGroupReplacePromStrategies, preload}, "."))
 		}

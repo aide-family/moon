@@ -171,7 +171,7 @@ func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) 
 
 func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error) {
 	var first do.PromStrategyGroup
-	if err := l.data.DB().WithContext(ctx).First(&first, id).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.PreloadStrategyGroupPromStrategies()).First(&first, id).Error; err != nil {
 		return nil, err
 	}
 

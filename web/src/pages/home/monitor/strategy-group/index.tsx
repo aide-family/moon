@@ -20,6 +20,7 @@ import {
 } from '@/apis/home/monitor/strategy-group/types'
 import EditGroupModal from './child/EditGroupModal'
 import { Status } from '@/apis/types'
+import Detail from './child/Detail'
 // import Detail from './child/Detail'
 
 const defaultPadding = 12
@@ -35,7 +36,8 @@ const StrategyGroup: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
-    // const [openDetail, setOpenDetail] = useState<boolean>(false)
+    const [openDetail, setOpenDetail] = useState<boolean>(false)
+    const [oprationItem, setOprationItem] = useState<StrategyGroupItemType>()
     const [search, setSearch] = useState<StrategyGroupListRequest>(
         defaultStrategyGroupListRequest
     )
@@ -54,13 +56,15 @@ const StrategyGroup: React.FC = () => {
         }, 500)
     }
 
-    const handlerOpenDetail = () => {
-        // setOpenDetail(true)
+    const handlerOpenDetail = (data?: StrategyGroupItemType) => {
+        setOpenDetail(true)
+        setOprationItem(data)
     }
 
-    // const handlerCloseDetail = () => {
-    //     setOpenDetail(false)
-    // }
+    const handlerCloseDetail = () => {
+        setOpenDetail(false)
+        setOprationItem(undefined)
+    }
 
     const handleOpenEditModal = (record?: StrategyGroupItemType) => {
         setEditItem(record)
@@ -120,7 +124,7 @@ const StrategyGroup: React.FC = () => {
                 toStrategyListPage(record)
                 break
             case ActionKey.DETAIL:
-                handlerOpenDetail()
+                handlerOpenDetail(record)
                 break
             case ActionKey.EDIT:
                 handleOpenEditModal(record)
@@ -175,7 +179,11 @@ const StrategyGroup: React.FC = () => {
 
     return (
         <div>
-            {/* <Detail open={openDetail} onClose={handlerCloseDetail} id="1" /> */}
+            <Detail
+                open={openDetail}
+                onClose={handlerCloseDetail}
+                id={oprationItem?.id}
+            />
             <EditGroupModal
                 open={openEditModal}
                 onCancel={handleCloseEditModal}
