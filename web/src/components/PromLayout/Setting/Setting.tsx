@@ -6,7 +6,13 @@ import { IconFont } from '@/components/IconFont/IconFont'
 const Setting: FC = () => {
     return (
         <>
-            <Button type="text" icon={<IconFont type="icon-configure" />} />
+            <Button
+                style={{
+                    color: '#FFF'
+                }}
+                type="text"
+                icon={<IconFont type="icon-configure" />}
+            />
         </>
     )
 }

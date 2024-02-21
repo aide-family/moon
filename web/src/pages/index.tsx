@@ -1,10 +1,10 @@
 import React, { Suspense, useState } from 'react'
-import { App, ConfigProvider } from 'antd'
+import { App, ConfigProvider, theme } from 'antd'
 import { createHashRouter, RouterProvider } from 'react-router-dom'
 import zhCN from 'antd/locale/zh_CN'
 
 import Loading from '@/components/Loading'
-import { GlobalContext, GlobalContextType } from '@/context'
+import { GlobalContext, GlobalContextType, ThemeType } from '@/context'
 import useStorage from '@/utils/storage'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { breadcrumbNameMap, defaultMenuItems } from './menus'
@@ -13,6 +13,7 @@ import Logo from '@/assets/logo.svg'
 
 import styles from './style/index.module.less'
 import { UserListItem } from '@/apis/home/system/user/types'
+import { getUseTheme } from '@/utils/theme'
 
 export type UserType = {
     user_name: string
@@ -53,7 +54,10 @@ const defaultSpaceInfo: SpaceType = {
     is_team: 1
 }
 
+const { useToken } = theme
+
 const Index: React.FC = () => {
+    const { token } = useToken()
     const [size, setSize] = useStorage<SizeType>('size', defaultSize)
     const [user, setUser] = useStorage<UserListItem>('user', defaultUser)
     const [spaceInfo, setSpaceInfo] = useStorage<SpaceType>(
@@ -63,8 +67,12 @@ const Index: React.FC = () => {
     const [spaces, setSpaces] = useStorage<SpaceType[]>('spaces', [])
     const [layoutContentElement, setLayoutContentElement] =
         useState<HTMLElement | null>(null)
-    const [token, setToken, removeToken] = useStorage<string>('token', '')
+    const [authToken, setAuthToken, removeAuthToken] = useStorage<string>(
+        'token',
+        ''
+    )
     const [autoRefresh, setAutoRefresh] = useStorage('autoRefresh', false)
+    const [sysTheme, setSysTheme] = useStorage<ThemeType>('theme', 'light')
     const [intervalId, setIntervalId] = useState<any>()
 
     const contextValue: GlobalContextType = {
@@ -82,16 +90,32 @@ const Index: React.FC = () => {
         setSpaces: setSpaces,
         intervalId: intervalId,
         setIntervalId: setIntervalId,
-        token: token,
-        setToken: setToken,
-        removeToken: removeToken,
+        autToken: authToken,
+        setAuthToken: setAuthToken,
+        removeAuthToken: removeAuthToken,
         autoRefresh: autoRefresh,
-        setAutoRefresh: setAutoRefresh
+        setAutoRefresh: setAutoRefresh,
+        sysTheme: sysTheme,
+        setSysTheme: setSysTheme
     }
 
     return (
         <div className={styles.App}>
-            <ConfigProvider locale={zhCN}>
+            <ConfigProvider
+                locale={zhCN}
+                theme={{
+                    components: {
+                        Layout: {
+                            // headerBg: token.colorBgBase,
+                            colorTextBase: token.colorTextBase,
+                            headerColor: '#FFF'
+                            // footerBg: token.colorBgLayout
+                        }
+                    },
+                    cssVar: true,
+                    algorithm: getUseTheme(sysTheme)
+                }}
+            >
                 <GlobalContext.Provider value={contextValue}>
                     <App className={styles.widthHight100}>
                         <Suspense fallback={<Loading />}>

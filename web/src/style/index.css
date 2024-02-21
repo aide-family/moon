@@ -5,7 +5,7 @@ body {
 
 .bodyContent {
     padding: 8px;
-    background: #FFF;
+    /* background: #FFF; */
     border-radius: 8px;
     height: 100%;
     width: 100%;
@@ -17,7 +17,7 @@ body {
 }
 
 
-/* ::-webkit-scrollbar {
+::-webkit-scrollbar {
     width: 12px;
     height: 4px;
 }
@@ -31,4 +31,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: #1677ff;
-} */
+}

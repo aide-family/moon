@@ -157,7 +157,7 @@ const Customer: FC = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             <Detail
                 customerId={customerDetail?.id}
                 open={openDetail}

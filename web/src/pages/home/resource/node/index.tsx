@@ -1,28 +1,28 @@
-import React, {useContext, useEffect, useState} from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 
-import {Form, message} from 'antd'
-import {DataOption, DataTable, SearchForm} from '@/components/Data'
+import { Form, message } from 'antd'
+import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import {HeightLine, PaddingLine} from '@/components/HeightLine'
-import type {NodeItemType} from './type'
+import { HeightLine, PaddingLine } from '@/components/HeightLine'
+import type { NodeItemType } from './type'
 
-import {columns, rightOptions, searchItems,} from './options'
+import { columns, rightOptions, searchItems } from './options'
 import DetailModal from './child/DetailModal'
-import {defaultPageReqInfo, Map, PageReq} from '@/apis/types'
+import { defaultPageReqInfo, Map, PageReq } from '@/apis/types'
 import QueryString from 'qs'
-import {useSearchParams} from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import EditModal from './child/EditModal'
-import {GlobalContext} from '@/context'
-import {DeleteNode, GetNodeList} from '@/apis/home/resource/node'
-import {NodeListReq} from '@/apis/home/resource/node/types'
-import {ActionKey} from '@/apis/data'
+import { GlobalContext } from '@/context'
+import { DeleteNode, GetNodeList } from '@/apis/home/resource/node'
+import { NodeListReq } from '@/apis/home/resource/node/types'
+import { ActionKey } from '@/apis/data'
 
 const defaultPadding = 12
 
 let timer: NodeJS.Timeout | null = null
 
 const Node: React.FC = () => {
-    const {spaceInfo} = useContext(GlobalContext)
+    const { spaceInfo } = useContext(GlobalContext)
     const oprationRef = React.useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
     const [urlSearchParams, setUrlSearchParams] = useSearchParams()
@@ -128,7 +128,7 @@ const Node: React.FC = () => {
                 handlerOpenEdit()
                 break
             case ActionKey.RESET:
-                setSearchParams({...defaultPageReqInfo})
+                setSearchParams({ ...defaultPageReqInfo })
                 handlerRefresh()
                 break
         }
@@ -190,7 +190,7 @@ const Node: React.FC = () => {
     }, [refresh, urlSearchParams])
 
     return (
-        <div className="bodyContent">
+        <div>
             <DetailModal
                 open={openDetail}
                 onClose={handlerCloseDetail}
@@ -203,8 +203,8 @@ const Node: React.FC = () => {
                 onOk={handleEditOnOk}
             />
             <div ref={oprationRef}>
-                <RouteBreadcrumb/>
-                <HeightLine/>
+                <RouteBreadcrumb />
+                <HeightLine />
                 <SearchForm
                     form={queryForm}
                     items={searchItems}
@@ -212,7 +212,7 @@ const Node: React.FC = () => {
                         onValuesChange: handlerSearFormValuesChange
                     }}
                 />
-                <HeightLine/>
+                <HeightLine />
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}
@@ -238,7 +238,7 @@ const Node: React.FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record) => (
-                        <p style={{margin: 0}}>{record.remark}</p>
+                        <p style={{ margin: 0 }}>{record.remark}</p>
                     )
                 }}
             />

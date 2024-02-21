@@ -213,7 +213,7 @@ const Role: React.FC = () => {
     }
 
     return (
-        <div className="bodyContent">
+        <div>
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

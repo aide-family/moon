@@ -139,7 +139,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             <EditChatGroupModal
                 chatGroupId={opChatGroupId}
                 open={openChatGroupModal}
