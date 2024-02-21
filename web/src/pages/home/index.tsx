@@ -17,6 +17,7 @@ import { ConfigDashboardChartModal } from './child/ConfigDashboardChart'
 
 const Box: React.FC<ChartItem> = (props) => {
     const { title, remark, url } = props
+    const { sysTheme } = useContext(GlobalContext)
     const width = 540,
         height = 350
     const collapseItem = {
@@ -27,7 +28,7 @@ const Box: React.FC<ChartItem> = (props) => {
     return (
         <Card hoverable>
             <iframe
-                src={url}
+                src={`${url}&theme=${sysTheme}`}
                 width={width}
                 height={height}
                 frameBorder="0"
@@ -158,7 +159,7 @@ const Home: FC = () => {
     }, [])
 
     return (
-        <div style={{ overflowY: 'auto' }}>
+        <div style={{ height: '100%', overflowY: 'auto' }}>
             <ConfigDashboardChartModal
                 dashboardId={+activeKey}
                 open={oepnConfigModal}
