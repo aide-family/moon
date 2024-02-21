@@ -36,9 +36,7 @@ const Detail: FC<DetailProps> = (props) => {
     const { sysTheme } = useContext(GlobalContext)
 
     const [detail, setDetail] = useState<StrategyGroupItemType>()
-    const [strategyGroupInfo, setStrategyGroupInfo] = useState<{
-        groups: strategyGroupInfoType[]
-    }>()
+    const [strategyGroupInfo, setStrategyGroupInfo] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(false)
 
     const buildStrategyGroupInfo = (data: StrategyGroupItemType) => {
@@ -59,7 +57,14 @@ const Detail: FC<DetailProps> = (props) => {
             group.rules.push(strategyInfo)
         })
         groups.push(group)
-        setStrategyGroupInfo({ groups })
+        setStrategyGroupInfo(
+            yaml.dump(
+                { groups },
+                {
+                    lineWidth: 120
+                }
+            )
+        )
     }
 
     const fetchDetail = () => {
@@ -77,8 +82,7 @@ const Detail: FC<DetailProps> = (props) => {
     }
 
     const handleCopy = () => {
-        const text = yaml.dump(strategyGroupInfo)
-        navigator.clipboard.writeText(text)
+        navigator.clipboard.writeText(strategyGroupInfo)
         message.success('复制成功')
     }
 
@@ -93,7 +97,7 @@ const Detail: FC<DetailProps> = (props) => {
             open={open}
             onCancel={onClose}
             onOk={onClose}
-            width="70%"
+            width="60%"
             destroyOnClose={true}
         >
             {loading ? (
@@ -106,12 +110,21 @@ const Detail: FC<DetailProps> = (props) => {
                         onClick={handleCopy}
                         style={{ position: 'absolute', top: 8, right: 8 }}
                     />
-                    <SyntaxHighlighter
-                        language="yaml"
-                        style={sysTheme === 'dark' ? atomOneDark : atomOneLight}
+                    <div
+                        style={{
+                            height: '400px',
+                            overflowY: 'auto'
+                        }}
                     >
-                        {yaml.dump(strategyGroupInfo)}
-                    </SyntaxHighlighter>
+                        <SyntaxHighlighter
+                            language="yaml"
+                            style={
+                                sysTheme === 'dark' ? atomOneDark : atomOneLight
+                            }
+                        >
+                            {strategyGroupInfo}
+                        </SyntaxHighlighter>
+                    </div>
                 </div>
             )}
         </Modal>
