@@ -1,5 +1,6 @@
 import { DictSelectItem } from '@/apis/home/system/dict/types.ts'
 import { PageReqType, PageResType, Status } from '@/apis/types'
+import { StrategyItemType } from '../strategy/types'
 
 type StrategyGroupItemType = {
     name: string
@@ -11,6 +12,7 @@ type StrategyGroupItemType = {
     status?: Status
     createdAt?: string | number
     updatedAt?: string | number
+    strategies?: StrategyItemType[]
 }
 
 type StrategyGroupSelectItemType = {
