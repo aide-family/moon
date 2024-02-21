@@ -39,7 +39,7 @@ import {
 } from './CMTheme'
 import { GlobalContext } from '@/context'
 import { HistoryCompleteStrategy } from '@/components/Prom/HistoryCompleteStrategy'
-import { Button, Form } from 'antd'
+import { Button, Form, theme } from 'antd'
 
 import PromValueModal from '@/components/Prom/PromValueModal'
 import { ThunderboltOutlined } from '@ant-design/icons'
@@ -65,6 +65,7 @@ export interface PromQLInputProps {
 
 const promqlExtension = new PromQLExtension()
 const dynamicConfigCompartment = new Compartment()
+const { useToken } = theme
 
 const buildPathPrefix = (s?: string) => {
     if (!s) {
@@ -117,6 +118,7 @@ export const formatExpressionFunc = (pathPrefix: string, doc?: string) => {
 }
 
 const PromQLInput: React.FC<PromQLInputProps> = (props) => {
+    const { token } = useToken()
     const {
         pathPrefix,
         onChange,
@@ -128,7 +130,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
 
     const prefix = buildPathPrefix(pathPrefix)
 
-    const { theme } = useContext(GlobalContext)
+    const { sysTheme } = useContext(GlobalContext)
     const containerRef = useRef<HTMLDivElement>(null)
     const viewRef = useRef<EditorView | null>(null)
     const [doc, setDoc] = useState<string | undefined>(value || defaultValue)
@@ -161,16 +163,16 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         })
 
         let highlighter = syntaxHighlighting(
-            theme === 'dark' ? darkPromqlHighlighter : promqlHighlighter
+            sysTheme === 'dark' ? darkPromqlHighlighter : promqlHighlighter
         )
-        if (theme === 'dark') {
+        if (sysTheme === 'dark') {
             highlighter = syntaxHighlighting(darkPromqlHighlighter)
         }
 
         const dynamicConfig = [
             highlighter,
             promqlExtension.asExtension(),
-            theme === 'dark' ? darkTheme : lightTheme
+            sysTheme === 'dark' ? darkTheme : lightTheme
         ]
 
         const view = viewRef.current
@@ -279,7 +281,10 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                 <div
                     className={'cm-expression-input ' + styles.promInput}
                     style={{
-                        borderColor: status === 'error' ? 'red' : ''
+                        borderColor: status === 'error' ? 'red' : '',
+                        background: token.colorBgBase,
+                        color: token.colorTextBase
+                        // border: token.Input?.activeBg
                     }}
                     ref={containerRef}
                 />

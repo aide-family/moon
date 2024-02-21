@@ -1,3 +1,4 @@
+import { theme } from 'antd'
 import { FC } from 'react'
 
 export type PaddingLineProps = {
@@ -7,10 +8,13 @@ export type PaddingLineProps = {
     borderRadius?: number
 }
 
+const { useToken } = theme
+
 const PaddingLine: FC<PaddingLineProps> = (props) => {
+    const { token } = useToken()
     const {
         padding = 12,
-        color = '#f0f0f0',
+        color = token.colorBorder,
         height = 1,
         borderRadius = 0
     } = props

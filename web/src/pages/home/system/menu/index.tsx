@@ -1,10 +1,10 @@
 import React from 'react'
 
-import {Button, Form} from 'antd'
-import {useNavigate} from 'react-router-dom'
-import {type DataFormItem, DataOption, SearchForm} from '@/components/Data'
+import { Button, Form } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { type DataFormItem, DataOption, SearchForm } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import {HeightLine, PaddingLine} from '@/components/HeightLine'
+import { HeightLine, PaddingLine } from '@/components/HeightLine'
 
 const defaultPadding = 12
 
@@ -15,9 +15,8 @@ const Menu: React.FC = () => {
     const [queryForm] = Form.useForm()
     const searchItems: DataFormItem[] = []
 
-
     return (
-        <div className="bodyContent">
+        <div>
             <Button
                 onClick={() => {
                     nav('/home', {
@@ -30,10 +29,10 @@ const Menu: React.FC = () => {
                 hoem
             </Button>
             <div ref={operationRef}>
-                <RouteBreadcrumb/>
-                <SearchForm form={queryForm} items={searchItems}/>
-                <HeightLine/>
-                <DataOption queryForm={queryForm}/>
+                <RouteBreadcrumb />
+                <SearchForm form={queryForm} items={searchItems} />
+                <HeightLine />
+                <DataOption queryForm={queryForm} />
                 <PaddingLine
                     padding={defaultPadding}
                     height={1}

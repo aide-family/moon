@@ -174,7 +174,7 @@ const StrategyGroup: React.FC = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             {/* <Detail open={openDetail} onClose={handlerCloseDetail} id="1" /> */}
             <EditGroupModal
                 open={openEditModal}

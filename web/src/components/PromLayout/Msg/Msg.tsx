@@ -1,6 +1,6 @@
 import { FC } from 'react'
 import { Button, Badge } from 'antd'
-import { IconFont } from '@/components/IconFont/IconFont'
+import { SoundOutlined } from '@ant-design/icons'
 
 const Msg: FC = () => {
     return (
@@ -8,7 +8,10 @@ const Msg: FC = () => {
             <Badge count={1} size="small" offset={[-5, 8]}>
                 <Button
                     type="text"
-                    icon={<IconFont type="icon-message-fill" />}
+                    style={{
+                        color: '#FFF'
+                    }}
+                    icon={<SoundOutlined />}
                 />
             </Badge>
         </>

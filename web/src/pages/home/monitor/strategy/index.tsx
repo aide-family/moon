@@ -183,7 +183,7 @@ const Strategy: FC = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             <BindNotifyObject
                 open={openBindNotify}
                 onClose={handleCancelBindNotify}

@@ -301,7 +301,7 @@ const Customer: FC = () => {
     }, [refresh, search])
 
     return (
-        <div className="bodyContent">
+        <div>
             <SelectedUserListTable
                 tableSelectedRows={tableSelectedRows}
                 setTableSelectedRows={setTableSelectedRows}

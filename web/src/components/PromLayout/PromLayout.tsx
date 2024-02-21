@@ -7,7 +7,7 @@ import {
     MouseEvent
 } from 'react'
 
-import { ConfigProvider, Layout, Space, Watermark } from 'antd'
+import { Button, Layout, Space, Watermark, theme } from 'antd'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { CopyrightOutlined } from '@ant-design/icons'
 
@@ -21,8 +21,10 @@ import { Setting } from './Setting/Setting'
 
 import styles from './style/index.module.less'
 import { refreshToken } from '@/apis/login/login.api'
+import { ThemeButton } from '../ThemeButton'
 
 const { Header, Footer, Sider, Content } = Layout
+const { useToken } = theme
 
 export type PromLayoutProps = {
     watermark?: string
@@ -31,8 +33,14 @@ export type PromLayoutProps = {
 export const LayoutContentID = 'LayoutContent'
 
 const PromLayout: FC<PromLayoutProps> = (props) => {
-    const { user, setLayoutContentElement, setToken, token, setIntervalId } =
-        useContext(GlobalContext)
+    const { token } = useToken()
+    const {
+        user,
+        setLayoutContentElement,
+        setAuthToken,
+        autToken,
+        setIntervalId
+    } = useContext(GlobalContext)
     const navigator = useNavigate()
     const { watermark = user?.username } = props
     const [collapsed, setCollapsed] = useState(true)
@@ -57,14 +65,14 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
     useEffect(() => {
         // TODO 做路由权限认证
         console.log('TODO 做路由权限认证', local)
-        if (!token) {
+        if (!autToken) {
             navigator('/login')
         }
     }, [local.pathname])
 
     const handleRefreshToken = () => {
         refreshToken().then((data) => {
-            setToken?.(data.token)
+            setAuthToken?.(data.token)
         })
     }
 
@@ -77,68 +85,77 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
 
     return (
         <Layout className={[styles.widthHight100, styles.Layout].join(' ')}>
-            <ConfigProvider
-                theme={{
-                    token: {},
-                    components: {
-                        Layout: {
-                            headerBg: '#FFF',
-                            bodyBg: '#f0f0f0'
-                        },
-                        Menu: {
-                            colorBgContainer: '#fafafa',
-                            itemBorderRadius: 8
-                        }
-                    }
-                }}
-            >
-                <Header className={styles.LayoutHeader}>
-                    <HeaderTitle />
-                    <Space size={12} direction="horizontal">
-                        {/*<SpaceInfo />*/}
-                        <Msg />
-                        <Setting />
-                        <UserInfo />
-                    </Space>
-                </Header>
+            <Header className={styles.LayoutHeader}>
+                <HeaderTitle />
+                <Space size={12} direction="horizontal">
+                    {/*<SpaceInfo />*/}
+                    <Msg />
+                    <Button
+                        style={{
+                            color: '#FFF'
+                        }}
+                        type="text"
+                        icon={<ThemeButton />}
+                    />
+                    <Setting />
+                    <UserInfo />
+                </Space>
+            </Header>
+            <Layout>
+                <Sider
+                    defaultCollapsed
+                    collapsed={collapsed}
+                    className={styles.LayoutSider}
+                    onMouseEnter={handleOnMouseEnter}
+                    onMouseLeave={handleOnMouseEnter}
+                    collapsedWidth={60}
+                >
+                    <Watermark
+                        content={watermark}
+                        font={{ color: token.colorBgTextHover }}
+                        className="wh100"
+                    >
+                        <SiderMenu inlineCollapsed={collapsed} />
+                    </Watermark>
+                </Sider>
 
                 <Layout>
-                    <Sider
-                        defaultCollapsed
-                        collapsed={collapsed}
-                        className={styles.LayoutSider}
-                        onMouseEnter={handleOnMouseEnter}
-                        onMouseLeave={handleOnMouseEnter}
-                        collapsedWidth={60}
-                    >
-                        <Watermark content={watermark} className="wh100">
-                            <SiderMenu inlineCollapsed={collapsed} />
-                        </Watermark>
-                    </Sider>
-
-                    <Layout>
-                        <Content>
-                            <Suspense fallback={<Loading />}>
-                                <div
-                                    className={styles.LayoutContent}
-                                    id={LayoutContentID}
+                    <Content>
+                        <Suspense fallback={<Loading />}>
+                            <div
+                                className={styles.LayoutContent}
+                                id={LayoutContentID}
+                            >
+                                <Watermark
+                                    content={watermark}
+                                    className="wh100"
+                                    font={{ color: token.colorBgTextHover }}
                                 >
-                                    <Watermark
-                                        content={watermark}
-                                        className="wh100"
+                                    <div
+                                        className="bodyContent"
+                                        style={{
+                                            background: token.colorBgContainer,
+                                            color: token.colorTextBase
+                                        }}
                                     >
                                         <Outlet />
-                                    </Watermark>
-                                </div>
-                            </Suspense>
-                        </Content>
-                        <Footer className={styles.LayoutFooter}>
-                            <CopyrightOutlined />
-                            {window.location.host}
-                        </Footer>
-                    </Layout>
+                                    </div>
+                                </Watermark>
+                            </div>
+                        </Suspense>
+                    </Content>
+                    <Footer
+                        className={styles.LayoutFooter}
+                        style={{
+                            background: token.colorBgContainer,
+                            color: token.colorTextBase
+                        }}
+                    >
+                        <CopyrightOutlined />
+                        {window.location.host}
+                    </Footer>
                 </Layout>
-            </ConfigProvider>
+            </Layout>
         </Layout>
     )
 }

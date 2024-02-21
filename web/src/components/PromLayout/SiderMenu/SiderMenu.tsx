@@ -57,6 +57,9 @@ const SiderMenu: FC<SiderMenuProps> = (props) => {
             className={styles.SiderMenu}
             mode="inline"
             items={items}
+            style={{
+                borderInlineEnd: 'none'
+            }}
             openKeys={inlineCollapsed ? [] : openKeys}
             onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
             selectedKeys={selectedKeys}

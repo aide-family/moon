@@ -141,7 +141,7 @@ const Supplier: React.FC = () => {
     }, [refresh])
 
     return (
-        <div className="bodyContent">
+        <div>
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}
