@@ -3,16 +3,17 @@ import LoginCarousel from './LoginCarousel/LoginCarousel'
 import LoginForm from './LoginForm/LoginForm'
 import styles from './style/login.module.less'
 import { ThemeButton } from '@/components/ThemeButton'
-import { Button } from 'antd'
+import { Button, Space } from 'antd'
+import { GithubButton } from '@/components/PromLayout/GithubButton'
 
 const Login: React.FC = () => {
     return (
         <div className={styles.Login}>
-            <Button
-                type="primary"
-                icon={<ThemeButton />}
-                className={styles.ThemeButton}
-            />
+            <Space size={8} className={styles.NavigationBar}>
+                <GithubButton type="primary" />
+                <Button type="primary" icon={<ThemeButton />} />
+            </Space>
+
             <LoginCarousel />
             <LoginForm />
         </div>
