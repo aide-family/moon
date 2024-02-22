@@ -15,6 +15,9 @@ export const GithubButton: React.FC<GihubButtonProps> = (props) => {
             type="text"
             onClick={linkGithub}
             icon={<GithubOutlined />}
+            style={{
+                color: '#FFF'
+            }}
             {...props}
         />
     )
