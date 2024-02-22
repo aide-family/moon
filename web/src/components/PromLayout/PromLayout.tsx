@@ -22,6 +22,7 @@ import { Setting } from './Setting/Setting'
 import styles from './style/index.module.less'
 import { refreshToken } from '@/apis/login/login.api'
 import { ThemeButton } from '../ThemeButton'
+import { GithubButton } from './GithubButton'
 
 const { Header, Footer, Sider, Content } = Layout
 const { useToken } = theme
@@ -89,6 +90,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                 <HeaderTitle />
                 <Space size={12} direction="horizontal">
                     {/*<SpaceInfo />*/}
+                    <GithubButton />
                     <Msg />
                     <Button
                         style={{
