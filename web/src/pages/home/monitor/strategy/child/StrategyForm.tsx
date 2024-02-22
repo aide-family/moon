@@ -123,6 +123,8 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     }
 
     const handleOnFinishTour = () => {
+        handleCloseTour?.()
+        setOpenCloseTourModal(false)
         message.success('恭喜你, 已经成功学会了配置prometheus告警规则')
     }
 
@@ -446,7 +448,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 onCancel={handleCloseTourModal}
                 onOk={handleCloseTourModalOnOk}
                 centered
-                zIndex={10000}
+                zIndex={9999999}
             >
                 <div
                     style={{
