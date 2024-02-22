@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react'
-import { Form, Modal, Spin } from 'antd'
+import { Button, Form, Modal, Space, Spin } from 'antd'
 import {
     StrategyCreateRequest,
     StrategyItemType,
@@ -30,11 +30,11 @@ const buildTimeDuration = (d?: Duration) => {
 
 export const Detail: FC<DetailProps> = (props) => {
     const { open, onClose, disabled, actionKey, id, refresh } = props
-
     const [form] = Form.useForm<FormValuesType>()
 
     const [detail, setDetail] = useState<StrategyItemType>()
     const [loading, setLoading] = useState<boolean>(false)
+    const [openTour, setOpenTour] = useState<boolean>(false)
 
     const fetchDetail = () => {
         console.log('fetchDetail', id)
@@ -54,10 +54,25 @@ export const Detail: FC<DetailProps> = (props) => {
             })
     }
 
+    const handleOpenTour = () => {
+        setOpenTour(true)
+    }
+
+    const handleCloseTour = () => {
+        setOpenTour(false)
+    }
+
     const Title = () => {
         switch (actionKey) {
             case ActionKey.ADD:
-                return '添加策略'
+                return (
+                    <Space size={8}>
+                        <Button type="text">添加策略</Button>
+                        <Button type="primary" onClick={handleOpenTour}>
+                            开启引导
+                        </Button>
+                    </Space>
+                )
             case ActionKey.EDIT:
                 return '编辑策略'
             default:
@@ -71,7 +86,7 @@ export const Detail: FC<DetailProps> = (props) => {
             duration: strategyFormValues.duration,
             alarmLevelId: strategyFormValues?.alarmLevelId || 0,
             dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
-            labels: strategyFormValues?.lables || {},
+            labels: strategyFormValues?.labels || {},
             annotations: strategyFormValues?.annotations || {},
             expr: strategyFormValues.expr || '',
             groupId: strategyFormValues?.groupId || 0,
@@ -97,7 +112,7 @@ export const Detail: FC<DetailProps> = (props) => {
             ...strategyFormValues,
             duration: strategyFormValues.duration,
             alarmLevelId: strategyFormValues.alarmLevelId || 0,
-            labels: strategyFormValues.lables || {},
+            labels: strategyFormValues.labels || {},
             annotations: strategyFormValues.annotations || {},
             expr: strategyFormValues.expr || '',
             dataSourceId: (strategyFormValues.dataSource?.value as number) || 0,
@@ -155,6 +170,8 @@ export const Detail: FC<DetailProps> = (props) => {
                     form={form}
                     disabled={disabled}
                     initialValue={detail}
+                    openTour={openTour}
+                    handleCloseTour={handleCloseTour}
                 />
             </Spin>
         </Modal>

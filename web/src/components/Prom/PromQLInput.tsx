@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, {
+    MutableRefObject,
+    useContext,
+    useEffect,
+    useRef,
+    useState
+} from 'react'
 
 import {
     EditorView,
@@ -61,6 +67,8 @@ export interface PromQLInputProps {
     value?: string
     defaultValue?: string
     disabled?: boolean
+    ref?: MutableRefObject<any>
+    buttonRef?: MutableRefObject<any>
 }
 
 const promqlExtension = new PromQLExtension()
@@ -125,7 +133,9 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         formatExpression,
         placeholderString = 'Please input your PromQL',
         value,
-        defaultValue
+        defaultValue,
+        ref,
+        buttonRef
     } = props
 
     const prefix = buildPathPrefix(pathPrefix)
@@ -269,7 +279,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
     }, [defaultValue, value])
 
     return (
-        <>
+        <div ref={ref}>
             <PromValueModal
                 visible={isModalVisible}
                 onCancel={handleOnCancelModal}
@@ -291,6 +301,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
 
                 {formatExpression && (
                     <Button
+                        ref={buttonRef}
                         onClick={handleOpenModal}
                         type="primary"
                         size="large"
@@ -302,7 +313,7 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
                     />
                 )}
             </div>
-        </>
+        </div>
     )
 }
 
