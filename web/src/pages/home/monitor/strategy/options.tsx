@@ -949,7 +949,7 @@ export const tourSteps = (refs: {
             <div>
                 <Image
                     preview={false}
-                    src="https://img0.baidu.com/it/u=1756153641,1103546421&fm=253&fmt=auto&app=138&f=JPEG?w=360&h=360"
+                    src="https://img2.baidu.com/it/u=2874698497,1325088475&fm=253&fmt=auto&app=138&f=GIF?w=440&h=335"
                 />
             </div>
         ),
