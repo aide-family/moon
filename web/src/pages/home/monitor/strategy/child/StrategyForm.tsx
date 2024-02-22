@@ -4,7 +4,9 @@ import {
     Col,
     Form,
     FormInstance,
+    Image,
     Input,
+    Modal,
     Row,
     Select,
     Space,
@@ -79,6 +81,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const [addLabelModalOpen, setAddLabelModalOpen] = useState<boolean>(false)
     const [isLabelModalOpen, setIsLabelModalOpen] = useState<boolean>(false)
     const [validatePromQL, setValidatePromQL] = useState<PromValidate>({})
+    const [openCloseTourModal, setOpenCloseTourModal] = useState<boolean>(false)
 
     const dataSource = Form.useWatch<DefaultOptionType>('dataSource', form)
 
@@ -120,7 +123,24 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     }
 
     const handleOnFinishTour = () => {
-        message.success('恭喜你，已经成功学会了配置prometheus告警规则')
+        message.success('恭喜你, 已经成功学会了配置prometheus告警规则')
+    }
+
+    const handleOpenCloseTourModal = () => {
+        setOpenCloseTourModal(true)
+    }
+
+    const onHandleCloseTour = () => {
+        handleOpenCloseTourModal()
+    }
+
+    const handleCloseTourModal = () => {
+        setOpenCloseTourModal(false)
+    }
+
+    const handleCloseTourModalOnOk = () => {
+        setOpenCloseTourModal(false)
+        handleCloseTour?.()
     }
 
     const fetchValidateExpr = (value?: string) => {
@@ -420,9 +440,31 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     })}
                 </Form.Item>
             </DataForm>
+            <Modal
+                open={openCloseTourModal}
+                onCancel={handleCloseTourModal}
+                onOk={handleCloseTourModalOnOk}
+                centered
+                zIndex={10000}
+            >
+                <div
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
+                >
+                    <Image
+                        preview={false}
+                        src="https://img0.baidu.com/it/u=2779409587,2483391980&fm=253&fmt=auto&app=138&f=JPEG?w=285&h=285"
+                    />
+                </div>
+            </Modal>
             <Tour
                 open={openTour}
-                onClose={handleCloseTour}
+                onClose={onHandleCloseTour}
                 steps={tourSteps({
                     promQLRef,
                     promQLButtonRef,
