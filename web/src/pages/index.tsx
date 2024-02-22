@@ -49,7 +49,7 @@ const defaultUser: UserListItem = {
 }
 const defaultSpaceInfo: SpaceType = {
     id: '1',
-    name: 'AideDevOps',
+    name: 'Moon',
     logo: Logo,
     is_team: 1
 }
