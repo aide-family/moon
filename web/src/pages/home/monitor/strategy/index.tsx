@@ -1,6 +1,6 @@
 import { FC, Key, useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Space, Tag } from 'antd'
+import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
@@ -178,6 +178,15 @@ const Strategy: FC = () => {
         handlerRefresh()
     }
 
+    const handleCopyExpr = (expr?: string) => {
+        return function () {
+            if (expr) {
+                navigator.clipboard.writeText(expr)
+                message.success('已复制到剪贴板')
+            }
+        }
+    }
+
     useEffect(() => {
         handlerGetData()
     }, [refresh])
@@ -239,13 +248,20 @@ const Strategy: FC = () => {
                     expandedRowRender: (record: StrategyItemType) => (
                         <Space size="middle" direction="vertical">
                             <Space style={{ width: '100%' }}>
-                                <Tag icon={<CopyOutlined />} color="blue">
-                                    expr
-                                </Tag>
+                                <Button
+                                    type="primary"
+                                    icon={<CopyOutlined />}
+                                    size="small"
+                                    onClick={handleCopyExpr(record?.expr)}
+                                />
                                 <p style={{ margin: 0 }}>{record?.expr}</p>
                             </Space>
                             <Space style={{ width: '100%' }}>
-                                <Tag icon={<InfoCircleOutlined />}>备注</Tag>
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<InfoCircleOutlined />}
+                                />
                                 <p style={{ margin: 0 }}>{record?.remark}</p>
                             </Space>
                         </Space>

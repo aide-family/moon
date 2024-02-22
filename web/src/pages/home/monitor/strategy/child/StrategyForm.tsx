@@ -141,6 +141,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const handleCloseTourModalOnOk = () => {
         setOpenCloseTourModal(false)
         handleCloseTour?.()
+        message.success('留花不发待君归')
     }
 
     const fetchValidateExpr = (value?: string) => {
@@ -458,7 +459,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 >
                     <Image
                         preview={false}
-                        src="https://img0.baidu.com/it/u=2779409587,2483391980&fm=253&fmt=auto&app=138&f=JPEG?w=285&h=285"
+                        src="https://t12.baidu.com/it/u=4123056481,180954535&fm=30&app=106&f=JPEG?w=640&h=360&s=B260C5A41C12A9D45CCC59390300C050"
                     />
                 </div>
             </Modal>
