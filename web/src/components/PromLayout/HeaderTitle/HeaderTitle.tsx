@@ -9,7 +9,7 @@ export type HeaderTitleProps = {
 }
 
 const HeaderTitle: FC<HeaderTitleProps> = (props) => {
-    const { title = 'AideDevOps' } = props
+    const { title = 'Moon' } = props
 
     return (
         <div className={styles.headerTitle}>

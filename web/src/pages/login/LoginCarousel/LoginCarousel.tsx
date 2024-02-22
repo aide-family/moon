@@ -14,12 +14,8 @@ export type CarouselItemProps = {
 const Title = () => {
     return (
         <div className={styles.LoginCarouselLogo}>
-            <img
-                alt=''
-                src={Logo}
-                className={styles.LoginCarouselLogoImg}
-            />
-            <div>AideDevOps</div>
+            <img alt="" src={Logo} className={styles.LoginCarouselLogoImg} />
+            <div>Moon</div>
         </div>
     )
 }
