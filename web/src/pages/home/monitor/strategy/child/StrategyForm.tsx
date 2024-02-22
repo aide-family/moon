@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useState } from 'react'
+import { FC, ReactNode, useEffect, useRef, useState } from 'react'
 import {
     Button,
     Col,
@@ -7,13 +7,15 @@ import {
     Input,
     Row,
     Select,
-    Space
+    Space,
+    Tour,
+    message
 } from 'antd'
 import PromQLInput, {
     PromValidate,
     formatExpressionFunc
 } from '@/components/Prom/PromQLInput.tsx'
-import { strategyEditOptions, sverityOptions } from '../options'
+import { strategyEditOptions, sverityOptions, tourSteps } from '../options'
 import { DeleteOutlined } from '@ant-design/icons'
 import AddLabelModal from './AddLabelModal'
 import DataForm from '@/components/Data/DataForm/DataForm'
@@ -32,7 +34,7 @@ export type FormValuesType = {
     duration?: Duration
     dataSource?: DefaultOptionType
     groupId?: number
-    lables?: { sverity?: string; [key: string]: string | undefined }
+    labels?: { sverity?: string; [key: string]: string | undefined }
     expr?: string
     restrain?: number[]
     alarmPageIds?: number[]
@@ -51,6 +53,8 @@ export interface StrategyFormProps {
     form: FormInstance
     disabled?: boolean
     initialValue?: StrategyItemType
+    openTour?: boolean
+    handleCloseTour?: () => void
 }
 
 export type labelsType = {
@@ -60,7 +64,13 @@ export type labelsType = {
 
 let timeout: NodeJS.Timeout
 export const StrategyForm: FC<StrategyFormProps> = (props) => {
-    const { disabled, form, initialValue } = props
+    const promQLRef = useRef(null)
+    const promQLButtonRef = useRef(null)
+    const labelsRef = useRef(null)
+    const annotationsRef = useRef(null)
+    const annotationsTitleRef = useRef(null)
+    const annotationsDescriptionRef = useRef(null)
+    const { disabled, form, initialValue, openTour, handleCloseTour } = props
 
     const [labelFormItemList, setLabelFormItemList] = useState<labelsType[]>([])
     const [annotationFormItemList, setAnnotationFormItemList] = useState<
@@ -80,7 +90,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         }
         const init: FormValuesType = {
             ...value,
-            lables: {
+            labels: {
                 ...value?.labels,
                 sverity: value?.alarmLevelId
                     ? value.alarmLevelId + ''
@@ -107,6 +117,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             sendRecover: false
         }
         form?.setFieldsValue(init)
+    }
+
+    const handleOnFinishTour = () => {
+        message.success('恭喜你，已经成功学会了配置prometheus告警规则')
     }
 
     const fetchValidateExpr = (value?: string) => {
@@ -226,26 +240,30 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     disabled: disabled
                 }}
             >
-                <Form.Item
-                    name="expr"
-                    label="PromQL"
-                    {...validatePromQL}
-                    required
-                    tooltip={
-                        <div>
-                            正确的PromQL表达式,
-                            用于完成Prometheus报警规则数据匹配
-                        </div>
-                    }
-                    rules={PromQLRule}
-                    dependencies={['dataSource']}
-                >
-                    <PromQLInput
-                        disabled={disabled}
-                        pathPrefix={dataSource?.title}
-                        formatExpression={true}
-                    />
-                </Form.Item>
+                <div ref={promQLRef}>
+                    <Form.Item
+                        name="expr"
+                        label="PromQL"
+                        {...validatePromQL}
+                        required
+                        tooltip={
+                            <div>
+                                正确的PromQL表达式,
+                                用于完成Prometheus报警规则数据匹配
+                            </div>
+                        }
+                        rules={PromQLRule}
+                        dependencies={['dataSource']}
+                    >
+                        <PromQLInput
+                            disabled={disabled}
+                            pathPrefix={dataSource?.title}
+                            formatExpression={true}
+                            buttonRef={promQLButtonRef}
+                        />
+                    </Form.Item>
+                </div>
+
                 <Form.Item
                     tooltip={
                         <div>
@@ -254,7 +272,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         </div>
                     }
                     label={
-                        <span style={{ color: '#E0E2E6' }}>
+                        <span style={{ color: '#E0E2E6' }} ref={labelsRef}>
                             <Button
                                 type="primary"
                                 size="small"
@@ -269,7 +287,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     <Row gutter={16}>
                         <Col span={6}>
                             <Form.Item
-                                name={['lables', 'sverity']}
+                                name={['labels', 'sverity']}
                                 label="等级(sverity)"
                                 rules={[
                                     {
@@ -332,6 +350,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 type="primary"
                                 size="small"
                                 onClick={openAddAnnotationModal}
+                                ref={annotationsRef}
                             >
                                 告警注释
                             </Button>
@@ -339,30 +358,35 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         </span>
                     }
                 >
-                    <Form.Item
-                        name={['annotations', 'title']}
-                        label="告警标题模板"
-                        rules={[
-                            {
-                                required: true,
-                                message: '请输入告警标题模板'
-                            }
-                        ]}
-                    >
-                        <Input.TextArea placeholder="请输入告警标题模板" />
-                    </Form.Item>
-                    <Form.Item
-                        name={['annotations', 'description']}
-                        label="告警内容模板"
-                        rules={[
-                            {
-                                required: true,
-                                message: '请输入告警内容模板'
-                            }
-                        ]}
-                    >
-                        <Input.TextArea placeholder="请输入告警内容模板" />
-                    </Form.Item>
+                    <div ref={annotationsTitleRef}>
+                        <Form.Item
+                            name={['annotations', 'title']}
+                            label="告警标题模板"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请输入告警标题模板'
+                                }
+                            ]}
+                        >
+                            <Input.TextArea placeholder="请输入告警标题模板" />
+                        </Form.Item>
+                    </div>
+                    <div ref={annotationsDescriptionRef}>
+                        <Form.Item
+                            name={['annotations', 'description']}
+                            label="告警内容模板"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请输入告警内容模板'
+                                }
+                            ]}
+                        >
+                            <Input.TextArea placeholder="请输入告警内容模板" />
+                        </Form.Item>
+                    </div>
+
                     {annotationFormItemList.map((item, index) => {
                         return (
                             <Form.Item
@@ -396,6 +420,19 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     })}
                 </Form.Item>
             </DataForm>
+            <Tour
+                open={openTour}
+                onClose={handleCloseTour}
+                steps={tourSteps({
+                    promQLRef,
+                    promQLButtonRef,
+                    labelsRef,
+                    annotationsRef,
+                    annotationsTitleRef,
+                    annotationsDescriptionRef
+                })}
+                onFinish={handleOnFinishTour}
+            />
         </>
     )
 }

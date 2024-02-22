@@ -1,4 +1,13 @@
-import { Avatar, Badge, Button, MenuProps, Tag, Tooltip } from 'antd'
+import {
+    Avatar,
+    Badge,
+    Button,
+    Image,
+    MenuProps,
+    Tag,
+    Tooltip,
+    TourProps
+} from 'antd'
 import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
 import { DataFormItem } from '@/components/Data'
@@ -26,6 +35,7 @@ import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/
 import { checkDuration } from '@/components/Data/TimeValue'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { AvatarSize } from 'antd/es/avatar/AvatarContext'
+import { MutableRefObject } from 'react'
 
 export const tableOperationItems = (
     item: StrategyItemType
@@ -483,6 +493,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'dataSource',
             label: '数据源',
+            id: 'dataSource',
             dataProps: {
                 type: 'select-fetch',
                 parentProps: {
@@ -509,6 +520,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'groupId',
             label: '策略组',
+            id: 'groupId',
             dataProps: {
                 type: 'select-fetch',
                 parentProps: {
@@ -534,6 +546,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'alert',
             label: '告警名称',
+            id: 'alert',
             formItemProps: {
                 tooltip: (
                     <p>请输入策略名称, 策略名称必须唯一, 例如: 'cpu_usage'</p>
@@ -549,6 +562,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'duration',
             label: '持续时间',
+            id: 'duration',
             dataProps: {
                 type: 'time-value',
                 parentProps: {
@@ -578,6 +592,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'alarmLevelId',
             label: '策略等级',
+            id: 'alarmLevelId',
             dataProps: {
                 type: 'select-fetch',
                 parentProps: {
@@ -598,6 +613,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'categoryIds',
             label: '策略类型',
+            id: 'categoryIds',
             dataProps: {
                 type: 'select-fetch',
                 parentProps: {
@@ -626,6 +642,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
     {
         name: 'alarmPageIds',
         label: '告警页面',
+        id: 'alarmPageIds',
         dataProps: {
             type: 'select-fetch',
             parentProps: {
@@ -651,6 +668,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'maxSuppress',
             label: '抑制策略',
+            id: 'maxSuppress',
             dataProps: {
                 type: 'time-value',
                 parentProps: {
@@ -677,6 +695,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'sendInterval',
             label: '告警通知间隔',
+            id: 'sendInterval',
             dataProps: {
                 type: 'time-value',
                 parentProps: {
@@ -702,6 +721,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
         {
             name: 'sendRecover',
             label: '告警恢复通知',
+            id: 'sendRecover',
             dataProps: {
                 type: 'checkbox',
                 parentProps: {
@@ -729,6 +749,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
     {
         name: 'remark',
         label: '备注',
+        id: 'remark',
         formItemProps: {
             tooltip: <p>请输入备注</p>
         },
@@ -787,5 +808,141 @@ export const searchItems: DataFormItem[] = [
                 ]
             }
         }
+    }
+]
+
+export const tourSteps = (refs: {
+    [key: string]: MutableRefObject<any>
+}): TourProps['steps'] => [
+    {
+        title: 'prometheus告警配置引导',
+        description: '你可以跟着我的指引来完成prometheus告警配置',
+        target: null
+    },
+    {
+        title: '数据源选择',
+        description:
+            '数据源是报警规则配置的开始, 你只有选择了正确的数据源, 才能配置出有效的报警规则',
+        placement: 'bottomRight',
+        target: () => document.getElementById('dataSource')!
+    },
+    {
+        title: '告警策略组选择',
+        description: '告警策略组是报警规则的分组, 可以方便你管理你的报警规则',
+        placement: 'bottomRight',
+        target: () => document.getElementById('groupId')!
+    },
+    {
+        title: '告警名称配置',
+        description:
+            '告警名称是报警规则的名称, 你可以在这里配置你的报警规则名称',
+        placement: 'bottomRight',
+        target: () => document.getElementById('alert')!
+    },
+    {
+        title: '告警策略持续时间配置',
+        description:
+            '告警策略持续时间是报警规则的持续时间, 也就是Prometheus规则中的for属性, 这里拆分成了数值+单位的形式',
+        placement: 'bottomRight',
+        target: () => document.getElementById('duration')!
+    },
+    {
+        title: '策略等级配置',
+        description:
+            '策略等级是报警规则的等级, 这里是平台给策略划分的告警等级, 不同等级的策略具备不同的告警级别, 同时展示出来的告警颜色也有所不同',
+        placement: 'bottomRight',
+        target: () => document.getElementById('alarmLevelId')!
+    },
+    {
+        title: '策略类型配置（多选）',
+        description:
+            '策略类型是报警策略的类型, 你可以在这里选择你的报警策略类型, 该属性是用于业务层面给策略划分类型的, 方便我们统一管理不同业务场景的策略',
+        placement: 'bottomRight',
+        target: () => document.getElementById('categoryIds')!
+    },
+    {
+        title: '告警页面配置（多选）',
+        description:
+            '告警页面是报警规则的分组, 你可以在这里选择你的报警页面, 我们会按照你选择的报警页面在实时告警页面归类你的告警数据, 方便我们处理各种业务场景的实时告警',
+        placement: 'bottomRight',
+        target: () => document.getElementById('alarmPageIds')!
+    },
+    {
+        title: '抑制策略配置',
+        description: '抑制策略: 当该规则触发时, 此列表对象的告警将会被抑制',
+        placement: 'bottomRight',
+        target: () => document.getElementById('maxSuppress')!
+    },
+    {
+        title: '告警通知间隔配置',
+        description:
+            '告警发生时候会立即告警, 当持续通知间隔时长时, 会再次告警, 该时间默认时2小时',
+        placement: 'bottomRight',
+        target: () => document.getElementById('sendInterval')!
+    },
+    {
+        title: '告警恢复通知配置',
+        description: '告警恢复后是否发送告警恢复通知的开关, 默认是开启的',
+        placement: 'bottomRight',
+        target: () => document.getElementById('sendRecover')!
+    },
+    {
+        title: '备注配置',
+        description: '告警策略的辅助说明信息',
+        placement: 'bottomRight',
+        target: () => document.getElementById('remark')!
+    },
+    {
+        title: 'PromQL规则编辑',
+        description:
+            'PromQL规则编辑是报警规则的配置入口, 你可以在这里配置你的报警规则',
+        placement: 'bottomRight',
+        target: refs['promQLRef'].current
+    },
+    {
+        title: 'PromQL验证',
+        description:
+            '这个闪电按钮是报警规则的验证入口,  你可以在这里验证你的报警规则是否正确',
+        placement: 'bottomRight',
+        target: refs['promQLButtonRef'].current
+    },
+    {
+        title: '标签配置',
+        description: '这里你可以添加自定义的label字段',
+        placement: 'bottomRight',
+        target: refs['labelsRef'].current
+    },
+    {
+        title: '注释配置',
+        description: '这里你可以添加自定义的 annotations 字段',
+        placement: 'topRight',
+        target: refs['annotationsRef'].current
+    },
+    {
+        title: '注释标题配置',
+        description:
+            '这里你可以输入 annotations.title 字段, 支持例如 {{ labels.xxx }} 的模板',
+        placement: 'topRight',
+        target: refs['annotationsTitleRef'].current
+    },
+    {
+        title: '注释明细配置',
+        description:
+            '这里你可以输入 annotations.description 字段, 支持例如 {{ labels.xxx }} 的模板',
+        placement: 'topRight',
+        target: refs['annotationsDescriptionRef'].current
+    },
+    {
+        title: '你已经完成了prometheus 策略编辑的学习, 真是太棒了',
+        description: '你现在可以去配置你的策略了',
+        cover: (
+            <div>
+                <Image
+                    preview={false}
+                    src="https://img0.baidu.com/it/u=1756153641,1103546421&fm=253&fmt=auto&app=138&f=JPEG?w=360&h=360"
+                />
+            </div>
+        ),
+        target: null
     }
 ]
