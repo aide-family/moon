@@ -817,25 +817,34 @@ export const tourSteps = (refs: {
     {
         title: 'prometheus告警配置引导',
         description: '你可以跟着我的指引来完成prometheus告警配置',
+        cover: (
+            <div>
+                <Image
+                    preview={false}
+                    src="https://img1.baidu.com/it/u=1602553681,3417380941&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=500"
+                />
+            </div>
+        ),
         target: null
     },
     {
         title: '数据源选择',
         description:
-            '数据源是报警规则配置的开始, 你只有选择了正确的数据源, 才能配置出有效的报警规则',
+            '数据源是报警规则配置的开始, 你只有选择了正确的数据源, 才能配置出有效的报警规则, 如果你还没有数据源, 请先去数据源菜单页面创建并开启它',
         placement: 'bottomRight',
         target: () => document.getElementById('dataSource')!
     },
     {
         title: '告警策略组选择',
-        description: '告警策略组是报警规则的分组, 可以方便你管理你的报警规则',
+        description:
+            '告警策略组是报警规则的分组, 可以方便你管理你的报警规则, 如果你没有对应的策略组, 你可以先去策略组菜单页面创建并开启它',
         placement: 'bottomRight',
         target: () => document.getElementById('groupId')!
     },
     {
         title: '告警名称配置',
         description:
-            '告警名称是报警规则的名称, 你可以在这里配置你的报警规则名称',
+            '告警名称是报警规则的名称, 你可以在这里配置你的报警规则名称, 你的名称必须满足prometheus的格式, 不能是中文或者特殊字符',
         placement: 'bottomRight',
         target: () => document.getElementById('alert')!
     },
@@ -849,27 +858,28 @@ export const tourSteps = (refs: {
     {
         title: '策略等级配置',
         description:
-            '策略等级是报警规则的等级, 这里是平台给策略划分的告警等级, 不同等级的策略具备不同的告警级别, 同时展示出来的告警颜色也有所不同',
+            '策略等级是报警规则的等级, 这里是平台给策略划分的告警等级, 不同等级的策略具备不同的告警级别, 同时展示出来的告警颜色也有所不同, 如果没有策略等级, 需要你到字典管理菜单页面创建你的策略等级字典',
         placement: 'bottomRight',
         target: () => document.getElementById('alarmLevelId')!
     },
     {
         title: '策略类型配置（多选）',
         description:
-            '策略类型是报警策略的类型, 你可以在这里选择你的报警策略类型, 该属性是用于业务层面给策略划分类型的, 方便我们统一管理不同业务场景的策略',
+            '策略类型是报警策略的类型, 你可以在这里选择你的报警策略类型, 该属性是用于业务层面给策略划分类型的, 方便我们统一管理不同业务场景的策略, 如果没有策略类型, 需要你到字典管理菜单页面创建你的策略类型字典, 注意区分策略类型和策略组类型',
         placement: 'bottomRight',
         target: () => document.getElementById('categoryIds')!
     },
     {
         title: '告警页面配置（多选）',
         description:
-            '告警页面是报警规则的分组, 你可以在这里选择你的报警页面, 我们会按照你选择的报警页面在实时告警页面归类你的告警数据, 方便我们处理各种业务场景的实时告警',
+            '告警页面是报警规则的分组, 你可以在这里选择你的报警页面, 我们会按照你选择的报警页面在实时告警页面归类你的告警数据, 方便我们处理各种业务场景的实时告警, 如果没有告警页面, 需要你到告警页面管理菜单页面创建你的告警页面',
         placement: 'bottomRight',
         target: () => document.getElementById('alarmPageIds')!
     },
     {
         title: '抑制策略配置',
-        description: '抑制策略: 当该规则触发时, 此列表对象的告警将会被抑制',
+        description:
+            '抑制策略: 当该规则触发时, 可以抑制该策略产生的告警, 从而避免产生大量无效告警的场景',
         placement: 'bottomRight',
         target: () => document.getElementById('maxSuppress')!
     },
@@ -895,14 +905,14 @@ export const tourSteps = (refs: {
     {
         title: 'PromQL规则编辑',
         description:
-            'PromQL规则编辑是报警规则的配置入口, 你可以在这里配置你的报警规则',
+            'PromQL规则编辑是报警规则的配置入口, 你可以在这里配置你的报警规则, 这里支持语句智能提示, 语法校验等, 能有效帮助你写出正确的策略语句',
         placement: 'bottomRight',
         target: refs['promQLRef'].current
     },
     {
         title: 'PromQL验证',
         description:
-            '这个闪电按钮是报警规则的验证入口,  你可以在这里验证你的报警规则是否正确',
+            '这个闪电按钮是报警规则的验证入口,  你可以在这里验证你的报警规则是否正确, 策略语句正确的时候, 我会变成蓝色, 点开后能看到指标对应的数据和对应的图表展示',
         placement: 'bottomRight',
         target: refs['promQLButtonRef'].current
     },
@@ -921,14 +931,14 @@ export const tourSteps = (refs: {
     {
         title: '注释标题配置',
         description:
-            '这里你可以输入 annotations.title 字段, 支持例如 {{ labels.xxx }} 的模板',
+            '这里你可以输入 annotations.title 字段, 支持例如 {{ $labels.xxx }} {{ $value }} 的模板',
         placement: 'topRight',
         target: refs['annotationsTitleRef'].current
     },
     {
         title: '注释明细配置',
         description:
-            '这里你可以输入 annotations.description 字段, 支持例如 {{ labels.xxx }} 的模板',
+            '这里你可以输入 annotations.description 字段, 支持例如 {{ $labels.xxx }} {{ $value }} 的模板',
         placement: 'topRight',
         target: refs['annotationsDescriptionRef'].current
     },
