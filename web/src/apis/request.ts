@@ -10,12 +10,14 @@ type ErrorRepose = {
     reason: string
 }
 const localhost = 'http://localhost:5173'
+const local127 = 'http://127.0.0.1:5173'
 const localhostDocker = 'http://localhost:8000'
 const host =
     window.location.origin || process.env.REACT_APP_ASSET_API || localhostDocker
 
 const hostMap: { [key: string]: string } = {
     [localhost]: 'http://localhost:8000',
+    [local127]: 'http://localhost:8000',
     [localhostDocker]: 'http://localhost:8001'
 }
 
