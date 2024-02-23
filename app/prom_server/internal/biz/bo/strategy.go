@@ -33,6 +33,7 @@ type (
 		DeletedAt      int64                 `json:"deletedAt"`
 
 		PromNotifies      []*NotifyBO `json:"promNotifies"`
+		PromNotifyIds     []uint32    `json:"promNotifyIds"`
 		PromNotifyUpgrade []*NotifyBO `json:"promNotifyUpgrade"`
 
 		EndpointId uint32      `json:"endpointId"`

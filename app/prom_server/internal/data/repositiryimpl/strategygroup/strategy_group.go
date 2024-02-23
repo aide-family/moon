@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"prometheus-manager/pkg/after"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -111,14 +112,43 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
-	if err := l.data.DB().WithContext(ctx).Create(strategyGroupModel).Error; err != nil {
+	// 默认不开启
+	strategyGroupModel.Status = vo.StatusDisabled
+	if err := l.data.DB().WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}},
+		UpdateAll: true,
+	}).Create(strategyGroupModel).Error; err != nil {
 		return nil, err
 	}
-	go func() {
-		defer after.Recover(l.log)
-		l.changeGroupChannel <- strategyGroupModel.ID
+	defer func() {
+		_ = l.UpdateStrategyCount(context.Background(), strategyGroup.Id)
 	}()
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
+}
+
+// BatchCreate 批量创建
+func (l *strategyGroupRepoImpl) BatchCreate(ctx context.Context, strategyGroups []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error) {
+	strategyGroupModelList := slices.To(strategyGroups, func(strategyGroup *bo.StrategyGroupBO) *do.PromStrategyGroup {
+		item := strategyGroup.ToModel()
+		item.Status = vo.StatusDisabled
+		return item
+	})
+	if err := l.data.DB().WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}},
+			UpdateAll: true,
+		}).
+		CreateInBatches(strategyGroupModelList, 10).Error; err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = l.UpdateStrategyCount(context.Background(), slices.To(strategyGroupModelList, func(item *do.PromStrategyGroup) uint32 { return item.ID })...)
+	}()
+
+	return slices.To(strategyGroupModelList, func(strategyGroupModel *do.PromStrategyGroup) *bo.StrategyGroupBO {
+		return bo.StrategyGroupModelToBO(strategyGroupModel)
+	}), nil
 }
 
 func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {

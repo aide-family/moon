@@ -41,6 +41,12 @@ func InIds(ids ...uint32) ScopeMethod {
 	return WhereInColumn(BaseFieldID, newIds...)
 }
 
+// NameIn 名称列表
+func NameIn(names ...string) ScopeMethod {
+	newNames := slices.Filter(names, func(name string) bool { return name != "" })
+	return WhereInColumn(BaseFieldName, newNames...)
+}
+
 // NotInIds id列表
 func NotInIds(ids ...uint32) ScopeMethod {
 	if len(ids) == 0 {

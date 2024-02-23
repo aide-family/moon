@@ -84,6 +84,8 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 		}
 	})
 	newStrategy.CreateBy = middler.GetUserId(ctx)
+	// 默认不开启
+	newStrategy.Status = vo.StatusDisabled
 
 	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)

@@ -263,14 +263,45 @@ message SelectGroupReply {
 
 // 导入策略组请求参数
 message ImportGroupRequest {
-  // 策略文件byte, 最少1个, 最多100个, 不允许重复
-  repeated bytes files = 1 [(validate.rules).repeated = {
+  // 规则组, 最少1个, 最多100个, 不允许重复
+  repeated PromRuleGroup groups = 1 [(validate.rules).repeated = {
     min_items: 1,
     max_items: 100,
-    unique: true,
   }];
-  // 策略组ID, 必填
-  uint32 groupId = 2 [(validate.rules).uint32.gt = 0];
+  // 数据源
+  uint32 datasourceId = 2 [(validate.rules).uint32.gt = 0];
+  // 默认告警等级
+  uint32 defaultLevel = 3 [(validate.rules).uint32.gt = 0];
+  // 默认告警页面
+  repeated uint32 defaultAlarmPageIds = 4[(validate.rules) = {
+    repeated: {
+      unique: true,
+      items: {
+        uint32: {gt: 0},
+      },
+      min_items: 1,
+    }
+  }];
+  // 默认业务类型
+  repeated uint32 defaultCategoryIds = 5 [(validate.rules) = {
+    repeated: {
+      unique: true,
+      items: {
+        uint32: {gt: 0},
+      },
+      min_items: 1,
+    }
+  }];
+  // 告警通知对象
+  repeated uint32 defaultAlarmNotifyIds = 6 [(validate.rules) = {
+    repeated: {
+      unique: true,
+      items: {
+        uint32: {gt: 0},
+      },
+      min_items: 1,
+    }
+  }];
 }
 // 导入策略组响应参数
 message ImportGroupReply {
@@ -292,6 +323,6 @@ message ExportGroupRequest {
 }
 // 导出策略组响应参数
 message ExportGroupReply {
-  // 策略文件bytes
-  bytes file = 1;
+  // 策略列表
+  repeated PromRuleGroup groups = 1;
 }

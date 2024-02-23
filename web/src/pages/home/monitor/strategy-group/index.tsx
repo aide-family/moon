@@ -21,6 +21,7 @@ import {
 import EditGroupModal from './child/EditGroupModal'
 import { Status } from '@/apis/types'
 import Detail from './child/Detail'
+import { ImportGroups } from './child/ImportGroups'
 
 const defaultPadding = 12
 
@@ -44,6 +45,20 @@ const StrategyGroup: React.FC = () => {
     const [editItem, setEditItem] = useState<
         StrategyGroupItemType | undefined
     >()
+    const [openImportModal, setOpenImportModal] = useState<boolean>(false)
+
+    const handleOpenImportModal = () => {
+        setOpenImportModal(true)
+    }
+
+    const handleCloseImportModal = () => {
+        setOpenImportModal(false)
+    }
+
+    const handleImportOnOk = () => {
+        handleCloseImportModal()
+        handlerRefresh()
+    }
 
     // 刷新
     const handlerRefresh = () => {
@@ -152,6 +167,8 @@ const StrategyGroup: React.FC = () => {
                 handleOpenEditModal()
                 break
             case ActionKey.BATCH_IMPORT:
+                // 批量导入，打开导入modal页面
+                handleOpenImportModal()
                 break
             default:
                 break
@@ -178,6 +195,13 @@ const StrategyGroup: React.FC = () => {
 
     return (
         <div>
+            <ImportGroups
+                width="60%"
+                title="批量导入"
+                onOk={handleImportOnOk}
+                onCancel={handleCloseImportModal}
+                open={openImportModal}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

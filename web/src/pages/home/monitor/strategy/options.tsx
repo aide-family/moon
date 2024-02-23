@@ -628,13 +628,7 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             rules: [
                 {
                     required: true,
-                    message: '请选择策略类型',
-                    validator(_, value) {
-                        if (value?.length === 0) {
-                            return Promise.reject('请选择策略类型')
-                        }
-                        return Promise.resolve()
-                    }
+                    message: '请选择策略类型'
                 }
             ]
         }
