@@ -35,6 +35,15 @@ func (l *StrategyGroupBiz) Create(ctx context.Context, strategyGroup *bo.Strateg
 	return strategyGroup, nil
 }
 
+// BatchCreate 批量创建
+func (l *StrategyGroupBiz) BatchCreate(ctx context.Context, strategyGroups []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error) {
+	strategyGroups, err := l.strategyGroupRepo.BatchCreate(ctx, strategyGroups)
+	if err != nil {
+		return nil, err
+	}
+	return strategyGroups, nil
+}
+
 func (l *StrategyGroupBiz) UpdateById(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupBO, err := l.strategyGroupRepo.UpdateById(ctx, strategyGroup.Id, strategyGroup)
 	if err != nil {

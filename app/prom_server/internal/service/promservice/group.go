@@ -3,11 +3,13 @@ package promservice
 import (
 	"context"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/prom/strategy/group"
@@ -203,7 +205,72 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 }
 
 func (s *GroupService) ImportGroup(ctx context.Context, req *pb.ImportGroupRequest) (*pb.ImportGroupReply, error) {
-	return &pb.ImportGroupReply{}, nil
+	if len(req.GetGroups()) == 0 {
+		return &pb.ImportGroupReply{}, nil
+	}
+	groupNames := slices.To(req.GetGroups(), func(t *api.PromRuleGroup) string {
+		return t.GetName()
+	})
+
+	promStrategyGroups, err := s.strategyGroupBiz.ListAllLimit(ctx, len(groupNames), basescopes.NameIn(groupNames...))
+	if err != nil {
+		return nil, err
+	}
+	promStrategyGroupNameMap := make(map[string]*bo.StrategyGroupBO)
+	for _, promStrategyGroup := range promStrategyGroups {
+		promStrategyGroupNameMap[promStrategyGroup.Name] = promStrategyGroup
+	}
+
+	// 构建创建的数据
+	newPromStrategyGroups := slices.To(req.GetGroups(), func(t *api.PromRuleGroup) *bo.StrategyGroupBO {
+		strategyGroup := &bo.StrategyGroupBO{
+			Name: t.GetName(),
+		}
+		if promStrategyGroup, ok := promStrategyGroupNameMap[t.GetName()]; ok {
+			strategyGroup = promStrategyGroup
+		}
+		strategyGroup.PromStrategies = slices.To(t.GetRules(), func(rule *api.PromRule) *bo.StrategyBO {
+			labels := rule.GetLabels()
+			annotations := rule.GetAnnotations()
+			levelId := uint64(req.GetDefaultLevel())
+			levelIdStr, ok := labels[strategy.MetricLevelId]
+			if ok {
+				levelId, err = strconv.ParseUint(levelIdStr, 10, 64)
+				if err != nil {
+					levelId = uint64(req.GetDefaultLevel())
+				}
+			}
+
+			strategyDetail := &bo.StrategyBO{
+				Alert:        rule.GetAlert(),
+				Expr:         rule.GetExpr(),
+				Duration:     rule.GetFor(),
+				Labels:       (*strategy.Labels)(&labels),
+				Annotations:  (*strategy.Annotations)(&annotations),
+				Status:       vo.StatusDisabled,
+				Remark:       rule.GetAlert(),
+				GroupId:      strategyGroup.Id,
+				AlarmLevelId: uint32(levelId),
+				AlarmPages:   slices.To(req.GetDefaultAlarmPageIds(), func(id uint32) *bo.AlarmPageBO { return &bo.AlarmPageBO{Id: id} }),
+				Categories:   slices.To(req.GetDefaultCategoryIds(), func(id uint32) *bo.DictBO { return &bo.DictBO{Id: id} }),
+				PromNotifies: slices.To(req.GetDefaultAlarmNotifyIds(), func(id uint32) *bo.NotifyBO { return &bo.NotifyBO{Id: id} }),
+				EndpointId:   req.GetDatasourceId(),
+			}
+			return strategyDetail
+		})
+		return strategyGroup
+	})
+	s.log.Infow("newPromStrategyGroups", newPromStrategyGroups)
+	// 执行导入创建
+	newPromStrategyGroups, err = s.strategyGroupBiz.BatchCreate(ctx, newPromStrategyGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	// 根据规则组名称查询是否存在
+	return &pb.ImportGroupReply{
+		Ids: slices.To(newPromStrategyGroups, func(t *bo.StrategyGroupBO) uint32 { return t.Id }),
+	}, nil
 }
 
 func (s *GroupService) ExportGroup(ctx context.Context, req *pb.ExportGroupRequest) (*pb.ExportGroupReply, error) {

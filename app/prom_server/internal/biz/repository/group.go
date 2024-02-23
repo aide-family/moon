@@ -25,10 +25,15 @@ type (
 		ListAllLimit(ctx context.Context, limit int, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		UpdateStrategyCount(ctx context.Context, ids ...uint32) error
 		UpdateEnableStrategyCount(ctx context.Context, ids ...uint32) error
+		BatchCreate(ctx context.Context, strategyGroups []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error)
 	}
 
 	UnimplementedStrategyGroupRepo struct{}
 )
+
+func (UnimplementedStrategyGroupRepo) BatchCreate(_ context.Context, _ []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchCreate not implemented")
+}
 
 func (UnimplementedStrategyGroupRepo) ListAllLimit(_ context.Context, _ int, _ ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAllLimit not implemented")

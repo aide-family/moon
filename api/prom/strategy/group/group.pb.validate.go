@@ -2467,9 +2467,9 @@ func (m *ImportGroupRequest) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetFiles()); l < 1 || l > 100 {
+	if l := len(m.GetGroups()); l < 1 || l > 100 {
 		err := ImportGroupRequestValidationError{
-			field:  "Files",
+			field:  "Groups",
 			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
@@ -2478,14 +2478,81 @@ func (m *ImportGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	_ImportGroupRequest_Files_Unique := make(map[string]struct{}, len(m.GetFiles()))
-
-	for idx, item := range m.GetFiles() {
+	for idx, item := range m.GetGroups() {
 		_, _ = idx, item
 
-		if _, exists := _ImportGroupRequest_Files_Unique[string(item)]; exists {
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ImportGroupRequestValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ImportGroupRequestValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ImportGroupRequestValidationError{
+					field:  fmt.Sprintf("Groups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetDatasourceId() <= 0 {
+		err := ImportGroupRequestValidationError{
+			field:  "DatasourceId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetDefaultLevel() <= 0 {
+		err := ImportGroupRequestValidationError{
+			field:  "DefaultLevel",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetDefaultAlarmPageIds()) < 1 {
+		err := ImportGroupRequestValidationError{
+			field:  "DefaultAlarmPageIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_ImportGroupRequest_DefaultAlarmPageIds_Unique := make(map[uint32]struct{}, len(m.GetDefaultAlarmPageIds()))
+
+	for idx, item := range m.GetDefaultAlarmPageIds() {
+		_, _ = idx, item
+
+		if _, exists := _ImportGroupRequest_DefaultAlarmPageIds_Unique[item]; exists {
 			err := ImportGroupRequestValidationError{
-				field:  fmt.Sprintf("Files[%v]", idx),
+				field:  fmt.Sprintf("DefaultAlarmPageIds[%v]", idx),
 				reason: "repeated value must contain unique items",
 			}
 			if !all {
@@ -2493,21 +2560,104 @@ func (m *ImportGroupRequest) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		} else {
-			_ImportGroupRequest_Files_Unique[string(item)] = struct{}{}
+			_ImportGroupRequest_DefaultAlarmPageIds_Unique[item] = struct{}{}
 		}
 
-		// no validation rules for Files[idx]
+		if item <= 0 {
+			err := ImportGroupRequestValidationError{
+				field:  fmt.Sprintf("DefaultAlarmPageIds[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
 	}
 
-	if m.GetGroupId() <= 0 {
+	if len(m.GetDefaultCategoryIds()) < 1 {
 		err := ImportGroupRequestValidationError{
-			field:  "GroupId",
-			reason: "value must be greater than 0",
+			field:  "DefaultCategoryIds",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	_ImportGroupRequest_DefaultCategoryIds_Unique := make(map[uint32]struct{}, len(m.GetDefaultCategoryIds()))
+
+	for idx, item := range m.GetDefaultCategoryIds() {
+		_, _ = idx, item
+
+		if _, exists := _ImportGroupRequest_DefaultCategoryIds_Unique[item]; exists {
+			err := ImportGroupRequestValidationError{
+				field:  fmt.Sprintf("DefaultCategoryIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_ImportGroupRequest_DefaultCategoryIds_Unique[item] = struct{}{}
+		}
+
+		if item <= 0 {
+			err := ImportGroupRequestValidationError{
+				field:  fmt.Sprintf("DefaultCategoryIds[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if len(m.GetDefaultAlarmNotifyIds()) < 1 {
+		err := ImportGroupRequestValidationError{
+			field:  "DefaultAlarmNotifyIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_ImportGroupRequest_DefaultAlarmNotifyIds_Unique := make(map[uint32]struct{}, len(m.GetDefaultAlarmNotifyIds()))
+
+	for idx, item := range m.GetDefaultAlarmNotifyIds() {
+		_, _ = idx, item
+
+		if _, exists := _ImportGroupRequest_DefaultAlarmNotifyIds_Unique[item]; exists {
+			err := ImportGroupRequestValidationError{
+				field:  fmt.Sprintf("DefaultAlarmNotifyIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_ImportGroupRequest_DefaultAlarmNotifyIds_Unique[item] = struct{}{}
+		}
+
+		if item <= 0 {
+			err := ImportGroupRequestValidationError{
+				field:  fmt.Sprintf("DefaultAlarmNotifyIds[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -2856,7 +3006,39 @@ func (m *ExportGroupReply) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for File
+	for idx, item := range m.GetGroups() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ExportGroupReplyValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ExportGroupReplyValidationError{
+						field:  fmt.Sprintf("Groups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ExportGroupReplyValidationError{
+					field:  fmt.Sprintf("Groups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return ExportGroupReplyMultiError(errors)

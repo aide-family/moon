@@ -618,3 +618,51 @@ message MyDashboardConfigOption {
   string label = 2;
   string color = 3;
 }
+
+// Prometheus原始规则
+message PromRule {
+  // 规则名称
+  string alert = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255,
+//    pattern: "^[a-zA-Z0-9_]+$"
+  }];
+  // 规则表达式
+  string expr = 2 [(validate.rules).string = {
+    min_len: 1
+  }];
+  // 规则标签
+  map<string, string> labels = 3 [(validate.rules).map = {
+    min_pairs: 1
+    max_pairs: 100
+    keys: {
+      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    }
+  }];
+  // 注解
+  map<string, string> annotations = 4 [(validate.rules).map = {
+    min_pairs: 1
+    max_pairs: 100
+    keys: {
+      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+    }
+  }];
+  // 持续时间
+  string for = 5 [(validate.rules).string = {
+    min_len: 2,
+  }];
+}
+
+// Prometheus原始规则组
+message PromRuleGroup {
+  // 规则组名称
+  string name = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 32,
+//    pattern: "^[a-zA-Z0-9_]+$"
+  }];
+  // Prometheus原始规则列表
+  repeated PromRule rules = 2 [(validate.rules).repeated = {
+    max_items: 100
+  }];
+}

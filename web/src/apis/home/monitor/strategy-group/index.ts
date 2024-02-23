@@ -6,6 +6,7 @@ import {
     CreategypGrouResponse,
     DeleteStrategyGroupRequest,
     DeleteStrategyGroupResponse,
+    ImportGroupRequest,
     SelectStrategyGroupRequest,
     SelectStrategyGroupResponse,
     StrategyGroupListRequest,
@@ -23,7 +24,8 @@ enum URL {
     DELETE = '/api/v1/strategy/group/delete',
     DETAIL = '/api/v1/strategy/group/get',
     SELECT = '/api/v1/strategy/group/select',
-    BATCH_CHANGE_STATUS = '/api/v1/strategy/group/status/batch/update'
+    BATCH_CHANGE_STATUS = '/api/v1/strategy/group/status/batch/update',
+    BATCH_IMPORT = '/api/v1/strategy/group/import'
 }
 
 /**
@@ -61,6 +63,10 @@ const batchChangeStatus = (params: BatchChangeStrategyGroupStatusRequest) => {
     )
 }
 
+const batchImport = (params: ImportGroupRequest) => {
+    return POST<{ ids: number[] }>(URL.BATCH_IMPORT, params)
+}
+
 const strategyGroupApi = {
     getStrategyGroupList,
     createSteategyGroup,
@@ -68,7 +74,8 @@ const strategyGroupApi = {
     deleteSteategyGroup,
     getStrategyGroupDetail,
     getStrategyGroupSelect,
-    batchChangeStatus
+    batchChangeStatus,
+    batchImport
 }
 
 export default strategyGroupApi
