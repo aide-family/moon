@@ -1,8 +1,17 @@
-import { Button, MenuProps, Tag } from 'antd'
+import {
+    Button,
+    FormInstance,
+    MenuProps,
+    StepProps,
+    Tag,
+    Upload,
+    UploadProps
+} from 'antd'
 import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
 import { DataFormItem } from '@/components/Data'
 import {
+    ImportGroupRequest,
     StrategyGroupItemType,
     StrategyGroupListRequest
 } from '@/apis/home/monitor/strategy-group/types.ts'
@@ -12,6 +21,21 @@ import dayjs from 'dayjs'
 import { Status, StatusMap } from '@/apis/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { ActionKey } from '@/apis/data'
+import DataForm from '@/components/Data/DataForm/DataForm'
+import {
+    getAlarmPages,
+    getCategories,
+    getEndponts,
+    getLevels
+} from '../strategy/options'
+import { UploadOutlined } from '@ant-design/icons'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { ThemeType } from '@/context'
+import {
+    atomOneDark,
+    atomOneLight
+} from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import jsYaml from 'js-yaml'
 
 export const tableOperationItems = (
     record: StrategyGroupItemType
@@ -269,5 +293,162 @@ export const editStrategyGroupDataFormItems: DataFormItem[] = [
                 showCount: true
             }
         }
+    }
+]
+
+export const importGroupDataFormItems: (DataFormItem[] | DataFormItem)[] = [
+    [
+        {
+            name: 'datasourceId',
+            label: '数据源',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择数据源'
+                    },
+                    width: '100%',
+                    handleFetch: getEndponts,
+                    defaultOptions: []
+                }
+            },
+            formItemProps: {
+                tooltip: <p>请选择Prometheus数据源, 目前仅支持Prometheus</p>,
+                rules: [
+                    {
+                        required: true,
+                        message: '请选择Prometheus数据源'
+                    }
+                ]
+            }
+        },
+        {
+            name: 'defaultAlarmPageIds',
+            label: '告警页面',
+            id: 'defaultAlarmPageIds',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择告警页面',
+                        mode: 'multiple'
+                    },
+                    handleFetch: getAlarmPages,
+                    defaultOptions: []
+                }
+            },
+            formItemProps: {
+                tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择报警页面'
+                }
+            ]
+        }
+    ],
+    [
+        {
+            name: 'defaultLevel',
+            label: '策略等级',
+            id: 'defaultLevel',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择告警级别'
+                    },
+                    handleFetch: getLevels,
+                    defaultOptions: []
+                }
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略等级'
+                }
+            ]
+        },
+        {
+            name: 'defaultCategoryIds',
+            label: '策略类型',
+            id: 'defaultCategoryIds',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择策略类型',
+                        mode: 'multiple'
+                    },
+                    handleFetch: getCategories,
+                    defaultOptions: []
+                }
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择策略类型'
+                }
+            ]
+        }
+    ]
+]
+
+export interface ImportStepProps extends StepProps {
+    content?: React.ReactNode
+}
+
+export interface ImportModalStepsItemsParamsType {
+    form: FormInstance<ImportGroupRequest>
+    uploadProps: UploadProps
+    sysTheme?: ThemeType
+    importData?: ImportGroupRequest
+}
+
+export const importModalStepsItems = (
+    params: ImportModalStepsItemsParamsType
+): ImportStepProps[] => [
+    {
+        title: '填写默认信息',
+        content: (
+            <DataForm
+                formProps={{ layout: 'vertical' }}
+                form={params.form}
+                items={importGroupDataFormItems}
+            />
+        )
+    },
+    {
+        title: '导入策略组文件',
+        content: (
+            <Upload {...params.uploadProps}>
+                <Button icon={<UploadOutlined />}>点击上传</Button>
+            </Upload>
+        )
+    },
+    {
+        title: '绑定通知对象',
+        content: 'bind notify(开发中)'
+    },
+    {
+        title: '确认数据',
+        content: (
+            <div
+                style={{
+                    height: '400px',
+                    overflowY: 'auto'
+                }}
+            >
+                <SyntaxHighlighter
+                    language="yaml"
+                    style={
+                        params.sysTheme === 'dark' ? atomOneDark : atomOneLight
+                    }
+                >
+                    {jsYaml.dump({ groups: params.importData?.groups })}
+                </SyntaxHighlighter>
+            </div>
+        )
     }
 ]

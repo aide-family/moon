@@ -1,5 +1,5 @@
 import { DictSelectItem } from '@/apis/home/system/dict/types.ts'
-import { PageReqType, PageResType, Status } from '@/apis/types'
+import { Duration, Map, PageReqType, PageResType, Status } from '@/apis/types'
 import { StrategyItemType } from '../strategy/types'
 
 type StrategyGroupItemType = {
@@ -96,6 +96,28 @@ interface BatchChangeStrategyGroupStatusResponse {
     ids: number[]
 }
 
+interface ImportRuleItemType {
+    alert: string
+    expr: string
+    labels: Map
+    annotations: Map
+    for: Duration
+}
+
+interface ImportGroupItemType {
+    name: string
+    rules: ImportRuleItemType[]
+}
+
+interface ImportGroupRequest {
+    groups?: ImportGroupItemType[]
+    datasourceId?: number
+    defaultLevel?: number
+    defaultAlarmPageIds?: number[]
+    defaultCategoryIds?: number[]
+    defaultAlarmNotifyIds?: number[]
+}
+
 export type {
     StrategyGroupItemType,
     StrategyGroupListRequest,
@@ -112,5 +134,8 @@ export type {
     SelectStrategyGroupRequest,
     SelectStrategyGroupResponse,
     BatchChangeStrategyGroupStatusRequest,
-    BatchChangeStrategyGroupStatusResponse
+    BatchChangeStrategyGroupStatusResponse,
+    ImportGroupRequest,
+    ImportGroupItemType,
+    ImportRuleItemType
 }

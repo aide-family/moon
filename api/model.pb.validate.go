@@ -4825,3 +4825,393 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MyDashboardConfigOptionValidationError{}
+
+// Validate checks the field values on PromRule with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PromRule) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PromRule with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PromRuleMultiError, or nil
+// if none found.
+func (m *PromRule) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PromRule) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetAlert()); l < 1 || l > 255 {
+		err := PromRuleValidationError{
+			field:  "Alert",
+			reason: "value length must be between 1 and 255 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetExpr()) < 1 {
+		err := PromRuleValidationError{
+			field:  "Expr",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := len(m.GetLabels()); l < 1 || l > 100 {
+		err := PromRuleValidationError{
+			field:  "Labels",
+			reason: "value must contain between 1 and 100 pairs, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetLabels()))
+		i := 0
+		for key := range m.GetLabels() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetLabels()[key]
+			_ = val
+
+			if l := utf8.RuneCountInString(key); l < 1 || l > 32 {
+				err := PromRuleValidationError{
+					field:  fmt.Sprintf("Labels[%v]", key),
+					reason: "value length must be between 1 and 32 runes, inclusive",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+			if !_PromRule_Labels_Pattern.MatchString(key) {
+				err := PromRuleValidationError{
+					field:  fmt.Sprintf("Labels[%v]", key),
+					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+			// no validation rules for Labels[key]
+		}
+	}
+
+	if l := len(m.GetAnnotations()); l < 1 || l > 100 {
+		err := PromRuleValidationError{
+			field:  "Annotations",
+			reason: "value must contain between 1 and 100 pairs, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetAnnotations()))
+		i := 0
+		for key := range m.GetAnnotations() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetAnnotations()[key]
+			_ = val
+
+			if l := utf8.RuneCountInString(key); l < 1 || l > 32 {
+				err := PromRuleValidationError{
+					field:  fmt.Sprintf("Annotations[%v]", key),
+					reason: "value length must be between 1 and 32 runes, inclusive",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+			if !_PromRule_Annotations_Pattern.MatchString(key) {
+				err := PromRuleValidationError{
+					field:  fmt.Sprintf("Annotations[%v]", key),
+					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
+				}
+				if !all {
+					return err
+				}
+				errors = append(errors, err)
+			}
+
+			// no validation rules for Annotations[key]
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetFor()) < 2 {
+		err := PromRuleValidationError{
+			field:  "For",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PromRuleMultiError(errors)
+	}
+
+	return nil
+}
+
+// PromRuleMultiError is an error wrapping multiple validation errors returned
+// by PromRule.ValidateAll() if the designated constraints aren't met.
+type PromRuleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PromRuleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PromRuleMultiError) AllErrors() []error { return m }
+
+// PromRuleValidationError is the validation error returned by
+// PromRule.Validate if the designated constraints aren't met.
+type PromRuleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PromRuleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PromRuleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PromRuleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PromRuleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PromRuleValidationError) ErrorName() string { return "PromRuleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PromRuleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPromRule.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PromRuleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PromRuleValidationError{}
+
+var _PromRule_Labels_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+
+var _PromRule_Annotations_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
+
+// Validate checks the field values on PromRuleGroup with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PromRuleGroup) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PromRuleGroup with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PromRuleGroupMultiError, or
+// nil if none found.
+func (m *PromRuleGroup) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PromRuleGroup) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 32 {
+		err := PromRuleGroupValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 32 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetRules()) > 100 {
+		err := PromRuleGroupValidationError{
+			field:  "Rules",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetRules() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PromRuleGroupValidationError{
+						field:  fmt.Sprintf("Rules[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PromRuleGroupValidationError{
+						field:  fmt.Sprintf("Rules[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PromRuleGroupValidationError{
+					field:  fmt.Sprintf("Rules[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PromRuleGroupMultiError(errors)
+	}
+
+	return nil
+}
+
+// PromRuleGroupMultiError is an error wrapping multiple validation errors
+// returned by PromRuleGroup.ValidateAll() if the designated constraints
+// aren't met.
+type PromRuleGroupMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PromRuleGroupMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PromRuleGroupMultiError) AllErrors() []error { return m }
+
+// PromRuleGroupValidationError is the validation error returned by
+// PromRuleGroup.Validate if the designated constraints aren't met.
+type PromRuleGroupValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PromRuleGroupValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PromRuleGroupValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PromRuleGroupValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PromRuleGroupValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PromRuleGroupValidationError) ErrorName() string { return "PromRuleGroupValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PromRuleGroupValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPromRuleGroup.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PromRuleGroupValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PromRuleGroupValidationError{}
