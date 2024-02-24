@@ -27,8 +27,8 @@ const TableNameSysApi = "sys_apis"
 // SysAPI 系统api
 type SysAPI struct {
 	BaseModel
-	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:api名称"`
-	Path   string     `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__path,priority:1;comment:api路径"`
+	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称"`
+	Path   string     `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径"`
 	Method string     `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
 	Status vo.Status  `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark string     `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
@@ -44,7 +44,7 @@ func (SysAPI) TableName() string {
 
 type ApiSimple struct {
 	ID     uint   `gorm:"primary_key" json:"id"`
-	Path   string `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__path,priority:1;comment:api路径"`
+	Path   string `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__as__path,priority:1;comment:api路径"`
 	Method string `gorm:"column:method;type:varchar(16);not null;comment:请求方法"`
 }
 

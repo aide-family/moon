@@ -10,12 +10,12 @@ const TableNamePromAlarmRealtime = "prom_alarm_realtime"
 type PromAlarmRealtime struct {
 	BaseModel
 	// StrategyID 发生这条告警的具体策略信息
-	StrategyID uint32        `gorm:"column:strategy_id;type:int unsigned;not null;index:idx__strategy_id,priority:1;comment:策略ID"`
+	StrategyID uint32        `gorm:"column:strategy_id;type:int unsigned;not null;index:idx__ar__strategy_id,priority:1;comment:策略ID"`
 	Strategy   *PromStrategy `gorm:"foreignKey:StrategyID"`
-	LevelId    uint32        `gorm:"column:level_id;type:int unsigned;not null;index:idx__level_id,priority:1;comment:告警等级ID"`
+	LevelId    uint32        `gorm:"column:level_id;type:int unsigned;not null;index:idx__ar__level_id,priority:1;comment:告警等级ID"`
 	Level      *PromDict     `gorm:"foreignKey:LevelId"`
 	// Instance 发生这条告警的具体实例信息
-	Instance string `gorm:"column:instance;type:varchar(64);not null;index:idx__instance,priority:1;comment:instance名称"`
+	Instance string `gorm:"column:instance;type:varchar(64);not null;index:idx__ar__instance,priority:1;comment:instance名称"`
 	Note     string `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
 	// Status 告警状态: 1告警;2恢复
 	Status vo.AlarmStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`

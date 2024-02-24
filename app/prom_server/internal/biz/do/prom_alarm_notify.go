@@ -9,7 +9,7 @@ const TableNamePromNotify = "prom_alarm_notifies"
 // PromAlarmNotify 告警通知对象
 type PromAlarmNotify struct {
 	BaseModel
-	Name            string                   `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:通知名称"`
+	Name            string                   `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__an__name,priority:1;comment:通知名称"`
 	Status          vo.Status                `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark          string                   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	ChatGroups      []*PromAlarmChatGroup    `gorm:"many2many:prom_notify_chat_groups;comment:通知组"`

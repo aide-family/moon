@@ -11,7 +11,7 @@
   > 账号：prometheus
   >
   > 密码：123456
- 
+
   > 账号：num1
   >
   > 密码：68b329da9893e34099c7d8ad5cb9c940
@@ -36,7 +36,7 @@
 
 #### 本地开发方式启动
 
-* 准备如下配置文件
+* 准备如下配置文件, 默认需要在app/prom_server目录下创建configs_local目录和config.yaml文件, prom_agent同理.
 
 ```yaml
 # app/prom_server/configs_local/config.yaml
@@ -52,7 +52,7 @@ env:
     license: MIT
     email: aidecloud@163.com
     url: https://github.com/aide-cloud/prometheus-manager
-    
+
 server:
   http:
     addr: 0.0.0.0:8000
@@ -61,12 +61,22 @@ server:
     addr: 0.0.0.0:9000
     timeout: 1s
 
+# NOTE: 添加你自己的数据库，并增加prometheus_manager库，如果选择mysql, 则把sqllite部分注释, 主机配置需要根据自身的地址进行配置，下方redis配置同理
 data:
   database:
-    driver: mysql
-    # mysql数据库地址，替换为自己的数据库实际连接，并创建prometheus_manager数据库
-    source: root:123456@tcp(localhost:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
+    driver: sqlite
+    source: ../../deploy/sql/init_sqllite.db
     debug: true
+    #  database:
+    #    driver: mysql
+    #    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
+    #    debug: true
+    # 配置redis则使用redis作为缓存
+#  redis:
+#    addr: host.docker.internal:6379
+#    password: redis#single#test
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
 # 开启redis配置，则使用redis作为缓存组件
 #  redis:
 #    addr: localhost:6379
@@ -92,7 +102,7 @@ log:
   encoder: json
   maxSize: 2
   compress: true
-  
+
 # 添加mq配置，则会使用mq通信
 #mq:
 #  kafka:
