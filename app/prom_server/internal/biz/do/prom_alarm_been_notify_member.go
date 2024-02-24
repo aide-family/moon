@@ -8,7 +8,7 @@ const TableNamePromAlarmNotifyMember = "prom_alarm_been_notify_members"
 
 type PromAlarmBeenNotifyMember struct {
 	BaseModel
-	RealtimeAlarmID   uint32           `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__realtime_alarm_id,priority:1;comment:告警ID"`
+	RealtimeAlarmID   uint32           `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__bnm__realtime_alarm_id,priority:1;comment:告警ID"`
 	NotifyTypes       vo.NotifyTypes   `gorm:"column:notify_types;type:json;not null;comment:通知方式"`
 	MemberId          uint32           `gorm:"column:member_id;type:int unsigned;not null;comment:通知人员ID"`
 	Member            *SysUser         `gorm:"foreignKey:MemberId;comment:成员"`

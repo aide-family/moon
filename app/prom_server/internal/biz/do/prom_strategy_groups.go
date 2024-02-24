@@ -9,7 +9,7 @@ const TableNamePromGroup = "prom_strategy_groups"
 // PromStrategyGroup 策略组
 type PromStrategyGroup struct {
 	BaseModel
-	Name                string          `gorm:"column:name;type:varchar(64);not null;comment:规则组名称;index:idx__name,unique"`
+	Name                string          `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:规则组名称"`
 	StrategyCount       int64           `gorm:"column:strategy_count;type:bigint;not null;default:0;comment:规则数量"`
 	EnableStrategyCount int64           `gorm:"column:enable_strategy_count;type:bigint;not null;default:0;comment:启用策略数量"`
 	Status              vo.Status       `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用"`

@@ -9,7 +9,7 @@ const TableNameExternalCustomer = "external_customers"
 type ExternalCustomer struct {
 	BaseModel
 	// 外部客户名称
-	Name string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx_name,priority:1;comment:外部客户名称"`
+	Name string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__ec__name,priority:1;comment:外部客户名称"`
 	// 外部客户地址
 	Address string `gorm:"column:address;type:varchar(255);not null;comment:外部客户地址"`
 	// 外部客户联系人
