@@ -9,7 +9,7 @@ const TableNamePromNotifyExternal = "prom_alarm_external_notify_objs"
 type ExternalNotifyObj struct {
 	BaseModel
 	// 外部通知对象名称
-	Name string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx_name,priority:1;comment:外部通知对象名称"`
+	Name string `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__eno__name,priority:1;comment:外部通知对象名称"`
 	// 外部通知对象说明
 	Remark string `gorm:"column:remark;type:varchar(255);not null;comment:外部通知对象说明"`
 	// 状态

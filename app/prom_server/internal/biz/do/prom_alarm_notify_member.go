@@ -8,10 +8,10 @@ const TableNamePromNotifyMember = "prom_alarm_notify_members"
 
 type PromAlarmNotifyMember struct {
 	BaseModel
-	PromAlarmNotifyID uint32         `gorm:"column:prom_alarm_notify_id;type:int unsigned;not null;index:idx__prom_alarm_notify_id,priority:1;comment:通知ID"`
+	PromAlarmNotifyID uint32         `gorm:"column:prom_alarm_notify_id;type:int unsigned;not null;index:idx__nm__prom_alarm_notify_id,priority:1;comment:通知ID"`
 	Status            vo.Status      `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	NotifyTypes       vo.NotifyTypes `gorm:"column:notify_types;type:json;not null;comment:通知方式"`
-	MemberId          uint32         `gorm:"column:member_id;type:int unsigned;not null;index:idx__member_id,priority:1;comment:成员ID"`
+	MemberId          uint32         `gorm:"column:member_id;type:int unsigned;not null;index:idx__nm__member_id,priority:1;comment:成员ID"`
 	Member            *SysUser       `gorm:"foreignKey:MemberId;comment:成员"`
 }
 
