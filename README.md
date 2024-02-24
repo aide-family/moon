@@ -71,7 +71,7 @@ data:
     #    driver: mysql
     #    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
     #    debug: true
-    # 配置redis则使用redis作为缓存
+# 配置redis则使用redis作为缓存
 #  redis:
 #    addr: host.docker.internal:6379
 #    password: redis#single#test
