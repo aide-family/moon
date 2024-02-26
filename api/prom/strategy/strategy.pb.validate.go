@@ -2305,6 +2305,8 @@ func (m *ListStrategyRequest) validate(all bool) error {
 
 	// no validation rules for IsDeleted
 
+	// no validation rules for StrategyId
+
 	if len(errors) > 0 {
 		return ListStrategyRequestMultiError(errors)
 	}

@@ -48,6 +48,12 @@ export const routers: RouteObject[] = [
                 )
             },
             {
+                path: '/home/monitor/alarm-history',
+                Component: lazy(
+                    () => import('@/pages/home/monitor/alarm-history')
+                )
+            },
+            {
                 path: '/home/system/user',
                 Component: lazy(() => import('@/pages/home/system/user'))
             },
