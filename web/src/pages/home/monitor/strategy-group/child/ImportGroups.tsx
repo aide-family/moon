@@ -116,12 +116,22 @@ export const ImportGroups: React.FC<ImportGroupsProps> = (props) => {
         }
     }
 
+    const initFormData = () => {
+        form?.resetFields()
+        setCurrent(0)
+        setImportData(undefined)
+        setFileList([])
+        setUploadFileInfo(undefined)
+    }
+
     const handleDone = (e: any) => {
         if (!importData) return
         strategyGroupApi
             .batchImport({ ...importData, defaultAlarmNotifyIds: [1] })
             .then(() => {
                 message.success('导入成功')
+                // 清空所有表单
+                initFormData()
                 props.onOk?.(e)
             })
             .catch((err) => {
