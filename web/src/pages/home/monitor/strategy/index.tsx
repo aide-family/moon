@@ -23,6 +23,7 @@ import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
+import { ImportGroups } from '../strategy-group/child/ImportGroups'
 
 const defaultPadding = 12
 
@@ -48,6 +49,21 @@ const Strategy: FC = () => {
     const [searchParams, setSearchParams] = useState<StrategyListRequest>(
         defaultStrategyListRequest
     )
+
+    const [openImportModal, setOpenImportModal] = useState<boolean>(false)
+
+    const handleOpenImportModal = () => {
+        setOpenImportModal(true)
+    }
+
+    const handleCloseImportModal = () => {
+        setOpenImportModal(false)
+    }
+
+    const handleImportOnOk = () => {
+        handleCloseImportModal()
+        handlerRefresh()
+    }
 
     const handlerOpenDetail = (id?: number) => {
         setOperateId(id)
@@ -163,6 +179,9 @@ const Strategy: FC = () => {
             case ActionKey.ADD:
                 handlerOpenDetail()
                 break
+            case ActionKey.BATCH_IMPORT:
+                handleOpenImportModal()
+                break
             case ActionKey.REFRESH:
                 handlerRefresh()
                 break
@@ -197,6 +216,13 @@ const Strategy: FC = () => {
                 open={openBindNotify}
                 onClose={handleCancelBindNotify}
                 strategyId={operateId}
+            />
+            <ImportGroups
+                width="60%"
+                title="批量导入"
+                onOk={handleImportOnOk}
+                onCancel={handleCloseImportModal}
+                open={openImportModal}
             />
             <Detail
                 open={openDetail}
