@@ -5,6 +5,7 @@ import type { MenuProps } from 'antd'
 import { Avatar, Dropdown } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { IconFont } from '@/components/IconFont/IconFont'
+import Logo from '@/assets/logo.svg'
 import { GlobalContext } from '@/context'
 
 const UserInfo: FC = () => {
@@ -51,7 +52,7 @@ const UserInfo: FC = () => {
         <>
             <Dropdown menu={{ items, onClick: handleMenuOnClick }}>
                 <Avatar
-                    src={<img src={user?.avatar} alt="avatar" />}
+                    src={<img src={user?.avatar || Logo} alt="avatar" />}
                     shape="square"
                 >
                     {user?.username}

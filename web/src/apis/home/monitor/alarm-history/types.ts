@@ -1,5 +1,6 @@
-import { PageReqType, PageResType } from '@/apis/types'
+import { Map, PageReqType, PageResType } from '@/apis/types'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
+import dayjs from 'dayjs'
 
 /** 报警历史明细 */
 interface AlarmHistoryItem {
@@ -8,8 +9,8 @@ interface AlarmHistoryItem {
     alarmName: string
     alarmLevel: DictSelectItem
     alarmStatus: string
-    labels: Map<string, string>
-    annotations: Map<string, string>
+    labels: Map
+    annotations: Map
     startAt: number
     endAt: number
 }
@@ -32,6 +33,15 @@ interface AlarmHistoryListRequest {
     alarmPages?: number[]
     startAt?: number
     endAt?: number
+}
+
+export const defaultAlarmHistoryListRequest: AlarmHistoryListRequest = {
+    page: {
+        curr: 1,
+        size: 10
+    },
+    startAt: dayjs().add(-30, 'day').unix(),
+    endAt: dayjs().unix()
 }
 
 /** 报警历史列表响应 */

@@ -13,12 +13,17 @@ import { Input, Select, Radio, Checkbox, DatePicker, ColorPicker } from 'antd'
 import { PasswordProps, TextAreaProps } from 'antd/lib/input'
 import FetchSelect, { FetchSelectProps } from '../FetchSelect'
 import TimeUintInput, { TimeUintInputProps } from '../TimeValue'
+import { RangePickerProps } from 'antd/es/date-picker'
 
 export type DataInputProps =
     | (
           | {
                 type: 'input'
                 parentProps?: InputProps
+            }
+          | {
+                type: 'time-range'
+                parentProps?: RangePickerProps
             }
           | {
                 type: 'password'
@@ -158,6 +163,16 @@ const DataInput: FC<DataInputProps> = (props) => {
                         value={value}
                         defaultValue={defaultValue}
                         onChange={(val) => onChange?.(val.toHexString())}
+                        {...parentProps}
+                    />
+                )
+            case 'time-range':
+                return (
+                    <DatePicker.RangePicker
+                        style={{ width }}
+                        value={value}
+                        defaultValue={defaultValue}
+                        onChange={onChange}
                         {...parentProps}
                     />
                 )

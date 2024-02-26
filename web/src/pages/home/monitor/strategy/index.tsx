@@ -1,5 +1,5 @@
 import { FC, Key, useContext, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
@@ -24,6 +24,7 @@ import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
 import { ImportGroups } from '../strategy-group/child/ImportGroups'
+import qs from 'qs'
 
 const defaultPadding = 12
 
@@ -31,6 +32,8 @@ let fetchTimer: NodeJS.Timeout
 const Strategy: FC = () => {
     const { size } = useContext(GlobalContext)
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
+
     const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
@@ -46,7 +49,7 @@ const Strategy: FC = () => {
     )
     const [openBindNotify, setOpenBindNotify] = useState<boolean>(false)
 
-    const [searchParams, setSearchParams] = useState<StrategyListRequest>(
+    const [reqParams, setReqParams] = useState<StrategyListRequest>(
         defaultStrategyListRequest
     )
 
@@ -91,7 +94,7 @@ const Strategy: FC = () => {
         fetchTimer = setTimeout(() => {
             setLoading(true)
             strategyApi
-                .getStrategyList(searchParams)
+                .getStrategyList(reqParams)
                 .then((res) => {
                     setDataSource(res.list)
                     setTotal(res.page.total)
@@ -109,14 +112,13 @@ const Strategy: FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        setSearchParams({
-            ...searchParams,
+        setReqParams({
+            ...reqParams,
             page: {
                 curr: page,
-                size: pageSize || searchParams?.page?.size
+                size: pageSize || reqParams?.page?.size
             }
         })
-        handlerRefresh()
     }
 
     // 可以批量操作的数据
@@ -128,7 +130,6 @@ const Strategy: FC = () => {
     }
 
     const toStrategyGroupPage = (record: StrategyItemType) => {
-        console.log(record)
         navigate(`/home/monitor/strategy-group?id=${record.id}`)
     }
 
@@ -207,6 +208,20 @@ const Strategy: FC = () => {
     }
 
     useEffect(() => {
+        handlerRefresh()
+    }, [reqParams])
+
+    useEffect(() => {
+        const searchP = qs.parse(searchParams.toString()) as any
+        // 获取prams
+        const req: StrategyListRequest = {
+            ...reqParams,
+            strategyId: +searchP?.strategyId || 0
+        }
+        setReqParams(req)
+    }, [])
+
+    useEffect(() => {
         handlerGetData()
     }, [refresh])
 
@@ -267,8 +282,8 @@ const Strategy: FC = () => {
                     onChange: handlerBatchData
                 }}
                 showIndex={false}
-                pageSize={searchParams?.page?.size}
-                current={searchParams?.page?.curr}
+                pageSize={reqParams?.page?.size}
+                current={reqParams?.page?.curr}
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
