@@ -296,6 +296,8 @@ message ListStrategyRequest {
   Status status = 6 [(validate.rules).enum = {defined_only: true}];
   // 是否获取已删除的策略
   bool isDeleted = 7;
+  // 策略ID
+  uint32 strategyId = 8;
 }
 // 获取策略列表响应参数
 message ListStrategyReply {

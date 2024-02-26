@@ -109,6 +109,7 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStra
 		basescopes.StrategyTablePreloadAlarmPages,
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.InIds(req.GetStrategyId()),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)

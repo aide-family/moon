@@ -106,6 +106,10 @@ export const defaultMenuItems: ItemType[] = [
                 key: '/home/monitor/alarm-realtime'
             },
             {
+                label: '告警历史',
+                key: '/home/monitor/alarm-history'
+            },
+            {
                 label: '策略组',
                 key: '/home/monitor/strategy-group'
             },
@@ -141,6 +145,7 @@ export const breadcrumbNameMap: Record<string, string> = {
     '/home/flow': '流程管理',
     '/home/monitor': '监控',
     '/home/monitor/alarm-realtime': '实时告警',
+    '/home/monitor/alarm-history': '告警历史',
     '/home/monitor/strategy-group': '策略组',
     '/home/monitor/strategy': '策略',
     '/home/monitor/endpoint': '数据源',
