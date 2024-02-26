@@ -210,19 +210,21 @@ const AlarmRealtime: FC = () => {
                 }}
                 size={size}
             />
-            <DataTable
-                showIndex={false}
-                // showOperation={false}
-                columns={columns}
-                dataSource={dataSource}
-                total={total}
-                loading={loading}
-                operationItems={operationItems}
-                action={handlerTableAction}
-                onRow={onRow}
-                pageSize={queryParams?.page?.size}
-                current={queryParams?.page?.curr}
-            />
+            {alarmPageList.length > 0 && (
+                <DataTable
+                    showIndex={false}
+                    // showOperation={false}
+                    columns={columns}
+                    dataSource={dataSource}
+                    total={total}
+                    loading={loading}
+                    operationItems={operationItems}
+                    action={handlerTableAction}
+                    onRow={onRow}
+                    pageSize={queryParams?.page?.size}
+                    current={queryParams?.page?.curr}
+                />
+            )}
         </div>
     )
 }
