@@ -184,7 +184,7 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
                     {
                         key: 'table',
                         label: (
-                            <Button type="text">
+                            <Button type="text" disabled={false}>
                                 <UnorderedListOutlined />
                                 指标列表
                             </Button>
@@ -263,7 +263,7 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
                     {
                         key: 'graph',
                         label: (
-                            <Button type="text">
+                            <Button type="text" disabled={false}>
                                 <AreaChartOutlined />
                                 指标图表
                             </Button>
