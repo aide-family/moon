@@ -30,8 +30,8 @@ func NewCaptchaBiz(captchaRepo repository.CaptchaRepo, logger log.Logger) *Captc
 }
 
 // GenerateCaptcha 生成验证码
-func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Type, size ...int) (*bo.CaptchaBO, error) {
-	codeId, codeImageBase64, err := captcha.CreateCode(ctx, captchaType, size...)
+func (b *CaptchaBiz) GenerateCaptcha(ctx context.Context, captchaType captcha.Type, theme captcha.Theme, size ...int) (*bo.CaptchaBO, error) {
+	codeId, codeImageBase64, err := captcha.CreateCode(ctx, captchaType, theme, size...)
 	if err != nil {
 		return nil, err
 	}

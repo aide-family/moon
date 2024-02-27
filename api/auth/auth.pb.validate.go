@@ -778,6 +778,17 @@ func (m *CaptchaRequest) validate(all bool) error {
 
 	// no validation rules for CaptchaType
 
+	if _, ok := _CaptchaRequest_Theme_InLookup[m.GetTheme()]; !ok {
+		err := CaptchaRequestValidationError{
+			field:  "Theme",
+			reason: "value must be in list [ light dark]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return CaptchaRequestMultiError(errors)
 	}
@@ -855,6 +866,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CaptchaRequestValidationError{}
+
+var _CaptchaRequest_Theme_InLookup = map[string]struct{}{
+	"":      {},
+	"light": {},
+	"dark":  {},
+}
 
 // Validate checks the field values on CaptchaReply with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
