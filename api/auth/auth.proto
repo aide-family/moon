@@ -90,6 +90,10 @@ message CaptchaRequest {
 	uint64 y = 2;
 	// 验证码类型
 	CaptchaType captcha_type = 3;
+	// 主题
+	string theme = 4 [(validate.rules).string = {
+		in: ["", "light", "dark"]
+	}];
 }
 // 获取验证码返回参数
 message CaptchaReply {

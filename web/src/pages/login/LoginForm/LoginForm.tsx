@@ -22,14 +22,14 @@ const { useToken } = theme
 
 const LoginForm: FC = () => {
     const { token } = useToken()
-    const { setUser, setAuthToken } = useContext(GlobalContext)
+    const { setUser, setAuthToken, sysTheme } = useContext(GlobalContext)
     const [loginForm] = useForm<LoginParams>()
     const navigate = useNavigate()
 
     const [loading, setLoading] = useState(false)
     useEffect(() => {
         handleCaptcha()
-    }, [])
+    }, [sysTheme])
 
     const handleLogin = () => {
         setLoading(true)
@@ -61,7 +61,7 @@ const LoginForm: FC = () => {
     })
 
     const handleCaptcha = () => {
-        getCaptcha({ x: 40, y: 160 })
+        getCaptcha({ x: 40, y: 160, captchaType: 3, theme: sysTheme })
             .then((res) => {
                 setCaptcha(res)
             })
