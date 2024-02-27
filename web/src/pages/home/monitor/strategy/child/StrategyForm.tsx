@@ -29,7 +29,7 @@ import { Duration } from '@/apis/types'
 export type FormValuesType = {
     alert?: string
     annotations?: {
-        title: string
+        summary: string
         description: string
         [key: string]: string
     }
@@ -101,7 +101,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             },
             annotations: {
                 ...value?.annotations,
-                title: value?.annotations?.['title'],
+                summary: value?.annotations?.['summary'],
                 description: value?.annotations?.['description']
             },
             dataSource: {
@@ -383,7 +383,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                 >
                     <div ref={annotationsTitleRef}>
                         <Form.Item
-                            name={['annotations', 'title']}
+                            name={['annotations', 'summary']}
                             label="告警标题模板"
                             rules={[
                                 {
