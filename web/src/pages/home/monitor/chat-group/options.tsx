@@ -206,17 +206,13 @@ export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             dataProps: {
                 type: 'select',
                 parentProps: {
-                    defaultValue: NotifyApp.NOTIFY_APP_WECHATWORK,
                     placeholder: '请选择所属平台',
-                    options: Object.entries(NotifyAppData)
-                        .map(([key, value]) => ({
+                    options: Object.entries(NotifyAppData).map(
+                        ([key, value]) => ({
                             label: value,
                             value: Number(key)
-                        }))
-                        .filter(
-                            (item) =>
-                                item.value !== NotifyApp.NOTIFY_APP_UNKNOWN
-                        )
+                        })
+                    )
                 }
             }
         }
