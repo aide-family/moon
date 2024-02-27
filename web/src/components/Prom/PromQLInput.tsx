@@ -69,6 +69,7 @@ export interface PromQLInputProps {
     disabled?: boolean
     ref?: MutableRefObject<any>
     buttonRef?: MutableRefObject<any>
+    showBorder?: boolean
 }
 
 const promqlExtension = new PromQLExtension()
@@ -135,7 +136,9 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
         value,
         defaultValue,
         ref,
-        buttonRef
+        buttonRef,
+        disabled,
+        showBorder = true
     } = props
 
     const prefix = buildPathPrefix(pathPrefix)
@@ -250,6 +253,9 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
             })
 
             viewRef.current = view
+            if (disabled) {
+                viewRef.current.contentDOM.contentEditable = 'false'
+            }
             view?.focus()
         } else {
             view.dispatch(
@@ -289,14 +295,26 @@ const PromQLInput: React.FC<PromQLInputProps> = (props) => {
             />
             <div className={styles.promInputContent}>
                 <div
-                    className={'cm-expression-input ' + styles.promInput}
+                    className={
+                        'cm-expression-input ' +
+                        (showBorder ? styles.promInput : '')
+                    }
                     style={{
-                        borderColor: status === 'error' ? 'red' : '',
-                        background: token.colorBgBase,
+                        borderColor: showBorder
+                            ? status === 'error'
+                                ? 'red'
+                                : token.colorBorder
+                            : '',
+                        background: showBorder
+                            ? disabled
+                                ? token.colorBgContainerDisabled
+                                : token.colorBgContainer
+                            : '',
                         color: token.colorTextBase
                         // border: token.Input?.activeBg
                     }}
                     ref={containerRef}
+                    contentEditable="false"
                 />
 
                 {formatExpression && (
