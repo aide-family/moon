@@ -15,7 +15,7 @@ export const searchFormItems: SearchFormItem[] = [
     },
     {
         name: 'time_range',
-        label: '时间',
+        label: '时间范围',
         dataProps: {
             type: 'time-range',
             parentProps: {

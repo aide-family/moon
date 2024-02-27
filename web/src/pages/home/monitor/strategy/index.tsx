@@ -25,6 +25,7 @@ import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
 import { ImportGroups } from '../strategy-group/child/ImportGroups'
 import qs from 'qs'
+import PromQLInput from '@/components/Prom/PromQLInput'
 
 const defaultPadding = 12
 
@@ -245,6 +246,7 @@ const Strategy: FC = () => {
                 id={operateId}
                 actionKey={actionKey}
                 refresh={handlerRefresh}
+                disabled={actionKey === ActionKey.DETAIL}
             />
             <div ref={operationRef}>
                 <RouteBreadcrumb />
@@ -295,7 +297,14 @@ const Strategy: FC = () => {
                                     size="small"
                                     onClick={handleCopyExpr(record?.expr)}
                                 />
-                                <p style={{ margin: 0 }}>{record?.expr}</p>
+                                <p style={{ margin: 0 }}>
+                                    <PromQLInput
+                                        disabled={true}
+                                        pathPrefix=""
+                                        value={record?.expr}
+                                        showBorder={false}
+                                    />
+                                </p>
                             </Space>
                             <Space style={{ width: '100%' }}>
                                 <Button
