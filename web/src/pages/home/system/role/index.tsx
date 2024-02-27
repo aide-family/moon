@@ -11,8 +11,8 @@ import roleOptions, { columns } from './options'
 import roleApi from '@/apis/home/system/role'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { RoleListItem, RoleListReq } from '@/apis/home/system/role/types'
-import AuthConfigModal from './child/AuthConfig'
 import { ActionKey } from '@/apis/data'
+import { BindAuth } from './child/BindAuth'
 
 const { confirm } = Modal
 const { roleDelete, roleList } = roleApi
@@ -64,10 +64,6 @@ const Role: React.FC = () => {
     }
     const handlerCloseAuthConfig = () => {
         setAuthVisible(false)
-    }
-    const handleAuthConfig = () => {
-        setAuthVisible(false)
-        handlerRefresh()
     }
 
     // 获取数据
@@ -219,18 +215,27 @@ const Role: React.FC = () => {
                 onClose={handlerCloseDetail}
                 roleId={roleId}
             />
+            <BindAuth
+                title="绑定权限"
+                width={800}
+                placement="left"
+                closeIcon={false}
+                open={authVisible}
+                onClose={handlerCloseAuthConfig}
+                roleId={roleId}
+            />
             <EditModal
                 open={openEdit}
                 onClose={handlerCloseEdit}
                 id={editId}
                 onOk={handleEditOnOk}
             />
-            <AuthConfigModal
+            {/* <AuthConfigModal
                 open={authVisible}
                 onClose={handlerCloseAuthConfig}
                 onOk={handleAuthConfig}
                 roleId={roleId}
-            />
+            /> */}
             <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />

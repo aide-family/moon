@@ -72,6 +72,24 @@ interface ApiAuthSelectItem {
     domain: DomainType
 }
 
+interface ModuleItem {
+    module: number
+    apis: ApiAuthSelectItem[]
+    name: string
+    remark: string
+}
+
+interface ApiAuthTreeItem {
+    domain: number
+    module: ModuleItem[]
+    domainName: string
+    domainRemark: string
+}
+
+interface ApiAuthTreeRes {
+    tree: ApiAuthTreeItem[]
+}
+
 export type {
     CreateApiAuth,
     ApiAuthById,
@@ -81,5 +99,8 @@ export type {
     ApiAuthListRes,
     ApiAuthListReq,
     ApiAuthSelectRes,
-    ApiAuthSelectItem
+    ApiAuthSelectItem,
+    ApiAuthTreeRes,
+    ModuleItem,
+    ApiAuthTreeItem
 }

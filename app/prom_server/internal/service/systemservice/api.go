@@ -200,3 +200,8 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 		Tree: list,
 	}, nil
 }
+
+// AuthorizeApi 授权api
+func (s *ApiService) AuthorizeApi(ctx context.Context, req *pb.AuthorizeApiRequest) (*pb.AuthorizeApiReply, error) {
+	return nil, nil
+}

@@ -101,6 +101,27 @@ enum Gender {
   Gender_FEMALE = 2;
 }
 
+// 操作动作
+enum Action {
+  // UNKNOWN 未知, 用于默认值
+  ACTION_UNKNOWN = 0;
+
+  // CREATE 创建
+  ACTION_CREATE = 1;
+
+  // UPDATE 更新
+  ACTION_UPDATE = 2;
+
+  // DELETE 删除
+  ACTION_DELETE = 3;
+
+  // GET 获取
+  ACTION_GET = 4;
+
+  // ALL 所有
+  ACTION_ALL = 5;
+}
+
 // 分页请求参数
 message PageRequest {
   // 当前页, 从1开始
