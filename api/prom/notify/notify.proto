@@ -142,14 +142,7 @@ message ListNotifyRequest {
   // 关键字, 字符串长度0-20, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
   // 状态, 枚举值, 可选, 用于过滤
-  repeated Status status = 3 [(validate.rules).repeated = {
-    unique: true,
-    items: {
-      enum: {
-        defined_only: true,
-      }
-    }
-  }];
+  Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
 // 获取通知对象列表响应参数
 message ListNotifyReply {
@@ -166,14 +159,7 @@ message SelectNotifyRequest {
   // 关键字, 字符串长度0-20, 可选, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
   // 状态, 枚举值, 可选, 用于过滤
-  repeated Status status = 3 [(validate.rules).repeated = {
-    unique: true,
-    items: {
-      enum: {
-        defined_only: true,
-      }
-    }
-  }];
+  Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
 // 获取通知对象列表(用于下拉选择)响应参数
 message SelectNotifyReply {

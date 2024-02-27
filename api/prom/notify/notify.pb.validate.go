@@ -1201,35 +1201,15 @@ func (m *ListNotifyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	_ListNotifyRequest_Status_Unique := make(map[api.Status]struct{}, len(m.GetStatus()))
-
-	for idx, item := range m.GetStatus() {
-		_, _ = idx, item
-
-		if _, exists := _ListNotifyRequest_Status_Unique[item]; exists {
-			err := ListNotifyRequestValidationError{
-				field:  fmt.Sprintf("Status[%v]", idx),
-				reason: "repeated value must contain unique items",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-			_ListNotifyRequest_Status_Unique[item] = struct{}{}
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := ListNotifyRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
 		}
-
-		if _, ok := api.Status_name[int32(item)]; !ok {
-			err := ListNotifyRequestValidationError{
-				field:  fmt.Sprintf("Status[%v]", idx),
-				reason: "value must be one of the defined enum values",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+		if !all {
+			return err
 		}
-
+		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -1548,35 +1528,15 @@ func (m *SelectNotifyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	_SelectNotifyRequest_Status_Unique := make(map[api.Status]struct{}, len(m.GetStatus()))
-
-	for idx, item := range m.GetStatus() {
-		_, _ = idx, item
-
-		if _, exists := _SelectNotifyRequest_Status_Unique[item]; exists {
-			err := SelectNotifyRequestValidationError{
-				field:  fmt.Sprintf("Status[%v]", idx),
-				reason: "repeated value must contain unique items",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-			_SelectNotifyRequest_Status_Unique[item] = struct{}{}
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := SelectNotifyRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
 		}
-
-		if _, ok := api.Status_name[int32(item)]; !ok {
-			err := SelectNotifyRequestValidationError{
-				field:  fmt.Sprintf("Status[%v]", idx),
-				reason: "value must be one of the defined enum values",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
+		if !all {
+			return err
 		}
-
+		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {

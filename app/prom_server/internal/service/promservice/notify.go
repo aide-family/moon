@@ -115,6 +115,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
 	if err != nil {
@@ -139,6 +140,7 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.GetKeyword()),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
 	if err != nil {
