@@ -5,6 +5,7 @@ import {
     ApiAuthListReq,
     ApiAuthListRes,
     ApiAuthSelectRes,
+    ApiAuthTreeRes,
     ApiAuthUpdate,
     CreateApiAuth
 } from './types'
@@ -22,7 +23,9 @@ export enum URL {
     /**获取API列表数据 */
     authApiList = '/api/v1/system/api/list',
     /**获取API下拉列表 */
-    authApiSelect = '/api/v1/system/api/select'
+    authApiSelect = '/api/v1/system/api/select',
+    /** API权限树 */
+    authApiTree = '/api/v1/system/api/tree'
 }
 /**创建API数据 */
 const authApiCreate = (data: CreateApiAuth) => {
@@ -48,6 +51,12 @@ const authApiList = (data: ApiAuthListReq) => {
 const authApiSelect = (data: ApiAuthListReq) => {
     return POST<ApiAuthSelectRes>(URL.authApiSelect, data)
 }
+
+/** 获取API权限树 */
+const authApiTree = () => {
+    return POST<ApiAuthTreeRes>(URL.authApiTree, {})
+}
+
 /**导出接口 */
 export const authApi = {
     /**创建API数据 */
@@ -61,6 +70,8 @@ export const authApi = {
     /**获取API列表数据 */
     authApiList,
     /**获取API下拉列表 */
-    authApiSelect
+    authApiSelect,
+    /** 获取API权限树 */
+    authApiTree
 }
 export default authApi

@@ -8,9 +8,9 @@ import (
 	"prometheus-manager/pkg/conn"
 )
 
-const AdminRole = "1"
+const AdminRole = 1
 
-type CheckUserRoleExistFun func(ctx context.Context, userID uint32, roleID string) error
+type CheckUserRoleExistFun func(ctx context.Context, userID, roleID uint32) error
 type GetApiIDByPathAndMethodFun func(ctx context.Context, path, method string) (uint64, error)
 
 func RbacServer(checkFun CheckUserRoleExistFun, getApiFun GetApiIDByPathAndMethodFun) middleware.Middleware {

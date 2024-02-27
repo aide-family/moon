@@ -186,7 +186,7 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
             }
         },
         {
-            name: 'enabled',
+            name: 'status',
             label: '是否激活',
             dataProps: {
                 type: 'radio-group',

@@ -4,19 +4,19 @@ type Domain int32
 type Module int32
 
 const (
-	_ Domain = iota
+	// DomainOther 其他领域
+	DomainOther Domain = iota
 	// DomainSystem 系统领域
 	DomainSystem
 	// DomainMonitor 监控领域
 	DomainMonitor
 	// DomainBusiness 业务领域
 	DomainBusiness
-	// DomainOther 其他领域
-	DomainOther
 )
 
 const (
-	_ Module = iota
+	// ModuleOther 其他模块
+	ModuleOther Module = iota
 	// ModuleApi 接口模块
 	ModuleApi
 	// ModuleMenu 菜单模块
@@ -41,8 +41,6 @@ const (
 	ModuleMonitor
 	// ModuleBusiness 业务模块
 	ModuleBusiness
-	// ModuleOther 其他模块
-	ModuleOther
 )
 
 // String 获取模块名称

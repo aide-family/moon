@@ -27,7 +27,7 @@ const defaultSearchData = {
 
 const AuthConfigModal: FC<DetailProps> = (props) => {
     const { open, onClose, onOk, roleId } = props
-    const [form] = Form.useForm<{ roleIds: number[] }>()
+    const [form] = Form.useForm<{ authIds: number[] }>()
     const [options, setOptions] = useState<DefaultOptionType[]>([])
     const [searchData, setSearchData] =
         useState<ApiAuthListReq>(defaultSearchData)
@@ -35,13 +35,13 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     const [fetchLoading, setFetchLoading] = useState<boolean>(false)
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
 
-    const fetchUserDetail = async () => {
+    const fetchRoleDetail = async () => {
         if (!roleId) return
         const {
             detail: { apis }
         } = await roleDetail({ id: roleId })
         if (!apis) return
-        form.setFieldsValue({ roleIds: apis.map((item) => item.value) })
+        form.setFieldsValue({ authIds: apis.map((item) => item.value) })
     }
 
     const handleGetApiSelect = () => {
@@ -62,7 +62,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
     const handleAuthConfig = () => {
         setSubmitLoading(true)
         form.validateFields().then((data) => {
-            roleRelateApi({ id: roleId, apiIds: data.roleIds })
+            roleRelateApi({ id: roleId, apiIds: data.authIds })
                 .then(() => {
                     onOk()
                     message.success('分配权限成功')
@@ -78,7 +78,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
         setOptions([])
         setSearchData(defaultSearchData)
         if (open) {
-            fetchUserDetail()
+            fetchRoleDetail()
             handleGetApiSelect()
             return
         }
@@ -96,7 +96,7 @@ const AuthConfigModal: FC<DetailProps> = (props) => {
         >
             <Spin spinning={fetchLoading} tip="加载中...">
                 <Form form={form} layout="vertical">
-                    <Form.Item label="权限" name="roleIds">
+                    <Form.Item label="权限" name="authIds">
                         <Select
                             // loading={fetchLoading}
                             mode="multiple"

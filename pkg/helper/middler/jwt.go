@@ -19,7 +19,7 @@ import (
 // AuthClaims jwt claims
 type AuthClaims struct {
 	ID   uint32 `json:"id"`
-	Role string `json:"role"`
+	Role uint32 `json:"role"`
 	*jwtv4.RegisteredClaims
 }
 
@@ -106,21 +106,30 @@ func GetUserId(ctx context.Context) uint32 {
 }
 
 // GetRoleId get role id
-func GetRoleId(ctx context.Context) string {
+func GetRoleId(ctx context.Context) uint32 {
 	claims, ok := GetAuthClaims(ctx)
 	if !ok {
-		return ""
+		return 0
 	}
 	return claims.Role
 }
 
+// IsAdminRole 是否是管理员
+func IsAdminRole(ctx context.Context) bool {
+	claims, ok := GetAuthClaims(ctx)
+	if !ok {
+		return false
+	}
+	return claims.Role == AdminRole
+}
+
 // IssueToken issue token
-func IssueToken(id uint32, role string) (string, error) {
+func IssueToken(id, role uint32) (string, error) {
 	return IssueTokenWithDuration(id, role, time.Hour*24)
 }
 
 // IssueTokenWithDuration issue token with duration
-func IssueTokenWithDuration(id uint32, role string, duration time.Duration) (string, error) {
+func IssueTokenWithDuration(id uint32, role uint32, duration time.Duration) (string, error) {
 	claims := &AuthClaims{
 		ID:   id,
 		Role: role,
