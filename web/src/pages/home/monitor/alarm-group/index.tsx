@@ -34,10 +34,12 @@ const AlarmGroup: FC = () => {
     const [oprateAlarmGroupId, setOperateAlarmGroupId] = useState<number>()
     const [openEditAlarmGroupModal, setOpenEditAlarmGroupModal] =
         useState<boolean>(false)
+    const [actionKey, setActionKey] = useState<ActionKey>(ActionKey.EDIT)
 
-    const handleOpenEditAlarmGroupModal = (id?: number) => {
+    const handleOpenEditAlarmGroupModal = (key: ActionKey, id?: number) => {
         setOperateAlarmGroupId(id)
         setOpenEditAlarmGroupModal(true)
+        setActionKey(key)
     }
 
     const handleCancelEditAlarmGroupModal = () => {
@@ -95,7 +97,7 @@ const AlarmGroup: FC = () => {
             case ActionKey.BATCH_EXPORT:
                 break
             case ActionKey.ADD:
-                handleOpenEditAlarmGroupModal()
+                handleOpenEditAlarmGroupModal(key)
                 break
             default:
                 break
@@ -115,7 +117,10 @@ const AlarmGroup: FC = () => {
     const handlerTableAction = (key: ActionKey, item: AlarmGroupItem) => {
         switch (key) {
             case ActionKey.EDIT:
-                handleOpenEditAlarmGroupModal(item.id)
+                handleOpenEditAlarmGroupModal(key, item.id)
+                break
+            case ActionKey.DETAIL:
+                handleOpenEditAlarmGroupModal(key, item.id)
                 break
             case ActionKey.DELETE:
                 break
@@ -145,6 +150,7 @@ const AlarmGroup: FC = () => {
                 alarmGroupId={oprateAlarmGroupId}
                 onClose={handleCancelEditAlarmGroupModal}
                 onOk={handOnOkEditAlarmGroupModal}
+                disabled={actionKey !== ActionKey.EDIT}
             />
             <div>
                 <div ref={operationRef}>
