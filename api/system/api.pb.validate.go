@@ -1142,6 +1142,17 @@ func (m *ListApiRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := ListApiRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ListApiRequestMultiError(errors)
 	}
@@ -1448,6 +1459,17 @@ func (m *SelectApiRequest) validate(all bool) error {
 		err := SelectApiRequestValidationError{
 			field:  "Keyword",
 			reason: "value length must be at most 20 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := SelectApiRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
 		}
 		if !all {
 			return err

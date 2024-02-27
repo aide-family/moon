@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = api.Category(0)
+	_ = api.Status(0)
 )
 
 // Validate checks the field values on CreateDictRequest with the rules defined
@@ -1590,6 +1590,8 @@ func (m *ListDictRequest) validate(all bool) error {
 
 	// no validation rules for Category
 
+	// no validation rules for Status
+
 	if len(errors) > 0 {
 		return ListDictRequestMultiError(errors)
 	}
@@ -1896,6 +1898,8 @@ func (m *SelectDictRequest) validate(all bool) error {
 	}
 
 	// no validation rules for Category
+
+	// no validation rules for Status
 
 	if len(errors) > 0 {
 		return SelectDictRequestMultiError(errors)

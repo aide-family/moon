@@ -14,7 +14,6 @@ import {
     Drawer,
     DrawerProps,
     Space,
-    Spin,
     Tooltip,
     Tree,
     Typography,
@@ -81,6 +80,7 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
             return api.value
         })
         setDefaultCheckedKeys(selectKeys)
+        setCheckedKeys(selectKeys)
         setDefaultExpandedKeys(selectKeys)
         setRoleApis(apis)
         setLoading(false)
@@ -215,10 +215,6 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
         fetchAuthTree()
     }, [open, roleId])
 
-    if (loading) {
-        return <Spin spinning={loading} />
-    }
-
     return (
         <Drawer
             {...props}
@@ -249,14 +245,17 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
             <Title level={5}>
                 <span>权限选择</span>
             </Title>
-            <Tree
-                checkable
-                defaultCheckedKeys={defaultCheckedKeys}
-                defaultExpandedKeys={defaultExpandedKeys}
-                autoExpandParent={true}
-                treeData={buildTreeData()}
-                onCheck={handleOnCheck}
-            />
+            {!loading && (
+                <Tree
+                    checkable
+                    defaultCheckedKeys={defaultCheckedKeys}
+                    defaultExpandedKeys={defaultExpandedKeys}
+                    checkedKeys={checkedKeys}
+                    autoExpandParent={true}
+                    treeData={buildTreeData()}
+                    onCheck={handleOnCheck}
+                />
+            )}
         </Drawer>
     )
 }

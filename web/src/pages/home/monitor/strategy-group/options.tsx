@@ -1,4 +1,5 @@
 import {
+    Badge,
     Button,
     FormInstance,
     MenuProps,
@@ -170,11 +171,7 @@ export const columns: (
         align: 'center',
         render: (status: Status, _: StrategyGroupItemType) => {
             const { color, text } = StatusMap[status]
-            return (
-                <Tag key={text} color={color}>
-                    {text}
-                </Tag>
-            )
+            return <Badge key={text} text={text} color={color} />
         }
     },
     {
@@ -183,6 +180,7 @@ export const columns: (
         dataIndex: 'strategyCount',
         key: 'strategyCount',
         width: 120,
+        align: 'center',
         render: (strategyCount: number | string) => {
             return strategyCount
         }
@@ -193,6 +191,7 @@ export const columns: (
         dataIndex: 'enableStrategyCount',
         key: 'enableStrategyCount',
         width: 120,
+        align: 'center',
         render: (strategyCount: number | string) => {
             return strategyCount
         }

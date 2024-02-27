@@ -175,6 +175,8 @@ message ListDictRequest {
 	string keyword = 3 [(validate.rules).string = {max_len: 20}];
 	// 分类
 	Category category = 4;
+	// 状态
+	Status status = 5;
 }
 // 获取字典列表响应参数
 message ListDictReply {
@@ -194,6 +196,8 @@ message SelectDictRequest {
 	string keyword = 3 [(validate.rules).string = {max_len: 20}];
 	// 分类
 	Category category = 4;
+	// 状态
+	Status status = 5;
 }
 // 获取字典列表响应参数
 message SelectDictReply {
