@@ -1,5 +1,5 @@
 import { ActionKey, domainTypeData, moduleTypeData } from '@/apis/data'
-import { Status, StatusMap } from '@/apis/types'
+import { DomainType, ModuleType, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 
 import { IconFont } from '@/components/IconFont/IconFont'
@@ -315,6 +315,24 @@ export const columns: (
                     text={StatusMap[status].text}
                 />
             )
+        }
+    },
+    {
+        title: '所属领域',
+        dataIndex: 'domain',
+        key: 'domain',
+        width: 100,
+        render: (domain: DomainType) => {
+            return domainTypeData[domain]
+        }
+    },
+    {
+        title: '所属模块',
+        dataIndex: 'module',
+        key: 'module',
+        width: 100,
+        render: (module: ModuleType) => {
+            return moduleTypeData[module]
         }
     },
     {

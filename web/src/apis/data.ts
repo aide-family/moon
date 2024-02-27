@@ -43,7 +43,8 @@ const NotifyAppData: Record<NotifyApp, string> = {
     [NotifyApp.NOTIFY_APP_UNKNOWN]: '未知',
     [NotifyApp.NOTIFY_APP_DINGTALK]: '钉钉',
     [NotifyApp.NOTIFY_APP_WECHATWORK]: '企业微信',
-    [NotifyApp.NOTIFY_APP_FEISHU]: '飞书'
+    [NotifyApp.NOTIFY_APP_FEISHU]: '飞书',
+    [NotifyApp.NOTIFY_APP_CUSTOM]: '自定义'
 }
 
 export enum ActionKey {

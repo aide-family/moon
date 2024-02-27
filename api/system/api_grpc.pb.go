@@ -27,6 +27,7 @@ const (
 	Api_SelectApi_FullMethodName     = "/api.system.Api/SelectApi"
 	Api_EditApiStatus_FullMethodName = "/api.system.Api/EditApiStatus"
 	Api_GetApiTree_FullMethodName    = "/api.system.Api/GetApiTree"
+	Api_AuthorizeApi_FullMethodName  = "/api.system.Api/AuthorizeApi"
 )
 
 // ApiClient is the client API for Api service.
@@ -49,6 +50,8 @@ type ApiClient interface {
 	EditApiStatus(ctx context.Context, in *EditApiStatusRequest, opts ...grpc.CallOption) (*EditApiStatusReply, error)
 	// 获取API权限树
 	GetApiTree(ctx context.Context, in *GetApiTreeRequest, opts ...grpc.CallOption) (*GetApiTreeReply, error)
+	// 授权数据权限
+	AuthorizeApi(ctx context.Context, in *AuthorizeApiRequest, opts ...grpc.CallOption) (*AuthorizeApiReply, error)
 }
 
 type apiClient struct {
@@ -131,6 +134,15 @@ func (c *apiClient) GetApiTree(ctx context.Context, in *GetApiTreeRequest, opts 
 	return out, nil
 }
 
+func (c *apiClient) AuthorizeApi(ctx context.Context, in *AuthorizeApiRequest, opts ...grpc.CallOption) (*AuthorizeApiReply, error) {
+	out := new(AuthorizeApiReply)
+	err := c.cc.Invoke(ctx, Api_AuthorizeApi_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApiServer is the server API for Api service.
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
@@ -151,6 +163,8 @@ type ApiServer interface {
 	EditApiStatus(context.Context, *EditApiStatusRequest) (*EditApiStatusReply, error)
 	// 获取API权限树
 	GetApiTree(context.Context, *GetApiTreeRequest) (*GetApiTreeReply, error)
+	// 授权数据权限
+	AuthorizeApi(context.Context, *AuthorizeApiRequest) (*AuthorizeApiReply, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -181,6 +195,9 @@ func (UnimplementedApiServer) EditApiStatus(context.Context, *EditApiStatusReque
 }
 func (UnimplementedApiServer) GetApiTree(context.Context, *GetApiTreeRequest) (*GetApiTreeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApiTree not implemented")
+}
+func (UnimplementedApiServer) AuthorizeApi(context.Context, *AuthorizeApiRequest) (*AuthorizeApiReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeApi not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -339,6 +356,24 @@ func _Api_GetApiTree_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Api_AuthorizeApi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeApiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).AuthorizeApi(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Api_AuthorizeApi_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).AuthorizeApi(ctx, req.(*AuthorizeApiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -377,6 +412,10 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApiTree",
 			Handler:    _Api_GetApiTree_Handler,
+		},
+		{
+			MethodName: "AuthorizeApi",
+			Handler:    _Api_AuthorizeApi_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

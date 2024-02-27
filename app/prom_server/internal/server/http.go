@@ -111,7 +111,7 @@ func NewHTTPServer(
 		middler.MustLogin(d.Cache()),
 	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
 	rbacMiddle := selector.Server(middler.RbacServer(
-		func(ctx context.Context, userID uint32, roleID string) error {
+		func(ctx context.Context, userID, roleID uint32) error {
 			return do.CheckUserRoleExist(ctx, d.Cache(), userID, roleID)
 		},
 		func(ctx context.Context, path, method string) (uint64, error) {

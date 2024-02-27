@@ -134,8 +134,8 @@ func generateUserCacheKey(userID uint32) string {
 }
 
 // CheckUserRoleExist 检查用户角色是否存在
-func CheckUserRoleExist(ctx context.Context, cacheClient cache.GlobalCache, userID uint32, roleID string) error {
-	if userID == 0 || roleID == "" {
+func CheckUserRoleExist(ctx context.Context, cacheClient cache.GlobalCache, userID, roleID uint32) error {
+	if userID == 0 || roleID == 0 {
 		return nil
 	}
 
@@ -150,20 +150,16 @@ func CheckUserRoleExist(ctx context.Context, cacheClient cache.GlobalCache, user
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 
-	rID, err := strconv.ParseUint(roleID, 10, 32)
-	if err != nil {
-		return err
-	}
 	var ur UserRoles
 	if err = json.Unmarshal(result, &ur); err != nil {
 		return err
 	}
-	if ur.UserID != userID || !slices.Contains(ur.Roles, uint32(rID)) {
+	if ur.UserID != userID || !slices.Contains(ur.Roles, roleID) {
 		return perrors.ErrorPermissionDenied("用户角色关系已变化, 请重新登录")
 	}
 
 	// 判断角色是否存在, 且状态为启用状态
-	_, err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), roleID)
+	_, err = cacheClient.HGet(ctx, consts.RoleDisabledKey.String(), strconv.FormatUint(uint64(roleID), 10))
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return err
 	}

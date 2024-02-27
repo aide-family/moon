@@ -69,6 +69,10 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 }
 
 func (s *UserService) mergeRoleIds(ctx context.Context, roleIds []uint32) ([]uint32, error) {
+	if middler.IsAdminRole(ctx) {
+		return roleIds, nil
+	}
+
 	userId := middler.GetUserId(ctx)
 	userInfo, err := s.userBiz.GetUserInfoById(ctx, userId)
 	if err != nil {
