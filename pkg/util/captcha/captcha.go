@@ -24,6 +24,13 @@ const (
 	TypeDigit
 )
 
+type Theme string
+
+const (
+	_          Theme = "dark"
+	LightTheme Theme = "light"
+)
+
 // var result = base64Captcha.DefaultMemStore
 // 设置存储的验证码为 20240个，过期时间为 3分钟
 var result = base64Captcha.NewMemoryStore(20240, 3*time.Minute)
@@ -48,20 +55,15 @@ func getSizes(size ...int) (int, int) {
 }
 
 // mathConfig 生成图形化算术验证码配置
-func mathConfig(size ...int) *base64Captcha.DriverMath {
+func mathConfig(theme Theme, size ...int) *base64Captcha.DriverMath {
 	height, width := getSizes(size...)
 	mathType := &base64Captcha.DriverMath{
 		Height:          height,
 		Width:           width,
 		NoiseCount:      0,
 		ShowLineOptions: base64Captcha.OptionShowHollowLine,
-		BgColor: &color.RGBA{
-			R: 40,
-			G: 30,
-			B: 89,
-			A: 29,
-		},
-		Fonts: nil,
+		BgColor:         getBgColor(theme),
+		Fonts:           nil,
 	}
 	return mathType
 }
@@ -79,8 +81,28 @@ func digitConfig(size ...int) *base64Captcha.DriverDigit {
 	return digitType
 }
 
+// getBgColor 生成图形化背景色
+func getBgColor(theme Theme) *color.RGBA {
+	switch theme {
+	default:
+		return &color.RGBA{
+			R: 0xff,
+			G: 0xff,
+			B: 0xff,
+			A: 0xff,
+		}
+	case LightTheme:
+		return &color.RGBA{
+			R: 40,
+			G: 30,
+			B: 89,
+			A: 29,
+		}
+	}
+}
+
 // stringConfig 生成图形化字符串验证码配置
-func stringConfig(size ...int) *base64Captcha.DriverString {
+func stringConfig(theme Theme, size ...int) *base64Captcha.DriverString {
 	height, width := getSizes(size...)
 	stringType := &base64Captcha.DriverString{
 		Height:          height,
@@ -89,19 +111,14 @@ func stringConfig(size ...int) *base64Captcha.DriverString {
 		ShowLineOptions: base64Captcha.OptionShowHollowLine | base64Captcha.OptionShowSlimeLine,
 		Length:          5,
 		Source:          "123456789qwertyuiopasdfghjklzxcvb",
-		BgColor: &color.RGBA{
-			R: 40,
-			G: 30,
-			B: 89,
-			A: 29,
-		},
-		Fonts: nil,
+		BgColor:         getBgColor(theme),
+		Fonts:           nil,
 	}
 	return stringType
 }
 
 // chineseConfig 生成图形化汉字验证码配置
-func chineseConfig(size ...int) *base64Captcha.DriverChinese {
+func chineseConfig(theme Theme, size ...int) *base64Captcha.DriverChinese {
 	height, width := getSizes(size...)
 	chineseType := &base64Captcha.DriverChinese{
 		Height:          height,
@@ -110,13 +127,8 @@ func chineseConfig(size ...int) *base64Captcha.DriverChinese {
 		ShowLineOptions: base64Captcha.OptionShowSlimeLine,
 		Length:          2,
 		Source:          "设想,你在,处理,消费者,的音,频输,出音,频可,能无,论什,么都,没有,任何,输出,或者,它可,能是,单声道,立体声,或是,环绕立,体声的,不想要,的值",
-		BgColor: &color.RGBA{
-			R: 40,
-			G: 30,
-			B: 89,
-			A: 29,
-		},
-		Fonts: nil,
+		BgColor:         getBgColor(theme),
+		Fonts:           nil,
 	}
 	return chineseType
 }
@@ -135,17 +147,17 @@ func autoConfig() *base64Captcha.DriverAudio {
 //	id 	验证码id
 //	bse64s 	图片base64编码
 //	err 	错误
-func CreateCode(_ context.Context, captchaType Type, size ...int) (string, string, error) {
+func CreateCode(_ context.Context, captchaType Type, theme Theme, size ...int) (string, string, error) {
 	var driver base64Captcha.Driver
 	switch captchaType {
 	case TypeAudio:
 		driver = autoConfig()
 	case TypeString:
-		driver = stringConfig(size...)
+		driver = stringConfig(theme, size...)
 	case TypeMath:
-		driver = mathConfig(size...)
+		driver = mathConfig(theme, size...)
 	case TypeChinese:
-		driver = chineseConfig(size...)
+		driver = chineseConfig(theme, size...)
 	case TypeDigit:
 		driver = digitConfig(size...)
 	default:
@@ -156,7 +168,7 @@ func CreateCode(_ context.Context, captchaType Type, size ...int) (string, strin
 	}
 	// 创建验证码并传入创建的类型的配置，以及存储的对象
 	c := base64Captcha.NewCaptcha(driver, result)
-	id, b64s, err := c.Generate()
+	id, b64s, _, err := c.Generate()
 	return id, b64s, err
 }
 
