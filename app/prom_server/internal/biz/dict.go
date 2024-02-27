@@ -77,6 +77,7 @@ func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]
 		basescopes.WithTrashed(req.GetIsDeleted()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
@@ -97,6 +98,7 @@ func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest)
 		basescopes.WithTrashed(req.GetIsDeleted()),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 
 	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)

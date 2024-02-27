@@ -12,6 +12,30 @@ const searchItems: DataFormItem[] = [
     {
         name: 'keyword',
         label: '关键词'
+    },
+    {
+        name: 'status',
+        label: '状态',
+        dataProps: {
+            type: 'radio-group',
+            parentProps: {
+                optionType: 'button',
+                options: [
+                    {
+                        label: '全部',
+                        value: Status.STATUS_UNKNOWN
+                    },
+                    {
+                        label: '启用',
+                        value: Status.STATUS_ENABLED
+                    },
+                    {
+                        label: '禁用',
+                        value: Status.STATUS_DISABLED
+                    }
+                ]
+            }
+        }
     }
 ]
 
