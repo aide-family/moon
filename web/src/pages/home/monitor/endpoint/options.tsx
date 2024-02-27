@@ -1,6 +1,6 @@
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
 import { ActionKey } from '@/apis/data.ts'
-import { Button, MenuProps, Tag } from 'antd'
+import { Badge, Button, MenuProps } from 'antd'
 import { DataFormItem } from '@/components/Data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import { PrometheusServerItem } from '@/apis/home/monitor/endpoint/types'
@@ -152,7 +152,7 @@ export const columns: EndpointColumnType[] = [
         width: 140,
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
-            return <Tag color={color}>{text}</Tag>
+            return <Badge color={color} text={text} />
         }
     },
     {
@@ -167,7 +167,7 @@ export const columns: EndpointColumnType[] = [
         key: 'createdAt',
         width: 220,
         render: (createdAt: number | string) => {
-            return dayjs(+createdAt*1000).format('YYYY-MM-DD HH:mm:ss')
+            return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
     },
     {
@@ -176,7 +176,7 @@ export const columns: EndpointColumnType[] = [
         key: 'updatedAt',
         width: 220,
         render: (updatedAt: number | string) => {
-            return dayjs(+updatedAt*1000).format('YYYY-MM-DD HH:mm:ss')
+            return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
     }
 ]

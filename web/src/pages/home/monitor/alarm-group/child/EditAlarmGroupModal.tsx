@@ -1,5 +1,5 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Space, Table, Tag } from 'antd'
+import { Badge, Button, Form, Modal, Space, Table } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { ChartGroupTableColumnType, editorItems } from '../options'
 import {
@@ -155,16 +155,18 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
             title: '状态',
             dataIndex: 'status',
             key: 'status',
+            align: 'center',
             width: 120,
             render: (status: Status) => {
                 const { color, text } = StatusMap[status]
-                return <Tag color={color}>{text}</Tag>
+                return <Badge color={color} text={text} />
             }
         },
         {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
+            align: 'center',
             width: 80,
             render: (_: any, record: ChatGroupSelectItem) => {
                 return (
