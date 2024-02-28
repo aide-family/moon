@@ -1,0 +1,50 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: agent-config
+  namespace: system
+data:
+  config.yaml: |
+    env:
+      name: prometheus-manager_prom_agent
+      version: 0.0.1
+      env: local
+      metadata:
+        description: Prometheus Manager Agent APP
+        version: 0.0.1
+        author: 梧桐
+        license: MIT
+        email: aidecloud@163.com
+        url: https://github.com/aide-cloud/prometheus-manager
+    server:
+      http:
+        addr: 0.0.0.0:8001
+        timeout: 1s
+      grpc:
+        addr: 0.0.0.0:9001
+        timeout: 1s
+
+    # 开启redis配置，则使用redis作为缓存组件
+    #data:
+    #  redis:
+    #    addr: localhost:6379
+    #    password: redis#single#test
+    #    read_timeout: 0.2s
+    #    write_timeout: 0.2s
+
+    watchProm:
+      interval: 10s
+
+    # mq配置
+    #mq:
+    #  kafka:
+    #    groupId: prometheus-agent
+    #    endpoints:
+    #      - localhost:9092
+
+    # mq替代配置， 二选一
+    interflow:
+      # prom_server的通信地址
+      server: http://prometheus-manager-server-svc.prometheus-manager.svc.cluster.local:8000/api/v1/interflows/receive
+      # 自身的通信地址
+      agent: http://127.0.0.1:8001/api/v1/interflows/receive

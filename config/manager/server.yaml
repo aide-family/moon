@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: system
+  labels:
+    apps.prometheus.manager/name: prometheus-manager-server
+spec:
+  selector:
+    matchLabels:
+      apps.prometheus.manager/name: prometheus-manager-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        apps.prometheus.manager/name: prometheus-manager-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - command:
+            - /prometheus-manager-server
+          args:
+            - --conf=/config/config.yaml
+          image: controller:latest
+          name: prometheus-manager-server
+          securityContext:
+            allowPrivilegeEscalation: false
+          #          // TODO: @梧桐 Supplemental Health Screening Services
+          #          livenessProbe:
+          #            httpGet:
+          #              path: /healthz
+          #              port: 8081
+          #            initialDelaySeconds: 15
+          #            periodSeconds: 20
+          #          readinessProbe:
+          #            httpGet:
+          #              path: /readyz
+          #              port: 8081
+          #            initialDelaySeconds: 5
+          #            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          volumeMounts:
+            - mountPath: /config
+              name: prometheus-manager-server-config
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      serviceAccountName: prometheus-manager-server
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: prometheus-manager-server-config
+          configMap:
+            name: prometheus-manager-server-config

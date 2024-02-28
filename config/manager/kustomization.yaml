@@ -1,8 +1,11 @@
 resources:
-  - manager.yaml
   - namespace.yaml
-  - config.yaml
-  - mysql-server.yaml
+  - server.yaml
+  - server-config.yaml
+  - server-service.yaml
+  - agent.yaml
+  - agent-config.yaml
+#  - mysql-server.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

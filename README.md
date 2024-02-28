@@ -49,7 +49,7 @@ env:
   name: prometheus-manager_prom_server
   version: 0.0.1
   # local dev两种模式会自动migrate数据库
-  env: pro
+  env: local
   metadata:
     description: Prometheus Manager Server APP
     version: 0.0.1
@@ -121,7 +121,7 @@ log:
 env:
   name: prometheus-manager_prom_agent
   version: 0.0.1
-  env: pro
+  env: local
   metadata:
     description: Prometheus Manager Agent APP
     version: 0.0.1
