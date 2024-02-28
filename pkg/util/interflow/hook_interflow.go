@@ -49,7 +49,7 @@ func (l *hookInterflow) Close() error {
 }
 
 func (l *hookInterflow) Send(ctx context.Context, to string, msg *HookMsg) error {
-	_, err := httpx.NewHttpX().POST(to, msg.Bytes())
+	_, err := httpx.NewHttpX().POSTWithContext(ctx, to, msg.Bytes())
 	if err != nil {
 		l.log.Errorw("err", err, "key", msg.Key, "topic", msg.Topic, "value", string(msg.Value))
 		return err

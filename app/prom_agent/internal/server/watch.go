@@ -117,12 +117,18 @@ func (w *Watch) Start(_ context.Context) error {
 					}
 					return true
 				})
-				_, _ = w.loadService.Evaluate(context.Background(), &agent.EvaluateRequest{GroupList: groupList})
+				w.evaluate(groupList)
 			}
 		}
 	}()
 	w.log.Info("[Watch] server started")
 	return w.onlineNotify()
+}
+
+func (w *Watch) evaluate(groupList []*api.GroupSimple) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, _ = w.loadService.Evaluate(ctx, &agent.EvaluateRequest{GroupList: groupList})
 }
 
 func (w *Watch) Stop(_ context.Context) error {
@@ -151,7 +157,9 @@ func (w *Watch) onlineNotify() error {
 		Value: []byte(agentUrl),
 		Key:   []byte(agentUrl),
 	}
-	return w.interflowInstance.Send(context.Background(), serverUrl, msg)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return w.interflowInstance.Send(ctx, serverUrl, msg)
 }
 
 // offlineNotify 下线通知
@@ -166,7 +174,9 @@ func (w *Watch) offlineNotify() error {
 		Value: nil,
 		Key:   []byte(agentUrl),
 	}
-	err := w.interflowInstance.Send(context.Background(), serverUrl, msg)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	err := w.interflowInstance.Send(ctx, serverUrl, msg)
 	if err != nil {
 		return err
 	}
