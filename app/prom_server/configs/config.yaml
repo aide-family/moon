@@ -36,12 +36,12 @@ apiWhite:
     - /api.auth.Auth/Logout
     - /api.auth.Auth/RefreshToken
 
-log:
-  filename: ./log/prometheus-server.log
-  level: debug
-  encoder: json
-  maxSize: 2
-  compress: true
+#log:
+#  filename: ./log/prometheus-server.log
+#  level: debug
+#  encoder: json
+#  maxSize: 2
+#  compress: true
 
 # 配置mq则使用mq通信， 否则使用内部hook通信
 #mq:

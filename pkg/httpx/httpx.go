@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,6 +39,26 @@ func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
 	reader := bytes.NewReader(data)
 	// 设置请求头
 	req, err := http.NewRequest(http.MethodPost, url, reader)
+	if err != nil {
+		return nil, err
+	}
+	if h.headers != nil {
+		for k, v := range h.headers {
+			req.Header.Set(k, v)
+		}
+	} else {
+		// 没有请求头时候, 默认设置请求头json, utf-8
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	}
+	return h.Do(req)
+}
+
+// POSTWithContext 发起post请求
+func (h *HttpX) POSTWithContext(ctx context.Context, url string, data []byte) (*http.Response, error) {
+	reader := bytes.NewReader(data)
+	// 设置请求头
+	req, err := http.NewRequest(http.MethodPost, url, reader)
+	req = req.WithContext(ctx)
 	if err != nil {
 		return nil, err
 	}
