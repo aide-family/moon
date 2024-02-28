@@ -85,7 +85,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 }
 
 func (s *AuthService) Captcha(ctx context.Context, req *pb.CaptchaRequest) (*pb.CaptchaReply, error) {
-	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.Type(req.GetCaptchaType()), int(req.GetX()), int(req.GetY()))
+	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.Type(req.GetCaptchaType()), captcha.Theme(req.GetTheme()), int(req.GetX()), int(req.GetY()))
 	if err != nil {
 		return nil, err
 	}

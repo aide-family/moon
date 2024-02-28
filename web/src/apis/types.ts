@@ -134,8 +134,8 @@ export enum NotifyType {
 
 /** 通知应用, 用于区分通知方式*/
 export enum NotifyApp {
-    /** UNKNOWN 未知, 用于默认值*/
-    NOTIFY_APP_UNKNOWN,
+    /** 自定义 */
+    NOTIFY_APP_CUSTOM,
 
     /** DINGTALK 钉钉*/
     NOTIFY_APP_DINGTALK,
@@ -175,18 +175,20 @@ export enum Gender {
 
 /**  领域类型枚举 */
 export enum DomainType {
+    /**  其他领域 */
+    DomainTypeOther,
     /**  系统领域 */
     DomainTypeSystem,
     /**  监控领域 */
     DomainTypeMonitor,
     /**  业务领域 */
-    DomainTypeBusiness,
-    /**  其他领域 */
-    DomainTypeOther
+    DomainTypeBusiness
 }
 
 /**  模块类型枚举 */
 export enum ModuleType {
+    /**  其他模块 */
+    ModelTypeOther,
     /**  接口模块 */
     ModelTypeApi,
     /**  菜单模块 */
@@ -210,9 +212,7 @@ export enum ModuleType {
     /**  监控模块 */
     ModelTypeMonitor,
     /**  业务模块 */
-    ModelTypeBusiness,
-    /**  其他模块 */
-    ModelTypeOther
+    ModelTypeBusiness
 }
 
 interface IdReponse {

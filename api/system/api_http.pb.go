@@ -19,6 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationApiAuthorizeApi = "/api.system.Api/AuthorizeApi"
 const OperationApiCreateApi = "/api.system.Api/CreateApi"
 const OperationApiDeleteApi = "/api.system.Api/DeleteApi"
 const OperationApiEditApiStatus = "/api.system.Api/EditApiStatus"
@@ -29,6 +30,7 @@ const OperationApiSelectApi = "/api.system.Api/SelectApi"
 const OperationApiUpdateApi = "/api.system.Api/UpdateApi"
 
 type ApiHTTPServer interface {
+	AuthorizeApi(context.Context, *AuthorizeApiRequest) (*AuthorizeApiReply, error)
 	CreateApi(context.Context, *CreateApiRequest) (*CreateApiReply, error)
 	DeleteApi(context.Context, *DeleteApiRequest) (*DeleteApiReply, error)
 	EditApiStatus(context.Context, *EditApiStatusRequest) (*EditApiStatusReply, error)
@@ -49,6 +51,7 @@ func RegisterApiHTTPServer(s *http.Server, srv ApiHTTPServer) {
 	r.POST("/api/v1/system/api/select", _Api_SelectApi0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/api/status/edit", _Api_EditApiStatus0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/api/tree", _Api_GetApiTree0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/api/authorize", _Api_AuthorizeApi0_HTTP_Handler(srv))
 }
 
 func _Api_CreateApi0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) error {
@@ -203,7 +206,27 @@ func _Api_GetApiTree0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) err
 	}
 }
 
+func _Api_AuthorizeApi0_HTTP_Handler(srv ApiHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AuthorizeApiRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApiAuthorizeApi)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AuthorizeApi(ctx, req.(*AuthorizeApiRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AuthorizeApiReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ApiHTTPClient interface {
+	AuthorizeApi(ctx context.Context, req *AuthorizeApiRequest, opts ...http.CallOption) (rsp *AuthorizeApiReply, err error)
 	CreateApi(ctx context.Context, req *CreateApiRequest, opts ...http.CallOption) (rsp *CreateApiReply, err error)
 	DeleteApi(ctx context.Context, req *DeleteApiRequest, opts ...http.CallOption) (rsp *DeleteApiReply, err error)
 	EditApiStatus(ctx context.Context, req *EditApiStatusRequest, opts ...http.CallOption) (rsp *EditApiStatusReply, err error)
@@ -220,6 +243,19 @@ type ApiHTTPClientImpl struct {
 
 func NewApiHTTPClient(client *http.Client) ApiHTTPClient {
 	return &ApiHTTPClientImpl{client}
+}
+
+func (c *ApiHTTPClientImpl) AuthorizeApi(ctx context.Context, in *AuthorizeApiRequest, opts ...http.CallOption) (*AuthorizeApiReply, error) {
+	var out AuthorizeApiReply
+	pattern := "/api/v1/system/api/authorize"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationApiAuthorizeApi))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *ApiHTTPClientImpl) CreateApi(ctx context.Context, in *CreateApiRequest, opts ...http.CallOption) (*CreateApiReply, error) {

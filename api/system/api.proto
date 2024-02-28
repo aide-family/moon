@@ -70,6 +70,13 @@ service Api {
       body: "*"
     };
   }
+  // 授权数据权限
+  rpc AuthorizeApi (AuthorizeApiRequest) returns (AuthorizeApiReply) {
+    option (google.api.http) = {
+      post: "/api/v1/system/api/authorize"
+      body: "*"
+    };
+  }
 }
 
 // 创建API数据请求参数
@@ -162,6 +169,8 @@ message ListApiRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   // 关键字, 长度限制0-20
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 状态
+  Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
 // 获取API列表响应参数
 message ListApiReply {
@@ -177,6 +186,8 @@ message SelectApiRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   // 关键字, 长度限制0-20
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 状态
+  Status status = 3 [(validate.rules).enum = {defined_only: true}];
 }
 // 获取API下拉列表响应参数
 message SelectApiReply {
@@ -215,3 +226,28 @@ message GetApiTreeReply {
   // 权限树
   repeated ApiTree tree = 1;
 }
+
+message AuthorizeApiRequest {
+  string model = 1 [(validate.rules).string = {
+    min_len: 1
+  }];
+  uint32 modelId = 2 [(validate.rules).uint32.gt = 0];
+  repeated uint32 userIds = 3 [(validate.rules) = {
+    repeated: {
+      unique: true,
+      items: {
+        uint32: {gt: 0}
+      }
+    },
+  }];
+  repeated uint32 roleIds = 4 [(validate.rules) = {
+    repeated: {
+      unique: true,
+      items: {
+        uint32: {gt: 0}
+      }
+    },
+  }];
+  Action op = 5 [(validate.rules).enum = {defined_only: true}];
+}
+message AuthorizeApiReply {}

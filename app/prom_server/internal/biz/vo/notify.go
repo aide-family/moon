@@ -19,6 +19,8 @@ const (
 	NotifyAppWeChatWork
 	// NotifyAppFeiShu 飞书
 	NotifyAppFeiShu
+	// NotifyAppCustom 自定义
+	NotifyAppCustom
 )
 
 const (
@@ -41,6 +43,8 @@ func (a NotifyApp) String() string {
 		return "企业微信"
 	case NotifyAppFeiShu:
 		return "飞书"
+	case NotifyAppCustom:
+		return "自定义"
 	case NotifyAppUnknown:
 		return "未知"
 	default:
@@ -73,6 +77,8 @@ func (a NotifyApp) Key() string {
 		return "wechatwork"
 	case NotifyAppFeiShu:
 		return "feishu"
+	case NotifyAppCustom:
+		return "custom"
 	case NotifyAppUnknown:
 		return "unknown"
 	default:

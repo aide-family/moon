@@ -1,11 +1,16 @@
 package do
 
 import (
+	"context"
+	_ "embed"
+
 	"gorm.io/gorm"
+	"prometheus-manager/pkg/util/cache"
+	"prometheus-manager/pkg/util/hash"
 )
 
-func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
+func Migrate(db *gorm.DB, cache cache.GlobalCache) (err error) {
+	err = db.AutoMigrate(
 		&PromAlarmChatGroup{},
 		&PromAlarmHistory{},
 		&PromAlarmIntervene{},
@@ -29,5 +34,40 @@ func Migrate(db *gorm.DB) error {
 		&CasbinRule{},
 		&MyChart{},
 		&MyDashboardConfig{},
+		&DataUserOp{},
+		&DataRoleOp{},
 	)
+	if err != nil {
+		return err
+	}
+	return initSysApi(db, cache)
+}
+
+//go:embed init.sql
+var sql string
+
+const syncSysApiFlag = "sync_sys_api"
+
+// InitSysApi 初始化系统接口权限列表
+func initSysApi(db *gorm.DB, cache cache.GlobalCache) (err error) {
+	ctx := context.Background()
+	sqlHash := hash.MD5(sql)
+	flagBytes, _ := cache.Get(ctx, syncSysApiFlag)
+	flag := string(flagBytes)
+	if flag == sqlHash {
+		return nil
+	}
+
+	if err = cache.Set(ctx, syncSysApiFlag, []byte(sqlHash), 0); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			cache.Del(ctx, syncSysApiFlag)
+		}
+	}()
+	if err = db.Model(&SysAPI{}).Unscoped().Where("id > 0").Delete(&SysAPI{}).Error; err != nil {
+		return err
+	}
+	return db.Exec(sql).Error
 }

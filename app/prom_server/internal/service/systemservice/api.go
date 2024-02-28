@@ -101,6 +101,9 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+		basescopes.LikeSysApi(req.GetKeyword()),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
 	if err != nil {
@@ -125,6 +128,9 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+		basescopes.LikeSysApi(req.GetKeyword()),
+		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 	}
 	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
 	if err != nil {
@@ -199,4 +205,9 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 	return &pb.GetApiTreeReply{
 		Tree: list,
 	}, nil
+}
+
+// AuthorizeApi 授权api
+func (s *ApiService) AuthorizeApi(ctx context.Context, req *pb.AuthorizeApiRequest) (*pb.AuthorizeApiReply, error) {
+	return nil, nil
 }

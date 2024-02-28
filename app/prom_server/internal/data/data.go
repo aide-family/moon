@@ -125,7 +125,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	}
 
 	if env.GetEnv() == "dev" || env.GetEnv() == "local" {
-		if err = do.Migrate(db); err != nil {
+		if err = do.Migrate(d.DB(), d.Cache()); err != nil {
 			d.log.Errorf("db migrate error: %v", err)
 			return nil, nil, err
 		}

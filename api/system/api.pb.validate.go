@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = api.Status(0)
+	_ = api.Action(0)
 )
 
 // Validate checks the field values on CreateApiRequest with the rules defined
@@ -1142,6 +1142,17 @@ func (m *ListApiRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := ListApiRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ListApiRequestMultiError(errors)
 	}
@@ -1448,6 +1459,17 @@ func (m *SelectApiRequest) validate(all bool) error {
 		err := SelectApiRequestValidationError{
 			field:  "Keyword",
 			reason: "value length must be at most 20 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := SelectApiRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
 		}
 		if !all {
 			return err
@@ -2203,3 +2225,302 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetApiTreeReplyValidationError{}
+
+// Validate checks the field values on AuthorizeApiRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthorizeApiRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthorizeApiRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthorizeApiRequestMultiError, or nil if none found.
+func (m *AuthorizeApiRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthorizeApiRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetModel()) < 1 {
+		err := AuthorizeApiRequestValidationError{
+			field:  "Model",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetModelId() <= 0 {
+		err := AuthorizeApiRequestValidationError{
+			field:  "ModelId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	_AuthorizeApiRequest_UserIds_Unique := make(map[uint32]struct{}, len(m.GetUserIds()))
+
+	for idx, item := range m.GetUserIds() {
+		_, _ = idx, item
+
+		if _, exists := _AuthorizeApiRequest_UserIds_Unique[item]; exists {
+			err := AuthorizeApiRequestValidationError{
+				field:  fmt.Sprintf("UserIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_AuthorizeApiRequest_UserIds_Unique[item] = struct{}{}
+		}
+
+		if item <= 0 {
+			err := AuthorizeApiRequestValidationError{
+				field:  fmt.Sprintf("UserIds[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	_AuthorizeApiRequest_RoleIds_Unique := make(map[uint32]struct{}, len(m.GetRoleIds()))
+
+	for idx, item := range m.GetRoleIds() {
+		_, _ = idx, item
+
+		if _, exists := _AuthorizeApiRequest_RoleIds_Unique[item]; exists {
+			err := AuthorizeApiRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_AuthorizeApiRequest_RoleIds_Unique[item] = struct{}{}
+		}
+
+		if item <= 0 {
+			err := AuthorizeApiRequestValidationError{
+				field:  fmt.Sprintf("RoleIds[%v]", idx),
+				reason: "value must be greater than 0",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if _, ok := api.Action_name[int32(m.GetOp())]; !ok {
+		err := AuthorizeApiRequestValidationError{
+			field:  "Op",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AuthorizeApiRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuthorizeApiRequestMultiError is an error wrapping multiple validation
+// errors returned by AuthorizeApiRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AuthorizeApiRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthorizeApiRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthorizeApiRequestMultiError) AllErrors() []error { return m }
+
+// AuthorizeApiRequestValidationError is the validation error returned by
+// AuthorizeApiRequest.Validate if the designated constraints aren't met.
+type AuthorizeApiRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthorizeApiRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthorizeApiRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthorizeApiRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthorizeApiRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthorizeApiRequestValidationError) ErrorName() string {
+	return "AuthorizeApiRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthorizeApiRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthorizeApiRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthorizeApiRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthorizeApiRequestValidationError{}
+
+// Validate checks the field values on AuthorizeApiReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AuthorizeApiReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthorizeApiReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthorizeApiReplyMultiError, or nil if none found.
+func (m *AuthorizeApiReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthorizeApiReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AuthorizeApiReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuthorizeApiReplyMultiError is an error wrapping multiple validation errors
+// returned by AuthorizeApiReply.ValidateAll() if the designated constraints
+// aren't met.
+type AuthorizeApiReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthorizeApiReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthorizeApiReplyMultiError) AllErrors() []error { return m }
+
+// AuthorizeApiReplyValidationError is the validation error returned by
+// AuthorizeApiReply.Validate if the designated constraints aren't met.
+type AuthorizeApiReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthorizeApiReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthorizeApiReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthorizeApiReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthorizeApiReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthorizeApiReplyValidationError) ErrorName() string {
+	return "AuthorizeApiReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthorizeApiReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthorizeApiReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthorizeApiReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthorizeApiReplyValidationError{}

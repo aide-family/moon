@@ -4,7 +4,7 @@ import { NotifyApp, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Button, MenuProps, Tag } from 'antd'
+import { Badge, Button, MenuProps } from 'antd'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -36,7 +36,7 @@ export const columns: ChatGroupTypeCoumnType[] = [
         width: 140,
         render: (status: Status) => {
             const { text, color } = StatusMap[status]
-            return <Tag color={color}>{text}</Tag>
+            return <Badge color={color} text={text} />
         }
     },
     {
@@ -206,17 +206,13 @@ export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             dataProps: {
                 type: 'select',
                 parentProps: {
-                    defaultValue: NotifyApp.NOTIFY_APP_WECHATWORK,
                     placeholder: '请选择所属平台',
-                    options: Object.entries(NotifyAppData)
-                        .map(([key, value]) => ({
+                    options: Object.entries(NotifyAppData).map(
+                        ([key, value]) => ({
                             label: value,
                             value: Number(key)
-                        }))
-                        .filter(
-                            (item) =>
-                                item.value !== NotifyApp.NOTIFY_APP_UNKNOWN
-                        )
+                        })
+                    )
                 }
             }
         }

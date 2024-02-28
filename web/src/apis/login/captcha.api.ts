@@ -1,4 +1,5 @@
-import {GET} from '../request'
+import { ThemeType } from '@/context'
+import { GET } from '../request'
 
 export enum CaptchaType {
     CaptchaTypeUnknown,
@@ -13,6 +14,7 @@ export type CaptchaReq = {
     x?: number
     y?: number
     captchaType?: CaptchaType
+    theme?: ThemeType
 }
 
 export type CaptchaRes = {

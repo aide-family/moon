@@ -1,5 +1,5 @@
 import { ActionKey, domainTypeData, moduleTypeData } from '@/apis/data'
-import { Status, StatusMap } from '@/apis/types'
+import { DomainType, ModuleType, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 
 import { IconFont } from '@/components/IconFont/IconFont'
@@ -14,6 +14,30 @@ const searchItems: DataFormItem[] = [
     {
         name: 'keyword',
         label: '关键词'
+    },
+    {
+        name: 'status',
+        label: '状态',
+        dataProps: {
+            type: 'radio-group',
+            parentProps: {
+                optionType: 'button',
+                options: [
+                    {
+                        label: '全部',
+                        value: Status.STATUS_UNKNOWN
+                    },
+                    {
+                        label: '启用',
+                        value: Status.STATUS_ENABLED
+                    },
+                    {
+                        label: '禁用',
+                        value: Status.STATUS_DISABLED
+                    }
+                ]
+            }
+        }
     }
 ]
 
@@ -315,6 +339,24 @@ export const columns: (
                     text={StatusMap[status].text}
                 />
             )
+        }
+    },
+    {
+        title: '所属领域',
+        dataIndex: 'domain',
+        key: 'domain',
+        width: 100,
+        render: (domain: DomainType) => {
+            return domainTypeData[domain]
+        }
+    },
+    {
+        title: '所属模块',
+        dataIndex: 'module',
+        key: 'module',
+        width: 100,
+        render: (module: ModuleType) => {
+            return moduleTypeData[module]
         }
     },
     {

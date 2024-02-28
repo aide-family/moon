@@ -1,5 +1,5 @@
 import { FC, Key, useContext, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
@@ -23,6 +23,9 @@ import strategyApi from '@/apis/home/monitor/strategy'
 import { Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
+import { ImportGroups } from '../strategy-group/child/ImportGroups'
+import qs from 'qs'
+import PromQLInput from '@/components/Prom/PromQLInput'
 
 const defaultPadding = 12
 
@@ -30,6 +33,8 @@ let fetchTimer: NodeJS.Timeout
 const Strategy: FC = () => {
     const { size } = useContext(GlobalContext)
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
+
     const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
@@ -45,9 +50,24 @@ const Strategy: FC = () => {
     )
     const [openBindNotify, setOpenBindNotify] = useState<boolean>(false)
 
-    const [searchParams, setSearchParams] = useState<StrategyListRequest>(
+    const [reqParams, setReqParams] = useState<StrategyListRequest>(
         defaultStrategyListRequest
     )
+
+    const [openImportModal, setOpenImportModal] = useState<boolean>(false)
+
+    const handleOpenImportModal = () => {
+        setOpenImportModal(true)
+    }
+
+    const handleCloseImportModal = () => {
+        setOpenImportModal(false)
+    }
+
+    const handleImportOnOk = () => {
+        handleCloseImportModal()
+        handlerRefresh()
+    }
 
     const handlerOpenDetail = (id?: number) => {
         setOperateId(id)
@@ -75,7 +95,7 @@ const Strategy: FC = () => {
         fetchTimer = setTimeout(() => {
             setLoading(true)
             strategyApi
-                .getStrategyList(searchParams)
+                .getStrategyList(reqParams)
                 .then((res) => {
                     setDataSource(res.list)
                     setTotal(res.page.total)
@@ -93,14 +113,13 @@ const Strategy: FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        setSearchParams({
-            ...searchParams,
+        setReqParams({
+            ...reqParams,
             page: {
                 curr: page,
-                size: pageSize || searchParams?.page?.size
+                size: pageSize || reqParams?.page?.size
             }
         })
-        handlerRefresh()
     }
 
     // 可以批量操作的数据
@@ -112,7 +131,6 @@ const Strategy: FC = () => {
     }
 
     const toStrategyGroupPage = (record: StrategyItemType) => {
-        console.log(record)
         navigate(`/home/monitor/strategy-group?id=${record.id}`)
     }
 
@@ -163,6 +181,9 @@ const Strategy: FC = () => {
             case ActionKey.ADD:
                 handlerOpenDetail()
                 break
+            case ActionKey.BATCH_IMPORT:
+                handleOpenImportModal()
+                break
             case ActionKey.REFRESH:
                 handlerRefresh()
                 break
@@ -188,6 +209,20 @@ const Strategy: FC = () => {
     }
 
     useEffect(() => {
+        handlerRefresh()
+    }, [reqParams])
+
+    useEffect(() => {
+        const searchP = qs.parse(searchParams.toString()) as any
+        // 获取prams
+        const req: StrategyListRequest = {
+            ...reqParams,
+            strategyId: +searchP?.strategyId || 0
+        }
+        setReqParams(req)
+    }, [])
+
+    useEffect(() => {
         handlerGetData()
     }, [refresh])
 
@@ -198,12 +233,20 @@ const Strategy: FC = () => {
                 onClose={handleCancelBindNotify}
                 strategyId={operateId}
             />
+            <ImportGroups
+                width="60%"
+                title="批量导入"
+                onOk={handleImportOnOk}
+                onCancel={handleCloseImportModal}
+                open={openImportModal}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}
                 id={operateId}
                 actionKey={actionKey}
                 refresh={handlerRefresh}
+                disabled={actionKey === ActionKey.DETAIL}
             />
             <div ref={operationRef}>
                 <RouteBreadcrumb />
@@ -241,8 +284,8 @@ const Strategy: FC = () => {
                     onChange: handlerBatchData
                 }}
                 showIndex={false}
-                pageSize={searchParams?.page?.size}
-                current={searchParams?.page?.curr}
+                pageSize={reqParams?.page?.size}
+                current={reqParams?.page?.curr}
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
@@ -254,7 +297,14 @@ const Strategy: FC = () => {
                                     size="small"
                                     onClick={handleCopyExpr(record?.expr)}
                                 />
-                                <p style={{ margin: 0 }}>{record?.expr}</p>
+                                <p style={{ margin: 0 }}>
+                                    <PromQLInput
+                                        disabled={true}
+                                        pathPrefix=""
+                                        value={record?.expr}
+                                        showBorder={false}
+                                    />
+                                </p>
                             </Space>
                             <Space style={{ width: '100%' }}>
                                 <Button

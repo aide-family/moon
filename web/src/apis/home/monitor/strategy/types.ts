@@ -122,6 +122,7 @@ interface StrategyListRequest {
     alarmLevelId: number
     status: number
     isDeleted: false
+    strategyId?: number
 }
 
 export const defaultStrategyListRequest: StrategyListRequest = {

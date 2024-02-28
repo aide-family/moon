@@ -5,7 +5,7 @@ import { Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Button, MenuProps, Tag } from 'antd'
+import { Badge, Button, MenuProps } from 'antd'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 
 export const defaultPadding = 12
@@ -36,7 +36,7 @@ export const columns: AlarmGroupTableColumnType[] = [
         width: 140,
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
-            return <Tag color={color}>{text}</Tag>
+            return <Badge color={color} text={text} />
         }
     },
     {

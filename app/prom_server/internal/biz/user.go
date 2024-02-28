@@ -152,7 +152,7 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 	// 没有角色
 	if len(userBO.Roles) == 0 {
-		token, err = middler.IssueToken(userBO.Id, "")
+		token, err = middler.IssueToken(userBO.Id, 0)
 		return
 	}
 
@@ -167,19 +167,19 @@ func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd 
 
 	cacheRoleIdBytes, _ := client.Get(ctx, key)
 	cacheRoleIdStr := string(cacheRoleIdBytes)
+	cacheRoleId := uint64(0)
 	searchRole := func(roleInfo *bo.RoleBO) bool {
-		cacheRoleId, _ := strconv.Atoi(cacheRoleIdStr)
+		cacheRoleId, _ = strconv.ParseUint(cacheRoleIdStr, 0, 10)
 		return roleInfo.Id == uint32(cacheRoleId)
 	}
 	// 如果上次默认角色还在角色列表中
 	if slices.ContainsOf(userBO.Roles, searchRole) {
-		token, err = middler.IssueToken(userBO.Id, cacheRoleIdStr)
+		token, err = middler.IssueToken(userBO.Id, uint32(cacheRoleId))
 		return
 	}
 
 	roleId := userBO.Roles[0].Id
-	roleIdStr := strconv.Itoa(int(roleId))
-	token, err = middler.IssueToken(userBO.Id, roleIdStr)
+	token, err = middler.IssueToken(userBO.Id, roleId)
 	return
 }
 
@@ -217,7 +217,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 	// 如果用户没有可用角色, 则直接置空处理
 	if len(userBO.Roles) == 0 {
 		roleIdStr = ""
-		token, err = middler.IssueToken(authClaims.ID, roleIdStr)
+		token, err = middler.IssueToken(authClaims.ID, roleId)
 		return
 	}
 
@@ -229,18 +229,17 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 	// 切换的角色不存在, 则检查已有角色和token内角色
 	if !slices.ContainsOf(userBO.Roles, compareFun) {
 		compareFunCurrRoleId := func(do *bo.RoleBO) bool {
-			currRoleId, _ := strconv.Atoi(authClaims.Role)
-			return do.Id == uint32(currRoleId)
+			return do.Id == authClaims.Role
 		}
 		// 先默认为token内的角色
-		roleIdStr = authClaims.Role
+		roleId = authClaims.Role
 		// 如果token的角色不在已有的角色列表中, 则默认第一个角色
 		if !slices.ContainsOf(userBO.Roles, compareFunCurrRoleId) {
 			roleIdStr = strconv.Itoa(int(userBO.Roles[0].Id))
 		}
 	}
 
-	token, err = middler.IssueToken(authClaims.ID, roleIdStr)
+	token, err = middler.IssueToken(authClaims.ID, roleId)
 	return
 }
 

@@ -64,7 +64,7 @@ const Auth: React.FC = () => {
     // 获取数据
     const handlerGetData = () => {
         setLoading(true)
-        authApiList({ ...search })
+        authApiList(search)
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
@@ -86,7 +86,6 @@ const Auth: React.FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        console.log(page, pageSize)
         setSearch({
             ...search,
             page: {
@@ -98,10 +97,9 @@ const Auth: React.FC = () => {
 
     // 可以批量操作的数据
     const handlerBatchData = (
-        selectedRowKeys: React.Key[],
+        _: React.Key[],
         selectedRows: ApiAuthListItem[]
     ) => {
-        console.log(selectedRowKeys, selectedRows)
         setTableSelectedRows(selectedRows)
     }
 

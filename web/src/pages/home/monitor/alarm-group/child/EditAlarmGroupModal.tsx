@@ -1,5 +1,5 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Space, Table, Tag } from 'antd'
+import { Badge, Button, Form, Modal, Space, Table } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { ChartGroupTableColumnType, editorItems } from '../options'
 import {
@@ -25,10 +25,11 @@ export interface EditAlarmGroupModalProps {
     open: boolean
     onClose: () => void
     onOk: () => void
+    disabled?: boolean
 }
 
 const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
-    const { alarmGroupId, open, onClose, onOk } = props
+    const { alarmGroupId, open, onClose, onOk, disabled } = props
     const [form] = Form.useForm<CreateAlarmGroupRequest>()
     const [chatSelectFrom] = Form.useForm<{ groups: DefaultOptionType[] }>()
     const [loading, setLoading] = useState<boolean>(false)
@@ -155,16 +156,18 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
             title: '状态',
             dataIndex: 'status',
             key: 'status',
+            align: 'center',
             width: 120,
             render: (status: Status) => {
                 const { color, text } = StatusMap[status]
-                return <Tag color={color}>{text}</Tag>
+                return <Badge color={color} text={text} />
             }
         },
         {
             title: '操作',
             dataIndex: 'action',
             key: 'action',
+            align: 'center',
             width: 80,
             render: (_: any, record: ChatGroupSelectItem) => {
                 return (
@@ -173,6 +176,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         danger
                         type="link"
                         onClick={() => removeDetailChatGroup(record)}
+                        disabled={disabled}
                         icon={
                             <IconFont
                                 type="icon-shanchu-copy"
@@ -194,20 +198,24 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                     <Button onClick={onClose} loading={loading}>
                         取消
                     </Button>
-                    <Button
-                        onClick={() => handeResetForm(detail)}
-                        loading={loading}
-                        type="dashed"
-                    >
-                        重置
-                    </Button>
-                    <Button
-                        type="primary"
-                        onClick={handleOnOk}
-                        loading={loading}
-                    >
-                        提交
-                    </Button>
+                    {disabled ? null : (
+                        <>
+                            <Button
+                                onClick={() => handeResetForm(detail)}
+                                loading={loading}
+                                type="dashed"
+                            >
+                                重置
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={handleOnOk}
+                                loading={loading}
+                            >
+                                提交
+                            </Button>
+                        </>
+                    )}
                 </Space>
             </>
         )
@@ -254,7 +262,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                 <DataForm
                     form={form}
                     items={editorItems}
-                    formProps={{ layout: 'vertical' }}
+                    formProps={{ layout: 'vertical', disabled: disabled }}
                 />
                 <Space direction="vertical" style={{ width: '100%' }}>
                     <Form
@@ -263,20 +271,29 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         onFinish={appendChatGroup}
                     >
                         <Form.Item name="groups" label={<b>机器人</b>}>
-                            <FetchSelect
-                                handleFetch={getChatGroupList}
-                                width={400}
-                                defaultOptions={[]}
-                                selectProps={{
-                                    placeholder: '请选择机器人',
-                                    mode: 'multiple',
-                                    labelInValue: true
-                                }}
-                            />
+                            {!disabled && (
+                                <FetchSelect
+                                    handleFetch={getChatGroupList}
+                                    width={400}
+                                    defaultOptions={[]}
+                                    selectProps={{
+                                        placeholder: '请选择机器人',
+                                        mode: 'multiple',
+                                        labelInValue: true,
+                                        disabled: disabled
+                                    }}
+                                />
+                            )}
                         </Form.Item>
-                        <Button type="primary" htmlType="submit">
-                            添加
-                        </Button>
+                        {!disabled && (
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                disabled={disabled}
+                            >
+                                添加
+                            </Button>
+                        )}
                     </Form>
                     <Table
                         columns={chartGroupCoumns}
@@ -286,9 +303,6 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         rowKey={(record) => record.value}
                     />
                     <HeightLine />
-                    <Space size={8}>
-                        <b>通知对象</b>
-                    </Space>
                 </Space>
             </Modal>
         </>

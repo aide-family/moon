@@ -20,6 +20,7 @@ import {
 import alarmRealtimeApi from '@/apis/home/monitor/alarm-realtime'
 import { ActionKey } from '@/apis/data'
 import { GlobalContext } from '@/context'
+import EditAlarmPageModal from '../alarm-page/child/EditAlarmPageModal'
 
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
@@ -38,9 +39,23 @@ const AlarmRealtime: FC = () => {
     const [alarmCountMap, setAlarmCountMap] = useState<{
         [key: number]: number | string
     }>()
+    const [openEditModal, setOpenEditModal] = useState<boolean>(false)
 
     const handleRefresh = () => {
         setRefresh(!refresh)
+    }
+
+    const handleOpenEditModal = () => {
+        setOpenEditModal(true)
+    }
+
+    const handleCancelEditModal = () => {
+        setOpenEditModal(false)
+    }
+
+    const handleEditModelOnOk = () => {
+        handleCancelEditModal()
+        handleRefresh()
     }
 
     const handleGetAlarmPageList = () => {
@@ -123,6 +138,9 @@ const AlarmRealtime: FC = () => {
                 break
             case ActionKey.BIND_MY_ALARM_PAGES:
                 break
+            case ActionKey.ADD:
+                handleOpenEditModal()
+                break
         }
     }
 
@@ -185,6 +203,11 @@ const AlarmRealtime: FC = () => {
 
     return (
         <div>
+            <EditAlarmPageModal
+                open={openEditModal}
+                onCancel={handleCancelEditModal}
+                onOk={handleEditModelOnOk}
+            />
             <RouteBreadcrumb />
             <HeightLine />
             <SearchForm
@@ -199,7 +222,7 @@ const AlarmRealtime: FC = () => {
                 queryForm={queryForm}
                 rightOptions={rightOptions(handleGetAlarmPageList)}
                 action={handleOptionClick}
-                showAdd={false}
+                // showAdd={false}
             />
             <PaddingLine padding={12} height={1} borderRadius={4} />
             <Tabs
@@ -210,19 +233,21 @@ const AlarmRealtime: FC = () => {
                 }}
                 size={size}
             />
-            <DataTable
-                showIndex={false}
-                // showOperation={false}
-                columns={columns}
-                dataSource={dataSource}
-                total={total}
-                loading={loading}
-                operationItems={operationItems}
-                action={handlerTableAction}
-                onRow={onRow}
-                pageSize={queryParams?.page?.size}
-                current={queryParams?.page?.curr}
-            />
+            {alarmPageList.length > 0 && (
+                <DataTable
+                    showIndex={false}
+                    // showOperation={false}
+                    columns={columns}
+                    dataSource={dataSource}
+                    total={total}
+                    loading={loading}
+                    operationItems={operationItems}
+                    action={handlerTableAction}
+                    onRow={onRow}
+                    pageSize={queryParams?.page?.size}
+                    current={queryParams?.page?.curr}
+                />
+            )}
         </div>
     )
 }

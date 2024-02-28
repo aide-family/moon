@@ -2,15 +2,16 @@ package middler
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/pkg/conn"
 )
 
-const AdminRole = "1"
+const AdminRole = 1
 
-type CheckUserRoleExistFun func(ctx context.Context, userID uint32, roleID string) error
+type CheckUserRoleExistFun func(ctx context.Context, userID, roleID uint32) error
 type GetApiIDByPathAndMethodFun func(ctx context.Context, path, method string) (uint64, error)
 
 func RbacServer(checkFun CheckUserRoleExistFun, getApiFun GetApiIDByPathAndMethodFun) middleware.Middleware {
@@ -30,7 +31,8 @@ func RbacServer(checkFun CheckUserRoleExistFun, getApiFun GetApiIDByPathAndMetho
 			method := GetMethod(ctx)
 			// 2. 校验权限
 			enforcer := conn.Enforcer()
-			has, err := enforcer.Enforce(authClaims.Role, path, method)
+			roleStr := strconv.FormatUint(uint64(authClaims.Role), 10)
+			has, err := enforcer.Enforce(roleStr, path, method)
 			if err != nil {
 				return nil, perrors.ErrorUnknown("系统错误")
 			}
