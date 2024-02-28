@@ -81,7 +81,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	databaseConf := c.GetData().GetDatabase()
 
 	env := c.GetEnv()
-	db, err := conn.NewMysqlDB(databaseConf, logger)
+	db, err := conn.Db(databaseConf, logger)
 	if err != nil {
 		return nil, nil, err
 	}
