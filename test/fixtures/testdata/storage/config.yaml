@@ -1,0 +1,6 @@
+# config file
+data:
+  database:
+    driver: sqlite
+    source: ./test_sqlite.db
+    debug: true
