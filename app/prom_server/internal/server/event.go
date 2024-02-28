@@ -35,10 +35,10 @@ type AlarmEvent struct {
 	changeGroupChannel <-chan uint32
 	removeGroupChannel <-chan bo.RemoveStrategyGroupBO
 
-	agentNames     cache.Cache
-	groups         cache.Cache
-	changeGroupIds cache.Cache
-	eventHandlers  map[consts.TopicType]interflow.Callback
+	agentNameCache     cache.Cache
+	groupCache         cache.Cache
+	changeGroupIdCache cache.Cache
+	eventHandlers      map[consts.TopicType]interflow.Callback
 
 	interflowInstance interflow.Interflow
 }
@@ -83,9 +83,9 @@ func NewAlarmEvent(
 		groupService:       groupService,
 		changeGroupChannel: changeGroupChannel,
 		removeGroupChannel: removeGroupChannel,
-		agentNames:         cache.NewRedisCache(globalCache, consts.AgentNames),
-		groups:             cache.NewRedisCache(globalCache, consts.StrategyGroups),
-		changeGroupIds:     cache.NewRedisCache(globalCache, consts.ChangeGroupIds),
+		agentNameCache:     cache.NewRedisCache(globalCache, consts.AgentNames),
+		groupCache:         cache.NewRedisCache(globalCache, consts.StrategyGroups),
+		changeGroupIdCache: cache.NewRedisCache(globalCache, consts.ChangeGroupIds),
 		interflowInstance:  d.Interflow(),
 	}
 
@@ -114,7 +114,7 @@ func (l *AlarmEvent) storeGroups() error {
 		if err != nil {
 			continue
 		}
-		l.groups.Store(groupIdStr, string(groupItemBytes))
+		l.groupCache.Store(groupIdStr, string(groupItemBytes))
 	}
 
 	return nil
@@ -133,7 +133,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 				return
 			case groupId := <-l.changeGroupChannel:
 				groupIdStr := strconv.FormatUint(uint64(groupId), 10)
-				l.changeGroupIds.Store(groupIdStr, "")
+				l.changeGroupIdCache.Store(groupIdStr, "")
 			case groupInfo := <-l.removeGroupChannel:
 				if err := l.sendRemoveGroup(groupInfo.Id); err != nil {
 					l.log.Errorf("send remove group error: %s", err.Error())
@@ -141,7 +141,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 			case <-ticker.C:
 				l.log.Infof("start synce store groups")
 				changeGroupIds := make([]uint32, 0, 128)
-				l.changeGroupIds.Range(func(key, value string) bool {
+				l.changeGroupIdCache.Range(func(key, value string) bool {
 					groupId, err := strconv.ParseUint(key, 10, 64)
 					if err != nil {
 						l.log.Errorf("parse group id error: %v", err)
@@ -164,8 +164,9 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					l.log.Errorf("list all group detail error: %v", err)
 					continue
 				}
-
-				l.log.Infof("synce store groups success %v", len(changeGroupIds))
+				for _, groupId := range changeGroupIds {
+					l.changeGroupIdCache.Delete(strconv.FormatUint(uint64(groupId), 10))
+				}
 
 				for _, groupItem := range listAllGroupDetail.GetGroupList() {
 					groupIdStr := strconv.FormatUint(uint64(groupItem.GetId()), 10)
@@ -173,12 +174,13 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					if err != nil {
 						continue
 					}
-					l.groups.Store(groupIdStr, string(groupItemBytes))
+					l.groupCache.Store(groupIdStr, string(groupItemBytes))
 					if err = l.sendChangeGroup(groupItem); err != nil {
 						l.log.Errorf("send change group error: %s", err.Error())
 					}
-					l.changeGroupIds.Delete(groupIdStr)
+					l.changeGroupIdCache.Delete(groupIdStr)
 				}
+				l.log.Infof("synce store groups done %v", len(changeGroupIds))
 			}
 		}
 	}()
@@ -207,7 +209,7 @@ func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte)
 // agentOfflineEventHandler 处理agent offline消息
 func (l *AlarmEvent) agentOfflineEventHandler(topic consts.TopicType, key, value []byte) error {
 	l.log.Infof("agent offline: %s", string(key))
-	l.agentNames.Delete(string(key))
+	l.agentNameCache.Delete(string(key))
 	return nil
 }
 
@@ -221,11 +223,11 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 		Key:   key,
 	}
 
-	l.agentNames.Store(string(key), agentInfo.String())
+	l.agentNameCache.Store(string(key), agentInfo.String())
 
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
-	l.groups.Range(func(key, groupDetail string) bool {
+	l.groupCache.Range(func(key, groupDetail string) bool {
 		eg.Go(func() error {
 			msg := &interflow.HookMsg{
 				Topic: string(consts.StrategyGroupAllTopic),
@@ -247,7 +249,7 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.StrategyGroupAllTopic)
-	l.agentNames.Range(func(key, agentInfoStr string) bool {
+	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
 		var agentInfo AgentInfo
 		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true
@@ -269,13 +271,13 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 // sendRemoveGroup 发送移除规则组消息
 func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 	groupIdStr := strconv.FormatUint(uint64(groupId), 10)
-	l.groups.Delete(groupIdStr)
+	l.groupCache.Delete(groupIdStr)
 	l.log.Infof("send remove group: %d", groupId)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.RemoveGroupTopic)
 	msgValue := []byte(strconv.FormatUint(uint64(groupId), 10))
-	l.agentNames.Range(func(key, agentInfoStr string) bool {
+	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
 		var agentInfo AgentInfo
 		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true

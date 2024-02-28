@@ -38,8 +38,8 @@ export const routers: RouteObject[] = [
                 )
             },
             {
-                path: '/home/monitor/chat-group',
-                Component: lazy(() => import('@/pages/home/monitor/chat-group'))
+                path: '/home/monitor/chat-hook',
+                Component: lazy(() => import('@/pages/home/monitor/chat-hook'))
             },
             {
                 path: '/home/monitor/alarm-realtime',

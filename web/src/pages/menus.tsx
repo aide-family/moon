@@ -130,8 +130,8 @@ export const defaultMenuItems: ItemType[] = [
                 key: '/home/monitor/alarm-group'
             },
             {
-                label: '机器人组',
-                key: '/home/monitor/chat-group'
+                label: '机器人',
+                key: '/home/monitor/chat-hook'
             }
         ]
     }

@@ -131,11 +131,15 @@ const AlarmPage: FC = () => {
 
     const getAlarmPageList = () => {
         setLoading(true)
-        alarmPageApi.getAlarmPageList(searchRequest).then((res) => {
-            setLoading(false)
-            setTotal(res.page.total)
-            setDataSource(res.list)
-        })
+        alarmPageApi
+            .getAlarmPageList(searchRequest)
+            .then((res) => {
+                setTotal(res.page.total)
+                setDataSource(res.list)
+            })
+            .finally(() => {
+                setLoading(false)
+            })
     }
 
     useEffect(() => {
