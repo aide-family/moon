@@ -66,25 +66,21 @@ server:
     addr: 0.0.0.0:9000
     timeout: 1s
 
-# NOTE: 添加你自己的数据库，并增加prometheus_manager库，如果选择mysql, 则把sqllite部分注释, 主机配置需要根据自身的地址进行配置，下方redis配置同理
+# NOTE: 1.使用sqlite默认会在deploy/sql下生成init_sqlite.db数据库文件 
+# 2. 选择mysql, 把sqlite部分注释并创建名为prometheus_manager的数据库, 并配置主机:ip, 如:127.0.0.1:3306，下方redis配置同理
 data:
   database:
     driver: sqlite
-    source: ../../deploy/sql/init_sqllite.db
+    source: ../../deploy/sql/init_sqlite.db
     debug: true
-    #  database:
-    #    driver: mysql
-    #    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
-    #    debug: true
+#  database:
+#    driver: mysql
+#    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
+#    debug: true
+
 # 配置redis则使用redis作为缓存
 #  redis:
 #    addr: host.docker.internal:6379
-#    password: redis#single#test
-#    read_timeout: 0.2s
-#    write_timeout: 0.2s
-# 开启redis配置，则使用redis作为缓存组件
-#  redis:
-#    addr: localhost:6379
 #    password: redis#single#test
 #    read_timeout: 0.2s
 #    write_timeout: 0.2s

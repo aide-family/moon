@@ -69,8 +69,8 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 	}
 }
 
-// NewMysqlDB 获取mysql数据库连接
-func NewMysqlDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
+// NewDB 获取数据库连接
+func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
 	if len(logger) > 0 {
 		// gormLog := NewGormLogger(logger[0])
