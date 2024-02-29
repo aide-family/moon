@@ -2,9 +2,12 @@ package alarmhistory
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/helper/prom"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -55,9 +58,24 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 		md5s = append(md5s, v.Md5)
 		return v.ToModel()
 	})
+
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.ClausesOnConflict()).CreateInBatches(newModels, 50).Error; err != nil {
 		return nil, err
 	}
+
+	strategyIds := make(map[string]float64, len(historyBOs))
+	for _, v := range newModels {
+		idStr := strconv.FormatUint(uint64(v.StrategyID), 10)
+		strategyIds[idStr] += 1
+	}
+
+	// 告警事件计数
+	go func() {
+		defer after.Recover(l.log)
+		for strategyId, count := range strategyIds {
+			prom.AlarmEventCounter.WithLabelValues("strategy_id", strategyId).Add(count)
+		}
+	}()
 
 	var historyList []*do.PromAlarmHistory
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.WhereInMd5(md5s...)).Find(&historyList).Error; err != nil {

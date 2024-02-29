@@ -24,8 +24,39 @@ var (
 		Name:      "ip_total",
 		Help:      "The total number of processed requests",
 	}, []string{"ip"})
+
+	// UPMemberCounter 用户在线人数
+	UPMemberCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "server",
+		Subsystem: "requests",
+		Name:      "member_total",
+		Help:      "The total number of processed requests",
+	}, []string{"server"})
+
+	// AlarmEventCounter 告警事件数
+	AlarmEventCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "server",
+		Subsystem: "requests",
+		Name:      "alarm_total",
+		Help:      "The total number of processed requests",
+	}, []string{"strategy_id"})
+
+	// WorkingStrategyCounter 工作中规则数量
+	WorkingStrategyCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "server",
+		Subsystem: "requests",
+		Name:      "working_strategy_total",
+		Help:      "The total number of processed requests",
+	}, []string{"server"})
 )
 
 func init() {
-	prometheus.MustRegister(MetricSeconds, MetricRequests, IpMetricCounter)
+	prometheus.MustRegister(
+		MetricSeconds,
+		MetricRequests,
+		IpMetricCounter,
+		UPMemberCounter,
+		AlarmEventCounter,
+		WorkingStrategyCounter,
+	)
 }
