@@ -8,14 +8,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"prometheus-manager/pkg/after"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/app/prom_server/internal/data"
+	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/helper/prom"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -93,19 +93,22 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 	case 0:
 		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", 0).Error
 	case 1:
+		prom.WorkingStrategyCounter.WithLabelValues("prom-server").Inc()
 		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", strategyCountList[0].Count).Error
 	default:
 		var caseSet bytes.Buffer
 		caseSet.WriteString("CASE id ")
+		total := float64(0)
 		for _, strategyCount := range strategyCountList {
 			caseSet.WriteString("WHEN ")
 			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.GroupId))
 			caseSet.WriteString(" THEN ")
 			caseSet.WriteString(fmt.Sprintf("%d", strategyCount.Count))
 			caseSet.WriteString(" ")
+			total += float64(strategyCount.Count)
 		}
 		caseSet.WriteString("END")
-
+		prom.WorkingStrategyCounter.WithLabelValues("prom-server").Add(total)
 		return db.Scopes(basescopes.InIds(ids...)).Update("enable_strategy_count", gorm.Expr(caseSet.String())).Error
 	}
 }
