@@ -26,7 +26,7 @@ var (
 	}, []string{"ip"})
 
 	// UPMemberCounter 用户在线人数
-	UPMemberCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+	UPMemberCounter = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "server",
 		Subsystem: "requests",
 		Name:      "member_total",
