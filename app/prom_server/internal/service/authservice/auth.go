@@ -64,7 +64,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 	if err := s.userBiz.Logout(ctx, authClaims); err != nil {
 		return nil, err
 	}
-	prom.IpMetricCounter.WithLabelValues("prom-server").Add(-1)
+	prom.UPMemberCounter.WithLabelValues("prom-server").Sub(1)
 	return &pb.LogoutReply{
 		UserId: authClaims.ID,
 	}, nil
