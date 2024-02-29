@@ -69,7 +69,7 @@ func (l *strategyRepoImpl) ListStrategyByIds(ctx context.Context, ids []uint32) 
 	return list, nil
 }
 
-// CreateStrategy 创建策略 TODO 需要增加事物, 保证数据一致性
+// CreateStrategy 创建策略
 func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
 	newStrategy := strategyBO.ToModel()
 	// 替换报警页面和分类

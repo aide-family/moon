@@ -31,9 +31,9 @@ PROM-SERVER-VERSION:=$(VERSION)
 PROM-AGENT-VERSION:=$(VERSION)
 
 # image
-PROM-WEB-IMAGE:=${REPO}/prometheus-manager/web:${PROM-WEB-VERSION}
-PROM-SERVER-IMAGE:=${REPO}/prometheus-manager/prom-server:${PROM-SERVER-VERSION}
-PROM-AGENT-IMAGE:=${REPO}/prometheus-manager/prom-agent:${PROM-AGENT-VERSION}
+PROM-WEB-IMAGE:=${REPO}/moon-web:${PROM-WEB-VERSION}
+PROM-SERVER-IMAGE:=${REPO}/moon-prom-server:${PROM-SERVER-VERSION}
+PROM-AGENT-IMAGE:=${REPO}/moon-prom-agent:${PROM-AGENT-VERSION}
 
 APPS ?= $(shell ls app)
 path := $(shell pwd)

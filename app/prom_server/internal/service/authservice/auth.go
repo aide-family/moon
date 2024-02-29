@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/helper/prom"
 
 	pb "prometheus-manager/api/auth"
 	"prometheus-manager/api/perrors"
@@ -47,6 +48,7 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		s.log.Warnf("LoginByUsernameAndPassword error: %v", err)
 		return nil, perrors.ErrorUnknown("颁发token失败")
 	}
+	prom.UPMemberCounter.WithLabelValues("prom-server").Inc()
 	return &pb.LoginReply{
 		Token: token,
 		User:  userBO.ToApiV1(),
@@ -62,7 +64,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 	if err := s.userBiz.Logout(ctx, authClaims); err != nil {
 		return nil, err
 	}
-
+	prom.IpMetricCounter.WithLabelValues("prom-server").Add(-1)
 	return &pb.LogoutReply{
 		UserId: authClaims.ID,
 	}, nil
