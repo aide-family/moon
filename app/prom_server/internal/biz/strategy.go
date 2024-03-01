@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
@@ -21,16 +23,18 @@ type (
 
 		strategyRepo repository.StrategyRepo
 		notifyRepo   repository.NotifyRepo
+		logX         repository.SysLogRepo
 	}
 )
 
 // NewStrategyBiz 创建策略业务对象
-func NewStrategyBiz(strategyRepo repository.StrategyRepo, notifyRepo repository.NotifyRepo, logger log.Logger) *StrategyBiz {
+func NewStrategyBiz(strategyRepo repository.StrategyRepo, notifyRepo repository.NotifyRepo, logX repository.SysLogRepo, logger log.Logger) *StrategyBiz {
 	return &StrategyBiz{
 		log: log.NewHelper(log.With(logger, "module", "strategy")),
 
 		strategyRepo: strategyRepo,
 		notifyRepo:   notifyRepo,
+		logX:         logX,
 	}
 }
 
@@ -48,22 +52,58 @@ func (b *StrategyBiz) CreateStrategy(ctx context.Context, strategyBO *bo.Strateg
 		return nil, err
 	}
 
+	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
+		ModuleName: vo.ModuleStrategy,
+		ModuleId:   strategyBO.Id,
+		Content:    strategyBO.String(),
+		Title:      "创建策略",
+	})
+
 	return strategyBO, nil
 }
 
 // UpdateStrategyById 更新策略
 func (b *StrategyBiz) UpdateStrategyById(ctx context.Context, id uint32, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
-	strategyBO, err := b.strategyRepo.UpdateStrategyById(ctx, id, strategyBO)
+	// 查询
+	oldData, err := b.GetStrategyById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	newStrategyBO, err := b.strategyRepo.UpdateStrategyById(ctx, id, strategyBO)
+	if err != nil {
+		return nil, err
+	}
+
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vo.ModuleStrategy,
+		ModuleId:   strategyBO.Id,
+		Content:    bo.NewChangeLogBo(oldData, newStrategyBO).String(),
+		Title:      "更新策略",
+	})
 
 	return strategyBO, nil
 }
 
 // BatchUpdateStrategyStatusByIds 批量更新策略状态
-func (b *StrategyBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	return b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, vo.Status(status), ids)
+func (b *StrategyBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+	oldList, err := b.strategyRepo.List(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	if err = b.strategyRepo.BatchUpdateStrategyStatusByIds(ctx, status, ids); err != nil {
+		return err
+	}
+
+	list := slices.To(oldList, func(old *bo.StrategyBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleStrategy,
+			ModuleId:   old.Id,
+			Content:    bo.NewChangeLogBo(old.Status.String(), status.String()).String(),
+			Title:      "批量更新策略状态",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	return nil
 }
 
 // DeleteStrategyByIds 删除策略
@@ -71,7 +111,24 @@ func (b *StrategyBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) er
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.strategyRepo.DeleteStrategyByIds(ctx, ids...)
+	// 查询
+	oldList, err := b.strategyRepo.List(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	if err = b.strategyRepo.DeleteStrategyByIds(ctx, ids...); err != nil {
+		return err
+	}
+	list := slices.To(oldList, func(old *bo.StrategyBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleStrategy,
+			ModuleId:   old.Id,
+			Content:    old.String(),
+			Title:      "删除策略",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	return nil
 }
 
 // GetStrategyById 获取策略详情
@@ -147,6 +204,16 @@ func (b *StrategyBiz) ExportStrategy(ctx context.Context, req *strategyPB.Export
 		return nil, err
 	}
 
+	list := slices.To(strategyBOs, func(strategyBO *bo.StrategyBO) string {
+		return strategyBO.String()
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionExport, &bo.SysLogBo{
+		ModuleName: vo.ModuleStrategy,
+		ModuleId:   strategyBOs[0].Id,
+		Content:    fmt.Sprintf(`{"list":[%s]}`, strings.Join(list, ",")),
+		Title:      "导出策略",
+	})
+
 	return strategyBOs, nil
 }
 
@@ -177,5 +244,23 @@ func (b *StrategyBiz) BindStrategyNotifyObject(ctx context.Context, strategyId u
 	if len(notifyBOs) != len(notifyIds) {
 		return perrors.ErrorNotFound("notify not found")
 	}
-	return b.strategyRepo.BindStrategyNotifyObject(ctx, strategyBO, notifyBOs)
+
+	if err = b.strategyRepo.BindStrategyNotifyObject(ctx, strategyBO, notifyBOs); err != nil {
+		return err
+	}
+
+	notifyStr := slices.To(notifyBOs, func(notifyBO *bo.NotifyBO) string {
+		return notifyBO.String()
+	})
+
+	list := slices.To(notifyBOs, func(notifyBO *bo.NotifyBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleStrategy,
+			ModuleId:   strategyBO.Id,
+			Content:    fmt.Sprintf(`"notifies":[%s]`, strings.Join(notifyStr, ",")),
+			Title:      "绑定策略通知对象",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -17,12 +18,14 @@ type NotifyBiz struct {
 	log *log.Helper
 
 	notifyRepo repository.NotifyRepo
+	logX       repository.SysLogRepo
 }
 
-func NewNotifyBiz(repo repository.NotifyRepo, logger log.Logger) *NotifyBiz {
+func NewNotifyBiz(repo repository.NotifyRepo, logX repository.SysLogRepo, logger log.Logger) *NotifyBiz {
 	return &NotifyBiz{
 		log:        log.NewHelper(log.With(logger, "module", "biz.NotifyBiz")),
 		notifyRepo: repo,
+		logX:       logX,
 	}
 }
 
@@ -32,6 +35,13 @@ func (b *NotifyBiz) CreateNotify(ctx context.Context, notifyBo *bo.NotifyBO) (*b
 	if err != nil {
 		return nil, err
 	}
+
+	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
+		ModuleName: vo.ModuleAlarmNotifyGroup,
+		ModuleId:   notifyBo.Id,
+		Content:    notifyBo.String(),
+		Title:      "创建通知对象",
+	})
 
 	return notifyBo, nil
 }
@@ -51,12 +61,46 @@ func (b *NotifyBiz) CheckNotifyName(ctx context.Context, name string, id ...uint
 
 // UpdateNotifyById 更新通知对象
 func (b *NotifyBiz) UpdateNotifyById(ctx context.Context, id uint32, notifyBo *bo.NotifyBO) error {
-	return b.notifyRepo.Update(ctx, notifyBo, basescopes.InIds(id))
+	// 查询
+	oldData, err := b.GetNotifyById(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return perrors.ErrorNotFound("通知对象不存在")
+		}
+		return err
+	}
+	if err = b.notifyRepo.Update(ctx, notifyBo, basescopes.InIds(id)); err != nil {
+		return err
+	}
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vo.ModuleAlarmNotifyGroup,
+		ModuleId:   id,
+		Content:    bo.NewChangeLogBo(oldData, notifyBo).String(),
+		Title:      "更新通知对象",
+	})
+	return nil
 }
 
 // DeleteNotifyById 删除通知对象
 func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
-	return b.notifyRepo.Delete(ctx, basescopes.InIds(id))
+	// 查询
+	oldData, err := b.GetNotifyById(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return perrors.ErrorNotFound("通知对象不存在")
+		}
+		return err
+	}
+	if err = b.notifyRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
+		return err
+	}
+	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
+		ModuleName: vo.ModuleAlarmNotifyGroup,
+		ModuleId:   id,
+		Content:    oldData.String(),
+		Title:      "删除通知对象",
+	})
+	return nil
 }
 
 // GetNotifyById 获取通知对象

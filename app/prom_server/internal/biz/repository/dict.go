@@ -26,12 +26,17 @@ type (
 		DeleteDictByIds(ctx context.Context, id ...uint32) error
 		// GetDictById 通过id获取字典详情
 		GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error)
+		GetDictByIds(ctx context.Context, ids ...uint32) ([]*bo.DictBO, error)
 		// ListDict 获取字典列表
 		ListDict(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error)
 	}
 
 	UnimplementedPromDictRepo struct{}
 )
+
+func (UnimplementedPromDictRepo) GetDictByIds(_ context.Context, _ ...uint32) ([]*bo.DictBO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDictByIds not implemented")
+}
 
 func (UnimplementedPromDictRepo) mustEmbedUnimplemented() {}
 

@@ -19,7 +19,8 @@ import {
 } from '@/apis/home/monitor/alarm-page/types'
 import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import EditAlarmPageModal from './child/EditAlarmPageModal'
-import { Status } from '@/apis/types'
+import { ModuleType, Status } from '@/apis/types'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 let timer: NodeJS.Timeout
 
@@ -35,6 +36,18 @@ const AlarmPage: FC = () => {
     const [searchRequest, setSearchRequest] = useState<ListAlarmPageRequest>(
         defaultListAlarmPageRequest
     )
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handleRefresh = () => {
         setRefresh(!refresh)
@@ -114,6 +127,9 @@ const AlarmPage: FC = () => {
             case ActionKey.DISABLE:
                 handleChangeStatus([item.id], Status.STATUS_DISABLED)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(item.id)
+                break
             default:
                 break
         }
@@ -148,6 +164,13 @@ const AlarmPage: FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModuleAlarmPage}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <EditAlarmPageModal
                 open={openEditModal}
                 onCancel={handleCancelEditModal}

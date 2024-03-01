@@ -23,6 +23,20 @@ type alarmPageRepoImpl struct {
 	data *data.Data
 }
 
+func (l *alarmPageRepoImpl) GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+	var list []*do.PromAlarmPage
+	if err := l.data.DB().
+		WithContext(ctx).
+		Scopes(scopes...).
+		Find(&list).
+		Error; err != nil {
+		return nil, err
+	}
+	return slices.To(list, func(p *do.PromAlarmPage) *bo.AlarmPageBO {
+		return bo.AlarmPageModelToBO(p)
+	}), nil
+}
+
 func (l *alarmPageRepoImpl) UserPageList(ctx context.Context, userId uint32) ([]*bo.AlarmPageBO, error) {
 	var userInfo do.SysUser
 	if err := l.data.DB().

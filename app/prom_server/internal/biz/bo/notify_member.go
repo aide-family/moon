@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -19,6 +21,18 @@ type (
 		NotifyTypes vo.NotifyTypes `json:"notifyTypes"`
 	}
 )
+
+// String json string
+func (b *NotifyMemberBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetMember 获取用户详情
 func (b *NotifyMemberBO) GetMember() *UserBO {

@@ -82,7 +82,7 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 }
 
 func (s *StrategyService) BatchUpdateStrategyStatus(ctx context.Context, req *pb.BatchUpdateStrategyStatusRequest) (*pb.BatchUpdateStrategyStatusReply, error) {
-	if err := s.strategyBiz.BatchUpdateStrategyStatusByIds(ctx, req.GetStatus(), req.GetIds()); err != nil {
+	if err := s.strategyBiz.BatchUpdateStrategyStatusByIds(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 

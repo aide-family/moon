@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -24,6 +26,18 @@ type (
 		UpdatedAt  int64          `json:"UpdatedAt"`
 	}
 )
+
+// String json string
+func (b *AlarmHistoryBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // ToApiV1 .
 func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {

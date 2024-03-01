@@ -21,10 +21,15 @@ type (
 		Delete(ctx context.Context, ids []uint32) error
 		List(ctx context.Context, pagination basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error)
+		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
 	}
 
 	UnimplementedEndpointRepo struct{}
 )
+
+func (UnimplementedEndpointRepo) GetByParams(_ context.Context, _ ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetByParams not implemented")
+}
 
 func (r UnimplementedEndpointRepo) Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method Get not implemented")

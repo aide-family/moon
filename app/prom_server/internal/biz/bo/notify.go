@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -21,6 +23,18 @@ type (
 		ExternalNotifyObjs []*ExternalNotifyObjBO `json:"externalNotifyObjs"`
 	}
 )
+
+// String json string
+func (d *NotifyBO) String() string {
+	if d == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(d)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetChatGroups 获取通知的群组
 func (d *NotifyBO) GetChatGroups() []*ChatGroupBO {

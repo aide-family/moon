@@ -27,20 +27,26 @@ const (
 	ModuleUser
 	// ModuleDict 字典模块
 	ModuleDict
-	// ModuleConfig 配置模块
-	ModuleConfig
-	// ModuleLog 日志模块
-	ModuleLog
-	// ModuleJob 任务模块
-	ModuleJob
-	// ModuleNotify 通知模块
-	ModuleNotify
-	// ModuleSystem 系统模块
-	ModuleSystem
-	// ModuleMonitor 监控模块
-	ModuleMonitor
-	// ModuleBusiness 业务模块
-	ModuleBusiness
+	// ModuleRealtimeAlarm 实时告警模块
+	ModuleRealtimeAlarm
+	// ModuleAlarmHistory 告警历史模块
+	ModuleAlarmHistory
+	// ModuleStrategyGroup 策略组模块
+	ModuleStrategyGroup
+	// ModuleStrategy 策略模块
+	ModuleStrategy
+	// ModuleDatasource 数据源模块
+	ModuleDatasource
+	// ModuleAlarmPage 告警页面模块
+	ModuleAlarmPage
+	// ModuleAlarmNotifyGroup 告警通知组模块
+	ModuleAlarmNotifyGroup
+	// ModuleAlarmNotifyHook 告警通知机器人模块
+	ModuleAlarmNotifyHook
+	// ModuleDashboardChart 仪表盘图表模块
+	ModuleDashboardChart
+	// ModuleDashboard 仪表盘模块
+	ModuleDashboard
 )
 
 // String 获取模块名称
@@ -56,20 +62,26 @@ func (m Module) String() string {
 		return "用户模块"
 	case ModuleDict:
 		return "字典模块"
-	case ModuleConfig:
-		return "配置模块"
-	case ModuleLog:
-		return "日志模块"
-	case ModuleJob:
-		return "任务模块"
-	case ModuleNotify:
-		return "通知模块"
-	case ModuleSystem:
-		return "系统模块"
-	case ModuleMonitor:
-		return "监控模块"
-	case ModuleBusiness:
-		return "业务模块"
+	case ModuleRealtimeAlarm:
+		return "实时告警模块"
+	case ModuleAlarmHistory:
+		return "告警历史模块"
+	case ModuleStrategyGroup:
+		return "策略组模块"
+	case ModuleStrategy:
+		return "策略模块"
+	case ModuleDatasource:
+		return "数据源模块"
+	case ModuleAlarmPage:
+		return "告警页面模块"
+	case ModuleAlarmNotifyGroup:
+		return "告警通知组模块"
+	case ModuleAlarmNotifyHook:
+		return "告警通知机器人模块"
+	case ModuleDashboardChart:
+		return "仪表板图表模块"
+	case ModuleDashboard:
+		return "仪表板模块"
 	case ModuleOther:
 		return "其他模块"
 	default:
@@ -122,12 +134,6 @@ func (m Module) Remark() string {
 		return "用户模块，包含用户模块、字典模块、配置模块、日志模块、任务模块、通知模块"
 	case ModuleDict:
 		return "字典模块，包含字典模块、配置模块、日志模块、任务模块、通知模块"
-	case ModuleConfig:
-		return "配置模块，包含配置模块、日志模块、任务模块、通知模块"
-	case ModuleLog:
-		return "日志模块，包含日志模块、任务模块、通知模块"
-	case ModuleJob:
-		return "任务模块，包含任务模块、通知模块"
 	default:
 		return "未知模块"
 	}

@@ -12,6 +12,8 @@ import authApi from '@/apis/home/system/auth'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { ApiAuthListItem, ApiAuthListReq } from '@/apis/home/system/auth/types'
 import { ActionKey } from '@/apis/data'
+import { SysLogDetail } from '../../child/SysLogDetail'
+import { ModuleType } from '@/apis/types'
 
 const { confirm } = Modal
 const { authApiList, authApiDelete } = authApi
@@ -47,6 +49,18 @@ const Auth: React.FC = () => {
     const [tableSelectedRows, setTableSelectedRows] = useState<
         ApiAuthListItem[]
     >([])
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -105,8 +119,10 @@ const Auth: React.FC = () => {
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: ApiAuthListItem) => {
-        console.log(key, record)
         switch (key) {
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
             case ActionKey.DETAIL:
                 // handlerOpenDetail()
                 setOpenDetail(true)
@@ -198,6 +214,13 @@ const Auth: React.FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModelTypeApi}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

@@ -21,6 +21,7 @@ type (
 		BatchUpdateStatus(ctx context.Context, status vo.Status, ids []uint32) error
 		DeleteByIds(ctx context.Context, ids ...uint32) error
 		GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error)
+		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		ListAllLimit(ctx context.Context, limit int, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		UpdateStrategyCount(ctx context.Context, ids ...uint32) error
@@ -30,6 +31,10 @@ type (
 
 	UnimplementedStrategyGroupRepo struct{}
 )
+
+func (UnimplementedStrategyGroupRepo) GetByParams(_ context.Context, _ ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetByParams not implemented")
+}
 
 func (UnimplementedStrategyGroupRepo) BatchCreate(_ context.Context, _ []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCreate not implemented")

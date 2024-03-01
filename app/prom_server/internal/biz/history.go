@@ -22,6 +22,7 @@ type (
 		msgRepo          repository.MsgRepo
 		strategyRepo     repository.StrategyRepo
 		alarmRealtimeBiz *AlarmRealtimeBiz
+		logX             repository.SysLogRepo
 	}
 )
 
@@ -31,6 +32,7 @@ func NewHistoryBiz(
 	msgRepo repository.MsgRepo,
 	strategyRepo repository.StrategyRepo,
 	alarmRealtimeBiz *AlarmRealtimeBiz,
+	logX repository.SysLogRepo,
 	logger log.Logger,
 ) *HistoryBiz {
 	return &HistoryBiz{
@@ -40,6 +42,7 @@ func NewHistoryBiz(
 		msgRepo:          msgRepo,
 		strategyRepo:     strategyRepo,
 		alarmRealtimeBiz: alarmRealtimeBiz,
+		logX:             logX,
 	}
 }
 

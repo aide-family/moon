@@ -20,12 +20,13 @@ import {
 } from './options'
 import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
-import { Status } from '@/apis/types'
+import { ModuleType, Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
 import { ImportGroups } from '../strategy-group/child/ImportGroups'
 import qs from 'qs'
 import PromQLInput from '@/components/Prom/PromQLInput'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 const defaultPadding = 12
 
@@ -55,6 +56,18 @@ const Strategy: FC = () => {
     )
 
     const [openImportModal, setOpenImportModal] = useState<boolean>(false)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handleOpenImportModal = () => {
         setOpenImportModal(true)
@@ -172,6 +185,11 @@ const Strategy: FC = () => {
             case ActionKey.STRATEGY_NOTIFY_OBJECT:
                 handleOpenBindNotify(record.id)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
+            default:
+                break
         }
     }
 
@@ -228,6 +246,13 @@ const Strategy: FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModuleStrategy}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <BindNotifyObject
                 open={openBindNotify}
                 onClose={handleCancelBindNotify}

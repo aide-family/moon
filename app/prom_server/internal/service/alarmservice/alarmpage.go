@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 
@@ -65,7 +66,7 @@ func (s *AlarmPageService) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAl
 
 func (s *AlarmPageService) BatchUpdateAlarmPageStatus(ctx context.Context, req *pb.BatchUpdateAlarmPageStatusRequest) (*pb.BatchUpdateAlarmPageStatusReply, error) {
 	updateAlarmPageIds := req.GetIds()
-	if err := s.pageBiz.BatchUpdatePageStatusByIds(ctx, req.GetStatus(), updateAlarmPageIds); err != nil {
+	if err := s.pageBiz.BatchUpdatePageStatusByIds(ctx, vo.Status(req.GetStatus()), updateAlarmPageIds); err != nil {
 		return nil, err
 	}
 	return &pb.BatchUpdateAlarmPageStatusReply{Ids: updateAlarmPageIds}, nil

@@ -19,6 +19,8 @@ import {
 import { ActionKey } from '@/apis/data'
 import chatGroupApi from '@/apis/home/monitor/chat-group'
 import EditChatGroupModal from './child/EditChatGroupModal'
+import { ModuleType } from '@/apis/types'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 export interface ChatGroupProps {}
 
@@ -35,6 +37,18 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     const [total, setTotal] = useState<number>(0)
     const [opChatGroupId, setOpChatGroupId] = useState<number>()
     const [openChatGroupModal, setChatGroupModal] = useState<boolean>(false)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handleRefresh = () => {
         setRefresh((p) => !p)
@@ -118,6 +132,9 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
             case ActionKey.DISABLE:
                 // handleChangeStatus([item.id], Status.STATUS_DISABLED)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(item.id)
+                break
             default:
                 break
         }
@@ -140,6 +157,13 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModuleAlarmNotifyHook}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <EditChatGroupModal
                 chatGroupId={opChatGroupId}
                 open={openChatGroupModal}

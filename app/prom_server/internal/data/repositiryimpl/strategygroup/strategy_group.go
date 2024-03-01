@@ -38,6 +38,14 @@ type StrategyCount struct {
 	GroupId uint32 `json:"group_id"`
 }
 
+func (l *strategyGroupRepoImpl) GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+	var list []*do.PromStrategyGroup
+	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return slices.To(list, func(item *do.PromStrategyGroup) *bo.StrategyGroupBO { return bo.StrategyGroupModelToBO(item) }), nil
+}
+
 func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...uint32) error {
 	if len(ids) == 0 {
 		return nil
