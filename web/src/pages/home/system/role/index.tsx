@@ -13,6 +13,8 @@ import { ExclamationCircleFilled } from '@ant-design/icons'
 import { RoleListItem, RoleListReq } from '@/apis/home/system/role/types'
 import { ActionKey } from '@/apis/data'
 import { BindAuth } from './child/BindAuth'
+import { SysLogDetail } from '../../child/SysLogDetail'
+import { ModuleType } from '@/apis/types'
 
 const { confirm } = Modal
 const { roleDelete, roleList } = roleApi
@@ -49,6 +51,17 @@ const Role: React.FC = () => {
         []
     )
     const [authVisible, setAuthVisible] = useState<boolean>(false)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -114,6 +127,9 @@ const Role: React.FC = () => {
     const handlerTableAction = (key: ActionKey, record: RoleListItem) => {
         console.log(key, record)
         switch (key) {
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
             case ActionKey.DETAIL:
                 // handlerOpenDetail()
                 setOpenDetail(true)
@@ -210,6 +226,13 @@ const Role: React.FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModelTypeRole}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

@@ -187,32 +187,56 @@ export enum DomainType {
 
 /**  模块类型枚举 */
 export enum ModuleType {
-    /**  其他模块 */
+    /** 其他模块 */
     ModelTypeOther,
-    /**  接口模块 */
+    /** 接口模块 */
     ModelTypeApi,
-    /**  菜单模块 */
+    /** 菜单模块 */
     ModelTypeMenu,
-    /**  角色模块 */
+    /** 角色模块 */
     ModelTypeRole,
-    /**  用户模块 */
+    /** 用户模块 */
     ModelTypeUser,
-    /**  字典模块 */
+    /** 字典模块 */
     ModelTypeDict,
-    /**  配置模块 */
-    ModelTypeConfig,
-    /**  日志模块 */
-    ModelTypeLog,
-    /**  任务模块 */
-    ModelTypeJob,
-    /**  通知模块 */
-    ModelTypeNotify,
-    /**  系统模块 */
-    ModelTypeSystem,
-    /**  监控模块 */
-    ModelTypeMonitor,
-    /**  业务模块 */
-    ModelTypeBusiness
+    /** 实时告警模块 */
+    ModuleRealtimeAlarm,
+    /** 告警历史模块 */
+    ModuleAlarmHistory,
+    /** 策略组模块 */
+    ModuleStrategyGroup,
+    /** 策略模块 */
+    ModuleStrategy,
+    /** 数据源模块 */
+    ModuleDatasource,
+    /** 告警页面模块 */
+    ModuleAlarmPage,
+    /** 告警通知组模块 */
+    ModuleAlarmNotifyGroup,
+    /** 告警通知机器人模块 */
+    ModuleAlarmNotifyHook,
+    /** 仪表盘图表模块 */
+    ModuleDashboardChart,
+    /** 仪表盘模块 */
+    ModuleDashboard
+}
+
+// 系统日志操作类型
+export enum SysLogActionType {
+    // 未知操作类型
+    SysLogActionUnknown,
+    // 创建
+    SysLogActionCreate,
+    // 更新\
+    SysLogActionUpdate,
+    // 删除
+    SysLogActionDelete,
+    // 查询
+    SysLogActionQuery,
+    // 导入
+    SysLogActionImport,
+    // 导出
+    SysLogActionExport
 }
 
 interface IdReponse {

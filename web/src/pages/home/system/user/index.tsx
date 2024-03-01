@@ -13,9 +13,10 @@ import type {
     UserListItem,
     UserListParams
 } from '@/apis/home/system/user/types'
-import { Status, StatusMap } from '@/apis/types'
+import { ModuleType, Status, StatusMap } from '@/apis/types'
 import { ActionKey } from '@/apis/data'
 import { SelectedUserListTable } from './child/SelectedUserListTable'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 const { confirm } = Modal
 const { userList, userStatusEdit, userDelete } = userApi
@@ -43,6 +44,8 @@ const Customer: FC = () => {
     const [refresh, setRefresh] = useState<boolean>(false)
     const [openDetail, setOpenDetail] = useState<boolean>(false)
     const [openEdit, setOpenEdit] = useState<boolean>(false)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
     const [editId, setEditId] = useState<number | undefined>()
     const [userId, setUserId] = useState<number>(0)
     const [search, setSearch] = useState<UserListParams>(defaultSearchParams)
@@ -74,6 +77,16 @@ const Customer: FC = () => {
 
     const handlerCloseDetail = () => {
         setOpenDetail(false)
+    }
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
     }
 
     /** 获取数据 */
@@ -189,6 +202,11 @@ const Customer: FC = () => {
             case ActionKey.DELETE:
                 openDeleteConfirm(record)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
+            default:
+                break
         }
     }
 
@@ -302,6 +320,13 @@ const Customer: FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModelTypeUser}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <SelectedUserListTable
                 tableSelectedRows={tableSelectedRows}
                 setTableSelectedRows={setTableSelectedRows}

@@ -281,6 +281,19 @@ const operationItems = (userItem: UserListItem): MenuProps['items'] => [
         )
     },
     {
+        key: ActionKey.OPERATION_LOG,
+        label: (
+            <Button
+                size="small"
+                type="link"
+                icon={<IconFont type="icon-wj-rz" />}
+                disabled={userItem.id === 1}
+            >
+                操作日志
+            </Button>
+        )
+    },
+    {
         type: 'divider'
     },
     {

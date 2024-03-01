@@ -55,6 +55,7 @@ func RegisterGrpcServer(
 	realtimeService *alarmservice.RealtimeService,
 	chartService *dashboardservice.ChartService,
 	dashboardService *dashboardservice.DashboardService,
+	syslogService *systemservice.SyslogService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
 	dict.RegisterDictServer(srv, dictService)
@@ -65,6 +66,7 @@ func RegisterGrpcServer(
 	history.RegisterHistoryServer(srv, historyService)
 	system.RegisterUserServer(srv, userService)
 	system.RegisterRoleServer(srv, roleService)
+	system.RegisterSyslogServer(srv, syslogService)
 	endpoint.RegisterEndpointServer(srv, endpointService)
 	system.RegisterApiServer(srv, apiService)
 	notify.RegisterNotifyServer(srv, notifyService)

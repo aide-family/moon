@@ -26,6 +26,7 @@ type (
 		userRepo repository.UserRepo
 		roleRepo repository.RoleRepo
 		dataRepo repository.DataRepo
+		logX     repository.SysLogRepo
 	}
 )
 
@@ -33,6 +34,7 @@ func NewUserBiz(
 	userRepo repository.UserRepo,
 	dataRepo repository.DataRepo,
 	roleRepo repository.RoleRepo,
+	logX repository.SysLogRepo,
 	logger log.Logger,
 ) *UserBiz {
 	return &UserBiz{
@@ -40,6 +42,7 @@ func NewUserBiz(
 		userRepo: userRepo,
 		dataRepo: dataRepo,
 		roleRepo: roleRepo,
+		logX:     logX,
 	}
 }
 
@@ -99,17 +102,41 @@ func (b *UserBiz) CreateUser(ctx context.Context, userBo *bo.UserBO) (*bo.UserBO
 	if err != nil {
 		return nil, err
 	}
+	userBo.Salt = ""
+	userBo.Password = ""
+
+	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
+		ModuleName: vo.ModuleUser,
+		ModuleId:   userBo.Id,
+		Content:    userBo.String(),
+		Title:      "创建用户",
+	})
 
 	return userBo, nil
 }
 
 // UpdateUserById 更新用户信息
 func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.UserBO) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Update(ctx, userBo, basescopes.InIds(id))
+	// 查询
+	oldUser, err := b.GetUserInfoById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return userBo, nil
+	newUserBo, err := b.userRepo.Update(ctx, userBo, basescopes.InIds(id))
+	if err != nil {
+		return nil, err
+	}
+	oldUser.Salt = ""
+	oldUser.Password = ""
+	newUserBo.Salt = ""
+	newUserBo.Password = ""
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vo.ModuleUser,
+		ModuleId:   userBo.Id,
+		Content:    bo.NewChangeLogBo(oldUser, newUserBo).String(),
+		Title:      "更新用户",
+	})
+	return newUserBo, nil
 }
 
 // UpdateUserStatusById 更新用户状态
@@ -117,9 +144,26 @@ func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status vo.Status, id
 	if len(ids) == 0 {
 		return nil
 	}
+	// 查询
+	oldList, err := b.userRepo.Find(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
 	userBo := &bo.UserBO{Status: status}
-	_, err := b.userRepo.Update(ctx, userBo, basescopes.InIds(ids...))
-	return err
+	_, err = b.userRepo.Update(ctx, userBo, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	list := slices.To(oldList, func(item *bo.UserBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleUser,
+			ModuleId:   item.Id,
+			Content:    bo.NewChangeLogBo(item.Status.String(), status.String()).String(),
+			Title:      "更新用户",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	return nil
 }
 
 // DeleteUserByIds 删除用户
@@ -127,7 +171,26 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	return b.userRepo.Delete(ctx, basescopes.InIds(ids...))
+	// 查询
+	oldList, err := b.userRepo.Find(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	if err = b.userRepo.Delete(ctx, basescopes.InIds(ids...)); err != nil {
+		return err
+	}
+	list := slices.To(oldList, func(item *bo.UserBO) *bo.SysLogBo {
+		item.Salt = ""
+		item.Password = ""
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleUser,
+			ModuleId:   item.Id,
+			Content:    item.String(),
+			Title:      "删除用户",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	return nil
 }
 
 // GetUserList 获取用户列表

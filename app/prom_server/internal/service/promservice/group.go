@@ -65,7 +65,7 @@ func (s *GroupService) UpdateGroup(ctx context.Context, req *pb.UpdateGroupReque
 }
 
 func (s *GroupService) BatchUpdateGroupStatus(ctx context.Context, req *pb.BatchUpdateGroupStatusRequest) (*pb.BatchUpdateGroupStatusReply, error) {
-	if err := s.strategyGroupBiz.BatchUpdateStatus(ctx, req.GetStatus(), req.GetIds()); err != nil {
+	if err := s.strategyGroupBiz.BatchUpdateStatus(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.BatchUpdateGroupStatusReply{

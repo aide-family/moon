@@ -20,7 +20,8 @@ import {
     searchItems
 } from './options'
 import EditEndpointModal from './child/EditEnpointModal'
-import { Status } from '@/apis/types'
+import { ModuleType, Status } from '@/apis/types'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 let timer: NodeJS.Timeout
 
@@ -37,6 +38,18 @@ const Endpoint: React.FC = () => {
     const [total, setTotal] = useState<number>(0)
     const [openEditModal, setEditModal] = useState<boolean>(false)
     const [opEndpointId, setOpEndpointId] = useState<number>()
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     // 刷新
     const handlerRefresh = () => {
@@ -134,6 +147,9 @@ const Endpoint: React.FC = () => {
             case ActionKey.DISABLE:
                 handleChangeStatus([item.id], Status.STATUS_DISABLED)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(item.id)
+                break
             default:
                 break
         }
@@ -149,6 +165,13 @@ const Endpoint: React.FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModuleDatasource}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <EditEndpointModal
                 endpointId={opEndpointId}
                 open={openEditModal}

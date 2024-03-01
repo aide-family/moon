@@ -9,10 +9,11 @@ import Detail from './child/Detail'
 import EditModal from './child/EditModal'
 import dictOptions, { columns } from './options'
 import dictApi from '@/apis/home/system/dict'
-import { Status } from '@/apis/types'
+import { ModuleType, Status } from '@/apis/types'
 import { ExclamationCircleFilled } from '@ant-design/icons'
 import { DictListItem, DictListReq } from '@/apis/home/system/dict/types'
 import { ActionKey } from '@/apis/data'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 const { confirm } = Modal
 const { dictList, dictDelete, dictBatchUpdateStatus } = dictApi
@@ -48,6 +49,8 @@ const Dict: React.FC = () => {
     const [tableSelectedRows, setTableSelectedRows] = useState<DictListItem[]>(
         []
     )
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
 
     const handlerCloseEdit = () => {
         setOpenEdit(false)
@@ -106,10 +109,22 @@ const Dict: React.FC = () => {
         setTableSelectedRows(selectedRows)
     }
 
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
+
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: DictListItem) => {
-        console.log(key, record)
         switch (key) {
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
             case ActionKey.DETAIL:
                 // handlerOpenDetail()
                 setOpenDetail(true)
@@ -294,6 +309,13 @@ const Dict: React.FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModelTypeDict}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <Detail
                 open={openDetail}
                 onClose={handlerCloseDetail}

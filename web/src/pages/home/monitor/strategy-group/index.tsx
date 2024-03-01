@@ -19,9 +19,10 @@ import {
     StrategyGroupListRequest
 } from '@/apis/home/monitor/strategy-group/types'
 import EditGroupModal from './child/EditGroupModal'
-import { Status } from '@/apis/types'
+import { ModuleType, Status } from '@/apis/types'
 import Detail from './child/Detail'
 import { ImportGroups } from './child/ImportGroups'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 const defaultPadding = 12
 
@@ -46,6 +47,18 @@ const StrategyGroup: React.FC = () => {
         StrategyGroupItemType | undefined
     >()
     const [openImportModal, setOpenImportModal] = useState<boolean>(false)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handleOpenImportModal = () => {
         setOpenImportModal(true)
@@ -155,6 +168,11 @@ const StrategyGroup: React.FC = () => {
                     Status.STATUS_ENABLED
                 ).then(handlerRefresh)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(record.id)
+                break
+            default:
+                break
         }
     }
 
@@ -195,6 +213,13 @@ const StrategyGroup: React.FC = () => {
 
     return (
         <div>
+            <SysLogDetail
+                module={ModuleType.ModuleStrategyGroup}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <ImportGroups
                 width="60%"
                 title="批量导入"

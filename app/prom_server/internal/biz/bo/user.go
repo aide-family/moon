@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -26,6 +28,18 @@ type (
 		Gender    vo.Gender `json:"gender"`
 	}
 )
+
+// String json string
+func (l *UserBO) String() string {
+	if l == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(l)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetRoles 获取角色列表
 func (l *UserBO) GetRoles() []*RoleBO {

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package api.system;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "system.proto";
+
+option go_package = "prometheus-manager/api/system;system";
+option java_multiple_files = true;
+option java_package = "api.system";
+
+// 系统日志模块
+service Syslog {
+	// 日志列表接口
+	rpc ListSyslog (ListSyslogRequest) returns (ListSyslogReply) {
+		option (google.api.http) = {
+			post: "/api/v1/syslog/list"
+			body: "*";
+		};
+	}
+}
+
+message ListSyslogRequest {
+	PageRequest page = 1 [(validate.rules).message.required = true];
+	uint32 moduleId = 2;
+	int32 moduleName = 3;
+}
+message ListSyslogReply {
+	repeated SysLogV1Item list = 1;
+	PageReply page = 2;
+}

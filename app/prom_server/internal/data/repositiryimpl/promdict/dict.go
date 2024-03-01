@@ -21,6 +21,14 @@ type promDictRepoImpl struct {
 	log  *log.Helper
 }
 
+func (l *promDictRepoImpl) GetDictByIds(ctx context.Context, ids ...uint32) ([]*bo.DictBO, error) {
+	dictList := make([]*do.PromDict, 0, len(ids))
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Find(&dictList).Error; err != nil {
+		return nil, err
+	}
+	return slices.To(dictList, func(item *do.PromDict) *bo.DictBO { return bo.DictModelToBO(item) }), nil
+}
+
 func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO, error) {
 	newModelData := dictBO.ToModel()
 	if err := l.data.DB().WithContext(ctx).Create(newModelData).Error; err != nil {

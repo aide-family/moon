@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -26,6 +28,18 @@ type (
 		Secret string `json:"secret"`
 	}
 )
+
+// String json string
+func (b *ChatGroupBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // ToApi ...
 func (b *ChatGroupBO) ToApi() *api.ChatGroup {

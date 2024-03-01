@@ -67,6 +67,24 @@ enum ModuleType {
   ModelTypeOther = 13;
 }
 
+// 系统日志操作类型
+enum SysLogAction {
+  // 未知操作类型
+  SysLogActionUnknown = 0;
+  // 创建
+  SysLogActionCreate = 1;
+  // 更新
+  SysLogActionUpdate = 2;
+  // 删除
+  SysLogActionDelete = 3;
+  // 查询
+  SysLogActionQuery = 4;
+  // 导入
+  SysLogActionImport = 5;
+  // 导出
+  SysLogActionExport = 6;
+}
+
 // 系统用户信息
 message UserV1 {
   // 用户ID
@@ -108,7 +126,7 @@ message UserSelectV1 {
   // 用户状态
   int32 status = 3;
   // 备注
-//  string remark = 4;
+  //  string remark = 4;
   // 头像
   string avatar = 5;
   // 昵称
@@ -214,4 +232,15 @@ message Module {
   string name = 3;
   // 模块说明
   string remark = 4;
+}
+
+// SysLog 日志信息
+message SysLogV1Item {
+  string title = 1;
+  string content = 2;
+  uint32 moduleId = 3;
+  ModuleType moduleName = 4;
+  int64 createdAt = 5;
+  UserSelectV1 user = 6;
+  int32 action = 7;
 }

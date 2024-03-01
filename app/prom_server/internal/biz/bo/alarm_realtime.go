@@ -38,6 +38,18 @@ type (
 	}
 )
 
+// String json string
+func (l *AlarmRealtimeBO) String() string {
+	if l == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(l)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
+
 func (l *AlarmRealtimeBO) Bytes() []byte {
 	if l == nil {
 		return nil

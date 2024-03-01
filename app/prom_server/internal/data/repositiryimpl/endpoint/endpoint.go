@@ -22,6 +22,14 @@ type endpointRepoImpl struct {
 	data *data.Data
 }
 
+func (l *endpointRepoImpl) GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
+	var list []*do.Endpoint
+	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return slices.To(list, func(item *do.Endpoint) *bo.EndpointBO { return bo.EndpointModelToBO(item) }), nil
+}
+
 func (l *endpointRepoImpl) Append(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
 	newModelData := endpoint.ToModel()
 	if err := l.data.DB().WithContext(ctx).Create(newModelData).Error; err != nil {

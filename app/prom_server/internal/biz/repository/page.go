@@ -31,6 +31,7 @@ type (
 		ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
 		// Get 获取详情
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error)
+		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
 		// GetStrategyIds 获取策略id列表
 		GetStrategyIds(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]uint32, error)
 		GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error)
@@ -42,6 +43,10 @@ type (
 
 	UnimplementedPageRepo struct{}
 )
+
+func (UnimplementedPageRepo) GetByParams(_ context.Context, _ ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetByParams not implemented")
+}
 
 func (UnimplementedPageRepo) BindUserPages(_ context.Context, _ uint32, _ []uint32) error {
 	return status.Error(codes.Unimplemented, "method BindUserPages not implemented")
