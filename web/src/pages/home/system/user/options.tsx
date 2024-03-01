@@ -141,7 +141,7 @@ const addFormItems: (DataFormItem | DataFormItem[])[] = [
                                     {' 女'}
                                 </span>
                             ),
-                            value: 0
+                            value: 2
                         }
                     ]
                 }
@@ -199,12 +199,24 @@ const editFormItems: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     options: [
                         {
-                            label: '男',
+                            label: (
+                                <span>
+                                    <ManOutlined style={{ color: '#1890ff' }} />
+                                    {' 男'}
+                                </span>
+                            ),
                             value: 1
                         },
                         {
-                            label: '女',
-                            value: 0
+                            label: (
+                                <span>
+                                    <WomanOutlined
+                                        style={{ color: '#f759ab' }}
+                                    />
+                                    {' 女'}
+                                </span>
+                            ),
+                            value: 2
                         }
                     ]
                 }
