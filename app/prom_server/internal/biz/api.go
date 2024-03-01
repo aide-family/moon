@@ -19,19 +19,20 @@ type ApiBiz struct {
 
 	apiRepo  repository.ApiRepo
 	dataRepo repository.DataRepo
+	logX     repository.SysLogRepo
 }
 
-func NewApiBiz(repo repository.ApiRepo, dataRepo repository.DataRepo, logger log.Logger) *ApiBiz {
+func NewApiBiz(repo repository.ApiRepo, dataRepo repository.DataRepo, logX repository.SysLogRepo, logger log.Logger) *ApiBiz {
 	return &ApiBiz{
 		apiRepo:  repo,
 		dataRepo: dataRepo,
+		logX:     logX,
 		log:      log.NewHelper(log.With(logger, "module", "biz.api")),
 	}
 }
 
 // CreateApi 创建api
 func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.ApiBO, error) {
-
 	apiBoList, err := b.apiRepo.Create(ctx, apiBoList...)
 	if err != nil {
 		return nil, err
@@ -41,6 +42,15 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 		return t.Id
 	})
 	b.cacheApiByIds(ids...)
+	list := slices.To(apiBoList, func(item *bo.ApiBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleApi,
+			ModuleId:   item.Id,
+			Content:    item.String(),
+			Title:      "创建API",
+		}
+	})
+	b.logX.CreateSysLog(ctx, vo.ActionCreate, list...)
 	return apiBoList, nil
 }
 
@@ -76,19 +86,41 @@ func (b *ApiBiz) ListAllApi(ctx context.Context) ([]*bo.ApiBO, error) {
 
 // DeleteApiById 删除api
 func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint32) error {
+	// 查询
+	apiBO, err := b.GetApiById(ctx, id)
+	if err != nil {
+		return err
+	}
 	if err := b.apiRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
 		return err
 	}
+	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
+		ModuleName: vo.ModuleApi,
+		ModuleId:   id,
+		Content:    apiBO.String(),
+		Title:      "删除API",
+	})
 	b.cacheApiByIds(id)
 	return nil
 }
 
 // UpdateApiById 更新api
 func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint32, apiBO *bo.ApiBO) (*bo.ApiBO, error) {
-	apiBO, err := b.apiRepo.Update(ctx, apiBO, basescopes.InIds(id))
+	// 查询
+	oldApiBO, err := b.GetApiById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	newApiBO, err := b.apiRepo.Update(ctx, apiBO, basescopes.InIds(id))
+	if err != nil {
+		return nil, err
+	}
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vo.ModuleApi,
+		ModuleId:   id,
+		Content:    bo.NewChangeLogBo(oldApiBO, newApiBO).String(),
+		Title:      "更新API",
+	})
 	b.cacheApiByIds(id)
 
 	return apiBO, nil
@@ -117,12 +149,27 @@ func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status vo.Status, ids 
 	if len(ids) == 0 {
 		return nil
 	}
+	// 查询
+	oldList, err := b.apiRepo.Find(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
 	apiBo := &bo.ApiBO{
 		Status: status,
 	}
 	if err := b.apiRepo.UpdateAll(ctx, apiBo, basescopes.InIds(ids...)); err != nil {
 		return err
 	}
+	list := slices.To(oldList, func(old *bo.ApiBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleApi,
+			ModuleId:   old.Id,
+			Content:    bo.NewChangeLogBo(old.Status.String(), status.String()).String(),
+			Title:      "更新API状态",
+		}
+	})
 	b.cacheApiByIds(ids...)
+	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+
 	return nil
 }

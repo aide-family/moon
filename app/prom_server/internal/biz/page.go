@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/util/slices"
 
-	"prometheus-manager/api"
 	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
@@ -19,16 +19,18 @@ type (
 
 		pageRepo     repository.PageRepo
 		realtimeRepo repository.AlarmRealtimeRepo
+		logX         repository.SysLogRepo
 	}
 )
 
 // NewPageBiz 实例化页面业务
-func NewPageBiz(pageRepo repository.PageRepo, realtimeRepo repository.AlarmRealtimeRepo, logger log.Logger) *AlarmPageBiz {
+func NewPageBiz(pageRepo repository.PageRepo, realtimeRepo repository.AlarmRealtimeRepo, logX repository.SysLogRepo, logger log.Logger) *AlarmPageBiz {
 	return &AlarmPageBiz{
 		log: log.NewHelper(log.With(logger, "module", "biz.alarm.page")),
 
 		pageRepo:     pageRepo,
 		realtimeRepo: realtimeRepo,
+		logX:         logX,
 	}
 }
 
@@ -44,27 +46,80 @@ func (p *AlarmPageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (
 		return nil, err
 	}
 
+	p.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
+		ModuleName: vo.ModuleAlarmPage,
+		ModuleId:   pageBO.Id,
+		Content:    pageBO.String(),
+		Title:      "创建报警页面",
+	})
 	return pageBO, nil
 }
 
 // UpdatePage 通过id更新页面
 func (p *AlarmPageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error) {
-	pageBO, err := p.pageRepo.UpdatePageById(ctx, pageBO.Id, pageBO)
+	// 查询
+	oldPage, err := p.GetPageById(ctx, pageBO.Id)
+	if err != nil {
+		return nil, err
+	}
+	newPageBO, err := p.pageRepo.UpdatePageById(ctx, pageBO.Id, pageBO)
 	if err != nil {
 		return nil, err
 	}
 
-	return pageBO, nil
+	p.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vo.ModuleAlarmPage,
+		ModuleId:   pageBO.Id,
+		Content:    bo.NewChangeLogBo(oldPage, newPageBO).String(),
+		Title:      "更新报警页面",
+	})
+	return newPageBO, nil
 }
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
-func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status api.Status, ids []uint32) error {
-	return p.pageRepo.BatchUpdatePageStatusByIds(ctx, vo.Status(status), ids)
+func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+	// 查询
+	oldPageList, err := p.pageRepo.GetByParams(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	if err = p.pageRepo.BatchUpdatePageStatusByIds(ctx, status, ids); err != nil {
+		return err
+	}
+
+	list := slices.To(oldPageList, func(pageBO *bo.AlarmPageBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleAlarmPage,
+			ModuleId:   pageBO.Id,
+			Content:    bo.NewChangeLogBo(pageBO.Status.String(), status.String()).String(),
+			Title:      "更新报警页面状态",
+		}
+	})
+	p.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	return nil
 }
 
 // DeletePageByIds 通过id删除页面
 func (p *AlarmPageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error {
-	return p.pageRepo.DeletePageByIds(ctx, ids...)
+	// 查询
+	oldPageList, err := p.pageRepo.GetByParams(ctx, basescopes.InIds(ids...))
+	if err != nil {
+		return err
+	}
+	if err = p.pageRepo.DeletePageByIds(ctx, ids...); err != nil {
+		return err
+	}
+	list := slices.To(oldPageList, func(pageBO *bo.AlarmPageBO) *bo.SysLogBo {
+		return &bo.SysLogBo{
+			ModuleName: vo.ModuleAlarmPage,
+			ModuleId:   pageBO.Id,
+			Content:    pageBO.String(),
+			Title:      "删除报警页面",
+		}
+	})
+
+	p.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	return nil
 }
 
 // GetPageById 通过id获取页面详情

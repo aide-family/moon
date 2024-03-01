@@ -1,4 +1,10 @@
-import { Category, DomainType, ModuleType, NotifyApp } from './types'
+import {
+    Category,
+    DomainType,
+    ModuleType,
+    NotifyApp,
+    SysLogActionType
+} from './types'
 
 /**
  * 字典分类数据
@@ -23,19 +29,22 @@ const domainTypeData: Record<DomainType, string> = {
 
 /**  模块类型枚举 */
 const moduleTypeData: Record<ModuleType, string> = {
-    [ModuleType.ModelTypeApi]: '接口模块',
-    [ModuleType.ModelTypeDict]: '字典模块',
-    [ModuleType.ModelTypeMonitor]: '监控模块',
-    [ModuleType.ModelTypeMenu]: '菜单模块',
-    [ModuleType.ModelTypeUser]: '用户模块',
-    [ModuleType.ModelTypeLog]: '日志模块',
-    [ModuleType.ModelTypeJob]: '任务模块',
-    [ModuleType.ModelTypeNotify]: '通知模块',
     [ModuleType.ModelTypeOther]: '其他模块',
-    [ModuleType.ModelTypeSystem]: '系统模块',
-    [ModuleType.ModelTypeBusiness]: '业务模块',
+    [ModuleType.ModelTypeApi]: '接口模块',
+    [ModuleType.ModelTypeMenu]: '菜单模块',
     [ModuleType.ModelTypeRole]: '角色模块',
-    [ModuleType.ModelTypeConfig]: '配置模块'
+    [ModuleType.ModelTypeUser]: '用户模块',
+    [ModuleType.ModelTypeDict]: '字典模块',
+    [ModuleType.ModuleRealtimeAlarm]: '实时告警模块',
+    [ModuleType.ModuleAlarmHistory]: '告警历史模块',
+    [ModuleType.ModuleStrategyGroup]: '策略组模块',
+    [ModuleType.ModuleStrategy]: '策略模块',
+    [ModuleType.ModuleDatasource]: '数据源模块',
+    [ModuleType.ModuleAlarmPage]: '告警页面模块',
+    [ModuleType.ModuleAlarmNotifyGroup]: '告警通知组模块',
+    [ModuleType.ModuleAlarmNotifyHook]: '告警通知机器人模块',
+    [ModuleType.ModuleDashboardChart]: '仪表盘图表模块',
+    [ModuleType.ModuleDashboard]: '仪表盘模块'
 }
 
 /** NotifyApp */
@@ -44,6 +53,40 @@ const NotifyAppData: Record<NotifyApp, string> = {
     [NotifyApp.NOTIFY_APP_WECHATWORK]: '企业微信',
     [NotifyApp.NOTIFY_APP_FEISHU]: '飞书',
     [NotifyApp.NOTIFY_APP_CUSTOM]: '自定义'
+}
+
+const SysLogActionTypeData: Record<
+    SysLogActionType,
+    { color: string; text: string }
+> = {
+    [SysLogActionType.SysLogActionUnknown]: {
+        color: 'gray',
+        text: '未知'
+    },
+    [SysLogActionType.SysLogActionCreate]: {
+        color: 'green',
+        text: '创建'
+    },
+    [SysLogActionType.SysLogActionUpdate]: {
+        color: 'orange',
+        text: '更新'
+    },
+    [SysLogActionType.SysLogActionDelete]: {
+        color: 'red',
+        text: '删除'
+    },
+    [SysLogActionType.SysLogActionQuery]: {
+        color: 'blue',
+        text: '查询'
+    },
+    [SysLogActionType.SysLogActionImport]: {
+        color: '#55F107',
+        text: '导入'
+    },
+    [SysLogActionType.SysLogActionExport]: {
+        color: '#9C05F1',
+        text: '导出'
+    }
 }
 
 export enum ActionKey {
@@ -106,7 +149,15 @@ export enum ActionKey {
     /** 绑定我的告警页面 */
     BIND_MY_ALARM_PAGES = '__bind_my_alarm_pages__',
     /** 配置大盘图表 */
-    CONFIG_DASHBOARD_CHART = '__config_dashboard_chart__'
+    CONFIG_DASHBOARD_CHART = '__config_dashboard_chart__',
+    /** 操作日志 */
+    OPERATION_LOG = '__operation_log__'
 }
 
-export { categoryData, domainTypeData, moduleTypeData, NotifyAppData }
+export {
+    categoryData,
+    domainTypeData,
+    moduleTypeData,
+    NotifyAppData,
+    SysLogActionTypeData
+}

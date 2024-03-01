@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -22,6 +24,18 @@ type (
 		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}
 )
+
+// String json string
+func (b *AlarmPageBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetPromStrategies 策略列表
 func (b *AlarmPageBO) GetPromStrategies() []*StrategyBO {

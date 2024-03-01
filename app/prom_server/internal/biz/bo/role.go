@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -20,6 +22,18 @@ type (
 		Apis      []*ApiBO  `json:"apis"`
 	}
 )
+
+// String json string
+func (l *RoleBO) String() string {
+	if l == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(l)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetUsers 获取用户列表
 func (l *RoleBO) GetUsers() []*UserBO {

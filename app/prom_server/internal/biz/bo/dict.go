@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -19,6 +21,18 @@ type (
 		DeletedAt int64       `json:"deletedAt"`
 	}
 )
+
+// String json string
+func (d *DictBO) String() string {
+	if d == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(d)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // ToApiSelectV1 转换为api字典查询对象
 func (d *DictBO) ToApiSelectV1() *api.DictSelectV1 {

@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -16,6 +18,18 @@ type (
 		Status vo.Status `json:"status"`
 	}
 )
+
+// String json string
+func (b *MyChartBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // ToApiSelectV1 转换为api数据
 func (b *MyChartBO) ToApiSelectV1() *api.MyChart {

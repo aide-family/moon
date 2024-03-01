@@ -66,6 +66,7 @@ func RegisterHttpServer(
 	interflowService *interflowservice.HookInterflowService,
 	chartService *dashboardservice.ChartService,
 	dashboardService *dashboardservice.DashboardService,
+	syslogService *systemservice.SyslogService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	dict.RegisterDictHTTPServer(srv, dictService)
@@ -77,6 +78,7 @@ func RegisterHttpServer(
 	auth.RegisterAuthHTTPServer(srv, authService)
 	system.RegisterUserHTTPServer(srv, userService)
 	system.RegisterRoleHTTPServer(srv, roleService)
+	system.RegisterSyslogHTTPServer(srv, syslogService)
 	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
 	system.RegisterApiHTTPServer(srv, apiService)
 	notify.RegisterNotifyHTTPServer(srv, notifyService)

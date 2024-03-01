@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -22,6 +24,18 @@ type (
 		DeletedAt int64 `json:"deletedAt"`
 	}
 )
+
+// String json string
+func (l *MyDashboardConfigBO) String() string {
+	if l == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(l)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetCharts 获取图表列表
 func (l *MyDashboardConfigBO) GetCharts() []*MyChartBO {

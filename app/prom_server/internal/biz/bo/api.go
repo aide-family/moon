@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -22,6 +24,18 @@ type (
 		DeletedAt int64 `json:"deletedAt"`
 	}
 )
+
+// String json string
+func (b *ApiBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // ToApiSelectV1 .
 func (b *ApiBO) ToApiSelectV1() *api.ApiSelectV1 {

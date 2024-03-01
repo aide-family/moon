@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"encoding/json"
+
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -21,6 +23,18 @@ type (
 		DeletedAt  int64               `json:"deletedAt"`
 	}
 )
+
+// String json string
+func (d *ExternalCustomerHookBO) String() string {
+	if d == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(d)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetCustomer 获取外部客户
 func (d *ExternalCustomerHookBO) GetCustomer() *ExternalCustomerBO {

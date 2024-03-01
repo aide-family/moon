@@ -1095,3 +1095,143 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ModuleValidationError{}
+
+// Validate checks the field values on SysLogV1Item with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SysLogV1Item) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SysLogV1Item with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SysLogV1ItemMultiError, or
+// nil if none found.
+func (m *SysLogV1Item) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SysLogV1Item) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Title
+
+	// no validation rules for Content
+
+	// no validation rules for ModuleId
+
+	// no validation rules for ModuleName
+
+	// no validation rules for CreatedAt
+
+	if all {
+		switch v := interface{}(m.GetUser()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SysLogV1ItemValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SysLogV1ItemValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUser()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SysLogV1ItemValidationError{
+				field:  "User",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Action
+
+	if len(errors) > 0 {
+		return SysLogV1ItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// SysLogV1ItemMultiError is an error wrapping multiple validation errors
+// returned by SysLogV1Item.ValidateAll() if the designated constraints aren't met.
+type SysLogV1ItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SysLogV1ItemMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SysLogV1ItemMultiError) AllErrors() []error { return m }
+
+// SysLogV1ItemValidationError is the validation error returned by
+// SysLogV1Item.Validate if the designated constraints aren't met.
+type SysLogV1ItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SysLogV1ItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SysLogV1ItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SysLogV1ItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SysLogV1ItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SysLogV1ItemValidationError) ErrorName() string { return "SysLogV1ItemValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SysLogV1ItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSysLogV1Item.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SysLogV1ItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SysLogV1ItemValidationError{}

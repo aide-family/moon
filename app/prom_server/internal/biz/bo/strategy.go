@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"prometheus-manager/api"
@@ -44,6 +45,18 @@ type (
 		SendRecover  vo.IsSendRecover `json:"sendRecover"`
 	}
 )
+
+// String json string
+func (b *StrategyBO) String() string {
+	if b == nil {
+		return "{}"
+	}
+	marshal, err := json.Marshal(b)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
+}
 
 // GetEndpoint 获取Endpoint
 func (b *StrategyBO) GetEndpoint() *EndpointBO {

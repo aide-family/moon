@@ -19,6 +19,8 @@ import {
 } from './options'
 import alarmGroupApi from '@/apis/home/monitor/alarm-group'
 import EditAlarmGroupModal from './child/EditAlarmGroupModal'
+import { ModuleType } from '@/apis/types'
+import { SysLogDetail } from '../../child/SysLogDetail'
 
 let timer: NodeJS.Timeout | null = null
 const AlarmGroup: FC = () => {
@@ -35,6 +37,18 @@ const AlarmGroup: FC = () => {
     const [openEditAlarmGroupModal, setOpenEditAlarmGroupModal] =
         useState<boolean>(false)
     const [actionKey, setActionKey] = useState<ActionKey>(ActionKey.EDIT)
+    const [logOpen, setLogOpen] = useState<boolean>(false)
+    const [logDataId, setLogDataId] = useState<number | undefined>()
+
+    const openLogDetail = (id: number) => {
+        setLogOpen(true)
+        setLogDataId(id)
+    }
+
+    const closeLogDetail = () => {
+        setLogOpen(false)
+        setLogDataId(undefined)
+    }
 
     const handleOpenEditAlarmGroupModal = (key: ActionKey, id?: number) => {
         setOperateAlarmGroupId(id)
@@ -130,6 +144,9 @@ const AlarmGroup: FC = () => {
             case ActionKey.DISABLE:
                 // handleChangeStatus([item.id], Status.STATUS_DISABLED)
                 break
+            case ActionKey.OPERATION_LOG:
+                openLogDetail(item.id)
+                break
             default:
                 break
         }
@@ -145,6 +162,13 @@ const AlarmGroup: FC = () => {
 
     return (
         <>
+            <SysLogDetail
+                module={ModuleType.ModuleAlarmNotifyGroup}
+                moduleId={logDataId}
+                open={logOpen}
+                width={600}
+                onClose={closeLogDetail}
+            />
             <EditAlarmGroupModal
                 open={openEditAlarmGroupModal}
                 alarmGroupId={oprateAlarmGroupId}

@@ -163,6 +163,21 @@ const operationItems = (item: RoleListItem): MenuProps['items'] => [
         )
     },
     {
+        key: ActionKey.OPERATION_LOG,
+        label: (
+            <Button
+                size="small"
+                type="link"
+                icon={<IconFont type="icon-wj-rz" />}
+            >
+                操作日志
+            </Button>
+        )
+    },
+    {
+        type: 'divider'
+    },
+    {
         key: ActionKey.DELETE,
         label: (
             <Button

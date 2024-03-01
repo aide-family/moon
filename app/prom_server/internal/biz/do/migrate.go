@@ -36,6 +36,7 @@ func Migrate(db *gorm.DB, cache cache.GlobalCache) (err error) {
 		&MyDashboardConfig{},
 		&DataUserOp{},
 		&DataRoleOp{},
+		&SysLog{},
 	)
 	if err != nil {
 		return err
