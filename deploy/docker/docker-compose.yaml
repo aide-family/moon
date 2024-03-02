@@ -39,6 +39,7 @@ services:
       - "../../app/prom_agent/cache:/app/cache"
     depends_on:
       - prometheus_manager_server
+      - prometheus_manager_web
     networks:
       prometheus_manager_net:
 
