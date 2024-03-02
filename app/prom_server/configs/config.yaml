@@ -11,7 +11,7 @@ server:
 data:
   database:
     driver: sqlite
-    source: ../../deploy/sql/init_sqlite.db
+    source: ./db/init_sqlite.db
     debug: true
     #  database:
     #    driver: mysql
