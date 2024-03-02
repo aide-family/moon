@@ -19,6 +19,7 @@ services:
     volumes:
       - "../../app/prom_server/configs/:/data/conf"
       - "../../app/prom_server/cache:/app/cache"
+      - "../../app/prom_server/db:/app/db"
     networks:
       prometheus_manager_net:
 

@@ -64,6 +64,8 @@ func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest
 		basescopes.TimeRange(req.GetStartAt(), req.GetEndAt()),
 		basescopes.PreloadRealtimeAssociationStrategy(),
 		basescopes.PreloadLevel(),
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
 	}
 	historyList, err := a.historyRepo.ListHistory(ctx, pgInfo, scopes...)
 	if err != nil {
