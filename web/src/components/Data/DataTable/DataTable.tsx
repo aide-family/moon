@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, RefObject, FC } from 'react'
+import { useContext, useEffect, useState, RefObject, FC, useRef } from 'react'
 
 import type { MenuProps, TableProps } from 'antd'
 import type { ColumnGroupType, ColumnType } from 'antd/es/table'
@@ -9,6 +9,7 @@ import { IconFont } from '@/components/IconFont/IconFont'
 import { MoreMenu } from '../'
 import { ActionKey } from '@/apis/data'
 import { RoleListItem } from '@/apis/home/system/role/types.ts'
+import type { Reference } from 'rc-table'
 
 export type DataTableProps<T = any> = TableProps<T> & {
     // 是否显示序号
@@ -74,7 +75,8 @@ const defaultOperation = (
         )
     }
 })
-
+let layoutContentElement = document.getElementById('root')
+let timer: NodeJS.Timeout | null = null
 const DataTable: FC<DataTableProps> = (props) => {
     const { size } = useContext(GlobalContext)
     const {
@@ -90,16 +92,16 @@ const DataTable: FC<DataTableProps> = (props) => {
         pageSize,
         current,
         pageOnChange,
-        x = 1500,
-        y = 480
+        x,
+        y
     } = props
+
+    const tableRef = useRef<Reference>(null)
+    const [tableScrollHeight, setTableScrollHeight] = useState<number>()
+
     const [_columns, setColumns] = useState<
         (ColumnGroupType<any> | ColumnType<any>)[]
     >([])
-    // const [tableHigh, setTableHigh] = useState<number>(
-    //     (layoutContentElement?.clientHeight || 20) -
-    //         (operationRef?.current?.clientHeight || 20)
-    // )
 
     useEffect(() => {
         let columnsTmp = columns
@@ -123,39 +125,75 @@ const DataTable: FC<DataTableProps> = (props) => {
         setColumns([...columnsTmp])
     }, [columns, pageSize, current])
 
-    // const resizeObserver = new ResizeObserver((entries) => {
-    //     for (const entry of entries) {
-    //         const { height } = entry.contentRect
-    //         let paginationHeight =
-    //             document.getElementsByClassName('ant-table-pagination')?.[0]
-    //                 ?.clientHeight || 30
-    //         setTableHigh(
-    //             height -
-    //                 (operationRef?.current?.clientHeight || 20) -
-    //                 paginationHeight
-    //         )
-    //     }
-    // })
+    const getScrollHeight = (height: number) => {
+        let header =
+            document.getElementsByClassName('ant-layout-header')[0]
+                ?.clientHeight
+        let footer =
+            document.getElementsByClassName('ant-layout-footer')?.[0]
+                ?.clientHeight
+        let tableHeader =
+            document.getElementsByClassName('ant-table-thead')[0]?.clientHeight
+        let tablePage =
+            document.getElementsByClassName('ant-table-pagination')[0]
+                ?.clientHeight || 32
+        let searchBox = tableRef.current?.nativeElement?.offsetTop || 0
 
-    // useEffect(() => {
-    //     if (layoutContentElement) {
-    //         resizeObserver.observe(layoutContentElement)
-    //     }
-    //     return () => {
-    //         resizeObserver.disconnect()
-    //     }
-    // }, [layoutContentElement, size, operationRef])
+        // console.log('header', header)
+        // console.log('footer', footer)
+        // console.log('tableHeader', tableHeader)
+        // console.log('tablePage', tablePage)
+        // console.log('searchBox', searchBox)
+        let scrollHeight =
+            height -
+            (header +
+                footer +
+                tableHeader +
+                tablePage +
+                searchBox +
+                8 * 2 +
+                16 * 2)
+        console.log('scrollHeight', scrollHeight)
+        console.log('height', height)
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+            setTableScrollHeight(scrollHeight)
+        }, 500)
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            const { height } = entry.contentRect
+            getScrollHeight(height)
+        }
+    })
+
+    useEffect(() => {
+        if (tableRef) {
+            resizeObserver.observe(layoutContentElement!)
+        }
+        return () => {
+            resizeObserver.disconnect()
+        }
+    }, [layoutContentElement, size])
 
     return (
         <>
             <ConfigProvider>
                 <Table
+                    ref={tableRef}
                     {...props}
                     rowKey={(record) => record?.id}
                     dataSource={dataSource}
-                    columns={_columns}
-                    // scroll={{ x: 1500, y: tableHigh - defaultPadding * 8 }}
-                    scroll={{ x: x, y: y }}
+                    columns={_columns.map((item, index) => {
+                        if (index === 0) {
+                            item.fixed = true
+                        }
+                        return item
+                    })}
+                    scroll={{ x: x, y: y || tableScrollHeight }}
                     size={size}
                     sticky
                     pagination={{
