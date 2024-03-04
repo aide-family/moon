@@ -59,9 +59,9 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                 chatGroupsTmp.push({
                     value: item.value as number,
                     label: item.label as string,
-                    app:
-                        (item.title as NotifyApp) ||
-                        NotifyApp.NOTIFY_APP_CUSTOM,
+                    app: item.title
+                        ? (+item.title as NotifyApp)
+                        : NotifyApp.NOTIFY_APP_CUSTOM,
                     status: Status.STATUS_ENABLED
                 })
             })
@@ -239,7 +239,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         app: item.app,
                         status: item.status,
                         value: item.value,
-                        title: item.app
+                        title: item.app + ''
                     }
                     return option
                 })

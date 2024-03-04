@@ -41,7 +41,7 @@ func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo basescope
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmHistory{}).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.PromAlarmHistory{}).Scopes(scopes...).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
