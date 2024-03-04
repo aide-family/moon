@@ -1,5 +1,21 @@
 # Moon 技术文档
 
+<div align="center">
+<span>
+<img src="./doc/img/logo.svg" width="220" height="220"/>
+<img src="./doc/img/prometheus-logo.svg" width="220" height="220"/>
+</span>
+
+[![License](https://img.shields.io/github/license/aide-family/moon.svg?style=flat)](https://github.com/aide-family/moon)
+[![Release](https://img.shields.io/github/v/release/aide-family/moon?style=flat)](https://github.com/aide-family/moon/releases)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/aide-family/moon?style=flat)](https://github.com/aide-family/moon/pulls)
+[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/aide-family/moon?style=flat)](https://github.com/aide-family/moon/pulls?q=is%3Apr+is%3Aclosed)
+[![GitHub issues](https://img.shields.io/github/issues/aide-family/moon?style=flat)](https://github.com/aide-family/moon/issues)
+[![GitHub closed issues](https://img.shields.io/github/issues-closed/aide-family/moon?style=flat)](https://github.com/aide-family/moon/issues?q=is%3Aissue+is%3Aclosed)
+![Stars](https://img.shields.io/github/stars/aide-family/moon?style=flat)
+![Forks](https://img.shields.io/github/forks/aide-family/moon?style=flat)
+</div>
+
 ## 1. 概述
 
 > 在漫长黑夜中守护你的一轮明月
@@ -32,7 +48,7 @@
 * Docker (可选，用于快速部署)
 * K8s (暂时未尝试)
 * 环境依赖：
-  * mysql数据库：8.0+
+  * mysql数据库：8.0+（可选）
   * redis数据库（可选）
   * kafka消息队列（可选）
   > 如果没有这些环境，可以直接进入`./deploy/rely`录下， 执行`docker-compose up -d`启动本地默认依赖, 该依赖包含了mysql，redis，kafka等，你可以选择屏蔽掉redis和kafka， 只启动mysql部分
