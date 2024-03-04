@@ -55,6 +55,27 @@
 
 ### 2.2 安装部署
 
+#### docker-compose部署
+
+  * 下载代码
+    
+  ```bash
+  git clone https://github.com/aide-family/moon.git
+  cd moon
+  ```
+  
+  * 执行命令
+    
+  ```bash
+  make all-docker-compose args="up --build -d"
+  ```
+
+  <p style="color: red">注意: 该方式部署需要在本地安装docker环境, 可能存在网络较差时候拉取镜像会失败, 请自行解决</p>
+
+  * 访问服务
+
+  http://localhost:8000/
+
 #### 本地开发方式启动
 
 * 准备如下配置文件, 默认需要在app/prom_server目录下创建configs_local目录和config.yaml文件, prom_agent同理.
@@ -186,26 +207,6 @@ make local app=app/prom_agent
 make web
 ```
 
-##### docker方式启动
-
-1. 如果本地没有mysql数据库，可以通过以下命令在本地快速拉起一个mysql容器，然后通过工具创建一个名为 **prometheus_manager** 的数据库，如果执行完这步则直接跳过第2步，直接执行执行第3步
-
-   ```shell
-   docker run -d -p 3306:3306 --name mysql-container -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0
-   ```
-
-2. 准备上述类似配置，通过容器体验该项目时的配置文件地址
-
-* prometheus-manager/app/prom_agent/configs/config.yaml
-
-* prometheus-manager/app/prom_server/configs/config.yaml
-
-3. 进入到项目根目录下执行下述命令，在本地一站式启动服务
-
-```shell
-make all-docker-compose-up
-```
-
 ## 3. 功能详解
 
 ### 3.1 系统管理
@@ -225,7 +226,7 @@ make all-docker-compose-up
 * 功能说明：
 
 主要管理角色信息，包括新增、修改、删除等操作。通过权限和角色绑定，实现权限控制，精确到接口粒度。
-采用RBAC模式实现，具体请参见[RBAC](..)。
+采用RBAC模式实现，具体请参见[RBAC](https://casbin.org/zh/docs/rbac)。
 
 * 注意事项：
 
