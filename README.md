@@ -258,5 +258,6 @@ make all-docker-compose-up
 
 # 6. 贡献者
 
-This project exists thanks to all the people who contribute. [[Contributors](https://github.com/aide-family/moon/graphs/contributors)].
+这个项目的存在要感谢所有做出贡献的人。 [[Contributors](https://github.com/aide-family/moon/graphs/contributors)].
+
 <a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
