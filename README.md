@@ -256,7 +256,7 @@ make all-docker-compose-up
 
 ## 5. 常见问题解答
 
-# 6. 贡献者
+## 6. 贡献者
 
 这个项目的存在要感谢所有做出贡献的人。 [[Contributors](https://github.com/aide-family/moon/graphs/contributors)].
 

@@ -167,7 +167,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         }
 
         timeout = setTimeout(() => {
-            formatExpressionFunc(dataSource?.title, value)
+            formatExpressionFunc(dataSource?.title || '', value)
                 .then((resp) => {
                     if (resp.status === 'error') {
                         const msg = `[${resp.errorType}] ${resp.error}`
@@ -280,7 +280,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     >
                         <PromQLInput
                             disabled={disabled}
-                            pathPrefix={dataSource?.title}
+                            pathPrefix={dataSource?.title || ''}
                             formatExpression={true}
                             buttonRef={promQLButtonRef}
                         />
