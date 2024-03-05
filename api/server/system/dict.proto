@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.dict;
+package api.server.system;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "model.proto";
 import "base.proto";
 
-option go_package = "prometheus-manager/api/dict;dict";
+option go_package = "prometheus-manager/api/server/system;system";
 option java_multiple_files = true;
-option java_package = "api.dict";
+option java_package = "api.server.system";
 
 
 // 字典管理模块相关接口

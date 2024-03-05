@@ -10,4 +10,5 @@ var ProviderSetSystem = wire.NewSet(
 	NewRoleService,
 	NewApiService,
 	NewSyslogService,
+	NewDictService,
 )

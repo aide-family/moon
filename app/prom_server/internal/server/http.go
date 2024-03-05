@@ -18,7 +18,6 @@ import (
 	"prometheus-manager/api/alarm/realtime"
 	"prometheus-manager/api/auth"
 	"prometheus-manager/api/dashboard"
-	"prometheus-manager/api/dict"
 	"prometheus-manager/api/interflows"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/server/prom/endpoint"
@@ -33,7 +32,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
 	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
-	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
@@ -49,7 +47,7 @@ type HttpServer struct {
 func RegisterHttpServer(
 	srv *http.Server,
 	pingService *service.PingService,
-	dictService *dictservice.Service,
+	dictService *systemservice.Service,
 	strategyService *promservice.StrategyService,
 	strategyGroupService *promservice.GroupService,
 	alarmPageService *alarmservice.AlarmPageService,
@@ -69,7 +67,7 @@ func RegisterHttpServer(
 	syslogService *systemservice.SyslogService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
-	dict.RegisterDictHTTPServer(srv, dictService)
+	system.RegisterDictHTTPServer(srv, dictService)
 	strategy.RegisterStrategyHTTPServer(srv, strategyService)
 	group.RegisterGroupHTTPServer(srv, strategyGroupService)
 	page.RegisterAlarmPageHTTPServer(srv, alarmPageService)

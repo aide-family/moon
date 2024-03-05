@@ -21,7 +21,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
-	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
 )
@@ -35,7 +34,6 @@ func wireApp(*string) (*kratos.App, func(), error) {
 		service.ProviderSetService,
 		conf.ProviderSetConf,
 		plog.ProviderSetPLog,
-		dictservice.ProviderSetDictService,
 		interflowservice.ProviderSetInterflowService,
 		promservice.ProviderSetProm,
 		alarmservice.ProviderSetAlarm,

@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	dictpb "prometheus-manager/api/server/system"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
-	dictpb "prometheus-manager/api/dict"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
