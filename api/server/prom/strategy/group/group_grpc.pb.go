@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: prom/strategy/group/group.proto
+// source: server/prom/strategy/group/group.proto
 
 package group
 
@@ -19,17 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Group_CreateGroup_FullMethodName            = "/api.prom.strategy.group.Group/CreateGroup"
-	Group_UpdateGroup_FullMethodName            = "/api.prom.strategy.group.Group/UpdateGroup"
-	Group_BatchUpdateGroupStatus_FullMethodName = "/api.prom.strategy.group.Group/BatchUpdateGroupStatus"
-	Group_DeleteGroup_FullMethodName            = "/api.prom.strategy.group.Group/DeleteGroup"
-	Group_BatchDeleteGroup_FullMethodName       = "/api.prom.strategy.group.Group/BatchDeleteGroup"
-	Group_GetGroup_FullMethodName               = "/api.prom.strategy.group.Group/GetGroup"
-	Group_ListGroup_FullMethodName              = "/api.prom.strategy.group.Group/ListGroup"
-	Group_ListAllGroupDetail_FullMethodName     = "/api.prom.strategy.group.Group/ListAllGroupDetail"
-	Group_SelectGroup_FullMethodName            = "/api.prom.strategy.group.Group/SelectGroup"
-	Group_ImportGroup_FullMethodName            = "/api.prom.strategy.group.Group/ImportGroup"
-	Group_ExportGroup_FullMethodName            = "/api.prom.strategy.group.Group/ExportGroup"
+	Group_CreateGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/CreateGroup"
+	Group_UpdateGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/UpdateGroup"
+	Group_BatchUpdateGroupStatus_FullMethodName = "/api.server.prom.strategy.group.Group/BatchUpdateGroupStatus"
+	Group_DeleteGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/DeleteGroup"
+	Group_BatchDeleteGroup_FullMethodName       = "/api.server.prom.strategy.group.Group/BatchDeleteGroup"
+	Group_GetGroup_FullMethodName               = "/api.server.prom.strategy.group.Group/GetGroup"
+	Group_ListGroup_FullMethodName              = "/api.server.prom.strategy.group.Group/ListGroup"
+	Group_ListAllGroupDetail_FullMethodName     = "/api.server.prom.strategy.group.Group/ListAllGroupDetail"
+	Group_SelectGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/SelectGroup"
+	Group_ImportGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/ImportGroup"
+	Group_ExportGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/ExportGroup"
 )
 
 // GroupClient is the client API for Group service.
@@ -448,7 +448,7 @@ func _Group_ExportGroup_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Group_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.prom.strategy.group.Group",
+	ServiceName: "api.server.prom.strategy.group.Group",
 	HandlerType: (*GroupServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -497,5 +497,5 @@ var Group_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "prom/strategy/group/group.proto",
+	Metadata: "server/prom/strategy/group/group.proto",
 }

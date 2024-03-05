@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: prom/notify/chat_group.proto
+// source: server/prom/notify/chat_group.proto
 
 package notify
 
@@ -19,12 +19,12 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationChatGroupCreateChatGroup = "/api.prom.notify.ChatGroup/CreateChatGroup"
-const OperationChatGroupDeleteChatGroup = "/api.prom.notify.ChatGroup/DeleteChatGroup"
-const OperationChatGroupGetChatGroup = "/api.prom.notify.ChatGroup/GetChatGroup"
-const OperationChatGroupListChatGroup = "/api.prom.notify.ChatGroup/ListChatGroup"
-const OperationChatGroupSelectChatGroup = "/api.prom.notify.ChatGroup/SelectChatGroup"
-const OperationChatGroupUpdateChatGroup = "/api.prom.notify.ChatGroup/UpdateChatGroup"
+const OperationChatGroupCreateChatGroup = "/api.server.prom.notify.ChatGroup/CreateChatGroup"
+const OperationChatGroupDeleteChatGroup = "/api.server.prom.notify.ChatGroup/DeleteChatGroup"
+const OperationChatGroupGetChatGroup = "/api.server.prom.notify.ChatGroup/GetChatGroup"
+const OperationChatGroupListChatGroup = "/api.server.prom.notify.ChatGroup/ListChatGroup"
+const OperationChatGroupSelectChatGroup = "/api.server.prom.notify.ChatGroup/SelectChatGroup"
+const OperationChatGroupUpdateChatGroup = "/api.server.prom.notify.ChatGroup/UpdateChatGroup"
 
 type ChatGroupHTTPServer interface {
 	CreateChatGroup(context.Context, *CreateChatGroupRequest) (*CreateChatGroupReply, error)

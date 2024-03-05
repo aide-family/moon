@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/prom/strategy"
+	pb "prometheus-manager/api/server/prom/strategy"
 	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/app/prom_server/internal/biz"
@@ -115,7 +115,14 @@ func (s *StrategyService) GetStrategy(ctx context.Context, req *pb.GetStrategyRe
 }
 
 func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) (*pb.ListStrategyReply, error) {
-	strategyBos, pgInfo, err := s.strategyBiz.ListStrategy(ctx, req)
+	strategyBos, pgInfo, err := s.strategyBiz.ListStrategy(ctx, &bo.ListStrategyRequest{
+		Curr:       req.GetPage().GetCurr(),
+		Size:       req.GetPage().GetSize(),
+		Keyword:    req.GetKeyword(),
+		GroupId:    req.GetGroupId(),
+		Status:     vo.Status(req.GetStatus()),
+		StrategyId: req.GetStrategyId(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +137,11 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategy
 }
 
 func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStrategyRequest) (*pb.SelectStrategyReply, error) {
-	strategyBos, pgInfo, err := s.strategyBiz.SelectStrategy(ctx, req)
+	strategyBos, pgInfo, err := s.strategyBiz.SelectStrategy(ctx, &bo.SelectStrategyRequest{
+		Curr:    req.GetPage().GetCurr(),
+		Size:    req.GetPage().GetSize(),
+		Keyword: req.GetKeyword(),
+	})
 	if err != nil {
 		return nil, err
 	}

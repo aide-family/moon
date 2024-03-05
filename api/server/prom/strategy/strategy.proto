@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.prom.strategy;
+package api.server.prom.strategy;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
 import "model.proto";
 
-option go_package = "prometheus-manager/api/prom/strategy;strategy";
+option go_package = "prometheus-manager/api/server/prom/strategy;strategy";
 option java_multiple_files = true;
-option java_package = "api.prom.strategy";
+option java_package = "api.server.prom.strategy";
 
 // 策略管理模块相关接口
 service Strategy {

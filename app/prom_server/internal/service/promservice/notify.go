@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/prom/notify"
+	pb "prometheus-manager/api/server/prom/notify"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz"

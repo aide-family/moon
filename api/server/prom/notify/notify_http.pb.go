@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: prom/notify/notify.proto
+// source: server/prom/notify/notify.proto
 
 package notify
 
@@ -19,12 +19,12 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationNotifyCreateNotify = "/api.prom.notify.Notify/CreateNotify"
-const OperationNotifyDeleteNotify = "/api.prom.notify.Notify/DeleteNotify"
-const OperationNotifyGetNotify = "/api.prom.notify.Notify/GetNotify"
-const OperationNotifyListNotify = "/api.prom.notify.Notify/ListNotify"
-const OperationNotifySelectNotify = "/api.prom.notify.Notify/SelectNotify"
-const OperationNotifyUpdateNotify = "/api.prom.notify.Notify/UpdateNotify"
+const OperationNotifyCreateNotify = "/api.server.prom.notify.Notify/CreateNotify"
+const OperationNotifyDeleteNotify = "/api.server.prom.notify.Notify/DeleteNotify"
+const OperationNotifyGetNotify = "/api.server.prom.notify.Notify/GetNotify"
+const OperationNotifyListNotify = "/api.server.prom.notify.Notify/ListNotify"
+const OperationNotifySelectNotify = "/api.server.prom.notify.Notify/SelectNotify"
+const OperationNotifyUpdateNotify = "/api.server.prom.notify.Notify/UpdateNotify"
 
 type NotifyHTTPServer interface {
 	CreateNotify(context.Context, *CreateNotifyRequest) (*CreateNotifyReply, error)

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: prom/strategy/strategy.proto
+// source: server/prom/strategy/strategy.proto
 
 package strategy
 
@@ -19,17 +19,17 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationStrategyBatchDeleteStrategy = "/api.prom.strategy.Strategy/BatchDeleteStrategy"
-const OperationStrategyBatchUpdateStrategyStatus = "/api.prom.strategy.Strategy/BatchUpdateStrategyStatus"
-const OperationStrategyBindStrategyNotifyObject = "/api.prom.strategy.Strategy/BindStrategyNotifyObject"
-const OperationStrategyCreateStrategy = "/api.prom.strategy.Strategy/CreateStrategy"
-const OperationStrategyDeleteStrategy = "/api.prom.strategy.Strategy/DeleteStrategy"
-const OperationStrategyExportStrategy = "/api.prom.strategy.Strategy/ExportStrategy"
-const OperationStrategyGetStrategy = "/api.prom.strategy.Strategy/GetStrategy"
-const OperationStrategyGetStrategyNotifyObject = "/api.prom.strategy.Strategy/GetStrategyNotifyObject"
-const OperationStrategyListStrategy = "/api.prom.strategy.Strategy/ListStrategy"
-const OperationStrategySelectStrategy = "/api.prom.strategy.Strategy/SelectStrategy"
-const OperationStrategyUpdateStrategy = "/api.prom.strategy.Strategy/UpdateStrategy"
+const OperationStrategyBatchDeleteStrategy = "/api.server.prom.strategy.Strategy/BatchDeleteStrategy"
+const OperationStrategyBatchUpdateStrategyStatus = "/api.server.prom.strategy.Strategy/BatchUpdateStrategyStatus"
+const OperationStrategyBindStrategyNotifyObject = "/api.server.prom.strategy.Strategy/BindStrategyNotifyObject"
+const OperationStrategyCreateStrategy = "/api.server.prom.strategy.Strategy/CreateStrategy"
+const OperationStrategyDeleteStrategy = "/api.server.prom.strategy.Strategy/DeleteStrategy"
+const OperationStrategyExportStrategy = "/api.server.prom.strategy.Strategy/ExportStrategy"
+const OperationStrategyGetStrategy = "/api.server.prom.strategy.Strategy/GetStrategy"
+const OperationStrategyGetStrategyNotifyObject = "/api.server.prom.strategy.Strategy/GetStrategyNotifyObject"
+const OperationStrategyListStrategy = "/api.server.prom.strategy.Strategy/ListStrategy"
+const OperationStrategySelectStrategy = "/api.server.prom.strategy.Strategy/SelectStrategy"
+const OperationStrategyUpdateStrategy = "/api.server.prom.strategy.Strategy/UpdateStrategy"
 
 type StrategyHTTPServer interface {
 	BatchDeleteStrategy(context.Context, *BatchDeleteStrategyRequest) (*BatchDeleteStrategyReply, error)

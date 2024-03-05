@@ -12,7 +12,7 @@ import (
 	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/prom/strategy/group"
+	pb "prometheus-manager/api/server/prom/strategy/group"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/app/prom_server/internal/biz"
