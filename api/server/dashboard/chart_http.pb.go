@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: dashboard/chart.proto
+// source: server/dashboard/chart.proto
 
 package dashboard
 
@@ -19,11 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationChartCreateChart = "/api.dashboard.Chart/CreateChart"
-const OperationChartDeleteChart = "/api.dashboard.Chart/DeleteChart"
-const OperationChartGetChart = "/api.dashboard.Chart/GetChart"
-const OperationChartListChart = "/api.dashboard.Chart/ListChart"
-const OperationChartUpdateChart = "/api.dashboard.Chart/UpdateChart"
+const OperationChartCreateChart = "/api.server.dashboard.Chart/CreateChart"
+const OperationChartDeleteChart = "/api.server.dashboard.Chart/DeleteChart"
+const OperationChartGetChart = "/api.server.dashboard.Chart/GetChart"
+const OperationChartListChart = "/api.server.dashboard.Chart/ListChart"
+const OperationChartUpdateChart = "/api.server.dashboard.Chart/UpdateChart"
 
 type ChartHTTPServer interface {
 	CreateChart(context.Context, *CreateChartRequest) (*CreateChartReply, error)

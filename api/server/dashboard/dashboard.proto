@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.dashboard;
+package api.server.dashboard;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "model.proto";
 import "base.proto";
 
-option go_package = "prometheus-manager/api/dashboard;dashboard";
+option go_package = "prometheus-manager/api/server/dashboard;dashboard";
 option java_multiple_files = true;
-option java_package = "api.dashboard";
+option java_package = "api.server.dashboard";
 
 // 仪表盘模块
 service Dashboard {

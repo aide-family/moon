@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: dashboard/chart.proto
+// source: server/dashboard/chart.proto
 
 package dashboard
 
@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Chart_CreateChart_FullMethodName = "/api.dashboard.Chart/CreateChart"
-	Chart_UpdateChart_FullMethodName = "/api.dashboard.Chart/UpdateChart"
-	Chart_DeleteChart_FullMethodName = "/api.dashboard.Chart/DeleteChart"
-	Chart_GetChart_FullMethodName    = "/api.dashboard.Chart/GetChart"
-	Chart_ListChart_FullMethodName   = "/api.dashboard.Chart/ListChart"
+	Chart_CreateChart_FullMethodName = "/api.server.dashboard.Chart/CreateChart"
+	Chart_UpdateChart_FullMethodName = "/api.server.dashboard.Chart/UpdateChart"
+	Chart_DeleteChart_FullMethodName = "/api.server.dashboard.Chart/DeleteChart"
+	Chart_GetChart_FullMethodName    = "/api.server.dashboard.Chart/GetChart"
+	Chart_ListChart_FullMethodName   = "/api.server.dashboard.Chart/ListChart"
 )
 
 // ChartClient is the client API for Chart service.
@@ -238,7 +238,7 @@ func _Chart_ListChart_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Chart_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.dashboard.Chart",
+	ServiceName: "api.server.dashboard.Chart",
 	HandlerType: (*ChartServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -263,5 +263,5 @@ var Chart_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "dashboard/chart.proto",
+	Metadata: "server/dashboard/chart.proto",
 }

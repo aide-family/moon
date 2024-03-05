@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: dashboard/dashboard.proto
+// source: server/dashboard/dashboard.proto
 
 package dashboard
 
@@ -19,12 +19,12 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationDashboardCreateDashboard = "/api.dashboard.Dashboard/CreateDashboard"
-const OperationDashboardDeleteDashboard = "/api.dashboard.Dashboard/DeleteDashboard"
-const OperationDashboardGetDashboard = "/api.dashboard.Dashboard/GetDashboard"
-const OperationDashboardListDashboard = "/api.dashboard.Dashboard/ListDashboard"
-const OperationDashboardListDashboardSelect = "/api.dashboard.Dashboard/ListDashboardSelect"
-const OperationDashboardUpdateDashboard = "/api.dashboard.Dashboard/UpdateDashboard"
+const OperationDashboardCreateDashboard = "/api.server.dashboard.Dashboard/CreateDashboard"
+const OperationDashboardDeleteDashboard = "/api.server.dashboard.Dashboard/DeleteDashboard"
+const OperationDashboardGetDashboard = "/api.server.dashboard.Dashboard/GetDashboard"
+const OperationDashboardListDashboard = "/api.server.dashboard.Dashboard/ListDashboard"
+const OperationDashboardListDashboardSelect = "/api.server.dashboard.Dashboard/ListDashboardSelect"
+const OperationDashboardUpdateDashboard = "/api.server.dashboard.Dashboard/UpdateDashboard"
 
 type DashboardHTTPServer interface {
 	CreateDashboard(context.Context, *CreateDashboardRequest) (*CreateDashboardReply, error)

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: dashboard/dashboard.proto
+// source: server/dashboard/dashboard.proto
 
 package dashboard
 
@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Dashboard_CreateDashboard_FullMethodName     = "/api.dashboard.Dashboard/CreateDashboard"
-	Dashboard_UpdateDashboard_FullMethodName     = "/api.dashboard.Dashboard/UpdateDashboard"
-	Dashboard_DeleteDashboard_FullMethodName     = "/api.dashboard.Dashboard/DeleteDashboard"
-	Dashboard_GetDashboard_FullMethodName        = "/api.dashboard.Dashboard/GetDashboard"
-	Dashboard_ListDashboard_FullMethodName       = "/api.dashboard.Dashboard/ListDashboard"
-	Dashboard_ListDashboardSelect_FullMethodName = "/api.dashboard.Dashboard/ListDashboardSelect"
+	Dashboard_CreateDashboard_FullMethodName     = "/api.server.dashboard.Dashboard/CreateDashboard"
+	Dashboard_UpdateDashboard_FullMethodName     = "/api.server.dashboard.Dashboard/UpdateDashboard"
+	Dashboard_DeleteDashboard_FullMethodName     = "/api.server.dashboard.Dashboard/DeleteDashboard"
+	Dashboard_GetDashboard_FullMethodName        = "/api.server.dashboard.Dashboard/GetDashboard"
+	Dashboard_ListDashboard_FullMethodName       = "/api.server.dashboard.Dashboard/ListDashboard"
+	Dashboard_ListDashboardSelect_FullMethodName = "/api.server.dashboard.Dashboard/ListDashboardSelect"
 )
 
 // DashboardClient is the client API for Dashboard service.
@@ -273,7 +273,7 @@ func _Dashboard_ListDashboardSelect_Handler(srv interface{}, ctx context.Context
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Dashboard_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.dashboard.Dashboard",
+	ServiceName: "api.server.dashboard.Dashboard",
 	HandlerType: (*DashboardServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -302,5 +302,5 @@ var Dashboard_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "dashboard/dashboard.proto",
+	Metadata: "server/dashboard/dashboard.proto",
 }
