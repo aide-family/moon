@@ -9,7 +9,6 @@ import (
 	"prometheus-manager/api/perrors"
 
 	"prometheus-manager/api"
-	strategyPB "prometheus-manager/api/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -151,14 +150,13 @@ func (b *StrategyBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Strat
 }
 
 // ListStrategy 获取策略列表
-func (b *StrategyBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
-	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
+	pgInfo := basescopes.NewPage(req.Curr, req.Size)
 
 	scopes := []basescopes.ScopeMethod{
-		basescopes.StrategyTableAlertLike(req.GetKeyword()),
-		basescopes.StrategyTableGroupIdsEQ(req.GetGroupId()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
+		basescopes.StrategyTableAlertLike(req.Keyword),
+		basescopes.StrategyTableGroupIdsEQ(req.GroupId),
+		basescopes.StatusEQ(req.Status),
 		basescopes.StrategyTablePreloadAlertLevel,
 		basescopes.StrategyTablePreloadCategories,
 		basescopes.StrategyTablePreloadEndpoint,
@@ -166,7 +164,7 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStra
 		basescopes.StrategyTablePreloadAlarmPages,
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
-		basescopes.InIds(req.GetStrategyId()),
+		basescopes.InIds(req.StrategyId),
 	}
 
 	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
@@ -178,12 +176,11 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *strategyPB.ListStra
 }
 
 // SelectStrategy 查询策略
-func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *strategyPB.SelectStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
-	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *bo.SelectStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
+	pgInfo := basescopes.NewPage(req.Curr, req.Size)
 
 	scopes := []basescopes.ScopeMethod{
-		basescopes.StrategyTableAlertLike(req.GetKeyword()),
+		basescopes.StrategyTableAlertLike(req.Keyword),
 		basescopes.StatusEQ(vo.Status(api.Status_STATUS_ENABLED)),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
@@ -198,8 +195,8 @@ func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *strategyPB.Select
 }
 
 // ExportStrategy 导出策略
-func (b *StrategyBiz) ExportStrategy(ctx context.Context, req *strategyPB.ExportStrategyRequest) ([]*bo.StrategyBO, error) {
-	strategyBOs, err := b.strategyRepo.ListStrategyByIds(ctx, req.GetIds())
+func (b *StrategyBiz) ExportStrategy(ctx context.Context, req *bo.ExportStrategyRequest) ([]*bo.StrategyBO, error) {
+	strategyBOs, err := b.strategyRepo.ListStrategyByIds(ctx, req.Ids)
 	if err != nil {
 		return nil, err
 	}

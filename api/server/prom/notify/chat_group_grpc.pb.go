@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: prom/notify/chat_group.proto
+// source: server/prom/notify/chat_group.proto
 
 package notify
 
@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ChatGroup_CreateChatGroup_FullMethodName = "/api.prom.notify.ChatGroup/CreateChatGroup"
-	ChatGroup_UpdateChatGroup_FullMethodName = "/api.prom.notify.ChatGroup/UpdateChatGroup"
-	ChatGroup_DeleteChatGroup_FullMethodName = "/api.prom.notify.ChatGroup/DeleteChatGroup"
-	ChatGroup_GetChatGroup_FullMethodName    = "/api.prom.notify.ChatGroup/GetChatGroup"
-	ChatGroup_ListChatGroup_FullMethodName   = "/api.prom.notify.ChatGroup/ListChatGroup"
-	ChatGroup_SelectChatGroup_FullMethodName = "/api.prom.notify.ChatGroup/SelectChatGroup"
+	ChatGroup_CreateChatGroup_FullMethodName = "/api.server.prom.notify.ChatGroup/CreateChatGroup"
+	ChatGroup_UpdateChatGroup_FullMethodName = "/api.server.prom.notify.ChatGroup/UpdateChatGroup"
+	ChatGroup_DeleteChatGroup_FullMethodName = "/api.server.prom.notify.ChatGroup/DeleteChatGroup"
+	ChatGroup_GetChatGroup_FullMethodName    = "/api.server.prom.notify.ChatGroup/GetChatGroup"
+	ChatGroup_ListChatGroup_FullMethodName   = "/api.server.prom.notify.ChatGroup/ListChatGroup"
+	ChatGroup_SelectChatGroup_FullMethodName = "/api.server.prom.notify.ChatGroup/SelectChatGroup"
 )
 
 // ChatGroupClient is the client API for ChatGroup service.
@@ -273,7 +273,7 @@ func _ChatGroup_SelectChatGroup_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ChatGroup_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.prom.notify.ChatGroup",
+	ServiceName: "api.server.prom.notify.ChatGroup",
 	HandlerType: (*ChatGroupServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -302,5 +302,5 @@ var ChatGroup_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "prom/notify/chat_group.proto",
+	Metadata: "server/prom/notify/chat_group.proto",
 }

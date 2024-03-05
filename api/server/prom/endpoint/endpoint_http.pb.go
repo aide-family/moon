@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: prom/endpoint/endpoint.proto
+// source: server/prom/endpoint/endpoint.proto
 
 package endpoint
 
@@ -19,13 +19,13 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationEndpointAppendEndpoint = "/api.prom.endpoint.Endpoint/AppendEndpoint"
-const OperationEndpointBatchEditEndpointStatus = "/api.prom.endpoint.Endpoint/BatchEditEndpointStatus"
-const OperationEndpointDeleteEndpoint = "/api.prom.endpoint.Endpoint/DeleteEndpoint"
-const OperationEndpointEditEndpoint = "/api.prom.endpoint.Endpoint/EditEndpoint"
-const OperationEndpointGetEndpoint = "/api.prom.endpoint.Endpoint/GetEndpoint"
-const OperationEndpointListEndpoint = "/api.prom.endpoint.Endpoint/ListEndpoint"
-const OperationEndpointSelectEndpoint = "/api.prom.endpoint.Endpoint/SelectEndpoint"
+const OperationEndpointAppendEndpoint = "/api.server.prom.endpoint.Endpoint/AppendEndpoint"
+const OperationEndpointBatchEditEndpointStatus = "/api.server.prom.endpoint.Endpoint/BatchEditEndpointStatus"
+const OperationEndpointDeleteEndpoint = "/api.server.prom.endpoint.Endpoint/DeleteEndpoint"
+const OperationEndpointEditEndpoint = "/api.server.prom.endpoint.Endpoint/EditEndpoint"
+const OperationEndpointGetEndpoint = "/api.server.prom.endpoint.Endpoint/GetEndpoint"
+const OperationEndpointListEndpoint = "/api.server.prom.endpoint.Endpoint/ListEndpoint"
+const OperationEndpointSelectEndpoint = "/api.server.prom.endpoint.Endpoint/SelectEndpoint"
 
 type EndpointHTTPServer interface {
 	AppendEndpoint(context.Context, *AppendEndpointRequest) (*AppendEndpointReply, error)

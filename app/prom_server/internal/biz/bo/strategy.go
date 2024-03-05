@@ -11,6 +11,25 @@ import (
 	"prometheus-manager/pkg/util/slices"
 )
 
+type SelectStrategyRequest struct {
+	Curr    int32
+	Size    int32
+	Keyword string
+}
+
+type ExportStrategyRequest struct {
+	Ids []uint32
+}
+
+type ListStrategyRequest struct {
+	Curr       int32
+	Size       int32
+	Keyword    string
+	GroupId    uint32
+	Status     vo.Status
+	StrategyId uint32
+}
+
 type (
 	StrategyBO struct {
 		Id             uint32                `json:"id"`

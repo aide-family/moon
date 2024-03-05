@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: prom/endpoint/endpoint.proto
+// source: server/prom/endpoint/endpoint.proto
 
 package endpoint
 
@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Endpoint_AppendEndpoint_FullMethodName          = "/api.prom.endpoint.Endpoint/AppendEndpoint"
-	Endpoint_DeleteEndpoint_FullMethodName          = "/api.prom.endpoint.Endpoint/DeleteEndpoint"
-	Endpoint_EditEndpoint_FullMethodName            = "/api.prom.endpoint.Endpoint/EditEndpoint"
-	Endpoint_BatchEditEndpointStatus_FullMethodName = "/api.prom.endpoint.Endpoint/BatchEditEndpointStatus"
-	Endpoint_GetEndpoint_FullMethodName             = "/api.prom.endpoint.Endpoint/GetEndpoint"
-	Endpoint_ListEndpoint_FullMethodName            = "/api.prom.endpoint.Endpoint/ListEndpoint"
-	Endpoint_SelectEndpoint_FullMethodName          = "/api.prom.endpoint.Endpoint/SelectEndpoint"
+	Endpoint_AppendEndpoint_FullMethodName          = "/api.server.prom.endpoint.Endpoint/AppendEndpoint"
+	Endpoint_DeleteEndpoint_FullMethodName          = "/api.server.prom.endpoint.Endpoint/DeleteEndpoint"
+	Endpoint_EditEndpoint_FullMethodName            = "/api.server.prom.endpoint.Endpoint/EditEndpoint"
+	Endpoint_BatchEditEndpointStatus_FullMethodName = "/api.server.prom.endpoint.Endpoint/BatchEditEndpointStatus"
+	Endpoint_GetEndpoint_FullMethodName             = "/api.server.prom.endpoint.Endpoint/GetEndpoint"
+	Endpoint_ListEndpoint_FullMethodName            = "/api.server.prom.endpoint.Endpoint/ListEndpoint"
+	Endpoint_SelectEndpoint_FullMethodName          = "/api.server.prom.endpoint.Endpoint/SelectEndpoint"
 )
 
 // EndpointClient is the client API for Endpoint service.
@@ -308,7 +308,7 @@ func _Endpoint_SelectEndpoint_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Endpoint_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.prom.endpoint.Endpoint",
+	ServiceName: "api.server.prom.endpoint.Endpoint",
 	HandlerType: (*EndpointServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -341,5 +341,5 @@ var Endpoint_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "prom/endpoint/endpoint.proto",
+	Metadata: "server/prom/endpoint/endpoint.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: prom/strategy/strategy.proto
+// source: server/prom/strategy/strategy.proto
 
 package strategy
 
@@ -19,17 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Strategy_CreateStrategy_FullMethodName            = "/api.prom.strategy.Strategy/CreateStrategy"
-	Strategy_UpdateStrategy_FullMethodName            = "/api.prom.strategy.Strategy/UpdateStrategy"
-	Strategy_BatchUpdateStrategyStatus_FullMethodName = "/api.prom.strategy.Strategy/BatchUpdateStrategyStatus"
-	Strategy_DeleteStrategy_FullMethodName            = "/api.prom.strategy.Strategy/DeleteStrategy"
-	Strategy_BatchDeleteStrategy_FullMethodName       = "/api.prom.strategy.Strategy/BatchDeleteStrategy"
-	Strategy_GetStrategy_FullMethodName               = "/api.prom.strategy.Strategy/GetStrategy"
-	Strategy_ListStrategy_FullMethodName              = "/api.prom.strategy.Strategy/ListStrategy"
-	Strategy_SelectStrategy_FullMethodName            = "/api.prom.strategy.Strategy/SelectStrategy"
-	Strategy_ExportStrategy_FullMethodName            = "/api.prom.strategy.Strategy/ExportStrategy"
-	Strategy_GetStrategyNotifyObject_FullMethodName   = "/api.prom.strategy.Strategy/GetStrategyNotifyObject"
-	Strategy_BindStrategyNotifyObject_FullMethodName  = "/api.prom.strategy.Strategy/BindStrategyNotifyObject"
+	Strategy_CreateStrategy_FullMethodName            = "/api.server.prom.strategy.Strategy/CreateStrategy"
+	Strategy_UpdateStrategy_FullMethodName            = "/api.server.prom.strategy.Strategy/UpdateStrategy"
+	Strategy_BatchUpdateStrategyStatus_FullMethodName = "/api.server.prom.strategy.Strategy/BatchUpdateStrategyStatus"
+	Strategy_DeleteStrategy_FullMethodName            = "/api.server.prom.strategy.Strategy/DeleteStrategy"
+	Strategy_BatchDeleteStrategy_FullMethodName       = "/api.server.prom.strategy.Strategy/BatchDeleteStrategy"
+	Strategy_GetStrategy_FullMethodName               = "/api.server.prom.strategy.Strategy/GetStrategy"
+	Strategy_ListStrategy_FullMethodName              = "/api.server.prom.strategy.Strategy/ListStrategy"
+	Strategy_SelectStrategy_FullMethodName            = "/api.server.prom.strategy.Strategy/SelectStrategy"
+	Strategy_ExportStrategy_FullMethodName            = "/api.server.prom.strategy.Strategy/ExportStrategy"
+	Strategy_GetStrategyNotifyObject_FullMethodName   = "/api.server.prom.strategy.Strategy/GetStrategyNotifyObject"
+	Strategy_BindStrategyNotifyObject_FullMethodName  = "/api.server.prom.strategy.Strategy/BindStrategyNotifyObject"
 )
 
 // StrategyClient is the client API for Strategy service.
@@ -448,7 +448,7 @@ func _Strategy_BindStrategyNotifyObject_Handler(srv interface{}, ctx context.Con
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Strategy_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.prom.strategy.Strategy",
+	ServiceName: "api.server.prom.strategy.Strategy",
 	HandlerType: (*StrategyServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -497,5 +497,5 @@ var Strategy_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "prom/strategy/strategy.proto",
+	Metadata: "server/prom/strategy/strategy.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: prom/notify/notify.proto
+// source: server/prom/notify/notify.proto
 
 package notify
 
@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Notify_CreateNotify_FullMethodName = "/api.prom.notify.Notify/CreateNotify"
-	Notify_UpdateNotify_FullMethodName = "/api.prom.notify.Notify/UpdateNotify"
-	Notify_DeleteNotify_FullMethodName = "/api.prom.notify.Notify/DeleteNotify"
-	Notify_GetNotify_FullMethodName    = "/api.prom.notify.Notify/GetNotify"
-	Notify_ListNotify_FullMethodName   = "/api.prom.notify.Notify/ListNotify"
-	Notify_SelectNotify_FullMethodName = "/api.prom.notify.Notify/SelectNotify"
+	Notify_CreateNotify_FullMethodName = "/api.server.prom.notify.Notify/CreateNotify"
+	Notify_UpdateNotify_FullMethodName = "/api.server.prom.notify.Notify/UpdateNotify"
+	Notify_DeleteNotify_FullMethodName = "/api.server.prom.notify.Notify/DeleteNotify"
+	Notify_GetNotify_FullMethodName    = "/api.server.prom.notify.Notify/GetNotify"
+	Notify_ListNotify_FullMethodName   = "/api.server.prom.notify.Notify/ListNotify"
+	Notify_SelectNotify_FullMethodName = "/api.server.prom.notify.Notify/SelectNotify"
 )
 
 // NotifyClient is the client API for Notify service.
@@ -273,7 +273,7 @@ func _Notify_SelectNotify_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Notify_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.prom.notify.Notify",
+	ServiceName: "api.server.prom.notify.Notify",
 	HandlerType: (*NotifyServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -302,5 +302,5 @@ var Notify_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "prom/notify/notify.proto",
+	Metadata: "server/prom/notify/notify.proto",
 }

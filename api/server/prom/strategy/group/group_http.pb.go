@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: prom/strategy/group/group.proto
+// source: server/prom/strategy/group/group.proto
 
 package group
 
@@ -19,17 +19,17 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationGroupBatchDeleteGroup = "/api.prom.strategy.group.Group/BatchDeleteGroup"
-const OperationGroupBatchUpdateGroupStatus = "/api.prom.strategy.group.Group/BatchUpdateGroupStatus"
-const OperationGroupCreateGroup = "/api.prom.strategy.group.Group/CreateGroup"
-const OperationGroupDeleteGroup = "/api.prom.strategy.group.Group/DeleteGroup"
-const OperationGroupExportGroup = "/api.prom.strategy.group.Group/ExportGroup"
-const OperationGroupGetGroup = "/api.prom.strategy.group.Group/GetGroup"
-const OperationGroupImportGroup = "/api.prom.strategy.group.Group/ImportGroup"
-const OperationGroupListAllGroupDetail = "/api.prom.strategy.group.Group/ListAllGroupDetail"
-const OperationGroupListGroup = "/api.prom.strategy.group.Group/ListGroup"
-const OperationGroupSelectGroup = "/api.prom.strategy.group.Group/SelectGroup"
-const OperationGroupUpdateGroup = "/api.prom.strategy.group.Group/UpdateGroup"
+const OperationGroupBatchDeleteGroup = "/api.server.prom.strategy.group.Group/BatchDeleteGroup"
+const OperationGroupBatchUpdateGroupStatus = "/api.server.prom.strategy.group.Group/BatchUpdateGroupStatus"
+const OperationGroupCreateGroup = "/api.server.prom.strategy.group.Group/CreateGroup"
+const OperationGroupDeleteGroup = "/api.server.prom.strategy.group.Group/DeleteGroup"
+const OperationGroupExportGroup = "/api.server.prom.strategy.group.Group/ExportGroup"
+const OperationGroupGetGroup = "/api.server.prom.strategy.group.Group/GetGroup"
+const OperationGroupImportGroup = "/api.server.prom.strategy.group.Group/ImportGroup"
+const OperationGroupListAllGroupDetail = "/api.server.prom.strategy.group.Group/ListAllGroupDetail"
+const OperationGroupListGroup = "/api.server.prom.strategy.group.Group/ListGroup"
+const OperationGroupSelectGroup = "/api.server.prom.strategy.group.Group/SelectGroup"
+const OperationGroupUpdateGroup = "/api.server.prom.strategy.group.Group/UpdateGroup"
 
 type GroupHTTPServer interface {
 	BatchDeleteGroup(context.Context, *BatchDeleteGroupRequest) (*BatchDeleteGroupReply, error)

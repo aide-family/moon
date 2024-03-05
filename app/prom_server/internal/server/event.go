@@ -12,7 +12,7 @@ import (
 
 	"prometheus-manager/api"
 	alarmhookPb "prometheus-manager/api/alarm/hook"
-	"prometheus-manager/api/prom/strategy/group"
+	"prometheus-manager/api/server/prom/strategy/group"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"

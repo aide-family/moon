@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.prom.notify;
+package api.server.prom.notify;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
 import "model.proto";
 
-option go_package = "prometheus-manager/api/prom/notify;notify";
+option go_package = "prometheus-manager/api/server/prom/notify;notify";
 option java_multiple_files = true;
-option java_package = "api.prom.notify";
+option java_package = "api.server.prom.notify";
 
 // 通知对象管理模块相关接口
 service Notify {

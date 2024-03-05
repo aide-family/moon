@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.prom.endpoint;
+package api.server.prom.endpoint;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "model.proto";
 import "base.proto";
 
-option go_package = "prometheus-manager/api/prom/endpoint;endpoint";
+option go_package = "prometheus-manager/api/server/prom/endpoint;endpoint";
 option java_multiple_files = true;
-option java_package = "api.prom.endpoint";
+option java_package = "api.server.prom.endpoint";
 
 // 监控端点管理模块相关接口
 service Endpoint {
