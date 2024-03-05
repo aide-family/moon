@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/alarm/history"
-
+	pb "prometheus-manager/api/server/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
 
 type HistoryService struct {
@@ -38,7 +37,13 @@ func (s *HistoryService) GetHistory(ctx context.Context, req *pb.GetHistoryReque
 }
 
 func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) (*pb.ListHistoryReply, error) {
-	historyList, pgInfo, err := s.historyBiz.ListHistory(ctx, req)
+	historyList, pgInfo, err := s.historyBiz.ListHistory(ctx, &bo.ListHistoryRequest{
+		Curr:    req.GetPage().GetCurr(),
+		Size:    req.GetPage().GetSize(),
+		Keyword: req.GetKeyword(),
+		StartAt: req.GetStartAt(),
+		EndAt:   req.GetEndAt(),
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,20 @@ import (
 )
 
 type (
+	ListAlarmPageRequest struct {
+		Curr    int32
+		Size    int32
+		Keyword string
+		Status  vo.Status
+	}
+
+	SelectAlarmPageRequest struct {
+		Curr    int32
+		Size    int32
+		Keyword string
+		Status  vo.Status
+	}
+
 	AlarmPageBO struct {
 		Id        uint32    `json:"id"`
 		Name      string    `json:"name"`

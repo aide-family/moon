@@ -9,6 +9,13 @@ import (
 )
 
 type (
+	ListHistoryRequest struct {
+		Curr    int32
+		Size    int32
+		Keyword string
+		StartAt int64
+		EndAt   int64
+	}
 	AlarmHistoryBO struct {
 		Id         uint32         `json:"id"`
 		Md5        string         `json:"md5"`

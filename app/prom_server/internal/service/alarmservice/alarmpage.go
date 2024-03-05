@@ -4,15 +4,13 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/api"
+	pb "prometheus-manager/api/server/alarm/page"
+	"prometheus-manager/app/prom_server/internal/biz"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
-
-	"prometheus-manager/api"
-	pb "prometheus-manager/api/alarm/page"
-
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
 
 type AlarmPageService struct {
@@ -96,7 +94,12 @@ func (s *AlarmPageService) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPag
 }
 
 func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error) {
-	alarmPageBOs, pgInfo, err := s.pageBiz.ListPage(ctx, req)
+	alarmPageBOs, pgInfo, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
+		Curr:    req.GetPage().GetCurr(),
+		Size:    req.GetPage().GetSize(),
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +119,12 @@ func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmP
 }
 
 func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAlarmPageRequest) (*pb.SelectAlarmPageReply, error) {
-	alarmPageBOs, pgInfo, err := s.pageBiz.SelectPageList(ctx, req)
+	alarmPageBOs, pgInfo, err := s.pageBiz.SelectPageList(ctx, &bo.SelectAlarmPageRequest{
+		Curr:    req.GetPage().GetCurr(),
+		Size:    req.GetPage().GetSize(),
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}

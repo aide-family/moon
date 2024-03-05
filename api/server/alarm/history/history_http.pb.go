@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: alarm/history/history.proto
+// source: server/alarm/history/history.proto
 
 package history
 
@@ -19,8 +19,8 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationHistoryGetHistory = "/api.alarm.history.History/GetHistory"
-const OperationHistoryListHistory = "/api.alarm.history.History/ListHistory"
+const OperationHistoryGetHistory = "/api.server.alarm.history.History/GetHistory"
+const OperationHistoryListHistory = "/api.server.alarm.history.History/ListHistory"
 
 type HistoryHTTPServer interface {
 	GetHistory(context.Context, *GetHistoryRequest) (*GetHistoryReply, error)
