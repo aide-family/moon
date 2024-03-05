@@ -153,8 +153,6 @@ const DataTable: FC<DataTableProps> = (props) => {
                 searchBox +
                 8 * 2 +
                 16 * 2)
-        console.log('scrollHeight', scrollHeight)
-        console.log('height', height)
         if (timer) {
             clearTimeout(timer)
         }
