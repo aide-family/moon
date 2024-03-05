@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package api.auth;
+package api.server.auth;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "system.proto";
 
-option go_package = "prometheus-manager/api/auth;auth";
+option go_package = "prometheus-manager/api/server/auth;auth";
 option java_multiple_files = true;
-option java_package = "api.auth";
+option java_package = "api.server.auth";
 
 // 权限认证相关接口
 service Auth {

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: auth/auth.proto
+// source: server/auth/auth.proto
 
 package auth
 
@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Auth_Login_FullMethodName        = "/api.auth.Auth/Login"
-	Auth_Logout_FullMethodName       = "/api.auth.Auth/Logout"
-	Auth_RefreshToken_FullMethodName = "/api.auth.Auth/RefreshToken"
-	Auth_Captcha_FullMethodName      = "/api.auth.Auth/Captcha"
+	Auth_Login_FullMethodName        = "/api.server.auth.Auth/Login"
+	Auth_Logout_FullMethodName       = "/api.server.auth.Auth/Logout"
+	Auth_RefreshToken_FullMethodName = "/api.server.auth.Auth/RefreshToken"
+	Auth_Captcha_FullMethodName      = "/api.server.auth.Auth/Captcha"
 )
 
 // AuthClient is the client API for Auth service.
@@ -203,7 +203,7 @@ func _Auth_Captcha_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Auth_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.auth.Auth",
+	ServiceName: "api.server.auth.Auth",
 	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -224,5 +224,5 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth/auth.proto",
+	Metadata: "server/auth/auth.proto",
 }

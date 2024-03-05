@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: auth/auth.proto
+// source: server/auth/auth.proto
 
 package auth
 
@@ -19,10 +19,10 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationAuthCaptcha = "/api.auth.Auth/Captcha"
-const OperationAuthLogin = "/api.auth.Auth/Login"
-const OperationAuthLogout = "/api.auth.Auth/Logout"
-const OperationAuthRefreshToken = "/api.auth.Auth/RefreshToken"
+const OperationAuthCaptcha = "/api.server.auth.Auth/Captcha"
+const OperationAuthLogin = "/api.server.auth.Auth/Login"
+const OperationAuthLogout = "/api.server.auth.Auth/Logout"
+const OperationAuthRefreshToken = "/api.server.auth.Auth/RefreshToken"
 
 type AuthHTTPServer interface {
 	Captcha(context.Context, *CaptchaRequest) (*CaptchaReply, error)

@@ -4,19 +4,17 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/prom"
-
-	pb "prometheus-manager/api/auth"
 	"prometheus-manager/api/perrors"
+	"prometheus-manager/api/server/auth"
+	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/helper/prom"
 	"prometheus-manager/pkg/util/captcha"
 	"prometheus-manager/pkg/util/password"
-
-	"prometheus-manager/app/prom_server/internal/biz"
 )
 
 type AuthService struct {
-	pb.UnimplementedAuthServer
+	auth.UnimplementedAuthServer
 	log *log.Helper
 
 	userBiz    *biz.UserBiz
@@ -31,7 +29,7 @@ func NewAuthService(userBiz *biz.UserBiz, captchaBiz *biz.CaptchaBiz, logger log
 	}
 }
 
-func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
+func (s *AuthService) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginReply, error) {
 	// 认证传递的code, 前端需要校验code的合法性
 	if err := s.captchaBiz.VerifyCaptcha(ctx, req.GetCaptchaId(), req.GetCode()); err != nil {
 		return nil, err
@@ -49,13 +47,13 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		return nil, perrors.ErrorUnknown("颁发token失败")
 	}
 	prom.UPMemberCounter.WithLabelValues("prom-server").Inc()
-	return &pb.LoginReply{
+	return &auth.LoginReply{
 		Token: token,
 		User:  userBO.ToApiV1(),
 	}, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
+func (s *AuthService) Logout(ctx context.Context, _ *auth.LogoutRequest) (*auth.LogoutReply, error) {
 	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
 		return nil, middler.ErrTokenInvalid
@@ -65,12 +63,12 @@ func (s *AuthService) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.Logo
 		return nil, err
 	}
 	prom.UPMemberCounter.WithLabelValues("prom-server").Sub(1)
-	return &pb.LogoutReply{
+	return &auth.LogoutReply{
 		UserId: authClaims.ID,
 	}, nil
 }
 
-func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
+func (s *AuthService) RefreshToken(ctx context.Context, req *auth.RefreshTokenRequest) (*auth.RefreshTokenReply, error) {
 	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
 		return nil, middler.ErrTokenInvalid
@@ -80,18 +78,18 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 	if err != nil {
 		return nil, err
 	}
-	return &pb.RefreshTokenReply{
+	return &auth.RefreshTokenReply{
 		Token: token,
 		User:  userBO.ToApiV1(),
 	}, nil
 }
 
-func (s *AuthService) Captcha(ctx context.Context, req *pb.CaptchaRequest) (*pb.CaptchaReply, error) {
+func (s *AuthService) Captcha(ctx context.Context, req *auth.CaptchaRequest) (*auth.CaptchaReply, error) {
 	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, captcha.Type(req.GetCaptchaType()), captcha.Theme(req.GetTheme()), int(req.GetX()), int(req.GetY()))
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CaptchaReply{
+	return &auth.CaptchaReply{
 		Captcha:   generateCaptcha.Image,
 		CaptchaId: generateCaptcha.Id,
 	}, nil
