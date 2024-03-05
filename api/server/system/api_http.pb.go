@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: system/api.proto
+// source: server/system/api.proto
 
 package system
 
@@ -19,15 +19,15 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationApiAuthorizeApi = "/api.system.Api/AuthorizeApi"
-const OperationApiCreateApi = "/api.system.Api/CreateApi"
-const OperationApiDeleteApi = "/api.system.Api/DeleteApi"
-const OperationApiEditApiStatus = "/api.system.Api/EditApiStatus"
-const OperationApiGetApi = "/api.system.Api/GetApi"
-const OperationApiGetApiTree = "/api.system.Api/GetApiTree"
-const OperationApiListApi = "/api.system.Api/ListApi"
-const OperationApiSelectApi = "/api.system.Api/SelectApi"
-const OperationApiUpdateApi = "/api.system.Api/UpdateApi"
+const OperationApiAuthorizeApi = "/api.server.system.Api/AuthorizeApi"
+const OperationApiCreateApi = "/api.server.system.Api/CreateApi"
+const OperationApiDeleteApi = "/api.server.system.Api/DeleteApi"
+const OperationApiEditApiStatus = "/api.server.system.Api/EditApiStatus"
+const OperationApiGetApi = "/api.server.system.Api/GetApi"
+const OperationApiGetApiTree = "/api.server.system.Api/GetApiTree"
+const OperationApiListApi = "/api.server.system.Api/ListApi"
+const OperationApiSelectApi = "/api.server.system.Api/SelectApi"
+const OperationApiUpdateApi = "/api.server.system.Api/UpdateApi"
 
 type ApiHTTPServer interface {
 	AuthorizeApi(context.Context, *AuthorizeApiRequest) (*AuthorizeApiReply, error)

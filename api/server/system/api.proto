@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.system;
+package api.server.system;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "system.proto";
 import "base.proto";
 
-option go_package = "prometheus-manager/api/system;system";
+option go_package = "prometheus-manager/api/server/system;system";
 option java_multiple_files = true;
-option java_package = "api.system";
+option java_package = "api.server.system";
 
 // 内部API管理模块, 用于权限管理子数据
 service Api {

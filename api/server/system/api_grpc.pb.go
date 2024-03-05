@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: system/api.proto
+// source: server/system/api.proto
 
 package system
 
@@ -19,15 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Api_CreateApi_FullMethodName     = "/api.system.Api/CreateApi"
-	Api_UpdateApi_FullMethodName     = "/api.system.Api/UpdateApi"
-	Api_DeleteApi_FullMethodName     = "/api.system.Api/DeleteApi"
-	Api_GetApi_FullMethodName        = "/api.system.Api/GetApi"
-	Api_ListApi_FullMethodName       = "/api.system.Api/ListApi"
-	Api_SelectApi_FullMethodName     = "/api.system.Api/SelectApi"
-	Api_EditApiStatus_FullMethodName = "/api.system.Api/EditApiStatus"
-	Api_GetApiTree_FullMethodName    = "/api.system.Api/GetApiTree"
-	Api_AuthorizeApi_FullMethodName  = "/api.system.Api/AuthorizeApi"
+	Api_CreateApi_FullMethodName     = "/api.server.system.Api/CreateApi"
+	Api_UpdateApi_FullMethodName     = "/api.server.system.Api/UpdateApi"
+	Api_DeleteApi_FullMethodName     = "/api.server.system.Api/DeleteApi"
+	Api_GetApi_FullMethodName        = "/api.server.system.Api/GetApi"
+	Api_ListApi_FullMethodName       = "/api.server.system.Api/ListApi"
+	Api_SelectApi_FullMethodName     = "/api.server.system.Api/SelectApi"
+	Api_EditApiStatus_FullMethodName = "/api.server.system.Api/EditApiStatus"
+	Api_GetApiTree_FullMethodName    = "/api.server.system.Api/GetApiTree"
+	Api_AuthorizeApi_FullMethodName  = "/api.server.system.Api/AuthorizeApi"
 )
 
 // ApiClient is the client API for Api service.
@@ -378,7 +378,7 @@ func _Api_AuthorizeApi_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Api_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.system.Api",
+	ServiceName: "api.server.system.Api",
 	HandlerType: (*ApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -419,5 +419,5 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "system/api.proto",
+	Metadata: "server/system/api.proto",
 }

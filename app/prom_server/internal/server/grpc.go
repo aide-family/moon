@@ -20,7 +20,7 @@ import (
 	"prometheus-manager/api/prom/notify"
 	"prometheus-manager/api/prom/strategy"
 	"prometheus-manager/api/prom/strategy/group"
-	"prometheus-manager/api/system"
+	"prometheus-manager/api/server/system"
 	"prometheus-manager/pkg/helper/middler"
 
 	"prometheus-manager/app/prom_server/internal/conf"

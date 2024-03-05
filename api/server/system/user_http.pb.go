@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: system/user.proto
+// source: server/system/user.proto
 
 package system
 
