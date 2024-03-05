@@ -1,8 +1,4 @@
 import authApi from '@/apis/home/system/auth'
-import {
-    ApiAuthSelectItem,
-    ApiAuthTreeItem
-} from '@/apis/home/system/auth/types'
 import roleApi from '@/apis/home/system/role'
 import { RoleListItem } from '@/apis/home/system/role/types'
 import { StatusMap } from '@/apis/types'
@@ -14,8 +10,10 @@ import {
     Drawer,
     DrawerProps,
     Space,
+    Spin,
     Tooltip,
     Tree,
+    TreeDataNode,
     Typography,
     message
 } from 'antd'
@@ -38,8 +36,6 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
 
     const [loading, setLoading] = useState(false)
     const [submitLoading, setSubmitLoading] = useState<boolean>(false)
-    const [roleApis, setRoleApis] = useState<ApiAuthSelectItem[]>([])
-    const [authTree, setAuthTree] = useState<ApiAuthTreeItem[]>([])
     const [roleInfo, setRoleInfo] = useState<RoleListItem>()
     const [defaultCheckedKeys, setDefaultCheckedKeys] = useState<React.Key[]>(
         []
@@ -48,6 +44,8 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
         []
     )
     const [checkedKeys, setCheckedKeys] = useState<number[]>([])
+    const [treeData, setTreeData] = useState<TreeDataNode[]>([])
+    const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true)
 
     const fetchRoleDetail = async () => {
         if (!roleId) return
@@ -82,7 +80,6 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
         setDefaultCheckedKeys(selectKeys)
         setCheckedKeys(selectKeys)
         setDefaultExpandedKeys(selectKeys)
-        setRoleApis(apis)
         setLoading(false)
     }
 
@@ -90,7 +87,27 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
         setLoading(true)
         const { tree } = await authApiTree()
         if (!tree) return
-        setAuthTree(tree)
+        const treeData: TreeDataNode[] = tree.map((item) => {
+            const { domain, domainName, module } = item
+            return {
+                title: domainName,
+                key: `domain-${domain}`,
+                children: module.map((child) => {
+                    const { module, apis, name } = child
+                    return {
+                        title: name,
+                        key: `module-${module}`,
+                        children: apis.map((api) => {
+                            return {
+                                title: api.label,
+                                key: api.value
+                            }
+                        })
+                    }
+                })
+            }
+        })
+        setTreeData(treeData)
         setLoading(false)
     }
 
@@ -105,40 +122,6 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
             .finally(() => {
                 setSubmitLoading(false)
             })
-    }
-
-    const buildTreeData = () => {
-        const treeData = authTree.map((item) => {
-            const { domain, domainName, module } = item
-            // const checked = roleApis.some((api) => api.value === domain)
-            return {
-                ...item,
-                title: domainName,
-                key: domain,
-                // checked,
-                children: module.map((child) => {
-                    const { module, apis, name } = child
-                    return {
-                        ...child,
-                        title: name,
-                        key: module,
-                        children: apis.map((api) => {
-                            const checked = roleApis.some(
-                                (item) => api.value === item.value
-                            )
-
-                            return {
-                                ...api,
-                                checked,
-                                title: api.label,
-                                key: api.value
-                            }
-                        })
-                    }
-                })
-            }
-        })
-        return treeData
     }
 
     const buildRoleDescItems = (): DescriptionsItemType[] => {
@@ -201,12 +184,18 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
     }
 
     const handleClose = (e: any) => {
+        setAutoExpandParent(true)
         onClose?.(e)
     }
 
     const handleOnCheck = (checkedKeys: React.Key[] | any) => {
         if (!Array.isArray(checkedKeys)) return
         setCheckedKeys(checkedKeys.filter((key) => typeof key !== 'string'))
+    }
+
+    const handleExpand = (expandedKeysValue: React.Key[]) => {
+        setDefaultExpandedKeys(expandedKeysValue)
+        setAutoExpandParent(false)
     }
 
     useEffect(() => {
@@ -245,17 +234,19 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
             <Title level={5}>
                 <span>权限选择</span>
             </Title>
-            {!loading && (
+            <Spin spinning={loading}>
                 <Tree
                     checkable
                     defaultCheckedKeys={defaultCheckedKeys}
                     defaultExpandedKeys={defaultExpandedKeys}
+                    expandedKeys={defaultExpandedKeys}
                     checkedKeys={checkedKeys}
-                    autoExpandParent={true}
-                    treeData={buildTreeData()}
+                    autoExpandParent={autoExpandParent}
+                    treeData={treeData}
                     onCheck={handleOnCheck}
+                    onExpand={handleExpand}
                 />
-            )}
+            </Spin>
         </Drawer>
     )
 }
