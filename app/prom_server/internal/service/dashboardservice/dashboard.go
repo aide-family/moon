@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/dashboard"
+	"prometheus-manager/api/server/dashboard"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
@@ -15,7 +15,7 @@ import (
 )
 
 type DashboardService struct {
-	pb.UnimplementedDashboardServer
+	dashboard.UnimplementedDashboardServer
 
 	log          *log.Helper
 	dashboardBiz *biz.DashboardBiz
@@ -28,7 +28,7 @@ func NewDashboardService(dashboardBiz *biz.DashboardBiz, logger log.Logger) *Das
 	}
 }
 
-func (s *DashboardService) CreateDashboard(ctx context.Context, req *pb.CreateDashboardRequest) (*pb.CreateDashboardReply, error) {
+func (s *DashboardService) CreateDashboard(ctx context.Context, req *dashboard.CreateDashboardRequest) (*dashboard.CreateDashboardReply, error) {
 	userId := middler.GetUserId(ctx)
 	newDashboardBo := &bo.MyDashboardConfigBO{
 		Remark: req.GetRemark(),
@@ -43,12 +43,12 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, req *pb.CreateDa
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CreateDashboardReply{
+	return &dashboard.CreateDashboardReply{
 		Id: newDashboardBo.Id,
 	}, nil
 }
 
-func (s *DashboardService) UpdateDashboard(ctx context.Context, req *pb.UpdateDashboardRequest) (*pb.UpdateDashboardReply, error) {
+func (s *DashboardService) UpdateDashboard(ctx context.Context, req *dashboard.UpdateDashboardRequest) (*dashboard.UpdateDashboardReply, error) {
 	newDashboard := &bo.MyDashboardConfigBO{
 		Id:     req.GetId(),
 		Remark: req.GetRemark(),
@@ -60,31 +60,31 @@ func (s *DashboardService) UpdateDashboard(ctx context.Context, req *pb.UpdateDa
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UpdateDashboardReply{
+	return &dashboard.UpdateDashboardReply{
 		Id: newDashboardBo.Id,
 	}, nil
 }
 
-func (s *DashboardService) DeleteDashboard(ctx context.Context, req *pb.DeleteDashboardRequest) (*pb.DeleteDashboardReply, error) {
+func (s *DashboardService) DeleteDashboard(ctx context.Context, req *dashboard.DeleteDashboardRequest) (*dashboard.DeleteDashboardReply, error) {
 	if err := s.dashboardBiz.DeleteDashboardById(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
-	return &pb.DeleteDashboardReply{
+	return &dashboard.DeleteDashboardReply{
 		Id: req.GetId(),
 	}, nil
 }
 
-func (s *DashboardService) GetDashboard(ctx context.Context, req *pb.GetDashboardRequest) (*pb.GetDashboardReply, error) {
+func (s *DashboardService) GetDashboard(ctx context.Context, req *dashboard.GetDashboardRequest) (*dashboard.GetDashboardReply, error) {
 	detail, err := s.dashboardBiz.GetDashboardById(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
-	return &pb.GetDashboardReply{
+	return &dashboard.GetDashboardReply{
 		Detail: detail.ToApi(),
 	}, nil
 }
 
-func (s *DashboardService) ListDashboard(ctx context.Context, req *pb.ListDashboardRequest) (*pb.ListDashboardReply, error) {
+func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.ListDashboardRequest) (*dashboard.ListDashboardReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
@@ -98,7 +98,7 @@ func (s *DashboardService) ListDashboard(ctx context.Context, req *pb.ListDashbo
 		return nil, err
 	}
 
-	return &pb.ListDashboardReply{
+	return &dashboard.ListDashboardReply{
 		Page: &api.PageReply{
 			Total: pgInfo.GetTotal(),
 			Size:  pgReq.GetSize(),
@@ -110,7 +110,7 @@ func (s *DashboardService) ListDashboard(ctx context.Context, req *pb.ListDashbo
 	}, nil
 }
 
-func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *pb.ListDashboardSelectRequest) (*pb.ListDashboardSelectReply, error) {
+func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *dashboard.ListDashboardSelectRequest) (*dashboard.ListDashboardSelectReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
@@ -124,7 +124,7 @@ func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *pb.List
 		return nil, err
 	}
 
-	return &pb.ListDashboardSelectReply{
+	return &dashboard.ListDashboardSelectReply{
 		Page: &api.PageReply{
 			Total: pgInfo.GetTotal(),
 			Size:  pgReq.GetSize(),
