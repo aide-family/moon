@@ -18,7 +18,7 @@ type (
 		// CreateSysLog 创建日志
 		CreateSysLog(ctx context.Context, action vo.Action, logInfo ...*bo.SysLogBo)
 		// ListSysLog 获取日志列表
-		ListSysLog(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error)
+		ListSysLog(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error)
 	}
 
 	UnimplementedSysLogRepo struct{}
@@ -28,6 +28,6 @@ func (UnimplementedSysLogRepo) mustEmbedUnimplemented() {}
 
 func (UnimplementedSysLogRepo) CreateSysLog(_ context.Context, _ vo.Action, _ ...*bo.SysLogBo) {}
 
-func (UnimplementedSysLogRepo) ListSysLog(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error) {
+func (UnimplementedSysLogRepo) ListSysLog(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }

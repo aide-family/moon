@@ -6,6 +6,14 @@ import (
 
 const TableNameMyChart = "my_charts"
 
+const (
+	MyChartFieldUserId = "user_id"
+	MyChartFieldTitle  = "title"
+	MyChartFieldUrl    = "url"
+	MyChartFieldStatus = "status"
+	MyChartFieldRemark = "remark"
+)
+
 // MyChart 我的仪表盘
 type MyChart struct {
 	BaseModel

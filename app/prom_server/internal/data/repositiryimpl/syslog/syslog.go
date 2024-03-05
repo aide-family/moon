@@ -41,9 +41,9 @@ func (l *sysLogRepoImpl) CreateSysLog(ctx context.Context, action vo.Action, log
 	l.data.DB().WithContext(ctx).CreateInBatches(list, 100)
 }
 
-func (l *sysLogRepoImpl) ListSysLog(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error) {
+func (l *sysLogRepoImpl) ListSysLog(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.SysLogBo, error) {
 	var logList []*do.SysLog
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&logList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&logList).Error; err != nil {
 		return nil, err
 	}
 

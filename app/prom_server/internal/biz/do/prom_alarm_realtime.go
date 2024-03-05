@@ -1,10 +1,76 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromAlarmRealtime = "prom_alarm_realtime"
+
+const (
+	PromAlarmRealtimeFieldStrategyID               = "strategy_id"
+	PromAlarmRealtimeFieldLevelID                  = "level_id"
+	PromAlarmRealtimeFieldInstance                 = "instance"
+	PromAlarmRealtimeFieldNote                     = "note"
+	PromAlarmRealtimeFieldStatus                   = "status"
+	PromAlarmRealtimeFieldEventAt                  = "event_at"
+	PromAlarmRealtimeFieldNotifiedAt               = "notified_at"
+	PromAlarmRealtimeFieldHistoryID                = "history_id"
+	PromAlarmRealtimePreloadFieldStrategy          = "Strategy"
+	PromAlarmRealtimePreloadFieldLevel             = "Level"
+	PromAlarmRealtimePreloadFieldHistory           = "History"
+	PromAlarmRealtimePreloadFieldIntervenes        = "AlarmIntervenes"
+	PromAlarmRealtimePreloadFieldBeenNotifyMembers = "BeenNotifyMembers"
+	PromAlarmRealtimePreloadFieldBeenChatGroups    = "BeenChatGroups"
+	PromAlarmRealtimePreloadFieldAlarmUpgradeInfo  = "AlarmUpgradeInfo"
+	PromAlarmRealtimePreloadFieldAlarmSuppressInfo = "AlarmSuppressInfo"
+)
+
+// PromAlarmRealtimeLike 查询关键字
+func PromAlarmRealtimeLike(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikeKeyword(keyword, PromAlarmRealtimeFieldNote, PromAlarmRealtimeFieldInstance)
+}
+
+// PromAlarmRealtimeEventAtDesc 事件时间倒序
+func PromAlarmRealtimeEventAtDesc() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Order(PromAlarmRealtimeFieldEventAt + " " + basescopes.DESC)
+	}
+}
+
+// PromAlarmRealtimeInHistoryIds 查询历史ID列表
+func PromAlarmRealtimeInHistoryIds(historyIds ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmRealtimeFieldHistoryID, historyIds...)
+}
+
+// PromAlarmRealtimeClauseOnConflict 冲突处理
+func PromAlarmRealtimeClauseOnConflict() clause.Expression {
+	return clause.OnConflict{
+		Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}, {Name: PromAlarmRealtimeFieldHistoryID}},
+		DoUpdates: clause.AssignmentColumns([]string{basescopes.BaseFieldStatus.String(), PromAlarmRealtimeFieldHistoryID}),
+	}
+}
+
+// PromAlarmRealtimePreloadLevel 预加载级别
+func PromAlarmRealtimePreloadLevel() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromAlarmRealtimePreloadFieldLevel)
+	}
+}
+
+// PromAlarmRealtimeInStrategyIds 查询策略ID列表
+func PromAlarmRealtimeInStrategyIds(strategyIds ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmRealtimeFieldStrategyID, strategyIds...)
+}
+
+// PromAlarmRealtimePreloadStrategy 预加载关联策略
+func PromAlarmRealtimePreloadStrategy() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromAlarmRealtimePreloadFieldStrategy)
+	}
+}
 
 // PromAlarmRealtime 实时告警信息
 type PromAlarmRealtime struct {
@@ -13,7 +79,7 @@ type PromAlarmRealtime struct {
 	StrategyID uint32        `gorm:"column:strategy_id;type:int unsigned;not null;index:idx__ar__strategy_id,priority:1;comment:策略ID"`
 	Strategy   *PromStrategy `gorm:"foreignKey:StrategyID"`
 	LevelId    uint32        `gorm:"column:level_id;type:int unsigned;not null;index:idx__ar__level_id,priority:1;comment:告警等级ID"`
-	Level      *PromDict     `gorm:"foreignKey:LevelId"`
+	Level      *SysDict      `gorm:"foreignKey:LevelId"`
 	// Instance 发生这条告警的具体实例信息
 	Instance string `gorm:"column:instance;type:varchar(64);not null;index:idx__ar__instance,priority:1;comment:instance名称"`
 	Note     string `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
@@ -99,7 +165,7 @@ func (p *PromAlarmRealtime) GetAlarmSuppressInfo() *PromAlarmSuppress {
 }
 
 // GetLevel 获取告警等级
-func (p *PromAlarmRealtime) GetLevel() *PromDict {
+func (p *PromAlarmRealtime) GetLevel() *SysDict {
 	if p == nil {
 		return nil
 	}

@@ -8,7 +8,6 @@ import (
 	"prometheus-manager/api/server/dashboard"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
@@ -86,14 +85,13 @@ func (s *DashboardService) GetDashboard(ctx context.Context, req *dashboard.GetD
 
 func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.ListDashboardRequest) (*dashboard.ListDashboardReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.TitleLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-		basescopes.CreatedAtDesc(),
-		basescopes.DeletedAtDesc(),
-	}
-	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, pgInfo, wheres...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, &bo.ListDashboardReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -112,14 +110,13 @@ func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.Lis
 
 func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *dashboard.ListDashboardSelectRequest) (*dashboard.ListDashboardSelectReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.TitleLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-		basescopes.CreatedAtDesc(),
-		basescopes.DeletedAtDesc(),
-	}
-	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, pgInfo, wheres...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, &bo.ListDashboardReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}

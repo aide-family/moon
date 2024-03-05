@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/util/slices"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -35,7 +35,7 @@ func NewPageBiz(pageRepo repository.PageRepo, realtimeRepo repository.AlarmRealt
 
 // GetStrategyIds 获取策略id列表
 func (p *AlarmPageBiz) GetStrategyIds(ctx context.Context, ids ...uint32) ([]uint32, error) {
-	return p.pageRepo.GetStrategyIds(ctx, basescopes.InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds(ids...))
+	return p.pageRepo.GetStrategyIds(ctx, do.StrategyInAlarmPageIds(ids...))
 }
 
 // CreatePage 创建页面
@@ -142,39 +142,25 @@ func (p *AlarmPageBiz) GetPageRealtimeById(ctx context.Context, id uint32, where
 }
 
 // ListPage 获取页面列表
-func (p *AlarmPageBiz) ListPage(ctx context.Context, req *bo.ListAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
-	pgInfo := basescopes.NewPage(req.Curr, req.Size)
+func (p *AlarmPageBiz) ListPage(ctx context.Context, req *bo.ListAlarmPageRequest) ([]*bo.AlarmPageBO, error) {
 	scopes := []basescopes.ScopeMethod{
 		basescopes.NameLike(req.Keyword),
 		basescopes.StatusEQ(req.Status),
+		basescopes.UpdateAtDesc(),
+		basescopes.UpdateAtDesc(),
 	}
 
-	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
+	pageBos, err := p.pageRepo.ListPage(ctx, req.Page, scopes...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return pageBos, pgInfo, nil
-}
-
-// SelectPageList 获取页面列表
-func (p *AlarmPageBiz) SelectPageList(ctx context.Context, req *bo.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
-	pgInfo := basescopes.NewPage(req.Curr, req.Size)
-	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.Keyword),
-		basescopes.StatusEQ(req.Status),
-	}
-
-	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
-	if err != nil {
-		return nil, nil, err
-	}
-	return pageBos, pgInfo, nil
+	return pageBos, nil
 }
 
 // CountAlarmPageByIds 通过id列表获取各页面报警数量
 func (p *AlarmPageBiz) CountAlarmPageByIds(ctx context.Context, ids ...uint32) (map[uint32]int64, error) {
-	strategyAlarmPages, err := p.pageRepo.GetPromStrategyAlarmPage(ctx, basescopes.InTableNamePromStrategyAlarmPageFieldPromAlarmPageIds(ids...))
+	strategyAlarmPages, err := p.pageRepo.GetPromStrategyAlarmPage(ctx, do.StrategyInAlarmPageIds(ids...))
 	if err != nil {
 		return nil, err
 	}

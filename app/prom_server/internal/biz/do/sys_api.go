@@ -24,6 +24,17 @@ var _ encoding.BinaryUnmarshaler = (*ApiSimple)(nil)
 
 const TableNameSysApi = "sys_apis"
 
+const (
+	SysAPIFieldName         = "name"
+	SysAPIFieldPath         = "path"
+	SysAPIFieldMethod       = "method"
+	SysAPIFieldStatus       = "status"
+	SysAPIFieldRemark       = "remark"
+	SysAPIFieldModule       = "module"
+	SysAPIFieldDomain       = "domain"
+	SysAPIPreloadFieldRoles = "Roles"
+)
+
 // SysAPI 系统api
 type SysAPI struct {
 	BaseModel
@@ -38,8 +49,20 @@ type SysAPI struct {
 }
 
 // TableName 表名
-func (SysAPI) TableName() string {
+func (l *SysAPI) TableName() string {
 	return TableNameSysApi
+}
+
+// SysAPIPreloadRoles 预加载角色
+func SysAPIPreloadRoles() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(SysAPIPreloadFieldRoles)
+	}
+}
+
+// SysApiLike like name or path
+func SysApiLike(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikePrefixKeyword(keyword, SysAPIFieldName, SysAPIFieldPath)
 }
 
 type ApiSimple struct {

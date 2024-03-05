@@ -28,7 +28,7 @@ type (
 		// GetPageById 通过id获取页面详情
 		GetPageById(ctx context.Context, id uint32) (*bo.AlarmPageBO, error)
 		// ListPage 获取页面列表
-		ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
+		ListPage(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
 		// Get 获取详情
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.AlarmPageBO, error)
 		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error)
@@ -90,6 +90,6 @@ func (UnimplementedPageRepo) GetPageById(_ context.Context, _ uint32) (*bo.Alarm
 	return nil, status.Error(codes.Unimplemented, "method GetPageById not implemented")
 }
 
-func (UnimplementedPageRepo) ListPage(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+func (UnimplementedPageRepo) ListPage(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPage not implemented")
 }

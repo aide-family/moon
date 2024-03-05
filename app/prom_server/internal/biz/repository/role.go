@@ -21,7 +21,7 @@ type (
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.RoleBO, error)
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error)
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error)
 		RelateApi(ctx context.Context, roleId uint32, apiList []*bo.ApiBO) error
 	}
 
@@ -54,7 +54,7 @@ func (UnimplementedRoleRepo) Find(_ context.Context, _ ...basescopes.ScopeMethod
 	return nil, status.Error(codes.Unimplemented, "method Find not implemented")
 }
 
-func (UnimplementedRoleRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
+func (UnimplementedRoleRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

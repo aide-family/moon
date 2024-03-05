@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -55,21 +55,20 @@ func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.Alarm
 }
 
 // ListHistory 查询历史列表
-func (a *HistoryBiz) ListHistory(ctx context.Context, req *bo.ListHistoryRequest) ([]*bo.AlarmHistoryBO, basescopes.Pagination, error) {
-	pgInfo := basescopes.NewPage(req.Curr, req.Size)
+func (a *HistoryBiz) ListHistory(ctx context.Context, req *bo.ListHistoryRequest) ([]*bo.AlarmHistoryBO, error) {
 	scopes := []basescopes.ScopeMethod{
-		basescopes.LikeInstance(req.Keyword),
-		basescopes.TimeRange(req.StartAt, req.EndAt),
-		basescopes.PreloadRealtimeAssociationStrategy(),
-		basescopes.PreloadLevel(),
+		do.PromAlarmHistoryLikeInstance(req.Keyword),
+		do.PromAlarmHistoryTimeRange(req.StartAt, req.EndAt),
+		do.PromAlarmHistoryPreloadStrategy(),
+		do.PromAlarmHistoryPreloadLevel(),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}
-	historyList, err := a.historyRepo.ListHistory(ctx, pgInfo, scopes...)
+	historyList, err := a.historyRepo.ListHistory(ctx, req.Page, scopes...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return historyList, pgInfo, nil
+	return historyList, nil
 }
 
 // HandleHistory 维护告警数据
@@ -99,9 +98,9 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, histor
 	// 通过策略ID查询策略及下属通知对象信息
 	wheres := []basescopes.ScopeMethod{
 		basescopes.InIds(strategyIds...),
-		basescopes.StrategyTablePreloadPromNotifies(
-			basescopes.NotifyTablePreloadKeyChatGroups,
-			basescopes.NotifyTablePreloadKeyBeNotifyMembers,
+		do.StrategyPreloadPromNotifies(
+			do.PromAlarmNotifyPreloadFieldChatGroups,
+			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
 		),
 	}
 	strategyBOs, err := a.strategyRepo.List(ctx, wheres...)

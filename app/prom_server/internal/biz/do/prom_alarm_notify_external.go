@@ -6,6 +6,14 @@ import (
 
 const TableNamePromNotifyExternal = "prom_alarm_external_notify_objs"
 
+const (
+	ExternalNotifyObjFieldName                    = "name"
+	ExternalNotifyObjFieldRemark                  = "remark"
+	ExternalNotifyObjFieldStatus                  = "status"
+	ExternalNotifyObjPreloadFieldCustomerList     = "CustomerList"
+	ExternalNotifyObjPreloadFieldCustomerHookList = "CustomerHookList"
+)
+
 type ExternalNotifyObj struct {
 	BaseModel
 	// 外部通知对象名称

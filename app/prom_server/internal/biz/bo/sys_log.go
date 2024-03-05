@@ -8,6 +8,12 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
+type ListSyslogReq struct {
+	Page     Pagination
+	Module   vo.Module
+	ModuleId uint32
+}
+
 type SysLogBo struct {
 	ModuleName vo.Module `json:"moduleName"`
 	ModuleId   uint32    `json:"moduleId"`
@@ -85,13 +91,13 @@ func (l *SysLogBo) ToModel() *do.SysLog {
 	}
 
 	return &do.SysLog{
-		BaseModel:  do.BaseModel{ID: l.Id},
-		ModuleName: l.ModuleName,
-		ModuleId:   l.ModuleId,
-		Title:      l.Title,
-		Content:    l.Content,
-		UserId:     l.UserId,
-		Action:     l.Action,
+		BaseModel: do.BaseModel{ID: l.Id},
+		Module:    l.ModuleName,
+		ModuleId:  l.ModuleId,
+		Title:     l.Title,
+		Content:   l.Content,
+		UserId:    l.UserId,
+		Action:    l.Action,
 	}
 }
 
@@ -101,7 +107,7 @@ func SysLogModelToBo(m *do.SysLog) *SysLogBo {
 		return nil
 	}
 	return &SysLogBo{
-		ModuleName: m.ModuleName,
+		ModuleName: m.Module,
 		ModuleId:   m.ModuleId,
 		Content:    m.Content,
 		Title:      m.Title,

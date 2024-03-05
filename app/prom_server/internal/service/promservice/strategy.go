@@ -115,9 +115,10 @@ func (s *StrategyService) GetStrategy(ctx context.Context, req *pb.GetStrategyRe
 }
 
 func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategyRequest) (*pb.ListStrategyReply, error) {
-	strategyBos, pgInfo, err := s.strategyBiz.ListStrategy(ctx, &bo.ListStrategyRequest{
-		Curr:       req.GetPage().GetCurr(),
-		Size:       req.GetPage().GetSize(),
+	pageReq := req.GetPage()
+	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	strategyBos, err := s.strategyBiz.ListStrategy(ctx, &bo.ListStrategyRequest{
+		Page:       pgInfo,
 		Keyword:    req.GetKeyword(),
 		GroupId:    req.GetGroupId(),
 		Status:     vo.Status(req.GetStatus()),
@@ -137,9 +138,10 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategy
 }
 
 func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStrategyRequest) (*pb.SelectStrategyReply, error) {
-	strategyBos, pgInfo, err := s.strategyBiz.SelectStrategy(ctx, &bo.SelectStrategyRequest{
-		Curr:    req.GetPage().GetCurr(),
-		Size:    req.GetPage().GetSize(),
+	pageReq := req.GetPage()
+	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	strategyBos, err := s.strategyBiz.SelectStrategy(ctx, &bo.SelectStrategyRequest{
+		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
 	})
 	if err != nil {

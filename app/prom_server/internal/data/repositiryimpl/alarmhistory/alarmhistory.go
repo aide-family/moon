@@ -34,9 +34,9 @@ func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint32) (*
 	return bo.AlarmHistoryModelToBO(&detail), nil
 }
 
-func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error) {
+func (l *alarmHistoryRepoImpl) ListHistory(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error) {
 	var list []*do.PromAlarmHistory
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&list).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
@@ -59,7 +59,7 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 		return v.ToModel()
 	})
 
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.ClausesOnConflict()).CreateInBatches(newModels, 50).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(do.PromAlarmHistoryClausesOnConflict()).CreateInBatches(newModels, 50).Error; err != nil {
 		return nil, err
 	}
 
@@ -78,7 +78,7 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 	}()
 
 	var historyList []*do.PromAlarmHistory
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.WhereInMd5(md5s...)).Find(&historyList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(do.PromAlarmHistoryWhereInMd5(md5s...)).Find(&historyList).Error; err != nil {
 		return nil, err
 	}
 
@@ -90,7 +90,7 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 
 func (l *alarmHistoryRepoImpl) UpdateHistoryById(ctx context.Context, id uint32, historyBO *bo.AlarmHistoryBO) (*bo.AlarmHistoryBO, error) {
 	newModel := historyBO.ToModel()
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.ClausesOnConflict(), basescopes.InIds(id)).Updates(newModel).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(do.PromAlarmHistoryClausesOnConflict(), basescopes.InIds(id)).Updates(newModel).Error; err != nil {
 		return nil, err
 	}
 	return bo.AlarmHistoryModelToBO(newModel), nil

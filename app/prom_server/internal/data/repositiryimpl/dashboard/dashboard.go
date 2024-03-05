@@ -25,7 +25,7 @@ func (l *dashboardRepoImpl) Create(ctx context.Context, dashboard *bo.MyDashboar
 		if err := tx.Create(newModel).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.MyDashboardConfigAssociationReplaceCharts).Replace(newModel.GetCharts()); err != nil {
+		if err := tx.Model(newModel).Association(do.MyDashboardConfigPreloadFieldCharts).Replace(newModel.GetCharts()); err != nil {
 			return err
 		}
 		return nil
@@ -57,10 +57,10 @@ func (l *dashboardRepoImpl) Find(ctx context.Context, scopes ...basescopes.Scope
 	return slices.To(modelList, func(i *do.MyDashboardConfig) *bo.MyDashboardConfigBO { return bo.MyDashboardConfigModelToBO(i) }), err
 }
 
-func (l *dashboardRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error) {
+func (l *dashboardRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error) {
 	var modelList []*do.MyDashboardConfig
 	wheres := append(scopes, basescopes.WithUserId(ctx))
-	err := l.db().WithContext(ctx).Scopes(append(wheres, basescopes.Page(pgInfo))...).Find(&modelList).Error
+	err := l.db().WithContext(ctx).Scopes(append(wheres, bo.Page(pgInfo))...).Find(&modelList).Error
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (l *dashboardRepoImpl) Update(ctx context.Context, dashboard *bo.MyDashboar
 		if err := tx.Model(newModel).Scopes(wheres...).Updates(newModel).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.MyDashboardConfigAssociationReplaceCharts).Replace(newModel.GetCharts()); err != nil {
+		if err := tx.Model(newModel).Association(do.MyDashboardConfigPreloadFieldCharts).Replace(newModel.GetCharts()); err != nil {
 			return err
 		}
 		return nil

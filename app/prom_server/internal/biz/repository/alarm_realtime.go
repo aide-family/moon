@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
@@ -16,7 +15,7 @@ type (
 	AlarmRealtimeRepo interface {
 		unimplementedAlarmRealtimeRepo()
 		GetRealtimeDetailById(ctx context.Context, id uint32, scopes ...basescopes.ScopeMethod) (*bo.AlarmRealtimeBO, error)
-		GetRealtimeList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error)
+		GetRealtimeList(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error)
 		AlarmIntervene(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmInterveneBO) error
 		AlarmUpgrade(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmUpgradeBO) error
 		AlarmSuppress(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmSuppressBO) error
@@ -71,7 +70,7 @@ func (UnimplementedAlarmRealtimeRepo) GetRealtimeDetailById(_ context.Context, _
 	return nil, status.Error(codes.Unimplemented, "method GetRealtimeDetail not implemented")
 }
 
-func (UnimplementedAlarmRealtimeRepo) GetRealtimeList(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
+func (UnimplementedAlarmRealtimeRepo) GetRealtimeList(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRealtimeList not implemented")
 }
 

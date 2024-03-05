@@ -10,8 +10,7 @@ import (
 
 type (
 	ListHistoryRequest struct {
-		Curr    int32
-		Size    int32
+		Page    Pagination
 		Keyword string
 		StartAt int64
 		EndAt   int64

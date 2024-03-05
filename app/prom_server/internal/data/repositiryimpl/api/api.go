@@ -63,9 +63,9 @@ func (l *apiRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMethod
 	return list, nil
 }
 
-func (l *apiRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
+func (l *apiRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
 	var apiModelInfoList []*do.SysAPI
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&apiModelInfoList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&apiModelInfoList).Error; err != nil {
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func (l *apiRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMeth
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
 		// 删除关联关系
-		if err := tx.Model(&detail).WithContext(txCtx).Association(basescopes.ApiAssociationReplaceRoles).Clear(); err != nil {
+		if err := tx.Model(&detail).WithContext(txCtx).Association(do.SysAPIPreloadFieldRoles).Clear(); err != nil {
 			return err
 		}
 		// 删除主数据

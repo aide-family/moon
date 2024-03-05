@@ -16,7 +16,6 @@ import (
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type UserService struct {
@@ -138,14 +137,12 @@ func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 
 func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.UserLike(req.GetKeyword()),
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	userBos, err := s.userBiz.GetUserList(ctx, &bo.GetUserListReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -164,14 +161,12 @@ func (s *UserService) ListUser(ctx context.Context, req *pb.ListUserRequest) (*p
 
 func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest) (*pb.SelectUserReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.UserLike(req.GetKeyword()),
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(vo.StatusEnabled),
-	}
-	userBos, err := s.userBiz.GetUserList(ctx, pgInfo, scopes...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	userBos, err := s.userBiz.GetUserList(ctx, &bo.GetUserListReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}

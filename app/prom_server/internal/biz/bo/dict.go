@@ -9,6 +9,14 @@ import (
 )
 
 type (
+	ListDictRequest struct {
+		Page      Pagination  `json:"page"`
+		Keyword   string      `json:"keyword"`
+		Category  vo.Category `json:"category"`
+		Status    vo.Status   `json:"status"`
+		IsDeleted bool        `json:"isDeleted"`
+	}
+
 	DictBO struct {
 		Id        uint32      `json:"id"`
 		Name      string      `json:"name"`
@@ -58,11 +66,11 @@ func ListToApiDictSelectV1(values ...*DictBO) []*api.DictSelectV1 {
 	return list
 }
 
-func (d *DictBO) ToModel() *do.PromDict {
+func (d *DictBO) ToModel() *do.SysDict {
 	if d == nil {
 		return nil
 	}
-	return &do.PromDict{
+	return &do.SysDict{
 		Name:     d.Name,
 		Category: d.Category,
 		Status:   d.Status,
@@ -93,7 +101,7 @@ func (d *DictBO) ToApiV1() *api.DictV1 {
 }
 
 // DictModelToBO 字典model数据对象转换为字典业务对象
-func DictModelToBO(m *do.PromDict) *DictBO {
+func DictModelToBO(m *do.SysDict) *DictBO {
 	if m == nil {
 		return nil
 	}

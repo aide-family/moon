@@ -13,6 +13,11 @@ var _ encoding.BinaryMarshaler = (*EndpointBO)(nil)
 var _ encoding.BinaryUnmarshaler = (*EndpointBO)(nil)
 
 type (
+	ListEndpointReq struct {
+		Page    Pagination
+		Keyword string
+		Status  vo.Status
+	}
 	EndpointBO struct {
 		Id        uint32    `json:"id"`
 		Name      string    `json:"name"`

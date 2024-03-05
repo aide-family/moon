@@ -22,7 +22,7 @@ type (
 		DeleteByIds(ctx context.Context, ids ...uint32) error
 		GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error)
 		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		ListAllLimit(ctx context.Context, limit int, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
 		UpdateStrategyCount(ctx context.Context, ids ...uint32) error
 		UpdateEnableStrategyCount(ctx context.Context, ids ...uint32) error
@@ -74,6 +74,6 @@ func (UnimplementedStrategyGroupRepo) GetById(_ context.Context, _ uint32) (*bo.
 	return nil, status.Error(codes.Unimplemented, "method GetById not implemented")
 }
 
-func (UnimplementedStrategyGroupRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+func (UnimplementedStrategyGroupRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }

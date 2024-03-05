@@ -22,10 +22,9 @@ endif
 GO_BUILD_ARG:=CGO_ENABLED=$(CGO_ENABLED)  GOOS=$(GOOS) GOARCH=$(BUILD_GOARCH)
 
 # version
-V := v0.0.1
 GIT_TAG=$(shell git describe --tags --always)
 GIT_MOD=$(shell if ! git diff-index --quiet HEAD;then echo "-dirty";fi)
-VERSION:=$(V)-$(GIT_TAG)$(GIT_MOD)
+VERSION:=$(GIT_TAG)$(GIT_MOD)
 PROM-WEB-VERSION:=$(VERSION)
 PROM-SERVER-VERSION:=$(VERSION)
 PROM-AGENT-VERSION:=$(VERSION)

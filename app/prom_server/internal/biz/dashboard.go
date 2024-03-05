@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -95,7 +96,7 @@ func (l *DashboardBiz) GetChartDetail(ctx context.Context, chartId uint32) (*bo.
 }
 
 // ListChartByPage 查询图表列表
-func (l *DashboardBiz) ListChartByPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
+func (l *DashboardBiz) ListChartByPage(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
 	return l.chartRepo.List(ctx, pgInfo, scopes...)
 }
 
@@ -155,10 +156,16 @@ func (l *DashboardBiz) DeleteDashboardById(ctx context.Context, dashboardId uint
 
 // GetDashboardById 获取dashboard详情
 func (l *DashboardBiz) GetDashboardById(ctx context.Context, dashboardId uint32) (*bo.MyDashboardConfigBO, error) {
-	return l.dashboardRepo.Get(ctx, basescopes.InIds(dashboardId), basescopes.MyDashboardConfigPreloadCharts)
+	return l.dashboardRepo.Get(ctx, basescopes.InIds(dashboardId), do.MyDashboardConfigPreloadCharts())
 }
 
 // ListDashboard 查询dashboard列表
-func (l *DashboardBiz) ListDashboard(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error) {
-	return l.dashboardRepo.List(ctx, pgInfo, scopes...)
+func (l *DashboardBiz) ListDashboard(ctx context.Context, req *bo.ListDashboardReq) ([]*bo.MyDashboardConfigBO, error) {
+	wheres := []basescopes.ScopeMethod{
+		basescopes.TitleLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
+		basescopes.CreatedAtDesc(),
+		basescopes.DeletedAtDesc(),
+	}
+	return l.dashboardRepo.List(ctx, req.Page, wheres...)
 }

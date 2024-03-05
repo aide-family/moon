@@ -161,6 +161,8 @@ message SelectRoleRequest{
   string keyword = 2 [(validate.rules).string.max_len = 20];
   // 用于获取指定用户的角色信息
   uint32 userId = 3;
+  // 状态
+  Status status = 4 [(validate.rules).enum.defined_only = true];
 }
 // 获取角色下拉列表响应参数
 message SelectRoleReply{

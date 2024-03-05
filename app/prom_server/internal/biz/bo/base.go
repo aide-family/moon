@@ -1,9 +1,10 @@
-package basescopes
+package bo
 
 import (
 	"sync"
 
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 var _ Pagination = (*pageImpl)(nil)
@@ -82,7 +83,7 @@ func NewPage(curr, size int32) Pagination {
 }
 
 // Page 分页
-func Page(pgInfo Pagination) ScopeMethod {
+func Page(pgInfo Pagination) basescopes.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		if pgInfo == nil {
 			return db

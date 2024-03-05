@@ -37,9 +37,9 @@ func (s *HistoryService) GetHistory(ctx context.Context, req *pb.GetHistoryReque
 }
 
 func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) (*pb.ListHistoryReply, error) {
-	historyList, pgInfo, err := s.historyBiz.ListHistory(ctx, &bo.ListHistoryRequest{
-		Curr:    req.GetPage().GetCurr(),
-		Size:    req.GetPage().GetSize(),
+	pgInfo := bo.NewPage(req.GetPage().GetCurr(), req.GetPage().GetSize())
+	historyList, err := s.historyBiz.ListHistory(ctx, &bo.ListHistoryRequest{
+		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
 		StartAt: req.GetStartAt(),
 		EndAt:   req.GetEndAt(),

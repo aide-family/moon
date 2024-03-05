@@ -94,9 +94,9 @@ func (s *AlarmPageService) GetAlarmPage(ctx context.Context, req *pb.GetAlarmPag
 }
 
 func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error) {
-	alarmPageBOs, pgInfo, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
-		Curr:    req.GetPage().GetCurr(),
-		Size:    req.GetPage().GetSize(),
+	pgInfo := bo.NewPage(req.GetPage().GetCurr(), req.GetPage().GetSize())
+	alarmPageBOs, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
+		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
 		Status:  vo.Status(req.GetStatus()),
 	})
@@ -119,9 +119,9 @@ func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmP
 }
 
 func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAlarmPageRequest) (*pb.SelectAlarmPageReply, error) {
-	alarmPageBOs, pgInfo, err := s.pageBiz.SelectPageList(ctx, &bo.SelectAlarmPageRequest{
-		Curr:    req.GetPage().GetCurr(),
-		Size:    req.GetPage().GetSize(),
+	pgInfo := bo.NewPage(req.GetPage().GetCurr(), req.GetPage().GetSize())
+	alarmPageBOs, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
+		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
 		Status:  vo.Status(req.GetStatus()),
 	})

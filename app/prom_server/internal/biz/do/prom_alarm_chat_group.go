@@ -6,6 +6,19 @@ import (
 
 const TableNamePromChatGroup = "prom_alarm_chat_groups"
 
+const (
+	PromAlarmChatGroupFieldStatus    = "status"
+	PromAlarmChatGroupFieldRemark    = "remark"
+	PromAlarmChatGroupFieldName      = "name"
+	PromAlarmChatGroupFieldHook      = "hook"
+	PromAlarmChatGroupFieldNotifyApp = "notify_app"
+	PromAlarmChatGroupFieldHookName  = "hook_name"
+	PromAlarmChatGroupFieldTemplate  = "template"
+	PromAlarmChatGroupFieldTitle     = "title"
+	PromAlarmChatGroupFieldSecret    = "secret"
+	PromAlarmChatGroupFieldCreateBy  = "create_by"
+)
+
 // PromAlarmChatGroup 告警通知群组机器人信息
 type PromAlarmChatGroup struct {
 	BaseModel

@@ -2,6 +2,14 @@ package do
 
 const TableNamePromAlarmUpgrade = "prom_alarm_upgrades"
 
+const (
+	PromAlarmUpgradeFieldRealtimeAlarmID = "realtime_alarm_id"
+	PromAlarmUpgradeFieldUserID          = "user_id"
+	PromAlarmUpgradeFieldUpgradedAt      = "upgraded_at"
+	PromAlarmUpgradeFieldRemark          = "remark"
+	PromAlarmUpgradePreloadFieldUserInfo = "UserInfo"
+)
+
 // PromAlarmUpgrade 告警升级信息
 type PromAlarmUpgrade struct {
 	BaseModel

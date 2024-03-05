@@ -60,7 +60,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest)
 }
 
 func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *system.BatchUpdateDictStatusRequest) (*system.BatchUpdateDictStatusReply, error) {
-	if err := s.dictBiz.BatchUpdateDictStatus(ctx, req.GetStatus(), req.GetIds()); err != nil {
+	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
 		s.log.Errorf("batch update dict status err: %v", err)
 		return nil, err
 	}
@@ -96,7 +96,15 @@ func (s *Service) GetDict(ctx context.Context, req *system.GetDictRequest) (*sys
 }
 
 func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*system.ListDictReply, error) {
-	dictBoList, pgInfo, err := s.dictBiz.ListDict(ctx, req)
+	pageReq := req.GetPage()
+	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
+		Page:      pgInfo,
+		Keyword:   req.GetKeyword(),
+		Category:  vo.Category(req.GetCategory()),
+		Status:    vo.Status(req.GetStatus()),
+		IsDeleted: req.GetIsDeleted(),
+	})
 	if err != nil {
 		s.log.Errorf("list dict err: %v", err)
 		return nil, err
@@ -118,7 +126,15 @@ func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*s
 }
 
 func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest) (*system.SelectDictReply, error) {
-	dictBoList, pgInfo, err := s.dictBiz.SelectDict(ctx, req)
+	pageReq := req.GetPage()
+	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
+		Page:      pgInfo,
+		Keyword:   req.GetKeyword(),
+		Category:  vo.Category(req.GetCategory()),
+		Status:    vo.Status(req.GetStatus()),
+		IsDeleted: req.GetIsDeleted(),
+	})
 	if err != nil {
 		s.log.Errorf("select dict err: %v", err)
 		return nil, err

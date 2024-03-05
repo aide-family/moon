@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
-
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
 )
 
 type (
@@ -130,8 +130,15 @@ func (l *StrategyGroupBiz) GetById(ctx context.Context, id uint32) (*bo.Strategy
 	return strategyGroupBO, nil
 }
 
-func (l *StrategyGroupBiz) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
-	strategyGroupBoList, err := l.strategyGroupRepo.List(ctx, pgInfo, scopes...)
+func (l *StrategyGroupBiz) List(ctx context.Context, req *bo.ListGroupReq) ([]*bo.StrategyGroupBO, error) {
+	scopes := []basescopes.ScopeMethod{
+		basescopes.NameLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
+		do.StrategyGroupPreloadCategories(req.PreloadCategories),
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+	}
+	strategyGroupBoList, err := l.strategyGroupRepo.List(ctx, req.Page, scopes...)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,13 @@ import (
 )
 
 type (
+	ApiListApiReq struct {
+		Keyword string    `json:"keyword"`
+		Status  vo.Status `json:"status"`
+		Curr    int32     `json:"curr"`
+		Size    int32     `json:"size"`
+	}
+
 	ApiBO struct {
 		Id     uint32    `json:"id"`
 		Name   string    `json:"name"`

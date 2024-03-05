@@ -4,29 +4,33 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type AlarmRealtimeBiz struct {
 	log *log.Helper
 
-	dataRepo     repository.DataRepo
-	realtimeRepo repository.AlarmRealtimeRepo
+	dataRepo      repository.DataRepo
+	realtimeRepo  repository.AlarmRealtimeRepo
+	alarmPageRepo repository.PageRepo
 }
 
 func NewAlarmRealtime(
 	dataRepo repository.DataRepo,
 	realtimeRepo repository.AlarmRealtimeRepo,
+	alarmPageRepo repository.PageRepo,
 	logger log.Logger,
 ) *AlarmRealtimeBiz {
 	return &AlarmRealtimeBiz{
 		log: log.NewHelper(log.With(logger, "module", "biz.AlarmRealtimeBiz")),
 
-		dataRepo:     dataRepo,
-		realtimeRepo: realtimeRepo,
+		dataRepo:      dataRepo,
+		realtimeRepo:  realtimeRepo,
+		alarmPageRepo: alarmPageRepo,
 	}
 }
 
@@ -36,8 +40,26 @@ func (l *AlarmRealtimeBiz) GetRealtimeDetailById(ctx context.Context, id uint32)
 }
 
 // GetRealtimeList 获取实时告警列表
-func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
-	return l.realtimeRepo.GetRealtimeList(ctx, pgInfo, scopes...)
+func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, req *bo.ListRealtimeReq) ([]*bo.AlarmRealtimeBO, error) {
+	strategyIds, err := l.alarmPageRepo.GetStrategyIds(ctx, do.StrategyInAlarmPageIds(req.AlarmPageId))
+	if err != nil {
+		return nil, err
+	}
+
+	if len(strategyIds) == 0 {
+		return []*bo.AlarmRealtimeBO{}, nil
+	}
+	wheres := []basescopes.ScopeMethod{
+		do.PromAlarmRealtimeLike(req.Keyword),
+		do.PromAlarmRealtimeEventAtDesc(),
+		//预加载告警等级
+		do.PromAlarmRealtimePreloadLevel(),
+		do.PromAlarmRealtimeInStrategyIds(strategyIds...),
+		// 还在告警的数据
+		basescopes.StatusEQ(vo.StatusEnabled),
+		do.PromAlarmRealtimePreloadStrategy(),
+	}
+	return l.realtimeRepo.GetRealtimeList(ctx, req.Page, wheres...)
 }
 
 // AlarmIntervene 告警干预/介入

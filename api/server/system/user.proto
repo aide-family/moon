@@ -187,6 +187,8 @@ message SelectUserRequest {
   PageRequest page = 1 [(validate.rules).message.required = true];
   // 关键字, 长度限制 0-20 字符, 用于模糊查询
   string keyword = 2 [(validate.rules).string.max_len = 20];
+  // 状态
+  Status status = 3 [(validate.rules).enum.defined_only = true];
 }
 // 获取用户下拉列表响应参数
 message SelectUserReply {

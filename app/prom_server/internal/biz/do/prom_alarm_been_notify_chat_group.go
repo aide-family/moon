@@ -6,6 +6,15 @@ import (
 
 const TableNamePromAlarmBeenNotifyChatGroup = "prom_alarm_been_notify_chat_groups"
 
+const (
+	PromAlarmBeenNotifyChatGroupFieldRealtimeAlarmID   = "realtime_alarm_id"
+	PromAlarmBeenNotifyChatGroupFieldChatGroupId       = "chat_group_id"
+	PromAlarmBeenNotifyChatGroupFieldStatus            = "status"
+	PromAlarmBeenNotifyChatGroupFieldMsg               = "msg"
+	PromAlarmBeenNotifyChatGroupFieldPromAlarmNotifyID = "prom_alarm_notify_id"
+	PromAlarmBeenNotifyChatGroupPreloadFieldChatGroup  = "ChatGroup"
+)
+
 type PromAlarmBeenNotifyChatGroup struct {
 	BaseModel
 	RealtimeAlarmID   uint32              `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__ncg__realtime_alarm_id,priority:1;comment:告警ID"`

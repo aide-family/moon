@@ -6,6 +6,17 @@ import (
 
 const TableNamePromAlarmNotifyMember = "prom_alarm_been_notify_members"
 
+const (
+	PromAlarmBeenNotifyMemberFieldRealtimeAlarmID        = "realtime_alarm_id"
+	PromAlarmBeenNotifyMemberFieldNotifyTypes            = "notify_types"
+	PromAlarmBeenNotifyMemberFieldMemberId               = "member_id"
+	PromAlarmBeenNotifyMemberFieldMsg                    = "msg"
+	PromAlarmBeenNotifyMemberFieldStatus                 = "status"
+	PromAlarmBeenNotifyMemberFieldPromAlarmNotifyID      = "prom_alarm_notify_id"
+	PromAlarmBeenNotifyMemberPreloadFieldPromAlarmNotify = "PromAlarmNotify"
+	PromAlarmBeenNotifyMemberPreloadFieldMember          = "Member"
+)
+
 type PromAlarmBeenNotifyMember struct {
 	BaseModel
 	RealtimeAlarmID   uint32           `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__bnm__realtime_alarm_id,priority:1;comment:告警ID"`

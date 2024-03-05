@@ -38,7 +38,7 @@ func (l *strategyRepoImpl) BindStrategyNotifyObject(ctx context.Context, strateg
 	notifyModels := slices.To(notifyBo, func(item *bo.NotifyBO) *do.PromAlarmNotify {
 		return item.ToModel()
 	})
-	return l.data.DB().WithContext(ctx).Model(strategyModel).Association(basescopes.PreloadKeyPromNotifies).Replace(notifyModels)
+	return l.data.DB().WithContext(ctx).Model(strategyModel).Association(do.PromStrategyPreloadFieldPromNotifies).Replace(notifyModels)
 }
 
 func (l *strategyRepoImpl) List(ctx context.Context, wheres ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
@@ -78,8 +78,8 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 			BaseModel: do.BaseModel{ID: pageId},
 		}
 	})
-	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
-		return &do.PromDict{
+	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.SysDict {
+		return &do.SysDict{
 			BaseModel: do.BaseModel{ID: categoryId},
 		}
 	})
@@ -93,10 +93,10 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 			return err
 		}
 
-		if err := tx.WithContext(txCtx).Model(newStrategy).Association(basescopes.PreloadKeyAlarmPages).Replace(alarmPages); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(do.PromStrategyPreloadFieldAlarmPages).Replace(alarmPages); err != nil {
 			return err
 		}
-		if err := tx.WithContext(txCtx).Model(newStrategy).Association(basescopes.PreloadKeyCategories).Replace(categories); err != nil {
+		if err := tx.WithContext(txCtx).Model(newStrategy).Association(do.PromStrategyPreloadFieldCategories).Replace(categories); err != nil {
 			return err
 		}
 
@@ -138,8 +138,8 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 			BaseModel: do.BaseModel{ID: pageId},
 		}
 	})
-	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.PromDict {
-		return &do.PromDict{
+	categories := slices.To(strategyBO.CategoryIds, func(categoryId uint32) *do.SysDict {
+		return &do.SysDict{
 			BaseModel: do.BaseModel{ID: categoryId},
 		}
 	})
@@ -156,10 +156,10 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 			return err
 		}
 
-		if err = tx.WithContext(txCtx).Model(detail).Association(basescopes.PreloadKeyAlarmPages).Replace(&alarmPages); err != nil {
+		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldAlarmPages).Replace(&alarmPages); err != nil {
 			return err
 		}
-		if err = tx.WithContext(txCtx).Model(detail).Association(basescopes.PreloadKeyCategories).Replace(&categories); err != nil {
+		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldCategories).Replace(&categories); err != nil {
 			return err
 		}
 
@@ -228,7 +228,7 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 func (l *strategyRepoImpl) getStrategyGroupIdsByStrategyIds(ctx context.Context, ids []uint32) ([]uint32, error) {
 	// 查询规则组ID列表
 	var groupIds []uint32
-	field := basescopes.StrategyTableFieldGroupID.String()
+	field := do.PromStrategyFieldGroupID
 	whereList := []basescopes.ScopeMethod{
 		basescopes.InIds(ids...),
 		basescopes.WithCreateBy(ctx),
@@ -303,10 +303,10 @@ func (l *strategyRepoImpl) getStrategyById(ctx context.Context, id uint32, where
 	return &first, nil
 }
 
-func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
+func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	var listStrategy []*do.PromStrategy
 	whereList := append(scopes, basescopes.WithCreateBy(ctx))
-	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, bo.Page(pgInfo))...).Find(&listStrategy).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {

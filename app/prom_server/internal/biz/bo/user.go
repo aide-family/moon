@@ -10,6 +10,11 @@ import (
 )
 
 type (
+	GetUserListReq struct {
+		Page    Pagination
+		Keyword string    `json:"keyword"`
+		Status  vo.Status `json:"status"`
+	}
 	UserBO struct {
 		Id        uint32    `json:"id"`
 		Username  string    `json:"username"`

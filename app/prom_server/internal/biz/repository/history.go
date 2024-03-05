@@ -19,7 +19,7 @@ type (
 		// GetHistoryById 通过id获取历史详情
 		GetHistoryById(ctx context.Context, id uint32) (*bo.AlarmHistoryBO, error)
 		// ListHistory 获取历史列表
-		ListHistory(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error)
+		ListHistory(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error)
 		// StorageHistory 创建历史
 		StorageHistory(ctx context.Context, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error)
 		// UpdateHistoryById 通过id更新历史
@@ -35,7 +35,7 @@ func (UnimplementedHistoryRepo) GetHistoryById(_ context.Context, _ uint32) (*bo
 	return nil, status.Errorf(codes.Unimplemented, "method GetHistoryById not implemented")
 }
 
-func (UnimplementedHistoryRepo) ListHistory(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error) {
+func (UnimplementedHistoryRepo) ListHistory(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.AlarmHistoryBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHistory not implemented")
 }
 

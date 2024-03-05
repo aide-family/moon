@@ -41,7 +41,7 @@ func (l *alarmPageRepoImpl) UserPageList(ctx context.Context, userId uint32) ([]
 	var userInfo do.SysUser
 	if err := l.data.DB().
 		WithContext(ctx).
-		Scopes(basescopes.UserPreloadAlarmPages(), basescopes.InIds(userId)).
+		Scopes(do.SysUserPreloadAlarmPages(), basescopes.InIds(userId)).
 		First(&userInfo).
 		Error; err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (l *alarmPageRepoImpl) BindUserPages(ctx context.Context, userId uint32, pa
 	})
 	return l.data.DB().WithContext(ctx).
 		Model(&do.SysUser{BaseModel: do.BaseModel{ID: userId}}).
-		Association(basescopes.UserAssociationReplaceAlarmPages).Replace(pagesDo)
+		Association(do.SysUserPreloadFieldAlarmPages).Replace(pagesDo)
 }
 
 func (l *alarmPageRepoImpl) GetPromStrategyAlarmPage(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*do.PromStrategyAlarmPage, error) {
@@ -78,7 +78,7 @@ func (l *alarmPageRepoImpl) GetStrategyIds(ctx context.Context, scopes ...basesc
 		Model(&do.PromStrategyAlarmPage{}).
 		WithContext(ctx).
 		Scopes(scopes...).
-		Pluck(basescopes.TableNamePromStrategyAlarmPageFieldPromStrategyID.String(), &strategyIds).
+		Pluck(do.PromStrategyAlarmPageFieldPromStrategyID, &strategyIds).
 		Error; err != nil {
 		return nil, err
 	}
@@ -139,9 +139,9 @@ func (l *alarmPageRepoImpl) GetPageById(ctx context.Context, id uint32) (*bo.Ala
 	return bo.AlarmPageModelToBO(&detail), nil
 }
 
-func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
+func (l *alarmPageRepoImpl) ListPage(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmPageBO, error) {
 	var list []*do.PromAlarmPage
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&list).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {

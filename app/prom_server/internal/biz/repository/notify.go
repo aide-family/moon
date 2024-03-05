@@ -22,7 +22,7 @@ type (
 		// Count 获取通知总数
 		Count(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error)
 		// List 获取通知列表
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error)
 		// Create 创建通知
 		Create(ctx context.Context, notify *bo.NotifyBO) (*bo.NotifyBO, error)
 		// Update 更新通知
@@ -48,7 +48,7 @@ func (UnimplementedNotifyRepo) Count(_ context.Context, _ ...basescopes.ScopeMet
 	return 0, status.Errorf(codes.Unimplemented, "method Count not implemented")
 }
 
-func (UnimplementedNotifyRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
+func (UnimplementedNotifyRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 

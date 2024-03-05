@@ -10,6 +10,13 @@ import (
 )
 
 type (
+	ListRoleReq struct {
+		Page    Pagination `json:"page"`
+		Status  vo.Status  `json:"status"`
+		Keyword string     `json:"keyword"`
+		UserId  uint32     `json:"user_id"`
+	}
+
 	RoleBO struct {
 		Id        uint32    `json:"id"`
 		Name      string    `json:"name"`

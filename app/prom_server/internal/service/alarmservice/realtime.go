@@ -9,7 +9,6 @@ import (
 	pb "prometheus-manager/api/server/alarm/realtime"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
@@ -20,15 +19,13 @@ type RealtimeService struct {
 
 	log           *log.Helper
 	alarmRealtime *biz.AlarmRealtimeBiz
-	alarmPageBiz  *biz.AlarmPageBiz
 }
 
 // NewRealtimeService 实时告警服务
-func NewRealtimeService(alarmRealtime *biz.AlarmRealtimeBiz, alarmPageBiz *biz.AlarmPageBiz, logger log.Logger) *RealtimeService {
+func NewRealtimeService(alarmRealtime *biz.AlarmRealtimeBiz, logger log.Logger) *RealtimeService {
 	return &RealtimeService{
 		log:           log.NewHelper(log.With(logger, "module", "service.alarm.realtime")),
 		alarmRealtime: alarmRealtime,
-		alarmPageBiz:  alarmPageBiz,
 	}
 }
 
@@ -45,35 +42,14 @@ func (l *RealtimeService) GetRealtime(ctx context.Context, req *pb.GetRealtimeRe
 
 // ListRealtime 实时告警列表
 func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtimeRequest) (*pb.ListRealtimeReply, error) {
-	strategyIds, err := l.alarmPageBiz.GetStrategyIds(ctx, req.GetAlarmPageId())
-	if err != nil {
-		return nil, err
-	}
 	pgReq := req.GetPage()
-	if len(strategyIds) == 0 {
-		return &pb.ListRealtimeReply{
-			Page: &api.PageReply{
-				Curr:  pgReq.GetCurr(),
-				Size:  pgReq.GetSize(),
-				Total: 0,
-			},
-			List: []*api.RealtimeAlarmData{},
-		}, nil
-	}
-
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.RealtimeLike(req.GetKeyword()),
-		basescopes.RealtimeEventAtDesc(),
-		//预加载告警等级
-		basescopes.PreloadLevel(),
-		basescopes.InStrategyIds(strategyIds...),
-		// 还在告警的数据
-		basescopes.StatusEQ(vo.StatusEnabled),
-		basescopes.PreloadRealtimeAssociationStrategy(),
-	}
-
-	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, pgInfo, wheres...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, &bo.ListRealtimeReq{
+		Page:        pgInfo,
+		Keyword:     req.GetKeyword(),
+		Status:      vo.AlarmStatusAlarm,
+		AlarmPageId: req.GetAlarmPageId(),
+	})
 	if err != nil {
 		return nil, err
 	}

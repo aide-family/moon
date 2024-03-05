@@ -22,7 +22,7 @@ type (
 		// Find 查询api
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error)
 		// List 获取api列表
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error)
 		// Delete 删除api
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
 		// Update 更新api
@@ -50,7 +50,7 @@ func (UnimplementedApiRepo) Get(_ context.Context, _ ...basescopes.ScopeMethod) 
 	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 
-func (UnimplementedApiRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
+func (UnimplementedApiRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

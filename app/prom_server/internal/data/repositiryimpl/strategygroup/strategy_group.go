@@ -54,7 +54,7 @@ func (l *strategyGroupRepoImpl) UpdateStrategyCount(ctx context.Context, ids ...
 	tx := basescopes.GetTx(ctx, l.data.DB())
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
-	if err := strategyDB.Scopes(basescopes.StrategyTableGroupIdsEQ(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
+	if err := strategyDB.Scopes(do.StrategyInGroupIds(ids...)).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
 	}
 
@@ -89,7 +89,7 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 	strategyDB := tx.Model(&do.PromStrategy{}).WithContext(ctx)
 	var strategyCountList []StrategyCount
 	wheres := []basescopes.ScopeMethod{
-		basescopes.StrategyTableGroupIdsEQ(ids...),
+		do.StrategyInGroupIds(ids...),
 		basescopes.StatusEQ(vo.StatusEnabled),
 	}
 	if err := strategyDB.Scopes(wheres...).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
@@ -212,16 +212,16 @@ func (l *strategyGroupRepoImpl) DeleteByIds(ctx context.Context, ids ...uint32) 
 
 func (l *strategyGroupRepoImpl) GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error) {
 	var first do.PromStrategyGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.PreloadStrategyGroupPromStrategies()).First(&first, id).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(do.StrategyGroupPreloadPromStrategies(), do.StrategyGroupPreloadCategories(true)).First(&first, id).Error; err != nil {
 		return nil, err
 	}
 
 	return bo.StrategyGroupModelToBO(&first), nil
 }
 
-func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
+func (l *strategyGroupRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error) {
 	var strategyModelList []*do.PromStrategyGroup
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&strategyModelList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&strategyModelList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {

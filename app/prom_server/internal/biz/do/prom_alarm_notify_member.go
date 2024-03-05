@@ -6,6 +6,14 @@ import (
 
 const TableNamePromNotifyMember = "prom_alarm_notify_members"
 
+const (
+	PromNotifyMemberFieldPromAlarmNotifyID = "prom_alarm_notify_id"
+	PromNotifyMemberFieldStatus            = "status"
+	PromNotifyMemberFieldNotifyTypes       = "notify_types"
+	PromNotifyMemberFieldMemberId          = "member_id"
+	PromNotifyMemberPreloadFieldMember     = "Member"
+)
+
 type PromAlarmNotifyMember struct {
 	BaseModel
 	PromAlarmNotifyID uint32         `gorm:"column:prom_alarm_notify_id;type:int unsigned;not null;index:idx__nm__prom_alarm_notify_id,priority:1;comment:通知ID"`

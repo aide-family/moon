@@ -27,7 +27,7 @@ type (
 		// GetStrategyById 通过id获取策略详情
 		GetStrategyById(ctx context.Context, id uint32, wheres ...basescopes.ScopeMethod) (*bo.StrategyBO, error)
 		// ListStrategy 获取策略列表
-		ListStrategy(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error)
+		ListStrategy(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error)
 		// ListStrategyByIds 通过id列表获取策略列表
 		ListStrategyByIds(ctx context.Context, ids []uint32) ([]*bo.StrategyBO, error)
 		// List 获取策略列表
@@ -69,7 +69,7 @@ func (UnimplementedStrategyRepo) GetStrategyById(_ context.Context, _ uint32, _ 
 	return nil, status.Error(codes.Unimplemented, "method GetStrategyById not implemented")
 }
 
-func (UnimplementedStrategyRepo) ListStrategy(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
+func (UnimplementedStrategyRepo) ListStrategy(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.StrategyBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListStrategy not implemented")
 }
 

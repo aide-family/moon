@@ -4,13 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
-
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type ApiService struct {
@@ -98,14 +96,12 @@ func (s *ApiService) GetApi(ctx context.Context, req *pb.GetApiRequest) (*pb.Get
 
 func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.ListApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-		basescopes.LikeSysApi(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
+	apiBoList, pgInfo, err := s.apiBiz.ListApi(ctx, &bo.ApiListApiReq{
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+		Curr:    pgReq.GetCurr(),
+		Size:    pgReq.GetSize(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -125,14 +121,12 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 
 func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*pb.SelectApiReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-		basescopes.LikeSysApi(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	apiBoList, err := s.apiBiz.ListApi(ctx, pgInfo, wheres...)
+	apiBoList, pgInfo, err := s.apiBiz.ListApi(ctx, &bo.ApiListApiReq{
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+		Curr:    pgReq.GetCurr(),
+		Size:    pgReq.GetSize(),
+	})
 	if err != nil {
 		return nil, err
 	}

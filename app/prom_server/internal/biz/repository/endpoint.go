@@ -19,7 +19,7 @@ type (
 		Update(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
 		UpdateStatus(ctx context.Context, ids []uint32, status vo.Status) error
 		Delete(ctx context.Context, ids []uint32) error
-		List(ctx context.Context, pagination basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
+		List(ctx context.Context, pagination bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error)
 		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
 	}
@@ -51,7 +51,7 @@ func (UnimplementedEndpointRepo) Delete(_ context.Context, _ []uint32) error {
 	return status.Error(codes.Unimplemented, "method Delete not implemented")
 }
 
-func (UnimplementedEndpointRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
+func (UnimplementedEndpointRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

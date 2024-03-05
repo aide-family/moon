@@ -10,6 +10,11 @@ import (
 )
 
 type (
+	ListDashboardReq struct {
+		Page    Pagination `json:"page"`
+		Keyword string     `json:"keyword"`
+		Status  vo.Status  `json:"status"`
+	}
 	MyDashboardConfigBO struct {
 		Id     uint32       `json:"id"`
 		Status vo.Status    `json:"status"`

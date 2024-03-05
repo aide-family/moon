@@ -2,6 +2,15 @@ package do
 
 const TableNamePromAlarmSuppress = "prom_alarm_suppress"
 
+const (
+	PromAlarmSuppressFieldRealtimeAlarmID = "realtime_alarm_id"
+	PromAlarmSuppressFieldUserID          = "user_id"
+	PromAlarmSuppressFieldSuppressedAt    = "suppressed_at"
+	PromAlarmSuppressFieldRemark          = "remark"
+	PromAlarmSuppressFieldDuration        = "duration"
+	PromAlarmSuppressPreloadFieldUserInfo = "UserInfo"
+)
+
 type PromAlarmSuppress struct {
 	BaseModel
 	RealtimeAlarmID uint32   `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__as__realtime_alarm_id,priority:1;comment:告警ID"`

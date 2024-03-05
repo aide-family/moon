@@ -8,7 +8,6 @@ import (
 	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -28,14 +27,12 @@ func NewSyslogService(logBiz *biz.SysLogBiz, l log.Logger) *SyslogService {
 
 func (s *SyslogService) ListSyslog(ctx context.Context, req *pb.ListSyslogRequest) (*pb.ListSyslogReply, error) {
 	pageReq := req.GetPage()
-	pageInfo := basescopes.NewPage(pageReq.GetCurr(), pageReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.CreatedAtDesc(),
-		basescopes.UpdateAtDesc(),
-		basescopes.SysLogPreloadUsers(),
-		basescopes.SysLogWhereModule(vo.Module(req.GetModuleName()), req.GetModuleId()),
-	}
-	logList, err := s.logBiz.ListSysLog(ctx, pageInfo, wheres...)
+	pageInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
+	logList, err := s.logBiz.ListSysLog(ctx, &bo.ListSyslogReq{
+		Page:     pageInfo,
+		Module:   vo.Module(req.GetModuleName()),
+		ModuleId: req.GetModuleId(),
+	})
 	if err != nil {
 		return nil, err
 	}
