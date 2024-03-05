@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 
-	pb "prometheus-manager/api/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/pkg/util/slices"
@@ -56,12 +55,11 @@ func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.Alarm
 }
 
 // ListHistory 查询历史列表
-func (a *HistoryBiz) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) ([]*bo.AlarmHistoryBO, basescopes.Pagination, error) {
-	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+func (a *HistoryBiz) ListHistory(ctx context.Context, req *bo.ListHistoryRequest) ([]*bo.AlarmHistoryBO, basescopes.Pagination, error) {
+	pgInfo := basescopes.NewPage(req.Curr, req.Size)
 	scopes := []basescopes.ScopeMethod{
-		basescopes.LikeInstance(req.GetKeyword()),
-		basescopes.TimeRange(req.GetStartAt(), req.GetEndAt()),
+		basescopes.LikeInstance(req.Keyword),
+		basescopes.TimeRange(req.StartAt, req.EndAt),
 		basescopes.PreloadRealtimeAssociationStrategy(),
 		basescopes.PreloadLevel(),
 		basescopes.UpdateAtDesc(),

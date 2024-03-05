@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: alarm/page/page.proto
+// source: server/alarm/page/page.proto
 
 package page
 
@@ -19,17 +19,17 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationAlarmPageBatchDeleteAlarmPage = "/api.alarm.page.AlarmPage/BatchDeleteAlarmPage"
-const OperationAlarmPageBatchUpdateAlarmPageStatus = "/api.alarm.page.AlarmPage/BatchUpdateAlarmPageStatus"
-const OperationAlarmPageCountAlarmPage = "/api.alarm.page.AlarmPage/CountAlarmPage"
-const OperationAlarmPageCreateAlarmPage = "/api.alarm.page.AlarmPage/CreateAlarmPage"
-const OperationAlarmPageDeleteAlarmPage = "/api.alarm.page.AlarmPage/DeleteAlarmPage"
-const OperationAlarmPageGetAlarmPage = "/api.alarm.page.AlarmPage/GetAlarmPage"
-const OperationAlarmPageListAlarmPage = "/api.alarm.page.AlarmPage/ListAlarmPage"
-const OperationAlarmPageListMyAlarmPage = "/api.alarm.page.AlarmPage/ListMyAlarmPage"
-const OperationAlarmPageMyAlarmPagesConfig = "/api.alarm.page.AlarmPage/MyAlarmPagesConfig"
-const OperationAlarmPageSelectAlarmPage = "/api.alarm.page.AlarmPage/SelectAlarmPage"
-const OperationAlarmPageUpdateAlarmPage = "/api.alarm.page.AlarmPage/UpdateAlarmPage"
+const OperationAlarmPageBatchDeleteAlarmPage = "/api.server.alarm.page.AlarmPage/BatchDeleteAlarmPage"
+const OperationAlarmPageBatchUpdateAlarmPageStatus = "/api.server.alarm.page.AlarmPage/BatchUpdateAlarmPageStatus"
+const OperationAlarmPageCountAlarmPage = "/api.server.alarm.page.AlarmPage/CountAlarmPage"
+const OperationAlarmPageCreateAlarmPage = "/api.server.alarm.page.AlarmPage/CreateAlarmPage"
+const OperationAlarmPageDeleteAlarmPage = "/api.server.alarm.page.AlarmPage/DeleteAlarmPage"
+const OperationAlarmPageGetAlarmPage = "/api.server.alarm.page.AlarmPage/GetAlarmPage"
+const OperationAlarmPageListAlarmPage = "/api.server.alarm.page.AlarmPage/ListAlarmPage"
+const OperationAlarmPageListMyAlarmPage = "/api.server.alarm.page.AlarmPage/ListMyAlarmPage"
+const OperationAlarmPageMyAlarmPagesConfig = "/api.server.alarm.page.AlarmPage/MyAlarmPagesConfig"
+const OperationAlarmPageSelectAlarmPage = "/api.server.alarm.page.AlarmPage/SelectAlarmPage"
+const OperationAlarmPageUpdateAlarmPage = "/api.server.alarm.page.AlarmPage/UpdateAlarmPage"
 
 type AlarmPageHTTPServer interface {
 	BatchDeleteAlarmPage(context.Context, *BatchDeleteAlarmPageRequest) (*BatchDeleteAlarmPageReply, error)

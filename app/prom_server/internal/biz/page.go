@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/util/slices"
 
-	pb "prometheus-manager/api/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
@@ -143,12 +142,11 @@ func (p *AlarmPageBiz) GetPageRealtimeById(ctx context.Context, id uint32, where
 }
 
 // ListPage 获取页面列表
-func (p *AlarmPageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
-	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+func (p *AlarmPageBiz) ListPage(ctx context.Context, req *bo.ListAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
+	pgInfo := basescopes.NewPage(req.Curr, req.Size)
 	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
+		basescopes.NameLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)
@@ -160,12 +158,11 @@ func (p *AlarmPageBiz) ListPage(ctx context.Context, req *pb.ListAlarmPageReques
 }
 
 // SelectPageList 获取页面列表
-func (p *AlarmPageBiz) SelectPageList(ctx context.Context, req *pb.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
-	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+func (p *AlarmPageBiz) SelectPageList(ctx context.Context, req *bo.SelectAlarmPageRequest) ([]*bo.AlarmPageBO, basescopes.Pagination, error) {
+	pgInfo := basescopes.NewPage(req.Curr, req.Size)
 	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
+		basescopes.NameLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
 	}
 
 	pageBos, err := p.pageRepo.ListPage(ctx, pgInfo, scopes...)

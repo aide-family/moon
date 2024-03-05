@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: alarm/realtime/realtime.proto
+// source: server/alarm/realtime/realtime.proto
 
 package realtime
 
@@ -19,11 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationRealtimeGetRealtime = "/api.alarm.realtime.Realtime/GetRealtime"
-const OperationRealtimeIntervene = "/api.alarm.realtime.Realtime/Intervene"
-const OperationRealtimeListRealtime = "/api.alarm.realtime.Realtime/ListRealtime"
-const OperationRealtimeSuppress = "/api.alarm.realtime.Realtime/Suppress"
-const OperationRealtimeUpgrade = "/api.alarm.realtime.Realtime/Upgrade"
+const OperationRealtimeGetRealtime = "/api.server.alarm.realtime.Realtime/GetRealtime"
+const OperationRealtimeIntervene = "/api.server.alarm.realtime.Realtime/Intervene"
+const OperationRealtimeListRealtime = "/api.server.alarm.realtime.Realtime/ListRealtime"
+const OperationRealtimeSuppress = "/api.server.alarm.realtime.Realtime/Suppress"
+const OperationRealtimeUpgrade = "/api.server.alarm.realtime.Realtime/Upgrade"
 
 type RealtimeHTTPServer interface {
 	GetRealtime(context.Context, *GetRealtimeRequest) (*GetRealtimeReply, error)

@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/interflows"
-
 	"prometheus-manager/api/ping"
 	"prometheus-manager/app/prom_agent/internal/conf"
 	"prometheus-manager/app/prom_agent/internal/service"

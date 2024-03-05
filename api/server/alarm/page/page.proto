@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package api.alarm.page;
+package api.server.alarm.page;
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "base.proto";
 import "model.proto";
 
-option go_package = "prometheus-manager/api/alarm/page;page";
+option go_package = "prometheus-manager/api/server/alarm/page;page";
 option java_multiple_files = true;
-option java_package = "api.alarm.page";
+option java_package = "api.server.alarm.page";
 
 
 // 告警页面管理模块相关接口
