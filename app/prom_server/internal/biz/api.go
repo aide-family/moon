@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
@@ -22,7 +21,12 @@ type ApiBiz struct {
 	logX     repository.SysLogRepo
 }
 
-func NewApiBiz(repo repository.ApiRepo, dataRepo repository.DataRepo, logX repository.SysLogRepo, logger log.Logger) *ApiBiz {
+func NewApiBiz(
+	repo repository.ApiRepo,
+	dataRepo repository.DataRepo,
+	logX repository.SysLogRepo,
+	logger log.Logger,
+) *ApiBiz {
 	return &ApiBiz{
 		apiRepo:  repo,
 		dataRepo: dataRepo,
@@ -56,7 +60,7 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 
 // GetApiById 获取api
 func (b *ApiBiz) GetApiById(ctx context.Context, id uint32) (*bo.ApiBO, error) {
-	apiBO, err := b.apiRepo.Get(ctx, basescopes.InIds(id))
+	apiBO, err := b.apiRepo.Get(ctx, basescopes.InIds(id), do.SysAPIPreloadRoles())
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +69,20 @@ func (b *ApiBiz) GetApiById(ctx context.Context, id uint32) (*bo.ApiBO, error) {
 }
 
 // ListApi 获取api列表
-func (b *ApiBiz) ListApi(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ApiBO, error) {
+func (b *ApiBiz) ListApi(ctx context.Context, params *bo.ApiListApiReq) ([]*bo.ApiBO, bo.Pagination, error) {
+	pgInfo := bo.NewPage(params.Curr, params.Size)
+	scopes := []basescopes.ScopeMethod{
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(params.Status),
+		do.SysApiLike(params.Keyword),
+	}
 	apiBOList, err := b.apiRepo.List(ctx, pgInfo, scopes...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return apiBOList, nil
+	return apiBOList, pgInfo, nil
 }
 
 // ListAllApi 获取api列表
@@ -91,7 +102,7 @@ func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint32) error {
 	if err != nil {
 		return err
 	}
-	if err := b.apiRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
+	if err = b.apiRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
 		return err
 	}
 	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{

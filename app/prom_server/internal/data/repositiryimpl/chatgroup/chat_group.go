@@ -75,10 +75,10 @@ func (l *chatGroupRepoImpl) Delete(ctx context.Context, scopes ...basescopes.Sco
 	return l.data.DB().WithContext(ctx).Scopes(whereList...).Delete(&do.PromAlarmChatGroup{}).Error
 }
 
-func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
+func (l *chatGroupRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	var chatGroupList []*do.PromAlarmChatGroup
 	whereList := append(scopes, basescopes.WithCreateBy(ctx))
-	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&chatGroupList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, bo.Page(pgInfo))...).Find(&chatGroupList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {

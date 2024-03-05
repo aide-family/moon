@@ -12,8 +12,7 @@ import (
 )
 
 type SelectStrategyRequest struct {
-	Curr    int32
-	Size    int32
+	Page    Pagination
 	Keyword string
 }
 
@@ -22,8 +21,7 @@ type ExportStrategyRequest struct {
 }
 
 type ListStrategyRequest struct {
-	Curr       int32
-	Size       int32
+	Page       Pagination
 	Keyword    string
 	GroupId    uint32
 	Status     vo.Status
@@ -315,7 +313,7 @@ func (b *StrategyBO) ToModel() *do.PromStrategy {
 		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *AlarmPageBO) *do.PromAlarmPage {
 			return alarmPageInfo.ToModel()
 		}),
-		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *do.PromDict {
+		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *do.SysDict {
 			return dictInfo.ToModel()
 		}),
 		AlertLevel:   b.GetAlarmLevelInfo().ToModel(),
@@ -351,10 +349,10 @@ func StrategyModelToBO(m *do.PromStrategy) *StrategyBO {
 		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *do.PromAlarmPage) *AlarmPageBO {
 			return AlarmPageModelToBO(dictInfo)
 		}),
-		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *do.PromDict) uint32 {
+		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *do.SysDict) uint32 {
 			return dictInfo.ID
 		}),
-		Categories: slices.To(m.GetCategories(), func(dictInfo *do.PromDict) *DictBO {
+		Categories: slices.To(m.GetCategories(), func(dictInfo *do.SysDict) *DictBO {
 			return DictModelToBO(dictInfo)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),

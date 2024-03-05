@@ -10,6 +10,11 @@ import (
 )
 
 type (
+	ListNotifyRequest struct {
+		Page    Pagination `json:"page"`
+		Keyword string     `json:"keyword"`
+		Status  vo.Status  `json:"status"`
+	}
 	NotifyBO struct {
 		Id                 uint32                 `json:"id"`
 		Name               string                 `json:"name"`

@@ -43,10 +43,10 @@ func (l *chartRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMeth
 	return slices.To(modelList, func(i *do.MyChart) *bo.MyChartBO { return bo.MyChartModelToBO(i) }), nil
 }
 
-func (l *chartRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
+func (l *chartRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
 	var modelList []*do.MyChart
 	wheres := append(scopes, basescopes.WithUserId(ctx))
-	if err := l.db().WithContext(ctx).Scopes(append(wheres, basescopes.Page(pgInfo))...).Find(&modelList).Error; err != nil {
+	if err := l.db().WithContext(ctx).Scopes(append(wheres, bo.Page(pgInfo))...).Find(&modelList).Error; err != nil {
 		return nil, err
 	}
 	var total int64

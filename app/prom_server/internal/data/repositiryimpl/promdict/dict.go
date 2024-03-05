@@ -22,11 +22,11 @@ type promDictRepoImpl struct {
 }
 
 func (l *promDictRepoImpl) GetDictByIds(ctx context.Context, ids ...uint32) ([]*bo.DictBO, error) {
-	dictList := make([]*do.PromDict, 0, len(ids))
+	dictList := make([]*do.SysDict, 0, len(ids))
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Find(&dictList).Error; err != nil {
 		return nil, err
 	}
-	return slices.To(dictList, func(item *do.PromDict) *bo.DictBO { return bo.DictModelToBO(item) }), nil
+	return slices.To(dictList, func(item *do.SysDict) *bo.DictBO { return bo.DictModelToBO(item) }), nil
 }
 
 func (l *promDictRepoImpl) CreateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO, error) {
@@ -48,41 +48,41 @@ func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint32, dictBO
 }
 
 func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromDict{Status: status}).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.SysDict{Status: status}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *promDictRepoImpl) DeleteDictByIds(ctx context.Context, id ...uint32) error {
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id...)).Delete(&do.PromDict{}).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id...)).Delete(&do.SysDict{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (l *promDictRepoImpl) GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error) {
-	var detailModel do.PromDict
+	var detailModel do.SysDict
 	if err := l.data.DB().WithContext(ctx).First(&detailModel, id).Error; err != nil {
 		return nil, err
 	}
 	return bo.DictModelToBO(&detailModel), nil
 }
 
-func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
-	var dictModelList []*do.PromDict
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&dictModelList).Error; err != nil {
+func (l *promDictRepoImpl) ListDict(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
+	var dictModelList []*do.SysDict
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&dictModelList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
 		var total int64
-		if err := l.data.DB().WithContext(ctx).Model(&do.PromDict{}).Scopes(scopes...).Count(&total).Error; err != nil {
+		if err := l.data.DB().WithContext(ctx).Model(&do.SysDict{}).Scopes(scopes...).Count(&total).Error; err != nil {
 			return nil, err
 		}
 		pgInfo.SetTotal(total)
 	}
 
-	boList := slices.To(dictModelList, func(item *do.PromDict) *bo.DictBO {
+	boList := slices.To(dictModelList, func(item *do.SysDict) *bo.DictBO {
 		return bo.DictModelToBO(item)
 	})
 

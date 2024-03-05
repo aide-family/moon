@@ -67,9 +67,9 @@ func (l *endpointRepoImpl) Delete(ctx context.Context, ids []uint32) error {
 	return l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Delete(&do.Endpoint{}).Error
 }
 
-func (l *endpointRepoImpl) List(ctx context.Context, pagination basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
+func (l *endpointRepoImpl) List(ctx context.Context, pagination bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error) {
 	var endpointList []*do.Endpoint
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pagination))...).Find(&endpointList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pagination))...).Find(&endpointList).Error; err != nil {
 		return nil, err
 	}
 	if pagination != nil {

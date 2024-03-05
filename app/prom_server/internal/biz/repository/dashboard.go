@@ -21,7 +21,7 @@ type (
 		// Find 查询dashboard
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error)
 		// List 获取dashboard列表
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error)
 		// Delete 删除dashboard
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
 		// Update 更新dashboard
@@ -45,7 +45,7 @@ func (UnimplementedDashboardRepo) Find(_ context.Context, _ ...basescopes.ScopeM
 	return nil, status.Error(codes.Unimplemented, "method Find not implemented")
 }
 
-func (UnimplementedDashboardRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error) {
+func (UnimplementedDashboardRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.MyDashboardConfigBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

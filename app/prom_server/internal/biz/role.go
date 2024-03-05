@@ -6,14 +6,13 @@ import (
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/util/slices"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/after"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -79,8 +78,18 @@ func (b *RoleBiz) DeleteRoleByIds(ctx context.Context, ids []uint32) error {
 }
 
 // ListRole 角色列表
-func (b *RoleBiz) ListRole(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
-	roleBOList, err := b.roleRepo.List(ctx, pgInfo, scopes...)
+func (b *RoleBiz) ListRole(ctx context.Context, req *bo.ListRoleReq) ([]*bo.RoleBO, error) {
+	scopes := []basescopes.ScopeMethod{
+		basescopes.NameLike(req.Keyword),
+		basescopes.UpdateAtDesc(),
+		basescopes.UpdateAtDesc(),
+		basescopes.StatusEQ(req.Status),
+	}
+
+	if req.UserId > 0 {
+		// TODO 查询这个用户的角色ID列表
+	}
+	roleBOList, err := b.roleRepo.List(ctx, req.Page, scopes...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +99,7 @@ func (b *RoleBiz) ListRole(ctx context.Context, pgInfo basescopes.Pagination, sc
 
 // GetRoleById 获取角色
 func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error) {
-	roleBO, err := b.roleRepo.Get(ctx, basescopes.InIds(id), basescopes.RolePreloadUsers(), basescopes.RolePreloadApis())
+	roleBO, err := b.roleRepo.Get(ctx, basescopes.InIds(id), do.SysRolePreloadUsers(), do.SysRolePreloadApis())
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +110,7 @@ func (b *RoleBiz) GetRoleById(ctx context.Context, id uint32) (*bo.RoleBO, error
 // UpdateRoleById 更新角色
 func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO, error) {
 	// 查询
-	oldRole, err := b.roleRepo.Get(ctx, basescopes.InIds(roleBO.Id), basescopes.RolePreloadUsers(), basescopes.RolePreloadApis())
+	oldRole, err := b.roleRepo.Get(ctx, basescopes.InIds(roleBO.Id), do.SysRolePreloadUsers(), do.SysRolePreloadApis())
 	if err != nil {
 		return nil, err
 	}

@@ -4,12 +4,10 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/server/prom/notify"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -86,14 +84,13 @@ func (s *ChatGroupService) GetChatGroup(ctx context.Context, req *pb.GetChatGrou
 
 func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGroupRequest) (*pb.ListChatGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	wheres := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-
-	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)
+	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, &bo.ListChatGroupReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		s.log.Errorf("ListChatGroup err: %v", err)
 		return nil, err
@@ -112,14 +109,13 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 
 func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectChatGroupRequest) (*pb.SelectChatGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	wheres := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-
-	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, pgInfo, wheres...)
+	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, &bo.ListChatGroupReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		s.log.Errorf("ListChatGroup err: %v", err)
 		return nil, err

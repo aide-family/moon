@@ -2,13 +2,110 @@ package do
 
 import (
 	"encoding/json"
+	"strings"
 
+	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/pkg/strategy"
 )
 
 const TableNamePromStrategy = "prom_strategies"
+
+const (
+	PromStrategyFieldGroupID                  = "group_id"
+	PromStrategyFieldAlert                    = "alert"
+	PromStrategyFieldExpr                     = "expr"
+	PromStrategyFieldFor                      = "for"
+	PromStrategyFieldLabels                   = "labels"
+	PromStrategyFieldAnnotations              = "annotations"
+	PromStrategyFieldAlertLevelID             = "alert_level_id"
+	PromStrategyFieldStatus                   = "status"
+	PromStrategyFieldRemark                   = "remark"
+	PromStrategyFieldMaxSuppress              = "max_suppress"
+	PromStrategyFieldSendRecover              = "send_recover"
+	PromStrategyFieldSendInterval             = "send_interval"
+	PromStrategyFieldEndpointID               = "endpoint_id"
+	PromStrategyFieldCreateBy                 = "create_by"
+	PromStrategyPreloadFieldAlarmPages        = "AlarmPages"
+	PromStrategyPreloadFieldCategories        = "Categories"
+	PromStrategyPreloadFieldAlertLevel        = "AlertLevel"
+	PromStrategyPreloadFieldGroupInfo         = "GroupInfo"
+	PromStrategyPreloadFieldPromNotifies      = "PromNotifies"
+	PromStrategyPreloadFieldPromNotifyUpgrade = "PromNotifyUpgrade"
+	PromStrategyPreloadFieldEndpoint          = "Endpoint"
+	PromStrategyPreloadFieldCreateByUser      = "CreateByUser"
+)
+
+// StrategyInGroupIds 策略组ID
+func StrategyInGroupIds(ids ...uint32) basescopes.ScopeMethod {
+	// 过滤0值
+	newIds := slices.Filter(ids, func(id uint32) bool { return id > 0 })
+	return basescopes.WhereInColumn(PromStrategyFieldGroupID, newIds...)
+}
+
+// StrategyAlertLike 策略名称匹配
+func StrategyAlertLike(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikePrefixKeyword(keyword, PromStrategyFieldAlert)
+}
+
+// StrategyPreloadEndpoint 预加载endpoint
+func StrategyPreloadEndpoint() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldEndpoint)
+	}
+}
+
+// StrategyPreloadAlarmPages 预加载alarm_pages
+func StrategyPreloadAlarmPages() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldAlarmPages)
+	}
+}
+
+// StrategyPreloadCategories 预加载categories
+func StrategyPreloadCategories() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldCategories)
+	}
+}
+
+// StrategyPreloadAlertLevel 预加载alert_level
+func StrategyPreloadAlertLevel() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldAlertLevel)
+	}
+}
+
+// StrategyPreloadPromNotifies 预加载prom_notifies
+func StrategyPreloadPromNotifies(preloadKeys ...string) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(preloadKeys) == 0 {
+			return db.Preload(PromStrategyPreloadFieldPromNotifies)
+		}
+		tx := db
+		for _, key := range preloadKeys {
+			tx = tx.Preload(strings.Join([]string{PromStrategyPreloadFieldPromNotifies, key}, "."))
+		}
+		return tx
+	}
+}
+
+// StrategyPreloadPromNotifyUpgrade 预加载prom_notify_upgrade
+func StrategyPreloadPromNotifyUpgrade() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldPromNotifyUpgrade)
+	}
+}
+
+// StrategyPreloadGroupInfo 预加载group_info
+func StrategyPreloadGroupInfo() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldGroupInfo)
+	}
+}
 
 // PromStrategy mapped from table <prom_strategies>
 type PromStrategy struct {
@@ -24,8 +121,8 @@ type PromStrategy struct {
 	Remark       string                `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`
 
 	AlarmPages []*PromAlarmPage   `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"-"`
-	Categories []*PromDict        `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"-"`
-	AlertLevel *PromDict          `gorm:"foreignKey:AlertLevelID" json:"-"`
+	Categories []*SysDict         `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"-"`
+	AlertLevel *SysDict           `gorm:"foreignKey:AlertLevelID" json:"-"`
 	GroupInfo  *PromStrategyGroup `gorm:"foreignKey:GroupID" json:"-"`
 
 	// 通知对象
@@ -44,7 +141,8 @@ type PromStrategy struct {
 	Endpoint   *Endpoint `gorm:"foreignKey:EndpointID" json:"-"`
 
 	// 创建人ID
-	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
+	CreateBy     uint32   `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
+	CreateByUser *SysUser `gorm:"foreignKey:CreateBy" json:"-"`
 }
 
 // TableName PromStrategy's table name
@@ -53,7 +151,7 @@ func (*PromStrategy) TableName() string {
 }
 
 // GetAlertLevel 获取告警等级
-func (p *PromStrategy) GetAlertLevel() *PromDict {
+func (p *PromStrategy) GetAlertLevel() *SysDict {
 	if p == nil {
 		return nil
 	}
@@ -85,7 +183,7 @@ func (p *PromStrategy) GetAnnotations() *strategy.Annotations {
 }
 
 // GetCategories 获取分类
-func (p *PromStrategy) GetCategories() []*PromDict {
+func (p *PromStrategy) GetCategories() []*SysDict {
 	if p == nil {
 		return nil
 	}

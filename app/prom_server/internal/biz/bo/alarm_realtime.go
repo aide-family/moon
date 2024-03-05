@@ -14,6 +14,12 @@ var _ encoding.BinaryMarshaler = (*AlarmRealtimeBO)(nil)
 var _ encoding.BinaryUnmarshaler = (*AlarmRealtimeBO)(nil)
 
 type (
+	ListRealtimeReq struct {
+		Page        Pagination     `json:"page"`
+		Keyword     string         `json:"keyword"`
+		Status      vo.AlarmStatus `json:"status"`
+		AlarmPageId uint32         `json:"alarm_page_id"`
+	}
 	AlarmRealtimeBO struct {
 		ID                   uint32                            `json:"id"`
 		Instance             string                            `json:"instance"`

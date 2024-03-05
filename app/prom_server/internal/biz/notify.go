@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api/perrors"
@@ -107,8 +108,8 @@ func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
 func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO, error) {
 	wheres := []basescopes.ScopeMethod{
 		basescopes.InIds(id),
-		basescopes.NotifyPreloadChatGroups(),
-		basescopes.NotifyPreloadBeNotifyMembers(),
+		do.PromAlarmNotifyPreloadChatGroups(),
+		do.PromAlarmNotifyPreloadBeNotifyMembers(),
 	}
 	notifyBo, err := b.notifyRepo.Get(ctx, wheres...)
 	if err != nil {
@@ -122,8 +123,14 @@ func (b *NotifyBiz) GetNotifyById(ctx context.Context, id uint32) (*bo.NotifyBO,
 }
 
 // ListNotify 获取通知对象列表
-func (b *NotifyBiz) ListNotify(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
-	notifyBos, err := b.notifyRepo.List(ctx, pgInfo, scopes...)
+func (b *NotifyBiz) ListNotify(ctx context.Context, req *bo.ListNotifyRequest) ([]*bo.NotifyBO, error) {
+	wheres := []basescopes.ScopeMethod{
+		basescopes.NameLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+	}
+	notifyBos, err := b.notifyRepo.List(ctx, req.Page, wheres...)
 	if err != nil {
 		return nil, err
 	}

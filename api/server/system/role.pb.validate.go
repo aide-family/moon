@@ -1358,6 +1358,17 @@ func (m *SelectRoleRequest) validate(all bool) error {
 
 	// no validation rules for UserId
 
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := SelectRoleRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return SelectRoleRequestMultiError(errors)
 	}

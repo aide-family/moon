@@ -6,6 +6,13 @@ import (
 
 const TableNameEndpoint = "endpoints"
 
+const (
+	EndpointFieldName     = "name"
+	EndpointFieldEndpoint = "endpoint"
+	EndpointFieldStatus   = "status"
+	EndpointFieldRemark   = "remark"
+)
+
 type Endpoint struct {
 	BaseModel
 	Name     string    `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__ep__name,priority:1;comment:名称"`

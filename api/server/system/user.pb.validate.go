@@ -1529,6 +1529,17 @@ func (m *SelectUserRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := SelectUserRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return SelectUserRequestMultiError(errors)
 	}

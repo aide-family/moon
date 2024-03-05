@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/strategy"
 
@@ -103,15 +104,14 @@ func (s *GroupService) GetGroup(ctx context.Context, req *pb.GetGroupRequest) (*
 
 func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) (*pb.ListGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-		basescopes.StrategyTablePreloadCategories,
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-	}
-	list, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	list, err := s.strategyGroupBiz.List(ctx, &bo.ListGroupReq{
+		Page:              pgInfo,
+		Keyword:           req.GetKeyword(),
+		Status:            vo.Status(req.GetStatus()),
+		PreloadCategories: true,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -132,12 +132,12 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGr
 	wheres := []basescopes.ScopeMethod{
 		basescopes.StatusEQ(vo.StatusEnabled),
 		func(db *gorm.DB) *gorm.DB {
-			return db.Preload(basescopes.PromStrategyGroupReplacePromStrategies, basescopes.StatusEQ(vo.StatusEnabled))
+			return db.Preload(do.PromGroupPreloadFieldPromStrategies, basescopes.StatusEQ(vo.StatusEnabled))
 		},
 		func(db *gorm.DB) *gorm.DB {
 			return db.Preload(strings.Join([]string{
-				basescopes.PromStrategyGroupReplacePromStrategies,
-				basescopes.PreloadKeyEndpoint}, "."), basescopes.StatusEQ(vo.StatusEnabled))
+				do.PromGroupPreloadFieldPromStrategies,
+				do.PromStrategyPreloadFieldEndpoint}, "."), basescopes.StatusEQ(vo.StatusEnabled))
 		},
 	}
 
@@ -182,13 +182,13 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGr
 
 func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupRequest) (*pb.SelectGroupReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.UpdateAtDesc(),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	selectList, err := s.strategyGroupBiz.List(ctx, pgInfo, scopes...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	selectList, err := s.strategyGroupBiz.List(ctx, &bo.ListGroupReq{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -5,12 +5,73 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 	"prometheus-manager/pkg/util/password"
 )
 
 const TableNameSystemUser = "sys_users"
+
+const (
+	SysUserFieldUsername          = "username"
+	SysUserFieldNickname          = "nickname"
+	SysUserFieldPhone             = "phone"
+	SysUserFieldEmail             = "email"
+	SysUserFieldGender            = "gender"
+	SysUserFieldStatus            = "status"
+	SysUserFieldRemark            = "remark"
+	SysUserFieldAvatar            = "avatar"
+	SysUserPreloadFieldRoles      = "Roles"
+	SysUserPreloadFieldAlarmPages = "AlarmPages"
+)
+
+// SysUserLike 模糊查询
+func SysUserLike(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikePrefixKeyword(
+		keyword,
+		SysUserFieldUsername,
+		SysUserFieldEmail,
+		SysUserFieldPhone,
+		SysUserFieldNickname,
+		SysUserFieldRemark,
+	)
+}
+
+// SysUserUserEqName 等于name
+func SysUserUserEqName(name string) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(SysUserFieldUsername, name)
+}
+
+// SysUserEqEmail 等于email
+func SysUserEqEmail(email string) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(SysUserFieldEmail, email)
+}
+
+// SysUserEqPhone 等于phone
+func SysUserEqPhone(phone string) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(SysUserFieldPhone, phone)
+}
+
+// SysUserPreloadRoles 预加载角色
+func SysUserPreloadRoles(roleIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(roleIds) > 0 {
+			return db.Preload(SysUserPreloadFieldRoles, basescopes.WhereInColumn(basescopes.BaseFieldID, roleIds...))
+		}
+		return db.Preload(SysUserPreloadFieldRoles)
+	}
+}
+
+// SysUserPreloadAlarmPages 预加载报警页面
+func SysUserPreloadAlarmPages(alarmPageIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(alarmPageIds) > 0 {
+			return db.Preload(SysUserPreloadFieldAlarmPages, basescopes.WhereInColumn(basescopes.BaseFieldID, alarmPageIds...))
+		}
+		return db.Preload(SysUserPreloadFieldAlarmPages)
+	}
+}
 
 // SysUser 用户表
 type SysUser struct {

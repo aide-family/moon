@@ -1,10 +1,42 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromNotify = "prom_alarm_notifies"
+
+const (
+	PromAlarmNotifyFiledName                      = "name"
+	PromAlarmNotifyFiledStatus                    = "status"
+	PromAlarmNotifyFiledRemark                    = "remark"
+	PromAlarmNotifyFiledCreateBy                  = "create_by"
+	PromAlarmNotifyPreloadFieldChatGroups         = "ChatGroups"
+	PromAlarmNotifyPreloadFieldBeNotifyMembers    = "BeNotifyMembers"
+	PromAlarmNotifyPreloadFieldExternalNotifyObjs = "ExternalNotifyObjs"
+)
+
+// PromAlarmNotifyPreloadChatGroups 预加载通知组
+func PromAlarmNotifyPreloadChatGroups(chatGroupIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(chatGroupIds) > 0 {
+			return db.Preload(PromAlarmNotifyPreloadFieldChatGroups, basescopes.WhereInColumn(basescopes.BaseFieldID, chatGroupIds...))
+		}
+		return db.Preload(PromAlarmNotifyPreloadFieldChatGroups)
+	}
+}
+
+// PromAlarmNotifyPreloadBeNotifyMembers 预加载被通知成员
+func PromAlarmNotifyPreloadBeNotifyMembers(beNotifyMemberIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(beNotifyMemberIds) > 0 {
+			return db.Preload(PromAlarmNotifyPreloadFieldBeNotifyMembers, basescopes.WhereInColumn(basescopes.BaseFieldID, beNotifyMemberIds...))
+		}
+		return db.Preload(PromAlarmNotifyPreloadFieldBeNotifyMembers)
+	}
+}
 
 // PromAlarmNotify 告警通知对象
 type PromAlarmNotify struct {

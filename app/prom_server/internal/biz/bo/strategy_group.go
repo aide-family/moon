@@ -10,6 +10,12 @@ import (
 )
 
 type (
+	ListGroupReq struct {
+		Page              Pagination `json:"page"`
+		Keyword           string     `json:"keyword"`
+		Status            vo.Status  `json:"status"`
+		PreloadCategories bool       `json:"preloadCategories"`
+	}
 	RemoveStrategyGroupBO struct {
 		Id uint32 `json:"id"`
 	}
@@ -137,7 +143,7 @@ func (b *StrategyGroupBO) ToModel() *do.PromStrategyGroup {
 		PromStrategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *do.PromStrategy {
 			return u.ToModel()
 		}),
-		Categories: slices.To(b.GetCategories(), func(u *DictBO) *do.PromDict {
+		Categories: slices.To(b.GetCategories(), func(u *DictBO) *do.SysDict {
 			return u.ToModel()
 		}),
 	}
@@ -156,10 +162,10 @@ func StrategyGroupModelToBO(m *do.PromStrategyGroup) *StrategyGroupBO {
 		Status:              m.Status,
 		StrategyCount:       m.StrategyCount,
 		EnableStrategyCount: m.EnableStrategyCount,
-		CategoryIds: slices.To(m.GetCategories(), func(u *do.PromDict) uint32 {
+		CategoryIds: slices.To(m.GetCategories(), func(u *do.SysDict) uint32 {
 			return u.ID
 		}),
-		Categories: slices.To(m.GetCategories(), func(u *do.PromDict) *DictBO {
+		Categories: slices.To(m.GetCategories(), func(u *do.SysDict) *DictBO {
 			return DictModelToBO(u)
 		}),
 		CreatedAt: m.CreatedAt.Unix(),

@@ -21,7 +21,7 @@ type (
 		// Find 查询图表
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error)
 		// List 获取图表列表
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error)
 		// Delete 删除图表
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
 		// Update 更新图表
@@ -45,7 +45,7 @@ func (UnimplementedChartRepo) Find(_ context.Context, _ ...basescopes.ScopeMetho
 	return nil, status.Error(codes.Unimplemented, "method Find not implemented")
 }
 
-func (UnimplementedChartRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
+func (UnimplementedChartRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.MyChartBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
 }
 

@@ -1,10 +1,40 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNameRole = "sys_roles"
+
+const (
+	SysRoleFieldRemark      = "remark"
+	SysRoleFieldName        = "name"
+	SysRoleFieldStatus      = "status"
+	SysRolePreloadFieldUser = "Users"
+	SysRolePreloadFieldApis = "Apis"
+)
+
+// SysRolePreloadUsers 预加载用户
+func SysRolePreloadUsers(userIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(userIds) > 0 {
+			return db.Preload(SysRolePreloadFieldUser, basescopes.WhereInColumn(basescopes.BaseFieldID, userIds...))
+		}
+		return db.Preload(SysRolePreloadFieldUser)
+	}
+}
+
+// SysRolePreloadApis 预加载api
+func SysRolePreloadApis(apiIds ...uint32) basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(apiIds) > 0 {
+			return db.Preload(SysRolePreloadFieldApis, basescopes.WhereInColumn(basescopes.BaseFieldID, apiIds...))
+		}
+		return db.Preload(SysRolePreloadFieldApis)
+	}
+}
 
 // SysRole 角色表
 type SysRole struct {

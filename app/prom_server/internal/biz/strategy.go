@@ -7,9 +7,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
-
-	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
@@ -133,13 +132,13 @@ func (b *StrategyBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) er
 // GetStrategyById 获取策略详情
 func (b *StrategyBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
 	wheres := []basescopes.ScopeMethod{
-		basescopes.StrategyTablePreloadEndpoint,
-		basescopes.StrategyTablePreloadAlarmPages,
-		basescopes.StrategyTablePreloadCategories,
-		basescopes.StrategyTablePreloadAlertLevel,
-		basescopes.StrategyTablePreloadPromNotifies(),
-		basescopes.StrategyTablePreloadPromNotifyUpgrade,
-		basescopes.StrategyTablePreloadGroupInfo,
+		do.StrategyPreloadEndpoint(),
+		do.StrategyPreloadAlarmPages(),
+		do.StrategyPreloadCategories(),
+		do.StrategyPreloadAlertLevel(),
+		do.StrategyPreloadPromNotifies(),
+		do.StrategyPreloadPromNotifyUpgrade(),
+		do.StrategyPreloadGroupInfo(),
 	}
 	strategyBO, err := b.strategyRepo.GetStrategyById(ctx, id, wheres...)
 	if err != nil {
@@ -150,48 +149,44 @@ func (b *StrategyBiz) GetStrategyById(ctx context.Context, id uint32) (*bo.Strat
 }
 
 // ListStrategy 获取策略列表
-func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
-	pgInfo := basescopes.NewPage(req.Curr, req.Size)
-
+func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyRequest) ([]*bo.StrategyBO, error) {
 	scopes := []basescopes.ScopeMethod{
-		basescopes.StrategyTableAlertLike(req.Keyword),
-		basescopes.StrategyTableGroupIdsEQ(req.GroupId),
+		do.StrategyAlertLike(req.Keyword),
+		do.StrategyInGroupIds(req.GroupId),
 		basescopes.StatusEQ(req.Status),
-		basescopes.StrategyTablePreloadAlertLevel,
-		basescopes.StrategyTablePreloadCategories,
-		basescopes.StrategyTablePreloadEndpoint,
-		basescopes.StrategyTablePreloadGroupInfo,
-		basescopes.StrategyTablePreloadAlarmPages,
+		do.StrategyPreloadAlertLevel(),
+		do.StrategyPreloadCategories(),
+		do.StrategyPreloadEndpoint(),
+		do.StrategyPreloadGroupInfo(),
+		do.StrategyPreloadAlarmPages(),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 		basescopes.InIds(req.StrategyId),
 	}
 
-	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
+	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, req.Page, scopes...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return strategyBOs, pgInfo, nil
+	return strategyBOs, nil
 }
 
 // SelectStrategy 查询策略
-func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *bo.SelectStrategyRequest) ([]*bo.StrategyBO, basescopes.Pagination, error) {
-	pgInfo := basescopes.NewPage(req.Curr, req.Size)
-
+func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *bo.SelectStrategyRequest) ([]*bo.StrategyBO, error) {
 	scopes := []basescopes.ScopeMethod{
-		basescopes.StrategyTableAlertLike(req.Keyword),
-		basescopes.StatusEQ(vo.Status(api.Status_STATUS_ENABLED)),
+		do.StrategyAlertLike(req.Keyword),
+		basescopes.StatusEQ(vo.StatusEnabled),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}
 
-	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, pgInfo, scopes...)
+	strategyBOs, err := b.strategyRepo.ListStrategy(ctx, req.Page, scopes...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return strategyBOs, pgInfo, nil
+	return strategyBOs, nil
 }
 
 // ExportStrategy 导出策略
@@ -217,9 +212,9 @@ func (b *StrategyBiz) ExportStrategy(ctx context.Context, req *bo.ExportStrategy
 // GetStrategyWithNotifyObjectById 获取策略详情（包含通知对象）
 func (b *StrategyBiz) GetStrategyWithNotifyObjectById(ctx context.Context, id uint32) (*bo.StrategyBO, error) {
 	wheres := []basescopes.ScopeMethod{
-		basescopes.StrategyTablePreloadPromNotifies(
-			basescopes.NotifyTablePreloadKeyChatGroups,
-			basescopes.NotifyTablePreloadKeyBeNotifyMembers,
+		do.StrategyPreloadPromNotifies(
+			do.PromAlarmNotifyPreloadFieldChatGroups,
+			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
 		),
 	}
 	return b.strategyRepo.GetStrategyById(ctx, id, wheres...)

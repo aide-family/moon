@@ -6,6 +6,17 @@ import (
 
 const TableNameExternalCustomer = "external_customers"
 
+const (
+	ExternalCustomerFieldName         = "name"
+	ExternalCustomerFieldAddress      = "address"
+	ExternalCustomerFieldContact      = "contact"
+	ExternalCustomerFieldPhone        = "phone"
+	ExternalCustomerFieldEmail        = "email"
+	ExternalCustomerFieldRemark       = "remark"
+	ExternalCustomerFieldStatus       = "status"
+	ExternalCustomerPreloadFieldHooks = "Hooks"
+)
+
 type ExternalCustomer struct {
 	BaseModel
 	// 外部客户名称

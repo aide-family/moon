@@ -1,10 +1,27 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNameMyDashboardConfig = "my_dashboard_configs"
+
+const (
+	MyDashboardConfigFieldTitle         = "title"
+	MyDashboardConfigFieldRemark        = "remark"
+	MyDashboardConfigFieldColor         = "color"
+	MyDashboardConfigFieldUserId        = "user_id"
+	MyDashboardConfigFieldStatus        = "status"
+	MyDashboardConfigPreloadFieldCharts = "Charts"
+)
+
+func MyDashboardConfigPreloadCharts() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(MyDashboardConfigPreloadFieldCharts)
+	}
+}
 
 // MyDashboardConfig 我的仪表盘配置
 type MyDashboardConfig struct {

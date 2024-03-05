@@ -94,10 +94,10 @@ func (s *EndpointService) GetEndpoint(ctx context.Context, req *pb.GetEndpointRe
 // ListEndpoint 查询
 func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpointRequest) (*pb.ListEndpointReply, error) {
 	pgReq := req.GetPage()
-	listEndpoint, pageInfo, err := s.endpointBiz.ListEndpoint(ctx, &biz.ListEndpointParams{
+	pageInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	listEndpoint, err := s.endpointBiz.ListEndpoint(ctx, &bo.ListEndpointReq{
+		Page:    pageInfo,
 		Keyword: req.GetKeyword(),
-		Curr:    pgReq.GetCurr(),
-		Size:    pgReq.GetSize(),
 		Status:  vo.Status(req.GetStatus()),
 	})
 	if err != nil {
@@ -120,10 +120,10 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 // SelectEndpoint 查询
 func (s *EndpointService) SelectEndpoint(ctx context.Context, req *pb.SelectEndpointRequest) (*pb.SelectEndpointReply, error) {
 	pgReq := req.GetPage()
-	listEndpoint, pageInfo, err := s.endpointBiz.ListEndpoint(ctx, &biz.ListEndpointParams{
+	pageInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	listEndpoint, err := s.endpointBiz.ListEndpoint(ctx, &bo.ListEndpointReq{
+		Page:    pageInfo,
 		Keyword: req.GetKeyword(),
-		Curr:    pgReq.GetCurr(),
-		Size:    pgReq.GetSize(),
 		Status:  vo.Status(req.GetStatus()),
 	})
 	if err != nil {

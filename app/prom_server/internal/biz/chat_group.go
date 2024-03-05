@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
-
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type (
@@ -54,8 +53,14 @@ func (b *ChatGroupBiz) GetChatGroupById(ctx context.Context, id uint32) (*bo.Cha
 }
 
 // ListChatGroup 获取通知群机器人hook列表
-func (b *ChatGroupBiz) ListChatGroup(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
-	return b.chatGroupRepo.List(ctx, pgInfo, scopes...)
+func (b *ChatGroupBiz) ListChatGroup(ctx context.Context, req *bo.ListChatGroupReq) ([]*bo.ChatGroupBO, error) {
+	wheres := []basescopes.ScopeMethod{
+		basescopes.NameLike(req.Keyword),
+		basescopes.StatusEQ(req.Status),
+		basescopes.CreatedAtDesc(),
+		basescopes.UpdateAtDesc(),
+	}
+	return b.chatGroupRepo.List(ctx, req.Page, wheres...)
 }
 
 // UpdateChatGroupById 更新通知群机器人hook

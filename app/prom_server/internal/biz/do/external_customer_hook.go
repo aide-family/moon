@@ -6,6 +6,16 @@ import (
 
 const TableNameExternalCustomerHook = "external_customer_hooks"
 
+const (
+	ExternalCustomerHookFieldHook            = "hook"
+	ExternalCustomerHookFieldHookName        = "hook_name"
+	ExternalCustomerHookFieldStatus          = "status"
+	ExternalCustomerHookFieldNotifyApp       = "notify_app"
+	ExternalCustomerHookFieldRemark          = "remark"
+	ExternalCustomerHookFieldCustomerId      = "customer_id"
+	ExternalCustomerHookPreloadFieldCustomer = "Customer"
+)
+
 type ExternalCustomerHook struct {
 	BaseModel
 	Hook      string       `gorm:"column:hook;type:varchar(255);not null;comment:钩子地址"`

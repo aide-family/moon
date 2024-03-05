@@ -68,11 +68,11 @@ func (l *roleRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMet
 
 	return l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 清除关联关系
-		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(basescopes.RoleAssociationReplaceApis).Clear(); err != nil {
+		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(do.SysRolePreloadFieldApis).Clear(); err != nil {
 			return err
 		}
 
-		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(basescopes.RoleAssociationReplaceUsers).Clear(); err != nil {
+		if err := tx.Model(&do.SysRole{}).Scopes(scopes...).Association(do.SysRolePreloadFieldUser).Clear(); err != nil {
 			return err
 		}
 
@@ -106,9 +106,9 @@ func (l *roleRepoImpl) Find(ctx context.Context, scopes ...basescopes.ScopeMetho
 	return list, nil
 }
 
-func (l *roleRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
+func (l *roleRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.RoleBO, error) {
 	var roleList []*do.SysRole
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&roleList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&roleList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
@@ -139,7 +139,7 @@ func (l *roleRepoImpl) RelateApi(ctx context.Context, roleId uint32, apiList []*
 		return api.ToModel()
 	})
 
-	if err := l.data.DB().WithContext(ctx).Model(&roleDetail).Association(basescopes.RoleAssociationReplaceApis).Replace(&apiModelList); err != nil {
+	if err := l.data.DB().WithContext(ctx).Model(&roleDetail).Association(do.SysRolePreloadFieldApis).Replace(&apiModelList); err != nil {
 		return err
 	}
 

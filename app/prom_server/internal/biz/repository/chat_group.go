@@ -20,7 +20,7 @@ type (
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error)
 		Update(ctx context.Context, chatGroup *bo.ChatGroupBO, scopes ...basescopes.ScopeMethod) error
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error)
 	}
 
 	UnimplementedChatGroupRepo struct{}
@@ -48,6 +48,6 @@ func (UnimplementedChatGroupRepo) Delete(_ context.Context, _ ...basescopes.Scop
 	return status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 
-func (UnimplementedChatGroupRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
+func (UnimplementedChatGroupRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.ChatGroupBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }

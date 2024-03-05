@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
-
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -48,7 +47,7 @@ func NewUserBiz(
 
 // GetUserInfoById 获取用户信息
 func (b *UserBiz) GetUserInfoById(ctx context.Context, id uint32) (*bo.UserBO, error) {
-	userBo, err := b.userRepo.Get(ctx, basescopes.InIds(id), basescopes.UserPreloadRoles())
+	userBo, err := b.userRepo.Get(ctx, basescopes.InIds(id), do.SysUserPreloadRoles())
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +61,9 @@ func (b *UserBiz) CheckNewUser(ctx context.Context, userBo *bo.UserBO) error {
 	}
 
 	wheres := []basescopes.ScopeMethod{
-		basescopes.UserEqName(userBo.Username),
-		basescopes.UserEqEmail(userBo.Email),
-		basescopes.UserEqPhone(userBo.Phone),
+		do.SysUserUserEqName(userBo.Username),
+		do.SysUserEqEmail(userBo.Email),
+		do.SysUserEqPhone(userBo.Phone),
 	}
 	list, err := b.userRepo.Find(ctx, wheres...)
 	if err != nil {
@@ -194,8 +193,14 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 }
 
 // GetUserList 获取用户列表
-func (b *UserBiz) GetUserList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
-	userBos, err := b.userRepo.List(ctx, pgInfo, scopes...)
+func (b *UserBiz) GetUserList(ctx context.Context, params *bo.GetUserListReq) ([]*bo.UserBO, error) {
+	scopes := []basescopes.ScopeMethod{
+		basescopes.UpdateAtDesc(),
+		basescopes.CreatedAtDesc(),
+		basescopes.StatusEQ(params.Status),
+		do.SysUserLike(params.Keyword),
+	}
+	userBos, err := b.userRepo.List(ctx, params.Page, scopes...)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +209,7 @@ func (b *UserBiz) GetUserList(ctx context.Context, pgInfo basescopes.Pagination,
 
 // LoginByUsernameAndPassword 登录
 func (b *UserBiz) LoginByUsernameAndPassword(ctx context.Context, username, pwd string) (userBO *bo.UserBO, token string, err error) {
-	userBO, err = b.userRepo.Get(ctx, basescopes.UserEqName(username), basescopes.UserPreloadRoles())
+	userBO, err = b.userRepo.Get(ctx, do.SysUserUserEqName(username), do.SysUserPreloadRoles())
 	if err != nil {
 		return
 	}
@@ -271,7 +276,7 @@ func (b *UserBiz) RefreshToken(ctx context.Context, authClaims *middler.AuthClai
 		}
 	}()
 
-	userBO, err = b.userRepo.Get(context.Background(), basescopes.InIds(authClaims.ID), basescopes.UserPreloadRoles())
+	userBO, err = b.userRepo.Get(context.Background(), basescopes.InIds(authClaims.ID), do.SysUserPreloadRoles())
 	if err != nil {
 		err = perrors.ErrorUnknown("系统错误")
 		return

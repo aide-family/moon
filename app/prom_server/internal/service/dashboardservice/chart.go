@@ -82,7 +82,7 @@ func (s *ChartService) GetChart(ctx context.Context, req *dashboard.GetChartRequ
 
 func (s *ChartService) ListChart(ctx context.Context, req *dashboard.ListChartRequest) (*dashboard.ListChartReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
 		basescopes.StatusEQ(vo.Status(req.GetStatus())),
 		basescopes.TitleLike(req.GetKeyword()),

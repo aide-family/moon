@@ -28,7 +28,7 @@ func (l *userRepoImpl) RelateRoles(ctx context.Context, userBO *bo.UserBO, roleL
 	defer do.CacheUserRole(l.data.DB(), l.data.Cache(), userBO.Id)
 
 	return l.data.DB().WithContext(ctx).Model(userBO.ToModel()).
-		Association(basescopes.UserAssociationReplaceRoles).
+		Association(do.SysUserPreloadFieldRoles).
 		Replace(&roleModelList)
 
 }
@@ -60,9 +60,9 @@ func (l *userRepoImpl) Count(ctx context.Context, scopes ...basescopes.ScopeMeth
 	return count, nil
 }
 
-func (l *userRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
+func (l *userRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
 	var userList []*do.SysUser
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&userList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&userList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
@@ -97,7 +97,7 @@ func (l *userRepoImpl) Update(ctx context.Context, user *bo.UserBO, scopes ...ba
 
 func (l *userRepoImpl) Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error {
 	return l.data.DB().WithContext(ctx).
-		Select(basescopes.UserAssociationReplaceRoles).
+		Select(do.SysUserPreloadFieldRoles).
 		Scopes(scopes...).Delete(&do.SysUser{}).Error
 }
 

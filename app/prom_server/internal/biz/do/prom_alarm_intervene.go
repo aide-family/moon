@@ -2,6 +2,14 @@ package do
 
 const TableNamePromIntervene = "prom_alarm_intervenes"
 
+const (
+	PromAlarmInterveneFieldRealtimeAlarmID = "realtime_alarm_id"
+	PromAlarmInterveneFieldUserID          = "user_id"
+	PromAlarmInterveneFieldIntervenedAt    = "intervened_at"
+	PromAlarmInterveneFieldRemark          = "remark"
+	PromAlarmIntervenePreloadFieldUserInfo = "UserInfo"
+)
+
 // PromAlarmIntervene 告警介入信息
 type PromAlarmIntervene struct {
 	BaseModel

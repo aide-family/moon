@@ -1,10 +1,71 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromAlarmHistory = "prom_alarm_histories"
+
+const (
+	PromAlarmHistoryFieldInstance        = "instance"
+	PromAlarmHistoryFieldStatus          = "status"
+	PromAlarmHistoryFieldInfo            = "info"
+	PromAlarmHistoryFieldStartAt         = "start_at"
+	PromAlarmHistoryFieldEndAt           = "end_at"
+	PromAlarmHistoryFieldDuration        = "duration"
+	PromAlarmHistoryFieldStrategyID      = "strategy_id"
+	PromAlarmHistoryFieldLevelID         = "level_id"
+	PromAlarmHistoryFieldMd5             = "md5"
+	PromAlarmHistoryPreloadFieldStrategy = "Strategy"
+	PromAlarmHistoryPreloadFieldLevel    = "Level"
+)
+
+// PromAlarmHistoryLikeInstance 根据字典名称模糊查询
+func PromAlarmHistoryLikeInstance(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikePrefixKeyword(keyword, PromAlarmHistoryFieldInstance)
+}
+
+// PromAlarmHistoryTimeRange 根据时间范围查询
+func PromAlarmHistoryTimeRange(startTime, endTime int64) basescopes.ScopeMethod {
+	return basescopes.BetweenColumn(PromAlarmHistoryFieldStartAt, startTime, endTime)
+}
+
+// PromAlarmHistoryWhereInMd5 根据md5查询
+func PromAlarmHistoryWhereInMd5(md5s ...string) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmHistoryFieldMd5, md5s...)
+}
+
+// PromAlarmHistoryClausesOnConflict 当索引冲突, 直接更新
+func PromAlarmHistoryClausesOnConflict() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: PromAlarmHistoryFieldMd5}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				basescopes.BaseFieldStatus.String(),
+				PromAlarmHistoryFieldEndAt,
+				PromAlarmHistoryFieldDuration,
+				PromAlarmHistoryFieldInfo,
+			}),
+		})
+	}
+}
+
+// PromAlarmHistoryPreloadStrategy 预加载策略
+func PromAlarmHistoryPreloadStrategy() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromAlarmHistoryPreloadFieldStrategy)
+	}
+}
+
+// PromAlarmHistoryPreloadLevel 预加载等级
+func PromAlarmHistoryPreloadLevel() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromAlarmHistoryPreloadFieldLevel)
+	}
+}
 
 // PromAlarmHistory 报警历史数据
 type PromAlarmHistory struct {
@@ -20,7 +81,7 @@ type PromAlarmHistory struct {
 	Md5        string         `gorm:"column:md5;type:char(32);not null;unique:idx__md5,priority:1;comment:md5"`
 
 	Strategy *PromStrategy `gorm:"foreignKey:StrategyID"`
-	Level    *PromDict     `gorm:"foreignKey:LevelID"`
+	Level    *SysDict      `gorm:"foreignKey:LevelID"`
 }
 
 // TableName PromAlarmHistory's table name
@@ -37,7 +98,7 @@ func (p *PromAlarmHistory) GetStrategy() *PromStrategy {
 }
 
 // GetLevel 获取等级
-func (p *PromAlarmHistory) GetLevel() *PromDict {
+func (p *PromAlarmHistory) GetLevel() *SysDict {
 	if p == nil {
 		return nil
 	}

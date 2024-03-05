@@ -18,7 +18,7 @@ type (
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.UserBO, error)
 		Find(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error)
 		Count(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error)
-		List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error)
+		List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.UserBO, error)
 		Create(ctx context.Context, user *bo.UserBO) (*bo.UserBO, error)
 		Update(ctx context.Context, user *bo.UserBO, scopes ...basescopes.ScopeMethod) (*bo.UserBO, error)
 		Delete(ctx context.Context, scopes ...basescopes.ScopeMethod) error
@@ -46,7 +46,7 @@ func (UnimplementedUserRepo) Count(_ context.Context, _ ...basescopes.ScopeMetho
 	return 0, status.Errorf(codes.Unimplemented, "method Count not implemented")
 }
 
-func (UnimplementedUserRepo) List(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
+func (UnimplementedUserRepo) List(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.UserBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 

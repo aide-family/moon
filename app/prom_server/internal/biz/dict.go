@@ -4,14 +4,12 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	dictpb "prometheus-manager/api/server/system"
-	"prometheus-manager/pkg/util/slices"
-
-	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -68,14 +66,14 @@ func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO
 }
 
 // BatchUpdateDictStatus 批量更新字典状态
-func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status api.Status, ids []uint32) error {
+func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status vo.Status, ids []uint32) error {
 	// 查询
 	oldList, err := b.dictRepo.GetDictByIds(ctx, ids...)
 	if err != nil {
 		return err
 	}
 
-	if err := b.dictRepo.BatchUpdateDictStatusByIds(ctx, vo.Status(status), ids); err != nil {
+	if err := b.dictRepo.BatchUpdateDictStatusByIds(ctx, status, ids); err != nil {
 		return err
 	}
 
@@ -126,43 +124,19 @@ func (b *DictBiz) GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error
 }
 
 // ListDict 获取字典列表
-func (b *DictBiz) ListDict(ctx context.Context, req *dictpb.ListDictRequest) ([]*bo.DictBO, basescopes.Pagination, error) {
-	pageReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pageReq.GetCurr(), pageReq.GetSize())
-
+func (b *DictBiz) ListDict(ctx context.Context, req *bo.ListDictRequest) ([]*bo.DictBO, error) {
 	wheres := []basescopes.ScopeMethod{
-		basescopes.WhereCategory(vo.Category(req.GetCategory())),
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.WithTrashed(req.GetIsDeleted()),
+		do.SysDictWhereCategory(req.Category),
+		basescopes.NameLike(req.Keyword),
+		basescopes.WithTrashed(req.IsDeleted),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
+		basescopes.StatusEQ(req.Status),
 	}
 
-	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
+	dictList, err := b.dictRepo.ListDict(ctx, req.Page, wheres...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return dictList, pgInfo, nil
-}
-
-// SelectDict 获取字典列表
-func (b *DictBiz) SelectDict(ctx context.Context, req *dictpb.SelectDictRequest) ([]*bo.DictBO, basescopes.Pagination, error) {
-	pageReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pageReq.GetCurr(), pageReq.GetSize())
-
-	wheres := []basescopes.ScopeMethod{
-		basescopes.WhereCategory(vo.Category(req.GetCategory())),
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.WithTrashed(req.GetIsDeleted()),
-		basescopes.UpdateAtDesc(),
-		basescopes.CreatedAtDesc(),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-
-	dictList, err := b.dictRepo.ListDict(ctx, pgInfo, wheres...)
-	if err != nil {
-		return nil, nil, err
-	}
-	return dictList, pgInfo, nil
+	return dictList, nil
 }

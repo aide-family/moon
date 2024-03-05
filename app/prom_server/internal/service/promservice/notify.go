@@ -12,7 +12,6 @@ import (
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type NotifyService struct {
@@ -112,12 +111,13 @@ func (s *NotifyService) GetNotify(ctx context.Context, req *pb.GetNotifyRequest)
 
 func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyRequest) (*pb.ListNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	notifyBos, err := s.notifyBiz.ListNotify(ctx, &bo.ListNotifyRequest{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -137,12 +137,13 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 
 func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRequest) (*pb.SelectNotifyReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	wheres := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
-	notifyBos, err := s.notifyBiz.ListNotify(ctx, pgInfo, wheres...)
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
+
+	notifyBos, err := s.notifyBiz.ListNotify(ctx, &bo.ListNotifyRequest{
+		Page:    pgInfo,
+		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
+	})
 	if err != nil {
 		return nil, err
 	}

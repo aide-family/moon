@@ -12,7 +12,6 @@ import (
 
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 )
 
 type RoleService struct {
@@ -78,14 +77,13 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 
 func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.UpdateAtDesc(),
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
-	}
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
+	boList, err := s.roleBiz.ListRole(ctx, &bo.ListRoleReq{
+		Page:    pgInfo,
+		Status:  vo.Status(req.GetStatus()),
+		Keyword: req.GetKeyword(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +103,14 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 
 func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest) (*pb.SelectRoleReply, error) {
 	pgReq := req.GetPage()
-	pgInfo := basescopes.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	scopes := []basescopes.ScopeMethod{
-		basescopes.NameLike(req.GetKeyword()),
-		basescopes.UpdateAtDesc(),
-		basescopes.StatusEQ(vo.StatusEnabled),
-	}
+	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	boList, err := s.roleBiz.ListRole(ctx, pgInfo, scopes...)
+	boList, err := s.roleBiz.ListRole(ctx, &bo.ListRoleReq{
+		Page:    pgInfo,
+		Status:  vo.Status(req.GetStatus()),
+		Keyword: req.GetKeyword(),
+		UserId:  req.GetUserId(),
+	})
 	if err != nil {
 		return nil, err
 	}

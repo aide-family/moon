@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/util/slices"
-
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -123,25 +122,17 @@ func (b *EndpointBiz) DeleteEndpointById(ctx context.Context, ids ...uint32) err
 	return nil
 }
 
-type ListEndpointParams struct {
-	Keyword string
-	Curr    int32
-	Size    int32
-	Status  vo.Status
-}
-
 // ListEndpoint 查询
-func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *ListEndpointParams) ([]*bo.EndpointBO, basescopes.Pagination, error) {
-	pageInfo := basescopes.NewPage(params.Curr, params.Size)
+func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *bo.ListEndpointReq) ([]*bo.EndpointBO, error) {
 	wheres := []basescopes.ScopeMethod{
 		basescopes.NameLike(params.Keyword),
 		basescopes.StatusEQ(params.Status),
 		basescopes.UpdateAtDesc(),
 	}
 
-	list, err := b.endpointRepo.List(ctx, pageInfo, wheres...)
+	list, err := b.endpointRepo.List(ctx, params.Page, wheres...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return list, pageInfo, nil
+	return list, nil
 }

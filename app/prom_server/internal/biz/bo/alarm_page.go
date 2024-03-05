@@ -11,8 +11,7 @@ import (
 
 type (
 	ListAlarmPageRequest struct {
-		Curr    int32
-		Size    int32
+		Page    Pagination
 		Keyword string
 		Status  vo.Status
 	}

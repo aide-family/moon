@@ -60,10 +60,10 @@ func (l *notifyRepoImpl) Count(ctx context.Context, scopes ...basescopes.ScopeMe
 	return total, nil
 }
 
-func (l *notifyRepoImpl) List(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
+func (l *notifyRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.NotifyBO, error) {
 	var notifyList []*do.PromAlarmNotify
 	whereList := append(scopes, basescopes.WithCreateBy(ctx))
-	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, basescopes.Page(pgInfo))...).Find(&notifyList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(whereList, bo.Page(pgInfo))...).Find(&notifyList).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
@@ -88,10 +88,10 @@ func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.N
 		if err := tx.Model(newNotify).Create(newNotify).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(newNotify).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
+		if err := tx.Model(newNotify).Association(do.PromAlarmNotifyPreloadFieldChatGroups).Replace(chatGroupModels); err != nil {
 			return err
 		}
-		return tx.Model(newNotify).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers)
+		return tx.Model(newNotify).Association(do.PromAlarmNotifyPreloadFieldBeNotifyMembers).Replace(notifyMembers)
 	})
 	if err != nil {
 		return nil, err
@@ -113,11 +113,11 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 			l.log.Warnf("update notify error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyChatGroups).Replace(chatGroupModels); err != nil {
+		if err := tx.Model(newModel).Association(do.PromAlarmNotifyPreloadFieldChatGroups).Replace(chatGroupModels); err != nil {
 			l.log.Warnf("update notify chat group error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Association(basescopes.NotifyTablePreloadKeyBeNotifyMembers).Replace(notifyMembers); err != nil {
+		if err := tx.Model(newModel).Association(do.PromAlarmNotifyPreloadFieldBeNotifyMembers).Replace(notifyMembers); err != nil {
 			l.log.Warnf("update notify member error: %v", err)
 			return err
 		}

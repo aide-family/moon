@@ -28,7 +28,7 @@ type (
 		GetDictById(ctx context.Context, id uint32) (*bo.DictBO, error)
 		GetDictByIds(ctx context.Context, ids ...uint32) ([]*bo.DictBO, error)
 		// ListDict 获取字典列表
-		ListDict(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error)
+		ListDict(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.DictBO, error)
 	}
 
 	UnimplementedPromDictRepo struct{}
@@ -60,6 +60,6 @@ func (UnimplementedPromDictRepo) GetDictById(_ context.Context, _ uint32) (*bo.D
 	return nil, status.Errorf(codes.Unimplemented, "method GetDictById not implemented")
 }
 
-func (UnimplementedPromDictRepo) ListDict(_ context.Context, _ basescopes.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
+func (UnimplementedPromDictRepo) ListDict(_ context.Context, _ bo.Pagination, _ ...basescopes.ScopeMethod) ([]*bo.DictBO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDict not implemented")
 }

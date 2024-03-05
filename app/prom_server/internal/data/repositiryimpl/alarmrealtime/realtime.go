@@ -52,13 +52,13 @@ func (l *alarmRealtimeImpl) Create(ctx context.Context, req ...*bo.AlarmRealtime
 		historyIds = append(historyIds, item.HistoryID)
 		return item.ToModel()
 	})
-	if err := l.data.DB().WithContext(ctx).Clauses(basescopes.RealtimeAlarmClauseOnConflict()).CreateInBatches(newRealtimeModels, 50).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Clauses(do.PromAlarmRealtimeClauseOnConflict()).CreateInBatches(newRealtimeModels, 50).Error; err != nil {
 		return nil, err
 	}
 
 	var realtimeAlarmList []*do.PromAlarmRealtime
 	// 查询插入的新数据
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InHistoryIds(historyIds...)).Find(&realtimeAlarmList).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(do.PromAlarmRealtimeInHistoryIds(historyIds...)).Find(&realtimeAlarmList).Error; err != nil {
 		return nil, err
 	}
 
@@ -111,7 +111,7 @@ func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyMembers(ctx context.Context, re
 		return err
 	}
 
-	return l.data.DB().WithContext(ctx).Model(&first).Association(basescopes.RealtimeAssociationBeenNotifyMembers).Append(req.ToModel())
+	return l.data.DB().WithContext(ctx).Model(&first).Association(do.PromAlarmRealtimePreloadFieldBeenNotifyMembers).Append(req.ToModel())
 }
 
 func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyChatGroups(ctx context.Context, realtimeAlarmID uint32, req *bo.PromAlarmBeenNotifyChatGroupBO) error {
@@ -120,7 +120,7 @@ func (l *alarmRealtimeImpl) AppendAlarmBeenNotifyChatGroups(ctx context.Context,
 		return err
 	}
 
-	return l.data.DB().WithContext(ctx).Model(&first).Association(basescopes.RealtimeAssociationBeenChatGroups).Append(req.ToModel())
+	return l.data.DB().WithContext(ctx).Model(&first).Association(do.PromAlarmRealtimePreloadFieldBeenChatGroups).Append(req.ToModel())
 }
 
 func (l *alarmRealtimeImpl) GetRealtimeDetailById(ctx context.Context, id uint32, scopes ...basescopes.ScopeMethod) (*bo.AlarmRealtimeBO, error) {
@@ -132,9 +132,9 @@ func (l *alarmRealtimeImpl) GetRealtimeDetailById(ctx context.Context, id uint32
 	return bo.AlarmRealtimeModelToBO(&first), nil
 }
 
-func (l *alarmRealtimeImpl) GetRealtimeList(ctx context.Context, pgInfo basescopes.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
+func (l *alarmRealtimeImpl) GetRealtimeList(ctx context.Context, pgInfo bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.AlarmRealtimeBO, error) {
 	var list []*do.PromAlarmRealtime
-	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, basescopes.Page(pgInfo))...).Find(&list).Error; err != nil {
+	if err := l.data.DB().WithContext(ctx).Scopes(append(scopes, bo.Page(pgInfo))...).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	if pgInfo != nil {
@@ -156,7 +156,7 @@ func (l *alarmRealtimeImpl) AlarmIntervene(ctx context.Context, realtimeAlarmID 
 		return err
 	}
 	newAlarmIntervene := req.ToModel()
-	return l.data.DB().WithContext(ctx).Model(&first).Association(basescopes.RealtimeAssociationReplaceIntervenes).Append(newAlarmIntervene)
+	return l.data.DB().WithContext(ctx).Model(&first).Association(do.PromAlarmRealtimePreloadFieldIntervenes).Append(newAlarmIntervene)
 }
 
 func (l *alarmRealtimeImpl) AlarmUpgrade(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmUpgradeBO) error {
@@ -165,7 +165,7 @@ func (l *alarmRealtimeImpl) AlarmUpgrade(ctx context.Context, realtimeAlarmID ui
 		return err
 	}
 	newAlarmUpgrade := req.ToModel()
-	return l.data.DB().WithContext(ctx).Model(&first).Association(basescopes.RealtimeAssociationUpgradeInfo).Append(newAlarmUpgrade)
+	return l.data.DB().WithContext(ctx).Model(&first).Association(do.PromAlarmRealtimePreloadFieldAlarmUpgradeInfo).Append(newAlarmUpgrade)
 }
 
 func (l *alarmRealtimeImpl) AlarmSuppress(ctx context.Context, realtimeAlarmID uint32, req *bo.AlarmSuppressBO) error {
@@ -174,7 +174,7 @@ func (l *alarmRealtimeImpl) AlarmSuppress(ctx context.Context, realtimeAlarmID u
 		return err
 	}
 	newAlarmSuppress := req.ToModel()
-	return l.data.DB().WithContext(ctx).Model(&first).Association(basescopes.RealtimeAssociationSuppressInfo).Append(newAlarmSuppress)
+	return l.data.DB().WithContext(ctx).Model(&first).Association(do.PromAlarmRealtimePreloadFieldAlarmSuppressInfo).Append(newAlarmSuppress)
 }
 
 func (l *alarmRealtimeImpl) GetRealtimeCount(ctx context.Context, scopes ...basescopes.ScopeMethod) (int64, error) {

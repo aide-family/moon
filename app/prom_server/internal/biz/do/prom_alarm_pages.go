@@ -1,11 +1,20 @@
 package do
 
 import (
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 const TableNamePromAlarmPage = "prom_alarm_pages"
-const TableNamePromStrategyAlarmPage = "prom_strategy_alarm_pages"
+
+const (
+	PromAlarmPageFieldName                 = "name"
+	PromAlarmPageFieldStatus               = "status"
+	PromAlarmPageFieldIcon                 = "icon"
+	PromAlarmPageFieldColor                = "color"
+	PromAlarmPageFieldRemark               = "remark"
+	PromAlarmPageReloadFieldPromStrategies = "PromStrategies"
+)
 
 // PromAlarmPage 报警页面
 type PromAlarmPage struct {
@@ -21,6 +30,23 @@ type PromAlarmPage struct {
 // TableName PromAlarmPage's table name
 func (PromAlarmPage) TableName() string {
 	return TableNamePromAlarmPage
+}
+
+const TableNamePromStrategyAlarmPage = "prom_strategy_alarm_pages"
+
+const (
+	PromStrategyAlarmPageFieldPromStrategyID = "prom_strategy_id"
+	PromStrategyAlarmPageFieldAlarmPageID    = "alarm_page_id"
+)
+
+// StrategyInAlarmPageIds in alarm_page_ids
+func StrategyInAlarmPageIds(ids ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromStrategyAlarmPageFieldAlarmPageID, ids...)
+}
+
+// StrategyInStrategyIds in prom_strategy_id
+func StrategyInStrategyIds(ids ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromStrategyAlarmPageFieldPromStrategyID, ids...)
 }
 
 // PromStrategyAlarmPage 报警策略与报警页面关联表
