@@ -214,7 +214,7 @@ message ApiSelectV1 {
 // API权限树节点
 message ApiTree {
   // 所属领域
-  DomainType domain = 1;
+  int32 domain = 1;
   // 所属模块
   repeated Module module = 2;
   // 领域名称
@@ -225,7 +225,7 @@ message ApiTree {
 // API模块
 message Module {
   // 所属模块
-  ModuleType module = 1;
+  int32 module = 1;
   // 接口列表
   repeated ApiSelectV1 apis = 2;
   // 模块名称
