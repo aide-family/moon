@@ -19,6 +19,7 @@ func Recover(logHelper *log.Helper, calls ...RecoverCallback) {
 
 func RecoverX(calls ...RecoverCallback) {
 	if err := recover(); err != nil {
+		log.Errorw("type", "panic", "err", err)
 		for _, call := range calls {
 			call(err.(error))
 		}
