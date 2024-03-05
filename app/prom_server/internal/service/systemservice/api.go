@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/system"
+	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"

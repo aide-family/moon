@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: system/syslog.proto
+// source: server/system/syslog.proto
 
 package system
 
@@ -107,5 +107,5 @@ var Syslog_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "system/syslog.proto",
+	Metadata: "server/system/syslog.proto",
 }

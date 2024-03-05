@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 
 	"prometheus-manager/api"
-	pb "prometheus-manager/api/system"
+	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/password"
 	"prometheus-manager/pkg/util/slices"
