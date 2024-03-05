@@ -176,14 +176,14 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 
 	for domain, moduleMap := range domainMap {
 		domainDetail := &api.ApiTree{
-			Domain:       api.DomainType(domain),
+			Domain:       domain.Value(),
 			Module:       make([]*api.Module, 0),
 			DomainName:   domain.String(),
 			DomainRemark: domain.Remark(),
 		}
 		for module, apiItemList := range moduleMap {
 			moduleDetail := &api.Module{
-				Module: api.ModuleType(module),
+				Module: module.Value(),
 				Apis:   make([]*api.ApiSelectV1, 0),
 				Name:   module.String(),
 				Remark: module.Remark(),
