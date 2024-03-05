@@ -200,6 +200,7 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
 
     useEffect(() => {
         if (!open) return
+        setAutoExpandParent(true)
         fetchRoleDetail()
         fetchAuthTree()
     }, [open, roleId])
