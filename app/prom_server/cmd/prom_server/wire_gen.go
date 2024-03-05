@@ -34,7 +34,6 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
 	"prometheus-manager/app/prom_server/internal/service/authservice"
 	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
-	"prometheus-manager/app/prom_server/internal/service/dictservice"
 	"prometheus-manager/app/prom_server/internal/service/interflowservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
@@ -69,7 +68,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	promDictRepo := promdict.NewPromDictRepo(dataData, logger)
 	sysLogRepo := syslog.NewSysLogRepo(dataData, logger)
 	dictBiz := biz.NewDictBiz(promDictRepo, sysLogRepo, logger)
-	dictserviceService := dictservice.NewDictService(dictBiz, logger)
+	systemserviceService := systemservice.NewDictService(dictBiz, logger)
 	v := data.GetWriteChangeGroupChannel()
 	v2 := data.GetWriteRemoveGroupChannel()
 	strategyGroupRepo := strategygroup.NewStrategyGroupRepo(dataData, v, v2, logger)
@@ -119,9 +118,9 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	dashboardService := dashboardservice.NewDashboardService(dashboardBiz, logger)
 	sysLogBiz := biz.NewSysLogBiz(sysLogRepo, logger)
 	syslogService := systemservice.NewSyslogService(sysLogBiz, logger)
-	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService)
+	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, systemserviceService, strategyService, groupService, alarmPageService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
-	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, dictserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService, syslogService)
+	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, systemserviceService, strategyService, groupService, alarmPageService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService, syslogService)
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
 	alarmEvent, err := server.NewAlarmEvent(dataData, v3, v4, hookService, groupService, logger)

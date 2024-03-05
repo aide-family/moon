@@ -7,29 +7,25 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"prometheus-manager/api/dashboard"
-	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
-
 	"prometheus-manager/api/alarm/history"
 	"prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/alarm/page"
 	"prometheus-manager/api/alarm/realtime"
-	"prometheus-manager/api/dict"
+	"prometheus-manager/api/dashboard"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/server/prom/endpoint"
 	"prometheus-manager/api/server/prom/notify"
 	"prometheus-manager/api/server/prom/strategy"
 	"prometheus-manager/api/server/prom/strategy/group"
 	"prometheus-manager/api/server/system"
-	"prometheus-manager/pkg/helper/middler"
-
 	"prometheus-manager/app/prom_server/internal/conf"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/app/prom_server/internal/service"
 	"prometheus-manager/app/prom_server/internal/service/alarmservice"
-	"prometheus-manager/app/prom_server/internal/service/dictservice"
+	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
 	"prometheus-manager/app/prom_server/internal/service/promservice"
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
+	"prometheus-manager/pkg/helper/middler"
 )
 
 type GrpcServer struct {
@@ -40,7 +36,7 @@ type GrpcServer struct {
 func RegisterGrpcServer(
 	srv *grpc.Server,
 	pingService *service.PingService,
-	dictService *dictservice.Service,
+	dictService *systemservice.Service,
 	strategyService *promservice.StrategyService,
 	strategyGroupService *promservice.GroupService,
 	alarmPageService *alarmservice.AlarmPageService,
@@ -58,7 +54,7 @@ func RegisterGrpcServer(
 	syslogService *systemservice.SyslogService,
 ) *GrpcServer {
 	ping.RegisterPingServer(srv, pingService)
-	dict.RegisterDictServer(srv, dictService)
+	system.RegisterDictServer(srv, dictService)
 	strategy.RegisterStrategyServer(srv, strategyService)
 	group.RegisterGroupServer(srv, strategyGroupService)
 	page.RegisterAlarmPageServer(srv, alarmPageService)

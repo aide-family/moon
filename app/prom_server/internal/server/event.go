@@ -9,7 +9,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"golang.org/x/sync/errgroup"
-
 	"prometheus-manager/api"
 	alarmhookPb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/api/server/prom/strategy/group"

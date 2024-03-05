@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: dict/dict.proto
+// source: server/system/dict.proto
 
-package dict
+package system
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Dict_CreateDict_FullMethodName            = "/api.dict.Dict/CreateDict"
-	Dict_UpdateDict_FullMethodName            = "/api.dict.Dict/UpdateDict"
-	Dict_BatchUpdateDictStatus_FullMethodName = "/api.dict.Dict/BatchUpdateDictStatus"
-	Dict_DeleteDict_FullMethodName            = "/api.dict.Dict/DeleteDict"
-	Dict_BatchDeleteDict_FullMethodName       = "/api.dict.Dict/BatchDeleteDict"
-	Dict_GetDict_FullMethodName               = "/api.dict.Dict/GetDict"
-	Dict_ListDict_FullMethodName              = "/api.dict.Dict/ListDict"
-	Dict_SelectDict_FullMethodName            = "/api.dict.Dict/SelectDict"
+	Dict_CreateDict_FullMethodName            = "/api.server.system.Dict/CreateDict"
+	Dict_UpdateDict_FullMethodName            = "/api.server.system.Dict/UpdateDict"
+	Dict_BatchUpdateDictStatus_FullMethodName = "/api.server.system.Dict/BatchUpdateDictStatus"
+	Dict_DeleteDict_FullMethodName            = "/api.server.system.Dict/DeleteDict"
+	Dict_BatchDeleteDict_FullMethodName       = "/api.server.system.Dict/BatchDeleteDict"
+	Dict_GetDict_FullMethodName               = "/api.server.system.Dict/GetDict"
+	Dict_ListDict_FullMethodName              = "/api.server.system.Dict/ListDict"
+	Dict_SelectDict_FullMethodName            = "/api.server.system.Dict/SelectDict"
 )
 
 // DictClient is the client API for Dict service.
@@ -343,7 +343,7 @@ func _Dict_SelectDict_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Dict_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.dict.Dict",
+	ServiceName: "api.server.system.Dict",
 	HandlerType: (*DictServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -380,5 +380,5 @@ var Dict_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "dict/dict.proto",
+	Metadata: "server/system/dict.proto",
 }

@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-http v2.5.3
 // - protoc             v3.19.4
-// source: dict/dict.proto
+// source: server/system/dict.proto
 
-package dict
+package system
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationDictBatchDeleteDict = "/api.dict.Dict/BatchDeleteDict"
-const OperationDictBatchUpdateDictStatus = "/api.dict.Dict/BatchUpdateDictStatus"
-const OperationDictCreateDict = "/api.dict.Dict/CreateDict"
-const OperationDictDeleteDict = "/api.dict.Dict/DeleteDict"
-const OperationDictGetDict = "/api.dict.Dict/GetDict"
-const OperationDictListDict = "/api.dict.Dict/ListDict"
-const OperationDictSelectDict = "/api.dict.Dict/SelectDict"
-const OperationDictUpdateDict = "/api.dict.Dict/UpdateDict"
+const OperationDictBatchDeleteDict = "/api.server.system.Dict/BatchDeleteDict"
+const OperationDictBatchUpdateDictStatus = "/api.server.system.Dict/BatchUpdateDictStatus"
+const OperationDictCreateDict = "/api.server.system.Dict/CreateDict"
+const OperationDictDeleteDict = "/api.server.system.Dict/DeleteDict"
+const OperationDictGetDict = "/api.server.system.Dict/GetDict"
+const OperationDictListDict = "/api.server.system.Dict/ListDict"
+const OperationDictSelectDict = "/api.server.system.Dict/SelectDict"
+const OperationDictUpdateDict = "/api.server.system.Dict/UpdateDict"
 
 type DictHTTPServer interface {
 	BatchDeleteDict(context.Context, *BatchDeleteDictRequest) (*BatchDeleteDictReply, error)
