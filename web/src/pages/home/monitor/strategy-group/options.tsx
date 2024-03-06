@@ -100,6 +100,19 @@ export const searchItems: DataFormItem[] = [
         label: '规则组名称'
     },
     {
+        name: 'categories',
+        label: '规则分类',
+        dataProps: {
+            type: 'select',
+            parentProps: {
+                placeholder: '请选择规则分类',
+                options: [
+                    // TODO 需要从接口加载
+                ]
+            }
+        }
+    },
+    {
         name: 'status',
         label: '规则组状态',
         dataProps: {
@@ -119,23 +132,6 @@ export const searchItems: DataFormItem[] = [
                         label: '禁用',
                         value: Status.STATUS_DISABLED
                     }
-                ]
-            }
-        }
-    },
-    {
-        name: 'categories',
-        label: '规则分类',
-        dataProps: {
-            type: 'select',
-            parentProps: {
-                placeholder: '请选择规则分类',
-                options: [
-                    {
-                        label: '全部',
-                        value: ''
-                    }
-                    // TODO 需要从接口加载
                 ]
             }
         }

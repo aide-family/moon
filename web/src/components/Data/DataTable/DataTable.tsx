@@ -10,6 +10,7 @@ import { MoreMenu } from '../'
 import { ActionKey } from '@/apis/data'
 import { RoleListItem } from '@/apis/home/system/role/types.ts'
 import type { Reference } from 'rc-table'
+import { random } from '@/utils/random'
 
 export type DataTableProps<T = any> = TableProps<T> & {
     // 是否显示序号
@@ -84,8 +85,6 @@ const DataTable: FC<DataTableProps> = (props) => {
         columns = [],
         showIndex = true,
         showOperation = true,
-        // operationRef,
-        // defaultPadding = 12,
         operationItems = () => [],
         action,
         total,
@@ -122,7 +121,11 @@ const DataTable: FC<DataTableProps> = (props) => {
                 columnsTmp.push(defaultOperation(operationItems, action))
             }
         }
-        setColumns([...columnsTmp])
+        // 根据key去重
+        const uniqueItems = Array.from(
+            new Map(columnsTmp.map((item) => [item.key, item])).values()
+        )
+        setColumns([...uniqueItems])
     }, [columns, pageSize, current])
 
     const getScrollHeight = (height: number) => {
@@ -176,9 +179,9 @@ const DataTable: FC<DataTableProps> = (props) => {
         <>
             <ConfigProvider>
                 <Table
-                    ref={tableRef}
                     {...props}
-                    rowKey={(record) => record?.id}
+                    ref={tableRef}
+                    rowKey={(record) => `${record?.id || random(-100000, -1)}`}
                     dataSource={dataSource}
                     columns={_columns.map((item, index) => {
                         if (index === 0) {

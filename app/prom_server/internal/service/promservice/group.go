@@ -111,6 +111,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 		Keyword:           req.GetKeyword(),
 		Status:            vo.Status(req.GetStatus()),
 		PreloadCategories: true,
+		Ids:               req.GetIds(),
 	})
 	if err != nil {
 		return nil, err

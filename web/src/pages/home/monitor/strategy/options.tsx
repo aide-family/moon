@@ -248,9 +248,9 @@ export const columns = (
                     shape="square"
                     size={size as AvatarSize}
                 >
-                    {categyList.map((item) => {
+                    {categyList.map((item, index) => {
                         return (
-                            <Tooltip title={item.label}>
+                            <Tooltip title={item.label} key={index}>
                                 <Avatar
                                     key={item.value}
                                     style={{ backgroundColor: item.color }}
@@ -287,9 +287,9 @@ export const columns = (
                     shape="square"
                     size={size as AvatarSize}
                 >
-                    {alarmPageInfoList.map((item) => {
+                    {alarmPageInfoList.map((item, index) => {
                         return (
-                            <Tooltip title={item.label}>
+                            <Tooltip title={item.label} key={index}>
                                 <Avatar
                                     key={item.value}
                                     style={{ backgroundColor: item.color }}

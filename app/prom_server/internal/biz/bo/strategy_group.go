@@ -15,6 +15,7 @@ type (
 		Keyword           string     `json:"keyword"`
 		Status            vo.Status  `json:"status"`
 		PreloadCategories bool       `json:"preloadCategories"`
+		Ids               []uint32   `json:"ids"`
 	}
 	RemoveStrategyGroupBO struct {
 		Id uint32 `json:"id"`

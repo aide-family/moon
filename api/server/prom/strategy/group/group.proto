@@ -227,6 +227,8 @@ message ListGroupRequest {
   uint64 startAt = 5;
   // 结束时间,unix时间戳
   uint64 endAt = 6;
+  // id
+  repeated uint32 ids = 7;
 }
 // 获取策略组列表响应参数
 message ListGroupReply {

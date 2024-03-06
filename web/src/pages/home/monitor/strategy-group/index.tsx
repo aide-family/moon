@@ -1,6 +1,6 @@
 import React, { Key, useEffect, useRef, useState } from 'react'
 import { Form } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
@@ -23,6 +23,7 @@ import { ModuleType, Status } from '@/apis/types'
 import Detail from './child/Detail'
 import { ImportGroups } from './child/ImportGroups'
 import { SysLogDetail } from '../../child/SysLogDetail'
+import qs from 'qs'
 
 const defaultPadding = 12
 
@@ -49,6 +50,7 @@ const StrategyGroup: React.FC = () => {
     const [openImportModal, setOpenImportModal] = useState<boolean>(false)
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
+    const [searchParams, setSearchParams] = useSearchParams()
 
     const openLogDetail = (id: number) => {
         setLogOpen(true)
@@ -131,7 +133,6 @@ const StrategyGroup: React.FC = () => {
                 size: pageSize || search.page.size
             }
         })
-        handlerRefresh()
     }
 
     // 可以批量操作的数据
@@ -194,6 +195,10 @@ const StrategyGroup: React.FC = () => {
                 // 批量导入，打开导入modal页面
                 handleOpenImportModal()
                 break
+            case ActionKey.RESET:
+                setSearch(defaultStrategyGroupListRequest)
+                setSearchParams('')
+                break
             default:
                 break
         }
@@ -205,17 +210,23 @@ const StrategyGroup: React.FC = () => {
             clearTimeout(timer)
         }
         timer = setTimeout(() => {
-            setSearch({
-                ...search,
-                ...allValues
-            })
-            handlerRefresh()
+            setSearch({ ...search, ...allValues })
         }, 500)
     }
 
     useEffect(() => {
+        const searchP = qs.parse(searchParams.toString()) as any
+        // 获取prams
+        const req: StrategyGroupListRequest = {
+            ...search,
+            ids: searchP?.id ? [+searchP?.id] : []
+        }
+        setSearch(req)
+    }, [searchParams])
+
+    useEffect(() => {
         handlerGetData()
-    }, [refresh])
+    }, [refresh, search])
 
     return (
         <div>

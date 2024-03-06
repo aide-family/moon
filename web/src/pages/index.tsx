@@ -64,7 +64,10 @@ const Index: React.FC = () => {
         ''
     )
     const [autoRefresh, setAutoRefresh] = useStorage('autoRefresh', false)
-    const [redirectPathName, setRedirectPathName] = useStorage('redirectPathName', '')
+    const [redirectPathName, setRedirectPathName] = useStorage(
+        'redirectPathName',
+        ''
+    )
     const [sysTheme, setSysTheme] = useStorage<ThemeType>('theme', 'light')
     const [intervalId, setIntervalId] = useState<any>()
 
@@ -101,10 +104,11 @@ const Index: React.FC = () => {
                 theme={{
                     components: {
                         Layout: {
-                            // headerBg: token.colorBgBase,
                             colorTextBase: token.colorTextBase,
                             headerColor: '#FFF'
-                            // footerBg: token.colorBgLayout
+                        },
+                        Badge: {
+                            colorBorderBg: 'none'
                         }
                     },
                     cssVar: true,

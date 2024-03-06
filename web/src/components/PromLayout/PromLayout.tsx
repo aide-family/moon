@@ -94,9 +94,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                     <GithubButton />
                     <Msg />
                     <Button
-                        style={{
-                            color: '#FFF'
-                        }}
+                        style={{ color: '#FFF' }}
                         type="text"
                         icon={<ThemeButton />}
                     />
