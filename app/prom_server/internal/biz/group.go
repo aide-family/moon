@@ -137,6 +137,7 @@ func (l *StrategyGroupBiz) List(ctx context.Context, req *bo.ListGroupReq) ([]*b
 		do.StrategyGroupPreloadCategories(req.PreloadCategories),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		basescopes.InIds(req.Ids...),
 	}
 	strategyGroupBoList, err := l.strategyGroupRepo.List(ctx, req.Page, scopes...)
 	if err != nil {

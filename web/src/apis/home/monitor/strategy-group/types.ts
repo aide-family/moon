@@ -32,6 +32,7 @@ interface StrategyGroupListRequest {
     status?: Status
     startAt?: number
     endAt?: number
+    ids?: number[]
 }
 
 interface StrategyGroupListResponse {

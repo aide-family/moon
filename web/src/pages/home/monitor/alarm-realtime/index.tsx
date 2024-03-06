@@ -112,21 +112,22 @@ const AlarmRealtime: FC = () => {
         return alarmPageList.map((item, index) => {
             const { name, id, color, icon } = item
             return {
-                label: name || `报警页面${index}`,
-                key: `${id}`,
-                icon: (
+                label: (
                     <Badge
-                        count={alarmCountMap?.[id] || 0}
+                        count={10 || alarmCountMap?.[id] || 10}
                         overflowCount={999}
                         size="small"
                     >
                         <Tag
                             color={color || ''}
-                            style={{ width: 28, textAlign: 'center' }}
-                            icon={<IconFont type={icon} />}
-                        />
+                            style={{ textAlign: 'center' }}
+                            icon={icon ? <IconFont type={icon} /> : null}
+                        >
+                            {name || `报警页面${index}`}
+                        </Tag>
                     </Badge>
-                )
+                ),
+                key: `${id}`
             }
         })
     }

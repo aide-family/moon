@@ -1,4 +1,4 @@
-import { FC, Key, useContext, useEffect, useRef, useState } from 'react'
+import { FC, Key, useContext, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -36,11 +36,9 @@ const Strategy: FC = () => {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<StrategyItemType[]>([])
-
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number | string>(0)
     const [refresh, setRefresh] = useState<boolean>(false)
@@ -144,7 +142,7 @@ const Strategy: FC = () => {
     }
 
     const toStrategyGroupPage = (record: StrategyItemType) => {
-        navigate(`/home/monitor/strategy-group?id=${record.id}`)
+        navigate(`/home/monitor/strategy-group?id=${record.groupId}`)
     }
 
     const handlerBatchDelete = (ids: number[]) => {
@@ -203,13 +201,17 @@ const Strategy: FC = () => {
             case ActionKey.REFRESH:
                 handlerRefresh()
                 break
+            case ActionKey.RESET:
+                setReqParams(defaultStrategyListRequest)
+                setSearchParams('')
+                break
         }
     }
 
     // 处理搜索表单的值变化
     const handlerSearFormValuesChange = (_: any, allValues: any) => {
-        setSearchParams({
-            ...searchParams,
+        setReqParams({
+            ...reqParams,
             ...allValues
         })
         handlerRefresh()
@@ -233,10 +235,11 @@ const Strategy: FC = () => {
         // 获取prams
         const req: StrategyListRequest = {
             ...reqParams,
-            strategyId: +searchP?.strategyId || 0
+            strategyId: +searchP?.strategyId || 0,
+            groupId: searchP?.groupId ? +searchP?.groupId : 0
         }
         setReqParams(req)
-    }, [])
+    }, [searchParams])
 
     useEffect(() => {
         handlerGetData()
@@ -271,7 +274,7 @@ const Strategy: FC = () => {
                 refresh={handlerRefresh}
                 disabled={actionKey === ActionKey.DETAIL}
             />
-            <div ref={operationRef}>
+            <div>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm
@@ -298,14 +301,11 @@ const Strategy: FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns(size)}
-                operationRef={operationRef}
                 total={+total}
                 loading={loading}
                 operationItems={tableOperationItems}
                 pageOnChange={handlerTablePageChange}
-                rowSelection={{
-                    onChange: handlerBatchData
-                }}
+                rowSelection={{ onChange: handlerBatchData }}
                 showIndex={false}
                 pageSize={reqParams?.page?.size}
                 current={reqParams?.page?.curr}
