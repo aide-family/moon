@@ -197,7 +197,6 @@ export const BindNotifyObject: FC<BindNotifyObjectProps> = (props) => {
         notifySelectFrom.validateFields().then((data) => {
             const { list } = data
             if (!list || list.length === 0) return
-            console.log('list', list)
             const listTmp = notifyData
             list.map((item) => {
                 if (listTmp.find((i) => i.id === item.value)) return
@@ -211,7 +210,6 @@ export const BindNotifyObject: FC<BindNotifyObjectProps> = (props) => {
                     deletedAt: 0
                 })
             })
-            console.log('listTmp', listTmp)
             setNotifyData([...listTmp])
             notifySelectFrom.resetFields()
         })

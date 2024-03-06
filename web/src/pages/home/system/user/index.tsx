@@ -104,7 +104,6 @@ const Customer: FC = () => {
 
     /** 分页变化 */
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        console.log(page, pageSize)
         setSearch({
             ...search,
             page: {
@@ -219,9 +218,9 @@ const Customer: FC = () => {
         timer = setTimeout(() => {
             setSearch({
                 ...search,
-                ...changedValues
+                ...changedValues,
+                ...allValues
             })
-            console.log(changedValues, allValues)
         }, 500)
     }
 

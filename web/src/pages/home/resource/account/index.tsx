@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useRef, FC } from 'react'
+import React, { useContext, useEffect, useState, useRef, FC } from 'react'
 
 import { Form, message } from 'antd'
 
@@ -112,7 +112,6 @@ const Account: FC = () => {
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: AccountItemType) => {
-        console.log(key, record)
         switch (key) {
             case ActionKey.DETAIL:
                 handlerOpenDetail(record.id)

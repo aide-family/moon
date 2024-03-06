@@ -8,7 +8,7 @@ import {
     UploadProps,
     message
 } from 'antd'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import {
     ImportModalStepsItemsParamsType,
     importModalStepsItems
@@ -30,8 +30,8 @@ export const ImportGroups: React.FC<ImportGroupsProps> = (props) => {
     const [current, setCurrent] = useState(0)
     const [importData, setImportData] = useState<ImportGroupRequest>()
     const [uploadFileInfo, setUploadFileInfo] =
-        useState<UploadChangeParam<UploadFile<any>>>()
-    const [fileList, setFileList] = useState<UploadFile<any>[]>([])
+        useState<UploadChangeParam>()
+    const [fileList, setFileList] = useState<UploadFile[]>([])
 
     const uploadProps: UploadProps = {
         name: 'file',
@@ -138,10 +138,6 @@ export const ImportGroups: React.FC<ImportGroupsProps> = (props) => {
                 message.error(`${err}`)
             })
     }
-
-    useEffect(() => {
-        console.log('importData', importData)
-    }, [importData])
 
     return (
         <Modal

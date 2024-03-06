@@ -148,7 +148,6 @@ const Strategy: FC = () => {
     }
 
     const handlerBatchDelete = (ids: number[]) => {
-        // TODO 批量删除
         console.log(ids)
     }
 
@@ -161,7 +160,6 @@ const Strategy: FC = () => {
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: StrategyItemType) => {
-        console.log(key, record)
         setActionKey(key)
         switch (key) {
             case ActionKey.STRATEGY_GROUP_LIST:

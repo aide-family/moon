@@ -52,9 +52,6 @@ const FetchSelect: React.FC<FetchSelectProps> = (props) => {
     }
 
     useEffect(() => {
-        console.log('=========')
-        // TODO 当没有选中时候, 需要更新options
-        // TODO 被执行了两次
         getOptions('')
     }, [])
 

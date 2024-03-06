@@ -15,14 +15,6 @@ import styles from './style/index.module.less'
 import { UserListItem } from '@/apis/home/system/user/types'
 import { getUseTheme } from '@/utils/theme'
 
-export type UserType = {
-    user_name: string
-    nick_name?: string
-    gender?: number
-    avatar?: string
-    id?: string
-}
-
 export type SpaceType = {
     id: string
     name: string
@@ -72,6 +64,7 @@ const Index: React.FC = () => {
         ''
     )
     const [autoRefresh, setAutoRefresh] = useStorage('autoRefresh', false)
+    const [redirectPathName, setRedirectPathName] = useStorage('redirectPathName', '')
     const [sysTheme, setSysTheme] = useStorage<ThemeType>('theme', 'light')
     const [intervalId, setIntervalId] = useState<any>()
 
@@ -96,7 +89,9 @@ const Index: React.FC = () => {
         autoRefresh: autoRefresh,
         setAutoRefresh: setAutoRefresh,
         sysTheme: sysTheme,
-        setSysTheme: setSysTheme
+        setSysTheme: setSysTheme,
+        redirectPathName: redirectPathName,
+        setRedirectPathName: setRedirectPathName
     }
 
     return (

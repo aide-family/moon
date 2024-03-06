@@ -22,7 +22,8 @@ const { useToken } = theme
 
 const LoginForm: FC = () => {
     const { token } = useToken()
-    const { setUser, setAuthToken, sysTheme } = useContext(GlobalContext)
+    const { setUser, setAuthToken, sysTheme, redirectPathName } =
+        useContext(GlobalContext)
     const [loginForm] = useForm<LoginParams>()
     const navigate = useNavigate()
 
@@ -43,7 +44,7 @@ const LoginForm: FC = () => {
                 .then((data) => {
                     setAuthToken?.(data.token)
                     setUser?.(data.user)
-                    navigate('/')
+                    navigate(redirectPathName || '/')
                 })
                 .catch(() => {
                     // 重新获取验证码

@@ -31,7 +31,7 @@ for (let i = 0; i < 100; i++) {
 
 const Customer: FC = () => {
     const [queryForm] = useForm()
-    const oprationRef = useRef<HTMLDivElement>(null)
+    const operationRef = useRef<HTMLDivElement>(null)
     const searchItems: DataFormItem[] = [
         {
             label: '公司名称',
@@ -100,7 +100,6 @@ const Customer: FC = () => {
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: CustomerItemType) => {
-        console.log(key, record)
         switch (key) {
             case ActionKey.DETAIL:
                 handlerOpenDetail()
@@ -163,7 +162,7 @@ const Customer: FC = () => {
                 open={openDetail}
                 onClose={handlerCloseDetail}
             />
-            <div ref={oprationRef}>
+            <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm form={queryForm} items={searchItems} />
@@ -182,7 +181,7 @@ const Customer: FC = () => {
             <DataTable
                 columns={columns}
                 loading={loading}
-                operationRef={oprationRef}
+                operationRef={operationRef}
                 dataSource={dataSource}
                 operationItems={operationItems}
                 total={total}

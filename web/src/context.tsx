@@ -31,6 +31,8 @@ export type GlobalContextType = {
     // 自动刷新
     autoRefresh?: boolean
     setAutoRefresh?: (autoRefresh: boolean) => void
+    redirectPathName?: string
+    setRedirectPathName?: (redirectPathName: string) => void
 }
 
 export const GlobalContext = createContext<GlobalContextType>({
