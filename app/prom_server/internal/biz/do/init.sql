@@ -97,4 +97,5 @@ VALUES (1, '统计各告警页面告警的数量', '/api/v1/alarm_page/alarm/cou
        (96, '图表列表', '/api/v1/dashboard/chart/list', 'POST', 2, 14),
        (97, '更新图表', '/api/v1/dashboard/chart/update', 'POST', 2, 14),
        (98, '我的告警页面', '/api/v1/alarm_page/my/list', 'POST', 2, 11),
-       (99, '配置我的告警页面列表', '/api/v1/alarm_page/my/list/config', 'POST', 2, 11);
+       (99, '配置我的告警页面列表', '/api/v1/alarm_page/my/list/config', 'POST', 2, 11),
+       (100, '权限树', '/api/v1/system/api/tree', 'POST', 1, 1);
