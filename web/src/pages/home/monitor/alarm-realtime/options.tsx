@@ -1,29 +1,19 @@
 import { ActionKey } from '@/apis/data'
-import { SelectAlarmPageRequest } from '@/apis/home/monitor/alarm-page/types'
 import {
     AlarmRealtimeItem,
     AlarmRealtimeListRequest
 } from '@/apis/home/monitor/alarm-realtime/types'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
-import { Status } from '@/apis/types'
+import { Map } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Button, MenuProps } from 'antd'
-import { ColumnType } from 'antd/es/table'
+import { Badge, Button, MenuProps } from 'antd'
 import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
 import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
-
-export const defaultAlarmPageSelectReq: SelectAlarmPageRequest = {
-    page: {
-        size: 200,
-        curr: 1
-    },
-    keyword: '',
-    status: Status.STATUS_ENABLED
-}
+import { ColumnType } from 'antd/es/table'
 
 export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
     page: {
@@ -36,14 +26,17 @@ export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
     endAt: 0
 }
 
-export const columns:
-    | ColumnGroupProps<AlarmRealtimeItem>[]
-    | ColumnType<AlarmRealtimeItem>[] = [
+export type ColumnsType<T = AlarmRealtimeItem> =
+    | ColumnGroupProps<T>
+    | ColumnType<T>
+
+export const columns = (hiddenMap: Map): ColumnsType[] => [
     {
         title: '告警时间',
         dataIndex: 'eventAt',
         key: 'eventAt',
         width: 200,
+        hidden: hiddenMap['eventAt'],
         render: (eventAt: number | string) => {
             return dayjs(+eventAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
@@ -54,6 +47,7 @@ export const columns:
         key: 'duration',
         align: 'center',
         width: 100,
+        hidden: hiddenMap['duration'],
         render: (_, { eventAt }) => {
             return dayjs().diff(dayjs(+eventAt * 1000), 'm') + 'm'
         }
@@ -63,27 +57,44 @@ export const columns:
         dataIndex: 'strategy',
         key: 'strategy',
         width: 200,
+        hidden: hiddenMap['strategy'],
         render: (strategy?: StrategyItemType) => {
-            return strategy?.alert || '-'
+            return (
+                <Button
+                    type="link"
+                    href={`/#/home/monitor/strategy?strategyId=${
+                        strategy?.id || ''
+                    }`}
+                >
+                    {strategy?.alert || '-'}
+                </Button>
+            )
         }
     },
     {
         title: '告警等级',
         dataIndex: 'level',
+        key: 'level',
         width: 160,
+        hidden: hiddenMap['level'],
         render: (level?: DictSelectItem) => {
-            return level?.label || '-'
+            if (!level) return '-'
+            const { color, label, value } = level
+            return <Badge color={color} key={value} text={label || '-'} />
         }
     },
     {
         title: '主机名',
         dataIndex: 'instance',
         key: 'instance',
-        width: 220
+        width: 220,
+        hidden: hiddenMap['instance']
     },
     {
         title: '告警内容',
-        dataIndex: 'note'
+        dataIndex: 'note',
+        hidden: hiddenMap['note'],
+        ellipsis: true
     }
 ]
 

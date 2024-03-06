@@ -101,6 +101,7 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleOnChangeTabs = (key: string) => {
+        setLoading(true)
         setQueryParams({
             ...queryParams,
             alarmPageId: +key || 1
@@ -177,17 +178,17 @@ const AlarmRealtime: FC = () => {
         handleRefresh()
     }
 
-    const onRow = (record?: AlarmRealtimeItem) => {
-        if (!record || !record.level) return {}
-        const {
-            level: { color }
-        } = record
-        return {
-            style: {
-                background: color || ''
-            }
-        }
-    }
+    // const onRow = (record?: AlarmRealtimeItem) => {
+    //     if (!record || !record.level) return {}
+    //     const {
+    //         level: { color }
+    //     } = record
+    //     return {
+    //         style: {
+    //             // background: color || ''
+    //         }
+    //     }
+    // }
 
     useEffect(() => {
         handleCountAlarmByPageIds()
@@ -238,13 +239,13 @@ const AlarmRealtime: FC = () => {
                 <DataTable
                     showIndex={false}
                     // showOperation={false}
-                    columns={columns}
+                    columns={columns({})}
                     dataSource={dataSource}
                     total={total}
                     loading={loading}
                     operationItems={operationItems}
                     action={handlerTableAction}
-                    onRow={onRow}
+                    // onRow={onRow}
                     pageSize={queryParams?.page?.size}
                     current={queryParams?.page?.curr}
                 />
