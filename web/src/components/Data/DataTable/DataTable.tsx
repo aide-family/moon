@@ -139,11 +139,6 @@ const DataTable: FC<DataTableProps> = (props) => {
                 ?.clientHeight || 32
         let searchBox = tableRef.current?.nativeElement?.offsetTop || 0
 
-        // console.log('header', header)
-        // console.log('footer', footer)
-        // console.log('tableHeader', tableHeader)
-        // console.log('tablePage', tablePage)
-        // console.log('searchBox', searchBox)
         let scrollHeight =
             height -
             (header +

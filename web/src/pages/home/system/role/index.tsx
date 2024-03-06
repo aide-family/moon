@@ -86,7 +86,6 @@ const Role: React.FC = () => {
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
-                console.log('res', res)
             })
             .finally(() => {
                 setLoading(false)
@@ -104,7 +103,6 @@ const Role: React.FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        console.log(page, pageSize)
         setSearch({
             ...search,
             page: {
@@ -115,17 +113,12 @@ const Role: React.FC = () => {
     }
 
     // 可以批量操作的数据
-    const handlerBatchData = (
-        selectedRowKeys: React.Key[],
-        selectedRows: RoleListItem[]
-    ) => {
-        console.log(selectedRowKeys, selectedRows)
+    const handlerBatchData = (_: React.Key[], selectedRows: RoleListItem[]) => {
         setTableSelectedRows(selectedRows)
     }
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: RoleListItem) => {
-        console.log(key, record)
         switch (key) {
             case ActionKey.OPERATION_LOG:
                 openLogDetail(record.id)
@@ -167,29 +160,18 @@ const Role: React.FC = () => {
 
     // 处理搜索表单的值变化
     const handlerSearFormValuesChange = (
-        changedValues: any, // TODO 不要any
+        changedValues: any,
         allValues: any
     ) => {
         timer && clearTimeout(timer)
         timer = setTimeout(() => {
             setSearch({
                 ...search,
-                ...changedValues
+                ...changedValues,
+                ...allValues
             })
-            console.log(changedValues, allValues)
         }, 500)
     }
-
-    const leftOptions: DataOptionItem[] = [
-        // {
-        //     key: ActionKey.BATCH_IMPORT,
-        //     label: (
-        //         <Button type="primary" loading={loading}>
-        //             批量导入
-        //         </Button>
-        //     )
-        // }
-    ]
 
     const rightOptions: DataOptionItem[] = [
         {
@@ -253,12 +235,6 @@ const Role: React.FC = () => {
                 id={editId}
                 onOk={handleEditOnOk}
             />
-            {/* <AuthConfigModal
-                open={authVisible}
-                onClose={handlerCloseAuthConfig}
-                onOk={handleAuthConfig}
-                roleId={roleId}
-            /> */}
             <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
@@ -273,7 +249,6 @@ const Role: React.FC = () => {
                 <DataOption
                     queryForm={queryForm}
                     rightOptions={rightOptions}
-                    leftOptions={leftOptions}
                     action={handleOptionClick}
                 />
                 <PaddingLine

@@ -129,7 +129,6 @@ const Device: React.FC = () => {
 
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: DeviceItemType) => {
-        console.log(key, record)
         switch (key) {
             case ActionKey.DETAIL:
                 handlerOpenDetail(record.id)

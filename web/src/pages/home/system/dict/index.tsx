@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, FC, useRef, useState } from 'react'
 import { Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -26,8 +26,8 @@ let timer: NodeJS.Timeout
 /**
  * 字典管理
  */
-const Dict: React.FC = () => {
-    const oprationRef = useRef<HTMLDivElement>(null)
+const Dict: FC = () => {
+    const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<DictListItem[]>([])
@@ -72,7 +72,6 @@ const Dict: React.FC = () => {
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
-                console.log('res', res)
             })
             .finally(() => {
                 setLoading(false)
@@ -90,7 +89,6 @@ const Dict: React.FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        console.log(page, pageSize)
         setSearch({
             ...search,
             page: {
@@ -101,11 +99,7 @@ const Dict: React.FC = () => {
     }
 
     // 可以批量操作的数据
-    const handlerBatchData = (
-        selectedRowKeys: React.Key[],
-        selectedRows: DictListItem[]
-    ) => {
-        console.log(selectedRowKeys, selectedRows)
+    const handlerBatchData = (_: React.Key[], selectedRows: DictListItem[]) => {
         setTableSelectedRows(selectedRows)
     }
 
@@ -126,7 +120,6 @@ const Dict: React.FC = () => {
                 openLogDetail(record.id)
                 break
             case ActionKey.DETAIL:
-                // handlerOpenDetail()
                 setOpenDetail(true)
                 setRoleId(record.id)
 
@@ -165,9 +158,9 @@ const Dict: React.FC = () => {
         timer = setTimeout(() => {
             setSearch({
                 ...search,
-                ...changedValues
+                ...changedValues,
+                ...allValues
             })
-            console.log(changedValues, allValues)
         }, 500)
     }
 
@@ -303,9 +296,6 @@ const Dict: React.FC = () => {
                 })
         }
     }
-    ;(function () {
-        console.log('a')
-    })()
 
     return (
         <div>
@@ -327,7 +317,7 @@ const Dict: React.FC = () => {
                 id={editId}
                 onOk={handleEditOnOk}
             />
-            <div ref={oprationRef}>
+            <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm
@@ -353,7 +343,7 @@ const Dict: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                operationRef={oprationRef}
+                operationRef={operationRef}
                 total={total}
                 loading={loading}
                 operationItems={operationItems}

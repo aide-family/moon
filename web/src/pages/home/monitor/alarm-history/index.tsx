@@ -71,7 +71,6 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
             endAt: values.time_range && values.time_range[1].unix()
         }
         delete val['time_range']
-        console.log('val', val)
         setReqParams(val)
     }
 

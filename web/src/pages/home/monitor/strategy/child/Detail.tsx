@@ -37,7 +37,6 @@ export const Detail: FC<DetailProps> = (props) => {
     const [openTour, setOpenTour] = useState<boolean>(false)
 
     const fetchDetail = () => {
-        console.log('fetchDetail', id)
         form?.resetFields()
         setDetail(undefined)
         if (!id) {
@@ -127,11 +126,9 @@ export const Detail: FC<DetailProps> = (props) => {
     }
 
     const handleSubmit = () => {
-        console.log(actionKey)
         setLoading(true)
         form.validateFields()
             .then((values) => {
-                console.log('values', values)
                 // 单独校验expr字段
                 switch (actionKey) {
                     case ActionKey.ADD:

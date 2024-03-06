@@ -1,30 +1,40 @@
-import { useContext, FC } from 'react'
+import { useContext, FC, useState, useEffect } from 'react'
 
 import type { MenuProps } from 'antd'
 
 import { Avatar, Dropdown } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { IconFont } from '@/components/IconFont/IconFont'
 import Logo from '@/assets/logo.svg'
 import { GlobalContext } from '@/context'
+import { ActionKey } from '@/apis/data'
 
 const UserInfo: FC = () => {
-    const { user, intervalId, removeAuthToken } = useContext(GlobalContext)
     const navigate = useNavigate()
+    const local = useLocation()
+
+    const { user, intervalId, removeAuthToken, setRedirectPathName } =
+        useContext(GlobalContext)
+
+    const [pathname, setPathname] = useState<string>('/')
+
+    useEffect(() => {
+        setPathname(local.pathname)
+    }, [local.pathname])
 
     const items: MenuProps['items'] = [
         {
-            key: 'self-setting',
+            key: ActionKey.SELF_SETTING,
             label: '个人设置',
             icon: <IconFont type="icon-user_role" />
         },
         {
-            key: 'self-change-password',
+            key: ActionKey.CHANGE_PASSWORD,
             label: '修改密码',
             icon: <IconFont type="icon-Password" />
         },
         {
-            key: 'self-change-role',
+            key: ActionKey.SWITCH_ROLE,
             label: '切换角色',
             icon: <IconFont type="icon-role1" />
         },
@@ -32,7 +42,7 @@ const UserInfo: FC = () => {
             type: 'divider'
         },
         {
-            key: 'self-logout',
+            key: ActionKey.LOGOUT,
             label: '退出登录',
             icon: <IconFont type="icon-logout-" />
         }
@@ -40,7 +50,8 @@ const UserInfo: FC = () => {
 
     const handleMenuOnClick: MenuProps['onClick'] = ({ key }) => {
         switch (key) {
-            case 'self-logout':
+            case ActionKey.LOGOUT:
+                setRedirectPathName?.(pathname)
                 clearInterval(intervalId)
                 removeAuthToken?.()
                 navigate('/login')

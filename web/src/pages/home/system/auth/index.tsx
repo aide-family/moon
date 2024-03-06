@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, FC } from 'react'
 import { Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -26,8 +26,8 @@ let timer: any
 /**
  * 角色管理
  */
-const Auth: React.FC = () => {
-    const oprationRef = useRef<HTMLDivElement>(null)
+const Auth: FC = () => {
+    const operationRef = useRef<HTMLDivElement>(null)
     const [queryForm] = Form.useForm()
 
     const [dataSource, setDataSource] = useState<ApiAuthListItem[]>([])
@@ -82,7 +82,6 @@ const Auth: React.FC = () => {
             .then((res) => {
                 setDataSource(res.list)
                 setTotal(res.page.total)
-                console.log('res', res)
             })
             .finally(() => {
                 setLoading(false)
@@ -154,17 +153,13 @@ const Auth: React.FC = () => {
     }
 
     // 处理搜索表单的值变化
-    const handlerSearFormValuesChange = (
-        changedValues: any,
-        allValues: any
-    ) => {
+    const handlerSearFormValuesChange = (changedValues: any) => {
         timer && clearTimeout(timer)
         timer = setTimeout(() => {
             setSearch({
                 ...search,
                 ...changedValues
             })
-            console.log(changedValues, allValues)
         }, 500)
     }
 
@@ -232,7 +227,7 @@ const Auth: React.FC = () => {
                 id={editId}
                 onOk={handleEditOnOk}
             />
-            <div ref={oprationRef}>
+            <div ref={operationRef}>
                 <RouteBreadcrumb />
                 <HeightLine />
                 <SearchForm
@@ -258,7 +253,7 @@ const Auth: React.FC = () => {
             <DataTable
                 dataSource={dataSource}
                 columns={columns}
-                operationRef={oprationRef}
+                operationRef={operationRef}
                 total={total}
                 loading={loading}
                 pageSize={search?.page?.size}

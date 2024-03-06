@@ -124,7 +124,14 @@ const StrategyGroup: React.FC = () => {
 
     // 分页变化
     const handlerTablePageChange = (page: number, pageSize?: number) => {
-        console.log(page, pageSize)
+        setSearch({
+            ...search,
+            page: {
+                curr: page,
+                size: pageSize || search.page.size
+            }
+        })
+        handlerRefresh()
     }
 
     // 可以批量操作的数据
@@ -136,7 +143,6 @@ const StrategyGroup: React.FC = () => {
     }
 
     const toStrategyListPage = (record: StrategyGroupItemType) => {
-        console.log(record)
         navigate(`/home/monitor/strategy?groupId=${record.id}`)
     }
 

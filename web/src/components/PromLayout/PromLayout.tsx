@@ -40,7 +40,8 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
         setLayoutContentElement,
         setAuthToken,
         autToken,
-        setIntervalId
+        setIntervalId,
+        setRedirectPathName
     } = useContext(GlobalContext)
     const navigator = useNavigate()
     const { watermark = user?.username } = props
@@ -65,8 +66,8 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
 
     useEffect(() => {
         // TODO 做路由权限认证
-        console.log('TODO 做路由权限认证', local)
         if (!autToken) {
+            setRedirectPathName?.(local.pathname)
             navigator('/login')
         }
     }, [local.pathname])

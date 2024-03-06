@@ -151,7 +151,15 @@ export enum ActionKey {
     /** 配置大盘图表 */
     CONFIG_DASHBOARD_CHART = '__config_dashboard_chart__',
     /** 操作日志 */
-    OPERATION_LOG = '__operation_log__'
+    OPERATION_LOG = '__operation_log__',
+    /** 个人设置 */
+    SELF_SETTING = 'self-setting',
+    /** 修改密码 */
+    CHANGE_PASSWORD = '__change_password__',
+    /** 退出登录 */
+    LOGOUT = '__logout__',
+    /** 切换角色 */
+    SWITCH_ROLE = '__switch_role__'
 }
 
 export {

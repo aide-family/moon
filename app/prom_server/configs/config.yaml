@@ -27,14 +27,15 @@ data:
 
 apiWhite:
   all:
-    - /api.auth.Auth/Login
-    - /api.auth.Auth/Captcha
-    - /api.interflows.HookInterflow/Receive
+    - /api.server.auth.Auth/Login
+    - /api.server.auth.Auth/Captcha
+    - /api.server.interflows.HookInterflow/Receive
+
   jwtApi:
 
   rbacApi:
-    - /api.auth.Auth/Logout
-    - /api.auth.Auth/RefreshToken
+    - /api.server.auth.Auth/Logout
+    - /api.server.auth.Auth/RefreshToken
 
 #log:
 #  filename: ./log/prometheus-server.log
