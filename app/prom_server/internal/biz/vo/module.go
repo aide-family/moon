@@ -1,7 +1,41 @@
 package vo
 
+import (
+	"sort"
+)
+
+var _ sort.Interface = (DomainList)(nil)
+var _ sort.Interface = (ModuleList)(nil)
+
 type Domain int32
+type DomainList []Domain
+
+func (d DomainList) Len() int {
+	return len(d)
+}
+
+func (d DomainList) Less(i, j int) bool {
+	return d[i] < d[j]
+}
+
+func (d DomainList) Swap(i, j int) {
+	d[i], d[j] = d[j], d[i]
+}
+
 type Module int32
+type ModuleList []Module
+
+func (m ModuleList) Len() int {
+	return len(m)
+}
+
+func (m ModuleList) Less(i, j int) bool {
+	return m[i] < m[j]
+}
+
+func (m ModuleList) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
 
 const (
 	// DomainOther 其他领域

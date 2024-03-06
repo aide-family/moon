@@ -2,6 +2,7 @@ package systemservice
 
 import (
 	"context"
+	"sort"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
@@ -164,24 +165,37 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 
 	list := make([]*api.ApiTree, 0, len(apiBoList))
 	domainMap := make(map[vo.Domain]map[vo.Module][]*bo.ApiBO)
+	domainMapKeys := make(vo.DomainList, 0)
+	moduleMapKeys := make(map[vo.Domain]vo.ModuleList)
 	for _, apiBo := range apiBoList {
 		if _, ok := domainMap[apiBo.Domain]; !ok {
 			domainMap[apiBo.Domain] = make(map[vo.Module][]*bo.ApiBO)
+			domainMapKeys = append(domainMapKeys, apiBo.Domain)
 		}
 		if _, ok := domainMap[apiBo.Domain][apiBo.Module]; !ok {
 			domainMap[apiBo.Domain][apiBo.Module] = make([]*bo.ApiBO, 0)
+			moduleMapKeys[apiBo.Domain] = append(moduleMapKeys[apiBo.Domain], apiBo.Module)
 		}
 		domainMap[apiBo.Domain][apiBo.Module] = append(domainMap[apiBo.Domain][apiBo.Module], apiBo)
 	}
 
-	for domain, moduleMap := range domainMap {
+	sort.Sort(domainMapKeys)
+	for domain, moduleKeys := range moduleMapKeys {
+		sort.Sort(moduleKeys)
+		moduleMapKeys[domain] = moduleKeys
+	}
+
+	for _, domain := range domainMapKeys {
+		moduleMap := domainMap[domain]
 		domainDetail := &api.ApiTree{
 			Domain:       domain.Value(),
 			Module:       make([]*api.Module, 0),
 			DomainName:   domain.String(),
 			DomainRemark: domain.Remark(),
 		}
-		for module, apiItemList := range moduleMap {
+		moduleKeys := moduleMapKeys[domain]
+		for _, module := range moduleKeys {
+			apiItemList := moduleMap[module]
 			moduleDetail := &api.Module{
 				Module: module.Value(),
 				Apis:   make([]*api.ApiSelectV1, 0),
