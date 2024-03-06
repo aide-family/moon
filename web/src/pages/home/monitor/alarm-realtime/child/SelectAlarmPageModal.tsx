@@ -89,7 +89,7 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
                                 message: '请选择告警页面'
                             }
                         ]}
-                        tooltip="绑定你的告警页面，最多同时展示30个页面"
+                        tooltip="绑定你的告警页面，最多同时展示10个页面"
                     >
                         <FetchSelect
                             defaultOptions={[]}
@@ -97,7 +97,7 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
                             selectProps={{
                                 mode: 'multiple',
                                 placeholder: '请选择你要关注的报警页面',
-                                maxCount: 30
+                                maxCount: 10
                             }}
                         />
                     </Form.Item>
