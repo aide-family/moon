@@ -114,7 +114,7 @@ const AlarmRealtime: FC = () => {
             return {
                 label: (
                     <Badge
-                        count={alarmCountMap?.[id] || 10}
+                        count={alarmCountMap?.[id] || 0}
                         overflowCount={999}
                         size="small"
                     >
