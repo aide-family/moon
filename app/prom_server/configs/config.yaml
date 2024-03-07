@@ -32,7 +32,7 @@ apiWhite:
   all:
     - /api.server.auth.Auth/Login
     - /api.server.auth.Auth/Captcha
-    - /api.server.interflows.HookInterflow/Receive
+    - /api.interflows.HookInterflow/Receive
 
   jwtApi:
 

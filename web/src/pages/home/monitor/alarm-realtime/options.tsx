@@ -9,7 +9,7 @@ import { Map } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Badge, Button, MenuProps } from 'antd'
+import { Badge, Button, MenuProps, Tooltip } from 'antd'
 import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
 import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
@@ -94,7 +94,26 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
         title: '告警内容',
         dataIndex: 'note',
         hidden: hiddenMap['note'],
-        ellipsis: true
+        ellipsis: true,
+        render: (note: string) => {
+            let result: any = null
+            try {
+                const annotations = JSON.parse(note)
+                result = Object.keys(annotations).map((key) => {
+                    const value = annotations[key]
+                    return (
+                        <div key={key}>
+                            <span style={{ color: 'orangered' }}>{key}: </span>
+                            <span>{value}</span>
+                        </div>
+                    )
+                })
+            } catch (error) {
+                result = note
+            }
+
+            return <>{<Tooltip title={result}>{result}</Tooltip>}</>
+        }
     }
 ]
 

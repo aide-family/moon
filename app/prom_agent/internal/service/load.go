@@ -58,6 +58,9 @@ func generateGroups(groupList []*api.GroupSimple) []*strategy.Group {
 		for _, strategyInfo := range group.GetStrategies() {
 			duration := strategyInfo.GetDuration()
 			ruleLabels := strategyInfo.GetLabels()
+			if ruleLabels == nil {
+				ruleLabels = make(map[string]string)
+			}
 			ruleLabels[strategy.MetricLevelId] = strconv.Itoa(int(strategyInfo.GetAlarmLevelId()))
 			ruleInfo := &strategy.Rule{
 				Id:          strategyInfo.GetId(),

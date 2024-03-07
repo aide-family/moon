@@ -57,6 +57,12 @@ func NewWatch(
 	w.eventHandlers = map[consts.TopicType]EventHandler{
 		consts.StrategyGroupAllTopic: w.loadGroupAllEventHandler,
 		consts.RemoveGroupTopic:      w.removeGroupEventHandler,
+		consts.ServerOnlineTopic: func(topic consts.TopicType, key, value []byte) error {
+			return w.onlineNotify()
+		},
+		consts.ServerOfflineTopic: func(topic consts.TopicType, key, value []byte) error {
+			return w.onlineNotify()
+		},
 	}
 
 	if err := w.interflowInstance.SetHandles(w.eventHandlers); err != nil {
@@ -70,7 +76,7 @@ func NewWatch(
 	return w, nil
 }
 
-func (w *Watch) loadGroupAllEventHandler(topic consts.TopicType, key, value []byte) error {
+func (w *Watch) loadGroupAllEventHandler(_ consts.TopicType, _, value []byte) error {
 	w.log.Info("strategyGroupAllTopic", string(value))
 	// 把新规则刷进内存
 	groupBytes := value
@@ -156,10 +162,19 @@ func (w *Watch) onlineNotify() error {
 		Value: []byte(agentUrl),
 		Key:   []byte(agentUrl),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	time.Sleep(2 * time.Second)
-	return w.interflowInstance.Send(ctx, serverUrl, msg)
+
+	go func() {
+		defer after.Recover(w.log)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		for w.interflowInstance.Send(ctx, serverUrl, msg) != nil {
+			cancel()
+			ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			time.Sleep(10 * time.Second)
+		}
+		cancel()
+	}()
+	return nil
 }
 
 // offlineNotify 下线通知
