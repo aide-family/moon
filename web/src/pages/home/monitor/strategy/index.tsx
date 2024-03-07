@@ -300,7 +300,7 @@ const Strategy: FC = () => {
 
             <DataTable
                 dataSource={dataSource}
-                columns={columns(size)}
+                columns={columns(size, {})}
                 total={+total}
                 loading={loading}
                 operationItems={tableOperationItems}

@@ -128,7 +128,8 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	serverServer := server.NewServer(serverHttpServer, serverGrpcServer, alarmEvent)
+	websocketServer := server.NewWebsocketServer(confServer, logger)
+	serverServer := server.NewServer(serverHttpServer, serverGrpcServer, alarmEvent, websocketServer)
 	app := newApp(serverServer, logger)
 	return app, func() {
 		cleanup()

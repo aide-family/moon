@@ -5,6 +5,9 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 1s
+  ws:
+    addr: 0.0.0.0:8888
+    timeout: 1s
 
 # NOTE: 1.使用sqlite默认会在deploy/sql下生成init_sqlite.db数据库文件
 # 2. 选择mysql, 把sqlite部分注释并创建名为prometheus_manager的数据库, 并配置主机:ip, 如:127.0.0.1:3306，下方redis配置同理
