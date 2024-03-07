@@ -37,6 +37,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/service/systemservice"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/helper/prom"
+	"prometheus-manager/pkg/servers"
 )
 
 type HttpServer struct {
@@ -140,6 +141,10 @@ func NewHTTPServer(
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
+	srv.HandlePrefix("/msg", nHttp.HandlerFunc(func(w nHttp.ResponseWriter, r *nHttp.Request) {
+		sendCh <- &servers.Message{}
+		_, _ = w.Write([]byte("ok"))
+	}))
 	srv.HandlePrefix("/metrics", promhttp.Handler())
 	// doc
 	//srv.HandlePrefix("/q/", openapiv2.NewHandler())

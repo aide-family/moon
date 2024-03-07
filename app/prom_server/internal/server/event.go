@@ -122,7 +122,7 @@ func (l *AlarmEvent) storeGroups() error {
 func (l *AlarmEvent) watchChangeGroup() error {
 	// 一分钟执行一次
 	//ticker := time.NewTicker(time.Minute * 10)
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 10 * 60)
 	go func() {
 		defer after.Recover(l.log)
 		for {

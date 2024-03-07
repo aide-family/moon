@@ -1,25 +1,60 @@
 import { UserListItem } from '@/apis/home/system/user/types'
 import { randomColor } from '@/utils/random'
-import { Avatar, Image } from 'antd'
-import React from 'react'
+import { Avatar, AvatarProps, Image, Tooltip, TooltipProps } from 'antd'
+import React, { useState } from 'react'
 
-export const UserAvatar: React.FC<UserListItem> = (props: UserListItem) => {
-    const { nickname, username, avatar } = props
-    if (!avatar) {
+export interface UserAvatarProps extends UserListItem, AvatarProps {
+    toolTip?: boolean
+    preview?: boolean
+}
+
+export interface MyTooltip {
+    show?: boolean
+    children?: React.ReactNode | string
+    tooltipProps?: TooltipProps
+    title?: React.ReactNode | string
+}
+
+export const MyTooltip: React.FC<MyTooltip> = (props) => {
+    const { show, tooltipProps, children, title } = props
+    if (show) {
         return (
-            <Avatar
-                size={40}
-                style={{
-                    backgroundColor: randomColor(),
-                    fontSize: 14,
-                    lineHeight: '40px',
-                    textAlign: 'center'
-                }}
-                shape="square"
-            >
-                {nickname || username}
-            </Avatar>
+            <Tooltip {...tooltipProps} title={title || tooltipProps?.title}>
+                {children || tooltipProps?.children}
+            </Tooltip>
         )
     }
-    return <Image width={40} height={40} src={avatar} />
+    return children || tooltipProps?.children
+}
+
+export const UserAvatar: React.FC<UserAvatarProps> = (
+    props: UserAvatarProps
+) => {
+    const [backgroundColor] = useState(randomColor())
+    const {
+        nickname,
+        username,
+        avatar,
+        toolTip,
+        shape = 'square',
+        preview = true,
+        style = {
+            backgroundColor: backgroundColor,
+            fontSize: 14,
+            lineHeight: '40px',
+            textAlign: 'center'
+        },
+        size = 40
+    } = props
+    return (
+        <MyTooltip title={nickname || username} show={toolTip}>
+            {!avatar ? (
+                <Avatar {...props} size={size} style={style} shape={shape}>
+                    {nickname || username}
+                </Avatar>
+            ) : (
+                <Image width={40} height={40} src={avatar} preview={preview} />
+            )}
+        </MyTooltip>
+    )
 }

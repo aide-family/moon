@@ -11,7 +11,6 @@ import {
     DrawerProps,
     Space,
     Spin,
-    Tooltip,
     Tree,
     TreeDataNode,
     Typography,
@@ -158,9 +157,7 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
                                 gender: 0
                             }
                             return (
-                                <Tooltip title={user.label} key={index}>
-                                    <UserAvatar {...userItem} />
-                                </Tooltip>
+                                <UserAvatar {...userItem} key={index} toolTip />
                             )
                         })}
                     </Avatar.Group>

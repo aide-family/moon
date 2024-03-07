@@ -18,6 +18,7 @@ import dayjs from 'dayjs'
 import {
     Category,
     Duration,
+    Map,
     PageReqType,
     Status,
     StatusMap
@@ -129,23 +130,27 @@ export const durationOptions = [
     }
 ]
 
-export const columns = (
-    size: SizeType
-): (ColumnGroupType<StrategyItemType> | ColumnType<StrategyItemType>)[] => [
+export type ColumnsType<T = StrategyItemType> =
+    | ColumnGroupType<T>
+    | ColumnType<T>
+
+export const columns = (size: SizeType, hiddenMap: Map): ColumnsType[] => [
     {
         title: 'ID',
         dataIndex: 'id',
         key: 'id',
         align: 'start',
-        width: 100
+        width: 100,
+        hidden: hiddenMap['id']
     },
     {
         title: '名称',
         dataIndex: 'alert',
         key: 'alert',
         width: 200,
+        ellipsis: true,
         render: (alert: string) => {
-            return alert
+            return <Tooltip title={alert}>{alert}</Tooltip>
         }
     },
     {
@@ -154,6 +159,7 @@ export const columns = (
         key: 'dataSource',
         width: 200,
         align: 'center',
+        hidden: hiddenMap['dataSource'],
         render: (dataSource?: PrometheusServerSelectItem) => {
             if (!dataSource) return '-'
             const { label, value, endpoint, status } = dataSource
@@ -165,6 +171,7 @@ export const columns = (
                         type="link"
                         key={value}
                         disabled={status !== Status.STATUS_ENABLED}
+                        href={`/#/home/monitor/endpoint?id=${value || ''}`}
                     >
                         {label}
                     </Button>
@@ -176,8 +183,9 @@ export const columns = (
         title: '策略组',
         dataIndex: 'groupInfo',
         key: 'groupInfo',
-        width: 160,
+        width: 200,
         align: 'center',
+        hidden: hiddenMap['groupInfo'],
         render: (groupInfo?: StrategyGroupSelectItemType) => {
             if (!groupInfo) return '-'
             const { label, value, status, color, remark } = groupInfo
@@ -188,6 +196,9 @@ export const columns = (
                         type="link"
                         color={color}
                         disabled={status !== Status.STATUS_ENABLED}
+                        href={`/#/home/monitor/strategy-group?id=${
+                            value || ''
+                        }`}
                     >
                         {label}
                     </Button>
@@ -201,6 +212,7 @@ export const columns = (
         key: 'duration',
         width: 120,
         align: 'center',
+        hidden: hiddenMap['duration'],
         render: (duration: Duration) => {
             return duration.value + '' + duration.unit
         }
@@ -210,6 +222,7 @@ export const columns = (
         dataIndex: 'status',
         key: 'status',
         width: 80,
+        hidden: hiddenMap['status'],
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
             return <Badge color={color} text={text} />
@@ -220,6 +233,7 @@ export const columns = (
         dataIndex: 'alarmLevelInfo',
         key: 'alarmLevelInfo',
         width: 160,
+        hidden: hiddenMap['alarmLevelInfo'],
         render: (alarmLevelInfo: DictSelectItem) => {
             if (!alarmLevelInfo) return '-'
             const { color, label } = alarmLevelInfo
@@ -231,6 +245,7 @@ export const columns = (
         dataIndex: 'categoryInfo',
         key: 'categoryInfo',
         width: 120,
+        hidden: hiddenMap['categoryInfo'],
         render: (_: number, record: StrategyItemType) => {
             if (!record.categoryInfo || !record.categoryInfo.length) return '-'
             const categyList = record.categoryInfo
@@ -269,6 +284,7 @@ export const columns = (
         dataIndex: 'alarmPageInfo',
         key: 'alarmPageInfo',
         width: 120,
+        hidden: hiddenMap['alarmPageInfo'],
         render: (_: number, record: StrategyItemType) => {
             if (!record.alarmPageInfo || !record.alarmPageInfo.length)
                 return '-'
@@ -309,6 +325,7 @@ export const columns = (
         key: 'sendRecover',
         width: 160,
         align: 'center',
+        hidden: hiddenMap['sendRecover'],
         render: (sendRecover: boolean) => {
             return sendRecover ? '是' : '否'
         }
@@ -317,7 +334,8 @@ export const columns = (
         title: '创建时间',
         dataIndex: 'createdAt',
         key: 'createdAt',
-        width: 170,
+        width: 180,
+        hidden: hiddenMap['createdAt'],
         render: (createdAt: string | number) => {
             return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
@@ -326,7 +344,8 @@ export const columns = (
         title: '更新时间',
         dataIndex: 'updatedAt',
         key: 'updatedAt',
-        width: 170,
+        width: 180,
+        hidden: hiddenMap['updatedAt'],
         render: (updatedAt: string) => {
             return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
