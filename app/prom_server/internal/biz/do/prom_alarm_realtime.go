@@ -48,8 +48,8 @@ func PromAlarmRealtimeInHistoryIds(historyIds ...uint32) basescopes.ScopeMethod 
 // PromAlarmRealtimeClauseOnConflict 冲突处理
 func PromAlarmRealtimeClauseOnConflict() clause.Expression {
 	return clause.OnConflict{
-		Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}, {Name: PromAlarmRealtimeFieldHistoryID}},
-		DoUpdates: clause.AssignmentColumns([]string{basescopes.BaseFieldStatus.String(), PromAlarmRealtimeFieldHistoryID}),
+		Columns:   []clause.Column{{Name: PromAlarmRealtimeFieldHistoryID}},
+		UpdateAll: true,
 	}
 }
 

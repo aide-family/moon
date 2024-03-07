@@ -5,7 +5,9 @@ type TopicType string
 const (
 	AlertHookTopic        TopicType = "alert-hook"
 	AgentOnlineTopic      TopicType = "online"
+	ServerOnlineTopic     TopicType = "server-online"
 	AgentOfflineTopic     TopicType = "offline"
+	ServerOfflineTopic    TopicType = "server-offline"
 	StrategyGroupAllTopic TopicType = "strategy-group-all"
 	RemoveGroupTopic      TopicType = "rm-group-id"
 )
@@ -23,6 +25,10 @@ func (t TopicType) String() string {
 		return "[strategy-group-all] 策略组所有节点数据推送主题"
 	case RemoveGroupTopic:
 		return "[remove-group] 策略组删除主题"
+	case ServerOnlineTopic:
+		return "[server-online] 服务器在线状态推送主题"
+	case ServerOfflineTopic:
+		return "[server-offline] 服务器离线状态推送主题"
 	default:
 		return "[" + string(t) + "] 未知主题, 管理员请注册或者拦截"
 	}

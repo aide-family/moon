@@ -115,10 +115,14 @@ func (l *Annotations) Scan(src any) error {
 	if l == nil || src == nil {
 		return nil
 	}
-	if srcBytes, ok := src.([]byte); ok {
-		return json.Unmarshal(srcBytes, l)
+	switch srcVal := src.(type) {
+	case string:
+		return json.Unmarshal([]byte(srcVal), l)
+	case []byte:
+		return json.Unmarshal(srcVal, l)
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (l *Annotations) Value() (driver.Value, error) {
@@ -132,10 +136,14 @@ func (l *Labels) Scan(src any) error {
 	if l == nil || src == nil {
 		return nil
 	}
-	if srcBytes, ok := src.([]byte); ok {
-		return json.Unmarshal(srcBytes, l)
+	switch srcVal := src.(type) {
+	case string:
+		return json.Unmarshal([]byte(srcVal), l)
+	case []byte:
+		return json.Unmarshal(srcVal, l)
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (l *Labels) Value() (driver.Value, error) {

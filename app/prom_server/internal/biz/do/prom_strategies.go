@@ -230,7 +230,7 @@ func (p *PromStrategy) ToMap() map[string]any {
 	bs, _ := json.Marshal(p)
 	pMap := make(map[string]any)
 	_ = json.Unmarshal(bs, &pMap)
-	pMap["labels"] = p.Labels.String()
-	pMap["annotations"] = p.Annotations.String()
+	pMap["labels"] = p.GetLabels().String()
+	pMap["annotations"] = p.GetAnnotations().String()
 	return pMap
 }

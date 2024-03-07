@@ -43,6 +43,26 @@ type AlarmEvent struct {
 }
 
 func (l *AlarmEvent) Start(_ context.Context) error {
+	// 通知agent，server已经上线
+	eg := new(errgroup.Group)
+	eg.SetLimit(100)
+	topic := string(consts.ServerOnlineTopic)
+	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
+		var agentInfo AgentInfo
+		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
+			return true
+		}
+		eg.Go(func() error {
+			msg := &interflow.HookMsg{
+				Topic: topic,
+				Value: nil,
+				Key:   agentInfo.Key,
+			}
+			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
+		})
+		return true
+	})
+
 	if err := l.storeGroups(); err != nil {
 		return err
 	}
@@ -62,6 +82,25 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 	l.log.Info("AlarmEvent stopping")
 	close(l.exitCh)
 	l.log.Info("AlarmEvent stopped")
+	// 通知agent，server已经离线
+	eg := new(errgroup.Group)
+	eg.SetLimit(100)
+	topic := string(consts.ServerOfflineTopic)
+	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
+		var agentInfo AgentInfo
+		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
+			return true
+		}
+		eg.Go(func() error {
+			msg := &interflow.HookMsg{
+				Topic: topic,
+				Value: nil,
+				Key:   agentInfo.Key,
+			}
+			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
+		})
+		return true
+	})
 	return nil
 }
 
@@ -87,6 +126,11 @@ func NewAlarmEvent(
 		changeGroupIdCache: cache.NewRedisCache(globalCache, consts.ChangeGroupIds),
 		interflowInstance:  d.Interflow(),
 	}
+
+	l.changeGroupIdCache.Range(func(key, value string) bool {
+		l.changeGroupIdCache.Delete(key)
+		return true
+	})
 
 	// 注册topic处理器
 	l.eventHandlers[consts.AlertHookTopic] = l.alertHookHandler
@@ -122,7 +166,8 @@ func (l *AlarmEvent) storeGroups() error {
 func (l *AlarmEvent) watchChangeGroup() error {
 	// 一分钟执行一次
 	//ticker := time.NewTicker(time.Minute * 10)
-	ticker := time.NewTicker(time.Second * 10 * 60)
+	ticker := time.NewTicker(time.Second * 10)
+	count := 0
 	go func() {
 		defer after.Recover(l.log)
 		for {
@@ -150,7 +195,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					return true
 				})
 
-				if len(changeGroupIds) == 0 {
+				if len(changeGroupIds) == 0 && count > 0 {
 					l.log.Info("no change group")
 					continue
 				}
@@ -180,6 +225,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					l.changeGroupIdCache.Delete(groupIdStr)
 				}
 				l.log.Infof("synce store groups done %v", len(changeGroupIds))
+				count++
 			}
 		}
 	}()
@@ -243,8 +289,9 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 
 // 发送策略组信息
 func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
-	l.log.Infof("send change group: %d", groupDetail.Id)
+	l.log.Debugw("send change group: %d", groupDetail.Id)
 	groupDetailBytes, _ := json.Marshal(groupDetail)
+	l.log.Debugw("groupDetailBytes", string(groupDetailBytes), "groupDetail", groupDetail)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.StrategyGroupAllTopic)
