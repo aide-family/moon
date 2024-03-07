@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -23,6 +24,7 @@ type WebsocketServer struct {
 	wsMap     map[string]*websocket.Conn
 	msgHandle func(*Message)
 	StopCh    chan struct{}
+	lock      sync.RWMutex
 }
 
 func NewWebsocketServer(addr string) *WebsocketServer {
@@ -43,7 +45,9 @@ func (l *WebsocketServer) pumpStdin(source string, ws *websocket.Conn) {
 	defer func() {
 		log.Info("close websocket, ", "source: ", source)
 		ws.Close()
+		l.lock.Lock()
 		delete(l.wsMap, source)
+		l.lock.Unlock()
 	}()
 
 	for {
@@ -69,7 +73,9 @@ func (l *WebsocketServer) serveWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	origin := hash.MD5(strconv.FormatInt(time.Now().UnixMicro(), 10) + uuid.NewString())
+	l.lock.Lock()
 	l.wsMap[origin] = ws
+	l.lock.Unlock()
 
 	go l.pumpStdin(origin, ws)
 }
@@ -117,6 +123,8 @@ func (m *Message) Bytes() []byte {
 
 // SendMessage 发送消息
 func (l *WebsocketServer) SendMessage(message *Message) {
+	l.lock.RLock()
+	defer l.lock.RUnlock()
 	for _, ws := range l.wsMap {
 		wsTmp := ws
 		go func() {

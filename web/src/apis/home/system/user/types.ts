@@ -48,9 +48,9 @@ interface UserListItem {
     status: Status
     remark: string
     avatar: string
-    createdAt: number
-    updatedAt: number
-    deletedAt: number
+    createdAt: number | string
+    updatedAt: number | string
+    deletedAt: number | string
     roles?: RoleSelectItem[]
     nickname: string
     gender: Gender

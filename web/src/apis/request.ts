@@ -21,8 +21,18 @@ const hostMap: { [key: string]: string } = {
     [localhostDocker]: 'http://localhost:8001'
 }
 
+const wsHostMap: { [key: string]: string } = {
+    [localhost]: 'ws://localhost:8888',
+    [local127]: 'ws://localhost:8888',
+    [localhostDocker]: 'ws://localhost:8888'
+}
+
+export const getWsURL = () => {
+    return (wsHostMap[host] || host) + '/ws'
+}
+
 const request = axios.create({
-    baseURL: hostMap[host] || host,
+    baseURL: hostMap[host] || process.env.wsApi,
     timeout: 10000
 })
 
