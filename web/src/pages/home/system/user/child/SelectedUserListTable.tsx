@@ -22,7 +22,14 @@ const defaultColumns: UserColumnType[] = [
         key: 'avatar',
         width: 100,
         render: (_: string, item: UserListItem) => {
-            return <UserAvatar {...item} />
+            const { username, nickname, avatar } = item
+            return (
+                <UserAvatar
+                    username={username}
+                    nickname={nickname}
+                    avatar={avatar}
+                />
+            )
         }
     },
     {

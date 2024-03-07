@@ -142,22 +142,15 @@ export const BindAuth: React.FC<BindAuthProps> = (props) => {
                 children: (
                     <Avatar.Group shape="square" maxCount={10}>
                         {roleInfo?.users?.map((user, index) => {
-                            const userItem = {
-                                ...user,
-                                id: user.value,
-                                nickname: user.nickname,
-                                username: user.nickname,
-                                email: '',
-                                phone: '',
-                                status: user.status,
-                                remark: '',
-                                createdAt: 0,
-                                updatedAt: 0,
-                                deletedAt: 0,
-                                gender: 0
-                            }
+                            const { label, nickname, avatar } = user
                             return (
-                                <UserAvatar {...userItem} key={index} toolTip />
+                                <UserAvatar
+                                    username={label}
+                                    nickname={nickname}
+                                    avatar={avatar}
+                                    key={index}
+                                    toolTip
+                                />
                             )
                         })}
                     </Avatar.Group>

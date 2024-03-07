@@ -95,7 +95,7 @@ const Home: FC = () => {
                 if (!list) return
                 setDashboardList(list)
                 if (!activeKey) {
-                    setActiveKey(`${list[0].id}`)
+                    setActiveKey(`${list[0]?.id}`)
                 }
             })
     }

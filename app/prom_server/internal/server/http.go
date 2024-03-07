@@ -142,7 +142,12 @@ func NewHTTPServer(
 	}
 	srv := http.NewServer(opts...)
 	srv.HandlePrefix("/msg", nHttp.HandlerFunc(func(w nHttp.ResponseWriter, r *nHttp.Request) {
-		sendCh <- &servers.Message{}
+		sendCh <- &servers.Message{
+			MsgType: 1,
+			Content: "你有新的告警了",
+			Title:   "告警通知",
+			Biz:     "alarm",
+		}
 		_, _ = w.Write([]byte("ok"))
 	}))
 	srv.HandlePrefix("/metrics", promhttp.Handler())

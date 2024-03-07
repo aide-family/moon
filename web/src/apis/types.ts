@@ -252,6 +252,28 @@ interface Duration {
     unit?: string
 }
 
+export enum MessageType {
+    /** 未知 */
+    MessageTypeUnknown,
+
+    /** 信息 */
+    /** 告警 */
+    MessageTypeAlarm,
+
+    /** 通知 */
+    MessageTypeNotify,
+
+    /** 系统通知 */
+    MessageTypeSystemNotify
+}
+
+export type Message = {
+    msgType: MessageType
+    content?: string
+    title?: string
+    biz: string
+}
+
 export type {
     Map,
     BaseResp,

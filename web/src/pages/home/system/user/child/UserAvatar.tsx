@@ -1,11 +1,13 @@
-import { UserListItem } from '@/apis/home/system/user/types'
 import { randomColor } from '@/utils/random'
 import { Avatar, AvatarProps, Image, Tooltip, TooltipProps } from 'antd'
 import React, { useState } from 'react'
 
-export interface UserAvatarProps extends UserListItem, AvatarProps {
+export interface UserAvatarProps extends AvatarProps {
     toolTip?: boolean
     preview?: boolean
+    nickname: string
+    username: string
+    avatar: string
 }
 
 export interface MyTooltip {
