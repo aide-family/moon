@@ -22,9 +22,9 @@ const hostMap: { [key: string]: string } = {
 }
 
 const wsHostMap: { [key: string]: string } = {
-    [localhost]: 'ws://localhost:8888',
-    [local127]: 'ws://localhost:8888',
-    [localhostDocker]: 'ws://localhost:8888'
+    [localhost]: 'ws://localhost:8888/',
+    [local127]: 'ws://localhost:8888/',
+    [localhostDocker]: 'ws://localhost:8888/'
 }
 
 export const getWsURL = () => {
