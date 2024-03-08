@@ -42,7 +42,7 @@ const AlarmRealtime: FC = () => {
     const [openEditModal, setOpenEditModal] = useState<boolean>(false)
 
     const handleRefresh = () => {
-        setRefresh(!refresh)
+        setRefresh((pre) => !pre)
     }
 
     const handleOpenEditModal = () => {
@@ -147,10 +147,10 @@ const AlarmRealtime: FC = () => {
     }
 
     const handlerTableAction = (
-        atcion: ActionKey,
+        action: ActionKey,
         record: AlarmRealtimeItem
     ) => {
-        switch (atcion) {
+        switch (action) {
             case ActionKey.ALARM_INTERVENTION:
                 console.log('告警介入')
                 break
@@ -201,6 +201,12 @@ const AlarmRealtime: FC = () => {
     useEffect(() => {
         handleGetAlarmPageList()
         handleRefresh()
+        let interval = setInterval(() => {
+            handleRefresh()
+        }, 60000)
+        return () => {
+            clearInterval(interval)
+        }
     }, [])
 
     return (
