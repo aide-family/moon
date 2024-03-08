@@ -28,11 +28,11 @@ const wsHostMap: { [key: string]: string } = {
 }
 
 export const getWsURL = () => {
-    return (wsHostMap[host] || host) + '/ws'
+    return (wsHostMap[host] || process.env.wsApi) + 'ws'
 }
 
 const request = axios.create({
-    baseURL: hostMap[host] || process.env.wsApi,
+    baseURL: hostMap[host] || host,
     timeout: 10000
 })
 

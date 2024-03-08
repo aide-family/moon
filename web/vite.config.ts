@@ -5,7 +5,7 @@ import path from 'path'
 // const assetApi = 'http://192.168.10.2:8002/'
 // const assetApi = 'http://localhost:8000/'
 const assetApi = 'https://prometheus.aide-cloud.cn/'
-const wsApi = 'wss://prometheus.aide-cloud.cn/ws'
+const wsApi = 'wss://prometheus.aide-cloud.cn/'
 
 // https://vitejs.dev/config/
 /** @type {import('vite').UserConfig} */
