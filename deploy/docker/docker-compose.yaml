@@ -15,6 +15,7 @@ services:
     # image: docker.hub/prometheus-manager/app/prom-server:v0.0.0
     ports:
       - "8001:8000"
+      - "8888:8888"
       - "9001:9000"
     volumes:
       - "../../app/prom_server/configs/:/data/conf"
