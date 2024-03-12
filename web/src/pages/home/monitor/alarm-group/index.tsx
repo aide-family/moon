@@ -174,7 +174,7 @@ const AlarmGroup: FC = () => {
                 alarmGroupId={oprateAlarmGroupId}
                 onClose={handleCancelEditAlarmGroupModal}
                 onOk={handOnOkEditAlarmGroupModal}
-                disabled={actionKey !== ActionKey.EDIT}
+                disabled={actionKey !== ActionKey.EDIT && actionKey !== ActionKey.ADD}
             />
             <div>
                 <div ref={operationRef}>
