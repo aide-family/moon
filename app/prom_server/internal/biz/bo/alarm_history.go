@@ -30,6 +30,10 @@ type (
 		Info       *AlertBo       `json:"info"`
 		CreatedAt  int64          `json:"createdAt"`
 		UpdatedAt  int64          `json:"UpdatedAt"`
+
+		// 用于回顾告警历史时候的图表查询
+		Expr       string `json:"expr"`
+		Datasource string `json:"datasource"`
 	}
 )
 

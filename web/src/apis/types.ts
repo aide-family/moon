@@ -248,7 +248,7 @@ interface IdsReponse {
 }
 
 interface Duration {
-    value?: number | string | null
+    value?: number | string
     unit?: string
 }
 

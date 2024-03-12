@@ -46,10 +46,10 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
         dataIndex: 'duration',
         key: 'duration',
         align: 'center',
-        width: 100,
+        width: 120,
         hidden: hiddenMap['duration'],
-        render: (_, { eventAt }) => {
-            return dayjs().diff(dayjs(+eventAt * 1000), 'm') + 'm'
+        render: (duration) => {
+            return duration
         }
     },
     {
@@ -136,6 +136,18 @@ export const rightOptions = (refresh: () => void): DataOptionItem[] => [
 ]
 
 export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
+    {
+        key: ActionKey.ALARM_EVENT_CHART,
+        label: (
+            <Button
+                type="link"
+                size="small"
+                icon={<IconFont type="icon-detail" />}
+            >
+                事件图表
+            </Button>
+        )
+    },
     {
         key: ActionKey.ALARM_INTERVENTION,
         label: (

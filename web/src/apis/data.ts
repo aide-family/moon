@@ -159,7 +159,9 @@ export enum ActionKey {
     /** 退出登录 */
     LOGOUT = '__logout__',
     /** 切换角色 */
-    SWITCH_ROLE = '__switch_role__'
+    SWITCH_ROLE = '__switch_role__',
+    /** 告警事件图表 */
+    ALARM_EVENT_CHART = '__alarm_event_chart__'
 }
 
 export {

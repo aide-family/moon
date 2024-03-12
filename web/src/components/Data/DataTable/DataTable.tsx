@@ -91,7 +91,7 @@ const DataTable: FC<DataTableProps> = (props) => {
         pageSize,
         current,
         pageOnChange,
-        x,
+        x = '100vw',
         y
     } = props
 

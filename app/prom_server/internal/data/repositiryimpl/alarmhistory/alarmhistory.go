@@ -27,7 +27,11 @@ type alarmHistoryRepoImpl struct {
 
 func (l *alarmHistoryRepoImpl) GetHistoryById(ctx context.Context, id uint32) (*bo.AlarmHistoryBO, error) {
 	var detail do.PromAlarmHistory
-	if err := l.data.DB().WithContext(ctx).First(&detail, id).Error; err != nil {
+	scopes := []basescopes.ScopeMethod{
+		do.PromAlarmHistoryPreloadStrategy(),
+		do.PromAlarmHistoryPreloadLevel(),
+	}
+	if err := l.data.DB().WithContext(ctx).Scopes(scopes...).First(&detail, id).Error; err != nil {
 		return nil, err
 	}
 
