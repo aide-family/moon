@@ -6,6 +6,7 @@ import AreaStackGradient from '@/components/Prom/charts/area-stack-gradient/Area
 import { promData } from '@/components/Prom/charts/area-stack-gradient/option'
 import { UnorderedListOutlined, AreaChartOutlined } from '@ant-design/icons'
 import BaseText from '../Text/BaseText'
+import { Duration } from '@/apis/types'
 
 export interface PromValueModalProps {
     visible: boolean
@@ -14,6 +15,9 @@ export interface PromValueModalProps {
     apiPath?: string
     expr?: string
     height?: number | string
+    eventAt?: number
+    duration?: Duration
+    endAt?: number
 }
 
 export interface PromValue {
@@ -26,8 +30,6 @@ export interface PromValue {
     values?: [number, string][]
 }
 
-const now = dayjs()
-
 const PromValueModal: React.FC<PromValueModalProps> = (props) => {
     const {
         visible,
@@ -35,13 +37,24 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
         pathPrefix,
         apiPath = 'api/v1',
         expr,
-        height = 400
+        height = 400,
+        endAt,
+        eventAt = dayjs().unix(),
+        duration = {
+            value: 1,
+            unit: 'h'
+        }
     } = props
 
     const [startTime, setStartTime] = React.useState<number>(
-        now.subtract(1, 'hour').unix()
+        dayjs(eventAt * 1000)
+            .subtract(
+                duration?.value ? +duration?.value : 1,
+                duration.unit as any
+            )
+            .unix()
     )
-    const [endTime, setEndTime] = React.useState<number>(now.unix())
+    const [endTime, setEndTime] = React.useState<number>(endAt ?? eventAt)
     const [resolution, setResolution] = React.useState<number>(14)
     const [data, setData] = React.useState<PromValue[]>([])
     const [tabKey, setTabKey] = React.useState<string>('table')
@@ -54,12 +67,21 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
         setTabKey(key)
         switch (key) {
             case 'graph':
-                setEndTime(now.unix())
-                setStartTime(now.subtract(1, 'hour').unix())
+                setEndTime(endAt ?? dayjs().unix())
+                setStartTime(
+                    endAt
+                        ? eventAt
+                        : dayjs(eventAt * 1000)
+                              .subtract(
+                                  duration?.value ? +duration?.value : 1,
+                                  duration.unit as any
+                              )
+                              .unix()
+                )
                 setDateType('range')
                 break
             case 'table':
-                setEndTime(now.unix())
+                setEndTime(eventAt)
                 setDateType('date')
                 break
         }
@@ -175,7 +197,12 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
             footer={null}
             destroyOnClose
         >
-            <SearchForm type={dateType} onSearch={handleSearch} />
+            <SearchForm
+                type={dateType}
+                onSearch={handleSearch}
+                eventAt={eventAt}
+                duration={duration}
+            />
             <Tabs
                 direction="ltr"
                 onChange={handleTabChange}

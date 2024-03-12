@@ -23,6 +23,7 @@ import {
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { GlobalContext } from '@/context'
 import dayjs from 'dayjs'
+import { HistoryDetail } from './child/Detail'
 
 export interface AlarmHistoryProps {}
 
@@ -44,6 +45,17 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     const [datasource, setDatasource] = useState<AlarmHistoryItem[]>([])
     const [dataTotal, setDataTotal] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
+    const [openDetail, setOpenDetail] = useState(false)
+    const [detailInfo, setDetailInfo] = useState<AlarmHistoryItem>()
+    const handleOpenDetail = (item?: AlarmHistoryItem) => {
+        setOpenDetail(true)
+        setDetailInfo(item)
+    }
+
+    const handleCloseDetail = () => {
+        setOpenDetail(false)
+        setDetailInfo(undefined)
+    }
 
     const getHistory = () => {
         setLoading(true)
@@ -94,6 +106,9 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
         switch (key) {
             case ActionKey.EDIT:
                 break
+            case ActionKey.DETAIL:
+                handleOpenDetail(record)
+                break
             case ActionKey.DELETE:
                 break
         }
@@ -115,6 +130,11 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
 
     return (
         <div>
+            <HistoryDetail
+                open={openDetail}
+                onClose={handleCloseDetail}
+                historyId={detailInfo?.id}
+            />
             <RouteBreadcrumb />
             <HeightLine />
             <SearchForm

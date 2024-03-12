@@ -4,9 +4,10 @@ import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { Status, StatusMap } from '@/apis/types'
 import { SearchFormItem } from '@/components/Data/SearchForm/SearchForm'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Badge, Button, MenuProps, Tooltip } from 'antd'
+import { Badge, Button, MenuProps } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
+import { CodeBox } from './child/Detail'
 
 export const searchFormItems: SearchFormItem[] = [
     {
@@ -119,25 +120,35 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         title: '告警内容',
         dataIndex: 'annotations',
         key: 'annotations',
-        ellipsis: true,
+        // ellipsis: true,
+        width: 600,
         render: (annotations: { [key: string]: string }) => {
-            const result = Object.keys(annotations).map((key) => {
-                const value = annotations[key]
-                return (
-                    <div key={key}>
-                        <span style={{ color: 'orangered' }}>{key}: </span>
-                        <span>{value}</span>
-                    </div>
-                )
-            })
-            return <>{<Tooltip title={result}>{result}</Tooltip>}</>
+            return <CodeBox code={annotations} />
+        }
+    },
+    {
+        title: '持续时间',
+        dataIndex: 'duration',
+        key: 'duration',
+        align: 'center',
+        width: 120,
+        render: (_, record: AlarmHistoryItem) => {
+            const s = dayjs(+record.startAt * 1000).diff(
+                dayjs(+record.endAt * 1000),
+                's'
+            )
+            // 将毫秒转换为时、分、秒
+            const duration = dayjs.unix(s)
+            // 格式化输出为 "x时x分x秒"
+            const formattedDuration = `${duration.hour()}h${duration.minute()}m${duration.second()}s`
+            return formattedDuration
         }
     },
     {
         title: '开始时间',
         dataIndex: 'startAt',
         key: 'startAt',
-        width: 170,
+        width: 180,
         render: (startAt: string) => {
             return dayjs(+startAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
@@ -147,7 +158,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         title: '结束时间',
         dataIndex: 'endAt',
         key: 'endAt',
-        width: 170,
+        width: 180,
         render: (startAt: string) => {
             return dayjs(+startAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }

@@ -82,6 +82,10 @@ type PromAlarmHistory struct {
 
 	Strategy *PromStrategy `gorm:"foreignKey:StrategyID"`
 	Level    *SysDict      `gorm:"foreignKey:LevelID"`
+
+	// 用于回顾告警历史时候的图表查询
+	Expr       string `gorm:"column:expr;type:text;not null;comment:prom ql;default:''"`
+	Datasource string `gorm:"column:datasource;type:varchar(255);not null;comment:数据源;default:''"`
 }
 
 // TableName PromAlarmHistory's table name

@@ -160,6 +160,7 @@ export const Detail: FC<DetailProps> = (props) => {
             onOk={handleSubmit}
             width="66%"
             centered={true}
+            footer={actionKey === ActionKey.DETAIL ? null : undefined}
             // destroyOnClose={true}
         >
             <Spin spinning={loading}>

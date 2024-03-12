@@ -21,6 +21,7 @@ import alarmRealtimeApi from '@/apis/home/monitor/alarm-realtime'
 import { ActionKey } from '@/apis/data'
 import { GlobalContext } from '@/context'
 import EditAlarmPageModal from '../alarm-page/child/EditAlarmPageModal'
+import PromValueModal from '@/components/Prom/PromValueModal'
 
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
@@ -40,6 +41,16 @@ const AlarmRealtime: FC = () => {
         [key: number]: number | string
     }>()
     const [openEditModal, setOpenEditModal] = useState<boolean>(false)
+    const [openAlarmRealtimeValue, setOpenAlarmRealtimeValue] =
+        useState<boolean>(false)
+
+    const handleCloseAlarmRealtimeValue = () => {
+        setOpenAlarmRealtimeValue(false)
+    }
+
+    const handleOpenAlarmRealtimeValue = () => {
+        setOpenAlarmRealtimeValue(true)
+    }
 
     const handleRefresh = () => {
         setRefresh((pre) => !pre)
@@ -151,6 +162,9 @@ const AlarmRealtime: FC = () => {
         record: AlarmRealtimeItem
     ) => {
         switch (action) {
+            case ActionKey.ALARM_EVENT_CHART:
+                handleOpenAlarmRealtimeValue()
+                break
             case ActionKey.ALARM_INTERVENTION:
                 console.log('告警介入')
                 break
@@ -211,6 +225,14 @@ const AlarmRealtime: FC = () => {
 
     return (
         <div>
+            <PromValueModal
+                visible={openAlarmRealtimeValue}
+                onCancel={handleCloseAlarmRealtimeValue}
+                pathPrefix={'https://prom-server.aide-cloud.cn'}
+                expr={'up'}
+                height={400}
+                eventAt={1709900853}
+            />
             <EditAlarmPageModal
                 open={openEditModal}
                 onCancel={handleCancelEditModal}

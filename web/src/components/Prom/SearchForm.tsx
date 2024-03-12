@@ -1,12 +1,15 @@
 import React from 'react'
 import { DatePicker, Form, InputNumber, TimeRangePickerProps } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
+import { Duration } from '@/apis/types'
 
 export type DateDataType = 'date' | 'range'
 
 export type SearchFormProps<T = number | [number, number]> = {
     onSearch?: (type: DateDataType, value: T, step?: number) => void
     type?: DateDataType
+    eventAt?: number
+    duration?: Duration
 }
 
 const shortcutsRangePicker: TimeRangePickerProps['presets'] = [
@@ -90,7 +93,15 @@ const shortcutsDatePicker: {
 ]
 
 const SearchForm: React.FC<SearchFormProps> = (props) => {
-    const { onSearch, type } = props
+    const {
+        onSearch,
+        type,
+        eventAt = dayjs().unix(),
+        duration = {
+            value: 1,
+            unit: 'h'
+        }
+    } = props
     const [form] = Form.useForm()
 
     const handleOnChang = (value: {
@@ -128,7 +139,16 @@ const SearchForm: React.FC<SearchFormProps> = (props) => {
                     <Form.Item
                         name="date_range"
                         label="时间范围"
-                        initialValue={[dayjs().subtract(1, 'hour'), dayjs()]}
+                        initialValue={[
+                            dayjs(eventAt * 1000).subtract(
+                                duration?.value ? +duration.value : 1,
+                                duration.unit as any
+                            ),
+                            dayjs(eventAt * 1000).add(
+                                duration?.value ? +duration.value : 1,
+                                duration.unit as any
+                            )
+                        ]}
                     >
                         <DatePicker.RangePicker
                             showTime
@@ -141,7 +161,11 @@ const SearchForm: React.FC<SearchFormProps> = (props) => {
                     </Form.Item>
                 </>
             ) : (
-                <Form.Item name="date" label="时间" initialValue={dayjs()}>
+                <Form.Item
+                    name="date"
+                    label="时间"
+                    initialValue={dayjs(eventAt * 1000)}
+                >
                     <DatePicker
                         showTime
                         style={{ width: 380 }}
