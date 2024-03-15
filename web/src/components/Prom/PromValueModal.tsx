@@ -8,6 +8,12 @@ import { UnorderedListOutlined, AreaChartOutlined } from '@ant-design/icons'
 import BaseText from '../Text/BaseText'
 import { Duration } from '@/apis/types'
 
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
+
+dayjs.extend(weekday)
+dayjs.extend(localeData)
+
 export interface PromValueModalProps {
     visible: boolean
     onCancel: () => void
@@ -47,14 +53,11 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
     } = props
 
     const [startTime, setStartTime] = React.useState<number>(
-        dayjs(eventAt * 1000)
-            .subtract(
-                duration?.value ? +duration?.value : 1,
-                duration.unit as any
-            )
-            .unix()
+        eventAt || dayjs().unix()
     )
-    const [endTime, setEndTime] = React.useState<number>(endAt ?? eventAt)
+    const [endTime, setEndTime] = React.useState<number>(
+        endAt || eventAt || dayjs().unix()
+    )
     const [resolution, setResolution] = React.useState<number>(14)
     const [data, setData] = React.useState<PromValue[]>([])
     const [tabKey, setTabKey] = React.useState<string>('table')
@@ -82,6 +85,7 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
                 break
             case 'table':
                 setEndTime(eventAt)
+                setStartTime(eventAt)
                 setDateType('date')
                 break
         }

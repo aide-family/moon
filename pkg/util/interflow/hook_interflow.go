@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
-	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/httpx"
-
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ Interflow = (*hookInterflow)(nil)
@@ -50,19 +48,9 @@ func (l *hookInterflow) Close() error {
 	return nil
 }
 
-func (l *hookInterflow) Send(ctx context.Context, to string, msg *HookMsg) error {
-	_, err := httpx.NewHttpX().POSTWithContext(ctx, to, msg.Bytes())
-	retryCount := 1
-	for err != nil {
-		time.Sleep(time.Duration(retryCount) * time.Second)
-		_, err = httpx.NewHttpX().POST(to, msg.Bytes())
-		if retryCount > 3 && err != nil {
-			l.log.Errorw("err", err, "key", msg.Key, "topic", msg.Topic, "value", string(msg.Value))
-			return err
-		}
-		retryCount++
-	}
-	return nil
+func (l *hookInterflow) Send(ctx context.Context, to string, msg *HookMsg) (err error) {
+	_, err = httpx.NewHttpX().POSTWithContext(ctx, to, msg.Bytes())
+	return err
 }
 
 func (l *hookInterflow) Receive() error {
@@ -73,17 +61,10 @@ func (l *hookInterflow) Receive() error {
 			select {
 			case msg := <-receiveCh:
 				if handle, ok := l.handles[consts.TopicType(msg.Topic)]; ok {
-					err := handle(consts.TopicType(msg.Topic), msg.Key, msg.Value)
-					retryCount := 1
-					for err != nil {
-						time.Sleep(time.Duration(retryCount) * time.Second)
-						err = handle(consts.TopicType(msg.Topic), msg.Key, msg.Value)
-						if retryCount > 3 && err != nil {
-							l.log.Errorw("err", err, "topic", msg.Topic, "value", string(msg.Value), "key", string(msg.Key))
-							break
-						}
-						retryCount++
+					if err := handle(consts.TopicType(msg.Topic), msg.Key, msg.Value); err != nil {
+						l.log.Warnw("err", err, "topic", msg.Topic, "value", string(msg.Value), "key", string(msg.Key))
 					}
+					return
 				}
 			case <-l.closeCh:
 				l.log.Info("hookInterflow closed")

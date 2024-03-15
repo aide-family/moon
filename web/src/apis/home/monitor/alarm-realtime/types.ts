@@ -68,6 +68,8 @@ interface AlarmRealtimeItem {
     level?: DictSelectItem
     strategy?: StrategyItemType
     duration?: string
+    expr?: string
+    datasource?: string
 }
 
 interface AlarmRealtimeDetailRequest {

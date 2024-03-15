@@ -37,8 +37,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	}
 	redisConf := c.GetData().GetRedis()
 	if redisConf != nil {
-		globalCache := cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
-		d.cache = globalCache
+		d.cache = cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
 	} else {
 		globalCache, err := cache.NewNutsDbCache()
 		if err != nil {

@@ -38,7 +38,7 @@ func NewAlerting(groups ...*Group) Alerter {
 }
 
 func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
-	log.Info("开始执行告警事件判断")
+	log.Debug("开始执行告警事件判断")
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	alarms := NewAlarmList()
@@ -81,6 +81,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	if err := eg.Wait(); err != nil {
 		log.Warnw("err", err)
 	}
+	log.Debugw("告警规则", strategyIds)
 
 	timeUnix := time.Now().Unix()
 	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)
@@ -111,10 +112,9 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 		}
 	})
 	for ruleId := range resolvedAlarmMap {
-		log.Infow("告警恢复", ruleId)
+		log.Debugw("告警恢复", ruleId)
 		alarmCache.Remove(ruleId)
 	}
-	log.Infow("告警规则", strategyIds)
 
 	return alarms.List(), nil
 }
@@ -130,7 +130,7 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 		existAlertMap[alert.Fingerprint] = alert
 	}
 
-	log.Infow("ruleId", ruleInfo.Id, "existAlarmInfo.Alerts.len", len(existAlarmInfo.Alerts))
+	log.Debugw("ruleId", ruleInfo.Id, "existAlarmInfo.Alerts.len", len(existAlarmInfo.Alerts))
 
 	// 初始化一个最大值
 	alerts := make([]*Alert, 0, len(newAlarmInfo.Alerts)+len(existAlarmInfo.Alerts))
@@ -152,7 +152,7 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 		}
 
 		diff := nowTimeUnix - eventAt
-		log.Infow("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix, "diff", diff)
+		log.Debugw("eventAt", eventAt, "ruleDuration", ruleDuration, "nowTimeUnix", nowTimeUnix, "diff", diff)
 
 		if diff >= ruleDuration {
 			alerts = append(alerts, &alertInfo)
@@ -162,13 +162,13 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 
 	endsAt := time.Unix(nowTimeUnix, 0).Format(times.ParseLayout)
 	for _, oldAlert := range existAlarmInfo.Alerts {
-		log.Info("判段告警恢复")
+		log.Debug("判段告警恢复")
 		oldAlertTmp := *oldAlert
 		_, ok := newAlertMap[oldAlertTmp.Fingerprint]
 		if ok {
 			continue
 		}
-		log.Info("告警恢复通知")
+		log.Debug("告警恢复通知")
 		// 判断是否发送过告警, 如果没有发送过, 不算告警恢复事件
 		notifyAlert, notifyOK := alarmCache.GetNotifyAlert(&oldAlertTmp)
 		if notifyOK && notifyAlert.Status == AlarmStatusFiring {

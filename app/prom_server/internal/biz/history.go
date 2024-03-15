@@ -77,8 +77,40 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, histor
 		return nil, nil
 	}
 
+	strategyIds := slices.To(historyBO, func(alarmHistoryBO *bo.AlarmHistoryBO) uint32 {
+		return alarmHistoryBO.StrategyId
+	})
+
+	// 通过策略ID查询策略及下属通知对象信息
+	wheres := []basescopes.ScopeMethod{
+		basescopes.InIds(strategyIds...),
+		do.StrategyPreloadPromNotifies(
+			do.PromAlarmNotifyPreloadFieldChatGroups,
+			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
+		),
+		do.StrategyPreloadEndpoint(),
+	}
+	strategyBOs, err := a.strategyRepo.List(ctx, wheres...)
+	if err != nil {
+		return nil, err
+	}
+	strategyBOsMap := make(map[uint32]*bo.StrategyBO)
+	for _, strategyBO := range strategyBOs {
+		strategyBOsMap[strategyBO.Id] = strategyBO
+	}
+
+	storageBos := slices.To(historyBO, func(alarmHistoryBO *bo.AlarmHistoryBO) *bo.AlarmHistoryBO {
+		strategyItem, ok := strategyBOsMap[alarmHistoryBO.StrategyId]
+		if !ok {
+			return alarmHistoryBO
+		}
+		alarmHistoryBO.Expr = strategyItem.Expr
+		alarmHistoryBO.Datasource = strategyItem.GetEndpoint().Endpoint
+		return alarmHistoryBO
+	})
+
 	// 创建历史记录 or 更新历史记录
-	historyBos, err := a.historyRepo.StorageHistory(ctx, historyBO...)
+	historyBos, err := a.historyRepo.StorageHistory(ctx, storageBos...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,25 +123,6 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, histor
 	realtimeAlarmBOs, err = a.alarmRealtimeBiz.HandleRealtime(ctx, realtimeAlarmBOs...)
 	if err != nil {
 		return nil, err
-	}
-	strategyIds := slices.To(historyBos, func(alarmHistoryBO *bo.AlarmHistoryBO) uint32 {
-		return alarmHistoryBO.StrategyId
-	})
-	// 通过策略ID查询策略及下属通知对象信息
-	wheres := []basescopes.ScopeMethod{
-		basescopes.InIds(strategyIds...),
-		do.StrategyPreloadPromNotifies(
-			do.PromAlarmNotifyPreloadFieldChatGroups,
-			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
-		),
-	}
-	strategyBOs, err := a.strategyRepo.List(ctx, wheres...)
-	if err != nil {
-		return nil, err
-	}
-	strategyBOsMap := make(map[uint32]*bo.StrategyBO)
-	for _, strategyBO := range strategyBOs {
-		strategyBOsMap[strategyBO.Id] = strategyBO
 	}
 
 	// TODO 构建告警消息
