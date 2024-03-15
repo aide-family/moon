@@ -45,21 +45,17 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         title: '主机名',
         dataIndex: 'endpoint',
         key: 'endpoint',
-        align: 'center',
+        // align: 'center',
         width: 200,
         render: (_: string, record: AlarmHistoryItem) => {
-            return (
-                <Button type="link" onClick={() => {}}>
-                    {record.labels['endpoint'] || '-'}
-                </Button>
-            )
+            return record.labels['endpoint'] || '-'
         }
     },
     {
         title: '实例名',
         dataIndex: 'instance',
         key: 'instance',
-        align: 'center',
+        // align: 'center',
         width: 300,
         render: (_: string, record: AlarmHistoryItem) => {
             return record.labels['instance'] || '-'

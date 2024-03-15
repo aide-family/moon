@@ -58,9 +58,11 @@ func NewWatch(
 		consts.StrategyGroupAllTopic: w.loadGroupAllEventHandler,
 		consts.RemoveGroupTopic:      w.removeGroupEventHandler,
 		consts.ServerOnlineTopic: func(topic consts.TopicType, key, value []byte) error {
+			w.log.Debugw("server online", "key", string(key), "value", string(value))
 			return w.onlineNotify()
 		},
 		consts.ServerOfflineTopic: func(topic consts.TopicType, key, value []byte) error {
+			w.log.Debugw("server offline", "key", string(key), "value", string(value))
 			return w.onlineNotify()
 		},
 	}
@@ -85,7 +87,7 @@ func (w *Watch) loadGroupAllEventHandler(_ consts.TopicType, _, value []byte) er
 		w.log.Warnf("unmarshal groupList error: %s", err.Error())
 		return err
 	}
-	w.log.Info("groupDetail", groupDetail)
+	w.log.Debugw("groupDetail", groupDetail)
 	w.groups.Store(groupDetail.GetId(), groupDetail)
 	return nil
 }
@@ -165,14 +167,16 @@ func (w *Watch) onlineNotify() error {
 
 	go func() {
 		defer after.Recover(w.log)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		for w.interflowInstance.Send(ctx, serverUrl, msg) != nil {
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			err := w.interflowInstance.Send(ctx, serverUrl, msg)
 			cancel()
-			ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			if err == nil {
+				break
+			}
+			w.log.Warnw("send online notify error", err)
 			time.Sleep(10 * time.Second)
 		}
-		cancel()
 	}()
 	return nil
 }
@@ -189,13 +193,20 @@ func (w *Watch) offlineNotify() error {
 		Value: nil,
 		Key:   []byte(agentUrl),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-	err := w.interflowInstance.Send(ctx, serverUrl, msg)
-	if err != nil {
-		return err
+	count := 1
+	for {
+		if count > 3 {
+			break
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		if err := w.interflowInstance.Send(ctx, serverUrl, msg); err != nil {
+			w.log.Warnw("send offline notify error", err)
+			count++
+			// 等待1秒
+			time.Sleep(1 * time.Second)
+		}
+		cancel()
 	}
-	// 等待1秒，等kafka消费完消息
-	time.Sleep(1 * time.Second)
+
 	return nil
 }

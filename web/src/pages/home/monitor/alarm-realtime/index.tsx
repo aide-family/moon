@@ -43,13 +43,15 @@ const AlarmRealtime: FC = () => {
     const [openEditModal, setOpenEditModal] = useState<boolean>(false)
     const [openAlarmRealtimeValue, setOpenAlarmRealtimeValue] =
         useState<boolean>(false)
+    const [recoder, setRecoder] = useState<AlarmRealtimeItem>()
 
     const handleCloseAlarmRealtimeValue = () => {
         setOpenAlarmRealtimeValue(false)
     }
 
-    const handleOpenAlarmRealtimeValue = () => {
+    const handleOpenAlarmRealtimeValue = (record: AlarmRealtimeItem) => {
         setOpenAlarmRealtimeValue(true)
+        setRecoder(record)
     }
 
     const handleRefresh = () => {
@@ -163,7 +165,7 @@ const AlarmRealtime: FC = () => {
     ) => {
         switch (action) {
             case ActionKey.ALARM_EVENT_CHART:
-                handleOpenAlarmRealtimeValue()
+                handleOpenAlarmRealtimeValue(record)
                 break
             case ActionKey.ALARM_INTERVENTION:
                 console.log('告警介入')
@@ -228,10 +230,10 @@ const AlarmRealtime: FC = () => {
             <PromValueModal
                 visible={openAlarmRealtimeValue}
                 onCancel={handleCloseAlarmRealtimeValue}
-                pathPrefix={'https://prom-server.aide-cloud.cn'}
-                expr={'up'}
+                pathPrefix={recoder?.datasource || ''}
+                expr={recoder?.expr}
                 height={400}
-                eventAt={1709900853}
+                eventAt={recoder?.eventAt}
             />
             <EditAlarmPageModal
                 open={openEditModal}

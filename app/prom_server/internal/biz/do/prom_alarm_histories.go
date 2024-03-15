@@ -84,7 +84,7 @@ type PromAlarmHistory struct {
 	Level    *SysDict      `gorm:"foreignKey:LevelID"`
 
 	// 用于回顾告警历史时候的图表查询
-	Expr       string `gorm:"column:expr;type:text;not null;comment:prom ql;default:''"`
+	Expr       string `gorm:"column:expr;type:text;not null;comment:prom ql"`
 	Datasource string `gorm:"column:datasource;type:varchar(255);not null;comment:数据源;default:''"`
 }
 

@@ -8,7 +8,7 @@ import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { Map } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
-import { IconFont } from '@/components/IconFont/IconFont'
+// import { IconFont } from '@/components/IconFont/IconFont'
 import { Badge, Button, MenuProps, Tooltip } from 'antd'
 import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
@@ -139,7 +139,7 @@ export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-detail" />}
+                // icon={<IconFont type="icon-detail" />}
             >
                 事件图表
             </Button>
@@ -151,7 +151,7 @@ export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-detail" />}
+                // icon={<IconFont type="icon-detail" />}
             >
                 告警介入
             </Button>
@@ -163,7 +163,7 @@ export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-upgrade" />}
+                // icon={<IconFont type="icon-upgrade" />}
             >
                 告警升级
             </Button>
@@ -175,7 +175,7 @@ export const operationItems = (_: AlarmRealtimeItem): MenuProps['items'] => [
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-mark" />}
+                // icon={<IconFont type="icon-mark" />}
             >
                 告警标记
             </Button>

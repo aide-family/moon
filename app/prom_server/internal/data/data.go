@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/pkg/servers"
+	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/cache"
 	"prometheus-manager/pkg/util/interflow"
 
@@ -93,12 +94,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 
 	redisConf := c.GetData().GetRedis()
 	if redisConf != nil {
-		globalCache := cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
-		globalCache, err := cache.NewNutsDbCache()
-		if err != nil {
-			return nil, nil, err
-		}
-		d.cache = globalCache
+		d.cache = cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
 	} else {
 		globalCache, err := cache.NewNutsDbCache()
 		if err != nil {
@@ -106,6 +102,9 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		}
 		d.cache = globalCache
 	}
+	// 注册全局告警缓存组件
+	alarmCache := strategy.NewAlarmCache(d.Cache())
+	strategy.SetAlarmCache(alarmCache)
 
 	kafkaConf := c.GetMq().GetKafka()
 	if kafkaConf != nil {

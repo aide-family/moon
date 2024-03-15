@@ -58,10 +58,10 @@ func (h *HttpX) POSTWithContext(ctx context.Context, url string, data []byte) (*
 	reader := bytes.NewReader(data)
 	// 设置请求头
 	req, err := http.NewRequest(http.MethodPost, url, reader)
-	req = req.WithContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 	if h.headers != nil {
 		for k, v := range h.headers {
 			req.Header.Set(k, v)
