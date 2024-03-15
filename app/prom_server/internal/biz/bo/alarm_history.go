@@ -2,6 +2,7 @@ package bo
 
 import (
 	"encoding/json"
+	"time"
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -54,7 +55,10 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 	if b == nil {
 		return nil
 	}
-
+	endAt := time.Now().Unix()
+	if b.EndsAt > 0 {
+		endAt = b.EndsAt
+	}
 	return &api.AlarmHistoryV1{
 		Id:          b.Id,
 		AlarmId:     b.StrategyId,
@@ -65,6 +69,7 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 		Annotations: b.GetInfo().ToAnnotationsMap(),
 		StartAt:     b.StartsAt,
 		EndAt:       b.EndsAt,
+		Duration:    time.Unix(endAt, 0).Sub(time.Unix(b.StartsAt, 0)).Abs().String(),
 	}
 }
 

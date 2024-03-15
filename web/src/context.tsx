@@ -33,6 +33,7 @@ export type GlobalContextType = {
     setAutoRefresh?: (autoRefresh: boolean) => void
     redirectPathName?: string
     setRedirectPathName?: (redirectPathName: string) => void
+    ws?: WebSocket
 }
 
 export const GlobalContext = createContext<GlobalContextType>({

@@ -333,6 +333,8 @@ func (m *AlarmHistoryV1) validate(all bool) error {
 
 	// no validation rules for EndAt
 
+	// no validation rules for Duration
+
 	if len(errors) > 0 {
 		return AlarmHistoryV1MultiError(errors)
 	}
@@ -3967,6 +3969,8 @@ func (m *RealtimeAlarmData) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for Duration
 
 	if len(errors) > 0 {
 		return RealtimeAlarmDataMultiError(errors)

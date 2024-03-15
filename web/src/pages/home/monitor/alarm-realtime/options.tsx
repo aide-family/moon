@@ -47,10 +47,7 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
         key: 'duration',
         align: 'center',
         width: 120,
-        hidden: hiddenMap['duration'],
-        render: (duration) => {
-            return duration
-        }
+        hidden: hiddenMap['duration']
     },
     {
         title: '策略名称',

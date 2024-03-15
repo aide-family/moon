@@ -60,13 +60,9 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         dataIndex: 'instance',
         key: 'instance',
         align: 'center',
-        width: 200,
+        width: 300,
         render: (_: string, record: AlarmHistoryItem) => {
-            return (
-                <Button type="link" onClick={() => {}}>
-                    {record.labels['instance'] || '-'}
-                </Button>
-            )
+            return record.labels['instance'] || '-'
         }
     },
     {
@@ -131,18 +127,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         dataIndex: 'duration',
         key: 'duration',
         align: 'center',
-        width: 120,
-        render: (_, record: AlarmHistoryItem) => {
-            const s = dayjs(+record.startAt * 1000).diff(
-                dayjs(+record.endAt * 1000),
-                's'
-            )
-            // 将毫秒转换为时、分、秒
-            const duration = dayjs.unix(s)
-            // 格式化输出为 "x时x分x秒"
-            const formattedDuration = `${duration.hour()}h${duration.minute()}m${duration.second()}s`
-            return formattedDuration
-        }
+        width: 120
     },
     {
         title: '开始时间',

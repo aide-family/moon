@@ -91,7 +91,7 @@ export const formatExpressionFunc = (pathPrefix: string, doc?: string) => {
         return Promise.reject('empty expression')
     }
     return fetch(
-        `${prefix}/api/v1/format_query?${new URLSearchParams({
+        `${prefix}/api/v1/query?${new URLSearchParams({
             query: doc || ''
         })}`,
         {

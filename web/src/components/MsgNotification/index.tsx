@@ -1,9 +1,8 @@
-import { getWsURL } from '@/apis/request'
 import { Message } from '@/apis/types'
-import { createWebSocket } from '@/utils/ws'
+import { GlobalContext } from '@/context'
 import { Statistic, Typography, notification } from 'antd'
 import dayjs from 'dayjs'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect } from 'react'
 
 export interface MsgProps {}
 
@@ -12,6 +11,7 @@ const { Paragraph } = Typography
 
 export const MsgNotification: React.FC<MsgProps> = (props) => {
     const {} = props
+    const { ws } = useContext(GlobalContext)
 
     const [api, contextHolder] = notification.useNotification()
 
@@ -46,8 +46,8 @@ export const MsgNotification: React.FC<MsgProps> = (props) => {
         })
     }
 
-    const [ws] = useState(createWebSocket(getWsURL()))
     useEffect(() => {
+        if (!ws) return
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data)
             openNotification(msg)

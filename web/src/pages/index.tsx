@@ -14,6 +14,8 @@ import Logo from '@/assets/logo.svg'
 import styles from './style/index.module.less'
 import { UserListItem } from '@/apis/home/system/user/types'
 import { getUseTheme } from '@/utils/theme'
+import { createWebSocket } from '@/utils/ws'
+import { getWsURL } from '@/apis/request'
 
 export type SpaceType = {
     id: string
@@ -70,7 +72,7 @@ const Index: React.FC = () => {
     )
     const [sysTheme, setSysTheme] = useStorage<ThemeType>('theme', 'light')
     const [intervalId, setIntervalId] = useState<any>()
-
+    const [ws] = useState(createWebSocket(getWsURL()))
     const contextValue: GlobalContextType = {
         size: size,
         setSize: setSize,
@@ -94,7 +96,8 @@ const Index: React.FC = () => {
         sysTheme: sysTheme,
         setSysTheme: setSysTheme,
         redirectPathName: redirectPathName,
-        setRedirectPathName: setRedirectPathName
+        setRedirectPathName: setRedirectPathName,
+        ws: ws
     }
 
     return (
