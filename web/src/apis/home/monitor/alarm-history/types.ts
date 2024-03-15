@@ -13,6 +13,7 @@ interface AlarmHistoryItem {
     annotations: Map
     startAt: number
     endAt: number
+    duration: string
 }
 
 /** 报警历史详情请求参数 */

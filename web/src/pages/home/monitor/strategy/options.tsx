@@ -689,81 +689,81 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             }
         ]
     },
-    [
-        {
-            name: 'maxSuppress',
-            label: '抑制策略',
-            id: 'maxSuppress',
-            dataProps: {
-                type: 'time-value',
-                parentProps: {
-                    name: 'maxSuppress',
-                    placeholder: ['请输入最大抑制时间', '选择单位'],
-                    unitOptions: durationOptions
-                }
-            },
-            formItemProps: {
-                tooltip: (
-                    <p>
-                        抑制时常: 报警发生时, 开启抑制后,
-                        从开始告警时间加抑制时长,如果在抑制周期内,
-                        则不再发送告警
-                    </p>
-                )
-            },
-            rules: [
-                {
-                    validator: checkDuration('抑制时间')
-                }
-            ]
-        },
-        {
-            name: 'sendInterval',
-            label: '告警通知间隔',
-            id: 'sendInterval',
-            dataProps: {
-                type: 'time-value',
-                parentProps: {
-                    name: 'sendInterval',
-                    placeholder: ['请输入通知间隔时间', '选择单位'],
-                    unitOptions: durationOptions
-                }
-            },
-            formItemProps: {
-                tooltip: (
-                    <p>
-                        告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
-                        则再次触发告警通知的时间
-                    </p>
-                )
-            },
-            rules: [
-                {
-                    validator: checkDuration('告警通知间隔时间')
-                }
-            ]
-        },
-        {
-            name: 'sendRecover',
-            label: '告警恢复通知',
-            id: 'sendRecover',
-            dataProps: {
-                type: 'checkbox',
-                parentProps: {
-                    children: '发送告警恢复通知'
-                }
-            },
-            formItemProps: {
-                valuePropName: 'checked',
-                tooltip: (
-                    <p>
-                        发送告警恢复通知: 开启该选项, 告警恢复后,
-                        发送告警恢复通知的时间
-                    </p>
-                )
-            }
-        }
-    ],
+    // [
+    //     {
+    //         name: 'maxSuppress',
+    //         label: '抑制策略',
+    //         id: 'maxSuppress',
+    //         dataProps: {
+    //             type: 'time-value',
+    //             parentProps: {
+    //                 name: 'maxSuppress',
+    //                 placeholder: ['请输入最大抑制时间', '选择单位'],
+    //                 unitOptions: durationOptions
+    //             }
+    //         },
+    //         formItemProps: {
+    //             tooltip: (
+    //                 <p>
+    //                     抑制时常: 报警发生时, 开启抑制后,
+    //                     从开始告警时间加抑制时长,如果在抑制周期内,
+    //                     则不再发送告警
+    //                 </p>
+    //             )
+    //         },
+    //         rules: [
+    //             {
+    //                 validator: checkDuration('抑制时间')
+    //             }
+    //         ]
+    //     },
+    //     {
+    //         name: 'sendInterval',
+    //         label: '告警通知间隔',
+    //         id: 'sendInterval',
+    //         dataProps: {
+    //             type: 'time-value',
+    //             parentProps: {
+    //                 name: 'sendInterval',
+    //                 placeholder: ['请输入通知间隔时间', '选择单位'],
+    //                 unitOptions: durationOptions
+    //             }
+    //         },
+    //         formItemProps: {
+    //             tooltip: (
+    //                 <p>
+    //                     告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
+    //                     则再次触发告警通知的时间
+    //                 </p>
+    //             )
+    //         },
+    //         rules: [
+    //             {
+    //                 validator: checkDuration('告警通知间隔时间')
+    //             }
+    //         ]
+    //     },
+    //     {
+    //         name: 'sendRecover',
+    //         label: '告警恢复通知',
+    //         id: 'sendRecover',
+    //         dataProps: {
+    //             type: 'checkbox',
+    //             parentProps: {
+    //                 children: '发送告警恢复通知'
+    //             }
+    //         },
+    //         formItemProps: {
+    //             valuePropName: 'checked',
+    //             tooltip: (
+    //                 <p>
+    //                     发送告警恢复通知: 开启该选项, 告警恢复后,
+    //                     发送告警恢复通知的时间
+    //                 </p>
+    //             )
+    //         }
+    //     }
+    // ],
     // {
     //     name: 'restrain',
     //     label: '抑制对象',

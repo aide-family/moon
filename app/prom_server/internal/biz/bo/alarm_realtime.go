@@ -3,6 +3,7 @@ package bo
 import (
 	"encoding"
 	"encoding/json"
+	"time"
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -176,6 +177,7 @@ func (l *AlarmRealtimeBO) ToApi() *api.RealtimeAlarmData {
 		UpdatedAt:          l.UpdatedAt,
 		Level:              l.GetLevel().ToApiSelectV1(),
 		Strategy:           l.GetStrategy().ToApiV1(),
+		Duration:           time.Unix(time.Now().Unix(), 0).Sub(time.Unix(l.EventAt, 0)).Abs().String(),
 	}
 }
 

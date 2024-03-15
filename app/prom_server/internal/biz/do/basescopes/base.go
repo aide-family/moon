@@ -211,10 +211,11 @@ func BetweenColumn(column Field, min, max any) ScopeMethod {
 func WithCreateBy(ctx context.Context) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		roleId := middler.GetRoleId(ctx)
-		if roleId == middler.AdminRole {
+		userId := middler.GetUserId(ctx)
+		if roleId == middler.AdminRole || userId == 0 {
 			return db
 		}
-		userId := middler.GetUserId(ctx)
+
 		return db.Where(BaseFieldCreateBy.String(), userId)
 	}
 }
@@ -223,10 +224,10 @@ func WithCreateBy(ctx context.Context) ScopeMethod {
 func WithUserId(ctx context.Context) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		roleId := middler.GetRoleId(ctx)
-		if roleId == middler.AdminRole {
+		userId := middler.GetUserId(ctx)
+		if roleId == middler.AdminRole || userId == 0 {
 			return db
 		}
-		userId := middler.GetUserId(ctx)
 		return db.Where(BaseFieldUserId.String(), userId)
 	}
 }

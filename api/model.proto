@@ -68,6 +68,8 @@ message AlarmHistoryV1 {
   int64 startAt = 8;
   // 结束时间, unix时间戳
   int64 endAt = 9;
+  // 持续时间
+  string duration = 10;
 }
 
 // 字典基础类型
@@ -545,6 +547,8 @@ message RealtimeAlarmData {
   DictSelectV1 level = 18;
   // 策略详情
   PromStrategyV1 strategy = 19;
+  // 持续时间
+  string duration = 20;
 }
 
 message Duration {

@@ -4,7 +4,7 @@ import type { FormInstance } from 'antd'
 import type { FormProps, Rule } from 'antd/es/form'
 import type { DataInputProps } from '../DataInput/DataInput'
 
-import { Form, Space } from 'antd'
+import { Form, Col, Row } from 'antd'
 import DataInput from '../DataInput/DataInput'
 // import { GlobalContext } from '@/context'
 
@@ -24,8 +24,6 @@ export type SearchFormProps = {
     onClear?: () => void
     [key: string]: ReactNode | any
 }
-
-const inputWidth = 400
 
 // let timerId: NodeJS.Timeout | null = null
 const SearchForm: FC<SearchFormProps> = (props) => {
@@ -51,14 +49,18 @@ const SearchForm: FC<SearchFormProps> = (props) => {
                 key={name}
                 className={styles.Item}
             >
-                {props[name] || <DataInput {...dataProps} width={inputWidth} />}
+                {props[name] || <DataInput {...dataProps} />}
             </Form.Item>
         )
     }
 
     const renderFormItems = (items: SearchFormItem[]) => {
         return items.map((item) => {
-            return renderFormItem(item)
+            return (
+                <Col xs={12} sm={12} md={8} lg={8} xl={6} xxl={4}>
+                    {renderFormItem(item)}
+                </Col>
+            )
         })
     }
 
@@ -66,13 +68,11 @@ const SearchForm: FC<SearchFormProps> = (props) => {
         <>
             <Form
                 {...formProps}
-                layout="horizontal"
+                layout="vertical"
                 form={form}
                 className={styles.SearchForm}
             >
-                <Space wrap size={18}>
-                    {renderFormItems(items)}
-                </Space>
+                <Row gutter={16}>{renderFormItems(items)}</Row>
             </Form>
         </>
     )

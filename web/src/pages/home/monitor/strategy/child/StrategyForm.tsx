@@ -192,7 +192,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                     })
                     return err
                 })
-        }, 200)
+        }, 500)
 
         return Promise.resolve()
     }
