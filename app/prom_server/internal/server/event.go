@@ -84,7 +84,6 @@ func (l *AlarmEvent) Start(_ context.Context) error {
 func (l *AlarmEvent) Stop(_ context.Context) error {
 	l.log.Debug("[AlarmEvent] stopping")
 	defer l.log.Debug("[AlarmEvent] stopped")
-	close(l.exitCh)
 	// 通知agent，server已经离线
 	topic := string(consts.ServerOfflineTopic)
 	eg := new(errgroup.Group)
@@ -110,8 +109,10 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 		})
 		return true
 	})
+	_ = eg.Wait()
+	close(l.exitCh)
 
-	return eg.Wait()
+	return nil
 }
 
 func NewAlarmEvent(
@@ -193,7 +194,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 					l.log.Errorw("send remove group error", err)
 				}
 			case <-ticker.C:
-				l.log.Debug("start sync store groups")
+				//l.log.Debug("start sync store groups")
 				changeGroupIds := make([]uint32, 0, 128)
 				l.changeGroupIdCache.Range(func(key, value string) bool {
 					groupId, err := strconv.ParseUint(key, 10, 64)
@@ -206,7 +207,7 @@ func (l *AlarmEvent) watchChangeGroup() error {
 				})
 
 				if len(changeGroupIds) == 0 && count > 0 {
-					l.log.Debug("no change group")
+					//l.log.Debug("no change group")
 					continue
 				}
 				l.log.Debugw("changeGroupIds", changeGroupIds)
@@ -263,7 +264,7 @@ func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte)
 
 // agentOfflineEventHandler 处理agent offline消息
 func (l *AlarmEvent) agentOfflineEventHandler(topic consts.TopicType, key, value []byte) error {
-	l.log.Infof("agent offline: %s", string(key))
+	l.log.Infof("agent offline: %s, topic: %s", string(key), topic)
 	l.agentNameCache.Delete(string(key))
 	return nil
 }
@@ -301,7 +302,7 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 	l.log.Debugw("send change group", groupDetail.Id)
 	groupDetailBytes, _ := json.Marshal(groupDetail)
-	l.log.Debugw("groupDetailBytes", string(groupDetailBytes), "groupDetail", groupDetail)
+	//l.log.Debugw("groupDetailBytes", string(groupDetailBytes), "groupDetail", groupDetail)
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	topic := string(consts.StrategyGroupAllTopic)

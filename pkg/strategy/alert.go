@@ -38,7 +38,7 @@ func NewAlerting(groups ...*Group) Alerter {
 }
 
 func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
-	log.Debug("开始执行告警事件判断")
+	//log.Debug("开始执行告警事件判断")
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	alarms := NewAlarmList()
@@ -81,7 +81,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 	if err := eg.Wait(); err != nil {
 		log.Warnw("err", err)
 	}
-	log.Debugw("告警规则", strategyIds)
+	//log.Debugw("告警规则", strategyIds)
 
 	timeUnix := time.Now().Unix()
 	endsAt := time.Unix(timeUnix, 0).Format(times.ParseLayout)

@@ -21,6 +21,8 @@ import (
 
 var _ transport.Server = (*Watch)(nil)
 
+var timeout = 3 * time.Second
+
 type EventHandler = interflow.Callback
 
 type Watch struct {
@@ -58,11 +60,11 @@ func NewWatch(
 		consts.StrategyGroupAllTopic: w.loadGroupAllEventHandler,
 		consts.RemoveGroupTopic:      w.removeGroupEventHandler,
 		consts.ServerOnlineTopic: func(topic consts.TopicType, key, value []byte) error {
-			w.log.Debugw("server online", "key", string(key), "value", string(value))
+			w.log.Debugw("server online", "", "key", string(key), "value", string(value), "topic", topic.String())
 			return w.onlineNotify()
 		},
 		consts.ServerOfflineTopic: func(topic consts.TopicType, key, value []byte) error {
-			w.log.Debugw("server offline", "key", string(key), "value", string(value))
+			w.log.Debugw("server offline", "", "key", string(key), "value", string(value), "topic", topic.String())
 			return w.onlineNotify()
 		},
 	}
@@ -116,7 +118,7 @@ func (w *Watch) Start(_ context.Context) error {
 				w.shutdown()
 				return
 			case <-w.ticker.C:
-				w.log.Info("[Watch] server tick")
+				//w.log.Debug("[Watch] server tick")
 				groupList := make([]*api.GroupSimple, 0)
 				w.groups.Range(func(key, value any) bool {
 					if group, ok := value.(*api.GroupSimple); ok && group != nil {
@@ -133,7 +135,7 @@ func (w *Watch) Start(_ context.Context) error {
 }
 
 func (w *Watch) evaluate(groupList []*api.GroupSimple) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	_, _ = w.loadService.Evaluate(ctx, &agent.EvaluateRequest{GroupList: groupList})
 }
@@ -168,7 +170,7 @@ func (w *Watch) onlineNotify() error {
 	go func() {
 		defer after.Recover(w.log)
 		for {
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			err := w.interflowInstance.Send(ctx, serverUrl, msg)
 			cancel()
 			if err == nil {
@@ -198,14 +200,17 @@ func (w *Watch) offlineNotify() error {
 		if count > 3 {
 			break
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		if err := w.interflowInstance.Send(ctx, serverUrl, msg); err != nil {
+			cancel()
 			w.log.Warnw("send offline notify error", err)
 			count++
 			// 等待1秒
-			time.Sleep(1 * time.Second)
+			time.Sleep(timeout)
+			continue
 		}
 		cancel()
+		break
 	}
 
 	return nil
