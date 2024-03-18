@@ -64,7 +64,6 @@ func (l *hookInterflow) Receive() error {
 					if err := handle(consts.TopicType(msg.Topic), msg.Key, msg.Value); err != nil {
 						l.log.Warnw("err", err, "topic", msg.Topic, "value", string(msg.Value), "key", string(msg.Key))
 					}
-					return
 				}
 			case <-l.closeCh:
 				l.log.Info("hookInterflow closed")
