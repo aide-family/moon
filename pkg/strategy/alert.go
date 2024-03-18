@@ -53,7 +53,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 			if strategyItem == nil {
 				continue
 			}
-			strategyInfo := &*strategyItem
+			strategyInfo := strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
 			eg.Go(func() error {
 				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
@@ -162,7 +162,7 @@ func (a *Alerting) mergeAlarm(ruleInfo *Rule, newAlarmInfo, existAlarmInfo *Alar
 
 	endsAt := time.Unix(nowTimeUnix, 0).Format(times.ParseLayout)
 	for _, oldAlert := range existAlarmInfo.Alerts {
-		log.Debug("判段告警恢复")
+		//log.Debug("判段告警恢复")
 		oldAlertTmp := *oldAlert
 		_, ok := newAlertMap[oldAlertTmp.Fingerprint]
 		if ok {

@@ -3,6 +3,7 @@ package strategy
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -156,11 +157,6 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) (*Alarm, *Alarm, bool
 
 	allLabels := make(map[string]string)
 	allLabels[MetricAlertId] = ruleIdStr
-	for _, result := range results {
-		for key, value := range result.Metric.Map() {
-			allLabels[key] = value
-		}
-	}
 	for key, value := range alarmInfo.GroupLabels {
 		allLabels[key] = value
 	}
@@ -189,20 +185,24 @@ func NewAlarm(group *Group, rule *Rule, results []*Result) (*Alarm, *Alarm, bool
 			continue
 		}
 
+		valueLabels := make(Labels)
+		maps.Copy(valueLabels, result.Metric.Map())
+		maps.Copy(valueLabels, allLabels)
+
 		timeUnix := result.Value[0].(float64)
 		metricValue := result.Value[1].(string)
 		annotations := make(Annotations)
 		for key, value := range rule.Annotations {
 			formatStr := Formatter(value, map[string]any{
 				"value":  metricValue,
-				"labels": allLabels,
+				"labels": valueLabels,
 			})
 			annotations[key] = formatStr
 		}
 
 		alert := &Alert{
 			Status:       AlarmStatusFiring,
-			Labels:       allLabels,
+			Labels:       valueLabels,
 			Annotations:  annotations,
 			GeneratorURL: "",
 			Fingerprint:  hash.MD5(result.Metric.String() + ":" + ruleIdStr + ":" + groupIdStr),
