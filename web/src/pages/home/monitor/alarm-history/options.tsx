@@ -188,7 +188,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         dataIndex: 'id',
         key: 'id',
         align: 'start',
-        width: 80
+        width: 100
     },
     // {
     //     title: '主机名',
@@ -215,7 +215,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         dataIndex: 'alarmName',
         key: 'alarmName',
         width: 200,
-        align: 'center',
+        // align: 'center',
         render: (alert: string, record: AlarmHistoryItem) => {
             return (
                 <a
@@ -231,7 +231,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         title: '告警级别',
         dataIndex: 'alarmLevel',
         key: 'alarmLevel',
-        width: 100,
+        width: 160,
         align: 'center',
         render: (alarmLevel: DictSelectItem) => {
             const { color, label, value } = alarmLevel
@@ -242,7 +242,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         title: '告警状态',
         dataIndex: 'alarmStatus',
         key: 'alarmStatus',
-        width: 100,
+        width: 120,
         align: 'center',
         render: (alarmStatus: string) => {
             const isResolved =

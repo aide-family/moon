@@ -1,9 +1,8 @@
-# Moon 技术文档
-
 <div align="center">
+<h1 style="color: #1677ff; font-size: 64px">Moon 监控平台</h1>
 <span>
-<img src="./doc/img/logo.svg" width="220" height="220"/>
-<img src="./doc/img/prometheus-logo.svg" width="220" height="220"/>
+<img src="./doc/img/logo.svg" width="220" height="220" alt="logo"/>
+<img src="./doc/img/prometheus-logo.svg" width="220" height="220" alt="prometheus"/>
 </span>
 
 [![License](https://img.shields.io/github/license/aide-family/moon.svg?style=flat)](https://github.com/aide-family/moon)
@@ -20,23 +19,36 @@
 
 > 在漫长黑夜中守护你的一轮明月
 
-* 项目简介
+### 项目简介
 
-  Moon 是由Aide-Cloud团队开发并维护的一款管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
-  * 体验demo
-  >   https://prometheus.aide-cloud.cn/
-  >
-  >   账号：prometheus
-  >
-  >   密码：123456
+  Moon 是一款集成prometheus系列的监控管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
+  * [相关博文](https://juejin.cn/post/7329734768258760719)
 
-  >   账号：num1
-  >
-  >   密码：68b329da9893e34099c7d8ad5cb9c940
+### UI展示
 
-    * [相关博文](https://juejin.cn/post/7329734768258760719)
+* 系统大盘
+![系统大盘](doc/img/runtime/dashboard.png)
+
+* 实时告警
+![实时告警](doc/img/runtime/alarm-realtme.png)
+
+* 告警策略
+![告警策略](doc/img/runtime/alarm-strategy.png)
+
+* 策略编辑
+![策略编辑](doc/img/runtime/alarm-strategy-edit.png)
+
+### 在线体验
+  * 环境地址https://prometheus.aide-cloud.cn/
+
+  * 用户名：prometheus
+  * 密码：123456
 
 
+  * 用户名：num1
+  * 密码：68b329da9893e34099c7d8ad5cb9c940
+
+### 系统架构
   ![moon.svg](./doc/img/moon.jpg)
 
 ## 2. 快速开始
@@ -51,7 +63,8 @@
   * mysql数据库：8.0+（可选）
   * redis数据库（可选）
   * kafka消息队列（可选）
-  > 如果没有这些环境，可以直接进入`./deploy/rely`录下， 执行`docker-compose up -d`启动本地默认依赖, 该依赖包含了mysql，redis，kafka等，你可以选择屏蔽掉redis和kafka， 只启动mysql部分
+  <p style="color: red">注意:</p>
+  <p>如果没有这些环境，可以直接进入`./deploy/rely`录下， 执行`docker-compose up -d`启动本地默认依赖, 该依赖包含了mysql，redis，kafka等，你可以选择屏蔽掉redis和kafka， 只启动mysql部分</p>
 
 ### 2.2 安装部署
 
@@ -70,7 +83,8 @@
   make all-docker-compose args="up --build -d"
   ```
 
-  <p style="color: red">注意: 该方式部署需要在本地安装docker环境, 可能存在网络较差时候拉取镜像会失败, 请自行解决</p>
+  <p style="color: red">注意:</p>
+  <p>该方式部署需要在本地安装docker环境, 可能存在网络较差时候拉取镜像会失败, 请自行解决</p>
 
   * 访问服务
 
@@ -124,21 +138,21 @@ data:
 
 apiWhite:
   all:
-    - /api.auth.Auth/Login
-    - /api.auth.Auth/Captcha
+    - /api.server.auth.Auth/Login
+    - /api.server.auth.Auth/Captcha
     - /api.interflows.HookInterflow/Receive
 
   jwtApi:
 
   rbacApi:
-    - /api.auth.Auth/Logout
-    - /api.auth.Auth/RefreshToken
+    - /api.server.auth.Auth/Logout
+    - /api.server.auth.Auth/RefreshToken
 
 log:
   filename: ./log/prometheus-server.log
   level: debug
   encoder: json
-  maxSize: 2
+  maxSize: 20
   compress: true
 
 # 添加mq配置，则会使用mq通信
@@ -257,7 +271,7 @@ make web
 
 主要是展示产生的告警数据，并按照不同报警页面分类展示。每一条告警数据除了展示基本信息外， 还可以展示持续时常，支持告警静默、强制删除、告警升级等操作。
 
-### 3.4 历史告警（开发中）
+### 3.4 历史告警
 
 * 功能说明：
 
@@ -278,3 +292,7 @@ make web
 这个项目的存在要感谢所有做出贡献的人。 [[Contributors](https://github.com/aide-family/moon/graphs/contributors)].
 
 <a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
+
+## 7. Star 历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=aide-family/moon&type=Date)](https://star-history.com/#aide-family/moon&Date)
