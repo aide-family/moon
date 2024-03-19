@@ -176,7 +176,7 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyRequ
 func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *bo.SelectStrategyRequest) ([]*bo.StrategyBO, error) {
 	scopes := []basescopes.ScopeMethod{
 		do.StrategyAlertLike(req.Keyword),
-		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.StatusEQ(req.Status),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}

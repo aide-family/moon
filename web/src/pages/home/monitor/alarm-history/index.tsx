@@ -1,7 +1,7 @@
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Form } from 'antd'
+import { Alert, Form, message } from 'antd'
 import React, { useContext, useEffect, useState } from 'react'
 import {
     columns,
@@ -24,14 +24,20 @@ import {
 import { GlobalContext } from '@/context'
 import dayjs from 'dayjs'
 import { HistoryDetail } from './child/Detail'
+import PromValueModal from '@/components/Prom/PromValueModal'
 
 export interface AlarmHistoryProps {}
 
 const getTimeRange = (params: AlarmHistoryListRequest) => {
-    return params && params.startAt && params.endAt
-        ? [dayjs(+params?.startAt * 1000), dayjs(+params?.endAt * 1000)]
+    return params && params.firingStartAt && params.firingEndAt
+        ? [
+              dayjs(+params?.firingStartAt * 1000),
+              dayjs(+params?.firingEndAt * 1000)
+          ]
         : undefined
 }
+const article =
+    '默认展示告警时间前一小时到告警恢复时间段内的数据，如果告警未恢复，则展示告警时间到当前时刻的数据'
 
 const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     const {} = props
@@ -47,6 +53,8 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     const [loading, setLoading] = useState<boolean>(false)
     const [openDetail, setOpenDetail] = useState(false)
     const [detailInfo, setDetailInfo] = useState<AlarmHistoryItem>()
+    const [openAlarmRealtimeValue, setOpenAlarmRealtimeValue] =
+        useState<boolean>(false)
     const handleOpenDetail = (item?: AlarmHistoryItem) => {
         setOpenDetail(true)
         setDetailInfo(item)
@@ -76,13 +84,24 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     }
 
     const handlerSearFormValuesChange = (_: any, values: any) => {
-        const val = {
+        delete values.firingStartAt
+        delete values.firingEndAt
+        delete values.resolvedStartAt
+        delete values.resolvedEndAt
+        const val: AlarmHistoryListRequest = {
             ...reqParams,
             ...values,
-            startAt: values.time_range && values.time_range[0].unix(),
-            endAt: values.time_range && values.time_range[1].unix()
+            firingStartAt:
+                values.firingTime && dayjs(values.firingTime[0]).unix(),
+            firingEndAt:
+                values.firingTime && dayjs(values.firingTime[1]).unix(),
+            resolvedStartAt:
+                values.resolvedTime && dayjs(values.resolvedTime[0]).unix(),
+            resolvedEndAt:
+                values.resolvedTime && dayjs(values.resolvedTime[1]).unix()
         }
-        delete val['time_range']
+        delete val.firingTime
+        delete val.resolvedTime
         setReqParams(val)
     }
 
@@ -101,9 +120,26 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
         }
     }
 
+    const handleOpenAlarmRealtimeValue = (record: AlarmHistoryItem) => {
+        setOpenAlarmRealtimeValue(true)
+        setDetailInfo(record)
+    }
+
+    const handleCloseAlarmRealtimeValue = () => {
+        setOpenAlarmRealtimeValue(false)
+        setDetailInfo(undefined)
+    }
+
     const handlerTableAction = (key: ActionKey, record?: AlarmHistoryItem) => {
-        console.log('record', record)
         switch (key) {
+            case ActionKey.ALARM_EVENT_CHART:
+                if (!record || !record.id) return
+                if (!record.expr || !record.datasource) {
+                    message.warning('无数据源可查看')
+                    return
+                }
+                handleOpenAlarmRealtimeValue(record)
+                break
             case ActionKey.EDIT:
                 break
             case ActionKey.DETAIL:
@@ -125,11 +161,36 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     }
 
     useEffect(() => {
+        queryForm.setFieldsValue(reqParams)
         getHistory()
     }, [reqParams])
 
     return (
         <div>
+            <PromValueModal
+                visible={openAlarmRealtimeValue}
+                onCancel={handleCloseAlarmRealtimeValue}
+                pathPrefix={detailInfo?.datasource || ''}
+                expr={detailInfo?.expr}
+                height={400}
+                eventAt={detailInfo?.startAt}
+                endAt={
+                    (detailInfo?.endAt || 0) > 0
+                        ? detailInfo?.endAt
+                        : dayjs().unix()
+                }
+                alert={
+                    <Alert
+                        style={{ width: '96%' }}
+                        message={article}
+                        type="info"
+                        showIcon
+                    />
+                }
+                title={`${detailInfo?.alarmName}: ${dayjs(
+                    +(detailInfo?.startAt || 0) * 1000
+                ).format('YYYY-MM-DD HH:mm:ss')}`}
+            />
             <HistoryDetail
                 open={openDetail}
                 onClose={handleCloseDetail}
@@ -172,6 +233,7 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
                         return (
                             <>
                                 <SyntaxHighlighter
+                                    key={record.id}
                                     language="json"
                                     style={
                                         sysTheme === 'dark'

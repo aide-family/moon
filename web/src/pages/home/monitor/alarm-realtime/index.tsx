@@ -2,7 +2,7 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import { AlarmPageItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Badge, Form, Tabs, Tag } from 'antd'
+import { Badge, Form, Tabs, Tag, message } from 'antd'
 import { FC, useContext, useEffect, useState } from 'react'
 import {
     columns,
@@ -22,6 +22,8 @@ import { ActionKey } from '@/apis/data'
 import { GlobalContext } from '@/context'
 import EditAlarmPageModal from '../alarm-page/child/EditAlarmPageModal'
 import PromValueModal from '@/components/Prom/PromValueModal'
+import dayjs from 'dayjs'
+import alarmHistoryApi from '@/apis/home/monitor/alarm-history'
 
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
@@ -156,6 +158,9 @@ const AlarmRealtime: FC = () => {
             case ActionKey.ADD:
                 handleOpenEditModal()
                 break
+            case ActionKey.RESET:
+                setQueryParams(defaultAlarmRealtimeListRequest)
+                break
         }
     }
 
@@ -165,7 +170,21 @@ const AlarmRealtime: FC = () => {
     ) => {
         switch (action) {
             case ActionKey.ALARM_EVENT_CHART:
-                handleOpenAlarmRealtimeValue(record)
+                if (!recoder || !recoder.historyId) return
+                // 查询告警历史
+                alarmHistoryApi
+                    .getAlarmHistoryDetail({ id: recoder?.historyId })
+                    .then(({ alarmHistory }) => {
+                        if (!alarmHistory.expr || !alarmHistory.datasource) {
+                            message.warning('无数据源可查看')
+                            return
+                        }
+                        handleOpenAlarmRealtimeValue({
+                            ...record,
+                            expr: alarmHistory.expr,
+                            datasource: alarmHistory.datasource
+                        })
+                    })
                 break
             case ActionKey.ALARM_INTERVENTION:
                 console.log('告警介入')
@@ -187,10 +206,16 @@ const AlarmRealtime: FC = () => {
 
     // 处理搜索表单的值变化
     const handlerSearFormValuesChange = (_: any, allValues: any) => {
-        setQueryParams({
+        delete allValues.startAt
+        delete allValues.endAt
+        let requestValues = {
             ...queryParams,
-            ...allValues
-        })
+            ...allValues,
+            startAt: allValues.eventAt && dayjs(allValues.eventAt[0]).unix(),
+            endAt: allValues.eventAt && dayjs(allValues.eventAt[1]).unix()
+        }
+        delete requestValues.eventAt
+        setQueryParams(requestValues)
         handleRefresh()
     }
 
@@ -205,6 +230,10 @@ const AlarmRealtime: FC = () => {
     //         }
     //     }
     // }
+
+    useEffect(() => {
+        handleRefresh()
+    }, [queryParams])
 
     useEffect(() => {
         handleCountAlarmByPageIds()

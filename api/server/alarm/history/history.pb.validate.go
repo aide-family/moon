@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	api "prometheus-manager/api"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = api.Status(0)
 )
 
 // Validate checks the field values on GetHistoryRequest with the rules defined
@@ -341,9 +345,35 @@ func (m *ListHistoryRequest) validate(all bool) error {
 
 	// no validation rules for Keyword
 
-	// no validation rules for StartAt
+	if _, ok := api.Status_name[int32(m.GetStatus())]; !ok {
+		err := ListHistoryRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for EndAt
+	// no validation rules for FiringStartAt
+
+	// no validation rules for FiringEndAt
+
+	// no validation rules for ResolvedStartAt
+
+	// no validation rules for ResolvedEndAt
+
+	if m.GetDuration() < 0 {
+		err := ListHistoryRequestValidationError{
+			field:  "Duration",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return ListHistoryRequestMultiError(errors)

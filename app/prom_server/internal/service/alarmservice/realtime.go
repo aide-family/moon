@@ -44,12 +44,17 @@ func (l *RealtimeService) GetRealtime(ctx context.Context, req *pb.GetRealtimeRe
 func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtimeRequest) (*pb.ListRealtimeReply, error) {
 	pgReq := req.GetPage()
 	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
-	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, &bo.ListRealtimeReq{
+	listReq := &bo.ListRealtimeReq{
 		Page:        pgInfo,
 		Keyword:     req.GetKeyword(),
 		Status:      vo.AlarmStatusAlarm,
 		AlarmPageId: req.GetAlarmPageId(),
-	})
+		StrategyIds: req.GetStrategyIds(),
+		LevelIds:    req.GetAlarmLevelIds(),
+		StartAt:     req.GetStartAt(),
+		EndAt:       req.GetEndAt(),
+	}
+	realtimeAlarmList, err := l.alarmRealtime.GetRealtimeList(ctx, listReq)
 	if err != nil {
 		return nil, err
 	}

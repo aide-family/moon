@@ -1,6 +1,9 @@
 package do
 
 import (
+	"fmt"
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
@@ -28,14 +31,103 @@ func PromAlarmHistoryLikeInstance(keyword string) basescopes.ScopeMethod {
 	return basescopes.WhereLikePrefixKeyword(keyword, PromAlarmHistoryFieldInstance)
 }
 
-// PromAlarmHistoryTimeRange 根据时间范围查询
-func PromAlarmHistoryTimeRange(startTime, endTime int64) basescopes.ScopeMethod {
+// PromAlarmHistoryLikeInfo 根据字典名称模糊查询
+func PromAlarmHistoryLikeInfo(keyword string) basescopes.ScopeMethod {
+	return basescopes.WhereLikeKeyword(keyword, PromAlarmHistoryFieldInfo, PromAlarmHistoryFieldInstance)
+}
+
+// PromAlarmHistoryStartTimeRange 根据时间范围查询
+func PromAlarmHistoryStartTimeRange(startTime, endTime int64) basescopes.ScopeMethod {
+	if startTime == 0 || endTime == 0 || startTime > endTime {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
 	return basescopes.BetweenColumn(PromAlarmHistoryFieldStartAt, startTime, endTime)
+}
+
+// PromAlarmHistoryEndTimeRange 根据时间范围查询
+func PromAlarmHistoryEndTimeRange(startTime, endTime int64) basescopes.ScopeMethod {
+	if startTime == 0 || endTime == 0 || startTime > endTime {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
+	return basescopes.BetweenColumn(PromAlarmHistoryFieldEndAt, startTime, endTime)
 }
 
 // PromAlarmHistoryWhereInMd5 根据md5查询
 func PromAlarmHistoryWhereInMd5(md5s ...string) basescopes.ScopeMethod {
 	return basescopes.WhereInColumn(PromAlarmHistoryFieldMd5, md5s...)
+}
+
+// PromAlarmHistoryWhereInLevelID 根据等级ID查询
+func PromAlarmHistoryWhereInLevelID(levelIds ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmHistoryFieldLevelID, levelIds...)
+}
+
+// PromAlarmHistoryWhereInStrategyID 根据策略ID查询
+func PromAlarmHistoryWhereInStrategyID(strategyIds ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmHistoryFieldStrategyID, strategyIds...)
+}
+
+// PromAlarmHistoryWhereStatus 根据状态查询
+func PromAlarmHistoryWhereStatus(status vo.AlarmStatus) basescopes.ScopeMethod {
+	if status.IsUnknown() {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
+	return basescopes.WhereInColumn(PromAlarmHistoryFieldStatus, status)
+}
+
+const m1 = 1 * 60
+const m5 = 5 * 60
+const m30 = 30 * 60
+const m30p1 = 30*60 + 1
+
+// PromAlarmHistoryWhereDuration 根据持续时间查询
+func PromAlarmHistoryWhereDuration(duration int64) basescopes.ScopeMethod {
+	nowTimeUnix := time.Now().Unix()
+	return func(db *gorm.DB) *gorm.DB {
+		switch duration {
+		default:
+			return db
+		case m1:
+			return db.Where(
+				fmt.Sprintf("`%s` <= ? OR (`%s` = 0 AND `%s` <= ?  AND `%s` > ?)",
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldEndAt,
+					PromAlarmHistoryFieldStartAt,
+					PromAlarmHistoryFieldStartAt,
+				), m1, nowTimeUnix, nowTimeUnix-m1)
+		case m5:
+			return db.Where(
+				fmt.Sprintf("(`%s` <= ? AND `%s` > ?) OR (`%s` = 0 AND `%s` <= ?  AND `%s` > ?)",
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldEndAt,
+					PromAlarmHistoryFieldStartAt,
+					PromAlarmHistoryFieldStartAt,
+				), m5, m1, nowTimeUnix, nowTimeUnix-m5)
+		case m30:
+			return db.Where(
+				fmt.Sprintf("(`%s` <= ? AND `%s` > ?) OR (`%s` = 0 AND `%s` <= ?  AND `%s` > ?)",
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldEndAt,
+					PromAlarmHistoryFieldStartAt,
+					PromAlarmHistoryFieldStartAt,
+				), m30, m5, nowTimeUnix, nowTimeUnix-m30)
+		case m30p1:
+			return db.Where(
+				fmt.Sprintf("(`%s` > ?) OR (`%s` = 0 AND `%s` < ?)",
+					PromAlarmHistoryFieldDuration,
+					PromAlarmHistoryFieldEndAt,
+					PromAlarmHistoryFieldStartAt,
+				), m30, nowTimeUnix-m30)
+		}
+	}
 }
 
 // PromAlarmHistoryClausesOnConflict 当索引冲突, 直接更新
@@ -64,6 +156,13 @@ func PromAlarmHistoryPreloadStrategy() basescopes.ScopeMethod {
 func PromAlarmHistoryPreloadLevel() basescopes.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Preload(PromAlarmHistoryPreloadFieldLevel)
+	}
+}
+
+// PromAlarmHistoryStartAtDesc 开始时间倒序
+func PromAlarmHistoryStartAtDesc() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Order(fmt.Sprintf("`%s` DESC", PromAlarmHistoryFieldStartAt))
 	}
 }
 

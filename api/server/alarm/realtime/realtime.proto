@@ -72,6 +72,10 @@ message ListRealtimeRequest {
 	int64 startAt = 5;
 	// 结束时间, unix时间戳
 	int64 endAt = 6;
+	// 告警等级
+	repeated uint32 alarmLevelIds = 7;
+	// 告警策略
+	repeated uint32 strategyIds = 8;
 }
 message ListRealtimeReply {
 	// 分页参数

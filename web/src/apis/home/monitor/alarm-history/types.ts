@@ -1,4 +1,4 @@
-import { Map, PageReqType, PageResType } from '@/apis/types'
+import { AlarmStatus, Map, PageReqType, PageResType } from '@/apis/types'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import dayjs from 'dayjs'
 
@@ -14,6 +14,8 @@ interface AlarmHistoryItem {
     startAt: number
     endAt: number
     duration: string
+    expr: string
+    datasource: string
 }
 
 /** 报警历史详情请求参数 */
@@ -30,10 +32,15 @@ interface AlarmHistoryDetailReply {
 interface AlarmHistoryListRequest {
     page: PageReqType
     keyword?: string
-    statusList?: number[]
+    status?: AlarmStatus
     alarmPages?: number[]
-    startAt?: number
-    endAt?: number
+    firingStartAt?: number
+    firingEndAt?: number
+    resolvedStartAt?: number
+    resolvedEndAt?: number
+    firingTime?: [string, string]
+    resolvedTime?: [string, string]
+    duration?: number
 }
 
 export const defaultAlarmHistoryListRequest: AlarmHistoryListRequest = {
@@ -41,8 +48,9 @@ export const defaultAlarmHistoryListRequest: AlarmHistoryListRequest = {
         curr: 1,
         size: 10
     },
-    startAt: dayjs().add(-30, 'day').unix(),
-    endAt: dayjs().unix()
+    firingStartAt: dayjs().add(-30, 'day').unix(),
+    firingEndAt: dayjs().unix(),
+    status: AlarmStatus.ALARM_STATUS_UNKNOWN
 }
 
 /** 报警历史列表响应 */

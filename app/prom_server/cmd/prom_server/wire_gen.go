@@ -86,7 +86,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	msgRepo := msg.NewMsgRepo(dataData, logger)
 	dataRepo := dataimpl.NewDataRepo(dataData, logger)
 	alarmRealtimeBiz := biz.NewAlarmRealtime(dataRepo, alarmRealtimeRepo, pageRepo, logger)
-	historyBiz := biz.NewHistoryBiz(historyRepo, msgRepo, strategyRepo, alarmRealtimeBiz, sysLogRepo, logger)
+	historyBiz := biz.NewHistoryBiz(historyRepo, pageRepo, msgRepo, strategyRepo, alarmRealtimeBiz, sysLogRepo, logger)
 	hookService := alarmservice.NewHookService(historyBiz, logger)
 	historyService := alarmservice.NewHistoryService(historyBiz, logger)
 	userRepo := user.NewUserRepo(dataData, logger)

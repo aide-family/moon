@@ -11,10 +11,17 @@ import (
 
 type (
 	ListHistoryRequest struct {
-		Page    Pagination
-		Keyword string
-		StartAt int64
-		EndAt   int64
+		Page            Pagination
+		Keyword         string
+		FiringStartAt   int64
+		FiringEndAt     int64
+		ResolvedStartAt int64
+		ResolvedEndAt   int64
+		Status          vo.AlarmStatus
+		AlarmPageIds    []uint32
+		StrategyIds     []uint32
+		AlarmLevelIds   []uint32
+		Duration        int64
 	}
 	AlarmHistoryBO struct {
 		Id         uint32         `json:"id"`
@@ -70,6 +77,8 @@ func (b *AlarmHistoryBO) ToApiV1() *api.AlarmHistoryV1 {
 		StartAt:     b.StartsAt,
 		EndAt:       b.EndsAt,
 		Duration:    time.Unix(endAt, 0).Sub(time.Unix(b.StartsAt, 0)).Abs().String(),
+		Expr:        b.Expr,
+		Datasource:  b.Datasource,
 	}
 }
 
@@ -138,6 +147,8 @@ func (b *AlarmHistoryBO) ToModel() *do.PromAlarmHistory {
 		Md5:        b.Md5,
 		Strategy:   b.GetStrategyBO().ToModel(),
 		Level:      b.GetLevel().ToModel(),
+		Expr:       b.Expr,
+		Datasource: b.Datasource,
 	}
 }
 
@@ -161,5 +172,7 @@ func AlarmHistoryModelToBO(m *do.PromAlarmHistory) *AlarmHistoryBO {
 		Info:       StringToAlertBo(m.Info),
 		CreatedAt:  m.CreatedAt.Unix(),
 		UpdatedAt:  m.UpdatedAt.Unix(),
+		Expr:       m.Expr,
+		Datasource: m.Datasource,
 	}
 }

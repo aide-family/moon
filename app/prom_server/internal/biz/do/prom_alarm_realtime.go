@@ -65,6 +65,21 @@ func PromAlarmRealtimeInStrategyIds(strategyIds ...uint32) basescopes.ScopeMetho
 	return basescopes.WhereInColumn(PromAlarmRealtimeFieldStrategyID, strategyIds...)
 }
 
+// PromAlarmRealtimeInLevelIds 查询级别ID列表
+func PromAlarmRealtimeInLevelIds(levelIds ...uint32) basescopes.ScopeMethod {
+	return basescopes.WhereInColumn(PromAlarmRealtimeFieldLevelID, levelIds...)
+}
+
+// PromAlarmRealtimeBetweenEventAt 查询时间范围
+func PromAlarmRealtimeBetweenEventAt(min, max int64) basescopes.ScopeMethod {
+	if min > max || min == max || min == 0 || max == 0 {
+		return func(db *gorm.DB) *gorm.DB {
+			return db
+		}
+	}
+	return basescopes.BetweenColumn(PromAlarmRealtimeFieldEventAt, min, max)
+}
+
 // PromAlarmRealtimePreloadStrategy 预加载关联策略
 func PromAlarmRealtimePreloadStrategy() basescopes.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {

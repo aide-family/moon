@@ -6,7 +6,6 @@ import {
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { Map } from '@/apis/types'
-import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 // import { IconFont } from '@/components/IconFont/IconFont'
 import { Badge, Button, MenuProps, Tooltip } from 'antd'
@@ -14,6 +13,8 @@ import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
 import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
 import { ColumnType } from 'antd/es/table'
+import { getLevels } from '../strategy/options'
+import { SearchFormItem } from '@/components/Data/SearchForm/SearchForm'
 
 export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
     page: {
@@ -81,7 +82,7 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
         }
     },
     {
-        title: '主机名',
+        title: '实例名称',
         dataIndex: 'instance',
         key: 'instance',
         width: 220,
@@ -114,10 +115,40 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
     }
 ]
 
-export const searchFormItems: DataFormItem[] = [
+export const searchFormItems: SearchFormItem[] = [
     {
         name: 'keyword',
-        label: '模糊查询'
+        label: '模糊查询',
+        formItemProps: {
+            tooltip: '根据告警内容和告警实例名称模糊查询'
+        }
+    },
+    {
+        name: 'alarmLevelIds',
+        label: '告警等级',
+        id: 'alarmLevelIds',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                selectProps: {
+                    placeholder: '请选择告警级别',
+                    mode: 'multiple'
+                },
+                handleFetch: getLevels,
+                defaultOptions: []
+            }
+        }
+    },
+    {
+        name: 'eventAt',
+        label: '告警时间',
+        id: 'eventAt',
+        dataProps: {
+            type: 'time-range',
+            parentProps: {
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }
+        }
     }
 ]
 
