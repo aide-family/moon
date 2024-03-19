@@ -93,6 +93,9 @@ interface AlarmRealtimeListRequest {
     alarmPageId?: number
     startAt?: number
     endAt?: number
+    strategyIds?: number[]
+    alarmLevelIds?: number[]
+    eventAt?: [string, string]
 }
 
 interface AlarmRealtimeListResponse {

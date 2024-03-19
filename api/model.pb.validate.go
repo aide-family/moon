@@ -335,6 +335,10 @@ func (m *AlarmHistoryV1) validate(all bool) error {
 
 	// no validation rules for Duration
 
+	// no validation rules for Expr
+
+	// no validation rules for Datasource
+
 	if len(errors) > 0 {
 		return AlarmHistoryV1MultiError(errors)
 	}

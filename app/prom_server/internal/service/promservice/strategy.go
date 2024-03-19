@@ -141,6 +141,7 @@ func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStra
 	strategyBos, err := s.strategyBiz.SelectStrategy(ctx, &bo.SelectStrategyRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
+		Status:  vo.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

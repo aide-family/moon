@@ -14,6 +14,7 @@ import (
 type SelectStrategyRequest struct {
 	Page    Pagination
 	Keyword string
+	Status  vo.Status
 }
 
 type ExportStrategyRequest struct {

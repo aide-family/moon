@@ -55,21 +55,19 @@ export const CodeBox: React.FC<YmlCodeBoxProps> = ({ code, width }) => {
                 const keyV = getKeyValue(key)
                 if (!keyV) return null
                 return (
-                    <>
-                        <Paragraph
-                            key={keyV}
-                            ellipsis={{
-                                rows: 2,
-                                expandable: true,
-                                tooltip: value
-                                // symbol: 'more'
-                            }}
-                            style={{ width }}
-                        >
-                            <Text style={{ color: 'orangered' }}>{keyV}: </Text>
-                            {value}
-                        </Paragraph>
-                    </>
+                    <Paragraph
+                        key={keyV}
+                        ellipsis={{
+                            rows: 2,
+                            expandable: true,
+                            tooltip: value
+                            // symbol: 'more'
+                        }}
+                        style={{ width }}
+                    >
+                        <Text style={{ color: 'orangered' }}>{keyV}: </Text>
+                        {value}
+                    </Paragraph>
                 )
             })}
         </div>
@@ -88,7 +86,8 @@ const buildItems = (
         endAt,
         alarmStatus,
         annotations,
-        labels
+        labels,
+        id
     } = item
     const isResolved =
         alarmStatus === 'resolved'
@@ -98,18 +97,19 @@ const buildItems = (
     let note: React.ReactNode = '-'
     const annotationsKeys = Object.keys(annotations)
     if (annotationsKeys.length > 0) {
-        note = <CodeBox code={annotations} />
+        note = <CodeBox key={id + 'annotations'} code={annotations} />
     }
     let labelsBox: React.ReactNode = '-'
     const labelsKeys = Object.keys(labels)
     if (labelsKeys.length > 0) {
-        labelsBox = <CodeBox code={labels} width={600} />
+        labelsBox = <CodeBox key={id + 'labels'} code={labels} width={600} />
     }
 
     return [
         {
             label: '策略名称',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 3, xxl: 2 },
+            key: 'alarmName',
             children: (
                 <Button onClick={handler} type="link">
                     {alarmName}
@@ -119,6 +119,7 @@ const buildItems = (
         {
             label: '策略等级',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 1, xxl: 2 },
+            key: 'alarmLevel',
             children: (
                 <Badge
                     color={alarmLevel.color}
@@ -129,21 +130,25 @@ const buildItems = (
         },
         {
             label: '开始时间',
+            key: 'startAt',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 1 },
             children: dayjs(+startAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         },
         {
             label: '结束时间',
+            key: 'endAt',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 1 },
             children: dayjs(+endAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         },
         {
             label: '持续时间',
+            key: 'duration',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 1 },
             children: dayjs().diff(dayjs(+startAt * 1000), 'm') + 'm'
         },
         {
             label: '状态',
+            key: 'alarmStatus',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 1 },
             children: (
                 <Badge color={color} key={alarmStatus} text={alarmStatus} />
@@ -151,11 +156,13 @@ const buildItems = (
         },
         {
             label: '告警标签',
+            key: 'labels',
             span: { xs: 1, sm: 1, md: 2, lg: 2, xl: 4, xxl: 4 },
             children: labelsBox
         },
         {
             label: '告警内容',
+            key: 'annotations',
             span: { xs: 1, sm: 1, md: 2, lg: 2, xl: 4, xxl: 4 },
             children: note
         }

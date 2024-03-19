@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Alert, Button, List, Modal, Space, Tabs } from 'antd'
+import { Alert, Button, List, Modal, Space, Spin, Tabs } from 'antd'
 import dayjs from 'dayjs'
 import SearchForm, { DateDataType } from '@/components/Prom/SearchForm'
 import AreaStackGradient from '@/components/Prom/charts/area-stack-gradient/AreaStackGradient'
@@ -10,6 +10,7 @@ import { Duration } from '@/apis/types'
 
 import weekday from 'dayjs/plugin/weekday'
 import localeData from 'dayjs/plugin/localeData'
+import { HeightLine } from '../HeightLine'
 
 dayjs.extend(weekday)
 dayjs.extend(localeData)
@@ -24,6 +25,8 @@ export interface PromValueModalProps {
     eventAt?: number
     duration?: Duration
     endAt?: number
+    alert?: React.ReactNode | string
+    title?: React.ReactNode | string
 }
 
 export interface PromValue {
@@ -44,7 +47,9 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
         apiPath = 'api/v1',
         expr,
         height = 400,
-        endAt,
+        alert,
+        title,
+        endAt = dayjs().unix(),
         eventAt = dayjs().unix(),
         duration = {
             value: 1,
@@ -52,12 +57,8 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
         }
     } = props
 
-    const [startTime, setStartTime] = React.useState<number>(
-        eventAt || dayjs().unix()
-    )
-    const [endTime, setEndTime] = React.useState<number>(
-        endAt || eventAt || dayjs().unix()
-    )
+    const [startTime, setStartTime] = React.useState<number>(eventAt)
+    const [endTime, setEndTime] = React.useState<number>(endAt)
     const [resolution, setResolution] = React.useState<number>(14)
     const [data, setData] = React.useState<PromValue[]>([])
     const [tabKey, setTabKey] = React.useState<string>('table')
@@ -72,7 +73,7 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
             case 'graph':
                 setEndTime(endAt ?? dayjs().unix())
                 setStartTime(
-                    endAt
+                    !duration
                         ? eventAt
                         : dayjs(eventAt * 1000)
                               .subtract(
@@ -200,7 +201,15 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
             width="80%"
             footer={null}
             destroyOnClose
+            title={title}
         >
+            {alert ? (
+                <>
+                    {alert}
+                    <HeightLine />
+                </>
+            ) : null}
+
             <SearchForm
                 type={dateType}
                 onSearch={handleSearch}
@@ -314,7 +323,9 @@ const PromValueModal: React.FC<PromValueModalProps> = (props) => {
                                         message={err}
                                     />
                                 ) : (
-                                    renderGraph([...datasource])
+                                    <Spin spinning={loading}>
+                                        {renderGraph([...datasource])}
+                                    </Spin>
                                 )}
                             </div>
                         )

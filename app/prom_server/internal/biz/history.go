@@ -3,12 +3,12 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/universal/base/slices"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type (
@@ -18,6 +18,7 @@ type (
 		log *log.Helper
 
 		historyRepo      repository.HistoryRepo
+		alarmPageRepo    repository.PageRepo
 		msgRepo          repository.MsgRepo
 		strategyRepo     repository.StrategyRepo
 		alarmRealtimeBiz *AlarmRealtimeBiz
@@ -28,6 +29,7 @@ type (
 // NewHistoryBiz .
 func NewHistoryBiz(
 	historyRepo repository.HistoryRepo,
+	alarmPageRepo repository.PageRepo,
 	msgRepo repository.MsgRepo,
 	strategyRepo repository.StrategyRepo,
 	alarmRealtimeBiz *AlarmRealtimeBiz,
@@ -38,6 +40,7 @@ func NewHistoryBiz(
 		log: log.NewHelper(log.With(logger, "module", "biz.alarmHistory")),
 
 		historyRepo:      historyRepo,
+		alarmPageRepo:    alarmPageRepo,
 		msgRepo:          msgRepo,
 		strategyRepo:     strategyRepo,
 		alarmRealtimeBiz: alarmRealtimeBiz,
@@ -56,12 +59,27 @@ func (a *HistoryBiz) GetHistoryDetail(ctx context.Context, id uint32) (*bo.Alarm
 
 // ListHistory 查询历史列表
 func (a *HistoryBiz) ListHistory(ctx context.Context, req *bo.ListHistoryRequest) ([]*bo.AlarmHistoryBO, error) {
+	strategyIds := req.StrategyIds
+	if len(req.AlarmPageIds) > 0 {
+		pageStrategyIds, err := a.alarmPageRepo.GetStrategyIds(ctx, do.StrategyInAlarmPageIds(req.AlarmPageIds...))
+		if err != nil {
+			return nil, err
+		}
+		strategyIds = append(strategyIds, pageStrategyIds...)
+	}
+	strategyIds = slices.MergeUnique(strategyIds)
+
 	scopes := []basescopes.ScopeMethod{
-		do.PromAlarmHistoryLikeInstance(req.Keyword),
-		do.PromAlarmHistoryTimeRange(req.StartAt, req.EndAt),
+		do.PromAlarmHistoryLikeInfo(req.Keyword),
+		do.PromAlarmHistoryStartTimeRange(req.FiringStartAt, req.FiringEndAt),
+		do.PromAlarmHistoryEndTimeRange(req.ResolvedStartAt, req.ResolvedEndAt),
+		do.PromAlarmHistoryWhereInLevelID(req.AlarmLevelIds...),
+		do.PromAlarmHistoryWhereStatus(req.Status),
+		do.PromAlarmHistoryWhereDuration(req.Duration),
+		do.PromAlarmHistoryWhereInStrategyID(strategyIds...),
 		do.PromAlarmHistoryPreloadStrategy(),
 		do.PromAlarmHistoryPreloadLevel(),
-		basescopes.UpdateAtDesc(),
+		do.PromAlarmHistoryStartAtDesc(),
 		basescopes.CreatedAtDesc(),
 	}
 	historyList, err := a.historyRepo.ListHistory(ctx, req.Page, scopes...)

@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react'
 
 import type { FormInstance } from 'antd'
-import type { FormProps, Rule } from 'antd/es/form'
+import type { FormItemProps, FormProps, Rule } from 'antd/es/form'
 import type { DataInputProps } from '../DataInput/DataInput'
 
 import { Form, Col, Row } from 'antd'
@@ -15,6 +15,8 @@ export type SearchFormItem = {
     label: string
     dataProps?: DataInputProps
     rules?: Rule[]
+    formItemProps?: FormItemProps
+    id?: React.Key
 }
 
 export type SearchFormProps = {
@@ -34,6 +36,7 @@ const SearchForm: FC<SearchFormProps> = (props) => {
             name,
             label,
             rules,
+            formItemProps,
             dataProps = {
                 type: 'input',
                 parentProps: {
@@ -43,10 +46,11 @@ const SearchForm: FC<SearchFormProps> = (props) => {
         } = item
         return (
             <Form.Item
+                {...formItemProps}
                 name={name}
                 label={label}
                 rules={rules}
-                key={name}
+                key={name + label}
                 className={styles.Item}
             >
                 {props[name] || <DataInput {...dataProps} />}
@@ -55,9 +59,9 @@ const SearchForm: FC<SearchFormProps> = (props) => {
     }
 
     const renderFormItems = (items: SearchFormItem[]) => {
-        return items.map((item) => {
+        return items.map((item, index) => {
             return (
-                <Col xs={12} sm={12} md={8} lg={8} xl={6} xxl={4}>
+                <Col key={index} xs={24} sm={24} md={12} lg={12} xl={8} xxl={6}>
                     {renderFormItem(item)}
                 </Col>
             )

@@ -70,6 +70,10 @@ message AlarmHistoryV1 {
   int64 endAt = 9;
   // 持续时间
   string duration = 10;
+  // 告警规则
+  string expr = 11;
+  // 数据源
+  string datasource = 12;
 }
 
 // 字典基础类型

@@ -60,6 +60,11 @@ func (s AlarmStatus) IsFiring() bool {
 	return s == AlarmStatusAlarm
 }
 
+// IsUnknown 是否未知
+func (s AlarmStatus) IsUnknown() bool {
+	return s == AlarmStatusUnknown
+}
+
 // ToAlarmStatus 转换为AlarmStatus
 func ToAlarmStatus(status string) AlarmStatus {
 	switch status {

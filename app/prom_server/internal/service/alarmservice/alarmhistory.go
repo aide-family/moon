@@ -8,6 +8,7 @@ import (
 	pb "prometheus-manager/api/server/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type HistoryService struct {
@@ -38,12 +39,20 @@ func (s *HistoryService) GetHistory(ctx context.Context, req *pb.GetHistoryReque
 
 func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryRequest) (*pb.ListHistoryReply, error) {
 	pgInfo := bo.NewPage(req.GetPage().GetCurr(), req.GetPage().GetSize())
-	historyList, err := s.historyBiz.ListHistory(ctx, &bo.ListHistoryRequest{
-		Page:    pgInfo,
-		Keyword: req.GetKeyword(),
-		StartAt: req.GetStartAt(),
-		EndAt:   req.GetEndAt(),
-	})
+	listReq := &bo.ListHistoryRequest{
+		Page:            pgInfo,
+		Keyword:         req.GetKeyword(),
+		FiringStartAt:   req.GetFiringStartAt(),
+		FiringEndAt:     req.GetFiringEndAt(),
+		ResolvedStartAt: req.GetResolvedStartAt(),
+		ResolvedEndAt:   req.GetResolvedEndAt(),
+		Status:          vo.AlarmStatus(req.GetStatus()),
+		AlarmPageIds:    req.GetAlarmPages(),
+		StrategyIds:     req.GetStrategyIds(),
+		AlarmLevelIds:   req.GetAlarmLevelIds(),
+		Duration:        req.GetDuration(),
+	}
+	historyList, err := s.historyBiz.ListHistory(ctx, listReq)
 	if err != nil {
 		return nil, err
 	}

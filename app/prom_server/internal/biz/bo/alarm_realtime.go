@@ -20,6 +20,10 @@ type (
 		Keyword     string         `json:"keyword"`
 		Status      vo.AlarmStatus `json:"status"`
 		AlarmPageId uint32         `json:"alarm_page_id"`
+		StrategyIds []uint32       `json:"strategyIds"`
+		LevelIds    []uint32       `json:"levelIds"`
+		StartAt     int64          `json:"startAt"`
+		EndAt       int64          `json:"endAt"`
 	}
 	AlarmRealtimeBO struct {
 		ID                   uint32                            `json:"id"`

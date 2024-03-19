@@ -1043,6 +1043,8 @@ type SelectStrategyRequest struct {
 	Page *api.PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	// 关键字, 可选, 长度限制: 0-255, 用于模糊查询
 	Keyword string `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	// 状态
+	Status api.Status `protobuf:"varint,3,opt,name=status,proto3,enum=api.Status" json:"status,omitempty"`
 }
 
 func (x *SelectStrategyRequest) Reset() {
@@ -1089,6 +1091,13 @@ func (x *SelectStrategyRequest) GetKeyword() string {
 		return x.Keyword
 	}
 	return ""
+}
+
+func (x *SelectStrategyRequest) GetStatus() api.Status {
+	if x != nil {
+		return x.Status
+	}
+	return api.Status(0)
 }
 
 // 获取策略列表响应参数
@@ -1662,13 +1671,16 @@ var file_server_prom_strategy_strategy_proto_rawDesc = []byte{
 	0x65, 0x70, 0x6c, 0x79, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x27, 0x0a, 0x04, 0x6c, 0x69,
 	0x73, 0x74, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50,
 	0x72, 0x6f, 0x6d, 0x53, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x56, 0x31, 0x52, 0x04, 0x6c,
-	0x69, 0x73, 0x74, 0x22, 0x6b, 0x0a, 0x15, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x53, 0x74, 0x72,
-	0x61, 0x74, 0x65, 0x67, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2e, 0x0a, 0x04,
-	0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x61, 0x70, 0x69,
-	0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x42, 0x08, 0xfa, 0x42,
-	0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x22, 0x0a, 0x07,
-	0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xfa,
-	0x42, 0x05, 0x72, 0x03, 0x18, 0xff, 0x01, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64,
+	0x69, 0x73, 0x74, 0x22, 0x9a, 0x01, 0x0a, 0x15, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x53, 0x74,
+	0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2e, 0x0a,
+	0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x42, 0x08, 0xfa,
+	0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x22, 0x0a,
+	0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
+	0xfa, 0x42, 0x05, 0x72, 0x03, 0x18, 0xff, 0x01, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72,
+	0x64, 0x12, 0x2d, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x0b, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x08,
+	0xfa, 0x42, 0x05, 0x82, 0x01, 0x02, 0x10, 0x01, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
 	0x22, 0x68, 0x0a, 0x13, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x53, 0x74, 0x72, 0x61, 0x74, 0x65,
 	0x67, 0x79, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x22, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x50, 0x61, 0x67, 0x65,
@@ -1893,37 +1905,38 @@ var file_server_prom_strategy_strategy_proto_depIdxs = []int32{
 	30, // 14: api.server.prom.strategy.ListStrategyReply.page:type_name -> api.PageReply
 	28, // 15: api.server.prom.strategy.ListStrategyReply.list:type_name -> api.PromStrategyV1
 	29, // 16: api.server.prom.strategy.SelectStrategyRequest.page:type_name -> api.PageRequest
-	30, // 17: api.server.prom.strategy.SelectStrategyReply.page:type_name -> api.PageReply
-	31, // 18: api.server.prom.strategy.SelectStrategyReply.list:type_name -> api.PromStrategySelectV1
-	28, // 19: api.server.prom.strategy.GetStrategyNotifyObjectReply.detail:type_name -> api.PromStrategyV1
-	32, // 20: api.server.prom.strategy.GetStrategyNotifyObjectReply.notifyObjectList:type_name -> api.NotifyV1
-	0,  // 21: api.server.prom.strategy.Strategy.CreateStrategy:input_type -> api.server.prom.strategy.CreateStrategyRequest
-	2,  // 22: api.server.prom.strategy.Strategy.UpdateStrategy:input_type -> api.server.prom.strategy.UpdateStrategyRequest
-	4,  // 23: api.server.prom.strategy.Strategy.BatchUpdateStrategyStatus:input_type -> api.server.prom.strategy.BatchUpdateStrategyStatusRequest
-	6,  // 24: api.server.prom.strategy.Strategy.DeleteStrategy:input_type -> api.server.prom.strategy.DeleteStrategyRequest
-	8,  // 25: api.server.prom.strategy.Strategy.BatchDeleteStrategy:input_type -> api.server.prom.strategy.BatchDeleteStrategyRequest
-	10, // 26: api.server.prom.strategy.Strategy.GetStrategy:input_type -> api.server.prom.strategy.GetStrategyRequest
-	12, // 27: api.server.prom.strategy.Strategy.ListStrategy:input_type -> api.server.prom.strategy.ListStrategyRequest
-	14, // 28: api.server.prom.strategy.Strategy.SelectStrategy:input_type -> api.server.prom.strategy.SelectStrategyRequest
-	16, // 29: api.server.prom.strategy.Strategy.ExportStrategy:input_type -> api.server.prom.strategy.ExportStrategyRequest
-	18, // 30: api.server.prom.strategy.Strategy.GetStrategyNotifyObject:input_type -> api.server.prom.strategy.GetStrategyNotifyObjectRequest
-	20, // 31: api.server.prom.strategy.Strategy.BindStrategyNotifyObject:input_type -> api.server.prom.strategy.BindStrategyNotifyObjectRequest
-	1,  // 32: api.server.prom.strategy.Strategy.CreateStrategy:output_type -> api.server.prom.strategy.CreateStrategyReply
-	3,  // 33: api.server.prom.strategy.Strategy.UpdateStrategy:output_type -> api.server.prom.strategy.UpdateStrategyReply
-	5,  // 34: api.server.prom.strategy.Strategy.BatchUpdateStrategyStatus:output_type -> api.server.prom.strategy.BatchUpdateStrategyStatusReply
-	7,  // 35: api.server.prom.strategy.Strategy.DeleteStrategy:output_type -> api.server.prom.strategy.DeleteStrategyReply
-	9,  // 36: api.server.prom.strategy.Strategy.BatchDeleteStrategy:output_type -> api.server.prom.strategy.BatchDeleteStrategyReply
-	11, // 37: api.server.prom.strategy.Strategy.GetStrategy:output_type -> api.server.prom.strategy.GetStrategyReply
-	13, // 38: api.server.prom.strategy.Strategy.ListStrategy:output_type -> api.server.prom.strategy.ListStrategyReply
-	15, // 39: api.server.prom.strategy.Strategy.SelectStrategy:output_type -> api.server.prom.strategy.SelectStrategyReply
-	17, // 40: api.server.prom.strategy.Strategy.ExportStrategy:output_type -> api.server.prom.strategy.ExportStrategyReply
-	19, // 41: api.server.prom.strategy.Strategy.GetStrategyNotifyObject:output_type -> api.server.prom.strategy.GetStrategyNotifyObjectReply
-	21, // 42: api.server.prom.strategy.Strategy.BindStrategyNotifyObject:output_type -> api.server.prom.strategy.BindStrategyNotifyObjectReply
-	32, // [32:43] is the sub-list for method output_type
-	21, // [21:32] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	27, // 17: api.server.prom.strategy.SelectStrategyRequest.status:type_name -> api.Status
+	30, // 18: api.server.prom.strategy.SelectStrategyReply.page:type_name -> api.PageReply
+	31, // 19: api.server.prom.strategy.SelectStrategyReply.list:type_name -> api.PromStrategySelectV1
+	28, // 20: api.server.prom.strategy.GetStrategyNotifyObjectReply.detail:type_name -> api.PromStrategyV1
+	32, // 21: api.server.prom.strategy.GetStrategyNotifyObjectReply.notifyObjectList:type_name -> api.NotifyV1
+	0,  // 22: api.server.prom.strategy.Strategy.CreateStrategy:input_type -> api.server.prom.strategy.CreateStrategyRequest
+	2,  // 23: api.server.prom.strategy.Strategy.UpdateStrategy:input_type -> api.server.prom.strategy.UpdateStrategyRequest
+	4,  // 24: api.server.prom.strategy.Strategy.BatchUpdateStrategyStatus:input_type -> api.server.prom.strategy.BatchUpdateStrategyStatusRequest
+	6,  // 25: api.server.prom.strategy.Strategy.DeleteStrategy:input_type -> api.server.prom.strategy.DeleteStrategyRequest
+	8,  // 26: api.server.prom.strategy.Strategy.BatchDeleteStrategy:input_type -> api.server.prom.strategy.BatchDeleteStrategyRequest
+	10, // 27: api.server.prom.strategy.Strategy.GetStrategy:input_type -> api.server.prom.strategy.GetStrategyRequest
+	12, // 28: api.server.prom.strategy.Strategy.ListStrategy:input_type -> api.server.prom.strategy.ListStrategyRequest
+	14, // 29: api.server.prom.strategy.Strategy.SelectStrategy:input_type -> api.server.prom.strategy.SelectStrategyRequest
+	16, // 30: api.server.prom.strategy.Strategy.ExportStrategy:input_type -> api.server.prom.strategy.ExportStrategyRequest
+	18, // 31: api.server.prom.strategy.Strategy.GetStrategyNotifyObject:input_type -> api.server.prom.strategy.GetStrategyNotifyObjectRequest
+	20, // 32: api.server.prom.strategy.Strategy.BindStrategyNotifyObject:input_type -> api.server.prom.strategy.BindStrategyNotifyObjectRequest
+	1,  // 33: api.server.prom.strategy.Strategy.CreateStrategy:output_type -> api.server.prom.strategy.CreateStrategyReply
+	3,  // 34: api.server.prom.strategy.Strategy.UpdateStrategy:output_type -> api.server.prom.strategy.UpdateStrategyReply
+	5,  // 35: api.server.prom.strategy.Strategy.BatchUpdateStrategyStatus:output_type -> api.server.prom.strategy.BatchUpdateStrategyStatusReply
+	7,  // 36: api.server.prom.strategy.Strategy.DeleteStrategy:output_type -> api.server.prom.strategy.DeleteStrategyReply
+	9,  // 37: api.server.prom.strategy.Strategy.BatchDeleteStrategy:output_type -> api.server.prom.strategy.BatchDeleteStrategyReply
+	11, // 38: api.server.prom.strategy.Strategy.GetStrategy:output_type -> api.server.prom.strategy.GetStrategyReply
+	13, // 39: api.server.prom.strategy.Strategy.ListStrategy:output_type -> api.server.prom.strategy.ListStrategyReply
+	15, // 40: api.server.prom.strategy.Strategy.SelectStrategy:output_type -> api.server.prom.strategy.SelectStrategyReply
+	17, // 41: api.server.prom.strategy.Strategy.ExportStrategy:output_type -> api.server.prom.strategy.ExportStrategyReply
+	19, // 42: api.server.prom.strategy.Strategy.GetStrategyNotifyObject:output_type -> api.server.prom.strategy.GetStrategyNotifyObjectReply
+	21, // 43: api.server.prom.strategy.Strategy.BindStrategyNotifyObject:output_type -> api.server.prom.strategy.BindStrategyNotifyObjectReply
+	33, // [33:44] is the sub-list for method output_type
+	22, // [22:33] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_server_prom_strategy_strategy_proto_init() }

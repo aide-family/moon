@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/universal/base/slices"
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -49,14 +50,20 @@ func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, req *bo.ListReal
 	if len(strategyIds) == 0 {
 		return []*bo.AlarmRealtimeBO{}, nil
 	}
+
+	// 去重
+	strategyIds = slices.MergeUnique(append(strategyIds, req.StrategyIds...))
+
 	wheres := []basescopes.ScopeMethod{
 		do.PromAlarmRealtimeLike(req.Keyword),
+		do.PromAlarmRealtimeInLevelIds(req.LevelIds...),
+		do.PromAlarmRealtimeInStrategyIds(strategyIds...),
+		do.PromAlarmRealtimeBetweenEventAt(req.StartAt, req.EndAt),
+		// 还在告警的数据
+		basescopes.StatusEQ(vo.StatusEnabled),
 		do.PromAlarmRealtimeEventAtDesc(),
 		//预加载告警等级
 		do.PromAlarmRealtimePreloadLevel(),
-		do.PromAlarmRealtimeInStrategyIds(strategyIds...),
-		// 还在告警的数据
-		basescopes.StatusEQ(vo.StatusEnabled),
 		do.PromAlarmRealtimePreloadStrategy(),
 	}
 	return l.realtimeRepo.GetRealtimeList(ctx, req.Page, wheres...)

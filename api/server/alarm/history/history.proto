@@ -48,13 +48,23 @@ message ListHistoryRequest {
 	// 关键字
 	string keyword = 2;
 	// 报警状态, 对应PromDictV1 id
-	repeated uint32 statusList = 3;
+	Status status = 3 [(validate.rules).enum = {defined_only: true}];
 	// 报警页面, 对应AlarmPageV1 id
 	repeated uint32 alarmPages = 4;
 	// 开始时间, unix时间戳
-	int64 startAt = 5;
+	int64 firingStartAt = 5;
 	// 结束时间, unix时间戳
-	int64 endAt = 6;
+	int64 firingEndAt = 6;
+	// 报警等级
+	repeated uint32 alarmLevelIds = 7;
+	// 告警策略
+	repeated uint32 strategyIds = 8;
+	// 恢复开始时间
+	int64 resolvedStartAt = 9;
+	// 恢复结束时间
+	int64 resolvedEndAt = 10;
+	// 持续时间
+	int64 duration = 11 [(validate.rules).int64.gte = 0];
 }
 // 获取报警历史列表响应参数
 message ListHistoryReply {
