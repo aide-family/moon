@@ -2,7 +2,7 @@ import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import { AlarmPageItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Badge, Form, Tabs, Tag, message } from 'antd'
+import { Alert, Badge, Form, Tabs, Tag, message } from 'antd'
 import { FC, useContext, useEffect, useState } from 'react'
 import {
     columns,
@@ -25,6 +25,8 @@ import PromValueModal from '@/components/Prom/PromValueModal'
 import dayjs from 'dayjs'
 import alarmHistoryApi from '@/apis/home/monitor/alarm-history'
 
+const article = '默认展示告警时间前一小时到告警恢复时间段内的数据'
+
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
@@ -45,7 +47,8 @@ const AlarmRealtime: FC = () => {
     const [openEditModal, setOpenEditModal] = useState<boolean>(false)
     const [openAlarmRealtimeValue, setOpenAlarmRealtimeValue] =
         useState<boolean>(false)
-    const [recoder, setRecoder] = useState<AlarmRealtimeItem>()
+    const [alarmRealtimeItem, setAlarmRealtimeItem] =
+        useState<AlarmRealtimeItem>()
 
     const handleCloseAlarmRealtimeValue = () => {
         setOpenAlarmRealtimeValue(false)
@@ -53,7 +56,7 @@ const AlarmRealtime: FC = () => {
 
     const handleOpenAlarmRealtimeValue = (record: AlarmRealtimeItem) => {
         setOpenAlarmRealtimeValue(true)
-        setRecoder(record)
+        setAlarmRealtimeItem(record)
     }
 
     const handleRefresh = () => {
@@ -170,10 +173,13 @@ const AlarmRealtime: FC = () => {
     ) => {
         switch (action) {
             case ActionKey.ALARM_EVENT_CHART:
-                if (!recoder || !recoder.historyId) return
+                if (!record || !record.historyId) {
+                    message.warning('请先选择告警记录')
+                    return
+                }
                 // 查询告警历史
                 alarmHistoryApi
-                    .getAlarmHistoryDetail({ id: recoder?.historyId })
+                    .getAlarmHistoryDetail({ id: record?.historyId })
                     .then(({ alarmHistory }) => {
                         if (!alarmHistory.expr || !alarmHistory.datasource) {
                             message.warning('无数据源可查看')
@@ -259,10 +265,21 @@ const AlarmRealtime: FC = () => {
             <PromValueModal
                 visible={openAlarmRealtimeValue}
                 onCancel={handleCloseAlarmRealtimeValue}
-                pathPrefix={recoder?.datasource || ''}
-                expr={recoder?.expr}
+                pathPrefix={alarmRealtimeItem?.datasource || ''}
+                expr={alarmRealtimeItem?.expr}
                 height={400}
-                eventAt={recoder?.eventAt}
+                eventAt={alarmRealtimeItem?.eventAt}
+                alert={
+                    <Alert
+                        style={{ width: '96%' }}
+                        message={article}
+                        type="info"
+                        showIcon
+                    />
+                }
+                title={`${alarmRealtimeItem?.strategy?.alert}: ${dayjs(
+                    +(alarmRealtimeItem?.eventAt || 0) * 1000
+                ).format('YYYY-MM-DD HH:mm:ss')}`}
             />
             <EditAlarmPageModal
                 open={openEditModal}
