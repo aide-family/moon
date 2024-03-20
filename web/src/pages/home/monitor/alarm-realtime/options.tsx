@@ -15,6 +15,7 @@ import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
 import { ColumnType } from 'antd/es/table'
 import { getLevels } from '../strategy/options'
 import { SearchFormItem } from '@/components/Data/SearchForm/SearchForm'
+import { CodeBox } from '../alarm-history/child/Detail'
 
 export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
     page: {
@@ -93,19 +94,13 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
         dataIndex: 'note',
         hidden: hiddenMap['note'],
         ellipsis: true,
-        render: (note: string) => {
-            let result: any = null
+        render: (note: string, record) => {
+            let result: any
             try {
                 const annotations = JSON.parse(note)
-                result = Object.keys(annotations).map((key) => {
-                    const value = annotations[key]
-                    return (
-                        <div key={key}>
-                            <span style={{ color: 'orangered' }}>{key}: </span>
-                            <span>{value}</span>
-                        </div>
-                    )
-                })
+                result = (
+                    <CodeBox key={record.id + 'table'} code={annotations} />
+                )
             } catch (error) {
                 result = note
             }

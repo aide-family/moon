@@ -43,7 +43,14 @@ export const searchFormItems: SearchFormItem[] = [
         name: 'firingTime',
         label: '告警时间',
         formItemProps: {
-            tooltip: '即告警开始时刻的时间范围'
+            initialValue: [dayjs().add(-30, 'day'), dayjs()],
+            tooltip: (
+                <>
+                    即告警开始时刻的时间范围
+                    <br />
+                    默认近三十天的告警数据
+                </>
+            )
         },
         dataProps: {
             type: 'time-range',
@@ -127,7 +134,7 @@ export const searchFormItems: SearchFormItem[] = [
                     },
                     {
                         label: '1m以内',
-                        value: 1 * 60
+                        value: 60
                     },
                     {
                         label: '5m以内',
