@@ -61,7 +61,7 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		App:      b.NotifyApp.Value(),
 		HookName: b.HookName,
 		Template: b.Template,
-		Secret:   b.Secret,
+		Secret:   "******",
 	}
 }
 
