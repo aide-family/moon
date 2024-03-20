@@ -30,7 +30,6 @@ type PromAlarmChatGroup struct {
 	HookName  string       `gorm:"column:hook_name;type:varchar(64);not null;comment:钩子名称"`
 	// 消息模板
 	Template string `gorm:"column:template;type:text;not null;comment:消息模板"`
-	Title    string `gorm:"column:title;type:varchar(64);not null;comment:消息标题"`
 	Secret   string `gorm:"column:secret;type:varchar(128);not null;comment:通信密钥"`
 	// 创建人ID
 	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`

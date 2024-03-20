@@ -90,7 +90,7 @@ func (a *HistoryBiz) ListHistory(ctx context.Context, req *bo.ListHistoryRequest
 }
 
 // HandleHistory 维护告警数据
-func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
+func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHistoryBO) ([]*bo.AlarmHistoryBO, error) {
 	if len(historyBO) == 0 {
 		return nil, nil
 	}
@@ -160,7 +160,7 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, hookBytes []byte, histor
 		})
 	}
 	// 发送告警
-	if err = a.msgRepo.SendAlarm(ctx, hookBytes, alarmMsgList...); err != nil {
+	if err = a.msgRepo.SendAlarm(ctx, alarmMsgList...); err != nil {
 		return nil, err
 	}
 

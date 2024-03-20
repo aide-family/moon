@@ -10,7 +10,12 @@ import { ColumnGroupType, ColumnType } from 'antd/es/table'
 
 export const defaultPadding = 12
 
-export const rightOptions: DataOptionItem[] = []
+export const rightOptions: DataOptionItem[] = [
+    {
+        key: ActionKey.REFRESH,
+        label: <Button type="primary">刷新</Button>
+    }
+]
 
 export const leftOptions: DataOptionItem[] = []
 

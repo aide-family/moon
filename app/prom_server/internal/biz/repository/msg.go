@@ -15,7 +15,7 @@ type (
 	MsgRepo interface {
 		mustEmbedUnimplemented()
 		// SendAlarm 发送告警消息
-		SendAlarm(ctx context.Context, hookBytes []byte, req ...*bo.AlarmMsgBo) error
+		SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) error
 	}
 
 	UnimplementedMsgRepo struct{}
@@ -23,6 +23,6 @@ type (
 
 func (UnimplementedMsgRepo) mustEmbedUnimplemented() {}
 
-func (UnimplementedMsgRepo) SendAlarm(_ context.Context, _ []byte, _ ...*bo.AlarmMsgBo) error {
+func (UnimplementedMsgRepo) SendAlarm(_ context.Context, _ ...*bo.AlarmMsgBo) error {
 	return status.Error(codes.Unimplemented, "method SendAlarm not implemented")
 }

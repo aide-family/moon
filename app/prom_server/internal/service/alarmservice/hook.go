@@ -2,7 +2,6 @@ package alarmservice
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-kratos/kratos/v2/log"
 	pb "prometheus-manager/api/alarm/hook"
@@ -29,7 +28,6 @@ func NewHookService(historyBiz *biz.HistoryBiz, logger log.Logger) *HookService 
 }
 
 func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1Reply, error) {
-	hookBytes, _ := json.Marshal(req)
 	alertList := req.GetAlerts()
 	historyBos := make([]*bo.AlarmHistoryBO, 0, len(alertList))
 	for _, alert := range alertList {
@@ -63,7 +61,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			},
 		})
 	}
-	_, err := s.historyBiz.HandleHistory(ctx, hookBytes, historyBos...)
+	_, err := s.historyBiz.HandleHistory(ctx, historyBos...)
 	if err != nil {
 		return nil, err
 	}

@@ -315,8 +315,6 @@ message ChatGroup {
   string hookName = 9;
   // 消息模板
   string template = 10;
-  // 消息标题
-  string title = 11;
   // 密钥
   string secret = 12;
 }

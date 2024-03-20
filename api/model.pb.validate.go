@@ -2020,8 +2020,6 @@ func (m *ChatGroup) validate(all bool) error {
 
 	// no validation rules for Template
 
-	// no validation rules for Title
-
 	// no validation rules for Secret
 
 	if len(errors) > 0 {
