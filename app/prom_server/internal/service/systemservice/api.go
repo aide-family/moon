@@ -112,7 +112,7 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 	}
 	return &pb.ListApiReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
@@ -137,7 +137,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 	}
 	return &pb.SelectApiReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},

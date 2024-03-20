@@ -210,7 +210,11 @@ const StrategyGroup: React.FC = () => {
             clearTimeout(timer)
         }
         timer = setTimeout(() => {
-            setSearch({ ...search, ...allValues })
+            setSearch({
+                ...search,
+                ...allValues,
+                page: defaultStrategyGroupListRequest.page
+            })
         }, 500)
     }
 

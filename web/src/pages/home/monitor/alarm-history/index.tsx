@@ -112,6 +112,8 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
         const val: AlarmHistoryListRequest = {
             ...reqParams,
             ...values,
+            // 条件变更重置分页参数
+            page: defaultAlarmHistoryListRequest.page,
             firingStartAt:
                 values.firingTime && dayjs(values.firingTime[0]).unix(),
             firingEndAt:

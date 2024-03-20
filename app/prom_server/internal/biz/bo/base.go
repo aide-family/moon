@@ -11,6 +11,7 @@ var _ Pagination = (*pageImpl)(nil)
 
 type Pagination interface {
 	GetCurr() int32
+	GetRespCurr() int32
 	GetSize() int32
 	SetTotal(total int64)
 	GetTotal() int64
@@ -46,6 +47,17 @@ func (p *pageImpl) GetCurr() int32 {
 		curr = p.Curr
 	}
 	return curr - 1
+}
+
+func (p *pageImpl) GetRespCurr() int32 {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+	total := p.GetTotal()
+	size := p.GetSize()
+	if total < int64(size) {
+		return 1
+	}
+	return p.GetCurr() + 1
 }
 
 func (p *pageImpl) GetSize() int32 {

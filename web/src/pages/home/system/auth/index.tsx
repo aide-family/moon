@@ -158,7 +158,11 @@ const Auth: FC = () => {
         timer = setTimeout(() => {
             setSearch({
                 ...search,
-                ...changedValues
+                ...changedValues,
+                page: {
+                    curr: 1,
+                    size: 10
+                }
             })
         }, 500)
     }

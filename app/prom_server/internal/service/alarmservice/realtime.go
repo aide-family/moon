@@ -60,7 +60,7 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 	}
 	return &pb.ListRealtimeReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},

@@ -214,11 +214,12 @@ const AlarmRealtime: FC = () => {
     const handlerSearFormValuesChange = (_: any, allValues: any) => {
         delete allValues.startAt
         delete allValues.endAt
-        let requestValues = {
+        let requestValues: AlarmRealtimeListRequest = {
             ...queryParams,
             ...allValues,
             startAt: allValues.eventAt && dayjs(allValues.eventAt[0]).unix(),
-            endAt: allValues.eventAt && dayjs(allValues.eventAt[1]).unix()
+            endAt: allValues.eventAt && dayjs(allValues.eventAt[1]).unix(),
+            page: defaultAlarmRealtimeListRequest.page
         }
         delete requestValues.eventAt
         setQueryParams(requestValues)

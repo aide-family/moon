@@ -127,7 +127,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 	})
 	return &pb.ListNotifyReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
@@ -153,7 +153,7 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 	})
 	return &pb.SelectNotifyReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
