@@ -87,6 +87,7 @@ const buildItems = (
         alarmStatus,
         annotations,
         labels,
+        duration,
         id
     } = item
     const isResolved =
@@ -144,7 +145,7 @@ const buildItems = (
             label: '持续时间',
             key: 'duration',
             span: { xs: 1, sm: 1, md: 1, lg: 1, xl: 2, xxl: 1 },
-            children: dayjs().diff(dayjs(+startAt * 1000), 'm') + 'm'
+            children: duration
         },
         {
             label: '状态',

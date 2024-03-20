@@ -39,6 +39,7 @@ const getTimeRange = (params: AlarmHistoryListRequest) => {
 const article =
     '默认展示告警时间前一小时到告警恢复时间段内的数据，如果告警未恢复，则展示告警时间到当前时刻的数据'
 
+let timer: NodeJS.Timeout | null = null
 const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     const {} = props
     const { sysTheme } = useContext(GlobalContext)
@@ -66,21 +67,41 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
     }
 
     const getHistory = () => {
-        setLoading(true)
-        alarmHistoryApi
-            .getAlarmHistoryList(reqParams)
-            .then((res) => {
-                const {
-                    list,
-                    page: { total }
-                } = res
-                setDatasource(list)
-
-                setDataTotal(total)
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(() => {
+            setLoading(true)
+            alarmHistoryApi
+                .getAlarmHistoryList(reqParams)
+                .then((res) => {
+                    const {
+                        list,
+                        page: { total, curr, size }
+                    } = res
+                    setDatasource(list)
+                    setDataTotal(total)
+                    if (
+                        reqParams.page.curr !== curr ||
+                        reqParams.page.size !== size
+                    ) {
+                        setReqParams({
+                            ...reqParams,
+                            page: {
+                                curr:
+                                    curr ||
+                                    defaultAlarmHistoryListRequest.page.curr,
+                                size:
+                                    size ||
+                                    defaultAlarmHistoryListRequest.page.size
+                            }
+                        })
+                    }
+                })
+                .finally(() => {
+                    setLoading(false)
+                })
+        }, 500)
     }
 
     const handlerSearFormValuesChange = (_: any, values: any) => {
@@ -112,10 +133,6 @@ const AlarmHistory: React.FC<AlarmHistoryProps> = (props) => {
                 break
             case ActionKey.RESET:
                 setReqParams(defaultAlarmHistoryListRequest)
-                queryForm.setFieldsValue({
-                    ...defaultAlarmHistoryListRequest,
-                    time_range: getTimeRange(defaultAlarmHistoryListRequest)
-                })
                 break
         }
     }
