@@ -76,7 +76,8 @@ const AlarmPage: FC = () => {
         timer = setTimeout(() => {
             setSearchRequest({
                 ...searchRequest,
-                ...allValues
+                ...allValues,
+                page: defaultListAlarmPageRequest.page
             })
         }, 500)
     }

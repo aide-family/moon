@@ -118,7 +118,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	}
 	return &pb.ListGroupReply{
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
@@ -198,7 +198,7 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 			return t.ToApiSelectV1()
 		}),
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},

@@ -219,7 +219,8 @@ const Customer: FC = () => {
             setSearch({
                 ...search,
                 ...changedValues,
-                ...allValues
+                ...allValues,
+                page: defaultSearchParams.page
             })
         }, 500)
     }

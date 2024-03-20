@@ -124,7 +124,8 @@ const Endpoint: React.FC = () => {
     const handlerSearFormValuesChange = (changedValues: any) => {
         setSearch({
             ...search,
-            ...changedValues
+            ...changedValues,
+            page: defaultListEndpointRequest.page
         })
     }
 

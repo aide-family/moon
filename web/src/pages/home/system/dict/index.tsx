@@ -159,7 +159,11 @@ const Dict: FC = () => {
             setSearch({
                 ...search,
                 ...changedValues,
-                ...allValues
+                ...allValues,
+                page: {
+                    curr: 1,
+                    size: 10
+                }
             })
         }, 500)
     }

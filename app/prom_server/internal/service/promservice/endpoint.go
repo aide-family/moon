@@ -109,7 +109,7 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 	}
 	return &pb.ListEndpointReply{
 		Page: &api.PageReply{
-			Curr:  pageInfo.GetCurr(),
+			Curr:  pageInfo.GetRespCurr(),
 			Size:  pageInfo.GetSize(),
 			Total: pageInfo.GetTotal(),
 		},
@@ -135,7 +135,7 @@ func (s *EndpointService) SelectEndpoint(ctx context.Context, req *pb.SelectEndp
 	}
 	return &pb.SelectEndpointReply{
 		Page: &api.PageReply{
-			Curr:  pageInfo.GetCurr(),
+			Curr:  pageInfo.GetRespCurr(),
 			Size:  pageInfo.GetSize(),
 			Total: pageInfo.GetTotal(),
 		},

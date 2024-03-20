@@ -111,7 +111,7 @@ func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmP
 	return &pb.ListAlarmPageReply{
 		List: list,
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},
@@ -135,7 +135,7 @@ func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAl
 	return &pb.SelectAlarmPageReply{
 		List: list,
 		Page: &api.PageReply{
-			Curr:  pgInfo.GetCurr(),
+			Curr:  pgInfo.GetRespCurr(),
 			Size:  pgInfo.GetSize(),
 			Total: pgInfo.GetTotal(),
 		},

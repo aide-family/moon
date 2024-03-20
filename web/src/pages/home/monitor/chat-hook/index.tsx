@@ -143,7 +143,8 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     const handlerSearchFormValuesChange = (_: any, allValues: any) => {
         setSearchRequest({
             ...searchRequest,
-            ...allValues
+            ...allValues,
+            page: defaultListChatGroupRequest.page
         })
     }
 

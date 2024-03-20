@@ -212,7 +212,8 @@ const Strategy: FC = () => {
     const handlerSearFormValuesChange = (_: any, allValues: any) => {
         setReqParams({
             ...reqParams,
-            ...allValues
+            ...allValues,
+            page: defaultStrategyListRequest.page
         })
         handlerRefresh()
     }
