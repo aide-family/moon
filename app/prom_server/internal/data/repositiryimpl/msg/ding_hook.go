@@ -1,8 +1,10 @@
 package msg
 
 import (
-	"encoding/json"
+	"context"
+	"io"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/pkg/httpx"
 )
 
@@ -10,45 +12,15 @@ var _ HookNotify = (*dingNotify)(nil)
 
 type dingNotify struct{}
 
-type (
-	DingMsg struct {
-		MsgType  string       `json:"msgtype"`
-		Markdown DingMarkdown `json:"markdown"`
-		At       DingAt       `json:"at"`
+func (l *dingNotify) Alarm(ctx context.Context, url string, msg *HookNotifyMsg) error {
+	response, err := httpx.NewHttpX().POSTWithContext(ctx, url, []byte(msg.Content))
+	body := response.Body
+	resBytes, err := io.ReadAll(body)
+	defer body.Close()
+	if err != nil {
+		return err
 	}
-
-	DingMarkdown struct {
-		Title string `json:"title"`
-		Text  string `json:"text"`
-	}
-
-	DingAt struct {
-		AtMobiles []string `json:"atMobiles"`
-		AtUserIds []string `json:"atUserIds"`
-		IsAtAll   bool     `json:"isAtAll"`
-	}
-)
-
-// Bytes DingMsg to bytes
-func (v *DingMsg) Bytes() []byte {
-	bs, _ := json.Marshal(v)
-	return bs
-}
-
-func (l *dingNotify) Alarm(url string, msg *HookNotifyMsg) error {
-	dingMsg := &DingMsg{
-		MsgType: markdown,
-		Markdown: DingMarkdown{
-			Title: msg.Title,
-			Text:  msg.Content,
-		},
-		At: DingAt{
-			AtMobiles: []string{},
-			AtUserIds: []string{},
-			IsAtAll:   false,
-		},
-	}
-	_, err := httpx.NewHttpX().POST(url, dingMsg.Bytes())
+	log.Debugw("notify", string(resBytes))
 	return err
 }
 

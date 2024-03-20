@@ -22,7 +22,7 @@ type msgRepoImpl struct {
 	d   *data.Data
 }
 
-func (l *msgRepoImpl) SendAlarm(_ context.Context, hookBytes []byte, req ...*bo.AlarmMsgBo) error {
+func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) error {
 	for _, v := range req {
 		if !l.cacheNotify(v.AlarmInfo) {
 			continue
@@ -30,7 +30,7 @@ func (l *msgRepoImpl) SendAlarm(_ context.Context, hookBytes []byte, req ...*bo.
 		// 遍历告警组
 		for _, v2 := range v.PromNotifies {
 			// 通知到群组
-			l.sendAlarmToChatGroups(hookBytes, v2.ChatGroups, v.AlarmInfo)
+			l.sendAlarmToChatGroups(ctx, v2.ChatGroups, v.AlarmInfo)
 		}
 	}
 	return nil
@@ -42,7 +42,7 @@ func (l *msgRepoImpl) cacheNotify(alarmInfo *bo.AlertBo) bool {
 	return l.d.Cache().SetNX(context.Background(), consts.AlarmNotifyCache.Key(fingerprint).String(), alarmInfo.Bytes(), 2*time.Hour)
 }
 
-func (l *msgRepoImpl) sendAlarmToChatGroups(hookBytes []byte, chatGroups []*bo.ChatGroupBO, alarmInfo *bo.AlertBo) {
+func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*bo.ChatGroupBO, alarmInfo *bo.AlertBo) {
 	eg := new(errgroup.Group)
 	eg.SetLimit(10)
 	content := alarmInfo.String()
@@ -60,20 +60,16 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(hookBytes []byte, chatGroups []*bo.C
 		chatInfo := *v
 		msg := &HookNotifyMsg{
 			Content:   content,
-			Title:     "",
 			AlarmInfo: alarmInfo,
-			HookBytes: hookBytes,
 			Secret:    chatInfo.Secret,
 		}
 		alarmInfoMap := alarmInfo.ToMap()
 		if chatInfo.Template != "" {
 			msg.Content = strategy.Formatter(chatInfo.Template, alarmInfoMap)
 		}
-		if chatInfo.Title != "" {
-			msg.Title = strategy.Formatter(chatInfo.Title, alarmInfoMap)
-		}
+
 		eg.Go(func() error {
-			return NewHookNotify(chatInfo.NotifyApp).Alarm(chatInfo.Hook, msg)
+			return NewHookNotify(chatInfo.NotifyApp).Alarm(ctx, chatInfo.Hook, msg)
 		})
 	}
 	if err := eg.Wait(); err != nil {

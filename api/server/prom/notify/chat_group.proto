@@ -55,6 +55,14 @@ service ChatGroup {
 			body: "*"
 		};
 	}
+
+	// 测试hook模板
+	rpc TestHookTemplate (TestHookTemplateRequest) returns (TestHookTemplateReply) {
+		option (google.api.http) = {
+			post: "/api/v1/chat/group/test"
+			body: "*"
+		};
+	}
 }
 
 // 创建通知群组请求参数
@@ -76,10 +84,6 @@ message CreateChatGroupRequest {
 	string hookName = 5 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
-	}];
-	// 告警文案标题， 支持模板语法
-	string title = 6 [(validate.rules).string = {
-		max_len: 64,
 	}];
 	// 告警文案模板, 支持模板语法
 	string template = 7;
@@ -107,10 +111,6 @@ message UpdateChatGroupRequest {
 	string hookName = 4 [(validate.rules).string = {
 		min_len: 2,
 		max_len: 32,
-	}];
-	// 告警文案标题， 支持模板语法
-	string title = 5 [(validate.rules).string = {
-		max_len: 64,
 	}];
 	// 告警文案模板, 支持模板语法
 	string template = 6;
@@ -175,4 +175,22 @@ message SelectChatGroupReply {
 	PageReply page = 1;
 	// 群组列表
 	repeated ChatGroupSelectV1 list = 2;
+}
+
+// 测试hook模板请求参数
+message TestHookTemplateRequest {
+	// 测试hook模板
+	string hook = 1 [(validate.rules).string.max_len = 255];
+	// APP
+	NotifyApp app = 2 [(validate.rules).enum.defined_only = true];
+	// 模板
+	string template = 3;
+	// secret , hook通知密钥
+	string secret = 8;
+	// ID, 如果传递了， 以这个ID为准
+	uint32 id = 4;
+}
+// 测试hook模板响应参数
+message TestHookTemplateReply {
+	string msg = 1;
 }

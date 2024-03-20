@@ -161,7 +161,9 @@ export enum ActionKey {
     /** 切换角色 */
     SWITCH_ROLE = '__switch_role__',
     /** 告警事件图表 */
-    ALARM_EVENT_CHART = '__alarm_event_chart__'
+    ALARM_EVENT_CHART = '__alarm_event_chart__',
+    /** 测试告警模板 */
+    TEST_ALARM_TEMPLATE = '__test_alarm_template__'
 }
 
 export {

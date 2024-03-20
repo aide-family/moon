@@ -1,13 +1,16 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Space } from 'antd'
+import { Button, Form, Modal, Space, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { addChatGroupItems, updateChatGroupItems } from '../options'
 import {
     ChatGroupItem,
     CreateChatGroupRequest,
+    TestHookTemplateResponse,
     UpdateChatGroupRequest
 } from '@/apis/home/monitor/chat-group/types'
 import chatGroupApi from '@/apis/home/monitor/chat-group'
+import { useWatch } from 'antd/es/form/Form'
+import { NotifyApp } from '@/apis/types'
 
 export interface EditChatGroupProps {
     chatGroupId?: number
@@ -16,9 +19,9 @@ export interface EditChatGroupProps {
     onOk: () => void
 }
 
-const getItems = (id?: number) => {
+const getItems = (app: NotifyApp, id?: number) => {
     if (id) return updateChatGroupItems
-    return addChatGroupItems
+    return addChatGroupItems(app)
 }
 
 const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
@@ -29,6 +32,7 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
     >()
     const [detail, setDetail] = useState<ChatGroupItem>()
     const [loading, setLoading] = useState(false)
+    const app = useWatch('app', form)
 
     const handleGetChatGroupDetail = () => {
         if (!chatGroupId) return
@@ -82,6 +86,27 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
         form.validateFields().then(handleSububmit)
     }
 
+    const handleOnTest = () => {
+        form.validateFields().then((values) => {
+            setLoading(true)
+            const newData = values as CreateChatGroupRequest
+            chatGroupApi
+                .testHookTemplate({
+                    id: chatGroupId,
+                    hook: newData.hook,
+                    template: newData.template,
+                    app: newData.app,
+                    secret: newData.secret
+                })
+                .then((res: TestHookTemplateResponse) => {
+                    message.success(res.msg)
+                })
+                .finally(() => {
+                    setLoading(false)
+                })
+        })
+    }
+
     const Title = () => {
         return chatGroupId ? '编辑群组' : '添加群组'
     }
@@ -102,6 +127,14 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
                 </Button>
                 <Button onClick={handeRestForm} type="dashed" loading={loading}>
                     重置
+                </Button>
+                <Button
+                    type="default"
+                    danger
+                    onClick={handleOnTest}
+                    loading={loading}
+                >
+                    测试
                 </Button>
                 <Button type="primary" onClick={handleOnOk} loading={loading}>
                     保存
@@ -125,7 +158,7 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
             footer={<Footer />}
         >
             <DataForm
-                items={getItems(chatGroupId)}
+                items={getItems(app, chatGroupId)}
                 form={form}
                 formProps={{
                     layout: 'vertical'

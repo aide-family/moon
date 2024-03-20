@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = api.Status(0)
+	_ = api.NotifyApp(0)
 )
 
 // Validate checks the field values on CreateChatGroupRequest with the rules
@@ -109,17 +109,6 @@ func (m *CreateChatGroupRequest) validate(all bool) error {
 		err := CreateChatGroupRequestValidationError{
 			field:  "HookName",
 			reason: "value length must be between 2 and 32 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetTitle()) > 64 {
-		err := CreateChatGroupRequestValidationError{
-			field:  "Title",
-			reason: "value length must be at most 64 runes",
 		}
 		if !all {
 			return err
@@ -376,17 +365,6 @@ func (m *UpdateChatGroupRequest) validate(all bool) error {
 		err := UpdateChatGroupRequestValidationError{
 			field:  "HookName",
 			reason: "value length must be between 2 and 32 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetTitle()) > 64 {
-		err := UpdateChatGroupRequestValidationError{
-			field:  "Title",
-			reason: "value length must be at most 64 runes",
 		}
 		if !all {
 			return err
@@ -1698,3 +1676,237 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SelectChatGroupReplyValidationError{}
+
+// Validate checks the field values on TestHookTemplateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TestHookTemplateRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TestHookTemplateRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TestHookTemplateRequestMultiError, or nil if none found.
+func (m *TestHookTemplateRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TestHookTemplateRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetHook()) > 255 {
+		err := TestHookTemplateRequestValidationError{
+			field:  "Hook",
+			reason: "value length must be at most 255 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.NotifyApp_name[int32(m.GetApp())]; !ok {
+		err := TestHookTemplateRequestValidationError{
+			field:  "App",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Template
+
+	// no validation rules for Secret
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return TestHookTemplateRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// TestHookTemplateRequestMultiError is an error wrapping multiple validation
+// errors returned by TestHookTemplateRequest.ValidateAll() if the designated
+// constraints aren't met.
+type TestHookTemplateRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TestHookTemplateRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TestHookTemplateRequestMultiError) AllErrors() []error { return m }
+
+// TestHookTemplateRequestValidationError is the validation error returned by
+// TestHookTemplateRequest.Validate if the designated constraints aren't met.
+type TestHookTemplateRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TestHookTemplateRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TestHookTemplateRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TestHookTemplateRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TestHookTemplateRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TestHookTemplateRequestValidationError) ErrorName() string {
+	return "TestHookTemplateRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TestHookTemplateRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTestHookTemplateRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TestHookTemplateRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TestHookTemplateRequestValidationError{}
+
+// Validate checks the field values on TestHookTemplateReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TestHookTemplateReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TestHookTemplateReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TestHookTemplateReplyMultiError, or nil if none found.
+func (m *TestHookTemplateReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TestHookTemplateReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Msg
+
+	if len(errors) > 0 {
+		return TestHookTemplateReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// TestHookTemplateReplyMultiError is an error wrapping multiple validation
+// errors returned by TestHookTemplateReply.ValidateAll() if the designated
+// constraints aren't met.
+type TestHookTemplateReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TestHookTemplateReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TestHookTemplateReplyMultiError) AllErrors() []error { return m }
+
+// TestHookTemplateReplyValidationError is the validation error returned by
+// TestHookTemplateReply.Validate if the designated constraints aren't met.
+type TestHookTemplateReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TestHookTemplateReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TestHookTemplateReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TestHookTemplateReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TestHookTemplateReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TestHookTemplateReplyValidationError) ErrorName() string {
+	return "TestHookTemplateReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TestHookTemplateReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTestHookTemplateReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TestHookTemplateReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TestHookTemplateReplyValidationError{}

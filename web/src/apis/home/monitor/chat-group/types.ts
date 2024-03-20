@@ -86,10 +86,24 @@ interface CreateChatGroupRequest {
     hook: string
     app: AlarmApp
     hookName: string
+    secret?: string
+    template: string
 }
 
 interface CreateChatGroupResponse {
     id: number
+}
+
+interface TestHookTemplateRequest {
+    id?: number
+    hook: string
+    template: string
+    app: AlarmApp
+    secret?: string
+}
+
+interface TestHookTemplateResponse {
+    msg: string
 }
 
 export const defaultSelectChatGroupReques: SelectChatGroupRequest = {
@@ -120,5 +134,7 @@ export type {
     CreateChatGroupRequest,
     CreateChatGroupResponse,
     ChatGroupItem,
-    ChatGroupSelectItem
+    ChatGroupSelectItem,
+    TestHookTemplateRequest,
+    TestHookTemplateResponse
 }

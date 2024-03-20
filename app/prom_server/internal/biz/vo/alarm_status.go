@@ -31,11 +31,21 @@ func (s AlarmStatus) String() string {
 	}
 }
 
+// CH 转换为中文
+func (s AlarmStatus) CH() string {
+	return s.String()
+}
+
+// EN 转换为英文
+func (s AlarmStatus) EN() string {
+	return s.Key()
+}
+
 // Key 转换为key
 func (s AlarmStatus) Key() string {
 	switch s {
 	case AlarmStatusAlarm:
-		return "alarm"
+		return "resolved"
 	case AlarmStatusResolved:
 		return "resolved"
 	case AlarmStatusIgnored:

@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/msg"
 
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
@@ -19,14 +20,21 @@ type NotifyBiz struct {
 	log *log.Helper
 
 	notifyRepo repository.NotifyRepo
+	msgRepo    repository.MsgRepo
 	logX       repository.SysLogRepo
 }
 
-func NewNotifyBiz(repo repository.NotifyRepo, logX repository.SysLogRepo, logger log.Logger) *NotifyBiz {
+func NewNotifyBiz(
+	repo repository.NotifyRepo,
+	logX repository.SysLogRepo,
+	msgRepo repository.MsgRepo,
+	logger log.Logger,
+) *NotifyBiz {
 	return &NotifyBiz{
 		log:        log.NewHelper(log.With(logger, "module", "biz.NotifyBiz")),
 		notifyRepo: repo,
 		logX:       logX,
+		msgRepo:    msgRepo,
 	}
 }
 
@@ -136,4 +144,9 @@ func (b *NotifyBiz) ListNotify(ctx context.Context, req *bo.ListNotifyRequest) (
 	}
 
 	return notifyBos, nil
+}
+
+// SendAlarmMessage 发送告警消息
+func (b *NotifyBiz) SendAlarmMessage(ctx context.Context, chatInfo *bo.ChatGroupBO, message *msg.HookNotifyMsg) error {
+	return msg.NewHookNotify(chatInfo.NotifyApp).Alarm(ctx, chatInfo.Hook, message)
 }

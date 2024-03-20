@@ -27,8 +27,6 @@ type (
 		HookName  string       `json:"hookName"`
 		// 消息模板
 		Template string `json:"template"`
-		// 消息标题
-		Title string `json:"title"`
 		// 通信密钥
 		Secret string `json:"secret"`
 	}
@@ -57,13 +55,13 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
-		Hook:      b.Hook,
-		Status:    b.Status.Value(),
-		App:       b.NotifyApp.Value(),
-		HookName:  b.HookName,
-		Template:  b.Template,
-		Title:     b.Title,
-		Secret:    b.Secret,
+		//Hook:      b.Hook,
+		Hook:     "******",
+		Status:   b.Status.Value(),
+		App:      b.NotifyApp.Value(),
+		HookName: b.HookName,
+		Template: b.Template,
+		Secret:   b.Secret,
 	}
 }
 
@@ -93,7 +91,6 @@ func (b *ChatGroupBO) ToModel() *do.PromAlarmChatGroup {
 		NotifyApp: b.NotifyApp,
 		HookName:  b.HookName,
 		Template:  b.Template,
-		Title:     b.Title,
 		Secret:    b.Secret,
 	}
 }
@@ -115,7 +112,6 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 		NotifyApp: vo.NotifyApp(a.App),
 		HookName:  a.HookName,
 		Template:  a.Template,
-		Title:     a.Title,
 		Secret:    a.Secret,
 	}
 }
@@ -137,7 +133,6 @@ func ChatGroupModelToBO(m *do.PromAlarmChatGroup) *ChatGroupBO {
 		NotifyApp: m.NotifyApp,
 		HookName:  m.HookName,
 		Template:  m.Template,
-		Title:     m.Title,
 		Secret:    m.Secret,
 	}
 }

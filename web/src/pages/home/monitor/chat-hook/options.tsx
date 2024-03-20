@@ -45,16 +45,16 @@ export const columns: ChatGroupTypeCoumnType[] = [
         key: 'hookName',
         width: 150
     },
-    {
-        title: 'Hook',
-        dataIndex: 'hook',
-        key: 'hook',
-        width: 300,
-        render: (hook: string) => {
-            // 替换最后8个字符为********
-            return hook.replace(/(.{8})$/, '********')
-        }
-    },
+    // {
+    //     title: 'Hook',
+    //     dataIndex: 'hook',
+    //     key: 'hook',
+    //     width: 300,
+    //     render: (hook: string) => {
+    //         // 替换最后8个字符为********
+    //         return hook.replace(/(.{8})$/, '********')
+    //     }
+    // },
     {
         title: '描述',
         dataIndex: 'remark',
@@ -158,7 +158,12 @@ export const tableOperationItems = (
 
 export const defaultPadding = 12
 
-export const rightOptions: DataOptionItem[] = []
+export const rightOptions: DataOptionItem[] = [
+    {
+        key: ActionKey.REFRESH,
+        label: <Button type="primary">刷新</Button>
+    }
+]
 
 export const leftOptions: DataOptionItem[] = []
 
@@ -194,7 +199,9 @@ export const searchItems: DataFormItem[] = [
     }
 ]
 
-export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
+export const addChatGroupItems = (
+    app: NotifyApp
+): (DataFormItem | DataFormItem[])[] => [
     [
         {
             name: 'name',
@@ -246,12 +253,17 @@ export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             rules: [
                 {
                     required: true,
-                    message: '请输入Hook',
+                    message: '请输入Hook'
+                },
+                {
                     validator: (_, value, callback) => {
                         // https || http
                         if (!value) {
-                            callback('请输入Hook')
-                        } else if (!/^(https|http):\/\/.+$/.test(value)) {
+                            callback()
+                            return
+                        }
+
+                        if (!/^(https|http):\/\/.+$/.test(value)) {
                             callback('请输入正确的Hook, https或者http开头')
                         } else {
                             callback()
@@ -261,14 +273,21 @@ export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             ]
         }
     ],
-    {
-        name: 'title',
-        label: '告警标题',
-        formItemProps: {
-            tooltip:
-                '告警标题，用于在告警信息中展示, 支持模板语法， 例如: Prometheus告警{{ $tatus }}'
-        }
-    },
+    app === NotifyApp.NOTIFY_APP_FEISHU
+        ? {
+              name: 'secret',
+              label: 'secret',
+              formItemProps: {
+                  tooltip: 'secret是飞书必传字段'
+              },
+              rules: [
+                  {
+                      required: true,
+                      message: 'secret是飞书必传字段'
+                  }
+              ]
+          }
+        : [],
     {
         name: 'template',
         label: '告警内容',
@@ -292,15 +311,15 @@ export const addChatGroupItems: (DataFormItem | DataFormItem[])[] = [
                 placeholder: '请输入告警内容',
                 showCount: true
             }
-        }
+        },
+        rules: [
+            {
+                required: true,
+                message: '请输入告警内容'
+            }
+        ]
     },
-    {
-        name: 'secret',
-        label: 'secret',
-        formItemProps: {
-            tooltip: 'secret是飞书必传字段'
-        }
-    },
+
     {
         name: 'remark',
         label: 'remark',
@@ -338,14 +357,6 @@ export const updateChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             ]
         }
     ],
-    {
-        name: 'title',
-        label: '告警标题',
-        formItemProps: {
-            tooltip:
-                '告警标题，用于在告警信息中展示, 支持模板语法， 例如: Prometheus告警{{ $tatus }}'
-        }
-    },
     {
         name: 'template',
         label: '告警内容',

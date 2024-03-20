@@ -2,6 +2,7 @@ package promservice
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api"
@@ -9,7 +10,11 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/msg"
+	"prometheus-manager/pkg/strategy"
+	"prometheus-manager/pkg/util/hash"
 	"prometheus-manager/pkg/util/slices"
+	"prometheus-manager/pkg/util/times"
 )
 
 type ChatGroupService struct {
@@ -17,12 +22,18 @@ type ChatGroupService struct {
 
 	log          *log.Helper
 	chatGroupBiz *biz.ChatGroupBiz
+	notifyBiz    *biz.NotifyBiz
 }
 
-func NewChatGroupService(chatGroupBiz *biz.ChatGroupBiz, logger log.Logger) *ChatGroupService {
+func NewChatGroupService(
+	chatGroupBiz *biz.ChatGroupBiz,
+	notifyBiz *biz.NotifyBiz,
+	logger log.Logger,
+) *ChatGroupService {
 	return &ChatGroupService{
 		log:          log.NewHelper(log.With(logger, "module", "service.prom.chatgroup")),
 		chatGroupBiz: chatGroupBiz,
+		notifyBiz:    notifyBiz,
 	}
 }
 
@@ -34,7 +45,6 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 		NotifyApp: vo.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
 		Template:  req.GetTemplate(),
-		Title:     req.GetTitle(),
 		Secret:    req.GetSecret(),
 	}
 	chatGroupBo, err := s.chatGroupBiz.CreateChatGroup(ctx, chatGroupBo)
@@ -54,7 +64,6 @@ func (s *ChatGroupService) UpdateChatGroup(ctx context.Context, req *pb.UpdateCh
 		Remark:   req.GetRemark(),
 		HookName: req.GetHookName(),
 		Template: req.GetTemplate(),
-		Title:    req.GetTitle(),
 	}
 	if err := s.chatGroupBiz.UpdateChatGroupById(ctx, chatGroupBo, chatGroupBo.Id); err != nil {
 		s.log.Errorf("UpdateChatGroup err: %v", err)
@@ -130,4 +139,56 @@ func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectCh
 			return i.ToSelectApi()
 		}),
 	}, nil
+}
+
+// TestHookTemplate 测试hook模板
+func (s *ChatGroupService) TestHookTemplate(ctx context.Context, req *pb.TestHookTemplateRequest) (*pb.TestHookTemplateReply, error) {
+	chatInfo := &bo.ChatGroupBO{
+		Hook:      req.GetHook(),
+		NotifyApp: vo.NotifyApp(req.GetApp()),
+		Template:  req.GetTemplate(),
+		Secret:    req.GetSecret(),
+	}
+	now := time.Now()
+	message := &msg.HookNotifyMsg{
+		Content: req.GetTemplate(),
+		AlarmInfo: &bo.AlertBo{
+			Status: vo.AlarmStatusAlarm.EN(),
+			Labels: &strategy.Labels{
+				strategy.MetricInstance: "localhost",
+				"endpoint":              "127.0.0.1",
+				"job":                   "test",
+				"severity":              "critical",
+				"app":                   "moon",
+				strategy.MetricAlert:    "test_alert",
+			},
+			Annotations: &strategy.Annotations{
+				strategy.MetricSummary:     "test hook template summary",
+				strategy.MetricDescription: "test hook template description",
+			},
+			StartsAt:     now.Add(-time.Minute * 5).Format(times.ParseLayout),
+			EndsAt:       now.Format(times.ParseLayout),
+			GeneratorURL: "https://github.com/aide-family/moon",
+			Fingerprint:  hash.MD5(now.String()),
+		},
+		Secret: req.GetSecret(),
+	}
+	dataMap := message.AlarmInfo.ToMap()
+	dataMap["value"] = 100
+	if req.GetId() > 0 {
+		chartGroupBO, err := s.chatGroupBiz.GetChatGroupById(ctx, req.GetId())
+		if err != nil {
+			return nil, err
+		}
+		message.Secret = chartGroupBO.Secret
+		chatInfo.Hook = chartGroupBO.Hook
+		chatInfo.NotifyApp = chartGroupBO.NotifyApp
+		message.Secret = chartGroupBO.Secret
+	}
+
+	message.Content = strategy.Formatter(chatInfo.Template, dataMap)
+	if err := s.notifyBiz.SendAlarmMessage(ctx, chatInfo, message); err != nil {
+		return nil, err
+	}
+	return &pb.TestHookTemplateReply{Msg: "请求成功，注意查收"}, nil
 }

@@ -10,6 +10,8 @@ import type {
     ListChatGroupResponse,
     SelectChatGroupRequest,
     SelectChatGroupResponse,
+    TestHookTemplateRequest,
+    TestHookTemplateResponse,
     UpdateChatGroupRequest,
     UpdateChatGroupResponse
 } from './types'
@@ -20,7 +22,8 @@ enum URL {
     UPDATE = '/api/v1/chat/group/update',
     DELETE = '/api/v1/chat/group/delete',
     DETAIL = '/api/v1/chat/group/get',
-    CREATE = '/api/v1/chat/group/create'
+    CREATE = '/api/v1/chat/group/create',
+    TEST_HOOK_TEMPLATE = '/api/v1/chat/group/test'
 }
 
 const getChatGroupList = (params: ListChatGroupRequest) => {
@@ -47,13 +50,18 @@ const getChatGroupSelect = (params: SelectChatGroupRequest) => {
     return POST<SelectChatGroupResponse>(URL.SELECT, params)
 }
 
+const testHookTemplate = (params: TestHookTemplateRequest) => {
+    return POST<TestHookTemplateResponse>(URL.TEST_HOOK_TEMPLATE, params)
+}
+
 const chatGroupApi = {
     getChatGroupList,
     getChatGroupDetail,
     createChatGroup,
     updateChatGroup,
     deleteChatGroup,
-    getChatGroupSelect
+    getChatGroupSelect,
+    testHookTemplate
 }
 
 export default chatGroupApi

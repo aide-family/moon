@@ -1,25 +1,21 @@
 package msg
 
 import (
+	"context"
+
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/vo"
 )
 
 type HookNotifyMsg struct {
 	Content   string      `json:"content"`
-	Title     string      `json:"title"`
 	AlarmInfo *bo.AlertBo `json:"-"`
-	HookBytes []byte      `json:"-"`
 	Secret    string      `json:"-"`
 }
 
 type HookNotify interface {
-	Alarm(url string, msg *HookNotifyMsg) error
+	Alarm(ctx context.Context, url string, msg *HookNotifyMsg) error
 }
-
-const (
-	markdown = "markdown"
-)
 
 func NewHookNotify(app vo.NotifyApp) HookNotify {
 	switch app {

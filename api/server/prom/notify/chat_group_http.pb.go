@@ -24,6 +24,7 @@ const OperationChatGroupDeleteChatGroup = "/api.server.prom.notify.ChatGroup/Del
 const OperationChatGroupGetChatGroup = "/api.server.prom.notify.ChatGroup/GetChatGroup"
 const OperationChatGroupListChatGroup = "/api.server.prom.notify.ChatGroup/ListChatGroup"
 const OperationChatGroupSelectChatGroup = "/api.server.prom.notify.ChatGroup/SelectChatGroup"
+const OperationChatGroupTestHookTemplate = "/api.server.prom.notify.ChatGroup/TestHookTemplate"
 const OperationChatGroupUpdateChatGroup = "/api.server.prom.notify.ChatGroup/UpdateChatGroup"
 
 type ChatGroupHTTPServer interface {
@@ -32,6 +33,7 @@ type ChatGroupHTTPServer interface {
 	GetChatGroup(context.Context, *GetChatGroupRequest) (*GetChatGroupReply, error)
 	ListChatGroup(context.Context, *ListChatGroupRequest) (*ListChatGroupReply, error)
 	SelectChatGroup(context.Context, *SelectChatGroupRequest) (*SelectChatGroupReply, error)
+	TestHookTemplate(context.Context, *TestHookTemplateRequest) (*TestHookTemplateReply, error)
 	UpdateChatGroup(context.Context, *UpdateChatGroupRequest) (*UpdateChatGroupReply, error)
 }
 
@@ -43,6 +45,7 @@ func RegisterChatGroupHTTPServer(s *http.Server, srv ChatGroupHTTPServer) {
 	r.POST("/api/v1/chat/group/get", _ChatGroup_GetChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/list", _ChatGroup_ListChatGroup0_HTTP_Handler(srv))
 	r.POST("/api/v1/chat/group/select", _ChatGroup_SelectChatGroup0_HTTP_Handler(srv))
+	r.POST("/api/v1/chat/group/test", _ChatGroup_TestHookTemplate0_HTTP_Handler(srv))
 }
 
 func _ChatGroup_CreateChatGroup0_HTTP_Handler(srv ChatGroupHTTPServer) func(ctx http.Context) error {
@@ -159,12 +162,32 @@ func _ChatGroup_SelectChatGroup0_HTTP_Handler(srv ChatGroupHTTPServer) func(ctx 
 	}
 }
 
+func _ChatGroup_TestHookTemplate0_HTTP_Handler(srv ChatGroupHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestHookTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationChatGroupTestHookTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestHookTemplate(ctx, req.(*TestHookTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestHookTemplateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ChatGroupHTTPClient interface {
 	CreateChatGroup(ctx context.Context, req *CreateChatGroupRequest, opts ...http.CallOption) (rsp *CreateChatGroupReply, err error)
 	DeleteChatGroup(ctx context.Context, req *DeleteChatGroupRequest, opts ...http.CallOption) (rsp *DeleteChatGroupReply, err error)
 	GetChatGroup(ctx context.Context, req *GetChatGroupRequest, opts ...http.CallOption) (rsp *GetChatGroupReply, err error)
 	ListChatGroup(ctx context.Context, req *ListChatGroupRequest, opts ...http.CallOption) (rsp *ListChatGroupReply, err error)
 	SelectChatGroup(ctx context.Context, req *SelectChatGroupRequest, opts ...http.CallOption) (rsp *SelectChatGroupReply, err error)
+	TestHookTemplate(ctx context.Context, req *TestHookTemplateRequest, opts ...http.CallOption) (rsp *TestHookTemplateReply, err error)
 	UpdateChatGroup(ctx context.Context, req *UpdateChatGroupRequest, opts ...http.CallOption) (rsp *UpdateChatGroupReply, err error)
 }
 
@@ -233,6 +256,19 @@ func (c *ChatGroupHTTPClientImpl) SelectChatGroup(ctx context.Context, in *Selec
 	pattern := "/api/v1/chat/group/select"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationChatGroupSelectChatGroup))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *ChatGroupHTTPClientImpl) TestHookTemplate(ctx context.Context, in *TestHookTemplateRequest, opts ...http.CallOption) (*TestHookTemplateReply, error) {
+	var out TestHookTemplateReply
+	pattern := "/api/v1/chat/group/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationChatGroupTestHookTemplate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
