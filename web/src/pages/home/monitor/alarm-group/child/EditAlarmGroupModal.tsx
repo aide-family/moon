@@ -1,7 +1,11 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Badge, Button, Form, Modal, Space, Table } from 'antd'
+import { Button, Form, Modal, Space, Table } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { ChartGroupTableColumnType, editorItems } from '../options'
+import {
+    ChartGroupTableColumnType,
+    chartGroupCoumns,
+    editorItems
+} from '../options'
 import {
     AlarmGroupItem,
     CreateAlarmGroupRequest,
@@ -9,8 +13,7 @@ import {
 } from '@/apis/home/monitor/alarm-group/types'
 import alarmGroupApi from '@/apis/home/monitor/alarm-group'
 import { HeightLine } from '@/components/HeightLine'
-import { NotifyApp, Status, StatusMap } from '@/apis/types'
-import { NotifyAppData } from '@/apis/data'
+import { NotifyApp, Status } from '@/apis/types'
 import { IconFont } from '@/components/IconFont/IconFont'
 import FetchSelect from '@/components/Data/FetchSelect'
 import { DefaultOptionType } from 'antd/es/select'
@@ -138,33 +141,8 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
         return alarmGroupId ? '编辑告警组' : '添加告警组'
     }
 
-    const chartGroupCoumns: ChartGroupTableColumnType[] = [
-        {
-            title: '名称',
-            dataIndex: 'label',
-            key: 'label',
-            width: 200
-        },
-        {
-            title: '所属APP',
-            dataIndex: 'app',
-            key: 'app',
-            width: 160,
-            render: (app: NotifyApp) => {
-                return NotifyAppData[app]
-            }
-        },
-        {
-            title: '状态',
-            dataIndex: 'status',
-            key: 'status',
-            align: 'center',
-            width: 120,
-            render: (status: Status) => {
-                const { color, text } = StatusMap[status]
-                return <Badge color={color} text={text} />
-            }
-        },
+    const chartGroupCoumnsOptions: ChartGroupTableColumnType[] = [
+        ...chartGroupCoumns,
         {
             title: '操作',
             dataIndex: 'action',
@@ -181,6 +159,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         disabled={disabled}
                         icon={
                             <IconFont
+                                disabled={disabled}
                                 type="icon-shanchu-copy"
                                 style={{ color: 'red' }}
                             />
@@ -249,6 +228,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
     useEffect(() => {
         if (!open) return
         form.resetFields()
+        setChatGroups([])
         getAlarmGroupDetail()
     }, [open])
 
@@ -298,7 +278,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                         )}
                     </Form>
                     <Table
-                        columns={chartGroupCoumns}
+                        columns={chartGroupCoumnsOptions}
                         dataSource={chatGroups}
                         size="small"
                         pagination={false}

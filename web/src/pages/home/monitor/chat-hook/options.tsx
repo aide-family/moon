@@ -363,10 +363,10 @@ export const addChatGroupItems = (
             tooltip: <TemplateTooltip />
         },
         dataProps: {
-            type: 'textarea',
+            type: 'template-auto-complete',
             parentProps: {
-                placeholder: '请输入告警内容',
-                showCount: true
+                placeholder: '请输入告警内容'
+                // showCount: true
             }
         },
         rules: [

@@ -25,6 +25,7 @@ import { DefaultOptionType } from 'antd/es/select'
 import { Rule } from 'antd/es/form'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { Duration } from '@/apis/types'
+import { TemplateAutoComplete } from '@/components/Data/TemplateAutoComplete'
 
 export type FormValuesType = {
     alert?: string
@@ -392,7 +393,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 }
                             ]}
                         >
-                            <Input.TextArea placeholder="请输入告警标题模板" />
+                            <TemplateAutoComplete placeholder="请输入告警标题模板" />
                         </Form.Item>
                     </div>
                     <div ref={annotationsDescriptionRef}>
@@ -406,7 +407,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 }
                             ]}
                         >
-                            <Input.TextArea placeholder="请输入告警内容模板" />
+                            <TemplateAutoComplete placeholder="请输入告警内容模板" />
                         </Form.Item>
                     </div>
 
@@ -424,7 +425,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 key={index}
                             >
                                 <Space.Compact style={{ width: '100%' }}>
-                                    <Input.TextArea
+                                    {/* <Input.TextArea
+                                        placeholder={`请输入${item.label}`}
+                                    /> */}
+                                    <TemplateAutoComplete
                                         placeholder={`请输入${item.label}`}
                                     />
                                     <Button
