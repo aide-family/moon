@@ -136,3 +136,8 @@ func (l *NotifyTypes) Value() (driver.Value, error) {
 func (l *NotifyTypes) Scan(src any) error {
 	return json.Unmarshal(src.([]byte), l)
 }
+
+// IsNotifyTypeUnknown 判断是否为未知类型
+func (a NotifyApp) IsNotifyTypeUnknown() bool {
+	return a == NotifyAppUnknown
+}

@@ -19,6 +19,16 @@ var _ HookNotify = (*feishuNotify)(nil)
 
 type feishuNotify struct{}
 
+type FeiShuHookResp struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data any    `json:"data"`
+}
+
+func (l *FeiShuHookResp) Error() string {
+	return fmt.Sprintf("code: %d, msg: %s", l.Code, l.Msg)
+}
+
 func (l *feishuNotify) Alarm(ctx context.Context, url string, msg *HookNotifyMsg) error {
 	notifyMsg := make(map[string]any)
 	_ = json.Unmarshal([]byte(msg.Content), &notifyMsg)
@@ -34,6 +44,13 @@ func (l *feishuNotify) Alarm(ctx context.Context, url string, msg *HookNotifyMsg
 		return err
 	}
 	log.Debugw("notify", string(resBytes))
+	var resp FeiShuHookResp
+	if err = json.Unmarshal(resBytes, &resp); err != nil {
+		return err
+	}
+	if resp.Code != 0 {
+		return &resp
+	}
 	return err
 }
 
