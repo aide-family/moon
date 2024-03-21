@@ -2,7 +2,7 @@ import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { FC, useEffect, useRef, useState } from 'react'
-import { Form } from 'antd'
+import { Form, Table } from 'antd'
 import {
     AlarmGroupItem,
     ListAlarmGroupRequest,
@@ -10,6 +10,7 @@ import {
 } from '@/apis/home/monitor/alarm-group/types'
 import { ActionKey } from '@/apis/data'
 import {
+    chartGroupCoumns,
     columns,
     defaultPadding,
     leftOptions,
@@ -174,7 +175,9 @@ const AlarmGroup: FC = () => {
                 alarmGroupId={oprateAlarmGroupId}
                 onClose={handleCancelEditAlarmGroupModal}
                 onOk={handOnOkEditAlarmGroupModal}
-                disabled={actionKey !== ActionKey.EDIT && actionKey !== ActionKey.ADD}
+                disabled={
+                    actionKey !== ActionKey.EDIT && actionKey !== ActionKey.ADD
+                }
             />
             <div>
                 <div ref={operationRef}>
@@ -212,6 +215,19 @@ const AlarmGroup: FC = () => {
                     action={handlerTableAction}
                     pageSize={searchRequest?.page?.size}
                     current={searchRequest?.page?.curr}
+                    expandable={{
+                        expandedRowRender: (record: AlarmGroupItem) => {
+                            return (
+                                <Table
+                                    columns={chartGroupCoumns}
+                                    dataSource={record.chatGroups}
+                                    size="small"
+                                    pagination={false}
+                                    rowKey="id"
+                                />
+                            )
+                        }
+                    }}
                 />
             </div>
         </>

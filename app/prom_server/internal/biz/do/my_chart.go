@@ -1,6 +1,7 @@
 package do
 
 import (
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
@@ -10,8 +11,8 @@ const (
 	MyChartFieldUserId = "user_id"
 	MyChartFieldTitle  = "title"
 	MyChartFieldUrl    = "url"
-	MyChartFieldStatus = "status"
-	MyChartFieldRemark = "remark"
+	MyChartFieldStatus = basescopes.BaseFieldStatus
+	MyChartFieldRemark = basescopes.BaseFieldRemark
 )
 
 // MyChart 我的仪表盘

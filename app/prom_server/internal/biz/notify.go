@@ -137,6 +137,7 @@ func (b *NotifyBiz) ListNotify(ctx context.Context, req *bo.ListNotifyRequest) (
 		basescopes.StatusEQ(req.Status),
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
+		do.PromAlarmNotifyPreloadChatGroups(),
 	}
 	notifyBos, err := b.notifyRepo.List(ctx, req.Page, wheres...)
 	if err != nil {

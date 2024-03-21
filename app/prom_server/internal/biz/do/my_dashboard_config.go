@@ -10,10 +10,10 @@ const TableNameMyDashboardConfig = "my_dashboard_configs"
 
 const (
 	MyDashboardConfigFieldTitle         = "title"
-	MyDashboardConfigFieldRemark        = "remark"
 	MyDashboardConfigFieldColor         = "color"
 	MyDashboardConfigFieldUserId        = "user_id"
-	MyDashboardConfigFieldStatus        = "status"
+	MyDashboardConfigFieldRemark        = basescopes.BaseFieldRemark
+	MyDashboardConfigFieldStatus        = basescopes.BaseFieldStatus
 	MyDashboardConfigPreloadFieldCharts = "Charts"
 )
 
