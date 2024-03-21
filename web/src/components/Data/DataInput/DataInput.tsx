@@ -14,6 +14,10 @@ import { PasswordProps, TextAreaProps } from 'antd/lib/input'
 import FetchSelect, { FetchSelectProps } from '../FetchSelect'
 import TimeUintInput, { TimeUintInputProps } from '../TimeValue'
 import { RangePickerProps } from 'antd/es/date-picker'
+import {
+    TemplateAutoComplete,
+    TemplateAutoCompleteProps
+} from '../TemplateAutoComplete'
 
 export type DataInputProps =
     | (
@@ -64,6 +68,10 @@ export type DataInputProps =
           | {
                 type: 'color'
                 parentProps?: ColorPickerProps
+            }
+          | {
+                type: 'template-auto-complete'
+                parentProps?: TemplateAutoCompleteProps
             }
       ) & {
           width?: number | string
@@ -169,6 +177,16 @@ const DataInput: FC<DataInputProps> = (props) => {
             case 'time-range':
                 return (
                     <DatePicker.RangePicker
+                        style={{ width }}
+                        value={value}
+                        defaultValue={defaultValue}
+                        onChange={onChange}
+                        {...parentProps}
+                    />
+                )
+            case 'template-auto-complete':
+                return (
+                    <TemplateAutoComplete
                         style={{ width }}
                         value={value}
                         defaultValue={defaultValue}

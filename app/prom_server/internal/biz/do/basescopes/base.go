@@ -20,6 +20,7 @@ const (
 	BaseFieldDeletedAt Field = "deleted_at"
 	BaseFieldStatus    Field = "status"
 	BaseFieldName      Field = "name"
+	BaseFieldRemark    Field = "remark"
 	BaseFieldCreateBy  Field = "create_by"
 	BaseFieldTitle     Field = "title"
 	BaseFieldUserId    Field = "user_id"

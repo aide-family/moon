@@ -9,10 +9,11 @@ import (
 const TableNamePromNotify = "prom_alarm_notifies"
 
 const (
-	PromAlarmNotifyFiledName                      = "name"
-	PromAlarmNotifyFiledStatus                    = "status"
-	PromAlarmNotifyFiledRemark                    = "remark"
-	PromAlarmNotifyFiledCreateBy                  = "create_by"
+	PromAlarmNotifyFiledName     = basescopes.BaseFieldName
+	PromAlarmNotifyFiledStatus   = basescopes.BaseFieldStatus
+	PromAlarmNotifyFiledRemark   = basescopes.BaseFieldRemark
+	PromAlarmNotifyFiledCreateBy = "create_by"
+
 	PromAlarmNotifyPreloadFieldChatGroups         = "ChatGroups"
 	PromAlarmNotifyPreloadFieldBeNotifyMembers    = "BeNotifyMembers"
 	PromAlarmNotifyPreloadFieldExternalNotifyObjs = "ExternalNotifyObjs"
