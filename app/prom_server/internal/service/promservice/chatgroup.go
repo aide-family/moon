@@ -95,11 +95,13 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 	pgReq := req.GetPage()
 	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 
-	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, &bo.ListChatGroupReq{
+	listReq := &bo.ListChatGroupReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
 		Status:  vobj.Status(req.GetStatus()),
-	})
+		App:     vobj.NotifyApp(req.GetApp()),
+	}
+	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, listReq)
 	if err != nil {
 		s.log.Errorf("ListChatGroup err: %v", err)
 		return nil, err

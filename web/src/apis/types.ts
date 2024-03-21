@@ -137,8 +137,8 @@ export enum NotifyType {
 
 /** 通知应用, 用于区分通知方式*/
 export enum NotifyApp {
-    /** 自定义 */
-    NOTIFY_APP_CUSTOM,
+    /** NotifyAppUnknown */
+    NOTIFY_APP_UNKNOWN,
 
     /** DINGTALK 钉钉*/
     NOTIFY_APP_DINGTALK,
@@ -147,7 +147,10 @@ export enum NotifyApp {
     NOTIFY_APP_WECHATWORK,
 
     /** FEISHU 飞书*/
-    NOTIFY_APP_FEISHU
+    NOTIFY_APP_FEISHU,
+
+    /** 自定义 */
+    NOTIFY_APP_CUSTOM
 }
 /** 验证码类型枚举*/
 export enum CaptchaType {

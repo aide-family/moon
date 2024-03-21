@@ -108,7 +108,7 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
     }
 
     const Title = () => {
-        return chatGroupId ? '编辑群组' : '添加群组'
+        return chatGroupId ? '编辑机器人' : '添加机器人'
     }
 
     const handeRestForm = () => {

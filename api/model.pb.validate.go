@@ -1791,6 +1791,35 @@ func (m *ChatGroup) validate(all bool) error {
 
 	// no validation rules for Secret
 
+	if all {
+		switch v := interface{}(m.GetCreateUser()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatGroupValidationError{
+					field:  "CreateUser",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatGroupValidationError{
+					field:  "CreateUser",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreateUser()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatGroupValidationError{
+				field:  "CreateUser",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ChatGroupMultiError(errors)
 	}

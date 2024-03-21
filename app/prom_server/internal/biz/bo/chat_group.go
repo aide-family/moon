@@ -2,6 +2,7 @@ package bo
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -10,9 +11,10 @@ import (
 
 type (
 	ListChatGroupReq struct {
-		Page    Pagination  `json:"page"`
-		Keyword string      `json:"keyword"`
-		Status  vobj.Status `json:"status"`
+		Page    Pagination   `json:"page"`
+		Keyword string       `json:"keyword"`
+		Status  vobj.Status    `json:"status"`
+		App     vobj.NotifyApp `json:"app"`
 	}
 	ChatGroupBO struct {
 		Id        uint32         `json:"id"`
@@ -29,8 +31,19 @@ type (
 		Template string `json:"template"`
 		// 通信密钥
 		Secret string `json:"secret"`
+
+		// 创建者
+		CreateUser *UserBO `json:"createUser"`
 	}
 )
+
+// GetCreateUser .
+func (b *ChatGroupBO) GetCreateUser() *UserBO {
+	if b == nil {
+		return nil
+	}
+	return b.CreateUser
+}
 
 // String json string
 func (b *ChatGroupBO) String() string {
@@ -56,12 +69,13 @@ func (b *ChatGroupBO) ToApi() *api.ChatGroup {
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
 		//Hook:      b.Hook,
-		Hook:     "******",
-		Status:   b.Status.Value(),
-		App:      b.NotifyApp.Value(),
-		HookName: b.HookName,
-		Template: b.Template,
-		Secret:   "******",
+		Hook:       "******",
+		Status:     b.Status.Value(),
+		App:        b.NotifyApp.Value(),
+		HookName:   b.HookName,
+		Template:   b.Template,
+		Secret:     "******",
+		CreateUser: b.GetCreateUser().ToApiSelectV1(),
 	}
 }
 
@@ -73,7 +87,7 @@ func (b *ChatGroupBO) ToSelectApi() *api.ChatGroupSelectV1 {
 	return &api.ChatGroupSelectV1{
 		Value:  b.Id,
 		App:    b.NotifyApp.Value(),
-		Label:  b.HookName,
+		Label:  fmt.Sprintf("%s(%s)", b.Name, b.HookName),
 		Status: b.Status.Value(),
 	}
 }
@@ -122,17 +136,18 @@ func ChatGroupModelToBO(m *do.PromAlarmChatGroup) *ChatGroupBO {
 		return nil
 	}
 	return &ChatGroupBO{
-		Id:        m.ID,
-		Name:      m.Name,
-		Status:    m.Status,
-		Remark:    m.Remark,
-		CreatedAt: m.CreatedAt.Unix(),
-		UpdatedAt: m.UpdatedAt.Unix(),
-		DeletedAt: int64(m.DeletedAt),
-		Hook:      m.Hook,
-		NotifyApp: m.NotifyApp,
-		HookName:  m.HookName,
-		Template:  m.Template,
-		Secret:    m.Secret,
+		Id:         m.ID,
+		Name:       m.Name,
+		Status:     m.Status,
+		Remark:     m.Remark,
+		CreatedAt:  m.CreatedAt.Unix(),
+		UpdatedAt:  m.UpdatedAt.Unix(),
+		DeletedAt:  int64(m.DeletedAt),
+		Hook:       m.Hook,
+		NotifyApp:  m.NotifyApp,
+		HookName:   m.HookName,
+		Template:   m.Template,
+		Secret:     m.Secret,
+		CreateUser: UserModelToBO(m.CreateUser),
 	}
 }

@@ -1103,6 +1103,17 @@ func (m *ListChatGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := api.NotifyApp_name[int32(m.GetApp())]; !ok {
+		err := ListChatGroupRequestValidationError{
+			field:  "App",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ListChatGroupRequestMultiError(errors)
 	}

@@ -87,6 +87,9 @@ enum NotifyApp {
 
   // FEISHU 飞书
   NOTIFY_APP_FEISHU = 3;
+
+  // 自定义
+  NOTIFY_APP_CUSTOM = 4;
 }
 
 // 性别, 用于区分用户性别
