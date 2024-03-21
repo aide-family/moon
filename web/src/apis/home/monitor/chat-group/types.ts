@@ -6,6 +6,7 @@ import {
     PageResType,
     Status
 } from '@/apis/types'
+import { UserSelectItem } from '../../system/user/types'
 
 interface ChatGroupItem {
     id: number
@@ -20,6 +21,7 @@ interface ChatGroupItem {
     title: string
     template: string
     secret: string
+    createUser?: UserSelectItem
 }
 
 interface GetChatGroupDetailRequest {

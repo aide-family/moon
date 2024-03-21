@@ -279,6 +279,8 @@ message ChatGroup {
   string template = 10;
   // 密钥
   string secret = 12;
+  // 创建者
+  UserSelectV1 createUser = 13;
 }
 
 // 告警通知的hook群组选择类型

@@ -1,7 +1,10 @@
 package do
 
 import (
+	"gorm.io/gorm"
+	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"prometheus-manager/pkg/util/slices"
 )
 
 const TableNamePromChatGroup = "prom_alarm_chat_groups"
@@ -17,7 +20,24 @@ const (
 	PromAlarmChatGroupFieldTitle     = "title"
 	PromAlarmChatGroupFieldSecret    = "secret"
 	PromAlarmChatGroupFieldCreateBy  = "create_by"
+
+	PromAlarmChatGroupPreloadFieldCreateUser = "CreateUser"
 )
+
+// PromAlarmChatGroupInApp 根据app类型查询
+func PromAlarmChatGroupInApp(apps ...vobj.NotifyApp) basescopes.ScopeMethod {
+	apps = slices.Filter(apps, func(app vobj.NotifyApp) bool {
+		return !app.IsNotifyTypeUnknown()
+	})
+	return basescopes.WhereInColumn(PromAlarmChatGroupFieldNotifyApp, apps...)
+}
+
+// PromAlarmChatGroupPreloadCreateBy 预加载创建者
+func PromAlarmChatGroupPreloadCreateBy() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromAlarmChatGroupPreloadFieldCreateUser)
+	}
+}
 
 // PromAlarmChatGroup 告警通知群组机器人信息
 type PromAlarmChatGroup struct {
@@ -33,6 +53,8 @@ type PromAlarmChatGroup struct {
 	Secret   string `gorm:"column:secret;type:varchar(128);not null;comment:通信密钥"`
 	// 创建人ID
 	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
+
+	CreateUser *SysUser `gorm:"foreignKey:CreateBy;references:ID"`
 }
 
 func (*PromAlarmChatGroup) TableName() string {

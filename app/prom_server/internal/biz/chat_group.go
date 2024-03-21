@@ -6,6 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
@@ -59,6 +60,8 @@ func (b *ChatGroupBiz) ListChatGroup(ctx context.Context, req *bo.ListChatGroupR
 		basescopes.StatusEQ(req.Status),
 		basescopes.CreatedAtDesc(),
 		basescopes.UpdateAtDesc(),
+		do.PromAlarmChatGroupInApp(req.App),
+		do.PromAlarmChatGroupPreloadCreateBy(),
 	}
 	return b.chatGroupRepo.List(ctx, req.Page, wheres...)
 }

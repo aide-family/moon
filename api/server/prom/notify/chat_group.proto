@@ -151,6 +151,8 @@ message ListChatGroupRequest {
 	string keyword = 2 [(validate.rules).string.max_len = 20];
 	// 群组状态
 	Status status = 3 [(validate.rules).enum.defined_only = true];
+	// 所属平台
+	NotifyApp app = 4 [(validate.rules).enum.defined_only = true];
 }
 // 获取通知群组列表响应参数
 message ListChatGroupReply {
