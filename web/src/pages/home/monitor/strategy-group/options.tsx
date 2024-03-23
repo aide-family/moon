@@ -5,6 +5,7 @@ import {
     MenuProps,
     StepProps,
     Tag,
+    Typography,
     Upload,
     UploadProps
 } from 'antd'
@@ -19,13 +20,13 @@ import {
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { Status, StatusMap } from '@/apis/types'
+import { Category, Status, StatusMap } from '@/apis/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { ActionKey } from '@/apis/data'
 import DataForm from '@/components/Data/DataForm/DataForm'
 import {
+    defaultPageReq,
     getAlarmPages,
-    getCategories,
     getEndponts,
     getLevels
 } from '../strategy/options'
@@ -37,6 +38,27 @@ import {
     atomOneLight
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import jsYaml from 'js-yaml'
+import dictApi from '@/apis/home/system/dict'
+
+const { Paragraph } = Typography
+
+export const getCategories = (keyword: string) => {
+    return dictApi
+        .dictSelect({
+            keyword,
+            page: defaultPageReq,
+            category: Category.CATEGORY_PROM_STRATEGY_GROUP
+        })
+        .then((items) => {
+            return items.list.map((item) => {
+                const { color, value, label } = item
+                return {
+                    value: value,
+                    label: <Tag color={color}>{label}</Tag>
+                }
+            })
+        })
+}
 
 export const tableOperationItems = (
     record: StrategyGroupItemType
@@ -100,21 +122,26 @@ export const searchItems: DataFormItem[] = [
         label: '规则组名称'
     },
     {
-        name: 'categories',
+        name: 'categoryIds',
         label: '规则分类',
         dataProps: {
-            type: 'select',
+            type: 'select-fetch',
             parentProps: {
-                placeholder: '请选择规则分类',
-                options: [
-                    // TODO 需要从接口加载
-                ]
+                selectProps: {
+                    placeholder: '请选择策略类型',
+                    mode: 'multiple'
+                },
+                handleFetch: getCategories,
+                defaultOptions: []
             }
         }
     },
     {
         name: 'status',
         label: '规则组状态',
+        formItemProps: {
+            initialValue: Status.STATUS_UNKNOWN
+        },
         dataProps: {
             type: 'radio-group',
             parentProps: {
@@ -187,7 +214,7 @@ export const columns: (
         width: 120,
         align: 'center',
         render: (strategyCount: number | string) => {
-            return strategyCount
+            return <b>{strategyCount}</b>
         }
     },
     {
@@ -197,16 +224,23 @@ export const columns: (
         key: 'enableStrategyCount',
         width: 120,
         align: 'center',
-        render: (strategyCount: number | string) => {
-            return strategyCount
+        render: (enableStrategyCount: number | string) => {
+            return <b>{enableStrategyCount}</b>
         }
     },
     {
         title: '描述',
         dataIndex: 'remark',
         key: 'remark',
+        width: 400,
         render: (description: string) => {
-            return description
+            return (
+                <Paragraph
+                    ellipsis={{ rows: 2, expandable: true, symbol: 'more' }}
+                >
+                    {description}
+                </Paragraph>
+            )
         }
     },
     {
@@ -270,19 +304,17 @@ export const editStrategyGroupDataFormItems: DataFormItem[] = [
         ]
     },
     {
-        name: 'categories',
+        name: 'categoryIds',
         label: '规则分类',
         dataProps: {
-            type: 'select',
+            type: 'select-fetch',
             parentProps: {
-                placeholder: '请选择规则分类',
-                options: [
-                    {
-                        label: '全部',
-                        value: 0
-                    }
-                    // TODO 需要从接口加载
-                ]
+                selectProps: {
+                    placeholder: '请选择策略类型',
+                    mode: 'multiple'
+                },
+                handleFetch: getCategories,
+                defaultOptions: []
             }
         }
     },

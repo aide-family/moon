@@ -78,6 +78,11 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
     }
 
     useEffect(() => {
+        if (!open) {
+            form.resetFields()
+            setDetail(undefined)
+            return
+        }
         form.setFieldsValue(detail)
     }, [open])
 

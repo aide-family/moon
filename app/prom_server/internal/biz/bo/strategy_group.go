@@ -16,6 +16,7 @@ type (
 		Status            vo.Status  `json:"status"`
 		PreloadCategories bool       `json:"preloadCategories"`
 		Ids               []uint32   `json:"ids"`
+		CategoryIds       []uint32   `json:"categoryIds"`
 	}
 	RemoveStrategyGroupBO struct {
 		Id uint32 `json:"id"`
