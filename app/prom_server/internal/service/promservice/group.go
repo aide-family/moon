@@ -112,6 +112,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 		Status:            vobj.Status(req.GetStatus()),
 		PreloadCategories: true,
 		Ids:               req.GetIds(),
+		CategoryIds:       req.GetCategoryIds(),
 	})
 	if err != nil {
 		return nil, err

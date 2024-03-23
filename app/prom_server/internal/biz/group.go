@@ -67,6 +67,7 @@ func (l *StrategyGroupBiz) UpdateById(ctx context.Context, strategyGroup *bo.Str
 	if err != nil {
 		return nil, err
 	}
+	strategyGroup.Categories = slices.To(strategyGroup.GetCategoryIds(), func(category uint32) *bo.DictBO { return &bo.DictBO{Id: category} })
 	strategyGroupBO, err := l.strategyGroupRepo.UpdateById(ctx, strategyGroup.Id, strategyGroup)
 	if err != nil {
 		return nil, err
@@ -138,6 +139,7 @@ func (l *StrategyGroupBiz) List(ctx context.Context, req *bo.ListGroupReq) ([]*b
 		basescopes.UpdateAtDesc(),
 		basescopes.CreatedAtDesc(),
 		basescopes.InIds(req.Ids...),
+		do.StrategyGroupWhereCategories(req.CategoryIds...),
 	}
 	strategyGroupBoList, err := l.strategyGroupRepo.List(ctx, req.Page, scopes...)
 	if err != nil {
