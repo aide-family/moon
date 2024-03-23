@@ -164,9 +164,22 @@ func (l *strategyGroupRepoImpl) BatchCreate(ctx context.Context, strategyGroups 
 
 func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
-	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(id)).Updates(strategyGroupModel).Error; err != nil {
+	categories := strategyGroup.GetCategories()
+	categoriesDos := slices.To(categories, func(item *bo.DictBO) *do.SysDict { return item.ToModel() })
+	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Scopes(basescopes.InIds(id)).Updates(strategyGroupModel).Error; err != nil {
+			return err
+		}
+
+		if err := tx.WithContext(ctx).Model(strategyGroupModel).Association(do.PromGroupPreloadFieldCategories).Replace(categoriesDos); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
+
 	go func() {
 		defer after.Recover(l.log)
 		l.changeGroupChannel <- strategyGroupModel.ID
