@@ -50,7 +50,7 @@ func StrategyGroupWhereCategories(categories ...uint32) basescopes.ScopeMethod {
 			return db
 		}
 
-		tx := db.Where("pc.sys_dict_id IN ?", categories).Joins("left join prom_group_categories as pc on prom_strategy_groups.id = pc.prom_strategy_group_id")
+		tx := db.Where("pc.sys_dict_id IN ?", categories).Joins("left join prom_group_categories as pc on prom_strategy_groups.id = pc.prom_strategy_group_id").Group("prom_strategy_groups.id")
 		return tx
 	}
 }

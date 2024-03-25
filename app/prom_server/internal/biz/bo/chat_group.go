@@ -11,8 +11,8 @@ import (
 
 type (
 	ListChatGroupReq struct {
-		Page    Pagination   `json:"page"`
-		Keyword string       `json:"keyword"`
+		Page    Pagination     `json:"page"`
+		Keyword string         `json:"keyword"`
 		Status  vobj.Status    `json:"status"`
 		App     vobj.NotifyApp `json:"app"`
 	}
