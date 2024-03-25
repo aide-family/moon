@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package api.server.prom.notify;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "model.proto";
+
+option go_package = "prometheus-manager/api/server/prom/notify;notify";
+option java_multiple_files = true;
+option java_package = "api.server.prom.notify";
+
+// 通知模板管理模块
+service Template {
+  // 创建模板
+  rpc CreateTemplate (CreateTemplateRequest) returns (CreateTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/notify/template/create"
+      body: "*"
+    };
+  }
+
+  // 更新模板
+  rpc UpdateTemplate (UpdateTemplateRequest) returns (UpdateTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/notify/template/update"
+      body: "*"
+    };
+  }
+
+  // 删除模板
+  rpc DeleteTemplate (DeleteTemplateRequest) returns (DeleteTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/notify/template/delete"
+      body: "*"
+    };
+  }
+
+  // 获取模板
+  rpc GetTemplate (GetTemplateRequest) returns (GetTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/notify/template/get"
+      body: "*"
+    };
+  }
+
+  // 获取模板列表
+  rpc ListTemplate (ListTemplateRequest) returns (ListTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/notify/template/list"
+      body: "*"
+    };
+  }
+}
+
+// 创建模板请求参数
+message CreateTemplateRequest {
+  // 模板内容
+  string content = 2 [(validate.rules).string.min_len = 1];
+  // 所属策略
+  uint32 strategyId = 3 [(validate.rules).uint32.gt = 0];
+  // 模板类型
+  NotifyTemplateType notifyType = 4 [(validate.rules).enum.defined_only = true];
+}
+message CreateTemplateReply {}
+
+// 更新模板请求参数
+message UpdateTemplateRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 模板内容
+  string content = 2 [(validate.rules).string.min_len = 1];
+  // 所属策略
+  uint32 strategyId = 3 [(validate.rules).uint32.gt = 0];
+  // 模板类型
+  NotifyTemplateType notifyType = 4 [(validate.rules).enum.defined_only = true];
+}
+message UpdateTemplateReply {}
+
+// 删除模板请求参数
+message DeleteTemplateRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteTemplateReply {}
+
+// 获取模板请求参数
+message GetTemplateRequest {
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message GetTemplateReply {
+  NotifyTemplateItem detail = 1;
+}
+
+// 获取模板列表请求参数
+message ListTemplateRequest {
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  uint32 strategyId = 2 [(validate.rules).uint32.gt = 0];
+}
+message ListTemplateReply {
+  PageReply page = 1;
+  repeated NotifyTemplateItem list = 2;
+}

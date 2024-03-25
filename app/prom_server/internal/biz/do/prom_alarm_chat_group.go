@@ -48,9 +48,7 @@ type PromAlarmChatGroup struct {
 	Hook      string         `gorm:"column:hook;type:varchar(255);not null;comment:钩子地址"`
 	NotifyApp vobj.NotifyApp `gorm:"column:notify_app;type:tinyint;not null;default:1;comment:通知方式"`
 	HookName  string         `gorm:"column:hook_name;type:varchar(64);not null;comment:钩子名称"`
-	// 消息模板
-	Template string `gorm:"column:template;type:text;not null;comment:消息模板"`
-	Secret   string `gorm:"column:secret;type:varchar(128);not null;comment:通信密钥"`
+	Secret    string         `gorm:"column:secret;type:varchar(128);not null;comment:通信密钥"`
 	// 创建人ID
 	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
 

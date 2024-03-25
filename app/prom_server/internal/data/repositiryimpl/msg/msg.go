@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/strategy"
@@ -22,17 +23,43 @@ type msgRepoImpl struct {
 	d   *data.Data
 }
 
+func getHookAlarmTemplateMap(templates []*bo.NotifyTemplateBO) (map[vobj.NotifyApp]string, map[vobj.NotifyType]string) {
+	hookTemplateMap := make(map[vobj.NotifyApp]string)
+	memberTemplateMap := make(map[vobj.NotifyType]string)
+	for _, temp := range templates {
+		switch temp.NotifyType {
+		case vobj.NotifyTemplateTypeCustom:
+			hookTemplateMap[vobj.NotifyAppCustom] = temp.Content
+		case vobj.NotifyTemplateTypeEmail:
+			memberTemplateMap[vobj.NotifyTypeEmail] = temp.Content
+		case vobj.NotifyTemplateTypeSms:
+			memberTemplateMap[vobj.NotifyTypeSms] = temp.Content
+		case vobj.NotifyTemplateTypeWeChatWork:
+			hookTemplateMap[vobj.NotifyAppWeChatWork] = temp.Content
+		case vobj.NotifyTemplateTypeDingDing:
+			hookTemplateMap[vobj.NotifyAppDingDing] = temp.Content
+		case vobj.NotifyTemplateTypeFeiShu:
+			hookTemplateMap[vobj.NotifyAppFeiShu] = temp.Content
+		default:
+			hookTemplateMap[vobj.NotifyAppCustom] = temp.Content
+		}
+	}
+	return hookTemplateMap, memberTemplateMap
+}
+
 func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) error {
 	for _, v := range req {
 		if !l.cacheNotify(v.AlarmInfo) {
 			continue
 		}
+
+		hookTemplateMap, memberTemplateMap := getHookAlarmTemplateMap(v.Templates)
 		// 遍历告警组
 		for _, v2 := range v.PromNotifies {
 			// 通知到群组
-			l.sendAlarmToChatGroups(ctx, v2.GetChatGroups(), v.AlarmInfo)
+			l.sendAlarmToChatGroups(ctx, v2.GetChatGroups(), hookTemplateMap, v.AlarmInfo)
 			// 通知到人员
-			l.sendAlarmToMember(ctx, v2.GetBeNotifyMembers(), v.AlarmInfo)
+			l.sendAlarmToMember(ctx, v2.GetBeNotifyMembers(), memberTemplateMap, v.AlarmInfo)
 		}
 	}
 	return nil
@@ -44,7 +71,7 @@ func (l *msgRepoImpl) cacheNotify(alarmInfo *bo.AlertBo) bool {
 	return l.d.Cache().SetNX(context.Background(), consts.AlarmNotifyCache.Key(fingerprint).String(), alarmInfo.Bytes(), 2*time.Hour)
 }
 
-func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*bo.ChatGroupBO, alarmInfo *bo.AlertBo) {
+func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*bo.ChatGroupBO, hookTemplateMap map[vobj.NotifyApp]string, alarmInfo *bo.AlertBo) {
 	eg := new(errgroup.Group)
 	eg.SetLimit(10)
 	content := alarmInfo.String()
@@ -66,8 +93,9 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*b
 			Secret:    chatInfo.Secret,
 		}
 		alarmInfoMap := alarmInfo.ToMap()
-		if chatInfo.Template != "" {
-			msg.Content = strategy.Formatter(chatInfo.Template, alarmInfoMap)
+		template := hookTemplateMap[chatInfo.NotifyApp]
+		if template != "" {
+			msg.Content = strategy.Formatter(template, alarmInfoMap)
 		}
 
 		eg.Go(func() error {
@@ -80,17 +108,21 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*b
 }
 
 // 通知到人员
-func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyMemberBO, alarmInfo *bo.AlertBo) {
+func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyMemberBO, memberTemplateMap map[vobj.NotifyType]string, alarmInfo *bo.AlertBo) {
 	l.log.Debug("开始发送邮件通知")
 	eg := new(errgroup.Group)
 	eg.SetLimit(10)
 	// 短信、邮件、电话
 	for _, m := range members {
 		if m.NotifyType.IsEmail() {
+			template := memberTemplateMap[vobj.NotifyTypeEmail]
+			if template != "" {
+				template = strategy.Formatter(template, alarmInfo.ToMap())
+			}
 			// 发送邮件
 			eg.Go(func() error {
 				defer l.log.Debugw("发送邮件通知完成", m.GetMember().Email)
-				return l.d.Email().SetBody(alarmInfo.String()).
+				return l.d.Email().SetBody(template).
 					SetTo(m.GetMember().Email).
 					SetSubject("prometheus moon系统邮件告警").Send()
 			})

@@ -36,7 +36,7 @@ func (b *NotifyMemberBO) String() string {
 // GetMember 获取用户详情
 func (b *NotifyMemberBO) GetMember() *UserBO {
 	if b == nil {
-		return nil
+		return &UserBO{}
 	}
 	return b.Member
 }

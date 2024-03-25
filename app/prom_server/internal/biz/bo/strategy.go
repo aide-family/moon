@@ -61,6 +61,8 @@ type (
 		MaxSuppress  string             `json:"maxSuppress"`
 		SendInterval string             `json:"sendInterval"`
 		SendRecover  vobj.IsSendRecover `json:"sendRecover"`
+
+		Templates []*NotifyTemplateBO `json:"templates"`
 	}
 )
 
@@ -90,6 +92,14 @@ func (b *StrategyBO) GetPromNotifies() []*NotifyBO {
 		return nil
 	}
 	return b.PromNotifies
+}
+
+// GetTemplates 获取通知模板列表
+func (b *StrategyBO) GetTemplates() []*NotifyTemplateBO {
+	if b == nil {
+		return nil
+	}
+	return b.Templates
 }
 
 // GetPromNotifyUpgrade 获取告警升级通知信息列表
@@ -362,6 +372,9 @@ func StrategyModelToBO(m *do.PromStrategy) *StrategyBO {
 		PromNotifies: slices.To(m.GetPromNotifies(), func(notifyInfo *do.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
+		PromNotifyIds: slices.To(m.GetPromNotifies(), func(notifyInfo *do.PromAlarmNotify) uint32 {
+			return notifyInfo.ID
+		}),
 		PromNotifyUpgrade: slices.To(m.GetPromNotifyUpgrade(), func(notifyInfo *do.PromAlarmNotify) *NotifyBO {
 			return NotifyModelToBO(notifyInfo)
 		}),
@@ -370,5 +383,8 @@ func StrategyModelToBO(m *do.PromStrategy) *StrategyBO {
 		MaxSuppress:  m.MaxSuppress,
 		SendInterval: m.SendInterval,
 		SendRecover:  m.SendRecover,
+		Templates: slices.To(m.GetTemplates(), func(templateInfo *do.PromStrategyNotifyTemplate) *NotifyTemplateBO {
+			return NotifyTemplateModelToBO(templateInfo)
+		}),
 	}
 }
