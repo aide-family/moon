@@ -82,7 +82,6 @@ func (l *notifyRepoImpl) List(ctx context.Context, pgInfo bo.Pagination, scopes 
 func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.NotifyBO, error) {
 	newNotify := notify.ToModel()
 	chatGroupModels := slices.To(notify.GetChatGroups(), func(i *bo.ChatGroupBO) *do.PromAlarmChatGroup { return i.ToModel() })
-	notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember { return i.ToModel() })
 	newNotify.CreateBy = middler.GetUserId(ctx)
 	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(newNotify).Create(newNotify).Error; err != nil {
@@ -91,7 +90,7 @@ func (l *notifyRepoImpl) Create(ctx context.Context, notify *bo.NotifyBO) (*bo.N
 		if err := tx.Model(newNotify).Association(do.PromAlarmNotifyPreloadFieldChatGroups).Replace(chatGroupModels); err != nil {
 			return err
 		}
-		return tx.Model(newNotify).Association(do.PromAlarmNotifyPreloadFieldBeNotifyMembers).Replace(notifyMembers)
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -107,7 +106,6 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 
 	newModel := notify.ToModel()
 	chatGroupModels := slices.To(notify.GetChatGroups(), func(i *bo.ChatGroupBO) *do.PromAlarmChatGroup { return i.ToModel() })
-	notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember { return i.ToModel() })
 	return l.data.DB().Model(newModel).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(newModel).Scopes(append(scopes, basescopes.WithCreateBy(ctx))...).Updates(newModel).Error; err != nil {
 			l.log.Warnf("update notify error: %v", err)
@@ -117,11 +115,17 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 			l.log.Warnf("update notify chat group error: %v", err)
 			return err
 		}
-		if err := tx.Model(newModel).Association(do.PromAlarmNotifyPreloadFieldBeNotifyMembers).Replace(notifyMembers); err != nil {
-			l.log.Warnf("update notify member error: %v", err)
+		// 删除旧的人员
+		if err := tx.Model(&do.PromAlarmNotifyMember{}).Scopes(do.PromAlarmNotifyMemberWherePromAlarmNotifyID(notify.Id)).Delete(&do.PromAlarmNotifyMember{}).Error; err != nil {
 			return err
 		}
-		return nil
+		notifyMembers := slices.To(notify.GetBeNotifyMembers(), func(i *bo.NotifyMemberBO) *do.PromAlarmNotifyMember {
+			nm := i.ToModel()
+			nm.PromAlarmNotifyID = newModel.ID
+			return nm
+		})
+
+		return tx.Model(&do.PromAlarmNotifyMember{}).CreateInBatches(notifyMembers, 100).Error
 	})
 }
 

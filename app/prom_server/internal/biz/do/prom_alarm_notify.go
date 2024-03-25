@@ -1,6 +1,8 @@
 package do
 
 import (
+	"fmt"
+
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
@@ -32,6 +34,7 @@ func PromAlarmNotifyPreloadChatGroups(chatGroupIds ...uint32) basescopes.ScopeMe
 // PromAlarmNotifyPreloadBeNotifyMembers 预加载被通知成员
 func PromAlarmNotifyPreloadBeNotifyMembers(beNotifyMemberIds ...uint32) basescopes.ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
+		db = db.Preload(fmt.Sprintf("%s.%s", PromAlarmNotifyPreloadFieldBeNotifyMembers, PromNotifyMemberPreloadFieldMember))
 		if len(beNotifyMemberIds) > 0 {
 			return db.Preload(PromAlarmNotifyPreloadFieldBeNotifyMembers, basescopes.WhereInColumn(basescopes.BaseFieldID, beNotifyMemberIds...))
 		}
@@ -46,7 +49,7 @@ type PromAlarmNotify struct {
 	Status          vobj.Status              `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark          string                   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	ChatGroups      []*PromAlarmChatGroup    `gorm:"many2many:prom_notify_chat_groups;comment:通知组"`
-	BeNotifyMembers []*PromAlarmNotifyMember `gorm:"comment:被通知成员"`
+	BeNotifyMembers []*PromAlarmNotifyMember `gorm:"foreignKey:PromAlarmNotifyID;comment:被通知成员"`
 	// 外部体系通知对象(不在用户体系内的人和hook), 多对多
 	ExternalNotifyObjs []*ExternalNotifyObj `gorm:"many2many:prom_alarm_notify_external_notify_objs;comment:外部体系通知对象"`
 	// 创建人ID

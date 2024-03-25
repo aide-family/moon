@@ -6,19 +6,18 @@ import (
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	NotifyMemberBO struct {
-		Id          uint32           `json:"id"`
-		Status      vobj.Status      `json:"status"`
-		CreatedAt   int64            `json:"createdAt"`
-		UpdatedAt   int64            `json:"updatedAt"`
-		DeletedAt   int64            `json:"deletedAt"`
-		MemberId    uint32           `json:"memberId"`
-		Member      *UserBO          `json:"member"`
-		NotifyTypes vobj.NotifyTypes `json:"notifyTypes"`
+		Id         uint32          `json:"id"`
+		Status     vobj.Status     `json:"status"`
+		CreatedAt  int64           `json:"createdAt"`
+		UpdatedAt  int64           `json:"updatedAt"`
+		DeletedAt  int64           `json:"deletedAt"`
+		MemberId   uint32          `json:"memberId"`
+		Member     *UserBO         `json:"member"`
+		NotifyType vobj.NotifyType `json:"notifyTypes"`
 	}
 )
 
@@ -42,24 +41,16 @@ func (b *NotifyMemberBO) GetMember() *UserBO {
 	return b.Member
 }
 
-// GetNotifyTypes 获取通知类型
-func (b *NotifyMemberBO) GetNotifyTypes() vobj.NotifyTypes {
-	if b == nil {
-		return nil
-	}
-	return b.NotifyTypes
-}
-
 func (b *NotifyMemberBO) ToModel() *do.PromAlarmNotifyMember {
 	if b == nil {
 		return nil
 	}
 	return &do.PromAlarmNotifyMember{
-		BaseModel:   do.BaseModel{ID: b.Id},
-		Status:      b.Status,
-		NotifyTypes: b.GetNotifyTypes(),
-		MemberId:    b.MemberId,
-		Member:      b.GetMember().ToModel(),
+		BaseModel:  do.BaseModel{ID: b.Id},
+		Status:     b.Status,
+		NotifyType: b.NotifyType,
+		MemberId:   b.MemberId,
+		Member:     b.GetMember().ToModel(),
 	}
 }
 
@@ -70,11 +61,11 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 	}
 
 	return &api.BeNotifyMemberDetail{
-		MemberId:    b.MemberId,
-		NotifyTypes: slices.To(b.GetNotifyTypes(), func(i vobj.NotifyType) int32 { return i.Value() }),
-		User:        b.GetMember().ToApiSelectV1(),
-		Status:      b.Status.Value(),
-		Id:          b.Id,
+		MemberId:   b.MemberId,
+		NotifyType: b.NotifyType.Value(),
+		User:       b.GetMember().ToApiSelectV1(),
+		Status:     b.Status.Value(),
+		Id:         b.Id,
 	}
 }
 
@@ -84,10 +75,10 @@ func NotifyMemberApiToBO(a *api.BeNotifyMember) *NotifyMemberBO {
 		return nil
 	}
 	return &NotifyMemberBO{
-		Id:          a.Id,
-		MemberId:    a.GetMemberId(),
-		Member:      &UserBO{Id: a.GetMemberId()},
-		NotifyTypes: slices.To(a.GetNotifyTypes(), func(i api.NotifyType) vobj.NotifyType { return vobj.NotifyType(i) }),
+		Id:         a.Id,
+		MemberId:   a.GetMemberId(),
+		Member:     &UserBO{Id: a.GetMemberId()},
+		NotifyType: vobj.NotifyType(a.GetNotifyType()),
 	}
 }
 
@@ -97,13 +88,13 @@ func NotifyMemberModelToBO(m *do.PromAlarmNotifyMember) *NotifyMemberBO {
 		return nil
 	}
 	return &NotifyMemberBO{
-		Id:          m.ID,
-		Status:      m.Status,
-		CreatedAt:   m.CreatedAt.Unix(),
-		UpdatedAt:   m.UpdatedAt.Unix(),
-		DeletedAt:   int64(m.DeletedAt),
-		MemberId:    m.MemberId,
-		Member:      UserModelToBO(m.GetMember()),
-		NotifyTypes: m.GetNotifyTypes(),
+		Id:         m.ID,
+		Status:     m.Status,
+		CreatedAt:  m.CreatedAt.Unix(),
+		UpdatedAt:  m.UpdatedAt.Unix(),
+		DeletedAt:  int64(m.DeletedAt),
+		MemberId:   m.MemberId,
+		Member:     UserModelToBO(m.GetMember()),
+		NotifyType: m.NotifyType,
 	}
 }

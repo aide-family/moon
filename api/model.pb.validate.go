@@ -2040,58 +2040,7 @@ func (m *BeNotifyMember) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetNotifyTypes()) < 1 {
-		err := BeNotifyMemberValidationError{
-			field:  "NotifyTypes",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	_BeNotifyMember_NotifyTypes_Unique := make(map[NotifyType]struct{}, len(m.GetNotifyTypes()))
-
-	for idx, item := range m.GetNotifyTypes() {
-		_, _ = idx, item
-
-		if _, exists := _BeNotifyMember_NotifyTypes_Unique[item]; exists {
-			err := BeNotifyMemberValidationError{
-				field:  fmt.Sprintf("NotifyTypes[%v]", idx),
-				reason: "repeated value must contain unique items",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		} else {
-			_BeNotifyMember_NotifyTypes_Unique[item] = struct{}{}
-		}
-
-		if _, ok := _BeNotifyMember_NotifyTypes_NotInLookup[item]; ok {
-			err := BeNotifyMemberValidationError{
-				field:  fmt.Sprintf("NotifyTypes[%v]", idx),
-				reason: "value must not be in list [0]",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if _, ok := NotifyType_name[int32(item)]; !ok {
-			err := BeNotifyMemberValidationError{
-				field:  fmt.Sprintf("NotifyTypes[%v]", idx),
-				reason: "value must be one of the defined enum values",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	}
+	// no validation rules for NotifyType
 
 	// no validation rules for Id
 
@@ -2173,10 +2122,6 @@ var _ interface {
 	ErrorName() string
 } = BeNotifyMemberValidationError{}
 
-var _BeNotifyMember_NotifyTypes_NotInLookup = map[NotifyType]struct{}{
-	0: {},
-}
-
 // Validate checks the field values on BeNotifyMemberDetail with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2200,6 +2145,8 @@ func (m *BeNotifyMemberDetail) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for MemberId
+
+	// no validation rules for NotifyType
 
 	if all {
 		switch v := interface{}(m.GetUser()).(type) {

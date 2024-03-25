@@ -27,7 +27,7 @@ const (
 // PromAlarmChatGroupInApp 根据app类型查询
 func PromAlarmChatGroupInApp(apps ...vobj.NotifyApp) basescopes.ScopeMethod {
 	apps = slices.Filter(apps, func(app vobj.NotifyApp) bool {
-		return !app.IsNotifyTypeUnknown()
+		return !app.IsUnknown()
 	})
 	return basescopes.WhereInColumn(PromAlarmChatGroupFieldNotifyApp, apps...)
 }

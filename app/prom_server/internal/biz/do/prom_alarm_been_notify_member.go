@@ -20,7 +20,7 @@ const (
 type PromAlarmBeenNotifyMember struct {
 	BaseModel
 	RealtimeAlarmID   uint32           `gorm:"column:realtime_alarm_id;type:int unsigned;not null;index:idx__bnm__realtime_alarm_id,priority:1;comment:告警ID"`
-	NotifyTypes       vobj.NotifyTypes `gorm:"column:notify_types;type:json;not null;comment:通知方式"`
+	NotifyType        vobj.NotifyType  `gorm:"column:notify_types;type:tinyint;not null;comment:通知方式"`
 	MemberId          uint32           `gorm:"column:member_id;type:int unsigned;not null;comment:通知人员ID"`
 	Member            *SysUser         `gorm:"foreignKey:MemberId;comment:成员"`
 	Msg               string           `gorm:"column:msg;type:text;not null;comment:通知的消息"`
@@ -31,14 +31,6 @@ type PromAlarmBeenNotifyMember struct {
 
 func (*PromAlarmBeenNotifyMember) TableName() string {
 	return TableNamePromAlarmNotifyMember
-}
-
-// GetNotifyTypes .
-func (p *PromAlarmBeenNotifyMember) GetNotifyTypes() vobj.NotifyTypes {
-	if p.NotifyTypes == nil {
-		return vobj.NotifyTypes{}
-	}
-	return p.NotifyTypes
 }
 
 // GetMember .
