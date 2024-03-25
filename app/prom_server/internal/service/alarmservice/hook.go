@@ -7,7 +7,7 @@ import (
 	pb "prometheus-manager/api/alarm/hook"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/times"
 )
@@ -45,7 +45,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 			Md5:        alert.GetFingerprint(),
 			StrategyId: labels.StrategyId(),
 			LevelId:    labels.LevelId(),
-			Status:     vo.ToAlarmStatus(alert.GetStatus()),
+			Status:     vobj.ToAlarmStatus(alert.GetStatus()),
 			StartsAt:   startTime.Unix(),
 			EndsAt:     endsAt,
 			Instance:   strategy.MapToLabels(alert.GetLabels()).GetInstance(),

@@ -12,7 +12,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -85,7 +85,7 @@ func (l *strategyRepoImpl) CreateStrategy(ctx context.Context, strategyBO *bo.St
 	})
 	newStrategy.CreateBy = middler.GetUserId(ctx)
 	// 默认不开启
-	newStrategy.Status = vo.StatusDisabled
+	newStrategy.Status = vobj.StatusDisabled
 
 	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := basescopes.WithTx(ctx, tx)
@@ -189,7 +189,7 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 	return bo.StrategyModelToBO(newStrategy), nil
 }
 
-func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error {
 	// 查询规则组ID列表
 	groupIds, err := l.getStrategyGroupIdsByStrategyIds(ctx, ids)
 	if err != nil {

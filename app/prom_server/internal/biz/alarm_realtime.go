@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type AlarmRealtimeBiz struct {
@@ -60,7 +60,7 @@ func (l *AlarmRealtimeBiz) GetRealtimeList(ctx context.Context, req *bo.ListReal
 		do.PromAlarmRealtimeInStrategyIds(strategyIds...),
 		do.PromAlarmRealtimeBetweenEventAt(req.StartAt, req.EndAt),
 		// 还在告警的数据
-		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.StatusEQ(vobj.StatusEnabled),
 		do.PromAlarmRealtimeEventAtDesc(),
 		//预加载告警等级
 		do.PromAlarmRealtimePreloadLevel(),

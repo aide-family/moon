@@ -5,26 +5,26 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
 	ApiListApiReq struct {
-		Keyword string    `json:"keyword"`
-		Status  vo.Status `json:"status"`
-		Curr    int32     `json:"curr"`
-		Size    int32     `json:"size"`
+		Keyword string      `json:"keyword"`
+		Status  vobj.Status `json:"status"`
+		Curr    int32       `json:"curr"`
+		Size    int32       `json:"size"`
 	}
 
 	ApiBO struct {
-		Id     uint32    `json:"id"`
-		Name   string    `json:"name"`
-		Path   string    `json:"path"`
-		Method string    `json:"method"`
-		Status vo.Status `json:"status"`
-		Remark string    `json:"remark"`
-		Module vo.Module `json:"module"`
-		Domain vo.Domain `json:"domain"`
+		Id     uint32      `json:"id"`
+		Name   string      `json:"name"`
+		Path   string      `json:"path"`
+		Method string      `json:"method"`
+		Status vobj.Status `json:"status"`
+		Remark string      `json:"remark"`
+		Module vobj.Module `json:"module"`
+		Domain vobj.Domain `json:"domain"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`

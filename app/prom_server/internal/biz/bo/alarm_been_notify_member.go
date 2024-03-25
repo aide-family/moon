@@ -3,20 +3,20 @@ package bo
 import (
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	AlarmBeenNotifyMemberBO struct {
-		ID                uint32         `json:"id"`
-		RealtimeAlarmID   uint32         `json:"realtimeAlarmID"`
-		Status            vo.Status      `json:"status"`
-		NotifyTypes       vo.NotifyTypes `json:"notifyTypes"`
-		MemberId          uint32         `json:"memberId"`
-		PromAlarmNotifyID uint32         `json:"promAlarmNotifyID"`
-		Msg               string         `json:"msg"`
-		Member            *UserBO        `json:"member"`
+		ID                uint32           `json:"id"`
+		RealtimeAlarmID   uint32           `json:"realtimeAlarmID"`
+		Status            vobj.Status      `json:"status"`
+		NotifyTypes       vobj.NotifyTypes `json:"notifyTypes"`
+		MemberId          uint32           `json:"memberId"`
+		PromAlarmNotifyID uint32           `json:"promAlarmNotifyID"`
+		Msg               string           `json:"msg"`
+		Member            *UserBO          `json:"member"`
 
 		CreatedAt int64 `json:"createdAt"`
 		UpdatedAt int64 `json:"updatedAt"`
@@ -25,9 +25,9 @@ type (
 )
 
 // GetNotifyTypes .
-func (l *AlarmBeenNotifyMemberBO) GetNotifyTypes() vo.NotifyTypes {
+func (l *AlarmBeenNotifyMemberBO) GetNotifyTypes() vobj.NotifyTypes {
 	if l == nil {
-		return vo.NotifyTypes{}
+		return vobj.NotifyTypes{}
 	}
 	return l.NotifyTypes
 }
@@ -57,7 +57,7 @@ func (l *AlarmBeenNotifyMemberBO) ToModel() *do.PromAlarmBeenNotifyMember {
 func (l *AlarmBeenNotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 	return &api.BeNotifyMemberDetail{
 		MemberId:    l.MemberId,
-		NotifyTypes: slices.To(l.GetNotifyTypes(), func(i vo.NotifyType) int32 { return int32(i) }),
+		NotifyTypes: slices.To(l.GetNotifyTypes(), func(i vobj.NotifyType) int32 { return int32(i) }),
 		User:        l.GetMember().ToApiSelectV1(),
 		Status:      l.Status.Value(),
 		Id:          l.ID,

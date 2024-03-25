@@ -5,28 +5,28 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	ListRoleReq struct {
-		Page    Pagination `json:"page"`
-		Status  vo.Status  `json:"status"`
-		Keyword string     `json:"keyword"`
-		UserId  uint32     `json:"user_id"`
+		Page    Pagination  `json:"page"`
+		Status  vobj.Status `json:"status"`
+		Keyword string      `json:"keyword"`
+		UserId  uint32      `json:"user_id"`
 	}
 
 	RoleBO struct {
-		Id        uint32    `json:"id"`
-		Name      string    `json:"name"`
-		Status    vo.Status `json:"status"`
-		Remark    string    `json:"remark"`
-		CreatedAt int64     `json:"createdAt"`
-		UpdatedAt int64     `json:"updatedAt"`
-		DeletedAt int64     `json:"deletedAt"`
-		Users     []*UserBO `json:"users"`
-		Apis      []*ApiBO  `json:"apis"`
+		Id        uint32      `json:"id"`
+		Name      string      `json:"name"`
+		Status    vobj.Status `json:"status"`
+		Remark    string      `json:"remark"`
+		CreatedAt int64       `json:"createdAt"`
+		UpdatedAt int64       `json:"updatedAt"`
+		DeletedAt int64       `json:"deletedAt"`
+		Users     []*UserBO   `json:"users"`
+		Apis      []*ApiBO    `json:"apis"`
 	}
 )
 

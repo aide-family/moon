@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -45,8 +45,8 @@ func (p *AlarmPageBiz) CreatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (
 		return nil, err
 	}
 
-	p.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmPage,
+	p.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmPage,
 		ModuleId:   pageBO.Id,
 		Content:    pageBO.String(),
 		Title:      "创建报警页面",
@@ -66,8 +66,8 @@ func (p *AlarmPageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (
 		return nil, err
 	}
 
-	p.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmPage,
+	p.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmPage,
 		ModuleId:   pageBO.Id,
 		Content:    bo.NewChangeLogBo(oldPage, newPageBO).String(),
 		Title:      "更新报警页面",
@@ -76,7 +76,7 @@ func (p *AlarmPageBiz) UpdatePage(ctx context.Context, pageBO *bo.AlarmPageBO) (
 }
 
 // BatchUpdatePageStatusByIds 通过id批量更新页面状态
-func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error {
 	// 查询
 	oldPageList, err := p.pageRepo.GetByParams(ctx, basescopes.InIds(ids...))
 	if err != nil {
@@ -88,13 +88,13 @@ func (p *AlarmPageBiz) BatchUpdatePageStatusByIds(ctx context.Context, status vo
 
 	list := slices.To(oldPageList, func(pageBO *bo.AlarmPageBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleAlarmPage,
+			ModuleName: vobj.ModuleAlarmPage,
 			ModuleId:   pageBO.Id,
 			Content:    bo.NewChangeLogBo(pageBO.Status.String(), status.String()).String(),
 			Title:      "更新报警页面状态",
 		}
 	})
-	p.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	p.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -110,14 +110,14 @@ func (p *AlarmPageBiz) DeletePageByIds(ctx context.Context, ids ...uint32) error
 	}
 	list := slices.To(oldPageList, func(pageBO *bo.AlarmPageBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleAlarmPage,
+			ModuleName: vobj.ModuleAlarmPage,
 			ModuleId:   pageBO.Id,
 			Content:    pageBO.String(),
 			Title:      "删除报警页面",
 		}
 	})
 
-	p.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	p.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 

@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromGroup = "prom_strategy_groups"
@@ -50,7 +50,7 @@ func StrategyGroupWhereCategories(categories ...uint32) basescopes.ScopeMethod {
 			return db
 		}
 
-		tx := db.Where("pc.sys_dict_id IN ?", categories).Joins("left join prom_group_categories as pc on prom_strategy_groups.id = pc.prom_strategy_group_id")
+		tx := db.Where("pc.sys_dict_id IN ?", categories).Joins("left join prom_group_categories as pc on prom_strategy_groups.id = pc.prom_strategy_group_id").Group("prom_strategy_groups.id")
 		return tx
 	}
 }
@@ -61,7 +61,7 @@ type PromStrategyGroup struct {
 	Name                string          `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:规则组名称"`
 	StrategyCount       int64           `gorm:"column:strategy_count;type:bigint;not null;default:0;comment:规则数量"`
 	EnableStrategyCount int64           `gorm:"column:enable_strategy_count;type:bigint;not null;default:0;comment:启用策略数量"`
-	Status              vo.Status       `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用"`
+	Status              vobj.Status     `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用"`
 	Remark              string          `gorm:"column:remark;type:varchar(255);not null;comment:描述信息"`
 	PromStrategies      []*PromStrategy `gorm:"foreignKey:GroupID"`
 	Categories          []*SysDict      `gorm:"many2many:prom_group_categories"`

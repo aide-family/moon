@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
@@ -42,8 +42,8 @@ func (l *DashboardBiz) CreateChart(ctx context.Context, chartInfo *bo.MyChartBO)
 		return nil, err
 	}
 
-	l.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboardChart,
+	l.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboardChart,
 		ModuleId:   newChartDetail.Id,
 		Content:    newChartDetail.String(),
 		Title:      "创建图表",
@@ -62,8 +62,8 @@ func (l *DashboardBiz) UpdateChartById(ctx context.Context, chartId uint32, char
 	if err != nil {
 		return nil, err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboardChart,
+	l.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboardChart,
 		ModuleId:   newData.Id,
 		Content:    bo.NewChangeLogBo(chartInfoDetail, newData).String(),
 		Title:      "更新图表",
@@ -81,8 +81,8 @@ func (l *DashboardBiz) DeleteChartById(ctx context.Context, chartId uint32) erro
 	if err = l.chartRepo.Delete(ctx, basescopes.InIds(chartId)); err != nil {
 		return err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboardChart,
+	l.logX.CreateSysLog(ctx, vobj.ActionDelete, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboardChart,
 		ModuleId:   chartId,
 		Content:    chartInfoDetail.String(),
 		Title:      "删除图表",
@@ -106,8 +106,8 @@ func (l *DashboardBiz) CreateDashboard(ctx context.Context, dashboardInfo *bo.My
 	if err != nil {
 		return nil, err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboard,
+	l.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboard,
 		ModuleId:   newData.Id,
 		Content:    newData.String(),
 		Title:      "创建dashboard",
@@ -126,8 +126,8 @@ func (l *DashboardBiz) UpdateDashboardById(ctx context.Context, dashboardId uint
 	if err != nil {
 		return nil, err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboard,
+	l.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboard,
 		ModuleId:   newData.Id,
 		Content:    bo.NewChangeLogBo(dashboardInfoDetail, newData).String(),
 		Title:      "更新dashboard",
@@ -145,8 +145,8 @@ func (l *DashboardBiz) DeleteDashboardById(ctx context.Context, dashboardId uint
 	if err = l.dashboardRepo.Delete(ctx, basescopes.InIds(dashboardId)); err != nil {
 		return err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
-		ModuleName: vo.ModuleDashboard,
+	l.logX.CreateSysLog(ctx, vobj.ActionDelete, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDashboard,
 		ModuleId:   dashboardId,
 		Content:    dashboardInfoDetail.String(),
 		Title:      "删除dashboard",

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -68,9 +68,9 @@ func IdGT(id uint32) ScopeMethod {
 }
 
 // StatusEQ 状态
-func StatusEQ(status vo.Status) ScopeMethod {
+func StatusEQ(status vobj.Status) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		if status == vo.StatusUnknown {
+		if status == vobj.StatusUnknown {
 			return db
 		}
 		return db.Where(BaseFieldStatus.String(), status)
@@ -78,9 +78,9 @@ func StatusEQ(status vo.Status) ScopeMethod {
 }
 
 // StatusNotEQ 状态
-func StatusNotEQ(status vo.Status) ScopeMethod {
+func StatusNotEQ(status vobj.Status) ScopeMethod {
 	return func(db *gorm.DB) *gorm.DB {
-		if status == vo.StatusUnknown {
+		if status == vobj.StatusUnknown {
 			return db
 		}
 		return db.Where(BaseFieldStatus.Format("!=", "?").String(), status)

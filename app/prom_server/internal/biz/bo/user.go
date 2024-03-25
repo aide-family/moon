@@ -5,32 +5,32 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	GetUserListReq struct {
 		Page    Pagination
-		Keyword string    `json:"keyword"`
-		Status  vo.Status `json:"status"`
+		Keyword string      `json:"keyword"`
+		Status  vobj.Status `json:"status"`
 	}
 	UserBO struct {
-		Id        uint32    `json:"id"`
-		Username  string    `json:"username"`
-		Nickname  string    `json:"nickname"`
-		Password  string    `json:"password"`
-		Salt      string    `json:"salt"`
-		Email     string    `json:"email"`
-		Phone     string    `json:"phone"`
-		Status    vo.Status `json:"status"`
-		Remark    string    `json:"remark"`
-		Avatar    string    `json:"avatar"`
-		CreatedAt int64     `json:"createdAt"`
-		UpdatedAt int64     `json:"updatedAt"`
-		DeletedAt int64     `json:"deletedAt"`
-		Roles     []*RoleBO `json:"roles"`
-		Gender    vo.Gender `json:"gender"`
+		Id        uint32      `json:"id"`
+		Username  string      `json:"username"`
+		Nickname  string      `json:"nickname"`
+		Password  string      `json:"password"`
+		Salt      string      `json:"salt"`
+		Email     string      `json:"email"`
+		Phone     string      `json:"phone"`
+		Status    vobj.Status `json:"status"`
+		Remark    string      `json:"remark"`
+		Avatar    string      `json:"avatar"`
+		CreatedAt int64       `json:"createdAt"`
+		UpdatedAt int64       `json:"updatedAt"`
+		DeletedAt int64       `json:"deletedAt"`
+		Roles     []*RoleBO   `json:"roles"`
+		Gender    vobj.Gender `json:"gender"`
 	}
 )
 

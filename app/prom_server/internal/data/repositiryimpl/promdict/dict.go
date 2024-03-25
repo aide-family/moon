@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -47,7 +47,7 @@ func (l *promDictRepoImpl) UpdateDictById(ctx context.Context, id uint32, dictBO
 	return bo.DictModelToBO(newModelData), nil
 }
 
-func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+func (l *promDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error {
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.SysDict{Status: status}).Error; err != nil {
 		return err
 	}

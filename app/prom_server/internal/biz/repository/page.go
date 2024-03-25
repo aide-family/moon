@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -22,7 +22,7 @@ type (
 		// UpdatePageById 通过id更新页面
 		UpdatePageById(ctx context.Context, id uint32, pageBO *bo.AlarmPageBO) (*bo.AlarmPageBO, error)
 		// BatchUpdatePageStatusByIds 通过id批量更新页面状态
-		BatchUpdatePageStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error
+		BatchUpdatePageStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error
 		// DeletePageByIds 通过id删除页面
 		DeletePageByIds(ctx context.Context, id ...uint32) error
 		// GetPageById 通过id获取页面详情
@@ -78,7 +78,7 @@ func (UnimplementedPageRepo) UpdatePageById(_ context.Context, _ uint32, _ *bo.A
 	return nil, status.Error(codes.Unimplemented, "method UpdatePageById not implemented")
 }
 
-func (UnimplementedPageRepo) BatchUpdatePageStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
+func (UnimplementedPageRepo) BatchUpdatePageStatusByIds(_ context.Context, _ vobj.Status, _ []uint32) error {
 	return status.Error(codes.Unimplemented, "method BatchUpdatePageStatusByIds not implemented")
 }
 

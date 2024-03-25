@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/pkg/helper/consts"
@@ -170,7 +170,7 @@ func CheckUserRoleExist(ctx context.Context, cacheClient cache.GlobalCache, user
 // CacheDisabledRoles 缓存角色禁用列表
 func CacheDisabledRoles(db *gorm.DB, cacheClient cache.GlobalCache, roleIds ...uint32) error {
 	wheres := []func(tx *gorm.DB) *gorm.DB{
-		basescopes.StatusNotEQ(vo.StatusEnabled),
+		basescopes.StatusNotEQ(vobj.StatusEnabled),
 		basescopes.DeleteAtGT0(),
 	}
 	if len(roleIds) > 0 {

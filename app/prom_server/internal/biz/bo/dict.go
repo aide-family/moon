@@ -5,28 +5,28 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
 	ListDictRequest struct {
-		Page      Pagination  `json:"page"`
-		Keyword   string      `json:"keyword"`
-		Category  vo.Category `json:"category"`
-		Status    vo.Status   `json:"status"`
-		IsDeleted bool        `json:"isDeleted"`
+		Page      Pagination    `json:"page"`
+		Keyword   string        `json:"keyword"`
+		Category  vobj.Category `json:"category"`
+		Status    vobj.Status   `json:"status"`
+		IsDeleted bool          `json:"isDeleted"`
 	}
 
 	DictBO struct {
-		Id        uint32      `json:"id"`
-		Name      string      `json:"name"`
-		Category  vo.Category `json:"category"`
-		Status    vo.Status   `json:"status"`
-		Remark    string      `json:"remark"`
-		Color     string      `json:"color"`
-		CreatedAt int64       `json:"createdAt"`
-		UpdatedAt int64       `json:"updatedAt"`
-		DeletedAt int64       `json:"deletedAt"`
+		Id        uint32        `json:"id"`
+		Name      string        `json:"name"`
+		Category  vobj.Category `json:"category"`
+		Status    vobj.Status   `json:"status"`
+		Remark    string        `json:"remark"`
+		Color     string        `json:"color"`
+		CreatedAt int64         `json:"createdAt"`
+		UpdatedAt int64         `json:"updatedAt"`
+		DeletedAt int64         `json:"deletedAt"`
 	}
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -14,7 +14,7 @@ import (
 type SelectStrategyRequest struct {
 	Page    Pagination
 	Keyword string
-	Status  vo.Status
+	Status  vobj.Status
 }
 
 type ExportStrategyRequest struct {
@@ -25,7 +25,7 @@ type ListStrategyRequest struct {
 	Page       Pagination
 	Keyword    string
 	GroupId    uint32
-	Status     vo.Status
+	Status     vobj.Status
 	StrategyId uint32
 }
 
@@ -37,7 +37,7 @@ type (
 		Duration       string                `json:"duration"`
 		Labels         *strategy.Labels      `json:"labels"`
 		Annotations    *strategy.Annotations `json:"annotations"`
-		Status         vo.Status             `json:"status"`
+		Status         vobj.Status           `json:"status"`
 		Remark         string                `json:"remark"`
 		GroupId        uint32                `json:"groupId"`
 		GroupInfo      *StrategyGroupBO      `json:"groupInfo"`
@@ -58,9 +58,9 @@ type (
 		EndpointId uint32      `json:"endpointId"`
 		Endpoint   *EndpointBO `json:"endpoint"`
 
-		MaxSuppress  string           `json:"maxSuppress"`
-		SendInterval string           `json:"sendInterval"`
-		SendRecover  vo.IsSendRecover `json:"sendRecover"`
+		MaxSuppress  string             `json:"maxSuppress"`
+		SendInterval string             `json:"sendInterval"`
+		SendRecover  vobj.IsSendRecover `json:"sendRecover"`
 	}
 )
 

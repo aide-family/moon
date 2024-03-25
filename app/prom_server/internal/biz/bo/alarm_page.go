@@ -5,7 +5,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -13,26 +13,26 @@ type (
 	ListAlarmPageRequest struct {
 		Page    Pagination
 		Keyword string
-		Status  vo.Status
+		Status  vobj.Status
 	}
 
 	SelectAlarmPageRequest struct {
 		Curr    int32
 		Size    int32
 		Keyword string
-		Status  vo.Status
+		Status  vobj.Status
 	}
 
 	AlarmPageBO struct {
-		Id        uint32    `json:"id"`
-		Name      string    `json:"name"`
-		Icon      string    `json:"icon"`
-		Color     string    `json:"color"`
-		Remark    string    `json:"remark"`
-		Status    vo.Status `json:"status"`
-		CreatedAt int64     `json:"createdAt"`
-		UpdatedAt int64     `json:"updatedAt"`
-		DeletedAt int64     `json:"deletedAt"`
+		Id        uint32      `json:"id"`
+		Name      string      `json:"name"`
+		Icon      string      `json:"icon"`
+		Color     string      `json:"color"`
+		Remark    string      `json:"remark"`
+		Status    vobj.Status `json:"status"`
+		CreatedAt int64       `json:"createdAt"`
+		UpdatedAt int64       `json:"updatedAt"`
+		DeletedAt int64       `json:"deletedAt"`
 
 		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}

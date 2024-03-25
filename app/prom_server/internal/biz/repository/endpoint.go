@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 var _ EndpointRepo = (*UnimplementedEndpointRepo)(nil)
@@ -17,7 +17,7 @@ type (
 		mustEmbedUnimplemented()
 		Append(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
 		Update(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
-		UpdateStatus(ctx context.Context, ids []uint32, status vo.Status) error
+		UpdateStatus(ctx context.Context, ids []uint32, status vobj.Status) error
 		Delete(ctx context.Context, ids []uint32) error
 		List(ctx context.Context, pagination bo.Pagination, scopes ...basescopes.ScopeMethod) ([]*bo.EndpointBO, error)
 		Get(ctx context.Context, scopes ...basescopes.ScopeMethod) (*bo.EndpointBO, error)
@@ -35,7 +35,7 @@ func (r UnimplementedEndpointRepo) Get(ctx context.Context, scopes ...basescopes
 	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 
-func (UnimplementedEndpointRepo) UpdateStatus(_ context.Context, _ []uint32, _ vo.Status) error {
+func (UnimplementedEndpointRepo) UpdateStatus(_ context.Context, _ []uint32, _ vobj.Status) error {
 	return status.Error(codes.Unimplemented, "method UpdateStatus not implemented")
 }
 

@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api/server/dashboard"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -90,7 +90,7 @@ func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.Lis
 	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, &bo.ListDashboardReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *dashboa
 	dashboardBoList, err := s.dashboardBiz.ListDashboard(ctx, &bo.ListDashboardReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

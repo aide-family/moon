@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/server/prom/notify"
@@ -66,7 +66,7 @@ func (s *NotifyService) UpdateNotify(ctx context.Context, req *pb.UpdateNotifyRe
 		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		Status: vo.Status(req.GetStatus()),
+		Status: vobj.Status(req.GetStatus()),
 		BeNotifyMembers: slices.To(req.GetMembers(), func(t *api.BeNotifyMember) *bo.NotifyMemberBO {
 			return bo.NotifyMemberApiToBO(t)
 		}),
@@ -116,7 +116,7 @@ func (s *NotifyService) ListNotify(ctx context.Context, req *pb.ListNotifyReques
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, &bo.ListNotifyRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (s *NotifyService) SelectNotify(ctx context.Context, req *pb.SelectNotifyRe
 	notifyBos, err := s.notifyBiz.ListNotify(ctx, &bo.ListNotifyRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

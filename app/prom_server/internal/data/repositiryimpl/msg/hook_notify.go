@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type HookNotifyMsg struct {
@@ -17,13 +17,13 @@ type HookNotify interface {
 	Alarm(ctx context.Context, url string, msg *HookNotifyMsg) error
 }
 
-func NewHookNotify(app vo.NotifyApp) HookNotify {
+func NewHookNotify(app vobj.NotifyApp) HookNotify {
 	switch app {
-	case vo.NotifyAppWeChatWork:
+	case vobj.NotifyAppWeChatWork:
 		return NewWechatNotify()
-	case vo.NotifyAppDingDing:
+	case vobj.NotifyAppDingDing:
 		return NewDingNotify()
-	case vo.NotifyAppFeiShu:
+	case vobj.NotifyAppFeiShu:
 		return NewFeishuNotify()
 	default:
 		return NewOtherNotify()

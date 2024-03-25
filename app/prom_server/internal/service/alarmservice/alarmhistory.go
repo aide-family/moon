@@ -8,7 +8,7 @@ import (
 	pb "prometheus-manager/api/server/alarm/history"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type HistoryService struct {
@@ -46,7 +46,7 @@ func (s *HistoryService) ListHistory(ctx context.Context, req *pb.ListHistoryReq
 		FiringEndAt:     req.GetFiringEndAt(),
 		ResolvedStartAt: req.GetResolvedStartAt(),
 		ResolvedEndAt:   req.GetResolvedEndAt(),
-		Status:          vo.AlarmStatus(req.GetStatus()),
+		Status:          vobj.AlarmStatus(req.GetStatus()),
 		AlarmPageIds:    req.GetAlarmPages(),
 		StrategyIds:     req.GetStrategyIds(),
 		AlarmLevelIds:   req.GetAlarmLevelIds(),

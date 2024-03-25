@@ -8,7 +8,7 @@ import (
 	pb "prometheus-manager/api/server/alarm/page"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -64,7 +64,7 @@ func (s *AlarmPageService) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAl
 
 func (s *AlarmPageService) BatchUpdateAlarmPageStatus(ctx context.Context, req *pb.BatchUpdateAlarmPageStatusRequest) (*pb.BatchUpdateAlarmPageStatusReply, error) {
 	updateAlarmPageIds := req.GetIds()
-	if err := s.pageBiz.BatchUpdatePageStatusByIds(ctx, vo.Status(req.GetStatus()), updateAlarmPageIds); err != nil {
+	if err := s.pageBiz.BatchUpdatePageStatusByIds(ctx, vobj.Status(req.GetStatus()), updateAlarmPageIds); err != nil {
 		return nil, err
 	}
 	return &pb.BatchUpdateAlarmPageStatusReply{Ids: updateAlarmPageIds}, nil
@@ -98,7 +98,7 @@ func (s *AlarmPageService) ListAlarmPage(ctx context.Context, req *pb.ListAlarmP
 	alarmPageBOs, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (s *AlarmPageService) SelectAlarmPage(ctx context.Context, req *pb.SelectAl
 	alarmPageBOs, err := s.pageBiz.ListPage(ctx, &bo.ListAlarmPageRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

@@ -6,7 +6,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
@@ -17,27 +17,27 @@ type (
 		FiringEndAt     int64
 		ResolvedStartAt int64
 		ResolvedEndAt   int64
-		Status          vo.AlarmStatus
+		Status          vobj.AlarmStatus
 		AlarmPageIds    []uint32
 		StrategyIds     []uint32
 		AlarmLevelIds   []uint32
 		Duration        int64
 	}
 	AlarmHistoryBO struct {
-		Id         uint32         `json:"id"`
-		Md5        string         `json:"md5"`
-		StrategyId uint32         `json:"strategyId"`
-		StrategyBO *StrategyBO    `json:"strategyBO"`
-		LevelId    uint32         `json:"levelId"`
-		Level      *DictBO        `json:"level"`
-		Status     vo.AlarmStatus `json:"status"`
-		StartsAt   int64          `json:"startAt"`
-		EndsAt     int64          `json:"endAt"`
-		Instance   string         `json:"instance"`
-		Duration   int64          `json:"duration"`
-		Info       *AlertBo       `json:"info"`
-		CreatedAt  int64          `json:"createdAt"`
-		UpdatedAt  int64          `json:"UpdatedAt"`
+		Id         uint32           `json:"id"`
+		Md5        string           `json:"md5"`
+		StrategyId uint32           `json:"strategyId"`
+		StrategyBO *StrategyBO      `json:"strategyBO"`
+		LevelId    uint32           `json:"levelId"`
+		Level      *DictBO          `json:"level"`
+		Status     vobj.AlarmStatus `json:"status"`
+		StartsAt   int64            `json:"startAt"`
+		EndsAt     int64            `json:"endAt"`
+		Instance   string           `json:"instance"`
+		Duration   int64            `json:"duration"`
+		Info       *AlertBo         `json:"info"`
+		CreatedAt  int64            `json:"createdAt"`
+		UpdatedAt  int64            `json:"UpdatedAt"`
 
 		// 用于回顾告警历史时候的图表查询
 		Expr       string `json:"expr"`
@@ -99,7 +99,7 @@ func (b *AlarmHistoryBO) NewAlarmRealtimeBO() *AlarmRealtimeBO {
 	note := b.GetInfo().GetAnnotations().String()
 	status := b.Status
 	if b.EndsAt > 0 {
-		status = vo.AlarmStatusResolved
+		status = vobj.AlarmStatusResolved
 	}
 	return &AlarmRealtimeBO{
 		Instance:   b.Instance,

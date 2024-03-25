@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type Service struct {
@@ -29,7 +29,7 @@ func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
 func (s *Service) CreateDict(ctx context.Context, req *system.CreateDictRequest) (*system.CreateDictReply, error) {
 	dictBo := &bo.DictBO{
 		Name:     req.GetName(),
-		Category: vo.Category(req.GetCategory()),
+		Category: vobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
@@ -45,10 +45,10 @@ func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest)
 	dictBo := &bo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
-		Category: vo.Category(req.GetCategory()),
+		Category: vobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
-		Status:   vo.Status(req.GetStatus()),
+		Status:   vobj.Status(req.GetStatus()),
 	}
 	newDict, err := s.dictBiz.UpdateDict(ctx, dictBo)
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest)
 }
 
 func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *system.BatchUpdateDictStatusRequest) (*system.BatchUpdateDictStatusReply, error) {
-	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		s.log.Errorf("batch update dict status err: %v", err)
 		return nil, err
 	}
@@ -101,8 +101,8 @@ func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*s
 	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
-		Category:  vo.Category(req.GetCategory()),
-		Status:    vo.Status(req.GetStatus()),
+		Category:  vobj.Category(req.GetCategory()),
+		Status:    vobj.Status(req.GetStatus()),
 		IsDeleted: req.GetIsDeleted(),
 	})
 	if err != nil {
@@ -131,8 +131,8 @@ func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest)
 	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
-		Category:  vo.Category(req.GetCategory()),
-		Status:    vo.Status(req.GetStatus()),
+		Category:  vobj.Category(req.GetCategory()),
+		Status:    vobj.Status(req.GetStatus()),
 		IsDeleted: req.GetIsDeleted(),
 	})
 	if err != nil {

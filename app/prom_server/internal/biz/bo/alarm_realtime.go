@@ -7,7 +7,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -16,14 +16,14 @@ var _ encoding.BinaryUnmarshaler = (*AlarmRealtimeBO)(nil)
 
 type (
 	ListRealtimeReq struct {
-		Page        Pagination     `json:"page"`
-		Keyword     string         `json:"keyword"`
-		Status      vo.AlarmStatus `json:"status"`
-		AlarmPageId uint32         `json:"alarm_page_id"`
-		StrategyIds []uint32       `json:"strategyIds"`
-		LevelIds    []uint32       `json:"levelIds"`
-		StartAt     int64          `json:"startAt"`
-		EndAt       int64          `json:"endAt"`
+		Page        Pagination       `json:"page"`
+		Keyword     string           `json:"keyword"`
+		Status      vobj.AlarmStatus `json:"status"`
+		AlarmPageId uint32           `json:"alarm_page_id"`
+		StrategyIds []uint32         `json:"strategyIds"`
+		LevelIds    []uint32         `json:"levelIds"`
+		StartAt     int64            `json:"startAt"`
+		EndAt       int64            `json:"endAt"`
 	}
 	AlarmRealtimeBO struct {
 		ID                   uint32                            `json:"id"`
@@ -32,7 +32,7 @@ type (
 		LevelId              uint32                            `json:"levelId"`
 		Level                *DictBO                           `json:"level"`
 		EventAt              int64                             `json:"eventAt"`
-		Status               vo.AlarmStatus                    `json:"status"`
+		Status               vobj.AlarmStatus                  `json:"status"`
 		AlarmIntervenes      []*AlarmInterveneBO               `json:"alarmIntervenes"`
 		BeNotifyMemberDetail []*AlarmBeenNotifyMemberBO        `json:"beNotifyMemberDetail"`
 		NotifiedAt           int64                             `json:"notifiedAt"`
