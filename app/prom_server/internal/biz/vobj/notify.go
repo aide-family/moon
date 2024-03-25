@@ -1,9 +1,6 @@
 package vobj
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-
 	"prometheus-manager/api"
 )
 
@@ -27,11 +24,11 @@ const (
 	// NotifyTypeUnknown 未知
 	NotifyTypeUnknown NotifyType = iota
 	// NotifyTypeEmail 邮件
-	NotifyTypeEmail
+	NotifyTypeEmail = 1 << iota
 	// NotifyTypeSms 短信
-	NotifyTypeSms
+	NotifyTypeSms = 1 << iota
 	// NotifyTypePhone 电话
-	NotifyTypePhone
+	NotifyTypePhone = 1 << iota
 )
 
 // String 转换为字符串
@@ -46,22 +43,6 @@ func (a NotifyApp) String() string {
 	case NotifyAppCustom:
 		return "自定义"
 	case NotifyAppUnknown:
-		return "未知"
-	default:
-		return "未知"
-	}
-}
-
-// String 转换为字符串
-func (a NotifyType) String() string {
-	switch a {
-	case NotifyTypeEmail:
-		return "邮件"
-	case NotifyTypeSms:
-		return "短信"
-	case NotifyTypePhone:
-		return "电话"
-	case NotifyTypeUnknown:
 		return "未知"
 	default:
 		return "未知"
@@ -86,20 +67,9 @@ func (a NotifyApp) Key() string {
 	}
 }
 
-// Key 转换为键
-func (a NotifyType) Key() string {
-	switch a {
-	case NotifyTypeEmail:
-		return "email"
-	case NotifyTypeSms:
-		return "sms"
-	case NotifyTypePhone:
-		return "phone"
-	case NotifyTypeUnknown:
-		return "unknown"
-	default:
-		return "unknown"
-	}
+// IsUnknown 是否未知
+func (a NotifyApp) IsUnknown() bool {
+	return a == NotifyAppUnknown
 }
 
 // Value 转换为值
@@ -120,24 +90,4 @@ func (a NotifyApp) ApiNotifyApp() api.NotifyApp {
 // ApiNotifyType API通知类型
 func (a NotifyType) ApiNotifyType() api.NotifyType {
 	return api.NotifyType(a)
-}
-
-type NotifyTypes []NotifyType
-
-func (l *NotifyTypes) Value() (driver.Value, error) {
-	if l == nil {
-		return "[]", nil
-	}
-
-	str, err := json.Marshal(l)
-	return string(str), err
-}
-
-func (l *NotifyTypes) Scan(src any) error {
-	return json.Unmarshal(src.([]byte), l)
-}
-
-// IsNotifyTypeUnknown 判断是否为未知类型
-func (a NotifyApp) IsNotifyTypeUnknown() bool {
-	return a == NotifyAppUnknown
 }
