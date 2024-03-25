@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aide-cloud/universal/base/slices"
 	"github.com/go-kratos/kratos/v2/log"
@@ -105,6 +106,7 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 		do.StrategyPreloadPromNotifies(
 			do.PromAlarmNotifyPreloadFieldChatGroups,
 			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
+			fmt.Sprintf("%s.%s", do.PromAlarmNotifyPreloadFieldBeNotifyMembers, do.PromAlarmBeenNotifyMemberPreloadFieldMember),
 		),
 		do.StrategyPreloadEndpoint(),
 	}

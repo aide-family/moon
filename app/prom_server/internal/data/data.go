@@ -9,6 +9,7 @@ import (
 	"prometheus-manager/pkg/servers"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/cache"
+	"prometheus-manager/pkg/util/email"
 	"prometheus-manager/pkg/util/interflow"
 
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -54,6 +55,7 @@ type Data struct {
 	cache             cache.GlobalCache
 	enforcer          *casbin.SyncedEnforcer
 	interflowInstance interflow.Interflow
+	email             email.Interface
 
 	log *log.Helper
 }
@@ -77,6 +79,11 @@ func (d *Data) Enforcer() *casbin.SyncedEnforcer {
 	return d.enforcer
 }
 
+// Email email
+func (d *Data) Email() email.Interface {
+	return d.email
+}
+
 // NewData .
 func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	databaseConf := c.GetData().GetDatabase()
@@ -90,6 +97,10 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	d := &Data{
 		log: log.NewHelper(log.With(logger, "module", "data")),
 		db:  db,
+	}
+
+	if c.GetEmail() != nil {
+		d.email = email.New(c.GetEmail())
 	}
 
 	redisConf := c.GetData().GetRedis()
