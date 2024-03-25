@@ -116,8 +116,6 @@ func (m *CreateChatGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Template
-
 	// no validation rules for Secret
 
 	if len(errors) > 0 {
@@ -371,8 +369,6 @@ func (m *UpdateChatGroupRequest) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
-
-	// no validation rules for Template
 
 	if len(errors) > 0 {
 		return UpdateChatGroupRequestMultiError(errors)

@@ -1787,8 +1787,6 @@ func (m *ChatGroup) validate(all bool) error {
 
 	// no validation rules for HookName
 
-	// no validation rules for Template
-
 	// no validation rules for Secret
 
 	if all {
@@ -4966,3 +4964,113 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PromRuleGroupValidationError{}
+
+// Validate checks the field values on NotifyTemplateItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *NotifyTemplateItem) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on NotifyTemplateItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// NotifyTemplateItemMultiError, or nil if none found.
+func (m *NotifyTemplateItem) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *NotifyTemplateItem) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Content
+
+	// no validation rules for StrategyId
+
+	// no validation rules for NotifyType
+
+	if len(errors) > 0 {
+		return NotifyTemplateItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// NotifyTemplateItemMultiError is an error wrapping multiple validation errors
+// returned by NotifyTemplateItem.ValidateAll() if the designated constraints
+// aren't met.
+type NotifyTemplateItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m NotifyTemplateItemMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m NotifyTemplateItemMultiError) AllErrors() []error { return m }
+
+// NotifyTemplateItemValidationError is the validation error returned by
+// NotifyTemplateItem.Validate if the designated constraints aren't met.
+type NotifyTemplateItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e NotifyTemplateItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e NotifyTemplateItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e NotifyTemplateItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e NotifyTemplateItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e NotifyTemplateItemValidationError) ErrorName() string {
+	return "NotifyTemplateItemValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e NotifyTemplateItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sNotifyTemplateItem.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = NotifyTemplateItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = NotifyTemplateItemValidationError{}

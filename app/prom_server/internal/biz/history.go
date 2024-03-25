@@ -109,6 +109,7 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 			fmt.Sprintf("%s.%s", do.PromAlarmNotifyPreloadFieldBeNotifyMembers, do.PromAlarmBeenNotifyMemberPreloadFieldMember),
 		),
 		do.StrategyPreloadEndpoint(),
+		do.StrategyPreloadTemplate(),
 	}
 	strategyBOs, err := a.strategyRepo.List(ctx, wheres...)
 	if err != nil {
@@ -149,8 +150,10 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 	alarmMsgList := make([]*bo.AlarmMsgBo, 0, len(historyBos))
 	for _, historyBOItem := range historyBos {
 		var promNotifies []*bo.NotifyBO
+		var notifyTemplates []*bo.NotifyTemplateBO
 		if strategyBO, ok := strategyBOsMap[historyBOItem.StrategyId]; ok {
 			promNotifies = strategyBO.GetPromNotifies()
+			notifyTemplates = strategyBO.GetTemplates()
 		}
 		alarmMsgList = append(alarmMsgList, &bo.AlarmMsgBo{
 			AlarmStatus:  historyBOItem.Status,
@@ -159,6 +162,7 @@ func (a *HistoryBiz) HandleHistory(ctx context.Context, historyBO ...*bo.AlarmHi
 			EndsAt:       historyBOItem.EndsAt,
 			StrategyBO:   strategyBOsMap[historyBOItem.StrategyId],
 			PromNotifies: promNotifies,
+			Templates:    notifyTemplates,
 		})
 	}
 	// 发送告警

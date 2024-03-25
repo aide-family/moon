@@ -64,6 +64,7 @@ func RegisterHttpServer(
 	chartService *dashboardservice.ChartService,
 	dashboardService *dashboardservice.DashboardService,
 	syslogService *systemservice.SyslogService,
+	templateService *promservice.TemplateService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
 	system.RegisterDictHTTPServer(srv, dictService)
@@ -83,6 +84,7 @@ func RegisterHttpServer(
 	interflows.RegisterHookInterflowHTTPServer(srv, interflowService)
 	dashboard.RegisterDashboardHTTPServer(srv, dashboardService)
 	dashboard.RegisterChartHTTPServer(srv, chartService)
+	notify.RegisterTemplateHTTPServer(srv, templateService)
 
 	return &HttpServer{Server: srv}
 }
@@ -149,7 +151,6 @@ func NewHTTPServer(
 	}))
 	srv.HandlePrefix("/metrics", promhttp.Handler())
 	// doc
-	//srv.HandlePrefix("/q/", openapiv2.NewHandler())
 	srv.HandlePrefix("/doc/", nHttp.StripPrefix("/doc/", nHttp.FileServer(nHttp.Dir("../../third_party/swagger_ui"))))
 	return srv
 }

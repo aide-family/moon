@@ -37,6 +37,7 @@ const (
 	PromStrategyPreloadFieldPromNotifyUpgrade = "PromNotifyUpgrade"
 	PromStrategyPreloadFieldEndpoint          = "Endpoint"
 	PromStrategyPreloadFieldCreateByUser      = "CreateByUser"
+	PromStrategyPreloadFieldTemplate          = "Templates"
 )
 
 // StrategyInGroupIds 策略组ID
@@ -107,6 +108,13 @@ func StrategyPreloadGroupInfo() basescopes.ScopeMethod {
 	}
 }
 
+// StrategyPreloadTemplate 预加载template
+func StrategyPreloadTemplate() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Preload(PromStrategyPreloadFieldTemplate)
+	}
+}
+
 // PromStrategy mapped from table <prom_strategies>
 type PromStrategy struct {
 	BaseModel
@@ -143,6 +151,8 @@ type PromStrategy struct {
 	// 创建人ID
 	CreateBy     uint32   `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
 	CreateByUser *SysUser `gorm:"foreignKey:CreateBy" json:"-"`
+
+	Templates []*PromStrategyNotifyTemplate `gorm:"foreignKey:StrategyID" json:"-"`
 }
 
 // TableName PromStrategy's table name
@@ -220,6 +230,14 @@ func (p *PromStrategy) GetEndpoint() *Endpoint {
 		return nil
 	}
 	return p.Endpoint
+}
+
+// GetTemplates 获取模板
+func (p *PromStrategy) GetTemplates() []*PromStrategyNotifyTemplate {
+	if p == nil {
+		return nil
+	}
+	return p.Templates
 }
 
 // ToMap to map[string]any

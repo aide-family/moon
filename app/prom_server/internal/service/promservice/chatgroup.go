@@ -44,7 +44,6 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 		Hook:      req.GetHook(),
 		NotifyApp: vobj.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
-		Template:  req.GetTemplate(),
 		Secret:    req.GetSecret(),
 	}
 	chatGroupBo, err := s.chatGroupBiz.CreateChatGroup(ctx, chatGroupBo)
@@ -63,7 +62,6 @@ func (s *ChatGroupService) UpdateChatGroup(ctx context.Context, req *pb.UpdateCh
 		Name:     req.GetName(),
 		Remark:   req.GetRemark(),
 		HookName: req.GetHookName(),
-		Template: req.GetTemplate(),
 	}
 	if err := s.chatGroupBiz.UpdateChatGroupById(ctx, chatGroupBo, chatGroupBo.Id); err != nil {
 		s.log.Errorf("UpdateChatGroup err: %v", err)
@@ -148,7 +146,6 @@ func (s *ChatGroupService) TestHookTemplate(ctx context.Context, req *pb.TestHoo
 	chatInfo := &bo.ChatGroupBO{
 		Hook:      req.GetHook(),
 		NotifyApp: vobj.NotifyApp(req.GetApp()),
-		Template:  req.GetTemplate(),
 		Secret:    req.GetSecret(),
 	}
 	now := time.Now()
@@ -188,7 +185,7 @@ func (s *ChatGroupService) TestHookTemplate(ctx context.Context, req *pb.TestHoo
 		message.Secret = chartGroupBO.Secret
 	}
 
-	message.Content = strategy.Formatter(chatInfo.Template, dataMap)
+	message.Content = strategy.Formatter(req.GetTemplate(), dataMap)
 	if err := s.notifyBiz.SendAlarmMessage(ctx, chatInfo, message); err != nil {
 		return nil, err
 	}

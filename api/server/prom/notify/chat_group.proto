@@ -85,8 +85,6 @@ message CreateChatGroupRequest {
 		min_len: 2,
 		max_len: 32,
 	}];
-	// 告警文案模板, 支持模板语法
-	string template = 7;
 	// secret , hook通知密钥
 	string secret = 8;
 }
@@ -112,8 +110,6 @@ message UpdateChatGroupRequest {
 		min_len: 2,
 		max_len: 32,
 	}];
-	// 告警文案模板, 支持模板语法
-	string template = 6;
 }
 // 更新通知群组响应参数
 message UpdateChatGroupReply {
