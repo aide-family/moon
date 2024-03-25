@@ -52,4 +52,5 @@ var ProviderSetRepository = wire.NewSet(
 	dashboard.NewDashboardRepo,
 	dashboard.NewChartRepo,
 	syslog.NewSysLogRepo,
+	notify.NewNotifyTemplateRepo,
 )

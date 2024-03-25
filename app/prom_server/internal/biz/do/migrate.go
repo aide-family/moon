@@ -20,6 +20,7 @@ func Migrate(db *gorm.DB, cache cache.GlobalCache) (err error) {
 		&PromAlarmSuppress{},
 		&SysDict{},
 		&PromStrategy{},
+		&PromStrategyNotifyTemplate{},
 		&PromStrategyGroup{},
 		&PromAlarmBeenNotifyMember{},
 		&PromAlarmBeenNotifyChatGroup{},

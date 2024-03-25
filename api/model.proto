@@ -275,8 +275,6 @@ message ChatGroup {
   int32 app = 8;
   // 钩子名称
   string hookName = 9;
-  // 消息模板
-  string template = 10;
   // 密钥
   string secret = 12;
   // 创建者
@@ -626,4 +624,48 @@ message PromRuleGroup {
   repeated PromRule rules = 2 [(validate.rules).repeated = {
     max_items: 100
   }];
+}
+
+/*
+const (
+	// NotifyTemplateTypeCustom  自定义通知模板
+	NotifyTemplateTypeCustom NotifyTemplateType = iota
+	// NotifyTemplateTypeEmail 邮件通知模板
+	NotifyTemplateTypeEmail
+	// NotifyTemplateTypeSms 短信通知模板
+	NotifyTemplateTypeSms
+	// NotifyTemplateTypeWeChatWork 企业微信通知模板
+	NotifyTemplateTypeWeChatWork
+	// NotifyTemplateTypeFeiShu 飞书通知模板
+	NotifyTemplateTypeFeiShu
+	// NotifyTemplateTypeDingDing 钉钉通知模板
+	NotifyTemplateTypeDingDing
+)
+
+ */
+enum NotifyTemplateType {
+  // 自定义通知模板
+  NotifyTemplateTypeCustom = 0;
+  // 邮件通知模板
+  NotifyTemplateTypeEmail = 1;
+  // 短信通知模板
+  NotifyTemplateTypeSms = 2;
+  // 企业微信通知模板
+  NotifyTemplateTypeWeChatWork = 3;
+  // 飞书通知模板
+  NotifyTemplateTypeFeiShu = 4;
+  // 钉钉通知模板
+  NotifyTemplateTypeDingDing = 5;
+}
+
+// 通知模板
+message NotifyTemplateItem {
+  // 模板ID
+  uint32 id = 1;
+  // 模板内容
+  string content = 2;
+  // 所属策略
+  uint32 strategyId = 3;
+  // 模板类型
+  int32 notifyType = 4;
 }

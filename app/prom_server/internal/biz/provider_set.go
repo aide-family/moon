@@ -22,4 +22,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewAlarmRealtime,
 	NewDashboardBiz,
 	NewSysLogBiz,
+	NewNotifyTemplateBiz,
 )
