@@ -30,7 +30,9 @@ func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) erro
 		// 遍历告警组
 		for _, v2 := range v.PromNotifies {
 			// 通知到群组
-			l.sendAlarmToChatGroups(ctx, v2.ChatGroups, v.AlarmInfo)
+			l.sendAlarmToChatGroups(ctx, v2.GetChatGroups(), v.AlarmInfo)
+			// 通知到人员
+			l.sendAlarmToMember(ctx, v2.GetBeNotifyMembers(), v.AlarmInfo)
 		}
 	}
 	return nil
@@ -74,6 +76,34 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*b
 	}
 	if err := eg.Wait(); err != nil {
 		l.log.Warnf("send alarm to chat groups error, %v", err)
+	}
+}
+
+// 通知到人员
+func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyMemberBO, alarmInfo *bo.AlertBo) {
+	l.log.Debug("开始发送邮件通知")
+	eg := new(errgroup.Group)
+	eg.SetLimit(10)
+	// 短信、邮件、电话
+	for _, m := range members {
+		if m.NotifyType.IsEmail() {
+			// 发送邮件
+			eg.Go(func() error {
+				defer l.log.Debugw("发送邮件通知完成", m.GetMember().Email)
+				return l.d.Email().SetBody(alarmInfo.String()).
+					SetTo(m.GetMember().Email).
+					SetSubject("prometheus moon系统邮件告警").Send()
+			})
+		}
+		if m.NotifyType.IsSms() {
+			// TODO 发送短信
+		}
+		if m.NotifyType.IsPhone() {
+			// TODO 发送电话
+		}
+	}
+	if err := eg.Wait(); err != nil {
+		l.log.Warnf("send alarm to member error, %v", err)
 	}
 }
 

@@ -91,3 +91,18 @@ func (a NotifyApp) ApiNotifyApp() api.NotifyApp {
 func (a NotifyType) ApiNotifyType() api.NotifyType {
 	return api.NotifyType(a)
 }
+
+// IsEmail 邮件
+func (a NotifyType) IsEmail() bool {
+	return a&NotifyTypeEmail == NotifyTypeEmail
+}
+
+// IsSms 短信
+func (a NotifyType) IsSms() bool {
+	return a&NotifyTypeSms == NotifyTypeSms
+}
+
+// IsPhone 电话
+func (a NotifyType) IsPhone() bool {
+	return a&NotifyTypePhone == NotifyTypePhone
+}

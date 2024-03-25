@@ -31,11 +31,36 @@ type (
 		GetHost() string
 		GetPort() uint32
 	}
+
+	config struct {
+		user string
+		pass string
+		host string
+		port uint32
+	}
 )
+
+func (c *config) GetUser() string {
+	return c.user
+}
+
+func (c *config) GetPass() string {
+	return c.pass
+}
+
+func (c *config) GetHost() string {
+	return c.host
+}
+
+func (c *config) GetPort() uint32 {
+	return c.port
+}
 
 const (
 	DOMAIN = "prometheus-manager"
 )
+
+var _ Config = (*config)(nil)
 
 func (l *Email) init() Interface {
 	if l.mail == nil {
