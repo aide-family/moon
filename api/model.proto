@@ -300,16 +300,7 @@ message BeNotifyMember {
   // 通知人ID, 对应用户的id
   uint32 memberId = 1 [(validate.rules).uint32.gt = 0];
   // 通知方式, 可以同时多种类型
-  repeated NotifyType notifyTypes = 2 [(validate.rules).repeated = {
-    min_items: 1
-    unique: true
-    items: {
-      enum: {
-        defined_only: true
-        not_in: [0]
-      }
-    }
-  }];
+  NotifyType notifyType = 2;
   // 数据ID
   uint32 id = 3;
 }
@@ -318,7 +309,7 @@ message BeNotifyMemberDetail {
   // 通知人ID, 对应用户的id
   uint32 memberId = 1;
   // 通知方式, 可以同时多种类型
-  repeated int32 notifyTypes = 2;
+  int32 notifyType = 2;
   // 通知人明细
   UserSelectV1 user = 3;
   // 通知人状态

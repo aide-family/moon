@@ -65,13 +65,13 @@ enum NotifyType {
   NOTIFY_TYPE_UNKNOWN = 0;
 
   // EMAIL 邮件
-  NOTIFY_TYPE_EMAIL = 1;
+  NOTIFY_TYPE_EMAIL = 2;
 
   // SMS 短信
-  NOTIFY_TYPE_SMS = 2;
+  NOTIFY_TYPE_SMS = 4;
 
   // phone 电话
-  NOTIFY_TYPE_PHONE = 3;
+  NOTIFY_TYPE_PHONE = 8;
 }
 
 // 通知应用, 用于区分通知方式
