@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && apt-get autoremove -y && apt-get autoclean -y
 
 COPY --from=builder /src/bin /app
+COPY --from=builder /src/app/prom_agent/configs /data/conf
 
 WORKDIR /app
 

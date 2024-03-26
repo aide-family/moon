@@ -1,3 +1,15 @@
+env:
+  name: prometheus-manager_prom_agent
+  version: 0.0.1
+  env: dev
+  metadata:
+    description: Prometheus Manager Agent APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager
+
 server:
   http:
     addr: 0.0.0.0:8000
@@ -13,10 +25,10 @@ server:
 #    write_timeout: 0.2s
 
 log:
-  filename: ./log/prometheus-server.log
+  filename: ./log/agent.log
   level: debug
   encoder: json
-  maxSize: 2
+  maxSize: 500
   compress: true
 
 watchProm:
@@ -32,6 +44,6 @@ watchProm:
 # NOTE: 实际运行中需要替换为容器可访问地址，当前主机为容器在本地一站式拉起可访问的主机地址，生产根据自身配置修改
 interflow:
   # prom_server的通信地址
-  server: http://prometheus_manager_server:8000/api/v1/interflows/receive
+  server: http://host.docker.internal:8001/api/v1/interflows/receive
   # 自身的通信地址
-  agent: http://prometheus_manager_agent:8000/api/v1/interflows/receive
+  agent: http://host.docker.internal:8002/api/v1/interflows/receive

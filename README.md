@@ -68,158 +68,34 @@
 
 ### 2.2 安装部署
 
-#### docker-compose部署
+#### docker 部署
 
-  * 下载代码
-    
-  ```bash
-  git clone https://github.com/aide-family/moon.git
-  cd moon
-  ```
-  
-  * 执行命令
-    
-  ```bash
-  make all-docker-compose args="up --build -d"
+  * 拉取镜像
+
+  ```shell
+  # web
+  docker pull 19960103/moon-web:latest
+  # agent
+  docker pull 19960103/moon-agent:latest
+  # server
+  docker pull 19960103/moon-server:latest
   ```
 
-  <p style="color: red">注意:</p>
-  <p>该方式部署需要在本地安装docker环境, 可能存在网络较差时候拉取镜像会失败, 请自行解决</p>
+  * 启动服务
+
+  ```shell
+  # web
+  docker run -d --name moon-web -p 8000:80 19960103/moon-web:latest
+  # server
+  docker run -d --name moon-server -p 8001:8000 -p 8888:8888 19960103/moon-server:latest
+  # agent
+  docker run -d --name moon-agent -p 8002:8000 19960103/moon-agent:latest
+  ```
 
   * 访问服务
 
-  http://localhost:8000/
-
-#### 本地开发方式启动
-
-* 准备如下配置文件, 默认需要在app/prom_server目录下创建configs_local目录和config.yaml文件, prom_agent同理.
-
-```yaml
-# app/prom_server/configs_local/config.yaml
-env:
-  name: prometheus-manager_prom_server
-  version: 0.0.1
-  # local dev两种模式会自动migrate数据库
-  env: pro
-  metadata:
-    description: Prometheus Manager Server APP
-    version: 0.0.1
-    author: 梧桐
-    license: MIT
-    email: aidecloud@163.com
-    url: https://github.com/aide-cloud/prometheus-manager
-
-server:
-  http:
-    addr: 0.0.0.0:8000
-    timeout: 1s
-  grpc:
-    addr: 0.0.0.0:9000
-    timeout: 1s
-
-# NOTE: 1.使用sqlite默认会在deploy/sql下生成init_sqlite.db数据库文件 
-# 2. 选择mysql, 把sqlite部分注释并创建名为prometheus_manager的数据库, 并配置主机:ip, 如:127.0.0.1:3306，下方redis配置同理
-data:
-  database:
-    driver: sqlite
-    source: ../../deploy/sql/init_sqlite.db
-    debug: true
-#  database:
-#    driver: mysql
-#    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
-#    debug: true
-
-# 配置redis则使用redis作为缓存
-#  redis:
-#    addr: host.docker.internal:6379
-#    password: redis#single#test
-#    read_timeout: 0.2s
-#    write_timeout: 0.2s
-
-apiWhite:
-  all:
-    - /api.server.auth.Auth/Login
-    - /api.server.auth.Auth/Captcha
-    - /api.interflows.HookInterflow/Receive
-
-  jwtApi:
-
-  rbacApi:
-    - /api.server.auth.Auth/Logout
-    - /api.server.auth.Auth/RefreshToken
-
-log:
-  filename: ./log/prometheus-server.log
-  level: debug
-  encoder: json
-  maxSize: 20
-  compress: true
-
-# 添加mq配置，则会使用mq通信
-#mq:
-#  kafka:
-#    groupId: http://localhost:8001/api/v1/interflows/receive
-#    endpoints:
-#      - localhost:9092
-```
-
-```yaml
-# app/prom_agent/configs_local/config.yaml
-env:
-  name: prometheus-manager_prom_agent
-  version: 0.0.1
-  env: pro
-  metadata:
-    description: Prometheus Manager Agent APP
-    version: 0.0.1
-    author: 梧桐
-    license: MIT
-    email: aidecloud@163.com
-    url: https://github.com/aide-cloud/prometheus-manager
-server:
-  http:
-    addr: 0.0.0.0:8001
-    timeout: 1s
-  grpc:
-    addr: 0.0.0.0:9001
-    timeout: 1s
-
-# 开启redis配置，则使用redis作为缓存组件
-#data:
-#  redis:
-#    addr: localhost:6379
-#    password: redis#single#test
-#    read_timeout: 0.2s
-#    write_timeout: 0.2s
-
-watchProm:
-  interval: 10s
-
-# mq配置
-#mq:
-#  kafka:
-#    groupId: prometheus-agent
-#    endpoints:
-#      - localhost:9092
-
-# mq替代配置， 二选一
-interflow:
-  # prom_server的通信地址
-  server: http://prometheus_manager:8000/api/v1/interflows/receive
-  # 自身的通信地址
-  agent: http://prometheus_manager_agent:8000/api/v1/interflows/receive
-```
-
-* 按顺序执行启动命令
-
-```shell
-# 1. 服务端启动
-make local app=app/prom_server
-# 2. agent启动
-make local app=app/prom_agent
-# 3. web端启动
-make web
-```
+  本地访问地址：http://localhost:8000/
+  其他IP访问需要配置nginx，参考[nginx](./doc/nginx.conf)
 
 ## 3. 功能详解
 

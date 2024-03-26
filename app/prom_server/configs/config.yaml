@@ -1,3 +1,15 @@
+env:
+  name: prometheus-manager_prom_server
+  version: 0.0.1
+  env: dev
+  metadata:
+    description: Prometheus Manager Server APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-cloud/prometheus-manager
+
 server:
   http:
     addr: 0.0.0.0:8000
@@ -27,6 +39,13 @@ data:
 #    password: redis#single#test
 #    read_timeout: 0.2s
 #    write_timeout: 0.2s
+
+log:
+  filename: ./log/server.log
+  level: debug
+  encoder: json
+  maxSize: 500
+  compress: true
 
 apiWhite:
   all:

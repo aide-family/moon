@@ -31,8 +31,8 @@ PROM-AGENT-VERSION:=$(VERSION)
 
 # image
 PROM-WEB-IMAGE:=${REPO}/moon-web:${PROM-WEB-VERSION}
-PROM-SERVER-IMAGE:=${REPO}/moon-prom-server:${PROM-SERVER-VERSION}
-PROM-AGENT-IMAGE:=${REPO}/moon-prom-agent:${PROM-AGENT-VERSION}
+PROM-SERVER-IMAGE:=${REPO}/moon-server:${PROM-SERVER-VERSION}
+PROM-AGENT-IMAGE:=${REPO}/moon-agent:${PROM-AGENT-VERSION}
 
 APPS ?= $(shell ls app)
 path := $(shell pwd)

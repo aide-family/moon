@@ -3,6 +3,8 @@ package conn
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -85,6 +87,10 @@ func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	case "mysql":
 		dialector = mysql.Open(cfg.GetSource())
 	case "sqlite":
+		// 判断文件是否存在，不存在则创建
+		if err := checkDBFileExists(cfg.GetSource()); err != nil {
+			return nil, err
+		}
 		dialector = sqlite.Open(cfg.GetSource())
 	default:
 		return nil, fmt.Errorf("invalid driver: %s", cfg.GetDriver())
@@ -100,4 +106,33 @@ func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	}
 
 	return conn, nil
+}
+
+// checkDBFileExists .
+func checkDBFileExists(filename string) error {
+	log.Debugw("-------------------------", filename)
+	if filename == "" {
+		return fmt.Errorf("db file is empty")
+	}
+	file, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// 创建文件夹
+			dir := filepath.Dir(filename)
+			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+				return err
+			}
+			// 创建文件
+			f, err := os.Create(filename)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			return nil
+		}
+	}
+	if file.IsDir() {
+		return fmt.Errorf("db file is dir")
+	}
+	return err
 }
