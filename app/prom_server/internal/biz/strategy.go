@@ -214,7 +214,7 @@ func (b *StrategyBiz) GetStrategyWithNotifyObjectById(ctx context.Context, id ui
 	wheres := []basescopes.ScopeMethod{
 		do.StrategyPreloadPromNotifies(
 			do.PromAlarmNotifyPreloadFieldChatGroups,
-			do.PromAlarmNotifyPreloadFieldBeNotifyMembers,
+			fmt.Sprintf("%s.%s", do.PromAlarmNotifyPreloadFieldBeNotifyMembers, do.PromNotifyMemberPreloadFieldMember),
 		),
 	}
 	return b.strategyRepo.GetStrategyById(ctx, id, wheres...)

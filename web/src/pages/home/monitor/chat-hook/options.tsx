@@ -8,7 +8,6 @@ import { IconFont } from '@/components/IconFont/IconFont'
 import { Badge, Button, MenuProps } from 'antd'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { UserAvatar } from '../../system/user/child/UserAvatar'
 
 export type ChatGroupTypeCoumnType =
     | ColumnGroupType<ChatGroupItem>
@@ -66,21 +65,14 @@ export const columns: ChatGroupTypeCoumnType[] = [
         title: '创建者',
         dataIndex: 'createUser',
         key: 'createUser',
-        width: 100,
-        align: 'center',
+        width: 180,
+        // align: 'center',
         render: (createUser?: UserSelectItem) => {
             if (!createUser) {
                 return '-'
             }
-            const { nickname, label, avatar } = createUser
-            return (
-                <UserAvatar
-                    nickname={nickname}
-                    username={label}
-                    avatar={avatar}
-                    toolTip
-                />
-            )
+            const { nickname, label } = createUser
+            return `${label}(${nickname})`
         }
     },
     {
@@ -236,111 +228,105 @@ export const searchItems: DataFormItem[] = [
     }
 ]
 
-const TemplateTooltip = () => {
-    return (
-        <div>
-            <p>
-                告警内容，用于在告警信息中展示, 支持模板语法， 例如:
-                <br />
-                {'{{ $labels.instance }}'}
-            </p>
-            <hr />
-            <Button
-                type="link"
-                href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
-                target="_blank"
-            >
-                钉钉hook文档
-            </Button>
+// const TemplateTooltip = () => {
+//     return (
+//         <div>
+//             <p>
+//                 告警内容，用于在告警信息中展示, 支持模板语法， 例如:
+//                 <br />
+//                 {'{{ $labels.instance }}'}
+//             </p>
+//             <hr />
+//             <Button
+//                 type="link"
+//                 href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
+//                 target="_blank"
+//             >
+//                 钉钉hook文档
+//             </Button>
 
-            <Button
-                type="link"
-                href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
-                target="_blank"
-            >
-                飞书hook文档
-            </Button>
-            <Button type="link" disabled>
-                企业微信hook文档点击机器人可见
-            </Button>
-        </div>
-    )
-}
+//             <Button
+//                 type="link"
+//                 href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
+//                 target="_blank"
+//             >
+//                 飞书hook文档
+//             </Button>
+//             <Button type="link" disabled>
+//                 企业微信hook文档点击机器人可见
+//             </Button>
+//         </div>
+//     )
+// }
 
 export const addChatGroupItems = (
     app: NotifyApp
 ): (DataFormItem | DataFormItem[])[] => [
-    [
-        {
-            name: 'name',
-            label: '名称',
-            rules: [
-                {
-                    required: true,
-                    message: '请输入名称'
-                }
-            ]
-        },
-        {
-            name: 'app',
-            label: '所属平台',
-            rules: [
-                {
-                    required: true,
-                    message: '请选择所属平台'
-                }
-            ],
-            dataProps: {
-                type: 'select',
-                parentProps: {
-                    placeholder: '请选择所属平台',
-                    options: Object.entries(NotifyAppData).map(
-                        ([key, value]) => ({
-                            label: value,
-                            value: Number(key)
-                        })
-                    )
-                }
+    {
+        name: 'name',
+        label: '名称',
+        rules: [
+            {
+                required: true,
+                message: '请输入名称'
+            }
+        ]
+    },
+    {
+        name: 'app',
+        label: '所属平台',
+        rules: [
+            {
+                required: true,
+                message: '请选择所属平台'
+            }
+        ],
+        dataProps: {
+            type: 'select',
+            parentProps: {
+                placeholder: '请选择所属平台',
+                options: Object.entries(NotifyAppData).map(([key, value]) => ({
+                    label: value,
+                    value: Number(key)
+                }))
             }
         }
-    ],
-    [
-        {
-            name: 'hookName',
-            label: 'Hook名称',
-            rules: [
-                {
-                    required: true,
-                    message: '请输入Hook名称'
-                }
-            ]
-        },
-        {
-            name: 'hook',
-            label: 'Hook',
-            rules: [
-                {
-                    required: true,
-                    message: '请输入Hook'
-                },
-                {
-                    validator: (_, value, callback) => {
-                        // https || http
-                        if (!value) {
-                            callback()
-                            return
-                        }
+    },
+    {
+        name: 'hookName',
+        label: 'Hook名称',
+        rules: [
+            {
+                required: true,
+                message: '请输入Hook名称'
+            }
+        ]
+    },
+    {
+        name: 'hook',
+        label: 'Hook',
+        rules: [
+            {
+                required: true,
+                message: '请输入Hook'
+            },
+            {
+                validator: (_, value, callback) => {
+                    // https || http
+                    if (!value) {
+                        callback()
+                        return
+                    }
 
-                        if (!/^(https|http):\/\/.+$/.test(value)) {
-                            callback('请输入正确的Hook, https或者http开头')
-                        } else {
-                            callback()
-                        }
+                    if (!/^(https|http):\/\/.+$/.test(value)) {
+                        callback('请输入正确的Hook, https或者http开头')
+                    } else {
+                        callback()
                     }
                 }
-            ]
-        }
-    ],
+            }
+        ]
+    },
     app === NotifyApp.NOTIFY_APP_FEISHU || app === NotifyApp.NOTIFY_APP_DINGTALK
         ? {
               name: 'secret',
@@ -356,27 +342,6 @@ export const addChatGroupItems = (
               ]
           }
         : [],
-    {
-        name: 'template',
-        label: '告警内容',
-        formItemProps: {
-            tooltip: <TemplateTooltip />
-        },
-        dataProps: {
-            type: 'template-auto-complete',
-            parentProps: {
-                placeholder: '请输入告警内容'
-                // showCount: true
-            }
-        },
-        rules: [
-            {
-                required: true,
-                message: '请输入告警内容'
-            }
-        ]
-    },
-
     {
         name: 'remark',
         label: 'remark',
@@ -414,21 +379,6 @@ export const updateChatGroupItems: (DataFormItem | DataFormItem[])[] = [
             ]
         }
     ],
-    {
-        name: 'template',
-        label: '告警内容',
-        formItemProps: {
-            tooltip: <TemplateTooltip />
-        },
-        dataProps: {
-            type: 'textarea',
-            parentProps: {
-                placeholder: '请输入告警内容',
-                showCount: true
-            }
-        }
-    },
-
     {
         name: 'remark',
         label: 'remark',

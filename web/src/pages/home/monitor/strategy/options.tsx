@@ -34,7 +34,6 @@ import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
 import { StrategyGroupSelectItemType } from '@/apis/home/monitor/strategy-group/types'
 import { checkDuration } from '@/components/Data/TimeValue'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
-import { AvatarSize } from 'antd/es/avatar/AvatarContext'
 import { MutableRefObject } from 'react'
 
 export const tableOperationItems = (
@@ -133,7 +132,7 @@ export type ColumnsType<T = StrategyItemType> =
     | ColumnGroupType<T>
     | ColumnType<T>
 
-export const columns = (size: SizeType, hiddenMap: Map): ColumnsType[] => [
+export const columns = (_: SizeType, hiddenMap: Map): ColumnsType[] => [
     {
         title: 'ID',
         dataIndex: 'id',
@@ -257,11 +256,7 @@ export const columns = (size: SizeType, hiddenMap: Map): ColumnsType[] => [
                 )
             }
             return (
-                <Avatar.Group
-                    maxCount={2}
-                    shape="square"
-                    size={size as AvatarSize}
-                >
+                <Avatar.Group maxCount={2} shape="square" size="small">
                     {categyList.map((item, index) => {
                         return (
                             <Tooltip title={item.label} key={index}>
@@ -297,11 +292,7 @@ export const columns = (size: SizeType, hiddenMap: Map): ColumnsType[] => [
                 )
             }
             return (
-                <Avatar.Group
-                    maxCount={2}
-                    shape="square"
-                    size={size as AvatarSize}
-                >
+                <Avatar.Group maxCount={2} shape="square" size="small">
                     {alarmPageInfoList.map((item, index) => {
                         return (
                             <Tooltip title={item.label} key={index}>
