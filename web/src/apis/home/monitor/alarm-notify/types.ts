@@ -4,7 +4,7 @@ import { UserSelectItem } from '../../system/user/types'
 /** 通知成员 */
 interface NotifyMember {
     memberId: number
-    notifyTypes: number[]
+    notifyType: number
     user?: UserSelectItem
     status: number
     id?: number

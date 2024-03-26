@@ -1,15 +1,5 @@
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
-import {
-    Alert,
-    Button,
-    Checkbox,
-    Col,
-    Form,
-    Modal,
-    Row,
-    Table,
-    Tag
-} from 'antd'
+import { Alert, Button, Checkbox, Form, Modal, Table, Tag } from 'antd'
 import { FC, useEffect, useState } from 'react'
 import {
     NotifyObjectTableColumnType,
@@ -23,7 +13,10 @@ import {
 import strategyApi from '@/apis/home/monitor/strategy'
 import { NotifyApp, Status, StatusMap } from '@/apis/types'
 import { NotifyAppData } from '@/apis/data'
-import { ChartGroupTableColumnType } from '../../alarm-group/options'
+import {
+    ChartGroupTableColumnType,
+    NotifyMemberTableColumnType
+} from '../../alarm-group/options'
 import { IconFont } from '@/components/IconFont/IconFont'
 import FetchSelect from '@/components/Data/FetchSelect'
 import alarmGroupApi from '@/apis/home/monitor/alarm-group'
@@ -46,39 +39,51 @@ interface NotifyChatGroupsProps {
 
 const NotifyMemberList: FC<NotifyMemberListProps> = (props) => {
     const { members } = props
+    if (!members || members.length === 0) return null
+
+    const columns: NotifyMemberTableColumnType[] = [
+        {
+            title: '用户',
+            dataIndex: 'user',
+            render: (user) => {
+                return user?.label || '未知'
+            }
+        },
+        {
+            title: '通知方式',
+            dataIndex: 'email',
+            render: (_, record) => {
+                const nType = record?.notifyType
+                // const { email, sms, phone } = member
+                const email = nType & 2
+                const sms = nType & 4
+                const phone = nType & 8
+                return (
+                    <span>
+                        <Checkbox checked={!!email}>邮箱</Checkbox>
+                        <Checkbox checked={!!sms}>短信</Checkbox>
+                        <Checkbox checked={!!phone}>电话</Checkbox>
+                    </span>
+                )
+            }
+        }
+    ]
     return (
         <>
-            <Row gutter={[16, 16]}>
-                {members.map((member, index) => {
-                    const [email, sms, phone] = member.notifyTypes
-                    return (
-                        <Col
-                            span={12}
-                            style={{
-                                marginBottom:
-                                    index < members.length - 1 ? 16 : 0
-                            }}
-                            key={member.user?.value || member.id}
-                        >
-                            <span
-                                style={{ paddingRight: defaultPadding }}
-                            >{`${member.user?.label}(${member.user?.nickname})`}</span>
-                            <span>
-                                <Checkbox checked={!!email}>邮箱</Checkbox>
-                                <Checkbox checked={!!sms}>短信</Checkbox>
-                                <Checkbox checked={!!phone}>电话</Checkbox>
-                            </span>
-                        </Col>
-                    )
-                })}
-            </Row>
+            <Table
+                columns={columns}
+                dataSource={members}
+                size="small"
+                pagination={false}
+                rowKey={(record) => record.memberId}
+            />
         </>
     )
 }
 
 const NotifyChatGroups: FC<NotifyChatGroupsProps> = (props) => {
     const { chatGroups } = props
-
+    if (!chatGroups || chatGroups.length === 0) return null
     const chartGroupCoumns: ChartGroupTableColumnType[] = [
         {
             title: '名称',
@@ -279,12 +284,14 @@ export const BindNotifyObject: FC<BindNotifyObjectProps> = (props) => {
                 dataSource={notifyData}
                 columns={[...notifyObjectTableColumns, optionColumn]}
                 pagination={false}
+                rowKey={(record) => record.id}
                 expandable={{
                     expandedRowRender: (record: NotifyItem) => (
                         <>
                             <NotifyChatGroups
                                 chatGroups={record.chatGroups || []}
                             />
+                            <HeightLine height={20} />
                             <NotifyMemberList members={record.members || []} />
                         </>
                     )
