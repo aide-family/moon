@@ -1,5 +1,6 @@
 import { ActionKey, NotifyAppData } from '@/apis/data'
 import { AlarmGroupItem } from '@/apis/home/monitor/alarm-group/types'
+import { NotifyMember } from '@/apis/home/monitor/alarm-notify/types'
 import { ChatGroupSelectItem } from '@/apis/home/monitor/chat-group/types'
 import { NotifyApp, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
@@ -27,6 +28,10 @@ export type AlarmGroupTableColumnType =
 export type ChartGroupTableColumnType =
     | ColumnGroupType<ChatGroupSelectItem>
     | ColumnType<ChatGroupSelectItem>
+
+export type NotifyMemberTableColumnType =
+    | ColumnGroupType<NotifyMember>
+    | ColumnType<NotifyMember>
 
 export const columns: AlarmGroupTableColumnType[] = [
     {
