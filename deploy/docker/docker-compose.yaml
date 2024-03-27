@@ -17,6 +17,7 @@ services:
       - "8001:8000"
       - "8888:8888"
       - "9001:9000"
+      - "8000:80"
     volumes:
       - "../../app/prom_server/configs/:/data/conf"
       - "../../app/prom_server/cache:/app/cache"
@@ -41,18 +42,5 @@ services:
     depends_on:
       - prometheus_manager_server
       - prometheus_manager_web
-    networks:
-      prometheus_manager_net:
-
-  prometheus_manager_web:
-    container_name: prometheus_manager_web
-    build: 
-      context: ../..
-      dockerfile: ./deploy/docker/prom-web/Dockerfile
-    # image: docker.hub/prometheus-manager/web:v0.0.0
-    ports:
-      - "8000:80"
-    depends_on:
-      - prometheus_manager_server
     networks:
       prometheus_manager_net:

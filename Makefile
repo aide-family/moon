@@ -25,12 +25,10 @@ GO_BUILD_ARG:=CGO_ENABLED=$(CGO_ENABLED)  GOOS=$(GOOS) GOARCH=$(BUILD_GOARCH)
 GIT_TAG=$(shell git describe --tags --always)
 GIT_MOD=$(shell if ! git diff-index --quiet HEAD;then echo "-dirty";fi)
 VERSION:=$(GIT_TAG)$(GIT_MOD)
-PROM-WEB-VERSION:=$(VERSION)
 PROM-SERVER-VERSION:=$(VERSION)
 PROM-AGENT-VERSION:=$(VERSION)
 
 # image
-PROM-WEB-IMAGE:=${REPO}/moon-web:${PROM-WEB-VERSION}
 PROM-SERVER-IMAGE:=${REPO}/moon-server:${PROM-SERVER-VERSION}
 PROM-AGENT-IMAGE:=${REPO}/moon-agent:${PROM-AGENT-VERSION}
 
@@ -68,19 +66,9 @@ dev:
 	@cd $(APP_NAME) && make dev
 
 # ------------------ DOCKER ------------------
-all-docker-build: prom-web-docker-build prom-server-docker-build prom-agent-docker-build
+all-docker-build: prom-server-docker-build prom-agent-docker-build
 
-all-docker-push: prom-web-docker-push prom-server-docker-push prom-agent-docker-push
-
-prom-web-docker-build:
-	@echo "Building docker image with the manager-web..."
-	docker build --no-cache -t $(PROM-WEB-IMAGE) -f ./deploy/docker/prom-web/Dockerfile .
-	@echo "Successfully build docker image with the web."
-
-prom-web-docker-push:
-	@echo "start push image [$(PROM-WEB-IMAGE)]"
-	docker push $(PROM-WEB-IMAGE)
-	@echo "Successfully push image [$(PROM-WEB-IMAGE)] to target repo."
+all-docker-push: prom-server-docker-push prom-agent-docker-push
 
 prom-server-docker-build:
 	@echo "Building docker image with the prom-server..."
@@ -112,10 +100,6 @@ all-docker-compose: env
 prom-server-compose-up: clean-server-cache prom-server-docker-build
 	docker tag $(PROM-SERVER-IMAGE) docker-prometheus_manager_server:latest
 	docker-compose -f ./deploy/docker/docker-compose.yaml up prometheus_manager_server -d --no-build
-
-prom-web-compose-up: prom-web-docker-build
-	docker tag $(PROM-WEB-IMAGE) docker-prometheus_manager_web:latest
-	docker-compose -f ./deploy/docker/docker-compose.yaml up prometheus_manager_web -d --no-build
 
 prom-agent-compose-up: prom-agent-docker-build
 	docker tag $(PROM-AGENT-IMAGE) docker-prometheus_manager_agent:latest
