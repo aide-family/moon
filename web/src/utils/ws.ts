@@ -1,7 +1,9 @@
 let websocket: WebSocket,
     lockReconnect = false
 let createWebSocket = (url: string) => {
-    websocket = new WebSocket(url)
+    const userInfoStr = localStorage.getItem('user') || '{}'
+    const userInfo = JSON.parse(userInfoStr)
+    websocket = new WebSocket(`${url}?userId=${userInfo?.id || 0}`)
     websocket.onopen = function () {
         heartCheck.reset().start()
     }

@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"prometheus-manager/app/prom_server/internal/conf"
+	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/servers"
 )
 
@@ -27,6 +28,7 @@ func NewWebsocketServer(c *conf.Server, l log.Logger) *WebsocketServer {
 	}
 
 	go func() {
+		defer after.Recover(s.log)
 		for {
 			select {
 			case msg := <-sendCh:
