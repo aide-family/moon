@@ -2,6 +2,7 @@ import {
     AlarmApp,
     AlarmStatus,
     NotifyApp,
+    NotifyTemplateType,
     PageReqType,
     PageResType,
     Status
@@ -96,15 +97,13 @@ interface CreateChatGroupResponse {
     id: number
 }
 
-interface TestHookTemplateRequest {
-    id?: number
-    hook: string
+interface TestTemplateRequest {
+    notifyType: NotifyTemplateType
     template: string
-    app: AlarmApp
-    secret?: string
+    strategyId: number
 }
 
-interface TestHookTemplateResponse {
+interface TestTemplateResponse {
     msg: string
 }
 
@@ -137,6 +136,6 @@ export type {
     CreateChatGroupResponse,
     ChatGroupItem,
     ChatGroupSelectItem,
-    TestHookTemplateRequest,
-    TestHookTemplateResponse
+    TestTemplateRequest,
+    TestTemplateResponse
 }

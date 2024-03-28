@@ -228,37 +228,6 @@ export const searchItems: DataFormItem[] = [
     }
 ]
 
-// const TemplateTooltip = () => {
-//     return (
-//         <div>
-//             <p>
-//                 告警内容，用于在告警信息中展示, 支持模板语法， 例如:
-//                 <br />
-//                 {'{{ $labels.instance }}'}
-//             </p>
-//             <hr />
-//             <Button
-//                 type="link"
-//                 href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
-//                 target="_blank"
-//             >
-//                 钉钉hook文档
-//             </Button>
-
-//             <Button
-//                 type="link"
-//                 href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
-//                 target="_blank"
-//             >
-//                 飞书hook文档
-//             </Button>
-//             <Button type="link" disabled>
-//                 企业微信hook文档点击机器人可见
-//             </Button>
-//         </div>
-//     )
-// }
-
 export const addChatGroupItems = (
     app: NotifyApp
 ): (DataFormItem | DataFormItem[])[] => [

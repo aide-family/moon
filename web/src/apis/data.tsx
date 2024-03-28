@@ -4,6 +4,7 @@ import {
     DomainType,
     ModuleType,
     NotifyApp,
+    NotifyTemplateType,
     SysLogActionType
 } from './types'
 import { IconFont } from '@/components/IconFont/IconFont'
@@ -109,6 +110,15 @@ const SysLogActionTypeData: Record<
     }
 }
 
+export const NotifyTemplateTypeData: Record<NotifyTemplateType, string> = {
+    [NotifyTemplateType.NotifyTemplateTypeEmail]: '邮件',
+    [NotifyTemplateType.NotifyTemplateTypeCustom]: '自定义',
+    [NotifyTemplateType.NotifyTemplateTypeDingDing]: '钉钉',
+    [NotifyTemplateType.NotifyTemplateTypeSms]: '短信',
+    [NotifyTemplateType.NotifyTemplateTypeFeiShu]: '飞书',
+    [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: '企业微信'
+}
+
 export enum ActionKey {
     /** 刷新 */
     REFRESH = '__refresh__',
@@ -183,7 +193,9 @@ export enum ActionKey {
     /** 告警事件图表 */
     ALARM_EVENT_CHART = '__alarm_event_chart__',
     /** 测试告警模板 */
-    TEST_ALARM_TEMPLATE = '__test_alarm_template__'
+    TEST_ALARM_TEMPLATE = '__test_alarm_template__',
+    /** 绑定通知模板 */
+    STRATEGY_BIND_NOTIFY_TEMPLATE = '__strategy_bind_notify_template__'
 }
 
 export {

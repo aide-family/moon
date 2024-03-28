@@ -34,8 +34,6 @@ type ChatGroupClient interface {
 	ListChatGroup(ctx context.Context, in *ListChatGroupRequest, opts ...grpc.CallOption) (*ListChatGroupReply, error)
 	// 获取通知群组列表(下拉选择)
 	SelectChatGroup(ctx context.Context, in *SelectChatGroupRequest, opts ...grpc.CallOption) (*SelectChatGroupReply, error)
-	// 测试hook模板
-	TestHookTemplate(ctx context.Context, in *TestHookTemplateRequest, opts ...grpc.CallOption) (*TestHookTemplateReply, error)
 }
 
 type chatGroupClient struct {
@@ -100,15 +98,6 @@ func (c *chatGroupClient) SelectChatGroup(ctx context.Context, in *SelectChatGro
 	return out, nil
 }
 
-func (c *chatGroupClient) TestHookTemplate(ctx context.Context, in *TestHookTemplateRequest, opts ...grpc.CallOption) (*TestHookTemplateReply, error) {
-	out := new(TestHookTemplateReply)
-	err := c.cc.Invoke(ctx, "/api.server.prom.notify.ChatGroup/TestHookTemplate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ChatGroupServer is the server API for ChatGroup service.
 // All implementations must embed UnimplementedChatGroupServer
 // for forward compatibility
@@ -125,8 +114,6 @@ type ChatGroupServer interface {
 	ListChatGroup(context.Context, *ListChatGroupRequest) (*ListChatGroupReply, error)
 	// 获取通知群组列表(下拉选择)
 	SelectChatGroup(context.Context, *SelectChatGroupRequest) (*SelectChatGroupReply, error)
-	// 测试hook模板
-	TestHookTemplate(context.Context, *TestHookTemplateRequest) (*TestHookTemplateReply, error)
 	mustEmbedUnimplementedChatGroupServer()
 }
 
@@ -151,9 +138,6 @@ func (UnimplementedChatGroupServer) ListChatGroup(context.Context, *ListChatGrou
 }
 func (UnimplementedChatGroupServer) SelectChatGroup(context.Context, *SelectChatGroupRequest) (*SelectChatGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectChatGroup not implemented")
-}
-func (UnimplementedChatGroupServer) TestHookTemplate(context.Context, *TestHookTemplateRequest) (*TestHookTemplateReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TestHookTemplate not implemented")
 }
 func (UnimplementedChatGroupServer) mustEmbedUnimplementedChatGroupServer() {}
 
@@ -276,24 +260,6 @@ func _ChatGroup_SelectChatGroup_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ChatGroup_TestHookTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TestHookTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ChatGroupServer).TestHookTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.server.prom.notify.ChatGroup/TestHookTemplate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatGroupServer).TestHookTemplate(ctx, req.(*TestHookTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // ChatGroup_ServiceDesc is the grpc.ServiceDesc for ChatGroup service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -324,10 +290,6 @@ var ChatGroup_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectChatGroup",
 			Handler:    _ChatGroup_SelectChatGroup_Handler,
-		},
-		{
-			MethodName: "TestHookTemplate",
-			Handler:    _ChatGroup_TestHookTemplate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

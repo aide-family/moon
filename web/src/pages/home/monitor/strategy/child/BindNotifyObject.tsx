@@ -19,9 +19,8 @@ import {
 } from '../../alarm-group/options'
 import { IconFont } from '@/components/IconFont/IconFont'
 import FetchSelect from '@/components/Data/FetchSelect'
-import alarmGroupApi from '@/apis/home/monitor/alarm-group'
-import { defaultSelectAlarmGroupRequest } from '@/apis/home/monitor/alarm-group/types'
 import { DefaultOptionType } from 'antd/es/select'
+import { getNotifyList } from '../../strategy-group/options'
 
 export interface BindNotifyObjectProps {
     open?: boolean
@@ -218,25 +217,6 @@ export const BindNotifyObject: FC<BindNotifyObjectProps> = (props) => {
             setNotifyData([...listTmp])
             notifySelectFrom.resetFields()
         })
-    }
-
-    const getNotifyList = (keyword: string): Promise<DefaultOptionType[]> => {
-        return alarmGroupApi
-            .select({
-                ...defaultSelectAlarmGroupRequest,
-                keyword: keyword
-            })
-            .then((data) => {
-                if (!data || !data?.list) return []
-                return data?.list.map((item) => {
-                    const { value, label, remark } = item
-                    return {
-                        value: value,
-                        label: label,
-                        title: remark
-                    }
-                })
-            })
     }
 
     useEffect(() => {

@@ -21,12 +21,18 @@ type StrategyService struct {
 	log *log.Helper
 
 	strategyBiz *biz.StrategyBiz
+	notifyBiz   *biz.NotifyBiz
 }
 
-func NewStrategyService(strategyBiz *biz.StrategyBiz, logger log.Logger) *StrategyService {
+func NewStrategyService(
+	strategyBiz *biz.StrategyBiz,
+	notifyBiz *biz.NotifyBiz,
+	logger log.Logger,
+) *StrategyService {
 	return &StrategyService{
 		log:         log.NewHelper(log.With(logger, "module", "service.prom.strategy")),
 		strategyBiz: strategyBiz,
+		notifyBiz:   notifyBiz,
 	}
 }
 
@@ -191,4 +197,17 @@ func (s *StrategyService) BindStrategyNotifyObject(ctx context.Context, req *pb.
 		return nil, err
 	}
 	return &pb.BindStrategyNotifyObjectReply{Id: req.GetId()}, nil
+}
+
+// TestNotifyTemplate 测试hook模板
+func (s *StrategyService) TestNotifyTemplate(ctx context.Context, req *pb.TestTemplateRequest) (*pb.TestTemplateReply, error) {
+	testParams := &bo.TestNotifyTemplateParams{
+		NotifyType: vobj.NotifyTemplateType(req.GetNotifyType()),
+		Template:   req.GetTemplate(),
+		StrategyId: req.GetStrategyId(),
+	}
+	if err := s.notifyBiz.TestNotifyTemplate(ctx, testParams); err != nil {
+		return nil, err
+	}
+	return &pb.TestTemplateReply{Msg: "请求成功，注意查收"}, nil
 }

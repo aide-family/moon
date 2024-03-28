@@ -44,6 +44,8 @@ type StrategyClient interface {
 	GetStrategyNotifyObject(ctx context.Context, in *GetStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*GetStrategyNotifyObjectReply, error)
 	// 绑定通知对象
 	BindStrategyNotifyObject(ctx context.Context, in *BindStrategyNotifyObjectRequest, opts ...grpc.CallOption) (*BindStrategyNotifyObjectReply, error)
+	// 测试hook模板
+	TestNotifyTemplate(ctx context.Context, in *TestTemplateRequest, opts ...grpc.CallOption) (*TestTemplateReply, error)
 }
 
 type strategyClient struct {
@@ -153,6 +155,15 @@ func (c *strategyClient) BindStrategyNotifyObject(ctx context.Context, in *BindS
 	return out, nil
 }
 
+func (c *strategyClient) TestNotifyTemplate(ctx context.Context, in *TestTemplateRequest, opts ...grpc.CallOption) (*TestTemplateReply, error) {
+	out := new(TestTemplateReply)
+	err := c.cc.Invoke(ctx, "/api.server.prom.strategy.Strategy/TestNotifyTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StrategyServer is the server API for Strategy service.
 // All implementations must embed UnimplementedStrategyServer
 // for forward compatibility
@@ -179,6 +190,8 @@ type StrategyServer interface {
 	GetStrategyNotifyObject(context.Context, *GetStrategyNotifyObjectRequest) (*GetStrategyNotifyObjectReply, error)
 	// 绑定通知对象
 	BindStrategyNotifyObject(context.Context, *BindStrategyNotifyObjectRequest) (*BindStrategyNotifyObjectReply, error)
+	// 测试hook模板
+	TestNotifyTemplate(context.Context, *TestTemplateRequest) (*TestTemplateReply, error)
 	mustEmbedUnimplementedStrategyServer()
 }
 
@@ -218,6 +231,9 @@ func (UnimplementedStrategyServer) GetStrategyNotifyObject(context.Context, *Get
 }
 func (UnimplementedStrategyServer) BindStrategyNotifyObject(context.Context, *BindStrategyNotifyObjectRequest) (*BindStrategyNotifyObjectReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BindStrategyNotifyObject not implemented")
+}
+func (UnimplementedStrategyServer) TestNotifyTemplate(context.Context, *TestTemplateRequest) (*TestTemplateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TestNotifyTemplate not implemented")
 }
 func (UnimplementedStrategyServer) mustEmbedUnimplementedStrategyServer() {}
 
@@ -430,6 +446,24 @@ func _Strategy_BindStrategyNotifyObject_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Strategy_TestNotifyTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StrategyServer).TestNotifyTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.server.prom.strategy.Strategy/TestNotifyTemplate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StrategyServer).TestNotifyTemplate(ctx, req.(*TestTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Strategy_ServiceDesc is the grpc.ServiceDesc for Strategy service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -480,6 +514,10 @@ var Strategy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BindStrategyNotifyObject",
 			Handler:    _Strategy_BindStrategyNotifyObject_Handler,
+		},
+		{
+			MethodName: "TestNotifyTemplate",
+			Handler:    _Strategy_TestNotifyTemplate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -27,6 +27,7 @@ import { ImportGroups } from '../strategy-group/child/ImportGroups'
 import qs from 'qs'
 import PromQLInput from '@/components/Prom/PromQLInput'
 import { SysLogDetail } from '../../child/SysLogDetail'
+import { BindNotifyTemplate } from './child/BindNotifyTemplate'
 
 const defaultPadding = 12
 
@@ -56,6 +57,8 @@ const Strategy: FC = () => {
     const [openImportModal, setOpenImportModal] = useState<boolean>(false)
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
+    const [openBindNotifyTemplate, setOpenBindNotifyTemplate] =
+        useState<boolean>(false)
 
     const openLogDetail = (id: number) => {
         setLogOpen(true)
@@ -96,6 +99,16 @@ const Strategy: FC = () => {
 
     const handlerCloseDetail = () => {
         setOpenDetail(false)
+    }
+
+    const handleOpenBindNotifyTemplate = (id?: number) => {
+        setOperateId(id)
+        setOpenBindNotifyTemplate(true)
+    }
+
+    const handlerCloseBindNotifyTemplate = () => {
+        setOpenBindNotifyTemplate(false)
+        setOperateId(undefined)
     }
 
     // 获取数据
@@ -184,6 +197,9 @@ const Strategy: FC = () => {
             case ActionKey.OPERATION_LOG:
                 openLogDetail(record.id)
                 break
+            case ActionKey.STRATEGY_BIND_NOTIFY_TEMPLATE:
+                handleOpenBindNotifyTemplate(record.id)
+                break
             default:
                 break
         }
@@ -248,6 +264,14 @@ const Strategy: FC = () => {
 
     return (
         <div>
+            <BindNotifyTemplate
+                title="通知模板"
+                strategyId={operateId}
+                open={openBindNotifyTemplate}
+                width="60%"
+                onCancel={handlerCloseBindNotifyTemplate}
+                onOk={handlerCloseBindNotifyTemplate}
+            />
             <SysLogDetail
                 module={ModuleType.ModuleStrategy}
                 moduleId={logDataId}

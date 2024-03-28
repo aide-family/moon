@@ -121,11 +121,11 @@ func InitSuperUser(db *gorm.DB) (err error) {
 			Username:  "admin",
 			Nickname:  "超级管理员",
 			Password:  "123456",
-			Email:     "admin@prometheus.com",
+			Email:     "1058165620@qq.com",
 			Phone:     "13800000000",
 			Status:    vobj.StatusEnabled,
 			Remark:    "超级管理员账号",
-			Avatar:    "https://img0.baidu.com/it/u=640865303,1189373079&fm=253&fmt=auto&app=138&f=JPEG?w=300&h=300",
+			Avatar:    "https://api.dicebear.com/7.x/miniavs/svg?seed=8",
 			Salt:      "",
 			Gender:    vobj.GenderMale,
 			Roles: []*SysRole{

@@ -2618,17 +2618,6 @@ func (m *ImportGroupRequest) validate(all bool) error {
 
 	}
 
-	if len(m.GetDefaultAlarmNotifyIds()) < 1 {
-		err := ImportGroupRequestValidationError{
-			field:  "DefaultAlarmNotifyIds",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	_ImportGroupRequest_DefaultAlarmNotifyIds_Unique := make(map[uint32]struct{}, len(m.GetDefaultAlarmNotifyIds()))
 
 	for idx, item := range m.GetDefaultAlarmNotifyIds() {
