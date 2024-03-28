@@ -12,7 +12,7 @@ import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
 import { DataFormItem } from '@/components/Data'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
-import { ActionKey } from '@/apis/data'
+import { ActionKey, NotifyTemplateTypeData } from '@/apis/data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import {
@@ -86,6 +86,18 @@ export const tableOperationItems = (
                 icon={<IconFont type="icon-email1" />}
             >
                 通知对象
+            </Button>
+        )
+    },
+    {
+        key: ActionKey.STRATEGY_BIND_NOTIFY_TEMPLATE,
+        label: (
+            <Button
+                type="link"
+                size="small"
+                icon={<IconFont type="icon-email1" />}
+            >
+                通知模板
             </Button>
         )
     },
@@ -969,5 +981,85 @@ export const tourSteps = (refs: {
             </div>
         ),
         target: null
+    }
+]
+
+const TemplateTooltip = () => {
+    return (
+        <div>
+            <p>
+                告警内容，用于在告警信息中展示, 支持模板语法， 例如:
+                <br />
+                {'{{ $labels.instance }}'}
+            </p>
+            <hr />
+            <Button
+                type="link"
+                href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
+                target="_blank"
+            >
+                钉钉hook文档
+            </Button>
+
+            <Button
+                type="link"
+                href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
+                target="_blank"
+            >
+                飞书hook文档
+            </Button>
+            <Button type="link" disabled>
+                企业微信hook文档点击机器人可见
+            </Button>
+        </div>
+    )
+}
+
+export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
+    {
+        name: 'notifyType',
+        label: '通知模板类型',
+        formItemProps: {
+            tooltip: '配置不同通知对象的模板'
+        },
+        dataProps: {
+            type: 'select',
+            parentProps: {
+                placeholder: '请选择通知模板类型',
+                options: Object.entries(NotifyTemplateTypeData).map(
+                    ([key, value]) => {
+                        return {
+                            value: +key,
+                            label: value
+                        }
+                    }
+                )
+            }
+        },
+        rules: [
+            {
+                required: true,
+                message: '请选择通知模板类型'
+            }
+        ]
+    },
+
+    {
+        label: '通知模板内容',
+        name: 'content',
+        formItemProps: {
+            tooltip: <TemplateTooltip />
+        },
+        dataProps: {
+            type: 'template-auto-complete',
+            parentProps: {
+                placeholder: '请输入通知模板内容'
+            }
+        },
+        rules: [
+            {
+                required: true
+            }
+        ]
     }
 ]

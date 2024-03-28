@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -16,10 +17,16 @@ type (
 		mustEmbedUnimplemented()
 		// SendAlarm 发送告警消息
 		SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) error
+
+		SendAlarmToMember(ctx context.Context, members []*bo.NotifyMemberBO, memberTemplateMap map[vobj.NotifyType]string, alarmInfo *bo.AlertBo) error
 	}
 
 	UnimplementedMsgRepo struct{}
 )
+
+func (UnimplementedMsgRepo) SendAlarmToMember(_ context.Context, _ []*bo.NotifyMemberBO, _ map[vobj.NotifyType]string, _ *bo.AlertBo) error {
+	return status.Error(codes.Unimplemented, "method SendAlarmToMember not implemented")
+}
 
 func (UnimplementedMsgRepo) mustEmbedUnimplemented() {}
 

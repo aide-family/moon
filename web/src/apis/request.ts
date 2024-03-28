@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosPromise, AxiosRequestConfig } from 'axios'
 
-import type { Response, Map } from '@/apis/types.ts'
+import type { Map } from '@/apis/types.ts'
 import { notification } from 'antd'
 
 type ErrorRepose = {

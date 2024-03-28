@@ -24,11 +24,11 @@ const (
 	// NotifyTypeUnknown 未知
 	NotifyTypeUnknown NotifyType = iota
 	// NotifyTypeEmail 邮件
-	NotifyTypeEmail = 1 << iota
+	NotifyTypeEmail NotifyType = 1 << iota
 	// NotifyTypeSms 短信
-	NotifyTypeSms = 1 << iota
+	NotifyTypeSms NotifyType = 1 << iota
 	// NotifyTypePhone 电话
-	NotifyTypePhone = 1 << iota
+	NotifyTypePhone NotifyType = 1 << iota
 )
 
 // String 转换为字符串

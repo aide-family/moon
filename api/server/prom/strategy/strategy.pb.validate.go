@@ -36,7 +36,7 @@ var (
 	_ = anypb.Any{}
 	_ = sort.Sort
 
-	_ = api.Status(0)
+	_ = api.NotifyTemplateType(0)
 )
 
 // Validate checks the field values on CreateStrategyRequest with the rules
@@ -3661,3 +3661,233 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BindStrategyNotifyObjectReplyValidationError{}
+
+// Validate checks the field values on TestTemplateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TestTemplateRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TestTemplateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TestTemplateRequestMultiError, or nil if none found.
+func (m *TestTemplateRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TestTemplateRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := api.NotifyTemplateType_name[int32(m.GetNotifyType())]; !ok {
+		err := TestTemplateRequestValidationError{
+			field:  "NotifyType",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Template
+
+	if m.GetStrategyId() <= 0 {
+		err := TestTemplateRequestValidationError{
+			field:  "StrategyId",
+			reason: "value must be greater than 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return TestTemplateRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// TestTemplateRequestMultiError is an error wrapping multiple validation
+// errors returned by TestTemplateRequest.ValidateAll() if the designated
+// constraints aren't met.
+type TestTemplateRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TestTemplateRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TestTemplateRequestMultiError) AllErrors() []error { return m }
+
+// TestTemplateRequestValidationError is the validation error returned by
+// TestTemplateRequest.Validate if the designated constraints aren't met.
+type TestTemplateRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TestTemplateRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TestTemplateRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TestTemplateRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TestTemplateRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TestTemplateRequestValidationError) ErrorName() string {
+	return "TestTemplateRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TestTemplateRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTestTemplateRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TestTemplateRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TestTemplateRequestValidationError{}
+
+// Validate checks the field values on TestTemplateReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *TestTemplateReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TestTemplateReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TestTemplateReplyMultiError, or nil if none found.
+func (m *TestTemplateReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TestTemplateReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Msg
+
+	if len(errors) > 0 {
+		return TestTemplateReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// TestTemplateReplyMultiError is an error wrapping multiple validation errors
+// returned by TestTemplateReply.ValidateAll() if the designated constraints
+// aren't met.
+type TestTemplateReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TestTemplateReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TestTemplateReplyMultiError) AllErrors() []error { return m }
+
+// TestTemplateReplyValidationError is the validation error returned by
+// TestTemplateReply.Validate if the designated constraints aren't met.
+type TestTemplateReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TestTemplateReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TestTemplateReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TestTemplateReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TestTemplateReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TestTemplateReplyValidationError) ErrorName() string {
+	return "TestTemplateReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TestTemplateReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTestTemplateReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TestTemplateReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TestTemplateReplyValidationError{}

@@ -118,8 +118,8 @@ func StrategyPreloadTemplate() basescopes.ScopeMethod {
 // PromStrategy mapped from table <prom_strategies>
 type PromStrategy struct {
 	BaseModel
-	GroupID      uint32                `gorm:"column:group_id;type:int unsigned;not null;comment:所属规则组ID" json:"group_id"`
-	Alert        string                `gorm:"column:alert;type:varchar(64);not null;comment:规则名称" json:"alert"`
+	GroupID      uint32                `gorm:"column:group_id;type:int unsigned;not null;comment:所属规则组ID;uniqueIndex:idx__prom_strategy__group_id__alert" json:"group_id"`
+	Alert        string                `gorm:"column:alert;type:varchar(64);not null;comment:规则名称;uniqueIndex:idx__prom_strategy__group_id__alert" json:"alert"`
 	Expr         string                `gorm:"column:expr;type:text;not null;comment:prom ql" json:"expr"`
 	For          string                `gorm:"column:for;type:varchar(64);not null;default:10s;comment:持续时间" json:"for"`
 	Labels       *strategy.Labels      `gorm:"column:labels;type:json;not null;comment:标签" json:"labels"`

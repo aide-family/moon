@@ -29,6 +29,7 @@ const OperationStrategyGetStrategy = "/api.server.prom.strategy.Strategy/GetStra
 const OperationStrategyGetStrategyNotifyObject = "/api.server.prom.strategy.Strategy/GetStrategyNotifyObject"
 const OperationStrategyListStrategy = "/api.server.prom.strategy.Strategy/ListStrategy"
 const OperationStrategySelectStrategy = "/api.server.prom.strategy.Strategy/SelectStrategy"
+const OperationStrategyTestNotifyTemplate = "/api.server.prom.strategy.Strategy/TestNotifyTemplate"
 const OperationStrategyUpdateStrategy = "/api.server.prom.strategy.Strategy/UpdateStrategy"
 
 type StrategyHTTPServer interface {
@@ -42,6 +43,7 @@ type StrategyHTTPServer interface {
 	GetStrategyNotifyObject(context.Context, *GetStrategyNotifyObjectRequest) (*GetStrategyNotifyObjectReply, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error)
+	TestNotifyTemplate(context.Context, *TestTemplateRequest) (*TestTemplateReply, error)
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
 }
 
@@ -58,6 +60,7 @@ func RegisterStrategyHTTPServer(s *http.Server, srv StrategyHTTPServer) {
 	r.POST("/api/v1/strategy/export", _Strategy_ExportStrategy0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/notify/object", _Strategy_GetStrategyNotifyObject0_HTTP_Handler(srv))
 	r.POST("/api/v1/strategy/notify/object/bind", _Strategy_BindStrategyNotifyObject0_HTTP_Handler(srv))
+	r.POST("/api/v1/strategy/notify/test", _Strategy_TestNotifyTemplate0_HTTP_Handler(srv))
 }
 
 func _Strategy_CreateStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
@@ -269,6 +272,25 @@ func _Strategy_BindStrategyNotifyObject0_HTTP_Handler(srv StrategyHTTPServer) fu
 	}
 }
 
+func _Strategy_TestNotifyTemplate0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStrategyTestNotifyTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestNotifyTemplate(ctx, req.(*TestTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestTemplateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type StrategyHTTPClient interface {
 	BatchDeleteStrategy(ctx context.Context, req *BatchDeleteStrategyRequest, opts ...http.CallOption) (rsp *BatchDeleteStrategyReply, err error)
 	BatchUpdateStrategyStatus(ctx context.Context, req *BatchUpdateStrategyStatusRequest, opts ...http.CallOption) (rsp *BatchUpdateStrategyStatusReply, err error)
@@ -280,6 +302,7 @@ type StrategyHTTPClient interface {
 	GetStrategyNotifyObject(ctx context.Context, req *GetStrategyNotifyObjectRequest, opts ...http.CallOption) (rsp *GetStrategyNotifyObjectReply, err error)
 	ListStrategy(ctx context.Context, req *ListStrategyRequest, opts ...http.CallOption) (rsp *ListStrategyReply, err error)
 	SelectStrategy(ctx context.Context, req *SelectStrategyRequest, opts ...http.CallOption) (rsp *SelectStrategyReply, err error)
+	TestNotifyTemplate(ctx context.Context, req *TestTemplateRequest, opts ...http.CallOption) (rsp *TestTemplateReply, err error)
 	UpdateStrategy(ctx context.Context, req *UpdateStrategyRequest, opts ...http.CallOption) (rsp *UpdateStrategyReply, err error)
 }
 
@@ -413,6 +436,19 @@ func (c *StrategyHTTPClientImpl) SelectStrategy(ctx context.Context, in *SelectS
 	pattern := "/api/v1/strategy/select"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategySelectStrategy))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *StrategyHTTPClientImpl) TestNotifyTemplate(ctx context.Context, in *TestTemplateRequest, opts ...http.CallOption) (*TestTemplateReply, error) {
+	var out TestTemplateReply
+	pattern := "/api/v1/strategy/notify/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationStrategyTestNotifyTemplate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

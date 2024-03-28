@@ -100,6 +100,14 @@ service Strategy {
       body: "*"
     };
   }
+
+  // 测试hook模板
+  rpc TestNotifyTemplate (TestTemplateRequest) returns (TestTemplateReply) {
+    option (google.api.http) = {
+      post: "/api/v1/strategy/notify/test"
+      body: "*"
+    };
+  }
 }
 
 // 创建策略请求参数
@@ -367,4 +375,18 @@ message BindStrategyNotifyObjectRequest {
 message BindStrategyNotifyObjectReply {
   // 策略ID, 成功返回策略ID
   uint32 id = 1;
+}
+
+// 测试hook模板请求参数
+message TestTemplateRequest {
+  // APP
+  NotifyTemplateType notifyType = 2 [(validate.rules).enum.defined_only = true];
+  // 模板
+  string template = 3;
+  // 策略ID
+  uint32 strategyId = 4 [(validate.rules).uint32.gt = 0];
+}
+// 测试hook模板响应参数
+message TestTemplateReply {
+  string msg = 1;
 }

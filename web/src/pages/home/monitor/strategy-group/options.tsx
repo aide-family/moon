@@ -39,6 +39,9 @@ import {
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import jsYaml from 'js-yaml'
 import dictApi from '@/apis/home/system/dict'
+import alarmGroupApi from '@/apis/home/monitor/alarm-group'
+import { DefaultOptionType } from 'antd/es/select'
+import { defaultSelectAlarmGroupRequest } from '@/apis/home/monitor/alarm-group/types'
 
 const { Paragraph } = Typography
 
@@ -332,6 +335,27 @@ export const editStrategyGroupDataFormItems: DataFormItem[] = [
     }
 ]
 
+export const getNotifyList = (
+    keyword: string
+): Promise<DefaultOptionType[]> => {
+    return alarmGroupApi
+        .select({
+            ...defaultSelectAlarmGroupRequest,
+            keyword: keyword
+        })
+        .then((data) => {
+            if (!data || !data?.list) return []
+            return data?.list.map((item) => {
+                const { value, label, remark } = item
+                return {
+                    value: value,
+                    label: label,
+                    title: remark
+                }
+            })
+        })
+}
+
 export const importGroupDataFormItems: (DataFormItem[] | DataFormItem)[] = [
     [
         {
@@ -428,7 +452,22 @@ export const importGroupDataFormItems: (DataFormItem[] | DataFormItem)[] = [
                 }
             ]
         }
-    ]
+    ],
+    {
+        name: 'defaultAlarmNotifyIds',
+        label: '通知对象',
+        dataProps: {
+            type: 'select-fetch',
+            parentProps: {
+                selectProps: {
+                    placeholder: '请选择通知对象',
+                    mode: 'multiple'
+                },
+                handleFetch: getNotifyList,
+                defaultOptions: []
+            }
+        }
+    }
 ]
 
 export interface ImportStepProps extends StepProps {
@@ -462,10 +501,6 @@ export const importModalStepsItems = (
                 <Button icon={<UploadOutlined />}>点击上传</Button>
             </Upload>
         )
-    },
-    {
-        title: '绑定通知对象',
-        content: 'bind notify(开发中)'
     },
     {
         title: '确认数据',

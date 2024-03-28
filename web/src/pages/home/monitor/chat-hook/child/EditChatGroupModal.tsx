@@ -1,11 +1,10 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Space, message } from 'antd'
+import { Button, Form, Modal, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { addChatGroupItems, updateChatGroupItems } from '../options'
 import {
     ChatGroupItem,
     CreateChatGroupRequest,
-    TestHookTemplateResponse,
     UpdateChatGroupRequest
 } from '@/apis/home/monitor/chat-group/types'
 import chatGroupApi from '@/apis/home/monitor/chat-group'
@@ -86,27 +85,6 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
         form.validateFields().then(handleSububmit)
     }
 
-    const handleOnTest = () => {
-        form.validateFields().then((values) => {
-            setLoading(true)
-            const newData = values as CreateChatGroupRequest
-            chatGroupApi
-                .testHookTemplate({
-                    id: chatGroupId,
-                    hook: newData.hook,
-                    template: newData.template,
-                    app: newData.app,
-                    secret: newData.secret
-                })
-                .then((res: TestHookTemplateResponse) => {
-                    message.success(res.msg)
-                })
-                .finally(() => {
-                    setLoading(false)
-                })
-        })
-    }
-
     const Title = () => {
         return chatGroupId ? '编辑机器人' : '添加机器人'
     }
@@ -127,14 +105,6 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
                 </Button>
                 <Button onClick={handeRestForm} type="dashed" loading={loading}>
                     重置
-                </Button>
-                <Button
-                    type="default"
-                    danger
-                    onClick={handleOnTest}
-                    loading={loading}
-                >
-                    测试
                 </Button>
                 <Button type="primary" onClick={handleOnOk} loading={loading}>
                     保存

@@ -27,6 +27,12 @@ type (
 		BeNotifyMembers    []*NotifyMemberBO      `json:"beNotifyMembers"`
 		ExternalNotifyObjs []*ExternalNotifyObjBO `json:"externalNotifyObjs"`
 	}
+
+	TestNotifyTemplateParams struct {
+		NotifyType vobj.NotifyTemplateType `json:"notifyType"`
+		Template   string                  `json:"template"`
+		StrategyId uint32                  `json:"strategyId"`
+	}
 )
 
 // String json string

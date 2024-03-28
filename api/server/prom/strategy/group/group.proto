@@ -301,7 +301,6 @@ message ImportGroupRequest {
       items: {
         uint32: {gt: 0},
       },
-      min_items: 1,
     }
   }];
 }

@@ -1,54 +1,20 @@
 // 自定义map类型
 type Map<T = any> = { [key: string]: T }
 
-/**基础响应参数 */
-type BaseResp<T = any> = {
-    // 响应码, 0为成功
-    code: number
-    // 响应消息
-    message: string
-    // 响应元数据
-    metadata?: Map
-    // 响应数据
-    data: T
-}
-
-/**基础响应格式 */
-type Response<T = any> = BaseResp<T>
-
-type Callback<T = any, R = any> = {
-    OK?: (res: T) => void
-    ERROR?: (err: R) => void
-    setLoading?: (loading: boolean) => void
-}
-
-type PageReq = {
-    current: number
-    size: number
-}
-
-export const defaultPageReqInfo: PageReq = {
-    current: 1,
-    size: 10
-}
-
-type PageRes<T = any> = {
-    current: number
-    total: number
-    size: number
-    records?: T[]
-}
-
-interface PageResType {
-    curr: number
-    size: number
-    total: number
-}
-
 interface PageReqType {
     curr: number
     size: number
 }
+
+interface PageResType extends PageReqType {
+    total: number
+}
+
+export const defaultPageReqInfo: PageReqType = {
+    curr: 1,
+    size: 10
+}
+
 /**系统状态, 用于表达数据是否可用 */
 export enum Status {
     /**UNKNOWN 未知, 用于默认值 */
@@ -280,16 +246,29 @@ export type Message = {
     biz: string
 }
 
-export type {
-    Map,
-    BaseResp,
-    Response,
-    Callback,
-    PageReq,
-    PageRes,
-    PageResType,
-    PageReqType,
-    IdReponse,
-    IdsReponse,
-    Duration
+/**
+ * const (
+	// NotifyTemplateTypeCustom  自定义通知模板
+	NotifyTemplateTypeCustom NotifyTemplateType = iota
+	// NotifyTemplateTypeEmail 邮件通知模板
+	NotifyTemplateTypeEmail
+	// NotifyTemplateTypeSms 短信通知模板
+	NotifyTemplateTypeSms
+	// NotifyTemplateTypeWeChatWork 企业微信通知模板
+	NotifyTemplateTypeWeChatWork
+	// NotifyTemplateTypeFeiShu 飞书通知模板
+	NotifyTemplateTypeFeiShu
+	// NotifyTemplateTypeDingDing 钉钉通知模板
+	NotifyTemplateTypeDingDing
+)
+ */
+export enum NotifyTemplateType {
+    NotifyTemplateTypeCustom,
+    NotifyTemplateTypeEmail,
+    NotifyTemplateTypeSms,
+    NotifyTemplateTypeWeChatWork,
+    NotifyTemplateTypeFeiShu,
+    NotifyTemplateTypeDingDing
 }
+
+export type { Map, PageResType, PageReqType, IdReponse, IdsReponse, Duration }

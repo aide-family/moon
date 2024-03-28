@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"prometheus-manager/api/perrors"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
@@ -59,7 +60,7 @@ func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) erro
 			// 通知到群组
 			l.sendAlarmToChatGroups(ctx, v2.GetChatGroups(), hookTemplateMap, v.AlarmInfo)
 			// 通知到人员
-			l.sendAlarmToMember(ctx, v2.GetBeNotifyMembers(), memberTemplateMap, v.AlarmInfo)
+			_ = l.sendAlarmToMember(ctx, v2.GetBeNotifyMembers(), memberTemplateMap, v.AlarmInfo)
 		}
 	}
 	return nil
@@ -107,8 +108,12 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*b
 	}
 }
 
-// 通知到人员
-func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyMemberBO, memberTemplateMap map[vobj.NotifyType]string, alarmInfo *bo.AlertBo) {
+// SendAlarmToMember 通知到人员
+func (l *msgRepoImpl) SendAlarmToMember(ctx context.Context, members []*bo.NotifyMemberBO, memberTemplateMap map[vobj.NotifyType]string, alarmInfo *bo.AlertBo) error {
+	return l.sendAlarmToMember(ctx, members, memberTemplateMap, alarmInfo)
+}
+
+func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyMemberBO, memberTemplateMap map[vobj.NotifyType]string, alarmInfo *bo.AlertBo) error {
 	l.log.Debug("开始发送邮件通知")
 	eg := new(errgroup.Group)
 	eg.SetLimit(10)
@@ -122,21 +127,29 @@ func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyM
 			// 发送邮件
 			eg.Go(func() error {
 				defer l.log.Debugw("发送邮件通知完成", m.GetMember().Email)
+				emailInstance := l.d.Email()
+				if emailInstance == nil {
+					return perrors.ErrorNotFound("未配置邮件功能")
+				}
 				return l.d.Email().SetBody(template).
 					SetTo(m.GetMember().Email).
-					SetSubject("prometheus moon系统邮件告警").Send()
+					SetSubject("moon监控系统告警").Send()
 			})
 		}
 		if m.NotifyType.IsSms() {
 			// TODO 发送短信
+			return perrors.ErrorNotFound("未配置短信功能")
 		}
 		if m.NotifyType.IsPhone() {
 			// TODO 发送电话
+			return perrors.ErrorNotFound("未配置电话功能")
 		}
 	}
 	if err := eg.Wait(); err != nil {
 		l.log.Warnf("send alarm to member error, %v", err)
+		return err
 	}
+	return nil
 }
 
 func NewMsgRepo(data *data.Data, logger log.Logger) repository.MsgRepo {
