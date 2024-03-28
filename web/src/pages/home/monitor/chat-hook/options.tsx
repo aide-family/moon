@@ -285,10 +285,14 @@ export const addChatGroupItems = (
             type: 'select',
             parentProps: {
                 placeholder: '请选择所属平台',
-                options: Object.entries(NotifyAppData).map(([key, value]) => ({
-                    label: value,
-                    value: Number(key)
-                }))
+                options: Object.entries(NotifyAppData)
+                    .filter(([key]) => {
+                        return key !== NotifyApp.NOTIFY_APP_UNKNOWN.toString()
+                    })
+                    .map(([key, value]) => ({
+                        label: value,
+                        value: Number(key)
+                    }))
             }
         }
     },

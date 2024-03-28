@@ -21,6 +21,7 @@ import { UploadChangeParam, UploadFile } from 'antd/es/upload'
 import yaml from 'js-yaml'
 import { GlobalContext } from '@/context'
 import strategyGroupApi from '@/apis/home/monitor/strategy-group'
+import { hostMap } from '@/apis/request'
 
 export interface ImportGroupsProps extends ModalProps {}
 
@@ -29,13 +30,12 @@ export const ImportGroups: React.FC<ImportGroupsProps> = (props) => {
     const [form] = Form.useForm<ImportGroupRequest>()
     const [current, setCurrent] = useState(0)
     const [importData, setImportData] = useState<ImportGroupRequest>()
-    const [uploadFileInfo, setUploadFileInfo] =
-        useState<UploadChangeParam>()
+    const [uploadFileInfo, setUploadFileInfo] = useState<UploadChangeParam>()
     const [fileList, setFileList] = useState<UploadFile[]>([])
-
+    const host = window.location.origin
     const uploadProps: UploadProps = {
         name: 'file',
-        action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
+        action: (hostMap[host] || host) + '/api/upload',
         headers: {
             authorization: 'authorization-text'
         },

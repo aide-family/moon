@@ -23,7 +23,7 @@ export type EditModalProps = {
 
 let timer: NodeJS.Timeout | null = null
 
-const EditModal: FC<EditModalProps> = (props) => {
+const EditUserModal: FC<EditModalProps> = (props) => {
     const { user } = useContext(GlobalContext)
     const { open, onClose, id, onOk } = props
     const [form] = Form.useForm()
@@ -143,4 +143,4 @@ const EditModal: FC<EditModalProps> = (props) => {
     )
 }
 
-export default EditModal
+export default EditUserModal

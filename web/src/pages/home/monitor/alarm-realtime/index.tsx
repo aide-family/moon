@@ -11,7 +11,6 @@ import {
     rightOptions,
     searchFormItems
 } from './options'
-import { IconFont } from '@/components/IconFont/IconFont'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import {
     AlarmRealtimeItem,
@@ -129,7 +128,7 @@ const AlarmRealtime: FC = () => {
 
     const buildTabsItems = () => {
         return alarmPageList.map((item, index) => {
-            const { name, id, color, icon } = item
+            const { name, id, color } = item
             return {
                 label: (
                     <Badge
@@ -140,7 +139,6 @@ const AlarmRealtime: FC = () => {
                         <Tag
                             color={color || ''}
                             style={{ textAlign: 'center' }}
-                            icon={icon ? <IconFont type={icon} /> : null}
                         >
                             {name || `报警页面${index}`}
                         </Tag>
@@ -233,7 +231,7 @@ const AlarmRealtime: FC = () => {
     //     } = record
     //     return {
     //         style: {
-    //             // background: color || ''
+    //             background: color || ''
     //         }
     //     }
     // }

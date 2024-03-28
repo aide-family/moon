@@ -1,12 +1,16 @@
 import { ActionKey, NotifyAppData } from '@/apis/data'
-import { AlarmGroupItem } from '@/apis/home/monitor/alarm-group/types'
+import {
+    AlarmGroupItem,
+    NotifyMemberItem
+} from '@/apis/home/monitor/alarm-group/types'
 import { NotifyMember } from '@/apis/home/monitor/alarm-notify/types'
 import { ChatGroupSelectItem } from '@/apis/home/monitor/chat-group/types'
+import { UserSelectItem } from '@/apis/home/system/user/types'
 import { NotifyApp, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Badge, Button, MenuProps } from 'antd'
+import { Badge, Button, Checkbox, MenuProps } from 'antd'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -28,6 +32,10 @@ export type AlarmGroupTableColumnType =
 export type ChartGroupTableColumnType =
     | ColumnGroupType<ChatGroupSelectItem>
     | ColumnType<ChatGroupSelectItem>
+
+export type MemberTableColumnType =
+    | ColumnGroupType<NotifyMemberItem>
+    | ColumnType<NotifyMemberItem>
 
 export type NotifyMemberTableColumnType =
     | ColumnGroupType<NotifyMember>
@@ -82,15 +90,101 @@ export const chartGroupCoumns: ChartGroupTableColumnType[] = [
         title: '名称',
         dataIndex: 'label',
         key: 'label',
-        width: 200
+        width: '40%'
     },
     {
         title: '所属APP',
         dataIndex: 'app',
         key: 'app',
-        width: 160,
+        width: '40%',
+        align: 'center',
         render: (app: NotifyApp) => {
             return NotifyAppData[app]
+        }
+    },
+    {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        align: 'center',
+        width: '40%',
+        render: (status: Status) => {
+            const { color, text } = StatusMap[status]
+            return <Badge color={color} text={text} />
+        }
+    }
+]
+
+export const memberCoumns = (
+    onChange?: (checked: number, record: NotifyMemberItem) => void
+): MemberTableColumnType[] => [
+    {
+        title: '通知人姓名',
+        dataIndex: 'user',
+        key: 'user',
+        width: '40%',
+        render: (user: UserSelectItem) => {
+            return user.label
+        }
+    },
+
+    {
+        title: '告警方式',
+        dataIndex: 'notifyType',
+        key: 'notifyType',
+        align: 'center',
+        width: '40%',
+        render: (notifyType: number, record: NotifyMemberItem) => {
+            const email = notifyType & 2
+            const sms = notifyType & 4
+            const phone = notifyType & 8
+
+            return (
+                <span>
+                    <Checkbox
+                        onChange={(e) =>
+                            onChange?.(
+                                e.target.checked
+                                    ? notifyType | 2
+                                    : notifyType & 12,
+                                record
+                            )
+                        }
+                        checked={!!onChange ? !!email : undefined}
+                        defaultChecked={!!email}
+                    >
+                        邮箱
+                    </Checkbox>
+                    <Checkbox
+                        onChange={(e) =>
+                            onChange?.(
+                                e.target.checked
+                                    ? notifyType | 4
+                                    : notifyType & 10,
+                                record
+                            )
+                        }
+                        defaultChecked={!!sms}
+                        checked={!!onChange ? !!sms : undefined}
+                    >
+                        短信
+                    </Checkbox>
+                    <Checkbox
+                        onChange={(e) =>
+                            onChange?.(
+                                e.target.checked
+                                    ? notifyType | 8
+                                    : notifyType & 6,
+                                record
+                            )
+                        }
+                        defaultChecked={!!phone}
+                        checked={!!onChange ? !!phone : undefined}
+                    >
+                        电话
+                    </Checkbox>
+                </span>
+            )
         }
     },
     {

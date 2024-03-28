@@ -1,27 +1,19 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Button, Form, Modal, Space, Table } from 'antd'
+import { Button, Form, Modal, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
-import {
-    ChartGroupTableColumnType,
-    chartGroupCoumns,
-    editorItems
-} from '../options'
+import { editorItems } from '../options'
 import {
     AlarmGroupItem,
+    AlarmNotifyMember,
     CreateAlarmGroupRequest,
+    NotifyMemberItem,
     UpdateAlarmGroupRequest
 } from '@/apis/home/monitor/alarm-group/types'
 import alarmGroupApi from '@/apis/home/monitor/alarm-group'
 import { HeightLine } from '@/components/HeightLine'
-import { NotifyApp, Status } from '@/apis/types'
-import { IconFont } from '@/components/IconFont/IconFont'
-import FetchSelect from '@/components/Data/FetchSelect'
-import { DefaultOptionType } from 'antd/es/select'
-import {
-    ChatGroupSelectItem,
-    defaultSelectChatGroupReques
-} from '@/apis/home/monitor/chat-group/types'
-import chatGroupApi from '@/apis/home/monitor/chat-group'
+import { ChatGroupSelectItem } from '@/apis/home/monitor/chat-group/types'
+import { BindHook } from './BindHook'
+import { BindMember } from './BindMember'
 
 export interface EditAlarmGroupModalProps {
     alarmGroupId?: number
@@ -34,52 +26,15 @@ export interface EditAlarmGroupModalProps {
 const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
     const { alarmGroupId, open, onClose, onOk, disabled } = props
     const [form] = Form.useForm<CreateAlarmGroupRequest>()
-    const [chatSelectFrom] = Form.useForm<{ groups: DefaultOptionType[] }>()
     const [loading, setLoading] = useState<boolean>(false)
     const [detail, setDetail] = useState<AlarmGroupItem>()
     const [chatGroups, setChatGroups] = useState<ChatGroupSelectItem[]>([])
+    const [members, setMembers] = useState<NotifyMemberItem[]>([])
 
     const handeResetForm = (item?: AlarmGroupItem) => {
         form.setFieldsValue({
             name: item?.name,
             remark: item?.remark
-        })
-    }
-
-    const removeDetailChatGroup = (chatItem: ChatGroupSelectItem) => {
-        if (chatItem && detail) {
-            const chatGroupsTmp = chatGroups?.filter(
-                (item) => item.value !== chatItem.value
-            )
-            setChatGroups(chatGroupsTmp)
-        }
-    }
-
-    const appendChatGroup = () => {
-        chatSelectFrom.validateFields().then((values) => {
-            const chatGroupsTmp = chatGroups
-            values.groups.map((item) => {
-                chatGroupsTmp.push({
-                    value: item.value as number,
-                    label: item.label as string,
-                    app: item.title
-                        ? (+item.title as NotifyApp)
-                        : NotifyApp.NOTIFY_APP_CUSTOM,
-                    status: Status.STATUS_ENABLED
-                })
-            })
-
-            // 去重
-            setChatGroups(
-                chatGroupsTmp?.filter((item, index, arr) => {
-                    return (
-                        arr.findIndex(
-                            (itemTmp) => itemTmp.value === item.value
-                        ) === index
-                    )
-                })
-            )
-            chatSelectFrom.resetFields()
         })
     }
 
@@ -92,6 +47,7 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                 const item = res.detail
                 setDetail(item)
                 setChatGroups(item?.chatGroups || [])
+                setMembers(item?.members || [])
                 handeResetForm(item)
             })
             .finally(() => {
@@ -122,7 +78,15 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
     const handleSubmit = (data: CreateAlarmGroupRequest) => {
         const newData: CreateAlarmGroupRequest = {
             ...data,
-            chatGroups: chatGroups?.map((item) => item.value)
+            chatGroups: chatGroups?.map((item) => item.value),
+            members: members?.map((item) => {
+                const alarmNotifyMember: AlarmNotifyMember = {
+                    memberId: item.memberId,
+                    notifyType: item.notifyType,
+                    id: item.id
+                }
+                return alarmNotifyMember
+            })
         }
         if (alarmGroupId) {
             updateAlarmGroup({ ...newData, id: alarmGroupId })
@@ -138,39 +102,12 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
     }
 
     const Title = () => {
-        return alarmGroupId ? '编辑告警组' : '添加告警组'
+        return alarmGroupId
+            ? disabled
+                ? '告警组详情'
+                : '编辑告警组'
+            : '添加告警组'
     }
-
-    const chartGroupCoumnsOptions: ChartGroupTableColumnType[] = [
-        ...chartGroupCoumns,
-        {
-            title: '操作',
-            dataIndex: 'action',
-            key: 'action',
-            align: 'center',
-            width: 80,
-            render: (_: any, record: ChatGroupSelectItem) => {
-                return (
-                    <Button
-                        size="small"
-                        danger
-                        type="link"
-                        onClick={() => removeDetailChatGroup(record)}
-                        disabled={disabled}
-                        icon={
-                            <IconFont
-                                disabled={disabled}
-                                type="icon-shanchu-copy"
-                                style={{ color: 'red' }}
-                            />
-                        }
-                    >
-                        删除
-                    </Button>
-                )
-            }
-        }
-    ]
 
     const Footer = () => {
         return (
@@ -202,31 +139,13 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
         )
     }
 
-    const getChatGroupList = (
-        keyword?: string
-    ): Promise<DefaultOptionType[]> => {
-        return chatGroupApi
-            .getChatGroupSelect({
-                ...defaultSelectChatGroupReques,
-                keyword
-            })
-            .then((data) => {
-                if (!data || !data.list || data.list.length === 0) return []
-                return data.list?.map((item) => {
-                    const option: DefaultOptionType = {
-                        label: item.label,
-                        app: item.app,
-                        status: item.status,
-                        value: item.value,
-                        title: item.app + ''
-                    }
-                    return option
-                })
-            })
-    }
-
     useEffect(() => {
-        if (!open) return
+        if (!open) {
+            setDetail(undefined)
+            setMembers([])
+            setChatGroups([])
+            return
+        }
         form.resetFields()
         setChatGroups([])
         getAlarmGroupDetail()
@@ -247,44 +166,19 @@ const EditAlarmGroupModal: React.FC<EditAlarmGroupModalProps> = (props) => {
                     formProps={{ layout: 'vertical', disabled: disabled }}
                 />
                 <Space direction="vertical" style={{ width: '100%' }}>
-                    <Form
-                        layout="inline"
-                        form={chatSelectFrom}
-                        onFinish={appendChatGroup}
-                    >
-                        <Form.Item name="groups" label={<b>机器人</b>}>
-                            {!disabled && (
-                                <FetchSelect
-                                    handleFetch={getChatGroupList}
-                                    width={400}
-                                    defaultOptions={[]}
-                                    selectProps={{
-                                        placeholder: '请选择机器人',
-                                        mode: 'multiple',
-                                        labelInValue: true,
-                                        disabled: disabled
-                                    }}
-                                />
-                            )}
-                        </Form.Item>
-                        {!disabled && (
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                disabled={disabled}
-                            >
-                                添加
-                            </Button>
-                        )}
-                    </Form>
-                    <Table
-                        columns={chartGroupCoumnsOptions}
-                        dataSource={chatGroups}
-                        size="small"
-                        pagination={false}
-                        rowKey={(record) => record.value}
+                    <BindHook
+                        value={chatGroups}
+                        defaultValue={chatGroups}
+                        onChange={(v) => setChatGroups(v || [])}
+                        disabled={disabled}
                     />
                     <HeightLine />
+                    <BindMember
+                        value={members}
+                        defaultValue={members}
+                        onChange={(v) => setMembers(v || [])}
+                        disabled={disabled}
+                    />
                 </Space>
             </Modal>
         </>
