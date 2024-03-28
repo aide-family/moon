@@ -10,10 +10,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/util/hash"
 )
 
 var _ transport.Server = (*WebsocketServer)(nil)
@@ -21,7 +19,7 @@ var _ transport.Server = (*WebsocketServer)(nil)
 type WebsocketServer struct {
 	addr      string
 	server    *http.Server
-	wsMap     map[string]*websocket.Conn
+	wsMap     map[uint32]*websocket.Conn
 	msgHandle func(*Message)
 	StopCh    chan struct{}
 	lock      sync.RWMutex
@@ -35,12 +33,12 @@ func NewWebsocketServer(addr string) *WebsocketServer {
 	return &WebsocketServer{
 		addr:   addr,
 		server: server,
-		wsMap:  make(map[string]*websocket.Conn),
+		wsMap:  make(map[uint32]*websocket.Conn),
 		StopCh: make(chan struct{}),
 	}
 }
 
-func (l *WebsocketServer) pumpStdin(source string, ws *websocket.Conn) {
+func (l *WebsocketServer) pumpStdin(source uint32, ws *websocket.Conn) {
 	log.Info("new websocket, ", "source: ", source)
 	defer func() {
 		log.Info("close websocket, ", "source: ", source)
@@ -67,17 +65,23 @@ var upgrade = websocket.Upgrader{
 }
 
 func (l *WebsocketServer) serveWs(w http.ResponseWriter, r *http.Request) {
+	userIdStr := r.FormValue("userId")
 	ws, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		log.Error("upgrade:", err)
 		return
 	}
-	origin := hash.MD5(strconv.FormatInt(time.Now().UnixMicro(), 10) + uuid.NewString())
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		log.Warnw("userId", userIdStr, "err", err)
+		return
+	}
+	log.Debugw("userId", userId)
 	l.lock.Lock()
-	l.wsMap[origin] = ws
+	l.wsMap[uint32(userId)] = ws
 	l.lock.Unlock()
 
-	go l.pumpStdin(origin, ws)
+	go l.pumpStdin(uint32(userId), ws)
 }
 
 func (l *WebsocketServer) Start(_ context.Context) error {
@@ -113,6 +117,8 @@ type Message struct {
 	Title string `json:"title"`
 	// 消息业务类型
 	Biz string `json:"biz"`
+	// 用户ID
+	UserId uint32 `json:"userId"`
 }
 
 // Bytes 返回消息的字节
@@ -125,12 +131,24 @@ func (m *Message) Bytes() []byte {
 func (l *WebsocketServer) SendMessage(message *Message) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
+	// 区分客户端
+	if message.UserId != 0 {
+		if ws, ok := l.wsMap[message.UserId]; ok {
+			go func() {
+				defer after.RecoverX()
+				if err := ws.WriteMessage(websocket.TextMessage, message.Bytes()); err != nil {
+					log.Warnw("write", err)
+				}
+			}()
+		}
+		return
+	}
 	for _, ws := range l.wsMap {
 		wsTmp := ws
 		go func() {
 			defer after.RecoverX()
 			if err := wsTmp.WriteMessage(websocket.TextMessage, message.Bytes()); err != nil {
-				log.Errorw("write:", err)
+				log.Warnw("write", err)
 			}
 		}()
 	}
