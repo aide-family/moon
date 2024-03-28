@@ -2,6 +2,7 @@ package do
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
@@ -23,6 +24,16 @@ func PromAlarmNotifyMemberWherePromAlarmNotifyID(promAlarmNotifyID uint32) bases
 			return db
 		}
 		return db.Where(PromNotifyMemberFieldPromAlarmNotifyID, promAlarmNotifyID)
+	}
+}
+
+// PromAlarmNotifyMemberClausesOnConflict 当索引冲突, 直接更新
+func PromAlarmNotifyMemberClausesOnConflict() basescopes.ScopeMethod {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}},
+			UpdateAll: true,
+		})
 	}
 }
 

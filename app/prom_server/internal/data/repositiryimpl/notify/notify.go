@@ -125,7 +125,7 @@ func (l *notifyRepoImpl) Update(ctx context.Context, notify *bo.NotifyBO, scopes
 			return nm
 		})
 
-		return tx.Model(&do.PromAlarmNotifyMember{}).CreateInBatches(notifyMembers, 100).Error
+		return tx.Model(&do.PromAlarmNotifyMember{}).Scopes(do.PromAlarmNotifyMemberClausesOnConflict()).CreateInBatches(notifyMembers, 100).Error
 	})
 }
 

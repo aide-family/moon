@@ -7,7 +7,7 @@ import {
     PrometheusServerItem,
     defaultListEndpointRequest
 } from '@/apis/home/monitor/endpoint/types.ts'
-import { ActionKey } from '@/apis/data.ts'
+import { ActionKey } from '@/apis/data.tsx'
 import { Form } from 'antd'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import endpointApi from '@/apis/home/monitor/endpoint/index.ts'

@@ -231,7 +231,7 @@ const AlarmRealtime: FC = () => {
     //     } = record
     //     return {
     //         style: {
-    //             // background: color || ''
+    //             background: color || ''
     //         }
     //     }
     // }

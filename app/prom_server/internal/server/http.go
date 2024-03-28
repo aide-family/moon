@@ -86,6 +86,10 @@ func RegisterHttpServer(
 	dashboard.RegisterChartHTTPServer(srv, chartService)
 	notify.RegisterTemplateHTTPServer(srv, templateService)
 
+	srv.Route("/api").POST("/upload", func(ctx http.Context) error {
+		return ctx.Result(nHttp.StatusOK, "ok")
+	})
+
 	return &HttpServer{Server: srv}
 }
 

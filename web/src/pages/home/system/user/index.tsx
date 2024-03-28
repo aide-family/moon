@@ -6,7 +6,7 @@ import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
-import EditModal from './child/EditModal'
+import EditUserModal from './child/EditModal'
 import userOptions, { columns } from './options'
 import userApi from '@/apis/home/system/user'
 import type {
@@ -340,7 +340,7 @@ const Customer: FC = () => {
                 onClose={handlerCloseDetail}
                 userId={userId}
             />
-            <EditModal
+            <EditUserModal
                 open={openEdit}
                 onClose={handlerCloseEdit}
                 id={editId}

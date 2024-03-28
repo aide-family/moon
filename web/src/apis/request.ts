@@ -15,14 +15,14 @@ const localhostDocker = 'http://localhost:8000'
 const host =
     window.location.origin || process.env.REACT_APP_ASSET_API || localhostDocker
 
-const hostMap: { [key: string]: string } = {
+export const hostMap: { [key: string]: string } = {
     [localhost]: 'http://localhost:8000',
-    [local127]: 'http://localhost:8000',
+    [local127]: 'http://localhost:8000'
 }
 
 const wsHostMap: { [key: string]: string } = {
     [localhost]: 'ws://localhost:8888/',
-    [local127]: 'ws://localhost:8888/',
+    [local127]: 'ws://localhost:8888/'
 }
 
 export const getWsURL = () => {
