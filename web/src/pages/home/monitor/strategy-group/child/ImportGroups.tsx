@@ -127,7 +127,7 @@ export const ImportGroups: React.FC<ImportGroupsProps> = (props) => {
     const handleDone = (e: any) => {
         if (!importData) return
         strategyGroupApi
-            .batchImport({ ...importData, defaultAlarmNotifyIds: [1] })
+            .batchImport({ ...importData })
             .then(() => {
                 message.success('导入成功')
                 // 清空所有表单

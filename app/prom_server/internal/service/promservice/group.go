@@ -262,7 +262,7 @@ func (s *GroupService) ImportGroup(ctx context.Context, req *pb.ImportGroupReque
 		})
 		return strategyGroup
 	})
-	s.log.Infow("newPromStrategyGroups", newPromStrategyGroups)
+	s.log.Debugw("newPromStrategyGroups", newPromStrategyGroups)
 	// 执行导入创建
 	newPromStrategyGroups, err = s.strategyGroupBiz.BatchCreate(ctx, newPromStrategyGroups)
 	if err != nil {

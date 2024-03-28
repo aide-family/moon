@@ -144,12 +144,25 @@ func (l *strategyGroupRepoImpl) BatchCreate(ctx context.Context, strategyGroups 
 		item.Status = vobj.StatusDisabled
 		return item
 	})
-	if err := l.data.DB().WithContext(ctx).
-		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}},
-			UpdateAll: true,
-		}).
-		CreateInBatches(strategyGroupModelList, 10).Error; err != nil {
+
+	err := l.data.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).
+			Omit(do.PromGroupPreloadFieldPromStrategies).
+			Clauses(clause.OnConflict{DoNothing: true}).
+			CreateInBatches(strategyGroupModelList, 10).Error; err != nil {
+			return err
+		}
+		strategyList := make([]*do.PromStrategy, 0, 20)
+		for _, strategyGroupModel := range strategyGroupModelList {
+			for _, strategy := range strategyGroupModel.GetPromStrategies() {
+				strategyTmp := strategy
+				strategyTmp.GroupID = strategyGroupModel.ID
+				strategyList = append(strategyList, strategy)
+			}
+		}
+		return tx.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(strategyList, 20).Error
+	})
+	if err != nil {
 		return nil, err
 	}
 
