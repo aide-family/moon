@@ -256,9 +256,10 @@ set -e ;\
 rm -rf ${PROJECT_DIR}/_output/yamls/build/manager; \
 cp -rf ${PROJECT_DIR}/config/* ${PROJECT_DIR}/_output/yamls/build/; \
 cd ${PROJECT_DIR}/_output/yamls/build/manager; \
-${KUSTOMIZE} edit set image controller=${REPO}/prometheus-manager:${TAG}; \
+${KUSTOMIZE} edit set image moon-server=${PROM-SERVER-IMAGE}; \
+${KUSTOMIZE} edit set image moon-agent=${PROM-AGENT-IMAGE}; \
 set +x ;\
-echo "==== create prometheus-manager.yaml in ${PROJECT_DIR}/_output/yamls/ ====";\
-${KUSTOMIZE} build ${PROJECT_DIR}/_output/yamls/build/default > ${PROJECT_DIR}/_output/yamls/prometheus-manager.yaml;\
+echo "==== create moon.yaml in ${PROJECT_DIR}/_output/yamls/ ====";\
+${KUSTOMIZE} build ${PROJECT_DIR}/_output/yamls/build/default > ${PROJECT_DIR}/_output/yamls/moon.yaml;\
 }
 endef
