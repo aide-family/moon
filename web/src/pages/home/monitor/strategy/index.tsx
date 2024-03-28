@@ -5,7 +5,7 @@ import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import { CopyOutlined, InfoCircleOutlined } from '@ant-design/icons'
-import { ActionKey } from '@/apis/data.ts'
+import { ActionKey } from '@/apis/data.tsx'
 import {
     StrategyItemType,
     StrategyListRequest,
@@ -321,23 +321,29 @@ const Strategy: FC = () => {
                                     size="small"
                                     onClick={handleCopyExpr(record?.expr)}
                                 />
-                                <p style={{ margin: 0 }}>
-                                    <PromQLInput
-                                        disabled={true}
-                                        pathPrefix=""
-                                        value={record?.expr}
-                                        showBorder={false}
+                                <Form layout="inline">
+                                    <Form.Item>
+                                        <PromQLInput
+                                            disabled={true}
+                                            pathPrefix=""
+                                            value={record?.expr}
+                                            showBorder={false}
+                                        />
+                                    </Form.Item>
+                                </Form>
+                            </Space>
+                            {!!record?.remark && (
+                                <Space style={{ width: '100%' }}>
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        icon={<InfoCircleOutlined />}
                                     />
-                                </p>
-                            </Space>
-                            <Space style={{ width: '100%' }}>
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<InfoCircleOutlined />}
-                                />
-                                <p style={{ margin: 0 }}>{record?.remark}</p>
-                            </Space>
+                                    <p style={{ margin: 0 }}>
+                                        {record?.remark}
+                                    </p>
+                                </Space>
+                            )}
                         </Space>
                     )
                 }}

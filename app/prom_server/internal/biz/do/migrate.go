@@ -67,8 +67,21 @@ func initSysApi(db *gorm.DB, cache cache.GlobalCache) (err error) {
 			cache.Del(ctx, syncSysApiFlag)
 		}
 	}()
-	if err = db.Model(&SysAPI{}).Unscoped().Where("id > 0").Delete(&SysAPI{}).Error; err != nil {
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err = tx.Model(&SysAPI{}).Unscoped().Where("id > 0").Delete(&SysAPI{}).Error; err != nil {
+			return err
+		}
+		if err = tx.Model(&SysDict{}).Unscoped().Where("id > 0").Delete(&SysDict{}).Error; err != nil {
+			return err
+		}
+		if err = tx.Model(&PromAlarmPage{}).Unscoped().Where("id > 0").Delete(&PromAlarmPage{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return err
 	}
+
 	return db.Exec(sql).Error
 }

@@ -1,3 +1,4 @@
+import { Button } from 'antd'
 import {
     Category,
     DomainType,
@@ -5,6 +6,7 @@ import {
     NotifyApp,
     SysLogActionType
 } from './types'
+import { IconFont } from '@/components/IconFont/IconFont'
 
 /**
  * 字典分类数据
@@ -49,12 +51,28 @@ const moduleTypeData: Record<ModuleType, string> = {
 }
 
 /** NotifyApp */
-const NotifyAppData: Record<NotifyApp, string> = {
+const NotifyAppData: Record<NotifyApp, React.ReactNode> = {
     [NotifyApp.NOTIFY_APP_UNKNOWN]: '全部',
-    [NotifyApp.NOTIFY_APP_DINGTALK]: '钉钉',
-    [NotifyApp.NOTIFY_APP_WECHATWORK]: '企业微信',
-    [NotifyApp.NOTIFY_APP_FEISHU]: '飞书',
-    [NotifyApp.NOTIFY_APP_CUSTOM]: '自定义'
+    [NotifyApp.NOTIFY_APP_DINGTALK]: (
+        <Button type="text" icon={<IconFont type="icon-dingding" />}>
+            钉钉
+        </Button>
+    ),
+    [NotifyApp.NOTIFY_APP_WECHATWORK]: (
+        <Button type="text" icon={<IconFont type="icon-qiyeweixin" />}>
+            企业微信
+        </Button>
+    ),
+    [NotifyApp.NOTIFY_APP_FEISHU]: (
+        <Button type="text" icon={<IconFont type="icon-feishu" />}>
+            飞书
+        </Button>
+    ),
+    [NotifyApp.NOTIFY_APP_CUSTOM]: (
+        <Button type="text" icon={<IconFont type="icon-zidingyi" />}>
+            自定义
+        </Button>
+    )
 }
 
 const SysLogActionTypeData: Record<

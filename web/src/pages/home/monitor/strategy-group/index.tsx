@@ -11,7 +11,7 @@ import {
     searchItems,
     tableOperationItems
 } from '@/pages/home/monitor/strategy-group/options.tsx'
-import { ActionKey } from '@/apis/data.ts'
+import { ActionKey } from '@/apis/data.tsx'
 import { columns } from './options'
 import strategyGroupApi from '@/apis/home/monitor/strategy-group'
 import {

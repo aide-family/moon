@@ -1,5 +1,5 @@
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
-import { ActionKey } from '@/apis/data.ts'
+import { ActionKey } from '@/apis/data.tsx'
 import { Badge, Button, MenuProps } from 'antd'
 import { DataFormItem } from '@/components/Data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'

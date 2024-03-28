@@ -14,7 +14,7 @@ interface ListAlarmGroupResponse {
 
 interface AlarmNotifyMember {
     memberId: number
-    notifyTypes: [number, number, number]
+    notifyType: number
     id: number
 }
 
@@ -31,7 +31,7 @@ interface CreateAlarmGroupResponse {
 
 interface NotifyMemberItem {
     memberId: number
-    notifyTypes: number[]
+    notifyType: number
     user?: UserSelectItem
     status: number
     id: number

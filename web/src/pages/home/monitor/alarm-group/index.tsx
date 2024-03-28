@@ -14,6 +14,7 @@ import {
     columns,
     defaultPadding,
     leftOptions,
+    memberCoumns,
     rightOptions,
     searchItems,
     tableOperationItems
@@ -216,15 +217,34 @@ const AlarmGroup: FC = () => {
                     pageSize={searchRequest?.page?.size}
                     current={searchRequest?.page?.curr}
                     expandable={{
-                        expandedRowRender: (record: AlarmGroupItem) => {
+                        rowExpandable: () => !loading,
+                        expandedRowRender: (detailRecord: AlarmGroupItem) => {
                             return (
-                                <Table
-                                    columns={chartGroupCoumns}
-                                    dataSource={record.chatGroups}
-                                    size="small"
-                                    pagination={false}
-                                    rowKey="id"
-                                />
+                                <div key={detailRecord.id}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <b>告警机器人</b>
+                                        <Table
+                                            columns={chartGroupCoumns}
+                                            dataSource={
+                                                detailRecord?.chatGroups
+                                            }
+                                            size="small"
+                                            pagination={false}
+                                            rowKey={(record) => record.value}
+                                        />
+                                    </div>
+                                    <HeightLine />
+                                    <div style={{ textAlign: 'center' }}>
+                                        <b>通知人</b>
+                                        <Table
+                                            columns={memberCoumns()}
+                                            dataSource={detailRecord?.members}
+                                            size="small"
+                                            pagination={false}
+                                            rowKey={(record) => record.memberId}
+                                        />
+                                    </div>
+                                </div>
                             )
                         }
                     }}
