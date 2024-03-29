@@ -75,9 +75,9 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
 	if len(logger) > 0 {
-		// gormLog := NewGormLogger(logger[0])
+		gormLog := NewGormLogger(logger[0])
 		opts = append(opts, &gorm.Config{
-			// Logger:                                   gormLog,
+			Logger:                                   gormLog,
 			DisableForeignKeyConstraintWhenMigrating: true,
 		})
 	}
