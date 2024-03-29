@@ -28,10 +28,6 @@ export const routers: RouteObject[] = [
                 Component: lazy(() => import('@/pages/home/monitor/endpoint'))
             },
             {
-                path: '/home/monitor/alarm-page',
-                Component: lazy(() => import('@/pages/home/monitor/alarm-page'))
-            },
-            {
                 path: '/home/monitor/alarm-group',
                 Component: lazy(
                     () => import('@/pages/home/monitor/alarm-group')

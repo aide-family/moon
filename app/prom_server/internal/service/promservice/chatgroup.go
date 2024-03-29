@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/server/prom/notify"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/msg"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/hash"
@@ -42,7 +42,7 @@ func (s *ChatGroupService) CreateChatGroup(ctx context.Context, req *pb.CreateCh
 		Name:      req.GetName(),
 		Remark:    req.GetRemark(),
 		Hook:      req.GetHook(),
-		NotifyApp: vo.NotifyApp(req.GetApp()),
+		NotifyApp: vobj.NotifyApp(req.GetApp()),
 		HookName:  req.GetHookName(),
 		Template:  req.GetTemplate(),
 		Secret:    req.GetSecret(),
@@ -98,7 +98,7 @@ func (s *ChatGroupService) ListChatGroup(ctx context.Context, req *pb.ListChatGr
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, &bo.ListChatGroupReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		s.log.Errorf("ListChatGroup err: %v", err)
@@ -123,7 +123,7 @@ func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectCh
 	chatGroupBos, err := s.chatGroupBiz.ListChatGroup(ctx, &bo.ListChatGroupReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		s.log.Errorf("ListChatGroup err: %v", err)
@@ -145,7 +145,7 @@ func (s *ChatGroupService) SelectChatGroup(ctx context.Context, req *pb.SelectCh
 func (s *ChatGroupService) TestHookTemplate(ctx context.Context, req *pb.TestHookTemplateRequest) (*pb.TestHookTemplateReply, error) {
 	chatInfo := &bo.ChatGroupBO{
 		Hook:      req.GetHook(),
-		NotifyApp: vo.NotifyApp(req.GetApp()),
+		NotifyApp: vobj.NotifyApp(req.GetApp()),
 		Template:  req.GetTemplate(),
 		Secret:    req.GetSecret(),
 	}
@@ -153,7 +153,7 @@ func (s *ChatGroupService) TestHookTemplate(ctx context.Context, req *pb.TestHoo
 	message := &msg.HookNotifyMsg{
 		Content: req.GetTemplate(),
 		AlarmInfo: &bo.AlertBo{
-			Status: vo.AlarmStatusAlarm.EN(),
+			Status: vobj.AlarmStatusAlarm.EN(),
 			Labels: &strategy.Labels{
 				strategy.MetricInstance: "localhost",
 				"endpoint":              "127.0.0.1",

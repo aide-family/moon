@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/server/alarm/realtime"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -47,7 +47,7 @@ func (l *RealtimeService) ListRealtime(ctx context.Context, req *pb.ListRealtime
 	listReq := &bo.ListRealtimeReq{
 		Page:        pgInfo,
 		Keyword:     req.GetKeyword(),
-		Status:      vo.AlarmStatusAlarm,
+		Status:      vobj.AlarmStatusAlarm,
 		AlarmPageId: req.GetAlarmPageId(),
 		StrategyIds: req.GetStrategyIds(),
 		LevelIds:    req.GetAlarmLevelIds(),

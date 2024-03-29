@@ -1,14 +1,14 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import {Button, Form, Modal, Spin, Watermark} from 'antd'
-import {FC, useContext, useEffect, useState} from 'react'
-import {GlobalContext} from '@/context'
+import { Button, Form, Modal, Spin, Watermark } from 'antd'
+import { FC, useContext, useEffect, useState } from 'react'
+import { GlobalContext } from '@/context'
 import dictOptions from '../options'
-import {AES_Encrypt} from '@/utils/aes'
+import { AES_Encrypt } from '@/utils/aes'
 import dict from '@/apis/home/system/dict'
-import type {DictListItem} from '@/apis/home/system/dict/types'
+import type { DictListItem } from '@/apis/home/system/dict/types'
 
-const {dictCreate, dictUpdate, dictDetail} = dict
-const {addFormItems, editFormItems} = dictOptions()
+const { dictCreate, dictUpdate, dictDetail } = dict
+const { addFormItems, editFormItems } = dictOptions()
 
 // TODO 待测试字典编辑功能
 
@@ -21,9 +21,9 @@ export type EditModalProps = {
 
 let timer: NodeJS.Timeout | null = null
 
-const EditModal: FC<EditModalProps> = (props) => {
-    const {user} = useContext(GlobalContext)
-    const {open, onClose, id, onOk} = props
+const EditDictModal: FC<EditModalProps> = (props) => {
+    const { user } = useContext(GlobalContext)
+    const { open, onClose, id, onOk } = props
     const [form] = Form.useForm()
     const [loading, setLoading] = useState<boolean>(false)
     const [data, setData] = useState<DictListItem | undefined>()
@@ -63,7 +63,7 @@ const EditModal: FC<EditModalProps> = (props) => {
     /** 创建 */
     const onCreate = (val: any) => {
         setLoading(true)
-        dictCreate({...val, password: AES_Encrypt(val.password)})
+        dictCreate({ ...val, password: AES_Encrypt(val.password) })
             .then(onOk)
             .finally(() => {
                 setLoading(false)
@@ -85,7 +85,7 @@ const EditModal: FC<EditModalProps> = (props) => {
         if (!id) {
             return
         }
-        dictDetail({id}).then((res) => {
+        dictDetail({ id }).then((res) => {
             setData(res.promDict)
             form.setFieldsValue(res.promDict)
         })
@@ -122,11 +122,11 @@ const EditModal: FC<EditModalProps> = (props) => {
 
     return (
         <Modal
-            title={<Title/>}
+            title={<Title />}
             open={open}
             onCancel={handleClose}
             width="50vw"
-            footer={<Footer/>}
+            footer={<Footer />}
         >
             <Spin spinning={loading}>
                 <Watermark content={user?.username} className="wh100">
@@ -143,4 +143,4 @@ const EditModal: FC<EditModalProps> = (props) => {
     )
 }
 
-export default EditModal
+export default EditDictModal

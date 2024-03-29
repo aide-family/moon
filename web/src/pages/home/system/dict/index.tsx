@@ -6,7 +6,7 @@ import { DataOption } from '@/components/Data'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import Detail from './child/Detail'
-import EditModal from './child/EditModal'
+import EditDictModal from './child/EditModal'
 import dictOptions, { columns } from './options'
 import dictApi from '@/apis/home/system/dict'
 import { ModuleType, Status } from '@/apis/types'
@@ -315,7 +315,7 @@ const Dict: FC = () => {
                 onClose={handlerCloseDetail}
                 dictId={dictId}
             />
-            <EditModal
+            <EditDictModal
                 open={openEdit}
                 onClose={handlerCloseEdit}
                 id={editId}

@@ -5,17 +5,17 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
 	MyChartBO struct {
-		Id     uint32    `json:"id"`
-		UserId uint32    `json:"userId"`
-		Title  string    `json:"title"`
-		Remark string    `json:"remark"`
-		Url    string    `json:"url"`
-		Status vo.Status `json:"status"`
+		Id     uint32      `json:"id"`
+		UserId uint32      `json:"userId"`
+		Title  string      `json:"title"`
+		Remark string      `json:"remark"`
+		Url    string      `json:"url"`
+		Status vobj.Status `json:"status"`
 	}
 )
 

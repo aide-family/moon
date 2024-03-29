@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -18,7 +18,7 @@ type (
 		mustEmbedUnimplemented()
 		Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error)
 		UpdateById(ctx context.Context, id uint32, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error)
-		BatchUpdateStatus(ctx context.Context, status vo.Status, ids []uint32) error
+		BatchUpdateStatus(ctx context.Context, status vobj.Status, ids []uint32) error
 		DeleteByIds(ctx context.Context, ids ...uint32) error
 		GetById(ctx context.Context, id uint32) (*bo.StrategyGroupBO, error)
 		GetByParams(ctx context.Context, scopes ...basescopes.ScopeMethod) ([]*bo.StrategyGroupBO, error)
@@ -62,7 +62,7 @@ func (UnimplementedStrategyGroupRepo) UpdateById(_ context.Context, _ uint32, _ 
 	return nil, status.Error(codes.Unimplemented, "method UpdateById not implemented")
 }
 
-func (UnimplementedStrategyGroupRepo) BatchUpdateStatus(_ context.Context, _ vo.Status, _ []uint32) error {
+func (UnimplementedStrategyGroupRepo) BatchUpdateStatus(_ context.Context, _ vobj.Status, _ []uint32) error {
 	return status.Error(codes.Unimplemented, "method BatchUpdateStatus not implemented")
 }
 

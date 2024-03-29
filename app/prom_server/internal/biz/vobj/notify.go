@@ -1,4 +1,4 @@
-package vo
+package vobj
 
 import (
 	"database/sql/driver"

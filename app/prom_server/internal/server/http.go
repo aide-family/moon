@@ -16,7 +16,6 @@ import (
 	"prometheus-manager/api/interflows"
 	"prometheus-manager/api/ping"
 	"prometheus-manager/api/server/alarm/history"
-	"prometheus-manager/api/server/alarm/page"
 	"prometheus-manager/api/server/alarm/realtime"
 	"prometheus-manager/api/server/auth"
 	"prometheus-manager/api/server/dashboard"
@@ -51,7 +50,6 @@ func RegisterHttpServer(
 	dictService *systemservice.Service,
 	strategyService *promservice.StrategyService,
 	strategyGroupService *promservice.GroupService,
-	alarmPageService *alarmservice.AlarmPageService,
 	hookService *alarmservice.HookService,
 	historyService *alarmservice.HistoryService,
 	authService *authservice.AuthService,
@@ -71,7 +69,6 @@ func RegisterHttpServer(
 	system.RegisterDictHTTPServer(srv, dictService)
 	strategy.RegisterStrategyHTTPServer(srv, strategyService)
 	group.RegisterGroupHTTPServer(srv, strategyGroupService)
-	page.RegisterAlarmPageHTTPServer(srv, alarmPageService)
 	hook.RegisterHookHTTPServer(srv, hookService)
 	history.RegisterHistoryHTTPServer(srv, historyService)
 	auth.RegisterAuthHTTPServer(srv, authService)

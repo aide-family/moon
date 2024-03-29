@@ -1,7 +1,7 @@
 package do
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromNotifyExternal = "prom_alarm_external_notify_objs"
@@ -21,7 +21,7 @@ type ExternalNotifyObj struct {
 	// 外部通知对象说明
 	Remark string `gorm:"column:remark;type:varchar(255);not null;comment:外部通知对象说明"`
 	// 状态
-	Status vo.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
+	Status vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	// 外部客户列表
 	CustomerList []*ExternalCustomer `gorm:"many2many:prom_alarm_external_notify_obj_external_customers;comment:外部客户列表"`
 	// 外部客户hook列表

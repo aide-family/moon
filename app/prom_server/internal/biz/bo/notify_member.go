@@ -5,20 +5,20 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	NotifyMemberBO struct {
-		Id          uint32         `json:"id"`
-		Status      vo.Status      `json:"status"`
-		CreatedAt   int64          `json:"createdAt"`
-		UpdatedAt   int64          `json:"updatedAt"`
-		DeletedAt   int64          `json:"deletedAt"`
-		MemberId    uint32         `json:"memberId"`
-		Member      *UserBO        `json:"member"`
-		NotifyTypes vo.NotifyTypes `json:"notifyTypes"`
+		Id          uint32           `json:"id"`
+		Status      vobj.Status      `json:"status"`
+		CreatedAt   int64            `json:"createdAt"`
+		UpdatedAt   int64            `json:"updatedAt"`
+		DeletedAt   int64            `json:"deletedAt"`
+		MemberId    uint32           `json:"memberId"`
+		Member      *UserBO          `json:"member"`
+		NotifyTypes vobj.NotifyTypes `json:"notifyTypes"`
 	}
 )
 
@@ -43,7 +43,7 @@ func (b *NotifyMemberBO) GetMember() *UserBO {
 }
 
 // GetNotifyTypes 获取通知类型
-func (b *NotifyMemberBO) GetNotifyTypes() vo.NotifyTypes {
+func (b *NotifyMemberBO) GetNotifyTypes() vobj.NotifyTypes {
 	if b == nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func (b *NotifyMemberBO) ToApi() *api.BeNotifyMemberDetail {
 
 	return &api.BeNotifyMemberDetail{
 		MemberId:    b.MemberId,
-		NotifyTypes: slices.To(b.GetNotifyTypes(), func(i vo.NotifyType) int32 { return i.Value() }),
+		NotifyTypes: slices.To(b.GetNotifyTypes(), func(i vobj.NotifyType) int32 { return i.Value() }),
 		User:        b.GetMember().ToApiSelectV1(),
 		Status:      b.Status.Value(),
 		Id:          b.Id,
@@ -87,7 +87,7 @@ func NotifyMemberApiToBO(a *api.BeNotifyMember) *NotifyMemberBO {
 		Id:          a.Id,
 		MemberId:    a.GetMemberId(),
 		Member:      &UserBO{Id: a.GetMemberId()},
-		NotifyTypes: slices.To(a.GetNotifyTypes(), func(i api.NotifyType) vo.NotifyType { return vo.NotifyType(i) }),
+		NotifyTypes: slices.To(a.GetNotifyTypes(), func(i api.NotifyType) vobj.NotifyType { return vobj.NotifyType(i) }),
 	}
 }
 

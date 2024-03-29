@@ -21,20 +21,26 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationDictBatchDeleteDict = "/api.server.system.Dict/BatchDeleteDict"
 const OperationDictBatchUpdateDictStatus = "/api.server.system.Dict/BatchUpdateDictStatus"
+const OperationDictCountAlarmPage = "/api.server.system.Dict/CountAlarmPage"
 const OperationDictCreateDict = "/api.server.system.Dict/CreateDict"
 const OperationDictDeleteDict = "/api.server.system.Dict/DeleteDict"
 const OperationDictGetDict = "/api.server.system.Dict/GetDict"
 const OperationDictListDict = "/api.server.system.Dict/ListDict"
+const OperationDictListMyAlarmPage = "/api.server.system.Dict/ListMyAlarmPage"
+const OperationDictMyAlarmPagesConfig = "/api.server.system.Dict/MyAlarmPagesConfig"
 const OperationDictSelectDict = "/api.server.system.Dict/SelectDict"
 const OperationDictUpdateDict = "/api.server.system.Dict/UpdateDict"
 
 type DictHTTPServer interface {
 	BatchDeleteDict(context.Context, *BatchDeleteDictRequest) (*BatchDeleteDictReply, error)
 	BatchUpdateDictStatus(context.Context, *BatchUpdateDictStatusRequest) (*BatchUpdateDictStatusReply, error)
+	CountAlarmPage(context.Context, *CountAlarmPageRequest) (*CountAlarmPageReply, error)
 	CreateDict(context.Context, *CreateDictRequest) (*CreateDictReply, error)
 	DeleteDict(context.Context, *DeleteDictRequest) (*DeleteDictReply, error)
 	GetDict(context.Context, *GetDictRequest) (*GetDictReply, error)
 	ListDict(context.Context, *ListDictRequest) (*ListDictReply, error)
+	ListMyAlarmPage(context.Context, *ListMyAlarmPageRequest) (*ListMyAlarmPageReply, error)
+	MyAlarmPagesConfig(context.Context, *MyAlarmPagesConfigRequest) (*MyAlarmPagesConfigReply, error)
 	SelectDict(context.Context, *SelectDictRequest) (*SelectDictReply, error)
 	UpdateDict(context.Context, *UpdateDictRequest) (*UpdateDictReply, error)
 }
@@ -49,6 +55,9 @@ func RegisterDictHTTPServer(s *http.Server, srv DictHTTPServer) {
 	r.POST("/api/v1/dict/get", _Dict_GetDict0_HTTP_Handler(srv))
 	r.POST("/api/v1/dict/list", _Dict_ListDict0_HTTP_Handler(srv))
 	r.POST("/api/v1/dict/select", _Dict_SelectDict0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/alarm/count", _Dict_CountAlarmPage0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/my/list", _Dict_ListMyAlarmPage0_HTTP_Handler(srv))
+	r.POST("/api/v1/alarm_page/my/list/config", _Dict_MyAlarmPagesConfig0_HTTP_Handler(srv))
 }
 
 func _Dict_CreateDict0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
@@ -203,13 +212,73 @@ func _Dict_SelectDict0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) e
 	}
 }
 
+func _Dict_CountAlarmPage0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CountAlarmPageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDictCountAlarmPage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CountAlarmPage(ctx, req.(*CountAlarmPageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CountAlarmPageReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Dict_ListMyAlarmPage0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyAlarmPageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDictListMyAlarmPage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyAlarmPage(ctx, req.(*ListMyAlarmPageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyAlarmPageReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Dict_MyAlarmPagesConfig0_HTTP_Handler(srv DictHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MyAlarmPagesConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDictMyAlarmPagesConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MyAlarmPagesConfig(ctx, req.(*MyAlarmPagesConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MyAlarmPagesConfigReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DictHTTPClient interface {
 	BatchDeleteDict(ctx context.Context, req *BatchDeleteDictRequest, opts ...http.CallOption) (rsp *BatchDeleteDictReply, err error)
 	BatchUpdateDictStatus(ctx context.Context, req *BatchUpdateDictStatusRequest, opts ...http.CallOption) (rsp *BatchUpdateDictStatusReply, err error)
+	CountAlarmPage(ctx context.Context, req *CountAlarmPageRequest, opts ...http.CallOption) (rsp *CountAlarmPageReply, err error)
 	CreateDict(ctx context.Context, req *CreateDictRequest, opts ...http.CallOption) (rsp *CreateDictReply, err error)
 	DeleteDict(ctx context.Context, req *DeleteDictRequest, opts ...http.CallOption) (rsp *DeleteDictReply, err error)
 	GetDict(ctx context.Context, req *GetDictRequest, opts ...http.CallOption) (rsp *GetDictReply, err error)
 	ListDict(ctx context.Context, req *ListDictRequest, opts ...http.CallOption) (rsp *ListDictReply, err error)
+	ListMyAlarmPage(ctx context.Context, req *ListMyAlarmPageRequest, opts ...http.CallOption) (rsp *ListMyAlarmPageReply, err error)
+	MyAlarmPagesConfig(ctx context.Context, req *MyAlarmPagesConfigRequest, opts ...http.CallOption) (rsp *MyAlarmPagesConfigReply, err error)
 	SelectDict(ctx context.Context, req *SelectDictRequest, opts ...http.CallOption) (rsp *SelectDictReply, err error)
 	UpdateDict(ctx context.Context, req *UpdateDictRequest, opts ...http.CallOption) (rsp *UpdateDictReply, err error)
 }
@@ -240,6 +309,19 @@ func (c *DictHTTPClientImpl) BatchUpdateDictStatus(ctx context.Context, in *Batc
 	pattern := "/api/v1/dict/status/update/batch"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDictBatchUpdateDictStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DictHTTPClientImpl) CountAlarmPage(ctx context.Context, in *CountAlarmPageRequest, opts ...http.CallOption) (*CountAlarmPageReply, error) {
+	var out CountAlarmPageReply
+	pattern := "/api/v1/alarm_page/alarm/count"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDictCountAlarmPage))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -292,6 +374,32 @@ func (c *DictHTTPClientImpl) ListDict(ctx context.Context, in *ListDictRequest, 
 	pattern := "/api/v1/dict/list"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDictListDict))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DictHTTPClientImpl) ListMyAlarmPage(ctx context.Context, in *ListMyAlarmPageRequest, opts ...http.CallOption) (*ListMyAlarmPageReply, error) {
+	var out ListMyAlarmPageReply
+	pattern := "/api/v1/alarm_page/my/list"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDictListMyAlarmPage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DictHTTPClientImpl) MyAlarmPagesConfig(ctx context.Context, in *MyAlarmPagesConfigRequest, opts ...http.CallOption) (*MyAlarmPagesConfigReply, error) {
+	var out MyAlarmPagesConfigReply
+	pattern := "/api/v1/alarm_page/my/list/config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDictMyAlarmPagesConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

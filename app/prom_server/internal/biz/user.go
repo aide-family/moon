@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/consts"
 	"prometheus-manager/pkg/helper/middler"
@@ -104,8 +104,8 @@ func (b *UserBiz) CreateUser(ctx context.Context, userBo *bo.UserBO) (*bo.UserBO
 	userBo.Salt = ""
 	userBo.Password = ""
 
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleUser,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleUser,
 		ModuleId:   userBo.Id,
 		Content:    userBo.String(),
 		Title:      "创建用户",
@@ -129,8 +129,8 @@ func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.User
 	oldUser.Password = ""
 	newUserBo.Salt = ""
 	newUserBo.Password = ""
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleUser,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleUser,
 		ModuleId:   userBo.Id,
 		Content:    bo.NewChangeLogBo(oldUser, newUserBo).String(),
 		Title:      "更新用户",
@@ -139,7 +139,7 @@ func (b *UserBiz) UpdateUserById(ctx context.Context, id uint32, userBo *bo.User
 }
 
 // UpdateUserStatusById 更新用户状态
-func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
+func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status vobj.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -155,13 +155,13 @@ func (b *UserBiz) UpdateUserStatusById(ctx context.Context, status vo.Status, id
 	}
 	list := slices.To(oldList, func(item *bo.UserBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleUser,
+			ModuleName: vobj.ModuleUser,
 			ModuleId:   item.Id,
 			Content:    bo.NewChangeLogBo(item.Status.String(), status.String()).String(),
 			Title:      "更新用户",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -182,13 +182,13 @@ func (b *UserBiz) DeleteUserByIds(ctx context.Context, ids []uint32) error {
 		item.Salt = ""
 		item.Password = ""
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleUser,
+			ModuleName: vobj.ModuleUser,
 			ModuleId:   item.Id,
 			Content:    item.String(),
 			Title:      "删除用户",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 

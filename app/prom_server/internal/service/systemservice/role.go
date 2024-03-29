@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/api"
 	pb "prometheus-manager/api/server/system"
@@ -47,7 +47,7 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest)
 		Id:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
-		Status: vo.Status(req.GetStatus()),
+		Status: vobj.Status(req.GetStatus()),
 	}
 	b, err := s.roleBiz.UpdateRoleById(ctx, b)
 	if err != nil {
@@ -81,7 +81,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 
 	boList, err := s.roleBiz.ListRole(ctx, &bo.ListRoleReq{
 		Page:    pgInfo,
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 		Keyword: req.GetKeyword(),
 	})
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *RoleService) SelectRole(ctx context.Context, req *pb.SelectRoleRequest)
 
 	boList, err := s.roleBiz.ListRole(ctx, &bo.ListRoleReq{
 		Page:    pgInfo,
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 		Keyword: req.GetKeyword(),
 		UserId:  req.GetUserId(),
 	})
@@ -139,7 +139,7 @@ func (s *RoleService) RelateApi(ctx context.Context, req *pb.RelateApiRequest) (
 
 // EditRoleStatus 编辑角色状态
 func (s *RoleService) EditRoleStatus(ctx context.Context, req *pb.EditRoleStatusRequest) (*pb.EditRoleStatusReply, error) {
-	if err := s.roleBiz.UpdateRoleStatusById(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.roleBiz.UpdateRoleStatusById(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.EditRoleStatusReply{

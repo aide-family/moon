@@ -10,7 +10,7 @@ import (
 	pb "prometheus-manager/api/server/prom/strategy"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -45,7 +45,7 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *pb.CreateStra
 		EndpointId:   req.GetDataSourceId(),
 		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
 		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
-		SendRecover:  vo.NewIsSendRecover(req.GetSendRecover()),
+		SendRecover:  vobj.NewIsSendRecover(req.GetSendRecover()),
 	})
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 		EndpointId:   req.GetDataSourceId(),
 		MaxSuppress:  bo.BuildApiDurationString(req.GetMaxSuppress()),
 		SendInterval: bo.BuildApiDurationString(req.GetSendInterval()),
-		SendRecover:  vo.NewIsSendRecover(req.GetSendRecover()),
+		SendRecover:  vobj.NewIsSendRecover(req.GetSendRecover()),
 	})
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *StrategyService) UpdateStrategy(ctx context.Context, req *pb.UpdateStra
 }
 
 func (s *StrategyService) BatchUpdateStrategyStatus(ctx context.Context, req *pb.BatchUpdateStrategyStatusRequest) (*pb.BatchUpdateStrategyStatusReply, error) {
-	if err := s.strategyBiz.BatchUpdateStrategyStatusByIds(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.strategyBiz.BatchUpdateStrategyStatusByIds(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +119,7 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *pb.ListStrategy
 		Page:       pgInfo,
 		Keyword:    req.GetKeyword(),
 		GroupId:    req.GetGroupId(),
-		Status:     vo.Status(req.GetStatus()),
+		Status:     vobj.Status(req.GetStatus()),
 		StrategyId: req.GetStrategyId(),
 	})
 	if err != nil {
@@ -141,7 +141,7 @@ func (s *StrategyService) SelectStrategy(ctx context.Context, req *pb.SelectStra
 	strategyBos, err := s.strategyBiz.SelectStrategy(ctx, &bo.SelectStrategyRequest{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

@@ -28,7 +28,6 @@ import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import endpointApi from '@/apis/home/monitor/endpoint'
 import strategyGroupApi from '@/apis/home/monitor/strategy-group'
 import dictApi from '@/apis/home/system/dict'
-import alarmPageApi from '@/apis/home/monitor/alarm-page'
 import strategyApi from '@/apis/home/monitor/strategy'
 import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { PrometheusServerSelectItem } from '@/apis/home/monitor/endpoint/types'
@@ -488,11 +487,11 @@ export const getCategories = (keyword: string) => {
 }
 
 export const getAlarmPages = (keyword: string) => {
-    return alarmPageApi
-        .getAlarmPageSelect({
+    return dictApi
+        .dictSelect({
             keyword,
             page: defaultPageReq,
-            status: Status.STATUS_ENABLED
+            category: Category.CATEGORY_ALARM_PAGE
         })
         .then((items) => {
             return items.list.map((item) => {

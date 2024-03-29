@@ -1,10 +1,7 @@
-import alarmPageApi from '@/apis/home/monitor/alarm-page'
-import {
-    BindMyAlarmPagesRequest,
-    defaultSelectAlarmPageRequest
-} from '@/apis/home/monitor/alarm-page/types'
+import dictApi from '@/apis/home/system/dict'
+import { BindMyAlarmPagesRequest } from '@/apis/home/system/dict/types'
+import { Category } from '@/apis/types'
 import FetchSelect from '@/components/Data/FetchSelect'
-import { IconFont } from '@/components/IconFont/IconFont'
 import { SettingOutlined } from '@ant-design/icons'
 import { Button, Form, Modal, Tag } from 'antd'
 import { DefaultOptionType } from 'antd/es/select'
@@ -29,7 +26,7 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
 
     const handleOnConfirm = () => {
         form.validateFields().then((formVal) => {
-            alarmPageApi.myAlarmPageConfig(formVal).then(() => {
+            dictApi.myAlarmPageConfig(formVal).then(() => {
                 handleClose()
                 refresh?.()
             })
@@ -37,7 +34,7 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
     }
 
     const handleGetMyAlarmPages = () => {
-        alarmPageApi.myAlarmPageList().then(({ list }) => {
+        dictApi.myAlarmPageList().then(({ list }) => {
             form.setFieldsValue({
                 alarmIds: list.map(({ id }) => id)
             })
@@ -45,22 +42,16 @@ export const SelectAalrmPageModal: React.FC<SelectAalrmPageModalProps> = (
     }
 
     const handleGetAlarmPage = (keyword: string) => {
-        return alarmPageApi
-            .getAlarmPageSelect({
-                ...defaultSelectAlarmPageRequest,
-                keyword
+        return dictApi
+            .dictSelect({
+                page: { curr: 1, size: 10 },
+                keyword,
+                category: Category.CATEGORY_ALARM_PAGE
             })
             .then(({ list }): DefaultOptionType[] => {
                 if (!list || list.length === 0) return []
-                return list.map(({ value, label, color, icon }) => ({
-                    label: (
-                        <Tag
-                            color={color}
-                            icon={icon ? <IconFont type={icon} /> : null}
-                        >
-                            {label}
-                        </Tag>
-                    ),
+                return list.map(({ value, label, color }) => ({
+                    label: <Tag color={color}>{label}</Tag>,
                     value: value
                 }))
             })

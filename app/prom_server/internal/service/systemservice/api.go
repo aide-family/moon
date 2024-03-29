@@ -9,7 +9,7 @@ import (
 	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type ApiService struct {
@@ -32,8 +32,8 @@ func (s *ApiService) CreateApi(ctx context.Context, req *pb.CreateApiRequest) (*
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
 		Remark: req.GetRemark(),
-		Module: vo.Module(req.GetModule()),
-		Domain: vo.Domain(req.GetDomain()),
+		Module: vobj.Module(req.GetModule()),
+		Domain: vobj.Domain(req.GetDomain()),
 	}
 
 	apiBoList, err := s.apiBiz.CreateApi(ctx, apiBo)
@@ -56,9 +56,9 @@ func (s *ApiService) UpdateApi(ctx context.Context, req *pb.UpdateApiRequest) (*
 		Path:   req.GetPath(),
 		Method: req.GetMethod(),
 		Remark: req.GetRemark(),
-		Status: vo.Status(req.GetStatus()),
-		Module: vo.Module(req.GetModule()),
-		Domain: vo.Domain(req.GetDomain()),
+		Status: vobj.Status(req.GetStatus()),
+		Module: vobj.Module(req.GetModule()),
+		Domain: vobj.Domain(req.GetDomain()),
 	}
 	apiBo, err := s.apiBiz.UpdateApiById(ctx, apiBo.Id, apiBo)
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *ApiService) ListApi(ctx context.Context, req *pb.ListApiRequest) (*pb.L
 	pgReq := req.GetPage()
 	apiBoList, pgInfo, err := s.apiBiz.ListApi(ctx, &bo.ApiListApiReq{
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 		Curr:    pgReq.GetCurr(),
 		Size:    pgReq.GetSize(),
 	})
@@ -124,7 +124,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 	pgReq := req.GetPage()
 	apiBoList, pgInfo, err := s.apiBiz.ListApi(ctx, &bo.ApiListApiReq{
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 		Curr:    pgReq.GetCurr(),
 		Size:    pgReq.GetSize(),
 	})
@@ -147,7 +147,7 @@ func (s *ApiService) SelectApi(ctx context.Context, req *pb.SelectApiRequest) (*
 
 // EditApiStatus 编辑api状态
 func (s *ApiService) EditApiStatus(ctx context.Context, req *pb.EditApiStatusRequest) (*pb.EditApiStatusReply, error) {
-	if err := s.apiBiz.UpdateApiStatusById(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.apiBiz.UpdateApiStatusById(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 
@@ -164,12 +164,12 @@ func (s *ApiService) GetApiTree(ctx context.Context, _ *pb.GetApiTreeRequest) (*
 	}
 
 	list := make([]*api.ApiTree, 0, len(apiBoList))
-	domainMap := make(map[vo.Domain]map[vo.Module][]*bo.ApiBO)
-	domainMapKeys := make(vo.DomainList, 0)
-	moduleMapKeys := make(map[vo.Domain]vo.ModuleList)
+	domainMap := make(map[vobj.Domain]map[vobj.Module][]*bo.ApiBO)
+	domainMapKeys := make(vobj.DomainList, 0)
+	moduleMapKeys := make(map[vobj.Domain]vobj.ModuleList)
 	for _, apiBo := range apiBoList {
 		if _, ok := domainMap[apiBo.Domain]; !ok {
-			domainMap[apiBo.Domain] = make(map[vo.Module][]*bo.ApiBO)
+			domainMap[apiBo.Domain] = make(map[vobj.Module][]*bo.ApiBO)
 			domainMapKeys = append(domainMapKeys, apiBo.Domain)
 		}
 		if _, ok := domainMap[apiBo.Domain][apiBo.Module]; !ok {

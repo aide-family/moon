@@ -1,4 +1,4 @@
-package vo
+package vobj
 
 type Action int32
 

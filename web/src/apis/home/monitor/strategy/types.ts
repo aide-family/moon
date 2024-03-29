@@ -1,6 +1,5 @@
 import { DictSelectItem } from '../../system/dict/types'
 import { NotifyItem } from '../alarm-notify/types'
-import { AlarmPageSelectItem } from '../alarm-page/types'
 import { PrometheusServerSelectItem } from '../endpoint/types'
 import { StrategyGroupSelectItemType } from '../strategy-group/types'
 import { Duration, Map, PageReqType, PageResType } from '@/apis/types'
@@ -19,7 +18,7 @@ interface StrategyItemType {
     alarmLevelId: number
     alarmLevelInfo?: DictSelectItem
     alarmPageIds: number[]
-    alarmPageInfo?: AlarmPageSelectItem[]
+    alarmPageInfo?: DictSelectItem[]
     categoryIds: number[]
     categoryInfo?: DictSelectItem[]
     createdAt: number

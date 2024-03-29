@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 )
@@ -21,7 +21,7 @@ type (
 		// UpdateDictById 通过id更新字典
 		UpdateDictById(ctx context.Context, id uint32, dict *bo.DictBO) (*bo.DictBO, error)
 		// BatchUpdateDictStatusByIds 通过id批量更新字典状态
-		BatchUpdateDictStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error
+		BatchUpdateDictStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error
 		// DeleteDictByIds 通过id删除字典
 		DeleteDictByIds(ctx context.Context, id ...uint32) error
 		// GetDictById 通过id获取字典详情
@@ -48,7 +48,7 @@ func (UnimplementedPromDictRepo) UpdateDictById(_ context.Context, _ uint32, _ *
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDictById not implemented")
 }
 
-func (UnimplementedPromDictRepo) BatchUpdateDictStatusByIds(_ context.Context, _ vo.Status, _ []uint32) error {
+func (UnimplementedPromDictRepo) BatchUpdateDictStatusByIds(_ context.Context, _ vobj.Status, _ []uint32) error {
 	return status.Errorf(codes.Unimplemented, "method BatchUpdateDictStatusByIds not implemented")
 }
 

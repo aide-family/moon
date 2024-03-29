@@ -1,4 +1,4 @@
-package vo
+package vobj
 
 type Gender int32
 

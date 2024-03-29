@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/cache"
 
 	"prometheus-manager/api/perrors"
@@ -38,14 +38,14 @@ const (
 // SysAPI 系统api
 type SysAPI struct {
 	BaseModel
-	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称"`
-	Path   string     `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径"`
-	Method string     `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
-	Status vo.Status  `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
-	Remark string     `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
-	Module vo.Module  `gorm:"column:module;type:int;not null;default:0;comment:模块"`
-	Domain vo.Domain  `gorm:"column:domain;type:int;not null;default:0;comment:领域"`
-	Roles  []*SysRole `gorm:"many2many:sys_role_apis;comment:角色api"`
+	Name   string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称"`
+	Path   string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径"`
+	Method string      `gorm:"column:method;type:varchar(16);not null;default:POST;comment:请求方法"`
+	Status vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
+	Remark string      `gorm:"column:remark;type:varchar(255);not null;default:这个API没有说明, 赶紧补充吧;comment:备注"`
+	Module vobj.Module `gorm:"column:module;type:int;not null;default:0;comment:模块"`
+	Domain vobj.Domain `gorm:"column:domain;type:int;not null;default:0;comment:领域"`
+	Roles  []*SysRole  `gorm:"many2many:sys_role_apis;comment:角色api"`
 }
 
 // TableName 表名
@@ -90,7 +90,7 @@ func (l *ApiSimple) MarshalBinary() (data []byte, err error) {
 // CacheAllApiSimple 缓存所有api简单信息
 func CacheAllApiSimple(db *gorm.DB, cacheClient cache.GlobalCache) error {
 	var apiList []*ApiSimple
-	if err := db.Model(&SysAPI{}).Where("status", vo.StatusEnabled).Find(&apiList).Error; err != nil {
+	if err := db.Model(&SysAPI{}).Where("status", vobj.StatusEnabled).Find(&apiList).Error; err != nil {
 		return err
 	}
 
@@ -121,7 +121,7 @@ func CacheApiSimple(db *gorm.DB, cacheClient cache.GlobalCache, apiIds ...uint32
 	}
 
 	var apiList []*ApiSimple
-	if err := db.Model(&SysAPI{}).Where("status", vo.StatusEnabled).Scopes(basescopes.InIds(apiIds...)).Find(&apiList).Error; err != nil {
+	if err := db.Model(&SysAPI{}).Where("status", vobj.StatusEnabled).Scopes(basescopes.InIds(apiIds...)).Find(&apiList).Error; err != nil {
 		return err
 	}
 

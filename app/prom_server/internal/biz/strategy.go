@@ -11,7 +11,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -39,8 +39,8 @@ func NewStrategyBiz(strategyRepo repository.StrategyRepo, notifyRepo repository.
 // CreateStrategy 创建策略
 func (b *StrategyBiz) CreateStrategy(ctx context.Context, strategyBO *bo.StrategyBO) (*bo.StrategyBO, error) {
 	newStrategyBO := strategyBO
-	newStrategyBO.AlarmPages = slices.To(strategyBO.AlarmPageIds, func(id uint32) *bo.AlarmPageBO {
-		return &bo.AlarmPageBO{Id: id}
+	newStrategyBO.AlarmPages = slices.To(strategyBO.AlarmPageIds, func(id uint32) *bo.DictBO {
+		return &bo.DictBO{Id: id}
 	})
 	newStrategyBO.Categories = slices.To(strategyBO.CategoryIds, func(id uint32) *bo.DictBO {
 		return &bo.DictBO{Id: id}
@@ -50,8 +50,8 @@ func (b *StrategyBiz) CreateStrategy(ctx context.Context, strategyBO *bo.Strateg
 		return nil, err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleStrategy,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleStrategy,
 		ModuleId:   strategyBO.Id,
 		Content:    strategyBO.String(),
 		Title:      "创建策略",
@@ -72,8 +72,8 @@ func (b *StrategyBiz) UpdateStrategyById(ctx context.Context, id uint32, strateg
 		return nil, err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleStrategy,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleStrategy,
 		ModuleId:   strategyBO.Id,
 		Content:    bo.NewChangeLogBo(oldData, newStrategyBO).String(),
 		Title:      "更新策略",
@@ -83,7 +83,7 @@ func (b *StrategyBiz) UpdateStrategyById(ctx context.Context, id uint32, strateg
 }
 
 // BatchUpdateStrategyStatusByIds 批量更新策略状态
-func (b *StrategyBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status vo.Status, ids []uint32) error {
+func (b *StrategyBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error {
 	oldList, err := b.strategyRepo.List(ctx, basescopes.InIds(ids...))
 	if err != nil {
 		return err
@@ -94,13 +94,13 @@ func (b *StrategyBiz) BatchUpdateStrategyStatusByIds(ctx context.Context, status
 
 	list := slices.To(oldList, func(old *bo.StrategyBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategy,
+			ModuleName: vobj.ModuleStrategy,
 			ModuleId:   old.Id,
 			Content:    bo.NewChangeLogBo(old.Status.String(), status.String()).String(),
 			Title:      "批量更新策略状态",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -119,13 +119,13 @@ func (b *StrategyBiz) DeleteStrategyByIds(ctx context.Context, ids ...uint32) er
 	}
 	list := slices.To(oldList, func(old *bo.StrategyBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategy,
+			ModuleName: vobj.ModuleStrategy,
 			ModuleId:   old.Id,
 			Content:    old.String(),
 			Title:      "删除策略",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 
@@ -199,8 +199,8 @@ func (b *StrategyBiz) ExportStrategy(ctx context.Context, req *bo.ExportStrategy
 	list := slices.To(strategyBOs, func(strategyBO *bo.StrategyBO) string {
 		return strategyBO.String()
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionExport, &bo.SysLogBo{
-		ModuleName: vo.ModuleStrategy,
+	b.logX.CreateSysLog(ctx, vobj.ActionExport, &bo.SysLogBo{
+		ModuleName: vobj.ModuleStrategy,
 		ModuleId:   strategyBOs[0].Id,
 		Content:    fmt.Sprintf(`{"list":[%s]}`, strings.Join(list, ",")),
 		Title:      "导出策略",
@@ -247,12 +247,12 @@ func (b *StrategyBiz) BindStrategyNotifyObject(ctx context.Context, strategyId u
 
 	list := slices.To(notifyBOs, func(notifyBO *bo.NotifyBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategy,
+			ModuleName: vobj.ModuleStrategy,
 			ModuleId:   strategyBO.Id,
 			Content:    fmt.Sprintf(`"notifies":[%s]`, strings.Join(notifyStr, ",")),
 			Title:      "绑定策略通知对象",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }

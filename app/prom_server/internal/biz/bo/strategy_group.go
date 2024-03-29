@@ -5,33 +5,33 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	ListGroupReq struct {
-		Page              Pagination `json:"page"`
-		Keyword           string     `json:"keyword"`
-		Status            vo.Status  `json:"status"`
-		PreloadCategories bool       `json:"preloadCategories"`
-		Ids               []uint32   `json:"ids"`
+		Page              Pagination  `json:"page"`
+		Keyword           string      `json:"keyword"`
+		Status            vobj.Status `json:"status"`
+		PreloadCategories bool        `json:"preloadCategories"`
+		Ids               []uint32    `json:"ids"`
 	}
 	RemoveStrategyGroupBO struct {
 		Id uint32 `json:"id"`
 	}
 	StrategyGroupBO struct {
-		Id                  uint32    `json:"id"`
-		Name                string    `json:"name"`
-		Remark              string    `json:"remark"`
-		Status              vo.Status `json:"status"`
-		StrategyCount       int64     `json:"strategyCount"`
-		EnableStrategyCount int64     `json:"enableStrategyCount"`
-		CategoryIds         []uint32  `json:"categoryIds"`
-		Categories          []*DictBO `json:"categories"`
-		CreatedAt           int64     `json:"createdAt"`
-		UpdatedAt           int64     `json:"updatedAt"`
-		DeletedAt           int64     `json:"deletedAt"`
+		Id                  uint32      `json:"id"`
+		Name                string      `json:"name"`
+		Remark              string      `json:"remark"`
+		Status              vobj.Status `json:"status"`
+		StrategyCount       int64       `json:"strategyCount"`
+		EnableStrategyCount int64       `json:"enableStrategyCount"`
+		CategoryIds         []uint32    `json:"categoryIds"`
+		Categories          []*DictBO   `json:"categories"`
+		CreatedAt           int64       `json:"createdAt"`
+		UpdatedAt           int64       `json:"updatedAt"`
+		DeletedAt           int64       `json:"deletedAt"`
 
 		PromStrategies []*StrategyBO `json:"promStrategies"`
 	}

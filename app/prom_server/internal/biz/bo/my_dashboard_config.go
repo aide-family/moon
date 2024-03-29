@@ -5,19 +5,19 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	ListDashboardReq struct {
-		Page    Pagination `json:"page"`
-		Keyword string     `json:"keyword"`
-		Status  vo.Status  `json:"status"`
+		Page    Pagination  `json:"page"`
+		Keyword string      `json:"keyword"`
+		Status  vobj.Status `json:"status"`
 	}
 	MyDashboardConfigBO struct {
 		Id     uint32       `json:"id"`
-		Status vo.Status    `json:"status"`
+		Status vobj.Status  `json:"status"`
 		Remark string       `json:"remark"`
 		Title  string       `json:"title"`
 		Color  string       `json:"color"`

@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -34,8 +34,8 @@ func (l *StrategyGroupBiz) Create(ctx context.Context, strategyGroup *bo.Strateg
 	if err != nil {
 		return nil, err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleStrategyGroup,
+	l.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleStrategyGroup,
 		ModuleId:   strategyGroup.Id,
 		Content:    strategyGroup.String(),
 		Title:      "创建策略组",
@@ -51,13 +51,13 @@ func (l *StrategyGroupBiz) BatchCreate(ctx context.Context, strategyGroups []*bo
 	}
 	list := slices.To(strategyGroups, func(strategyGroup *bo.StrategyGroupBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategyGroup,
+			ModuleName: vobj.ModuleStrategyGroup,
 			ModuleId:   strategyGroup.Id,
 			Content:    strategyGroup.String(),
 			Title:      "批量创建策略组",
 		}
 	})
-	l.logX.CreateSysLog(ctx, vo.ActionCreate, list...)
+	l.logX.CreateSysLog(ctx, vobj.ActionCreate, list...)
 	return strategyGroups, nil
 }
 
@@ -71,8 +71,8 @@ func (l *StrategyGroupBiz) UpdateById(ctx context.Context, strategyGroup *bo.Str
 	if err != nil {
 		return nil, err
 	}
-	l.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleStrategyGroup,
+	l.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleStrategyGroup,
 		ModuleId:   strategyGroup.Id,
 		Content:    bo.NewChangeLogBo(oldStrategyGroupBO, strategyGroupBO).String(),
 		Title:      "更新策略组",
@@ -80,7 +80,7 @@ func (l *StrategyGroupBiz) UpdateById(ctx context.Context, strategyGroup *bo.Str
 	return strategyGroupBO, nil
 }
 
-func (l *StrategyGroupBiz) BatchUpdateStatus(ctx context.Context, status vo.Status, ids []uint32) error {
+func (l *StrategyGroupBiz) BatchUpdateStatus(ctx context.Context, status vobj.Status, ids []uint32) error {
 	// 查询
 	oldList, err := l.strategyGroupRepo.GetByParams(ctx, basescopes.InIds(ids...))
 	if err != nil {
@@ -91,13 +91,13 @@ func (l *StrategyGroupBiz) BatchUpdateStatus(ctx context.Context, status vo.Stat
 	}
 	list := slices.To(oldList, func(strategyGroupBO *bo.StrategyGroupBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategyGroup,
+			ModuleName: vobj.ModuleStrategyGroup,
 			ModuleId:   strategyGroupBO.Id,
 			Content:    bo.NewChangeLogBo(strategyGroupBO.Status.String(), status.String()).String(),
 			Title:      "批量更新策略组状态",
 		}
 	})
-	l.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	l.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -112,13 +112,13 @@ func (l *StrategyGroupBiz) DeleteByIds(ctx context.Context, ids ...uint32) error
 	}
 	list := slices.To(oldList, func(strategyGroupBO *bo.StrategyGroupBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleStrategyGroup,
+			ModuleName: vobj.ModuleStrategyGroup,
 			ModuleId:   strategyGroupBO.Id,
 			Content:    strategyGroupBO.String(),
 			Title:      "批量删除策略组",
 		}
 	})
-	l.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	l.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 

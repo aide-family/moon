@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
@@ -38,8 +38,8 @@ func (b *ChatGroupBiz) CreateChatGroup(ctx context.Context, chatGroup *bo.ChatGr
 	if err != nil {
 		return nil, err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyHook,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyHook,
 		ModuleId:   newData.Id,
 		Content:    newData.String(),
 		Title:      "创建机器人hook",
@@ -75,8 +75,8 @@ func (b *ChatGroupBiz) UpdateChatGroupById(ctx context.Context, chatGroup *bo.Ch
 		return err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyHook,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyHook,
 		ModuleId:   id,
 		Content:    bo.NewChangeLogBo(chatGroupDetail, chatGroup).String(),
 		Title:      "更新机器人hook",
@@ -89,8 +89,8 @@ func (b *ChatGroupBiz) DeleteChatGroupById(ctx context.Context, id uint32) error
 	if err := b.chatGroupRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
 		return err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyHook,
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyHook,
 		ModuleId:   id,
 		Title:      "删除机器人hook",
 	})

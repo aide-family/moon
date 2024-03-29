@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -53,7 +53,7 @@ func (l *endpointRepoImpl) Update(ctx context.Context, endpoint *bo.EndpointBO) 
 	return bo.EndpointModelToBO(newModelData), nil
 }
 
-func (l *endpointRepoImpl) UpdateStatus(ctx context.Context, ids []uint32, status vo.Status) error {
+func (l *endpointRepoImpl) UpdateStatus(ctx context.Context, ids []uint32, status vobj.Status) error {
 	if len(ids) == 0 {
 		return nil
 	}

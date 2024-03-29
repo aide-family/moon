@@ -8,7 +8,7 @@ import (
 	pb "prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -30,7 +30,7 @@ func (s *SyslogService) ListSyslog(ctx context.Context, req *pb.ListSyslogReques
 	pageInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
 	logList, err := s.logBiz.ListSysLog(ctx, &bo.ListSyslogReq{
 		Page:     pageInfo,
-		Module:   vo.Module(req.GetModuleName()),
+		Module:   vobj.Module(req.GetModuleName()),
 		ModuleId: req.GetModuleId(),
 	})
 	if err != nil {

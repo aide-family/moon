@@ -169,9 +169,9 @@ build:
 test:
 	go test -v ./... -cover
 
-.PHONY: generate
+.PHONY: wire
 # generate
-generate:
+wire:
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
 	go generate ./...

@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 
 	"prometheus-manager/pkg/strategy"
@@ -117,10 +117,10 @@ type PromStrategy struct {
 	Labels       *strategy.Labels      `gorm:"column:labels;type:json;not null;comment:标签" json:"labels"`
 	Annotations  *strategy.Annotations `gorm:"column:annotations;type:json;not null;comment:告警文案" json:"annotations"`
 	AlertLevelID uint32                `gorm:"column:alert_level_id;type:int;not null;index:idx__alert_level_id,priority:1;comment:告警等级dict ID" json:"alert_level_id"`
-	Status       vo.Status             `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用" json:"status"`
+	Status       vobj.Status           `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用" json:"status"`
 	Remark       string                `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`
 
-	AlarmPages []*PromAlarmPage   `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"-"`
+	AlarmPages []*SysDict         `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"-"`
 	Categories []*SysDict         `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"-"`
 	AlertLevel *SysDict           `gorm:"foreignKey:AlertLevelID" json:"-"`
 	GroupInfo  *PromStrategyGroup `gorm:"foreignKey:GroupID" json:"-"`
@@ -132,7 +132,7 @@ type PromStrategy struct {
 	// 最大抑制时长(s)
 	MaxSuppress string `gorm:"column:max_suppress;type:varchar(255);not null;default:1m;comment:最大抑制时长(s)" json:"max_suppress"`
 	// 是否发送告警恢复通知
-	SendRecover vo.IsSendRecover `gorm:"column:send_recover;type:tinyint;not null;default:0;comment:是否发送告警恢复通知" json:"send_recover"`
+	SendRecover vobj.IsSendRecover `gorm:"column:send_recover;type:tinyint;not null;default:0;comment:是否发送告警恢复通知" json:"send_recover"`
 	// 发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况
 	SendInterval string `gorm:"column:send_interval;type:varchar(255);not null;default:1m;comment:发送告警时间间隔(s), 默认为for的10倍时间分钟, 用于长时间未消警情况" json:"send_interval"`
 
@@ -159,7 +159,7 @@ func (p *PromStrategy) GetAlertLevel() *SysDict {
 }
 
 // GetAlarmPages 获取告警页面
-func (p *PromStrategy) GetAlarmPages() []*PromAlarmPage {
+func (p *PromStrategy) GetAlarmPages() []*SysDict {
 	if p == nil {
 		return nil
 	}

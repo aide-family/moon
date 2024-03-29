@@ -8,7 +8,9 @@ import (
 	"prometheus-manager/api/server/system"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"prometheus-manager/pkg/helper/middler"
+	"prometheus-manager/pkg/util/slices"
 )
 
 type Service struct {
@@ -17,19 +19,21 @@ type Service struct {
 	log *log.Helper
 
 	dictBiz *biz.DictBiz
+	pageBiz *biz.AlarmPageBiz
 }
 
-func NewDictService(dictBiz *biz.DictBiz, logger log.Logger) *Service {
+func NewDictService(dictBiz *biz.DictBiz, pageBiz *biz.AlarmPageBiz, logger log.Logger) *Service {
 	return &Service{
 		log:     log.NewHelper(log.With(logger, "module", "service.Service")),
 		dictBiz: dictBiz,
+		pageBiz: pageBiz,
 	}
 }
 
 func (s *Service) CreateDict(ctx context.Context, req *system.CreateDictRequest) (*system.CreateDictReply, error) {
 	dictBo := &bo.DictBO{
 		Name:     req.GetName(),
-		Category: vo.Category(req.GetCategory()),
+		Category: vobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
@@ -45,10 +49,10 @@ func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest)
 	dictBo := &bo.DictBO{
 		Id:       req.GetId(),
 		Name:     req.GetName(),
-		Category: vo.Category(req.GetCategory()),
+		Category: vobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
-		Status:   vo.Status(req.GetStatus()),
+		Status:   vobj.Status(req.GetStatus()),
 	}
 	newDict, err := s.dictBiz.UpdateDict(ctx, dictBo)
 	if err != nil {
@@ -60,7 +64,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest)
 }
 
 func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *system.BatchUpdateDictStatusRequest) (*system.BatchUpdateDictStatusReply, error) {
-	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		s.log.Errorf("batch update dict status err: %v", err)
 		return nil, err
 	}
@@ -101,8 +105,8 @@ func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*s
 	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
-		Category:  vo.Category(req.GetCategory()),
-		Status:    vo.Status(req.GetStatus()),
+		Category:  vobj.Category(req.GetCategory()),
+		Status:    vobj.Status(req.GetStatus()),
 		IsDeleted: req.GetIsDeleted(),
 	})
 	if err != nil {
@@ -131,8 +135,8 @@ func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest)
 	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
-		Category:  vo.Category(req.GetCategory()),
-		Status:    vo.Status(req.GetStatus()),
+		Category:  vobj.Category(req.GetCategory()),
+		Status:    vobj.Status(req.GetStatus()),
 		IsDeleted: req.GetIsDeleted(),
 	})
 	if err != nil {
@@ -152,4 +156,38 @@ func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest)
 		},
 		List: list,
 	}, nil
+}
+
+// CountAlarmPage 统计各告警页面的告警数量
+func (s *Service) CountAlarmPage(ctx context.Context, req *system.CountAlarmPageRequest) (*system.CountAlarmPageReply, error) {
+	count, err := s.pageBiz.CountAlarmPageByIds(ctx, req.GetIds()...)
+	if err != nil {
+		return nil, err
+	}
+	return &system.CountAlarmPageReply{
+		AlarmCount: count,
+	}, nil
+}
+
+// ListMyAlarmPage 获取我的告警页面列表
+func (s *Service) ListMyAlarmPage(ctx context.Context, _ *system.ListMyAlarmPageRequest) (*system.ListMyAlarmPageReply, error) {
+	userId := middler.GetUserId(ctx)
+	userAlarmPages, err := s.pageBiz.GetUserAlarmPages(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return &system.ListMyAlarmPageReply{
+		List: slices.To(userAlarmPages, func(alarmPageBO *bo.DictBO) *api.DictV1 {
+			return alarmPageBO.ToApiV1()
+		}),
+	}, nil
+}
+
+// MyAlarmPagesConfig 我的告警页面列表配置
+func (s *Service) MyAlarmPagesConfig(ctx context.Context, req *system.MyAlarmPagesConfigRequest) (*system.MyAlarmPagesConfigReply, error) {
+	userId := middler.GetUserId(ctx)
+	if err := s.pageBiz.BindUserPages(ctx, userId, req.GetAlarmIds()); err != nil {
+		return nil, err
+	}
+	return &system.MyAlarmPagesConfigReply{}, nil
 }

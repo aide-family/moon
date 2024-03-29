@@ -114,7 +114,10 @@ export enum Category {
     CATEGORY_ALARM_STATUS,
 
     /** NotifyType 通知类型*/
-    CATEGORY_NOTIFY_TYPE
+    CATEGORY_NOTIFY_TYPE,
+
+    /** CATEGORY_ALARM_PAGE 报警页面 */
+    CATEGORY_ALARM_PAGE
 }
 
 /** 通知类型, 用于区分通知方式*/

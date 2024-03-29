@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -36,8 +36,8 @@ func (b *DictBiz) CreateDict(ctx context.Context, dict *bo.DictBO) (*bo.DictBO, 
 	if err != nil {
 		return nil, err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDict,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDict,
 		ModuleId:   newDictBO.Id,
 		Content:    newDictBO.String(),
 		Title:      "创建字典",
@@ -56,8 +56,8 @@ func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO
 	if err != nil {
 		return nil, err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleDict,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleDict,
 		ModuleId:   newDictDO.Id,
 		Content:    bo.NewChangeLogBo(dictDetail, newDictDO).String(),
 		Title:      "更新字典",
@@ -66,7 +66,7 @@ func (b *DictBiz) UpdateDict(ctx context.Context, dictBO *bo.DictBO) (*bo.DictBO
 }
 
 // BatchUpdateDictStatus 批量更新字典状态
-func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status vo.Status, ids []uint32) error {
+func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status vobj.Status, ids []uint32) error {
 	// 查询
 	oldList, err := b.dictRepo.GetDictByIds(ctx, ids...)
 	if err != nil {
@@ -79,13 +79,13 @@ func (b *DictBiz) BatchUpdateDictStatus(ctx context.Context, status vo.Status, i
 
 	list := slices.To(oldList, func(old *bo.DictBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleDict,
+			ModuleName: vobj.ModuleDict,
 			ModuleId:   0,
 			Content:    bo.NewChangeLogBo(old.Status.String(), status.String()).String(),
 			Title:      "批量更新字典",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -103,14 +103,14 @@ func (b *DictBiz) DeleteDictByIds(ctx context.Context, id ...uint32) error {
 
 	list := slices.To(dictList, func(dict *bo.DictBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleDict,
+			ModuleName: vobj.ModuleDict,
 			ModuleId:   dict.Id,
 			Content:    dict.String(),
 			Title:      "删除字典",
 		}
 	})
 
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 

@@ -1,7 +1,7 @@
 package do
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNameExternalCustomer = "external_customers"
@@ -32,7 +32,7 @@ type ExternalCustomer struct {
 	// 外部客户备注
 	Remark string `gorm:"column:remark;type:varchar(255);not null;comment:外部客户备注"`
 	// 外部客户状态
-	Status vo.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:外部客户状态"`
+	Status vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:外部客户状态"`
 	// 钩子列表
 	Hooks []*ExternalCustomerHook `gorm:"foreignKey:CustomerId;comment:外部客户钩子"`
 }

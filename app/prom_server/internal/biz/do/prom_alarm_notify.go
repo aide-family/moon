@@ -3,7 +3,7 @@ package do
 import (
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromNotify = "prom_alarm_notifies"
@@ -42,7 +42,7 @@ func PromAlarmNotifyPreloadBeNotifyMembers(beNotifyMemberIds ...uint32) basescop
 type PromAlarmNotify struct {
 	BaseModel
 	Name            string                   `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__an__name,priority:1;comment:通知名称"`
-	Status          vo.Status                `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
+	Status          vobj.Status              `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
 	Remark          string                   `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
 	ChatGroups      []*PromAlarmChatGroup    `gorm:"many2many:prom_notify_chat_groups;comment:通知组"`
 	BeNotifyMembers []*PromAlarmNotifyMember `gorm:"comment:被通知成员"`

@@ -5,25 +5,25 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type ListSyslogReq struct {
 	Page     Pagination
-	Module   vo.Module
+	Module   vobj.Module
 	ModuleId uint32
 }
 
 type SysLogBo struct {
-	ModuleName vo.Module `json:"moduleName"`
-	ModuleId   uint32    `json:"moduleId"`
-	Content    string    `json:"content"`
-	Title      string    `json:"title"`
-	Action     vo.Action `json:"action"`
-	CreatedAt  int64     `json:"createdAt"`
-	Id         uint32    `json:"id"`
-	UserId     uint32    `json:"userId"`
-	User       *UserBO   `json:"user"`
+	ModuleName vobj.Module `json:"moduleName"`
+	ModuleId   uint32      `json:"moduleId"`
+	Content    string      `json:"content"`
+	Title      string      `json:"title"`
+	Action     vobj.Action `json:"action"`
+	CreatedAt  int64       `json:"createdAt"`
+	Id         uint32      `json:"id"`
+	UserId     uint32      `json:"userId"`
+	User       *UserBO     `json:"user"`
 }
 
 type ChangeLogBo struct {

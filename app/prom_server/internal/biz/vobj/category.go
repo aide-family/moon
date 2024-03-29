@@ -1,4 +1,4 @@
-package vo
+package vobj
 
 import (
 	"prometheus-manager/api"
@@ -23,6 +23,8 @@ const (
 	CategoryAlarmStatus
 	// CategoryNotifyType 通知类型
 	CategoryNotifyType
+	//CategoryAlarmPage 告警页面
+	CategoryAlarmPage
 )
 
 // String Category 转换为字符串
@@ -42,8 +44,10 @@ func (c Category) String() string {
 		return "告警状态"
 	case CategoryNotifyType:
 		return "通知类型"
+	case CategoryAlarmPage:
+		return "告警页面"
 	case CategoryUnknown:
-		return "未知"
+		fallthrough
 	default:
 		return "未知"
 	}
@@ -66,6 +70,8 @@ func (c Category) Key() string {
 		return "alarm_status"
 	case CategoryNotifyType:
 		return "notify_type"
+	case CategoryAlarmPage:
+		return "alarm_page"
 	default:
 		return "unknown"
 	}

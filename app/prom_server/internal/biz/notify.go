@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data/repositiryimpl/msg"
 
 	"prometheus-manager/api/perrors"
@@ -45,8 +45,8 @@ func (b *NotifyBiz) CreateNotify(ctx context.Context, notifyBo *bo.NotifyBO) (*b
 		return nil, err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyGroup,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyGroup,
 		ModuleId:   notifyBo.Id,
 		Content:    notifyBo.String(),
 		Title:      "创建通知对象",
@@ -81,8 +81,8 @@ func (b *NotifyBiz) UpdateNotifyById(ctx context.Context, id uint32, notifyBo *b
 	if err = b.notifyRepo.Update(ctx, notifyBo, basescopes.InIds(id)); err != nil {
 		return err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyGroup,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyGroup,
 		ModuleId:   id,
 		Content:    bo.NewChangeLogBo(oldData, notifyBo).String(),
 		Title:      "更新通知对象",
@@ -103,8 +103,8 @@ func (b *NotifyBiz) DeleteNotifyById(ctx context.Context, id uint32) error {
 	if err = b.notifyRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
 		return err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
-		ModuleName: vo.ModuleAlarmNotifyGroup,
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, &bo.SysLogBo{
+		ModuleName: vobj.ModuleAlarmNotifyGroup,
 		ModuleId:   id,
 		Content:    oldData.String(),
 		Title:      "删除通知对象",

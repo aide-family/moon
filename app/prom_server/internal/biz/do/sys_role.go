@@ -3,7 +3,7 @@ package do
 import (
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNameRole = "sys_roles"
@@ -39,11 +39,11 @@ func SysRolePreloadApis(apiIds ...uint32) basescopes.ScopeMethod {
 // SysRole 角色表
 type SysRole struct {
 	BaseModel
-	Remark string     `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
-	Name   string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sr__name,priority:1;comment:角色名称"`
-	Status vo.Status  `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
-	Users  []*SysUser `gorm:"many2many:sys_user_roles;comment:用户角色"`
-	Apis   []*SysAPI  `gorm:"many2many:sys_role_apis;comment:角色api"`
+	Remark string      `gorm:"column:remark;type:varchar(255);not null;comment:备注"`
+	Name   string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sr__name,priority:1;comment:角色名称"`
+	Status vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态"`
+	Users  []*SysUser  `gorm:"many2many:sys_user_roles;comment:用户角色"`
+	Apis   []*SysAPI   `gorm:"many2many:sys_role_apis;comment:角色api"`
 }
 
 // TableName 表名

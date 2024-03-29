@@ -17,7 +17,8 @@ const categoryData: Record<Category, string> = {
     [Category.CATEGORY_PROM_STRATEGY_GROUP]: '策略组',
     [Category.CATEGORY_ALARM_LEVEL]: '告警级别',
     [Category.CATEGORY_ALARM_STATUS]: '告警状态',
-    [Category.CATEGORY_NOTIFY_TYPE]: '通知类型'
+    [Category.CATEGORY_NOTIFY_TYPE]: '通知类型',
+    [Category.CATEGORY_ALARM_PAGE]: '告警页面'
 }
 /**  领域类型数据 */
 const domainTypeData: Record<DomainType, string> = {

@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -48,13 +48,13 @@ func (b *ApiBiz) CreateApi(ctx context.Context, apiBoList ...*bo.ApiBO) ([]*bo.A
 	b.cacheApiByIds(ids...)
 	list := slices.To(apiBoList, func(item *bo.ApiBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleApi,
+			ModuleName: vobj.ModuleApi,
 			ModuleId:   item.Id,
 			Content:    item.String(),
 			Title:      "创建API",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, list...)
 	return apiBoList, nil
 }
 
@@ -105,8 +105,8 @@ func (b *ApiBiz) DeleteApiById(ctx context.Context, id uint32) error {
 	if err = b.apiRepo.Delete(ctx, basescopes.InIds(id)); err != nil {
 		return err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, &bo.SysLogBo{
-		ModuleName: vo.ModuleApi,
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, &bo.SysLogBo{
+		ModuleName: vobj.ModuleApi,
 		ModuleId:   id,
 		Content:    apiBO.String(),
 		Title:      "删除API",
@@ -126,8 +126,8 @@ func (b *ApiBiz) UpdateApiById(ctx context.Context, id uint32, apiBO *bo.ApiBO) 
 	if err != nil {
 		return nil, err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleApi,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleApi,
 		ModuleId:   id,
 		Content:    bo.NewChangeLogBo(oldApiBO, newApiBO).String(),
 		Title:      "更新API",
@@ -156,7 +156,7 @@ func (b *ApiBiz) cacheApiByIds(apiIds ...uint32) {
 }
 
 // UpdateApiStatusById 更新api状态
-func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
+func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status vobj.Status, ids []uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -173,14 +173,14 @@ func (b *ApiBiz) UpdateApiStatusById(ctx context.Context, status vo.Status, ids 
 	}
 	list := slices.To(oldList, func(old *bo.ApiBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleApi,
+			ModuleName: vobj.ModuleApi,
 			ModuleId:   old.Id,
 			Content:    bo.NewChangeLogBo(old.Status.String(), status.String()).String(),
 			Title:      "更新API状态",
 		}
 	})
 	b.cacheApiByIds(ids...)
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 
 	return nil
 }

@@ -1,5 +1,3 @@
-import alarmPageApi from '@/apis/home/monitor/alarm-page'
-import { AlarmPageItem } from '@/apis/home/monitor/alarm-page/types'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { Alert, Badge, Form, Tabs, Tag, message } from 'antd'
@@ -11,7 +9,6 @@ import {
     rightOptions,
     searchFormItems
 } from './options'
-import { IconFont } from '@/components/IconFont/IconFont'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
 import {
     AlarmRealtimeItem,
@@ -20,10 +17,12 @@ import {
 import alarmRealtimeApi from '@/apis/home/monitor/alarm-realtime'
 import { ActionKey } from '@/apis/data'
 import { GlobalContext } from '@/context'
-import EditAlarmPageModal from '../alarm-page/child/EditAlarmPageModal'
 import PromValueModal from '@/components/Prom/PromValueModal'
 import dayjs from 'dayjs'
 import alarmHistoryApi from '@/apis/home/monitor/alarm-history'
+import EditDictModal from '../../system/dict/child/EditModal'
+import { DictListItem } from '@/apis/home/system/dict/types'
+import dictApi from '@/apis/home/system/dict'
 
 const article = '默认展示告警时间前一小时到告警恢复时间段内的数据'
 
@@ -32,7 +31,7 @@ const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
     const { size } = useContext(GlobalContext)
 
-    const [alarmPageList, setAlarmPageList] = useState<AlarmPageItem[]>([])
+    const [alarmPageList, setAlarmPageList] = useState<DictListItem[]>([])
     const [dataSource, setDataSource] = useState<AlarmRealtimeItem[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [total, setTotal] = useState<number>(0)
@@ -77,7 +76,7 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleGetAlarmPageList = () => {
-        alarmPageApi.myAlarmPageList().then((res) => {
+        dictApi.myAlarmPageList().then((res) => {
             setAlarmPageList(res.list)
             setAlarmPageIds(res.list.map((item) => item.id))
         })
@@ -87,7 +86,7 @@ const AlarmRealtime: FC = () => {
         if (alarmPageIds.length === 0) {
             return
         }
-        alarmPageApi
+        dictApi
             .countAlarmPage({
                 ids: alarmPageIds
             })
@@ -129,7 +128,7 @@ const AlarmRealtime: FC = () => {
 
     const buildTabsItems = () => {
         return alarmPageList.map((item, index) => {
-            const { name, id, color, icon } = item
+            const { name, id, color } = item
             return {
                 label: (
                     <Badge
@@ -140,7 +139,6 @@ const AlarmRealtime: FC = () => {
                         <Tag
                             color={color || ''}
                             style={{ textAlign: 'center' }}
-                            icon={icon ? <IconFont type={icon} /> : null}
                         >
                             {name || `报警页面${index}`}
                         </Tag>
@@ -282,9 +280,9 @@ const AlarmRealtime: FC = () => {
                     +(alarmRealtimeItem?.eventAt || 0) * 1000
                 ).format('YYYY-MM-DD HH:mm:ss')}`}
             />
-            <EditAlarmPageModal
+            <EditDictModal
                 open={openEditModal}
-                onCancel={handleCancelEditModal}
+                onClose={handleCancelEditModal}
                 onOk={handleEditModelOnOk}
             />
             <RouteBreadcrumb />

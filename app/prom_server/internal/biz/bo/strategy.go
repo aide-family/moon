@@ -6,7 +6,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -14,7 +14,7 @@ import (
 type SelectStrategyRequest struct {
 	Page    Pagination
 	Keyword string
-	Status  vo.Status
+	Status  vobj.Status
 }
 
 type ExportStrategyRequest struct {
@@ -25,7 +25,7 @@ type ListStrategyRequest struct {
 	Page       Pagination
 	Keyword    string
 	GroupId    uint32
-	Status     vo.Status
+	Status     vobj.Status
 	StrategyId uint32
 }
 
@@ -37,14 +37,14 @@ type (
 		Duration       string                `json:"duration"`
 		Labels         *strategy.Labels      `json:"labels"`
 		Annotations    *strategy.Annotations `json:"annotations"`
-		Status         vo.Status             `json:"status"`
+		Status         vobj.Status           `json:"status"`
 		Remark         string                `json:"remark"`
 		GroupId        uint32                `json:"groupId"`
 		GroupInfo      *StrategyGroupBO      `json:"groupInfo"`
 		AlarmLevelId   uint32                `json:"alarmLevelId"`
 		AlarmLevelInfo *DictBO               `json:"alarmLevelInfo"`
 		AlarmPageIds   []uint32              `json:"alarmPageIds"`
-		AlarmPages     []*AlarmPageBO        `json:"alarmPages"`
+		AlarmPages     []*DictBO             `json:"alarmPages"`
 		CategoryIds    []uint32              `json:"categoryIds"`
 		Categories     []*DictBO             `json:"categories"`
 		CreatedAt      int64                 `json:"createdAt"`
@@ -58,9 +58,9 @@ type (
 		EndpointId uint32      `json:"endpointId"`
 		Endpoint   *EndpointBO `json:"endpoint"`
 
-		MaxSuppress  string           `json:"maxSuppress"`
-		SendInterval string           `json:"sendInterval"`
-		SendRecover  vo.IsSendRecover `json:"sendRecover"`
+		MaxSuppress  string             `json:"maxSuppress"`
+		SendInterval string             `json:"sendInterval"`
+		SendRecover  vobj.IsSendRecover `json:"sendRecover"`
 	}
 )
 
@@ -157,7 +157,7 @@ func (b *StrategyBO) GetCategories() []*DictBO {
 }
 
 // GetAlarmPages .
-func (b *StrategyBO) GetAlarmPages() []*AlarmPageBO {
+func (b *StrategyBO) GetAlarmPages() []*DictBO {
 	if b == nil {
 		return nil
 	}
@@ -173,8 +173,8 @@ func (b *StrategyBO) GetAlert() string {
 }
 
 // ToApiSelectV1 告警页面列表转换为api告警页面列表
-func (b *StrategyBO) ToApiSelectV1() []*api.AlarmPageSelectV1 {
-	return ListToApiAlarmPageSelectV1(b.GetAlarmPages()...)
+func (b *StrategyBO) ToApiSelectV1() []*api.DictSelectV1 {
+	return ListToApiDictSelectV1(b.GetAlarmPages()...)
 }
 
 // CategoryInfoToApiSelectV1 分类信息转换为api分类列表
@@ -311,7 +311,7 @@ func (b *StrategyBO) ToModel() *do.PromStrategy {
 		AlertLevelID: b.AlarmLevelId,
 		Status:       b.Status,
 		Remark:       b.Remark,
-		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *AlarmPageBO) *do.PromAlarmPage {
+		AlarmPages: slices.To(b.GetAlarmPages(), func(alarmPageInfo *DictBO) *do.SysDict {
 			return alarmPageInfo.ToModel()
 		}),
 		Categories: slices.To(b.GetCategories(), func(dictInfo *DictBO) *do.SysDict {
@@ -344,11 +344,11 @@ func StrategyModelToBO(m *do.PromStrategy) *StrategyBO {
 		GroupInfo:      StrategyGroupModelToBO(m.GetGroupInfo()),
 		AlarmLevelId:   m.AlertLevelID,
 		AlarmLevelInfo: DictModelToBO(m.GetAlertLevel()),
-		AlarmPageIds: slices.To(m.GetAlarmPages(), func(alarmPageInfo *do.PromAlarmPage) uint32 {
+		AlarmPageIds: slices.To(m.GetAlarmPages(), func(alarmPageInfo *do.SysDict) uint32 {
 			return alarmPageInfo.ID
 		}),
-		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *do.PromAlarmPage) *AlarmPageBO {
-			return AlarmPageModelToBO(dictInfo)
+		AlarmPages: slices.To(m.GetAlarmPages(), func(dictInfo *do.SysDict) *DictBO {
+			return DictModelToBO(dictInfo)
 		}),
 		CategoryIds: slices.To(m.GetCategories(), func(dictInfo *do.SysDict) uint32 {
 			return dictInfo.ID

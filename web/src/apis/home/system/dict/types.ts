@@ -86,6 +86,22 @@ interface DictBatchUpdateStatusType {
     status: Status
 }
 
+interface CountAlarmPageRequest {
+    ids: number[]
+}
+
+interface CountAlarmPageReply {
+    alarmCount: { [key: number]: number | string }
+}
+
+interface BindMyAlarmPagesRequest {
+    alarmIds: number[]
+}
+
+interface MyAlarmPageListResponse {
+    list: DictListItem[]
+}
+
 export type {
     CreateDict,
     UpdateDict,
@@ -99,5 +115,9 @@ export type {
     DictSelectRes,
     DictSelectItem,
     dictBatchDeleteType,
-    DictBatchUpdateStatusType
+    DictBatchUpdateStatusType,
+    CountAlarmPageRequest,
+    CountAlarmPageReply,
+    BindMyAlarmPagesRequest,
+    MyAlarmPageListResponse
 }

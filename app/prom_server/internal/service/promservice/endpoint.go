@@ -8,7 +8,7 @@ import (
 	pb "prometheus-manager/api/server/prom/endpoint"
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type EndpointService struct {
@@ -72,7 +72,7 @@ func (s *EndpointService) EditEndpoint(ctx context.Context, req *pb.EditEndpoint
 
 // BatchEditEndpointStatus 批量编辑状态
 func (s *EndpointService) BatchEditEndpointStatus(ctx context.Context, req *pb.BatchEditEndpointStatusRequest) (*pb.BatchEditEndpointStatusReply, error) {
-	if err := s.endpointBiz.UpdateStatusByIds(ctx, req.GetIds(), vo.Status(req.GetStatus())); err != nil {
+	if err := s.endpointBiz.UpdateStatusByIds(ctx, req.GetIds(), vobj.Status(req.GetStatus())); err != nil {
 		return nil, err
 	}
 	return &pb.BatchEditEndpointStatusReply{
@@ -98,7 +98,7 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 	listEndpoint, err := s.endpointBiz.ListEndpoint(ctx, &bo.ListEndpointReq{
 		Page:    pageInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (s *EndpointService) SelectEndpoint(ctx context.Context, req *pb.SelectEndp
 	listEndpoint, err := s.endpointBiz.ListEndpoint(ctx, &bo.ListEndpointReq{
 		Page:    pageInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err

@@ -9,7 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/api"
@@ -66,7 +66,7 @@ func (s *GroupService) UpdateGroup(ctx context.Context, req *pb.UpdateGroupReque
 }
 
 func (s *GroupService) BatchUpdateGroupStatus(ctx context.Context, req *pb.BatchUpdateGroupStatusRequest) (*pb.BatchUpdateGroupStatusReply, error) {
-	if err := s.strategyGroupBiz.BatchUpdateStatus(ctx, vo.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.strategyGroupBiz.BatchUpdateStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		return nil, err
 	}
 	return &pb.BatchUpdateGroupStatusReply{
@@ -109,7 +109,7 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 	list, err := s.strategyGroupBiz.List(ctx, &bo.ListGroupReq{
 		Page:              pgInfo,
 		Keyword:           req.GetKeyword(),
-		Status:            vo.Status(req.GetStatus()),
+		Status:            vobj.Status(req.GetStatus()),
 		PreloadCategories: true,
 		Ids:               req.GetIds(),
 	})
@@ -131,14 +131,14 @@ func (s *GroupService) ListGroup(ctx context.Context, req *pb.ListGroupRequest) 
 func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGroupDetailRequest) (*pb.ListAllGroupDetailReply, error) {
 	list := make([]*api.GroupSimple, 0)
 	wheres := []basescopes.ScopeMethod{
-		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.StatusEQ(vobj.StatusEnabled),
 		func(db *gorm.DB) *gorm.DB {
-			return db.Preload(do.PromGroupPreloadFieldPromStrategies, basescopes.StatusEQ(vo.StatusEnabled))
+			return db.Preload(do.PromGroupPreloadFieldPromStrategies, basescopes.StatusEQ(vobj.StatusEnabled))
 		},
 		func(db *gorm.DB) *gorm.DB {
 			return db.Preload(strings.Join([]string{
 				do.PromGroupPreloadFieldPromStrategies,
-				do.PromStrategyPreloadFieldEndpoint}, "."), basescopes.StatusEQ(vo.StatusEnabled))
+				do.PromStrategyPreloadFieldEndpoint}, "."), basescopes.StatusEQ(vobj.StatusEnabled))
 		},
 	}
 
@@ -163,11 +163,11 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGr
 			break
 		}
 		list = append(list, slices.ToFilter(strategyGroupBOS, func(t *bo.StrategyGroupBO) (*api.GroupSimple, bool) {
-			if t.Status != vo.StatusEnabled {
+			if t.Status != vobj.StatusEnabled {
 				return nil, false
 			}
 			t.PromStrategies = slices.ToFilter(t.GetPromStrategies(), func(ru *bo.StrategyBO) (*bo.StrategyBO, bool) {
-				if ru == nil || ru.Status != vo.StatusEnabled || ru.Endpoint == nil || ru.Endpoint.Endpoint == "" {
+				if ru == nil || ru.Status != vobj.StatusEnabled || ru.Endpoint == nil || ru.Endpoint.Endpoint == "" {
 					return nil, false
 				}
 				return ru, true
@@ -188,7 +188,7 @@ func (s *GroupService) SelectGroup(ctx context.Context, req *pb.SelectGroupReque
 	selectList, err := s.strategyGroupBiz.List(ctx, &bo.ListGroupReq{
 		Page:    pgInfo,
 		Keyword: req.GetKeyword(),
-		Status:  vo.Status(req.GetStatus()),
+		Status:  vobj.Status(req.GetStatus()),
 	})
 	if err != nil {
 		return nil, err
@@ -248,11 +248,11 @@ func (s *GroupService) ImportGroup(ctx context.Context, req *pb.ImportGroupReque
 				Duration:     rule.GetFor(),
 				Labels:       (*strategy.Labels)(&labels),
 				Annotations:  (*strategy.Annotations)(&annotations),
-				Status:       vo.StatusDisabled,
+				Status:       vobj.StatusDisabled,
 				Remark:       rule.GetAlert(),
 				GroupId:      strategyGroup.Id,
 				AlarmLevelId: uint32(levelId),
-				AlarmPages:   slices.To(req.GetDefaultAlarmPageIds(), func(id uint32) *bo.AlarmPageBO { return &bo.AlarmPageBO{Id: id} }),
+				AlarmPages:   slices.To(req.GetDefaultAlarmPageIds(), func(id uint32) *bo.DictBO { return &bo.DictBO{Id: id} }),
 				Categories:   slices.To(req.GetDefaultCategoryIds(), func(id uint32) *bo.DictBO { return &bo.DictBO{Id: id} }),
 				PromNotifies: slices.To(req.GetDefaultAlarmNotifyIds(), func(id uint32) *bo.NotifyBO { return &bo.NotifyBO{Id: id} }),
 				EndpointId:   req.GetDatasourceId(),

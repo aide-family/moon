@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromAlarmRealtime = "prom_alarm_realtime"
@@ -99,7 +99,7 @@ type PromAlarmRealtime struct {
 	Instance string `gorm:"column:instance;type:varchar(64);not null;index:idx__ar__instance,priority:1;comment:instance名称"`
 	Note     string `gorm:"column:note;type:varchar(255);not null;comment:告警内容"`
 	// Status 告警状态: 1告警;2恢复
-	Status vo.AlarmStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
+	Status vobj.AlarmStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// EventAt 告警时间
 	EventAt int64 `gorm:"column:event_at;type:bigint;not null;comment:告警时间"`
 	// 通知对象, 记录事件发生时候实际的通知人员

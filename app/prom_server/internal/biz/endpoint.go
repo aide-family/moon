@@ -7,7 +7,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -34,11 +34,11 @@ func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoint *bo.EndpointB
 	if err != nil {
 		return nil, err
 	}
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
 		Content:    newData.String(),
 		Title:      "新增数据源",
 		ModuleId:   newData.Id,
-		ModuleName: vo.ModuleDatasource,
+		ModuleName: vobj.ModuleDatasource,
 	})
 	return newData, nil
 }
@@ -57,18 +57,18 @@ func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, id uint32, endpoin
 		return nil, err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
 		Content:    bo.NewChangeLogBo(oldData, newData).String(),
 		Title:      "更新数据源",
 		ModuleId:   newData.Id,
-		ModuleName: vo.ModuleDatasource,
+		ModuleName: vobj.ModuleDatasource,
 	})
 
 	return newData, nil
 }
 
 // UpdateStatusByIds 批量更新状态
-func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, status vo.Status) error {
+func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, status vobj.Status) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -85,10 +85,10 @@ func (b *EndpointBiz) UpdateStatusByIds(ctx context.Context, ids []uint32, statu
 			Content:    bo.NewChangeLogBo(item.Status.String(), status.String()).String(),
 			Title:      "更新数据源状态",
 			ModuleId:   item.Id,
-			ModuleName: vo.ModuleDatasource,
+			ModuleName: vobj.ModuleDatasource,
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -115,10 +115,10 @@ func (b *EndpointBiz) DeleteEndpointById(ctx context.Context, ids ...uint32) err
 			Content:    item.String(),
 			Title:      "删除数据源",
 			ModuleId:   item.Id,
-			ModuleName: vo.ModuleDatasource,
+			ModuleName: vobj.ModuleDatasource,
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 

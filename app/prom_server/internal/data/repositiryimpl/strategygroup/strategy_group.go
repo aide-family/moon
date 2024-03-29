@@ -12,7 +12,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/helper/prom"
@@ -90,7 +90,7 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 	var strategyCountList []StrategyCount
 	wheres := []basescopes.ScopeMethod{
 		do.StrategyInGroupIds(ids...),
-		basescopes.StatusEQ(vo.StatusEnabled),
+		basescopes.StatusEQ(vobj.StatusEnabled),
 	}
 	if err := strategyDB.Scopes(wheres...).Select("count(id) as count, group_id").Group("group_id").Scan(&strategyCountList).Error; err != nil {
 		return err
@@ -124,7 +124,7 @@ func (l *strategyGroupRepoImpl) UpdateEnableStrategyCount(ctx context.Context, i
 func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.StrategyGroupBO) (*bo.StrategyGroupBO, error) {
 	strategyGroupModel := strategyGroup.ToModel()
 	// 默认不开启
-	strategyGroupModel.Status = vo.StatusDisabled
+	strategyGroupModel.Status = vobj.StatusDisabled
 	if err := l.data.DB().WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: basescopes.BaseFieldID.String()}},
 		UpdateAll: true,
@@ -141,7 +141,7 @@ func (l *strategyGroupRepoImpl) Create(ctx context.Context, strategyGroup *bo.St
 func (l *strategyGroupRepoImpl) BatchCreate(ctx context.Context, strategyGroups []*bo.StrategyGroupBO) ([]*bo.StrategyGroupBO, error) {
 	strategyGroupModelList := slices.To(strategyGroups, func(strategyGroup *bo.StrategyGroupBO) *do.PromStrategyGroup {
 		item := strategyGroup.ToModel()
-		item.Status = vo.StatusDisabled
+		item.Status = vobj.StatusDisabled
 		return item
 	})
 	if err := l.data.DB().WithContext(ctx).
@@ -174,7 +174,7 @@ func (l *strategyGroupRepoImpl) UpdateById(ctx context.Context, id uint32, strat
 	return bo.StrategyGroupModelToBO(strategyGroupModel), nil
 }
 
-func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status vo.Status, ids []uint32) error {
+func (l *strategyGroupRepoImpl) BatchUpdateStatus(ctx context.Context, status vobj.Status, ids []uint32) error {
 	if err := l.data.DB().WithContext(ctx).Scopes(basescopes.InIds(ids...)).Updates(&do.PromStrategyGroup{Status: status}).Error; err != nil {
 		return err
 	}

@@ -5,26 +5,26 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
 	ListChatGroupReq struct {
-		Page    Pagination `json:"page"`
-		Keyword string     `json:"keyword"`
-		Status  vo.Status  `json:"status"`
+		Page    Pagination  `json:"page"`
+		Keyword string      `json:"keyword"`
+		Status  vobj.Status `json:"status"`
 	}
 	ChatGroupBO struct {
-		Id        uint32       `json:"id"`
-		Name      string       `json:"name"`
-		Status    vo.Status    `json:"status"`
-		Remark    string       `json:"remark"`
-		CreatedAt int64        `json:"createdAt"`
-		UpdatedAt int64        `json:"updatedAt"`
-		DeletedAt int64        `json:"deletedAt"`
-		Hook      string       `json:"hook"`
-		NotifyApp vo.NotifyApp `json:"notifyApp"`
-		HookName  string       `json:"hookName"`
+		Id        uint32         `json:"id"`
+		Name      string         `json:"name"`
+		Status    vobj.Status    `json:"status"`
+		Remark    string         `json:"remark"`
+		CreatedAt int64          `json:"createdAt"`
+		UpdatedAt int64          `json:"updatedAt"`
+		DeletedAt int64          `json:"deletedAt"`
+		Hook      string         `json:"hook"`
+		NotifyApp vobj.NotifyApp `json:"notifyApp"`
+		HookName  string         `json:"hookName"`
 		// 消息模板
 		Template string `json:"template"`
 		// 通信密钥
@@ -103,13 +103,13 @@ func ChatGroupApiToBO(a *api.ChatGroup) *ChatGroupBO {
 	return &ChatGroupBO{
 		Id:        a.Id,
 		Name:      a.Name,
-		Status:    vo.Status(a.Status),
+		Status:    vobj.Status(a.Status),
 		Remark:    a.Remark,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 		DeletedAt: 0,
 		Hook:      a.Hook,
-		NotifyApp: vo.NotifyApp(a.App),
+		NotifyApp: vobj.NotifyApp(a.App),
 		HookName:  a.HookName,
 		Template:  a.Template,
 		Secret:    a.Secret,

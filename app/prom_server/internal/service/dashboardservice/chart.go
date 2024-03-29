@@ -9,7 +9,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -84,7 +84,7 @@ func (s *ChartService) ListChart(ctx context.Context, req *dashboard.ListChartRe
 	pgReq := req.GetPage()
 	pgInfo := bo.NewPage(pgReq.GetCurr(), pgReq.GetSize())
 	wheres := []basescopes.ScopeMethod{
-		basescopes.StatusEQ(vo.Status(req.GetStatus())),
+		basescopes.StatusEQ(vobj.Status(req.GetStatus())),
 		basescopes.TitleLike(req.GetKeyword()),
 		basescopes.CreatedAtDesc(),
 		basescopes.UpdateAtDesc(),

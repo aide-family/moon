@@ -8,6 +8,5 @@ import (
 var ProviderSetAlarm = wire.NewSet(
 	NewHistoryService,
 	NewHookService,
-	NewAlarmPageService,
 	NewRealtimeService,
 )

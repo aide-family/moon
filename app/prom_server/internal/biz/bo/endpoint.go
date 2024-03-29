@@ -6,7 +6,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 var _ encoding.BinaryMarshaler = (*EndpointBO)(nil)
@@ -16,17 +16,17 @@ type (
 	ListEndpointReq struct {
 		Page    Pagination
 		Keyword string
-		Status  vo.Status
+		Status  vobj.Status
 	}
 	EndpointBO struct {
-		Id        uint32    `json:"id"`
-		Name      string    `json:"name"`
-		Endpoint  string    `json:"endpoint"`
-		Status    vo.Status `json:"status"`
-		Remark    string    `json:"remark"`
-		CreatedAt int64     `json:"createdAt"`
-		UpdatedAt int64     `json:"updatedAt"`
-		DeletedAt int64     `json:"deletedAt"`
+		Id        uint32      `json:"id"`
+		Name      string      `json:"name"`
+		Endpoint  string      `json:"endpoint"`
+		Status    vobj.Status `json:"status"`
+		Remark    string      `json:"remark"`
+		CreatedAt int64       `json:"createdAt"`
+		UpdatedAt int64       `json:"updatedAt"`
+		DeletedAt int64       `json:"deletedAt"`
 	}
 )
 

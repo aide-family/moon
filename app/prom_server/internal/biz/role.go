@@ -10,7 +10,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/after"
 	"prometheus-manager/pkg/util/slices"
 )
@@ -43,8 +43,8 @@ func (b *RoleBiz) CreateRole(ctx context.Context, roleBO *bo.RoleBO) (*bo.RoleBO
 		return nil, err
 	}
 
-	b.logX.CreateSysLog(ctx, vo.ActionCreate, &bo.SysLogBo{
-		ModuleName: vo.ModuleRole,
+	b.logX.CreateSysLog(ctx, vobj.ActionCreate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleRole,
 		ModuleId:   roleBO.Id,
 		Content:    roleBO.String(),
 		Title:      "创建角色",
@@ -67,13 +67,13 @@ func (b *RoleBiz) DeleteRoleByIds(ctx context.Context, ids []uint32) error {
 	}
 	list := slices.To(oldRoles, func(role *bo.RoleBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleRole,
+			ModuleName: vobj.ModuleRole,
 			ModuleId:   role.Id,
 			Content:    role.String(),
 			Title:      "删除角色",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionDelete, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionDelete, list...)
 	return nil
 }
 
@@ -119,8 +119,8 @@ func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.Ro
 		return nil, err
 	}
 	b.cacheRoleByIds(roleBO.Id)
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleRole,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleRole,
 		ModuleId:   roleBO.Id,
 		Content:    bo.NewChangeLogBo(oldRole, newRoleBO).String(),
 		Title:      "更新角色",
@@ -129,7 +129,7 @@ func (b *RoleBiz) UpdateRoleById(ctx context.Context, roleBO *bo.RoleBO) (*bo.Ro
 }
 
 // UpdateRoleStatusById 更新角色状态
-func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status vo.Status, ids []uint32) error {
+func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status vobj.Status, ids []uint32) error {
 	oldList, err := b.roleRepo.Find(ctx, basescopes.InIds(ids...))
 	if err != nil {
 		return err
@@ -142,13 +142,13 @@ func (b *RoleBiz) UpdateRoleStatusById(ctx context.Context, status vo.Status, id
 	b.cacheRoleByIds(ids...)
 	list := slices.To(oldList, func(role *bo.RoleBO) *bo.SysLogBo {
 		return &bo.SysLogBo{
-			ModuleName: vo.ModuleRole,
+			ModuleName: vobj.ModuleRole,
 			ModuleId:   role.Id,
 			Content:    bo.NewChangeLogBo(role.Status.String(), status.String()).String(),
 			Title:      "更新角色状态",
 		}
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, list...)
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, list...)
 	return nil
 }
 
@@ -197,8 +197,8 @@ func (b *RoleBiz) RelateApiById(ctx context.Context, roleId uint32, apiIds []uin
 	apiStr := slices.To(findBoList, func(api *bo.ApiBO) string {
 		return api.String()
 	})
-	b.logX.CreateSysLog(ctx, vo.ActionUpdate, &bo.SysLogBo{
-		ModuleName: vo.ModuleRole,
+	b.logX.CreateSysLog(ctx, vobj.ActionUpdate, &bo.SysLogBo{
+		ModuleName: vobj.ModuleRole,
 		ModuleId:   roleBoInfo.Id,
 		Content:    fmt.Sprintf(`{"apis":[%s]}`, strings.Join(apiStr, ",")),
 		Title:      "关联角色和API",

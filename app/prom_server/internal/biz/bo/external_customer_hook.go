@@ -5,7 +5,7 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 )
 
 type (
@@ -13,8 +13,8 @@ type (
 		Id         uint32              `json:"id"`
 		Hook       string              `json:"hook"`
 		HookName   string              `json:"hookName"`
-		NotifyApp  vo.NotifyApp        `json:"notifyApp"`
-		Status     vo.Status           `json:"status"`
+		NotifyApp  vobj.NotifyApp      `json:"notifyApp"`
+		Status     vobj.Status         `json:"status"`
 		Remark     string              `json:"remark"`
 		CustomerId uint32              `json:"customerId"`
 		Customer   *ExternalCustomerBO `json:"externalCustomer"`

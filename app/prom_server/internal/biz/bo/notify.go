@@ -5,20 +5,20 @@ import (
 
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/pkg/util/slices"
 )
 
 type (
 	ListNotifyRequest struct {
-		Page    Pagination `json:"page"`
-		Keyword string     `json:"keyword"`
-		Status  vo.Status  `json:"status"`
+		Page    Pagination  `json:"page"`
+		Keyword string      `json:"keyword"`
+		Status  vobj.Status `json:"status"`
 	}
 	NotifyBO struct {
 		Id                 uint32                 `json:"id"`
 		Name               string                 `json:"name"`
-		Status             vo.Status              `json:"status"`
+		Status             vobj.Status            `json:"status"`
 		Remark             string                 `json:"remark"`
 		CreatedAt          int64                  `json:"createdAt"`
 		UpdatedAt          int64                  `json:"updatedAt"`

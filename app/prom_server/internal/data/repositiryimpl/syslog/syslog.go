@@ -8,7 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vo"
+	"prometheus-manager/app/prom_server/internal/biz/vobj"
 	"prometheus-manager/app/prom_server/internal/data"
 	"prometheus-manager/pkg/helper/middler"
 	"prometheus-manager/pkg/util/slices"
@@ -29,7 +29,7 @@ func NewSysLogRepo(data *data.Data, logger log.Logger) repository.SysLogRepo {
 	}
 }
 
-func (l *sysLogRepoImpl) CreateSysLog(ctx context.Context, action vo.Action, logInfo ...*bo.SysLogBo) {
+func (l *sysLogRepoImpl) CreateSysLog(ctx context.Context, action vobj.Action, logInfo ...*bo.SysLogBo) {
 	userId := middler.GetUserId(ctx)
 	list := slices.To(logInfo, func(detail *bo.SysLogBo) *do.SysLog {
 		item := detail.ToModel()
