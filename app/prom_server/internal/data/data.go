@@ -6,6 +6,7 @@ import (
 	"github.com/google/wire"
 	"gorm.io/gorm"
 	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"prometheus-manager/pkg/helper"
 	"prometheus-manager/pkg/servers"
 	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/cache"
@@ -89,7 +90,12 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	databaseConf := c.GetData().GetDatabase()
 
 	env := c.GetEnv()
-	db, err := conn.NewDB(databaseConf, logger)
+	var logList []log.Logger
+	if !helper.IsDev(env.GetEnv()) {
+		// 其他环境使用系统日志，开发环境使用原始调试日志
+		logList = []log.Logger{logger}
+	}
+	db, err := conn.NewDB(databaseConf, logList...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -134,7 +140,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		d.interflowInstance = interflowInstance
 	}
 
-	if env.GetEnv() == "dev" || env.GetEnv() == "local" {
+	if helper.IsDev(env.GetEnv()) {
 		if err = do.Migrate(d.DB(), d.Cache()); err != nil {
 			d.log.Errorf("db migrate error: %v", err)
 			return nil, nil, err
