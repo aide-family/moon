@@ -2,26 +2,26 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: master-rolebinding
+  name: server-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: master-role
+  name: server-role
 subjects:
 - kind: ServiceAccount
-  name: prometheus-manager-master
-  namespace: prometheus-manager
+  name: moon-server
+  namespace: moon
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: node-rolebinding
+  name: agent-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: node-role
+  name: agent-role
 subjects:
   - kind: ServiceAccount
-    name: prometheus-manager-node
-    namespace: prometheus-manager
+    name: moon-agent
+    namespace: moon

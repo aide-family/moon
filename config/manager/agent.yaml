@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent
+  namespace: system
+  labels:
+    apps.moon/name: moon-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apps.moon/name: moon-agent
+  template:
+    metadata:
+      labels:
+        apps.moon/name: moon-agent
+    spec:
+      containers:
+        - command:
+            - ./prom_agent
+          args:
+            - --conf=/config/config.yaml
+          image: moon-agent:latest
+          name: moon-agent
+          securityContext:
+            allowPrivilegeEscalation: false
+          #          // TODO: @梧桐 Supplemental Health Screening Services
+          #          livenessProbe:
+          #            httpGet:
+          #              path: /healthz
+          #              port: 8081
+          #            initialDelaySeconds: 15
+          #            periodSeconds: 20
+          #          readinessProbe:
+          #            httpGet:
+          #              path: /readyz
+          #              port: 8081
+          #            initialDelaySeconds: 5
+          #            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          volumeMounts:
+            - mountPath: /config
+              name: moon-agent-config
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      serviceAccountName: moon-agent
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: moon-agent-config
+          configMap:
+            name: moon-agent-config

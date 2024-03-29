@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: redis-single-config
-  namespace: prometheus-manager
+  namespace: moon
 data:
   redis.conf: |
     daemonize no
@@ -63,7 +63,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-single
-  namespace: prometheus-manager
+  namespace: moon
 spec:
   replicas: 1
   selector:
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: service-redis-single
-  namespace: prometheus-manager
+  namespace: moon
   labels:
     app: redis-single
 spec:

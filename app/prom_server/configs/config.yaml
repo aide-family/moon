@@ -8,7 +8,7 @@ env:
     author: 梧桐
     license: MIT
     email: aidecloud@163.com
-    url: https://github.com/aide-cloud/prometheus-manager
+    url: https://github.com/aide-family/moon
 
 server:
   http:
