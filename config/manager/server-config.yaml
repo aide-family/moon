@@ -1,0 +1,48 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: server-config
+  namespace: system
+data:
+  config.yaml: |-
+    env:
+      name: moon_server
+      version: 0.0.1
+      env: dev
+      metadata:
+        description: Prometheus Manager Server APP
+        version: 0.0.1
+        author: 梧桐
+        license: MIT
+        email: aidecloud@163.com
+        url: https://github.com/aide-family/moon
+    server:
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 1s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 1s
+      ws:
+        addr: 0.0.0.0:8888
+        timeout: 1s
+    data:
+      database:
+        driver: sqlite
+        source: ./db/init_sqlite.db
+        debug: true
+    log:
+      filename: ./log/server.log
+      level: debug
+      encoder: json
+      maxSize: 500
+      compress: true
+    apiWhite:
+      all:
+        - /api.server.auth.Auth/Login
+        - /api.server.auth.Auth/Captcha
+        - /api.interflows.HookInterflow/Receive
+      jwtApi:
+      rbacApi:
+        - /api.server.auth.Auth/Logout
+        - /api.server.auth.Auth/RefreshToken

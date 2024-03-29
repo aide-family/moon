@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: system
+  labels:
+    apps.moon/name: moon-server
+spec:
+  selector:
+    matchLabels:
+      apps.moon/name: moon-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        apps.moon/name: moon-server
+    spec:
+      containers:
+        - command:
+          - "bash"
+          - "-c"
+          - "nginx && ./prom_server --conf=/config/config.yaml"
+          image: moon-server:latest
+          name: moon-server
+          securityContext:
+            allowPrivilegeEscalation: false
+          #          // TODO: @梧桐 Supplemental Health Screening Services
+          #          livenessProbe:
+          #            httpGet:
+          #              path: /healthz
+          #              port: 8081
+          #            initialDelaySeconds: 15
+          #            periodSeconds: 20
+          #          readinessProbe:
+          #            httpGet:
+          #              path: /readyz
+          #              port: 8081
+          #            initialDelaySeconds: 5
+          #            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          volumeMounts:
+            - mountPath: /config
+              name: moon-server-config
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      serviceAccountName: moon-server
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: moon-server-config
+          configMap:
+            name: moon-server-config

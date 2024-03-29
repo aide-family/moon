@@ -95,6 +95,27 @@
   本地访问地址：http://localhost:8000/
   其他IP访问需要配置nginx，参考[nginx](./doc/nginx.conf)
 
+#### k8s 部署
+
+* 生成部署文件
+
+  ```shell
+  # 镜像需要更换成你自己的镜像
+  make deploy-yaml
+  kubectl apply -f ./_output/yamls/moon.yaml
+  # or
+  make deploy
+  ```
+* 访问服务
+
+>服务端口通过NodePort暴露
+> 
+>本地访问moon-server所在的宿主机IP：http://宿主机IP:31008/
+> 
+>用户名:admin
+> 
+>密码: 123456
+
 ## 3. 功能详解
 
 ### 3.1 系统管理

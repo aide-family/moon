@@ -1,0 +1,275 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moon
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: moon-agent
+  namespace: moon
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: moon-server
+  namespace: moon
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: moon-agent-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: moon-server-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: moon-agent-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: moon-agent-role
+subjects:
+- kind: ServiceAccount
+  name: moon-agent
+  namespace: moon
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: moon-server-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: moon-server-role
+subjects:
+- kind: ServiceAccount
+  name: moon-server
+  namespace: moon
+---
+apiVersion: v1
+data:
+  config.yaml: |-
+    env:
+      name: moon_agent
+      version: 0.0.1
+      env: dev
+      metadata:
+        description: Prometheus Manager Agent APP
+        version: 0.0.1
+        author: 梧桐
+        license: MIT
+        email: aidecloud@163.com
+        url: https://github.com/aide-family/moon
+    server:
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 1s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 1s
+    log:
+      filename: ./log/agent.log
+      level: debug
+      encoder: json
+      maxSize: 500
+      compress: true
+    watchProm:
+      interval: 10s
+    interflow:
+      server: http://moon-server-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
+      agent: http://moon-agent-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
+kind: ConfigMap
+metadata:
+  name: moon-agent-config
+  namespace: moon
+---
+apiVersion: v1
+data:
+  config.yaml: |-
+    env:
+      name: moon_server
+      version: 0.0.1
+      env: dev
+      metadata:
+        description: Prometheus Manager Server APP
+        version: 0.0.1
+        author: 梧桐
+        license: MIT
+        email: aidecloud@163.com
+        url: https://github.com/aide-family/moon
+    server:
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 1s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 1s
+      ws:
+        addr: 0.0.0.0:8888
+        timeout: 1s
+    data:
+      database:
+        driver: sqlite
+        source: ./db/init_sqlite.db
+        debug: true
+    log:
+      filename: ./log/server.log
+      level: debug
+      encoder: json
+      maxSize: 500
+      compress: true
+    apiWhite:
+      all:
+        - /api.server.auth.Auth/Login
+        - /api.server.auth.Auth/Captcha
+        - /api.interflows.HookInterflow/Receive
+      jwtApi:
+      rbacApi:
+        - /api.server.auth.Auth/Logout
+        - /api.server.auth.Auth/RefreshToken
+kind: ConfigMap
+metadata:
+  name: moon-server-config
+  namespace: moon
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    apps.moon/name: moon-agent-svc
+  name: moon-agent-svc
+  namespace: moon
+spec:
+  ports:
+  - name: http
+    nodePort: 31081
+    port: 8000
+    targetPort: 8000
+  - name: grpc
+    nodePort: 31091
+    port: 9000
+    targetPort: 9000
+  selector:
+    apps.moon/name: moon-agent
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    apps.moon/name: moon-server-svc
+  name: moon-server-svc
+  namespace: moon
+spec:
+  ports:
+  - name: http
+    nodePort: 31080
+    port: 8000
+    targetPort: 8000
+  - name: grpc
+    nodePort: 31090
+    port: 9000
+    targetPort: 9000
+  - name: ws
+    port: 8888
+    targetPort: 8888
+  - name: nginx
+    nodePort: 31008
+    port: 80
+    targetPort: 80
+  selector:
+    apps.moon/name: moon-server
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    apps.moon/name: moon-agent
+  name: moon-agent
+  namespace: moon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apps.moon/name: moon-agent
+  template:
+    metadata:
+      labels:
+        apps.moon/name: moon-agent
+    spec:
+      containers:
+      - args:
+        - --conf=/config/config.yaml
+        command:
+        - ./prom_agent
+        image: docker.hub/moon-agent:66b47e3-dirty
+        name: moon-agent
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /config
+          name: moon-agent-config
+      serviceAccountName: moon-agent
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: moon-agent-config
+        name: moon-agent-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    apps.moon/name: moon-server
+  name: moon-server
+  namespace: moon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apps.moon/name: moon-server
+  template:
+    metadata:
+      labels:
+        apps.moon/name: moon-server
+    spec:
+      containers:
+      - command:
+        - bash
+        - -c
+        - nginx && ./prom_server --conf=/config/config.yaml
+        image: docker.hub/moon-server:66b47e3-dirty
+        name: moon-server
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /config
+          name: moon-server-config
+      serviceAccountName: moon-server
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: moon-server-config
+        name: moon-server-config

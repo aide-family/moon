@@ -230,6 +230,17 @@ KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
+.PHONY: deploy
+# Generate deploy yaml.
+deploy: deploy-yaml ## deploy service.
+	kubectl apply -f ./_output/yamls/moon.yaml
+
+.PHONY: undeploy
+# Generate deploy yaml.
+undeploy: deploy-yaml ## undeploy service.
+	kubectl delete -f ./_output/yamls/moon.yaml
+
+
 .PHONY: deploy-yaml
 # Generate deploy yaml.
 deploy-yaml: kustomize ## Generate deploy yaml.

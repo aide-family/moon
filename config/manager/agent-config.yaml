@@ -1,0 +1,36 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: agent-config
+  namespace: system
+data:
+  config.yaml: |-
+    env:
+      name: moon_agent
+      version: 0.0.1
+      env: dev
+      metadata:
+        description: Prometheus Manager Agent APP
+        version: 0.0.1
+        author: 梧桐
+        license: MIT
+        email: aidecloud@163.com
+        url: https://github.com/aide-family/moon
+    server:
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 1s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 1s
+    log:
+      filename: ./log/agent.log
+      level: debug
+      encoder: json
+      maxSize: 500
+      compress: true
+    watchProm:
+      interval: 10s
+    interflow:
+      server: http://moon-server-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
+      agent: http://moon-agent-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
