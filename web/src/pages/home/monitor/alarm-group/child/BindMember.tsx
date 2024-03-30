@@ -7,7 +7,6 @@ import userApi from '@/apis/home/system/user'
 import FetchSelect from '@/components/Data/FetchSelect'
 import EditUserModal from '@/pages/home/system/user/child/EditModal'
 import { NotifyMemberItem } from '@/apis/home/monitor/alarm-group/types'
-import { UserSelectItem } from '@/apis/home/system/user/types'
 
 export interface BindMemberProps {
     value?: NotifyMemberItem[]
@@ -39,7 +38,7 @@ export const BindMember: React.FC<BindMemberProps> = (props) => {
             values.groups.map((item) => {
                 membersTmp.push({
                     memberId: item.value as number,
-                    user: item.title as UserSelectItem,
+                    user: item.title as any,
                     notifyType: 0,
                     status: 0,
                     id: 0
@@ -111,7 +110,7 @@ export const BindMember: React.FC<BindMemberProps> = (props) => {
                 return data.list?.map((item) => {
                     const option: DefaultOptionType = {
                         label: item.label,
-                        title: item,
+                        title: item as any,
                         value: item.value
                     }
                     return option

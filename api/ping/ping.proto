@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package api;
+package api.ping;
 
 import "google/api/annotations.proto";
 
 option go_package = "prometheus-manager/api/ping;ping";
 option java_multiple_files = true;
-option java_package = "ping";
+option java_package = "api.ping";
 
 // 健康检查模块接口
 service Ping {

@@ -130,6 +130,7 @@ data:
         - /api.server.auth.Auth/Login
         - /api.server.auth.Auth/Captcha
         - /api.interflows.HookInterflow/Receive
+        - /api.ping.Ping/Check
       jwtApi:
       rbacApi:
         - /api.server.auth.Auth/Logout
@@ -188,6 +189,33 @@ spec:
     apps.moon/name: moon-server
   type: NodePort
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: moon-sqlite-pv-5gi
+  namespace: moon
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /nfs/data/moon/sqlite
+  storageClassName: nfs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moon-sqlite-pvc
+  namespace: moon
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -210,8 +238,21 @@ spec:
         - --conf=/config/config.yaml
         command:
         - ./prom_agent
-        image: docker.hub/moon-agent:66b47e3-dirty
+        image: aidemoonio/moon-agent:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
         name: moon-agent
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
         resources:
           limits:
             cpu: "2"
@@ -253,8 +294,21 @@ spec:
         - bash
         - -c
         - nginx && ./prom_server --conf=/config/config.yaml
-        image: docker.hub/moon-server:66b47e3-dirty
+        image: aidemoonio/moon-server:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
         name: moon-server
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
         resources:
           limits:
             cpu: "2"
@@ -267,9 +321,14 @@ spec:
         volumeMounts:
         - mountPath: /config
           name: moon-server-config
+        - mountPath: /app/db
+          name: moon-server-sqlite-volume
       serviceAccountName: moon-server
       terminationGracePeriodSeconds: 10
       volumes:
       - configMap:
           name: moon-server-config
         name: moon-server-config
+      - name: moon-server-sqlite-volume
+        persistentVolumeClaim:
+          claimName: moon-sqlite-pvc

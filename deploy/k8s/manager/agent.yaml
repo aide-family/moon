@@ -21,24 +21,22 @@ spec:
           args:
             - --conf=/config/config.yaml
           image: moon-agent:latest
+          imagePullPolicy: IfNotPresent
           name: moon-agent
           securityContext:
             allowPrivilegeEscalation: false
-          #          // TODO: @梧桐 Supplemental Health Screening Services
-          #          livenessProbe:
-          #            httpGet:
-          #              path: /healthz
-          #              port: 8081
-          #            initialDelaySeconds: 15
-          #            periodSeconds: 20
-          #          readinessProbe:
-          #            httpGet:
-          #              path: /readyz
-          #              port: 8081
-          #            initialDelaySeconds: 5
-          #            periodSeconds: 10
-          # TODO(user): Configure the resources accordingly based on the project requirements.
-          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
           volumeMounts:
             - mountPath: /config
               name: moon-agent-config

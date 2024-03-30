@@ -52,3 +52,4 @@ temp/
 # some cache file
 cache/
 /pkg/util/email/email_test.go
+/_output/yamls/build/

@@ -1,4 +1,4 @@
-import { PageReqType, PageRes, PageResType, Status } from '@/apis/types'
+import { PageReqType, PageResType, Status } from '@/apis/types'
 
 interface PrometheusServerItem {
     id: number
@@ -48,7 +48,7 @@ interface SelectEndpointRequest {
 
 interface SelectEndpointResponse {
     list: PrometheusServerSelectItem[]
-    page: PageRes
+    page: PageResType
 }
 
 interface UpdateEndpointRequest {

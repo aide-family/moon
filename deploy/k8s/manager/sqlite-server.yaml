@@ -1,0 +1,30 @@
+---
+# 存储卷定义
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sqlite-pv-5gi
+  namespace: moon
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  hostPath:
+    path: /nfs/data/moon/sqlite
+
+---
+# 存储卷声明
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlite-pvc
+  namespace: system
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs
