@@ -4,7 +4,7 @@ import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
 import { HeightLine, PaddingLine } from '@/components/HeightLine'
 import { DataOption, DataTable, SearchForm } from '@/components/Data'
-import { CopyOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { CopyOutlined } from '@ant-design/icons'
 import { ActionKey } from '@/apis/data.tsx'
 import {
     StrategyItemType,
@@ -329,7 +329,7 @@ const Strategy: FC = () => {
                 action={handlerTableAction}
                 expandable={{
                     expandedRowRender: (record: StrategyItemType) => (
-                        <Space size="middle" direction="vertical">
+                        <Space size="small" direction="vertical">
                             <Space style={{ width: '100%' }}>
                                 <Button
                                     type="primary"
@@ -348,18 +348,6 @@ const Strategy: FC = () => {
                                     </Form.Item>
                                 </Form>
                             </Space>
-                            {!!record?.remark && (
-                                <Space style={{ width: '100%' }}>
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<InfoCircleOutlined />}
-                                    />
-                                    <p style={{ margin: 0 }}>
-                                        {record?.remark}
-                                    </p>
-                                </Space>
-                            )}
                         </Space>
                     )
                 }}

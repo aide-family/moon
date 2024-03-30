@@ -115,7 +115,7 @@ message CreateStrategyRequest {
   // 策略组ID, 必填, 所属的策略组ID信息
   uint32 groupId = 1 [(validate.rules).uint32.gt = 0];
   // 告警名称, 必填, 字符串, 长度限制: 1-255, 正则表达式: ^[a-zA-Z0-9_]+$
-  string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 255, pattern: "^[a-zA-Z0-9_]+$"}];
+  string alert = 2 [(validate.rules).string = {min_len: 1, max_len: 255}];
   // 表达式, 必填, promQL表达式
   string expr = 3 [(validate.rules).string.min_len = 1];
   // 持续时间,(1s,1m,1h,1d), 对应prometheus的持续时间单位for
@@ -125,7 +125,7 @@ message CreateStrategyRequest {
     min_pairs: 1
     max_pairs: 100
     keys: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+      string: {min_len: 1, max_len: 32}
     }
   }];
   // 注解, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
@@ -133,7 +133,7 @@ message CreateStrategyRequest {
     min_pairs: 1
     max_pairs: 100
     keys: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+      string: {min_len: 1, max_len: 32}
     }
   }];
   // 告警页面ID列表, 对应告警页面的ID
@@ -178,7 +178,7 @@ message UpdateStrategyRequest {
   // 策略组ID, 所属的策略组ID信息, 可以替换成新的, 如果不替换则使用原有的
   uint32 groupId = 2 [(validate.rules).uint32.gt = 0];
   // 告警名称, 必填, 字符串, 长度限制: 1-255, 正则表达式: ^[a-zA-Z0-9_]+$
-  string alert = 3 [(validate.rules).string = {min_len: 1 max_len: 255, pattern: "^[a-zA-Z0-9_]+$"}];
+  string alert = 3 [(validate.rules).string = {min_len: 1 max_len: 255}];
   // 表达式, 必填, promQL表达式
   string expr = 4 [(validate.rules).string.min_len = 1];
   // 持续时间,(1s,1m,1h,1d), 对应prometheus的持续时间单位for
@@ -188,7 +188,7 @@ message UpdateStrategyRequest {
     min_pairs: 1
     max_pairs: 100
     keys: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+      string: {min_len: 1, max_len: 32}
     }
   }];
   // 注解, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
@@ -196,7 +196,7 @@ message UpdateStrategyRequest {
     min_pairs: 1
     max_pairs: 100
     keys: {
-      string: {pattern: "^[a-zA-Z0-9_]+$", min_len: 1, max_len: 32}
+      string: {min_len: 1, max_len: 32}
     }
   }];
   // 告警页面ID列表

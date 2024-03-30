@@ -1,6 +1,6 @@
 import { useContext, FC, useState, useEffect } from 'react'
 
-import type { MenuProps } from 'antd'
+import { MenuProps } from 'antd'
 
 import { Avatar, Dropdown } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -31,12 +31,12 @@ const UserInfo: FC = () => {
         {
             key: ActionKey.CHANGE_PASSWORD,
             label: '修改密码',
-            icon: <IconFont type="icon-Password" />
+            icon: <IconFont type="icon-mima" />
         },
         {
             key: ActionKey.SWITCH_ROLE,
             label: '切换角色',
-            icon: <IconFont type="icon-role1" />
+            icon: <IconFont type="icon-kehuguanli1" />
         },
         {
             type: 'divider'
@@ -44,7 +44,8 @@ const UserInfo: FC = () => {
         {
             key: ActionKey.LOGOUT,
             label: '退出登录',
-            icon: <IconFont type="icon-logout-" />
+            icon: <IconFont type="icon-logout-" />,
+            danger: true
         }
     ]
 

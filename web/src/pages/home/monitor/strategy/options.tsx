@@ -19,6 +19,7 @@ import {
     Category,
     Duration,
     Map,
+    NotifyTemplateType,
     PageReqType,
     Status,
     StatusMap
@@ -95,7 +96,7 @@ export const tableOperationItems = (
             <Button
                 type="link"
                 size="small"
-                icon={<IconFont type="icon-email1" />}
+                icon={<IconFont type="icon-tongzhimoban" />}
             >
                 通知模板
             </Button>
@@ -1030,7 +1031,10 @@ export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
                     ([key, value]) => {
                         return {
                             value: +key,
-                            label: value
+                            label: value,
+                            disabled:
+                                +key ===
+                                NotifyTemplateType.NotifyTemplateTypeSms
                         }
                     }
                 )

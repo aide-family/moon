@@ -8,6 +8,7 @@ import {
     SysLogActionType
 } from './types'
 import { IconFont } from '@/components/IconFont/IconFont'
+import React from 'react'
 
 /**
  * 字典分类数据
@@ -71,7 +72,7 @@ const NotifyAppData: Record<NotifyApp, React.ReactNode> = {
     ),
     [NotifyApp.NOTIFY_APP_CUSTOM]: (
         <Button type="text" icon={<IconFont type="icon-zidingyi" />}>
-            自定义
+            自定义hook
         </Button>
     )
 }
@@ -110,13 +111,40 @@ const SysLogActionTypeData: Record<
     }
 }
 
-export const NotifyTemplateTypeData: Record<NotifyTemplateType, string> = {
-    [NotifyTemplateType.NotifyTemplateTypeEmail]: '邮件',
-    [NotifyTemplateType.NotifyTemplateTypeCustom]: '自定义',
-    [NotifyTemplateType.NotifyTemplateTypeDingDing]: '钉钉',
-    [NotifyTemplateType.NotifyTemplateTypeSms]: '短信',
-    [NotifyTemplateType.NotifyTemplateTypeFeiShu]: '飞书',
-    [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: '企业微信'
+export const NotifyTemplateTypeData: Record<
+    NotifyTemplateType,
+    React.ReactNode
+> = {
+    [NotifyTemplateType.NotifyTemplateTypeEmail]: (
+        <Button type="text" icon={<IconFont type="icon-youjian" />}>
+            邮件
+        </Button>
+    ),
+    [NotifyTemplateType.NotifyTemplateTypeCustom]: (
+        <Button type="text" icon={<IconFont type="icon-zidingyi" />}>
+            自定义hook
+        </Button>
+    ),
+    [NotifyTemplateType.NotifyTemplateTypeDingDing]: (
+        <Button type="text" icon={<IconFont type="icon-dingding" />}>
+            钉钉
+        </Button>
+    ),
+    [NotifyTemplateType.NotifyTemplateTypeSms]: (
+        <Button type="text" icon={<IconFont type="icon-duanxin" />}>
+            短信
+        </Button>
+    ),
+    [NotifyTemplateType.NotifyTemplateTypeFeiShu]: (
+        <Button type="text" icon={<IconFont type="icon-feishu" />}>
+            飞书
+        </Button>
+    ),
+    [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: (
+        <Button type="text" icon={<IconFont type="icon-qiyeweixin" />}>
+            企业微信
+        </Button>
+    )
 }
 
 export enum ActionKey {

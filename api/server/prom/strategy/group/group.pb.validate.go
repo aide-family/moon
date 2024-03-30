@@ -72,17 +72,6 @@ func (m *CreateGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CreateGroupRequest_Name_Pattern.MatchString(m.GetName()) {
-		err := CreateGroupRequestValidationError{
-			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	for idx, item := range m.GetCategoryIds() {
 		_, _ = idx, item
 
@@ -189,8 +178,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateGroupRequestValidationError{}
-
-var _CreateGroupRequest_Name_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Validate checks the field values on CreateGroupReply with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -338,17 +325,6 @@ func (m *UpdateGroupRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_UpdateGroupRequest_Name_Pattern.MatchString(m.GetName()) {
-		err := UpdateGroupRequestValidationError{
-			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	for idx, item := range m.GetCategoryIds() {
 		_, _ = idx, item
 
@@ -455,8 +431,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateGroupRequestValidationError{}
-
-var _UpdateGroupRequest_Name_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Validate checks the field values on UpdateGroupReply with the rules defined
 // in the proto definition for this message. If any rules are violated, the
