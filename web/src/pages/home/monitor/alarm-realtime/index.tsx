@@ -96,13 +96,20 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleGetAlarmRealtime = () => {
+        if (alarmPageIds.length === 0) {
+            return
+        }
+        const params = queryParams
+        if (!params.alarmPageId) {
+            params.alarmPageId = alarmPageIds[0]
+        }
         if (fetchTimer) {
             clearTimeout(fetchTimer)
         }
         fetchTimer = setTimeout(() => {
             setLoading(true)
             alarmRealtimeApi
-                .getAlarmRealtimeList({ ...queryParams })
+                .getAlarmRealtimeList({ ...params })
                 .then((res) => {
                     setDataSource(res.list)
                     setTotal(res.page.total)
