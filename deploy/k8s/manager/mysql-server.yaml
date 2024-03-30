@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: mysql-root-password
-  namespace: prometheus-manager
+  namespace: system
 type: Opaque
 data:
   password: MzcxYzQzNTVkMjk1MTY0OTZiYzA2OTM1M2JjMTBhNzU= # 密码
@@ -14,7 +14,7 @@ data:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pv-5gi
+  name: mysql-pv-5gi
   namespace: moon
 spec:
   capacity:
@@ -23,7 +23,7 @@ spec:
     - ReadWriteMany
   storageClassName: nfs
   hostPath:
-    path: /nfs/data/moon
+    path: /nfs/data/moon/mysql
 
 ---
 # 存储卷声明
@@ -46,17 +46,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: mysql
+    apps.moon/name: mysql
   name: mysql
   namespace: moon
 spec:
   selector:
     matchLabels:
-      app: mysql
+      apps.moon/name: mysql
   template:
     metadata:
       labels:
-        app: mysql
+        apps.moon/name: mysql
     spec:
       containers:
         - image: mysql:8.0
@@ -66,29 +66,29 @@ spec:
               # 使用加密后的密码
               valueFrom:
                 secretKeyRef:
-                  name: mysql-root-password
+                  name: moon-mysql-root-password
                   key: password
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysqlvolume
+            - name: moon-server-mysql-volume
               mountPath: /var/lib/mysql
       volumes:
-        - name: mysqlvolume
+        - name: moon-server-mysql-volume
           persistentVolumeClaim:
-            claimName: mysql-pvc
+            claimName: moon-mysql-pvc
 ---
 # 服务
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: svc-mysql
-  name: svc-mysql
+    apps.moon/name: mysql-svc
+  name: mysql-svc
   namespace: moon
 spec:
   selector:
-    app: mysql
+    apps.moon/name: mysql
   type: NodePort
   ports:
     - port: 3306

@@ -42,6 +42,7 @@ data:
         - /api.server.auth.Auth/Login
         - /api.server.auth.Auth/Captcha
         - /api.interflows.HookInterflow/Receive
+        - /api.ping.Ping/Check
       jwtApi:
       rbacApi:
         - /api.server.auth.Auth/Logout

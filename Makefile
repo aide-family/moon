@@ -265,7 +265,7 @@ define gen-yamls
 set -e ;\
 [ -f ${PROJECT_DIR}/_output/yamls/build ] || mkdir -p ${PROJECT_DIR}/_output/yamls/build; \
 rm -rf ${PROJECT_DIR}/_output/yamls/build/manager; \
-cp -rf ${PROJECT_DIR}/config/* ${PROJECT_DIR}/_output/yamls/build/; \
+cp -rf ${PROJECT_DIR}/deploy/k8s/* ${PROJECT_DIR}/_output/yamls/build/; \
 cd ${PROJECT_DIR}/_output/yamls/build/manager; \
 ${KUSTOMIZE} edit set image moon-server=${PROM-SERVER-IMAGE}; \
 ${KUSTOMIZE} edit set image moon-agent=${PROM-AGENT-IMAGE}; \

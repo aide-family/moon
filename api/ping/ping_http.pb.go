@@ -19,7 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationPingCheck = "/api.Ping/Check"
+const OperationPingCheck = "/api.ping.Ping/Check"
 
 type PingHTTPServer interface {
 	Check(context.Context, *PingRequest) (*PingReply, error)
