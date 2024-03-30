@@ -338,6 +338,7 @@ export const columns: UserColumnType[] = [
         title: '头像',
         dataIndex: 'avatar',
         key: 'avatar',
+        align: 'center',
         width: 100,
         render: (_: string, item: UserListItem) => {
             const { username, nickname, avatar } = item
@@ -373,6 +374,7 @@ export const columns: UserColumnType[] = [
         title: '状态',
         dataIndex: 'status',
         key: 'status',
+        align: 'center',
         width: 120,
         render: (_: string, record: UserListItem) => {
             return <StatusBadge {...record} />

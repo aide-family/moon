@@ -147,7 +147,6 @@ const Customer: FC = () => {
             ids: ids,
             status: status
         }).then(() => {
-            setTableSelectedRows([])
             setConfirmOpen(false)
             message.success(`操作成功`).then(handlerRefresh)
         })
@@ -379,10 +378,7 @@ const Customer: FC = () => {
                 current={search?.page?.curr}
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
-                rowSelection={{
-                    onChange: handlerBatchData,
-                    selectedRowKeys: tableSelectedRows.map((item) => item.id)
-                }}
+                rowSelection={{ onChange: handlerBatchData }}
                 action={handlerTableAction}
             />
         </div>

@@ -130,6 +130,7 @@ export const SelectedUserListTable: React.FC<SelectedUserListTableProps> = (
                 okButtonProps={okButtonProps}
             >
                 <Table
+                    rowKey={(record) => record.id}
                     size="small"
                     pagination={false}
                     dataSource={tableSelectedRows}
