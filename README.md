@@ -100,7 +100,7 @@
 * 1. 使用默认配置部署
 
   ```shell
-  kubectl apply -f -output/yamls/moon.yaml
+  kubectl apply -f ./_output/yamls/moon.yaml
   ```
 
 * 2. 自定义部署，生成部署文件
