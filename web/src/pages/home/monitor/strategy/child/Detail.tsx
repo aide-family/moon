@@ -147,6 +147,8 @@ export const Detail: FC<DetailProps> = (props) => {
 
     useEffect(() => {
         if (!open) {
+            form?.resetFields()
+            setDetail(undefined)
             return
         }
         fetchDetail()

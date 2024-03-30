@@ -355,21 +355,6 @@ export const columns = (_: SizeType, hiddenMap: Map): ColumnsType[] => [
     }
 ]
 
-export const sverityOptions = [
-    {
-        label: 'warning',
-        value: '1'
-    },
-    {
-        label: 'critical',
-        value: '2'
-    },
-    {
-        label: 'info',
-        value: '3'
-    }
-]
-
 export type NotifyObjectTableColumnType =
     | ColumnGroupType<NotifyItem>
     | ColumnType<NotifyItem>

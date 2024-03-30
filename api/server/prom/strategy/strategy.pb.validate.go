@@ -134,10 +134,10 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetLabels()); l < 1 || l > 100 {
+	if len(m.GetLabels()) > 100 {
 		err := CreateStrategyRequestValidationError{
 			field:  "Labels",
-			reason: "value must contain between 1 and 100 pairs, inclusive",
+			reason: "value must contain no more than 100 pair(s)",
 		}
 		if !all {
 			return err
@@ -677,10 +677,10 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetLabels()); l < 1 || l > 100 {
+	if len(m.GetLabels()) > 100 {
 		err := UpdateStrategyRequestValidationError{
 			field:  "Labels",
-			reason: "value must contain between 1 and 100 pairs, inclusive",
+			reason: "value must contain no more than 100 pair(s)",
 		}
 		if !all {
 			return err

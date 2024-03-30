@@ -122,7 +122,6 @@ message CreateStrategyRequest {
   Duration duration = 4 [(validate.rules).message.required = true];
   // 标签, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> labels = 5 [(validate.rules).map = {
-    min_pairs: 1
     max_pairs: 100
     keys: {
       string: {min_len: 1, max_len: 32}
@@ -185,7 +184,6 @@ message UpdateStrategyRequest {
   Duration duration = 5 [(validate.rules).message.required = true];
   // 标签, keys 长度限制: 1-32, 正则表达式: ^[a-zA-Z0-9_]+$
   map<string, string> labels = 6 [(validate.rules).map = {
-    min_pairs: 1
     max_pairs: 100
     keys: {
       string: {min_len: 1, max_len: 32}

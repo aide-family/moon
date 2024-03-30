@@ -8,7 +8,6 @@ import {
     Input,
     Modal,
     Row,
-    Select,
     Space,
     Tour,
     message
@@ -17,7 +16,7 @@ import PromQLInput, {
     PromValidate,
     formatExpressionFunc
 } from '@/components/Prom/PromQLInput.tsx'
-import { strategyEditOptions, sverityOptions, tourSteps } from '../options'
+import { strategyEditOptions, tourSteps } from '../options'
 import { DeleteOutlined } from '@ant-design/icons'
 import AddLabelModal from './AddLabelModal'
 import DataForm from '@/components/Data/DataForm/DataForm'
@@ -63,6 +62,7 @@ export interface StrategyFormProps {
 export type labelsType = {
     label: string | ReactNode
     name: string
+    value?: string
 }
 
 let timeout: NodeJS.Timeout
@@ -80,18 +80,41 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
         labelsType[]
     >([])
     const [addLabelModalOpen, setAddLabelModalOpen] = useState<boolean>(false)
+    const [addLabelModalTitle, setAddLabelModalTitle] = useState<string>('标签')
     const [isLabelModalOpen, setIsLabelModalOpen] = useState<boolean>(false)
     const [validatePromQL, setValidatePromQL] = useState<PromValidate>({})
     const [openCloseTourModal, setOpenCloseTourModal] = useState<boolean>(false)
+    const [initData, setInitData] = useState<FormValuesType>()
 
     const dataSource = Form.useWatch<DefaultOptionType>('dataSource', form)
 
     const buildInitvalue = () => {
         const value = initialValue
         if (!value) {
-            form?.resetFields()
             return
         }
+        setLabelFormItemList(
+            Object.keys(value?.labels || {}).map((key) => {
+                return {
+                    name: key,
+                    label: key,
+                    value: value?.labels?.[key]
+                }
+            }) || []
+        )
+        setAnnotationFormItemList(
+            Object.keys(value?.annotations || {})
+                .filter((key) => {
+                    return key !== 'summary' && key !== 'description'
+                })
+                .map((key) => {
+                    return {
+                        name: key,
+                        label: key,
+                        value: value?.annotations?.[key]
+                    }
+                }) || []
+        )
         const init: FormValuesType = {
             ...value,
             labels: {
@@ -120,7 +143,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
             categoryIds: value?.categoryIds,
             sendRecover: false
         }
-        form?.setFieldsValue(init)
+        setInitData(init)
     }
 
     const handleOnFinishTour = () => {
@@ -211,7 +234,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     ]
 
     const handleAddLabel = (data: labelsType) => {
-        if (data.label && data.name) {
+        if (data.name) {
             if (isLabelModalOpen) {
                 setLabelFormItemList([...labelFormItemList, data])
             } else {
@@ -228,11 +251,13 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     const openAddLabelModal = () => {
         setAddLabelModalOpen(true)
         setIsLabelModalOpen(true)
+        setAddLabelModalTitle('标签')
     }
 
     const openAddAnnotationModal = () => {
         setAddLabelModalOpen(true)
         setIsLabelModalOpen(false)
+        setAddLabelModalTitle('注释')
     }
 
     const handleDeleteLabelFormItemListByIndex = (index: number) => {
@@ -246,12 +271,28 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
     }
 
     useEffect(() => {
+        if (!form || !initialValue) {
+            setLabelFormItemList([])
+            setAnnotationFormItemList([])
+            setInitData(undefined)
+            return
+        }
         buildInitvalue()
     }, [initialValue])
+
+    useEffect(() => {
+        if (!form) return
+        if (!initData) {
+            form.resetFields()
+            return
+        }
+        form.setFieldsValue(initData)
+    }, [initData])
 
     return (
         <>
             <AddLabelModal
+                title={addLabelModalTitle}
                 open={addLabelModalOpen}
                 onCancel={handleCloseAddLabelModal}
                 onOk={handleAddLabel}
@@ -296,7 +337,10 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         </div>
                     }
                     label={
-                        <span style={{ color: '#E0E2E6' }} ref={labelsRef}>
+                        <span
+                            style={{ color: '#E0E2E6', paddingTop: 10 }}
+                            ref={labelsRef}
+                        >
                             <Button
                                 type="primary"
                                 size="small"
@@ -308,40 +352,35 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                         </span>
                     }
                 >
-                    <Row gutter={16}>
-                        <Col span={6}>
-                            <Form.Item
-                                name={['labels', 'sverity']}
-                                label="等级(sverity)"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: '请输入告警等级'
-                                    }
-                                ]}
-                            >
-                                <Select
-                                    placeholder="请选择告警等级"
-                                    options={sverityOptions}
-                                />
-                            </Form.Item>
-                        </Col>
+                    <Row gutter={12}>
                         {labelFormItemList.map((item, index) => {
                             return (
-                                <Col span={6} key={index}>
+                                <Col
+                                    xs={24}
+                                    sm={24}
+                                    md={24}
+                                    lg={12}
+                                    xl={12}
+                                    xxl={8}
+                                    key={item.name + index}
+                                >
                                     <Form.Item
-                                        name={['lables', item.name]}
-                                        label={`${item.label}(${item.name})`}
+                                        name={['labels', item.name]}
+                                        label={`${item.label}`}
+                                        initialValue={item.value}
                                         rules={[
                                             {
                                                 required: true,
-                                                message: `请输入${item.label}`
+                                                message: `请输入 ${item.label} 标签的值`
                                             }
                                         ]}
                                     >
-                                        <Space.Compact>
+                                        <Space.Compact
+                                            style={{ width: '100%' }}
+                                        >
                                             <Input
-                                                placeholder={`请输入${item.label}`}
+                                                defaultValue={item.value}
+                                                placeholder={`请输入 ${item.label} 标签的值`}
                                             />
                                             <Button
                                                 type="primary"
@@ -410,26 +449,27 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                             <TemplateAutoComplete placeholder="请输入告警内容模板" />
                         </Form.Item>
                     </div>
-
                     {annotationFormItemList.map((item, index) => {
                         return (
                             <Form.Item
                                 name={['annotations', item.name]}
-                                label={`${item.label}(${item.name})`}
+                                label={`${item.label}`}
+                                initialValue={item.value}
                                 rules={[
                                     {
                                         required: true,
-                                        message: `请输入${item.label}`
+                                        message: `请输入 ${item.label} 注释的值`
                                     }
                                 ]}
-                                key={index}
+                                key={index + item.name}
                             >
                                 <Space.Compact style={{ width: '100%' }}>
-                                    {/* <Input.TextArea
-                                        placeholder={`请输入${item.label}`}
-                                    /> */}
                                     <TemplateAutoComplete
-                                        placeholder={`请输入${item.label}`}
+                                        defaultValue={item.value}
+                                        placeholder={`请输入 ${item.label} 注释的值`}
+                                        autoCompleteProps={{
+                                            rows: 2
+                                        }}
                                     />
                                     <Button
                                         type="primary"

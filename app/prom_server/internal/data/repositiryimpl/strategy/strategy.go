@@ -156,7 +156,13 @@ func (l *strategyRepoImpl) UpdateStrategyById(ctx context.Context, id uint32, st
 			return err
 		}
 
+		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldAlarmPages).Clear(); err != nil {
+			return err
+		}
 		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldAlarmPages).Replace(&alarmPages); err != nil {
+			return err
+		}
+		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldCategories).Clear(); err != nil {
 			return err
 		}
 		if err = tx.WithContext(txCtx).Model(detail).Association(do.PromStrategyPreloadFieldCategories).Replace(&categories); err != nil {
