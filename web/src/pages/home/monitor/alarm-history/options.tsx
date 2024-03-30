@@ -240,7 +240,8 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
         key: 'alarmLevel',
         width: 160,
         align: 'center',
-        render: (alarmLevel: DictSelectItem) => {
+        render: (alarmLevel?: DictSelectItem) => {
+            if (!alarmLevel) return '-'
             const { color, label, value } = alarmLevel
             return <Badge color={color} key={value} text={label} />
         }
