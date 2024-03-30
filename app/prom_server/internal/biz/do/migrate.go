@@ -47,6 +47,9 @@ func Migrate(db *gorm.DB, cache cache.GlobalCache) (err error) {
 //go:embed init.sql
 var sql string
 
+//go:embed dict.sql
+var dictSql string
+
 const syncSysApiFlag = "sync_sys_api"
 
 // InitSysApi 初始化系统接口权限列表
@@ -80,5 +83,12 @@ func initSysApi(db *gorm.DB, cache cache.GlobalCache) (err error) {
 		return err
 	}
 
-	return db.Exec(sql).Error
+	if err = db.Exec(sql).Error; err != nil {
+		return err
+	}
+	if err = db.Exec(dictSql).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
