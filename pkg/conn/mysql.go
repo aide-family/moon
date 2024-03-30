@@ -74,13 +74,14 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 // NewDB 获取数据库连接
 func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
+	gormConfig := &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	}
 	if len(logger) > 0 {
 		gormLog := NewGormLogger(logger[0])
-		opts = append(opts, &gorm.Config{
-			Logger:                                   gormLog,
-			DisableForeignKeyConstraintWhenMigrating: true,
-		})
+		gormConfig.Logger = gormLog
 	}
+	opts = append(opts, gormConfig)
 
 	var dialector gorm.Dialector
 	switch cfg.GetDriver() {

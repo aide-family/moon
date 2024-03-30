@@ -50,9 +50,8 @@ type PromAlarmChatGroup struct {
 	HookName  string         `gorm:"column:hook_name;type:varchar(64);not null;comment:钩子名称"`
 	Secret    string         `gorm:"column:secret;type:varchar(128);not null;comment:通信密钥"`
 	// 创建人ID
-	CreateBy uint32 `gorm:"column:create_by;type:int;not null;comment:创建人ID"`
-
-	CreateUser *SysUser `gorm:"foreignKey:CreateBy;references:ID"`
+	CreateBy   uint32   `gorm:"column:create_by;type:bigint;UNSIGNED;not null;DEFAULT:0;comment:创建人ID"`
+	CreateUser *SysUser `gorm:"foreignKey:CreateBy"`
 }
 
 func (*PromAlarmChatGroup) TableName() string {
