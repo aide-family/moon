@@ -1,4 +1,4 @@
-import { FC, Key, useContext, useEffect, useState } from 'react'
+import { FC, useContext, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Form, Space, message } from 'antd'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -144,14 +144,6 @@ const Strategy: FC = () => {
                 size: pageSize || reqParams?.page?.size
             }
         })
-    }
-
-    // 可以批量操作的数据
-    const handlerBatchData = (
-        selectedRowKeys: Key[],
-        selectedRows: StrategyItemType[]
-    ) => {
-        console.log(selectedRowKeys, selectedRows)
     }
 
     const toStrategyGroupPage = (record: StrategyItemType) => {
@@ -330,7 +322,7 @@ const Strategy: FC = () => {
                 loading={loading}
                 operationItems={tableOperationItems}
                 pageOnChange={handlerTablePageChange}
-                rowSelection={{ onChange: handlerBatchData }}
+                // rowSelection={{ onChange: handlerBatchData }}
                 showIndex={false}
                 pageSize={reqParams?.page?.size}
                 current={reqParams?.page?.curr}

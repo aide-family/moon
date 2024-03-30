@@ -16,6 +16,9 @@ const searchItems: DataFormItem[] = [
     {
         name: 'status',
         label: '状态',
+        formItemProps: {
+            initialValue: Status.STATUS_UNKNOWN
+        },
         dataProps: {
             type: 'radio-group',
             parentProps: {

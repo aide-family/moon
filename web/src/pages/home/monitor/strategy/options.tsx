@@ -321,17 +321,17 @@ export const columns = (_: SizeType, hiddenMap: Map): ColumnsType[] => [
             )
         }
     },
-    {
-        title: '告警恢复通知',
-        dataIndex: 'sendRecover',
-        key: 'sendRecover',
-        width: 160,
-        align: 'center',
-        hidden: hiddenMap['sendRecover'],
-        render: (sendRecover: boolean) => {
-            return sendRecover ? '是' : '否'
-        }
-    },
+    // {
+    //     title: '告警恢复通知',
+    //     dataIndex: 'sendRecover',
+    //     key: 'sendRecover',
+    //     width: 160,
+    //     align: 'center',
+    //     hidden: hiddenMap['sendRecover'],
+    //     render: (sendRecover: boolean) => {
+    //         return sendRecover ? '是' : '否'
+    //     }
+    // },
     {
         title: '创建时间',
         dataIndex: 'createdAt',
@@ -903,26 +903,26 @@ export const tourSteps = (refs: {
         placement: 'bottomRight',
         target: () => document.getElementById('alarmPageIds')!
     },
-    {
-        title: '抑制策略配置',
-        description:
-            '抑制策略: 当该规则触发时, 可以抑制该策略产生的告警, 从而避免产生大量无效告警的场景',
-        placement: 'bottomRight',
-        target: () => document.getElementById('maxSuppress')!
-    },
-    {
-        title: '告警通知间隔配置',
-        description:
-            '告警发生时候会立即告警, 当持续通知间隔时长时, 会再次告警, 该时间默认时2小时',
-        placement: 'bottomRight',
-        target: () => document.getElementById('sendInterval')!
-    },
-    {
-        title: '告警恢复通知配置',
-        description: '告警恢复后是否发送告警恢复通知的开关, 默认是开启的',
-        placement: 'bottomRight',
-        target: () => document.getElementById('sendRecover')!
-    },
+    // {
+    //     title: '抑制策略配置',
+    //     description:
+    //         '抑制策略: 当该规则触发时, 可以抑制该策略产生的告警, 从而避免产生大量无效告警的场景',
+    //     placement: 'bottomRight',
+    //     target: () => document.getElementById('maxSuppress')!
+    // },
+    // {
+    //     title: '告警通知间隔配置',
+    //     description:
+    //         '告警发生时候会立即告警, 当持续通知间隔时长时, 会再次告警, 该时间默认时2小时',
+    //     placement: 'bottomRight',
+    //     target: () => document.getElementById('sendInterval')!
+    // },
+    // {
+    //     title: '告警恢复通知配置',
+    //     description: '告警恢复后是否发送告警恢复通知的开关, 默认是开启的',
+    //     placement: 'bottomRight',
+    //     target: () => document.getElementById('sendRecover')!
+    // },
     {
         title: '备注配置',
         description: '告警策略的辅助说明信息',

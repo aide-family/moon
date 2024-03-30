@@ -226,14 +226,6 @@ const Customer: FC = () => {
 
     const leftOptions: DataOptionItem[] = [
         {
-            key: ActionKey.BATCH_IMPORT,
-            label: (
-                <Button type="primary" loading={loading}>
-                    批量导入
-                </Button>
-            )
-        },
-        {
             key: ActionKey.BATCH_ENABLE,
             label: (
                 <Button

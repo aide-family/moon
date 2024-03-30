@@ -15,8 +15,6 @@ export type GlobalContextType = {
     setSize?: (size?: SizeType) => void
     user?: UserListItem
     setUser?: (user: UserListItem) => void
-    spaceInfo?: SpaceType
-    setSpaceInfo?: (spaceInfo: SpaceType) => void
     layoutContentElement?: HTMLElement | null
     setLayoutContentElement?: (element: HTMLElement | null) => void
     menus?: ItemType[]
@@ -44,33 +42,3 @@ export const GlobalContext = createContext<GlobalContextType>({
     size: 'middle',
     setSize: () => {}
 })
-
-// const tokenKey = 'token'
-
-// export function getToken() {
-//     return localStorage.getItem(tokenKey) || ''
-// }
-
-// export function setToken(token: string) {
-//     localStorage.setItem(tokenKey, token)
-// }
-
-// export function removeToken() {
-//     localStorage.removeItem(tokenKey)
-// }
-
-// export function getSpaceID() {
-//     return localStorage.getItem('spaceId') || ''
-// }
-
-// export function setSpaceID(spaceId: string) {
-//     localStorage.setItem('spaceId', spaceId)
-// }
-
-// export function setUserInfo(userInfo: UserType) {
-//     localStorage.setItem('user', JSON.stringify(userInfo))
-// }
-
-// export function setSpaces(spaces: SpaceType[]) {
-//     localStorage.setItem('spaces', JSON.stringify(spaces))
-// }

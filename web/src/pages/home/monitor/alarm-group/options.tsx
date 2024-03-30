@@ -10,7 +10,7 @@ import { NotifyApp, Status, StatusMap } from '@/apis/types'
 import { DataFormItem } from '@/components/Data'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 import { IconFont } from '@/components/IconFont/IconFont'
-import { Badge, Button, Checkbox, MenuProps } from 'antd'
+import { Badge, Button, Checkbox, MenuProps, Tooltip } from 'antd'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 
@@ -63,7 +63,11 @@ export const columns: AlarmGroupTableColumnType[] = [
         title: '描述信息',
         dataIndex: 'remark',
         key: 'remark',
-        width: 400
+        width: 400,
+        ellipsis: true,
+        render: (remark: string) => {
+            return <Tooltip title={remark}>{remark || '-'}</Tooltip>
+        }
     },
     {
         title: '创建时间',

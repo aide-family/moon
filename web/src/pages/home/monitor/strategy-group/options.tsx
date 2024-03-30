@@ -199,7 +199,7 @@ export const columns: (
         }
     },
     {
-        title: '策略组状态',
+        title: '状态',
         dataIndex: 'status',
         key: 'status',
         width: 160,
@@ -241,7 +241,7 @@ export const columns: (
                 <Paragraph
                     ellipsis={{ rows: 2, expandable: true, symbol: 'more' }}
                 >
-                    {description}
+                    {description || '-'}
                 </Paragraph>
             )
         }
@@ -250,16 +250,16 @@ export const columns: (
         title: '创建时间',
         dataIndex: 'createdAt',
         key: 'createdAt',
-        width: 160,
+        width: 180,
         render: (createdAt: string | number) => {
             return dayjs(+createdAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }
     },
     {
-        title: '策略组更新时间',
+        title: '更新时间',
         dataIndex: 'updatedAt',
         key: 'updatedAt',
-        width: 160,
+        width: 180,
         render: (updatedAt: string | number) => {
             return dayjs(+updatedAt * 1000).format('YYYY-MM-DD HH:mm:ss')
         }

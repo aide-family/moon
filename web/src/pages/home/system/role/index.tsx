@@ -47,9 +47,6 @@ const Role: React.FC = () => {
         },
         keyword: ''
     })
-    const [tableSelectedRows, setTableSelectedRows] = useState<RoleListItem[]>(
-        []
-    )
     const [authVisible, setAuthVisible] = useState<boolean>(false)
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
@@ -110,11 +107,6 @@ const Role: React.FC = () => {
                 size: pageSize || 10
             }
         })
-    }
-
-    // 可以批量操作的数据
-    const handlerBatchData = (_: React.Key[], selectedRows: RoleListItem[]) => {
-        setTableSelectedRows(selectedRows)
     }
 
     // 处理表格操作栏的点击事件
@@ -271,10 +263,6 @@ const Role: React.FC = () => {
                 pageOnChange={handlerTablePageChange}
                 pageSize={search?.page?.size}
                 current={search?.page?.curr}
-                rowSelection={{
-                    onChange: handlerBatchData,
-                    selectedRowKeys: tableSelectedRows.map((item) => item.id)
-                }}
                 action={handlerTableAction}
             />
         </div>

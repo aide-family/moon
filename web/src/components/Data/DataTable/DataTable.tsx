@@ -2,10 +2,9 @@ import { useContext, useEffect, useState, RefObject, FC, useRef } from 'react'
 
 import type { MenuProps, TableProps } from 'antd'
 import type { ColumnGroupType, ColumnType } from 'antd/es/table'
-import { Table, ConfigProvider, Button, Space, Tooltip } from 'antd'
+import { Table, ConfigProvider, Space } from 'antd'
 
 import { GlobalContext } from '@/context'
-import { IconFont } from '@/components/IconFont/IconFont'
 import { MoreMenu } from '../'
 import { ActionKey } from '@/apis/data'
 import { RoleListItem } from '@/apis/home/system/role/types.ts'
@@ -55,15 +54,8 @@ const defaultOperation = (
     align: 'center',
     render: (_, record: any) => {
         return (
-            <Space>
-                <Tooltip title="详情">
-                    <Button
-                        size="large"
-                        type="link"
-                        icon={<IconFont type="icon-xiangqing" />}
-                        onClick={() => action?.(ActionKey.DETAIL, record)}
-                    />
-                </Tooltip>
+            <Space size={20}>
+                <a onClick={() => action?.(ActionKey.DETAIL, record)}>详情</a>
                 {items && items?.length > 0 && (
                     <MoreMenu
                         items={items(record)}
@@ -91,7 +83,7 @@ const DataTable: FC<DataTableProps> = (props) => {
         pageSize,
         current,
         pageOnChange,
-        x = '100vw',
+        x,
         y
     } = props
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, FC } from 'react'
+import { useEffect, useRef, useState, FC } from 'react'
 import { Button, Form, Modal, message } from 'antd'
 import { SearchForm, DataTable } from '@/components/Data'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
@@ -46,9 +46,6 @@ const Auth: FC = () => {
         },
         keyword: ''
     })
-    const [tableSelectedRows, setTableSelectedRows] = useState<
-        ApiAuthListItem[]
-    >([])
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
 
@@ -108,14 +105,6 @@ const Auth: FC = () => {
         })
     }
 
-    // 可以批量操作的数据
-    const handlerBatchData = (
-        _: React.Key[],
-        selectedRows: ApiAuthListItem[]
-    ) => {
-        setTableSelectedRows(selectedRows)
-    }
-
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: ActionKey, record: ApiAuthListItem) => {
         switch (key) {
@@ -167,16 +156,7 @@ const Auth: FC = () => {
         }, 500)
     }
 
-    const leftOptions: DataOptionItem[] = [
-        {
-            key: ActionKey.BATCH_IMPORT,
-            label: (
-                <Button type="primary" loading={loading}>
-                    批量导入
-                </Button>
-            )
-        }
-    ]
+    const leftOptions: DataOptionItem[] = []
 
     const rightOptions: DataOptionItem[] = [
         {
@@ -264,10 +244,6 @@ const Auth: FC = () => {
                 current={search?.page?.curr}
                 operationItems={operationItems}
                 pageOnChange={handlerTablePageChange}
-                rowSelection={{
-                    onChange: handlerBatchData,
-                    selectedRowKeys: tableSelectedRows.map((item) => item.id)
-                }}
                 action={handlerTableAction}
             />
         </div>

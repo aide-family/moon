@@ -9,7 +9,6 @@ import useStorage from '@/utils/storage'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { breadcrumbNameMap, defaultMenuItems } from './menus'
 import { routers } from './router'
-import Logo from '@/assets/logo.svg'
 
 import styles from './style/index.module.less'
 import { UserListItem } from '@/apis/home/system/user/types'
@@ -41,12 +40,6 @@ const defaultUser: UserListItem = {
     nickname: '',
     gender: 0
 }
-const defaultSpaceInfo: SpaceType = {
-    id: '1',
-    name: 'Moon',
-    logo: Logo,
-    is_team: 1
-}
 
 const { useToken } = theme
 
@@ -54,10 +47,6 @@ const Index: React.FC = () => {
     const { token } = useToken()
     const [size, setSize] = useStorage<SizeType>('size', defaultSize)
     const [user, setUser] = useStorage<UserListItem>('user', defaultUser)
-    const [spaceInfo, setSpaceInfo] = useStorage<SpaceType>(
-        'spaceInfo',
-        defaultSpaceInfo
-    )
     const [spaces, setSpaces] = useStorage<SpaceType[]>('spaces', [])
     const [layoutContentElement, setLayoutContentElement] =
         useState<HTMLElement | null>(null)
@@ -78,8 +67,6 @@ const Index: React.FC = () => {
         setSize: setSize,
         setUser: setUser,
         user: user,
-        spaceInfo: spaceInfo,
-        setSpaceInfo: setSpaceInfo,
         layoutContentElement: layoutContentElement,
         setLayoutContentElement: setLayoutContentElement,
         menus: defaultMenuItems,

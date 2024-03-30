@@ -22,6 +22,9 @@ const searchItems: DataFormItem[] = [
     {
         name: 'status',
         label: '状态',
+        formItemProps: {
+            initialValue: Status.STATUS_UNKNOWN
+        },
         dataProps: {
             type: 'radio-group',
             parentProps: {
@@ -355,7 +358,7 @@ export const columns: UserColumnType[] = [
         title: '姓名',
         dataIndex: 'username',
         key: 'username',
-        width: 120,
+        width: 200,
         render: (_: string, record: UserListItem) => {
             return <Username {...record} />
         }
@@ -364,7 +367,7 @@ export const columns: UserColumnType[] = [
         title: '昵称',
         dataIndex: 'nickname',
         key: 'nickname',
-        width: 200,
+        // width: 200,
         ellipsis: true,
         render: (text: String) => {
             return <>{text || '-'}</>

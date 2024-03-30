@@ -174,14 +174,6 @@ const Dict: FC = () => {
 
     const leftOptions: DataOptionItem[] = [
         {
-            key: ActionKey.BATCH_IMPORT,
-            label: (
-                <Button type="primary" loading={loading}>
-                    批量导入
-                </Button>
-            )
-        },
-        {
             key: ActionKey.BATCH_ENABLE,
             label: (
                 <Button
@@ -267,7 +259,6 @@ const Dict: FC = () => {
                         }).then(() => {
                             message.success('批量启用成功')
                             handlerRefresh()
-                            setTableSelectedRows([])
                         })
                     },
                     onCancel() {
@@ -354,10 +345,7 @@ const Dict: FC = () => {
                 pageOnChange={handlerTablePageChange}
                 pageSize={search?.page?.size}
                 current={search?.page?.curr}
-                rowSelection={{
-                    onChange: handlerBatchData,
-                    selectedRowKeys: tableSelectedRows.map((item) => item.id)
-                }}
+                rowSelection={{ onChange: handlerBatchData }}
                 action={handlerTableAction}
             />
         </div>
