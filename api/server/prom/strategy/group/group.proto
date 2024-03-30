@@ -108,7 +108,6 @@ message CreateGroupRequest {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 32,
-    pattern: "^[a-zA-Z0-9_]+$"
   }];
   // 策略组分类的ID, 对应字典表ID, 不允许为0
   repeated uint32 categoryIds = 2 [(validate.rules).repeated.items = {
@@ -131,7 +130,6 @@ message UpdateGroupRequest {
   string name = 2 [(validate.rules).string = {
     min_len: 1,
     max_len: 32,
-    pattern: "^[a-zA-Z0-9_]+$"
   }];
   // 策略组分类, 对应字典表ID, 不允许为0
   repeated uint32 categoryIds = 3 [(validate.rules).repeated.items = {

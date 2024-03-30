@@ -83,17 +83,6 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CreateStrategyRequest_Alert_Pattern.MatchString(m.GetAlert()) {
-		err := CreateStrategyRequestValidationError{
-			field:  "Alert",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if utf8.RuneCountInString(m.GetExpr()) < 1 {
 		err := CreateStrategyRequestValidationError{
 			field:  "Expr",
@@ -179,17 +168,6 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 				errors = append(errors, err)
 			}
 
-			if !_CreateStrategyRequest_Labels_Pattern.MatchString(key) {
-				err := CreateStrategyRequestValidationError{
-					field:  fmt.Sprintf("Labels[%v]", key),
-					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
 			// no validation rules for Labels[key]
 		}
 	}
@@ -221,17 +199,6 @@ func (m *CreateStrategyRequest) validate(all bool) error {
 				err := CreateStrategyRequestValidationError{
 					field:  fmt.Sprintf("Annotations[%v]", key),
 					reason: "value length must be between 1 and 32 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
-			if !_CreateStrategyRequest_Annotations_Pattern.MatchString(key) {
-				err := CreateStrategyRequestValidationError{
-					field:  fmt.Sprintf("Annotations[%v]", key),
-					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
 				}
 				if !all {
 					return err
@@ -500,12 +467,6 @@ var _ interface {
 	ErrorName() string
 } = CreateStrategyRequestValidationError{}
 
-var _CreateStrategyRequest_Alert_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _CreateStrategyRequest_Labels_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _CreateStrategyRequest_Annotations_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
 // Validate checks the field values on CreateStrategyReply with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -665,17 +626,6 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_UpdateStrategyRequest_Alert_Pattern.MatchString(m.GetAlert()) {
-		err := UpdateStrategyRequestValidationError{
-			field:  "Alert",
-			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if utf8.RuneCountInString(m.GetExpr()) < 1 {
 		err := UpdateStrategyRequestValidationError{
 			field:  "Expr",
@@ -761,17 +711,6 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 				errors = append(errors, err)
 			}
 
-			if !_UpdateStrategyRequest_Labels_Pattern.MatchString(key) {
-				err := UpdateStrategyRequestValidationError{
-					field:  fmt.Sprintf("Labels[%v]", key),
-					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
 			// no validation rules for Labels[key]
 		}
 	}
@@ -803,17 +742,6 @@ func (m *UpdateStrategyRequest) validate(all bool) error {
 				err := UpdateStrategyRequestValidationError{
 					field:  fmt.Sprintf("Annotations[%v]", key),
 					reason: "value length must be between 1 and 32 runes, inclusive",
-				}
-				if !all {
-					return err
-				}
-				errors = append(errors, err)
-			}
-
-			if !_UpdateStrategyRequest_Annotations_Pattern.MatchString(key) {
-				err := UpdateStrategyRequestValidationError{
-					field:  fmt.Sprintf("Annotations[%v]", key),
-					reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
 				}
 				if !all {
 					return err
@@ -1081,12 +1009,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateStrategyRequestValidationError{}
-
-var _UpdateStrategyRequest_Alert_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _UpdateStrategyRequest_Labels_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
-
-var _UpdateStrategyRequest_Annotations_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Validate checks the field values on UpdateStrategyReply with the rules
 // defined in the proto definition for this message. If any rules are
