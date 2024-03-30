@@ -128,8 +128,8 @@ type PromStrategy struct {
 	Status       vobj.Status           `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态: 1启用;2禁用" json:"status"`
 	Remark       string                `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`
 
-	AlarmPages []*SysDict         `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:AlarmPageID;many2many:prom_strategy_alarm_pages" json:"-"`
-	Categories []*SysDict         `gorm:"References:ID;foreignKey:ID;joinForeignKey:PromStrategyID;joinReferences:DictID;many2many:prom_strategy_categories" json:"-"`
+	AlarmPages []*SysDict         `gorm:"many2many:prom_strategy_alarm_pages" json:"-"`
+	Categories []*SysDict         `gorm:"many2many:prom_strategy_categories" json:"-"`
 	AlertLevel *SysDict           `gorm:"foreignKey:AlertLevelID" json:"-"`
 	GroupInfo  *PromStrategyGroup `gorm:"foreignKey:GroupID" json:"-"`
 
