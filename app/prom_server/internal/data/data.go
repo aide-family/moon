@@ -1,6 +1,8 @@
 package data
 
 import (
+	"time"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -99,6 +101,14 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	// 设置数据库连接池参数
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, nil, err
+	}
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	d := &Data{
 		log: log.NewHelper(log.With(logger, "module", "data")),

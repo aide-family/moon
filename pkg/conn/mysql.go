@@ -93,6 +93,7 @@ func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 			return nil, err
 		}
 		dialector = sqlite.Open(cfg.GetSource())
+
 	default:
 		return nil, fmt.Errorf("invalid driver: %s", cfg.GetDriver())
 	}
@@ -100,6 +101,11 @@ func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.GetDriver() == "sqlite" {
+		// 启用 WAL 模式
+		_ = conn.Exec("PRAGMA journal_mode=WAL;")
 	}
 
 	if cfg.GetDebug() {
