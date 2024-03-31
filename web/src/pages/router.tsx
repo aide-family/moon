@@ -70,14 +70,6 @@ export const routers: RouteObject[] = [
                 Component: lazy(() => import('@/pages/home/system/auth'))
             },
             {
-                path: '/home/customer/list',
-                Component: lazy(() => import('@/pages/home/customer/customer'))
-            },
-            {
-                path: '/home/customer/supplier',
-                Component: lazy(() => import('@/pages/home/customer/supplier'))
-            },
-            {
                 // 404
                 path: '*',
                 element: <Error404 />
