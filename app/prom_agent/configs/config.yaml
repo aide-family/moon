@@ -13,10 +13,10 @@ env:
 server:
   http:
     addr: 0.0.0.0:8000
-    timeout: 1s
+    timeout: 10s
   grpc:
     addr: 0.0.0.0:9000
-    timeout: 1s
+    timeout: 10s
 #data:
 #  # 配置redis， 缓存使用redis， 否则使用本地存储
 #  redis:
