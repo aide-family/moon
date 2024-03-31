@@ -95,7 +95,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	captchaRepo := captcha.NewCaptchaRepo(dataData, logger)
 	captchaBiz := biz.NewCaptchaBiz(captchaRepo, logger)
 	authService := authservice.NewAuthService(userBiz, captchaBiz, logger)
-	userService := systemservice.NewUserService(userBiz, logger)
+	userService := systemservice.NewUserService(userBiz, captchaBiz, logger)
 	apiRepo := api.NewApiRepo(dataData, logger)
 	roleBiz := biz.NewRoleBiz(roleRepo, apiRepo, dataRepo, sysLogRepo, logger)
 	roleService := systemservice.NewRoleService(roleBiz, logger)
