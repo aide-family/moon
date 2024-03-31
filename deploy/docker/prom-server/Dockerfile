@@ -50,7 +50,9 @@ EXPOSE 8888
 EXPOSE 9000
 EXPOSE 80
 VOLUME /data/conf
-VOLUME /app
+VOLUME /app/log
+VOLUME /app/cache
+VOLUME /app/db
 VOLUME /etc/nginx/conf.d
 
 # TZ=Asia/Shanghai
