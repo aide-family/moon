@@ -89,16 +89,17 @@
   -p 8001:8000 \
   -p 8888:8888 \
   -p 8000:80 \
-  aidemoonio/moon-server:latest \
-  -v /data/moon/db:/app/db \
-  -v /data/moon/cache:/app/cache \
-  -v /data/moon/log:/app/log
+  -v ./moon/server/db:/app/db \
+  -v ./moon/server/cache:/app/cache \
+  -v ./moon/server/log:/app/log \
+  aidemoonio/moon-server:latest 
+  
   # agent
   docker run -d --name moon-agent \
   -p 8002:8000 \
-  aidemoonio/moon-agent:latest \
-  -v /data/moon/cache:/app/cache \
-  -v /data/moon/log:/app/log
+  -v ./moon/agent/cache:/app/cache \
+  -v ./moon/agent/log:/app/log \
+  aidemoonio/moon-agent:latest
   ```
 
   * 访问服务
@@ -108,34 +109,34 @@
 
 #### docker-compose 部署
 
-* 1. 使用默认配置部署
+  * 1. 使用默认配置部署
 
-```yaml
-# docker-compose.yaml
-version: "3.8"
-services:
-  moon-server:
-    image: aidemoonio/moon-server:latest
-    volumes:
-      - ./data/db:/app/db
-      - ./data/cache:/app/cache
-      - ./data/log:/app/log
-    ports:
-      - "8000:80"
-      - "8001:8000"
-      - "8888:8888"
-    restart: always
-  moon-agent:
-    image: aidemoonio/moon-agent:latest
-    volumes:
-      - ./data/cache:/app/cache
-      - ./data/log:/app/log
-    ports:
-      - "8002:8000"
-    restart: always
-```
+  ```yaml
+  # docker-compose.yaml
+  version: "3.8"
+  services:
+    moon-server:
+      image: aidemoonio/moon-server:latest
+      volumes:
+        - "./moon/server/db:/app/db"
+        - "./moon/server/cache:/app/cache"
+        - "./moon/server/log:/app/log"
+      ports:
+        - "8000:80"
+        - "8001:8000"
+        - "8888:8888"
+    moon-agent:
+      image: aidemoonio/moon-agent:latest
+      volumes:
+        - "./moon/agent/cache:/app/cache"
+        - "./moon/agent/log:/app/log"
+      ports:
+        - "8002:8000"
+      depends_on:
+        - moon-server
+  ```
   
-* 2. 启动
+  * 2. 启动
 
   ```shell
   docker-compose up -d
