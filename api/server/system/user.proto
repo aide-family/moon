@@ -204,6 +204,10 @@ message EditUserPasswordRequest {
   string oldPassword = 1 [(validate.rules).string = {min_len: 1}];
   // 新密码, aes加密后的字符串
   string newPassword = 2 [(validate.rules).string = {min_len: 1}];
+  // 验证码
+  string code = 3 [(validate.rules).string.min_len = 1];
+  // 验证码id
+  string captchaId = 4 [(validate.rules).string.min_len = 1];
 }
 // 修改密码响应参数
 message EditUserPasswordReply {
