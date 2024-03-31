@@ -1827,6 +1827,28 @@ func (m *EditUserPasswordRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if utf8.RuneCountInString(m.GetCode()) < 1 {
+		err := EditUserPasswordRequestValidationError{
+			field:  "Code",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetCaptchaId()) < 1 {
+		err := EditUserPasswordRequestValidationError{
+			field:  "CaptchaId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return EditUserPasswordRequestMultiError(errors)
 	}

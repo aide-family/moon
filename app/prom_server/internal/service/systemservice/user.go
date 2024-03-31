@@ -22,13 +22,15 @@ type UserService struct {
 	pb.UnimplementedUserServer
 	log *log.Helper
 
-	userBiz *biz.UserBiz
+	userBiz    *biz.UserBiz
+	captchaBiz *biz.CaptchaBiz
 }
 
-func NewUserService(userBiz *biz.UserBiz, logger log.Logger) *UserService {
+func NewUserService(userBiz *biz.UserBiz, captchaBiz *biz.CaptchaBiz, logger log.Logger) *UserService {
 	return &UserService{
-		log:     log.NewHelper(log.With(logger, "module", "service.user")),
-		userBiz: userBiz,
+		log:        log.NewHelper(log.With(logger, "module", "service.user")),
+		userBiz:    userBiz,
+		captchaBiz: captchaBiz,
 	}
 }
 
@@ -184,6 +186,10 @@ func (s *UserService) SelectUser(ctx context.Context, req *pb.SelectUserRequest)
 }
 
 func (s *UserService) EditUserPassword(ctx context.Context, req *pb.EditUserPasswordRequest) (*pb.EditUserPasswordReply, error) {
+	// 认证传递的code, 前端需要校验code的合法性
+	if err := s.captchaBiz.VerifyCaptcha(ctx, req.GetCaptchaId(), req.GetCode()); err != nil {
+		return nil, err
+	}
 	authClaims, ok := middler.GetAuthClaims(ctx)
 	if !ok {
 		return nil, middler.ErrTokenInvalid

@@ -8,6 +8,7 @@ import { IconFont } from '@/components/IconFont/IconFont'
 import Logo from '@/assets/logo.svg'
 import { GlobalContext } from '@/context'
 import { ActionKey } from '@/apis/data'
+import { ChangePass } from './ChangePass'
 
 const UserInfo: FC = () => {
     const navigate = useNavigate()
@@ -17,6 +18,8 @@ const UserInfo: FC = () => {
         useContext(GlobalContext)
 
     const [pathname, setPathname] = useState<string>('/')
+    const [openChangePassModal, setOpenChangePassModal] =
+        useState<boolean>(false)
 
     useEffect(() => {
         setPathname(local.pathname)
@@ -57,11 +60,25 @@ const UserInfo: FC = () => {
                 removeAuthToken?.()
                 navigate('/login')
                 break
+            case ActionKey.CHANGE_PASSWORD:
+                setOpenChangePassModal(true)
+                break
+            case ActionKey.SWITCH_ROLE:
+                // TODO
+                break
+            default:
+                break
         }
     }
 
     return (
         <>
+            <ChangePass
+                title="修改密码"
+                open={openChangePassModal}
+                onOk={() => setOpenChangePassModal(false)}
+                onCancel={() => setOpenChangePassModal(false)}
+            />
             <Dropdown menu={{ items, onClick: handleMenuOnClick }}>
                 <Avatar
                     src={<img src={user?.avatar || Logo} alt="avatar" />}

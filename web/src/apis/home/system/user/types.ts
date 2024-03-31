@@ -65,6 +65,8 @@ interface UserDetailRes {
 interface UserPasswordEditParams {
     oldPassword: string
     newPassword: string
+    code: string
+    captchaId: string
 }
 
 /**关联角色参数 */
