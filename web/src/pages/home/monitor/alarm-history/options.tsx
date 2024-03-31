@@ -209,7 +209,6 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
     // },
     {
         title: '实例名称',
-        dataIndex: 'instance',
         key: 'instance',
         // align: 'center',
         width: 300,

@@ -68,7 +68,6 @@ export const BindHook: React.FC<BindHookProps> = (props) => {
         ...chartGroupCoumns,
         {
             title: '操作',
-            dataIndex: 'action',
             key: 'action',
             align: 'center',
             width: 80,

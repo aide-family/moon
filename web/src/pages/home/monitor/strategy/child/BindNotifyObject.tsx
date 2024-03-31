@@ -50,7 +50,6 @@ const NotifyMemberList: FC<NotifyMemberListProps> = (props) => {
         },
         {
             title: '通知方式',
-            dataIndex: 'email',
             render: (_, record) => {
                 const nType = record?.notifyType
                 // const { email, sms, phone } = member
@@ -174,7 +173,6 @@ export const BindNotifyObject: FC<BindNotifyObjectProps> = (props) => {
 
     const optionColumn: NotifyObjectTableColumnType = {
         title: '操作',
-        dataIndex: 'action',
         key: 'action',
         width: 100,
         render: (_: any, record: NotifyItem) => {
