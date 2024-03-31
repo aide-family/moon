@@ -85,9 +85,19 @@
 
   ```shell
   # server
-  docker run -d --name moon-server -p 8001:8000 -p 8888:8888 -p 8000:80 aidemoonio/moon-server:latest
+  docker run -d --name moon-server \
+  -p 8001:8000 \
+  -p 8888:8888 \
+  -p 8000:80 \
+  aidemoonio/moon-server:latest \
+  -v /data/moon:/app \
+  -v /data/moon:/data/conf
   # agent
-  docker run -d --name moon-agent -p 8002:8000 aidemoonio/moon-agent:latest
+  docker run -d --name moon-agent \
+  -p 8002:8000 \
+  aidemoonio/moon-agent:latest \
+  -v /data/moon:/app \
+  -v /data/moon:/data/conf
   ```
 
   * 访问服务

@@ -24,7 +24,7 @@ WORKDIR /app
 EXPOSE 8000
 EXPOSE 9000
 VOLUME /data/conf
-VOLUME /app/cache
+VOLUME /app
 
 # TZ=Asia/Shanghai
 ENV TZ=Asia/Shanghai
