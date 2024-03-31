@@ -73,7 +73,6 @@ export const BindMember: React.FC<BindMemberProps> = (props) => {
         ...memberCoumns(notifyTypeOnChange),
         {
             title: '操作',
-            dataIndex: 'action',
             key: 'action',
             align: 'center',
             width: 80,

@@ -28,9 +28,11 @@ VERSION:=$(GIT_TAG)$(GIT_MOD)
 PROM-SERVER-VERSION:=$(VERSION)
 PROM-AGENT-VERSION:=$(VERSION)
 
+MOON-SERVER-IMAGE := ${REPO}/moon-server
+MOON-AGENT-IMAGE := ${REPO}/moon-agent
 # image
-PROM-SERVER-IMAGE:=${REPO}/moon-server:${PROM-SERVER-VERSION}
-PROM-AGENT-IMAGE:=${REPO}/moon-agent:${PROM-AGENT-VERSION}
+PROM-SERVER-IMAGE:=${MOON-SERVER-IMAGE}:${PROM-SERVER-VERSION}
+PROM-AGENT-IMAGE:=${MOON-AGENT-IMAGE}:${PROM-AGENT-VERSION}
 
 APPS ?= $(shell ls app)
 path := $(shell pwd)
@@ -77,7 +79,9 @@ prom-server-docker-build:
 
 prom-server-docker-push:
 	@echo "start push image [$(PROM-SERVER-IMAGE)]"
+	docker tag $(PROM-SERVER-IMAGE) $(MOON-SERVER-IMAGE):latest
 	docker push $(PROM-SERVER-IMAGE)
+	docker push $(MOON-SERVER-IMAGE):latest
 	@echo "Successfully push image [$(PROM-SERVER-IMAGE)] to target repo."
 
 prom-agent-docker-build:
@@ -87,7 +91,9 @@ prom-agent-docker-build:
 
 prom-agent-docker-push: # test ## push docker image with the prom-server.
 	@echo "start push image [$(PROM-AGENT-IMAGE)]"
+	docker tag $(PROM-AGENT-IMAGE) $(MOON-AGENT-IMAGE):latest
 	docker push $(PROM-AGENT-IMAGE)
+	docker push $(MOON-AGENT-IMAGE):latest
 	@echo "Successfully push image [$(PROM-AGENT-IMAGE)] to target repo."
 
 # ------------------ DOCKER-COMPOSE ------------------
