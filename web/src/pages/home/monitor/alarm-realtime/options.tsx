@@ -22,7 +22,6 @@ export const defaultAlarmRealtimeListRequest: AlarmRealtimeListRequest = {
         size: 200,
         curr: 1
     },
-    alarmPageId: 1,
     keyword: '',
     startAt: 0,
     endAt: 0
