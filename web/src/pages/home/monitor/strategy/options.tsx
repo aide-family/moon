@@ -1009,9 +1009,8 @@ export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
             tooltip: '配置不同通知对象的模板'
         },
         dataProps: {
-            type: 'select',
+            type: 'segmented',
             parentProps: {
-                placeholder: '请选择通知模板类型',
                 options: Object.entries(NotifyTemplateTypeData).map(
                     ([key, value]) => {
                         return {
@@ -1042,7 +1041,10 @@ export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
         dataProps: {
             type: 'template-auto-complete',
             parentProps: {
-                placeholder: '请输入通知模板内容'
+                placeholder: '请输入通知模板内容',
+                autoCompleteProps: {
+                    rows: 8
+                }
             }
         },
         rules: [

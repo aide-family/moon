@@ -7,9 +7,18 @@ import type {
     InputProps,
     RadioGroupProps,
     RadioProps,
+    SegmentedProps,
     SelectProps
 } from 'antd'
-import { Input, Select, Radio, Checkbox, DatePicker, ColorPicker } from 'antd'
+import {
+    Input,
+    Select,
+    Radio,
+    Checkbox,
+    DatePicker,
+    ColorPicker,
+    Segmented
+} from 'antd'
 import { PasswordProps, TextAreaProps } from 'antd/lib/input'
 import FetchSelect, { FetchSelectProps } from '../FetchSelect'
 import TimeUintInput, { TimeUintInputProps } from '../TimeValue'
@@ -48,6 +57,10 @@ export type DataInputProps =
           | {
                 type: 'radio-group'
                 parentProps?: RadioGroupProps
+            }
+          | {
+                type: 'segmented'
+                parentProps?: SegmentedProps
             }
           | {
                 type: 'checkbox'
@@ -192,6 +205,16 @@ const DataInput: FC<DataInputProps> = (props) => {
                         defaultValue={defaultValue}
                         onChange={onChange}
                         {...parentProps}
+                    />
+                )
+            case 'segmented':
+                return (
+                    <Segmented
+                        {...parentProps}
+                        value={value}
+                        defaultValue={defaultValue}
+                        onChange={onChange}
+                        options={parentProps?.options || []}
                     />
                 )
             default:

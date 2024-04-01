@@ -116,34 +116,40 @@ export const NotifyTemplateTypeData: Record<
     React.ReactNode
 > = {
     [NotifyTemplateType.NotifyTemplateTypeEmail]: (
-        <Button type="text" icon={<IconFont type="icon-youjian" />}>
+        <span>
+            <IconFont type="icon-youjian" />
             邮件
-        </Button>
+        </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeCustom]: (
-        <Button type="text" icon={<IconFont type="icon-zidingyi" />}>
+        <span>
+            <IconFont type="icon-zidingyi" />
             自定义hook
-        </Button>
+        </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeDingDing]: (
-        <Button type="text" icon={<IconFont type="icon-dingding" />}>
+        <span>
+            <IconFont type="icon-dingding" />
             钉钉
-        </Button>
+        </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeSms]: (
-        <Button type="text" icon={<IconFont type="icon-duanxin" />}>
+        <span>
+            <IconFont type="icon-duanxin" />
             短信
-        </Button>
+        </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeFeiShu]: (
-        <Button type="text" icon={<IconFont type="icon-feishu" />}>
+        <span>
+            <IconFont type="icon-feishu" />
             飞书
-        </Button>
+        </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: (
-        <Button type="text" icon={<IconFont type="icon-qiyeweixin" />}>
+        <span>
+            <IconFont type="icon-qiyeweixin" />
             企业微信
-        </Button>
+        </span>
     )
 }
 
