@@ -21,7 +21,7 @@ import (
 
 var _ transport.Server = (*Watch)(nil)
 
-var timeout = 3 * time.Second
+const timeout = 10 * time.Second
 
 type EventHandler = interflow.Callback
 

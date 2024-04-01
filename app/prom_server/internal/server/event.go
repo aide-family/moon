@@ -24,6 +24,8 @@ import (
 
 var _ transport.Server = (*AlarmEvent)(nil)
 
+const timeout = 10 * time.Second
+
 type AlarmEvent struct {
 	log    *log.Helper
 	exitCh chan struct{}
@@ -59,7 +61,7 @@ func (l *AlarmEvent) Start(_ context.Context) error {
 		}
 		go func() {
 			defer after.Recover(l.log)
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
 			l.log.Debugw("send agent msg", l.interflowInstance.Send(ctx, string(agentInfo.Key), msg))
 		}()
@@ -99,7 +101,7 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 		}
 		eg.Go(func() error {
 			defer after.Recover(l.log)
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
 			if err := l.interflowInstance.Send(ctx, string(agentInfo.Key), msg); err != nil {
 				l.log.Debugw("send agent msg", err)
@@ -156,8 +158,10 @@ func NewAlarmEvent(
 }
 
 func (l *AlarmEvent) storeGroups() error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	// 2. 拉取全量规则组及规则
-	listAllGroupDetail, err := l.groupService.ListAllGroupDetail(context.Background(), &group.ListAllGroupDetailRequest{})
+	listAllGroupDetail, err := l.groupService.ListAllGroupDetail(ctx, &group.ListAllGroupDetailRequest{})
 	if err != nil {
 		l.log.Errorf("list all group detail error: %v", err)
 		return err
@@ -212,9 +216,11 @@ func (l *AlarmEvent) watchChangeGroup() error {
 				}
 				l.log.Debugw("changeGroupIds", changeGroupIds)
 				// 重新拉取全量规则组及规则
-				listAllGroupDetail, err := l.groupService.ListAllGroupDetail(context.Background(), &group.ListAllGroupDetailRequest{
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				listAllGroupDetail, err := l.groupService.ListAllGroupDetail(ctx, &group.ListAllGroupDetailRequest{
 					GroupIds: changeGroupIds,
 				})
+				cancel()
 				if err != nil {
 					l.log.Errorf("list all group detail error: %v", err)
 					continue
@@ -254,7 +260,9 @@ func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte)
 	if err = req.ValidateAll(); err != nil {
 		return err
 	}
-	resp, err := l.hookService.V1(context.Background(), &req)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := l.hookService.V1(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -290,7 +298,9 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 				Value: []byte(groupDetail),
 				Key:   agentInfo.Key,
 			}
-			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
 		})
 		return true
 	})
@@ -317,7 +327,9 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 				Value: groupDetailBytes,
 				Key:   agentInfo.Key,
 			}
-			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
 		})
 		return true
 	})
@@ -345,7 +357,9 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 				Value: msgValue,
 				Key:   agentInfo.Key,
 			}
-			return l.interflowInstance.Send(context.Background(), string(agentInfo.Key), msg)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
 		})
 		return true
 	})
