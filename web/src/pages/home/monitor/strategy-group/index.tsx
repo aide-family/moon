@@ -144,7 +144,7 @@ const StrategyGroup: React.FC = () => {
     }
 
     const toStrategyListPage = (record: StrategyGroupItemType) => {
-        navigate(`/home/monitor/strategy?groupId=${record.id}`)
+        navigate(`/home/monitor/strategy-group/strategy?groupId=${record.id}`)
     }
 
     const handlebatchChangeStatus = (ids: number[], status: Status) => {
@@ -198,6 +198,9 @@ const StrategyGroup: React.FC = () => {
             case ActionKey.RESET:
                 setSearch(defaultStrategyGroupListRequest)
                 setSearchParams('')
+                break
+            case ActionKey.OP_KEY_STRATEGY_LIST:
+                navigate(`/home/monitor/strategy-group/strategy`)
                 break
             default:
                 break

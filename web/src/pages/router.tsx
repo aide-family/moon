@@ -20,8 +20,10 @@ export const routers: RouteObject[] = [
                 children: []
             },
             {
-                path: '/home/monitor/strategy',
-                Component: lazy(() => import('@/pages/home/monitor/strategy'))
+                path: '/home/monitor/strategy-group/strategy',
+                Component: lazy(
+                    () => import('@/pages/home/monitor/strategy-group/strategy')
+                )
             },
             {
                 path: '/home/monitor/endpoint',

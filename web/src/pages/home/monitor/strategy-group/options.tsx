@@ -29,7 +29,7 @@ import {
     getAlarmPages,
     getEndponts,
     getLevels
-} from '../strategy/options'
+} from './strategy/options'
 import { UploadOutlined } from '@ant-design/icons'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { ThemeType } from '@/context'
@@ -290,6 +290,14 @@ export const leftOptions = (loading: boolean): DataOptionItem[] => [
         label: (
             <Button type="primary" loading={loading}>
                 批量导入
+            </Button>
+        )
+    },
+    {
+        key: ActionKey.OP_KEY_STRATEGY_LIST,
+        label: (
+            <Button type="link" loading={loading}>
+                跳转策略列表
             </Button>
         )
     }

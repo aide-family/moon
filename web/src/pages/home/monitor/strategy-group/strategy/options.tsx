@@ -389,6 +389,14 @@ export const leftOptions = (loading: boolean): DataOptionItem[] => [
                 批量导入
             </Button>
         )
+    },
+    {
+        key: ActionKey.STRATEGY_GROUP_LIST,
+        label: (
+            <Button type="link" loading={loading}>
+                跳转策略组列表
+            </Button>
+        )
     }
 ]
 

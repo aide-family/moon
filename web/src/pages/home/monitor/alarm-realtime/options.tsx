@@ -13,7 +13,7 @@ import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
 import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
 import { ColumnType } from 'antd/es/table'
-import { getLevels } from '../strategy/options'
+import { getLevels } from '../strategy-group/strategy/options'
 import { SearchFormItem } from '@/components/Data/SearchForm/SearchForm'
 import { CodeBox } from '../alarm-history/child/Detail'
 
@@ -60,7 +60,7 @@ export const columns = (hiddenMap: Map): ColumnsType[] => [
             return (
                 <Button
                     type="link"
-                    href={`/#/home/monitor/strategy?strategyId=${
+                    href={`/#/home/monitor/strategy-group/strategy?strategyId=${
                         strategy?.id || ''
                     }`}
                 >

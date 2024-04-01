@@ -13,7 +13,7 @@ import {
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
 
-import { Detail } from '../../strategy/child/Detail'
+import { Detail } from '../../strategy-group/strategy/child/Detail'
 import { ActionKey } from '@/apis/data'
 
 const { Paragraph, Text } = Typography

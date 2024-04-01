@@ -30,7 +30,7 @@ export const getWsURL = () => {
 }
 
 const request = axios.create({
-    baseURL: hostMap[host] || host,
+    baseURL: process.env.REACT_APP_ASSET_API || hostMap[host] || host,
     timeout: 10000
 })
 
