@@ -8,7 +8,7 @@ import { DictSelectItem } from '@/apis/home/system/dict/types'
 import { Map } from '@/apis/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
 // import { IconFont } from '@/components/IconFont/IconFont'
-import { Badge, Button, MenuProps, Tooltip } from 'antd'
+import { Badge, Button, MenuProps, Space, Switch, Tooltip } from 'antd'
 import { ColumnGroupProps } from 'antd/es/table/ColumnGroup'
 import dayjs from 'dayjs'
 import { SelectAalrmPageModal } from './child/SelectAlarmPageModal'
@@ -146,14 +146,34 @@ export const searchFormItems: SearchFormItem[] = [
     }
 ]
 
-export const rightOptions = (refresh: () => void): DataOptionItem[] => [
+export type refreshHandleFun = () => void
+
+export type rightOptionsType = {
+    refresh: refreshHandleFun
+    reltimeAlarmShowRowColor?: boolean
+}
+
+export const rightOptions = (params: rightOptionsType): DataOptionItem[] => [
+    {
+        label: (
+            <Space>
+                告警行颜色:
+                <Switch
+                    checked={params?.reltimeAlarmShowRowColor}
+                    checkedChildren="开"
+                    unCheckedChildren="关"
+                />
+            </Space>
+        ),
+        key: ActionKey.ALARM_ROW_COLOR
+    },
     {
         key: ActionKey.REFRESH,
         label: <Button type="primary">刷新</Button>
     },
     {
         key: ActionKey.BIND_MY_ALARM_PAGES,
-        label: <SelectAalrmPageModal refresh={refresh} />
+        label: <SelectAalrmPageModal refresh={params.refresh} />
     }
 ]
 

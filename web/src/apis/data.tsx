@@ -223,7 +223,9 @@ export enum ActionKey {
     /** 测试告警模板 */
     TEST_ALARM_TEMPLATE = '__test_alarm_template__',
     /** 绑定通知模板 */
-    STRATEGY_BIND_NOTIFY_TEMPLATE = '__strategy_bind_notify_template__'
+    STRATEGY_BIND_NOTIFY_TEMPLATE = '__strategy_bind_notify_template__',
+    /** 展示告警行颜色 */
+    ALARM_ROW_COLOR = '__alarm_row_color__'
 }
 
 export {

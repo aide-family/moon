@@ -59,6 +59,10 @@ const Index: React.FC = () => {
         'redirectPathName',
         ''
     )
+    const [reltimeAlarmShowRowColor, setReltimeAlarmShowRowColor] = useStorage(
+        'reltimeAlarmShowRowColor',
+        false
+    )
     const [sysTheme, setSysTheme] = useStorage<ThemeType>('theme', 'light')
     const [intervalId, setIntervalId] = useState<any>()
     const [ws] = useState(createWebSocket(getWsURL()))
@@ -84,7 +88,9 @@ const Index: React.FC = () => {
         setSysTheme: setSysTheme,
         redirectPathName: redirectPathName,
         setRedirectPathName: setRedirectPathName,
-        ws: ws
+        ws: ws,
+        reltimeAlarmShowRowColor: reltimeAlarmShowRowColor,
+        setReltimeAlarmShowRowColor: setReltimeAlarmShowRowColor
     }
 
     return (

@@ -29,7 +29,8 @@ const article = '默认展示告警时间前一小时到告警恢复时间段内
 let fetchTimer: NodeJS.Timeout | null = null
 const AlarmRealtime: FC = () => {
     const [queryForm] = Form.useForm()
-    const { size } = useContext(GlobalContext)
+    const { size, reltimeAlarmShowRowColor, setReltimeAlarmShowRowColor } =
+        useContext(GlobalContext)
 
     const [alarmPageList, setAlarmPageList] = useState<DictListItem[]>([])
     const [dataSource, setDataSource] = useState<AlarmRealtimeItem[]>([])
@@ -99,17 +100,14 @@ const AlarmRealtime: FC = () => {
         if (alarmPageIds.length === 0) {
             return
         }
-        const params = queryParams
-        if (!params.alarmPageId) {
-            params.alarmPageId = alarmPageIds[0]
-        }
+
         if (fetchTimer) {
             clearTimeout(fetchTimer)
         }
         fetchTimer = setTimeout(() => {
             setLoading(true)
             alarmRealtimeApi
-                .getAlarmRealtimeList({ ...params })
+                .getAlarmRealtimeList({ ...queryParams })
                 .then((res) => {
                     setDataSource(res.list)
                     setTotal(res.page.total)
@@ -128,9 +126,8 @@ const AlarmRealtime: FC = () => {
         setLoading(true)
         setQueryParams({
             ...queryParams,
-            alarmPageId: +key || 1
+            alarmPageId: +key
         })
-        handleRefresh()
     }
 
     const buildTabsItems = () => {
@@ -168,6 +165,11 @@ const AlarmRealtime: FC = () => {
                 break
             case ActionKey.RESET:
                 setQueryParams(defaultAlarmRealtimeListRequest)
+                break
+            case ActionKey.ALARM_ROW_COLOR:
+                setReltimeAlarmShowRowColor?.(!reltimeAlarmShowRowColor)
+                break
+            default:
                 break
         }
     }
@@ -228,20 +230,19 @@ const AlarmRealtime: FC = () => {
         }
         delete requestValues.eventAt
         setQueryParams(requestValues)
-        handleRefresh()
     }
 
-    // const onRow = (record?: AlarmRealtimeItem) => {
-    //     if (!record || !record.level) return {}
-    //     const {
-    //         level: { color }
-    //     } = record
-    //     return {
-    //         style: {
-    //             background: color || ''
-    //         }
-    //     }
-    // }
+    const onRow = (record?: AlarmRealtimeItem) => {
+        if (!record || !record.level || !reltimeAlarmShowRowColor) return {}
+        const {
+            level: { color }
+        } = record
+        return {
+            style: {
+                background: color || ''
+            }
+        }
+    }
 
     useEffect(() => {
         handleRefresh()
@@ -249,6 +250,11 @@ const AlarmRealtime: FC = () => {
 
     useEffect(() => {
         handleCountAlarmByPageIds()
+        const params = queryParams
+        if (!params.alarmPageId) {
+            params.alarmPageId = alarmPageIds[0]
+            setQueryParams(params)
+        }
     }, [alarmPageIds])
 
     useEffect(() => {
@@ -304,7 +310,10 @@ const AlarmRealtime: FC = () => {
             <HeightLine />
             <DataOption
                 queryForm={queryForm}
-                rightOptions={rightOptions(handleGetAlarmPageList)}
+                rightOptions={rightOptions({
+                    refresh: handleGetAlarmPageList,
+                    reltimeAlarmShowRowColor: reltimeAlarmShowRowColor
+                })}
                 action={handleOptionClick}
                 // showAdd={false}
             />
@@ -327,7 +336,7 @@ const AlarmRealtime: FC = () => {
                     loading={loading}
                     operationItems={operationItems}
                     action={handlerTableAction}
-                    // onRow={onRow}
+                    onRow={onRow}
                     pageSize={queryParams?.page?.size}
                     current={queryParams?.page?.curr}
                 />

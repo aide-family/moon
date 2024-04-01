@@ -32,6 +32,8 @@ export type GlobalContextType = {
     redirectPathName?: string
     setRedirectPathName?: (redirectPathName: string) => void
     ws?: WebSocket
+    reltimeAlarmShowRowColor?: boolean
+    setReltimeAlarmShowRowColor?: (reltimeAlarmShowRowColor: boolean) => void
 }
 
 export const GlobalContext = createContext<GlobalContextType>({
