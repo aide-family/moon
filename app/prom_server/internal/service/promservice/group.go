@@ -40,6 +40,7 @@ func (s *GroupService) CreateGroup(ctx context.Context, req *pb.CreateGroupReque
 		Name:        req.GetName(),
 		Remark:      req.GetRemark(),
 		CategoryIds: req.GetCategoryIds(),
+		Categories:  slices.To(req.GetCategoryIds(), func(i uint32) *bo.DictBO { return &bo.DictBO{Id: i} }),
 	}
 	strategyGroup, err := s.strategyGroupBiz.Create(ctx, strategyGroup)
 	if err != nil {
@@ -56,6 +57,7 @@ func (s *GroupService) UpdateGroup(ctx context.Context, req *pb.UpdateGroupReque
 		Name:        req.GetName(),
 		Remark:      req.GetRemark(),
 		CategoryIds: req.GetCategoryIds(),
+		Categories:  slices.To(req.GetCategoryIds(), func(i uint32) *bo.DictBO { return &bo.DictBO{Id: i} }),
 	}
 	if _, err := s.strategyGroupBiz.UpdateById(ctx, strategyGroup); err != nil {
 		return nil, err
@@ -225,12 +227,20 @@ func (s *GroupService) ImportGroup(ctx context.Context, req *pb.ImportGroupReque
 
 	// 构建创建的数据
 	newPromStrategyGroups := slices.To(req.GetGroups(), func(t *api.PromRuleGroup) *bo.StrategyGroupBO {
+		categoryIds := req.GetDefaultCategoryIds()
+		categories := slices.To(req.GetDefaultCategoryIds(), func(dictId uint32) *bo.DictBO {
+			return &bo.DictBO{
+				Id: dictId,
+			}
+		})
 		strategyGroup := &bo.StrategyGroupBO{
 			Name: t.GetName(),
 		}
 		if promStrategyGroup, ok := promStrategyGroupNameMap[t.GetName()]; ok {
 			strategyGroup = promStrategyGroup
 		}
+		strategyGroup.Categories = append(strategyGroup.Categories, categories...)
+		strategyGroup.CategoryIds = append(strategyGroup.CategoryIds, categoryIds...)
 		strategyGroup.PromStrategies = slices.To(t.GetRules(), func(rule *api.PromRule) *bo.StrategyBO {
 			labels := rule.GetLabels()
 			annotations := rule.GetAnnotations()

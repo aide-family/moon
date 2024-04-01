@@ -131,7 +131,7 @@ export const searchItems: DataFormItem[] = [
             type: 'select-fetch',
             parentProps: {
                 selectProps: {
-                    placeholder: '请选择策略类型',
+                    placeholder: '请选择策略组类型',
                     mode: 'multiple'
                 },
                 handleFetch: getCategories,
@@ -313,7 +313,7 @@ export const editStrategyGroupDataFormItems: DataFormItem[] = [
             type: 'select-fetch',
             parentProps: {
                 selectProps: {
-                    placeholder: '请选择策略类型',
+                    placeholder: '请选择策略组类型',
                     mode: 'multiple'
                 },
                 handleFetch: getCategories,
@@ -438,7 +438,7 @@ export const importGroupDataFormItems: (DataFormItem[] | DataFormItem)[] = [
                 type: 'select-fetch',
                 parentProps: {
                     selectProps: {
-                        placeholder: '请选择策略类型',
+                        placeholder: '请选择策略组类型',
                         mode: 'multiple'
                     },
                     handleFetch: getCategories,
