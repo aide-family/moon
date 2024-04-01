@@ -80,6 +80,7 @@ const AlarmRealtime: FC = () => {
         dictApi.myAlarmPageList().then((res) => {
             setAlarmPageList(res.list)
             setAlarmPageIds(res.list.map((item) => item.id))
+            handleRefresh()
         })
     }
 
@@ -232,6 +233,16 @@ const AlarmRealtime: FC = () => {
         setQueryParams(requestValues)
     }
 
+    const handlePageOnChange = (page: number, pageSize: number) => {
+        setQueryParams({
+            ...queryParams,
+            page: {
+                curr: page,
+                size: pageSize
+            }
+        })
+    }
+
     const onRow = (record?: AlarmRealtimeItem) => {
         if (!record || !record.level || !reltimeAlarmShowRowColor) return {}
         const {
@@ -251,9 +262,11 @@ const AlarmRealtime: FC = () => {
     useEffect(() => {
         handleCountAlarmByPageIds()
         const params = queryParams
-        if (!params.alarmPageId) {
-            params.alarmPageId = alarmPageIds[0]
-            setQueryParams(params)
+        if (!params.alarmPageId && alarmPageIds.length > 0) {
+            setQueryParams({
+                ...queryParams,
+                alarmPageId: alarmPageIds[0]
+            })
         }
     }, [alarmPageIds])
 
@@ -263,7 +276,6 @@ const AlarmRealtime: FC = () => {
 
     useEffect(() => {
         handleGetAlarmPageList()
-        handleRefresh()
         let interval = setInterval(() => {
             handleRefresh()
         }, 60000)
@@ -337,6 +349,7 @@ const AlarmRealtime: FC = () => {
                     operationItems={operationItems}
                     action={handlerTableAction}
                     onRow={onRow}
+                    pageOnChange={handlePageOnChange}
                     pageSize={queryParams?.page?.size}
                     current={queryParams?.page?.curr}
                 />
