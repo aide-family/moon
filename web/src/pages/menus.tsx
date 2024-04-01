@@ -48,10 +48,6 @@ export const defaultMenuItems: ItemType[] = [
                 key: '/home/monitor/strategy-group'
             },
             {
-                label: '策略列表',
-                key: '/home/monitor/strategy'
-            },
-            {
                 label: '数据源',
                 key: '/home/monitor/endpoint'
             },
@@ -67,33 +63,57 @@ export const defaultMenuItems: ItemType[] = [
     }
 ]
 
-export const breadcrumbNameMap: Record<string, string> = {
-    '/home': '主页',
-    '/home/system': '系统管理',
-    '/home/customer': '客户管理',
-    '/home/resource': '资源管理',
-    '/home/flow': '流程管理',
-    '/home/monitor': '监控',
-    '/home/monitor/alarm-realtime': '实时告警',
-    '/home/monitor/alarm-history': '告警历史',
-    '/home/monitor/strategy-group': '策略组',
-    '/home/monitor/strategy': '策略',
-    '/home/monitor/endpoint': '数据源',
-    '/home/monitor/alarm-group': '告警组',
-    '/home/monitor/chat-group': '机器人组',
-    '/home/system/user': '用户管理',
-    '/home/system/dict': '字典管理',
-    '/home/system/role': '角色管理',
-    '/home/system/menu': '菜单管理',
-    '/home/system/auth': '权限管理',
-    '/home/customer/list': '客户列表',
-    '/home/customer/supplier': '供应商',
-    '/home/resource/device': '设备列表',
-    '/home/resource/node': '节点列表',
-    '/home/resource/account': '账号列表',
-    '/home/flow/template': '流程模板',
-    '/home/flow/instance': '流程实例',
-    '/home/flow/task': '任务大厅',
-    '/home/flow/mytask': '我的任务',
-    '/home/flow/form': '流程表单'
+export type breadcrumbNameType = {
+    name: string
+    disabled?: boolean
+}
+
+export const breadcrumbNameMap: Record<string, breadcrumbNameType> = {
+    '/home': {
+        name: '主页'
+    },
+    '/home/monitor': {
+        name: '监控',
+        disabled: true
+    },
+    '/home/monitor/alarm-realtime': {
+        name: '实时告警'
+    },
+    '/home/monitor/alarm-history': {
+        name: '告警历史'
+    },
+    '/home/monitor/strategy-group': {
+        name: '策略组'
+    },
+    '/home/monitor/strategy-group/strategy': {
+        name: '策略列表'
+    },
+    '/home/monitor/endpoint': {
+        name: '数据源'
+    },
+    '/home/monitor/alarm-group': {
+        name: '告警组'
+    },
+    '/home/monitor/chat-group': {
+        name: '机器人组'
+    },
+    '/home/system': {
+        name: '系统管理',
+        disabled: true
+    },
+    '/home/system/user': {
+        name: '用户管理'
+    },
+    '/home/system/dict': {
+        name: '字典管理'
+    },
+    '/home/system/role': {
+        name: '角色管理'
+    },
+    '/home/system/menu': {
+        name: '菜单管理'
+    },
+    '/home/system/auth': {
+        name: '权限管理'
+    }
 }

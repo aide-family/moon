@@ -3,6 +3,7 @@ import { SizeType } from 'antd/es/config-provider/SizeContext'
 import type { ItemType } from 'antd/es/menu/hooks/useItems'
 import type { SpaceType } from './pages'
 import { UserListItem } from './apis/home/system/user/types'
+import { breadcrumbNameType } from './pages/menus'
 
 export type ThemeType = 'light' | 'dark'
 
@@ -18,7 +19,7 @@ export type GlobalContextType = {
     layoutContentElement?: HTMLElement | null
     setLayoutContentElement?: (element: HTMLElement | null) => void
     menus?: ItemType[]
-    breadcrumbNameMap?: Record<string, string>
+    breadcrumbNameMap?: Record<string, breadcrumbNameType>
     spaces?: SpaceType[]
     setSpaces?: (spaces: SpaceType[]) => void
     setAuthToken?: (token: string) => void

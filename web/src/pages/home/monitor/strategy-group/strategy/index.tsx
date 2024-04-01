@@ -23,10 +23,10 @@ import strategyApi from '@/apis/home/monitor/strategy'
 import { ModuleType, Status } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
-import { ImportGroups } from '../strategy-group/child/ImportGroups'
+import { ImportGroups } from '../child/ImportGroups'
 import qs from 'qs'
 import PromQLInput from '@/components/Prom/PromQLInput'
-import { SysLogDetail } from '../../child/SysLogDetail'
+import { SysLogDetail } from '../../../child/SysLogDetail'
 import { BindNotifyTemplate } from './child/BindNotifyTemplate'
 
 const defaultPadding = 12
@@ -212,6 +212,9 @@ const Strategy: FC = () => {
             case ActionKey.RESET:
                 setReqParams(defaultStrategyListRequest)
                 setSearchParams('')
+                break
+            case ActionKey.STRATEGY_GROUP_LIST:
+                navigate(`/home/monitor/strategy-group`)
                 break
         }
     }

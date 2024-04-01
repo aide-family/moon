@@ -8,7 +8,7 @@ import { Badge, Button, MenuProps, Tag } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import { CodeBox } from './child/Detail'
-import { getLevels } from '../strategy/options'
+import { getLevels } from '../strategy-group/strategy/options'
 import strategyApi from '@/apis/home/monitor/strategy'
 
 export const getStrategySelectList = (keyword: string) => {
@@ -226,7 +226,7 @@ export const columns: ColumnsType<AlarmHistoryItem> = [
             return (
                 <a
                     type="link"
-                    href={`/#/home/monitor/strategy?strategyId=${record.alarmId}`}
+                    href={`/#/home/monitor/strategy-group/strategy?strategyId=${record.alarmId}`}
                 >
                     {alert || '-'}
                 </a>

@@ -16,11 +16,11 @@ import { NotifyAppData } from '@/apis/data'
 import {
     ChartGroupTableColumnType,
     NotifyMemberTableColumnType
-} from '../../alarm-group/options'
+} from '../../../alarm-group/options'
 import { IconFont } from '@/components/IconFont/IconFont'
 import FetchSelect from '@/components/Data/FetchSelect'
 import { DefaultOptionType } from 'antd/es/select'
-import { getNotifyList } from '../../strategy-group/options'
+import { getNotifyList } from '../../options'
 
 export interface BindNotifyObjectProps {
     open?: boolean
