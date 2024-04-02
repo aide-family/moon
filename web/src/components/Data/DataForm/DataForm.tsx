@@ -11,7 +11,7 @@ import React from 'react'
 
 export type DataFormItem = {
     name: string
-    label: string
+    label: string | React.ReactNode
     formItemProps?: FormItemProps
     dataProps?: DataInputProps
     rules?: Rule[]

@@ -271,4 +271,52 @@ export enum NotifyTemplateType {
     NotifyTemplateTypeDingDing
 }
 
+/** 策略类型 */
+export enum StrategyType {
+    /** prometheus策略 */
+    StrategyTypePrometheus,
+    /** 探针策略 */
+    StrategyTypeProbe
+}
+
+/** 探测类型 */
+export enum ProbeType {
+    /** 探针 */
+    ProbeTypePing,
+    /** 探针 */
+    ProbeTypeTcp,
+    /** 探针 */
+    ProbeTypeHttp,
+    /** 探针 */
+    ProbeTypeDns,
+    /** tcping */
+    ProbeTypeTcping
+}
+
+/** http请求类型 */
+export enum HttpMethod {
+    /** get */
+    HttpMethodGet,
+    /** post */
+    HttpMethodPost,
+    /** put */
+    HttpMethodPut,
+    /** delete */
+    HttpMethodDelete,
+    /** head */
+    HttpMethodHead,
+    /** options */
+    HttpMethodOptions,
+    /** patch */
+    HttpMethodPatch
+}
+
+/** http探测结果类型 */
+export enum HttpProbeResultType {
+    /** 状态码 */
+    HttpProbeResultTypeStatusCode,
+    /** 响应时间 */
+    HttpProbeResultTypeResponseTime
+}
+
 export type { Map, PageResType, PageReqType, IdReponse, IdsReponse, Duration }

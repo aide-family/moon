@@ -2,7 +2,13 @@ import { DictSelectItem } from '../../system/dict/types'
 import { NotifyItem } from '../alarm-notify/types'
 import { PrometheusServerSelectItem } from '../endpoint/types'
 import { StrategyGroupSelectItemType } from '../strategy-group/types'
-import { Duration, Map, PageReqType, PageResType } from '@/apis/types'
+import {
+    Duration,
+    Map,
+    PageReqType,
+    PageResType,
+    StrategyType
+} from '@/apis/types'
 
 /** 策略详情 */
 interface StrategyItemType {
@@ -32,6 +38,8 @@ interface StrategyItemType {
     sendInterval?: Duration
     // 是否发送告警通知
     sendRecover?: boolean
+    // 策略类型
+    strategyType?: StrategyType
 }
 
 interface StrategyWithNOtifyItemType {

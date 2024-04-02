@@ -1,10 +1,13 @@
-import { Button } from 'antd'
 import {
     Category,
     DomainType,
+    HttpMethod,
+    HttpProbeResultType,
     ModuleType,
     NotifyApp,
     NotifyTemplateType,
+    ProbeType,
+    StrategyType,
     SysLogActionType
 } from './types'
 import { IconFont } from '@/components/IconFont/IconFont'
@@ -52,28 +55,40 @@ const moduleTypeData: Record<ModuleType, string> = {
     [ModuleType.ModuleDashboard]: '仪表盘模块'
 }
 
+const defaultStyle: React.CSSProperties = {
+    gap: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap'
+}
+
 /** NotifyApp */
 const NotifyAppData: Record<NotifyApp, React.ReactNode> = {
     [NotifyApp.NOTIFY_APP_UNKNOWN]: '全部',
     [NotifyApp.NOTIFY_APP_DINGTALK]: (
-        <Button type="text" icon={<IconFont type="icon-dingding" />}>
+        <span style={defaultStyle}>
+            <IconFont type="icon-dingding" />
             钉钉
-        </Button>
+        </span>
     ),
     [NotifyApp.NOTIFY_APP_WECHATWORK]: (
-        <Button type="text" icon={<IconFont type="icon-qiyeweixin" />}>
+        <span style={defaultStyle}>
+            <IconFont type="icon-qiyeweixin" />
             企业微信
-        </Button>
+        </span>
     ),
     [NotifyApp.NOTIFY_APP_FEISHU]: (
-        <Button type="text" icon={<IconFont type="icon-feishu" />}>
+        <span style={defaultStyle}>
+            <IconFont type="icon-feishu" />
             飞书
-        </Button>
+        </span>
     ),
     [NotifyApp.NOTIFY_APP_CUSTOM]: (
-        <Button type="text" icon={<IconFont type="icon-zidingyi" />}>
+        <span style={defaultStyle}>
+            <IconFont type="icon-zidingyi" />
             自定义hook
-        </Button>
+        </span>
     )
 }
 
@@ -116,41 +131,82 @@ export const NotifyTemplateTypeData: Record<
     React.ReactNode
 > = {
     [NotifyTemplateType.NotifyTemplateTypeEmail]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-youjian" />
             邮件
         </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeCustom]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-zidingyi" />
             自定义hook
         </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeDingDing]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-dingding" />
             钉钉
         </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeSms]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-duanxin" />
             短信
         </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeFeiShu]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-feishu" />
             飞书
         </span>
     ),
     [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: (
-        <span>
+        <span style={defaultStyle}>
             <IconFont type="icon-qiyeweixin" />
             企业微信
         </span>
     )
+}
+
+export const StrategyTypeData: Record<StrategyType, React.ReactNode> = {
+    [StrategyType.StrategyTypePrometheus]: (
+        <span style={defaultStyle}>
+            <IconFont type="icon-Prometheus" />
+            Prometheus
+        </span>
+    ),
+    [StrategyType.StrategyTypeProbe]: (
+        <span style={defaultStyle}>
+            <IconFont type="icon-icon-09" />
+            网络探测
+        </span>
+    )
+}
+
+export const ProbeTypeData: Record<ProbeType, React.ReactNode> = {
+    [ProbeType.ProbeTypePing]: 'PING',
+    [ProbeType.ProbeTypeTcp]: 'TCP',
+    [ProbeType.ProbeTypeHttp]: 'HTTP',
+    [ProbeType.ProbeTypeDns]: 'DNS',
+    [ProbeType.ProbeTypeTcping]: 'TCPING'
+}
+
+export const HttpMethodData: Record<HttpMethod, React.ReactNode> = {
+    [HttpMethod.HttpMethodGet]: 'GET',
+    [HttpMethod.HttpMethodPost]: 'POST',
+    [HttpMethod.HttpMethodPut]: 'PUT',
+    [HttpMethod.HttpMethodDelete]: 'DELETE',
+    [HttpMethod.HttpMethodHead]: 'HEAD',
+    [HttpMethod.HttpMethodOptions]: 'OPTIONS',
+    [HttpMethod.HttpMethodPatch]: 'PATCH'
+}
+
+export const HttpProbeResultTypeData: Record<
+    HttpProbeResultType,
+    React.ReactNode
+> = {
+    [HttpProbeResultType.HttpProbeResultTypeStatusCode]: '状态码',
+    [HttpProbeResultType.HttpProbeResultTypeResponseTime]: '响应时间'
 }
 
 export enum ActionKey {
@@ -168,6 +224,8 @@ export enum ActionKey {
     DETAIL = '__detail__',
     /** 新增 */
     ADD = '__add__',
+    /** 新增探测策略 */
+    ADD_PROBE = '__add_probe__',
     /** 编辑 */
     EDIT = '__edit__',
     /** 删除 */

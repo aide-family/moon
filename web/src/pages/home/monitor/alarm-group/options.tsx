@@ -93,15 +93,15 @@ export const chartGroupCoumns: ChartGroupTableColumnType[] = [
     {
         title: '名称',
         dataIndex: 'label',
-        key: 'label',
-        width: '40%'
+        key: 'label'
+        // width: '40%'
     },
     {
         title: '所属APP',
         dataIndex: 'app',
         key: 'app',
-        width: '40%',
-        align: 'center',
+        // width: '40%',
+        // align: 'center',
         render: (app: NotifyApp) => {
             return NotifyAppData[app]
         }
@@ -111,7 +111,7 @@ export const chartGroupCoumns: ChartGroupTableColumnType[] = [
         dataIndex: 'status',
         key: 'status',
         align: 'center',
-        width: '40%',
+        width: 120,
         render: (status: Status) => {
             const { color, text } = StatusMap[status]
             return <Badge color={color} text={text} />
@@ -126,7 +126,7 @@ export const memberCoumns = (
         title: '通知人姓名',
         dataIndex: 'user',
         key: 'user',
-        width: '40%',
+        // width: '40%',
         render: (user: UserSelectItem) => {
             return user.label
         }
@@ -136,8 +136,8 @@ export const memberCoumns = (
         title: '告警方式',
         dataIndex: 'notifyType',
         key: 'notifyType',
-        align: 'center',
-        width: '40%',
+        // align: 'center',
+        // width: '40%',
         render: (notifyType: number, record: NotifyMemberItem) => {
             const email = notifyType & 2
             const sms = notifyType & 4

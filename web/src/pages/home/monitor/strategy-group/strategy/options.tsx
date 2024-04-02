@@ -10,19 +10,29 @@ import {
 } from 'antd'
 import { IconFont } from '@/components/IconFont/IconFont.tsx'
 import { operationItems } from '@/components/Data/DataOption/option.tsx'
-import { DataFormItem } from '@/components/Data'
+import { DataFormItem, MoreMenu } from '@/components/Data'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
-import { ActionKey, NotifyTemplateTypeData } from '@/apis/data'
+import {
+    ActionKey,
+    HttpMethodData,
+    HttpProbeResultTypeData,
+    NotifyTemplateTypeData,
+    ProbeTypeData,
+    StrategyTypeData
+} from '@/apis/data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import {
     Category,
     Duration,
+    HttpMethod,
     Map,
     NotifyTemplateType,
     PageReqType,
+    ProbeType,
     Status,
-    StatusMap
+    StatusMap,
+    StrategyType
 } from '@/apis/types'
 import { NotifyItem } from '@/apis/home/monitor/alarm-notify/types'
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
@@ -381,7 +391,39 @@ export const notifyObjectTableColumns: NotifyObjectTableColumnType[] = [
     }
 ]
 
-export const leftOptions = (loading: boolean): DataOptionItem[] => [
+export type ActionFun = (key: ActionKey) => void
+
+export const leftOptions = (
+    loading: boolean,
+    actionFun: ActionFun
+): DataOptionItem[] => [
+    {
+        key: '',
+        label: (
+            // <Button type="primary" loading={loading}>
+            //     添加
+            // </Button>
+            <MoreMenu
+                onClick={actionFun}
+                type="button"
+                trigger="hover"
+                items={[
+                    {
+                        key: ActionKey.ADD,
+                        label: StrategyTypeData[
+                            StrategyType.StrategyTypePrometheus
+                        ]
+                    },
+                    {
+                        key: ActionKey.ADD_PROBE,
+                        label: StrategyTypeData[StrategyType.StrategyTypeProbe]
+                    }
+                ]}
+            >
+                添加
+            </MoreMenu>
+        )
+    },
     {
         key: ActionKey.BATCH_IMPORT,
         label: (
@@ -1060,5 +1102,190 @@ export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
                 required: true
             }
         ]
+    }
+]
+
+export type ProdeStrategyFormOptionsParamsType = {
+    probeType: ProbeType
+    httpMethod: HttpMethod
+}
+
+const getProbeInput = ({
+    probeType = ProbeType.ProbeTypePing
+}: ProdeStrategyFormOptionsParamsType): (DataFormItem | DataFormItem[])[] => {
+    let inputRes: (DataFormItem | DataFormItem[])[] = []
+    switch (probeType) {
+        case ProbeType.ProbeTypeHttp:
+            inputRes = [
+                [
+                    {
+                        label: '请求方式',
+                        name: 'method',
+                        rules: [
+                            {
+                                required: true,
+                                message: '请选择请求方式'
+                            }
+                        ],
+                        formItemProps: {
+                            initialValue: HttpMethod.HttpMethodGet
+                        },
+                        dataProps: {
+                            type: 'segmented',
+                            parentProps: {
+                                options: Object.entries(HttpMethodData).map(
+                                    ([key, value]) => ({
+                                        label: value,
+                                        value: +key
+                                    })
+                                )
+                            }
+                        }
+                    },
+                    {
+                        label: '结果类型',
+                        name: 'resultType',
+                        rules: [{ required: true, message: '请选择结果类型' }],
+                        dataProps: {
+                            type: 'segmented',
+                            parentProps: {
+                                options: Object.entries(
+                                    HttpProbeResultTypeData
+                                ).map(([key, value]) => ({
+                                    label: value,
+                                    value: +key
+                                }))
+                            }
+                        }
+                    }
+                ],
+                [
+                    {
+                        label: '探测频率',
+                        name: 'probeFrequency',
+                        rules: [
+                            {
+                                required: true,
+                                message: '请输入探测频率'
+                            }
+                        ],
+                        dataProps: {
+                            type: 'time-value',
+                            parentProps: {
+                                name: 'sendInterval',
+                                placeholder: ['请输入探测间隔时间', '选择单位'],
+                                unitOptions: durationOptions
+                            }
+                        }
+                    },
+                    {
+                        label: '结果值',
+                        name: 'resultValue',
+                        rules: [
+                            {
+                                required: true,
+                                message: '请输入结果值'
+                            }
+                        ]
+                    }
+                ],
+                [
+                    {
+                        label: '请求头',
+                        name: 'header',
+                        dataProps: {
+                            type: 'textarea',
+                            parentProps: {
+                                placeholder: '请输入请求头'
+                            }
+                        }
+                    },
+                    {
+                        label: '请求体',
+                        name: 'body',
+                        dataProps: {
+                            type: 'textarea',
+                            parentProps: {
+                                placeholder: '请输入请求体'
+                            }
+                        }
+                    }
+                ]
+            ]
+            break
+    }
+    return inputRes
+}
+
+export const prodeStrategyFormOptions = ({
+    probeType = ProbeType.ProbeTypeHttp,
+    httpMethod = HttpMethod.HttpMethodGet
+}: ProdeStrategyFormOptionsParamsType): (DataFormItem | DataFormItem[])[] => [
+    [
+        {
+            label: '策略名称',
+            name: 'name',
+            rules: [
+                {
+                    required: true,
+                    message: '请输入策略名称'
+                }
+            ]
+        },
+        {
+            label: '探测类型',
+            name: 'probeType',
+            rules: [
+                {
+                    required: true,
+                    message: '请选择探测类型'
+                }
+            ],
+            formItemProps: {
+                initialValue: ProbeType.ProbeTypeHttp
+            },
+            dataProps: {
+                type: 'segmented',
+                parentProps: {
+                    options: Object.entries(ProbeTypeData).map(
+                        ([key, value]) => ({
+                            label: value,
+                            value: +key,
+                            disabled: +key != ProbeType.ProbeTypeHttp
+                        })
+                    )
+                }
+            }
+        }
+    ],
+    {
+        label: <span style={{ flex: 1 }}>{ProbeTypeData[probeType]}对象</span>,
+        name: 'probeId',
+        rules: [
+            {
+                required: true,
+                message: `请输入${ProbeTypeData[probeType]}对象`
+            }
+        ],
+        dataProps: {
+            type: 'input',
+            parentProps: {
+                placeholder: `请输入${ProbeTypeData[probeType]}对象`
+            }
+        }
+    },
+    ...getProbeInput({ probeType, httpMethod }),
+    {
+        label: '策略描述',
+        name: 'remark',
+        dataProps: {
+            type: 'textarea',
+            parentProps: {
+                rows: 4,
+                placeholder: '请输入策略描述',
+                maxLength: 255,
+                showCount: true
+            }
+        }
     }
 ]

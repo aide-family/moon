@@ -12,7 +12,7 @@ import styles from '../style/data.module.less'
 
 export type SearchFormItem = {
     name: string
-    label: string
+    label: string | React.ReactNode
     dataProps?: DataInputProps
     rules?: Rule[]
     formItemProps?: FormItemProps

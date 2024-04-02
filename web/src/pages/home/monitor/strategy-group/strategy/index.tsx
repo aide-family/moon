@@ -20,7 +20,7 @@ import {
 } from './options'
 import { Detail } from './child/Detail'
 import strategyApi from '@/apis/home/monitor/strategy'
-import { ModuleType, Status } from '@/apis/types'
+import { ModuleType, Status, StrategyType } from '@/apis/types'
 import { BindNotifyObject } from './child/BindNotifyObject'
 import { GlobalContext } from '@/context'
 import { ImportGroups } from '../child/ImportGroups'
@@ -28,6 +28,7 @@ import qs from 'qs'
 import PromQLInput from '@/components/Prom/PromQLInput'
 import { SysLogDetail } from '../../../child/SysLogDetail'
 import { BindNotifyTemplate } from './child/BindNotifyTemplate'
+import { EditProbeModal } from './child/EditProdeModal'
 
 const defaultPadding = 12
 
@@ -59,6 +60,9 @@ const Strategy: FC = () => {
     const [logDataId, setLogDataId] = useState<number | undefined>()
     const [openBindNotifyTemplate, setOpenBindNotifyTemplate] =
         useState<boolean>(false)
+
+    const [openEditProbeModal, setOpenEditProbeModal] = useState<boolean>(false)
+    const [strategyType, setStrategyType] = useState<StrategyType>()
 
     const openLogDetail = (id: number) => {
         setLogOpen(true)
@@ -109,6 +113,26 @@ const Strategy: FC = () => {
     const handlerCloseBindNotifyTemplate = () => {
         setOpenBindNotifyTemplate(false)
         setOperateId(undefined)
+    }
+
+    const handleOpenEditProbeModal = (
+        id?: number,
+        strategyType: StrategyType = StrategyType.StrategyTypeProbe
+    ) => {
+        setOperateId(id)
+        setOpenEditProbeModal(true)
+        setStrategyType(strategyType)
+    }
+
+    const handleCloseEditProbeModal = () => {
+        setOpenEditProbeModal(false)
+        setOperateId(undefined)
+        setStrategyType(undefined)
+    }
+
+    const handleEditProbeModalOnOk = () => {
+        handleCloseEditProbeModal()
+        handlerRefresh()
     }
 
     // 获取数据
@@ -172,6 +196,10 @@ const Strategy: FC = () => {
                 handlerOpenDetail(record.id)
                 break
             case ActionKey.EDIT:
+                if (record.strategyType === StrategyType.StrategyTypeProbe) {
+                    handleOpenEditProbeModal(record.id)
+                    break
+                }
                 handlerOpenDetail(record.id)
                 break
             case ActionKey.DELETE:
@@ -202,6 +230,9 @@ const Strategy: FC = () => {
         switch (key) {
             case ActionKey.ADD:
                 handlerOpenDetail()
+                break
+            case ActionKey.ADD_PROBE:
+                handleOpenEditProbeModal()
                 break
             case ActionKey.BATCH_IMPORT:
                 handleOpenImportModal()
@@ -294,6 +325,14 @@ const Strategy: FC = () => {
                 refresh={handlerRefresh}
                 disabled={actionKey === ActionKey.DETAIL}
             />
+            <EditProbeModal
+                open={openEditProbeModal}
+                strategyId={operateId}
+                strategyType={strategyType}
+                onCancel={handleCloseEditProbeModal}
+                onOk={handleEditProbeModalOnOk}
+                width="60%"
+            />
             <div>
                 <RouteBreadcrumb />
                 <HeightLine />
@@ -306,9 +345,10 @@ const Strategy: FC = () => {
                 />
                 <HeightLine />
                 <DataOption
+                    showAdd={false}
                     queryForm={queryForm}
                     rightOptions={rightOptions(loading)}
-                    leftOptions={leftOptions(loading)}
+                    leftOptions={leftOptions(loading, handlerDataOptionAction)}
                     action={handlerDataOptionAction}
                 />
                 <PaddingLine
