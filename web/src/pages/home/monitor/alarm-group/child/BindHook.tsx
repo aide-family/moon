@@ -11,6 +11,7 @@ import { IconFont } from '@/components/IconFont/IconFont'
 import FetchSelect from '@/components/Data/FetchSelect'
 import chatGroupApi from '@/apis/home/monitor/chat-group'
 import EditChatGroupModal from '../../chat-hook/child/EditChatGroupModal'
+import {ActionKey} from "@/apis/data.tsx";
 
 export interface BindHookProps {
     value?: ChatGroupSelectItem[]
@@ -121,6 +122,7 @@ export const BindHook: React.FC<BindHookProps> = (props) => {
                 open={editChatGroupModalVisible}
                 onClose={() => setEditChatGroupModalVisible(false)}
                 onOk={() => setEditChatGroupModalVisible(false)}
+                action={ActionKey.ADD}
             />
             <Form
                 layout="inline"

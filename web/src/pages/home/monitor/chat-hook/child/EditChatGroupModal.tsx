@@ -10,27 +10,30 @@ import {
 import chatGroupApi from '@/apis/home/monitor/chat-group'
 import { useWatch } from 'antd/es/form/Form'
 import { NotifyApp } from '@/apis/types'
+import { ActionKey } from "@/apis/data.tsx";
 
 export interface EditChatGroupProps {
     chatGroupId?: number
     open: boolean
+    action: string
     onClose: () => void
     onOk: () => void
 }
 
-const getItems = (app: NotifyApp, id?: number) => {
-    if (id) return updateChatGroupItems
+const getItems = (app: NotifyApp, action?: string) => {
+    if (action==ActionKey.EDIT) return updateChatGroupItems
     return addChatGroupItems(app)
 }
 
 const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
-    const { chatGroupId, onOk, onClose, open } = props
+    const { chatGroupId, onOk, onClose, open,action } = props
 
     const [form] = Form.useForm<
         CreateChatGroupRequest | UpdateChatGroupRequest
     >()
     const [detail, setDetail] = useState<ChatGroupItem>()
     const [loading, setLoading] = useState(false)
+    const [disable, setDisable] = useState(false)
     const app = useWatch('app', form)
 
     const handleGetChatGroupDetail = () => {
@@ -86,7 +89,17 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
     }
 
     const Title = () => {
-        return chatGroupId ? '编辑机器人' : '添加机器人'
+        switch (action) {
+            case ActionKey.ADD:
+                setDisable(false)
+                return "新增"
+            case ActionKey.EDIT:
+                setDisable(false)
+                return "编辑"
+            default:
+                setDisable(true)
+                return "详情"
+        }
     }
 
     const handeRestForm = () => {
@@ -103,12 +116,18 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
                 <Button onClick={onClose} loading={loading}>
                     取消
                 </Button>
-                <Button onClick={handeRestForm} type="dashed" loading={loading}>
-                    重置
-                </Button>
-                <Button type="primary" onClick={handleOnOk} loading={loading}>
-                    保存
-                </Button>
+                {
+                    action!=ActionKey.DETAIL?
+                        <>
+                            <Button onClick={handeRestForm} type="dashed" loading={loading}>
+                                重置
+                            </Button>
+                            <Button type="primary" onClick={handleOnOk} loading={loading}>
+                                保存
+                            </Button>
+                        </>
+                        :null
+                }
             </Space>
         )
     }
@@ -128,10 +147,11 @@ const EditChatGroupModal: React.FC<EditChatGroupProps> = (props) => {
             footer={<Footer />}
         >
             <DataForm
-                items={getItems(app, chatGroupId)}
+                items={getItems(app, action)}
                 form={form}
                 formProps={{
-                    layout: 'vertical'
+                    layout: 'vertical',
+                    disabled: disable
                 }}
             />
         </Modal>
