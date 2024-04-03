@@ -39,6 +39,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     const [openChatGroupModal, setChatGroupModal] = useState<boolean>(false)
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
+    const [modelAction, setModelAction] = useState<string>("")
 
     const openLogDetail = (id: number) => {
         setLogOpen(true)
@@ -54,9 +55,10 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
         setRefresh((p) => !p)
     }
 
-    const handleOpenChatGroupModal = (id?: number) => {
+    const handleOpenChatGroupModal = (action:string, id?: number) => {
         setOpChatGroupId(id)
         setChatGroupModal(true)
+        setModelAction(action)
     }
 
     const handleChatGroupModalClose = () => {
@@ -102,7 +104,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
             case ActionKey.BATCH_EXPORT:
                 break
             case ActionKey.ADD:
-                handleOpenChatGroupModal()
+                handleOpenChatGroupModal(ActionKey.ADD)
                 break
             default:
                 break
@@ -122,7 +124,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     const handlerTableAction = (key: ActionKey, item: ChatGroupItem) => {
         switch (key) {
             case ActionKey.EDIT:
-                handleOpenChatGroupModal(item.id)
+                handleOpenChatGroupModal(ActionKey.EDIT,item.id)
                 break
             case ActionKey.DELETE:
                 break
@@ -134,6 +136,9 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
                 break
             case ActionKey.OPERATION_LOG:
                 openLogDetail(item.id)
+                break
+            case ActionKey.DETAIL:
+                handleOpenChatGroupModal(ActionKey.DETAIL,item.id)
                 break
             default:
                 break
@@ -170,6 +175,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
                 open={openChatGroupModal}
                 onClose={handleChatGroupModalClose}
                 onOk={handleChatGroupModalOk}
+                action={modelAction}
             />
             <div ref={operationRef}>
                 <RouteBreadcrumb />
