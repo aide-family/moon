@@ -1,27 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { DataOption, DataTable, SearchForm } from '@/components/Data'
+import {DataOption, DataTable, SearchForm} from '@/components/Data'
 
 import {
+    defaultListEndpointRequest,
     ListEndpointRequest,
-    PrometheusServerItem,
-    defaultListEndpointRequest
+    PrometheusServerItem
 } from '@/apis/home/monitor/endpoint/types.ts'
-import { ActionKey } from '@/apis/data.tsx'
-import { Form } from 'antd'
-import { HeightLine, PaddingLine } from '@/components/HeightLine'
+import {ActionKey} from '@/apis/data.tsx'
+import {Form} from 'antd'
+import {HeightLine, PaddingLine} from '@/components/HeightLine'
 import endpointApi from '@/apis/home/monitor/endpoint/index.ts'
-import {
-    columns,
-    defaultPadding,
-    leftOptions,
-    operationItems,
-    rightOptions,
-    searchItems
-} from './options'
+import {columns, defaultPadding, leftOptions, operationItems, rightOptions, searchItems} from './options'
 import EditEndpointModal from './child/EditEnpointModal'
-import { ModuleType, Status } from '@/apis/types'
-import { SysLogDetail } from '../../child/SysLogDetail'
+import {ModuleType, Status} from '@/apis/types'
+import {SysLogDetail} from '../../child/SysLogDetail'
 
 let timer: NodeJS.Timeout
 
@@ -37,6 +30,7 @@ const Endpoint: React.FC = () => {
     )
     const [total, setTotal] = useState<number>(0)
     const [openEditModal, setEditModal] = useState<boolean>(false)
+    const [modelAction, setModelAction] = useState<string>("")
     const [opEndpointId, setOpEndpointId] = useState<number>()
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
@@ -56,9 +50,10 @@ const Endpoint: React.FC = () => {
         setRefresh((prev) => !prev)
     }
 
-    const hanleOpenEditModal = (id?: number) => {
+    const hanleOpenEditModal = (action:string, id?: number) => {
         setOpEndpointId(id)
         setEditModal(true)
+        setModelAction(action)
     }
 
     const handleOnCloseEditModal = () => {
@@ -93,7 +88,7 @@ const Endpoint: React.FC = () => {
     const handleOptionClick = (val: ActionKey) => {
         switch (val) {
             case ActionKey.ADD:
-                hanleOpenEditModal()
+                hanleOpenEditModal(ActionKey.ADD)
                 break
             case ActionKey.REFRESH:
                 handlerRefresh()
@@ -138,7 +133,7 @@ const Endpoint: React.FC = () => {
     const handlerTableAction = (key: ActionKey, item: PrometheusServerItem) => {
         switch (key) {
             case ActionKey.EDIT:
-                hanleOpenEditModal(item.id)
+                hanleOpenEditModal(ActionKey.EDIT,item.id)
                 break
             case ActionKey.DELETE:
                 break
@@ -150,6 +145,9 @@ const Endpoint: React.FC = () => {
                 break
             case ActionKey.OPERATION_LOG:
                 openLogDetail(item.id)
+                break
+            case ActionKey.DETAIL:
+                hanleOpenEditModal(ActionKey.DETAIL,item.id)
                 break
             default:
                 break
@@ -178,6 +176,7 @@ const Endpoint: React.FC = () => {
                 open={openEditModal}
                 onClose={handleOnCloseEditModal}
                 onOk={handleEditModalOnOk}
+                action={modelAction}
             />
             <div ref={operationRef}>
                 <RouteBreadcrumb />

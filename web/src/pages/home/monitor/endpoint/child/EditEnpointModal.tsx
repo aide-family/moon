@@ -8,23 +8,36 @@ import DataForm from '@/components/Data/DataForm/DataForm'
 import { Button, Form, Modal, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { editModalFormItems } from '../options'
+import {ActionKey} from '@/apis/data.tsx'
 
 export interface EditEndpointModalProps {
     endpointId?: number
     open: boolean
+    action:string
     onClose: () => void
     onOk: () => void
 }
 
 const EditEndpointModal: React.FC<EditEndpointModalProps> = (props) => {
-    const { endpointId, open, onClose, onOk } = props
+    const { endpointId, open, onClose, onOk,action } = props
 
     const [form] = Form.useForm<AppendEndpointRequest>()
     const [detail, setDetail] = useState<PrometheusServerItem>()
     const [loading, setLoading] = useState(false)
+    const [disable, setDisable] = useState(false)
 
     const Title = () => {
-        return endpointId ? '编辑数据源' : '新增数据源'
+        switch (action) {
+            case ActionKey.ADD:
+                setDisable(false)
+                return "新增"
+            case ActionKey.EDIT:
+                setDisable(false)
+                return "编辑"
+            default:
+                setDisable(true)
+                return "详情"
+        }
     }
 
     const handleGetDetail = () => {
@@ -80,10 +93,16 @@ const EditEndpointModal: React.FC<EditEndpointModalProps> = (props) => {
         return (
             <Space size={8}>
                 <Button onClick={onClose}>取消</Button>
-                <Button onClick={handleRestForm}>重置</Button>
-                <Button type="primary" onClick={handleSubmit} loading={loading}>
-                    确定
-                </Button>
+                {
+                    action!=ActionKey.DETAIL?
+                        <>
+                            <Button onClick={handleRestForm}>重置</Button>
+                            <Button type="primary" onClick={handleSubmit} loading={loading}>
+                                确定
+                            </Button>
+                        </>
+                    :null
+                }
             </Space>
         )
     }
@@ -105,7 +124,7 @@ const EditEndpointModal: React.FC<EditEndpointModalProps> = (props) => {
             <DataForm
                 form={form}
                 items={editModalFormItems}
-                formProps={{ layout: 'vertical' }}
+                formProps={{ layout: 'vertical', disabled:disable}}
             />
         </Modal>
     )
