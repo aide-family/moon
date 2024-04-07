@@ -60,6 +60,86 @@ export const defaultMenuItems: ItemType[] = [
                 key: '/home/monitor/chat-hook'
             }
         ]
+    },
+    {
+        label: 'Kubernetes',
+        key: '/home/k8s',
+        icon: <IconFont type="icon-kubernetes11" />,
+        children: [
+            {
+                label: '集群',
+                key: '/home/k8s/cluster',
+                icon: <IconFont type="icon-org-gear" />,
+                children: [
+                    {
+                        label: '角色管理',
+                        key: '/home/k8s/cluster/role'
+                    },
+                    {
+                        label: '命名空间',
+                        key: '/home/k8s/cluster/namespace'
+                    },
+                    {
+                        label: '节点',
+                        key: '/home/k8s/cluster/node'
+                    },
+                    {
+                        label: '配置',
+                        key: '/home/k8s/cluster/config'
+                    },
+                    {
+                        label: '存储',
+                        key: '/home/k8s/cluster/storage'
+                    }
+                ]
+            },
+            {
+                label: '工作负载',
+                key: '/home/k8s/workload',
+                icon: <IconFont type="icon-dept" />,
+                children: [
+                    {
+                        label: '定时任务',
+                        key: '/home/k8s/workload/cronjob'
+                    },
+                    {
+                        label: '守护进程集',
+                        key: '/home/k8s/workload/daemon-set'
+                    },
+                    {
+                        label: '副本集',
+                        key: '/home/k8s/workload/replica-sets'
+                    },
+                    {
+                        label: '控制器',
+                        key: '/home/k8s/workload/deployment'
+                    },
+                    {
+                        label: '容器组',
+                        key: '/home/k8s/workload/pods'
+                    },
+                    {
+                        label: '有状态集',
+                        key: '/home/k8s/workload/stateful-set'
+                    }
+                ]
+            },
+            {
+                label: '服务',
+                key: '/home/k8s/service',
+                icon: <IconFont type="icon-rongqifuwu1" />,
+                children: [
+                    {
+                        label: 'Ingresses',
+                        key: '/home/k8s/service/ingress'
+                    },
+                    {
+                        label: 'Services',
+                        key: '/home/k8s/service/service'
+                    }
+                ]
+            }
+        ]
     }
 ]
 
