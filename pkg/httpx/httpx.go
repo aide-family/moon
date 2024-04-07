@@ -14,6 +14,8 @@ type HttpX struct {
 	http.Client
 
 	headers map[string]string
+	user    string
+	pass    string
 }
 
 func NewHttpX() *HttpX {
@@ -34,6 +36,15 @@ func (h *HttpX) SetHeader(headers map[string]string) *HttpX {
 	return h
 }
 
+// SetBasicAuth 将用户名和密码添加到请求头中
+//
+//	req.SetBasicAuth(username, password)
+func (h *HttpX) SetBasicAuth(username, password string) *HttpX {
+	h.user = username
+	h.pass = password
+	return h
+}
+
 // POST 发起post请求
 func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
 	reader := bytes.NewReader(data)
@@ -49,6 +60,9 @@ func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
 	} else {
 		// 没有请求头时候, 默认设置请求头json, utf-8
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	}
+	if h.user != "" && h.pass != "" {
+		req.SetBasicAuth(h.user, h.pass)
 	}
 	return h.Do(req)
 }
@@ -70,6 +84,9 @@ func (h *HttpX) POSTWithContext(ctx context.Context, url string, data []byte) (*
 		// 没有请求头时候, 默认设置请求头json, utf-8
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
+	if h.user != "" && h.pass != "" {
+		req.SetBasicAuth(h.user, h.pass)
+	}
 	return h.Do(req)
 }
 
@@ -89,7 +106,9 @@ func (h *HttpX) GET(u string) (*http.Response, error) {
 			req.Header.Set(k, v)
 		}
 	}
-
+	if h.user != "" && h.pass != "" {
+		req.SetBasicAuth(h.user, h.pass)
+	}
 	return h.Do(req)
 }
 

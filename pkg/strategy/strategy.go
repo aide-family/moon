@@ -61,6 +61,7 @@ type (
 		// 数据源
 		endpoint       string
 		datasourceName string
+		basicAuth      *BasicAuth
 		lock           sync.RWMutex
 	}
 
@@ -86,6 +87,26 @@ func (r *Rule) Endpoint() string {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	return r.endpoint
+}
+
+// SetBasicAuth 设置基础认证
+func (r *Rule) SetBasicAuth(auth *BasicAuth) {
+	if r == nil {
+		return
+	}
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.basicAuth = auth
+}
+
+// GetBasicAuth 获取基础认证
+func (r *Rule) GetBasicAuth() *BasicAuth {
+	if r == nil {
+		return nil
+	}
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.basicAuth
 }
 
 // MD5 Rule MD5

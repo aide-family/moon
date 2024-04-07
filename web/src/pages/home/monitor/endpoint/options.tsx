@@ -193,7 +193,7 @@ export const columns: EndpointColumnType[] = [
     }
 ]
 
-export const editModalFormItems: DataFormItem[] = [
+export const editModalFormItems: (DataFormItem[] | DataFormItem)[] = [
     {
         name: 'name',
         label: '数据源名称',
@@ -224,6 +224,23 @@ export const editModalFormItems: DataFormItem[] = [
             }
         ]
     },
+    // 基础认证
+    [
+        {
+            name: 'username',
+            label: '用户名',
+            formItemProps: {
+                tooltip: 'BasicAuth认证的用户名称'
+            }
+        },
+        {
+            name: 'password',
+            label: '密码',
+            formItemProps: {
+                tooltip: 'BasicAuth认证的用户密码'
+            }
+        }
+    ],
     {
         name: 'remark',
         label: '备注',

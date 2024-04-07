@@ -8,6 +8,7 @@ import (
 	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
 	"prometheus-manager/app/prom_server/internal/biz/repository"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"prometheus-manager/pkg/strategy"
 	"prometheus-manager/pkg/util/slices"
 )
 
@@ -29,7 +30,7 @@ func NewEndpointBiz(endpointRepo repository.EndpointRepo, logX repository.SysLog
 }
 
 // AppendEndpoint 新增
-func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
+func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoint *bo.CreateEndpointReq) (*bo.EndpointBO, error) {
 	newData, err := b.endpointRepo.Append(ctx, endpoint)
 	if err != nil {
 		return nil, err
@@ -44,14 +45,20 @@ func (b *EndpointBiz) AppendEndpoint(ctx context.Context, endpoint *bo.EndpointB
 }
 
 // UpdateEndpointById 更新
-func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, id uint32, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
+func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, endpoint *bo.UpdateEndpointReq) (*bo.EndpointBO, error) {
 	// 查询
-	oldData, err := b.endpointRepo.Get(ctx, basescopes.InIds(id))
+	oldData, err := b.endpointRepo.Get(ctx, basescopes.InIds(endpoint.Id))
 	if err != nil {
 		return nil, err
 	}
-	updateInfo := endpoint
-	updateInfo.Id = id
+	updateInfo := oldData
+	updateInfo.Name = endpoint.Name
+	updateInfo.Endpoint = endpoint.Endpoint
+	updateInfo.Remark = endpoint.Remark
+	if endpoint.Password != "" && endpoint.Username != "" {
+		updateInfo.BasicAuth = strategy.NewBasicAuth(endpoint.Username, endpoint.Password)
+	}
+
 	newData, err := b.endpointRepo.Update(ctx, updateInfo)
 	if err != nil {
 		return nil, err

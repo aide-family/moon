@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"prometheus-manager/pkg/strategy"
 
 	"prometheus-manager/app/prom_server/internal/biz/bo"
 	"prometheus-manager/app/prom_server/internal/biz/do"
@@ -30,8 +31,13 @@ func (l *endpointRepoImpl) GetByParams(ctx context.Context, scopes ...basescopes
 	return slices.To(list, func(item *do.Endpoint) *bo.EndpointBO { return bo.EndpointModelToBO(item) }), nil
 }
 
-func (l *endpointRepoImpl) Append(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error) {
-	newModelData := endpoint.ToModel()
+func (l *endpointRepoImpl) Append(ctx context.Context, endpoint *bo.CreateEndpointReq) (*bo.EndpointBO, error) {
+	newModelData := &do.Endpoint{
+		Name:      endpoint.Name,
+		Endpoint:  endpoint.Endpoint,
+		Remark:    endpoint.Remark,
+		BasicAuth: strategy.NewBasicAuth(endpoint.Username, endpoint.Password),
+	}
 	if err := l.data.DB().WithContext(ctx).Create(newModelData).Error; err != nil {
 		return nil, err
 	}

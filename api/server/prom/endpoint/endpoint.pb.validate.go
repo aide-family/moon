@@ -85,6 +85,10 @@ func (m *AppendEndpointRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for Username
+
+	// no validation rules for Password
+
 	if len(errors) > 0 {
 		return AppendEndpointRequestMultiError(errors)
 	}
@@ -533,6 +537,10 @@ func (m *EditEndpointRequest) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for Username
+
+	// no validation rules for Password
 
 	if len(errors) > 0 {
 		return EditEndpointRequestMultiError(errors)

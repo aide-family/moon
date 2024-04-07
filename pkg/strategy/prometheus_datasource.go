@@ -20,6 +20,17 @@ type PromDatasource struct {
 	category DatasourceName
 	// 地址
 	endpoint string
+	// 基础认证
+	basicAuth *BasicAuth
+}
+
+func (d *PromDatasource) WithBasicAuth(basicAuth *BasicAuth) Datasource {
+	d.basicAuth = basicAuth
+	return d
+}
+
+func (d *PromDatasource) GetBasicAuth() *BasicAuth {
+	return d.basicAuth
 }
 
 // Query 调用数据源查询数据
@@ -36,6 +47,9 @@ func (d *PromDatasource) Query(_ context.Context, expr string, duration int64) (
 		"Accept":          "*/*",
 		"Accept-Language": "zh-CN,zh;q=0.9",
 	})
+	if d.basicAuth != nil {
+		hx = hx.SetBasicAuth(d.basicAuth.Username, d.basicAuth.Password)
+	}
 	getResponse, err := hx.GET(fmt.Sprintf("%s%s?%s", d.endpoint, prometheusApiV1Query, params))
 	if err != nil {
 		return nil, err

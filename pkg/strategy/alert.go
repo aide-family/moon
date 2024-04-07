@@ -56,7 +56,7 @@ func (a *Alerting) Eval(ctx context.Context) ([]*Alarm, error) {
 			strategyInfo := strategyItem
 			strategyIds[strategyItem.Id] = struct{}{}
 			eg.Go(func() error {
-				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint())
+				datasource := NewDatasource(a.datasourceName, strategyInfo.Endpoint()).WithBasicAuth(strategyInfo.GetBasicAuth())
 				queryResponse, err := datasource.Query(ctx, strategyInfo.Expr, timeNowUnix)
 				if err != nil {
 					log.Warnf("查询失败, %v, %s, %s", strategyInfo.Id, strategyInfo.Expr, err)

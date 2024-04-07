@@ -15,7 +15,7 @@ var _ EndpointRepo = (*UnimplementedEndpointRepo)(nil)
 type (
 	EndpointRepo interface {
 		mustEmbedUnimplemented()
-		Append(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
+		Append(ctx context.Context, endpoint *bo.CreateEndpointReq) (*bo.EndpointBO, error)
 		Update(ctx context.Context, endpoint *bo.EndpointBO) (*bo.EndpointBO, error)
 		UpdateStatus(ctx context.Context, ids []uint32, status vobj.Status) error
 		Delete(ctx context.Context, ids []uint32) error
@@ -43,7 +43,7 @@ func (UnimplementedEndpointRepo) Update(_ context.Context, _ *bo.EndpointBO) (*b
 	return nil, status.Error(codes.Unimplemented, "method Update not implemented")
 }
 
-func (UnimplementedEndpointRepo) Append(_ context.Context, _ *bo.EndpointBO) (*bo.EndpointBO, error) {
+func (UnimplementedEndpointRepo) Append(_ context.Context, _ *bo.CreateEndpointReq) (*bo.EndpointBO, error) {
 	return nil, status.Error(codes.Unimplemented, "method Append not implemented")
 }
 

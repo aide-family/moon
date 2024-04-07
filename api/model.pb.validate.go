@@ -4129,6 +4129,8 @@ func (m *StrategySimple) validate(all bool) error {
 
 	// no validation rules for Endpoint
 
+	// no validation rules for BasicAuth
+
 	if len(errors) > 0 {
 		return StrategySimpleMultiError(errors)
 	}

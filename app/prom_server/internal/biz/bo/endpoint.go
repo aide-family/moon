@@ -7,6 +7,7 @@ import (
 	"prometheus-manager/api"
 	"prometheus-manager/app/prom_server/internal/biz/do"
 	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"prometheus-manager/pkg/strategy"
 )
 
 var _ encoding.BinaryMarshaler = (*EndpointBO)(nil)
@@ -18,17 +19,37 @@ type (
 		Keyword string
 		Status  vobj.Status
 	}
+	CreateEndpointReq struct {
+		Name     string `json:"name"`
+		Endpoint string `json:"endpoint"`
+		Remark   string `json:"remark"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	UpdateEndpointReq struct {
+		Id uint32 `json:"id"`
+		*CreateEndpointReq
+	}
 	EndpointBO struct {
-		Id        uint32      `json:"id"`
-		Name      string      `json:"name"`
-		Endpoint  string      `json:"endpoint"`
-		Status    vobj.Status `json:"status"`
-		Remark    string      `json:"remark"`
-		CreatedAt int64       `json:"createdAt"`
-		UpdatedAt int64       `json:"updatedAt"`
-		DeletedAt int64       `json:"deletedAt"`
+		Id        uint32              `json:"id"`
+		Name      string              `json:"name"`
+		Endpoint  string              `json:"endpoint"`
+		Status    vobj.Status         `json:"status"`
+		Remark    string              `json:"remark"`
+		CreatedAt int64               `json:"createdAt"`
+		UpdatedAt int64               `json:"updatedAt"`
+		DeletedAt int64               `json:"deletedAt"`
+		BasicAuth *strategy.BasicAuth `json:"basicAuth"`
 	}
 )
+
+// GetBasicAuth get basic auth
+func (l *EndpointBO) GetBasicAuth() *strategy.BasicAuth {
+	if l == nil {
+		return nil
+	}
+	return l.BasicAuth
+}
 
 // String json string
 func (l *EndpointBO) String() string {
@@ -89,6 +110,7 @@ func (l *EndpointBO) ToModel() *do.Endpoint {
 		Endpoint:  l.Endpoint,
 		Remark:    l.Remark,
 		Status:    l.Status,
+		BasicAuth: l.GetBasicAuth(),
 	}
 }
 
@@ -106,5 +128,6 @@ func EndpointModelToBO(m *do.Endpoint) *EndpointBO {
 		CreatedAt: m.CreatedAt.Unix(),
 		UpdatedAt: m.UpdatedAt.Unix(),
 		DeletedAt: int64(m.DeletedAt),
+		BasicAuth: m.BasicAuth,
 	}
 }

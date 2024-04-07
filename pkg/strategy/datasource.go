@@ -11,6 +11,8 @@ type Datasource interface {
 	Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
 	GetCategory() string
 	GetEndpoint() string
+	GetBasicAuth() *BasicAuth
+	WithBasicAuth(basicAuth *BasicAuth) Datasource
 }
 
 type (

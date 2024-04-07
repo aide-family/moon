@@ -28,13 +28,15 @@ func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *Endpoi
 
 // AppendEndpoint 新增
 func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndpointRequest) (*pb.AppendEndpointReply, error) {
-	endpointBo := &bo.EndpointBO{
+	createEndpointBo := &bo.CreateEndpointReq{
 		Name:     req.GetName(),
 		Endpoint: req.GetEndpoint(),
 		Remark:   req.GetRemark(),
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
 	}
 
-	endpointBo, err := s.endpointBiz.AppendEndpoint(ctx, endpointBo)
+	endpointBo, err := s.endpointBiz.AppendEndpoint(ctx, createEndpointBo)
 	if err != nil {
 		return nil, err
 	}
@@ -55,18 +57,22 @@ func (s *EndpointService) DeleteEndpoint(ctx context.Context, req *pb.DeleteEndp
 
 // EditEndpoint 编辑
 func (s *EndpointService) EditEndpoint(ctx context.Context, req *pb.EditEndpointRequest) (*pb.EditEndpointReply, error) {
-	endpointBo := &bo.EndpointBO{
-		Id:       req.GetId(),
-		Name:     req.GetName(),
-		Endpoint: req.GetEndpoint(),
-		Remark:   req.GetRemark(),
+	editEndpointBo := &bo.UpdateEndpointReq{
+		Id: req.GetId(),
+		CreateEndpointReq: &bo.CreateEndpointReq{
+			Name:     req.GetName(),
+			Endpoint: req.GetEndpoint(),
+			Remark:   req.GetRemark(),
+			Username: req.GetUsername(),
+			Password: req.GetPassword(),
+		},
 	}
-	endpointBo, err := s.endpointBiz.UpdateEndpointById(ctx, req.GetId(), endpointBo)
+	endpointBo, err := s.endpointBiz.UpdateEndpointById(ctx, editEndpointBo)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.EditEndpointReply{
-		Id: req.GetId(),
+		Id: endpointBo.Id,
 	}, nil
 }
 

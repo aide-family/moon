@@ -71,6 +71,7 @@ func generateGroups(groupList []*api.GroupSimple) []*strategy.Group {
 				Annotations: strategyInfo.GetAnnotations(),
 			}
 			ruleInfo.SetEndpoint(strategyInfo.GetEndpoint())
+			ruleInfo.SetBasicAuth(strategy.NewBasicAuthWithString(strategyInfo.GetBasicAuth()))
 			groupInfo.Rules = append(groupInfo.Rules, ruleInfo)
 		}
 		groups = append(groups, groupInfo)

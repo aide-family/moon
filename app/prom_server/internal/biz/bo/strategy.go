@@ -269,6 +269,7 @@ func (b *StrategyBO) ToSimpleApi() *api.StrategySimple {
 		GroupId:      b.GroupId,
 		AlarmLevelId: b.AlarmLevelId,
 		Endpoint:     endpoint,
+		BasicAuth:    b.GetEndpoint().GetBasicAuth().String(),
 	}
 }
 

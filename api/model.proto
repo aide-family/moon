@@ -540,6 +540,8 @@ message StrategySimple {
   uint32 alarmLevelId = 8;
   // 数据源
   string endpoint = 9;
+  // 基础认证字符串
+  string basicAuth = 10;
 }
 
 message MyChart {

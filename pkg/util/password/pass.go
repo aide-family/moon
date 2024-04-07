@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	key       = "1234567890123456"
-	DefaultIv = "1234567890123456"
+	key        = "1234567890123456"
+	DefaultKey = key
+	DefaultIv  = "1234567890123456"
 )
 
 var ErrValidatePassword = perrors.ErrorInvalidParams("密码错误")
