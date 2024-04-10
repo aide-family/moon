@@ -6,7 +6,7 @@ const Error403: FC = () => {
     const navigate = useNavigate()
 
     const navigateToHome = () => {
-        navigate('/home')
+        navigate('/')
     }
     return (
         <Result
