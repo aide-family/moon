@@ -5,9 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
 	"github.com/aide-family/moon/api/perrors"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
@@ -19,6 +16,9 @@ import (
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/times"
+	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 )
 
 type NotifyBiz struct {
@@ -199,11 +199,10 @@ func (b *NotifyBiz) TestNotifyTemplate(ctx context.Context, req *bo.TestNotifyTe
 			EndsAt:       now.Format(times.ParseLayout),
 			GeneratorURL: "https://github.com/aide-family/moon",
 			Fingerprint:  hash.MD5(now.String()),
+			Value:        100.01,
 		},
 	}
-	dataMap := hookMsg.AlarmInfo.ToMap()
-	dataMap["value"] = 100
-	hookMsg.Content = strategy.Formatter(hookMsg.Content, dataMap)
+	hookMsg.Content = strategy.Formatter(hookMsg.Content, hookMsg.AlarmInfo)
 
 	eg := new(errgroup.Group)
 	switch req.NotifyType {

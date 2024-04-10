@@ -1,0 +1,7 @@
+{{/* gotype: github.com/aide-family/moon/pkg/strategy.Alert */}}
+status: {{ .Status }}
+labels: {{ .Labels }}
+now: {{ now }}
+{{ if eq .Status "firing" }}告警了
+{{ else if eq .Status "resolved" }}恢复了
+{{ end }}

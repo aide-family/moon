@@ -242,75 +242,44 @@ func replaceString(str string) (s string) {
 	return s
 }
 
-func templateFuncMap(data map[string]any) template.FuncMap {
-	return template.FuncMap{
-		"now":         time.Now,
-		"labels":      labelsFunc(data),
-		"annotations": annotationsFunc(data),
-		"hasPrefix":   strings.HasPrefix,
-		"hasSuffix":   strings.HasSuffix,
-		"contains":    strings.Contains,
-		"TrimSpace":   strings.TrimSpace,
-		"trimPrefix":  strings.TrimPrefix,
-		"trimSuffix":  strings.TrimSuffix,
-		"toUpper":     strings.ToUpper,
-		"toLower":     strings.ToLower,
-		"replace":     strings.Replace,
-		"split":       strings.Split,
-	}
-}
-
 // Formatter 格式化告警文案
-func Formatter(format string, data map[string]any) (s string) {
+func Formatter(format string, data any) (s string) {
 	formatStr := replaceString(format)
-	if formatStr == "" || data == nil || len(data) == 0 {
+	if formatStr == "" || data == nil {
 		return ""
 	}
 
 	defer after.RecoverX()
 	// 创建一个模板对象，定义模板字符串
 	t, err := template.New("alert").
-		Funcs(templateFuncMap(data)).
+		Funcs(templateFuncMap()).
 		Parse(formatStr)
 	if err != nil {
 		return format
 	}
 	tmpl := template.Must(t, err)
-
 	// 执行模板并填充数据
 	resultIoWriter := new(strings.Builder)
 
-	if err := tmpl.Execute(resultIoWriter, data); err != nil {
+	if err = tmpl.Execute(resultIoWriter, data); err != nil {
 		return format
 	}
 	return resultIoWriter.String()
 }
 
-func labelsFunc(data map[string]any) func() *Labels {
-	return func() *Labels {
-		labels, exist := data["labels"]
-		if !exist {
-			return &Labels{}
-		}
-		l, ok := labels.(Labels)
-		if !ok {
-			return &Labels{}
-		}
-		return &l
-	}
-}
-
-func annotationsFunc(data map[string]any) func() *Annotations {
-	return func() *Annotations {
-		annotations, exist := data["annotations"]
-		if !exist {
-			return &Annotations{}
-		}
-		a, ok := annotations.(Annotations)
-		if !ok {
-			return &Annotations{}
-		}
-		return &a
+func templateFuncMap() template.FuncMap {
+	return template.FuncMap{
+		"now":        time.Now,
+		"hasPrefix":  strings.HasPrefix,
+		"hasSuffix":  strings.HasSuffix,
+		"contains":   strings.Contains,
+		"TrimSpace":  strings.TrimSpace,
+		"trimPrefix": strings.TrimPrefix,
+		"trimSuffix": strings.TrimSuffix,
+		"toUpper":    strings.ToUpper,
+		"toLower":    strings.ToLower,
+		"replace":    strings.Replace,
+		"split":      strings.Split,
 	}
 }
 

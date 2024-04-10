@@ -34,6 +34,7 @@ type (
 		EndsAt       string                `json:"endsAt"`
 		GeneratorURL string                `json:"generatorURL"`
 		Fingerprint  string                `json:"fingerprint"`
+		Value        float64               `json:"value"`
 	}
 )
 

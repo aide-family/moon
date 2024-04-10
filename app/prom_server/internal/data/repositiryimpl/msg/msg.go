@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
 	"github.com/aide-family/moon/api/perrors"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
@@ -14,6 +12,8 @@ import (
 	"github.com/aide-family/moon/pkg/helper/consts"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/hash"
+	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 )
 
 var _ repository.MsgRepo = (*msgRepoImpl)(nil)
@@ -93,10 +93,9 @@ func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*b
 			AlarmInfo: alarmInfo,
 			Secret:    chatInfo.Secret,
 		}
-		alarmInfoMap := alarmInfo.ToMap()
 		template := hookTemplateMap[chatInfo.NotifyApp]
 		if template != "" {
-			msg.Content = strategy.Formatter(template, alarmInfoMap)
+			msg.Content = strategy.Formatter(template, alarmInfo)
 		}
 
 		eg.Go(func() error {
@@ -122,7 +121,7 @@ func (l *msgRepoImpl) sendAlarmToMember(_ context.Context, members []*bo.NotifyM
 		if m.NotifyType.IsEmail() {
 			template := memberTemplateMap[vobj.NotifyTypeEmail]
 			if template != "" {
-				template = strategy.Formatter(template, alarmInfo.ToMap())
+				template = strategy.Formatter(template, alarmInfo)
 			}
 			// 发送邮件
 			eg.Go(func() error {
