@@ -246,3 +246,8 @@
 ## 7. Star 历史
 
 [![Star History Chart](https://api.star-history.com/svg?repos=aide-family/moon&type=Date)](https://star-history.com/#aide-family/moon&Date)
+
+## 讨论
+
+![image](https://github.com/aide-family/moon/assets/52439018/7271976e-acf3-4346-ab1b-b1f06d1b862e)
+
