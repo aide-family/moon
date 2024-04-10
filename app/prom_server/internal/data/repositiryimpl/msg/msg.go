@@ -6,14 +6,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/strategy"
-	"prometheus-manager/pkg/util/hash"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/hash"
 )
 
 var _ repository.MsgRepo = (*msgRepoImpl)(nil)

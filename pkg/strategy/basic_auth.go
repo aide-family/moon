@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/aide-cloud/universal/cipher"
-	"prometheus-manager/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/password"
 )
 
 type BasicAuth struct {

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	pb "prometheus-manager/api/interflows"
-	"prometheus-manager/pkg/util/interflow"
+	pb "github.com/aide-family/moon/api/interflows"
+	"github.com/aide-family/moon/pkg/util/interflow"
 )
 
 type HookInterflowService struct {

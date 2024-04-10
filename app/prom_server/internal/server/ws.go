@@ -2,9 +2,9 @@ package server
 
 import (
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/prom_server/internal/conf"
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/servers"
+	"github.com/aide-family/moon/app/prom_server/internal/conf"
+	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/servers"
 )
 
 type WebsocketServer struct {

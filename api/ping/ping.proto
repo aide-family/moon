@@ -4,7 +4,7 @@ package api.ping;
 
 import "google/api/annotations.proto";
 
-option go_package = "prometheus-manager/api/ping;ping";
+option go_package = "github.com/aide-family/moon/api/ping;ping";
 option java_multiple_files = true;
 option java_package = "api.ping";
 

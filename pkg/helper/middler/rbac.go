@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/go-kratos/kratos/v2/middleware"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/pkg/conn"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/pkg/conn"
 )
 
 const AdminRole = 1

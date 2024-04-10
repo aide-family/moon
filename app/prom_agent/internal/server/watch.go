@@ -9,14 +9,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
-	"prometheus-manager/api"
-	"prometheus-manager/api/agent"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/app/prom_agent/internal/data"
-	"prometheus-manager/app/prom_agent/internal/service"
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/util/interflow"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/agent"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/app/prom_agent/internal/data"
+	"github.com/aide-family/moon/app/prom_agent/internal/service"
+	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/util/interflow"
 )
 
 var _ transport.Server = (*Watch)(nil)

@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
+	"github.com/aide-family/moon/pkg/util/cache"
 )
 
 var _ repository.CacheRepo = (*cacheRepoImpl)(nil)

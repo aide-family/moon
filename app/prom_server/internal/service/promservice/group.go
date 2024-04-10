@@ -8,17 +8,17 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/strategy"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/strategy"
 
-	"prometheus-manager/api"
-	pb "prometheus-manager/api/server/prom/strategy/group"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/api"
+	pb "github.com/aide-family/moon/api/server/prom/strategy/group"
+	"github.com/aide-family/moon/pkg/util/slices"
 
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 )
 
 type GroupService struct {

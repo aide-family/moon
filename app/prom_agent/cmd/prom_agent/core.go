@@ -8,9 +8,9 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/app/prom_agent/internal/server"
-	"prometheus-manager/pkg/util/hello"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/app/prom_agent/internal/server"
+	"github.com/aide-family/moon/pkg/util/hello"
 )
 
 var (

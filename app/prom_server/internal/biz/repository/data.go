@@ -4,7 +4,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/cache"
 )
 
 var _ DataRepo = (*UnimplementedDataRepo)(nil)

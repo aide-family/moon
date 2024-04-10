@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 )
 
 type AlarmMsgBo struct {

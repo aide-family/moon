@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 
-	"prometheus-manager/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/helper/consts"
 )
 
 type Cache interface {

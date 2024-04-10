@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/util/cache"
 )
 
 var _ AlarmCache = (*globalAlarmCache)(nil)

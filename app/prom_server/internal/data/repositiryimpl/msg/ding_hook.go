@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/httpx"
+	"github.com/aide-family/moon/pkg/httpx"
 )
 
 var _ HookNotify = (*dingNotify)(nil)

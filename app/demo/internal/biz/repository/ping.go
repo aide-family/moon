@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"prometheus-manager/app/demo/internal/biz/bo"
+	"github.com/aide-family/moon/app/demo/internal/biz/bo"
 )
 
 // PingRepo is a Greater repo.

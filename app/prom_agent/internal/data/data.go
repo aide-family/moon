@@ -3,12 +3,12 @@ package data
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/pkg/conn"
-	"prometheus-manager/pkg/servers"
-	"prometheus-manager/pkg/strategy"
-	"prometheus-manager/pkg/util/cache"
-	"prometheus-manager/pkg/util/interflow"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/servers"
+	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/interflow"
 )
 
 // ProviderSetData is data providers.

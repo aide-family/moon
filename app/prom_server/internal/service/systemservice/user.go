@@ -6,16 +6,16 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 
-	"prometheus-manager/api"
-	pb "prometheus-manager/api/server/system"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/util/password"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/api"
+	pb "github.com/aide-family/moon/api/server/system"
+	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/aide-family/moon/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/slices"
 
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 )
 
 type UserService struct {

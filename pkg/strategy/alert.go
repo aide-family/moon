@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
-	"prometheus-manager/pkg/util/times"
+	"github.com/aide-family/moon/pkg/util/times"
 )
 
 var _ Alerter = (*Alerting)(nil)

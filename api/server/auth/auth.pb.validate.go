@@ -18,7 +18,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
-	api "prometheus-manager/api"
+	api "github.com/aide-family/moon/api"
 )
 
 // ensure the imports are used

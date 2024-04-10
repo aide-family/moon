@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/google/wire"
 
-	"prometheus-manager/pkg/helper/plog"
+	"github.com/aide-family/moon/pkg/helper/plog"
 )
 
 // ProviderSetConf is conf providers.

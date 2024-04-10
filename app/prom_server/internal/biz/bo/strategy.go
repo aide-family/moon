@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/strategy"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type SelectStrategyRequest struct {

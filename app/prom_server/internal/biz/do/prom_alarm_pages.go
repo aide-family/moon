@@ -1,7 +1,7 @@
 package do
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 )
 
 const TableNamePromStrategyAlarmPage = "prom_strategy_alarm_pages"

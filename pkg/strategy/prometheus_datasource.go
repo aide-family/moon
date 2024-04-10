@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"prometheus-manager/pkg/httpx"
+	"github.com/aide-family/moon/pkg/httpx"
 )
 
 var _ Datasource = (*PromDatasource)(nil)

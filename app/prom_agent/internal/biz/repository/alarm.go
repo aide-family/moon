@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"prometheus-manager/app/prom_agent/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz/do"
 )
 
 type AlarmRepo interface {

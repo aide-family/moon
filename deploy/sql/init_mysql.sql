@@ -1,17 +1,4 @@
-﻿# ************************************************************
-# Sequel Ace SQL dump
-# 版本号： 20016
-#
-# https://sequel-ace.com/
-# https://github.com/Sequel-Ace/Sequel-Ace
-#
-# 主机: 124.223.104.203 (MySQL 8.0.27)
-# 数据库: prometheus-manager
-# 生成时间: 2024-01-31 14:02:26 +0000
-# ************************************************************
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+﻿/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 SET NAMES utf8mb4;

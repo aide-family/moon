@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api"
-	pb "prometheus-manager/api/agent"
-	"prometheus-manager/app/prom_agent/internal/biz"
-	"prometheus-manager/pkg/strategy"
+	"github.com/aide-family/moon/api"
+	pb "github.com/aide-family/moon/api/agent"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz"
+	"github.com/aide-family/moon/pkg/strategy"
 )
 
 type LoadService struct {

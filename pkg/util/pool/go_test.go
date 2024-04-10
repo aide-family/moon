@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/util/pool"
+	"github.com/aide-family/moon/pkg/util/pool"
 )
 
 func TestPool(t *testing.T) {

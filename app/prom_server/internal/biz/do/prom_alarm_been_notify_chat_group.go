@@ -1,7 +1,7 @@
 package do
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromAlarmBeenNotifyChatGroup = "prom_alarm_been_notify_chat_groups"

@@ -7,7 +7,7 @@ import "validate/validate.proto";
 import "base.proto";
 import "model.proto";
 
-option go_package = "prometheus-manager/api/server/prom/strategy/group;group";
+option go_package = "github.com/aide-family/moon/api/server/prom/strategy/group;group";
 option java_multiple_files = true;
 option java_package = "api.server.prom.strategy.group";
 

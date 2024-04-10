@@ -5,7 +5,7 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/conn"
+	"github.com/aide-family/moon/pkg/conn"
 )
 
 type KafkaMQServer struct {

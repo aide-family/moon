@@ -8,21 +8,21 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
-	"prometheus-manager/app/prom_server/internal/service/dashboardservice"
-	"prometheus-manager/app/prom_server/internal/service/interflowservice"
+	"github.com/aide-family/moon/app/prom_server/internal/service/dashboardservice"
+	"github.com/aide-family/moon/app/prom_server/internal/service/interflowservice"
 
-	"prometheus-manager/pkg/helper/plog"
+	"github.com/aide-family/moon/pkg/helper/plog"
 
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/conf"
-	"prometheus-manager/app/prom_server/internal/data"
-	"prometheus-manager/app/prom_server/internal/data/repositiryimpl"
-	"prometheus-manager/app/prom_server/internal/server"
-	"prometheus-manager/app/prom_server/internal/service"
-	"prometheus-manager/app/prom_server/internal/service/alarmservice"
-	"prometheus-manager/app/prom_server/internal/service/authservice"
-	"prometheus-manager/app/prom_server/internal/service/promservice"
-	"prometheus-manager/app/prom_server/internal/service/systemservice"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/app/prom_server/internal/conf"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
+	"github.com/aide-family/moon/app/prom_server/internal/data/repositiryimpl"
+	"github.com/aide-family/moon/app/prom_server/internal/server"
+	"github.com/aide-family/moon/app/prom_server/internal/service"
+	"github.com/aide-family/moon/app/prom_server/internal/service/alarmservice"
+	"github.com/aide-family/moon/app/prom_server/internal/service/authservice"
+	"github.com/aide-family/moon/app/prom_server/internal/service/promservice"
+	"github.com/aide-family/moon/app/prom_server/internal/service/systemservice"
 )
 
 // wireApp init kratos application.

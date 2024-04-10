@@ -5,17 +5,17 @@ import (
 	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/util/password"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/aide-family/moon/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type (

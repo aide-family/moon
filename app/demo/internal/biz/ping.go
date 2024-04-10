@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/app/demo/internal/biz/bo"
-	"prometheus-manager/app/demo/internal/biz/repository"
+	"github.com/aide-family/moon/app/demo/internal/biz/bo"
+	"github.com/aide-family/moon/app/demo/internal/biz/repository"
 )
 
 // PingBiz is a Ping useCase.

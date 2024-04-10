@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	pb "prometheus-manager/api/alarm/hook"
+	pb "github.com/aide-family/moon/api/alarm/hook"
 )
 
 type HookService struct {

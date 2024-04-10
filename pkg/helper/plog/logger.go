@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"prometheus-manager/pkg/util/hello"
+	"github.com/aide-family/moon/pkg/util/hello"
 )
 
 var (

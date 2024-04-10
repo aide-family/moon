@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"prometheus-manager/pkg/util/hash"
+	"github.com/aide-family/moon/pkg/util/hash"
 )
 
 var (

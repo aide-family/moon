@@ -8,13 +8,13 @@ package main
 
 import (
 	"github.com/go-kratos/kratos/v2"
-	"prometheus-manager/app/prom_agent/internal/biz"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/app/prom_agent/internal/data"
-	"prometheus-manager/app/prom_agent/internal/data/repositiryimpl"
-	"prometheus-manager/app/prom_agent/internal/server"
-	"prometheus-manager/app/prom_agent/internal/service"
-	"prometheus-manager/pkg/helper/plog"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/app/prom_agent/internal/data"
+	"github.com/aide-family/moon/app/prom_agent/internal/data/repositiryimpl"
+	"github.com/aide-family/moon/app/prom_agent/internal/server"
+	"github.com/aide-family/moon/app/prom_agent/internal/service"
+	"github.com/aide-family/moon/pkg/helper/plog"
 )
 
 import (

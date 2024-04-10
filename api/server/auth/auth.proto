@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "validate/validate.proto";
 import "system.proto";
 
-option go_package = "prometheus-manager/api/server/auth;auth";
+option go_package = "github.com/aide-family/moon/api/server/auth;auth";
 option java_multiple_files = true;
 option java_package = "api.server.auth";
 

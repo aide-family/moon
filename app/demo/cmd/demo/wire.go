@@ -8,12 +8,12 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/google/wire"
-	"prometheus-manager/app/demo/internal/biz"
-	"prometheus-manager/app/demo/internal/conf"
-	"prometheus-manager/app/demo/internal/data"
-	"prometheus-manager/app/demo/internal/server"
-	"prometheus-manager/app/demo/internal/service"
-	"prometheus-manager/pkg/helper/plog"
+	"github.com/aide-family/moon/app/demo/internal/biz"
+	"github.com/aide-family/moon/app/demo/internal/conf"
+	"github.com/aide-family/moon/app/demo/internal/data"
+	"github.com/aide-family/moon/app/demo/internal/server"
+	"github.com/aide-family/moon/app/demo/internal/service"
+	"github.com/aide-family/moon/pkg/helper/plog"
 )
 
 // wireApp init kratos application.

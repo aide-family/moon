@@ -9,11 +9,11 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/cache"
 
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/util/hash"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/util/hash"
 )
 
 // AuthClaims jwt claims

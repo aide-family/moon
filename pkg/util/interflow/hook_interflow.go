@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/after"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/httpx"
+	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/httpx"
 )
 
 var _ Interflow = (*hookInterflow)(nil)

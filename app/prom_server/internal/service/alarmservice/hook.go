@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	pb "prometheus-manager/api/alarm/hook"
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/strategy"
-	"prometheus-manager/pkg/util/times"
+	pb "github.com/aide-family/moon/api/alarm/hook"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/times"
 )
 
 type HookService struct {

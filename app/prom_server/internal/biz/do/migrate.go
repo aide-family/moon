@@ -5,8 +5,8 @@ import (
 	_ "embed"
 
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/util/cache"
-	"prometheus-manager/pkg/util/hash"
+	"github.com/aide-family/moon/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/hash"
 )
 
 func Migrate(db *gorm.DB, cache cache.GlobalCache) (err error) {

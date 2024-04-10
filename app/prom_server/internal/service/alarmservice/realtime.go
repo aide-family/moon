@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api"
-	pb "prometheus-manager/api/server/alarm/realtime"
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/api"
+	pb "github.com/aide-family/moon/api/server/alarm/realtime"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type RealtimeService struct {

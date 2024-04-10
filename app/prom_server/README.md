@@ -1,3 +1,3 @@
 # prom server
 
-> prometheus-manager 服务端
+> github.com/aide-family/moon 服务端

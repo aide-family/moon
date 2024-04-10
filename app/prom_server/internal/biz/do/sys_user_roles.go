@@ -9,13 +9,13 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/cache"
 
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 var _ encoding.BinaryMarshaler = (*UserRoles)(nil)

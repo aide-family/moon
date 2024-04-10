@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/data"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
 )
 
 var _ repository.PingRepo = (*pingRepoImpl)(nil)

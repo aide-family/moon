@@ -7,10 +7,10 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"prometheus-manager/pkg/util/hello"
+	"github.com/aide-family/moon/pkg/util/hello"
 
-	"prometheus-manager/app/prom_server/internal/conf"
-	"prometheus-manager/app/prom_server/internal/server"
+	"github.com/aide-family/moon/app/prom_server/internal/conf"
+	"github.com/aide-family/moon/app/prom_server/internal/server"
 )
 
 var (

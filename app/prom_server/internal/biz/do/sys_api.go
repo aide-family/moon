@@ -10,12 +10,12 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/cache"
 
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/pkg/helper/consts"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/pkg/helper/consts"
 )
 
 var _ schema.Tabler = (*SysAPI)(nil)

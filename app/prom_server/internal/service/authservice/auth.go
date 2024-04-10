@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/api/perrors"
-	"prometheus-manager/api/server/auth"
-	"prometheus-manager/app/prom_server/internal/biz"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/helper/prom"
-	"prometheus-manager/pkg/util/captcha"
-	"prometheus-manager/pkg/util/password"
+	"github.com/aide-family/moon/api/perrors"
+	"github.com/aide-family/moon/api/server/auth"
+	"github.com/aide-family/moon/app/prom_server/internal/biz"
+	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/aide-family/moon/pkg/helper/prom"
+	"github.com/aide-family/moon/pkg/util/captcha"
+	"github.com/aide-family/moon/pkg/util/password"
 )
 
 type AuthService struct {

@@ -1,5 +1,5 @@
 env:
-  name: prometheus-manager_prom_server
+  name: moon_prom_server
   version: 0.0.1
   env: dev
   metadata:

@@ -6,12 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"prometheus-manager/app/prom_agent/internal/biz/do"
-	"prometheus-manager/app/prom_agent/internal/biz/repository"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/app/prom_agent/internal/data"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/util/interflow"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/app/prom_agent/internal/data"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/util/interflow"
 )
 
 var _ repository.AlarmRepo = (*alarmRepoImpl)(nil)

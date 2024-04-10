@@ -7,11 +7,11 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"prometheus-manager/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/helper/consts"
 
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/data"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
 )
 
 var _ repository.CaptchaRepo = (*captchaRepoImpl)(nil)

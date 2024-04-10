@@ -7,7 +7,7 @@ import "validate/validate.proto";
 import "model.proto";
 import "base.proto";
 
-option go_package = "prometheus-manager/api/server/dashboard;dashboard";
+option go_package = "github.com/aide-family/moon/api/server/dashboard;dashboard";
 option java_multiple_files = true;
 option java_package = "api.server.dashboard";
 

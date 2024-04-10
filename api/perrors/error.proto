@@ -4,7 +4,7 @@ package api.perrors;
 
 import "errors/errors.proto";
 
-option go_package = "prometheus-manager/api/perrors;perrors";
+option go_package = "github.com/aide-family/moon/api/perrors;perrors";
 option java_multiple_files = true;
 option java_package = "api.perrors";
 

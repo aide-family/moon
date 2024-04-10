@@ -3,7 +3,7 @@ package bo
 import (
 	"strconv"
 
-	"prometheus-manager/api"
+	"github.com/aide-family/moon/api"
 )
 
 // BuildApiDuration 字符串转为api时间

@@ -57,7 +57,7 @@ func (c *config) GetPort() uint32 {
 }
 
 const (
-	DOMAIN = "prometheus-manager"
+	DOMAIN = "github.com/aide-family/moon"
 )
 
 var _ Config = (*config)(nil)

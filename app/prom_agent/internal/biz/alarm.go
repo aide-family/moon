@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
-	"prometheus-manager/app/prom_agent/internal/biz/do"
-	"prometheus-manager/app/prom_agent/internal/biz/repository"
-	"prometheus-manager/pkg/strategy"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_agent/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/strategy"
 )
 
 type AlarmBiz struct {

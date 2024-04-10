@@ -1,7 +1,7 @@
 package vobj
 
 import (
-	"prometheus-manager/api"
+	"github.com/aide-family/moon/api"
 )
 
 type NotifyApp int32

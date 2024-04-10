@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/helper/middler"
-	"prometheus-manager/pkg/util/slices"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type Field string

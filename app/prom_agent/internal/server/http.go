@@ -4,11 +4,11 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"prometheus-manager/api/alarm/hook"
-	"prometheus-manager/api/interflows"
-	"prometheus-manager/api/ping"
-	"prometheus-manager/app/prom_agent/internal/conf"
-	"prometheus-manager/app/prom_agent/internal/service"
+	"github.com/aide-family/moon/api/alarm/hook"
+	"github.com/aide-family/moon/api/interflows"
+	"github.com/aide-family/moon/api/ping"
+	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/app/prom_agent/internal/service"
 )
 
 // NewHTTPServer new an HTTP server.

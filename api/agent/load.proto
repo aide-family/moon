@@ -4,7 +4,7 @@ package api.agent;
 
 import "model.proto";
 
-option go_package = "prometheus-manager/api/agent;agent";
+option go_package = "github.com/aide-family/moon/api/agent;agent";
 option java_multiple_files = true;
 option java_package = "api.agent";
 

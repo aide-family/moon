@@ -3,8 +3,8 @@ package msg
 import (
 	"context"
 
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 )
 
 type HookNotifyMsg struct {

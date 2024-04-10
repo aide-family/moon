@@ -6,7 +6,7 @@ import (
 
 	"github.com/aide-cloud/universal/cipher"
 
-	"prometheus-manager/api/perrors"
+	"github.com/aide-family/moon/api/perrors"
 )
 
 const (

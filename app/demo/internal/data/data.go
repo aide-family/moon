@@ -1,7 +1,7 @@
 package data
 
 import (
-	"prometheus-manager/app/demo/internal/conf"
+	"github.com/aide-family/moon/app/demo/internal/conf"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"

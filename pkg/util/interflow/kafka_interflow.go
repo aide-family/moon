@@ -6,8 +6,8 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/go-kratos/kratos/v2/log"
-	"prometheus-manager/pkg/helper/consts"
-	"prometheus-manager/pkg/servers"
+	"github.com/aide-family/moon/pkg/helper/consts"
+	"github.com/aide-family/moon/pkg/servers"
 )
 
 var _ Interflow = (*kafkaInterflow)(nil)

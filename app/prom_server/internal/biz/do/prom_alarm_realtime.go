@@ -3,8 +3,8 @@ package do
 import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 )
 
 const TableNamePromAlarmRealtime = "prom_alarm_realtime"

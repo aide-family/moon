@@ -1,4 +1,4 @@
-# Prometheus-manager
+# Moon
 
 > prometheus 统一监控告警平台
 
@@ -61,10 +61,10 @@
 
 ```bash
 # 克隆代码
-git clone https://github.com/aide-cloud/prometheus-manager.git
+git clone https://github.com/aide-family/moon.git
 
 # 进入项目目录
-cd prometheus-manager
+cd moon
 
 # 安装依赖
 make init

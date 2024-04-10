@@ -3,7 +3,7 @@ package bo
 import (
 	"encoding/json"
 
-	"prometheus-manager/pkg/strategy"
+	"github.com/aide-family/moon/pkg/strategy"
 )
 
 type (

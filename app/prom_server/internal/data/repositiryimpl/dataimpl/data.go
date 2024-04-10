@@ -3,12 +3,12 @@ package dataimpl
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
-	"prometheus-manager/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/cache"
 
-	"prometheus-manager/api/perrors"
+	"github.com/aide-family/moon/api/perrors"
 
-	"prometheus-manager/app/prom_server/internal/biz/repository"
-	"prometheus-manager/app/prom_server/internal/data"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/aide-family/moon/app/prom_server/internal/data"
 )
 
 var _ repository.DataRepo = (*dataRepoImpl)(nil)

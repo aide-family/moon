@@ -4,8 +4,8 @@ import (
 	"encoding"
 	"encoding/json"
 
-	"prometheus-manager/api"
-	"prometheus-manager/app/prom_server/internal/biz/do"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 )
 
 var _ encoding.BinaryMarshaler = (*AlarmUpgradeBO)(nil)

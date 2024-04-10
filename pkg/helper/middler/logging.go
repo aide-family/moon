@@ -10,7 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
-	"prometheus-manager/pkg/helper/prom"
+	"github.com/aide-family/moon/pkg/helper/prom"
 )
 
 // Logging is an server logging middleware.

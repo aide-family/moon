@@ -7,17 +7,17 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/biz/bo"
-	"prometheus-manager/pkg/helper"
-	"prometheus-manager/pkg/servers"
-	"prometheus-manager/pkg/strategy"
-	"prometheus-manager/pkg/util/cache"
-	"prometheus-manager/pkg/util/email"
-	"prometheus-manager/pkg/util/interflow"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/helper"
+	"github.com/aide-family/moon/pkg/servers"
+	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/cache"
+	"github.com/aide-family/moon/pkg/util/email"
+	"github.com/aide-family/moon/pkg/util/interflow"
 
-	"prometheus-manager/app/prom_server/internal/biz/do"
-	"prometheus-manager/app/prom_server/internal/conf"
-	"prometheus-manager/pkg/conn"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
+	"github.com/aide-family/moon/app/prom_server/internal/conf"
+	"github.com/aide-family/moon/pkg/conn"
 )
 
 // ProviderSetData is data providers.

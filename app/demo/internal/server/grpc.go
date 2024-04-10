@@ -1,9 +1,9 @@
 package server
 
 import (
-	"prometheus-manager/api/ping"
-	"prometheus-manager/app/demo/internal/conf"
-	"prometheus-manager/app/demo/internal/service"
+	"github.com/aide-family/moon/api/ping"
+	"github.com/aide-family/moon/app/demo/internal/conf"
+	"github.com/aide-family/moon/app/demo/internal/service"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"

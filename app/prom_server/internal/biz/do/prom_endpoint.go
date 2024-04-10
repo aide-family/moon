@@ -1,8 +1,8 @@
 package do
 
 import (
-	"prometheus-manager/app/prom_server/internal/biz/vobj"
-	"prometheus-manager/pkg/strategy"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/strategy"
 )
 
 const TableNameEndpoint = "endpoints"

@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
-	"prometheus-manager/app/prom_server/internal/biz/do/basescopes"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 )
 
 var _ Pagination = (*pageImpl)(nil)
