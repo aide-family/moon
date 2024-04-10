@@ -1,0 +1,223 @@
+syntax = "proto3";
+
+package api.server.system;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "base.proto";
+import "system.proto";
+
+option go_package = "github.com/aide-family/moon/api/server/system;system";
+option java_multiple_files = true;
+option java_package = "api.server.system";
+
+// 租户模块
+service Tenant {
+  // 创建租户
+  rpc CreateTenant (CreateTenantRequest) returns (CreateTenantReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/create"
+      body: "*"
+    };
+  }
+
+  // 更新租户
+  rpc UpdateTenant (UpdateTenantRequest) returns (UpdateTenantReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/update"
+      body: "*"
+    };
+  }
+
+  // 删除租户
+  rpc DeleteTenant (DeleteTenantRequest) returns (DeleteTenantReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/delete"
+      body: "*"
+    };
+  }
+  // 查询租户
+  rpc GetTenant (GetTenantRequest) returns (GetTenantReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/get"
+      body: "*"
+    };
+  }
+
+  // 查询租户列表
+  rpc ListTenant (ListTenantRequest) returns (ListTenantReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/list"
+      body: "*"
+    };
+  }
+
+  // 增加/移除管理员， 追加新的人员， 可以是成员表追加， 也可以是从系统追加， 超级管理员权限
+  rpc ManageAdmin (ManageAdminRequest) returns (ManageAdminReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/manage/admin"
+      body: "*"
+    };
+  }
+
+  // 转移租户超级管理员权限， 超级管理员把自己的权限转移给指定人员，自己变为普通管理员， 超级管理员权限
+  rpc TransferAdmin (TransferAdminRequest) returns (TransferAdminReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/transfer/admin"
+      body: "*"
+    };
+  }
+
+  // 批量移除租户成员， 从租户空间移除， 只能移除普通人员, 管理员可移除普通成员， 超级管理员可移除除自己外的所有人
+  rpc BatchRemoveMember (BatchRemoveMemberRequest) returns (BatchRemoveMemberReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/batch/remove/member"
+      body: "*"
+    };
+  }
+
+  // 批量添加租户成员， 追加新的人员， 可以是成员表追加， 也可以是从系统追加， 超级管理员权限
+  rpc BatchAddMember (BatchAddMemberRequest) returns (BatchAddMemberReply) {
+    option (google.api.http) = {
+      post: "/api/v1/tenant/batch/add/member"
+      body: "*"
+    };
+  }
+}
+
+// 创建租户请求参数
+message CreateTenantRequest {
+  // 租户名称
+  string name = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  // 租户描述
+  string remark = 2 [(validate.rules).string.max_len = 255];
+  // 租户图标
+  string icon = 3 [(validate.rules).string.max_len = 255];
+  // 管理员Id列表
+  repeated uint32 adminIds = 4 [(validate.rules).repeated = {
+    min_items: 1,
+    items: {
+      uint32: {
+        gt: 0
+      }
+    }
+  }];
+}
+message CreateTenantReply {}
+
+// 更新租户请求参数
+message UpdateTenantRequest {
+  // 租户ID
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+  // 租户名称
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  // 租户描述
+  string remark = 3 [(validate.rules).string.max_len = 255];
+  // 租户图标
+  string icon = 4 [(validate.rules).string.max_len = 255];
+}
+message UpdateTenantReply {}
+
+// 删除租户请求参数
+message DeleteTenantRequest {
+  // 租户ID
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+message DeleteTenantReply {}
+
+// 查询租户请求参数
+message GetTenantRequest {
+  // 租户ID
+  uint32 id = 1 [(validate.rules).uint32.gt = 0];
+}
+// 查询租户响应参数
+message GetTenantReply {
+  // 租户详情
+  TenantV1 detail = 1;
+}
+
+// 查询租户列表请求参数
+message ListTenantRequest {
+  // 分页参数
+  PageRequest page = 1 [(validate.rules).message.required = true];
+  // 租户名称
+  string name = 2 [(validate.rules).string.max_len = 50];
+}
+message ListTenantReply {
+  // 租户列表
+  repeated TenantV1 list = 1;
+  // 分页信息
+  PageReply page = 2;
+}
+
+// 增加/移除管理员， 追加新的人员， 可以是成员表追加， 也可以是从系统追加， 超级管理员权限
+message ManageAdminRequest {
+  // 租户ID
+  uint32 tenantId = 1 [(validate.rules).uint32.gt = 0];
+  // 管理员Id列表
+  repeated uint32 adminIds = 2 [(validate.rules).repeated = {
+    min_items: 1,
+    items: {
+      uint32: {
+        gt: 0
+      }
+    }
+  }];
+  // 操作类型
+  Action action = 3 [(validate.rules).enum.defined_only = true];
+}
+message ManageAdminReply {}
+
+// 转移租户超级管理员权限， 超级管理员把自己的权限转移给指定人员，自己变为普通管理员， 超级管理员权限
+message TransferAdminRequest {
+  // 租户ID
+  uint32 tenantId = 1 [(validate.rules).uint32.gt = 0];
+  // 转移的管理员Id
+  uint32 adminId = 2 [(validate.rules).uint32.gt = 0];
+}
+message TransferAdminReply {}
+
+// 批量移除租户成员， 从租户空间移除， 只能移除普通人员, 管理员可移除普通成员， 超级管理员可移除除自己外的所有人
+message BatchRemoveMemberRequest {
+  // 租户ID
+  uint32 tenantId = 1 [(validate.rules).uint32.gt = 0];
+  // 成员Id列表
+  repeated uint32 memberIds = 2 [(validate.rules).repeated = {
+    min_items: 1,
+    items: {
+      uint32: {
+        gt: 0
+      }
+    }
+  }];
+}
+message BatchRemoveMemberReply {}
+
+// 批量添加租户成员， 追加新的人员， 可以是成员表追加， 也可以是从系统追加， 超级管理员权限
+message BatchAddMemberRequest {
+  message AddMemberItem {
+    // 成员Id
+    uint32 memberId = 1 [(validate.rules).uint32.gt = 0];
+    // 成员角色ID
+    repeated uint32 roleIds = 2 [(validate.rules).repeated = {
+      items: {
+        uint32: {
+          gt: 0
+        }
+      }
+    }];
+  }
+  // 租户ID
+  uint32 tenantId = 1 [(validate.rules).uint32.gt = 0];
+  // 成员列表
+  repeated AddMemberItem members = 2 [(validate.rules).repeated = {
+    min_items: 1,
+  }];
+}
+message BatchAddMemberReply {}

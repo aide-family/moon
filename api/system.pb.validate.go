@@ -1235,3 +1235,370 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SysLogV1ItemValidationError{}
+
+// Validate checks the field values on TenantUserV1 with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *TenantUserV1) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TenantUserV1 with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in TenantUserV1MultiError, or
+// nil if none found.
+func (m *TenantUserV1) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TenantUserV1) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TenantId
+
+	if all {
+		switch v := interface{}(m.GetUser()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TenantUserV1ValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TenantUserV1ValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUser()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TenantUserV1ValidationError{
+				field:  "User",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetRoles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TenantUserV1ValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TenantUserV1ValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TenantUserV1ValidationError{
+					field:  fmt.Sprintf("Roles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return TenantUserV1MultiError(errors)
+	}
+
+	return nil
+}
+
+// TenantUserV1MultiError is an error wrapping multiple validation errors
+// returned by TenantUserV1.ValidateAll() if the designated constraints aren't met.
+type TenantUserV1MultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TenantUserV1MultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TenantUserV1MultiError) AllErrors() []error { return m }
+
+// TenantUserV1ValidationError is the validation error returned by
+// TenantUserV1.Validate if the designated constraints aren't met.
+type TenantUserV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TenantUserV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TenantUserV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TenantUserV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TenantUserV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TenantUserV1ValidationError) ErrorName() string { return "TenantUserV1ValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TenantUserV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTenantUserV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TenantUserV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TenantUserV1ValidationError{}
+
+// Validate checks the field values on TenantV1 with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *TenantV1) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TenantV1 with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in TenantV1MultiError, or nil
+// if none found.
+func (m *TenantV1) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TenantV1) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Remark
+
+	// no validation rules for Icon
+
+	// no validation rules for CreatedAt
+
+	// no validation rules for UpdatedAt
+
+	if all {
+		switch v := interface{}(m.GetCreator()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TenantV1ValidationError{
+					field:  "Creator",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TenantV1ValidationError{
+					field:  "Creator",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreator()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TenantV1ValidationError{
+				field:  "Creator",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetOwner()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TenantV1ValidationError{
+					field:  "Owner",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TenantV1ValidationError{
+					field:  "Owner",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOwner()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TenantV1ValidationError{
+				field:  "Owner",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetMembers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TenantV1ValidationError{
+						field:  fmt.Sprintf("Members[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TenantV1ValidationError{
+						field:  fmt.Sprintf("Members[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TenantV1ValidationError{
+					field:  fmt.Sprintf("Members[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return TenantV1MultiError(errors)
+	}
+
+	return nil
+}
+
+// TenantV1MultiError is an error wrapping multiple validation errors returned
+// by TenantV1.ValidateAll() if the designated constraints aren't met.
+type TenantV1MultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TenantV1MultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TenantV1MultiError) AllErrors() []error { return m }
+
+// TenantV1ValidationError is the validation error returned by
+// TenantV1.Validate if the designated constraints aren't met.
+type TenantV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TenantV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TenantV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TenantV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TenantV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TenantV1ValidationError) ErrorName() string { return "TenantV1ValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TenantV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTenantV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TenantV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TenantV1ValidationError{}

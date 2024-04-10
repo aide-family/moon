@@ -4,14 +4,6 @@ import (
 	"context"
 	nHttp "net/http"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	"github.com/go-kratos/kratos/v2/middleware/selector"
-	"github.com/go-kratos/kratos/v2/middleware/validate"
-	"github.com/go-kratos/kratos/v2/transport/http"
-	jwtv4 "github.com/golang-jwt/jwt/v4"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/aide-family/moon/api/alarm/hook"
 	"github.com/aide-family/moon/api/interflows"
 	"github.com/aide-family/moon/api/ping"
@@ -37,6 +29,14 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middler"
 	"github.com/aide-family/moon/pkg/helper/prom"
 	"github.com/aide-family/moon/pkg/servers"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/middleware/selector"
+	"github.com/go-kratos/kratos/v2/middleware/validate"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	jwtv4 "github.com/golang-jwt/jwt/v4"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HttpServer struct {
@@ -55,6 +55,7 @@ func RegisterHttpServer(
 	authService *authservice.AuthService,
 	userService *systemservice.UserService,
 	roleService *systemservice.RoleService,
+	tenantService *systemservice.TenantService,
 	endpointService *promservice.EndpointService,
 	apiService *systemservice.ApiService,
 	chatGroupService *promservice.ChatGroupService,
@@ -67,7 +68,6 @@ func RegisterHttpServer(
 	templateService *promservice.TemplateService,
 ) *HttpServer {
 	ping.RegisterPingHTTPServer(srv, pingService)
-	system.RegisterDictHTTPServer(srv, dictService)
 	strategy.RegisterStrategyHTTPServer(srv, strategyService)
 	group.RegisterGroupHTTPServer(srv, strategyGroupService)
 	hook.RegisterHookHTTPServer(srv, hookService)
@@ -76,15 +76,17 @@ func RegisterHttpServer(
 	system.RegisterUserHTTPServer(srv, userService)
 	system.RegisterRoleHTTPServer(srv, roleService)
 	system.RegisterSyslogHTTPServer(srv, syslogService)
-	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
 	system.RegisterApiHTTPServer(srv, apiService)
-	notify.RegisterNotifyHTTPServer(srv, notifyService)
-	notify.RegisterChatGroupHTTPServer(srv, chatGroupService)
+	system.RegisterDictHTTPServer(srv, dictService)
+	system.RegisterTenantHTTPServer(srv, tenantService)
+	endpoint.RegisterEndpointHTTPServer(srv, endpointService)
 	realtime.RegisterRealtimeHTTPServer(srv, realtimeService)
 	interflows.RegisterHookInterflowHTTPServer(srv, interflowService)
 	dashboard.RegisterDashboardHTTPServer(srv, dashboardService)
 	dashboard.RegisterChartHTTPServer(srv, chartService)
 	notify.RegisterTemplateHTTPServer(srv, templateService)
+	notify.RegisterNotifyHTTPServer(srv, notifyService)
+	notify.RegisterChatGroupHTTPServer(srv, chatGroupService)
 
 	srv.Route("/api").POST("/upload", func(ctx http.Context) error {
 		return ctx.Result(nHttp.StatusOK, "ok")

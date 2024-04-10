@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/conf"
 	"github.com/aide-family/moon/app/prom_server/internal/data"
@@ -38,6 +37,7 @@ import (
 	"github.com/aide-family/moon/app/prom_server/internal/service/promservice"
 	"github.com/aide-family/moon/app/prom_server/internal/service/systemservice"
 	"github.com/aide-family/moon/pkg/helper/plog"
+	"github.com/go-kratos/kratos/v2"
 )
 
 import (
@@ -99,6 +99,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	apiRepo := api.NewApiRepo(dataData, logger)
 	roleBiz := biz.NewRoleBiz(roleRepo, apiRepo, dataRepo, sysLogRepo, logger)
 	roleService := systemservice.NewRoleService(roleBiz, logger)
+	tenantService := systemservice.NewTenantService(logger)
 	endpointRepo := endpoint.NewEndpointRepo(dataData, logger)
 	endpointBiz := biz.NewEndpointBiz(endpointRepo, sysLogRepo, logger)
 	endpointService := promservice.NewEndpointService(endpointBiz, logger)
@@ -120,7 +121,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	notifyTemplateRepo := notify.NewNotifyTemplateRepo(dataData, logger)
 	notifyTemplateBiz := biz.NewNotifyTemplateBiz(notifyTemplateRepo, logger)
 	templateService := promservice.NewTemplateService(notifyTemplateBiz, logger)
-	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService, templateService)
+	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, authService, userService, roleService, tenantService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService, templateService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService, syslogService)
 	v3 := data.GetReadChangeGroupChannel()
