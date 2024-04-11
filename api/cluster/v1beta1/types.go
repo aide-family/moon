@@ -146,9 +146,12 @@ const (
 )
 
 const (
-	ClusterCondDisabled    = "Disabled"
-	ClusterCondReady       = "Ready"
-	ClusterCondTerminating = "Terminating"
+	ClusterCondInitial          = "Initial"
+	ClusterCondDisabled         = "Disabled"
+	ClusterCondTerminating      = "Terminating"
+	ClusterCondReady            = "Ready"
+	CondReadyReasonDisconnected = "Disconnected"
+	CondReadyReasonDisabled     = "Disabled"
 )
 
 // APIEnablement is a list of API resource, it is used to expose the name of the
