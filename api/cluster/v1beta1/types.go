@@ -141,8 +141,14 @@ type ClusterPhase string
 
 const (
 	ClusterPhaseInitial     ClusterPhase = "Initial"
-	ClusterPhaseHealthy     ClusterPhase = "Healthy"
+	ClusterPhaseRunning     ClusterPhase = "Running"
 	ClusterPhaseTerminating ClusterPhase = "Terminating"
+)
+
+const (
+	ClusterCondDisabled    = "Disabled"
+	ClusterCondReady       = "Ready"
+	ClusterCondTerminating = "Terminating"
 )
 
 // APIEnablement is a list of API resource, it is used to expose the name of the
@@ -185,6 +191,7 @@ type NodeSummary struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="ENDPOINT",type="string",priority=1,JSONPath=".spec.endpoint",description="The cluster endpoint"
 // +kubebuilder:printcolumn:name="ENABLE",type="boolean",priority=1,JSONPath=".spec.enabled",description="The cluster enable status"
+// +kubebuilder:printcolumn:name="PHASE",type="string",priority=1,JSONPath=".status.phase",description="The cluster phase status"
 // +kubebuilder:printcolumn:name="PROVIDER",type="string",priority=1,JSONPath=".spec.provider",description="The cluster provider"
 // +kubebuilder:printcolumn:name="VERSION",type="string",JSONPath=".status.version",description="The cluster version"
 // +kubebuilder:printcolumn:name="TOTAL",type="integer",JSONPath=".status.nodeSummary.total",description="The total number of node"
