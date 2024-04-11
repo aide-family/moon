@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/aide-family/moon/api/cluster/v1beta1"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
 	"github.com/aide-family/moon/pkg/util/finalize"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -18,6 +19,7 @@ type HandlerFunc func(*Context) (*time.Duration, error)
 
 type Controller struct {
 	client.Client
+	set         clu.Set
 	l           logr.Logger
 	middlewares []HandlerFunc
 	handler     *handler
@@ -59,9 +61,10 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 }
 
 // New is the constructor of Controller
-func New(client client.Client) *Controller {
+func New(client client.Client, set clu.Set) *Controller {
 	controller := &Controller{
 		l:       klogr.New().WithName("Controller:CloneJob"),
+		set:     set,
 		Client:  client,
 		handler: newHandler(),
 	}
@@ -114,8 +117,8 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 }
 
 // Default use Logger() & Recovery middlewares
-func Default(client client.Client) *Controller {
-	c := New(client)
+func Default(client client.Client, set clu.Set) *Controller {
+	c := New(client, set)
 	c.Use(Logger(), Recovery(), Metrics(), c.handleFinalizer)
 	c.handler.addHandler("", c.Initial)
 	c.handler.addHandler(v1beta1.ClusterPhaseInitial, c.Initial)
