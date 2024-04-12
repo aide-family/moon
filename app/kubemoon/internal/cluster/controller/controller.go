@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	"github.com/aide-family/moon/app/kubemoon/internal/cluster/config"
 	"github.com/aide-family/moon/pkg/util/finalize"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -20,6 +21,8 @@ type HandlerFunc func(*Context) (*time.Duration, error)
 type Controller struct {
 	client.Client
 	set         clu.Set
+	confGetter  clu.ConfigGetter
+	builderFunc func(name string) (clu.Client, error)
 	l           logr.Logger
 	middlewares []HandlerFunc
 	handler     *handler
@@ -63,11 +66,13 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 // New is the constructor of Controller
 func New(client client.Client, set clu.Set) *Controller {
 	controller := &Controller{
-		l:       klogr.New().WithName("Controller:CloneJob"),
-		set:     set,
-		Client:  client,
-		handler: newHandler(),
+		l:          klogr.New().WithName("Controller:CloneJob"),
+		set:        set,
+		confGetter: config.NewKubeConfig(client),
+		Client:     client,
+		handler:    newHandler(),
 	}
+	controller.builderFunc = controller.builder
 	return controller
 }
 

@@ -1,4 +1,4 @@
-package client
+package builder
 
 import (
 	"github.com/aide-family/moon/api/cluster/v1beta1"
@@ -29,7 +29,7 @@ func init() {
 func GetMockCluster() *v1beta1.Cluster {
 	return &v1beta1.Cluster{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "Cluster",
+			Kind:       "Client",
 			APIVersion: v1beta1.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{

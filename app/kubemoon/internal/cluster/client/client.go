@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -16,8 +18,6 @@ import (
 )
 
 var _ clu.Client = &clientx{}
-
-type InitOptions func(clu.Client) error
 
 type clientx struct {
 	name       string
@@ -36,13 +36,11 @@ type clientx struct {
 
 // New returns a new clientx or error
 // default status code is Stopped
-func New(config *rest.Config, scheme *runtime.Scheme, options ...InitOptions) (clu.Client, error) {
+func New(config *rest.Config, scheme *runtime.Scheme, options ...clu.InitOptions) (clu.Client, error) {
 	var cli *clientx
 	var err error
 	// TODO: new rest mapper
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed to create mapper: %s", err)
-	//}
+	cli.mapper = meta.NewDefaultRESTMapper(scheme.PreferredVersionAllGroups())
 
 	if cli.client, err = client.New(config, client.Options{Scheme: scheme, Mapper: cli.mapper}); err != nil {
 		return nil, fmt.Errorf("failed to create runtime client: %s", err)
@@ -105,6 +103,15 @@ func (c *clientx) Stop() {
 		c.status = clu.Stopped
 	}
 	klog.Infof("%s", c)
+}
+
+func (c *clientx) Ping(ctx context.Context) error {
+	ns := &v1.Namespace{}
+	err := c.client.Get(ctx, types.NamespacedName{Name: "default"}, ns)
+	if err != nil {
+		return fmt.Errorf("ping client failed: %s", err)
+	}
+	return nil
 }
 
 func (c *clientx) Name() string {

@@ -1,5 +1,5 @@
 /*
-Copyright 2023 The Multi Cluster Authors.
+Copyright 2023 The Multi Client Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -94,13 +94,13 @@ func (p *Set) Remove(name string) {
 	}
 }
 
-func (p *Set) Cluster(name string) clu.Client {
+func (p *Set) Client(name string) clu.Client {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.cm[name]
 }
 
-func (p *Set) Clusters() map[string]clu.Client {
+func (p *Set) Clients() map[string]clu.Client {
 	cm := make(map[string]clu.Client, len(p.cm))
 	p.mu.RLock()
 	defer p.mu.RUnlock()
