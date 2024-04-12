@@ -13,7 +13,7 @@ type KubeConfig struct {
 	client.Client
 }
 
-func NewConfig(c client.Client) clu.ConfigGetter {
+func NewKubeConfig(c client.Client) clu.ConfigGetter {
 	return &KubeConfig{c}
 }
 

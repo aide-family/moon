@@ -17,6 +17,7 @@ import (
 type Client interface {
 	Runnable
 	Status
+	Healthy
 	Name() string
 	Client() client.Client
 	Cache() cache.Cache
@@ -31,8 +32,8 @@ type Set interface {
 	Runnable
 	Add(clu Client) error
 	Remove(name string)
-	Cluster(name string) Client
-	Clusters() map[string]Client
+	Client(name string) Client
+	Clients() map[string]Client
 }
 
 type Status interface {
@@ -50,3 +51,13 @@ type ConfigGetter interface {
 	Cluster(ctx context.Context, key types.NamespacedName, in *v1beta1.Cluster) error
 	Secret(ctx context.Context, key types.NamespacedName, in *v1.Secret) error
 }
+
+type Healthy interface {
+	Ping(ctx context.Context) error
+}
+
+type Builder interface {
+	Complete() (Client, error)
+}
+
+type InitOptions func(Client) error
