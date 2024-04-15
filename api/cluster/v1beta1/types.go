@@ -147,6 +147,7 @@ const (
 
 const (
 	ClusterCondInitial     = "Initial"
+	ClusterCondConnection  = "Connection"
 	ClusterCondDisabled    = "Disabled"
 	ClusterCondTerminating = "Terminating"
 	ClusterCondReady       = "Ready"
