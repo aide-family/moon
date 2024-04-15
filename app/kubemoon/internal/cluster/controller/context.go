@@ -21,10 +21,14 @@ type Context struct {
 }
 
 func newContext(ctx context.Context, key types.NamespacedName, origin *v1beta1.Cluster) *Context {
+	phase := origin.Status.Phase
+	if origin.DeletionTimestamp != nil {
+		phase = v1beta1.ClusterPhaseTerminating
+	}
 	return &Context{
 		ctx:      ctx,
 		Key:      key,
-		Phase:    origin.Status.Phase,
+		Phase:    phase,
 		Origin:   origin,
 		Cluster:  origin.DeepCopy(),
 		Status:   origin.Status.DeepCopy(),
