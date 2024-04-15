@@ -36,7 +36,7 @@ type ConnectConfig struct {
 	// +optional
 	Secret *SecretRef `json:"secret,omitempty"`
 	// Config needs to use a configuration file to connect. If you have defined a Secret,
-	//it will use the Secret for encoding and decoding to ensure data security. Moderate recommendation.
+	// it will use the Secret for encoding and decoding to ensure data security. Moderate recommendation.
 	// config usually can be /etc/kubernetes/admin.conf or ~/.kube/config
 	// +optional
 	Config *ConfigRef `json:"config,omitempty"`
@@ -68,7 +68,7 @@ type ConnectConfig struct {
 }
 
 type ConfigRef struct {
-	//Secret used to encode and decode Config to protect Config from being leaked.
+	// Secret used to encode and decode Config to protect Config from being leaked.
 	// +optional
 	Secret *SecretRef `json:"secret,omitempty"`
 	// The Config used to connect to the cluster.

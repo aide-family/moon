@@ -14,14 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package clusterset
+package set
 
 import (
 	"context"
 	"fmt"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
 )
@@ -36,21 +34,11 @@ type Set struct {
 	cm     map[string]clu.Client
 }
 
-func New(config *rest.Config, scheme *runtime.Scheme) (clu.Set, error) {
-	cm := make(map[string]clu.Client)
-	config = rest.AddUserAgent(config, UserAgentName)
-
-	cli, err := client.New(config, client.Options{
-		Scheme: scheme,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+func New(cli client.Client) clu.Set {
 	return &Set{
 		client: cli,
-		cm:     cm,
-	}, nil
+		cm:     make(map[string]clu.Client),
+	}
 }
 
 func (p *Set) Start(ctx context.Context) error {
