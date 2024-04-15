@@ -28,6 +28,8 @@ type Client interface {
 	Discovery() discovery.DiscoveryInterface
 }
 
+// Set of cluster clients.
+// Used to uniformly manage all cluster clients.
 type Set interface {
 	Runnable
 	Add(clu Client) error
@@ -42,6 +44,8 @@ type Status interface {
 	Disable()
 }
 
+// Runnable defines a service interface that can be run and stopped.
+// Through this interface, unified and elegant service start and stop can be achieved.
 type Runnable interface {
 	Start(ctx context.Context) error
 	Stop()

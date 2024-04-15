@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/aide-family/moon/app/kubemoon/cmd/apps/options"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	"github.com/aide-family/moon/app/kubemoon/internal/cluster/controller"
+	"github.com/aide-family/moon/app/kubemoon/internal/cluster/set"
 	"github.com/spf13/cobra"
 	"k8s.io/apiserver/pkg/server"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -82,9 +85,31 @@ func Setup(ctx context.Context, opts *options.Options) (manager.Manager, error) 
 		return nil, err
 	}
 
+	klog.Info("build cluster client manager ...")
+	cluSet := set.New(mgr.GetClient())
+
+	klog.Info("add cluster client set to manager...")
+	err = mgr.Add(cluSet)
+	if err != nil {
+		klog.ErrorS(err, "add cluster client set to manager failed")
+		return nil, err
+	}
+
+	klog.Info("build controller ...")
+	err = SetupController(ctx, mgr, cluSet)
+	if err != nil {
+		klog.ErrorS(err, "setup controller failed")
+		return nil, err
+	}
+
 	// TODO: set service
 
 	return mgr, nil
+}
+
+func SetupController(_ context.Context, mgr manager.Manager, set clu.Set) error {
+	klog.Info("build cluster controller ...")
+	return controller.Default(mgr.GetClient(), set).SetupWithManager(mgr)
 }
 
 func Run(ctx context.Context, mgr manager.Manager) error {
