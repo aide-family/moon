@@ -18,7 +18,7 @@ const (
 var codes = []string{"disabled", "stopped", "started", "waiting", "ready"}
 
 func (c Code) String() string {
-	if int(c) < len(codes)-1 {
+	if int(c) >= 0 && int(c) < len(codes) {
 		return codes[c]
 	}
 	return "unknown"

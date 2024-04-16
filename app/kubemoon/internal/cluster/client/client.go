@@ -8,7 +8,6 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -37,16 +36,17 @@ type clientx struct {
 // New returns a new clientx or error
 // default status code is Stopped
 func New(config *rest.Config, scheme *runtime.Scheme, options ...clu.InitOptions) (clu.Client, error) {
-	var cli *clientx
 	var err error
+	cli := new(clientx)
+
 	// TODO: new rest mapper
 	cli.mapper = meta.NewDefaultRESTMapper(scheme.PreferredVersionAllGroups())
 
-	if cli.client, err = client.New(config, client.Options{Scheme: scheme, Mapper: cli.mapper}); err != nil {
+	if cli.client, err = client.New(config, client.Options{Scheme: scheme}); err != nil {
 		return nil, fmt.Errorf("failed to create runtime client: %s", err)
 	}
 
-	if cli.cache, err = cache.New(config, cache.Options{Scheme: scheme, Mapper: cli.mapper}); err != nil {
+	if cli.cache, err = cache.New(config, cache.Options{Scheme: scheme}); err != nil {
 		return nil, fmt.Errorf("failed to create runtime cache: %s", err)
 	}
 
@@ -106,8 +106,8 @@ func (c *clientx) Stop() {
 }
 
 func (c *clientx) Ping(ctx context.Context) error {
-	ns := &v1.Namespace{}
-	err := c.client.Get(ctx, types.NamespacedName{Name: "default"}, ns)
+	ns := &v1.NamespaceList{}
+	err := c.client.List(ctx, ns)
 	if err != nil {
 		return fmt.Errorf("ping client failed: %s", err)
 	}

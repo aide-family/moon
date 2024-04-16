@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type ComponentConfiguration struct {
-	Manager *ManagerOptions
+	Manager *ManagerOptions `yaml:"manager"`
 }
 
 type ManagerOptions struct {

@@ -66,7 +66,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 // New is the constructor of Controller
 func New(client client.Client, set clu.Set) *Controller {
 	controller := &Controller{
-		l:          klogr.New().WithName("Controller:CloneJob"),
+		l:          klogr.New().WithName("Controller:Cluster"),
 		set:        set,
 		confGetter: config.NewKubeConfig(client),
 		Client:     client,
@@ -94,8 +94,8 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 		cond := GetCondition(*c.Status, v1beta1.ClusterCondTerminating)
 		if cond != nil && cond.Status == metav1.ConditionTrue {
 			// Completed
-			if controllerutil.ContainsFinalizer(c.Cluster, AideCloudCloneJobFinalizer) {
-				err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.RemoveFinalizerOpType, AideCloudCloneJobFinalizer)
+			if controllerutil.ContainsFinalizer(c.Cluster, AideCloudClusterFinalizer) {
+				err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.RemoveFinalizerOpType, AideCloudClusterFinalizer)
 				if err != nil {
 					if !errors.IsNotFound(err) {
 						r.l.Error(err, "remove cluster finalizer failed.", "key", c.Key)
@@ -110,8 +110,8 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 	}
 
 	// create instance crd, add finalizer
-	if !controllerutil.ContainsFinalizer(c.Cluster, AideCloudCloneJobFinalizer) {
-		err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.AddFinalizerOpType, AideCloudCloneJobFinalizer)
+	if !controllerutil.ContainsFinalizer(c.Cluster, AideCloudClusterFinalizer) {
+		err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.AddFinalizerOpType, AideCloudClusterFinalizer)
 		if err != nil {
 			r.l.Error(err, "register cluster finalizer failed.", "key", c.Key)
 			return nil, err
@@ -125,7 +125,7 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 func Default(client client.Client, set clu.Set) *Controller {
 	c := New(client, set)
 	c.Use(Logger(), Recovery(), Metrics(), c.handleFinalizer)
-	c.handler.addHandler("", c.Initial)
+	c.handler.addHandler(v1beta1.ClusterPhase(""), c.Initial)
 	c.handler.addHandler(v1beta1.ClusterPhaseInitial, c.Initial)
 	c.handler.addHandler(v1beta1.ClusterPhaseRunning, c.Running)
 	c.handler.addHandler(v1beta1.ClusterPhaseTerminating, c.Terminating)

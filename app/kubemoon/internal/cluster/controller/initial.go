@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/app/kubemoon/internal/cluster/builder"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"time"
 )
 
@@ -47,5 +48,7 @@ func (r *Controller) Initial(c *Context) (*time.Duration, error) {
 }
 
 func (r *Controller) builder(name string) (clu.Client, error) {
-	return builder.By(r.confGetter).Named(name).WithScheme(runtime.NewScheme()).Complete()
+	sc := runtime.NewScheme()
+	_ = scheme.AddToScheme(sc)
+	return builder.By(r.confGetter).Named(name).WithScheme(sc).Complete()
 }

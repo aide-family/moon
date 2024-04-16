@@ -71,7 +71,7 @@ func (s *Options) Complete() (*config.Config, error) {
 }
 
 func LoadComponentConfiguration(path string) (*config.ComponentConfiguration, error) {
-	var componentConfiguration *config.ComponentConfiguration
+	componentConfiguration := new(config.ComponentConfiguration)
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

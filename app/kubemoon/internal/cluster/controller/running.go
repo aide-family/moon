@@ -48,7 +48,7 @@ func (r *Controller) checkClusterEnabled(c *Context) bool {
 		return false
 	} else {
 		disabledCond.Status = metav1.ConditionFalse
-		disabledCond.Reason = ""
+		disabledCond.Reason = v1beta1.ReasonSuccessful
 		return true
 	}
 }
