@@ -1,13 +1,17 @@
 package main
 
 import (
-	"github.com/aide-family/moon/app/kubemoon/cmd/apps"
 	"log"
 )
 
-func main() {
-	command := apps.NewKubeMoonCommand()
+// go build -ldflags "-X main.Version=x.y.z"
+var (
+	// Version is the version of the compiled software.
+	Version string
+)
 
+func main() {
+	command := NewKubeMoonCommand()
 	if err := command.Execute(); err != nil {
 		log.Fatalln(err)
 	}

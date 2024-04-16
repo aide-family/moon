@@ -1,0 +1,62 @@
+env:
+  name: kubemoon_server
+  version: 0.0.1
+  env: dev
+  metadata:
+    description: Kubemoon Server APP
+    version: 0.0.1
+    author: 梧桐
+    license: MIT
+    email: aidecloud@163.com
+    url: https://github.com/aide-family/moon
+
+server:
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 10s
+
+# NOTE: 1.使用sqlite默认会在deploy/sql下生成init_sqlite.db数据库文件
+# 2. 选择mysql, 把sqlite部分注释并创建名为prometheus_manager的数据库, 并配置主机:ip, 如:127.0.0.1:3306，下方redis配置同理
+data:
+  database:
+    driver: sqlite
+    source: ./db/init_sqlite.db
+    debug: true
+    #  database:
+    #    driver: mysql
+    #    source: root:123456@tcp(host.docker.internal:3306)/prometheus_manager?charset=utf8mb4&parseTime=True&loc=Local
+    #    debug: true
+
+# 配置redis则使用redis作为缓存
+#  redis:
+#    addr: host.docker.internal:6379
+#    password: redis#single#test
+#    read_timeout: 0.2s
+#    write_timeout: 0.2s
+
+log:
+  filename: ./log/server.log
+  level: debug
+  encoder: json
+  maxSize: 500
+  compress: true
+
+apiWhite:
+  all:
+    - /api.server.auth.Auth/Login
+    - /api.server.auth.Auth/Captcha
+    - /api.interflows.HookInterflow/Receive
+    - /api.ping.Ping/Check
+
+  jwtApi:
+
+  rbacApi:
+    - /api.server.auth.Auth/Logout
+    - /api.server.auth.Auth/RefreshToken
+
+# 配置mq则使用mq通信， 否则使用内部hook通信
+#mq:
+#  kafka:
+#    groupId: prometheus-server
+#    endpoints:
+#      - host.docker.internal:9092

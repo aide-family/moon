@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/app/prom_agent/internal/data"
@@ -15,6 +14,7 @@ import (
 	"github.com/aide-family/moon/app/prom_agent/internal/server"
 	"github.com/aide-family/moon/app/prom_agent/internal/service"
 	"github.com/aide-family/moon/pkg/helper/plog"
+	"github.com/go-kratos/kratos/v2"
 )
 
 import (

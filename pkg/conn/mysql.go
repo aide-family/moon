@@ -117,7 +117,7 @@ func NewDB(cfg DBConfig, logger ...log.Logger) (*gorm.DB, error) {
 
 // checkDBFileExists .
 func checkDBFileExists(filename string) error {
-	log.Debugw("-------------------------", filename)
+	log.Debugw("sqlite db", filename)
 	if filename == "" {
 		return fmt.Errorf("db file is empty")
 	}
