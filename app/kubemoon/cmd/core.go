@@ -1,12 +1,21 @@
-package apps
+package main
 
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/aide-family/moon/app/kubemoon/cmd/apps/options"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
 	"github.com/aide-family/moon/app/kubemoon/internal/cluster/controller"
 	"github.com/aide-family/moon/app/kubemoon/internal/cluster/set"
+	"github.com/aide-family/moon/app/kubemoon/internal/conf"
+	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/util/hello"
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/google/wire"
 	"github.com/spf13/cobra"
 	"k8s.io/apiserver/pkg/server"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -17,16 +26,50 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
+var (
+	once            sync.Once
+	ProviderSetCore = wire.NewSet(
+		before,
+	)
+)
+
+func before() conf.Before {
+	return func(bc *conf.Bootstrap) error {
+		env := bc.GetEnv()
+		once.Do(func() {
+			hello.SetName(env.GetName())
+			hello.SetVersion(Version)
+			hello.SetEnv(env.GetEnv())
+			hello.SetMetadata(env.GetMetadata())
+			hello.FmtASCIIGenerator()
+		})
+		return nil
+	}
+}
+
+func newApp(hs *http.Server, logger log.Logger) *kratos.App {
+	return kratos.New(
+		kratos.ID(hello.ID()),
+		kratos.Name(hello.Name()),
+		kratos.Version(hello.Version()),
+		kratos.Metadata(hello.Metadata()),
+		kratos.Logger(logger),
+		kratos.Server(hs),
+	)
+}
+
 func NewKubeMoonCommand() *cobra.Command {
 	opts := options.NewOptions()
 	cmd := &cobra.Command{
 		Use:  "Kube Moon",
 		Long: ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			klog.Info("Kube Moon")
 			return runCommand(cmd, opts)
 		},
 		SilenceUsage: true,
 	}
+
 	fs := cmd.Flags()
 	namedFlagSets := opts.Flags()
 	for _, f := range namedFlagSets.FlagSets {
@@ -67,20 +110,22 @@ func runCommand(cmd *cobra.Command, opts *options.Options) error {
 }
 
 func Setup(ctx context.Context, opts *options.Options) (manager.Manager, error) {
+	klog.Info("complete options ...")
 	errList := opts.Validate()
 	if len(errList) != 0 {
 		klog.Errorf("validate options failed with err: %v", errList)
 		return nil, errList[0]
 	}
 
-	conf, err := opts.Complete()
+	klog.Info("complete config ...")
+	config, err := opts.Complete()
 	if err != nil {
 		klog.ErrorS(err, "complete config error")
 		return nil, err
 	}
 
 	klog.Info("build manager ...")
-	mgr, err := ctrl.NewManager(conf.KubeConfig, conf.ManagerOptions())
+	mgr, err := ctrl.NewManager(config.KubeConfig, config.ManagerOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +148,9 @@ func Setup(ctx context.Context, opts *options.Options) (manager.Manager, error) 
 	}
 
 	// TODO: set service
+	if err = mgr.Add(NewKratos(opts)); err != nil {
+		klog.ErrorS(err, "add kratos to manager failed")
+	}
 
 	return mgr, nil
 }
@@ -117,5 +165,33 @@ func Run(ctx context.Context, mgr manager.Manager) error {
 	if err := mgr.Start(ctx); err != nil {
 		return fmt.Errorf("unable to run the manager: %v", err)
 	}
+	return nil
+}
+
+var _ manager.Runnable = (*Kratos)(nil)
+
+type Kratos struct {
+	opts *options.Options
+}
+
+func NewKratos(opts *options.Options) *Kratos {
+	return &Kratos{opts: opts}
+}
+
+func (k *Kratos) Start(_ context.Context) error {
+	go func() {
+		defer after.RecoverX()
+		app, cleanup, err := wireApp(&k.opts.ConfPath)
+		if err != nil {
+			panic(err)
+		}
+		defer cleanup()
+
+		// start and wait for stop signal
+		if err = app.Run(); err != nil {
+			panic(err)
+		}
+	}()
+
 	return nil
 }

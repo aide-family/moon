@@ -2,6 +2,9 @@ package options
 
 import (
 	"flag"
+	"os"
+	"strings"
+
 	clusterv1beta1 "github.com/aide-family/moon/api/cluster/v1beta1"
 	"github.com/aide-family/moon/app/kubemoon/cmd/apps/config"
 	"gopkg.in/yaml.v3"
@@ -10,9 +13,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strings"
 )
 
 var (
@@ -26,18 +27,21 @@ func init() {
 
 // TODO: @sumengzs@gmail.com
 type Options struct {
-	Config string
+	Config   string
+	ConfPath string
 }
 
 func NewOptions() *Options {
 	return &Options{
-		Config: "config.yaml",
+		Config:   "./configs/config.yaml",
+		ConfPath: "./configs",
 	}
 }
 
 func (s *Options) Flags() (fss cliflag.NamedFlagSets) {
 	fs := fss.FlagSet("moon")
 	fs.StringVar(&s.Config, "config", s.Config, "service configuration file path")
+	fs.StringVar(&s.ConfPath, "conf", s.ConfPath, "service configuration file path")
 	logFs := fss.FlagSet("log")
 	local := flag.NewFlagSet("log", flag.ExitOnError)
 	klog.InitFlags(local)
