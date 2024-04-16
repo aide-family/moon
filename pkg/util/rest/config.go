@@ -3,6 +3,7 @@ package rest
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"github.com/aide-family/moon/api/cluster/v1beta1"
@@ -61,7 +62,7 @@ func BuildConfig(clusterName string, connect v1beta1.ConnectConfig, secretGetter
 }
 
 func buildConfigWithConfig(ref *v1beta1.ConfigRef, secretGetter SecretGetter) (*rest.Config, error) {
-	kubeConfig := ref.Config
+	kubeConfig := make([]byte, 0)
 	if ref.Secret != nil {
 		if secretGetter == nil {
 			return nil, fmt.Errorf("secret getter is required")
@@ -74,7 +75,13 @@ func buildConfigWithConfig(ref *v1beta1.ConfigRef, secretGetter SecretGetter) (*
 			return nil, err
 		}
 		privateKey, err := SecretToRSACerts(secret)
-		kubeConfig, err = rsautil.RSADecryptByPrivateKey(kubeConfig, privateKey)
+		kubeConfig, err = rsautil.RSADecryptByPrivateKey([]byte(ref.Config), privateKey)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		kubeConfig, err = base64.StdEncoding.DecodeString(ref.Config)
 		if err != nil {
 			return nil, err
 		}

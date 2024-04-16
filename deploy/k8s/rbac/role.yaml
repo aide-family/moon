@@ -3,11 +3,31 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: server-role
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  creationTimestamp: null
-  name: agent-role
+  name: kube-role
+rules:
+- apiGroups:
+  - aide.cloud.cn
+  resources:
+  - clusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - aide.cloud.cn
+  resources:
+  - clusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - aide.cloud.cn
+  resources:
+  - clusters/status
+  verbs:
+  - get
+  - patch
+  - update

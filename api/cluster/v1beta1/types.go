@@ -74,7 +74,7 @@ type ConfigRef struct {
 	// The Config used to connect to the cluster.
 	// There is no need to encrypt when joining.
 	// When saving data, it will automatically use Secret for encryption. If Secret exists.
-	Config []byte `json:"config,omitempty"`
+	Config string `json:"config,omitempty"`
 }
 
 type SecretRef struct {
@@ -190,19 +190,22 @@ type NodeSummary struct {
 	ReadyNum int32 `json:"ready,omitempty"`
 }
 
-// +genclient:nonNamespaced
-// +k8s:openapi-gen=true
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
-// +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="ENDPOINT",type="string",priority=1,JSONPath=".spec.endpoint",description="The cluster endpoint"
-// +kubebuilder:printcolumn:name="ENABLE",type="boolean",priority=1,JSONPath=".spec.enabled",description="The cluster enable status"
-// +kubebuilder:printcolumn:name="PHASE",type="string",priority=1,JSONPath=".status.phase",description="The cluster phase status"
-// +kubebuilder:printcolumn:name="PROVIDER",type="string",priority=1,JSONPath=".spec.provider",description="The cluster provider"
-// +kubebuilder:printcolumn:name="VERSION",type="string",JSONPath=".status.version",description="The cluster version"
-// +kubebuilder:printcolumn:name="TOTAL",type="integer",JSONPath=".status.nodeSummary.total",description="The total number of node"
-// +kubebuilder:printcolumn:name="READY",type="integer",JSONPath=".status.nodeSummary.ready",description="The ready number of node"
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
+//+genclient:nonNamespaced
+//+k8s:openapi-gen=true
+//+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
+//+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="ENDPOINT",type="string",priority=1,JSONPath=".spec.endpoint",description="The cluster endpoint"
+//+kubebuilder:printcolumn:name="ENABLE",type="boolean",priority=1,JSONPath=".spec.enabled",description="The cluster enable status"
+//+kubebuilder:printcolumn:name="PROVIDER",type="string",priority=1,JSONPath=".spec.provider",description="The cluster provider"
+//+kubebuilder:printcolumn:name="PHASE",type="string",JSONPath=".status.phase",description="The cluster phase status"
+//+kubebuilder:printcolumn:name="VERSION",type="string",JSONPath=".status.version",description="The cluster version"
+//+kubebuilder:printcolumn:name="TOTAL",type="integer",JSONPath=".status.nodeSummary.total",description="The total number of node"
+//+kubebuilder:printcolumn:name="READY",type="integer",JSONPath=".status.nodeSummary.ready",description="The ready number of node"
+//+kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:rbac:groups=aide.cloud.cn,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=aide.cloud.cn,resources=clusters/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=aide.cloud.cn,resources=clusters/finalizers,verbs=update
 
 // Cluster is the Schema for the clusters API
 type Cluster struct {

@@ -18,7 +18,7 @@ const ( // phase
 )
 
 const (
-	AideCloudCloneJobFinalizer = "aide.cloud.cn/cluster"
+	AideCloudClusterFinalizer = "aide.cloud.cn/cluster"
 )
 
 func PhaseCode(phase v1beta1.ClusterPhase) float64 {
