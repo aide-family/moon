@@ -1,7 +1,8 @@
 <div align="center">
 <h1 style="color: #1677ff; font-size: 64px">Moon 监控平台</h1>
+<h2>始于prometheus，不止于prometheus</h2>
 <span>
-<img src="./doc/img/logo.svg" width="220" height="220" alt="logo"/>
+<img src="./doc/img/moon.svg" width="220" height="220" alt="logo"/>
 <img src="./doc/img/prometheus-logo.svg" width="220" height="220" alt="prometheus"/>
 </span>
 
