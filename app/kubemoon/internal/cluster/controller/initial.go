@@ -35,9 +35,9 @@ func (r *Controller) Initial(c *Context) (*time.Duration, error) {
 				return nil, err
 			}
 		}
-		if err = cli.Ping(c.Context()); err != nil {
+		if err = Online(c.Context(), cli); err != nil {
 			cond.Status = metav1.ConditionFalse
-			cond.Reason = v1beta1.ReasonDisconnected
+			cond.Reason = v1beta1.ReasonOffline
 			cond.Message = err.Error()
 			return nil, err
 		}

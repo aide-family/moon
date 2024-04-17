@@ -17,13 +17,13 @@ spec:
   versions:
   - additionalPrinterColumns:
     - description: The cluster endpoint
-      jsonPath: .spec.endpoint
+      jsonPath: .spec.connect.endpoint
       name: ENDPOINT
       priority: 1
       type: string
     - description: The cluster enable status
-      jsonPath: .spec.enabled
-      name: ENABLE
+      jsonPath: .spec.disabled
+      name: DISABLED
       priority: 1
       type: boolean
     - description: The cluster provider

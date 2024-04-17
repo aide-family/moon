@@ -18,6 +18,7 @@ type Client interface {
 	Runnable
 	Status
 	Healthy
+	Info
 	Name() string
 	Client() client.Client
 	Cache() cache.Cache
@@ -57,7 +58,13 @@ type ConfigGetter interface {
 }
 
 type Healthy interface {
-	Ping(ctx context.Context) error
+	Ready(ctx context.Context) (int, error)
+	Health(ctx context.Context) (int, error)
+}
+
+type Info interface {
+	KubernetesVersion() (string, error)
+	APIEnablements() ([]v1beta1.APIEnablement, error)
 }
 
 type Builder interface {

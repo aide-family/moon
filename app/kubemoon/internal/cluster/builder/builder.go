@@ -51,7 +51,7 @@ func (b *Builder) Complete() (clu.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load client rest config: %s", err)
 	}
-	cluster, err := client.New(config, b.scheme, b.options...)
+	cluster, err := client.New(b.clusterName, config, b.scheme, b.options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clientx: %s", err)
 	}

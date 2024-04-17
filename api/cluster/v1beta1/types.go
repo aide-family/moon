@@ -152,7 +152,8 @@ const (
 	ClusterCondTerminating = "Terminating"
 	ClusterCondReady       = "Ready"
 	ReasonSuccessful       = "Successful"
-	ReasonDisconnected     = "Disconnected"
+	ReasonOffline          = "Offline"
+	ReasonNotHealthy       = "NotHealthy"
 	ReasonDisabled         = "Disabled"
 	ReasonBuildFailed      = "BuildFailed"
 )
@@ -195,8 +196,8 @@ type NodeSummary struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="ENDPOINT",type="string",priority=1,JSONPath=".spec.endpoint",description="The cluster endpoint"
-//+kubebuilder:printcolumn:name="ENABLE",type="boolean",priority=1,JSONPath=".spec.enabled",description="The cluster enable status"
+//+kubebuilder:printcolumn:name="ENDPOINT",type="string",priority=1,JSONPath=".spec.connect.endpoint",description="The cluster endpoint"
+//+kubebuilder:printcolumn:name="DISABLED",type="boolean",priority=1,JSONPath=".spec.disabled",description="The cluster enable status"
 //+kubebuilder:printcolumn:name="PROVIDER",type="string",priority=1,JSONPath=".spec.provider",description="The cluster provider"
 //+kubebuilder:printcolumn:name="PHASE",type="string",JSONPath=".status.phase",description="The cluster phase status"
 //+kubebuilder:printcolumn:name="VERSION",type="string",JSONPath=".status.version",description="The cluster version"
