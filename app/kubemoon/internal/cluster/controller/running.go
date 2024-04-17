@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -21,19 +22,18 @@ func (r *Controller) Running(c *Context) (*time.Duration, error) {
 	// check if the cluster is connected
 	isConnected, err = r.checkClusterConnection(c)
 
-	if isEnabled && isConnected {
-		cond.Status = metav1.ConditionTrue
-		cond.Reason = v1beta1.ReasonSuccessful
-	} else if !isEnabled {
+	if !isEnabled {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = v1beta1.ReasonDisabled
 	} else if !isConnected {
 		cond.Status = metav1.ConditionFalse
-		cond.Reason = v1beta1.ReasonDisconnected
+		cond.Reason = v1beta1.ReasonOffline
 		cond.Message = err.Error()
+	} else if isEnabled && isConnected {
+		cond.Status = metav1.ConditionTrue
+		cond.Reason = v1beta1.ReasonSuccessful
+		return SyncClusterStatus(c, r.set.Client(c.Key.Name), r.l)
 	}
-
-	// TODO: sync cluster info to status
 
 	return nil, err
 }
@@ -70,9 +70,9 @@ func (r *Controller) checkClusterConnection(c *Context) (bool, error) {
 			cond.Message = err.Error()
 			return false, err
 		}
-		if err = cli.Ping(c.Context()); err != nil {
+		if err = Online(c.Context(), cli); err != nil {
 			cond.Status = metav1.ConditionFalse
-			cond.Reason = v1beta1.ReasonDisconnected
+			cond.Reason = v1beta1.ReasonOffline
 			cond.Message = err.Error()
 			return false, err
 		}
@@ -82,16 +82,35 @@ func (r *Controller) checkClusterConnection(c *Context) (bool, error) {
 			cond.Message = err.Error()
 			return false, err
 		}
-	} else {
-		if err = cli.Ping(c.Context()); err != nil {
-			cond.Status = metav1.ConditionFalse
-			cond.Reason = v1beta1.ReasonDisconnected
-			cond.Message = err.Error()
-			return false, err
-		}
+	}
+	if err = Healthy(c.Context(), cli); err != nil {
+		cond.Status = metav1.ConditionFalse
+		cond.Reason = v1beta1.ReasonNotHealthy
+		cond.Message = err.Error()
+		return false, err
 	}
 
 	cond.Status = metav1.ConditionTrue
 	cond.Reason = v1beta1.ReasonSuccessful
 	return true, nil
+}
+
+func SyncClusterStatus(c *Context, cli clu.Client, logger logr.Logger) (*time.Duration, error) {
+	version, err := cli.KubernetesVersion()
+	if err != nil {
+		logger.Error(err, "fail to get kubernetes version for cluster", "key", c.Key)
+	}
+	c.Status.Version = version
+
+	enablements, err := cli.APIEnablements()
+	if err != nil {
+		logger.Error(err, "fail to get kubernetes api for cluster", "key", c.Key)
+	}
+	c.Status.APIEnablements = enablements
+	nodes, err := ListNodes(c.Context(), cli)
+	if err != nil {
+		logger.Error(err, "failed to list nodes for cluster", "key", c.Key)
+	}
+	c.Status.NodeSummary = NodeSummary(nodes)
+	return &AideCloudClusterRecheckInterval, nil
 }

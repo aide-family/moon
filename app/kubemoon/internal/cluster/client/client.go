@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/aide-family/moon/api/cluster/v1beta1"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,9 +14,16 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sort"
+	"strings"
 )
 
 var _ clu.Client = &clientx{}
+
+const (
+	ReadyPath  = "/readyz"
+	HealthPath = "/healthz"
+)
 
 type clientx struct {
 	name       string
@@ -35,10 +42,10 @@ type clientx struct {
 
 // New returns a new clientx or error
 // default status code is Stopped
-func New(config *rest.Config, scheme *runtime.Scheme, options ...clu.InitOptions) (clu.Client, error) {
+func New(name string, config *rest.Config, scheme *runtime.Scheme, options ...clu.InitOptions) (clu.Client, error) {
 	var err error
 	cli := new(clientx)
-
+	cli.name = name
 	// TODO: new rest mapper
 	cli.mapper = meta.NewDefaultRESTMapper(scheme.PreferredVersionAllGroups())
 
@@ -105,13 +112,54 @@ func (c *clientx) Stop() {
 	klog.Infof("%s", c)
 }
 
-func (c *clientx) Ping(ctx context.Context) error {
-	ns := &v1.NamespaceList{}
-	err := c.client.List(ctx, ns)
+func (c *clientx) Ready(ctx context.Context) (int, error) {
+	var code int
+	resp := c.discovery.RESTClient().Get().AbsPath(ReadyPath).Do(context.TODO()).StatusCode(&code)
+	return code, resp.Error()
+}
+
+func (c *clientx) Health(ctx context.Context) (int, error) {
+	var code int
+	resp := c.discovery.RESTClient().Get().AbsPath(HealthPath).Do(context.TODO()).StatusCode(&code)
+	return code, resp.Error()
+}
+
+func (c *clientx) KubernetesVersion() (string, error) {
+	clusterVersion, err := c.discovery.ServerVersion()
 	if err != nil {
-		return fmt.Errorf("ping client failed: %s", err)
+		return "", err
 	}
-	return nil
+	return clusterVersion.GitVersion, nil
+}
+
+func (c *clientx) APIEnablements() ([]v1beta1.APIEnablement, error) {
+	_, apiResourceList, err := c.discovery.ServerGroupsAndResources()
+	if len(apiResourceList) == 0 {
+		return nil, err
+	}
+
+	var apiEnablements []v1beta1.APIEnablement
+	for _, list := range apiResourceList {
+		var apiResources []v1beta1.APIResource
+		for _, resource := range list.APIResources {
+			if strings.Contains(resource.Name, "/") {
+				continue
+			}
+			apiResource := v1beta1.APIResource{
+				Name: resource.Name,
+				Kind: resource.Kind,
+			}
+			apiResources = append(apiResources, apiResource)
+		}
+		sort.SliceStable(apiResources, func(i, j int) bool {
+			return apiResources[i].Name < apiResources[j].Name
+		})
+		apiEnablements = append(apiEnablements, v1beta1.APIEnablement{GroupVersion: list.GroupVersion, Resources: apiResources})
+	}
+	sort.SliceStable(apiEnablements, func(i, j int) bool {
+		return apiEnablements[i].GroupVersion < apiEnablements[j].GroupVersion
+	})
+	return apiEnablements, err
 }
 
 func (c *clientx) Name() string {
