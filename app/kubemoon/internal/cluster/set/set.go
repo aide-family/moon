@@ -30,6 +30,8 @@ const (
 
 type Set struct {
 	mu     sync.RWMutex
+	ctx    context.Context
+	cancel context.CancelFunc
 	client client.Client
 	cm     map[string]clu.Client
 }
@@ -44,8 +46,9 @@ func New(cli client.Client) clu.Set {
 func (p *Set) Start(ctx context.Context) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	p.ctx, p.cancel = context.WithCancel(ctx)
 	for _, cli := range p.cm {
-		if err := cli.Start(ctx); err != nil {
+		if err := cli.Start(p.ctx); err != nil {
 			return err
 		}
 	}
@@ -55,6 +58,7 @@ func (p *Set) Start(ctx context.Context) error {
 func (p *Set) Stop() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	defer p.cancel()
 	for _, cli := range p.cm {
 		cli.Stop()
 	}
@@ -64,12 +68,18 @@ func (p *Set) Add(cli clu.Client) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if oldC, ok := p.cm[cli.Name()]; ok {
-		switch oldC.Status() {
-		case clu.Started, clu.Ready, clu.Waiting:
+		switch oldC.RunStatus() {
+		case clu.Running:
 			return fmt.Errorf("%s, can not replace", cli)
 		}
 	}
 	p.cm[cli.Name()] = cli
+	if p.ctx != nil {
+		err := cli.Start(p.ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

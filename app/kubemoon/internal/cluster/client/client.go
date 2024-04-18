@@ -12,6 +12,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
+	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
@@ -29,7 +30,8 @@ type clientx struct {
 	name       string
 	ctx        context.Context
 	cancelFunc context.CancelFunc
-	status     clu.Code
+	netStatus  clu.Code
+	runStatus  clu.Code
 	scheme     *runtime.Scheme
 	client     client.Client
 	cache      cache.Cache
@@ -42,7 +44,7 @@ type clientx struct {
 
 // New returns a new clientx or error
 // default status code is Stopped
-func New(name string, config *rest.Config, scheme *runtime.Scheme, options ...clu.InitOptions) (clu.Client, error) {
+func New(name string, config *rest.Config, scheme *runtime.Scheme, disable bool, options ...clu.InitOptions) (clu.Client, error) {
 	var err error
 	cli := new(clientx)
 	cli.name = name
@@ -70,7 +72,11 @@ func New(name string, config *rest.Config, scheme *runtime.Scheme, options ...cl
 		return nil, fmt.Errorf("failed to create discovery client: %s", err)
 	}
 
-	cli.status = clu.Stopped
+	cli.runStatus = clu.Stopped
+	if disable {
+		cli.runStatus = clu.Disabled
+	}
+
 	cli.scheme = scheme
 
 	for _, option := range options {
@@ -83,17 +89,21 @@ func New(name string, config *rest.Config, scheme *runtime.Scheme, options ...cl
 }
 
 func (c *clientx) Start(ctx context.Context) error {
+	c.syncNetStatus(ctx)
+
 	switch {
-	case c.status == clu.Disabled:
+	case c.runStatus == clu.Disabled:
 		klog.Infof("%s,needs to be enabled first", c)
-	case c.status >= clu.Started:
+	case c.runStatus >= clu.Running:
 		klog.Infof("%s,already start", c)
-	case c.status == clu.Stopped:
-		c.ctx, c.cancelFunc = context.WithCancel(ctx)
-		go func() {
-			_ = c.cache.Start(c.ctx)
-		}()
-		c.status = clu.Started
+	case c.runStatus == clu.Stopped:
+		if c.netStatus == clu.Ready {
+			c.ctx, c.cancelFunc = context.WithCancel(ctx)
+			go func() {
+				_ = c.cache.Start(c.ctx)
+			}()
+			c.runStatus = clu.Running
+		}
 		klog.Infof("%s", c)
 	default:
 		return fmt.Errorf("%s", c)
@@ -102,14 +112,28 @@ func (c *clientx) Start(ctx context.Context) error {
 }
 
 func (c *clientx) Stop() {
-	if c.status == clu.Disabled {
+	if c.runStatus == clu.Running {
+		c.cancelFunc()
+		c.runStatus = clu.Stopped
+		klog.Infof("%s", c)
+	} else {
 		klog.Infof("%s,no need stop", c)
 	}
-	if c.status > clu.Stopped {
-		c.cancelFunc()
-		c.status = clu.Stopped
+}
+
+func (c *clientx) syncNetStatus(ctx context.Context) {
+	code, err := c.Ready(ctx)
+	if err != nil && code == http.StatusNotFound {
+		code, err = c.Health(ctx)
 	}
-	klog.Infof("%s", c)
+	switch {
+	case err != nil:
+		c.netStatus = clu.Offline
+	case code != http.StatusOK:
+		c.netStatus = clu.Unhealthy
+	default:
+		c.netStatus = clu.Ready
+	}
 }
 
 func (c *clientx) Ready(ctx context.Context) (int, error) {
@@ -166,21 +190,12 @@ func (c *clientx) Name() string {
 	return c.name
 }
 
-func (c *clientx) Status() clu.Code {
-	return c.status
+func (c *clientx) RunStatus() clu.Code {
+	return c.runStatus
 }
 
-func (c *clientx) Enable() {
-	if c.status == clu.Disabled {
-		c.status = clu.Stopped
-	}
-}
-
-func (c *clientx) Disable() {
-	if c.status >= clu.Started {
-		c.Stop()
-	}
-	c.status = clu.Disabled
+func (c *clientx) NetStatus() clu.Code {
+	return c.netStatus
 }
 
 func (c *clientx) Client() client.Client {
@@ -212,5 +227,5 @@ func (c *clientx) Discovery() discovery.DiscoveryInterface {
 }
 
 func (c *clientx) String() string {
-	return fmt.Sprintf("clientx %s is %s", c.name, c.status)
+	return fmt.Sprintf("clientx %s is %s %s", c.name, c.netStatus, c.runStatus)
 }

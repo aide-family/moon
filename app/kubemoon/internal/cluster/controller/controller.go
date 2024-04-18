@@ -13,6 +13,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"time"
 )
 
@@ -65,6 +67,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 // New is the constructor of Controller
 func New(client client.Client, set clu.Set) *Controller {
+	log.SetLogger(zap.New())
 	controller := &Controller{
 		l:          klogr.New().WithName("Controller:Cluster"),
 		set:        set,
