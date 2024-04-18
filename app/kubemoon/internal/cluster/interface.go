@@ -40,9 +40,8 @@ type Set interface {
 }
 
 type Status interface {
-	Status() Code
-	Enable()
-	Disable()
+	RunStatus() Code
+	NetStatus() Code
 }
 
 // Runnable defines a service interface that can be run and stopped.

@@ -25,6 +25,8 @@ func (r *Controller) Running(c *Context) (*time.Duration, error) {
 	if !isEnabled {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = v1beta1.ReasonDisabled
+		r.set.Remove(c.Key.Name)
+		r.l.Info("removed cluster for cluster set", "key", c.Key, "reason", cond.Reason)
 	} else if !isConnected {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = v1beta1.ReasonOffline
@@ -82,6 +84,7 @@ func (r *Controller) checkClusterConnection(c *Context) (bool, error) {
 			cond.Message = err.Error()
 			return false, err
 		}
+		r.l.Info("add cluster for cluster set", "key", c.Key)
 	}
 	if err = Healthy(c.Context(), cli); err != nil {
 		cond.Status = metav1.ConditionFalse
@@ -107,6 +110,7 @@ func SyncClusterStatus(c *Context, cli clu.Client, logger logr.Logger) (*time.Du
 		logger.Error(err, "fail to get kubernetes api for cluster", "key", c.Key)
 	}
 	c.Status.APIEnablements = enablements
+
 	nodes, err := ListNodes(c.Context(), cli)
 	if err != nil {
 		logger.Error(err, "failed to list nodes for cluster", "key", c.Key)

@@ -94,7 +94,7 @@ func Ping(ctx context.Context, cli clu.Client) (int, error) {
 func ListNodes(ctx context.Context, cli clu.Client) (*v1.NodeList, error) {
 	var err error
 	list := &v1.NodeList{}
-	if cli.Status() == clu.Started {
+	if cli.RunStatus() == clu.Running {
 		err = cli.Cache().List(ctx, list)
 	} else {
 		err = cli.Client().List(ctx, list)
