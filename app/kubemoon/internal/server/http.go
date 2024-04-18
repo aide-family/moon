@@ -42,7 +42,8 @@ func NewHTTPServer(
 	).Match(middler.NewWhiteListMatcher(jwtApis)).Build()
 
 	var opts = []http.ServerOption{
-		http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter()),
+		http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter(), middler.ParseRequestForKubernetes()),
+		//http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter(), middler.ParseRequestForKubernetes(), ProxyToKubernetes(nil)),
 		http.Middleware(
 			middler.IpMetric(prom.IpMetricCounter),
 			recovery.Recovery(),
@@ -71,6 +72,6 @@ func NewHTTPServer(
 	srv.Route("/api").POST("/upload", func(ctx http.Context) error {
 		return ctx.Result(nHttp.StatusOK, "ok")
 	})
-	
+
 	return srv
 }
