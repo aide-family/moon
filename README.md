@@ -23,6 +23,7 @@
 ### 项目简介
 
   Moon 是一款集成prometheus系列的监控管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
+  * [官方文档](https://aide-family.github.io/i18n/zh/)
   * [相关博文](https://juejin.cn/post/7329734768258760719)
 
 ### UI展示
