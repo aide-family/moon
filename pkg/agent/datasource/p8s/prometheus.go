@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/aide-family/moon/pkg/agent/datasource"
+	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/httpx"
 )
 
@@ -20,16 +20,16 @@ type PrometheusDatasource struct {
 	// 地址
 	endpoint string
 	// 数据源类型
-	category datasource.Category
+	category agent.Category
 	// 基础认证
-	basicAuth *datasource.BasicAuth
+	basicAuth *agent.BasicAuth
 
 	mut sync.RWMutex
 }
 
-func NewPrometheusDatasource(opts ...Option) datasource.Datasource {
+func NewPrometheusDatasource(opts ...Option) agent.Datasource {
 	p := &PrometheusDatasource{
-		category: datasource.Prometheus,
+		category: agent.Prometheus,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -38,7 +38,7 @@ func NewPrometheusDatasource(opts ...Option) datasource.Datasource {
 	return p
 }
 
-func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration int64) (*datasource.QueryResponse, error) {
+func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration int64) (*agent.QueryResponse, error) {
 	params := httpx.ParseQuery(map[string]any{
 		"query": expr,
 		"time":  duration,
@@ -62,7 +62,7 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 		return nil, err
 	}
 	data := allResp.GetData()
-	result := make([]*datasource.Result, 0, len(data.GetResult()))
+	result := make([]*agent.Result, 0, len(data.GetResult()))
 	for _, v := range data.GetResult() {
 		value := v.GetValue()
 		if len(value) < 2 {
@@ -72,19 +72,20 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 		if !tsAssertOk {
 			continue
 		}
-		metricValue, parseErr := strconv.ParseInt(fmt.Sprintf("%v", value[1]), 10, 64)
+		metricValue, parseErr := strconv.ParseFloat(fmt.Sprintf("%v", value[1]), 64)
 		if parseErr != nil {
 			continue
 		}
-		result = append(result, &datasource.Result{
+		result = append(result, &agent.Result{
 			Metric: v.GetMetric(),
 			Ts:     ts,
 			Value:  metricValue,
 		})
 	}
-	return &datasource.QueryResponse{
+
+	return &agent.QueryResponse{
 		Status: allResp.GetStatus(),
-		Data: &datasource.Data{
+		Data: &agent.Data{
 			ResultType: data.GetResultType(),
 			Result:     result,
 		},
@@ -93,7 +94,7 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 	}, nil
 }
 
-func (p *PrometheusDatasource) GetCategory() datasource.Category {
+func (p *PrometheusDatasource) GetCategory() agent.Category {
 	return p.category
 }
 
@@ -101,11 +102,11 @@ func (p *PrometheusDatasource) GetEndpoint() string {
 	return p.endpoint
 }
 
-func (p *PrometheusDatasource) GetBasicAuth() *datasource.BasicAuth {
+func (p *PrometheusDatasource) GetBasicAuth() *agent.BasicAuth {
 	return p.basicAuth
 }
 
-func (p *PrometheusDatasource) WithBasicAuth(basicAuth *datasource.BasicAuth) datasource.Datasource {
+func (p *PrometheusDatasource) WithBasicAuth(basicAuth *agent.BasicAuth) agent.Datasource {
 	p.mut.Lock()
 	defer p.mut.Unlock()
 	p.basicAuth = basicAuth

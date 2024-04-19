@@ -1,13 +1,13 @@
 package p8s
 
 import (
-	"github.com/aide-family/moon/pkg/agent/datasource"
+	"github.com/aide-family/moon/pkg/agent"
 )
 
 type (
 	Result struct {
-		Metric datasource.Metric `json:"metric"`
-		Value  []any             `json:"value"`
+		Metric agent.Metric `json:"metric"`
+		Value  []any        `json:"value"`
 	}
 
 	Data struct {
@@ -72,7 +72,7 @@ func (d *Data) GetResult() []*Result {
 }
 
 // GetMetric get metric
-func (r *Result) GetMetric() datasource.Metric {
+func (r *Result) GetMetric() agent.Metric {
 	if r == nil {
 		return nil
 	}

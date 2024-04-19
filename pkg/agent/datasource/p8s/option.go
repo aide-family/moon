@@ -1,7 +1,7 @@
 package p8s
 
 import (
-	"github.com/aide-family/moon/pkg/agent/datasource"
+	"github.com/aide-family/moon/pkg/agent"
 )
 
 type Option func(*PrometheusDatasource)
@@ -14,7 +14,7 @@ func WithEndpoint(endpoint string) Option {
 }
 
 // WithBasicAuth set basic auth
-func WithBasicAuth(basicAuth *datasource.BasicAuth) Option {
+func WithBasicAuth(basicAuth *agent.BasicAuth) Option {
 	return func(p *PrometheusDatasource) {
 		p.basicAuth = basicAuth
 	}
