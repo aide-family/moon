@@ -1,0 +1,16 @@
+{{- if .Values.moon.server }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.moon.server.serviceAccounts }}-role 
+  namespace: {{ .Values.namespace }}
+{{- end }} 
+{{- if .Values.moon.agent }} 
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.moon.agent.serviceAccounts }}-role 
+  namespace: {{ .Values.namespace }}
+{{- end }}
