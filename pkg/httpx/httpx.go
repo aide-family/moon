@@ -112,6 +112,28 @@ func (h *HttpX) GET(u string) (*http.Response, error) {
 	return h.Do(req)
 }
 
+func (h *HttpX) GETWithContext(ctx context.Context, u string) (*http.Response, error) {
+	// 验证URL是否有效
+	if u == "" || !isValidURL(u) {
+		return nil, errors.New("invalid URL")
+	}
+	// 设置请求头
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if h.headers != nil {
+		for k, v := range h.headers {
+			req.Header.Set(k, v)
+		}
+	}
+	if h.user != "" && h.pass != "" {
+		req.SetBasicAuth(h.user, h.pass)
+	}
+	return h.Do(req)
+}
+
 // isValidURL 检查URL是否有效
 func isValidURL(u string) bool {
 	_, err := url.ParseRequestURI(u)
