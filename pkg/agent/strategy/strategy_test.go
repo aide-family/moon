@@ -1,4 +1,4 @@
-package strategy
+package strategy_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/pkg/agent"
 	nutsdbCache "github.com/aide-family/moon/pkg/agent/cacher/nutsdb"
 	"github.com/aide-family/moon/pkg/agent/datasource/p8s"
+	"github.com/aide-family/moon/pkg/agent/strategy"
 	"github.com/nutsdb/nutsdb"
 )
 
@@ -27,8 +28,8 @@ func init() {
 
 var expr = `node_cpu_seconds_total{app="prometheus", app_kubernetes_io_managed_by="Helm", chart="prometheus-15.9.2", component="node-exporter", cpu="0", heritage="Helm", instance="10.0.4.5:9100", job="kubernetes-service-endpoints", mode="idle", namespace="pixiu-system", node="vm-4-5-centos", release="prometheus", service="prometheus-node-exporter"} == 0`
 
-func getRule() *EvalRule {
-	rule := &EvalRule{
+func getRule() *strategy.EvalRule {
+	rule := &strategy.EvalRule{
 		ID:    "1",
 		Alert: "test",
 		Expr:  expr,
