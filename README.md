@@ -174,7 +174,9 @@
 >密码: 123456
 
 #### helm部署
-参考[/deploy/helm](./deploy/.README.md)
+
+参考[/deploy/helm](./deploy/README.md)
+
 ## 3. 功能详解
 
 ### 3.1 系统管理
