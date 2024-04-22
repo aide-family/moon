@@ -7,4 +7,5 @@ import (
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(
 	NewHTTPServer,
+	NewKubeServer,
 )

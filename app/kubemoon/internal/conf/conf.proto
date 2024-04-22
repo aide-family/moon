@@ -7,12 +7,9 @@ import "google/protobuf/duration.proto";
 
 message Bootstrap {
   Server server = 1;
-  Data data = 2;
-  Env env = 3;
-  Log log = 4;
-  ApiWhite apiWhite = 5;
-  Email email = 6;
-  MQ mq = 7;
+  Env env = 2;
+  Log log = 3;
+  ComponentConfig ComponentConfig = 4;
 }
 
 message Server {
@@ -26,34 +23,10 @@ message Server {
     string addr = 2;
     google.protobuf.Duration timeout = 3;
   }
-  message WS {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
   HTTP http = 1;
   GRPC grpc = 2;
-  WS ws = 3;
 }
 
-message Data {
-  message Database {
-    string driver = 1;
-    string source = 2;
-    bool debug = 3;
-  }
-  message Redis {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration readTimeout = 3;
-    google.protobuf.Duration writeTimeout = 4;
-    uint32 db = 5;
-    string password = 6;
-    google.protobuf.Duration dialTimeout = 7;
-  }
-  Database database = 1;
-  Redis redis = 2;
-}
 
 message Env {
   string name = 1;
@@ -82,24 +55,12 @@ message Log {
   string encoder = 8;
 }
 
-message ApiWhite {
-  repeated string jwtApi = 1;
-  repeated string rbacApi = 2;
-  repeated string all = 3;
-}
-
-message Email {
-  string host = 1;
-  uint32 port = 2;
-  string user = 3;
-  string pass = 4;
-}
-
-message MQ {
-  Kafka kafka = 1;
-}
-
-message Kafka {
-  repeated string endpoints = 1;
-  string groupId = 2;
+message ComponentConfig {
+  message ManagerOptions {
+    bool leaderElection = 1;
+    string leaderElectionID = 2;
+    string leaderElectionNamespace = 3;
+    string healthProbeBindAddress = 4;
+  }
+  ManagerOptions manager = 1;
 }

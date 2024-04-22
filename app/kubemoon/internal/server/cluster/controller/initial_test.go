@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	"github.com/go-logr/logr"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 	"time"
+
+	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
+	"github.com/go-logr/logr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestController_Initial(t *testing.T) {

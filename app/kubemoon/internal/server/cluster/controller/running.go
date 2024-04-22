@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 func (r *Controller) Running(c *Context) (*time.Duration, error) {

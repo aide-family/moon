@@ -2,7 +2,8 @@ package fake
 
 import (
 	"context"
-	"github.com/aide-family/moon/app/kubemoon/internal/cluster"
+
+	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/discovery"

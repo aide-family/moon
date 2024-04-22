@@ -2,9 +2,11 @@ package controller
 
 import (
 	"context"
+	"time"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	"github.com/aide-family/moon/app/kubemoon/internal/cluster/config"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
+	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster/config"
 	"github.com/aide-family/moon/pkg/util/finalize"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -15,7 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"time"
 )
 
 type HandlerFunc func(*Context) (*time.Duration, error)

@@ -19,9 +19,10 @@ package set
 import (
 	"context"
 	"fmt"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
+
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
