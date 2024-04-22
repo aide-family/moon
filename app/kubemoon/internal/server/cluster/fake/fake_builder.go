@@ -1,6 +1,6 @@
 package fake
 
-import clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+import clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 
 var _ clu.Builder = &fakeBuilder{}
 

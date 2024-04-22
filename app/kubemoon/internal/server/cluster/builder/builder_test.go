@@ -1,14 +1,15 @@
 package builder
 
 import (
+	"testing"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	clusterfake "github.com/aide-family/moon/app/kubemoon/internal/cluster/fake"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
+	clusterfake "github.com/aide-family/moon/app/kubemoon/internal/server/cluster/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"testing"
 )
 
 var (
@@ -48,7 +49,7 @@ func GetMockCluster() *v1beta1.Cluster {
 						Namespace: "default",
 						Name:      "private-test-secret",
 					},
-					Config: []byte("XX"),
+					Config: "XX",
 				},
 				Token: &v1beta1.TokenRef{
 					CABundle: nil,

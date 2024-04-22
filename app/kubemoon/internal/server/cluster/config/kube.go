@@ -2,8 +2,9 @@ package config
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"

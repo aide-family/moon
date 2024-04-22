@@ -3,9 +3,10 @@ package builder
 import (
 	"context"
 	"fmt"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
-	"github.com/aide-family/moon/app/kubemoon/internal/cluster/client"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
+	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster/client"
 	restutil "github.com/aide-family/moon/pkg/util/rest"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

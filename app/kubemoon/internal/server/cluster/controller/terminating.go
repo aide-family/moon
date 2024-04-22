@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 func (r *Controller) Terminating(c *Context) (*time.Duration, error) {
