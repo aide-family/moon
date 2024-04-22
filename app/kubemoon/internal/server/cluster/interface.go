@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,6 +24,7 @@ type Client interface {
 	Client() client.Client
 	Cache() cache.Cache
 	ApiExtensions() clientset.Interface
+	Kubernetes() kubernetes.Interface
 	Dynamic() dynamic.Interface
 	RESTMapper() meta.RESTMapper
 	Config() *rest.Config

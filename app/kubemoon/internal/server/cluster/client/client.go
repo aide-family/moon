@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/kubernetes"
 	"net/http"
 	"sort"
 	"strings"
@@ -39,6 +40,7 @@ type clientx struct {
 	mapper     meta.RESTMapper
 	dynamic    dynamic.Interface
 	discovery  discovery.DiscoveryInterface
+	kubernetes kubernetes.Interface
 	extensions clientset.Interface
 	config     *rest.Config
 }
@@ -48,28 +50,39 @@ type clientx struct {
 func New(name string, config *rest.Config, scheme *runtime.Scheme, disable bool, options ...clu.InitOptions) (clu.Client, error) {
 	var err error
 	cli := new(clientx)
+	copyConfig := *config
+	copyConfig.Timeout = 0
+	copyConfig.UserAgent = "kube-moon"
+	cWithProtobuf := rest.CopyConfig(&copyConfig)
+	cWithProtobuf.ContentType = runtime.ContentTypeProtobuf
+
 	cli.name = name
+	cli.scheme = scheme
+
 	// TODO: new rest mapper
 	cli.mapper = meta.NewDefaultRESTMapper(scheme.PreferredVersionAllGroups())
 
-	if cli.client, err = client.New(config, client.Options{Scheme: scheme}); err != nil {
+	if cli.client, err = client.New(cWithProtobuf, client.Options{Scheme: scheme}); err != nil {
 		return nil, fmt.Errorf("failed to create runtime client: %s", err)
 	}
 
-	if cli.cache, err = cache.New(config, cache.Options{Scheme: scheme}); err != nil {
+	if cli.cache, err = cache.New(cWithProtobuf, cache.Options{Scheme: scheme}); err != nil {
 		return nil, fmt.Errorf("failed to create runtime cache: %s", err)
 	}
 
-	if cli.dynamic, err = dynamic.NewForConfig(config); err != nil {
+	if cli.dynamic, err = dynamic.NewForConfig(&copyConfig); err != nil {
 		return nil, fmt.Errorf("failed to create dynamic client: %s", err)
 	}
 
-	if cli.extensions, err = clientset.NewForConfig(config); err != nil {
+	if cli.extensions, err = clientset.NewForConfig(cWithProtobuf); err != nil {
 		return nil, fmt.Errorf("failed to create api-extensions client: %s", err)
 	}
-	cli.extensions.ApiextensionsV1beta1().CustomResourceDefinitions()
 
-	if cli.discovery, err = discovery.NewDiscoveryClientForConfig(config); err != nil {
+	if cli.kubernetes, err = kubernetes.NewForConfig(cWithProtobuf); err != nil {
+		return nil, fmt.Errorf("failed to create kubernetes client: %s", err)
+	}
+
+	if cli.discovery, err = discovery.NewDiscoveryClientForConfig(cWithProtobuf); err != nil {
 		return nil, fmt.Errorf("failed to create discovery client: %s", err)
 	}
 
@@ -77,8 +90,6 @@ func New(name string, config *rest.Config, scheme *runtime.Scheme, disable bool,
 	if disable {
 		cli.runStatus = clu.Disabled
 	}
-
-	cli.scheme = scheme
 
 	for _, option := range options {
 		if err = option(cli); err != nil {
@@ -205,6 +216,10 @@ func (c *clientx) Client() client.Client {
 
 func (c *clientx) Cache() cache.Cache {
 	return c.cache
+}
+
+func (c *clientx) Kubernetes() kubernetes.Interface {
+	return c.kubernetes
 }
 
 func (c *clientx) ApiExtensions() clientset.Interface {

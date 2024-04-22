@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	clu "github.com/aide-family/moon/app/kubemoon/internal/cluster"
+	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"github.com/aide-family/moon/pkg/helper/middler"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"k8s.io/apimachinery/pkg/util/proxy"
