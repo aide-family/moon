@@ -2,6 +2,7 @@ package fake
 
 import (
 	"context"
+	"github.com/aide-family/moon/api/cluster/v1beta1"
 
 	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -20,6 +21,30 @@ const name = "fake-client"
 type fakeClient struct {
 	name   string
 	status cluster.Code
+}
+
+func (f fakeClient) RunStatus() cluster.Code {
+	return f.status
+}
+
+func (f fakeClient) NetStatus() cluster.Code {
+	return f.status
+}
+
+func (f fakeClient) Ready(ctx context.Context) (int, error) {
+	return 200, nil
+}
+
+func (f fakeClient) Health(ctx context.Context) (int, error) {
+	return 200, nil
+}
+
+func (f fakeClient) KubernetesVersion() (string, error) {
+	return "v0.0.0", nil
+}
+
+func (f fakeClient) APIEnablements() ([]v1beta1.APIEnablement, error) {
+	return nil, nil
 }
 
 func (f fakeClient) Start(ctx context.Context) error {
