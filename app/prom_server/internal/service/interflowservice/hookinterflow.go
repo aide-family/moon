@@ -3,9 +3,10 @@ package interflowservice
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	pb "github.com/aide-family/moon/api/interflows"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/aide-family/moon/pkg/util/interflow/hook"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type HookInterflowService struct {
@@ -20,11 +21,11 @@ func NewHookInterflowService(logger log.Logger) *HookInterflowService {
 }
 
 func (s *HookInterflowService) Receive(ctx context.Context, req *pb.ReceiveRequest) (*pb.ReceiveResponse, error) {
-	sendCh := interflow.GetSendInterflowCh()
+	sendCh := hook.GetSendInterflowCh()
 	msg := &interflow.HookMsg{
 		Topic: req.GetTopic(),
 		Value: req.GetValue(),
-		Key:   req.GetKey(),
+		To:    req.GetKey(),
 	}
 	sendCh <- msg
 	return &pb.ReceiveResponse{}, nil

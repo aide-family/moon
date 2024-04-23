@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	pb "github.com/aide-family/moon/api/interflows"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type HookInterflowService struct {
@@ -28,7 +28,6 @@ func (s *HookInterflowService) Receive(ctx context.Context, req *pb.ReceiveReque
 	msg := &interflow.HookMsg{
 		Topic: req.GetTopic(),
 		Value: req.GetValue(),
-		Key:   req.GetKey(),
 	}
 	sendCh <- msg
 	return &pb.ReceiveResponse{}, nil

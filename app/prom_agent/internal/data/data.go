@@ -7,6 +7,8 @@ import (
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/aide-family/moon/pkg/util/interflow/hook"
+	"github.com/aide-family/moon/pkg/util/interflow/kafka"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 )
@@ -49,8 +51,10 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	interflowConf := c.GetInterflow()
 	switch {
 	case interflowConf.GetHook() != nil:
-		// TODO 区分协议
-		interflowInstance := interflow.NewHookInterflow(d.log)
+		interflowInstance, err := hook.New(conf.BuilderInterflowHook(interflowConf.GetHook()), logger)
+		if err != nil {
+			return nil, nil, err
+		}
 		d.interflowInstance = interflowInstance
 	case interflowConf.GetMq() != nil:
 		kafkaConf := interflowConf.GetMq().GetKafka()
@@ -59,7 +63,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 			if err != nil {
 				return nil, nil, err
 			}
-			interflowInstance, err := interflow.NewKafkaInterflow(kafkaMqServer, d.log)
+			interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
 			if err != nil {
 				return nil, nil, err
 			}

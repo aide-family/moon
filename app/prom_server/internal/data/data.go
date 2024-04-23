@@ -3,10 +3,6 @@ package data
 import (
 	"time"
 
-	"github.com/casbin/casbin/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
-	"gorm.io/gorm"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/servers"
@@ -14,6 +10,12 @@ import (
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/aide-family/moon/pkg/util/interflow/hook"
+	"github.com/aide-family/moon/pkg/util/interflow/kafka"
+	"github.com/casbin/casbin/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/conf"
@@ -139,14 +141,14 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		if err != nil {
 			return nil, nil, err
 		}
-		interflowInstance, err := interflow.NewKafkaInterflow(kafkaMqServer, d.log)
+		interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
 		if err != nil {
 			d.log.Errorf("init kafka interflow error: %v", err)
 			return nil, nil, err
 		}
 		d.interflowInstance = interflowInstance
 	} else {
-		interflowInstance := interflow.NewHookInterflow(d.log)
+		interflowInstance := hook.NewHookHttpInterflow(d.log)
 		d.interflowInstance = interflowInstance
 	}
 

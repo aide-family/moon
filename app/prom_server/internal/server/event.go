@@ -6,9 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport"
-	"golang.org/x/sync/errgroup"
 	"github.com/aide-family/moon/api"
 	alarmhookPb "github.com/aide-family/moon/api/alarm/hook"
 	"github.com/aide-family/moon/api/server/prom/strategy/group"
@@ -20,6 +17,9 @@ import (
 	"github.com/aide-family/moon/pkg/helper/consts"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport"
+	"golang.org/x/sync/errgroup"
 )
 
 var _ transport.Server = (*AlarmEvent)(nil)
@@ -57,7 +57,7 @@ func (l *AlarmEvent) Start(_ context.Context) error {
 		msg := &interflow.HookMsg{
 			Topic: topic,
 			Value: nil,
-			Key:   agentInfo.Key,
+			To:    agentInfo.Key,
 		}
 		go func() {
 			defer after.Recover(l.log)
@@ -97,7 +97,7 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 		msg := &interflow.HookMsg{
 			Topic: topic,
 			Value: nil,
-			Key:   agentInfo.Key,
+			To:    agentInfo.Key,
 		}
 		eg.Go(func() error {
 			defer after.Recover(l.log)
@@ -296,7 +296,7 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 			msg := &interflow.HookMsg{
 				Topic: string(consts.StrategyGroupAllTopic),
 				Value: []byte(groupDetail),
-				Key:   agentInfo.Key,
+				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
@@ -325,7 +325,7 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 			msg := &interflow.HookMsg{
 				Topic: topic,
 				Value: groupDetailBytes,
-				Key:   agentInfo.Key,
+				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
@@ -355,7 +355,7 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 			msg := &interflow.HookMsg{
 				Topic: topic,
 				Value: msgValue,
-				Key:   agentInfo.Key,
+				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()

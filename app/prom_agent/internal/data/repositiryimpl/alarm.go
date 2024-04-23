@@ -3,15 +3,15 @@ package repositiryimpl
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/repository"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/app/prom_agent/internal/data"
 	"github.com/aide-family/moon/pkg/helper/consts"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ repository.AlarmRepo = (*alarmRepoImpl)(nil)
@@ -36,7 +36,7 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 	}
 
 	msg := l.genMsg(alarmDo, string(consts.AlertHookTopic))
-	if err := l.data.Interflow().Send(context.Background(), l.interflowConf.GetServer(), msg); err != nil {
+	if err := l.data.Interflow().Send(context.Background(), msg); err != nil {
 		l.log.Errorf("failed to produce message to topic %s: %v", msg.Topic, err)
 		return err
 	}
@@ -44,11 +44,9 @@ func (l *alarmRepoImpl) Alarm(_ context.Context, alarmDo *do.AlarmDo) error {
 }
 
 func (l *alarmRepoImpl) genMsg(alarmDo *do.AlarmDo, topic string) *interflow.HookMsg {
-	serverUrl := l.interflowConf.GetServer()
 	return &interflow.HookMsg{
 		Topic: topic,
 		Value: alarmDo.Bytes(),
-		Key:   []byte(serverUrl),
 	}
 }
 

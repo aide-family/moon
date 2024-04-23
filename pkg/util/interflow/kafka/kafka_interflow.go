@@ -1,31 +1,88 @@
-package interflow
+package kafka
 
 import (
 	"context"
 	"sync"
+	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/aide-family/moon/pkg/after"
 	"github.com/aide-family/moon/pkg/helper/consts"
 	"github.com/aide-family/moon/pkg/servers"
+	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
-var _ Interflow = (*kafkaInterflow)(nil)
+var _ interflow.Interflow = (*kafkaInterflow)(nil)
 
 type (
 	kafkaInterflow struct {
 		kafkaMQServer *servers.KafkaMQServer
 		log           *log.Helper
-		handles       map[consts.TopicType]Callback
+		handles       map[consts.TopicType]interflow.Callback
 		lock          sync.RWMutex
+
+		agentTopic string
 	}
 )
+
+func (l *kafkaInterflow) OnlineNotify() error {
+	topic := string(consts.AgentOnlineTopic)
+
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: []byte(l.agentTopic),
+	}
+
+	go func() {
+		defer after.Recover(l.log)
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), interflow.Timeout)
+			err := l.Send(ctx, msg)
+			cancel()
+			if err == nil {
+				break
+			}
+			l.log.Warnw("send online notify error", err)
+			time.Sleep(10 * time.Second)
+		}
+	}()
+	return nil
+}
+
+func (l *kafkaInterflow) OfflineNotify() error {
+	topic := string(consts.AgentOfflineTopic)
+	l.log.Infow("topic", topic)
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: []byte(l.agentTopic),
+	}
+	count := 1
+	for {
+		if count > 3 {
+			break
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), interflow.Timeout)
+		if err := l.Send(ctx, msg); err != nil {
+			cancel()
+			l.log.Warnw("send offline notify error", err)
+			count++
+			// 等待1秒
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		cancel()
+		break
+	}
+
+	return nil
+}
 
 func (l *kafkaInterflow) Close() error {
 	return nil
 }
 
-func (l *kafkaInterflow) SetHandles(handles map[consts.TopicType]Callback) error {
+func (l *kafkaInterflow) SetHandles(handles map[consts.TopicType]interflow.Callback) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	l.handles = handles
@@ -59,7 +116,7 @@ func (l *kafkaInterflow) Receive() error {
 					l.log.Errorf("handle event not-fund")
 					continue
 				}
-				if err := handler(topic, e.Key, e.Value); err != nil {
+				if err := handler(topic, e.Value); err != nil {
 					l.log.Errorf("handle event error: %v", err)
 				}
 				// 确认消息
@@ -74,14 +131,13 @@ func (l *kafkaInterflow) Receive() error {
 	return nil
 }
 
-func (l *kafkaInterflow) Send(_ context.Context, _ string, msg *HookMsg) error {
+func (l *kafkaInterflow) Send(_ context.Context, msg *interflow.HookMsg) error {
 	sendMsg := &kafka.Message{
 		TopicPartition: kafka.TopicPartition{
 			Topic:     &msg.Topic,
 			Partition: kafka.PartitionAny,
 		},
 		Value: msg.Value,
-		Key:   msg.Key,
 	}
 	return l.kafkaMQServer.Produce(sendMsg)
 }
@@ -95,14 +151,14 @@ func (l *kafkaInterflow) handleMessage(msg *kafka.Message) bool {
 	topic := consts.TopicType(*msg.TopicPartition.Topic)
 	l.log.Infow("topic", topic)
 	if handler, ok := l.handles[topic]; ok {
-		if err := handler(topic, msg.Key, msg.Value); err != nil {
+		if err := handler(topic, msg.Value); err != nil {
 			l.log.Errorf("handle message error: %s", err.Error())
 		}
 	}
 	return true
 }
 
-func NewKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, log *log.Helper) (Interflow, error) {
+func NewKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, log *log.Helper) (interflow.Interflow, error) {
 	instance := &kafkaInterflow{
 		kafkaMQServer: kafkaMQServer,
 		log:           log,
