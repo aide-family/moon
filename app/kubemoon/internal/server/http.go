@@ -15,12 +15,14 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(
 	c *conf.Server,
 	pingService *service.PingService,
+	mgr manager.Manager,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
