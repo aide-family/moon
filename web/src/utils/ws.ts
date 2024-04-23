@@ -1,6 +1,7 @@
 let websocket: WebSocket,
     lockReconnect = false
 let createWebSocket = (url: string) => {
+    return websocket
     const userInfoStr = localStorage.getItem('user') || '{}'
     const userInfo = JSON.parse(userInfoStr)
     websocket = new WebSocket(`${url}?userId=${userInfo?.id || 0}`)
