@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-
 	"github.com/aide-family/moon/app/kubemoon/internal/conf"
 	"github.com/aide-family/moon/app/kubemoon/internal/data"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
@@ -21,24 +20,13 @@ type KubeServer struct {
 	c    *conf.Bootstrap
 	data *data.Data
 	mgr  manager.Manager
+	set  clu.Set
 
 	stopCh chan struct{}
 }
 
-func NewKubeServer(
-	c *conf.Bootstrap,
-	data *data.Data,
-	mgr manager.Manager,
-) *KubeServer {
-	return &KubeServer{
-		c:    c,
-		data: data,
-		mgr:  mgr,
-	}
-}
-
 func (k *KubeServer) Start(ctx context.Context) error {
-	return k.runCommand(ctx)
+	return Run(ctx, k.mgr)
 }
 
 func (k *KubeServer) Stop(ctx context.Context) error {
@@ -46,11 +34,15 @@ func (k *KubeServer) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (k *KubeServer) runCommand(ctx context.Context) error {
-	return Run(ctx, k.mgr)
+func (k *KubeServer) GetManager() manager.Manager {
+	return k.mgr
 }
 
-func Setup(cfg *conf.Bootstrap) (manager.Manager, error) {
+func (k *KubeServer) GetCluSet() clu.Set {
+	return k.set
+}
+
+func NewKubeServer(cfg *conf.Bootstrap, data *data.Data) (*KubeServer, error) {
 	log.Info("complete options ...")
 	errList := cfg.Validate()
 	if len(errList) != 0 {
@@ -88,8 +80,12 @@ func Setup(cfg *conf.Bootstrap) (manager.Manager, error) {
 		return nil, err
 	}
 
-	// TODO: set service
-	return mgr, nil
+	return &KubeServer{
+		c:    cfg,
+		data: data,
+		mgr:  mgr,
+		set:  cluSet,
+	}, nil
 }
 
 func SetupController(mgr manager.Manager, set clu.Set) error {

@@ -28,16 +28,16 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	log := bootstrap.Log
 	logger := plog.NewLogger(log)
 	pingService := service.NewPingService(logger)
-	manager, err := server.Setup(bootstrap)
-	if err != nil {
-		return nil, nil, err
-	}
-	httpServer := server.NewHTTPServer(confServer, pingService, manager, logger)
 	dataData, cleanup, err := data.NewData(bootstrap, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	kubeServer := server.NewKubeServer(bootstrap, dataData, manager)
+	kubeServer, err := server.NewKubeServer(bootstrap, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	httpServer := server.NewHTTPServer(confServer, pingService, kubeServer, logger)
 	app := newApp(httpServer, kubeServer, logger)
 	return app, func() {
 		cleanup()

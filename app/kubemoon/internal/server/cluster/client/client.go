@@ -58,6 +58,7 @@ func New(name string, config *rest.Config, scheme *runtime.Scheme, disable bool,
 
 	cli.name = name
 	cli.scheme = scheme
+	cli.config = &copyConfig
 
 	// TODO: new rest mapper
 	cli.mapper = meta.NewDefaultRESTMapper(scheme.PreferredVersionAllGroups())

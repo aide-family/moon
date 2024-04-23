@@ -15,14 +15,13 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(
 	c *conf.Server,
 	pingService *service.PingService,
-	mgr manager.Manager,
+	kube *KubeServer,
 	logger log.Logger,
 ) *http.Server {
 	logHelper := log.NewHelper(log.With(logger, "module", "http"))
@@ -32,7 +31,7 @@ func NewHTTPServer(
 	jwt.WithClaims(func() jwtv4.Claims { return &jwtv4.RegisteredClaims{} })
 
 	var opts = []http.ServerOption{
-		http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter(), middler.ParseRequestForKubernetes()),
+		http.Filter(middler.Cors(), middler.Context(), middler.LocalHttpRequestFilter(), middler.ParseRequestForKubernetes(), ProxyToKubernetes(kube.GetCluSet())),
 		http.Middleware(
 			middler.IpMetric(prom.IpMetricCounter),
 			recovery.Recovery(),

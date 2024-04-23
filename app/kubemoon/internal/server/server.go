@@ -8,5 +8,4 @@ import (
 var ProviderSetServer = wire.NewSet(
 	NewHTTPServer,
 	NewKubeServer,
-	Setup,
 )
