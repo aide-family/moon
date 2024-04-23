@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	"github.com/aide-family/moon/app/kubemoon/internal/conf"
+	"github.com/aide-family/moon/app/kubemoon/internal/data"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster/controller"
 	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster/set"
+	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
-	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -17,14 +18,16 @@ import (
 var _ transport.Server = (*KubeServer)(nil)
 
 type KubeServer struct {
-	c *conf.Bootstrap
+	c    *conf.Bootstrap
+	data *data.Data
 
 	stopCh chan struct{}
 }
 
-func NewKubeServer(c *conf.Bootstrap) *KubeServer {
+func NewKubeServer(c *conf.Bootstrap, data *data.Data) *KubeServer {
 	return &KubeServer{
-		c: c,
+		c:    c,
+		data: data,
 	}
 }
 
@@ -55,7 +58,7 @@ func Setup(ctx context.Context, cfg *conf.Bootstrap) (manager.Manager, error) {
 	klog.Info("complete config ...")
 	config, err := cfg.Complete()
 	if err != nil {
-		klog.ErrorS(err, "complete config error")
+		klog.Error(err, "complete config error")
 		return nil, err
 	}
 
@@ -71,14 +74,14 @@ func Setup(ctx context.Context, cfg *conf.Bootstrap) (manager.Manager, error) {
 	klog.Info("add cluster client set to manager...")
 	err = mgr.Add(cluSet)
 	if err != nil {
-		klog.ErrorS(err, "add cluster client set to manager failed")
+		klog.Error(err, "add cluster client set to manager failed")
 		return nil, err
 	}
 
 	klog.Info("build controller ...")
 	err = SetupController(ctx, mgr, cluSet)
 	if err != nil {
-		klog.ErrorS(err, "setup controller failed")
+		klog.Error(err, "setup controller failed")
 		return nil, err
 	}
 

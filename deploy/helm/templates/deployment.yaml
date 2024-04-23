@@ -1,0 +1,121 @@
+{{- if .Values.moon.agent }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    apps.moon/name: {{ .Values.moon.agent.name }} 
+  name: {{ .Values.moon.agent.name }} 
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.repliCount }}
+  selector:
+    matchLabels:
+      apps.moon/name: {{ .Values.moon.agent.name }} 
+  template:
+    metadata:
+      labels:
+        apps.moon/name: {{ .Values.moon.agent.name }} 
+    spec:
+      containers:
+      - args:
+        - --conf=/config/config.yaml
+        command:
+        - ./prom_agent
+        image: {{ .Values.moon.agent.image }} 
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: moon-agent
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /config
+          name: {{ .Values.moon.agent.name }}-config
+      serviceAccountName: {{ .Values.moon.agent.serviceAccounts }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: {{ .Values.moon.agent.name }}-config
+        name: {{ .Values.moon.agent.name }}-config
+{{- end }}
+{{- if .Values.moon.server }} 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    apps.moon/name: {{ .Values.moon.server.name }}
+  name: {{ .Values.moon.server.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.repliCount }}
+  selector:
+    matchLabels:
+      apps.moon/name: {{ .Values.moon.server.name }}
+  template:
+    metadata:
+      labels:
+        apps.moon/name: {{ .Values.moon.server.name }}
+    spec:
+      containers:
+      - command:
+        - bash
+        - -c
+        - nginx && ./prom_server --conf=/config/config.yaml
+        image: {{ .Values.moon.server.image }}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: {{ .Values.moon.server.name }}
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /config
+          name: {{ .Values.moon.server.name }}-config
+        - mountPath: /app/db
+          name: {{ .Values.moon.server.name }}-sqlite-volume
+      serviceAccountName: {{ .Values.moon.server.serviceAccounts }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: {{ .Values.moon.server.serviceAccounts }}-config
+        name: {{ .Values.moon.server.serviceAccounts }}-config
+      - name: {{ .Values.moon.server.serviceAccounts }}-sqlite-volume
+        persistentVolumeClaim:
+          claimName: moon-sqlite-pvc
+{{- end }}

@@ -1,0 +1,53 @@
+{{- if .Values.moon.agent }} 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    apps.moon/name: {{ .Values.moon.agent.name }}-svc
+  name: {{ .Values.moon.agent.name }}-svc
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - name: http
+    nodePort: 31081
+    port: 8000
+    targetPort: 8000
+  - name: grpc
+    nodePort: 31091
+    port: 9000
+    targetPort: 9000
+  selector:
+    apps.moon/name: {{ .Values.moon.agent.name }}
+  type: NodePort
+{{- end }}
+{{- if .Values.moon.server }}
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    apps.moon/name: {{ .Values.moon.server.name }}-svc
+  name: {{ .Values.moon.server.name }}-svc
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - name: http
+    nodePort: 31080
+    port: 8000
+    targetPort: 8000
+  - name: grpc
+    nodePort: 31090
+    port: 9000
+    targetPort: 9000
+  - name: ws
+    port: 8888
+    targetPort: 8888
+  - name: nginx
+    nodePort: {{ .Values.service.port }}
+    port: 80
+    targetPort: 80
+  selector:
+    apps.moon/name: {{ .Values.moon.server.name }}
+  type: NodePort
+  {{- end }}

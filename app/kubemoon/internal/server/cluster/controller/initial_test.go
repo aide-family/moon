@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -16,7 +15,6 @@ func TestController_Initial(t *testing.T) {
 		set         cluster.Set
 		confGetter  cluster.ConfigGetter
 		builderFunc func(name string) (cluster.Client, error)
-		l           logr.Logger
 		middlewares []HandlerFunc
 		handler     *handler
 	}
@@ -39,7 +37,6 @@ func TestController_Initial(t *testing.T) {
 				set:         tt.fields.set,
 				confGetter:  tt.fields.confGetter,
 				builderFunc: tt.fields.builderFunc,
-				l:           tt.fields.l,
 				middlewares: tt.fields.middlewares,
 				handler:     tt.fields.handler,
 			}

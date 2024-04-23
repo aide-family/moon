@@ -1,10 +1,11 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	"github.com/prometheus/client_golang/prometheus"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-	"time"
 )
 
 const (

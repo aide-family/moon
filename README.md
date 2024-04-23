@@ -1,7 +1,8 @@
 <div align="center">
 <h1 style="color: #1677ff; font-size: 64px">Moon 监控平台</h1>
+<h2>始于prometheus，不止于prometheus</h2>
 <span>
-<img src="./doc/img/logo.svg" width="220" height="220" alt="logo"/>
+<img src="./doc/img/moon.svg" width="220" height="220" alt="logo"/>
 <img src="./doc/img/prometheus-logo.svg" width="220" height="220" alt="prometheus"/>
 </span>
 
@@ -22,6 +23,7 @@
 ### 项目简介
 
   Moon 是一款集成prometheus系列的监控管理工具，专为简化Prometheus监控系统的运维工作而设计。该工具提供了一站式的解决方案，能够集中管理和配置多个Prometheus实例及其相关的服务发现、规则集和警报通知。
+  * [官方文档](https://aide-family.github.io/i18n/zh/)
   * [相关博文](https://juejin.cn/post/7329734768258760719)
 
 ### UI展示
@@ -171,6 +173,10 @@
 > 
 >密码: 123456
 
+#### helm部署
+
+参考[/deploy/helm](./deploy/README.md)
+
 ## 3. 功能详解
 
 ### 3.1 系统管理
@@ -246,3 +252,12 @@
 ## 7. Star 历史
 
 [![Star History Chart](https://api.star-history.com/svg?repos=aide-family/moon&type=Date)](https://star-history.com/#aide-family/moon&Date)
+
+* 2024年4月12日 上午 10:44 start 破100
+  ![image](https://github.com/aide-family/moon/assets/52439018/6089777e-788f-491f-8193-9fbc424a339d)
+
+
+## 讨论
+
+![image](https://github.com/aide-family/moon/assets/52439018/7271976e-acf3-4346-ab1b-b1f06d1b862e)
+

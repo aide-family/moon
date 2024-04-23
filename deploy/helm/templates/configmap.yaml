@@ -1,0 +1,26 @@
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+{{- if .Values.moon.agent }} 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.moon.agent.name }}-config
+  namespace: {{ .Values.namespace }}
+data:
+  config.yaml: |-
+  {{- toYaml .Values.moon.agent.config | nindent 4 }}
+{{- end }}
+
+{{- if .Values.moon.server }} 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.moon.server.name }}-config
+  namespace: {{ .Values.namespace }}
+data:
+  config.yaml: |-
+  {{- toYaml .Values.moon.server.config | nindent 4 }}
+{{- end }}

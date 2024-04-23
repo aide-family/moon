@@ -26,9 +26,7 @@ dev:
 .PHONY:
 local:
 	go run -ldflags "-X main.Version=$(VERSION)" ./cmd \
-	--conf=app/kubemoon/configs \
-	--config=app/kubemoon/configs/config.yaml \
-	--v=5
+	--conf=./configs
 
 .PHONY: init
 # init env
