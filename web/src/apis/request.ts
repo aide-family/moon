@@ -26,7 +26,7 @@ const wsHostMap: { [key: string]: string } = {
 }
 
 export const getWsURL = () => {
-    return (wsHostMap[host] || process.env.REACT_APP_WS_API) + 'ws'
+    return (wsHostMap[host] || host || process.env.REACT_APP_WS_API) + 'ws'
 }
 
 const request = axios.create({
