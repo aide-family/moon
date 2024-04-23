@@ -1,6 +1,6 @@
 module github.com/aide-family/moon
 
-go 1.21.0
+go 1.21
 
 require (
 	github.com/aide-cloud/universal v1.2.2
