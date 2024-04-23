@@ -9,7 +9,7 @@ message Bootstrap {
   Server server = 1;
   Env env = 2;
   Log log = 3;
-  ComponentConfig ComponentConfig = 4;
+  ComponentConfig componentConfig = 4;
 }
 
 message Server {

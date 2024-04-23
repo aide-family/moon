@@ -10,7 +10,7 @@ import (
 
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
-	"github.com/go-logr/logr"
+	"github.com/go-kratos/kratos/v2/log"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,23 +41,23 @@ func PhaseCode(phase v1beta1.ClusterPhase) float64 {
 	return Unknown
 }
 
-func UpdateClusterStatusInternal(ctx *Context, l logr.Logger, client client.Client) error {
+func UpdateClusterStatusInternal(ctx *Context, client client.Client) error {
 	if reflect.DeepEqual(ctx.Origin.Status, *ctx.Status) {
 		return nil
 	}
 	clone := ctx.Origin.DeepCopy()
 	if err := retry.OnError(retry.DefaultBackoff, func(err error) bool { return true }, func() error {
 		if err := client.Get(ctx.Context(), ctx.Key, clone); err != nil {
-			l.Error(err, "error getting updated cluster from client", "key", ctx.Key)
+			log.Error(err, "error getting updated cluster from client", "key", ctx.Key)
 			return err
 		}
 		clone.Status = *ctx.Status
 		return client.Status().Update(context.TODO(), clone)
 	}); err != nil {
-		l.Error(err, "update cluster status failed", "key", ctx.Key)
+		log.Error(err, "update cluster status failed", "key", ctx.Key)
 		return err
 	}
-	l.V(4).Info("cluster updated status", "key", ctx.Key, "form", DumpJSON(ctx.Origin.Status), "to", DumpJSON(*ctx.Status))
+	log.Info("cluster updated status", "key", ctx.Key, "form", DumpJSON(ctx.Origin.Status), "to", DumpJSON(*ctx.Status))
 	ctx.Origin.Status = *ctx.Status
 	return nil
 }

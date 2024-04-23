@@ -8,15 +8,12 @@ import (
 	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
 	"github.com/aide-family/moon/app/kubemoon/internal/server/cluster/config"
 	"github.com/aide-family/moon/pkg/util/finalize"
-	"github.com/go-logr/logr"
+	"github.com/go-kratos/kratos/v2/log"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/klog/v2/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 type HandlerFunc func(*Context) (*time.Duration, error)
@@ -26,7 +23,6 @@ type Controller struct {
 	set         clu.Set
 	confGetter  clu.ConfigGetter
 	builderFunc func(name string) (clu.Client, error)
-	l           logr.Logger
 	middlewares []HandlerFunc
 	handler     *handler
 }
@@ -41,7 +37,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return ctrl.Result{}, err
 	}
 
-	r.l.Info("Begin to reconcile cluster", "key", req.NamespacedName)
+	log.Info("Begin to reconcile cluster", "key", req.NamespacedName)
 	c := newContext(ctx, req.NamespacedName, clu)
 	c.handlers = r.middlewares
 	c.handlers = append(c.handlers, r.handler.getHandler(c.Phase))
@@ -49,18 +45,18 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// handle cluster and promote status
 	after, err := r.handler.handler(c)
 	if err != nil {
-		r.l.Error(err, "cluster handler failed.", "key", c.Key)
+		log.Error(err, "cluster handler failed.", "key", c.Key)
 		return ctrl.Result{}, err
 	}
 
-	err = UpdateClusterStatusInternal(c, r.l, r.Client)
+	err = UpdateClusterStatusInternal(c, r.Client)
 	if err != nil {
-		r.l.Error(err, "update cluster status failed.", "key", c.Key)
+		log.Error(err, "update cluster status failed.", "key", c.Key)
 		return ctrl.Result{}, err
 	}
 
 	if after != nil {
-		r.l.Info("cluster requeue.", "key", c.Key, "after", after.String())
+		log.Info("cluster requeue.", "key", c.Key, "after", after.String())
 		return ctrl.Result{RequeueAfter: *after}, nil
 	}
 	return ctrl.Result{}, nil
@@ -68,9 +64,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 // New is the constructor of Controller
 func New(client client.Client, set clu.Set) *Controller {
-	log.SetLogger(zap.New())
 	controller := &Controller{
-		l:          klogr.New().WithName("Controller:Cluster"),
 		set:        set,
 		confGetter: config.NewKubeConfig(client),
 		Client:     client,
@@ -102,11 +96,11 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 				err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.RemoveFinalizerOpType, AideCloudClusterFinalizer)
 				if err != nil {
 					if !errors.IsNotFound(err) {
-						r.l.Error(err, "remove cluster finalizer failed.", "key", c.Key)
+						log.Error(err, "remove cluster finalizer failed.", "key", c.Key)
 						return nil, err
 					}
 				}
-				r.l.Info("remove cluster finalizer success", "key", c.Key)
+				log.Info("remove cluster finalizer success", "key", c.Key)
 			}
 			return nil, nil
 		}
@@ -117,10 +111,10 @@ func (r *Controller) handleFinalizer(c *Context) (*time.Duration, error) {
 	if !controllerutil.ContainsFinalizer(c.Cluster, AideCloudClusterFinalizer) {
 		err := finalize.UpdateFinalizer(r.Client, c.Cluster, finalize.AddFinalizerOpType, AideCloudClusterFinalizer)
 		if err != nil {
-			r.l.Error(err, "register cluster finalizer failed.", "key", c.Key)
+			log.Error(err, "register cluster finalizer failed.", "key", c.Key)
 			return nil, err
 		}
-		r.l.Info("register cluster finalizer success", "key", c.Key)
+		log.Info("register cluster finalizer success", "key", c.Key)
 	}
 	return nil, nil
 }

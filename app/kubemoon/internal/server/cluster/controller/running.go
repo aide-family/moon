@@ -5,7 +5,7 @@ import (
 
 	"github.com/aide-family/moon/api/cluster/v1beta1"
 	clu "github.com/aide-family/moon/app/kubemoon/internal/server/cluster"
-	"github.com/go-logr/logr"
+	"github.com/go-kratos/kratos/v2/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,7 +27,7 @@ func (r *Controller) Running(c *Context) (*time.Duration, error) {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = v1beta1.ReasonDisabled
 		r.set.Remove(c.Key.Name)
-		r.l.Info("removed cluster for cluster set", "key", c.Key, "reason", cond.Reason)
+		log.Info("removed cluster for cluster set", "key", c.Key, "reason", cond.Reason)
 	} else if !isConnected {
 		cond.Status = metav1.ConditionFalse
 		cond.Reason = v1beta1.ReasonOffline
@@ -35,7 +35,7 @@ func (r *Controller) Running(c *Context) (*time.Duration, error) {
 	} else if isEnabled && isConnected {
 		cond.Status = metav1.ConditionTrue
 		cond.Reason = v1beta1.ReasonSuccessful
-		return SyncClusterStatus(c, r.set.Client(c.Key.Name), r.l)
+		return SyncClusterStatus(c, r.set.Client(c.Key.Name))
 	}
 
 	return nil, err
@@ -85,7 +85,7 @@ func (r *Controller) checkClusterConnection(c *Context) (bool, error) {
 			cond.Message = err.Error()
 			return false, err
 		}
-		r.l.Info("add cluster for cluster set", "key", c.Key)
+		log.Info("add cluster for cluster set", "key", c.Key)
 	}
 	if err = Healthy(c.Context(), cli); err != nil {
 		cond.Status = metav1.ConditionFalse
@@ -99,22 +99,22 @@ func (r *Controller) checkClusterConnection(c *Context) (bool, error) {
 	return true, nil
 }
 
-func SyncClusterStatus(c *Context, cli clu.Client, logger logr.Logger) (*time.Duration, error) {
+func SyncClusterStatus(c *Context, cli clu.Client) (*time.Duration, error) {
 	version, err := cli.KubernetesVersion()
 	if err != nil {
-		logger.Error(err, "fail to get kubernetes version for cluster", "key", c.Key)
+		log.Error(err, "fail to get kubernetes version for cluster", "key", c.Key)
 	}
 	c.Status.Version = version
 
 	enablements, err := cli.APIEnablements()
 	if err != nil {
-		logger.Error(err, "fail to get kubernetes api for cluster", "key", c.Key)
+		log.Error(err, "fail to get kubernetes api for cluster", "key", c.Key)
 	}
 	c.Status.APIEnablements = enablements
 
 	nodes, err := ListNodes(c.Context(), cli)
 	if err != nil {
-		logger.Error(err, "failed to list nodes for cluster", "key", c.Key)
+		log.Error(err, "failed to list nodes for cluster", "key", c.Key)
 	}
 	c.Status.NodeSummary = NodeSummary(nodes)
 	return &AideCloudClusterRecheckInterval, nil

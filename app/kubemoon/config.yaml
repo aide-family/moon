@@ -1,5 +1,0 @@
-manager:
-  leaderElection: true
-  leaderElectionID: 0b860416.aide.cloud.cn
-  leaderElectionNamespace: moon
-  healthProbeBindAddress: :8081

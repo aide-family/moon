@@ -2,10 +2,11 @@ package controller
 
 import (
 	"fmt"
-	"k8s.io/klog/v2"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 // print stack trace for debug
@@ -28,7 +29,7 @@ func Recovery() HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				message := fmt.Sprintf("%s", err)
-				klog.Errorf("%s\n\n", trace(message))
+				log.Errorf("%s\n\n", trace(message))
 			}
 		}()
 		return c.Next()
