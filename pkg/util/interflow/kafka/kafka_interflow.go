@@ -13,7 +13,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-var _ interflow.Interflow = (*kafkaInterflow)(nil)
+var _ interflow.AgentInterflow = (*kafkaInterflow)(nil)
 
 type (
 	kafkaInterflow struct {
@@ -158,7 +158,7 @@ func (l *kafkaInterflow) handleMessage(msg *kafka.Message) bool {
 	return true
 }
 
-func NewKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, log *log.Helper) (interflow.Interflow, error) {
+func NewKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, log *log.Helper) (interflow.AgentInterflow, error) {
 	instance := &kafkaInterflow{
 		kafkaMQServer: kafkaMQServer,
 		log:           log,

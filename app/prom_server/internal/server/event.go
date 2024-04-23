@@ -41,32 +41,26 @@ type AlarmEvent struct {
 	changeGroupIdCache cache.Cache
 	eventHandlers      map[consts.TopicType]interflow.Callback
 
-	interflowInstance interflow.Interflow
+	interflowInstance interflow.ServerInterflow
 }
 
 func (l *AlarmEvent) Start(_ context.Context) error {
 	l.log.Debug("[AlarmEvent] starting")
 	defer l.log.Debug("[AlarmEvent] started")
 	// 通知agent，server已经上线
-	topic := string(consts.ServerOnlineTopic)
+	agentUrls := make([]string, 0, 10)
 	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
 		var agentInfo AgentInfo
 		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true
 		}
-		msg := &interflow.HookMsg{
-			Topic: topic,
-			Value: nil,
-			To:    agentInfo.Key,
-		}
-		go func() {
-			defer after.Recover(l.log)
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			l.log.Debugw("send agent msg", l.interflowInstance.Send(ctx, string(agentInfo.Key), msg))
-		}()
+		agentUrls = append(agentUrls, agentInfo.Url)
 		return true
 	})
+
+	if err := l.interflowInstance.ServerOnlineNotify(agentUrls); err != nil {
+		return err
+	}
 
 	if err := l.storeGroups(); err != nil {
 		return err
@@ -87,31 +81,20 @@ func (l *AlarmEvent) Stop(_ context.Context) error {
 	l.log.Debug("[AlarmEvent] stopping")
 	defer l.log.Debug("[AlarmEvent] stopped")
 	// 通知agent，server已经离线
-	topic := string(consts.ServerOfflineTopic)
-	eg := new(errgroup.Group)
+	agentUrls := make([]string, 0, 10)
 	l.agentNameCache.Range(func(key, agentInfoStr string) bool {
 		var agentInfo AgentInfo
 		if err := json.Unmarshal([]byte(agentInfoStr), &agentInfo); err != nil {
 			return true
 		}
-		msg := &interflow.HookMsg{
-			Topic: topic,
-			Value: nil,
-			To:    agentInfo.Key,
-		}
-		eg.Go(func() error {
-			defer after.Recover(l.log)
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			defer cancel()
-			if err := l.interflowInstance.Send(ctx, string(agentInfo.Key), msg); err != nil {
-				l.log.Debugw("send agent msg", err)
-				return err
-			}
-			return nil
-		})
+		agentUrls = append(agentUrls, agentInfo.Url)
 		return true
 	})
-	_ = eg.Wait()
+
+	if err := l.interflowInstance.ServerOfflineNotify(agentUrls); err != nil {
+		return err
+	}
+
 	close(l.exitCh)
 
 	return nil
@@ -250,9 +233,9 @@ func (l *AlarmEvent) watchChangeGroup() error {
 }
 
 // alertHook 处理alert hook数据
-func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte) error {
+func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, value []byte) error {
 	var req alarmhookPb.HookV1Request
-	// TODO 后期是否判断key
+	// TODO 后期是否判断topic
 	err := json.Unmarshal(value, &req)
 	if err != nil {
 		return err
@@ -271,23 +254,22 @@ func (l *AlarmEvent) alertHookHandler(topic consts.TopicType, key, value []byte)
 }
 
 // agentOfflineEventHandler 处理agent offline消息
-func (l *AlarmEvent) agentOfflineEventHandler(topic consts.TopicType, key, value []byte) error {
-	l.log.Infof("agent offline: %s, topic: %s", string(key), topic)
-	l.agentNameCache.Delete(string(key))
+func (l *AlarmEvent) agentOfflineEventHandler(topic consts.TopicType, value []byte) error {
+	l.log.Infof("agent offline: %s, topic: %s", string(value), topic)
+	l.agentNameCache.Delete(string(value))
 	return nil
 }
 
 // agentOnlineEventHandler 处理agent online消息
-func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value []byte) error {
+func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, value []byte) error {
 	// 记录节点状态
-	sendTopic := string(value)
-	l.log.Infof("agent online: %s, topic: %s", string(key), topic)
+	l.log.Infof("agent online: %s, topic: %s", string(value), topic)
 	agentInfo := &AgentInfo{
-		Topic: &sendTopic,
-		Key:   key,
+		Topic: string(topic),
+		Url:   string(value),
 	}
 
-	l.agentNameCache.Store(string(key), agentInfo.String())
+	l.agentNameCache.Store(string(value), agentInfo.String())
 
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
@@ -296,11 +278,10 @@ func (l *AlarmEvent) agentOnlineEventHandler(topic consts.TopicType, key, value 
 			msg := &interflow.HookMsg{
 				Topic: string(consts.StrategyGroupAllTopic),
 				Value: []byte(groupDetail),
-				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
-			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
+			return l.interflowInstance.SendAgent(ctx, agentInfo.Url, msg)
 		})
 		return true
 	})
@@ -325,11 +306,16 @@ func (l *AlarmEvent) sendChangeGroup(groupDetail *api.GroupSimple) error {
 			msg := &interflow.HookMsg{
 				Topic: topic,
 				Value: groupDetailBytes,
-				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
-			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
+			if err := l.interflowInstance.SendAgent(ctx, agentInfo.Url, msg); err != nil {
+				l.log.Errorw("send change group error", err)
+				// 移除该agent
+				l.agentNameCache.Delete(agentInfo.Url)
+				return err
+			}
+			return nil
 		})
 		return true
 	})
@@ -355,11 +341,10 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 			msg := &interflow.HookMsg{
 				Topic: topic,
 				Value: msgValue,
-				To:    agentInfo.Key,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
-			return l.interflowInstance.Send(ctx, string(agentInfo.Key), msg)
+			return l.interflowInstance.SendAgent(ctx, agentInfo.Url, msg)
 		})
 		return true
 	})
@@ -368,8 +353,8 @@ func (l *AlarmEvent) sendRemoveGroup(groupId uint32) error {
 }
 
 type AgentInfo struct {
-	Topic *string `json:"topic"`
-	Key   []byte  `json:"key"`
+	Topic string `json:"topic"`
+	Url   string `json:"key"`
 }
 
 // String AgentInfo to string

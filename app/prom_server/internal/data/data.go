@@ -5,13 +5,11 @@ import (
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper"
-	"github.com/aide-family/moon/pkg/servers"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/interflow"
 	"github.com/aide-family/moon/pkg/util/interflow/hook"
-	"github.com/aide-family/moon/pkg/util/interflow/kafka"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -59,7 +57,7 @@ type Data struct {
 	db                *gorm.DB
 	cache             cache.GlobalCache
 	enforcer          *casbin.SyncedEnforcer
-	interflowInstance interflow.Interflow
+	interflowInstance interflow.ServerInterflow
 	email             email.Interface
 
 	log *log.Helper
@@ -75,7 +73,7 @@ func (d *Data) Cache() cache.GlobalCache {
 	return d.cache
 }
 
-func (d *Data) Interflow() interflow.Interflow {
+func (d *Data) Interflow() interflow.ServerInterflow {
 	return d.interflowInstance
 }
 
@@ -137,18 +135,19 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 
 	kafkaConf := c.GetMq().GetKafka()
 	if kafkaConf != nil {
-		kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
-		if err != nil {
-			return nil, nil, err
-		}
-		interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
-		if err != nil {
-			d.log.Errorf("init kafka interflow error: %v", err)
-			return nil, nil, err
-		}
-		d.interflowInstance = interflowInstance
+		// TODO 待完善
+		//kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
+		//if err != nil {
+		//	return nil, nil, err
+		//}
+		//interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
+		//if err != nil {
+		//	d.log.Errorf("init kafka interflow error: %v", err)
+		//	return nil, nil, err
+		//}
+		//d.interflowInstance = interflowInstance
 	} else {
-		interflowInstance := hook.NewHookHttpInterflow(d.log)
+		interflowInstance := hook.NewServerHookHttpInterflow(hook.NetworkHTTP, logger)
 		d.interflowInstance = interflowInstance
 	}
 

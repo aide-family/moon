@@ -19,7 +19,7 @@ var ProviderSetData = wire.NewSet(NewData, NewPingRepo)
 // Data .
 type Data struct {
 	cache             cache.GlobalCache
-	interflowInstance interflow.Interflow
+	interflowInstance interflow.AgentInterflow
 
 	log *log.Helper
 }
@@ -28,7 +28,7 @@ func (d *Data) Cache() cache.GlobalCache {
 	return d.cache
 }
 
-func (d *Data) Interflow() interflow.Interflow {
+func (d *Data) Interflow() interflow.AgentInterflow {
 	return d.interflowInstance
 }
 
@@ -51,7 +51,7 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	interflowConf := c.GetInterflow()
 	switch {
 	case interflowConf.GetHook() != nil:
-		interflowInstance, err := hook.New(conf.BuilderInterflowHook(interflowConf.GetHook()), logger)
+		interflowInstance, err := hook.NewAgent(conf.BuilderInterflowHook(interflowConf.GetHook()), logger)
 		if err != nil {
 			return nil, nil, err
 		}

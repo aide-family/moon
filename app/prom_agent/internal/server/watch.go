@@ -35,7 +35,7 @@ type Watch struct {
 	groups            *sync.Map
 	exitCh            chan struct{}
 	eventHandlers     map[consts.TopicType]EventHandler
-	interflowInstance interflow.Interflow
+	interflowInstance interflow.AgentInterflow
 }
 
 func NewWatch(
@@ -139,7 +139,7 @@ func (w *Watch) evaluate(groupList []*api.GroupSimple) {
 
 func (w *Watch) Stop(_ context.Context) error {
 	w.log.Info("[Watch] server stopping")
-	if err := w.interflowInstance.OnlineNotify(); err != nil {
+	if err := w.interflowInstance.OfflineNotify(); err != nil {
 		return err
 	}
 	close(w.exitCh)

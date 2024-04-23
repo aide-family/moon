@@ -32,7 +32,7 @@ type (
 	}
 )
 
-func New(c Config, logger log.Logger) (interflow.Interflow, error) {
+func NewAgent(c Config, logger log.Logger) (interflow.AgentInterflow, error) {
 	switch {
 	case c.GetHttp() != nil:
 		return NewHookHttpInterflow(c.GetHttp(), logger), nil
@@ -41,4 +41,8 @@ func New(c Config, logger log.Logger) (interflow.Interflow, error) {
 	default:
 		return nil, errors.New("no config found")
 	}
+}
+
+func NewServer(network Network, logger log.Logger) (interflow.ServerInterflow, error) {
+	return NewServerHookHttpInterflow(network, logger), nil
 }

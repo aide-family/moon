@@ -10,9 +10,11 @@ import (
 	"github.com/aide-family/moon/pkg/httpx"
 	"github.com/aide-family/moon/pkg/util/interflow"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 )
 
-var _ interflow.Interflow = (*hookHttpInterflow)(nil)
+var _ interflow.AgentInterflow = (*hookHttpInterflow)(nil)
+var _ interflow.ServerInterflow = (*hookHttpInterflow)(nil)
 
 type (
 	hookHttpInterflow struct {
@@ -24,6 +26,51 @@ type (
 		closeCh chan struct{}
 	}
 )
+
+func (l *hookHttpInterflow) SendAgent(ctx context.Context, to string, msg *interflow.HookMsg) error {
+	_, err := httpx.NewHttpX().POSTWithContext(ctx, to, msg.Bytes())
+	return err
+}
+
+func (l *hookHttpInterflow) ServerOnlineNotify(agentUrls []string) error {
+	eg := new(errgroup.Group)
+	topic := string(consts.ServerOnlineTopic)
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: nil,
+	}
+	for _, agentUrl := range agentUrls {
+		eg.Go(func() error {
+			defer after.Recover(l.log)
+			ctx, cancel := context.WithTimeout(context.Background(), interflow.Timeout)
+			defer cancel()
+			err := l.SendAgent(ctx, agentUrl, msg)
+			if err != nil {
+				l.log.Warnw("send server online notify error", err)
+			}
+			return nil
+		})
+	}
+	return eg.Wait()
+}
+
+func (l *hookHttpInterflow) ServerOfflineNotify(agentUrls []string) error {
+	eg := new(errgroup.Group)
+	topic := string(consts.ServerOfflineTopic)
+	msg := &interflow.HookMsg{
+		Topic: topic,
+		Value: nil,
+	}
+	for _, agentUrl := range agentUrls {
+		eg.Go(func() error {
+			defer after.Recover(l.log)
+			ctx, cancel := context.WithTimeout(context.Background(), interflow.Timeout)
+			defer cancel()
+			return l.SendAgent(ctx, agentUrl, msg)
+		})
+	}
+	return eg.Wait()
+}
 
 func (l *hookHttpInterflow) OnlineNotify() error {
 	topic := string(consts.AgentOnlineTopic)
@@ -115,11 +162,18 @@ func (l *hookHttpInterflow) SetHandles(handles map[consts.TopicType]interflow.Ca
 	return nil
 }
 
-func NewHookHttpInterflow(c HttpConfig, logger log.Logger) interflow.Interflow {
+func NewHookHttpInterflow(c HttpConfig, logger log.Logger) interflow.AgentInterflow {
 	return &hookHttpInterflow{
 		log:     log.NewHelper(log.With(logger, "module", "interflow.hook.http")),
 		server:  c.GetServer(),
 		agent:   c.GetAgent(),
+		closeCh: make(chan struct{}),
+	}
+}
+
+func NewServerHookHttpInterflow(network Network, logger log.Logger) interflow.ServerInterflow {
+	return &hookHttpInterflow{
+		log:     log.NewHelper(log.With(logger, "module", "interflow.hook.http")),
 		closeCh: make(chan struct{}),
 	}
 }

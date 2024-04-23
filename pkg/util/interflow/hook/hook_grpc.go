@@ -8,7 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-var _ interflow.Interflow = (*hookGrpcInterflow)(nil)
+var _ interflow.AgentInterflow = (*hookGrpcInterflow)(nil)
 
 type (
 	hookGrpcInterflow struct {
@@ -45,6 +45,6 @@ func (h *hookGrpcInterflow) OfflineNotify() error {
 	panic("implement me")
 }
 
-func NewHookGrpcInterflow(c GrpcConfig, logger log.Logger) interflow.Interflow {
+func NewHookGrpcInterflow(c GrpcConfig, logger log.Logger) interflow.AgentInterflow {
 	return &hookGrpcInterflow{}
 }
