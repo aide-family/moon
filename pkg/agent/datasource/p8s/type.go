@@ -86,3 +86,82 @@ func (r *Result) GetValue() []any {
 	}
 	return r.Value
 }
+
+type (
+	MetricInfo struct {
+		Type string `json:"type"`
+		Help string `json:"help"`
+		Unit string `json:"unit"`
+	}
+	MetadataResponse struct {
+		Status string                  `json:"status"`
+		Data   map[string][]MetricInfo `json:"data"`
+	}
+
+	MetricLabel map[string]string
+
+	MetricSeriesResponse struct {
+		Status    string        `json:"status"`
+		Data      []MetricLabel `json:"data"`
+		Error     string        `json:"error"`
+		ErrorType string        `json:"errorType"`
+	}
+)
+
+func (m *MetadataResponse) GetStatus() string {
+	if m == nil {
+		return ""
+	}
+	return m.Status
+}
+
+func (m *MetadataResponse) GetData() map[string][]MetricInfo {
+	if m == nil {
+		return nil
+	}
+	return m.Data
+}
+
+func (m *MetadataResponse) GetMetricInfo(metric string) []MetricInfo {
+	if m == nil {
+		return nil
+	}
+	return m.Data[metric]
+}
+
+func (m *MetricInfo) GetType() string {
+	if m == nil {
+		return ""
+	}
+	return m.Type
+}
+
+func (m *MetricInfo) GetHelp() string {
+	if m == nil {
+		return ""
+	}
+	return m.Help
+}
+
+func (m *MetricInfo) GetUnit() string {
+	if m == nil {
+		return ""
+	}
+	return m.Unit
+}
+
+// GetMetricName get metric name
+func (m MetricLabel) GetMetricName() string {
+	if m == nil {
+		return ""
+	}
+	return m["__name__"]
+}
+
+// GetData get data
+func (m *MetricSeriesResponse) GetData() []MetricLabel {
+	if m == nil {
+		return nil
+	}
+	return m.Data
+}

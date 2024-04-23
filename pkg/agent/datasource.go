@@ -29,8 +29,22 @@ type (
 		Error     string `json:"error"`
 	}
 
+	MetricDetail struct {
+		Name   string `json:"name"`
+		Help   string `json:"help"`
+		Type   string `json:"type"`
+		Labels Labels `json:"labels"`
+		Unit   string `json:"unit"`
+	}
+
+	Metadata struct {
+		Metric []*MetricDetail `json:"metric"`
+		Unix   int64           `json:"unix"`
+	}
+
 	Datasource interface {
 		Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
+		Metadata(ctx context.Context) (*Metadata, error)
 		GetCategory() Category
 		GetEndpoint() string
 		GetBasicAuth() *BasicAuth
