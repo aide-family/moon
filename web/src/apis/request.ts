@@ -26,6 +26,9 @@ const wsHostMap: { [key: string]: string } = {
 }
 
 export const getWsURL = () => {
+    // http替换为ws
+    let host = window.location.origin
+    host = host.replace('http', 'ws')
     return (wsHostMap[host] || host || process.env.REACT_APP_WS_API) + 'ws'
 }
 
