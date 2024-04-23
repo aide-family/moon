@@ -1,14 +1,14 @@
 package data
 
 import (
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/pkg/conn"
 	"github.com/aide-family/moon/pkg/servers"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/interflow"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
 )
 
 // ProviderSetData is data providers.
@@ -46,20 +46,25 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		d.cache = globalCache
 	}
 
-	kafkaConf := c.GetMq().GetKafka()
-	if kafkaConf != nil {
-		kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
-		if err != nil {
-			return nil, nil, err
-		}
-		interflowInstance, err := interflow.NewKafkaInterflow(kafkaMqServer, d.log)
-		if err != nil {
-			return nil, nil, err
-		}
-		d.interflowInstance = interflowInstance
-	} else {
+	interflowConf := c.GetInterflow()
+	switch {
+	case interflowConf.GetHook() != nil:
+		// TODO 区分协议
 		interflowInstance := interflow.NewHookInterflow(d.log)
 		d.interflowInstance = interflowInstance
+	case interflowConf.GetMq() != nil:
+		kafkaConf := interflowConf.GetMq().GetKafka()
+		if kafkaConf != nil {
+			kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
+			if err != nil {
+				return nil, nil, err
+			}
+			interflowInstance, err := interflow.NewKafkaInterflow(kafkaMqServer, d.log)
+			if err != nil {
+				return nil, nil, err
+			}
+			d.interflowInstance = interflowInstance
+		}
 	}
 
 	// 注册全局告警缓存组件

@@ -11,7 +11,6 @@ message Bootstrap {
   Env env = 3;
   Log log = 4;
   WatchProm watchProm = 5;
-  MQ mq = 6;
   Interflow interflow = 7;
 }
 
@@ -75,16 +74,42 @@ message WatchProm {
   google.protobuf.Duration interval = 1;
 }
 
-message MQ {
-  Kafka kafka = 1;
-}
-
-message Kafka {
-  repeated string endpoints = 1;
-  string groupId = 2;
-}
 
 message Interflow {
-  string server = 1;
-  string agent = 2;
+  // 默认通信方式
+  message Hook {
+    message HTTP {
+      message Server {
+        string url = 1;
+        // TODO 如果需要认证， 在这里补充
+      }
+      Server agent = 1;
+      Server server = 2;
+
+    }
+    message GRPC {
+      message Server {
+        repeated string endpoints = 1;
+        // TODO 如果需要认证， 在这里补充
+      }
+      Server agent = 1;
+      Server server = 2;
+    }
+    HTTP http = 1;
+    GRPC grpc = 2;
+  }
+
+  message MQ {
+    message Kafka {
+      repeated string endpoints = 1;
+      string groupId = 2;
+    }
+
+    Kafka kafka = 1;
+    // TODO 其他MQ在这里补充
+  }
+
+  Hook hook = 3;
+  MQ mq = 4;
 }
+
