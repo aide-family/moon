@@ -2,13 +2,13 @@ package data
 
 import (
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/conn"
 	"github.com/aide-family/moon/pkg/servers"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/interflow"
-	"github.com/aide-family/moon/pkg/util/interflow/hook"
-	"github.com/aide-family/moon/pkg/util/interflow/kafka"
+	"github.com/aide-family/moon/pkg/util/interflow/build"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 )
@@ -49,37 +49,38 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	}
 
 	interflowConf := c.GetInterflow()
-	switch {
-	case interflowConf.GetHook() != nil:
-		interflowInstance, err := hook.NewAgent(conf.BuilderInterflowHook(interflowConf.GetHook()), logger)
-		if err != nil {
-			return nil, nil, err
-		}
-		d.interflowInstance = interflowInstance
-	case interflowConf.GetMq() != nil:
+	hookConf := conf.BuilderInterflowHook(interflowConf.GetHook())
+	interflowOpts := []build.AgentInterflowOption{
+		build.WithAgentHttpNetwork(hookConf.GetHttp()),
+		build.WithAgentGrpcNetwork(hookConf.GetGrpc()),
+		build.WithAgentLogger(logger),
+	}
+	if !pkg.IsNil(interflowConf.GetMq()) {
 		kafkaConf := interflowConf.GetMq().GetKafka()
-		if kafkaConf != nil {
+		if !pkg.IsNil(kafkaConf) {
 			kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
 			if err != nil {
 				return nil, nil, err
 			}
-			interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
-			if err != nil {
-				return nil, nil, err
-			}
-			d.interflowInstance = interflowInstance
+			interflowOpts = append(interflowOpts, build.WithAgentKafka(kafkaMqServer))
 		}
 	}
+
+	interflowInstance, err := build.NewAgentInterflow(interflowOpts...)
+	if err != nil {
+		return nil, nil, err
+	}
+	d.interflowInstance = interflowInstance
 
 	// 注册全局告警缓存组件
 	alarmCache := strategy.NewAlarmCache(d.Cache())
 	strategy.SetAlarmCache(alarmCache)
 
 	cleanup := func() {
-		if err := d.Cache().Close(); err != nil {
+		if err = d.Cache().Close(); err != nil {
 			d.log.Errorf("close redis error: %v", err)
 		}
-		if err := d.Interflow().Close(); err != nil {
+		if err = d.Interflow().Close(); err != nil {
 			d.log.Errorf("close interflow error: %v", err)
 		}
 		d.log.Info("closing the data resources")

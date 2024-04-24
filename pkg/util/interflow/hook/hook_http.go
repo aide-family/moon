@@ -162,16 +162,16 @@ func (l *hookHttpInterflow) SetHandles(handles map[consts.TopicType]interflow.Ca
 	return nil
 }
 
-func NewHookHttpInterflow(c HttpConfig, logger log.Logger) interflow.AgentInterflow {
+func NewAgentHookHttpInterflow(c HttpConfig, logger log.Logger) (interflow.AgentInterflow, error) {
 	return &hookHttpInterflow{
 		log:     log.NewHelper(log.With(logger, "module", "interflow.hook.http")),
 		server:  c.GetServer(),
 		agent:   c.GetAgent(),
 		closeCh: make(chan struct{}),
-	}
+	}, nil
 }
 
-func NewServerHookHttpInterflow(network Network, logger log.Logger) interflow.ServerInterflow {
+func NewServerHookHttpInterflow(logger log.Logger) interflow.ServerInterflow {
 	return &hookHttpInterflow{
 		log:     log.NewHelper(log.With(logger, "module", "interflow.hook.http")),
 		closeCh: make(chan struct{}),

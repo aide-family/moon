@@ -1,4 +1,4 @@
-package kafka
+package mq
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 )
 
 var _ interflow.AgentInterflow = (*kafkaInterflow)(nil)
+var _ interflow.ServerInterflow = (*kafkaInterflow)(nil)
 
 type (
 	kafkaInterflow struct {
@@ -25,6 +26,21 @@ type (
 		agentTopic string
 	}
 )
+
+func (l *kafkaInterflow) SendAgent(ctx context.Context, to string, msg *interflow.HookMsg) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *kafkaInterflow) ServerOnlineNotify(agentUrls []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (l *kafkaInterflow) ServerOfflineNotify(agentUrls []string) error {
+	//TODO implement me
+	panic("implement me")
+}
 
 func (l *kafkaInterflow) OnlineNotify() error {
 	topic := string(consts.AgentOnlineTopic)
@@ -158,10 +174,19 @@ func (l *kafkaInterflow) handleMessage(msg *kafka.Message) bool {
 	return true
 }
 
-func NewKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, log *log.Helper) (interflow.AgentInterflow, error) {
+func NewAgentKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, logger log.Logger) (interflow.AgentInterflow, error) {
 	instance := &kafkaInterflow{
 		kafkaMQServer: kafkaMQServer,
-		log:           log,
+		log:           log.NewHelper(log.With(logger, "module", "kafka-agent-interflow")),
+	}
+
+	return instance, nil
+}
+
+func NewServerKafkaInterflow(kafkaMQServer *servers.KafkaMQServer, logger log.Logger) (interflow.ServerInterflow, error) {
+	instance := &kafkaInterflow{
+		kafkaMQServer: kafkaMQServer,
+		log:           log.NewHelper(log.With(logger, "module", "kafka-server-interflow")),
 	}
 
 	return instance, nil

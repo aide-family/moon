@@ -9,11 +9,27 @@ import (
 )
 
 var _ interflow.AgentInterflow = (*hookGrpcInterflow)(nil)
+var _ interflow.ServerInterflow = (*hookGrpcInterflow)(nil)
 
 type (
 	hookGrpcInterflow struct {
 	}
 )
+
+func (h *hookGrpcInterflow) SendAgent(ctx context.Context, to string, msg *interflow.HookMsg) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (h *hookGrpcInterflow) ServerOnlineNotify(agentUrls []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (h *hookGrpcInterflow) ServerOfflineNotify(agentUrls []string) error {
+	//TODO implement me
+	panic("implement me")
+}
 
 func (h *hookGrpcInterflow) Send(ctx context.Context, msg *interflow.HookMsg) error {
 	//TODO implement me
@@ -45,6 +61,10 @@ func (h *hookGrpcInterflow) OfflineNotify() error {
 	panic("implement me")
 }
 
-func NewHookGrpcInterflow(c GrpcConfig, logger log.Logger) interflow.AgentInterflow {
+func NewAgentHookGrpcInterflow(c GrpcConfig, logger log.Logger) (interflow.AgentInterflow, error) {
+	return &hookGrpcInterflow{}, nil
+}
+
+func NewServerHookGrpcInterflow(network interflow.Network, logger log.Logger) interflow.ServerInterflow {
 	return &hookGrpcInterflow{}
 }

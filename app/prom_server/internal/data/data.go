@@ -5,11 +5,12 @@ import (
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper"
+	"github.com/aide-family/moon/pkg/servers"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/interflow"
-	"github.com/aide-family/moon/pkg/util/interflow/hook"
+	"github.com/aide-family/moon/pkg/util/interflow/build"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -133,23 +134,24 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	alarmCache := strategy.NewAlarmCache(d.Cache())
 	strategy.SetAlarmCache(alarmCache)
 
-	kafkaConf := c.GetMq().GetKafka()
-	if kafkaConf != nil {
-		// TODO 待完善
-		//kafkaMqServer, err := servers.NewKafkaMQServer(kafkaConf, logger)
-		//if err != nil {
-		//	return nil, nil, err
-		//}
-		//interflowInstance, err := kafka.NewKafkaInterflow(kafkaMqServer, d.log)
-		//if err != nil {
-		//	d.log.Errorf("init kafka interflow error: %v", err)
-		//	return nil, nil, err
-		//}
-		//d.interflowInstance = interflowInstance
-	} else {
-		interflowInstance := hook.NewServerHookHttpInterflow(hook.NetworkHTTP, logger)
-		d.interflowInstance = interflowInstance
+	interflowOpts := []build.ServerInterflowOption{
+		build.WithServerLogger(logger),
+		build.WithServerNetwork(interflow.Network(c.GetInterflow().GetHook().GetNetwork())),
 	}
+	kafkaConf := c.GetInterflow().GetMq().GetKafka()
+	if kafkaConf != nil {
+		kafkaMqServer, newKafkaErr := servers.NewKafkaMQServer(kafkaConf, logger)
+		if newKafkaErr != nil {
+			return nil, nil, newKafkaErr
+		}
+		interflowOpts = append(interflowOpts, build.WithServerKafka(kafkaMqServer))
+	}
+	interflowInstance, err := build.NewServerInterflow(interflowOpts...)
+	if err != nil {
+		d.log.Errorf("init interflow error: %v", err)
+		return nil, nil, err
+	}
+	d.interflowInstance = interflowInstance
 
 	if helper.IsDev(env.GetEnv()) {
 		if err = do.Migrate(d.DB(), d.Cache()); err != nil {

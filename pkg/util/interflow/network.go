@@ -1,4 +1,4 @@
-package hook
+package interflow
 
 type Network string
 

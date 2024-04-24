@@ -112,24 +112,31 @@ func (c *InterflowHookGRPCServer) GetEndpoints() []string {
 
 // BuilderInterflowHook 构建钩子配置
 func BuilderInterflowHook(c *Interflow_Hook) hook.Config {
+	if c == nil {
+		return nil
+	}
 	httpConf := c.GetHttp()
 	grpcConf := c.GetGrpc()
-	return &InterflowHook{
-		Http: &InterflowHookHTTP{
+	hookConf := &InterflowHook{}
+	if httpConf != nil {
+		hookConf.Http = &InterflowHookHTTP{
 			Agent: &InterflowHookHTTPServer{
 				Interflow_Hook_HTTP_Server: httpConf.GetAgent(),
 			},
 			Server: &InterflowHookHTTPServer{
 				Interflow_Hook_HTTP_Server: httpConf.GetServer(),
 			},
-		},
-		Grpc: &InterflowHookGRPC{
+		}
+	}
+	if grpcConf != nil {
+		hookConf.Grpc = &InterflowHookGRPC{
 			Agent: &InterflowHookGRPCServer{
 				Interflow_Hook_GRPC_Server: grpcConf.GetAgent(),
 			},
 			Server: &InterflowHookGRPCServer{
 				Interflow_Hook_GRPC_Server: grpcConf.GetServer(),
 			},
-		},
+		}
 	}
+	return hookConf
 }
