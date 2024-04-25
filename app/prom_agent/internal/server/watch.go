@@ -36,6 +36,7 @@ type Watch struct {
 	exitCh            chan struct{}
 	eventHandlers     map[consts.TopicType]EventHandler
 	interflowInstance interflow.AgentInterflow
+	watchVersion      string
 }
 
 func NewWatch(
@@ -52,6 +53,7 @@ func NewWatch(
 		groups:            new(sync.Map),
 		eventHandlers:     make(map[consts.TopicType]EventHandler),
 		interflowInstance: d.Interflow(),
+		watchVersion:      c.GetVersion(),
 	}
 	w.eventHandlers = map[consts.TopicType]EventHandler{
 		consts.StrategyGroupAllTopic: w.loadGroupAllEventHandler,
@@ -77,17 +79,31 @@ func NewWatch(
 	return w, nil
 }
 
-func (w *Watch) loadGroupAllEventHandler(_ consts.TopicType, value []byte) error {
-	w.log.Info("strategyGroupAllTopic", string(value))
+func (w *Watch) loadGroupAllEventHandler(topic consts.TopicType, value []byte) error {
+	if !topic.IsStrategyGroupAllTopic() {
+		return nil
+	}
 	// 把新规则刷进内存
 	groupBytes := value
-	var groupDetail *api.GroupSimple
-	if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
-		w.log.Warnf("unmarshal groupList error: %s", err.Error())
-		return err
+	switch w.watchVersion {
+	case "v2", "V2":
+		log.Debugw("v2", "---------------------")
+		var groupDetail *api.EvaluateGroup
+		if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
+			w.log.Warnf("unmarshal groupList error: %s", err.Error())
+			return err
+		}
+		w.log.Debugw("groupDetail", groupDetail)
+		w.groups.Store(groupDetail.GetId(), groupDetail)
+	default:
+		var groupDetail *api.GroupSimple
+		if err := json.Unmarshal(groupBytes, &groupDetail); err != nil {
+			w.log.Warnf("unmarshal groupList error: %s", err.Error())
+			return err
+		}
+		w.log.Debugw("groupDetail", groupDetail)
+		w.groups.Store(groupDetail.GetId(), groupDetail)
 	}
-	w.log.Debugw("groupDetail", groupDetail)
-	w.groups.Store(groupDetail.GetId(), groupDetail)
 	return nil
 }
 
@@ -107,7 +123,7 @@ func (w *Watch) removeGroupEventHandler(topic consts.TopicType, value []byte) er
 func (w *Watch) Start(_ context.Context) error {
 	go func() {
 		defer after.Recover(w.log, func(err error) {
-			w.log.Errorf("recover error: %s", err.Error())
+			w.log.Errorw("recover error", err)
 		})
 		for {
 			select {
@@ -116,14 +132,7 @@ func (w *Watch) Start(_ context.Context) error {
 				return
 			case <-w.ticker.C:
 				//w.log.Debug("[Watch] server tick")
-				groupList := make([]*api.GroupSimple, 0)
-				w.groups.Range(func(key, value any) bool {
-					if group, ok := value.(*api.GroupSimple); ok && group != nil {
-						groupList = append(groupList, group)
-					}
-					return true
-				})
-				w.evaluate(groupList)
+				w.evaluate()
 			}
 		}
 	}()
@@ -131,10 +140,29 @@ func (w *Watch) Start(_ context.Context) error {
 	return w.interflowInstance.OnlineNotify()
 }
 
-func (w *Watch) evaluate(groupList []*api.GroupSimple) {
+func (w *Watch) evaluate() {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	_, _ = w.loadService.Evaluate(ctx, &agent.EvaluateRequest{GroupList: groupList})
+	switch w.watchVersion {
+	case "v2", "V2":
+		groupList := make([]*api.EvaluateGroup, 0)
+		w.groups.Range(func(key, value any) bool {
+			if group, ok := value.(*api.EvaluateGroup); ok && group != nil {
+				groupList = append(groupList, group)
+			}
+			return true
+		})
+		_, _ = w.loadService.EvaluateV2(ctx, &agent.EvaluateV2Request{GroupList: groupList})
+	default:
+		groupList := make([]*api.GroupSimple, 0)
+		w.groups.Range(func(key, value any) bool {
+			if group, ok := value.(*api.GroupSimple); ok && group != nil {
+				groupList = append(groupList, group)
+			}
+			return true
+		})
+		_, _ = w.loadService.Evaluate(ctx, &agent.EvaluateRequest{GroupList: groupList})
+	}
 }
 
 func (w *Watch) Stop(_ context.Context) error {

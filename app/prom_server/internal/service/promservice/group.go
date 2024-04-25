@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/api"
 	pb "github.com/aide-family/moon/api/server/prom/strategy/group"
@@ -181,6 +181,24 @@ func (s *GroupService) ListAllGroupDetail(ctx context.Context, req *pb.ListAllGr
 	}
 	return &pb.ListAllGroupDetailReply{
 		GroupList: list,
+	}, nil
+}
+
+// ListAllGroupDetailV2 .
+func (s *GroupService) ListAllGroupDetailV2(ctx context.Context, req *pb.ListAllGroupDetailV2Request) (*pb.ListAllGroupDetailV2Reply, error) {
+	strategyGroupBoList, err := s.strategyGroupBiz.ListAllGroupDetail(ctx, &bo.ListAllGroupDetailParams{GroupIds: req.GetGroupIds()})
+	if err != nil {
+		s.log.Errorf("ListAllGroupDetailV2 error: %v", err)
+		return nil, err
+	}
+
+	return &pb.ListAllGroupDetailV2Reply{
+		GroupList: slices.ToFilter(strategyGroupBoList, func(t *bo.StrategyGroupBO) (*api.EvaluateGroup, bool) {
+			if t.Status != vobj.StatusEnabled {
+				return nil, false
+			}
+			return t.ToApiV2(), true
+		}),
 	}, nil
 }
 

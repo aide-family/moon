@@ -108,6 +108,7 @@ message Interflow {
     Kafka kafka = 1;
   }
 
-  Hook hook = 1;
-  MQ mq = 2;
+  string version = 1;
+  Hook hook = 2;
+  MQ mq = 3;
 }

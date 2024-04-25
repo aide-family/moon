@@ -86,6 +86,18 @@ func (l *EndpointBO) ToApiV1() *api.PrometheusServerItem {
 	}
 }
 
+// ToApiV2 to api v2
+func (l *EndpointBO) ToApiV2() *api.StrategyDatasource {
+	if l == nil {
+		return nil
+	}
+	return &api.StrategyDatasource{
+		Endpoint:       l.Endpoint,
+		BasicAuth:      l.BasicAuth.String(),
+		DatasourceType: 1, // TODO 多数据源时候需要修改
+	}
+}
+
 func (l *EndpointBO) ToApiSelectV1() *api.PrometheusServerSelectItem {
 	if l == nil {
 		return nil

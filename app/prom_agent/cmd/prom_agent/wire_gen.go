@@ -48,7 +48,8 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	watchProm := bootstrap.WatchProm
 	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, interflow, logger)
 	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
-	loadService := service.NewLoadService(alarmBiz, logger)
+	evaluateBiz := biz.NewEvaluateBiz(logger)
+	loadService := service.NewLoadService(alarmBiz, evaluateBiz, logger)
 	watch, err := server.NewWatch(watchProm, dataData, loadService, logger)
 	if err != nil {
 		cleanup()

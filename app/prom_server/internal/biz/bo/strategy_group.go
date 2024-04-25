@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -35,6 +36,10 @@ type (
 		DeletedAt           int64       `json:"deletedAt"`
 
 		PromStrategies []*StrategyBO `json:"promStrategies"`
+	}
+
+	ListAllGroupDetailParams struct {
+		GroupIds []uint32 `json:"groupIds"`
 	}
 )
 
@@ -125,6 +130,23 @@ func (b *StrategyGroupBO) ToSimpleApi() *api.GroupSimple {
 		Name: b.Name,
 		Strategies: slices.To(b.GetPromStrategies(), func(u *StrategyBO) *api.StrategySimple {
 			return u.ToSimpleApi()
+		}),
+	}
+}
+
+// ToApiV2 .
+func (b *StrategyGroupBO) ToApiV2() *api.EvaluateGroup {
+	if b == nil {
+		return nil
+	}
+	return &api.EvaluateGroup{
+		Id:   b.Id,
+		Name: b.Name,
+		Strategies: slices.ToFilter(b.GetPromStrategies(), func(ru *StrategyBO) (*api.EvaluateStrategyItem, bool) {
+			if pkg.IsNil(ru) || !ru.Status.IsEnabled() || pkg.IsNil(ru.Endpoint) || ru.GetEndpoint().Endpoint == "" {
+				return nil, false
+			}
+			return ru.ToApiV2(), true
 		}),
 	}
 }

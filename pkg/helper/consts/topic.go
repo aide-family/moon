@@ -43,3 +43,8 @@ func (t TopicType) IsRegistered() bool {
 		return false
 	}
 }
+
+// IsStrategyGroupAllTopic 判断TopicType是否为策略组所有节点数据推送主题
+func (t TopicType) IsStrategyGroupAllTopic() bool {
+	return t == StrategyGroupAllTopic
+}

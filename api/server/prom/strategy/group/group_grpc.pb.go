@@ -27,6 +27,7 @@ const (
 	Group_GetGroup_FullMethodName               = "/api.server.prom.strategy.group.Group/GetGroup"
 	Group_ListGroup_FullMethodName              = "/api.server.prom.strategy.group.Group/ListGroup"
 	Group_ListAllGroupDetail_FullMethodName     = "/api.server.prom.strategy.group.Group/ListAllGroupDetail"
+	Group_ListAllGroupDetailV2_FullMethodName   = "/api.server.prom.strategy.group.Group/ListAllGroupDetailV2"
 	Group_SelectGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/SelectGroup"
 	Group_ImportGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/ImportGroup"
 	Group_ExportGroup_FullMethodName            = "/api.server.prom.strategy.group.Group/ExportGroup"
@@ -52,6 +53,8 @@ type GroupClient interface {
 	ListGroup(ctx context.Context, in *ListGroupRequest, opts ...grpc.CallOption) (*ListGroupReply, error)
 	// 获取策略组列表明细
 	ListAllGroupDetail(ctx context.Context, in *ListAllGroupDetailRequest, opts ...grpc.CallOption) (*ListAllGroupDetailReply, error)
+	// 获取策略组列表明细V2
+	ListAllGroupDetailV2(ctx context.Context, in *ListAllGroupDetailV2Request, opts ...grpc.CallOption) (*ListAllGroupDetailV2Reply, error)
 	// 获取策略组下拉列表
 	SelectGroup(ctx context.Context, in *SelectGroupRequest, opts ...grpc.CallOption) (*SelectGroupReply, error)
 	// 导入策略组
@@ -140,6 +143,15 @@ func (c *groupClient) ListAllGroupDetail(ctx context.Context, in *ListAllGroupDe
 	return out, nil
 }
 
+func (c *groupClient) ListAllGroupDetailV2(ctx context.Context, in *ListAllGroupDetailV2Request, opts ...grpc.CallOption) (*ListAllGroupDetailV2Reply, error) {
+	out := new(ListAllGroupDetailV2Reply)
+	err := c.cc.Invoke(ctx, Group_ListAllGroupDetailV2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *groupClient) SelectGroup(ctx context.Context, in *SelectGroupRequest, opts ...grpc.CallOption) (*SelectGroupReply, error) {
 	out := new(SelectGroupReply)
 	err := c.cc.Invoke(ctx, Group_SelectGroup_FullMethodName, in, out, opts...)
@@ -187,6 +199,8 @@ type GroupServer interface {
 	ListGroup(context.Context, *ListGroupRequest) (*ListGroupReply, error)
 	// 获取策略组列表明细
 	ListAllGroupDetail(context.Context, *ListAllGroupDetailRequest) (*ListAllGroupDetailReply, error)
+	// 获取策略组列表明细V2
+	ListAllGroupDetailV2(context.Context, *ListAllGroupDetailV2Request) (*ListAllGroupDetailV2Reply, error)
 	// 获取策略组下拉列表
 	SelectGroup(context.Context, *SelectGroupRequest) (*SelectGroupReply, error)
 	// 导入策略组
@@ -223,6 +237,9 @@ func (UnimplementedGroupServer) ListGroup(context.Context, *ListGroupRequest) (*
 }
 func (UnimplementedGroupServer) ListAllGroupDetail(context.Context, *ListAllGroupDetailRequest) (*ListAllGroupDetailReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllGroupDetail not implemented")
+}
+func (UnimplementedGroupServer) ListAllGroupDetailV2(context.Context, *ListAllGroupDetailV2Request) (*ListAllGroupDetailV2Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllGroupDetailV2 not implemented")
 }
 func (UnimplementedGroupServer) SelectGroup(context.Context, *SelectGroupRequest) (*SelectGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectGroup not implemented")
@@ -390,6 +407,24 @@ func _Group_ListAllGroupDetail_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Group_ListAllGroupDetailV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllGroupDetailV2Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServer).ListAllGroupDetailV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Group_ListAllGroupDetailV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServer).ListAllGroupDetailV2(ctx, req.(*ListAllGroupDetailV2Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Group_SelectGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SelectGroupRequest)
 	if err := dec(in); err != nil {
@@ -482,6 +517,10 @@ var Group_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllGroupDetail",
 			Handler:    _Group_ListAllGroupDetail_Handler,
+		},
+		{
+			MethodName: "ListAllGroupDetailV2",
+			Handler:    _Group_ListAllGroupDetailV2_Handler,
 		},
 		{
 			MethodName: "SelectGroup",

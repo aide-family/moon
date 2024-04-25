@@ -123,9 +123,10 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService, templateService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService, syslogService)
+	interflow := bootstrap.Interflow
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
-	alarmEvent, err := server.NewAlarmEvent(dataData, v3, v4, hookService, groupService, logger)
+	alarmEvent, err := server.NewAlarmEvent(dataData, interflow, v3, v4, hookService, groupService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

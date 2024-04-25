@@ -11,6 +11,9 @@ option java_package = "api.agent";
 service Load {
   // 校验规则
   rpc Evaluate (EvaluateRequest) returns (EvaluateReply);
+
+  // 校验规则
+  rpc EvaluateV2 (EvaluateV2Request) returns (EvaluateV2Reply);
 }
 
 message StrategyGroupAllRequest {}
@@ -31,3 +34,12 @@ message EvaluateRequest {
   repeated GroupSimple groupList = 1;
 }
 message EvaluateReply {}
+
+message EvaluateV2Request {
+  repeated EvaluateGroup groupList = 1;
+}
+
+message EvaluateV2Reply {
+  string message = 1;
+  int32 code = 2;
+}

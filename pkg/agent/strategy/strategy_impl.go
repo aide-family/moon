@@ -12,6 +12,9 @@ import (
 var _ Ruler = (*EvalRule)(nil)
 
 func (e *EvalRule) Eval(ctx context.Context) (*agent.Alarm, error) {
+	if e == nil {
+		return nil, nil
+	}
 	timeNow := time.Now()
 	e.SetEventsAt(timeNow)
 	value, err := e.datasource.Query(ctx, e.GetExpr(), timeNow.Unix()-int64(10*time.Second.Seconds()))

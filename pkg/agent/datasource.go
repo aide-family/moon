@@ -153,6 +153,7 @@ const (
 	Elasticsearch
 	Influxdb
 	Clickhouse
+	Loki
 )
 
 var _category = map[Category]string{
@@ -161,6 +162,7 @@ var _category = map[Category]string{
 	Elasticsearch:   "elasticsearch",
 	Influxdb:        "influxdb",
 	Clickhouse:      "clickhouse",
+	Loki:            "loki",
 }
 
 // String implements Stringer

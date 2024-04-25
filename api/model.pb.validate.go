@@ -4209,6 +4209,431 @@ var _ interface {
 	ErrorName() string
 } = StrategySimpleValidationError{}
 
+// Validate checks the field values on StrategyDatasource with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *StrategyDatasource) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StrategyDatasource with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// StrategyDatasourceMultiError, or nil if none found.
+func (m *StrategyDatasource) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StrategyDatasource) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Endpoint
+
+	// no validation rules for BasicAuth
+
+	if _, ok := DatasourceType_name[int32(m.GetDatasourceType())]; !ok {
+		err := StrategyDatasourceValidationError{
+			field:  "DatasourceType",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return StrategyDatasourceMultiError(errors)
+	}
+
+	return nil
+}
+
+// StrategyDatasourceMultiError is an error wrapping multiple validation errors
+// returned by StrategyDatasource.ValidateAll() if the designated constraints
+// aren't met.
+type StrategyDatasourceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StrategyDatasourceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StrategyDatasourceMultiError) AllErrors() []error { return m }
+
+// StrategyDatasourceValidationError is the validation error returned by
+// StrategyDatasource.Validate if the designated constraints aren't met.
+type StrategyDatasourceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StrategyDatasourceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StrategyDatasourceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StrategyDatasourceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StrategyDatasourceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StrategyDatasourceValidationError) ErrorName() string {
+	return "StrategyDatasourceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e StrategyDatasourceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStrategyDatasource.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StrategyDatasourceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StrategyDatasourceValidationError{}
+
+// Validate checks the field values on EvaluateStrategyItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EvaluateStrategyItem) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateStrategyItem with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EvaluateStrategyItemMultiError, or nil if none found.
+func (m *EvaluateStrategyItem) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateStrategyItem) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Alert
+
+	// no validation rules for Expr
+
+	if all {
+		switch v := interface{}(m.GetDuration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EvaluateStrategyItemValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EvaluateStrategyItemValidationError{
+					field:  "Duration",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EvaluateStrategyItemValidationError{
+				field:  "Duration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Labels
+
+	// no validation rules for Annotations
+
+	if all {
+		switch v := interface{}(m.GetDatasource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EvaluateStrategyItemValidationError{
+					field:  "Datasource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EvaluateStrategyItemValidationError{
+					field:  "Datasource",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDatasource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EvaluateStrategyItemValidationError{
+				field:  "Datasource",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EvaluateStrategyItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateStrategyItemMultiError is an error wrapping multiple validation
+// errors returned by EvaluateStrategyItem.ValidateAll() if the designated
+// constraints aren't met.
+type EvaluateStrategyItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateStrategyItemMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateStrategyItemMultiError) AllErrors() []error { return m }
+
+// EvaluateStrategyItemValidationError is the validation error returned by
+// EvaluateStrategyItem.Validate if the designated constraints aren't met.
+type EvaluateStrategyItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateStrategyItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateStrategyItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateStrategyItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateStrategyItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateStrategyItemValidationError) ErrorName() string {
+	return "EvaluateStrategyItemValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EvaluateStrategyItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateStrategyItem.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateStrategyItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateStrategyItemValidationError{}
+
+// Validate checks the field values on EvaluateGroup with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EvaluateGroup) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateGroup with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EvaluateGroupMultiError, or
+// nil if none found.
+func (m *EvaluateGroup) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateGroup) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	for idx, item := range m.GetStrategies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EvaluateGroupValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EvaluateGroupValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EvaluateGroupValidationError{
+					field:  fmt.Sprintf("Strategies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return EvaluateGroupMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateGroupMultiError is an error wrapping multiple validation errors
+// returned by EvaluateGroup.ValidateAll() if the designated constraints
+// aren't met.
+type EvaluateGroupMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateGroupMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateGroupMultiError) AllErrors() []error { return m }
+
+// EvaluateGroupValidationError is the validation error returned by
+// EvaluateGroup.Validate if the designated constraints aren't met.
+type EvaluateGroupValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateGroupValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateGroupValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateGroupValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateGroupValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateGroupValidationError) ErrorName() string { return "EvaluateGroupValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EvaluateGroupValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateGroup.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateGroupValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateGroupValidationError{}
+
 // Validate checks the field values on MyChart with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

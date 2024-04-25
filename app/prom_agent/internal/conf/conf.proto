@@ -72,6 +72,8 @@ message Log {
 message WatchProm {
   // 频率
   google.protobuf.Duration interval = 1;
+  // 版本
+  string version = 2;
 }
 
 

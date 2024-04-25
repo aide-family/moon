@@ -48,6 +48,9 @@ type PrometheusDatasource struct {
 }
 
 func (p *PrometheusDatasource) Metadata(ctx context.Context) (*agent.Metadata, error) {
+	if !p.IsReady() {
+		return nil, fmt.Errorf("datasource not ready")
+	}
 	now := time.Now()
 	metadataInfo, err := p.metadata(ctx)
 	if err != nil {
@@ -110,6 +113,9 @@ func (p *PrometheusDatasource) Metadata(ctx context.Context) (*agent.Metadata, e
 
 // metadata 获取原始数据
 func (p *PrometheusDatasource) metadata(ctx context.Context) (map[string][]MetricInfo, error) {
+	if !p.IsReady() {
+		return nil, fmt.Errorf("datasource not ready")
+	}
 	hx := httpx.NewHttpX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
@@ -132,6 +138,9 @@ func (p *PrometheusDatasource) metadata(ctx context.Context) (map[string][]Metri
 
 // series 查询时间序列
 func (p *PrometheusDatasource) series(ctx context.Context, t time.Time, metricNames ...string) (map[string]MetricLabel, error) {
+	if !p.IsReady() {
+		return nil, fmt.Errorf("datasource not ready")
+	}
 	now := t
 	// 获取此格式时间2024-04-21T17:58:55.061Z
 	start := now.Add(-time.Hour * 24).Format("2006-01-02T15:04:05.000Z")
@@ -187,6 +196,9 @@ func (p *PrometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 }
 
 func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration int64) (*agent.QueryResponse, error) {
+	if !p.IsReady() {
+		return nil, fmt.Errorf("datasource not ready")
+	}
 	params := httpx.ParseQuery(map[string]any{
 		"query": expr,
 		"time":  duration,
@@ -259,4 +271,9 @@ func (p *PrometheusDatasource) WithBasicAuth(basicAuth *agent.BasicAuth) agent.D
 	defer p.mut.Unlock()
 	p.basicAuth = basicAuth
 	return p
+}
+
+// IsReady 是否准备就绪
+func (p *PrometheusDatasource) IsReady() bool {
+	return p != nil && p.endpoint != ""
 }

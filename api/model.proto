@@ -544,6 +544,40 @@ message StrategySimple {
   string basicAuth = 10;
 }
 
+message StrategyDatasource {
+  // 数据源
+  string endpoint = 1;
+  // 基础认证字符串
+  string basicAuth = 2;
+  // 数据源类型
+  DatasourceType datasourceType = 3 [(validate.rules).enum.defined_only = true];
+}
+
+message EvaluateStrategyItem {
+  // 策略ID
+  uint32 id = 1;
+  // 告警名称
+  string alert = 2;
+  // 表达式
+  string expr = 3;
+  // 持续时间
+  Duration duration = 4;
+  // 标签
+  map<string, string> labels = 5;
+  // 注解
+  map<string, string> annotations = 6;
+
+  StrategyDatasource datasource = 7;
+}
+
+message EvaluateGroup {
+  // 策略组ID
+  uint32 id = 1;
+  // 策略组名称
+  string name = 2;
+  repeated EvaluateStrategyItem strategies = 3;
+}
+
 message MyChart {
   // 图表标题
   string title = 1;
@@ -586,7 +620,7 @@ message PromRule {
   string alert = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 255,
-//    pattern: "^[a-zA-Z0-9_]+$"
+    //    pattern: "^[a-zA-Z0-9_]+$"
   }];
   // 规则表达式
   string expr = 2 [(validate.rules).string = {
@@ -620,7 +654,7 @@ message PromRuleGroup {
   string name = 1 [(validate.rules).string = {
     min_len: 1,
     max_len: 32,
-//    pattern: "^[a-zA-Z0-9_]+$"
+    //    pattern: "^[a-zA-Z0-9_]+$"
   }];
   // Prometheus原始规则列表
   repeated PromRule rules = 2 [(validate.rules).repeated = {

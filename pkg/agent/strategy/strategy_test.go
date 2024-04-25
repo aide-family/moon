@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/agent"
-	nutsdbCache "github.com/aide-family/moon/pkg/agent/cacher/nutsdb"
+	nutsdbCache "github.com/aide-family/moon/pkg/agent/cacher/nutsdbcache"
 	"github.com/aide-family/moon/pkg/agent/datasource/p8s"
 	"github.com/aide-family/moon/pkg/agent/strategy"
 	"github.com/nutsdb/nutsdb"

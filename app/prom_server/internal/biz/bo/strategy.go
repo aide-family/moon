@@ -187,6 +187,24 @@ func (b *StrategyBO) ToApiSelectV1() []*api.DictSelectV1 {
 	return ListToApiDictSelectV1(b.GetAlarmPages()...)
 }
 
+// ToApiV2 策略转换为api策略
+func (b *StrategyBO) ToApiV2() *api.EvaluateStrategyItem {
+	if b == nil {
+		return nil
+	}
+	strategyBO := b
+	return &api.EvaluateStrategyItem{
+		Id:       strategyBO.Id,
+		Alert:    strategyBO.Alert,
+		Expr:     strategyBO.Expr,
+		Duration: BuildApiDuration(strategyBO.Duration),
+		// TODO 增加规则组，等信息label
+		Labels:      strategyBO.GetLabels().Map(),
+		Annotations: strategyBO.GetAnnotations().Map(),
+		Datasource:  strategyBO.GetEndpoint().ToApiV2(),
+	}
+}
+
 // CategoryInfoToApiSelectV1 分类信息转换为api分类列表
 func (b *StrategyBO) CategoryInfoToApiSelectV1() []*api.DictSelectV1 {
 	return ListToApiDictSelectV1(b.GetCategories()...)

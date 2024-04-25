@@ -3,6 +3,8 @@ package data
 import (
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/pkg"
+	"github.com/aide-family/moon/pkg/agent"
+	"github.com/aide-family/moon/pkg/agent/cacher"
 	"github.com/aide-family/moon/pkg/conn"
 	"github.com/aide-family/moon/pkg/servers"
 	"github.com/aide-family/moon/pkg/strategy"
@@ -19,6 +21,7 @@ var ProviderSetData = wire.NewSet(NewData, NewPingRepo)
 // Data .
 type Data struct {
 	cache             cache.GlobalCache
+	cacheV2           agent.Cache
 	interflowInstance interflow.AgentInterflow
 
 	log *log.Helper
@@ -26,6 +29,10 @@ type Data struct {
 
 func (d *Data) Cache() cache.GlobalCache {
 	return d.cache
+}
+
+func (d *Data) CacheV2() agent.Cache {
+	return d.cacheV2
 }
 
 func (d *Data) Interflow() interflow.AgentInterflow {
@@ -38,15 +45,30 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		log: log.NewHelper(log.With(logger, "module", "data")),
 	}
 	redisConf := c.GetData().GetRedis()
+	var cahcerOpts []cacher.Option
 	if redisConf != nil {
+		cahcerOpts = append(cahcerOpts, cacher.WithRedis(conn.NewRedisClient(redisConf)))
 		d.cache = cache.NewRedisGlobalCache(conn.NewRedisClient(redisConf))
 	} else {
+		cahcerOpts = append(cahcerOpts, cacher.WithDefaultNutsDB("./cache/v2"))
 		globalCache, err := cache.NewNutsDbCache()
 		if err != nil {
 			return nil, nil, err
 		}
 		d.cache = globalCache
 	}
+	agentCache, err := cacher.New(cahcerOpts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 注册V2缓存全局组件
+	d.cacheV2 = agentCache
+	agent.SetGlobalCache(d.CacheV2())
+
+	// 注册全局告警缓存组件
+	alarmCache := strategy.NewAlarmCache(d.Cache())
+	strategy.SetAlarmCache(alarmCache)
 
 	interflowConf := c.GetInterflow()
 	hookConf := conf.BuilderInterflowHook(interflowConf.GetHook())
@@ -71,10 +93,6 @@ func NewData(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 	d.interflowInstance = interflowInstance
-
-	// 注册全局告警缓存组件
-	alarmCache := strategy.NewAlarmCache(d.Cache())
-	strategy.SetAlarmCache(alarmCache)
 
 	cleanup := func() {
 		if err = d.Cache().Close(); err != nil {

@@ -67,9 +67,14 @@ apiWhite:
 #  maxSize: 2
 #  compress: true
 
-# 配置mq则使用mq通信， 否则使用内部hook通信
-#mq:
-#  kafka:
-#    groupId: prometheus-server
-#    endpoints:
-#      - host.docker.internal:9092
+
+interflow:
+  version: v2
+  hook:
+    network: http
+  # 配置mq则使用mq通信， 否则使用内部hook通信
+#  mq:
+#    kafka:
+#      groupId: prometheus-server
+#      endpoints:
+#        - host.docker.internal:9092
