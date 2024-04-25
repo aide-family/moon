@@ -40,14 +40,14 @@ type Watch struct {
 }
 
 func NewWatch(
-	c *conf.WatchProm,
+	c *conf.Interflow,
 	d *data.Data,
 	loadService *service.LoadService,
 	logger log.Logger,
 ) (*Watch, error) {
 	w := &Watch{
 		exitCh:            make(chan struct{}, 1),
-		ticker:            time.NewTicker(c.GetInterval().AsDuration()),
+		ticker:            time.NewTicker(c.GetWatchProm().GetInterval().AsDuration()),
 		log:               log.NewHelper(log.With(logger, "module", "server.watch")),
 		loadService:       loadService,
 		groups:            new(sync.Map),

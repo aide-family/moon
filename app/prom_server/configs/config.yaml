@@ -60,14 +60,6 @@ apiWhite:
     - /api.server.auth.Auth/Logout
     - /api.server.auth.Auth/RefreshToken
 
-#log:
-#  filename: ./log/prometheus-server.log
-#  level: debug
-#  encoder: json
-#  maxSize: 2
-#  compress: true
-
-
 interflow:
   version: v2
   hook:

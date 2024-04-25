@@ -12,10 +12,10 @@ env:
 
 server:
   http:
-    addr: 0.0.0.0:8001
+    addr: 0.0.0.0:8000
     timeout: 10s
   grpc:
-    addr: 0.0.0.0:9001
+    addr: 0.0.0.0:9000
     timeout: 10s
 #data:
 #  # 配置redis， 缓存使用redis， 否则使用本地存储
@@ -31,20 +31,19 @@ log:
   maxSize: 500
   compress: true
 
-watchProm:
-  interval: 10s
-  version: v2
-
 # NOTE: 实际运行中需要替换为容器可访问地址，当前主机为容器在本地一站式拉起可访问的主机地址，生产根据自身配置修改
 interflow:
+  version: v2
+  watchProm:
+    interval: 10s
   hook:
     http:
       agent:
-#        url: http://host.docker.internal:8002/api/v1/interflows/receive
-        url: http://localhost:8001/api/v1/interflows/receive
+        url: http://host.docker.internal:8002/api/v1/interflows/receive
+#        url: http://localhost:8001/api/v1/interflows/receive
       server:
-#        url: http://host.docker.internal:8001/api/v1/interflows/receive
-        url: http://localhost:8000/api/v1/interflows/receive
+        url: http://host.docker.internal:8001/api/v1/interflows/receive
+#        url: http://localhost:8000/api/v1/interflows/receive
 
 #    grpc:
 #      agent:

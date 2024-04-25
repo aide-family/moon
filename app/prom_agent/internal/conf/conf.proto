@@ -10,8 +10,7 @@ message Bootstrap {
   Data data = 2;
   Env env = 3;
   Log log = 4;
-  WatchProm watchProm = 5;
-  Interflow interflow = 7;
+  Interflow interflow = 5;
 }
 
 message Server {
@@ -69,14 +68,6 @@ message Log {
   string encoder = 8;
 }
 
-message WatchProm {
-  // 频率
-  google.protobuf.Duration interval = 1;
-  // 版本
-  string version = 2;
-}
-
-
 message Interflow {
   // 默认通信方式
   message Hook {
@@ -111,6 +102,13 @@ message Interflow {
     // TODO 其他MQ在这里补充
   }
 
+  message WatchProm {
+    // 频率
+    google.protobuf.Duration interval = 1;
+  }
+  // 版本
+  string version = 1;
+  WatchProm watchProm = 2;
   Hook hook = 3;
   MQ mq = 4;
 }

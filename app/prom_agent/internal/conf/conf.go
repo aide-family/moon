@@ -16,7 +16,6 @@ var ProviderSetConf = wire.NewSet(
 	wire.FieldsOf(new(*Bootstrap), "Data"),
 	wire.FieldsOf(new(*Bootstrap), "Env"),
 	wire.FieldsOf(new(*Bootstrap), "Log"),
-	wire.FieldsOf(new(*Bootstrap), "WatchProm"),
 	wire.FieldsOf(new(*Bootstrap), "Interflow"),
 	wire.Bind(new(plog.Config), new(*Log)),
 	LoadConfig,

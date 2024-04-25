@@ -45,12 +45,11 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	interflow := bootstrap.Interflow
 	hookInterflowService := service.NewHookInterflowService(interflow, logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, hookService, hookInterflowService, logger)
-	watchProm := bootstrap.WatchProm
 	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, interflow, logger)
 	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
 	evaluateBiz := biz.NewEvaluateBiz(logger)
 	loadService := service.NewLoadService(alarmBiz, evaluateBiz, logger)
-	watch, err := server.NewWatch(watchProm, dataData, loadService, logger)
+	watch, err := server.NewWatch(interflow, dataData, loadService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
