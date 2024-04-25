@@ -43,6 +43,14 @@ type (
 	}
 )
 
+// GetId get id
+func (l *EndpointBO) GetId() uint32 {
+	if l == nil {
+		return 0
+	}
+	return l.Id
+}
+
 // GetBasicAuth get basic auth
 func (l *EndpointBO) GetBasicAuth() *strategy.BasicAuth {
 	if l == nil {

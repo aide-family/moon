@@ -34,6 +34,12 @@ type (
 	}
 )
 
+const (
+	LabelsKeyDatasourceID = "datasourceId"
+	LabelsKeyRuleID       = "ruleId"
+	LabelsKeyGroupID      = "groupID"
+)
+
 // GetID get rule id
 func (e *EvalRule) GetID() string {
 	if e == nil {

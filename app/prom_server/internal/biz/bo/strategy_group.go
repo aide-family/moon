@@ -43,6 +43,14 @@ type (
 	}
 )
 
+// GetId .
+func (b *StrategyGroupBO) GetId() uint32 {
+	if b == nil {
+		return 0
+	}
+	return b.Id
+}
+
 // String json string
 func (b *StrategyGroupBO) String() string {
 	if b == nil {

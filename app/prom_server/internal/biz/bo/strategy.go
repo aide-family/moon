@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	agentStrategy "github.com/aide-family/moon/pkg/agent/strategy"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
@@ -65,6 +66,14 @@ type (
 		Templates []*NotifyTemplateBO `json:"templates"`
 	}
 )
+
+// GetId 获取策略ID
+func (b *StrategyBO) GetId() uint32 {
+	if b == nil {
+		return 0
+	}
+	return b.Id
+}
 
 // String json string
 func (b *StrategyBO) String() string {
@@ -199,7 +208,11 @@ func (b *StrategyBO) ToApiV2() *api.EvaluateStrategyItem {
 		Expr:     strategyBO.Expr,
 		Duration: BuildApiDuration(strategyBO.Duration),
 		// TODO 增加规则组，等信息label
-		Labels:      strategyBO.GetLabels().Map(),
+		Labels: strategyBO.GetLabels().AppendAll(map[string]string{
+			agentStrategy.LabelsKeyDatasourceID: strconv.FormatUint(uint64(strategyBO.GetEndpoint().GetId()), 10),
+			agentStrategy.LabelsKeyGroupID:      strconv.FormatUint(uint64(strategyBO.GetGroupInfo().GetId()), 10),
+			agentStrategy.LabelsKeyRuleID:       strconv.FormatUint(uint64(strategyBO.GetId()), 10),
+		}).Map(),
 		Annotations: strategyBO.GetAnnotations().Map(),
 		Datasource:  strategyBO.GetEndpoint().ToApiV2(),
 	}
