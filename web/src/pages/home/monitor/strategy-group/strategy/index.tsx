@@ -151,7 +151,8 @@ const Strategy: FC = () => {
     }
 
     const handlerBatchDelete = (ids: number[]) => {
-        console.log(ids)
+        setLoading(true)
+        strategyApi.batchDeleteStrategy(ids).finally(() => setLoading(false))
     }
 
     // 批量修改状态

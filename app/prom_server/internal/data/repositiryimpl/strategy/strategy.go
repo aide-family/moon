@@ -249,7 +249,7 @@ func (l *strategyRepoImpl) DeleteStrategyByIds(ctx context.Context, ids ...uint3
 		return err
 	}
 	whereList := []basescopes.ScopeMethod{
-		basescopes.InIds(groupIds...),
+		basescopes.InIds(ids...),
 		basescopes.WithCreateBy(ctx),
 	}
 
