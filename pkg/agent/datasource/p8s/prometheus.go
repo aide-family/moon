@@ -3,6 +3,7 @@ package p8s
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -24,6 +25,7 @@ const (
 	prometheusApiV1Series = "/api/v1/series"
 )
 
+// NewPrometheusDatasource 创建 prometheus 数据源
 func NewPrometheusDatasource(opts ...Option) agent.Datasource {
 	p := &PrometheusDatasource{
 		category: agent.Prometheus,
@@ -35,23 +37,27 @@ func NewPrometheusDatasource(opts ...Option) agent.Datasource {
 	return p
 }
 
-// PrometheusDatasource 数据源
+// PrometheusDatasource 数据源模型定义
 type PrometheusDatasource struct {
-	// 地址
+	// endpoint 数据源地址
 	endpoint string
-	// 数据源类型
+	// category 数据源类型
 	category agent.Category
-	// 基础认证
+	// basicAuth 数据源基础认证
 	basicAuth *agent.BasicAuth
 
+	// mut 读写锁， 并发安全
 	mut sync.RWMutex
 }
 
+// Metadata 实现数据源元数据获取接口
 func (p *PrometheusDatasource) Metadata(ctx context.Context) (*agent.Metadata, error) {
+	// 判断数据源是否就绪
 	if !p.IsReady() {
-		return nil, fmt.Errorf("datasource not ready")
+		return nil, errors.New("datasource not ready")
 	}
 	now := time.Now()
+	// 获取元数据
 	metadataInfo, err := p.metadata(ctx)
 	if err != nil {
 		return nil, err
@@ -67,6 +73,7 @@ func (p *PrometheusDatasource) Metadata(ctx context.Context) (*agent.Metadata, e
 	batchNum := 20
 	namesLen := len(metricNames)
 	eg := new(errgroup.Group)
+	// 因为数据量比较大， 这里并发获取各个metric的元数据， 并且将结果写入到metrics中
 	for i := 0; i < namesLen; i += batchNum {
 		left := i
 		right := left + batchNum
@@ -195,9 +202,11 @@ func (p *PrometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 	return res, nil
 }
 
+// Query 实现数据源查询接口
 func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration int64) (*agent.QueryResponse, error) {
+	// 判断数据源是否就绪
 	if !p.IsReady() {
-		return nil, fmt.Errorf("datasource not ready")
+		return nil, errors.New("datasource not ready")
 	}
 	params := httpx.ParseQuery(map[string]any{
 		"query": expr,
@@ -254,15 +263,22 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 	}, nil
 }
 
+// GetCategory 获取数据源类型
 func (p *PrometheusDatasource) GetCategory() agent.Category {
+	p.mut.RLocker()
+	defer p.mut.RUnlock()
 	return p.category
 }
 
 func (p *PrometheusDatasource) GetEndpoint() string {
+	p.mut.RLocker()
+	defer p.mut.RUnlock()
 	return p.endpoint
 }
 
 func (p *PrometheusDatasource) GetBasicAuth() *agent.BasicAuth {
+	p.mut.RLocker()
+	defer p.mut.RUnlock()
 	return p.basicAuth
 }
 
@@ -275,5 +291,5 @@ func (p *PrometheusDatasource) WithBasicAuth(basicAuth *agent.BasicAuth) agent.D
 
 // IsReady 是否准备就绪
 func (p *PrometheusDatasource) IsReady() bool {
-	return p != nil && p.endpoint != ""
+	return p != nil && p.GetEndpoint() != ""
 }

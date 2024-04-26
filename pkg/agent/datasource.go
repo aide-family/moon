@@ -9,49 +9,94 @@ import (
 )
 
 type (
+	// Metric 查询到的数据labels
 	Metric map[string]string
 
+	// Result 查询到的数据
 	Result struct {
-		Metric Metric  `json:"metric"`
-		Ts     float64 `json:"ts"`
-		Value  float64 `json:"value"`
+		// Metric 查询到的数据labels
+		Metric Metric `json:"metric"`
+		// Ts 时间戳
+		Ts float64 `json:"ts"`
+		// Value 值
+		Value float64 `json:"value"`
 	}
 
+	// Data 查询到的数据
 	Data struct {
-		ResultType string    `json:"resultType"`
-		Result     []*Result `json:"result"`
+		// ResultType 查询到的数据类型
+		ResultType string `json:"resultType"`
+		// Result 查询到的数据集合
+		Result []*Result `json:"result"`
 	}
 
+	// QueryResponse 查询结果
 	QueryResponse struct {
-		Status    string `json:"status"`
-		Data      *Data  `json:"data"`
+		// Status 状态
+		Status string `json:"status"`
+		// Data 数据
+		Data *Data `json:"data"`
+		// ErrorType 错误类型
 		ErrorType string `json:"errorType"`
-		Error     string `json:"error"`
+		// Error 错误信息
+		Error string `json:"error"`
 	}
 
+	// MetricDetail 查询到的数据详情， 用与元数据构建
 	MetricDetail struct {
-		Name   string `json:"name"`
-		Help   string `json:"help"`
-		Type   string `json:"type"`
+		// Name 指标名称
+		Name string `json:"name"`
+		// Help 帮助信息
+		Help string `json:"help"`
+		// Type 类型
+		Type string `json:"type"`
+		// Labels 标签集合
 		Labels Labels `json:"labels"`
-		Unit   string `json:"unit"`
+		// Unit 指标单位
+		Unit string `json:"unit"`
 	}
 
+	// Metadata 查询到的元数据详情
 	Metadata struct {
+		// Metric 元数据列表
 		Metric []*MetricDetail `json:"metric"`
-		Unix   int64           `json:"unix"`
+		// Unix 查询时间戳
+		Unix int64 `json:"unix"`
 	}
 
+	// Datasource 数据源完整接口定义
 	Datasource interface {
+		// Query 查询数据
 		Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
+		// Metadata 查询元数据
 		Metadata(ctx context.Context) (*Metadata, error)
+		// GetCategory 获取数据源类型
 		GetCategory() Category
+		// GetEndpoint 获取数据源http地址
 		GetEndpoint() string
+		// GetBasicAuth 获取数据源http认证信息, 可选
 		GetBasicAuth() *BasicAuth
+		// WithBasicAuth 设置数据源http认证信息, 可选
 		WithBasicAuth(basicAuth *BasicAuth) Datasource
 	}
 
+	// Category 数据源类型, 定义类型如下
 	Category int32
+)
+
+const (
+	// Prometheus Prometheus数据源类型，默认为该类型
+	Prometheus Category = iota
+	// VictoriaMetrics VictoriaMetrics数据源类型
+	VictoriaMetrics
+	// Elasticsearch Elasticsearch数据源类型
+	Elasticsearch
+	// Influxdb Influxdb数据源类型
+	Influxdb
+	// Clickhouse Clickhouse数据源类型
+	Clickhouse
+	// Loki Loki数据源类型
+	Loki
 )
 
 // String Metric to string
@@ -146,15 +191,6 @@ func (r *Result) GetTs() float64 {
 	}
 	return r.Ts
 }
-
-const (
-	Prometheus Category = iota
-	VictoriaMetrics
-	Elasticsearch
-	Influxdb
-	Clickhouse
-	Loki
-)
 
 var _category = map[Category]string{
 	Prometheus:      "prometheus",
