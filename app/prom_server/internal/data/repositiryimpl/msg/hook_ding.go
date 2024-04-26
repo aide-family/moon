@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/pkg/httpx"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ HookNotify = (*dingNotify)(nil)
@@ -36,9 +36,12 @@ func (l *dingNotify) Alarm(ctx context.Context, url string, msg *HookNotifyMsg) 
 	})
 	reqUrl := fmt.Sprintf("%s&%s", url, params)
 	response, err := httpx.NewHttpX().POSTWithContext(ctx, reqUrl, []byte(msg.Content))
+	if err != nil {
+		return err
+	}
 	body := response.Body
-	resBytes, err := io.ReadAll(body)
 	defer body.Close()
+	resBytes, err := io.ReadAll(body)
 	if err != nil {
 		return err
 	}

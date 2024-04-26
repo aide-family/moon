@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/pkg/httpx"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ HookNotify = (*feishuNotify)(nil)
@@ -37,9 +37,12 @@ func (l *feishuNotify) Alarm(ctx context.Context, url string, msg *HookNotifyMsg
 	notifyMsg["sign"] = GenSign(msg.Secret, timeNow.Unix())
 	notifyMsgBytes, _ := json.Marshal(notifyMsg)
 	response, err := httpx.NewHttpX().POSTWithContext(ctx, url, notifyMsgBytes)
+	if err != nil {
+		return err
+	}
 	body := response.Body
-	resBytes, err := io.ReadAll(body)
 	defer body.Close()
+	resBytes, err := io.ReadAll(body)
 	if err != nil {
 		return err
 	}

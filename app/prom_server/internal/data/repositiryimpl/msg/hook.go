@@ -14,6 +14,7 @@ type HookNotifyMsg struct {
 }
 
 type HookNotify interface {
+	// Alarm 告警通知接口
 	Alarm(ctx context.Context, url string, msg *HookNotifyMsg) error
 }
 
