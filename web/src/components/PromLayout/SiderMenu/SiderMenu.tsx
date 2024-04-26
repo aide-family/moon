@@ -2,15 +2,17 @@ import { useContext, FC, useState, useEffect } from 'react'
 
 import type { ItemType } from 'antd/es/menu/hooks/useItems'
 
-import { Menu } from 'antd'
+import { Button, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { GlobalContext } from '@/context'
 
 import styles from './style/index.module.less'
+import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 
 export type SiderMenuProps = {
     items?: ItemType[]
     inlineCollapsed?: boolean
+    setCollapsed?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const SiderMenu: FC<SiderMenuProps> = (props) => {
@@ -18,7 +20,7 @@ const SiderMenu: FC<SiderMenuProps> = (props) => {
     const location = useLocation()
 
     const { menus } = useContext(GlobalContext)
-    const { items = menus, inlineCollapsed } = props
+    const { items = menus, inlineCollapsed, setCollapsed } = props
 
     const [openKeys, setOpenKeys] = useState<string[]>([])
     const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -35,37 +37,61 @@ const SiderMenu: FC<SiderMenuProps> = (props) => {
         setOpenKeys(openKeyList)
     }
 
-    const handleOnSelect = (key: string, keyPath: string[]) => {
-        setSelectedKeys(keyPath)
-        handleMenuOpenChange(keyPath)
+    const handleOnSelect = (key: string) => {
         navigate(key)
-        setOpenKeys(keyPath)
     }
 
     useEffect(() => {
         setSelectedKeys([location.pathname])
 
         const openKey = location.pathname.split('/').slice(1)
+        let keys: string[] = []
+        let key: string = ''
+        openKey.forEach((item) => {
+            key += '/' + item
+            if (key === '/home') {
+                return
+            }
+            keys.push(key)
+        })
         // 去掉最后一级
         openKey.pop()
-        setOpenKeys(['/' + openKey.join('/')])
+        setOpenKeys([...keys, '/' + openKey.join('/')])
+        setSelectedKeys(keys)
         setLocationPath(location.pathname)
-    }, [location.pathname])
+    }, [location.pathname, inlineCollapsed])
 
     return (
-        <Menu
-            className={styles.SiderMenu}
-            mode="inline"
-            items={items}
-            style={{
-                borderInlineEnd: 'none'
-            }}
-            openKeys={inlineCollapsed ? [] : openKeys}
-            onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
-            selectedKeys={selectedKeys}
-            onOpenChange={handleMenuOpenChange}
-            forceSubMenuRender
-        />
+        <>
+            <Menu
+                className={styles.SiderMenu}
+                mode="inline"
+                items={items}
+                style={{
+                    borderInlineEnd: 'none'
+                }}
+                openKeys={inlineCollapsed ? [] : openKeys}
+                defaultOpenKeys={openKeys}
+                onSelect={({ key }) => handleOnSelect(key)}
+                selectedKeys={selectedKeys}
+                onOpenChange={handleMenuOpenChange}
+                // forceSubMenuRender
+                // inlineCollapsed={inlineCollapsed}
+            ></Menu>
+            <Button
+                type="text"
+                style={{
+                    // 固定定位到最底部
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%'
+                }}
+                onClick={() => setCollapsed?.(!inlineCollapsed)}
+            >
+                {inlineCollapsed ? <RightOutlined /> : <LeftOutlined />}
+            </Button>
+        </>
     )
 }
 

@@ -46,9 +46,10 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
     } = useContext(GlobalContext)
     const navigator = useNavigate()
     const { watermark = user?.username } = props
-    const [collapsed, setCollapsed] = useState(true)
+    const [collapsed, setCollapsed] = useState(false)
 
     const handleOnMouseEnter = (e: MouseEvent) => {
+        return
         // 鼠标移入, 展开菜单
         if (e.type === 'mouseenter') {
             setCollapsed(false)
@@ -117,7 +118,10 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                         font={{ color: token.colorBgTextHover }}
                         className="wh100"
                     >
-                        <SiderMenu inlineCollapsed={collapsed} />
+                        <SiderMenu
+                            setCollapsed={setCollapsed}
+                            inlineCollapsed={collapsed}
+                        />
                     </Watermark>
                 </Sider>
 
