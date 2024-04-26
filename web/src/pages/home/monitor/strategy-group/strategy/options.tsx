@@ -981,12 +981,24 @@ export const tourSteps = (refs: {
 const TemplateTooltip = () => {
     return (
         <div>
-            <p>
-                告警内容，用于在告警信息中展示, 支持模板语法， 例如:
-                <br />
-                {'{{ $labels.instance }}'}
-            </p>
-            <hr />
+            告警内容，用于在告警信息中展示, 支持模板语法， 例如:
+            <br/>
+            <hr/>
+            <div style={{fontSize: '12px'}}>
+                {`告警状态: {{ .Status }}`}<br/>
+                {`告警标签: {{ .Labels }}`}<br/>
+                {`机器实例: {{ .Labels.instance }}`}<br/>
+                {`规则名称: {{ .Labels.alertname }}`}<br/>
+                {`告警内容: {{ .Annotations }}`}<br/>
+                {`告警描述: {{ .Annotations.summary }}`}<br/>
+                {`告警详情: {{ .Annotations.description }}`}<br/>
+                {`告警时间: {{ .StartsAt }}`}<br/>
+                {`恢复时间: {{ .EndsAt }}`}<br/>
+                {`链接地址: {{ .GeneratorURL }}`}<br/>
+                {`告警指纹: {{ .Fingerprint }}`}<br/>
+                {`当前值: {{ .Value }}`}<br/>
+            </div>
+            <hr/>
             <Button
                 type="link"
                 href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
