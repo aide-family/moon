@@ -212,6 +212,7 @@ func (b *StrategyBO) ToApiV2() *api.EvaluateStrategyItem {
 			agentStrategy.LabelsKeyDatasourceID: strconv.FormatUint(uint64(strategyBO.GetEndpoint().GetId()), 10),
 			agentStrategy.LabelsKeyGroupID:      strconv.FormatUint(uint64(strategyBO.GetGroupInfo().GetId()), 10),
 			agentStrategy.LabelsKeyRuleID:       strconv.FormatUint(uint64(strategyBO.GetId()), 10),
+			agentStrategy.LabelsKeyLevelID:      strconv.FormatUint(uint64(strategyBO.GetAlarmLevelInfo().GetId()), 10),
 		}).Map(),
 		Annotations: strategyBO.GetAnnotations().Map(),
 		Datasource:  strategyBO.GetEndpoint().ToApiV2(),

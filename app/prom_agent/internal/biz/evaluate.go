@@ -21,15 +21,15 @@ func (b *EvaluateBiz) EvaluateV2(ctx context.Context, req *bo.EvaluateReqBo) ([]
 	alarms := make([]*agent.Alarm, 0, 100)
 	for _, group := range req.GroupList {
 		for _, strategy := range group.StrategyList {
-			alarm, err := strategy.ToEvaluateRule().Eval(ctx)
+			alarmList, err := strategy.ToEvaluateRule().Eval(ctx)
 			if err != nil {
 				b.log.Errorf("strategy eval error: %v", err)
 				continue
 			}
-			if alarm == nil {
+			if alarmList == nil || len(alarmList) == 0 {
 				continue
 			}
-			alarms = append(alarms, alarm)
+			alarms = append(alarms, alarmList...)
 		}
 	}
 	return alarms, nil

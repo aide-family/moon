@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/aide-cloud/universal/base/slices"
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type AlarmRealtimeBiz struct {
@@ -89,7 +89,28 @@ func (l *AlarmRealtimeBiz) HandleRealtime(ctx context.Context, req ...*bo.AlarmR
 	if len(req) == 0 {
 		return nil, nil
 	}
-	realtimeAlarmBOs, err := l.realtimeRepo.Create(ctx, req...)
+	historyIds := slices.To(req, func(item *bo.AlarmRealtimeBO) uint32 {
+		return item.HistoryID
+	})
+
+	// 查询已经存在的告警
+	realtimeAlarmBOs, err := l.realtimeRepo.GetRealtimeList(ctx, nil, do.PromAlarmRealtimeInHistoryIds(historyIds...))
+	if err != nil {
+		return nil, err
+	}
+
+	realtimeAlarmMap := make(map[uint32]*bo.AlarmRealtimeBO, len(realtimeAlarmBOs))
+	for _, item := range realtimeAlarmBOs {
+		realtimeAlarmMap[item.HistoryID] = item
+	}
+
+	for _, item := range req {
+		if realtimeAlarm, ok := realtimeAlarmMap[item.HistoryID]; ok {
+			item.ID = realtimeAlarm.ID
+		}
+	}
+
+	realtimeAlarmBOs, err = l.realtimeRepo.Create(ctx, req...)
 	if err != nil {
 		return nil, err
 	}

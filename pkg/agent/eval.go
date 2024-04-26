@@ -5,5 +5,5 @@ import (
 )
 
 type Eval interface {
-	Eval(ctx context.Context) (*Alarm, error)
+	Eval(ctx context.Context) ([]*Alarm, error)
 }

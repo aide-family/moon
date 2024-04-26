@@ -30,6 +30,14 @@ type (
 	}
 )
 
+// GetId 获取id
+func (d *DictBO) GetId() uint32 {
+	if d == nil {
+		return 0
+	}
+	return d.Id
+}
+
 // String json string
 func (d *DictBO) String() string {
 	if d == nil {

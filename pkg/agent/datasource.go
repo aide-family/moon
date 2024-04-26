@@ -67,9 +67,9 @@ func (m Metric) String() string {
 	for _, key := range keys {
 		k := key
 		v := m[key]
-		str.WriteString(k)
-		str.WriteString("=")
-		str.WriteString(v)
+		str.WriteString(`"` + k + `"`)
+		str.WriteString(":")
+		str.WriteString(`"` + v + `"`)
 		str.WriteString(",")
 	}
 	return strings.TrimRight(str.String(), ",") + "}"

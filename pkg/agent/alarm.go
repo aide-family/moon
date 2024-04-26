@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aide-family/moon/pkg/util/hash"
 	"golang.org/x/exp/maps"
 )
 
@@ -94,9 +95,9 @@ func (l Labels) String() string {
 	for _, key := range keys {
 		k := key
 		v := l[key]
-		str.WriteString(k)
-		str.WriteString("=")
-		str.WriteString(v)
+		str.WriteString(`"` + k + `"`)
+		str.WriteString(":")
+		str.WriteString(`"` + v + `"`)
 		str.WriteString(",")
 	}
 	return strings.TrimRight(str.String(), ",") + "}"
@@ -116,6 +117,14 @@ func (a *Alert) GetFingerprint() string {
 		return ""
 	}
 	return a.Fingerprint
+}
+
+// GetMd5Fingerprint 获取md5指纹
+func (a *Alert) GetMd5Fingerprint() string {
+	if a == nil {
+		return ""
+	}
+	return hash.MD5(a.Fingerprint + ":" + a.StartsAt)
 }
 
 // String Alarm 转换为json字符串

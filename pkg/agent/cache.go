@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"time"
@@ -19,8 +18,6 @@ type (
 		SetNX(key string, value any, expiration time.Duration) bool
 		// Exists 判断缓存是否存在
 		Exists(key string) bool
-		// WithContext 设置上下文
-		WithContext(ctx context.Context) Cache
 		// Close 关闭缓存
 		Close() error
 	}

@@ -168,6 +168,11 @@ func (l *StrategyGroupBiz) ListAllGroupDetail(ctx context.Context, params *bo.Li
 				do.PromGroupPreloadFieldPromStrategies,
 				do.PromStrategyPreloadFieldEndpoint}, "."), basescopes.StatusEQ(vobj.StatusEnabled))
 		},
+		func(db *gorm.DB) *gorm.DB {
+			return db.Preload(strings.Join([]string{
+				do.PromGroupPreloadFieldPromStrategies,
+				do.PromStrategyPreloadFieldAlertLevel}, "."), basescopes.StatusEQ(vobj.StatusEnabled))
+		},
 	}
 
 	defaultId := uint32(0)

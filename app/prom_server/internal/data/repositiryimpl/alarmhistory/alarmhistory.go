@@ -4,10 +4,10 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/pkg/after"
 	"github.com/aide-family/moon/pkg/helper/prom"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
@@ -77,7 +77,7 @@ func (l *alarmHistoryRepoImpl) StorageHistory(ctx context.Context, historyBOs ..
 	go func() {
 		defer after.Recover(l.log)
 		for strategyId, count := range strategyIds {
-			prom.AlarmEventCounter.WithLabelValues("strategy_id", strategyId).Add(count)
+			prom.AlarmEventCounter.WithLabelValues(strategyId).Add(count)
 		}
 	}()
 

@@ -75,7 +75,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	v := data.GetWriteChangeGroupChannel()
 	v2 := data.GetWriteRemoveGroupChannel()
 	strategyGroupRepo := strategygroup.NewStrategyGroupRepo(dataData, v, v2, logger)
-	strategyRepo := strategy.NewStrategyRepo(dataData, v, v2, strategyGroupRepo, logger)
+	strategyRepo := strategy.NewStrategyRepo(dataData, v, strategyGroupRepo, logger)
 	notifyRepo := notify.NewNotifyRepo(dataData, logger)
 	strategyBiz := biz.NewStrategyBiz(strategyRepo, notifyRepo, sysLogRepo, logger)
 	msgRepo := msg.NewMsgRepo(dataData, logger)

@@ -20,15 +20,19 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationHookV1 = "/api.alarm.hook.Hook/V1"
+const OperationHookV2 = "/api.alarm.hook.Hook/V2"
 
 type HookHTTPServer interface {
 	// V1 接收prometheus报警hook请求
 	V1(context.Context, *HookV1Request) (*HookV1Reply, error)
+	// V2 接收prometheus报警hook请求
+	V2(context.Context, *HookV2Request) (*HookV2Reply, error)
 }
 
 func RegisterHookHTTPServer(s *http.Server, srv HookHTTPServer) {
 	r := s.Route("/")
 	r.POST("/api/v1/alert/hook", _Hook_V10_HTTP_Handler(srv))
+	r.POST("/api/v2/alert/hook", _Hook_V20_HTTP_Handler(srv))
 }
 
 func _Hook_V10_HTTP_Handler(srv HookHTTPServer) func(ctx http.Context) error {
@@ -53,8 +57,31 @@ func _Hook_V10_HTTP_Handler(srv HookHTTPServer) func(ctx http.Context) error {
 	}
 }
 
+func _Hook_V20_HTTP_Handler(srv HookHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HookV2Request
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationHookV2)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.V2(ctx, req.(*HookV2Request))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HookV2Reply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type HookHTTPClient interface {
 	V1(ctx context.Context, req *HookV1Request, opts ...http.CallOption) (rsp *HookV1Reply, err error)
+	V2(ctx context.Context, req *HookV2Request, opts ...http.CallOption) (rsp *HookV2Reply, err error)
 }
 
 type HookHTTPClientImpl struct {
@@ -70,6 +97,19 @@ func (c *HookHTTPClientImpl) V1(ctx context.Context, in *HookV1Request, opts ...
 	pattern := "/api/v1/alert/hook"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationHookV1))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *HookHTTPClientImpl) V2(ctx context.Context, in *HookV2Request, opts ...http.CallOption) (*HookV2Reply, error) {
+	var out HookV2Reply
+	pattern := "/api/v2/alert/hook"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationHookV2))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

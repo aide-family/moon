@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Hook_V1_FullMethodName = "/api.alarm.hook.Hook/V1"
+	Hook_V2_FullMethodName = "/api.alarm.hook.Hook/V2"
 )
 
 // HookClient is the client API for Hook service.
@@ -28,6 +29,8 @@ const (
 type HookClient interface {
 	// 接收prometheus报警hook请求
 	V1(ctx context.Context, in *HookV1Request, opts ...grpc.CallOption) (*HookV1Reply, error)
+	// 接收prometheus报警hook请求
+	V2(ctx context.Context, in *HookV2Request, opts ...grpc.CallOption) (*HookV2Reply, error)
 }
 
 type hookClient struct {
@@ -47,12 +50,23 @@ func (c *hookClient) V1(ctx context.Context, in *HookV1Request, opts ...grpc.Cal
 	return out, nil
 }
 
+func (c *hookClient) V2(ctx context.Context, in *HookV2Request, opts ...grpc.CallOption) (*HookV2Reply, error) {
+	out := new(HookV2Reply)
+	err := c.cc.Invoke(ctx, Hook_V2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HookServer is the server API for Hook service.
 // All implementations must embed UnimplementedHookServer
 // for forward compatibility
 type HookServer interface {
 	// 接收prometheus报警hook请求
 	V1(context.Context, *HookV1Request) (*HookV1Reply, error)
+	// 接收prometheus报警hook请求
+	V2(context.Context, *HookV2Request) (*HookV2Reply, error)
 	mustEmbedUnimplementedHookServer()
 }
 
@@ -62,6 +76,9 @@ type UnimplementedHookServer struct {
 
 func (UnimplementedHookServer) V1(context.Context, *HookV1Request) (*HookV1Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method V1 not implemented")
+}
+func (UnimplementedHookServer) V2(context.Context, *HookV2Request) (*HookV2Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method V2 not implemented")
 }
 func (UnimplementedHookServer) mustEmbedUnimplementedHookServer() {}
 
@@ -94,6 +111,24 @@ func _Hook_V1_Handler(srv interface{}, ctx context.Context, dec func(interface{}
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Hook_V2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HookV2Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HookServer).V2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Hook_V2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HookServer).V2(ctx, req.(*HookV2Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Hook_ServiceDesc is the grpc.ServiceDesc for Hook service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +139,10 @@ var Hook_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "V1",
 			Handler:    _Hook_V1_Handler,
+		},
+		{
+			MethodName: "V2",
+			Handler:    _Hook_V2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

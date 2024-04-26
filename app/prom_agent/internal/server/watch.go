@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api"
-	"github.com/aide-family/moon/api/agent"
+	agentapi "github.com/aide-family/moon/api/agent"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/app/prom_agent/internal/data"
 	"github.com/aide-family/moon/app/prom_agent/internal/service"
 	"github.com/aide-family/moon/pkg/after"
+	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/helper/consts"
 	"github.com/aide-family/moon/pkg/util/interflow"
 	"github.com/go-kratos/kratos/v2/log"
@@ -94,6 +95,20 @@ func (w *Watch) loadGroupAllEventHandler(topic consts.TopicType, value []byte) e
 			return err
 		}
 		w.log.Debugw("groupDetail", groupDetail)
+		// 判断新旧规则是否一致， 如果不存在， 着生成告警恢复事件
+		oldGroupInfo, exist := w.groups.Load(groupDetail.GetId())
+		if exist {
+			oldGroupInfoDetail, ok := oldGroupInfo.(*api.EvaluateGroup)
+			if ok {
+				alarmList := w.generateRecoveryEvent(oldGroupInfoDetail, groupDetail)
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+				if err := w.loadService.SendRecoveryEventAlarm(ctx, alarmList...); err != nil {
+					w.log.Warnf("send recovery event error: %s", err.Error())
+				}
+			}
+		}
+
 		w.groups.Store(groupDetail.GetId(), groupDetail)
 	default:
 		var groupDetail *api.GroupSimple
@@ -108,16 +123,36 @@ func (w *Watch) loadGroupAllEventHandler(topic consts.TopicType, value []byte) e
 }
 
 func (w *Watch) removeGroupEventHandler(topic consts.TopicType, value []byte) error {
-	w.log.Info("removeGroupTopic", string(value))
+	w.log.Infow("removeGroupTopic", string(value), "topic", topic)
 	groupId, err := strconv.ParseUint(string(value), 10, 64)
 	if err != nil {
 		w.log.Warnf("parse groupId error: %s", value)
 		return nil
 	}
-	if groupId > 0 {
-		w.groups.Delete(uint32(groupId))
+	if groupId <= 0 {
+		return nil
 	}
-	return nil
+
+	groupInfo, exist := w.groups.Load(uint32(groupId))
+	if !exist {
+		w.log.Warnf("group not exist: %d", groupId)
+		return nil
+	}
+	w.groups.Delete(uint32(groupId))
+	evaluateGroup, ok := groupInfo.(*api.EvaluateGroup)
+	if !ok {
+		return nil
+	}
+	// 生成告警恢复事件
+	alarmInfo := w.generateRecoveryEvent(evaluateGroup, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return w.loadService.SendRecoveryEventAlarm(ctx, alarmInfo...)
+}
+
+// 生成告警恢复事件
+func (w *Watch) generateRecoveryEvent(oldGroupInfo, newGroupInfo *api.EvaluateGroup) []*agent.Alarm {
+	return w.loadService.GenerateRecoveryEvent(oldGroupInfo, newGroupInfo)
 }
 
 func (w *Watch) Start(_ context.Context) error {
@@ -152,7 +187,7 @@ func (w *Watch) evaluate() {
 			}
 			return true
 		})
-		_, _ = w.loadService.EvaluateV2(ctx, &agent.EvaluateV2Request{GroupList: groupList})
+		_, _ = w.loadService.EvaluateV2(ctx, &agentapi.EvaluateV2Request{GroupList: groupList})
 	default:
 		groupList := make([]*api.GroupSimple, 0)
 		w.groups.Range(func(key, value any) bool {
@@ -161,7 +196,7 @@ func (w *Watch) evaluate() {
 			}
 			return true
 		})
-		_, _ = w.loadService.Evaluate(ctx, &agent.EvaluateRequest{GroupList: groupList})
+		_, _ = w.loadService.Evaluate(ctx, &agentapi.EvaluateRequest{GroupList: groupList})
 	}
 }
 

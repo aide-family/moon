@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	pb "github.com/aide-family/moon/api/agent"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/bo"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/agent/datasource"
 	"github.com/aide-family/moon/pkg/agent/datasource/p8s"
@@ -30,6 +32,89 @@ func NewLoadService(alarmBiz *biz.AlarmBiz, evaluateBiz *biz.EvaluateBiz, logger
 		alarmBiz:    alarmBiz,
 		evaluateBiz: evaluateBiz,
 	}
+}
+
+// SendRecoveryEventAlarm 批量处理告警恢复事件
+func (s *LoadService) SendRecoveryEventAlarm(ctx context.Context, alarms ...*agent.Alarm) error {
+	if pkg.IsNil(alarms) || len(alarms) == 0 {
+		return nil
+	}
+
+	if err := s.alarmBiz.SendAlarmV2(ctx, alarms...); err != nil {
+		s.log.Errorw("send alarmV2 error err", err)
+		return err
+	}
+	return nil
+}
+
+// GenerateRecoveryEvent 生成告警恢复事件
+func (s *LoadService) GenerateRecoveryEvent(oldGroupInfo, newGroupInfo *api.EvaluateGroup) []*agent.Alarm {
+	if oldGroupInfo == nil {
+		//  没有旧的， 是新增规则组场景， 不处理
+		return nil
+	}
+
+	// TODO 告警恢复事件
+	// 1. 没有新的， 是删除规则组场景
+	var alarmList []*agent.Alarm
+	if newGroupInfo == nil {
+		for _, strategyItem := range oldGroupInfo.GetStrategies() {
+			alarmInfo, err := buildAlarm(strategyItem.GetId())
+			if err != nil {
+				s.log.Warnw("build alert error", err)
+				continue
+			}
+			alarmList = append(alarmList, alarmInfo)
+		}
+		return alarmList
+	}
+
+	newStrategyMap := make(map[uint32]struct{})
+	for _, strategyItem := range newGroupInfo.GetStrategies() {
+		newStrategyMap[strategyItem.GetId()] = struct{}{}
+	}
+	for _, strategyItem := range oldGroupInfo.GetStrategies() {
+		if _, ok := newStrategyMap[strategyItem.GetId()]; ok {
+			continue
+		}
+		alarmInfo, err := buildAlarm(strategyItem.GetId())
+		if err != nil {
+			s.log.Warnw("build alert error", err)
+			continue
+		}
+		alarmList = append(alarmList, alarmInfo)
+	}
+
+	return alarmList
+}
+
+func buildAlarm(strategyId uint32) (*agent.Alarm, error) {
+	cache := agent.GetGlobalCache()
+	var alarmInfo agent.Alarm
+	if err := cache.Get(strconv.Itoa(int(strategyId)), &alarmInfo); err != nil {
+		return nil, err
+	}
+	alerts := make([]*agent.Alert, 0, len(alarmInfo.Alerts))
+	for _, alertInfo := range alarmInfo.Alerts {
+		if pkg.IsNil(alertInfo) {
+			continue
+		}
+		alertsTmp := *alertInfo
+		alertsTmp.Status = agent.AlarmStatusResolved
+		alertsTmp.EndsAt = time.Now().Format(time.RFC3339)
+		if err := cache.Delete(alertsTmp.Fingerprint); err != nil {
+			return nil, err
+		}
+		alertsTmp.Fingerprint = alertsTmp.GetMd5Fingerprint()
+		alerts = append(alerts, &alertsTmp)
+	}
+
+	alarmInfo.Alerts = alerts
+	if err := cache.Delete(strconv.Itoa(int(strategyId))); err != nil {
+		return nil, err
+	}
+
+	return &alarmInfo, cache.Delete(strconv.Itoa(int(strategyId)))
 }
 
 func (s *LoadService) Evaluate(_ context.Context, req *pb.EvaluateRequest) (*pb.EvaluateReply, error) {
@@ -63,7 +148,20 @@ func (s *LoadService) EvaluateV2(ctx context.Context, req *pb.EvaluateV2Request)
 	}
 
 	if len(alarmList) > 0 {
-		if err = s.alarmBiz.SendAlarmV2(ctx, alarmList...); err != nil {
+		alarms := make([]*agent.Alarm, 0, len(alarmList))
+		for _, alarmItem := range alarmList {
+			alarmItemTmp := alarmItem
+			alerts := make([]*agent.Alert, 0, len(alarmItem.GetAlerts()))
+			for _, alertItem := range alarmItem.GetAlerts() {
+				alertItemTmp := alertItem
+				alertItemTmp.Fingerprint = alertItemTmp.GetMd5Fingerprint()
+				alerts = append(alerts, alertItemTmp)
+			}
+			alarmItemTmp.Alerts = alerts
+			alarms = append(alarms, alarmItemTmp)
+		}
+
+		if err = s.alarmBiz.SendAlarmV2(ctx, alarms...); err != nil {
 			s.log.Errorw("send alarmV2 error err", err)
 			return nil, err
 		}

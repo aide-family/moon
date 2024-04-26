@@ -54,15 +54,12 @@ func TestEvalRule(t *testing.T) {
 	for count < 10 {
 		count++
 		rule := getRule()
-		alarm, err := rule.Eval(context.Background())
+		alarmList, err := rule.Eval(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
-		t.Log(alarm.String())
+		t.Log(alarmList)
 		time.Sleep(1 * time.Second)
-		if alarm == nil {
-			continue
-		}
 	}
 
 	cache := agent.GetGlobalCache()

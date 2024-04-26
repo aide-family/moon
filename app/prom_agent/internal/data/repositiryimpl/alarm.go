@@ -33,7 +33,7 @@ func (l *alarmRepoImpl) AlarmV2(ctx context.Context, alarmBo *bo.AlarmItemBo) er
 		return status.Error(codes.InvalidArgument, "alarm do is nil")
 	}
 
-	if len(alarmBo.Alerts) == 0 {
+	if len(alarmBo.GetAlerts()) == 0 {
 		return nil
 	}
 

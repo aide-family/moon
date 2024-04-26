@@ -36,7 +36,8 @@ type (
 
 const (
 	LabelsKeyDatasourceID = "datasourceId"
-	LabelsKeyRuleID       = "ruleId"
+	LabelsKeyRuleID       = "__alert_id__"
+	LabelsKeyLevelID      = "__level_id__"
 	LabelsKeyGroupID      = "groupID"
 )
 

@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz/repository"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/go-kratos/kratos/v2/log"
@@ -44,6 +45,9 @@ func (b *AlarmBiz) SendAlarmV2(ctx context.Context, alarm ...*agent.Alarm) error
 	eg := new(errgroup.Group)
 	eg.SetLimit(100)
 	for _, item := range alarm {
+		if pkg.IsNil(item) {
+			continue
+		}
 		alarmInfo := item
 		eg.Go(func() error {
 			return b.alarmRepo.AlarmV2(ctx, &bo.AlarmItemBo{
