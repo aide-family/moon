@@ -3,13 +3,14 @@ package alarmservice
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	pb "github.com/aide-family/moon/api/alarm/hook"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/strategy"
+	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/times"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type HookService struct {
@@ -57,7 +58,7 @@ func (s *HookService) V1(ctx context.Context, req *pb.HookV1Request) (*pb.HookV1
 				StartsAt:     alert.GetStartsAt(),
 				EndsAt:       alert.GetEndsAt(),
 				GeneratorURL: alert.GetGeneratorURL(),
-				Fingerprint:  alert.GetFingerprint(),
+				Fingerprint:  hash.MD5(alert.GetFingerprint()),
 			},
 		})
 	}

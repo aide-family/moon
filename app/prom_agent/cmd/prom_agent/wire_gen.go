@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
 	"github.com/aide-family/moon/app/prom_agent/internal/biz"
 	"github.com/aide-family/moon/app/prom_agent/internal/conf"
 	"github.com/aide-family/moon/app/prom_agent/internal/data"
@@ -15,6 +14,7 @@ import (
 	"github.com/aide-family/moon/app/prom_agent/internal/server"
 	"github.com/aide-family/moon/app/prom_agent/internal/service"
 	"github.com/aide-family/moon/pkg/helper/plog"
+	"github.com/go-kratos/kratos/v2"
 )
 
 import (
@@ -45,11 +45,11 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	interflow := bootstrap.Interflow
 	hookInterflowService := service.NewHookInterflowService(interflow, logger)
 	httpServer := server.NewHTTPServer(confServer, pingService, hookService, hookInterflowService, logger)
-	watchProm := bootstrap.WatchProm
 	alarmRepo := repositiryimpl.NewAlarmRepo(dataData, interflow, logger)
 	alarmBiz := biz.NewAlarmBiz(alarmRepo, logger)
-	loadService := service.NewLoadService(alarmBiz, logger)
-	watch, err := server.NewWatch(watchProm, interflow, dataData, loadService, logger)
+	evaluateBiz := biz.NewEvaluateBiz(logger)
+	loadService := service.NewLoadService(alarmBiz, evaluateBiz, logger)
+	watch, err := server.NewWatch(interflow, dataData, loadService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

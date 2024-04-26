@@ -12,7 +12,7 @@ message Bootstrap {
   Log log = 4;
   ApiWhite apiWhite = 5;
   Email email = 6;
-  MQ mq = 7;
+  Interflow interflow = 7;
 }
 
 message Server {
@@ -95,11 +95,20 @@ message Email {
   string pass = 4;
 }
 
-message MQ {
-  Kafka kafka = 1;
-}
+message Interflow {
+  message Hook {
+    string network = 1;
+  }
 
-message Kafka {
-  repeated string endpoints = 1;
-  string groupId = 2;
+  message MQ {
+    message Kafka {
+      repeated string endpoints = 1;
+      string groupId = 2;
+    }
+    Kafka kafka = 1;
+  }
+
+  string version = 1;
+  Hook hook = 2;
+  MQ mq = 3;
 }

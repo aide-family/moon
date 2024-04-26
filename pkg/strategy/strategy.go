@@ -247,6 +247,26 @@ func (l *Labels) String() string {
 	return string(bytes)
 }
 
+// Append append labels
+func (l *Labels) Append(key, value string) *Labels {
+	if l == nil {
+		return l
+	}
+	(*l)[key] = value
+	return l
+}
+
+// AppendAll append labels
+func (l *Labels) AppendAll(m map[string]string) *Labels {
+	if l == nil {
+		return l
+	}
+	for k, v := range m {
+		l.Append(k, v)
+	}
+	return l
+}
+
 // MapToLabels 将map转换为标签
 func MapToLabels(m map[string]string) *Labels {
 	labels := Labels(m)

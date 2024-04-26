@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aide-family/moon/pkg/helper/prom"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/aide-family/moon/pkg/helper/prom"
 )
 
 // Logging is an server logging middleware.
@@ -39,7 +39,7 @@ func Logging(logger log.Logger) middleware.Middleware {
 				"kind", "server",
 				"component", kind,
 				"operation", operation,
-				"args", extractArgs(req),
+				//"args", extractArgs(req),
 				"code", code,
 				"reason", reason,
 				"stack", stack,

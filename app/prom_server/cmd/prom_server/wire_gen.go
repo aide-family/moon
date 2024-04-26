@@ -7,7 +7,6 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/conf"
 	"github.com/aide-family/moon/app/prom_server/internal/data"
@@ -38,6 +37,7 @@ import (
 	"github.com/aide-family/moon/app/prom_server/internal/service/promservice"
 	"github.com/aide-family/moon/app/prom_server/internal/service/systemservice"
 	"github.com/aide-family/moon/pkg/helper/plog"
+	"github.com/go-kratos/kratos/v2"
 )
 
 import (
@@ -75,7 +75,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	v := data.GetWriteChangeGroupChannel()
 	v2 := data.GetWriteRemoveGroupChannel()
 	strategyGroupRepo := strategygroup.NewStrategyGroupRepo(dataData, v, v2, logger)
-	strategyRepo := strategy.NewStrategyRepo(dataData, v, v2, strategyGroupRepo, logger)
+	strategyRepo := strategy.NewStrategyRepo(dataData, v, strategyGroupRepo, logger)
 	notifyRepo := notify.NewNotifyRepo(dataData, logger)
 	strategyBiz := biz.NewStrategyBiz(strategyRepo, notifyRepo, sysLogRepo, logger)
 	msgRepo := msg.NewMsgRepo(dataData, logger)
@@ -123,9 +123,10 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 	serverHttpServer := server.RegisterHttpServer(httpServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, authService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, hookInterflowService, chartService, dashboardService, syslogService, templateService)
 	grpcServer := server.NewGRPCServer(confServer, dataData, apiWhite, logger)
 	serverGrpcServer := server.RegisterGrpcServer(grpcServer, pingService, systemserviceService, strategyService, groupService, hookService, historyService, userService, roleService, endpointService, apiService, chatGroupService, notifyService, realtimeService, chartService, dashboardService, syslogService)
+	interflow := bootstrap.Interflow
 	v3 := data.GetReadChangeGroupChannel()
 	v4 := data.GetReadRemoveGroupChannel()
-	alarmEvent, err := server.NewAlarmEvent(dataData, v3, v4, hookService, groupService, logger)
+	alarmEvent, err := server.NewAlarmEvent(dataData, interflow, v3, v4, hookService, groupService, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

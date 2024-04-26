@@ -812,3 +812,243 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EvaluateReplyValidationError{}
+
+// Validate checks the field values on EvaluateV2Request with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EvaluateV2Request) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateV2Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EvaluateV2RequestMultiError, or nil if none found.
+func (m *EvaluateV2Request) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateV2Request) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetGroupList() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EvaluateV2RequestValidationError{
+						field:  fmt.Sprintf("GroupList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EvaluateV2RequestValidationError{
+						field:  fmt.Sprintf("GroupList[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EvaluateV2RequestValidationError{
+					field:  fmt.Sprintf("GroupList[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return EvaluateV2RequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateV2RequestMultiError is an error wrapping multiple validation errors
+// returned by EvaluateV2Request.ValidateAll() if the designated constraints
+// aren't met.
+type EvaluateV2RequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateV2RequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateV2RequestMultiError) AllErrors() []error { return m }
+
+// EvaluateV2RequestValidationError is the validation error returned by
+// EvaluateV2Request.Validate if the designated constraints aren't met.
+type EvaluateV2RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateV2RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateV2RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateV2RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateV2RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateV2RequestValidationError) ErrorName() string {
+	return "EvaluateV2RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EvaluateV2RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateV2Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateV2RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateV2RequestValidationError{}
+
+// Validate checks the field values on EvaluateV2Reply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EvaluateV2Reply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EvaluateV2Reply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EvaluateV2ReplyMultiError, or nil if none found.
+func (m *EvaluateV2Reply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EvaluateV2Reply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Message
+
+	// no validation rules for Code
+
+	if len(errors) > 0 {
+		return EvaluateV2ReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// EvaluateV2ReplyMultiError is an error wrapping multiple validation errors
+// returned by EvaluateV2Reply.ValidateAll() if the designated constraints
+// aren't met.
+type EvaluateV2ReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EvaluateV2ReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EvaluateV2ReplyMultiError) AllErrors() []error { return m }
+
+// EvaluateV2ReplyValidationError is the validation error returned by
+// EvaluateV2Reply.Validate if the designated constraints aren't met.
+type EvaluateV2ReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EvaluateV2ReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EvaluateV2ReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EvaluateV2ReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EvaluateV2ReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EvaluateV2ReplyValidationError) ErrorName() string { return "EvaluateV2ReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EvaluateV2ReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvaluateV2Reply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EvaluateV2ReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EvaluateV2ReplyValidationError{}

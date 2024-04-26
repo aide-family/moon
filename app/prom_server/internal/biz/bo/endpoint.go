@@ -43,6 +43,14 @@ type (
 	}
 )
 
+// GetId get id
+func (l *EndpointBO) GetId() uint32 {
+	if l == nil {
+		return 0
+	}
+	return l.Id
+}
+
 // GetBasicAuth get basic auth
 func (l *EndpointBO) GetBasicAuth() *strategy.BasicAuth {
 	if l == nil {
@@ -83,6 +91,18 @@ func (l *EndpointBO) ToApiV1() *api.PrometheusServerItem {
 		Remark:    l.Remark,
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
+	}
+}
+
+// ToApiV2 to api v2
+func (l *EndpointBO) ToApiV2() *api.StrategyDatasource {
+	if l == nil {
+		return nil
+	}
+	return &api.StrategyDatasource{
+		Endpoint:       l.Endpoint,
+		BasicAuth:      l.BasicAuth.String(),
+		DatasourceType: 1, // TODO 多数据源时候需要修改
 	}
 }
 

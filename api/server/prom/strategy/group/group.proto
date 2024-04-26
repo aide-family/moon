@@ -77,6 +77,14 @@ service Group {
     };
   }
 
+  // 获取策略组列表明细V2
+  rpc ListAllGroupDetailV2 (ListAllGroupDetailV2Request) returns (ListAllGroupDetailV2Reply) {
+    option (google.api.http) = {
+      post: "/api/v1/strategy/group/all/list/v2"
+      body: "*"
+    };
+  }
+
   // 获取策略组下拉列表
   rpc SelectGroup (SelectGroupRequest) returns (SelectGroupReply) {
     option (google.api.http) = {
@@ -242,6 +250,14 @@ message ListAllGroupDetailRequest {
 }
 message ListAllGroupDetailReply {
   repeated GroupSimple groupList = 1;
+}
+
+// 获取策略组列表明细V2请求参数
+message ListAllGroupDetailV2Request {
+  repeated uint32 groupIds = 1;
+}
+message ListAllGroupDetailV2Reply {
+  repeated EvaluateGroup groupList = 1;
 }
 
 // 获取策略组下拉列表请求参数

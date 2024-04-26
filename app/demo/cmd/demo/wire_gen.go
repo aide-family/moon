@@ -7,13 +7,13 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
 	"github.com/aide-family/moon/app/demo/internal/biz"
 	"github.com/aide-family/moon/app/demo/internal/conf"
 	"github.com/aide-family/moon/app/demo/internal/data"
 	"github.com/aide-family/moon/app/demo/internal/server"
 	"github.com/aide-family/moon/app/demo/internal/service"
 	"github.com/aide-family/moon/pkg/helper/plog"
+	"github.com/go-kratos/kratos/v2"
 )
 
 import (

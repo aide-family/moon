@@ -10,9 +10,7 @@ message Bootstrap {
   Data data = 2;
   Env env = 3;
   Log log = 4;
-  WatchProm watchProm = 5;
-  MQ mq = 6;
-  Interflow interflow = 7;
+  Interflow interflow = 5;
 }
 
 message Server {
@@ -70,21 +68,48 @@ message Log {
   string encoder = 8;
 }
 
-message WatchProm {
-  // 频率
-  google.protobuf.Duration interval = 1;
-}
-
-message MQ {
-  Kafka kafka = 1;
-}
-
-message Kafka {
-  repeated string endpoints = 1;
-  string groupId = 2;
-}
-
 message Interflow {
-  string server = 1;
-  string agent = 2;
+  // 默认通信方式
+  message Hook {
+    message HTTP {
+      message Server {
+        string url = 1;
+        // TODO 如果需要认证， 在这里补充
+      }
+      Server agent = 1;
+      Server server = 2;
+
+    }
+    message GRPC {
+      message Server {
+        repeated string endpoints = 1;
+        // TODO 如果需要认证， 在这里补充
+      }
+      Server agent = 1;
+      Server server = 2;
+    }
+    HTTP http = 1;
+    GRPC grpc = 2;
+  }
+
+  message MQ {
+    message Kafka {
+      repeated string endpoints = 1;
+      string groupId = 2;
+    }
+
+    Kafka kafka = 1;
+    // TODO 其他MQ在这里补充
+  }
+
+  message WatchProm {
+    // 频率
+    google.protobuf.Duration interval = 1;
+  }
+  // 版本
+  string version = 1;
+  WatchProm watchProm = 2;
+  Hook hook = 3;
+  MQ mq = 4;
 }
+

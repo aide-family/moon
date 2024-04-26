@@ -3,10 +3,10 @@ package strategy
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm"
 	"github.com/aide-family/moon/pkg/after"
 	"github.com/aide-family/moon/pkg/helper/middler"
+	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
@@ -24,7 +24,6 @@ type (
 		repository.UnimplementedStrategyRepo
 
 		changeGroupChannel chan<- uint32
-		removeGroupChannel chan<- bo.RemoveStrategyGroupBO
 
 		data *data.Data
 		log  *log.Helper
@@ -217,14 +216,8 @@ func (l *strategyRepoImpl) BatchUpdateStrategyStatusByIds(ctx context.Context, s
 	}
 	go func() {
 		defer after.Recover(l.log)
-		if status.IsEnabled() {
-			for _, groupId := range groupIds {
-				l.changeGroupChannel <- groupId
-			}
-		} else {
-			for _, groupId := range groupIds {
-				l.removeGroupChannel <- bo.RemoveStrategyGroupBO{Id: groupId}
-			}
+		for _, groupId := range groupIds {
+			l.changeGroupChannel <- groupId
 		}
 	}()
 	return nil
@@ -331,7 +324,6 @@ func (l *strategyRepoImpl) ListStrategy(ctx context.Context, pgInfo bo.Paginatio
 func NewStrategyRepo(
 	data *data.Data,
 	changeGroupChannel chan<- uint32,
-	removeGroupChannel chan<- bo.RemoveStrategyGroupBO,
 	strategyGroupRepo repository.StrategyGroupRepo,
 	logger log.Logger,
 ) repository.StrategyRepo {
@@ -340,6 +332,5 @@ func NewStrategyRepo(
 		log:                log.NewHelper(logger),
 		strategyGroupRepo:  strategyGroupRepo,
 		changeGroupChannel: changeGroupChannel,
-		removeGroupChannel: removeGroupChannel,
 	}
 }

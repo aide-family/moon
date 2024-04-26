@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Load_Evaluate_FullMethodName = "/api.agent.Load/Evaluate"
+	Load_Evaluate_FullMethodName   = "/api.agent.Load/Evaluate"
+	Load_EvaluateV2_FullMethodName = "/api.agent.Load/EvaluateV2"
 )
 
 // LoadClient is the client API for Load service.
@@ -28,6 +29,8 @@ const (
 type LoadClient interface {
 	// 校验规则
 	Evaluate(ctx context.Context, in *EvaluateRequest, opts ...grpc.CallOption) (*EvaluateReply, error)
+	// 校验规则
+	EvaluateV2(ctx context.Context, in *EvaluateV2Request, opts ...grpc.CallOption) (*EvaluateV2Reply, error)
 }
 
 type loadClient struct {
@@ -47,12 +50,23 @@ func (c *loadClient) Evaluate(ctx context.Context, in *EvaluateRequest, opts ...
 	return out, nil
 }
 
+func (c *loadClient) EvaluateV2(ctx context.Context, in *EvaluateV2Request, opts ...grpc.CallOption) (*EvaluateV2Reply, error) {
+	out := new(EvaluateV2Reply)
+	err := c.cc.Invoke(ctx, Load_EvaluateV2_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoadServer is the server API for Load service.
 // All implementations must embed UnimplementedLoadServer
 // for forward compatibility
 type LoadServer interface {
 	// 校验规则
 	Evaluate(context.Context, *EvaluateRequest) (*EvaluateReply, error)
+	// 校验规则
+	EvaluateV2(context.Context, *EvaluateV2Request) (*EvaluateV2Reply, error)
 	mustEmbedUnimplementedLoadServer()
 }
 
@@ -62,6 +76,9 @@ type UnimplementedLoadServer struct {
 
 func (UnimplementedLoadServer) Evaluate(context.Context, *EvaluateRequest) (*EvaluateReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Evaluate not implemented")
+}
+func (UnimplementedLoadServer) EvaluateV2(context.Context, *EvaluateV2Request) (*EvaluateV2Reply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EvaluateV2 not implemented")
 }
 func (UnimplementedLoadServer) mustEmbedUnimplementedLoadServer() {}
 
@@ -94,6 +111,24 @@ func _Load_Evaluate_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Load_EvaluateV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EvaluateV2Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoadServer).EvaluateV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Load_EvaluateV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoadServer).EvaluateV2(ctx, req.(*EvaluateV2Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Load_ServiceDesc is the grpc.ServiceDesc for Load service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +139,10 @@ var Load_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Evaluate",
 			Handler:    _Load_Evaluate_Handler,
+		},
+		{
+			MethodName: "EvaluateV2",
+			Handler:    _Load_EvaluateV2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
