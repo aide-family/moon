@@ -52,6 +52,7 @@ func TestFormatter(t *testing.T) {
 		"__level_id__":   "1",
 		"instance":       "test-instance",
 		"alertname":      "test-alert",
+		"ip":             "192.168.1.100",
 	}
 	annotations := Annotations{
 		"summary":     "test summary",
@@ -81,6 +82,11 @@ func TestFormatter(t *testing.T) {
 链接地址: {{ .GeneratorURL }}
 告警指纹: {{ .Fingerprint }}
 当前值: {{ .Value }}
+当前时间: {{ now.Format "2006-01-02 15:04:05" }}
+是否告警: {{ if contains .Status "firing" }}告警了{{ else }}恢复了{{ end }}
+IP:{{ range split .Labels.ip "." }}
+ an ip {{ . }}
+{{- end }}
 `
 	t.Log(Formatter(templateStr, data))
 }
