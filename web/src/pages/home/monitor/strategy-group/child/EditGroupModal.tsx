@@ -47,7 +47,7 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
             })
     }
 
-    const hendleGetDetail = () => {
+    const handleGetDetail = () => {
         if (!groupId || !open) {
             return
         }
@@ -66,8 +66,14 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
     }
 
     useEffect(() => {
-        hendleGetDetail()
-    }, [groupId, open])
+        if (!detail) {
+            return
+        }
+        form.setFieldsValue({
+            ...detail,
+            categoryIds: detail?.categories?.map((item) => item.value)
+        })
+    }, [detail])
 
     const Title = () => {
         if (groupId) {
@@ -83,8 +89,8 @@ const EditGroupModal: FC<EditGroupModalProps> = (props) => {
             setDetail(undefined)
             return
         }
-        form.setFieldsValue(detail)
-    }, [open])
+        handleGetDetail()
+    }, [open, groupId])
 
     return (
         <Modal

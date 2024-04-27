@@ -1,10 +1,12 @@
 import {
+    Avatar,
     Badge,
     Button,
     FormInstance,
     MenuProps,
     StepProps,
     Tag,
+    Tooltip,
     Typography,
     Upload,
     UploadProps
@@ -176,26 +178,43 @@ export const columns: (
         title: '名称',
         dataIndex: 'name',
         key: 'name',
-        width: 160,
+        width: 200,
         render: (name: string) => {
             return name
         }
     },
-
     {
         title: '类型',
         dataIndex: 'categories',
         key: 'categories',
         width: 160,
-        render: (categories: DictSelectItem[], _: StrategyGroupItemType) => {
-            if (!categories || categories.length === 0) return '-'
-            return categories?.map((item: DictSelectItem) => {
+        render: (_: DictSelectItem[], record: StrategyGroupItemType) => {
+            if (!record.categories || !record.categories.length) return '-'
+            const categyList = record.categories
+            if (categyList.length === 1) {
+                const { label, value, color } = categyList[0]
                 return (
-                    <Tag key={item.value} color={item.color}>
-                        {item.label}
+                    <Tag key={value} color={color}>
+                        {label}
                     </Tag>
                 )
-            })
+            }
+            return (
+                <Avatar.Group maxCount={2} shape="square" size="small">
+                    {categyList.map((item, index) => {
+                        return (
+                            <Tooltip title={item.label} key={index}>
+                                <Avatar
+                                    key={item.value}
+                                    style={{ backgroundColor: item.color }}
+                                >
+                                    {item.label}
+                                </Avatar>
+                            </Tooltip>
+                        )
+                    })}
+                </Avatar.Group>
+            )
         }
     },
     {
@@ -216,21 +235,22 @@ export const columns: (
         key: 'strategyCount',
         width: 120,
         align: 'center',
-        render: (strategyCount: number | string) => {
-            return <b>{strategyCount}</b>
+        render: (
+            strategyCount: number | string,
+            record: StrategyGroupItemType
+        ) => {
+            return (
+                <b>
+                    <span style={{ color: '' }}>{strategyCount}</span>
+                    {' / '}
+                    <span style={{ color: 'green' }}>
+                        {record.enableStrategyCount}
+                    </span>
+                </b>
+            )
         }
     },
-    {
-        // 开启中的策略数量
-        title: '开启的策略数量',
-        dataIndex: 'enableStrategyCount',
-        key: 'enableStrategyCount',
-        width: 120,
-        align: 'center',
-        render: (enableStrategyCount: number | string) => {
-            return <b>{enableStrategyCount}</b>
-        }
-    },
+
     {
         title: '描述',
         dataIndex: 'remark',
