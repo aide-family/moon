@@ -70,3 +70,10 @@ interflow:
 #      groupId: prometheus-server
 #      endpoints:
 #        - host.docker.internal:9092
+
+# 邮件配置
+#email:
+#  host: smtp.163.com
+#  port: 25
+#  user: xxx@163.com
+#  pass: xxx
