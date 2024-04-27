@@ -71,7 +71,7 @@ type (
 		// Metadata 查询元数据
 		Metadata(ctx context.Context) (*Metadata, error)
 		// GetCategory 获取数据源类型
-		GetCategory() Category
+		GetCategory() DatasourceCategory
 		// GetEndpoint 获取数据源http地址
 		GetEndpoint() string
 		// GetBasicAuth 获取数据源http认证信息, 可选
@@ -80,23 +80,23 @@ type (
 		WithBasicAuth(basicAuth *BasicAuth) Datasource
 	}
 
-	// Category 数据源类型, 定义类型如下
-	Category int32
+	// DatasourceCategory 数据源类型, 定义类型如下
+	DatasourceCategory int32
 )
 
 const (
-	// Prometheus Prometheus数据源类型，默认为该类型
-	Prometheus Category = iota
-	// VictoriaMetrics VictoriaMetrics数据源类型
-	VictoriaMetrics
-	// Elasticsearch Elasticsearch数据源类型
-	Elasticsearch
-	// Influxdb Influxdb数据源类型
-	Influxdb
-	// Clickhouse Clickhouse数据源类型
-	Clickhouse
-	// Loki Loki数据源类型
-	Loki
+	// DatasourceCategoryPrometheus Prometheus数据源类型，默认为该类型
+	DatasourceCategoryPrometheus DatasourceCategory = iota + 1
+	// DatasourceCategoryVictoriaMetrics VictoriaMetrics数据源类型
+	DatasourceCategoryVictoriaMetrics
+	// DatasourceCategoryElasticsearch Elasticsearch数据源类型
+	DatasourceCategoryElasticsearch
+	// DatasourceCategoryInfluxdb Influxdb数据源类型
+	DatasourceCategoryInfluxdb
+	// DatasourceCategoryClickhouse Clickhouse数据源类型
+	DatasourceCategoryClickhouse
+	// DatasourceCategoryLoki Loki数据源类型
+	DatasourceCategoryLoki
 )
 
 // String Metric to string
@@ -192,17 +192,17 @@ func (r *Result) GetTs() float64 {
 	return r.Ts
 }
 
-var _category = map[Category]string{
-	Prometheus:      "prometheus",
-	VictoriaMetrics: "victoriametrics",
-	Elasticsearch:   "elasticsearch",
-	Influxdb:        "influxdb",
-	Clickhouse:      "clickhouse",
-	Loki:            "loki",
+var _category = map[DatasourceCategory]string{
+	DatasourceCategoryPrometheus:      "prometheus",
+	DatasourceCategoryVictoriaMetrics: "victoriametrics",
+	DatasourceCategoryElasticsearch:   "elasticsearch",
+	DatasourceCategoryInfluxdb:        "influxdb",
+	DatasourceCategoryClickhouse:      "clickhouse",
+	DatasourceCategoryLoki:            "loki",
 }
 
 // String implements Stringer
-func (c Category) String() string {
+func (c DatasourceCategory) String() string {
 	remark, ok := _category[c]
 	if !ok {
 		return "unknown"
@@ -211,6 +211,6 @@ func (c Category) String() string {
 }
 
 // Value return int32 value
-func (c Category) Value() int32 {
+func (c DatasourceCategory) Value() int32 {
 	return int32(c)
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/agent/datasource"
-	"github.com/aide-family/moon/pkg/agent/datasource/p8s"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -185,6 +184,17 @@ func evaluateV2RequestToBo(groupList []*api.EvaluateGroup) *bo.EvaluateReqBo {
 
 		for _, strategyItem := range groupItem.GetStrategies() {
 			datasourceInfo := strategyItem.GetDatasource()
+			datasourceInstance, err := datasource.NewDataSource(
+				datasource.WithCategory(agent.DatasourceCategory(datasourceInfo.GetDatasourceType())),
+				datasource.WithConfig(&datasource.Config{
+					Endpoint:  datasourceInfo.GetEndpoint(),
+					BasicAuth: datasourceInfo.GetBasicAuth(),
+				}),
+			)
+			if err != nil {
+				log.Warnw("new datasource error", err)
+				continue
+			}
 			item.StrategyList = append(item.StrategyList, &bo.EvaluateStrategy{
 				Id:          strategyItem.GetId(),
 				Alert:       strategyItem.GetAlert(),
@@ -192,12 +202,7 @@ func evaluateV2RequestToBo(groupList []*api.EvaluateGroup) *bo.EvaluateReqBo {
 				For:         fmt.Sprintf("%d%s", strategyItem.GetDuration().GetValue(), strategyItem.GetDuration().GetUnit()),
 				Labels:      strategyItem.GetLabels(),
 				Annotations: strategyItem.GetAnnotations(),
-				Datasource: datasource.NewDataSource(
-					datasource.WithPrometheusConfig(
-						p8s.WithBasicAuth(agent.NewBasicAuthWithString(datasourceInfo.GetBasicAuth())),
-						p8s.WithEndpoint(datasourceInfo.GetEndpoint()),
-					),
-				),
+				Datasource:  datasourceInstance,
 			})
 		}
 		groups = append(groups, item)

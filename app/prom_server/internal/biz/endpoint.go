@@ -3,13 +3,14 @@ package biz
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type (
@@ -55,6 +56,7 @@ func (b *EndpointBiz) UpdateEndpointById(ctx context.Context, endpoint *bo.Updat
 	updateInfo.Name = endpoint.Name
 	updateInfo.Endpoint = endpoint.Endpoint
 	updateInfo.Remark = endpoint.Remark
+	updateInfo.DatasourceCategory = endpoint.DatasourceCategory
 	if endpoint.Password != "" && endpoint.Username != "" {
 		updateInfo.BasicAuth = strategy.NewBasicAuth(endpoint.Username, endpoint.Password)
 	}
@@ -135,6 +137,7 @@ func (b *EndpointBiz) ListEndpoint(ctx context.Context, params *bo.ListEndpointR
 		basescopes.NameLike(params.Keyword),
 		basescopes.StatusEQ(params.Status),
 		basescopes.UpdateAtDesc(),
+		do.EndpointInDatasourceType(params.DatasourceCategoryList...),
 	}
 
 	list, err := b.endpointRepo.List(ctx, params.Page, wheres...)

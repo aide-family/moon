@@ -1,11 +1,11 @@
 import { DataOptionItem } from '@/components/Data/DataOption/DataOption.tsx'
-import { ActionKey } from '@/apis/data.tsx'
+import { ActionKey, DatasourceTypeData } from '@/apis/data.tsx'
 import { Badge, Button, MenuProps } from 'antd'
 import { DataFormItem } from '@/components/Data'
 import { ColumnGroupType, ColumnType } from 'antd/es/table'
 import { PrometheusServerItem } from '@/apis/home/monitor/endpoint/types'
 import dayjs from 'dayjs'
-import { Status, StatusMap } from '@/apis/types'
+import { DatasourceType, Status, StatusMap } from '@/apis/types'
 import { IconFont } from '@/components/IconFont/IconFont'
 
 export const defaultPadding = 12
@@ -114,6 +114,24 @@ export const searchItems: DataFormItem[] = [
         label: '关键词'
     },
     {
+        // 数据源类型
+        name: 'datasourceType',
+        label: '数据源类型',
+        dataProps: {
+            type: 'select',
+            parentProps: {
+                placeholder: '选择数据源搜索',
+                mode: 'multiple',
+                options: Object.entries(DatasourceTypeData).map(
+                    ([key, value]) => ({
+                        label: value,
+                        value: key
+                    })
+                )
+            }
+        }
+    },
+    {
         name: 'status',
         label: '状态',
         dataProps: {
@@ -150,6 +168,15 @@ export const columns: EndpointColumnType[] = [
         dataIndex: 'name',
         key: 'name',
         width: 220
+    },
+    {
+        title: '数据源类型',
+        dataIndex: 'datasourceType',
+        key: 'datasourceType',
+        width: 140,
+        render: (datasourceType: DatasourceType) => {
+            return DatasourceTypeData[datasourceType] || '未知'
+        }
     },
     {
         title: '端点',
@@ -194,16 +221,41 @@ export const columns: EndpointColumnType[] = [
 ]
 
 export const editModalFormItems: (DataFormItem[] | DataFormItem)[] = [
-    {
-        name: 'name',
-        label: '数据源名称',
-        rules: [
-            {
-                required: true,
-                message: '请输入数据源名称'
+    [
+        {
+            name: 'name',
+            label: '数据源名称',
+            rules: [
+                {
+                    required: true,
+                    message: '请输入数据源名称'
+                }
+            ]
+        },
+        {
+            // 数据源类型
+            name: 'datasourceType',
+            label: '数据源类型',
+            rules: [
+                {
+                    required: true,
+                    message: '请选择数据源类型'
+                }
+            ],
+            dataProps: {
+                type: 'select',
+                parentProps: {
+                    placeholder: '请选择数据源',
+                    options: Object.entries(DatasourceTypeData)
+                        .filter(([key]) => +key !== 0)
+                        .map(([key, value]) => ({
+                            label: value,
+                            value: +key
+                        }))
+                }
             }
-        ]
-    },
+        }
+    ],
     {
         name: 'endpoint',
         label: '端点',

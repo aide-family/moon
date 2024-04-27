@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/agent"
 	"github.com/aide-family/moon/pkg/strategy"
 )
 
@@ -15,31 +16,34 @@ var _ encoding.BinaryUnmarshaler = (*EndpointBO)(nil)
 
 type (
 	ListEndpointReq struct {
-		Page    Pagination
-		Keyword string
-		Status  vobj.Status
+		Page                   Pagination
+		Keyword                string
+		Status                 vobj.Status
+		DatasourceCategoryList []agent.DatasourceCategory `json:"datasourceCategoryList"`
 	}
 	CreateEndpointReq struct {
-		Name     string `json:"name"`
-		Endpoint string `json:"endpoint"`
-		Remark   string `json:"remark"`
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Name               string                   `json:"name"`
+		Endpoint           string                   `json:"endpoint"`
+		Remark             string                   `json:"remark"`
+		Username           string                   `json:"username"`
+		Password           string                   `json:"password"`
+		DatasourceCategory agent.DatasourceCategory `json:"datasourceCategory"`
 	}
 	UpdateEndpointReq struct {
 		Id uint32 `json:"id"`
 		*CreateEndpointReq
 	}
 	EndpointBO struct {
-		Id        uint32              `json:"id"`
-		Name      string              `json:"name"`
-		Endpoint  string              `json:"endpoint"`
-		Status    vobj.Status         `json:"status"`
-		Remark    string              `json:"remark"`
-		CreatedAt int64               `json:"createdAt"`
-		UpdatedAt int64               `json:"updatedAt"`
-		DeletedAt int64               `json:"deletedAt"`
-		BasicAuth *strategy.BasicAuth `json:"basicAuth"`
+		Id                 uint32                   `json:"id"`
+		Name               string                   `json:"name"`
+		Endpoint           string                   `json:"endpoint"`
+		Status             vobj.Status              `json:"status"`
+		Remark             string                   `json:"remark"`
+		CreatedAt          int64                    `json:"createdAt"`
+		UpdatedAt          int64                    `json:"updatedAt"`
+		DeletedAt          int64                    `json:"deletedAt"`
+		BasicAuth          *strategy.BasicAuth      `json:"basicAuth"`
+		DatasourceCategory agent.DatasourceCategory `json:"datasourceCategory"`
 	}
 )
 
@@ -84,13 +88,14 @@ func (l *EndpointBO) ToApiV1() *api.PrometheusServerItem {
 		return nil
 	}
 	return &api.PrometheusServerItem{
-		Id:        l.Id,
-		Name:      l.Name,
-		Endpoint:  l.Endpoint,
-		Status:    l.Status.Value(),
-		Remark:    l.Remark,
-		CreatedAt: l.CreatedAt,
-		UpdatedAt: l.UpdatedAt,
+		Id:             l.Id,
+		Name:           l.Name,
+		Endpoint:       l.Endpoint,
+		Status:         l.Status.Value(),
+		Remark:         l.Remark,
+		CreatedAt:      l.CreatedAt,
+		UpdatedAt:      l.UpdatedAt,
+		DatasourceType: l.DatasourceCategory.Value(),
 	}
 }
 
@@ -102,7 +107,7 @@ func (l *EndpointBO) ToApiV2() *api.StrategyDatasource {
 	return &api.StrategyDatasource{
 		Endpoint:       l.Endpoint,
 		BasicAuth:      l.BasicAuth.String(),
-		DatasourceType: 1, // TODO 多数据源时候需要修改
+		DatasourceType: l.DatasourceCategory.Value(),
 	}
 }
 
@@ -125,12 +130,13 @@ func (l *EndpointBO) ToModel() *do.Endpoint {
 		return nil
 	}
 	return &do.Endpoint{
-		BaseModel: do.BaseModel{ID: l.Id},
-		Name:      l.Name,
-		Endpoint:  l.Endpoint,
-		Remark:    l.Remark,
-		Status:    l.Status,
-		BasicAuth: l.GetBasicAuth(),
+		BaseModel:      do.BaseModel{ID: l.Id},
+		Name:           l.Name,
+		Endpoint:       l.Endpoint,
+		Remark:         l.Remark,
+		Status:         l.Status,
+		BasicAuth:      l.GetBasicAuth(),
+		DatasourceType: l.DatasourceCategory,
 	}
 }
 
@@ -140,14 +146,15 @@ func EndpointModelToBO(m *do.Endpoint) *EndpointBO {
 		return nil
 	}
 	return &EndpointBO{
-		Id:        m.ID,
-		Name:      m.Name,
-		Endpoint:  m.Endpoint,
-		Status:    m.Status,
-		Remark:    m.Remark,
-		CreatedAt: m.CreatedAt.Unix(),
-		UpdatedAt: m.UpdatedAt.Unix(),
-		DeletedAt: int64(m.DeletedAt),
-		BasicAuth: m.BasicAuth,
+		Id:                 m.ID,
+		Name:               m.Name,
+		Endpoint:           m.Endpoint,
+		Status:             m.Status,
+		Remark:             m.Remark,
+		CreatedAt:          m.CreatedAt.Unix(),
+		UpdatedAt:          m.UpdatedAt.Unix(),
+		DeletedAt:          int64(m.DeletedAt),
+		BasicAuth:          m.BasicAuth,
+		DatasourceCategory: m.DatasourceType,
 	}
 }

@@ -28,7 +28,7 @@ const (
 // NewPrometheusDatasource 创建 prometheus 数据源
 func NewPrometheusDatasource(opts ...Option) agent.Datasource {
 	p := &PrometheusDatasource{
-		category: agent.Prometheus,
+		category: agent.DatasourceCategoryPrometheus,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -42,7 +42,7 @@ type PrometheusDatasource struct {
 	// endpoint 数据源地址
 	endpoint string
 	// category 数据源类型
-	category agent.Category
+	category agent.DatasourceCategory
 	// basicAuth 数据源基础认证
 	basicAuth *agent.BasicAuth
 
@@ -264,7 +264,7 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 }
 
 // GetCategory 获取数据源类型
-func (p *PrometheusDatasource) GetCategory() agent.Category {
+func (p *PrometheusDatasource) GetCategory() agent.DatasourceCategory {
 	return p.category
 }
 

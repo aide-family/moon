@@ -1,6 +1,7 @@
 import { Button } from 'antd'
 import {
     Category,
+    DatasourceType,
     DomainType,
     ModuleType,
     NotifyApp,
@@ -50,6 +51,17 @@ const moduleTypeData: Record<ModuleType, string> = {
     [ModuleType.ModuleAlarmNotifyHook]: '告警通知机器人模块',
     [ModuleType.ModuleDashboardChart]: '仪表盘图表模块',
     [ModuleType.ModuleDashboard]: '仪表盘模块'
+}
+
+/**  DatasourceTypeData */
+const DatasourceTypeData: Record<DatasourceType, string> = {
+    [DatasourceType.DATASOURCE_TYPE_UNKNOWN]: '全部',
+    [DatasourceType.DATASOURCE_TYPE_VICTORIAMETRICS]: 'VictoriaMetrics',
+    [DatasourceType.DATASOURCE_TYPE_PROMETHEUS]: 'Prometheus',
+    [DatasourceType.DATASOURCE_TYPE_ELASTICSEARCH]: 'ElasticSearch',
+    [DatasourceType.DATASOURCE_TYPE_INFLUXDB]: 'InfluxDB',
+    [DatasourceType.DATASOURCE_TYPE_CLICKHOUSE]: 'ClickHouse',
+    [DatasourceType.DATASOURCE_TYPE_LOKI]: 'Loki'
 }
 
 /** NotifyApp */
@@ -239,5 +251,6 @@ export {
     domainTypeData,
     moduleTypeData,
     NotifyAppData,
-    SysLogActionTypeData
+    SysLogActionTypeData,
+    DatasourceTypeData
 }

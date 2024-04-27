@@ -85,6 +85,11 @@ message AppendEndpointRequest {
   string username = 6;
   // 用户密码
   string password = 7;
+  // 数据源类型
+  DatasourceType datasourceType = 8 [(validate.rules).enum = {
+    not_in: [0],
+    defined_only: true
+  }];
 }
 // 添加监控端点响应参数
 message AppendEndpointReply {
@@ -113,6 +118,11 @@ message EditEndpointRequest {
   string username = 6;
   // 用户密码
   string password = 7;
+  // 数据源类型
+  DatasourceType datasourceType = 8 [(validate.rules).enum = {
+    not_in: [0],
+    defined_only: true
+  }];
 }
 // 编辑端点信息响应参数
 message EditEndpointReply {
@@ -149,6 +159,7 @@ message ListEndpointRequest {
   Status status = 3 [(validate.rules).enum = {
     defined_only: true
   }];
+  repeated DatasourceType datasourceTypes = 4;
 }
 message ListEndpointReply {
   // 响应信息
