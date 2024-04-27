@@ -3,11 +3,11 @@ package biz
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type NotifyTemplateBiz struct {
@@ -42,7 +42,7 @@ func (n *NotifyTemplateBiz) CreateTemplate(ctx context.Context, req *bo.NotifyTe
 
 // UpdateTemplate 更新通知模板
 func (n *NotifyTemplateBiz) UpdateTemplate(ctx context.Context, req *bo.NotifyTemplateUpdateBo) error {
-	updateParams, err := n.NotifyTemplateRepo.Get(ctx, basescopes.IdGT(req.Id))
+	updateParams, err := n.NotifyTemplateRepo.Get(ctx, basescopes.InIds(req.Id))
 	if err != nil {
 		return err
 	}
