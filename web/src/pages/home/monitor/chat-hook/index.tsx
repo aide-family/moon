@@ -39,7 +39,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
     const [openChatGroupModal, setChatGroupModal] = useState<boolean>(false)
     const [logOpen, setLogOpen] = useState<boolean>(false)
     const [logDataId, setLogDataId] = useState<number | undefined>()
-    const [modelAction, setModelAction] = useState<string>("")
+    const [modelAction, setModelAction] = useState<string>('')
 
     const openLogDetail = (id: number) => {
         setLogOpen(true)
@@ -55,7 +55,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
         setRefresh((p) => !p)
     }
 
-    const handleOpenChatGroupModal = (action:string, id?: number) => {
+    const handleOpenChatGroupModal = (action: string, id?: number) => {
         setOpChatGroupId(id)
         setChatGroupModal(true)
         setModelAction(action)
@@ -121,12 +121,19 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
         })
     }
 
+    const handleDelete = (id: number) => {
+        chatGroupApi.deleteChatGroup({ id }).then(() => {
+            handleRefresh()
+        })
+    }
+
     const handlerTableAction = (key: ActionKey, item: ChatGroupItem) => {
         switch (key) {
             case ActionKey.EDIT:
-                handleOpenChatGroupModal(ActionKey.EDIT,item.id)
+                handleOpenChatGroupModal(ActionKey.EDIT, item.id)
                 break
             case ActionKey.DELETE:
+                handleDelete(item.id)
                 break
             case ActionKey.ENABLE:
                 // handleChangeStatus([item.id], Status.STATUS_ENABLED)
@@ -138,7 +145,7 @@ const ChatGroup: React.FC<ChatGroupProps> = () => {
                 openLogDetail(item.id)
                 break
             case ActionKey.DETAIL:
-                handleOpenChatGroupModal(ActionKey.DETAIL,item.id)
+                handleOpenChatGroupModal(ActionKey.DETAIL, item.id)
                 break
             default:
                 break
