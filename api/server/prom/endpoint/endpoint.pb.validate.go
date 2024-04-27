@@ -89,6 +89,28 @@ func (m *AppendEndpointRequest) validate(all bool) error {
 
 	// no validation rules for Password
 
+	if _, ok := _AppendEndpointRequest_DatasourceType_NotInLookup[m.GetDatasourceType()]; ok {
+		err := AppendEndpointRequestValidationError{
+			field:  "DatasourceType",
+			reason: "value must not be in list [0]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.DatasourceType_name[int32(m.GetDatasourceType())]; !ok {
+		err := AppendEndpointRequestValidationError{
+			field:  "DatasourceType",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return AppendEndpointRequestMultiError(errors)
 	}
@@ -168,6 +190,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AppendEndpointRequestValidationError{}
+
+var _AppendEndpointRequest_DatasourceType_NotInLookup = map[api.DatasourceType]struct{}{
+	0: {},
+}
 
 // Validate checks the field values on AppendEndpointReply with the rules
 // defined in the proto definition for this message. If any rules are
@@ -542,6 +568,28 @@ func (m *EditEndpointRequest) validate(all bool) error {
 
 	// no validation rules for Password
 
+	if _, ok := _EditEndpointRequest_DatasourceType_NotInLookup[m.GetDatasourceType()]; ok {
+		err := EditEndpointRequestValidationError{
+			field:  "DatasourceType",
+			reason: "value must not be in list [0]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := api.DatasourceType_name[int32(m.GetDatasourceType())]; !ok {
+		err := EditEndpointRequestValidationError{
+			field:  "DatasourceType",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return EditEndpointRequestMultiError(errors)
 	}
@@ -621,6 +669,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EditEndpointRequestValidationError{}
+
+var _EditEndpointRequest_DatasourceType_NotInLookup = map[api.DatasourceType]struct{}{
+	0: {},
+}
 
 // Validate checks the field values on EditEndpointReply with the rules defined
 // in the proto definition for this message. If any rules are violated, the

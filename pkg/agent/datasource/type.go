@@ -7,10 +7,16 @@ import (
 )
 
 type (
+	Config struct {
+		Endpoint  string
+		BasicAuth string
+	}
+
 	datasourceBuilder struct {
-		category agent.Category
+		category agent.DatasourceCategory
 
 		prometheusConfig []p8s.Option
+		config           *Config
 	}
 
 	Option func(*datasourceBuilder)
@@ -25,10 +31,37 @@ func (d *datasourceBuilder) getPrometheusConfig() []p8s.Option {
 }
 
 // getCategory 获取数据源类别
-func (d *datasourceBuilder) getCategory() agent.Category {
+func (d *datasourceBuilder) getCategory() agent.DatasourceCategory {
 	if pkg.IsNil(d) {
-		return agent.Prometheus
+		return agent.DatasourceCategoryPrometheus
 	}
 
 	return d.category
+}
+
+// getConfig 获取数据源配置
+func (d *datasourceBuilder) getConfig() *Config {
+	if pkg.IsNil(d) {
+		return nil
+	}
+
+	return d.config
+}
+
+// getEndpoint 获取数据源Endpoint
+func (d *Config) getEndpoint() string {
+	if pkg.IsNil(d) {
+		return ""
+	}
+
+	return d.Endpoint
+}
+
+// getBasicAuth 获取数据源BasicAuth
+func (d *Config) getBasicAuth() *agent.BasicAuth {
+	if pkg.IsNil(d) {
+		return nil
+	}
+
+	return agent.NewBasicAuthWithString(d.BasicAuth)
 }

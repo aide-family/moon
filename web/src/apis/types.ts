@@ -271,4 +271,39 @@ export enum NotifyTemplateType {
     NotifyTemplateTypeDingDing
 }
 
+/**
+ * 
+enum DatasourceType {
+  // UNKNOWN 未知, 用于默认值
+  DATASOURCE_TYPE_UNKNOWN = 0;
+
+  // Prometheus
+  DATASOURCE_TYPE_PROMETHEUS = 1;
+
+  // VictoriaMetrics
+  DATASOURCE_TYPE_VICTORIAMETRICS = 2;
+
+  // Elasticsearch
+  DATASOURCE_TYPE_ELASTICSEARCH = 3;
+
+  // Influxdb
+  DATASOURCE_TYPE_INFLUXDB = 4;
+
+  // Clickhouse
+  DATASOURCE_TYPE_CLICKHOUSE = 5;
+
+  // loki
+  DATASOURCE_TYPE_LOKI = 6;
+}
+ */
+export enum DatasourceType {
+    DATASOURCE_TYPE_UNKNOWN,
+    DATASOURCE_TYPE_PROMETHEUS,
+    DATASOURCE_TYPE_VICTORIAMETRICS,
+    DATASOURCE_TYPE_ELASTICSEARCH,
+    DATASOURCE_TYPE_INFLUXDB,
+    DATASOURCE_TYPE_CLICKHOUSE,
+    DATASOURCE_TYPE_LOKI
+}
+
 export type { Map, PageResType, PageReqType, IdReponse, IdsReponse, Duration }

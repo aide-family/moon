@@ -1555,6 +1555,8 @@ func (m *PrometheusServerItem) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for DatasourceType
+
 	if len(errors) > 0 {
 		return PrometheusServerItemMultiError(errors)
 	}
@@ -4235,16 +4237,7 @@ func (m *StrategyDatasource) validate(all bool) error {
 
 	// no validation rules for BasicAuth
 
-	if _, ok := DatasourceType_name[int32(m.GetDatasourceType())]; !ok {
-		err := StrategyDatasourceValidationError{
-			field:  "DatasourceType",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for DatasourceType
 
 	if len(errors) > 0 {
 		return StrategyDatasourceMultiError(errors)

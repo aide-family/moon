@@ -239,6 +239,8 @@ message PrometheusServerItem {
   int64 createdAt = 6;
   // 更新时间, unix时间戳
   int64 updatedAt = 7;
+  // 数据源类型
+  int32 datasourceType = 8;
 }
 
 // Prometheus服务端点选择类型(用于下拉列表)
@@ -550,7 +552,7 @@ message StrategyDatasource {
   // 基础认证字符串
   string basicAuth = 2;
   // 数据源类型
-  DatasourceType datasourceType = 3 [(validate.rules).enum.defined_only = true];
+  int32 datasourceType = 3;
 }
 
 message EvaluateStrategyItem {

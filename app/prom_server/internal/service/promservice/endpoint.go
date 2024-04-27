@@ -3,12 +3,14 @@ package promservice
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/aide-cloud/universal/base/slices"
 	"github.com/aide-family/moon/api"
 	pb "github.com/aide-family/moon/api/server/prom/endpoint"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/agent"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type EndpointService struct {
@@ -29,11 +31,12 @@ func NewEndpointService(endpointBiz *biz.EndpointBiz, logger log.Logger) *Endpoi
 // AppendEndpoint 新增
 func (s *EndpointService) AppendEndpoint(ctx context.Context, req *pb.AppendEndpointRequest) (*pb.AppendEndpointReply, error) {
 	createEndpointBo := &bo.CreateEndpointReq{
-		Name:     req.GetName(),
-		Endpoint: req.GetEndpoint(),
-		Remark:   req.GetRemark(),
-		Username: req.GetUsername(),
-		Password: req.GetPassword(),
+		Name:               req.GetName(),
+		Endpoint:           req.GetEndpoint(),
+		Remark:             req.GetRemark(),
+		Username:           req.GetUsername(),
+		Password:           req.GetPassword(),
+		DatasourceCategory: agent.DatasourceCategory(req.GetDatasourceType()),
 	}
 
 	endpointBo, err := s.endpointBiz.AppendEndpoint(ctx, createEndpointBo)
@@ -60,11 +63,12 @@ func (s *EndpointService) EditEndpoint(ctx context.Context, req *pb.EditEndpoint
 	editEndpointBo := &bo.UpdateEndpointReq{
 		Id: req.GetId(),
 		CreateEndpointReq: &bo.CreateEndpointReq{
-			Name:     req.GetName(),
-			Endpoint: req.GetEndpoint(),
-			Remark:   req.GetRemark(),
-			Username: req.GetUsername(),
-			Password: req.GetPassword(),
+			Name:               req.GetName(),
+			Endpoint:           req.GetEndpoint(),
+			Remark:             req.GetRemark(),
+			Username:           req.GetUsername(),
+			Password:           req.GetPassword(),
+			DatasourceCategory: agent.DatasourceCategory(req.GetDatasourceType()),
 		},
 	}
 	endpointBo, err := s.endpointBiz.UpdateEndpointById(ctx, editEndpointBo)
@@ -105,6 +109,9 @@ func (s *EndpointService) ListEndpoint(ctx context.Context, req *pb.ListEndpoint
 		Page:    pageInfo,
 		Keyword: req.GetKeyword(),
 		Status:  vobj.Status(req.GetStatus()),
+		DatasourceCategoryList: slices.To(req.GetDatasourceTypes(), func(i api.DatasourceType) agent.DatasourceCategory {
+			return agent.DatasourceCategory(i)
+		}),
 	})
 	if err != nil {
 		return nil, err
