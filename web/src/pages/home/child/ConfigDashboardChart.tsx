@@ -1,5 +1,5 @@
 import DataForm from '@/components/Data/DataForm/DataForm'
-import { Form, Modal } from 'antd'
+import { Button, Form, Modal, Space } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { addDashboardOptions } from '../options'
 import { UpdateDashboardRequest } from '@/apis/home/dashboard/types'
@@ -61,6 +61,19 @@ export const ConfigDashboardChartModal: React.FC<
         })
     }
 
+    const handleDelete = () => {
+        if (!dashboardId) {
+            return
+        }
+        setLoading(true)
+        dashboardApi
+            .deleteDashboard(dashboardId)
+            .then(() => {
+                handleOnOk()
+            })
+            .finally(() => setLoading(false))
+    }
+
     useEffect(() => {
         if (!open) {
             return
@@ -73,9 +86,26 @@ export const ConfigDashboardChartModal: React.FC<
             <Modal
                 title="配置大盘"
                 open={open}
-                onCancel={handleClose}
-                onOk={handleCommit}
-                confirmLoading={loading}
+                footer={
+                    <Space size={8}>
+                        <Button
+                            loading={loading}
+                            danger
+                            type="primary"
+                            onClick={handleDelete}
+                        >
+                            删除大盘
+                        </Button>
+                        <Button onClick={handleClose}>取消</Button>
+                        <Button
+                            loading={loading}
+                            type="primary"
+                            onClick={handleCommit}
+                        >
+                            确定
+                        </Button>
+                    </Space>
+                }
             >
                 <DataForm
                     items={addDashboardOptions}
