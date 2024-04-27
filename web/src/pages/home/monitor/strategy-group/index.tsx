@@ -151,6 +151,10 @@ const StrategyGroup: React.FC = () => {
         return strategyGroupApi.batchChangeStatus({ ids, status })
     }
 
+    const handleDelete = (id: number) => {
+        strategyGroupApi.deleteSteategyGroup({ id }).then(handlerRefresh)
+    }
+
     // 处理表格操作栏的点击事件
     const handlerTableAction = (key: string, record: StrategyGroupItemType) => {
         switch (key) {
@@ -159,6 +163,9 @@ const StrategyGroup: React.FC = () => {
                 break
             case ActionKey.DETAIL:
                 handlerOpenDetail(record)
+                break
+            case ActionKey.DELETE:
+                handleDelete(record.id)
                 break
             case ActionKey.EDIT:
                 handleOpenEditModal(record)

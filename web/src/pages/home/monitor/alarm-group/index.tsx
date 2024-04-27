@@ -130,6 +130,12 @@ const AlarmGroup: FC = () => {
         })
     }
 
+    const handleDelete = (id: number) => {
+        alarmGroupApi.deleteById(id).then(() => {
+            handleRefresh()
+        })
+    }
+
     const handlerTableAction = (key: ActionKey, item: AlarmGroupItem) => {
         switch (key) {
             case ActionKey.EDIT:
@@ -139,6 +145,7 @@ const AlarmGroup: FC = () => {
                 handleOpenEditAlarmGroupModal(key, item.id)
                 break
             case ActionKey.DELETE:
+                handleDelete(item.id)
                 break
             case ActionKey.ENABLE:
                 // handleChangeStatus([item.id], Status.STATUS_ENABLED)
