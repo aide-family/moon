@@ -265,20 +265,14 @@ func (p *PrometheusDatasource) Query(ctx context.Context, expr string, duration 
 
 // GetCategory 获取数据源类型
 func (p *PrometheusDatasource) GetCategory() agent.Category {
-	p.mut.RLocker()
-	defer p.mut.RUnlock()
 	return p.category
 }
 
 func (p *PrometheusDatasource) GetEndpoint() string {
-	p.mut.RLocker()
-	defer p.mut.RUnlock()
 	return p.endpoint
 }
 
 func (p *PrometheusDatasource) GetBasicAuth() *agent.BasicAuth {
-	p.mut.RLocker()
-	defer p.mut.RUnlock()
 	return p.basicAuth
 }
 
