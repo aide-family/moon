@@ -21,7 +21,10 @@ export const AddDashboardButton: React.FC<AddDashboardButtonProps> = (
 
     const handleOpen = () => setOpen(true)
 
-    const handleClose = () => setOpen(false)
+    const handleClose = () => {
+        form.resetFields()
+        setOpen(false)
+    }
 
     const handleCommit = () => {
         form.validateFields().then((values) => {
