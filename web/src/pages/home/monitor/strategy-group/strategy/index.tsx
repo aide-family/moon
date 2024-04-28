@@ -263,7 +263,7 @@ const Strategy: FC = () => {
                 title="通知模板"
                 strategyId={operateId}
                 open={openBindNotifyTemplate}
-                width="60%"
+                width="80%"
                 onCancel={handlerCloseBindNotifyTemplate}
                 onOk={handlerCloseBindNotifyTemplate}
             />

@@ -27,6 +27,10 @@ import {
     TemplateAutoComplete,
     TemplateAutoCompleteProps
 } from '../TemplateAutoComplete'
+import {
+    EmailTemplateEditor,
+    EmailTemplateEditorProps
+} from './child/EmailTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -85,6 +89,10 @@ export type DataInputProps =
           | {
                 type: 'template-auto-complete'
                 parentProps?: TemplateAutoCompleteProps
+            }
+          | {
+                type: 'email-emplate-editor'
+                parentProps?: EmailTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -217,6 +225,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                         options={parentProps?.options || []}
                     />
                 )
+            case 'email-emplate-editor':
+                return <EmailTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input
