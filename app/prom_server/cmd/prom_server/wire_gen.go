@@ -54,6 +54,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 		return nil, nil, err
 	}
 	confServer := bootstrap.Server
+	jwt := bootstrap.Jwt
 	log := bootstrap.Log
 	logger := plog.NewLogger(log)
 	dataData, cleanup, err := data.NewData(bootstrap, logger)
@@ -61,7 +62,7 @@ func wireApp(string2 *string) (*kratos.App, func(), error) {
 		return nil, nil, err
 	}
 	apiWhite := bootstrap.ApiWhite
-	httpServer := server.NewHTTPServer(confServer, dataData, apiWhite, logger)
+	httpServer := server.NewHTTPServer(confServer, jwt, dataData, apiWhite, logger)
 	pingRepo := ping.NewPingRepo(dataData, logger)
 	pingBiz := biz.NewPingRepo(pingRepo, logger)
 	pingService := service.NewPingService(pingBiz, logger)

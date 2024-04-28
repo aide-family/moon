@@ -4,14 +4,6 @@ import (
 	"context"
 	nHttp "net/http"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	"github.com/go-kratos/kratos/v2/middleware/selector"
-	"github.com/go-kratos/kratos/v2/middleware/validate"
-	"github.com/go-kratos/kratos/v2/transport/http"
-	jwtv4 "github.com/golang-jwt/jwt/v4"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/aide-family/moon/api/alarm/hook"
 	"github.com/aide-family/moon/api/interflows"
 	"github.com/aide-family/moon/api/ping"
@@ -37,6 +29,14 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middler"
 	"github.com/aide-family/moon/pkg/helper/prom"
 	"github.com/aide-family/moon/pkg/servers"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/middleware/selector"
+	"github.com/go-kratos/kratos/v2/middleware/validate"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	jwtv4 "github.com/golang-jwt/jwt/v4"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HttpServer struct {
@@ -96,6 +96,7 @@ func RegisterHttpServer(
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(
 	c *conf.Server,
+	jwtConf *conf.JWT,
 	d *data.Data,
 	apiWhite *conf.ApiWhite,
 	logger log.Logger,
@@ -105,6 +106,9 @@ func NewHTTPServer(
 
 	jwt.WithSigningMethod(jwtv4.SigningMethodHS256)
 	jwt.WithClaims(func() jwtv4.Claims { return &jwtv4.RegisteredClaims{} })
+	middler.SetSecret(jwtConf.GetSecret())
+	middler.SetExpire(jwtConf.GetExpires().AsDuration())
+	middler.SetIssuer(jwtConf.GetIssuer())
 
 	allApi := apiWhite.GetAll()
 	jwtApis := append(allApi, apiWhite.GetJwtApi()...)

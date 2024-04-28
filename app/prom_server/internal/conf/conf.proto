@@ -13,6 +13,7 @@ message Bootstrap {
   ApiWhite apiWhite = 5;
   Email email = 6;
   Interflow interflow = 7;
+  JWT jwt = 8;
 }
 
 message Server {
@@ -111,4 +112,10 @@ message Interflow {
   string version = 1;
   Hook hook = 2;
   MQ mq = 3;
+}
+
+message JWT {
+  string secret = 1;
+  string issuer = 2;
+  google.protobuf.Duration expires = 3;
 }

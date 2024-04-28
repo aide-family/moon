@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/cache"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
-	"github.com/aide-family/moon/pkg/util/cache"
 
 	"github.com/aide-family/moon/api/perrors"
 	"github.com/aide-family/moon/pkg/helper/consts"
@@ -24,7 +24,9 @@ type AuthClaims struct {
 }
 
 var (
-	secret = []byte("secret")
+	secret  = []byte("secret")
+	issuer  = "moon"
+	expires = 24 * time.Hour
 )
 
 var (
@@ -53,7 +55,26 @@ func (l *AuthClaims) String() string {
 
 // SetSecret set secret
 func SetSecret(s string) {
+	if s == "" {
+		return
+	}
 	secret = []byte(s)
+}
+
+// SetExpire 设置过期时间
+func SetExpire(d time.Duration) {
+	if d <= 0 {
+		return
+	}
+	expires = d
+}
+
+// SetIssuer 设置issuer
+func SetIssuer(i string) {
+	if i == "" {
+		return
+	}
+	issuer = i
 }
 
 // Expire 把token过期掉
@@ -125,7 +146,7 @@ func IsAdminRole(ctx context.Context) bool {
 
 // IssueToken issue token
 func IssueToken(id, role uint32) (string, error) {
-	return IssueTokenWithDuration(id, role, time.Hour*24)
+	return IssueTokenWithDuration(id, role, expires)
 }
 
 // IssueTokenWithDuration issue token with duration
@@ -135,6 +156,7 @@ func IssueTokenWithDuration(id uint32, role uint32, duration time.Duration) (str
 		Role: role,
 		RegisteredClaims: &jwtv4.RegisteredClaims{
 			ExpiresAt: jwtv4.NewNumericDate(time.Now().Add(duration)),
+			Issuer:    issuer,
 		},
 	}
 	token := jwtv4.NewWithClaims(jwtv4.SigningMethodHS256, claims)
