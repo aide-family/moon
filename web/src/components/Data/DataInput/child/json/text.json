@@ -1,0 +1,5 @@
+{
+    "content": "${1:content}",
+    "mentioned_list": ["${1:@all}"],
+    "mentioned_mobile_list": ["${1:@all}"]
+}

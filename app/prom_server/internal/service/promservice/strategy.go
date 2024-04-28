@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/api"
 	pb "github.com/aide-family/moon/api/server/prom/strategy"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
@@ -13,6 +12,7 @@ import (
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/strategy"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type StrategyService struct {
@@ -206,6 +206,7 @@ func (s *StrategyService) TestNotifyTemplate(ctx context.Context, req *pb.TestTe
 		Template:   req.GetTemplate(),
 		StrategyId: req.GetStrategyId(),
 	}
+	s.log.Debugw("testParams", testParams.Template)
 	if err := s.notifyBiz.TestNotifyTemplate(ctx, testParams); err != nil {
 		return nil, err
 	}

@@ -1056,6 +1056,14 @@ export const bindNotifyTemplateDataFormOptions = (
                 }
             }
             break
+        case NotifyTemplateType.NotifyTemplateTypeWeChatWork:
+            defaultContentType.dataProps = {
+                type: 'wechat-emplate-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
         default:
             defaultContentType.dataProps = {
                 type: 'template-auto-complete',

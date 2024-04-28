@@ -31,6 +31,10 @@ import {
     EmailTemplateEditor,
     EmailTemplateEditorProps
 } from './child/EmailTemplateEditor'
+import {
+    WechatTemplateEditor,
+    WechatTemplateEditorProps
+} from './child/WechatTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -93,6 +97,10 @@ export type DataInputProps =
           | {
                 type: 'email-emplate-editor'
                 parentProps?: EmailTemplateEditorProps
+            }
+          | {
+                type: 'wechat-emplate-editor'
+                parentProps?: WechatTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -227,6 +235,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                 )
             case 'email-emplate-editor':
                 return <EmailTemplateEditor {...props} {...parentProps} />
+            case 'wechat-emplate-editor':
+                return <WechatTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input
