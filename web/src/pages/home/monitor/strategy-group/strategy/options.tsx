@@ -1050,7 +1050,7 @@ export const bindNotifyTemplateDataFormOptions = (
     switch (notifyType) {
         case NotifyTemplateType.NotifyTemplateTypeEmail:
             defaultContentType.dataProps = {
-                type: 'email-emplate-editor',
+                type: 'email-template-editor',
                 parentProps: {
                     height: 300
                 }
@@ -1058,7 +1058,15 @@ export const bindNotifyTemplateDataFormOptions = (
             break
         case NotifyTemplateType.NotifyTemplateTypeWeChatWork:
             defaultContentType.dataProps = {
-                type: 'wechat-emplate-editor',
+                type: 'wechat-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        case NotifyTemplateType.NotifyTemplateTypeCustom:
+            defaultContentType.dataProps = {
+                type: 'json-template-editor',
                 parentProps: {
                     height: 300
                 }

@@ -35,6 +35,10 @@ import {
     WechatTemplateEditor,
     WechatTemplateEditorProps
 } from './child/WechatTemplateEditor'
+import {
+    JsonTemplateEditor,
+    JsonTemplateEditorProps
+} from './child/JsonTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -95,12 +99,16 @@ export type DataInputProps =
                 parentProps?: TemplateAutoCompleteProps
             }
           | {
-                type: 'email-emplate-editor'
+                type: 'email-template-editor'
                 parentProps?: EmailTemplateEditorProps
             }
           | {
-                type: 'wechat-emplate-editor'
+                type: 'wechat-template-editor'
                 parentProps?: WechatTemplateEditorProps
+            }
+          | {
+                type: 'json-template-editor'
+                parentProps?: JsonTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -233,10 +241,12 @@ const DataInput: FC<DataInputProps> = (props) => {
                         options={parentProps?.options || []}
                     />
                 )
-            case 'email-emplate-editor':
+            case 'email-template-editor':
                 return <EmailTemplateEditor {...props} {...parentProps} />
-            case 'wechat-emplate-editor':
+            case 'wechat-template-editor':
                 return <WechatTemplateEditor {...props} {...parentProps} />
+            case 'json-template-editor':
+                return <JsonTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input
