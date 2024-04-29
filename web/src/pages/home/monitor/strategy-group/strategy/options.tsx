@@ -1090,7 +1090,7 @@ export const bindNotifyTemplateDataFormOptions = (
             break
         case NotifyTemplateType.NotifyTemplateTypeWeChatWork:
             defaultContentType.dataProps = {
-                type: 'wechat-emplate-editor',
+                type: 'wechat-template-editor',
                 parentProps: {
                     height: 300
                 }
