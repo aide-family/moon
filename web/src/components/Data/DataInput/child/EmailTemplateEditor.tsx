@@ -196,7 +196,6 @@ export const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = (
 
     useEffect(() => {
         init()
-        console.log('init')
     }, [])
 
     return (
