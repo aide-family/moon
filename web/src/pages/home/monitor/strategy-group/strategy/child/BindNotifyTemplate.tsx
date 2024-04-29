@@ -90,7 +90,7 @@ export const BindNotifyTemplate: React.FC<BindNotifyTemplateProps> = (
     }, [strategyId, open])
 
     useEffect(() => {
-        form?.resetFields(['content'])
+        form?.resetFields()
         const item = templateList.find(
             (item) => item.notifyType === notifyTeype
         ) || { notifyType: notifyTeype, content: '' }
