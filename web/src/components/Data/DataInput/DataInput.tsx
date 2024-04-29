@@ -39,6 +39,10 @@ import {
     JsonTemplateEditor,
     JsonTemplateEditorProps
 } from './child/JsonTemplateEditor'
+import {
+    FeishuTemplateEditor,
+    FeishuTemplateEditorProps
+} from './child/FeishuTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -109,6 +113,10 @@ export type DataInputProps =
           | {
                 type: 'json-template-editor'
                 parentProps?: JsonTemplateEditorProps
+            }
+          | {
+                type: 'feishu-template-editor'
+                parentProps?: FeishuTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -247,6 +255,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                 return <WechatTemplateEditor {...props} {...parentProps} />
             case 'json-template-editor':
                 return <JsonTemplateEditor {...props} {...parentProps} />
+            case 'feishu-template-editor':
+                return <FeishuTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input

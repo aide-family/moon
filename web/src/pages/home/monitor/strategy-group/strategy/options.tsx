@@ -1072,6 +1072,14 @@ export const bindNotifyTemplateDataFormOptions = (
                 }
             }
             break
+        case NotifyTemplateType.NotifyTemplateTypeFeiShu:
+            defaultContentType.dataProps = {
+                type: 'feishu-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
         default:
             defaultContentType.dataProps = {
                 type: 'template-auto-complete',

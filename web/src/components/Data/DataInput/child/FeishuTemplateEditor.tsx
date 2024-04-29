@@ -7,7 +7,7 @@ import './userWorker'
 
 import './style.css'
 
-export interface WechatTemplateEditorProps {
+export interface FeishuTemplateEditorProps {
     value?: string
     defaultValue?: string
     onChange?: (value: string) => void
@@ -110,26 +110,175 @@ function createDependencyProposals(range: monaco.IRange) {
     ]
 }
 
+const tplText = `{
+    "msg_type": "text",
+    "content": {
+        "text": "<at user_id=\"ou_xxx\">Tom</at> 新监控告警提醒\n \${1:alarmContent}"
+    }
+}`
+
+const tplMarkdown = `{
+	"msg_type": "post",
+	"content": {
+		"post": {
+			"zh_cn": {
+				"title": "Moon监控告警通知",
+				"content": [
+					[
+                        {
+							"tag": "text",
+							"text": "\${1:alarmContent}"
+						},
+						{
+							"tag": "a",
+							"text": "请查看",
+							"href": "\${2:alarmUrl}"
+						},
+						{
+							"tag": "at",
+							"user_id": "\${3:userId}"
+						}
+                        \{$4:alarmExtra}
+					]
+				]
+			}
+		}
+	}
+}`
+
+const tplInteractive = `{
+    "msg_type": "interactive",
+    "card": {
+        "elements": [{
+                "tag": "div",
+                "text": {
+                        "content": "\${1:alarmContent}",
+                        "tag": "lark_md"
+                }
+        }, {
+                "actions": [{
+                        "tag": "button",
+                        "text": {
+                                "content": "\${2:进入系统查看}",
+                                "tag": "lark_md"
+                        },
+                        "url": "\${3:alarmUrl}",
+                        "type": "default",
+                        "value": {}
+                }],
+                "tag": "action"
+        }],
+        "header": {
+                "title": {
+                        "content": "\${4:Moon监控告警通知}",
+                        "tag": "plain_text"
+                }
+        }
+    }
+}`
+
+function feishuJsonTemplateProposals(range: monaco.IRange) {
+    return [
+        {
+            label: 'tplText',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: tplText,
+            insertTextRules:
+                monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range
+        },
+        {
+            label: 'tplMarkdown',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: tplMarkdown,
+            insertTextRules:
+                monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range
+        },
+        {
+            label: 'tplInteractive',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: tplInteractive,
+            insertTextRules:
+                monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range
+        }
+    ]
+}
+
 const provideCompletionItems = (
     model: monaco.editor.ITextModel,
     position: monaco.Position
 ) => {
-    const word = model.getWordUntilPosition(position)
+    const extUntilPosition = model.getValueInRange({
+        startLineNumber: 1,
+        startColumn: 1,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column
+    })
 
+    // 匹配json格式
+    const reg = /\{\s*|\s*\}/
+    const match = extUntilPosition.match(reg)
+    const word = model.getWordUntilPosition(position)
     const range = {
         startLineNumber: position.lineNumber,
         endLineNumber: position.lineNumber,
         startColumn: word.startColumn,
         endColumn: word.endColumn
     }
+    if (!match) {
+        return {
+            suggestions: feishuJsonTemplateProposals(range)
+        }
+    }
+
     return {
         suggestions: createDependencyProposals(range)
     }
 }
 
-const modelUri = monaco.Uri.parse('./json/wechat.json')
+const modelUri = monaco.Uri.parse('./json/feishu.json')
 
 const model = monaco.editor.createModel('', FeishuTemplate, modelUri)
+
+const i18nJsonSchema = {
+    type: 'object',
+    properties: {
+        title: {
+            type: 'string'
+        },
+        content: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    tag: {
+                        type: 'string'
+                    },
+                    text: {
+                        type: 'string'
+                    },
+                    un_escape: {
+                        type: 'string'
+                    },
+                    href: {
+                        type: 'string'
+                    },
+                    user_id: {
+                        type: 'string'
+                    },
+                    user_name: {
+                        type: 'string'
+                    },
+                    image_key: {
+                        type: 'string'
+                    }
+                }
+            }
+        }
+    }
+}
 
 const init = () => {
     monaco.languages.setMonarchTokensProvider(FeishuTemplate, {
@@ -142,213 +291,122 @@ const init = () => {
         validate: false,
         schemas: [
             {
-                uri: './json/wechat.json', // id of the first schema
+                uri: './json/feishu.json', // id of the first schema
                 fileMatch: [modelUri.toString()], // associate with our model
                 schema: {
                     type: 'object',
                     properties: {
-                        msgtype: {
+                        msg_type: {
                             enum: [
                                 'text',
-                                'markdown',
+                                'post',
                                 'image',
-                                'news',
-                                'file',
-                                'template_card'
+                                'share_chat',
+                                'interactive'
                             ]
                         },
-                        text: {
+                        content: {
                             type: 'object',
                             properties: {
-                                content: {
+                                text: {
                                     type: 'string'
                                 },
-                                mentioned_list: {
-                                    type: 'array'
+                                share_chat_id: {
+                                    type: 'string'
                                 },
-                                mentioned_mobile_list: {
-                                    type: 'array'
+                                image_key: {
+                                    type: 'string'
+                                },
+                                post: {
+                                    type: 'object',
+                                    properties: {
+                                        zh_cn: {
+                                            ...i18nJsonSchema
+                                        },
+                                        en_us: {
+                                            ...i18nJsonSchema
+                                        }
+                                    }
                                 }
                             }
                         },
-                        markdown: {
+                        card: {
                             type: 'object',
                             properties: {
-                                content: {
-                                    type: 'string'
-                                }
-                            }
-                        },
-                        image: {
-                            type: 'object',
-                            properties: {
-                                base64: {
-                                    type: 'string'
-                                },
-                                md5: {
-                                    type: 'string'
-                                }
-                            }
-                        },
-                        news: {
-                            type: 'object',
-                            properties: {
-                                articles: {
+                                elements: {
                                     type: 'array',
                                     items: {
                                         type: 'object',
                                         properties: {
-                                            title: {
-                                                type: 'string'
+                                            tag: {
+                                                type: 'string',
+                                                enum: [
+                                                    'div',
+                                                    'at',
+                                                    'text',
+                                                    'a',
+                                                    'img'
+                                                ]
                                             },
-                                            description: {
-                                                type: 'string'
+                                            text: {
+                                                type: 'object',
+                                                properties: {
+                                                    content: {
+                                                        type: 'string'
+                                                    },
+                                                    tag: {
+                                                        type: 'string'
+                                                    }
+                                                }
                                             },
-                                            url: {
-                                                type: 'string'
-                                            },
-                                            picurl: {
-                                                type: 'string'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        file: {
-                            type: 'object',
-                            properties: {
-                                media_id: {
-                                    type: 'string'
-                                }
-                            }
-                        },
-                        template_card: {
-                            type: 'object',
-                            properties: {
-                                card_type: {
-                                    type: 'string',
-                                    enum: ['text_notice']
-                                },
-                                source: {
-                                    type: 'object',
-                                    properties: {
-                                        icon_url: {
-                                            type: 'string'
-                                        },
-                                        desc_color: {
-                                            type: 'number'
-                                        },
-                                        desc: {
-                                            type: 'string'
-                                        }
-                                    }
-                                },
-                                main_title: {
-                                    type: 'object',
-                                    properties: {
-                                        title: {
-                                            type: 'string'
-                                        },
-                                        desc: {
-                                            type: 'string'
-                                        }
-                                    }
-                                },
-                                emphasis_content: {
-                                    type: 'object',
-                                    properties: {
-                                        title: {
-                                            type: 'string'
-                                        },
-                                        desc: {
-                                            type: 'string'
-                                        }
-                                    }
-                                },
-                                quote_area: {
-                                    type: 'object',
-                                    properties: {
-                                        type: {
-                                            type: 'string'
-                                        },
-                                        url: {
-                                            type: 'string'
-                                        },
-                                        appid: {
-                                            type: 'string'
-                                        },
-                                        title: {
-                                            type: 'string'
-                                        },
-                                        quote_text: {
-                                            type: 'string'
-                                        }
-                                    }
-                                },
-                                sub_title_text: {
-                                    type: 'string'
-                                },
-                                horizontal_content_list: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            keyname: {
-                                                type: 'string'
-                                            },
-                                            type: {
-                                                type: 'number'
-                                            },
-                                            url: {
-                                                type: 'string'
-                                            },
-                                            value: {
-                                                type: 'string'
-                                            },
-                                            media_id: {
-                                                type: 'string'
+                                            actions: {
+                                                type: 'array',
+                                                items: {
+                                                    type: 'object',
+                                                    properties: {
+                                                        tag: {
+                                                            type: 'string'
+                                                        },
+                                                        text: {
+                                                            type: 'object',
+                                                            properties: {
+                                                                content: {
+                                                                    type: 'string'
+                                                                },
+                                                                tag: {
+                                                                    type: 'string'
+                                                                }
+                                                            }
+                                                        },
+                                                        url: {
+                                                            type: 'string'
+                                                        },
+                                                        type: {
+                                                            type: 'string',
+                                                            enum: ['default']
+                                                        },
+                                                        value: {
+                                                            type: 'object'
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 },
-                                jump_list: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            title: {
-                                                type: 'string'
-                                            },
-                                            type: {
-                                                type: 'number'
-                                            },
-                                            url: {
-                                                type: 'string'
-                                            },
-                                            appid: {
-                                                type: 'string'
-                                            },
-                                            pagepath: {
-                                                type: 'string'
-                                            }
-                                        }
-                                    }
-                                },
-                                card_action: {
+                                header: {
                                     type: 'object',
                                     properties: {
-                                        type: {
-                                            type: 'number'
-                                        },
-                                        url: {
-                                            type: 'string'
-                                        },
-                                        appid: {
-                                            type: 'string'
-                                        },
-                                        pagepath: {
-                                            type: 'string'
+                                        title: {
+                                            type: 'object',
+                                            properties: {
+                                                content: {
+                                                    type: 'string'
+                                                },
+                                                tag: {
+                                                    type: 'string'
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -375,7 +433,7 @@ const init = () => {
     })
 }
 
-export const WechatTemplateEditor: React.FC<WechatTemplateEditorProps> = (
+export const FeishuTemplateEditor: React.FC<FeishuTemplateEditorProps> = (
     props
 ) => {
     const {
