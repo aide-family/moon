@@ -1080,6 +1080,14 @@ export const bindNotifyTemplateDataFormOptions = (
                 }
             }
             break
+        case NotifyTemplateType.NotifyTemplateTypeDingDing:
+            defaultContentType.dataProps = {
+                type: 'ding-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
         default:
             defaultContentType.dataProps = {
                 type: 'template-auto-complete',

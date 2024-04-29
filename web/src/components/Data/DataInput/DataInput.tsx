@@ -43,6 +43,10 @@ import {
     FeishuTemplateEditor,
     FeishuTemplateEditorProps
 } from './child/FeishuTemplateEditor'
+import {
+    DingTemplateEditor,
+    DingTemplateEditorProps
+} from './child/DingTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -117,6 +121,10 @@ export type DataInputProps =
           | {
                 type: 'feishu-template-editor'
                 parentProps?: FeishuTemplateEditorProps
+            }
+          | {
+                type: 'ding-template-editor'
+                parentProps?: DingTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -257,6 +265,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                 return <JsonTemplateEditor {...props} {...parentProps} />
             case 'feishu-template-editor':
                 return <FeishuTemplateEditor {...props} {...parentProps} />
+            case 'ding-template-editor':
+                return <DingTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input

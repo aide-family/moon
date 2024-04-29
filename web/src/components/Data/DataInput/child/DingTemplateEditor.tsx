@@ -7,7 +7,7 @@ import './userWorker'
 
 import './style.css'
 
-export interface FeishuTemplateEditorProps {
+export interface DingTemplateEditorProps {
     value?: string
     defaultValue?: string
     onChange?: (value: string) => void
@@ -17,8 +17,8 @@ export interface FeishuTemplateEditorProps {
 
 const { useToken } = theme
 
-const FeishuTemplate = 'json'
-const FeishuTemplateTheme = 'FeishuTemplateTheme'
+const DingTemplate = 'json'
+const DingTemplateTheme = 'DingTemplateTheme'
 
 const tpl = `Moon监控系统告警通知
 告警状态: {{ .Status }}
@@ -111,77 +111,91 @@ function createDependencyProposals(range: monaco.IRange) {
 }
 
 const tplText = `{
-    "msg_type": "text",
-    "content": {
-        "text": "<at user_id=\"ou_xxx\">Tom</at> 新监控告警提醒\n \${1:alarmContent}"
+    "at": {
+        "atMobiles":[
+            \${1:atMobile}
+        ],
+        "atUserIds":[
+            \${2:atUserId}
+        ],
+        "isAtAll": \${3:false}
+    },
+    "text": {
+        "content":"\${4:content}"
+    },
+    "msgtype":"text"
+}`
+
+const tplLink = `{
+    "msgtype":"link",
+    "link": {
+        "text": "\${1:text}",
+        "title": "\${2:title}",
+        "picUrl": "\${3:picUrl}",
+        "messageUrl": "\${4:messageUrl}"
     }
 }`
 
 const tplMarkdown = `{
-	"msg_type": "post",
-	"content": {
-		"post": {
-			"zh_cn": {
-				"title": "Moon监控告警通知",
-				"content": [
-					[
-                        {
-							"tag": "text",
-							"text": "\${1:alarmContent}"
-						},
-						{
-							"tag": "a",
-							"text": "请查看",
-							"href": "\${2:alarmUrl}"
-						},
-						{
-							"tag": "at",
-							"user_id": "\${3:userId}"
-						}
-					]
-				]
-			}
-		}
-	}
-}`
-
-const tplInteractive = `{
-    "msg_type": "interactive",
-    "card": {
-        "elements": [{
-                "tag": "div",
-                "text": {
-                        "content": "\${1:alarmContent}",
-                        "tag": "lark_md"
-                }
-        }, {
-                "actions": [{
-                        "tag": "button",
-                        "text": {
-                                "content": "\${2:进入系统查看}",
-                                "tag": "lark_md"
-                        },
-                        "url": "\${3:alarmUrl}",
-                        "type": "default",
-                        "value": {}
-                }],
-                "tag": "action"
-        }],
-        "header": {
-                "title": {
-                        "content": "\${4:Moon监控告警通知}",
-                        "tag": "plain_text"
-                }
-        }
+    "msgtype":"markdown",
+    "markdown": {
+        "title": "\${1:title}",
+        "text": "\${2:text}"
     }
 }`
 
-function feishuJsonTemplateProposals(range: monaco.IRange) {
+const tplActionCard = `{
+    "msgtype":"actionCard",
+    "actionCard": {
+        "title": "\${1:title}",
+        "btnOrientation": "0",
+        "singleTitle": "\${2:singleTitle}",
+        "singleURL": "\${3:singleURL}",
+        "btns": [
+            {
+                "title": "\${4:title}",
+                "actionURL": "\${5:actionURL}"
+            },
+            {
+                "title": "\${6:title}",
+                "actionURL": "\${7:actionURL}"
+            }
+        ]
+    }
+}`
+
+const tplFeedCard = `{
+    "msgtype":"feedCard",
+    "feedCard": {
+        "links": [
+            {
+                "title": "\${1:title}",
+                "messageURL": "\${2:messageURL}",
+                "picURL": "\${3:picURL}"
+            },
+            {
+                "title": "\${4:title}",
+                "messageURL": "\${5:messageURL}",
+                "picURL": "\${6:picURL}"
+            }
+        ]
+    }
+}`
+
+function dingJsonTemplateProposals(range: monaco.IRange) {
     return [
         {
             label: 'tplText',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: tplText,
+            insertTextRules:
+                monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range
+        },
+        {
+            label: 'tplLink',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: tplLink,
             insertTextRules:
                 monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
             range: range
@@ -195,9 +209,17 @@ function feishuJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'tplInteractive',
+            label: 'tplActionCard',
             kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: tplInteractive,
+            insertText: tplActionCard,
+            insertTextRules:
+                monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range: range
+        },
+        {
+            label: 'tplFeedCard',
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            insertText: tplFeedCard,
             insertTextRules:
                 monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
             range: range
@@ -228,7 +250,7 @@ const provideCompletionItems = (
     }
     if (!match) {
         return {
-            suggestions: feishuJsonTemplateProposals(range)
+            suggestions: dingJsonTemplateProposals(range)
         }
     }
 
@@ -237,50 +259,12 @@ const provideCompletionItems = (
     }
 }
 
-const modelUri = monaco.Uri.parse('./json/feishu.json')
+const modelUri = monaco.Uri.parse('./json/ding.json')
 
-const model = monaco.editor.createModel('', FeishuTemplate, modelUri)
-
-const i18nJsonSchema = {
-    type: 'object',
-    properties: {
-        title: {
-            type: 'string'
-        },
-        content: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    tag: {
-                        type: 'string'
-                    },
-                    text: {
-                        type: 'string'
-                    },
-                    un_escape: {
-                        type: 'string'
-                    },
-                    href: {
-                        type: 'string'
-                    },
-                    user_id: {
-                        type: 'string'
-                    },
-                    user_name: {
-                        type: 'string'
-                    },
-                    image_key: {
-                        type: 'string'
-                    }
-                }
-            }
-        }
-    }
-}
+const model = monaco.editor.createModel('', DingTemplate, modelUri)
 
 const init = () => {
-    monaco.languages.setMonarchTokensProvider(FeishuTemplate, {
+    monaco.languages.setMonarchTokensProvider(DingTemplate, {
         tokenizer: {
             root: [[/\{\{[ ]*\.[ ]*[^}]*[ ]*\}\}/, 'keyword']]
         }
@@ -290,121 +274,128 @@ const init = () => {
         validate: false,
         schemas: [
             {
-                uri: './json/feishu.json', // id of the first schema
+                uri: './json/ding.json', // id of the first schema
                 fileMatch: [modelUri.toString()], // associate with our model
                 schema: {
                     type: 'object',
                     properties: {
-                        msg_type: {
+                        msgtype: {
+                            type: 'string',
                             enum: [
                                 'text',
-                                'post',
-                                'image',
-                                'share_chat',
-                                'interactive'
+                                'link',
+                                'markdown',
+                                'actionCard',
+                                'feedCard'
                             ]
                         },
-                        content: {
+                        text: {
                             type: 'object',
                             properties: {
+                                content: {
+                                    type: 'string'
+                                }
+                            }
+                        },
+                        at: {
+                            type: 'object',
+                            properties: {
+                                atMobiles: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'string'
+                                    }
+                                },
+                                atUserIds: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'string'
+                                    }
+                                },
+                                isAtAll: {
+                                    type: 'boolean',
+                                    enum: [true, false]
+                                }
+                            }
+                        },
+                        link: {
+                            type: 'object',
+                            properties: {
+                                title: {
+                                    type: 'string'
+                                },
                                 text: {
                                     type: 'string'
                                 },
-                                share_chat_id: {
+                                picUrl: {
                                     type: 'string'
                                 },
-                                image_key: {
+                                messageUrl: {
+                                    type: 'string'
+                                }
+                            }
+                        },
+                        markdown: {
+                            type: 'object',
+                            properties: {
+                                title: {
                                     type: 'string'
                                 },
-                                post: {
-                                    type: 'object',
-                                    properties: {
-                                        zh_cn: {
-                                            ...i18nJsonSchema
-                                        },
-                                        en_us: {
-                                            ...i18nJsonSchema
+                                text: {
+                                    type: 'string'
+                                }
+                            }
+                        },
+                        actionCard: {
+                            type: 'object',
+                            properties: {
+                                title: {
+                                    type: 'string'
+                                },
+                                text: {
+                                    type: 'string'
+                                },
+                                btnOrientation: {
+                                    type: 'string'
+                                },
+                                singleTitle: {
+                                    type: 'string'
+                                },
+                                singleURL: {
+                                    type: 'string'
+                                },
+                                btns: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            title: {
+                                                type: 'string'
+                                            },
+                                            actionURL: {
+                                                type: 'string'
+                                            }
                                         }
                                     }
                                 }
                             }
                         },
-                        card: {
+                        feedCard: {
                             type: 'object',
                             properties: {
-                                elements: {
+                                links: {
                                     type: 'array',
                                     items: {
                                         type: 'object',
                                         properties: {
-                                            tag: {
-                                                type: 'string',
-                                                enum: [
-                                                    'div',
-                                                    'at',
-                                                    'text',
-                                                    'a',
-                                                    'img'
-                                                ]
+                                            title: {
+                                                type: 'string'
                                             },
-                                            text: {
-                                                type: 'object',
-                                                properties: {
-                                                    content: {
-                                                        type: 'string'
-                                                    },
-                                                    tag: {
-                                                        type: 'string'
-                                                    }
-                                                }
+                                            messageURL: {
+                                                type: 'string'
                                             },
-                                            actions: {
-                                                type: 'array',
-                                                items: {
-                                                    type: 'object',
-                                                    properties: {
-                                                        tag: {
-                                                            type: 'string'
-                                                        },
-                                                        text: {
-                                                            type: 'object',
-                                                            properties: {
-                                                                content: {
-                                                                    type: 'string'
-                                                                },
-                                                                tag: {
-                                                                    type: 'string'
-                                                                }
-                                                            }
-                                                        },
-                                                        url: {
-                                                            type: 'string'
-                                                        },
-                                                        type: {
-                                                            type: 'string',
-                                                            enum: ['default']
-                                                        },
-                                                        value: {
-                                                            type: 'object'
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                header: {
-                                    type: 'object',
-                                    properties: {
-                                        title: {
-                                            type: 'object',
-                                            properties: {
-                                                content: {
-                                                    type: 'string'
-                                                },
-                                                tag: {
-                                                    type: 'string'
-                                                }
+                                            picURL: {
+                                                type: 'string'
                                             }
                                         }
                                     }
@@ -418,7 +409,7 @@ const init = () => {
     })
 
     // Define a new theme that contains only rules that match this language
-    monaco.editor.defineTheme(FeishuTemplateTheme, {
+    monaco.editor.defineTheme(DingTemplateTheme, {
         base: 'vs',
         inherit: false,
         rules: [{ token: 'keyword', foreground: 'F55D04', fontStyle: 'bold' }],
@@ -427,12 +418,12 @@ const init = () => {
         }
     })
 
-    monaco.languages.registerCompletionItemProvider(FeishuTemplate, {
+    monaco.languages.registerCompletionItemProvider(DingTemplate, {
         provideCompletionItems: provideCompletionItems
     })
 }
 
-export const FeishuTemplateEditor: React.FC<FeishuTemplateEditorProps> = (
+export const DingTemplateEditor: React.FC<DingTemplateEditorProps> = (
     props
 ) => {
     const {
@@ -458,8 +449,8 @@ export const FeishuTemplateEditor: React.FC<FeishuTemplateEditorProps> = (
             const curr = monacoEl.current!
             const e = monaco.editor.create(curr, {
                 model: model,
-                theme: FeishuTemplateTheme,
-                language: FeishuTemplate,
+                theme: DingTemplateTheme,
+                language: DingTemplate,
                 value: value || defaultValue,
                 // 展示行号和内容的边框
                 lineNumbersMinChars: 4,
