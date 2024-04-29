@@ -27,6 +27,26 @@ import {
     TemplateAutoComplete,
     TemplateAutoCompleteProps
 } from '../TemplateAutoComplete'
+import {
+    EmailTemplateEditor,
+    EmailTemplateEditorProps
+} from './child/EmailTemplateEditor'
+import {
+    WechatTemplateEditor,
+    WechatTemplateEditorProps
+} from './child/WechatTemplateEditor'
+import {
+    JsonTemplateEditor,
+    JsonTemplateEditorProps
+} from './child/JsonTemplateEditor'
+import {
+    FeishuTemplateEditor,
+    FeishuTemplateEditorProps
+} from './child/FeishuTemplateEditor'
+import {
+    DingTemplateEditor,
+    DingTemplateEditorProps
+} from './child/DingTemplateEditor'
 
 export type DataInputProps =
     | (
@@ -85,6 +105,26 @@ export type DataInputProps =
           | {
                 type: 'template-auto-complete'
                 parentProps?: TemplateAutoCompleteProps
+            }
+          | {
+                type: 'email-template-editor'
+                parentProps?: EmailTemplateEditorProps
+            }
+          | {
+                type: 'wechat-template-editor'
+                parentProps?: WechatTemplateEditorProps
+            }
+          | {
+                type: 'json-template-editor'
+                parentProps?: JsonTemplateEditorProps
+            }
+          | {
+                type: 'feishu-template-editor'
+                parentProps?: FeishuTemplateEditorProps
+            }
+          | {
+                type: 'ding-template-editor'
+                parentProps?: DingTemplateEditorProps
             }
       ) & {
           width?: number | string
@@ -217,6 +257,16 @@ const DataInput: FC<DataInputProps> = (props) => {
                         options={parentProps?.options || []}
                     />
                 )
+            case 'email-template-editor':
+                return <EmailTemplateEditor {...props} {...parentProps} />
+            case 'wechat-template-editor':
+                return <WechatTemplateEditor {...props} {...parentProps} />
+            case 'json-template-editor':
+                return <JsonTemplateEditor {...props} {...parentProps} />
+            case 'feishu-template-editor':
+                return <FeishuTemplateEditor {...props} {...parentProps} />
+            case 'ding-template-editor':
+                return <DingTemplateEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input

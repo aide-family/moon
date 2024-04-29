@@ -8,7 +8,7 @@ import { Button, Form, Modal, ModalProps, Space, message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { bindNotifyTemplateDataFormOptions } from '../options'
 import { templateApi } from '@/apis/home/monitor/notify-template'
-import { defaultPageReqInfo } from '@/apis/types'
+import { NotifyTemplateType, defaultPageReqInfo } from '@/apis/types'
 import chatGroupApi from '@/apis/home/monitor/chat-group'
 import { TestTemplateResponse } from '@/apis/home/monitor/chat-group/types'
 
@@ -22,7 +22,9 @@ export const BindNotifyTemplate: React.FC<BindNotifyTemplateProps> = (
 ) => {
     const { strategyId, open, onOk, onCancel } = props
     const [form] = Form.useForm<CreateTemplateRequest>()
-    const notifyTeype = Form.useWatch('notifyType', form)
+    const notifyTeype =
+        Form.useWatch('notifyType', form) ||
+        NotifyTemplateType.NotifyTemplateTypeCustom
     const templateConten = Form.useWatch('content', form)
 
     const [templateList, setTemplateList] = useState<NotifyTemplateItem[]>([])
@@ -94,7 +96,7 @@ export const BindNotifyTemplate: React.FC<BindNotifyTemplateProps> = (
         ) || { notifyType: notifyTeype, content: '' }
         item.notifyType = notifyTeype
         form?.setFieldsValue(item)
-    }, [notifyTeype])
+    }, [notifyTeype, templateList])
 
     const handleOnTest = () => {
         if (!strategyId) {
@@ -149,7 +151,7 @@ export const BindNotifyTemplate: React.FC<BindNotifyTemplateProps> = (
             <DataForm
                 form={form}
                 formProps={{ layout: 'vertical' }}
-                items={bindNotifyTemplateDataFormOptions}
+                items={bindNotifyTemplateDataFormOptions(notifyTeype)}
             />
         </Modal>
     )

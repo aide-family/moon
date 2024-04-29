@@ -982,23 +982,35 @@ const TemplateTooltip = () => {
     return (
         <div>
             告警内容，用于在告警信息中展示, 支持模板语法， 例如:
-            <br/>
-            <hr/>
-            <div style={{fontSize: '12px'}}>
-                {`告警状态: {{ .Status }}`}<br/>
-                {`告警标签: {{ .Labels }}`}<br/>
-                {`机器实例: {{ .Labels.instance }}`}<br/>
-                {`规则名称: {{ .Labels.alertname }}`}<br/>
-                {`告警内容: {{ .Annotations }}`}<br/>
-                {`告警描述: {{ .Annotations.summary }}`}<br/>
-                {`告警详情: {{ .Annotations.description }}`}<br/>
-                {`告警时间: {{ .StartsAt }}`}<br/>
-                {`恢复时间: {{ .EndsAt }}`}<br/>
-                {`链接地址: {{ .GeneratorURL }}`}<br/>
-                {`告警指纹: {{ .Fingerprint }}`}<br/>
-                {`当前值: {{ .Value }}`}<br/>
+            <br />
+            <hr />
+            <div style={{ fontSize: '12px' }}>
+                {`告警状态: {{ .Status }}`}
+                <br />
+                {`告警标签: {{ .Labels }}`}
+                <br />
+                {`机器实例: {{ .Labels.instance }}`}
+                <br />
+                {`规则名称: {{ .Labels.alertname }}`}
+                <br />
+                {`告警内容: {{ .Annotations }}`}
+                <br />
+                {`告警描述: {{ .Annotations.summary }}`}
+                <br />
+                {`告警详情: {{ .Annotations.description }}`}
+                <br />
+                {`告警时间: {{ .StartsAt }}`}
+                <br />
+                {`恢复时间: {{ .EndsAt }}`}
+                <br />
+                {`链接地址: {{ .GeneratorURL }}`}
+                <br />
+                {`告警指纹: {{ .Fingerprint }}`}
+                <br />
+                {`当前值: {{ .Value }}`}
+                <br />
             </div>
-            <hr/>
+            <hr />
             <Button
                 type="link"
                 href="https://open.dingtalk.com/document/orgapp/custom-bot-send-message-type#"
@@ -1006,7 +1018,6 @@ const TemplateTooltip = () => {
             >
                 钉钉hook文档
             </Button>
-
             <Button
                 type="link"
                 href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
@@ -1021,51 +1032,14 @@ const TemplateTooltip = () => {
     )
 }
 
-export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
-    {
-        name: 'notifyType',
-        label: '通知模板类型',
-        formItemProps: {
-            tooltip: '配置不同通知对象的模板'
-        },
-        dataProps: {
-            type: 'segmented',
-            parentProps: {
-                options: Object.entries(NotifyTemplateTypeData).map(
-                    ([key, value]) => {
-                        return {
-                            value: +key,
-                            label: value,
-                            disabled:
-                                +key ===
-                                NotifyTemplateType.NotifyTemplateTypeSms
-                        }
-                    }
-                )
-            }
-        },
-        rules: [
-            {
-                required: true,
-                message: '请选择通知模板类型'
-            }
-        ]
-    },
-
-    {
+export const bindNotifyTemplateDataFormOptions = (
+    notifyType?: NotifyTemplateType
+): DataFormItem[] => {
+    let defaultContentType: DataFormItem = {
         label: '通知模板内容',
         name: 'content',
         formItemProps: {
             tooltip: <TemplateTooltip />
-        },
-        dataProps: {
-            type: 'template-auto-complete',
-            parentProps: {
-                placeholder: '请输入通知模板内容',
-                autoCompleteProps: {
-                    rows: 8
-                }
-            }
         },
         rules: [
             {
@@ -1073,4 +1047,89 @@ export const bindNotifyTemplateDataFormOptions: DataFormItem[] = [
             }
         ]
     }
-]
+    switch (notifyType) {
+        case NotifyTemplateType.NotifyTemplateTypeEmail:
+            defaultContentType.dataProps = {
+                type: 'email-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        case NotifyTemplateType.NotifyTemplateTypeWeChatWork:
+            defaultContentType.dataProps = {
+                type: 'wechat-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        case NotifyTemplateType.NotifyTemplateTypeCustom:
+            defaultContentType.dataProps = {
+                type: 'json-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        case NotifyTemplateType.NotifyTemplateTypeFeiShu:
+            defaultContentType.dataProps = {
+                type: 'feishu-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        case NotifyTemplateType.NotifyTemplateTypeDingDing:
+            defaultContentType.dataProps = {
+                type: 'ding-template-editor',
+                parentProps: {
+                    height: 300
+                }
+            }
+            break
+        default:
+            defaultContentType.dataProps = {
+                type: 'template-auto-complete',
+                parentProps: {
+                    placeholder: '请输入模板内容',
+                    autoCompleteProps: {
+                        rows: 8
+                    }
+                }
+            }
+    }
+    return [
+        {
+            name: 'notifyType',
+            label: '通知模板类型',
+            formItemProps: {
+                tooltip: '配置不同通知对象的模板',
+                initialValue: NotifyTemplateType.NotifyTemplateTypeCustom
+            },
+            dataProps: {
+                type: 'segmented',
+                parentProps: {
+                    options: Object.entries(NotifyTemplateTypeData).map(
+                        ([key, value]) => {
+                            return {
+                                value: +key,
+                                label: value,
+                                disabled:
+                                    +key ===
+                                    NotifyTemplateType.NotifyTemplateTypeSms
+                            }
+                        }
+                    )
+                }
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择通知模板类型'
+                }
+            ]
+        },
+        defaultContentType
+    ]
+}

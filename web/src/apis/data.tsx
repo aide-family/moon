@@ -1,4 +1,4 @@
-import { Button } from 'antd'
+import { Button, Space } from 'antd'
 import {
     Category,
     DatasourceType,
@@ -128,40 +128,40 @@ export const NotifyTemplateTypeData: Record<
     React.ReactNode
 > = {
     [NotifyTemplateType.NotifyTemplateTypeEmail]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-youjian" />
             邮件
-        </span>
+        </Space>
     ),
     [NotifyTemplateType.NotifyTemplateTypeCustom]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-zidingyi" />
             自定义hook
-        </span>
+        </Space>
     ),
     [NotifyTemplateType.NotifyTemplateTypeDingDing]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-dingding" />
             钉钉
-        </span>
+        </Space>
     ),
     [NotifyTemplateType.NotifyTemplateTypeSms]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-duanxin" />
             短信
-        </span>
+        </Space>
     ),
     [NotifyTemplateType.NotifyTemplateTypeFeiShu]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-feishu" />
             飞书
-        </span>
+        </Space>
     ),
     [NotifyTemplateType.NotifyTemplateTypeWeChatWork]: (
-        <span>
+        <Space size={8}>
             <IconFont type="icon-qiyeweixin" />
             企业微信
-        </span>
+        </Space>
     )
 }
 

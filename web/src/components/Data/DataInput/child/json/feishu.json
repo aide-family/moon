@@ -1,0 +1,68 @@
+{
+    "msg_type": "text|post|share_chat|image|interactive",
+    "content": {
+        "text": "新更新提醒,// @ 指定用户 <at user_id=\"ou_xxx\">Name</at> //取值须使用 open_id 或 user_id 来 @ 指定人// @ 多个指定用户<at user_id=\"ou_xxx1\">Name1</at><at user_id=\"ou_xxx2\">Name2</at> //取值须使用 open_id 或 user_id 来 @ 指定人// @ 所有人<at user_id=\"all\">所有人</at> ",
+        "share_chat_id": "群 ID。获取方式请参见 群 ID 说明。",
+        "image_key": "图片Key。可通过 上传图片 接口获取 image_key。",
+        "post": {
+            "zh_cn": {
+                "title": "项目更新通知",
+                "content": [
+                    [
+                        {
+                            "tag": "text",
+                            "text": "项目有更新: ",
+                            "un_escape": "表示是否 unescape 解码。默认值为 false，未用到 unescape 时可以不填"
+                        },
+                        {
+                            "tag": "a",
+                            "text": "请查看",
+                            "href": "http://www.example.com/"
+                        },
+                        {
+                            "tag": "at",
+                            "user_id": "ou_18eac8********17ad4f02e8bbbb",
+                            "user_name": "张三"
+                        },
+                        {
+                            "tag": "img",
+                            "image_key": "图片的唯一标识。可通过 上传图片 接口获取 image_key。"
+                        }
+                    ]
+                ]
+            }
+        }
+    },
+    "card": {
+        "elements": [
+            {
+                "tag": "div",
+                "text": {
+                    "content": "**西湖**，位于浙江省杭州市西湖区龙井路1号，杭州市区西部，景区总面积49平方千米，汇水面积为21.22平方千米，湖面面积为6.38平方千米。",
+                    "tag": "lark_md"
+                }
+            },
+            {
+                "actions": [
+                    {
+                        "tag": "button",
+                        "text": {
+                            "content": "更多景点介绍 :玫瑰:",
+                            "tag": "lark_md"
+                        },
+                        "url": "https://www.example.com",
+                        "type": "default",
+                        "value": {}
+                    }
+                ],
+                "tag": "action"
+            }
+        ],
+        "header": {
+            "title": {
+                "content": "今日旅游推荐",
+                "tag": "plain_text"
+            }
+        }
+    }
+}
