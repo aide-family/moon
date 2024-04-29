@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useRef, useState, useEffect } from 'react'
 
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import { theme } from 'antd'
+import { GlobalToken, theme } from 'antd'
 import './userWorker'
 
 import './style.css'
+import { GlobalContext, ThemeType } from '@/context'
+import { defaultTheme } from './color'
 
 export interface WechatTemplateEditorProps {
     value?: string
@@ -331,7 +333,7 @@ const modelUri = monaco.Uri.parse('./json/wechat.json')
 
 const model = monaco.editor.createModel('', WechatNotifyTemplate, modelUri)
 
-const init = () => {
+const init = (token: GlobalToken, theme?: ThemeType) => {
     monaco.languages.setMonarchTokensProvider(WechatNotifyTemplate, {
         tokenizer: {
             root: [[/\{\{[ ]*\.[ ]*[^}]*[ ]*\}\}/, 'keyword']]
@@ -561,14 +563,10 @@ const init = () => {
     })
 
     // Define a new theme that contains only rules that match this language
-    monaco.editor.defineTheme(WechatNotifyTemplateTheme, {
-        base: 'vs',
-        inherit: false,
-        rules: [{ token: 'keyword', foreground: 'F55D04', fontStyle: 'bold' }],
-        colors: {
-            'editor.foreground': '#000000'
-        }
-    })
+    monaco.editor.defineTheme(
+        WechatNotifyTemplateTheme,
+        defaultTheme(token, theme)
+    )
 
     monaco.languages.registerCompletionItemProvider(WechatNotifyTemplate, {
         provideCompletionItems: provideCompletionItems
@@ -587,6 +585,7 @@ export const WechatTemplateEditor: React.FC<WechatTemplateEditorProps> = (
     } = props
 
     const { token } = useToken()
+    const { sysTheme } = useContext(GlobalContext)
 
     const [editor, setEditor] =
         useState<monaco.editor.IStandaloneCodeEditor | null>(null)
@@ -619,7 +618,7 @@ export const WechatTemplateEditor: React.FC<WechatTemplateEditorProps> = (
     }, [defaultValue, editor, monacoEl, onChange, value])
 
     useEffect(() => {
-        init()
+        init(token, sysTheme)
     }, [])
 
     return (
