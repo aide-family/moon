@@ -245,7 +245,7 @@ const templateCardTemplate = `{
 function wechatJsonTemplateProposals(range: monaco.IRange) {
     return [
         {
-            label: 'text',
+            label: 'tplText',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: textTemplate,
             insertTextRules:
@@ -253,7 +253,7 @@ function wechatJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'markdown',
+            label: 'tplMarkdown',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: markdownTemplate,
             insertTextRules:
@@ -261,7 +261,7 @@ function wechatJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'image',
+            label: 'tplImage',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: imageTemplate,
             insertTextRules:
@@ -269,7 +269,7 @@ function wechatJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'news',
+            label: 'tplNews',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: newsTemplate,
             insertTextRules:
@@ -277,7 +277,7 @@ function wechatJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'file',
+            label: 'tplFile',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: fileTemplate,
             insertTextRules:
@@ -285,7 +285,7 @@ function wechatJsonTemplateProposals(range: monaco.IRange) {
             range: range
         },
         {
-            label: 'template_card',
+            label: 'tplTemplateCard',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: templateCardTemplate,
             insertTextRules:
