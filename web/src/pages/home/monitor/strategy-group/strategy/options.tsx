@@ -1032,6 +1032,8 @@ const TemplateTooltip = () => {
     )
 }
 
+const templateEditorHight = 400
+
 export const bindNotifyTemplateDataFormOptions = (
     notifyType?: NotifyTemplateType
 ): DataFormItem[] => {
@@ -1052,7 +1054,7 @@ export const bindNotifyTemplateDataFormOptions = (
             defaultContentType.dataProps = {
                 type: 'email-template-editor',
                 parentProps: {
-                    height: 300
+                    height: templateEditorHight
                 }
             }
             break
@@ -1060,7 +1062,7 @@ export const bindNotifyTemplateDataFormOptions = (
             defaultContentType.dataProps = {
                 type: 'wechat-template-editor',
                 parentProps: {
-                    height: 300
+                    height: templateEditorHight
                 }
             }
             break
@@ -1068,7 +1070,7 @@ export const bindNotifyTemplateDataFormOptions = (
             defaultContentType.dataProps = {
                 type: 'json-template-editor',
                 parentProps: {
-                    height: 300
+                    height: templateEditorHight
                 }
             }
             break
@@ -1076,7 +1078,7 @@ export const bindNotifyTemplateDataFormOptions = (
             defaultContentType.dataProps = {
                 type: 'feishu-template-editor',
                 parentProps: {
-                    height: 300
+                    height: templateEditorHight
                 }
             }
             break
@@ -1084,7 +1086,7 @@ export const bindNotifyTemplateDataFormOptions = (
             defaultContentType.dataProps = {
                 type: 'ding-template-editor',
                 parentProps: {
-                    height: 300
+                    height: templateEditorHight
                 }
             }
             break
