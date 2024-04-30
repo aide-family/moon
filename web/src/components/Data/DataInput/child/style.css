@@ -2,6 +2,7 @@
     min-height: 40px;
     box-sizing: border-box;
     margin: 0;
+    /* padding: -4px; */
     padding: 4px 11px;
     /* color: rgba(0, 0, 0, 0.88); */
     font-size: 14px;
@@ -29,6 +30,9 @@
     overflow-x: auto;
 }
 
+.monaco-scrollable-element{
+    left: 0 !important;
+}
 
 ::-webkit-scrollbar {
     width: 12px;

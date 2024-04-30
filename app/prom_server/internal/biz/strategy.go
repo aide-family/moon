@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/api/perrors"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
@@ -13,6 +12,7 @@ import (
 	"github.com/aide-family/moon/app/prom_server/internal/biz/repository"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type (

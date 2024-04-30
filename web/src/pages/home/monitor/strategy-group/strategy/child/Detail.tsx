@@ -146,8 +146,8 @@ export const Detail: FC<DetailProps> = (props) => {
     }
 
     useEffect(() => {
+        form?.resetFields()
         if (!open) {
-            form?.resetFields()
             setDetail(undefined)
             return
         }
@@ -160,19 +160,26 @@ export const Detail: FC<DetailProps> = (props) => {
             open={open}
             onCancel={onClose}
             onOk={handleSubmit}
-            width="66%"
+            width="66vw"
             centered={true}
             footer={actionKey === ActionKey.DETAIL ? null : undefined}
             // destroyOnClose={true}
         >
             <Spin spinning={loading}>
-                <StrategyForm
-                    form={form}
-                    disabled={disabled}
-                    initialValue={detail}
-                    openTour={openTour}
-                    handleCloseTour={handleCloseTour}
-                />
+                <div
+                    style={{
+                        overflowY: 'auto',
+                        height: '80vh'
+                    }}
+                >
+                    <StrategyForm
+                        form={form}
+                        disabled={disabled}
+                        initialValue={detail}
+                        openTour={openTour}
+                        handleCloseTour={handleCloseTour}
+                    />
+                </div>
             </Spin>
         </Modal>
     )

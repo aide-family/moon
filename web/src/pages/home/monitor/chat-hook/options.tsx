@@ -231,40 +231,44 @@ export const searchItems: DataFormItem[] = [
 export const addChatGroupItems = (
     app: NotifyApp
 ): (DataFormItem | DataFormItem[])[] => [
-    {
-        name: 'name',
-        label: '名称',
-        rules: [
-            {
-                required: true,
-                message: '请输入名称'
-            }
-        ]
-    },
-    {
-        name: 'app',
-        label: '所属平台',
-        rules: [
-            {
-                required: true,
-                message: '请选择所属平台'
-            }
-        ],
-        dataProps: {
-            type: 'select',
-            parentProps: {
-                placeholder: '请选择所属平台',
-                options: Object.entries(NotifyAppData)
-                    .filter(([key]) => {
-                        return key !== NotifyApp.NOTIFY_APP_UNKNOWN.toString()
-                    })
-                    .map(([key, value]) => ({
-                        label: value,
-                        value: Number(key)
-                    }))
+    [
+        {
+            name: 'name',
+            label: '名称',
+            rules: [
+                {
+                    required: true,
+                    message: '请输入名称'
+                }
+            ]
+        },
+        {
+            name: 'app',
+            label: '所属平台',
+            rules: [
+                {
+                    required: true,
+                    message: '请选择所属平台'
+                }
+            ],
+            dataProps: {
+                type: 'select',
+                parentProps: {
+                    placeholder: '请选择所属平台',
+                    options: Object.entries(NotifyAppData)
+                        .filter(([key]) => {
+                            return (
+                                key !== NotifyApp.NOTIFY_APP_UNKNOWN.toString()
+                            )
+                        })
+                        .map(([key, value]) => ({
+                            label: value,
+                            value: Number(key)
+                        }))
+                }
             }
         }
-    },
+    ],
     {
         name: 'hookName',
         label: 'Hook名称',

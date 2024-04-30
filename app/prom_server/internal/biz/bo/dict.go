@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type (
@@ -67,11 +68,9 @@ func (d *DictBO) ToApiSelectV1() *api.DictSelectV1 {
 }
 
 func ListToApiDictSelectV1(values ...*DictBO) []*api.DictSelectV1 {
-	list := make([]*api.DictSelectV1, 0, len(values))
-	for _, v := range values {
-		list = append(list, v.ToApiSelectV1())
-	}
-	return list
+	return slices.To(values, func(v *DictBO) *api.DictSelectV1 {
+		return v.ToApiSelectV1()
+	})
 }
 
 func (d *DictBO) ToModel() *do.SysDict {

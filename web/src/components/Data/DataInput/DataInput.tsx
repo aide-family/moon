@@ -47,6 +47,10 @@ import {
     DingTemplateEditor,
     DingTemplateEditorProps
 } from './child/DingTemplateEditor'
+import {
+    AnnotationEditor,
+    AnnotationEditorProps
+} from './child/AnnotationEditor'
 
 export type DataInputProps =
     | (
@@ -125,6 +129,10 @@ export type DataInputProps =
           | {
                 type: 'ding-template-editor'
                 parentProps?: DingTemplateEditorProps
+            }
+          | {
+                type: 'annotation-template-editor'
+                parentProps?: AnnotationEditorProps
             }
       ) & {
           width?: number | string
@@ -267,6 +275,8 @@ const DataInput: FC<DataInputProps> = (props) => {
                 return <FeishuTemplateEditor {...props} {...parentProps} />
             case 'ding-template-editor':
                 return <DingTemplateEditor {...props} {...parentProps} />
+            case 'annotation-template-editor':
+                return <AnnotationEditor {...props} {...parentProps} />
             default:
                 return (
                     <Input
