@@ -7,6 +7,20 @@ import (
 	"gorm.io/gorm"
 )
 
+var _ SysDictSet = (*SysDict)(nil)
+
+type (
+	SysDictSet interface {
+		SetPromStrategies(strategies []*PromStrategy) SysDictSet
+		SetID(id uint32) SysDictSet
+		SetName(name string) SysDictSet
+		SetColor(color string) SysDictSet
+		SetStatus(status vobj.Status) SysDictSet
+		SetRemark(remark string) SysDictSet
+		SetCategory(category vobj.Category) SysDictSet
+	}
+)
+
 const TableNameSysDict = "prom_dict"
 
 type SysDictField string
@@ -91,4 +105,60 @@ func (l *SysDict) GetPromStrategies() []*PromStrategy {
 		return nil
 	}
 	return l.PromStrategies
+}
+
+func (l *SysDict) SetPromStrategies(strategies []*PromStrategy) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.PromStrategies = strategies
+	return l
+}
+
+func (l *SysDict) SetID(id uint32) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.ID = id
+	return l
+}
+
+func (l *SysDict) SetName(name string) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.Name = name
+	return l
+}
+
+func (l *SysDict) SetCategory(category vobj.Category) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.Category = category
+	return l
+}
+
+func (l *SysDict) SetColor(color string) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.Color = color
+	return l
+}
+
+func (l *SysDict) SetStatus(status vobj.Status) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.Status = status
+	return l
+}
+
+func (l *SysDict) SetRemark(remark string) SysDictSet {
+	if l == nil {
+		return nil
+	}
+	l.Remark = remark
+	return l
 }

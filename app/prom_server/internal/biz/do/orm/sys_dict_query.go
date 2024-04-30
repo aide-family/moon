@@ -46,10 +46,10 @@ type (
 		Take(ctx context.Context) (*do.SysDict, error)
 		Count(ctx context.Context) (int64, error)
 
-		Mutation() *SysDictMutation
+		Mutation() SysDictMutation
 
-		Update() *SysDictUpdate
-		Create() *SysDictCreate
+		Update() SysDictUpdate
+		Create() SysDictCreate
 		Delete(ctx context.Context) (int64, error)
 	}
 	sysDictQuery struct {
@@ -191,15 +191,15 @@ func (l *sysDictQuery) Select(fields ...string) SysDictQuery {
 	return l
 }
 
-func (l *sysDictQuery) Mutation() *SysDictMutation {
+func (l *sysDictQuery) Mutation() SysDictMutation {
 	return NewSysDictMutation(l)
 }
 
-func (l *sysDictQuery) Update() *SysDictUpdate {
+func (l *sysDictQuery) Update() SysDictUpdate {
 	return NewSysDictMutation(l).Update()
 }
 
-func (l *sysDictQuery) Create() *SysDictCreate {
+func (l *sysDictQuery) Create() SysDictCreate {
 	return NewSysDictMutation(l).Create()
 }
 

@@ -31,41 +31,33 @@ func (l *sysDictRepoImpl) query(ctx context.Context) orm.SysDictQuery {
 }
 
 func (l *sysDictRepoImpl) CreateDict(ctx context.Context, dict *bo.CreateSysDictBo) (*do.SysDict, error) {
-	q := l.query(ctx)
-	return q.Create().
+	dictDo := new(do.SysDict).
 		SetName(dict.Name).
 		SetCategory(dict.Category).
 		SetColor(dict.Color).
 		SetRemark(dict.Remark).
-		SetStatus(dict.Status).
-		Save(ctx)
+		SetStatus(dict.Status)
+	return l.query(ctx).Create().Save(ctx, dictDo)
 }
 
 func (l *sysDictRepoImpl) UpdateDictById(ctx context.Context, id uint32, dict *bo.UpdateSysDictBo) (*do.SysDict, error) {
-	q := l.query(ctx)
-	return q.Where(do.SysDictFieldID.Eq(int(id))).
-		Update().
-		SetName(dict.Name).
+	dictDo := new(do.SysDict).SetName(dict.Name).
 		SetCategory(dict.Category).
 		SetColor(dict.Color).
 		SetRemark(dict.Remark).
-		SetStatus(dict.Status).
-		Save(ctx)
+		SetStatus(dict.Status)
+	return l.query(ctx).Where(do.SysDictFieldID.Eq(int(id))).Update().Save(ctx, dictDo)
 }
 
 func (l *sysDictRepoImpl) BatchUpdateDictStatusByIds(ctx context.Context, status vobj.Status, ids []uint32) error {
-	q := l.query(ctx)
 	intIds := slices.To(ids, func(id uint32) int { return int(id) })
-	q = q.Where(do.SysDictFieldID.In(intIds...))
-
-	return q.Mutation().Update().SetStatus(status).Exec(ctx)
+	dictDo := new(do.SysDict).SetStatus(status)
+	return l.query(ctx).Where(do.SysDictFieldID.In(intIds...)).Mutation().Update().Exec(ctx, dictDo)
 }
 
 func (l *sysDictRepoImpl) DeleteDictByIds(ctx context.Context, ids ...uint32) error {
-	q := l.query(ctx)
 	intIds := slices.To(ids, func(id uint32) int { return int(id) })
-	q = q.Where(do.SysDictFieldID.In(intIds...))
-	_, err := q.Delete(ctx)
+	_, err := l.query(ctx).Where(do.SysDictFieldID.In(intIds...)).Delete(ctx)
 	return err
 }
 
@@ -75,14 +67,12 @@ func (l *sysDictRepoImpl) GetDictById(ctx context.Context, id uint32) (*do.SysDi
 }
 
 func (l *sysDictRepoImpl) GetDictByIds(ctx context.Context, ids ...uint32) ([]*do.SysDict, error) {
-	q := l.query(ctx)
 	intIds := slices.To(ids, func(id uint32) int { return int(id) })
-	return q.Where(do.SysDictFieldID.In(intIds...)).Find(ctx)
+	return l.query(ctx).Where(do.SysDictFieldID.In(intIds...)).Find(ctx)
 }
 
 func (l *sysDictRepoImpl) ListDict(ctx context.Context, params *bo.ListSysDictBo) ([]*do.SysDict, error) {
-	q := l.query(ctx)
-	return l.setQuery(q, params).List(ctx, params.Page)
+	return l.setQuery(l.query(ctx), params).List(ctx, params.Page)
 }
 
 func (l *sysDictRepoImpl) SelectDict(ctx context.Context, params *bo.SelectSysDictBo) ([]*do.SysDict, error) {
