@@ -3,14 +3,16 @@ package systemservice
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/server/system"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/helper/middler"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type Service struct {
@@ -18,53 +20,54 @@ type Service struct {
 
 	log *log.Helper
 
-	dictBiz *biz.DictBiz
-	pageBiz *biz.AlarmPageBiz
+	pageBiz    *biz.AlarmPageBiz
+	sysDictBiz *biz.SysDictBiz
 }
 
-func NewDictService(dictBiz *biz.DictBiz, pageBiz *biz.AlarmPageBiz, logger log.Logger) *Service {
+func NewDictService(sysDictBiz *biz.SysDictBiz, pageBiz *biz.AlarmPageBiz, logger log.Logger) *Service {
 	return &Service{
-		log:     log.NewHelper(log.With(logger, "module", "service.Service")),
-		dictBiz: dictBiz,
-		pageBiz: pageBiz,
+		log:        log.NewHelper(log.With(logger, "module", "service.Service")),
+		pageBiz:    pageBiz,
+		sysDictBiz: sysDictBiz,
 	}
 }
 
 func (s *Service) CreateDict(ctx context.Context, req *system.CreateDictRequest) (*system.CreateDictReply, error) {
-	dictBo := &bo.DictBO{
+	dictBo := &bo.CreateSysDictBo{
 		Name:     req.GetName(),
 		Category: vobj.Category(req.GetCategory()),
+		Status:   vobj.StatusEnabled,
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 	}
-	newDict, err := s.dictBiz.CreateDict(ctx, dictBo)
+	newDict, err := s.sysDictBiz.CreateDict(ctx, dictBo)
 	if err != nil {
 		s.log.Errorf("create dict err: %v", err)
 		return nil, err
 	}
-	return &system.CreateDictReply{Id: newDict.Id}, nil
+	return &system.CreateDictReply{Id: newDict.GetID()}, nil
 }
 
 func (s *Service) UpdateDict(ctx context.Context, req *system.UpdateDictRequest) (*system.UpdateDictReply, error) {
-	dictBo := &bo.DictBO{
-		Id:       req.GetId(),
+	dictBo := &bo.UpdateSysDictBo{
+		ID:       req.GetId(),
 		Name:     req.GetName(),
 		Category: vobj.Category(req.GetCategory()),
 		Remark:   req.GetRemark(),
 		Color:    req.GetColor(),
 		Status:   vobj.Status(req.GetStatus()),
 	}
-	newDict, err := s.dictBiz.UpdateDict(ctx, dictBo)
+	newDict, err := s.sysDictBiz.UpdateDict(ctx, dictBo)
 	if err != nil {
 		s.log.Errorf("update dict err: %v", err)
 		return nil, err
 	}
 
-	return &system.UpdateDictReply{Id: newDict.Id}, nil
+	return &system.UpdateDictReply{Id: newDict.GetID()}, nil
 }
 
 func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *system.BatchUpdateDictStatusRequest) (*system.BatchUpdateDictStatusReply, error) {
-	if err := s.dictBiz.BatchUpdateDictStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
+	if err := s.sysDictBiz.BatchUpdateDictStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()); err != nil {
 		s.log.Errorf("batch update dict status err: %v", err)
 		return nil, err
 	}
@@ -72,7 +75,7 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *system.BatchUp
 }
 
 func (s *Service) DeleteDict(ctx context.Context, req *system.DeleteDictRequest) (*system.DeleteDictReply, error) {
-	if err := s.dictBiz.DeleteDictByIds(ctx, req.GetId()); err != nil {
+	if err := s.sysDictBiz.DeleteDictByIds(ctx, req.GetId()); err != nil {
 		s.log.Errorf("delete dict err: %v", err)
 		return nil, err
 	}
@@ -80,7 +83,7 @@ func (s *Service) DeleteDict(ctx context.Context, req *system.DeleteDictRequest)
 }
 
 func (s *Service) BatchDeleteDict(ctx context.Context, req *system.BatchDeleteDictRequest) (*system.BatchDeleteDictReply, error) {
-	if err := s.dictBiz.DeleteDictByIds(ctx, req.GetIds()...); err != nil {
+	if err := s.sysDictBiz.DeleteDictByIds(ctx, req.GetIds()...); err != nil {
 		s.log.Errorf("batch delete dict err: %v", err)
 		return nil, err
 	}
@@ -88,21 +91,49 @@ func (s *Service) BatchDeleteDict(ctx context.Context, req *system.BatchDeleteDi
 }
 
 func (s *Service) GetDict(ctx context.Context, req *system.GetDictRequest) (*system.GetDictReply, error) {
-	dictBo, err := s.dictBiz.GetDictById(ctx, req.GetId())
+	dictDo, err := s.sysDictBiz.GetDictById(ctx, req.GetId())
 	if err != nil {
 		s.log.Errorf("get dict err: %v", err)
 		return nil, err
 	}
 	reply := &system.GetDictReply{
-		PromDict: dictBo.ToApiV1(),
+		PromDict: dictDoToApiV1(dictDo),
 	}
 	return reply, nil
+}
+
+func dictDoToApiV1(dictDo *do.SysDict) *api.DictV1 {
+	if pkg.IsNil(dictDo) {
+		return nil
+	}
+	return &api.DictV1{
+		Id:        dictDo.GetID(),
+		Name:      dictDo.GetName(),
+		Category:  api.Category(dictDo.GetCategory()),
+		Color:     dictDo.GetColor(),
+		Status:    api.Status(dictDo.GetStatus()),
+		Remark:    dictDo.GetRemark(),
+		CreatedAt: dictDo.GetCreatedAt().Unix(),
+		UpdatedAt: dictDo.GetUpdatedAt().Unix(),
+		DeletedAt: int64(dictDo.GetDeletedAt()),
+	}
+}
+
+func buildPageApi(page bo.Pagination) *api.PageReply {
+	if pkg.IsNil(page) {
+		return nil
+	}
+	return &api.PageReply{
+		Curr:  page.GetCurr(),
+		Size:  page.GetSize(),
+		Total: page.GetTotal(),
+	}
 }
 
 func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*system.ListDictReply, error) {
 	pageReq := req.GetPage()
 	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
-	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
+	dictDoList, err := s.sysDictBiz.ListDict(ctx, &bo.ListSysDictBo{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
 		Category:  vobj.Category(req.GetCategory()),
@@ -113,26 +144,33 @@ func (s *Service) ListDict(ctx context.Context, req *system.ListDictRequest) (*s
 		s.log.Errorf("list dict err: %v", err)
 		return nil, err
 	}
-	list := make([]*api.DictV1, 0, len(dictBoList))
-	for _, dictBo := range dictBoList {
-		list = append(list, dictBo.ToApiV1())
-	}
+	list := slices.To(dictDoList, func(dictBo *do.SysDict) *api.DictV1 { return dictDoToApiV1(dictBo) })
 
-	pg := req.GetPage()
 	return &system.ListDictReply{
-		Page: &api.PageReply{
-			Curr:  pg.GetCurr(),
-			Size:  pg.GetSize(),
-			Total: pgInfo.GetTotal(),
-		},
+		Page: buildPageApi(pgInfo),
 		List: list,
 	}, nil
+}
+
+func dictDoToSelectApiV1(dictDo *do.SysDict) *api.DictSelectV1 {
+	if pkg.IsNil(dictDo) {
+		return nil
+	}
+	return &api.DictSelectV1{
+		Value:     dictDo.GetID(),
+		Label:     dictDo.GetName(),
+		Category:  api.Category(dictDo.GetCategory()),
+		Color:     dictDo.GetColor(),
+		Status:    api.Status(dictDo.GetStatus()),
+		Remark:    dictDo.GetRemark(),
+		IsDeleted: dictDo.GetDeletedAt() != 0,
+	}
 }
 
 func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest) (*system.SelectDictReply, error) {
 	pageReq := req.GetPage()
 	pgInfo := bo.NewPage(pageReq.GetCurr(), pageReq.GetSize())
-	dictBoList, err := s.dictBiz.ListDict(ctx, &bo.ListDictRequest{
+	dictDoList, err := s.sysDictBiz.SelectDict(ctx, &bo.SelectSysDictBo{
 		Page:      pgInfo,
 		Keyword:   req.GetKeyword(),
 		Category:  vobj.Category(req.GetCategory()),
@@ -143,17 +181,12 @@ func (s *Service) SelectDict(ctx context.Context, req *system.SelectDictRequest)
 		s.log.Errorf("select dict err: %v", err)
 		return nil, err
 	}
-	list := make([]*api.DictSelectV1, 0, len(dictBoList))
-	for _, dictBo := range dictBoList {
-		list = append(list, dictBo.ToApiSelectV1())
-	}
-	pg := req.GetPage()
+	list := slices.To(dictDoList, func(dictDo *do.SysDict) *api.DictSelectV1 {
+		return dictDoToSelectApiV1(dictDo)
+	})
+
 	return &system.SelectDictReply{
-		Page: &api.PageReply{
-			Curr:  pg.GetCurr(),
-			Size:  pg.GetSize(),
-			Total: pgInfo.GetTotal(),
-		},
+		Page: buildPageApi(pgInfo),
 		List: list,
 	}, nil
 }

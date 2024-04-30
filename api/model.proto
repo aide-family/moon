@@ -45,11 +45,11 @@ message DictV1 {
   // 字典名称
   string name = 2;
   // 字典分类
-  int32 category = 3;
+  Category category = 3;
   // 字典颜色
   string color = 4;
   // 字典状态
-  int32 status = 5;
+  Status status = 5;
   // 字典备注
   string remark = 6;
   // 创建时间, unix时间戳

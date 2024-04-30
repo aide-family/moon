@@ -1,9 +1,9 @@
 package repositiryimpl
 
 import (
-	"github.com/google/wire"
 	"github.com/aide-family/moon/app/prom_server/internal/data/repositiryimpl/dashboard"
 	"github.com/aide-family/moon/app/prom_server/internal/data/repositiryimpl/syslog"
+	"github.com/google/wire"
 
 	"github.com/aide-family/moon/app/prom_server/internal/data/repositiryimpl/alarmhistory"
 	"github.com/aide-family/moon/app/prom_server/internal/data/repositiryimpl/alarmintervene"
@@ -53,4 +53,5 @@ var ProviderSetRepository = wire.NewSet(
 	dashboard.NewChartRepo,
 	syslog.NewSysLogRepo,
 	notify.NewNotifyTemplateRepo,
+	promdict.NewSysDictRepo,
 )

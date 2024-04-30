@@ -97,9 +97,9 @@ func (d *DictBO) ToApiV1() *api.DictV1 {
 	return &api.DictV1{
 		Id:        d.Id,
 		Name:      d.Name,
-		Category:  d.Category.Value(),
+		Category:  api.Category(d.Category.Value()),
 		Color:     d.Color,
-		Status:    d.Status.Value(),
+		Status:    api.Status(d.Status.Value()),
 		Remark:    d.Remark,
 		CreatedAt: d.CreatedAt,
 		UpdatedAt: d.UpdatedAt,

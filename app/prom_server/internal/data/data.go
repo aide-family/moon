@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"time"
 
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
@@ -64,8 +65,21 @@ type Data struct {
 	log *log.Helper
 }
 
+type TXContext struct {
+}
+
 // DB gorm DB对象
 func (d *Data) DB() *gorm.DB {
+	return d.db
+}
+
+// DBWithContext gorm DB对象
+func (d *Data) DBWithContext(ctx context.Context) *gorm.DB {
+	txValue := ctx.Value(&TXContext{})
+	tx, ok := txValue.(*gorm.DB)
+	if ok {
+		return tx
+	}
 	return d.db
 }
 
