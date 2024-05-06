@@ -26,8 +26,8 @@ type sysDictRepoImpl struct {
 	log  *log.Helper
 }
 
-func (l *sysDictRepoImpl) query(ctx context.Context) orm.SysDictQuery {
-	return orm.NewSysDictQuery(l.data.DBWithContext(ctx))
+func (l *sysDictRepoImpl) query(ctx context.Context) orm.Query[do.SysDict] {
+	return orm.NewQuery[do.SysDict](l.data.DBWithContext(ctx))
 }
 
 func (l *sysDictRepoImpl) CreateDict(ctx context.Context, dict *bo.CreateSysDictBo) (*do.SysDict, error) {
@@ -80,7 +80,7 @@ func (l *sysDictRepoImpl) SelectDict(ctx context.Context, params *bo.SelectSysDi
 	return l.setQuery(q, params).Find(ctx)
 }
 
-func (l *sysDictRepoImpl) setQuery(q orm.SysDictQuery, params *bo.ListSysDictBo) orm.SysDictQuery {
+func (l *sysDictRepoImpl) setQuery(q orm.Query[do.SysDict], params *bo.ListSysDictBo) orm.Query[do.SysDict] {
 	var wheres []string
 
 	q = q.Order(do.SysDictFieldCreatedAt.Desc()).Order(do.SysDictFieldUpdatedAt.Desc())

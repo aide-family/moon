@@ -7,19 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ SysDictSet = (*SysDict)(nil)
-
-type (
-	SysDictSet interface {
-		SetPromStrategies(strategies []*PromStrategy) SysDictSet
-		SetID(id uint32) SysDictSet
-		SetName(name string) SysDictSet
-		SetColor(color string) SysDictSet
-		SetStatus(status vobj.Status) SysDictSet
-		SetRemark(remark string) SysDictSet
-		SetCategory(category vobj.Category) SysDictSet
-	}
-)
+var _ *SysDict = (*SysDict)(nil)
 
 const TableNameSysDict = "prom_dict"
 
@@ -107,7 +95,7 @@ func (l *SysDict) GetPromStrategies() []*PromStrategy {
 	return l.PromStrategies
 }
 
-func (l *SysDict) SetPromStrategies(strategies []*PromStrategy) SysDictSet {
+func (l *SysDict) SetPromStrategies(strategies []*PromStrategy) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -115,7 +103,7 @@ func (l *SysDict) SetPromStrategies(strategies []*PromStrategy) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetID(id uint32) SysDictSet {
+func (l *SysDict) SetID(id uint32) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -123,7 +111,7 @@ func (l *SysDict) SetID(id uint32) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetName(name string) SysDictSet {
+func (l *SysDict) SetName(name string) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -131,7 +119,7 @@ func (l *SysDict) SetName(name string) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetCategory(category vobj.Category) SysDictSet {
+func (l *SysDict) SetCategory(category vobj.Category) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -139,7 +127,7 @@ func (l *SysDict) SetCategory(category vobj.Category) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetColor(color string) SysDictSet {
+func (l *SysDict) SetColor(color string) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -147,7 +135,7 @@ func (l *SysDict) SetColor(color string) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetStatus(status vobj.Status) SysDictSet {
+func (l *SysDict) SetStatus(status vobj.Status) *SysDict {
 	if l == nil {
 		return nil
 	}
@@ -155,7 +143,7 @@ func (l *SysDict) SetStatus(status vobj.Status) SysDictSet {
 	return l
 }
 
-func (l *SysDict) SetRemark(remark string) SysDictSet {
+func (l *SysDict) SetRemark(remark string) *SysDict {
 	if l == nil {
 		return nil
 	}

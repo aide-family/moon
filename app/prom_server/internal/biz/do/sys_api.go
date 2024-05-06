@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"time"
 
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-	"gorm.io/gorm/schema"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/cache"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
+	"gorm.io/plugin/soft_delete"
 
 	"github.com/aide-family/moon/api/perrors"
 	"github.com/aide-family/moon/pkg/helper/consts"
@@ -35,6 +37,9 @@ const (
 	SysAPIPreloadFieldRoles = "Roles"
 )
 
+type SysAPIField string
+type SysAPIWithField string
+
 // SysAPI 系统api
 type SysAPI struct {
 	BaseModel
@@ -49,7 +54,7 @@ type SysAPI struct {
 }
 
 // TableName 表名
-func (l *SysAPI) TableName() string {
+func (s *SysAPI) TableName() string {
 	return TableNameSysApi
 }
 
@@ -157,4 +162,177 @@ func GetApiIDByPathAndMethod(cacheClient cache.GlobalCache, path, method string)
 // generateApiCacheKey 生成api缓存key
 func generateApiCacheKey(path, method string) string {
 	return method + ":" + path
+}
+
+// SetID 设置ID字段
+func (s *SysAPI) SetID(id uint32) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.ID = id
+	return s
+}
+
+// SetCreatedAt 设置创建时间字段
+func (s *SysAPI) SetCreatedAt(createdAt time.Time) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.CreatedAt = createdAt
+	return s
+}
+
+// SetUpdatedAt 设置更新时间字段
+func (s *SysAPI) SetUpdatedAt(updatedAt time.Time) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.UpdatedAt = updatedAt
+	return s
+}
+
+// SetDeletedAt 设置删除时间字段
+func (s *SysAPI) SetDeletedAt(deletedAt soft_delete.DeletedAt) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.DeletedAt = deletedAt
+	return s
+}
+
+// GetName 获取API名称
+func (s *SysAPI) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+// SetName 设置API名称
+func (s *SysAPI) SetName(name string) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Name = name
+	return s
+}
+
+// GetPath 获取API路径
+func (s *SysAPI) GetPath() string {
+	if s == nil {
+		return ""
+	}
+	return s.Path
+}
+
+// SetPath 设置API路径
+func (s *SysAPI) SetPath(path string) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Path = path
+	return s
+}
+
+// GetMethod 获取请求方法
+func (s *SysAPI) GetMethod() string {
+	if s == nil {
+		return ""
+	}
+	return s.Method
+}
+
+// SetMethod 设置请求方法
+func (s *SysAPI) SetMethod(method string) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Method = method
+	return s
+}
+
+// GetStatus 获取状态
+func (s *SysAPI) GetStatus() vobj.Status {
+	if s == nil {
+		return vobj.StatusUnknown
+	}
+	return s.Status
+}
+
+// SetStatus 设置状态
+func (s *SysAPI) SetStatus(status vobj.Status) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Status = status
+	return s
+}
+
+// GetRemark 获取备注
+func (s *SysAPI) GetRemark() string {
+	if s == nil {
+		return ""
+	}
+	return s.Remark
+}
+
+// SetRemark 设置备注
+func (s *SysAPI) SetRemark(remark string) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Remark = remark
+	return s
+}
+
+// GetModule 获取模块
+func (s *SysAPI) GetModule() vobj.Module {
+	if s == nil {
+		return vobj.ModuleOther
+	}
+	return s.Module
+}
+
+// SetModule 设置模块
+func (s *SysAPI) SetModule(module vobj.Module) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Module = module
+	return s
+}
+
+// GetDomain 获取领域
+func (s *SysAPI) GetDomain() vobj.Domain {
+	if s == nil {
+		return vobj.DomainOther
+	}
+	return s.Domain
+}
+
+// SetDomain 设置领域
+func (s *SysAPI) SetDomain(domain vobj.Domain) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Domain = domain
+	return s
+}
+
+// GetRoles 获取角色
+func (s *SysAPI) GetRoles() []*SysRole {
+	if s == nil {
+		return nil
+	}
+	return s.Roles
+}
+
+// SetRoles 设置角色
+// 注意：设置角色可能涉及数据库操作，这里仅简单赋值，不考虑关联关系处理
+func (s *SysAPI) SetRoles(roles []*SysRole) *SysAPI {
+	if s == nil {
+		return nil
+	}
+	s.Roles = roles
+	return s
 }
