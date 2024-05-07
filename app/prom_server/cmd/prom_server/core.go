@@ -3,15 +3,22 @@ package main
 import (
 	"sync"
 
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
-
-	"github.com/aide-family/moon/pkg/util/hello"
-
 	"github.com/aide-family/moon/app/prom_server/internal/conf"
 	"github.com/aide-family/moon/app/prom_server/internal/server"
+	"github.com/aide-family/moon/pkg/util/hello"
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/encoding/json"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"google.golang.org/protobuf/encoding/protojson"
 )
+
+func init() {
+	//增加这段代码
+	json.MarshalOptions = protojson.MarshalOptions{
+		UseEnumNumbers: true, // 将枚举值作为数字发出，默认为枚举值的字符串
+	}
+}
 
 var (
 	once            sync.Once

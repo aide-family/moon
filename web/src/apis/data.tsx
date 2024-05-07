@@ -1,6 +1,6 @@
 import { Button, Space } from 'antd'
 import {
-    Category,
+    Category, ChartType,
     DatasourceType,
     DomainType,
     ModuleType,
@@ -163,6 +163,13 @@ export const NotifyTemplateTypeData: Record<
             企业微信
         </Space>
     )
+}
+
+export const ChartTypeData: Record<ChartType, string> = {
+    [ChartType.ChartTypeAll]: '全部',
+    [ChartType.ChartTypeFull]: '全屏',
+    [ChartType.ChartTypeRow]: '整行',
+    [ChartType.ChartTypeCol]: '整列',
 }
 
 export enum ActionKey {

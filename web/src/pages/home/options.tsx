@@ -1,13 +1,14 @@
-import { ActionKey } from '@/apis/data'
-import { DataOptionItem } from '@/components/Data/DataOption/DataOption'
-import { SettingOutlined } from '@ant-design/icons'
-import { Button, Space, Switch } from 'antd'
-import { AddChartButton } from './child/AddChartButton'
-import { DataFormItem } from '@/components/Data'
-import { AddDashboardButton } from './child/AddDashboardModal'
+import {ActionKey, ChartTypeData} from '@/apis/data'
+import {DataOptionItem} from '@/components/Data/DataOption/DataOption'
+import {SettingOutlined} from '@ant-design/icons'
+import {Button, Space, Switch} from 'antd'
+import {AddChartButton} from './child/AddChartButton'
+import {DataFormItem} from '@/components/Data'
+import {AddDashboardButton} from './child/AddDashboardModal'
 import dashboardApi from '@/apis/home/dashboard'
-import { defaultListChartRequest } from '@/apis/home/dashboard/types'
-import { DefaultOptionType } from 'antd/es/select'
+import {defaultListChartRequest} from '@/apis/home/dashboard/types'
+import {DefaultOptionType} from 'antd/es/select'
+import {ChartType} from "@/apis/types.ts";
 
 export const rightOptions = (autoRefresh?: boolean): DataOptionItem[] => [
     {
@@ -28,59 +29,61 @@ export const rightOptions = (autoRefresh?: boolean): DataOptionItem[] => [
         key: ActionKey.REFRESH
     },
     {
-        label: <Button type="primary" icon={<SettingOutlined />} />,
+        label: <Button type="primary" icon={<SettingOutlined/>}/>,
         key: ActionKey.CONFIG_DASHBOARD_CHART
     }
 ]
 
 export const leftOptions = (refresh?: () => void): DataOptionItem[] => [
     {
-        label: <AddChartButton />,
+        label: <AddChartButton/>,
         key: ActionKey.ADD
     },
     {
-        label: <AddDashboardButton refresh={refresh} />,
+        label: <AddDashboardButton refresh={refresh}/>,
         key: ActionKey.ADD
     }
 ]
 
 const getChartSelect = (keyword: string): Promise<DefaultOptionType[]> => {
     return dashboardApi
-        .getChartList({ ...defaultListChartRequest, keyword })
-        .then(({ list }) => {
+        .getChartList({...defaultListChartRequest, keyword})
+        .then(({list}) => {
             if (!list || list.length === 0) return []
-            return list.map(({ id, title }) => ({ label: title, value: id }))
+            return list.map(({id, title}) => ({label: title, value: id}))
         })
 }
 
-export const addDashboardOptions: DataFormItem[] = [
-    {
-        label: '图表名称',
-        name: 'title',
-        rules: [
-            {
-                required: true,
-                message: '请输入图表名称'
-            }
-        ]
-    },
-    {
-        label: '颜色',
-        name: 'color',
-        rules: [
-            {
-                required: true,
-                message: '请输入图表名称'
-            }
-        ],
-        dataProps: {
-            type: 'color',
-            parentProps: {
-                showText: true,
-                defaultFormat: 'hex'
+export const addDashboardOptions: (DataFormItem | DataFormItem[])[] = [
+    [
+        {
+            label: '图表名称',
+            name: 'title',
+            rules: [
+                {
+                    required: true,
+                    message: '请输入图表名称'
+                }
+            ]
+        },
+        {
+            label: '颜色',
+            name: 'color',
+            rules: [
+                {
+                    required: true,
+                    message: '请输入图表名称'
+                }
+            ],
+            dataProps: {
+                type: 'color',
+                parentProps: {
+                    showText: true,
+                    defaultFormat: 'hex'
+                }
             }
         }
-    },
+    ],
     {
         label: '大盘说明',
         name: 'remark',
@@ -111,7 +114,7 @@ export const addDashboardOptions: DataFormItem[] = [
     }
 ]
 
-export const addChartOptions: DataFormItem[] = [
+export const addChartOptions: (DataFormItem | DataFormItem[])[] = [
     {
         label: '图表名称',
         name: 'title',
@@ -122,6 +125,44 @@ export const addChartOptions: DataFormItem[] = [
             }
         ]
     },
+    [
+        {
+            label: '图表类型',
+            name: 'chartType',
+            dataProps: {
+                type: 'select',
+                parentProps: {
+                    options: Object.entries(ChartTypeData).filter(([key]) => +key !== ChartType.ChartTypeAll).map(([key, value]) => ({
+                        label: value,
+                        value: key
+                    })),
+                    placeholder: '请选择图表类型'
+                }
+            }
+        },
+        {
+            //宽度
+            label: '宽度',
+            name: 'width',
+            dataProps: {
+                type: 'input',
+                parentProps: {
+                    placeholder: '请输入图表宽度'
+                }
+            }
+        },
+        {
+            //高度
+            label: '高度',
+            name: 'height',
+            dataProps: {
+                type: 'input',
+                parentProps: {
+                    placeholder: '请输入图表高度'
+                }
+            }
+        }
+    ],
     {
         label: '图表链接',
         name: 'url',

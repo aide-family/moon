@@ -152,6 +152,7 @@ const PromLayout: FC<PromLayoutProps> = (props) => {
                         </Suspense>
                     </Content>
                     <Footer
+                        id='footer'
                         className={styles.LayoutFooter}
                         style={{
                             background: token.colorBgContainer,

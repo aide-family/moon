@@ -47,6 +47,7 @@ export const AddDashboardButton: React.FC<AddDashboardButtonProps> = (
                 onCancel={handleClose}
                 onOk={handleCommit}
                 confirmLoading={loading}
+                width='60%'
             >
                 <DataForm
                     items={addDashboardOptions}

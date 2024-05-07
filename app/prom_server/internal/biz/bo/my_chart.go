@@ -1,76 +1,59 @@
 package bo
 
 import (
-	"encoding/json"
-
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg"
 )
 
 type (
 	MyChartBO struct {
-		Id     uint32      `json:"id"`
-		UserId uint32      `json:"userId"`
-		Title  string      `json:"title"`
-		Remark string      `json:"remark"`
-		Url    string      `json:"url"`
-		Status vobj.Status `json:"status"`
+		Id        uint32         `json:"id"`
+		UserId    uint32         `json:"userId"`
+		Title     string         `json:"title"`
+		Remark    string         `json:"remark"`
+		Url       string         `json:"url"`
+		Status    vobj.Status    `json:"status"`
+		ChartType vobj.ChartType `json:"chartType"`
+		Width     string         `json:"width"`
+		Height    string         `json:"height"`
 	}
 )
 
-// String json string
-func (b *MyChartBO) String() string {
-	if b == nil {
-		return "{}"
+// MyChartModelToDO MyChartBO 转换为 MyChart
+func MyChartModelToDO(m *MyChartBO) *do.MyChart {
+	if pkg.IsNil(m) {
+		return nil
 	}
-	marshal, err := json.Marshal(b)
-	if err != nil {
-		return "{}"
-	}
-	return string(marshal)
-}
-
-// ToApiSelectV1 转换为api数据
-func (b *MyChartBO) ToApiSelectV1() *api.MyChart {
-	return &api.MyChart{
-		Title:  b.Title,
-		Remark: b.Remark,
-		Url:    b.Url,
-		Id:     b.Id,
-	}
-}
-
-// ToApi 转换为api数据
-func (b *MyChartBO) ToApi() *api.MyChart {
-	return &api.MyChart{
-		Title:  b.Title,
-		Remark: b.Remark,
-		Url:    b.Url,
-		Id:     b.Id,
-	}
-}
-
-// ToModel 转换为model数据
-func (b *MyChartBO) ToModel() *do.MyChart {
 	return &do.MyChart{
-		BaseModel: do.BaseModel{ID: b.Id},
-		UserId:    b.UserId,
-		Title:     b.Title,
-		Remark:    b.Remark,
-		Url:       b.Url,
-		Status:    b.Status,
+		BaseModel: do.BaseModel{
+			ID: m.Id,
+		},
+		Url:       m.Url,
+		Status:    m.Status,
+		ChartType: m.ChartType,
+		Width:     m.Width,
+		Height:    m.Height,
+		UserId:    m.UserId,
+		Title:     m.Title,
+		Remark:    m.Remark,
 	}
 }
 
-// MyChartModelToBO 转换为bo数据
+// MyChartModelToBO MyChart 转换为 MyChartBO
 func MyChartModelToBO(m *do.MyChart) *MyChartBO {
+	if pkg.IsNil(m) {
+		return nil
+	}
 	return &MyChartBO{
-		Id:     m.ID,
-		UserId: m.UserId,
-		Title:  m.Title,
-		Remark: m.Remark,
-		Url:    m.Url,
-		Status: m.Status,
+		Id:        m.ID,
+		UserId:    m.UserId,
+		Title:     m.Title,
+		Remark:    m.Remark,
+		Url:       m.Url,
+		Status:    m.Status,
+		ChartType: m.ChartType,
+		Width:     m.Width,
+		Height:    m.Height,
 	}
 }

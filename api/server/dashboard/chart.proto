@@ -63,6 +63,12 @@ message CreateChartRequest {
   string url = 3 [(validate.rules).string = {
     pattern: "^(http|https)://.*"
   }];
+  // 图表类型
+  ChartType chartType = 4;
+  // 宽度
+  string  width = 5;
+  // 高度
+  string  height = 6;
 }
 // 创建新图表响应参数
 message CreateChartReply {
@@ -85,6 +91,12 @@ message UpdateChartRequest {
   string url = 4 [(validate.rules).string = {
     pattern: "^(http|https)://.*"
   }];
+  // 图表类型
+  ChartType chartType = 5;
+  // 宽度
+  string  width = 6;
+  // 高度
+  string  height = 7;
 }
 // 更新图表响应参数
 message UpdateChartReply {

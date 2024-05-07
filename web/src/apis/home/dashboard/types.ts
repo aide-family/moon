@@ -1,4 +1,4 @@
-import { PageReqType, PageResType, Status } from '@/apis/types'
+import {ChartType, PageReqType, PageResType, Status} from '@/apis/types'
 
 interface ChartItem {
     title: string
@@ -6,6 +6,9 @@ interface ChartItem {
     url: string
     id: number
     status: number
+    chartType: ChartType
+    width: string
+    height: string
 }
 
 interface DashboardConfigItem {

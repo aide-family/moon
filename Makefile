@@ -165,6 +165,10 @@ api: errors validate
 	      --openapi_out=fq_schema_naming=true,default_response=false:./third_party/swagger_ui \
 	       $(API_PROTO_FILES)
 
+.PHONY: stringer
+stringer:
+	go generate ./...; #生成值对象
+
 .PHONY: build
 # build
 build:

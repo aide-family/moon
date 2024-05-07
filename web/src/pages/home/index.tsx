@@ -1,29 +1,68 @@
-import React, { FC, useContext, useEffect, useState } from 'react'
+import React, {FC, useContext, useEffect, useState} from 'react'
 
-import { HeightLine, PaddingLine } from '@/components/HeightLine'
+import {HeightLine, PaddingLine} from '@/components/HeightLine'
 import RouteBreadcrumb from '@/components/PromLayout/RouteBreadcrumb'
-import { Card, Collapse, Space, Tabs, Tag } from 'antd'
-import { DataOption } from '@/components/Data'
-import { leftOptions, rightOptions } from './options'
-import {
-    ChartItem,
-    DashboardConfigItem,
-    defaultListDashboardRequest
-} from '@/apis/home/dashboard/types'
+import {Card, Col, Collapse, Layout, Row, Space, Tabs, Tag, theme} from 'antd'
+import {DataOption} from '@/components/Data'
+import {leftOptions, rightOptions} from './options'
+import {ChartItem, DashboardConfigItem, defaultListDashboardRequest} from '@/apis/home/dashboard/types'
 import dashboardApi from '@/apis/home/dashboard'
-import { GlobalContext } from '@/context'
-import { ActionKey } from '@/apis/data'
-import { ConfigDashboardChartModal } from './child/ConfigDashboardChart'
+import {GlobalContext} from '@/context'
+import {ActionKey} from '@/apis/data'
+import {ConfigDashboardChartModal} from './child/ConfigDashboardChart'
+import {ChartType} from "@/apis/types.ts";
+
+const {Content} = Layout
+const {useToken} = theme
 
 const Box: React.FC<ChartItem> = (props) => {
-    const { title, remark, url } = props
-    const { sysTheme } = useContext(GlobalContext)
-    const width = 540,
-        height = 350
+    const {title, remark, url, chartType, width = '540px', height = '350px'} = props
+    const {token} = useToken()
+    const {sysTheme} = useContext(GlobalContext)
     const collapseItem = {
         key: '1',
         label: title,
         children: <p>{remark}</p>
+    }
+    let _width_ = width
+    let _height_ = height
+    switch (chartType) {
+        case ChartType.ChartTypeFull:
+            _width_ = '100%'
+            _height_ = document.documentElement.clientHeight - document.getElementById('footer')!.clientHeight - 100 + 'px'
+            return <Content
+                style={{borderColor: token.colorBorderBg, background: token.colorBgContainer, padding: 0, margin: 0}}>
+                <Card hoverable style={{
+                    width: _width_,
+                    height: _height_
+                }}>
+                    <iframe
+                        src={`${url}&theme=${sysTheme}`}
+                        width={_width_}
+                        height={_height_}
+                        frameBorder="0"
+                    ></iframe>
+                    <Collapse size="small" items={[collapseItem]} bordered={false}/>
+                </Card>
+            </Content>
+        case ChartType.ChartTypeRow:
+            _width_ = '100%'
+            return <Row>
+                <Col span={24} style={{
+                    width: _width_,
+                    height: _height_
+                }}>
+                    <Card hoverable>
+                        <iframe
+                            src={`${url}&theme=${sysTheme}`}
+                            width={_width_}
+                            height={_height_}
+                            frameBorder="0"
+                        ></iframe>
+                        <Collapse size="small" items={[collapseItem]} bordered={false}/>
+                    </Card>
+                </Col>
+            </Row>
     }
     return (
         <Card hoverable>
@@ -33,7 +72,7 @@ const Box: React.FC<ChartItem> = (props) => {
                 height={height}
                 frameBorder="0"
             ></iframe>
-            <Collapse size="small" items={[collapseItem]} bordered={false} />
+            <Collapse size="small" items={[collapseItem]} bordered={false}/>
         </Card>
     )
 }
@@ -48,13 +87,13 @@ const renderBox = (item: ChartItem, key: any): React.ReactNode => {
         )
     }
 
-    return <Box {...item} key={key} />
+    return <Box {...item} key={key}/>
 }
 
 let autoRefreshTimer: NodeJS.Timeout | null = null
 
 const Home: FC = () => {
-    const { size, autoRefresh, setAutoRefresh } = useContext(GlobalContext)
+    const {size, autoRefresh, setAutoRefresh} = useContext(GlobalContext)
     const [dashboards, setDashboards] = useState<ChartItem[]>([])
     const [dashboardList, setDashboardList] = useState<DashboardConfigItem[]>(
         []
@@ -78,7 +117,7 @@ const Home: FC = () => {
 
     const handleGetDashboardDetail = (dashboardId: string | number) => {
         if (!dashboardId) return
-        dashboardApi.getDashboardDetail(+dashboardId).then(({ detail }) => {
+        dashboardApi.getDashboardDetail(+dashboardId).then(({detail}) => {
             if (!detail) return
             setDashboards(detail.charts || [])
         })
@@ -91,7 +130,7 @@ const Home: FC = () => {
     const handleGetDashboards = () => {
         dashboardApi
             .getDashboardList(defaultListDashboardRequest)
-            .then(({ list }) => {
+            .then(({list}) => {
                 if (!list) return
                 setDashboardList(list)
                 if (!activeKey) {
@@ -102,7 +141,7 @@ const Home: FC = () => {
 
     const buildTabsItems = () => {
         return dashboardList.map((item, index) => {
-            const { title, id, color } = item
+            const {title, id, color} = item
             return {
                 label: (
                     <Tag color={color || '#1677ff'}>
@@ -159,15 +198,15 @@ const Home: FC = () => {
     }, [])
 
     return (
-        <div style={{ height: '100%', overflowY: 'auto' }}>
+        <div style={{height: '100%', overflowY: 'auto'}}>
             <ConfigDashboardChartModal
                 dashboardId={+activeKey}
                 open={oepnConfigModal}
                 onCancel={handleCloseConfigModal}
                 onOk={handleOnOk}
             />
-            <RouteBreadcrumb />
-            <HeightLine />
+            <RouteBreadcrumb/>
+            <HeightLine/>
             <DataOption
                 showAdd={false}
                 showClear={false}
@@ -176,7 +215,7 @@ const Home: FC = () => {
                 rightOptions={rightOptions(autoRefresh)}
                 leftOptions={leftOptions(handleRefresh)}
             />
-            <PaddingLine />
+            <PaddingLine/>
             <Tabs
                 items={buildTabsItems()}
                 onChange={setActiveKey}
@@ -188,11 +227,19 @@ const Home: FC = () => {
                 defaultActiveKey={`${dashboardList[0]?.id}`}
                 size={size}
             />
-            <Space size={[8, 8]} style={{ width: '100%' }} wrap>
-                {dashboards.map((item, index: number) => {
+            <div id='dashboard'>
+                {dashboards.filter((item) => item.chartType === ChartType.ChartTypeFull).map((item, index: number) => {
                     return renderBox(item, index)
                 })}
-            </Space>
+                {dashboards.filter((item) => item.chartType === ChartType.ChartTypeRow).map((item, index: number) => {
+                    return renderBox(item, index)
+                })}
+                <Space size={[8, 8]} style={{width: '100%'}} wrap>
+                    {dashboards.filter((item) => item.chartType !== ChartType.ChartTypeFull && item.chartType !== ChartType.ChartTypeRow).map((item, index: number) => {
+                        return renderBox(item, index)
+                    })}
+                </Space>
+            </div>
         </div>
     )
 }

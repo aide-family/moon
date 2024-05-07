@@ -43,6 +43,7 @@ export const AddChartButton: React.FC<AddDashboardButtonProps> = (props) => {
                 onCancel={handleClose}
                 onOk={handleCommit}
                 confirmLoading={loading}
+                width='60%'
             >
                 <DataForm
                     items={addChartOptions}

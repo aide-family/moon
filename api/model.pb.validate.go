@@ -4658,6 +4658,12 @@ func (m *MyChart) validate(all bool) error {
 
 	// no validation rules for Status
 
+	// no validation rules for ChartType
+
+	// no validation rules for Width
+
+	// no validation rules for Height
+
 	if len(errors) > 0 {
 		return MyChartMultiError(errors)
 	}

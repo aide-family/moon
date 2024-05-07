@@ -306,4 +306,15 @@ export enum DatasourceType {
     DATASOURCE_TYPE_LOKI
 }
 
+export enum ChartType {
+    // 全部
+    ChartTypeAll,
+    // 全屏
+    ChartTypeFull,
+    // 整行
+    ChartTypeRow,
+    // 整列
+    ChartTypeCol,
+}
+
 export type { Map, PageResType, PageReqType, IdReponse, IdsReponse, Duration }

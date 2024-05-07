@@ -94,6 +94,12 @@ func (m *CreateChartRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for ChartType
+
+	// no validation rules for Width
+
+	// no validation rules for Height
+
 	if len(errors) > 0 {
 		return CreateChartRequestMultiError(errors)
 	}
@@ -343,6 +349,12 @@ func (m *UpdateChartRequest) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for ChartType
+
+	// no validation rules for Width
+
+	// no validation rules for Height
 
 	if len(errors) > 0 {
 		return UpdateChartRequestMultiError(errors)

@@ -589,6 +589,12 @@ message MyChart {
   string url = 3;
   uint32 id = 4;
   int32 status = 5;
+  // 图表类型
+  ChartType chartType = 6;
+  // 宽度
+  string  width = 7;
+  // 高度
+  string  height = 8;
 }
 
 message MyDashboardConfig {

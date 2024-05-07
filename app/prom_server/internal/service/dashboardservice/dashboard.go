@@ -3,14 +3,16 @@ package dashboardservice
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/server/dashboard"
 	"github.com/aide-family/moon/app/prom_server/internal/biz"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/bo"
+	"github.com/aide-family/moon/app/prom_server/internal/biz/do"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg"
 	"github.com/aide-family/moon/pkg/helper/middler"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type DashboardService struct {
@@ -29,7 +31,8 @@ func NewDashboardService(dashboardBiz *biz.DashboardBiz, logger log.Logger) *Das
 
 func (s *DashboardService) CreateDashboard(ctx context.Context, req *dashboard.CreateDashboardRequest) (*dashboard.CreateDashboardReply, error) {
 	userId := middler.GetUserId(ctx)
-	newDashboardBo := &bo.MyDashboardConfigBO{
+	newDashboardBo := &bo.CreateMyDashboardBO{
+		Status: vobj.StatusEnabled,
 		Remark: req.GetRemark(),
 		Title:  req.GetTitle(),
 		Color:  req.GetColor(),
@@ -38,29 +41,34 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, req *dashboard.C
 			return &bo.MyChartBO{Id: id}
 		}),
 	}
-	newDashboardBo, err := s.dashboardBiz.CreateDashboard(ctx, newDashboardBo)
+	newDashboardDo, err := s.dashboardBiz.CreateDashboard(ctx, newDashboardBo)
 	if err != nil {
 		return nil, err
 	}
 	return &dashboard.CreateDashboardReply{
-		Id: newDashboardBo.Id,
+		Id: newDashboardDo.ID,
 	}, nil
 }
 
 func (s *DashboardService) UpdateDashboard(ctx context.Context, req *dashboard.UpdateDashboardRequest) (*dashboard.UpdateDashboardReply, error) {
-	newDashboard := &bo.MyDashboardConfigBO{
-		Id:     req.GetId(),
-		Remark: req.GetRemark(),
-		Title:  req.GetTitle(),
-		Color:  req.GetColor(),
-		Charts: slices.To(req.GetChartIds(), func(id uint32) *bo.MyChartBO { return &bo.MyChartBO{Id: id} }),
+	newDashboard := &bo.UpdateMyDashboardBO{
+		Id: req.GetId(),
+		CreateMyDashboardBO: bo.CreateMyDashboardBO{
+			Status: vobj.StatusEnabled,
+			Remark: req.GetRemark(),
+			Title:  req.GetTitle(),
+			Color:  req.GetColor(),
+			Charts: slices.To(req.GetChartIds(), func(id uint32) *bo.MyChartBO {
+				return &bo.MyChartBO{Id: id}
+			}),
+		},
 	}
-	newDashboardBo, err := s.dashboardBiz.UpdateDashboardById(ctx, newDashboard.Id, newDashboard)
+	newDashboardDo, err := s.dashboardBiz.UpdateDashboardById(ctx, newDashboard.Id, newDashboard)
 	if err != nil {
 		return nil, err
 	}
 	return &dashboard.UpdateDashboardReply{
-		Id: newDashboardBo.Id,
+		Id: newDashboardDo.ID,
 	}, nil
 }
 
@@ -79,8 +87,28 @@ func (s *DashboardService) GetDashboard(ctx context.Context, req *dashboard.GetD
 		return nil, err
 	}
 	return &dashboard.GetDashboardReply{
-		Detail: detail.ToApi(),
+		Detail: dashboardDoToApi(detail),
 	}, nil
+}
+
+// dashboardDoToApi dashboardDoToApi
+func dashboardDoToApi(dashboardDo *do.MyDashboardConfig) *api.MyDashboardConfig {
+	if pkg.IsNil(dashboardDo) {
+		return nil
+	}
+	return &api.MyDashboardConfig{
+		Id:        dashboardDo.ID,
+		Title:     dashboardDo.Title,
+		Remark:    dashboardDo.Remark,
+		CreatedAt: dashboardDo.CreatedAt.Unix(),
+		UpdatedAt: dashboardDo.UpdatedAt.Unix(),
+		DeletedAt: int64(dashboardDo.DeletedAt),
+		Color:     dashboardDo.Color,
+		Charts: slices.To(dashboardDo.GetCharts(), func(chart *do.MyChart) *api.MyChart {
+			return chartDoToApi(chart)
+		}),
+		Status: int32(dashboardDo.Status),
+	}
 }
 
 func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.ListDashboardRequest) (*dashboard.ListDashboardReply, error) {
@@ -102,8 +130,8 @@ func (s *DashboardService) ListDashboard(ctx context.Context, req *dashboard.Lis
 			Size:  pgReq.GetSize(),
 			Curr:  pgReq.GetCurr(),
 		},
-		List: slices.To(dashboardBoList, func(i *bo.MyDashboardConfigBO) *api.MyDashboardConfig {
-			return i.ToApi()
+		List: slices.To(dashboardBoList, func(i *do.MyDashboardConfig) *api.MyDashboardConfig {
+			return dashboardDoToApi(i)
 		}),
 	}, nil
 }
@@ -127,8 +155,12 @@ func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *dashboa
 			Size:  pgReq.GetSize(),
 			Curr:  pgReq.GetCurr(),
 		},
-		List: slices.To(dashboardBoList, func(i *bo.MyDashboardConfigBO) *api.MyDashboardConfigOption {
-			return i.ToApiSelectV1()
+		List: slices.To(dashboardBoList, func(i *do.MyDashboardConfig) *api.MyDashboardConfigOption {
+			return &api.MyDashboardConfigOption{
+				Value: i.ID,
+				Label: i.Title,
+				Color: i.Color,
+			}
 		}),
 	}, nil
 }

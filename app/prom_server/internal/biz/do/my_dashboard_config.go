@@ -1,9 +1,12 @@
 package do
 
 import (
-	"gorm.io/gorm"
+	"encoding/json"
+
 	"github.com/aide-family/moon/app/prom_server/internal/biz/do/basescopes"
 	"github.com/aide-family/moon/app/prom_server/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg"
+	"gorm.io/gorm"
 )
 
 const TableNameMyDashboardConfig = "my_dashboard_configs"
@@ -37,6 +40,16 @@ type MyDashboardConfig struct {
 
 func (*MyDashboardConfig) TableName() string {
 	return TableNameMyDashboardConfig
+}
+
+// String json string
+func (l *MyDashboardConfig) String() string {
+	if pkg.IsNil(l) {
+		return "{}"
+	}
+
+	bs, _ := json.Marshal(l)
+	return string(bs)
 }
 
 func (l *MyDashboardConfig) GetCharts() []*MyChart {
