@@ -134,7 +134,7 @@ export const addChartOptions: (DataFormItem | DataFormItem[])[] = [
                 parentProps: {
                     options: Object.entries(ChartTypeData).filter(([key]) => +key !== ChartType.ChartTypeAll).map(([key, value]) => ({
                         label: value,
-                        value: key
+                        value: +key
                     })),
                     placeholder: '请选择图表类型'
                 }
