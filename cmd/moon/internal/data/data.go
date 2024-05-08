@@ -1,10 +1,10 @@
 package data
 
 import (
-	"moon/internal/conf"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+
+	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
 )
 
 // ProviderSet is data providers.
@@ -16,7 +16,8 @@ type Data struct {
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
+func NewData(c *conf.Data) (*Data, func(), error) {
+	logger := log.GetLogger()
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}

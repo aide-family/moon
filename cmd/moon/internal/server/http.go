@@ -1,17 +1,16 @@
 package server
 
 import (
-	v1 "moon/api/helloworld/v1"
-	"moon/internal/conf"
-	"moon/internal/service"
-
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
+
+	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
+	"github.com/aide-cloud/moon/cmd/moon/internal/service"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, greeter *service.GreeterService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, greeter *service.GreeterService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),

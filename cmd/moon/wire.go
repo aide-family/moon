@@ -3,18 +3,18 @@
 
 // The build tag makes sure the stub is not built in the final build.
 
-package main
+package moon
 
 import (
-	"moon/internal/biz"
-	"moon/internal/conf"
-	"moon/internal/data"
-	"moon/internal/server"
-	"moon/internal/service"
-
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
+
+	"github.com/aide-cloud/moon/cmd/moon/internal/biz"
+	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
+	"github.com/aide-cloud/moon/cmd/moon/internal/data"
+	"github.com/aide-cloud/moon/cmd/moon/internal/server"
+	"github.com/aide-cloud/moon/cmd/moon/internal/service"
 )
 
 // wireApp init kratos application.

@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	v1 "moon/api/helloworld/v1"
-	"moon/internal/biz"
+	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	"github.com/aide-cloud/moon/cmd/moon/internal/biz"
 )
 
 // GreeterService is a greeter service.

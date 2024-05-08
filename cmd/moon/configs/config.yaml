@@ -1,0 +1,37 @@
+env: dev
+
+server:
+  name: moon监控系统
+  metadata:
+    description: 一款始于prometheus，不止于prometheus的一站式监控系统， 专为简化云原生监控的运维工作而设计， 旨在帮助企业快速部署云原生监控系统， 降低运维成本， 提升运维效率。
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 2s
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 2s
+
+data:
+  database:
+    driver: "mysql"
+    user: "root"
+    password: "root"
+    host: "127.0.0.1"
+    port: "3306"
+    database: "test"
+    extraParams: "parseTime=True&loc=Local"
+  bizDatabase:
+    driver: "mysql"
+    user: "root"
+    password: "root"
+    host: "127.0.0.1"
+    port: "3306"
+    extraParams: "parseTime=True&loc=Local"
+  cache:
+    redis:
+      addr: 127.0.0.1:6379
+      read_timeout: 0.2s
+      write_timeout: 0.2s
+    nutsDB:
+      path: ./tmp/nutsdb
+      bucket: test

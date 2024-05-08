@@ -3,9 +3,9 @@ package data
 import (
 	"context"
 
-	"moon/internal/biz"
-
 	"github.com/go-kratos/kratos/v2/log"
+
+	"github.com/aide-cloud/moon/cmd/moon/internal/biz"
 )
 
 type greeterRepo struct {
@@ -14,7 +14,8 @@ type greeterRepo struct {
 }
 
 // NewGreeterRepo .
-func NewGreeterRepo(data *Data, logger log.Logger) biz.GreeterRepo {
+func NewGreeterRepo(data *Data) biz.GreeterRepo {
+	logger := log.GetLogger()
 	return &greeterRepo{
 		data: data,
 		log:  log.NewHelper(logger),

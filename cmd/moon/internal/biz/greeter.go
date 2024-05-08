@@ -3,10 +3,10 @@ package biz
 import (
 	"context"
 
-	v1 "moon/api/helloworld/v1"
-
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+
+	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
 )
 
 var (
@@ -35,8 +35,12 @@ type GreeterUsecase struct {
 }
 
 // NewGreeterUsecase new a Greeter usecase.
-func NewGreeterUsecase(repo GreeterRepo, logger log.Logger) *GreeterUsecase {
-	return &GreeterUsecase{repo: repo, log: log.NewHelper(logger)}
+func NewGreeterUsecase(repo GreeterRepo) *GreeterUsecase {
+	logger := log.GetLogger()
+	return &GreeterUsecase{
+		repo: repo,
+		log:  log.NewHelper(logger),
+	}
 }
 
 // CreateGreeter creates a Greeter, and returns the new Greeter.
