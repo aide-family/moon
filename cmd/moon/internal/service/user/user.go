@@ -37,11 +37,11 @@ func (s *Service) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.Li
 func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *pb.BatchUpdateUserStatusRequest) (*pb.BatchUpdateUserStatusReply, error) {
 	return &pb.BatchUpdateUserStatusReply{}, nil
 }
-func (s *Service) UpdateUserPassword(ctx context.Context, req *pb.UpdateUserPasswordRequest) (*pb.UpdateUserPasswordReply, error) {
-	return &pb.UpdateUserPasswordReply{}, nil
+func (s *Service) ResetUserPassword(ctx context.Context, req *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordReply, error) {
+	return &pb.ResetUserPasswordReply{}, nil
 }
-func (s *Service) UpdateUserPasswordBySelf(ctx context.Context, req *pb.UpdateUserPasswordBySelfRequest) (*pb.UpdateUserPasswordBySelfReply, error) {
-	return &pb.UpdateUserPasswordBySelfReply{}, nil
+func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUserPasswordBySelfRequest) (*pb.ResetUserPasswordBySelfReply, error) {
+	return &pb.ResetUserPasswordBySelfReply{}, nil
 }
 func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectListRequest) (*pb.GetUserSelectListReply, error) {
 	return &pb.GetUserSelectListReply{}, nil

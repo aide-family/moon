@@ -40,6 +40,9 @@ message Data {
       string addr = 2;
       google.protobuf.Duration read_timeout = 3;
       google.protobuf.Duration write_timeout = 4;
+      string password = 5;
+      uint32 db = 6;
+      google.protobuf.Duration dial_timeout = 7;
     }
     message NutsDB {
       string path = 1;

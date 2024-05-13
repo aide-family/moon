@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-cloud/moon/pkg/cipher"
+	cipher2 "github.com/aide-cloud/moon/pkg/utils/cipher"
 	"google.golang.org/grpc/status"
 )
 
@@ -38,7 +38,7 @@ func NewPassword(values ...string) Password {
 		salt = values[1]
 	default:
 		salt = GenerateSalt()
-		value = cipher.GenerateRandomString(8, 0)
+		value = cipher2.GenerateRandomString(8, 0)
 	}
 	return &password{
 		salt:  salt,
@@ -79,7 +79,7 @@ func (p *password) GetEncryptValue() (string, error) {
 
 // GeneratePassword 生成密码
 func GeneratePassword(password, salt string) (string, error) {
-	aes, err := cipher.NewAes(defaultKey, salt)
+	aes, err := cipher2.NewAes(defaultKey, salt)
 	if err != nil {
 		return "", err
 	}
@@ -92,7 +92,7 @@ func GeneratePassword(password, salt string) (string, error) {
 
 // GenerateSalt 生成盐
 func GenerateSalt() string {
-	return cipher.MD5(strconv.FormatInt(time.Now().Unix(), 10))[0:16]
+	return cipher2.MD5(strconv.FormatInt(time.Now().Unix(), 10))[0:16]
 }
 
 // DecryptPassword 解密密码
@@ -102,7 +102,7 @@ func DecryptPassword(password, salt string) (str string, err error) {
 			err = ErrValidatePassword
 		}
 	}()
-	aes, err := cipher.NewAes(defaultKey, salt)
+	aes, err := cipher2.NewAes(defaultKey, salt)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +120,7 @@ func EncryptPassword(password, salt string) (str string, err error) {
 			err = ErrValidatePassword
 		}
 	}()
-	aes, err := cipher.NewAes(defaultKey, salt)
+	aes, err := cipher2.NewAes(defaultKey, salt)
 	if err != nil {
 		return "", err
 	}

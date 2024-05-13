@@ -13,6 +13,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/moon/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/moon/internal/server"
 	"github.com/aide-cloud/moon/cmd/moon/internal/service"
+	"github.com/aide-cloud/moon/cmd/moon/internal/service/authorization"
 	"github.com/aide-cloud/moon/cmd/moon/internal/service/user"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -39,7 +40,10 @@ func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(),
 	transactionRepo := repoimpl.NewTransactionRepo(dataData)
 	userBiz := biz.NewUserBiz(userRepo, transactionRepo)
 	userService := user.NewUserService(userBiz)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService)
+	captchaRepo := repoimpl.NewCaptchaRepo(dataData)
+	captchaBiz := biz.NewCaptchaBiz(captchaRepo)
+	authorizationService := authorization.NewAuthorizationService(captchaBiz)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService)
 	app := newApp(serverServer, logger)
 	return app, func() {
 		cleanup()

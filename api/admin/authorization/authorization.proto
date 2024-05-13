@@ -114,7 +114,7 @@ message CaptchaReply {
 	// 验证码base64信息, 如果是图片验证码, 则直接使用img标签展示即可, 如果是音频验证码, 则需要调用相关接口播放音频
 	string captcha = 1;
 	// 验证码类型, 0 图片验证码, 1 音频验证码
-	CaptchaType captcha_ype = 2;
+	CaptchaType captcha_type = 2;
 	// 验证码标识
 	string id = 3;
 }

@@ -6,4 +6,5 @@ import "github.com/google/wire"
 var ProviderSetBiz = wire.NewSet(
 	NewGreeterUsecase,
 	NewUserBiz,
+	NewCaptchaBiz,
 )
