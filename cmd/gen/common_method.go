@@ -1,0 +1,56 @@
+package gen
+
+import (
+	"context"
+	"encoding"
+	"encoding/json"
+
+	"gorm.io/gen"
+	"gorm.io/gorm"
+)
+
+var _ encoding.BinaryMarshaler = (*CommonMethod)(nil)
+var _ encoding.BinaryUnmarshaler = (*CommonMethod)(nil)
+
+type CommonMethod struct {
+	ID uint32
+}
+
+func (c *CommonMethod) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, c)
+}
+
+func (c *CommonMethod) MarshalBinary() (data []byte, err error) {
+	return json.Marshal(c)
+}
+
+// String json string
+func (c *CommonMethod) String() string {
+	bs, _ := json.Marshal(c)
+	return string(bs)
+}
+
+// Create func
+func (c *CommonMethod) Create(ctx context.Context, tx *gorm.DB) error {
+	return tx.WithContext(ctx).Create(c).Error
+}
+
+// UpdateByID update func
+func (c *CommonMethod) UpdateByID(ctx context.Context, tx *gorm.DB) error {
+	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
+}
+
+// Update func
+func (c *CommonMethod) Update(ctx context.Context, tx *gorm.DB, conds ...gen.Condition) error {
+	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
+}
+
+// DeleteByID delete func
+func (c *CommonMethod) DeleteByID(ctx context.Context, tx *gorm.DB) error {
+	return tx.WithContext(ctx).Delete(c, c.ID).Error
+}
+
+// Delete func
+func (c *CommonMethod) Delete(ctx context.Context, tx *gorm.DB, conds ...gen.Condition) error {
+	return tx.WithContext(ctx).Where(conds).Delete(c).Error
+}

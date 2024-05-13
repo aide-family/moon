@@ -10,8 +10,10 @@ import (
 	"github.com/aide-cloud/moon/cmd/moon/internal/biz"
 	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
 	"github.com/aide-cloud/moon/cmd/moon/internal/data"
+	"github.com/aide-cloud/moon/cmd/moon/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/moon/internal/server"
 	"github.com/aide-cloud/moon/cmd/moon/internal/service"
+	"github.com/aide-cloud/moon/cmd/moon/internal/service/user"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -23,17 +25,22 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
-	dataData, cleanup, err := data.NewData(confData)
+func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+	grpcServer := server.NewGRPCServer(bootstrap)
+	httpServer := server.NewHTTPServer(bootstrap)
+	dataData, cleanup, err := data.NewData(bootstrap)
 	if err != nil {
 		return nil, nil, err
 	}
 	greeterRepo := data.NewGreeterRepo(dataData)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	grpcServer := server.NewGRPCServer(confServer, greeterService)
-	httpServer := server.NewHTTPServer(confServer, greeterService)
-	app := newApp(confServer, grpcServer, httpServer, logger)
+	userRepo := repoimpl.NewUserRepo(dataData)
+	transactionRepo := repoimpl.NewTransactionRepo(dataData)
+	userBiz := biz.NewUserBiz(userRepo, transactionRepo)
+	userService := user.NewUserService(userBiz)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService)
+	app := newApp(serverServer, logger)
 	return app, func() {
 		cleanup()
 	}, nil

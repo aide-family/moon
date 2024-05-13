@@ -6,6 +6,7 @@
 package moon
 
 import (
+	"github.com/aide-cloud/moon/cmd/moon/internal/data/repoimpl"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -18,6 +19,13 @@ import (
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) {
-	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
+func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
+	panic(wire.Build(
+		server.ProviderSetServer,
+		data.ProviderSetData,
+		repoimpl.ProviderSetRepoImpl,
+		biz.ProviderSetBiz,
+		service.ProviderSetService,
+		newApp,
+	))
 }

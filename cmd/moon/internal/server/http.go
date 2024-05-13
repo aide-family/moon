@@ -1,19 +1,24 @@
 package server
 
 import (
+	nHttp "net/http"
+
+	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
 	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
-	"github.com/aide-cloud/moon/cmd/moon/internal/service"
+	"github.com/aide-cloud/moon/pkg/env"
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, greeter *service.GreeterService) *http.Server {
+func NewHTTPServer(bc *conf.Bootstrap) *http.Server {
+	c := bc.GetServer()
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
+			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}
 	if c.Http.Network != "" {
@@ -26,6 +31,11 @@ func NewHTTPServer(c *conf.Server, greeter *service.GreeterService) *http.Server
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterGreeterHTTPServer(srv, greeter)
+
+	if env.IsDev() || env.IsTest() || env.IsLocal() {
+		// doc
+		srv.HandlePrefix("/doc/", nHttp.StripPrefix("/doc/", nHttp.FileServer(nHttp.Dir("./third_party/swagger_ui"))))
+	}
+
 	return srv
 }

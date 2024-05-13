@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/aide-cloud/moon/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+// 数据状态
+enum Status {
+	// 全部
+	STATUS_ALL = 0;
+	// 启用
+	STATUS_ENABLE = 1;
+	// 禁用
+	STATUS_DISABLE = 2;
+}
+
+// 性别
+enum Gender {
+	// 全部
+	GENDER_ALL = 0;
+	// 男
+	GENDER_MALE = 1;
+	// 女
+	GENDER_FEMALE = 2;
+}
+
+// 系统全局默认角色， 区别于空间下自定义角色类型
+enum Role {
+	// 全部 / 未知
+	ROLE_ALL = 0;
+	// 管理员
+	ROLE_SUPPER_ADMIN = 1;
+	// 普通管理员
+	ROLE_ADMIN = 2;
+	// 普通用户
+	ROLE_USER = 3;
+}
+
+// 数据来源
+enum DataSource {
+	// 全部
+	DATA_SOURCE_ALL = 0;
+	// 本地
+	DATA_SOURCE_LOCAL = 1;
+	// 远程
+	DATA_SOURCE_REMOTE = 2;
+}
+
+// 验证码类型
+enum CaptchaType {
+	// 图片验证码
+	CAPTCHA_TYPE_IMAGE = 0;
+	// 音频验证码
+	CAPTCHA_TYPE_AUDIO = 1;
+}

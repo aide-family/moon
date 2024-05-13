@@ -1,19 +1,21 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
 	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
-	"github.com/aide-cloud/moon/cmd/moon/internal/service"
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, greeter *service.GreeterService) *grpc.Server {
+func NewGRPCServer(bc *conf.Bootstrap) *grpc.Server {
+	c := bc.GetServer()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
+			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}
 	if c.Grpc.Network != "" {
@@ -26,6 +28,6 @@ func NewGRPCServer(c *conf.Server, greeter *service.GreeterService) *grpc.Server
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	v1.RegisterGreeterServer(srv, greeter)
+
 	return srv
 }

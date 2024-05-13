@@ -1,4 +1,4 @@
-env: dev
+env: dev # dev、test、prod、local
 
 server:
   name: moon监控系统
@@ -14,19 +14,10 @@ server:
 data:
   database:
     driver: "mysql"
-    user: "root"
-    password: "root"
-    host: "127.0.0.1"
-    port: "3306"
-    database: "test"
-    extraParams: "parseTime=True&loc=Local"
+    dsn: ""
   bizDatabase:
     driver: "mysql"
-    user: "root"
-    password: "root"
-    host: "127.0.0.1"
-    port: "3306"
-    extraParams: "parseTime=True&loc=Local"
+    dsn: ""
   cache:
     redis:
       addr: 127.0.0.1:6379

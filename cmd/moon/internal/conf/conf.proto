@@ -31,12 +31,7 @@ message Server {
 message Data {
   message Database {
     string driver = 1;
-    string user = 2;
-    string password = 3;
-    string host = 4;
-    string port = 5;
-    string database = 6;
-    string extraParams = 7;
+    string dsn = 2;
   }
 
   message Cache {

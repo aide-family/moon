@@ -1,0 +1,65 @@
+package middleware
+
+import (
+	"context"
+	"errors"
+
+	"github.com/aide-cloud/moon/api/merr"
+	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/bufbuild/protovalidate-go"
+	"github.com/go-kratos/kratos/v2/middleware"
+	"google.golang.org/protobuf/proto"
+)
+
+// Validate 验证请求参数
+func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
+	validator, err := protovalidate.New(opts...)
+	if err != nil {
+		panic(err)
+	}
+	protovalidate.WithMessages()
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			message, isOk := req.(proto.Message)
+			if !isOk {
+				return handler(ctx, req)
+			}
+
+			err = validator.Validate(message)
+			if err == nil {
+				return handler(ctx, req)
+			}
+			var validationError *protovalidate.ValidationError
+			if !errors.As(err, &validationError) {
+				return nil, merr.ErrorNotification(err.Error())
+			}
+
+			if types.IsNil(validationError) || len(validationError.Violations) == 0 {
+				return nil, merr.ErrorNotification("参数校验失败")
+			}
+
+			errMap := make(map[string]string)
+			for _, v := range validationError.Violations {
+				field := v.GetFieldPath()
+				if types.TextIsNull(field) {
+					continue
+				}
+				msg := v.GetMessage()
+				errMap[field] = getMsg(msg)
+			}
+
+			return nil, merr.ErrorAlert("参数错误").WithMetadata(errMap)
+		}
+	}
+}
+
+var errMsgMap = map[string]string{
+	"value is required": "参数必须填写",
+}
+
+func getMsg(msg string) string {
+	if v, ok := errMsgMap[msg]; ok {
+		return v
+	}
+	return msg
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api.merr;
+
+import "errors/errors.proto";
+
+option go_package = "github.com/aide-cloud/moon/api/merr;merr";
+option java_multiple_files = true;
+option java_package = "api.merr";
+
+enum ErrorReason {
+	option (errors.default_code) = 403;
+
+	// Alert 用于表单验证错误
+	ALERT = 0 [(errors.code) = 405];
+
+	// MODAL 用于弹窗验证错误
+	MODAL = 1 [(errors.code) = 405];
+
+	// TOAST 用于toast验证错误
+	TOAST = 2 [(errors.code) = 405];
+
+	// NOTIFICATION 用于通知验证错误
+	NOTIFICATION = 3 [(errors.code) = 405];
+
+	// Redirect 用于重定向验证错误, 跳转到指定页面
+	REDIRECT = 4 [(errors.code) = 405];
+}
