@@ -30,7 +30,8 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 		return nil, merr.ErrorAlert("获取验证码失败")
 	}
 	// 过期时间
-	expireAt := time.Now().Add(time.Minute * 1).Unix()
+	duration := time.Minute * 1
+	expireAt := time.Now().Add(duration).Unix()
 	validateCaptchaItem := bo.ValidateCaptchaItem{
 		ValidateCaptchaParams: bo.ValidateCaptchaParams{
 			Id:    id,
@@ -39,7 +40,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 		ExpireAt: expireAt,
 	}
 	// 存储验证码信息到缓存
-	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem); err != nil {
+	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem, duration); err != nil {
 		log.Warnw("fun", "captchaRepo.CreateCaptcha", "err", err)
 		return nil, merr.ErrorAlert("获取验证码失败")
 	}

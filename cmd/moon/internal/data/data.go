@@ -3,15 +3,17 @@ package data
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
-	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/cmd/moon/internal/biz/do/query"
+	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/moon/internal/conf"
+	"github.com/aide-cloud/moon/pkg/conn"
+	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
+	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
+	"github.com/aide-cloud/moon/pkg/types"
 )
 
 // ProviderSetData is data providers.
@@ -19,9 +21,10 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	mainDB *gorm.DB
-	bizDB  *gorm.DB
-	cacher conn.Cache
+	mainDB   *gorm.DB
+	bizDB    *gorm.DB
+	cacher   conn.Cache
+	enforcer *casbin.SyncedEnforcer
 }
 
 var closeFuncList []func()
@@ -49,6 +52,7 @@ func NewData(c *conf.Bootstrap) (*Data, func(), error) {
 			mainDBClose, _ := d.mainDB.DB()
 			log.Debugw("close main db", mainDBClose.Close())
 		})
+		query.SetDefault(mainDB)
 	}
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
@@ -98,25 +102,33 @@ func (d *Data) GetCacher() conn.Cache {
 	return d.cacher
 }
 
+// GetCasbin 获取casbin
+func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
+	return d.enforcer
+}
+
 // newCache new cache
 func newCache(c *conf.Data_Cache) conn.Cache {
 	if types.IsNil(c) {
 		return nil
 	}
-	switch {
-	case !types.IsNil(c.GetRedis()):
+
+	if !types.IsNil(c.GetRedis()) {
+		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); err != nil {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
-	case !types.IsNil(c.GetNutsDB()):
+	}
+
+	if !types.IsNil(c.GetNutsDB()) {
+		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
 		if err != nil {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli
-	default:
-		return nil
 	}
+	return nil
 }

@@ -5,8 +5,11 @@ go 1.20
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.1-20240508200655-46a4cf4ba109.1
 	github.com/bufbuild/protovalidate-go v0.6.2
+	github.com/casbin/casbin/v2 v2.89.0
 	github.com/go-kratos/kratos/v2 v2.7.2
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/wire v0.6.0
+	github.com/gorilla/handlers v1.5.2
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/nutsdb/nutsdb v1.0.4
 	github.com/redis/go-redis/v9 v9.5.1
@@ -29,8 +32,10 @@ require (
 	github.com/antlabs/timer v0.0.11 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
+	github.com/casbin/govaluate v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-kratos/aegis v0.2.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect

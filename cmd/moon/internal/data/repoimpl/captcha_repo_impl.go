@@ -19,12 +19,12 @@ type captchaRepoImpl struct {
 	data *data.Data
 }
 
-func (l *captchaRepoImpl) CreateCaptcha(ctx context.Context, captcha *bo.ValidateCaptchaItem) error {
+func (l *captchaRepoImpl) CreateCaptcha(ctx context.Context, captcha *bo.ValidateCaptchaItem, duration time.Duration) error {
 	bs, err := captcha.MarshalBinary()
 	if err != nil {
 		return err
 	}
-	return l.data.GetCacher().Set(ctx, captcha.Id, string(bs), time.Duration(captcha.ExpireAt))
+	return l.data.GetCacher().Set(ctx, captcha.Id, string(bs), duration)
 }
 
 func (l *captchaRepoImpl) GetCaptchaById(ctx context.Context, id string) (*bo.ValidateCaptchaItem, error) {

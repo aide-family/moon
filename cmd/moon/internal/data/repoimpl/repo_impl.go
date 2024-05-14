@@ -8,4 +8,6 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewUserRepo,
 	NewTransactionRepo,
 	NewCaptchaRepo,
+	NewTeamRepo,
+	NewCacheRepo,
 )

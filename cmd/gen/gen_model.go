@@ -49,6 +49,7 @@ func Run(datasource string, drive, outputPath string) {
 	g.WithOpts(gen.FieldType("id", "uint32"),
 		gen.FieldType("gender", "vobj.Gender"),
 		gen.FieldType("status", "vobj.Status"),
+		gen.FieldType("role", "vobj.Role"),
 		gen.FieldType("updated_at", "*types.Time"),
 		gen.FieldType("created_at", "*types.Time"),
 		gen.FieldType("email", "email.Type"),

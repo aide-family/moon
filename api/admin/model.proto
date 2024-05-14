@@ -38,7 +38,7 @@ message Select {
 // 用户模块
 message User {
   // 用户id
-  int64 id = 1;
+  uint32 id = 1;
   // 用户名
   string name = 2;
   // 昵称

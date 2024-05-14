@@ -28,21 +28,24 @@ import (
 // wireApp init kratos application.
 func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(bootstrap)
-	httpServer := server.NewHTTPServer(bootstrap)
 	dataData, cleanup, err := data.NewData(bootstrap)
 	if err != nil {
 		return nil, nil, err
 	}
+	captchaRepo := repoimpl.NewCaptchaRepo(dataData)
+	captchaBiz := biz.NewCaptchaBiz(captchaRepo)
+	userRepo := repoimpl.NewUserRepo(dataData)
+	teamRepo := repoimpl.NewTeamRepo(dataData)
+	cacheRepo := repoimpl.NewCacheRepo(dataData)
+	authorizationBiz := biz.NewAuthorizationBiz(userRepo, teamRepo, cacheRepo)
+	authorizationService := authorization.NewAuthorizationService(captchaBiz, authorizationBiz)
+	httpServer := server.NewHTTPServer(bootstrap, authorizationService)
 	greeterRepo := data.NewGreeterRepo(dataData)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	userRepo := repoimpl.NewUserRepo(dataData)
 	transactionRepo := repoimpl.NewTransactionRepo(dataData)
 	userBiz := biz.NewUserBiz(userRepo, transactionRepo)
 	userService := user.NewUserService(userBiz)
-	captchaRepo := repoimpl.NewCaptchaRepo(dataData)
-	captchaBiz := biz.NewCaptchaBiz(captchaRepo)
-	authorizationService := authorization.NewAuthorizationService(captchaBiz)
 	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService)
 	app := newApp(serverServer, logger)
 	return app, func() {

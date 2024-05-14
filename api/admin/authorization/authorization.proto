@@ -44,6 +44,12 @@ service Authorization {
 			body: "*"
 		};
 	}
+
+	// 校验用户在当前资源下是否有权限
+	rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
+
+	// 校验token是否登录中的状态
+	rpc CheckToken (CheckTokenRequest) returns (CheckTokenReply);
 }
 
 message LoginRequest {
@@ -61,6 +67,10 @@ message LoginRequest {
 	AuthCaptcha captcha = 3 [(buf.validate.field).required = true];
 	// 重定向地址
 	string redirect = 4;
+	// 团队ID
+	uint32 team_id = 5;
+	// 团队角色ID
+	uint32 team_role_id = 6;
 }
 message LoginReply {
 	// 用户信息
@@ -117,4 +127,20 @@ message CaptchaReply {
 	CaptchaType captcha_type = 2;
 	// 验证码标识
 	string id = 3;
+}
+
+message CheckPermissionRequest {
+	// 资源
+	string operation = 1 [(buf.validate.field).cel = {
+		message: "必须选择资源",
+		expression: "this.size() != 0"
+	}];
+}
+message CheckPermissionReply {
+	bool has_permission = 1;
+}
+
+message CheckTokenRequest {}
+message CheckTokenReply {
+	bool is_login = 1;
 }

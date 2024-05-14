@@ -10,19 +10,34 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 2s
+  jwt:
+    sign_key: "moon-sign_key"
+    issuer: "moon监控系统"
+    white_list:
+      - /api.admin.authorization.Authorization/Login
+      - /api.admin.authorization.Authorization/Captcha
+      - /api.admin.authorization.Authorization/CreatePassword
+    rbac_white_list:
+      - /api.admin.authorization.Authorization/Login
+      - /api.admin.authorization.Authorization/Captcha
+      - /api.admin.authorization.Authorization/CreatePassword
 
 data:
   database:
     driver: "mysql"
-    dsn: ""
+    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   bizDatabase:
     driver: "mysql"
-    dsn: ""
+    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   cache:
     redis:
+      network: "tcp"
       addr: 127.0.0.1:6379
+      db: 0
+      password: ""
       read_timeout: 0.2s
       write_timeout: 0.2s
+      dial_timeout: 0.2s
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test

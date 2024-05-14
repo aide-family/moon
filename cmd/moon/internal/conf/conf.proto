@@ -22,10 +22,22 @@ message Server {
     string addr = 2;
     google.protobuf.Duration timeout = 3;
   }
+
+  message JWT {
+    string sign_key = 1;
+    string issuer = 2;
+    google.protobuf.Duration expire = 4;
+    // 免登录白名单
+    repeated string white_list = 6;
+    // 免rbac白名单
+    repeated string rbac_white_list = 7;
+  }
+
   HTTP http = 1;
   GRPC grpc = 2;
   string name = 3;
-  map<string, string> metadata = 5;
+  map<string, string> metadata = 4;
+  JWT jwt = 5;
 }
 
 message Data {
