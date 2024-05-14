@@ -32,3 +32,11 @@ func (l *teamRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID u
 		query.SysTeamMemberRole.UserID.Eq(userID),
 	).Find()
 }
+
+func (l *teamRepoImpl) GetUserTeamRole(ctx context.Context, userID, teamID, roleID uint32) (*model.SysTeamMemberRole, error) {
+	return query.Use(l.data.GetBizDB(ctx)).WithContext(ctx).SysTeamMemberRole.Where(
+		query.SysTeamMemberRole.TeamID.Eq(teamID),
+		query.SysTeamMemberRole.UserID.Eq(userID),
+		query.SysTeamMemberRole.RoleID.Eq(roleID),
+	).First()
+}

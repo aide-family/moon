@@ -825,9 +825,9 @@ var file_moon_internal_conf_conf_proto_goTypes = []interface{}{
 	(*Server_JWT)(nil),          // 5: kratos.api.Server.JWT
 	nil,                         // 6: kratos.api.Server.MetadataEntry
 	(*Data_Database)(nil),       // 7: kratos.api.Data.Database
-	(*Data_Cache)(nil),          // 8: kratos.api.Data.Cache
-	(*Data_Cache_Redis)(nil),    // 9: kratos.api.Data.Cache.Redis
-	(*Data_Cache_NutsDB)(nil),   // 10: kratos.api.Data.Cache.NutsDB
+	(*Data_Cache)(nil),          // 8: kratos.api.Data.Logout
+	(*Data_Cache_Redis)(nil),    // 9: kratos.api.Data.Logout.Redis
+	(*Data_Cache_NutsDB)(nil),   // 10: kratos.api.Data.Logout.NutsDB
 	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
 var file_moon_internal_conf_conf_proto_depIdxs = []int32{
@@ -839,15 +839,15 @@ var file_moon_internal_conf_conf_proto_depIdxs = []int32{
 	5,  // 5: kratos.api.Server.jwt:type_name -> kratos.api.Server.JWT
 	7,  // 6: kratos.api.Data.database:type_name -> kratos.api.Data.Database
 	7,  // 7: kratos.api.Data.bizDatabase:type_name -> kratos.api.Data.Database
-	8,  // 8: kratos.api.Data.cache:type_name -> kratos.api.Data.Cache
+	8,  // 8: kratos.api.Data.cache:type_name -> kratos.api.Data.Logout
 	11, // 9: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
 	11, // 10: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
 	11, // 11: kratos.api.Server.JWT.expire:type_name -> google.protobuf.Duration
-	9,  // 12: kratos.api.Data.Cache.redis:type_name -> kratos.api.Data.Cache.Redis
-	10, // 13: kratos.api.Data.Cache.nutsDB:type_name -> kratos.api.Data.Cache.NutsDB
-	11, // 14: kratos.api.Data.Cache.Redis.read_timeout:type_name -> google.protobuf.Duration
-	11, // 15: kratos.api.Data.Cache.Redis.write_timeout:type_name -> google.protobuf.Duration
-	11, // 16: kratos.api.Data.Cache.Redis.dial_timeout:type_name -> google.protobuf.Duration
+	9,  // 12: kratos.api.Data.Logout.redis:type_name -> kratos.api.Data.Logout.Redis
+	10, // 13: kratos.api.Data.Logout.nutsDB:type_name -> kratos.api.Data.Logout.NutsDB
+	11, // 14: kratos.api.Data.Logout.Redis.read_timeout:type_name -> google.protobuf.Duration
+	11, // 15: kratos.api.Data.Logout.Redis.write_timeout:type_name -> google.protobuf.Duration
+	11, // 16: kratos.api.Data.Logout.Redis.dial_timeout:type_name -> google.protobuf.Duration
 	17, // [17:17] is the sub-list for method output_type
 	17, // [17:17] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name

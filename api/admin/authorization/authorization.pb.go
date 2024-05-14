@@ -273,6 +273,11 @@ type RefreshTokenRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	// 团队ID
+	TeamId uint32 `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	// 团队角色ID
+	TeamRoleId uint32 `protobuf:"varint,2,opt,name=team_role_id,json=teamRoleId,proto3" json:"team_role_id,omitempty"`
 }
 
 func (x *RefreshTokenRequest) Reset() {
@@ -307,6 +312,20 @@ func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
 	return file_admin_authorization_authorization_proto_rawDescGZIP(), []int{4}
 }
 
+func (x *RefreshTokenRequest) GetTeamId() uint32 {
+	if x != nil {
+		return x.TeamId
+	}
+	return 0
+}
+
+func (x *RefreshTokenRequest) GetTeamRoleId() uint32 {
+	if x != nil {
+		return x.TeamRoleId
+	}
+	return 0
+}
+
 type RefreshTokenReply struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -314,6 +333,8 @@ type RefreshTokenReply struct {
 
 	// token
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// 用户信息
+	User *admin.User `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
 }
 
 func (x *RefreshTokenReply) Reset() {
@@ -353,6 +374,13 @@ func (x *RefreshTokenReply) GetToken() string {
 		return x.Token
 	}
 	return ""
+}
+
+func (x *RefreshTokenReply) GetUser() *admin.User {
+	if x != nil {
+		return x.User
+	}
+	return nil
 }
 
 // 登录验证码
@@ -777,11 +805,17 @@ var file_admin_authorization_authorization_proto_rawDesc = []byte{
 	0x75, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x29, 0x0a, 0x0b, 0x4c, 0x6f, 0x67,
 	0x6f, 0x75, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x64, 0x69,
 	0x72, 0x65, 0x63, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x72, 0x65, 0x64, 0x69,
-	0x72, 0x65, 0x63, 0x74, 0x22, 0x15, 0x0a, 0x13, 0x52, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x54,
-	0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x29, 0x0a, 0x11, 0x52,
-	0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x70, 0x6c, 0x79,
-	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0xa1, 0x01, 0x0a, 0x0b, 0x41, 0x75, 0x74, 0x68, 0x43,
+	0x72, 0x65, 0x63, 0x74, 0x22, 0x50, 0x0a, 0x13, 0x52, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x54,
+	0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x74,
+	0x65, 0x61, 0x6d, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x06, 0x74, 0x65,
+	0x61, 0x6d, 0x49, 0x64, 0x12, 0x20, 0x0a, 0x0c, 0x74, 0x65, 0x61, 0x6d, 0x5f, 0x72, 0x6f, 0x6c,
+	0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0a, 0x74, 0x65, 0x61, 0x6d,
+	0x52, 0x6f, 0x6c, 0x65, 0x49, 0x64, 0x22, 0x4e, 0x0a, 0x11, 0x52, 0x65, 0x66, 0x72, 0x65, 0x73,
+	0x68, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x74,
+	0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65,
+	0x6e, 0x12, 0x23, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x0f, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x55, 0x73, 0x65, 0x72,
+	0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0xa1, 0x01, 0x0a, 0x0b, 0x41, 0x75, 0x74, 0x68, 0x43,
 	0x61, 0x70, 0x74, 0x63, 0x68, 0x61, 0x12, 0x43, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x09, 0x42, 0x2f, 0xba, 0x48, 0x2c, 0xba, 0x01, 0x29, 0x12, 0x15, 0xe9, 0xaa,
 	0x8c, 0xe8, 0xaf, 0x81, 0xe7, 0xa0, 0x81, 0xe4, 0xb8, 0x8d, 0xe8, 0x83, 0xbd, 0xe4, 0xb8, 0xba,
@@ -916,25 +950,26 @@ var file_admin_authorization_authorization_proto_goTypes = []interface{}{
 var file_admin_authorization_authorization_proto_depIdxs = []int32{
 	6,  // 0: api.admin.authorization.LoginRequest.captcha:type_name -> api.admin.authorization.AuthCaptcha
 	13, // 1: api.admin.authorization.LoginReply.user:type_name -> api.admin.User
-	14, // 2: api.admin.authorization.CaptchaReq.captcha_type:type_name -> api.CaptchaType
-	14, // 3: api.admin.authorization.CaptchaReply.captcha_type:type_name -> api.CaptchaType
-	0,  // 4: api.admin.authorization.Authorization.Login:input_type -> api.admin.authorization.LoginRequest
-	2,  // 5: api.admin.authorization.Authorization.Logout:input_type -> api.admin.authorization.LogoutRequest
-	4,  // 6: api.admin.authorization.Authorization.RefreshToken:input_type -> api.admin.authorization.RefreshTokenRequest
-	7,  // 7: api.admin.authorization.Authorization.Captcha:input_type -> api.admin.authorization.CaptchaReq
-	9,  // 8: api.admin.authorization.Authorization.CheckPermission:input_type -> api.admin.authorization.CheckPermissionRequest
-	11, // 9: api.admin.authorization.Authorization.CheckToken:input_type -> api.admin.authorization.CheckTokenRequest
-	1,  // 10: api.admin.authorization.Authorization.Login:output_type -> api.admin.authorization.LoginReply
-	3,  // 11: api.admin.authorization.Authorization.Logout:output_type -> api.admin.authorization.LogoutReply
-	5,  // 12: api.admin.authorization.Authorization.RefreshToken:output_type -> api.admin.authorization.RefreshTokenReply
-	8,  // 13: api.admin.authorization.Authorization.Captcha:output_type -> api.admin.authorization.CaptchaReply
-	10, // 14: api.admin.authorization.Authorization.CheckPermission:output_type -> api.admin.authorization.CheckPermissionReply
-	12, // 15: api.admin.authorization.Authorization.CheckToken:output_type -> api.admin.authorization.CheckTokenReply
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	13, // 2: api.admin.authorization.RefreshTokenReply.user:type_name -> api.admin.User
+	14, // 3: api.admin.authorization.CaptchaReq.captcha_type:type_name -> api.CaptchaType
+	14, // 4: api.admin.authorization.CaptchaReply.captcha_type:type_name -> api.CaptchaType
+	0,  // 5: api.admin.authorization.Authorization.Login:input_type -> api.admin.authorization.LoginRequest
+	2,  // 6: api.admin.authorization.Authorization.Logout:input_type -> api.admin.authorization.LogoutRequest
+	4,  // 7: api.admin.authorization.Authorization.RefreshToken:input_type -> api.admin.authorization.RefreshTokenRequest
+	7,  // 8: api.admin.authorization.Authorization.Captcha:input_type -> api.admin.authorization.CaptchaReq
+	9,  // 9: api.admin.authorization.Authorization.CheckPermission:input_type -> api.admin.authorization.CheckPermissionRequest
+	11, // 10: api.admin.authorization.Authorization.CheckToken:input_type -> api.admin.authorization.CheckTokenRequest
+	1,  // 11: api.admin.authorization.Authorization.Login:output_type -> api.admin.authorization.LoginReply
+	3,  // 12: api.admin.authorization.Authorization.Logout:output_type -> api.admin.authorization.LogoutReply
+	5,  // 13: api.admin.authorization.Authorization.RefreshToken:output_type -> api.admin.authorization.RefreshTokenReply
+	8,  // 14: api.admin.authorization.Authorization.Captcha:output_type -> api.admin.authorization.CaptchaReply
+	10, // 15: api.admin.authorization.Authorization.CheckPermission:output_type -> api.admin.authorization.CheckPermissionReply
+	12, // 16: api.admin.authorization.Authorization.CheckToken:output_type -> api.admin.authorization.CheckTokenReply
+	11, // [11:17] is the sub-list for method output_type
+	5,  // [5:11] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_admin_authorization_authorization_proto_init() }

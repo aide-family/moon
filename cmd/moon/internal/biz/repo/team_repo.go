@@ -12,4 +12,7 @@ type TeamRepo interface {
 
 	// GetTeamRoleByUserID 查询用户指定团队角色
 	GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*model.SysTeamMemberRole, error)
+
+	// GetUserTeamRole 查询用户指定团队角色
+	GetUserTeamRole(ctx context.Context, userID, teamID, roleID uint32) (*model.SysTeamMemberRole, error)
 }

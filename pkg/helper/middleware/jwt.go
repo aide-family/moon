@@ -140,14 +140,19 @@ func (l *JwtClaims) GetToken() (string, error) {
 	return jwtv4.NewWithClaims(jwtv4.SigningMethodHS256, l).SignedString([]byte(signKey))
 }
 
-// Cache 缓存token hash
-func (l *JwtClaims) Cache(ctx context.Context, cache conn.Cache) error {
+// Logout 缓存token hash
+func (l *JwtClaims) Logout(ctx context.Context, cache conn.Cache) error {
 	token, err := l.GetToken()
 	if err != nil {
 		return err
 	}
 	bs, _ := json.Marshal(l)
 	return cache.Set(ctx, cipher.MD5(token), string(bs), expire)
+}
+
+// IsLogout 是否已经登出
+func (l *JwtClaims) IsLogout(ctx context.Context, cache conn.Cache) bool {
+	return isLogout(ctx, cache, l)
 }
 
 type CheckTokenFun func(ctx context.Context) (bool, error)

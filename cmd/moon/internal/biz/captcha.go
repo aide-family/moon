@@ -27,7 +27,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 	id, base64s, err := captcha.CreateCode(ctx, params.Type, params.Theme, params.Size...)
 	if err != nil {
 		log.Warnw("fun", "captcha.CreateCode", "err", err)
-		return nil, merr.ErrorAlert("获取验证码失败")
+		return nil, merr.ErrorNotification("获取验证码失败")
 	}
 	// 过期时间
 	duration := time.Minute * 1
@@ -42,7 +42,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 	// 存储验证码信息到缓存
 	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem, duration); err != nil {
 		log.Warnw("fun", "captchaRepo.CreateCaptcha", "err", err)
-		return nil, merr.ErrorAlert("获取验证码失败")
+		return nil, merr.ErrorNotification("获取验证码失败")
 	}
 	return &bo.CaptchaItem{
 		ValidateCaptchaItem: validateCaptchaItem,
@@ -56,14 +56,20 @@ func (l *CaptchaBiz) VerifyCaptcha(ctx context.Context, params *bo.ValidateCaptc
 	validateCaptchaItem, err := l.captchaRepo.GetCaptchaById(ctx, params.Id)
 	if err != nil {
 		log.Warnw("fun", "captchaRepo.GetCaptchaById", "err", err)
-		return merr.ErrorAlert("验证码已失效")
+		return merr.ErrorAlert("验证码已失效").WithMetadata(map[string]string{
+			"code": "验证码无效",
+		})
 	}
 	// 验证码是否过期
 	if time.Now().Unix() > validateCaptchaItem.ExpireAt {
-		return merr.ErrorAlert("验证码已失效")
+		return merr.ErrorAlert("验证码已失效").WithMetadata(map[string]string{
+			"code": "验证码已过期",
+		})
 	}
 	if validateCaptchaItem.Value != params.Value {
-		return merr.ErrorAlert("验证码错误")
+		return merr.ErrorAlert("验证码错误").WithMetadata(map[string]string{
+			"code": "验证码错误",
+		})
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	pb "github.com/aide-cloud/moon/api/admin/authorization"
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/moon/internal/biz"
 	"github.com/aide-cloud/moon/cmd/moon/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/moon/internal/service/build"
@@ -60,12 +61,45 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 	}, nil
 }
 
-func (s *Service) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutReply, error) {
-	return &pb.LogoutReply{}, nil
+func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
+	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, bo.UnLoginErr
+	}
+
+	if err := s.authorizationBiz.Logout(ctx, &bo.LogoutParams{
+		JwtClaims: jwtClaims,
+	}); err != nil {
+		return nil, merr.ErrorNotification("系统错误")
+	}
+
+	return &pb.LogoutReply{
+		Redirect: "/login",
+	}, nil
 }
 
 func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
-	return &pb.RefreshTokenReply{}, nil
+	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, bo.UnLoginErr
+	}
+	tokenRes, err := s.authorizationBiz.RefreshToken(ctx, &bo.RefreshTokenParams{
+		JwtClaims: jwtClaims,
+		Team:      req.GetTeamId(),
+		TeamRole:  req.GetTeamRoleId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := tokenRes.JwtClaims.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	return &pb.RefreshTokenReply{
+		Token: token,
+		User:  build.NewUserBuild(tokenRes.User).ToApi(),
+	}, nil
 }
 
 func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaReply, error) {
@@ -90,14 +124,17 @@ func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRe
 	if !ok {
 		return nil, bo.UnLoginErr
 	}
-	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{JwtClaims: claims}); err != nil {
+	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
+		JwtClaims: claims,
+		Operation: req.GetOperation(),
+	}); err != nil {
 		return nil, err
 	}
 	return &pb.CheckPermissionReply{HasPermission: true}, nil
 }
 
 // CheckToken 检查token
-func (s *Service) CheckToken(ctx context.Context, req *pb.CheckTokenRequest) (*pb.CheckTokenReply, error) {
+func (s *Service) CheckToken(ctx context.Context, _ *pb.CheckTokenRequest) (*pb.CheckTokenReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, bo.UnLoginErr
