@@ -4,15 +4,15 @@
 //go:build !wireinject
 // +build !wireinject
 
-package demo
+package rabbit
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/data"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/data/repoimpl"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/service"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/data"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/data/repoimpl"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/server"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -24,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(bootstrap *democonf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(bootstrap *rabbitconf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(bootstrap)
 	httpServer := server.NewHTTPServer(bootstrap)
 	dataData, cleanup, err := data.NewData(bootstrap)

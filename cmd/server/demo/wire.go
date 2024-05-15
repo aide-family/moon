@@ -9,6 +9,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data/repoimpl"
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/service"
 	"github.com/go-kratos/kratos/v2"
@@ -17,7 +18,7 @@ import (
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
+func wireApp(*democonf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(
 		server.ProviderSetServer,
 		data.ProviderSetData,

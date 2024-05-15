@@ -10,7 +10,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/repoimpl"
-	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
@@ -26,7 +26,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(bootstrap)
 	dataData, cleanup, err := data.NewData(bootstrap)
 	if err != nil {

@@ -7,6 +7,7 @@ package palace
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
@@ -17,7 +18,7 @@ import (
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
+func wireApp(*palaceconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(
 		server.ProviderSetServer,
 		data.ProviderSetData,

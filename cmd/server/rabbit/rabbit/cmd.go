@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/aide-cloud/moon/cmd/server/demo"
+	"github.com/aide-cloud/moon/cmd/server/rabbit"
 	"github.com/aide-cloud/moon/pkg/env"
 )
 
@@ -23,5 +23,5 @@ func init() {
 func main() {
 	flag.Parse()
 	env.SetVersion(Version)
-	demo.Run(flagconf)
+	rabbit.Run(flagconf)
 }
