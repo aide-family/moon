@@ -1,9 +1,6 @@
 GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
-server := "cmd/server"
-APPS ?= $(shell ls $(server))
-path := $(shell pwd)
 
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
@@ -11,11 +8,11 @@ ifeq ($(GOHOSTOS), windows)
 	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
 	#Git_Bash= $(subst cmd\,bin\bash.exe,$(dir $(shell where git)))
 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
-	INTERNAL_PROTO_FILES=$(shell $(Git_Bash) -c "find cmd -name *.proto")
-	API_PROTO_FILES=$(shell $(Git_Bash) -c "find api -name *.proto")
+	INTERNAL_PROTO_FILES=$(shell $(Git_Bash) -c "find . -name *.proto")
+	API_PROTO_FILES=$(shell $(Git_Bash) -c "find ../../../api -name *.proto")
 else
-	INTERNAL_PROTO_FILES=$(shell find cmd -name *.proto)
-	API_PROTO_FILES=$(shell find api -name *.proto)
+	INTERNAL_PROTO_FILES=$(shell find . -name *.proto)
+	API_PROTO_FILES=$(shell find ../../../api -name *.proto)
 endif
 
 .PHONY: init
@@ -29,23 +26,23 @@ init:
 	go install github.com/google/wire/cmd/wire@latest
 
 .PHONY: config
-# generate internal config
+# generate internal proto
 config:
-	@for app in $(APPS); do \
-		echo "generate internal config for $$app"; \
-		cd $(path)/$(server)/$$app && make config; \
-	done
+	protoc --proto_path=. \
+	       --proto_path=../../../third_party \
+ 	       --go_out=paths=source_relative:. \
+	       $(INTERNAL_PROTO_FILES)
 
 .PHONY: api
 # generate api proto
 api:
-	protoc --proto_path=./api \
-	       --proto_path=./third_party \
- 	       --go_out=paths=source_relative:./api \
- 	       --go-http_out=paths=source_relative:./api \
- 	       --go-grpc_out=paths=source_relative:./api \
- 	       --go-errors_out=paths=source_relative:./api \
-	       --openapi_out=fq_schema_naming=true,default_response=false:./third_party/swagger_ui \
+	protoc --proto_path=../../../api \
+	       --proto_path=../../../third_party \
+ 	       --go_out=paths=source_relative:../../../api \
+ 	       --go-http_out=paths=source_relative:../../../api \
+ 	       --go-grpc_out=paths=source_relative:../../../api \
+ 	       --go-errors_out=paths=source_relative:../../../api \
+	       --openapi_out=fq_schema_naming=true,default_response=false:../../../third_party/swagger_ui \
 	       $(API_PROTO_FILES)
 
 .PHONY: build
