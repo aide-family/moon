@@ -1,9 +1,10 @@
 syntax = "proto3";
-package kratos.api;
 
-option go_package = "github.com/aide-cloud/moon/cmd/server/palace/internal/conf;conf";
+package moon.cmd.server.palace.internal.palaceconf;
 
 import "google/protobuf/duration.proto";
+
+option go_package = "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf;palaceconf";
 
 message Bootstrap {
   Server server = 1;

@@ -8,9 +8,9 @@ package palace
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/conf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/repoimpl"
+	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"

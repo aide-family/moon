@@ -7,7 +7,6 @@ package demo
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/conf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"

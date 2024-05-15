@@ -8,7 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/conf"
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"
 	"github.com/aide-cloud/moon/pkg/env"
 	sLog "github.com/aide-cloud/moon/pkg/log"
@@ -37,7 +37,7 @@ func Run(flagconf string) {
 		panic(err)
 	}
 
-	var bc conf.Bootstrap
+	var bc democonf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}

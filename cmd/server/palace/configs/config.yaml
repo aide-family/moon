@@ -1,7 +1,7 @@
 env: dev # dev、test、prod、local
 
 server:
-  name: moon监控系统
+  name: moon监控系统-palace服务
   metadata:
     description: 一款始于prometheus，不止于prometheus的一站式监控系统， 专为简化云原生监控的运维工作而设计， 旨在帮助企业快速部署云原生监控系统， 降低运维成本， 提升运维效率。
   http:

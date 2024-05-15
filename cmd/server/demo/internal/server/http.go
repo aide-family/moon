@@ -7,13 +7,13 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/conf"
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(bc *conf.Bootstrap) *http.Server {
+func NewHTTPServer(bc *democonf.Bootstrap) *http.Server {
 	c := bc.GetServer()
 
 	var opts = []http.ServerOption{

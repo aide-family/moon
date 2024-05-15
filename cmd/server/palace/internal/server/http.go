@@ -8,7 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 
 	authorizationapi "github.com/aide-cloud/moon/api/admin/authorization"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/conf"
+	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"

@@ -5,7 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/conf"
+	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 )
 

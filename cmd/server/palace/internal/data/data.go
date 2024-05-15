@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/conf"
+	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"

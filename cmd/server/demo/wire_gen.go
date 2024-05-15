@@ -8,9 +8,9 @@ package demo
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/conf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/data/repoimpl"
+	democonf "github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/service"
 	"github.com/go-kratos/kratos/v2"
@@ -24,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(bootstrap *conf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(bootstrap *democonf.Bootstrap, logger log.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(bootstrap)
 	httpServer := server.NewHTTPServer(bootstrap)
 	dataData, cleanup, err := data.NewData(bootstrap)

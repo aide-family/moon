@@ -1,9 +1,10 @@
 syntax = "proto3";
-package kratos.api;
 
-option go_package = "github.com/aide-cloud/moon/cmd/server/demo/internal/conf;conf";
+package moon.cmd.server.demo.internal.democonf;
 
 import "google/protobuf/duration.proto";
+
+option go_package = "github.com/aide-cloud/moon/cmd/server/demo/internal/democonf;democonf";
 
 message Bootstrap {
   Server server = 1;

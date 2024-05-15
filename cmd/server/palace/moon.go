@@ -8,7 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/conf"
+	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
 	"github.com/aide-cloud/moon/pkg/env"
 	sLog "github.com/aide-cloud/moon/pkg/log"

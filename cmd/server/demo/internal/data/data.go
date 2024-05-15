@@ -8,7 +8,7 @@ import (
 	"github.com/google/wire"
 	"gorm.io/gorm"
 
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/conf"
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
@@ -29,7 +29,7 @@ type Data struct {
 var closeFuncList []func()
 
 // NewData .
-func NewData(c *conf.Bootstrap) (*Data, func(), error) {
+func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 	d := &Data{}
 	mainConf := c.GetData().GetDatabase()
 	bizConf := c.GetData().GetBizDatabase()
@@ -108,7 +108,7 @@ func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *conf.Data_Cache) conn.Cache {
+func newCache(c *democonf.Data_Cache) conn.Cache {
 	if types.IsNil(c) {
 		return nil
 	}
