@@ -21,3 +21,7 @@ func (t *Time) Unix() int64 {
 	}
 	return time.Time(*t).Unix()
 }
+
+func NewTime(t time.Time) *Time {
+	return (*Time)(&t)
+}

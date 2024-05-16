@@ -1,12 +1,14 @@
 package server
 
 import (
+	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 
 	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
 )
 
@@ -39,13 +41,20 @@ func (s *Server) GetServers() []transport.Server {
 func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	greeter *service.GreeterService,
+	greeterService *service.GreeterService,
+	configService *service.ConfigService,
+	hookService *service.HookService,
 ) *Server {
 	// 注册GRPC服务
-	v1.RegisterGreeterServer(rpcSrv, greeter)
+	v1.RegisterGreeterServer(rpcSrv, greeterService)
+	pushapi.RegisterConfigServer(rpcSrv, configService)
+	hookapi.RegisterHookServer(rpcSrv, hookService)
 
 	// 注册HTTP服务
-	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
+	v1.RegisterGreeterHTTPServer(httpSrv, greeterService)
+	pushapi.RegisterConfigHTTPServer(httpSrv, configService)
+	r := httpSrv.Route("/")
+	r.POST("/v1/hook/send/{route}", hookService.HookSendMsgHTTPHandler())
 
 	return &Server{
 		rpcSrv:  rpcSrv,

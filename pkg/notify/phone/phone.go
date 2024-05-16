@@ -18,7 +18,7 @@ type (
 	Type string
 )
 
-func (l Type) Send(ctx context.Context, msg string) error {
+func (l Type) Send(ctx context.Context, msg notify.Msg) error {
 	log.Debugw("send phone", "phone", l, "msg", msg)
 	return nil
 }

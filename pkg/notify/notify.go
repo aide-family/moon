@@ -5,7 +5,8 @@ import (
 )
 
 type (
+	Msg    = map[string]any
 	Notify interface {
-		Send(ctx context.Context, msg string) error
+		Send(ctx context.Context, msg Msg) error
 	}
 )

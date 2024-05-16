@@ -10,24 +10,130 @@ option java_package = "api";
 
 // 分页器件
 message PaginationReq {
-	// 页码
-	int32 pageNum = 1 [(buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "分页页码必须大于0"
-	}];
-	// 每页数量
-	int32 pageSize = 2 [(buf.validate.field).cel = {
-		expression: "this > 0 && this < 1000",
-		message: "分页每页数量必须大于0且小于1000"
-	}];
+  // 页码
+  int32 pageNum = 1 [(buf.validate.field).cel = {
+    expression: "this > 0",
+    message: "分页页码必须大于0"
+  }];
+  // 每页数量
+  int32 pageSize = 2 [(buf.validate.field).cel = {
+    expression: "this > 0 && this < 1000",
+    message: "分页每页数量必须大于0且小于1000"
+  }];
 }
 
 // 分页返回
 message PaginationReply {
-	// 页码
-	int32 pageNum = 1;
-	// 每页数量
-	int32 pageSize = 2;
-	// 总条数
-	int64 total = 3;
+  // 页码
+  int32 pageNum = 1;
+  // 每页数量
+  int32 pageSize = 2;
+  // 总条数
+  int64 total = 3;
+}
+
+
+// 邮件发送配置
+message EmailConfig {
+  // 用户
+  string user = 1;
+  // 发送的邮箱密码
+  string pass = 2;
+  // 发送的邮箱服务器
+  string host = 3;
+  // 发送的邮箱端口
+  uint32 port = 4;
+}
+
+// 钉钉
+message ReceiverHookDingTalk {
+  // hook地址
+  string webhook = 1;
+  // 钉钉加签秘钥
+  string secret = 2;
+  // 钉钉消息json内容，支持模板， 优先级高于模板
+  string content = 3;
+  // 模板
+  string template = 4;
+}
+
+// 飞书
+message ReceiverHookFeiShu {
+  // hook地址
+  string webhook = 1;
+  // 钉钉加签秘钥
+  string secret = 2;
+  // 钉钉消息json内容，支持模板， 优先级高于模板
+  string content = 3;
+  // 模板
+  string template = 4;
+}
+
+// 企业微信
+message ReceiverHookWechatWork {
+  // hook地址
+  string webhook = 1;
+  // 钉钉消息json内容，支持模板， 优先级高于模板
+  string content = 2;
+  // 模板
+  string template = 3;
+}
+
+// 其他
+message ReceiverHookOther {
+  // hook地址
+  string webhook = 1;
+  // 钉钉消息json内容，支持模板， 优先级高于模板
+  string content = 2;
+  // 模板
+  string template = 3;
+}
+
+
+// 邮件目标
+message ReceiverEmail {
+  // 发送给谁
+  string to = 1;
+  // 发送的主题
+  string subject = 2;
+  // 发送的内容， 优先级高于模板
+  string content = 3;
+  // 发送的模板，内容字段为空时， 以数据填充模板后发送
+  string template = 4;
+  // 抄送对象
+  repeated string cc = 5;
+  // 附件URL，一般为oss地址
+  repeated string attachUrl = 6;
+  // 发送的内容类型
+  string contentType = 7;
+}
+
+// 电话目标
+message ReceiverPhone {
+  // 拨打电话
+  message Call {}
+  // 短信
+  message Sms {}
+}
+
+// hook目标
+message ReceiverHook {
+  // 钉钉
+  ReceiverHookDingTalk dingTalk = 1;
+  // 飞书
+  ReceiverHookFeiShu feiShu = 2;
+  // 企业微信
+  ReceiverHookWechatWork wechatWork = 3;
+  // 其他
+  ReceiverHookOther other = 4;
+}
+
+message Receiver {
+  repeated ReceiverHook hooks = 1;
+
+  repeated ReceiverPhone phones = 2;
+
+  repeated ReceiverEmail emails = 3;
+
+  EmailConfig emailConfig = 4;
 }

@@ -5,6 +5,5 @@ import (
 )
 
 var ProviderSetRepoImpl = wire.NewSet(
-	NewTransactionRepo,
 	NewCacheRepo,
 )

@@ -10,25 +10,8 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 2s
-  jwt:
-    sign_key: "moon-sign_key"
-    issuer: "moon监控系统"
-    white_list:
-      - /api.admin.authorization.Authorization/Login
-      - /api.admin.authorization.Authorization/Captcha
-      - /api.admin.authorization.Authorization/CreatePassword
-    rbac_white_list:
-      - /api.admin.authorization.Authorization/Login
-      - /api.admin.authorization.Authorization/Captcha
-      - /api.admin.authorization.Authorization/CreatePassword
 
 data:
-  database:
-    driver: "mysql"
-    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-  bizDatabase:
-    driver: "mysql"
-    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   cache:
     redis:
       network: "tcp"
@@ -41,3 +24,44 @@ data:
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
+
+templates:
+  email: |
+    <h1>{{.Title}}</h1>
+    <p>{{.Content}}</p>
+  dingTalk: |
+    {
+      "at": {
+          "atUserIds":[
+              "014728255240768602"
+          ],
+          "isAtAll": {{.IsAtAll}}
+      },
+      "text": {
+          "content":"我就是我, {{.Content}}"
+      },
+      "msgtype":"text"
+    }
+
+global_email_config:
+  host: smtp.163.com
+  port: 25
+  user:
+  pass:
+
+receivers:
+  test:
+    emails:
+      - to: "1058165620@qq.com"
+        subject: "Moon监控测试告警"
+        content: ""
+        template: "email"
+        contentType: "text/plain"
+        cc:
+        attachUrl:
+    hooks:
+      - dingTalk:
+          webhook: "https://oapi.dingtalk.com/robot/send?access_token="
+          secret: ""
+          content: ""
+          template: "dingTalk"
