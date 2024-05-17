@@ -3,7 +3,8 @@ env: dev # dev、test、prod、local
 server:
   name: moon-rabbit
   metadata:
-    description:
+    description: 是moon监控系列的消息组件，可以独立部署，接受任意的hook消息，并支持邮件、钉钉、企业微信、飞书等告警
+    background: 寓意为月宫中的玉兔，专门用于消息通知
   http:
     addr: 0.0.0.0:8000
     timeout: 2s

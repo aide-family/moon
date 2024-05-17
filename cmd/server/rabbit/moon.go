@@ -1,8 +1,6 @@
 package rabbit
 
 import (
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/types"
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/go-kratos/kratos/v2"
@@ -12,8 +10,10 @@ import (
 
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/server"
+	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/env"
 	sLog "github.com/aide-cloud/moon/pkg/log"
+	"github.com/aide-cloud/moon/pkg/types"
 )
 
 func newApp(c *rabbitconf.Bootstrap, srv *server.Server, logger log.Logger) *kratos.App {

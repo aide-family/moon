@@ -142,29 +142,29 @@ message Receiver {
 // ETCD数据源配置
 message ETCD {
   repeated string endpoints = 1;
-  google.protobuf.Duration timeout = 2;
-  string username = 3;
-  string password = 4;
+  optional google.protobuf.Duration timeout = 2;
+  optional string username = 3;
+  optional string password = 4;
 }
 
 // 服务注册
 message Registry {
   // 类型， 名称和数据源保持一致，例如etcd
   string type = 1;
-  ETCD etcd = 2;
+  optional ETCD etcd = 2;
 }
 
 // 服务发现配置
 message Discovery {
   // 类型， 名称和数据源保持一致，例如etcd
   string type = 1;
-  ETCD etcd = 2;
+  optional ETCD etcd = 2;
 }
 
 // 微服务配置
 message Server {
   string endpoint = 1;
-  string token = 2;
-  google.protobuf.Duration timeout = 3;
+  optional string token = 2;
+  optional google.protobuf.Duration timeout = 3;
 }
 

@@ -3,7 +3,8 @@ env: dev # dev、test、prod、local
 server:
   name: moon-palace
   metadata:
-    description: 一款始于prometheus，不止于prometheus的一站式监控系统， 专为简化云原生监控的运维工作而设计， 旨在帮助企业快速部署云原生监控系统， 降低运维成本， 提升运维效率。
+    description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
+    background: 寓意为月宫，表示moon系列的统一管理平台
   http:
     addr: 0.0.0.0:8000
     timeout: 2s
