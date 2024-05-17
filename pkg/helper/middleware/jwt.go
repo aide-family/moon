@@ -12,7 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
-	jwtv4 "github.com/golang-jwt/jwt/v4"
+	jwtv5 "github.com/golang-jwt/jwt/v5"
 
 	"github.com/aide-cloud/moon/pkg/types"
 )
@@ -51,7 +51,7 @@ func SetExpire(e time.Duration) {
 // JwtClaims jwt claims
 type JwtClaims struct {
 	*JwtBaseInfo
-	*jwtv4.RegisteredClaims
+	*jwtv5.RegisteredClaims
 }
 
 type JwtBaseInfo struct {
@@ -128,8 +128,8 @@ func ParseJwtClaims(ctx context.Context) (*JwtClaims, bool) {
 func NewJwtClaims(base *JwtBaseInfo) *JwtClaims {
 	return &JwtClaims{
 		JwtBaseInfo: base,
-		RegisteredClaims: &jwtv4.RegisteredClaims{
-			ExpiresAt: jwtv4.NewNumericDate(time.Now().Add(expire)),
+		RegisteredClaims: &jwtv5.RegisteredClaims{
+			ExpiresAt: jwtv5.NewNumericDate(time.Now().Add(expire)),
 			Issuer:    issuer,
 		},
 	}
@@ -137,7 +137,7 @@ func NewJwtClaims(base *JwtBaseInfo) *JwtClaims {
 
 // GetToken get token
 func (l *JwtClaims) GetToken() (string, error) {
-	return jwtv4.NewWithClaims(jwtv4.SigningMethodHS256, l).SignedString([]byte(signKey))
+	return jwtv5.NewWithClaims(jwtv5.SigningMethodHS256, l).SignedString([]byte(signKey))
 }
 
 // Logout 缓存token hash
@@ -185,20 +185,24 @@ func isLogout(ctx context.Context, cache conn.Cache, jwtClaims *JwtClaims) bool 
 	return cache.Exist(ctx, cipher.MD5(token))
 }
 
-// 是否过期
-func isExpire(jwtClaims *JwtClaims) bool {
+// IsExpire 是否过期
+func IsExpire(jwtClaims *JwtClaims) bool {
+	expirationTime, err := jwtClaims.GetExpirationTime()
+	if err != nil {
+		return true
+	}
 	// 判断是否过期
-	return jwtClaims.VerifyExpiresAt(time.Now(), true)
+	return expirationTime.Before(time.Now())
 }
 
 // JwtServer jwt server
 func JwtServer() middleware.Middleware {
 	return jwt.Server(
-		func(token *jwtv4.Token) (interface{}, error) {
+		func(token *jwtv5.Token) (interface{}, error) {
 			return signKey, nil
 		},
-		jwt.WithSigningMethod(jwtv4.SigningMethodHS256),
-		jwt.WithClaims(func() jwtv4.Claims {
+		jwt.WithSigningMethod(jwtv5.SigningMethodHS256),
+		jwt.WithClaims(func() jwtv5.Claims {
 			return &JwtClaims{}
 		}),
 	)

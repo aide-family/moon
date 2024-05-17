@@ -10,6 +10,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	reflect "reflect"
 	sync "sync"
 )
@@ -797,6 +798,256 @@ func (x *Receiver) GetEmailConfig() *EmailConfig {
 	return nil
 }
 
+// ETCD数据源配置
+type ETCD struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Endpoints []string             `protobuf:"bytes,1,rep,name=endpoints,proto3" json:"endpoints,omitempty"`
+	Timeout   *durationpb.Duration `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Username  string               `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
+	Password  string               `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+}
+
+func (x *ETCD) Reset() {
+	*x = ETCD{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_global_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ETCD) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ETCD) ProtoMessage() {}
+
+func (x *ETCD) ProtoReflect() protoreflect.Message {
+	mi := &file_global_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ETCD.ProtoReflect.Descriptor instead.
+func (*ETCD) Descriptor() ([]byte, []int) {
+	return file_global_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ETCD) GetEndpoints() []string {
+	if x != nil {
+		return x.Endpoints
+	}
+	return nil
+}
+
+func (x *ETCD) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
+func (x *ETCD) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ETCD) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+// 服务注册
+type Registry struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 类型， 名称和数据源保持一致，例如etcd
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Etcd *ETCD  `protobuf:"bytes,2,opt,name=etcd,proto3" json:"etcd,omitempty"`
+}
+
+func (x *Registry) Reset() {
+	*x = Registry{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_global_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Registry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Registry) ProtoMessage() {}
+
+func (x *Registry) ProtoReflect() protoreflect.Message {
+	mi := &file_global_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Registry.ProtoReflect.Descriptor instead.
+func (*Registry) Descriptor() ([]byte, []int) {
+	return file_global_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Registry) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Registry) GetEtcd() *ETCD {
+	if x != nil {
+		return x.Etcd
+	}
+	return nil
+}
+
+// 服务发现配置
+type Discovery struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 类型， 名称和数据源保持一致，例如etcd
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Etcd *ETCD  `protobuf:"bytes,2,opt,name=etcd,proto3" json:"etcd,omitempty"`
+}
+
+func (x *Discovery) Reset() {
+	*x = Discovery{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_global_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Discovery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Discovery) ProtoMessage() {}
+
+func (x *Discovery) ProtoReflect() protoreflect.Message {
+	mi := &file_global_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Discovery.ProtoReflect.Descriptor instead.
+func (*Discovery) Descriptor() ([]byte, []int) {
+	return file_global_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Discovery) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Discovery) GetEtcd() *ETCD {
+	if x != nil {
+		return x.Etcd
+	}
+	return nil
+}
+
+// 微服务配置
+type Server struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Endpoint string               `protobuf:"bytes,1,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Token    string               `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
+	Timeout  *durationpb.Duration `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
+}
+
+func (x *Server) Reset() {
+	*x = Server{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_global_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Server) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Server) ProtoMessage() {}
+
+func (x *Server) ProtoReflect() protoreflect.Message {
+	mi := &file_global_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Server.ProtoReflect.Descriptor instead.
+func (*Server) Descriptor() ([]byte, []int) {
+	return file_global_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *Server) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Server) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *Server) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
 // 拨打电话
 type ReceiverPhone_Call struct {
 	state         protoimpl.MessageState
@@ -807,7 +1058,7 @@ type ReceiverPhone_Call struct {
 func (x *ReceiverPhone_Call) Reset() {
 	*x = ReceiverPhone_Call{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_global_proto_msgTypes[11]
+		mi := &file_global_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -820,7 +1071,7 @@ func (x *ReceiverPhone_Call) String() string {
 func (*ReceiverPhone_Call) ProtoMessage() {}
 
 func (x *ReceiverPhone_Call) ProtoReflect() protoreflect.Message {
-	mi := &file_global_proto_msgTypes[11]
+	mi := &file_global_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -846,7 +1097,7 @@ type ReceiverPhone_Sms struct {
 func (x *ReceiverPhone_Sms) Reset() {
 	*x = ReceiverPhone_Sms{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_global_proto_msgTypes[12]
+		mi := &file_global_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -859,7 +1110,7 @@ func (x *ReceiverPhone_Sms) String() string {
 func (*ReceiverPhone_Sms) ProtoMessage() {}
 
 func (x *ReceiverPhone_Sms) ProtoReflect() protoreflect.Message {
-	mi := &file_global_proto_msgTypes[12]
+	mi := &file_global_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,6 +1132,8 @@ var file_global_proto_rawDesc = []byte{
 	0x0a, 0x0c, 0x67, 0x6c, 0x6f, 0x62, 0x61, 0x6c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x03,
 	0x61, 0x70, 0x69, 0x1a, 0x1b, 0x62, 0x75, 0x66, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
 	0x65, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x1a, 0x1e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x22, 0xc1, 0x01, 0x0a, 0x0d, 0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
 	0x65, 0x71, 0x12, 0x45, 0x0a, 0x07, 0x70, 0x61, 0x67, 0x65, 0x4e, 0x75, 0x6d, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x05, 0x42, 0x2b, 0xba, 0x48, 0x28, 0xba, 0x01, 0x25, 0x12, 0x19, 0xe5, 0x88, 0x86,
@@ -974,10 +1227,34 @@ var file_global_proto_rawDesc = []byte{
 	0x69, 0x6c, 0x73, 0x12, 0x32, 0x0a, 0x0b, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66,
 	0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x45,
 	0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0b, 0x65, 0x6d, 0x61, 0x69,
-	0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x2b, 0x0a, 0x03, 0x61, 0x70, 0x69, 0x50, 0x01,
-	0x5a, 0x22, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64,
-	0x65, 0x2d, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69,
-	0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x91, 0x01, 0x0a, 0x04, 0x45, 0x54, 0x43, 0x44,
+	0x12, 0x1c, 0x0a, 0x09, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x09, 0x52, 0x09, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x73, 0x12, 0x33,
+	0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x74, 0x69, 0x6d, 0x65,
+	0x6f, 0x75, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x3d, 0x0a, 0x08, 0x52,
+	0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1d, 0x0a, 0x04, 0x65,
+	0x74, 0x63, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x45, 0x54, 0x43, 0x44, 0x52, 0x04, 0x65, 0x74, 0x63, 0x64, 0x22, 0x3e, 0x0a, 0x09, 0x44, 0x69,
+	0x73, 0x63, 0x6f, 0x76, 0x65, 0x72, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1d, 0x0a, 0x04, 0x65,
+	0x74, 0x63, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x45, 0x54, 0x43, 0x44, 0x52, 0x04, 0x65, 0x74, 0x63, 0x64, 0x22, 0x6f, 0x0a, 0x06, 0x53, 0x65,
+	0x72, 0x76, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74,
+	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x33, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75,
+	0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x52, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x42, 0x2b, 0x0a, 0x03, 0x61,
+	0x70, 0x69, 0x50, 0x01, 0x5a, 0x22, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e,
+	0x2f, 0x61, 0x70, 0x69, 0x3b, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -992,7 +1269,7 @@ func file_global_proto_rawDescGZIP() []byte {
 	return file_global_proto_rawDescData
 }
 
-var file_global_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_global_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_global_proto_goTypes = []interface{}{
 	(*PaginationReq)(nil),          // 0: api.PaginationReq
 	(*PaginationReply)(nil),        // 1: api.PaginationReply
@@ -1005,23 +1282,32 @@ var file_global_proto_goTypes = []interface{}{
 	(*ReceiverPhone)(nil),          // 8: api.ReceiverPhone
 	(*ReceiverHook)(nil),           // 9: api.ReceiverHook
 	(*Receiver)(nil),               // 10: api.Receiver
-	(*ReceiverPhone_Call)(nil),     // 11: api.ReceiverPhone.Call
-	(*ReceiverPhone_Sms)(nil),      // 12: api.ReceiverPhone.Sms
+	(*ETCD)(nil),                   // 11: api.ETCD
+	(*Registry)(nil),               // 12: api.Registry
+	(*Discovery)(nil),              // 13: api.Discovery
+	(*Server)(nil),                 // 14: api.Server
+	(*ReceiverPhone_Call)(nil),     // 15: api.ReceiverPhone.Call
+	(*ReceiverPhone_Sms)(nil),      // 16: api.ReceiverPhone.Sms
+	(*durationpb.Duration)(nil),    // 17: google.protobuf.Duration
 }
 var file_global_proto_depIdxs = []int32{
-	3, // 0: api.ReceiverHook.dingTalk:type_name -> api.ReceiverHookDingTalk
-	4, // 1: api.ReceiverHook.feiShu:type_name -> api.ReceiverHookFeiShu
-	5, // 2: api.ReceiverHook.wechatWork:type_name -> api.ReceiverHookWechatWork
-	6, // 3: api.ReceiverHook.other:type_name -> api.ReceiverHookOther
-	9, // 4: api.Receiver.hooks:type_name -> api.ReceiverHook
-	8, // 5: api.Receiver.phones:type_name -> api.ReceiverPhone
-	7, // 6: api.Receiver.emails:type_name -> api.ReceiverEmail
-	2, // 7: api.Receiver.emailConfig:type_name -> api.EmailConfig
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	3,  // 0: api.ReceiverHook.dingTalk:type_name -> api.ReceiverHookDingTalk
+	4,  // 1: api.ReceiverHook.feiShu:type_name -> api.ReceiverHookFeiShu
+	5,  // 2: api.ReceiverHook.wechatWork:type_name -> api.ReceiverHookWechatWork
+	6,  // 3: api.ReceiverHook.other:type_name -> api.ReceiverHookOther
+	9,  // 4: api.Receiver.hooks:type_name -> api.ReceiverHook
+	8,  // 5: api.Receiver.phones:type_name -> api.ReceiverPhone
+	7,  // 6: api.Receiver.emails:type_name -> api.ReceiverEmail
+	2,  // 7: api.Receiver.emailConfig:type_name -> api.EmailConfig
+	17, // 8: api.ETCD.timeout:type_name -> google.protobuf.Duration
+	11, // 9: api.Registry.etcd:type_name -> api.ETCD
+	11, // 10: api.Discovery.etcd:type_name -> api.ETCD
+	17, // 11: api.Server.timeout:type_name -> google.protobuf.Duration
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_global_proto_init() }
@@ -1163,7 +1449,7 @@ func file_global_proto_init() {
 			}
 		}
 		file_global_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReceiverPhone_Call); i {
+			switch v := v.(*ETCD); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1175,6 +1461,54 @@ func file_global_proto_init() {
 			}
 		}
 		file_global_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Registry); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_global_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Discovery); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_global_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Server); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_global_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ReceiverPhone_Call); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_global_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ReceiverPhone_Sms); i {
 			case 0:
 				return &v.state
@@ -1193,7 +1527,7 @@ func file_global_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_global_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

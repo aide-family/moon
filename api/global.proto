@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/aide-cloud/moon/api;api";
 option java_multiple_files = true;
@@ -137,3 +138,33 @@ message Receiver {
 
   EmailConfig emailConfig = 4;
 }
+
+// ETCD数据源配置
+message ETCD {
+  repeated string endpoints = 1;
+  google.protobuf.Duration timeout = 2;
+  string username = 3;
+  string password = 4;
+}
+
+// 服务注册
+message Registry {
+  // 类型， 名称和数据源保持一致，例如etcd
+  string type = 1;
+  ETCD etcd = 2;
+}
+
+// 服务发现配置
+message Discovery {
+  // 类型， 名称和数据源保持一致，例如etcd
+  string type = 1;
+  ETCD etcd = 2;
+}
+
+// 微服务配置
+message Server {
+  string endpoint = 1;
+  string token = 2;
+  google.protobuf.Duration timeout = 3;
+}
+

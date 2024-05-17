@@ -40,7 +40,7 @@ func wireApp(bootstrap *rabbitconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	msgBiz := biz.NewMsgBiz(bootstrap)
 	hookService := service.NewHookService(msgBiz)
 	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, configService, hookService)
-	app := newApp(serverServer, logger)
+	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
 		cleanup()
 	}, nil

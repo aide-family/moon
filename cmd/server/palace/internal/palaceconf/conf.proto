@@ -3,6 +3,7 @@ syntax = "proto3";
 package moon.cmd.server.palace.internal.palaceconf;
 
 import "google/protobuf/duration.proto";
+import "global.proto";
 
 option go_package = "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf;palaceconf";
 
@@ -10,6 +11,7 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   string env = 3;
+  MicroServer micro_server = 4;
 }
 
 message Server {
@@ -39,6 +41,7 @@ message Server {
   string name = 3;
   map<string, string> metadata = 4;
   JWT jwt = 5;
+  api.Registry registry = 6;
 }
 
 message Data {
@@ -71,4 +74,12 @@ message Data {
   Database bizDatabase = 2;
   // 缓存，支持多缓存方式
   Cache cache = 3;
+}
+
+// 微服务配置
+message MicroServer {
+  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
+  api.Discovery discovery = 1;
+  // 月兔消息服务
+  api.Server rabbit_server = 2;
 }

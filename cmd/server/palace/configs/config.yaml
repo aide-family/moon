@@ -1,7 +1,7 @@
 env: dev # dev、test、prod、local
 
 server:
-  name: moon监控系统-palace服务
+  name: moon-palace
   metadata:
     description: 一款始于prometheus，不止于prometheus的一站式监控系统， 专为简化云原生监控的运维工作而设计， 旨在帮助企业快速部署云原生监控系统， 降低运维成本， 提升运维效率。
   http:
@@ -10,6 +10,14 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 2s
+  registry:
+    type: "etcd"
+    etcd:
+      endpoints:
+        - 127.0.0.1:20000
+      username: ""
+      password: ""
+      timeout: 10s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon监控系统"
@@ -41,3 +49,15 @@ data:
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
+
+micro_server:
+  discovery:
+    etcd:
+      endpoints:
+        - 127.0.0.1:2379
+      token: ""
+      timeout: 10s
+  rabbit_server:
+    endpoint: "127.0.0.1:9001"
+    timeout: 2s
+    token: ""

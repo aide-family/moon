@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -60,7 +59,7 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 	if types.IsNil(req) || types.IsNil(req.JwtClaims) {
 		return bo.UnLoginErr
 	}
-	if req.JwtClaims.VerifyExpiresAt(time.Now(), true) {
+	if middleware.IsExpire(req.JwtClaims) {
 		return bo.UnLoginErr
 	}
 	// 检查token是否被登出

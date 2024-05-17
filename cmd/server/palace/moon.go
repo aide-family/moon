@@ -1,6 +1,8 @@
 package palace
 
 import (
+	"github.com/aide-cloud/moon/pkg/conn"
+	"github.com/aide-cloud/moon/pkg/types"
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/go-kratos/kratos/v2"
@@ -14,23 +16,30 @@ import (
 	sLog "github.com/aide-cloud/moon/pkg/log"
 )
 
-func newApp(srv *server.Server, logger log.Logger) *kratos.App {
-	return kratos.New(
+func newApp(c *conf.Bootstrap, srv *server.Server, logger log.Logger) *kratos.App {
+	opts := []kratos.Option{
 		kratos.ID(env.ID()),
 		kratos.Name(env.Name()),
 		kratos.Version(env.Version()),
 		kratos.Metadata(env.Metadata()),
 		kratos.Logger(logger),
 		kratos.Server(srv.GetServers()...),
-	)
+	}
+	registerConf := c.GetServer().GetRegistry()
+	if !types.IsNil(registerConf) {
+		register, err := conn.NewRegister(c.GetServer().GetRegistry())
+		if !types.IsNil(err) {
+			log.Warnw("register error", err)
+			panic(err)
+		}
+		opts = append(opts, kratos.Registrar(register))
+	}
+
+	return kratos.New(opts...)
 }
 
 func Run(flagconf string) {
-	c := config.New(
-		config.WithSource(
-			file.NewSource(flagconf),
-		),
-	)
+	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()
 
 	if err := c.Load(); err != nil {
