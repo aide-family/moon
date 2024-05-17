@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
@@ -29,7 +30,11 @@ func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{}
 	cacheConf := c.GetData().GetCache()
 	if !types.IsNil(cacheConf) {
-		d.cacher = newCache(cacheConf)
+		cacheInstance := newCache(cacheConf)
+		if types.IsNil(cacheInstance) {
+			return nil, func() {}, merr.ErrorNotification("缓存实例化失败")
+		}
+		d.cacher = cacheInstance
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
 		})

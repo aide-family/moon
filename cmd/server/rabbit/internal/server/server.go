@@ -1,13 +1,16 @@
 package server
 
 import (
-	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
+	"context"
+
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 
 	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
 	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
 )
@@ -45,6 +48,10 @@ func RegisterService(
 	configService *service.ConfigService,
 	hookService *service.HookService,
 ) *Server {
+	// 加载缓存配置
+	if err := configService.LoadNotifyObject(context.Background()); err != nil {
+		log.Errorw("加载配置失败", err)
+	}
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeterService)
 	pushapi.RegisterConfigServer(rpcSrv, configService)

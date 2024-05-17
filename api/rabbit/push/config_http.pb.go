@@ -27,7 +27,7 @@ type ConfigHTTPServer interface {
 
 func RegisterConfigHTTPServer(s *http.Server, srv ConfigHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/rabbit/push/notify", _Config_NotifyObject0_HTTP_Handler(srv))
+	r.POST("/v1/rabbit/push/config", _Config_NotifyObject0_HTTP_Handler(srv))
 }
 
 func _Config_NotifyObject0_HTTP_Handler(srv ConfigHTTPServer) func(ctx http.Context) error {
@@ -66,7 +66,7 @@ func NewConfigHTTPClient(client *http.Client) ConfigHTTPClient {
 
 func (c *ConfigHTTPClientImpl) NotifyObject(ctx context.Context, in *NotifyObjectRequest, opts ...http.CallOption) (*NotifyObjectReply, error) {
 	var out NotifyObjectReply
-	pattern := "/v1/rabbit/push/notify"
+	pattern := "/v1/rabbit/push/config"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationConfigNotifyObject))
 	opts = append(opts, http.PathTemplate(pattern))

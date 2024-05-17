@@ -10,6 +10,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
 )
 
 // NewHTTPServer new an HTTP server.
@@ -21,6 +22,7 @@ func NewHTTPServer(bc *rabbitconf.Bootstrap) *http.Server {
 		http.Middleware(
 			// TODO 开发完再开启
 			recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}

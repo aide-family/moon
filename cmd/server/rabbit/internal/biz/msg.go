@@ -26,12 +26,18 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	if err := json.Unmarshal(msg.Data, &msgMap); err != nil {
 		return err
 	}
-	receives := b.c.GetReceivers()[msg.Route]
+
+	hookData := GetConfigData()
+	receives := hookData.GetReceivers()[msg.Route]
 	if types.IsNil(receives) {
 		return merr.ErrorAlert("receiver not found")
 	}
 
 	globalEmailConfig := b.c.GetGlobalEmailConfig()
+	// 如果有自定义的邮箱配置， 使用自定义， 否则使用公共邮箱配置
+	if !types.IsNil(receives.GetEmailConfig()) {
+		globalEmailConfig = receives.GetEmailConfig()
+	}
 
 	tempMap := b.c.GetTemplates()
 	emailReceives := receives.GetEmails()

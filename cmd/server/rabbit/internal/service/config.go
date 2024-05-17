@@ -2,18 +2,41 @@ package service
 
 import (
 	"context"
+	"time"
 
 	pb "github.com/aide-cloud/moon/api/rabbit/push"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/bo"
+	"github.com/aide-cloud/moon/pkg/types"
 )
 
 type ConfigService struct {
 	pb.UnimplementedConfigServer
+
+	configBiz *biz.ConfigBiz
 }
 
-func NewConfigService() *ConfigService {
-	return &ConfigService{}
+func NewConfigService(configBiz *biz.ConfigBiz) *ConfigService {
+	return &ConfigService{
+		configBiz: configBiz,
+	}
 }
 
 func (s *ConfigService) NotifyObject(ctx context.Context, req *pb.NotifyObjectRequest) (*pb.NotifyObjectReply, error) {
-	return &pb.NotifyObjectReply{}, nil
+	if err := s.configBiz.CacheConfig(ctx, &bo.CacheConfigParams{
+		Receivers: req.GetReceivers(),
+		Templates: req.GetTemplates(),
+	}); err != nil {
+		return nil, err
+	}
+	return &pb.NotifyObjectReply{
+		Msg:  "ok",
+		Code: 0,
+		Time: types.NewTime(time.Now()).String(),
+	}, nil
+}
+
+// LoadNotifyObject 加载配置
+func (s *ConfigService) LoadNotifyObject(ctx context.Context) error {
+	return s.configBiz.LoadConfig(ctx)
 }
