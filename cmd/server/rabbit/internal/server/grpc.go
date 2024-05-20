@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
 )
 
 // NewGRPCServer new a gRPC server.
@@ -15,6 +16,7 @@ func NewGRPCServer(bc *rabbitconf.Bootstrap) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}

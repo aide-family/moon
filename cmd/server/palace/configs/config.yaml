@@ -21,7 +21,7 @@ server:
       timeout: 10s
   jwt:
     sign_key: "moon-sign_key"
-    issuer: "moon监控系统"
+    issuer: "moon-palace"
     white_list:
       - /api.admin.authorization.Authorization/Login
       - /api.admin.authorization.Authorization/Captcha
