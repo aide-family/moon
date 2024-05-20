@@ -12,8 +12,6 @@
 <script>window.addEventListener('DOMContentLoaded', (event) => {
     const docEl = document.getElementById('thedoc');
     docEl.addEventListener('before-try', (e) => {
-        e.detail.request.headers.append('App-Id', '1');
-
         const jwt = localStorage.getItem('jwt');
         e.detail.request.headers.append('Authorization', 'Bearer ' + jwt);
     });

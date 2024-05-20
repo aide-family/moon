@@ -120,6 +120,10 @@ func (l *userRepoImpl) UpdateUser(ctx context.Context, user *model.SysUser) erro
 	return user.UpdateByID(ctx, l.data.GetMainDB(ctx))
 }
 
+func (l *userRepoImpl) FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error) {
+	return query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.In(ids...)).Find()
+}
+
 // createUserParamsToModel create user params to model
 func createUserParamsToModel(user *bo.CreateUserParams) *model.SysUser {
 	if types.IsNil(user) {

@@ -41,5 +41,8 @@ type (
 
 		// UpdateUser update user
 		UpdateUser(ctx context.Context, user *model.SysUser) error
+
+		// FindByIds find user by ids
+		FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error)
 	}
 )

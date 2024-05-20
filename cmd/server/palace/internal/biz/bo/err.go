@@ -20,4 +20,6 @@ var (
 	UserNotFoundErr = merr.ErrorAlert("用户不存在")
 	// PasswordSameErr 密码不一致
 	PasswordSameErr = merr.ErrorAlert("新旧密码一致")
+	// AdminUserDeleteErr 不允许删除管理员
+	AdminUserDeleteErr = merr.ErrorAlert("不允许删除管理员")
 )

@@ -87,6 +87,9 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return bo.SystemErr.WithCause(err)
 	}
+	if !claims.Role.IsSuperadmin() && userDo.Role.IsAdmin() {
+		return bo.AdminUserDeleteErr
+	}
 	// 记录操作日志
 	log.Debugw("userDo", userDo)
 	return b.userRepo.DeleteByID(ctx, id)
@@ -122,6 +125,20 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 	if !claims.IsAdminRole() {
 		return bo.NoPermissionErr
 	}
+	// 不允许修改管理员状态
+	// 查询所有用户详情
+	if !claims.Role.IsSuperadmin() {
+		userDos, err := b.userRepo.FindByIds(ctx, params.IDs...)
+		if err != nil {
+			return bo.SystemErr.WithCause(err)
+		}
+		for _, user := range userDos {
+			if user.Role.IsAdmin() {
+				return bo.NoPermissionErr.WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
+			}
+		}
+	}
+
 	if err := b.userRepo.UpdateStatusByIds(ctx, params.Status, params.IDs...); err != nil {
 		return bo.SystemErr.WithCause(err)
 	}

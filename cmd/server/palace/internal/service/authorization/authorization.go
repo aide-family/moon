@@ -124,6 +124,9 @@ func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRe
 	if !ok {
 		return nil, bo.UnLoginErr
 	}
+	if claims.IsAdminRole() {
+		return &pb.CheckPermissionReply{HasPermission: true}, nil
+	}
 	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
 		Operation: req.GetOperation(),

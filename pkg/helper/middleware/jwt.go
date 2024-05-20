@@ -205,7 +205,7 @@ func IsExpire(jwtClaims *JwtClaims) bool {
 func JwtServer() middleware.Middleware {
 	return jwt.Server(
 		func(token *jwtv5.Token) (interface{}, error) {
-			return signKey, nil
+			return []byte(signKey), nil
 		},
 		jwt.WithSigningMethod(jwtv5.SigningMethodHS256),
 		jwt.WithClaims(func() jwtv5.Claims {

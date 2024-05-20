@@ -37,7 +37,7 @@ func (i Role) IsSuperadmin() bool {
 
 // IsAdmin 是否是：管理员
 func (i Role) IsAdmin() bool {
-	return i == RoleAdmin
+	return i == RoleAdmin || i == RoleSuperAdmin
 }
 
 // IsUser 是否是：普通用户
