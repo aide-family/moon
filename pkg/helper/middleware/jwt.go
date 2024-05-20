@@ -9,6 +9,7 @@ import (
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/utils/cipher"
+	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
@@ -55,10 +56,10 @@ type JwtClaims struct {
 }
 
 type JwtBaseInfo struct {
-	User     uint32 `json:"user"`
-	Role     uint32 `json:"role"`
-	Team     uint32 `json:"team"`
-	TeamRole uint32 `json:"team_role"`
+	User     uint32    `json:"user"`
+	Role     vobj.Role `json:"role"`
+	Team     uint32    `json:"team"`
+	TeamRole uint32    `json:"team_role"`
 }
 
 func (l *JwtBaseInfo) GetUser() uint32 {
@@ -68,7 +69,7 @@ func (l *JwtBaseInfo) GetUser() uint32 {
 	return l.User
 }
 
-func (l *JwtBaseInfo) GetRole() uint32 {
+func (l *JwtBaseInfo) GetRole() vobj.Role {
 	if types.IsNil(l) {
 		return 0
 	}
@@ -89,8 +90,13 @@ func (l *JwtBaseInfo) GetTeamRole() uint32 {
 	return l.TeamRole
 }
 
+// IsAdminRole 是否是管理员角色
+func (l *JwtBaseInfo) IsAdminRole() bool {
+	return l.GetRole() == vobj.RoleSuperAdmin || l.GetRole() == vobj.RoleAdmin
+}
+
 // SetUserInfo 设置用户信息
-func (l *JwtBaseInfo) SetUserInfo(f func() (userId, role uint32, err error)) *JwtBaseInfo {
+func (l *JwtBaseInfo) SetUserInfo(f func() (userId uint32, role vobj.Role, err error)) *JwtBaseInfo {
 	userId, role, err := f()
 	if err == nil {
 		l.User = userId

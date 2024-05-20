@@ -19,15 +19,15 @@ func NewUserBuild(user *model.SysUser) *UserBuild {
 
 // ToApi 转换成api
 func (b *UserBuild) ToApi() *admin.User {
-	if types.IsNil(b) {
+	if types.IsNil(b) || types.IsNil(b.SysUser) {
 		return nil
 	}
 	return &admin.User{
 		Id:        b.ID,
 		Name:      b.Username,
 		Nickname:  b.Nickname,
-		Email:     string(b.Email),
-		Phone:     string(b.Phone),
+		Email:     b.Email,
+		Phone:     b.Phone,
 		Status:    api.Status(b.Status),
 		Gender:    api.Gender(b.Gender),
 		Role:      api.Role(b.Role),

@@ -51,6 +51,7 @@ type (
 		GetEncryptValue() (string, error)
 		GetValue() string
 		GetSalt() string
+		Equal(old Password) bool
 		fmt.Stringer
 	}
 	password struct {
@@ -75,6 +76,11 @@ func (p *password) GetValue() string {
 // GetEncryptValue 获取加密值
 func (p *password) GetEncryptValue() (string, error) {
 	return GeneratePassword(p.value, p.salt)
+}
+
+// Equal 密码是否相等
+func (p *password) Equal(old Password) bool {
+	return p.value == old.GetValue()
 }
 
 // GeneratePassword 生成密码

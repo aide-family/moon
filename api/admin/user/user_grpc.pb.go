@@ -28,6 +28,9 @@ const (
 	User_ResetUserPassword_FullMethodName       = "/api.admin.user.User/ResetUserPassword"
 	User_ResetUserPasswordBySelf_FullMethodName = "/api.admin.user.User/ResetUserPasswordBySelf"
 	User_GetUserSelectList_FullMethodName       = "/api.admin.user.User/GetUserSelectList"
+	User_UpdateUserPhone_FullMethodName         = "/api.admin.user.User/UpdateUserPhone"
+	User_UpdateUserEmail_FullMethodName         = "/api.admin.user.User/UpdateUserEmail"
+	User_UpdateUserAvatar_FullMethodName        = "/api.admin.user.User/UpdateUserAvatar"
 )
 
 // UserClient is the client API for User service.
@@ -52,6 +55,12 @@ type UserClient interface {
 	ResetUserPasswordBySelf(ctx context.Context, in *ResetUserPasswordBySelfRequest, opts ...grpc.CallOption) (*ResetUserPasswordBySelfReply, error)
 	// 获取用户下拉列表
 	GetUserSelectList(ctx context.Context, in *GetUserSelectListRequest, opts ...grpc.CallOption) (*GetUserSelectListReply, error)
+	// 修改电话号码
+	UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*UpdateUserPhoneReply, error)
+	// 修改邮箱
+	UpdateUserEmail(ctx context.Context, in *UpdateUserEmailRequest, opts ...grpc.CallOption) (*UpdateUserEmailReply, error)
+	// 修改用户头像
+	UpdateUserAvatar(ctx context.Context, in *UpdateUserAvatarRequest, opts ...grpc.CallOption) (*UpdateUserAvatarReply, error)
 }
 
 type userClient struct {
@@ -143,6 +152,33 @@ func (c *userClient) GetUserSelectList(ctx context.Context, in *GetUserSelectLis
 	return out, nil
 }
 
+func (c *userClient) UpdateUserPhone(ctx context.Context, in *UpdateUserPhoneRequest, opts ...grpc.CallOption) (*UpdateUserPhoneReply, error) {
+	out := new(UpdateUserPhoneReply)
+	err := c.cc.Invoke(ctx, User_UpdateUserPhone_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UpdateUserEmail(ctx context.Context, in *UpdateUserEmailRequest, opts ...grpc.CallOption) (*UpdateUserEmailReply, error) {
+	out := new(UpdateUserEmailReply)
+	err := c.cc.Invoke(ctx, User_UpdateUserEmail_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UpdateUserAvatar(ctx context.Context, in *UpdateUserAvatarRequest, opts ...grpc.CallOption) (*UpdateUserAvatarReply, error) {
+	out := new(UpdateUserAvatarReply)
+	err := c.cc.Invoke(ctx, User_UpdateUserAvatar_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -165,6 +201,12 @@ type UserServer interface {
 	ResetUserPasswordBySelf(context.Context, *ResetUserPasswordBySelfRequest) (*ResetUserPasswordBySelfReply, error)
 	// 获取用户下拉列表
 	GetUserSelectList(context.Context, *GetUserSelectListRequest) (*GetUserSelectListReply, error)
+	// 修改电话号码
+	UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*UpdateUserPhoneReply, error)
+	// 修改邮箱
+	UpdateUserEmail(context.Context, *UpdateUserEmailRequest) (*UpdateUserEmailReply, error)
+	// 修改用户头像
+	UpdateUserAvatar(context.Context, *UpdateUserAvatarRequest) (*UpdateUserAvatarReply, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -198,6 +240,15 @@ func (UnimplementedUserServer) ResetUserPasswordBySelf(context.Context, *ResetUs
 }
 func (UnimplementedUserServer) GetUserSelectList(context.Context, *GetUserSelectListRequest) (*GetUserSelectListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserSelectList not implemented")
+}
+func (UnimplementedUserServer) UpdateUserPhone(context.Context, *UpdateUserPhoneRequest) (*UpdateUserPhoneReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserPhone not implemented")
+}
+func (UnimplementedUserServer) UpdateUserEmail(context.Context, *UpdateUserEmailRequest) (*UpdateUserEmailReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserEmail not implemented")
+}
+func (UnimplementedUserServer) UpdateUserAvatar(context.Context, *UpdateUserAvatarRequest) (*UpdateUserAvatarReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserAvatar not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -374,6 +425,60 @@ func _User_GetUserSelectList_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_UpdateUserPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UpdateUserPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UpdateUserPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UpdateUserPhone(ctx, req.(*UpdateUserPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UpdateUserEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UpdateUserEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UpdateUserEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UpdateUserEmail(ctx, req.(*UpdateUserEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UpdateUserAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UpdateUserAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UpdateUserAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UpdateUserAvatar(ctx, req.(*UpdateUserAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -416,6 +521,18 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserSelectList",
 			Handler:    _User_GetUserSelectList_Handler,
+		},
+		{
+			MethodName: "UpdateUserPhone",
+			Handler:    _User_UpdateUserPhone_Handler,
+		},
+		{
+			MethodName: "UpdateUserEmail",
+			Handler:    _User_UpdateUserEmail_Handler,
+		},
+		{
+			MethodName: "UpdateUserAvatar",
+			Handler:    _User_UpdateUserAvatar_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -5,8 +5,8 @@ import (
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/vobj"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type (
@@ -35,5 +35,11 @@ type (
 
 		// UpdatePassword update user password
 		UpdatePassword(ctx context.Context, id uint32, password types.Password) error
+
+		// FindByPage find user by page
+		FindByPage(ctx context.Context, page *bo.QueryUserListParams) ([]*model.SysUser, error)
+
+		// UpdateUser update user
+		UpdateUser(ctx context.Context, user *model.SysUser) error
 	}
 )

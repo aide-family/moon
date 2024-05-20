@@ -1,24 +1,23 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/vobj"
-	"github.com/aide-cloud/moon/pkg/notify/email"
-	"github.com/aide-cloud/moon/pkg/notify/phone"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type (
 	CreateUserParams struct {
 		Name     string         `json:"name"`
 		Password types.Password `json:"password"`
-		Email    email.Type     `json:"email"`
-		Phone    phone.Type     `json:"phone"`
+		Email    string         `json:"email"`
+		Phone    string         `json:"phone"`
 
 		Nickname string `json:"nickname"`
 		Remark   string `json:"remark"`
 		Avatar   string `json:"avatar"`
 		// 创建人
-		CreatorID int `json:"creatorID"`
+		CreatorID uint32 `json:"creatorID"`
 
 		Status vobj.Status `json:"status"`
 		Gender vobj.Gender `json:"gender"`
@@ -35,6 +34,7 @@ type (
 		Page    types.Pagination `json:"page"`
 		Status  vobj.Status      `json:"status"`
 		Gender  vobj.Gender      `json:"gender"`
+		Role    vobj.Role        `json:"role"`
 	}
 
 	QueryUserListParams struct {
@@ -42,5 +42,54 @@ type (
 		Page    types.Pagination `json:"page"`
 		Status  vobj.Status      `json:"status"`
 		Gender  vobj.Gender      `json:"gender"`
+		Role    vobj.Role        `json:"role"`
+	}
+
+	BatchUpdateUserStatusParams struct {
+		Status vobj.Status `json:"status"`
+		IDs    []uint32    `json:"ids"`
+	}
+
+	ResetUserPasswordBySelfParams struct {
+		UserId   uint32         `json:"userId"`
+		Password types.Password `json:"password"`
+	}
+
+	UpdateUserPhoneRequest struct {
+		UserId uint32 `json:"userId"`
+		Phone  string `json:"phone"`
+	}
+
+	UpdateUserEmailRequest struct {
+		UserId uint32 `json:"userId"`
+		Email  string `json:"email"`
+	}
+
+	UpdateUserAvatarRequest struct {
+		UserId uint32 `json:"userId"`
+		Avatar string `json:"avatar"`
+	}
+
+	UserSelectOptionBuild struct {
+		*model.SysUser
 	}
 )
+
+// NewUserSelectOptionBuild 创建选择项构建器
+func NewUserSelectOptionBuild(user *model.SysUser) *UserSelectOptionBuild {
+	return &UserSelectOptionBuild{
+		SysUser: user,
+	}
+}
+
+// ToSelectOption 转换为选择项
+func (u *UserSelectOptionBuild) ToSelectOption() *SelectOptionBo {
+	if types.IsNil(u) || types.IsNil(u.SysUser) {
+		return nil
+	}
+	return &SelectOptionBo{
+		Value:    u.ID,
+		Label:    u.Username,
+		Disabled: u.DeletedAt > 0 || !u.Status.IsEnable(),
+	}
+}

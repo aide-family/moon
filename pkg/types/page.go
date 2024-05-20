@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/aide-cloud/moon/api"
+)
+
 var _ Pagination = (*page)(nil)
 
 type (
@@ -16,6 +20,19 @@ type (
 		SetTotal(total int)
 	}
 )
+
+// NewPage 创建一个分页器
+func NewPage(pageNum, pageSize int) Pagination {
+	return &page{
+		PageNum:  pageNum,
+		PageSize: pageSize,
+	}
+}
+
+// NewPagination 获取分页器
+func NewPagination(page *api.PaginationReq) Pagination {
+	return NewPage(int(page.GetPageNum()), int(page.GetPageSize()))
+}
 
 func (l *page) GetPageNum() int {
 	return l.PageNum

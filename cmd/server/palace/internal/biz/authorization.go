@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
@@ -100,8 +101,8 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	// 生成token
 	base := &middleware.JwtBaseInfo{}
 
-	base.SetUserInfo(func() (userId, role uint32, err error) {
-		return userDo.ID, uint32(userDo.Role), nil
+	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
+		return userDo.ID, userDo.Role, nil
 	})
 	base.SetTeamInfo(func() (teamId, teamRole uint32, err error) {
 		if req.Team <= 0 {
@@ -188,8 +189,8 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 
 	// 生成token
 	base := &middleware.JwtBaseInfo{}
-	base.SetUserInfo(func() (userId, role uint32, err error) {
-		return userDo.ID, uint32(userDo.Role), nil
+	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
+		return userDo.ID, userDo.Role, nil
 	})
 	base.SetTeamInfo(func() (teamId, teamRole uint32, err error) {
 		return req.Team, req.TeamRole, nil

@@ -1,9 +1,14 @@
 package bo
 
 type (
+	SelectExtend struct {
+		Icon, Color, Remark, Image string
+	}
 	SelectOptionBo struct {
-		Value    any    `json:"value"`
-		Label    string `json:"label"`
-		Disabled bool   `json:"disabled"`
+		Value    uint32            `json:"value"`
+		Label    string            `json:"label"`
+		Disabled bool              `json:"disabled"`
+		Children []*SelectOptionBo `json:"children"`
+		Extend   *SelectExtend     `json:"extend"`
 	}
 )

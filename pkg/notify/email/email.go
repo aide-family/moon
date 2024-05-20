@@ -27,8 +27,6 @@ func New(cfg email.Config, to *api.ReceiverEmail) notify.Notify {
 	}
 }
 
-type Type string
-
 type e struct {
 	email.Config
 	to  *api.ReceiverEmail

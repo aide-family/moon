@@ -51,9 +51,7 @@ func Run(datasource string, drive, outputPath string) {
 		gen.FieldType("status", "vobj.Status"),
 		gen.FieldType("role", "vobj.Role"),
 		gen.FieldType("updated_at", "*types.Time"),
-		gen.FieldType("created_at", "*types.Time"),
-		gen.FieldType("email", "email.Type"),
-		gen.FieldType("phone", "phone.Type"))
+		gen.FieldType("created_at", "*types.Time"))
 	g.ApplyBasic(g.GenerateAllTable()...)
 
 	usersTable := g.GenerateModel("sys_users")
