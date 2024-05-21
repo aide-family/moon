@@ -18,7 +18,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          sh build_images.sh "${{ secrets.REPO }}"
+          chmod +x build_images.sh
+          ./build_images.sh "${{ secrets.REPO }}"
         env:
           REPO: ${{ secrets.REPO }}
           REPO_PASS: ${{ secrets.REPO_PASS }}
