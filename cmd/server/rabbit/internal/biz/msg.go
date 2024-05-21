@@ -11,6 +11,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/notify/email"
 	"github.com/aide-cloud/moon/pkg/notify/hook"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 func NewMsgBiz(c *rabbitconf.Bootstrap) *MsgBiz {
@@ -51,7 +52,8 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		}
 
 		if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); err != nil {
-			return err
+			log.Warnw("send email error", err, "receiver", emailItem)
+			continue
 		}
 	}
 
@@ -89,6 +91,7 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			continue
 		}
 		if err := newNotify.Send(ctx, msgMap); err != nil {
+			log.Warnw("send hook error", err, "receiver", hookItem)
 			continue
 		}
 	}

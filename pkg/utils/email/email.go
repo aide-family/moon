@@ -57,7 +57,7 @@ func (c *config) GetPort() uint32 {
 }
 
 const (
-	DOMAIN = "github.com/aide-family/moon"
+	DOMAIN = "Moon监控系统"
 )
 
 var _ Config = (*config)(nil)

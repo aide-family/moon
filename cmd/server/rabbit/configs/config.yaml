@@ -11,24 +11,24 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 2s
-  registry:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - 127.0.0.1:20000
-      username: ""
-      password: ""
-      timeout: 10s
+#  registry:
+#    type: "etcd"
+#    etcd:
+#      endpoints:
+#        - 127.0.0.1:20000
+#      username: ""
+#      password: ""
+#      timeout: 10s
 data:
   cache:
-    redis:
-      network: "tcp"
-      addr: 127.0.0.1:6379
-      db: 0
-      password: ""
-      read_timeout: 0.2s
-      write_timeout: 0.2s
-      dial_timeout: 0.2s
+#    redis:
+#      network: "tcp"
+#      addr: 127.0.0.1:6379
+#      db: 0
+#      password: ""
+#      read_timeout: 0.2s
+#      write_timeout: 0.2s
+#      dial_timeout: 0.2s
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
