@@ -22,4 +22,4 @@ jobs:
         go-version: '1.21'
 
     - name: Build server
-      run: make all-docker-build
+      run: make build
