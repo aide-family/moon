@@ -14,12 +14,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.REPO_PASS }}" | docker login -u "aidemoonio" --password-stdin
+        run: echo "${{ secrets.REPO_PASS }}" | docker login -u "${{ secrets.REPO }}" --password-stdin
 
       - name: Build and push Docker image
         run: |
           chmod +x build_images.sh
-          /bin/bash ./build_images.sh
+          ./build_images.sh "${{ secrets.REPO }}"
         env:
-          REPO: aidemoonio
+          REPO: ${{ secrets.REPO }}
           REPO_PASS: ${{ secrets.REPO_PASS }}
