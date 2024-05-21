@@ -51,7 +51,7 @@ api:
 .PHONY: build
 # build
 build:
-	mkdir -p bin/local/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/local/ ./...
+	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 # CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 .PHONY: build-linux
