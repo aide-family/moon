@@ -7,10 +7,12 @@ import (
 	"github.com/google/wire"
 
 	authorizationapi "github.com/aide-cloud/moon/api/admin/authorization"
+	resourceapi "github.com/aide-cloud/moon/api/admin/resource"
 	userapi "github.com/aide-cloud/moon/api/admin/user"
 	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/user"
 )
 
@@ -46,16 +48,19 @@ func RegisterService(
 	greeter *service.GreeterService,
 	userService *user.Service,
 	authorizationService *authorization.Service,
+	resourceService *resource.Service,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
 	userapi.RegisterUserServer(rpcSrv, userService)
 	authorizationapi.RegisterAuthorizationServer(rpcSrv, authorizationService)
+	resourceapi.RegisterResourceServer(rpcSrv, resourceService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
 	userapi.RegisterUserHTTPServer(httpSrv, userService)
 	authorizationapi.RegisterAuthorizationHTTPServer(httpSrv, authorizationService)
+	resourceapi.RegisterResourceHTTPServer(httpSrv, resourceService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

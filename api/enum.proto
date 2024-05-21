@@ -55,3 +55,41 @@ enum CaptchaType {
 	// 音频验证码
 	CAPTCHA_TYPE_AUDIO = 1;
 }
+
+// 领域类型枚举
+enum DomainType {
+	// 未知领域类型
+	DomainTypeUnknown = 0;
+	// 系统领域
+	DomainTypeSystem = 1;
+	// 监控领域
+	DomainTypeMonitor = 2;
+}
+
+// 模块类型枚举
+enum ModuleType {
+	// 未知模块类型
+	ModuleTypeUnknown = 0;
+	// 接口模块
+	ModelTypeApi = 1;
+	// 菜单模块
+	ModelTypeMenu = 2;
+	// 角色模块
+	ModelTypeRole = 3;
+	// 用户模块
+	ModelTypeUser = 4;
+	// 字典模块
+	ModelTypeDict = 5;
+	// 配置模块
+	ModelTypeConfig = 6;
+	// 日志模块
+	ModelTypeLog = 7;
+	// 任务模块
+	ModelTypeJob = 8;
+	// 通知模块
+	ModelTypeNotify = 9;
+	// 系统模块
+	ModelTypeSystem = 10;
+	// 监控模块
+	ModelTypeMonitor = 11;
+}

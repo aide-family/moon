@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package api.admin.resource;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-cloud/moon/api/admin/resource;resource";
+option java_multiple_files = true;
+option java_package = "api.admin.resource";
+
+// 系统公共API资源管理模块
+service Resource {
+	// 获取资源详情
+	rpc GetResource (GetResourceRequest) returns (GetResourceReply) {
+		option (google.api.http) = {
+			get: "/v1/resource/{id}"
+		};
+	}
+	// 获取资源列表
+	rpc ListResource (ListResourceRequest) returns (ListResourceReply) {
+		option (google.api.http) = {
+			post: "/v1/resource"
+			body: "*"
+		};
+	}
+	// 批量更新资源状态
+	rpc BatchUpdateResourceStatus (BatchUpdateResourceStatusRequest) returns (BatchUpdateResourceStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/resource/status"
+			body: "*"
+		};
+	}
+	// 获取资源下拉列表
+	rpc GetResourceSelectList (GetResourceSelectListRequest) returns (GetResourceSelectListReply) {
+		option (google.api.http) = {
+			post: "/v1/resource/select"
+			body: "*"
+		};
+	}
+}
+
+message GetResourceRequest {
+	uint32 id = 1 [(buf.validate.field).required = true];
+}
+message GetResourceReply {
+	ResourceItem resource = 1;
+}
+
+message ListResourceRequest {
+	PaginationReq pagination = 1 [(buf.validate.field).required = true];
+	string keyword = 2 [(buf.validate.field).cel = {
+		id: "keyword",
+		message: "关键字查询限制在20字以内",
+		expression: "this.size <= 20"
+	}];
+}
+message ListResourceReply {
+	PaginationReply pagination = 1;
+	repeated ResourceItem list = 2;
+}
+
+message BatchUpdateResourceStatusRequest {
+	repeated uint32 ids = 1 [(buf.validate.field).required = true,
+		(buf.validate.field).cel = {
+			message: "必须选择要更新的资源",
+			expression: "this.size() > 0"
+		}, (buf.validate.field).cel = {
+			message: "必须保证修改的资源数据唯一",
+			expression: "this.unique()"
+		}];
+	Status status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "(this in [1, 2])",
+		message: "状态值必须在[启用(1), 禁用(2)]之间",
+	}];
+}
+message BatchUpdateResourceStatusReply {}
+
+message GetResourceSelectListRequest {
+	PaginationReq pagination = 1 [(buf.validate.field).required = true];
+	string keyword = 2 [(buf.validate.field).cel = {
+		id: "keyword",
+		message: "关键字查询限制在20字以内",
+		expression: "this.size <= 20"
+	}];
+}
+message GetResourceSelectListReply {
+	PaginationReply pagination = 1;
+	repeated Select list = 2;
+}

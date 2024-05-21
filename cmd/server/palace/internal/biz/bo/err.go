@@ -22,4 +22,6 @@ var (
 	PasswordSameErr = merr.ErrorAlert("新旧密码一致")
 	// AdminUserDeleteErr 不允许删除管理员
 	AdminUserDeleteErr = merr.ErrorAlert("不允许删除管理员")
+	// ResourceNotFoundErr 资源不存在
+	ResourceNotFoundErr = merr.ErrorAlert("资源不存在")
 )

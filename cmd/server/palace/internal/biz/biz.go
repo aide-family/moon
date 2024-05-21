@@ -8,4 +8,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewUserBiz,
 	NewCaptchaBiz,
 	NewAuthorizationBiz,
+	NewResourceBiz,
 )

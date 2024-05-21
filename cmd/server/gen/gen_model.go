@@ -17,7 +17,7 @@ func Run(datasource string, drive, outputPath string) {
 		OutPath: outputPath,
 		Mode:    gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
 		// 如果你希望为可为null的字段生成属性为指针类型, 设置 FieldNullable 为 true
-		FieldNullable: true,
+		//FieldNullable: true,
 		// 如果你希望在 `Create` API 中为字段分配默认值, 设置 FieldCoverable 为 true, 参考: https://gorm.io/docs/create.html#Default-Values
 		FieldCoverable: true,
 		//如果你希望生成无符号整数类型字段, 设置 FieldSignable 为 true
@@ -52,7 +52,6 @@ func Run(datasource string, drive, outputPath string) {
 		gen.FieldType("role", "vobj.Role"),
 		gen.FieldType("updated_at", "*types.Time"),
 		gen.FieldType("created_at", "*types.Time"))
-	g.ApplyBasic(g.GenerateAllTable()...)
 
 	usersTable := g.GenerateModel("sys_users")
 	teamTable := g.GenerateModel("sys_teams")
@@ -71,7 +70,7 @@ func Run(datasource string, drive, outputPath string) {
 		}),
 	)
 
-	g.ApplyBasic(
+	tables := []any{
 		g.GenerateModel("sys_teams",
 			gen.FieldRelate(field.HasOne, "Owner", usersTable, &field.RelateConfig{
 				GORMTag: field.GormTag{
@@ -93,7 +92,9 @@ func Run(datasource string, drive, outputPath string) {
 			}),
 		),
 		teamMembersTable,
-	)
+	}
+	tables = append(tables, g.GenerateAllTable()...)
+	g.ApplyBasic(tables...)
 
 	// Generate the code
 	g.Execute()

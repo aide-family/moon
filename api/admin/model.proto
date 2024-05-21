@@ -62,3 +62,27 @@ message User {
   // 更新时间
   string updated_at = 12;
 }
+
+// 系统API资源模块
+message ResourceItem {
+  // 接口ID
+  uint32 id = 1;
+  // 接口名称
+  string name = 2;
+  // 接口路径
+  string path = 3;
+  // 接口状态
+  Status status = 4;
+  // 备注
+  string remark = 5;
+  // 创建时间
+  string createdAt = 6;
+  // 更新时间
+  string updatedAt = 7;
+  // 删除时间
+  string deletedAt = 8;
+  // 所属模块
+  ModuleType module = 9;
+  // 所属领域
+  DomainType domain = 10;
+}
