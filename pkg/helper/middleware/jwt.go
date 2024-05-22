@@ -59,7 +59,7 @@ type JwtBaseInfo struct {
 	User     uint32    `json:"user"`
 	Role     vobj.Role `json:"role"`
 	Team     uint32    `json:"team"`
-	TeamRole uint32    `json:"team_role"`
+	TeamRole vobj.Role `json:"team_role"`
 }
 
 func (l *JwtBaseInfo) GetUser() uint32 {
@@ -83,7 +83,7 @@ func (l *JwtBaseInfo) GetTeam() uint32 {
 	return l.Team
 }
 
-func (l *JwtBaseInfo) GetTeamRole() uint32 {
+func (l *JwtBaseInfo) GetTeamRole() vobj.Role {
 	if types.IsNil(l) {
 		return 0
 	}
@@ -93,6 +93,11 @@ func (l *JwtBaseInfo) GetTeamRole() uint32 {
 // IsAdminRole 是否是管理员角色
 func (l *JwtBaseInfo) IsAdminRole() bool {
 	return l.GetRole() == vobj.RoleSuperAdmin || l.GetRole() == vobj.RoleAdmin
+}
+
+// IsTeamAdminRole 是否是团队管理员角色
+func (l *JwtBaseInfo) IsTeamAdminRole() bool {
+	return l.GetTeamRole() == vobj.RoleAdmin || l.GetTeamRole() == vobj.RoleSuperAdmin
 }
 
 // SetUserInfo 设置用户信息
@@ -107,7 +112,7 @@ func (l *JwtBaseInfo) SetUserInfo(f func() (userId uint32, role vobj.Role, err e
 }
 
 // SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(f func() (teamId, teamRole uint32, err error)) *JwtBaseInfo {
+func (l *JwtBaseInfo) SetTeamInfo(f func() (teamId uint32, teamRole vobj.Role, err error)) *JwtBaseInfo {
 	teamId, teamRole, err := f()
 	if err == nil {
 		l.Team = teamId

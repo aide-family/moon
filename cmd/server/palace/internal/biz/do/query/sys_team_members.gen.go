@@ -34,19 +34,7 @@ func newSysTeamMember(db *gorm.DB, opts ...gen.DOOption) sysTeamMember {
 	_sysTeamMember.UserID = field.NewUint32(tableName, "user_id")
 	_sysTeamMember.TeamID = field.NewUint32(tableName, "team_id")
 	_sysTeamMember.Status = field.NewField(tableName, "status")
-	_sysTeamMember.Remark = field.NewString(tableName, "remark")
-	_sysTeamMember.Avatar = field.NewString(tableName, "avatar")
-	_sysTeamMember.Member = sysTeamMemberHasOneMember{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Member", "model.SysUser"),
-	}
-
-	_sysTeamMember.Team = sysTeamMemberHasOneTeam{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Team", "model.SysTeam"),
-	}
+	_sysTeamMember.Role = field.NewField(tableName, "role")
 
 	_sysTeamMember.fillFieldMap()
 
@@ -64,11 +52,7 @@ type sysTeamMember struct {
 	UserID    field.Uint32 // 系统用户ID
 	TeamID    field.Uint32 // 团队ID
 	Status    field.Field  // 状态
-	Remark    field.String // 备注
-	Avatar    field.String // 头像
-	Member    sysTeamMemberHasOneMember
-
-	Team sysTeamMemberHasOneTeam
+	Role      field.Field  // 是否是管理员
 
 	fieldMap map[string]field.Expr
 }
@@ -92,8 +76,7 @@ func (s *sysTeamMember) updateTableName(table string) *sysTeamMember {
 	s.UserID = field.NewUint32(table, "user_id")
 	s.TeamID = field.NewUint32(table, "team_id")
 	s.Status = field.NewField(table, "status")
-	s.Remark = field.NewString(table, "remark")
-	s.Avatar = field.NewString(table, "avatar")
+	s.Role = field.NewField(table, "role")
 
 	s.fillFieldMap()
 
@@ -110,7 +93,7 @@ func (s *sysTeamMember) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (s *sysTeamMember) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 11)
+	s.fieldMap = make(map[string]field.Expr, 8)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -118,9 +101,7 @@ func (s *sysTeamMember) fillFieldMap() {
 	s.fieldMap["user_id"] = s.UserID
 	s.fieldMap["team_id"] = s.TeamID
 	s.fieldMap["status"] = s.Status
-	s.fieldMap["remark"] = s.Remark
-	s.fieldMap["avatar"] = s.Avatar
-
+	s.fieldMap["role"] = s.Role
 }
 
 func (s sysTeamMember) clone(db *gorm.DB) sysTeamMember {
@@ -131,148 +112,6 @@ func (s sysTeamMember) clone(db *gorm.DB) sysTeamMember {
 func (s sysTeamMember) replaceDB(db *gorm.DB) sysTeamMember {
 	s.sysTeamMemberDo.ReplaceDB(db)
 	return s
-}
-
-type sysTeamMemberHasOneMember struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamMemberHasOneMember) Where(conds ...field.Expr) *sysTeamMemberHasOneMember {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamMemberHasOneMember) WithContext(ctx context.Context) *sysTeamMemberHasOneMember {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamMemberHasOneMember) Session(session *gorm.Session) *sysTeamMemberHasOneMember {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamMemberHasOneMember) Model(m *model.SysTeamMember) *sysTeamMemberHasOneMemberTx {
-	return &sysTeamMemberHasOneMemberTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamMemberHasOneMemberTx struct{ tx *gorm.Association }
-
-func (a sysTeamMemberHasOneMemberTx) Find() (result *model.SysUser, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamMemberHasOneMemberTx) Append(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamMemberHasOneMemberTx) Replace(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamMemberHasOneMemberTx) Delete(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamMemberHasOneMemberTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamMemberHasOneMemberTx) Count() int64 {
-	return a.tx.Count()
-}
-
-type sysTeamMemberHasOneTeam struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamMemberHasOneTeam) Where(conds ...field.Expr) *sysTeamMemberHasOneTeam {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamMemberHasOneTeam) WithContext(ctx context.Context) *sysTeamMemberHasOneTeam {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamMemberHasOneTeam) Session(session *gorm.Session) *sysTeamMemberHasOneTeam {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamMemberHasOneTeam) Model(m *model.SysTeamMember) *sysTeamMemberHasOneTeamTx {
-	return &sysTeamMemberHasOneTeamTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamMemberHasOneTeamTx struct{ tx *gorm.Association }
-
-func (a sysTeamMemberHasOneTeamTx) Find() (result *model.SysTeam, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamMemberHasOneTeamTx) Append(values ...*model.SysTeam) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamMemberHasOneTeamTx) Replace(values ...*model.SysTeam) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamMemberHasOneTeamTx) Delete(values ...*model.SysTeam) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamMemberHasOneTeamTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamMemberHasOneTeamTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type sysTeamMemberDo struct{ gen.DO }

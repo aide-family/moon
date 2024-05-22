@@ -86,3 +86,45 @@ message ResourceItem {
   // 所属领域
   DomainType domain = 10;
 }
+
+// 团队成员
+message TeamMember {
+  // 用户ID
+  uint32 user_id = 1;
+  // 成员ID
+  uint32 id = 2;
+  // 角色
+  repeated Role roles = 3;
+  // 状态
+  Status status = 4;
+  // 创建时间
+  string created_at = 5;
+  // 更新时间
+  string updated_at = 6;
+  // 用户明细
+  User user = 7;
+}
+
+// 团队模块
+message Team {
+  // 团队ID
+  uint32 id = 1;
+  // 团队名称
+  string name = 2;
+  // 团队状态
+  Status status = 3;
+  // 团队描述
+  string remark = 4;
+  // 创建时间
+  string created_at = 5;
+  // 更新时间
+  string updated_at = 6;
+  // 负责人
+  User leader = 7;
+  // 创建者
+  User creator = 8;
+  // 团队LOGO
+  string logo = 9;
+  // 管理员（不包含创建者， 因为创建者不一定是管理员，但是包含负责人）
+  repeated TeamMember admin = 10;
+}

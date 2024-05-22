@@ -55,7 +55,22 @@ func Run(datasource string, drive, outputPath string) {
 
 	usersTable := g.GenerateModel("sys_users")
 	teamTable := g.GenerateModel("sys_teams")
-	teamMembersTable := g.GenerateModel("sys_team_members",
+
+	tables := g.GenerateAllTable()
+	tables = append(tables, g.GenerateModel("sys_teams",
+		gen.FieldRelate(field.HasOne, "Leader", usersTable, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"foreignKey": []string{"LeaderID"},
+			},
+			RelatePointer: true,
+		}),
+		gen.FieldRelate(field.HasOne, "Creator", usersTable, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"foreignKey": []string{"CreatorID"},
+			},
+			RelatePointer: true,
+		}),
+	), g.GenerateModel("sys_team_members",
 		gen.FieldRelate(field.HasOne, "Member", usersTable, &field.RelateConfig{
 			GORMTag: field.GormTag{
 				"foreignKey": []string{"UserID"},
@@ -68,32 +83,8 @@ func Run(datasource string, drive, outputPath string) {
 			},
 			RelatePointer: true,
 		}),
-	)
+	))
 
-	tables := []any{
-		g.GenerateModel("sys_teams",
-			gen.FieldRelate(field.HasOne, "Owner", usersTable, &field.RelateConfig{
-				GORMTag: field.GormTag{
-					"foreignKey": []string{"OwnerID"},
-				},
-				RelatePointer: true,
-			}),
-			gen.FieldRelate(field.HasOne, "Creator", usersTable, &field.RelateConfig{
-				GORMTag: field.GormTag{
-					"foreignKey": []string{"CreatorID"},
-				},
-				RelatePointer: true,
-			}),
-			gen.FieldRelate(field.HasMany, "Members", teamMembersTable, &field.RelateConfig{
-				GORMTag: field.GormTag{
-					"foreignKey": []string{"TeamID"},
-				},
-				RelateSlicePointer: true,
-			}),
-		),
-		teamMembersTable,
-	}
-	tables = append(tables, g.GenerateAllTable()...)
 	g.ApplyBasic(tables...)
 
 	// Generate the code

@@ -105,7 +105,7 @@ func (l *userRepoImpl) FindByPage(ctx context.Context, params *bo.QueryUserListP
 		if err != nil {
 			return nil, err
 		}
-		page.SetTotal(int(total))
+		params.Page.SetTotal(int(total))
 		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
 		if pageNum <= 1 {
 			q = q.Limit(pageSize)

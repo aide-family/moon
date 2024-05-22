@@ -37,3 +37,28 @@ func (b *UserBuild) ToApi() *admin.User {
 		UpdatedAt: b.UpdatedAt.String(),
 	}
 }
+
+type TeamMemberBuild struct {
+	*model.SysTeamMember
+}
+
+func NewTeamMemberBuild(member *model.SysTeamMember) *TeamMemberBuild {
+	return &TeamMemberBuild{
+		SysTeamMember: member,
+	}
+}
+
+func (b *TeamMemberBuild) ToApi() *admin.TeamMember {
+	if types.IsNil(b) || types.IsNil(b.SysTeamMember) {
+		return nil
+	}
+	return &admin.TeamMember{
+		UserId:    b.UserID,
+		Id:        b.ID,
+		Roles:     nil,
+		Status:    api.Status(b.Status),
+		CreatedAt: b.CreatedAt.String(),
+		UpdatedAt: b.UpdatedAt.String(),
+		User:      NewUserBuild(b.Member).ToApi(),
+	}
+}

@@ -44,7 +44,6 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 		Username:   req.GetUsername(),
 		EnPassword: req.GetPassword(),
 		Team:       req.GetTeamId(),
-		TeamRole:   req.GetTeamRoleId(),
 	})
 	if err != nil {
 		return nil, err
@@ -86,7 +85,6 @@ func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest)
 	tokenRes, err := s.authorizationBiz.RefreshToken(ctx, &bo.RefreshTokenParams{
 		JwtClaims: jwtClaims,
 		Team:      req.GetTeamId(),
-		TeamRole:  req.GetTeamRoleId(),
 	})
 	if err != nil {
 		return nil, err

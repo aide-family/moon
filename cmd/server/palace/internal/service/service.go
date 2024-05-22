@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/team"
 	"github.com/google/wire"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
@@ -14,4 +15,5 @@ var ProviderSetService = wire.NewSet(
 	user.NewUserService,
 	authorization.NewAuthorizationService,
 	resource.NewResourceService,
+	team.NewTeamService,
 )

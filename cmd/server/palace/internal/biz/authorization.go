@@ -104,37 +104,16 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
 		return userDo.ID, userDo.Role, nil
 	})
-	base.SetTeamInfo(func() (teamId, teamRole uint32, err error) {
+	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
 		if req.Team <= 0 {
 			return
 		}
 		// 查询用户所属团队是否存在，存在着set temId
-		_, err = b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
+		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
 		if err != nil {
-			return
+			return 0, 0, err
 		}
-		teamId = req.Team
-		if req.TeamRole <= 0 {
-			return
-		}
-		// 查询用户所属团队角色是否存在，存在着set teamRoleId
-		memberRoles, err := b.teamRepo.GetTeamRoleByUserID(ctx, userDo.ID, req.Team)
-		if err != nil || len(memberRoles) == 0 {
-			return
-		}
-		// 默认设置第一个角色
-		teamRole = memberRoles[0].RoleID
-		if req.TeamRole <= 0 {
-			return
-		}
-		for _, role := range memberRoles {
-			// 如果有设置角色，则设置该角色
-			if role.RoleID == req.TeamRole {
-				teamRole = role.RoleID
-				break
-			}
-		}
-		return
+		return req.Team, memberItem.Role, nil
 	})
 
 	jwtClaims := middleware.NewJwtClaims(base)
@@ -179,7 +158,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	}
 
 	// 查询用户所属团队角色是否存在，存在着set teamRoleId
-	_, err = b.teamRepo.GetUserTeamRole(ctx, userDo.ID, req.Team, req.TeamRole)
+	memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotification("用户此权限已被移除")
@@ -192,8 +171,8 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
 		return userDo.ID, userDo.Role, nil
 	})
-	base.SetTeamInfo(func() (teamId, teamRole uint32, err error) {
-		return req.Team, req.TeamRole, nil
+	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
+		return req.Team, memberItem.Role, nil
 	})
 
 	jwtClaims := middleware.NewJwtClaims(base)

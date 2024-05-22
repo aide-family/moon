@@ -25,8 +25,9 @@ type SysTeamMember struct {
 	UserID    uint32      `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team__id,priority:1;comment:系统用户ID" json:"user_id"` // 系统用户ID
 	TeamID    uint32      `gorm:"column:team_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team__id,priority:2;comment:团队ID" json:"team_id"`   // 团队ID
 	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                             // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                     // 备注
-	Avatar    string      `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`                                                     // 头像
+	Role      vobj.Role   `gorm:"column:role;type:int;not null;comment:是否是管理员" json:"role"`                                                              // 是否是管理员
+	Member    *SysUser    `gorm:"foreignKey:UserID" json:"member"`
+	Team      *SysTeam    `gorm:"foreignKey:TeamID" json:"team"`
 }
 
 // String json string

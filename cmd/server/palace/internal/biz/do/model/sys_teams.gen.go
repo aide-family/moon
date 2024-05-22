@@ -22,12 +22,14 @@ type SysTeam struct {
 	CreatedAt *types.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
 	UpdatedAt *types.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
 	DeletedAt int64       `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
-	Name      string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:团队空间名" json:"name"`             // 团队空间名
-	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                    // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                            // 备注
-	Avatar    string      `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`                                            // 头像
-	OwnerID   uint32      `gorm:"column:owner_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"owner_id"` // 负责人
-	CreatorID uint32      `gorm:"column:creator_id;type:int unsigned;not null;comment:创建者" json:"creator_id"`                                   // 创建者
+	Name      string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:团队空间名" json:"name"`               // 团队空间名
+	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                      // 状态
+	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
+	Logo      string      `gorm:"column:logo;type:varchar(255);not null;comment:团队logo" json:"logo"`                                              // 团队logo
+	LeaderID  uint32      `gorm:"column:leader_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"leader_id"` // 负责人
+	CreatorID uint32      `gorm:"column:creator_id;type:int unsigned;not null;comment:创建者" json:"creator_id"`                                     // 创建者
+	Leader    *SysUser    `gorm:"foreignKey:LeaderID" json:"leader"`
+	Creator   *SysUser    `gorm:"foreignKey:CreatorID" json:"creator"`
 }
 
 // String json string

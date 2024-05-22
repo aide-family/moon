@@ -8,6 +8,9 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	mmd "github.com/go-kratos/kratos/v2/middleware/metadata"
+	"github.com/go-kratos/kratos/v2/selector"
+	"github.com/go-kratos/kratos/v2/selector/filter"
+	"github.com/go-kratos/kratos/v2/selector/wrr"
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
@@ -23,6 +26,11 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitRpcConn, func(), error) {
 	microServer := c.GetMicroServer()
 	rabbitServer := microServer.GetRabbitServer()
 	endpoint := rabbitServer.GetEndpoint()
+
+	// 创建路由 Filter：筛选版本号为"2.0.0"的实例
+	nodeFilter := filter.Version("2.0.0")
+	// 由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
+	selector.SetGlobalSelector(wrr.NewBuilder())
 	opts := []kgrpc.ClientOption{
 		kgrpc.WithMiddleware(
 			mmd.Client(),
@@ -33,6 +41,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitRpcConn, func(), error) {
 		kgrpc.WithEndpoint(endpoint),
 		kgrpc.WithTimeout(rabbitServer.GetTimeout().AsDuration()),
 		kgrpc.WithOptions(grpc.WithConnectParams(defaultGrpcConnectParam)),
+		kgrpc.WithNodeFilter(nodeFilter),
 	}
 
 	if !types.IsNil(microServer.GetDiscovery()) {

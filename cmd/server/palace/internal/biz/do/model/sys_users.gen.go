@@ -24,7 +24,7 @@ type SysUser struct {
 	Username  string      `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx__su__username,priority:1;uniqueIndex:idx__username,priority:1;comment:用户名" json:"username"` // 用户名
 	Nickname  string      `gorm:"column:nickname;type:varchar(64);not null;comment:昵称" json:"nickname"`                                                                                // 昵称
 	Password  string      `gorm:"column:password;type:varchar(255);not null;comment:密码" json:"password"`                                                                               // 密码
-	Email     string      `gorm:"column:email;type:varchar(64);not null;uniqueIndex:idx__su__email,priority:1;uniqueIndex:idx__email,priority:1;comment:邮箱" json:"email"`              // 邮箱
+	Email     string      `gorm:"column:email;type:varchar(64);not null;uniqueIndex:idx__email,priority:1;uniqueIndex:idx__su__email,priority:1;comment:邮箱" json:"email"`              // 邮箱
 	Phone     string      `gorm:"column:phone;type:varchar(64);not null;uniqueIndex:idx__phone,priority:1;uniqueIndex:idx__su__phone,priority:1;comment:手机号" json:"phone"`             // 手机号
 	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                                                           // 状态
 	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                                                   // 备注

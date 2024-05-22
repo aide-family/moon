@@ -15,6 +15,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/resource"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/user"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -50,7 +51,9 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	resourceRepo := repoimpl.NewResourceRepo(dataData)
 	resourceBiz := biz.NewResourceBiz(resourceRepo)
 	resourceService := resource.NewResourceService(resourceBiz)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService, resourceService)
+	teamBiz := biz.NewTeamBiz(teamRepo)
+	teamService := team.NewTeamService(teamBiz)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService, resourceService, teamService)
 	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
 		cleanup()

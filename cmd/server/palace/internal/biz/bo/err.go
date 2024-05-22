@@ -24,4 +24,13 @@ var (
 	AdminUserDeleteErr = merr.ErrorAlert("不允许删除管理员")
 	// ResourceNotFoundErr 资源不存在
 	ResourceNotFoundErr = merr.ErrorAlert("资源不存在")
+
+	// TeamNotFoundErr 团队不存在
+	TeamNotFoundErr = merr.ErrorAlert("团队不存在")
+	// TeamLeaderErr 你不是团队的负责人
+	TeamLeaderErr = merr.ErrorAlert("你不是团队的负责人")
+	// TeamLeaderRepeatErr 团队负责人重复
+	TeamLeaderRepeatErr = merr.ErrorAlert("你已经是团队负责人了")
+	// DeleteSelfErr 不允许删除自己
+	DeleteSelfErr = merr.ErrorAlert("不允许删除自己")
 )
