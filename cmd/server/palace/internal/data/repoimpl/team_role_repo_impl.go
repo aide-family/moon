@@ -57,7 +57,11 @@ func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.Crea
 				}
 			})...)
 	})
-	return sysTeamRoleModel, err
+	if err != nil {
+		return nil, err
+	}
+
+	return sysTeamRoleModel, l.data.GetCasbin().LoadPolicy()
 }
 
 func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
@@ -94,7 +98,7 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 		if len(apis) == 0 {
 			return nil
 		}
-		return tx.CasbinRule.WithContext(ctx).
+		if err := tx.CasbinRule.WithContext(ctx).
 			Create(types.SliceTo(apis, func(apiItem *model.SysAPI) *model.CasbinRule {
 				return &model.CasbinRule{
 					Ptype: "p",
@@ -102,7 +106,11 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 					V1:    apiItem.Path,
 					V2:    "http",
 				}
-			})...)
+			})...); err != nil {
+			return err
+		}
+
+		return l.data.GetCasbin().LoadPolicy()
 	})
 }
 
@@ -116,7 +124,7 @@ func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error 
 			Where(tx.CasbinRule.V0.Eq(strconv.FormatUint(uint64(id), 10))).Delete(); err != nil {
 			return err
 		}
-		return nil
+		return l.data.GetCasbin().LoadPolicy()
 	})
 }
 
@@ -139,7 +147,7 @@ func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, team
 		WithContext(ctx).Where(
 		query.SysTeamMember.UserID.Eq(userID),
 		query.SysTeamMember.TeamID.Eq(teamID),
-	).Model(&model.SysTeamMember{}).Find()
+	).Model(&model.SysTeamMember{TeamID: teamID, UserID: userID}).Find()
 }
 
 func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -184,6 +192,6 @@ func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj
 			Delete(); err != nil {
 			return err
 		}
-		return nil
+		return l.data.GetCasbin().LoadPolicy()
 	})
 }
