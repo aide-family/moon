@@ -56,8 +56,12 @@ func Run(datasource string, drive, outputPath string) {
 	usersTable := g.GenerateModel("sys_users")
 	teamTable := g.GenerateModel("sys_teams")
 	apiTable := g.GenerateModel("sys_apis")
+	sysTeamRoleTable := g.GenerateModel("sys_team_roles")
+	// sys_team_member_roles
+	sysTeamMemberRoleTable := g.GenerateModel("sys_team_member_roles")
 
-	tables := g.GenerateAllTable()
+	//tables := g.GenerateAllTable()
+	var tables []any
 	tables = append(tables, g.GenerateModel("sys_teams",
 		gen.FieldRelate(field.HasOne, "Leader", usersTable, &field.RelateConfig{
 			GORMTag: field.GormTag{
@@ -84,6 +88,12 @@ func Run(datasource string, drive, outputPath string) {
 			},
 			RelatePointer: true,
 		}),
+		gen.FieldRelate(field.Many2Many, "TeamRoles", sysTeamRoleTable, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"many2many": []string{"sys_team_member_roles"},
+			},
+			RelateSlicePointer: true,
+		}),
 	), g.GenerateModel("sys_team_roles",
 		gen.FieldRelate(field.Many2Many, "Apis", apiTable, &field.RelateConfig{
 			GORMTag: field.GormTag{
@@ -91,7 +101,14 @@ func Run(datasource string, drive, outputPath string) {
 			},
 			RelateSlicePointer: true,
 		}),
-	))
+	), g.GenerateModel("sys_apis",
+		gen.FieldRelate(field.Many2Many, "SysTeamRoles", sysTeamRoleTable, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"many2many": []string{"sys_team_role_apis"},
+			},
+			RelateSlicePointer: true,
+		}),
+	), sysTeamMemberRoleTable, usersTable)
 
 	g.ApplyBasic(tables...)
 

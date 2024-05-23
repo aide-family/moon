@@ -27,10 +27,10 @@ func newSysTeamMemberRole(db *gorm.DB, opts ...gen.DOOption) sysTeamMemberRole {
 
 	tableName := _sysTeamMemberRole.sysTeamMemberRoleDo.TableName()
 	_sysTeamMemberRole.ALL = field.NewAsterisk(tableName)
-	_sysTeamMemberRole.UserID = field.NewUint32(tableName, "user_id")
-	_sysTeamMemberRole.TeamID = field.NewUint32(tableName, "team_id")
-	_sysTeamMemberRole.RoleID = field.NewUint32(tableName, "role_id")
+	_sysTeamMemberRole.SysTeamMemberID = field.NewUint32(tableName, "sys_team_member_id")
+	_sysTeamMemberRole.SysTeamRoleID = field.NewUint32(tableName, "sys_team_role_id")
 	_sysTeamMemberRole.ID = field.NewUint32(tableName, "id")
+	_sysTeamMemberRole.TeamID = field.NewInt32(tableName, "team_id")
 
 	_sysTeamMemberRole.fillFieldMap()
 
@@ -40,11 +40,11 @@ func newSysTeamMemberRole(db *gorm.DB, opts ...gen.DOOption) sysTeamMemberRole {
 type sysTeamMemberRole struct {
 	sysTeamMemberRoleDo
 
-	ALL    field.Asterisk
-	UserID field.Uint32 // 系统用户ID
-	TeamID field.Uint32 // 团队ID
-	RoleID field.Uint32 // 团队角色ID
-	ID     field.Uint32
+	ALL             field.Asterisk
+	SysTeamMemberID field.Uint32 // 团队用户ID
+	SysTeamRoleID   field.Uint32 // 团队角色ID
+	ID              field.Uint32
+	TeamID          field.Int32 // 团队ID
 
 	fieldMap map[string]field.Expr
 }
@@ -61,10 +61,10 @@ func (s sysTeamMemberRole) As(alias string) *sysTeamMemberRole {
 
 func (s *sysTeamMemberRole) updateTableName(table string) *sysTeamMemberRole {
 	s.ALL = field.NewAsterisk(table)
-	s.UserID = field.NewUint32(table, "user_id")
-	s.TeamID = field.NewUint32(table, "team_id")
-	s.RoleID = field.NewUint32(table, "role_id")
+	s.SysTeamMemberID = field.NewUint32(table, "sys_team_member_id")
+	s.SysTeamRoleID = field.NewUint32(table, "sys_team_role_id")
 	s.ID = field.NewUint32(table, "id")
+	s.TeamID = field.NewInt32(table, "team_id")
 
 	s.fillFieldMap()
 
@@ -82,10 +82,10 @@ func (s *sysTeamMemberRole) GetFieldByName(fieldName string) (field.OrderExpr, b
 
 func (s *sysTeamMemberRole) fillFieldMap() {
 	s.fieldMap = make(map[string]field.Expr, 4)
-	s.fieldMap["user_id"] = s.UserID
-	s.fieldMap["team_id"] = s.TeamID
-	s.fieldMap["role_id"] = s.RoleID
+	s.fieldMap["sys_team_member_id"] = s.SysTeamMemberID
+	s.fieldMap["sys_team_role_id"] = s.SysTeamRoleID
 	s.fieldMap["id"] = s.ID
+	s.fieldMap["team_id"] = s.TeamID
 }
 
 func (s sysTeamMemberRole) clone(db *gorm.DB) sysTeamMemberRole {

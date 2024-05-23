@@ -18,16 +18,17 @@ const TableNameSysAPI = "sys_apis"
 
 // SysAPI mapped from table <sys_apis>
 type SysAPI struct {
-	ID        uint32      `gorm:"column:id;type:bigint unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt *types.Time `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`    // 创建时间
-	UpdatedAt *types.Time `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`    // 更新时间
-	Name      string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称" json:"name"`  // api名称
-	Path      string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径" json:"path"` // api路径
-	Status    vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:状态" json:"status"`                                // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                     // 备注
-	DeletedAt int64       `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
-	Module    int32       `gorm:"column:module;type:int;not null;comment:模块" json:"module"` // 模块
-	Domain    int32       `gorm:"column:domain;type:int;not null;comment:领域" json:"domain"` // 领域
+	ID           uint32         `gorm:"column:id;type:bigint unsigned;primaryKey;autoIncrement:true" json:"id"`
+	CreatedAt    *types.Time    `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`    // 创建时间
+	UpdatedAt    *types.Time    `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`    // 更新时间
+	Name         string         `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称" json:"name"`  // api名称
+	Path         string         `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径" json:"path"` // api路径
+	Status       vobj.Status    `gorm:"column:status;type:tinyint;not null;default:1;comment:状态" json:"status"`                                // 状态
+	Remark       string         `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                     // 备注
+	DeletedAt    int64          `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
+	Module       int32          `gorm:"column:module;type:int;not null;comment:模块" json:"module"` // 模块
+	Domain       int32          `gorm:"column:domain;type:int;not null;comment:领域" json:"domain"` // 领域
+	SysTeamRoles []*SysTeamRole `gorm:"many2many:sys_team_role_apis" json:"sys_team_roles"`
 }
 
 // String json string

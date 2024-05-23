@@ -33,4 +33,7 @@ var (
 	TeamLeaderRepeatErr = merr.ErrorAlert("你已经是团队负责人了")
 	// DeleteSelfErr 不允许删除自己
 	DeleteSelfErr = merr.ErrorAlert("不允许删除自己")
+
+	// TeamRoleNotFoundErr 团队角色不存在
+	TeamRoleNotFoundErr = merr.ErrorAlert("团队角色不存在")
 )

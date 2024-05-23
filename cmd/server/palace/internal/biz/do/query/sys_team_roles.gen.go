@@ -35,6 +35,11 @@ func newSysTeamRole(db *gorm.DB, opts ...gen.DOOption) sysTeamRole {
 	_sysTeamRole.Name = field.NewString(tableName, "name")
 	_sysTeamRole.Status = field.NewField(tableName, "status")
 	_sysTeamRole.Remark = field.NewString(tableName, "remark")
+	_sysTeamRole.Apis = sysTeamRoleManyToManyApis{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Apis", "model.SysAPI"),
+	}
 
 	_sysTeamRole.fillFieldMap()
 
@@ -53,6 +58,7 @@ type sysTeamRole struct {
 	Name      field.String // 角色名称
 	Status    field.Field  // 状态
 	Remark    field.String // 备注
+	Apis      sysTeamRoleManyToManyApis
 
 	fieldMap map[string]field.Expr
 }
@@ -93,7 +99,7 @@ func (s *sysTeamRole) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysTeamRole) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 8)
+	s.fieldMap = make(map[string]field.Expr, 9)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -102,6 +108,7 @@ func (s *sysTeamRole) fillFieldMap() {
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["remark"] = s.Remark
+
 }
 
 func (s sysTeamRole) clone(db *gorm.DB) sysTeamRole {
@@ -112,6 +119,77 @@ func (s sysTeamRole) clone(db *gorm.DB) sysTeamRole {
 func (s sysTeamRole) replaceDB(db *gorm.DB) sysTeamRole {
 	s.sysTeamRoleDo.ReplaceDB(db)
 	return s
+}
+
+type sysTeamRoleManyToManyApis struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a sysTeamRoleManyToManyApis) Where(conds ...field.Expr) *sysTeamRoleManyToManyApis {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a sysTeamRoleManyToManyApis) WithContext(ctx context.Context) *sysTeamRoleManyToManyApis {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a sysTeamRoleManyToManyApis) Session(session *gorm.Session) *sysTeamRoleManyToManyApis {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a sysTeamRoleManyToManyApis) Model(m *model.SysTeamRole) *sysTeamRoleManyToManyApisTx {
+	return &sysTeamRoleManyToManyApisTx{a.db.Model(m).Association(a.Name())}
+}
+
+type sysTeamRoleManyToManyApisTx struct{ tx *gorm.Association }
+
+func (a sysTeamRoleManyToManyApisTx) Find() (result []*model.SysAPI, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a sysTeamRoleManyToManyApisTx) Append(values ...*model.SysAPI) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a sysTeamRoleManyToManyApisTx) Replace(values ...*model.SysAPI) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a sysTeamRoleManyToManyApisTx) Delete(values ...*model.SysAPI) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a sysTeamRoleManyToManyApisTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a sysTeamRoleManyToManyApisTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type sysTeamRoleDo struct{ gen.DO }

@@ -64,7 +64,7 @@ type TeamHTTPServer interface {
 
 func RegisterTeamHTTPServer(s *http.Server, srv TeamHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/team/create", _Team_CreateTeam0_HTTP_Handler(srv))
+	r.POST("/v1/team", _Team_CreateTeam0_HTTP_Handler(srv))
 	r.PUT("/v1/team/{id}", _Team_UpdateTeam0_HTTP_Handler(srv))
 	r.GET("/v1/team/{id}", _Team_GetTeam0_HTTP_Handler(srv))
 	r.POST("/v1/team/list", _Team_ListTeam0_HTTP_Handler(srv))
@@ -422,7 +422,7 @@ func (c *TeamHTTPClientImpl) AddTeamMember(ctx context.Context, in *AddTeamMembe
 
 func (c *TeamHTTPClientImpl) CreateTeam(ctx context.Context, in *CreateTeamRequest, opts ...http.CallOption) (*CreateTeamReply, error) {
 	var out CreateTeamReply
-	pattern := "/v1/team/create"
+	pattern := "/v1/team"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationTeamCreateTeam))
 	opts = append(opts, http.PathTemplate(pattern))

@@ -17,7 +17,7 @@ service Team {
   // 创建团队
   rpc CreateTeam (CreateTeamRequest) returns (CreateTeamReply) {
     option (google.api.http) = {
-      post: "/v1/team/create"
+      post: "/v1/team"
       body: "*"
     };
   }

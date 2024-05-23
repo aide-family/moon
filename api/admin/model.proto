@@ -128,3 +128,21 @@ message Team {
   // 管理员（不包含创建者， 因为创建者不一定是管理员，但是包含负责人）
   repeated TeamMember admin = 10;
 }
+
+// 团队角色模块
+message TeamRole {
+  // 角色ID
+  uint32 id = 1;
+  // 角色名称
+  string name = 2;
+  // 角色描述
+  string remark = 3;
+  // 创建时间
+  string created_at = 4;
+  // 更新时间
+  string updated_at = 5;
+  // 状态
+  Status status = 6;
+  // 资源列表
+  repeated ResourceItem resources = 7;
+}

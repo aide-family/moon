@@ -35,3 +35,42 @@ func (b *TeamBuild) ToApi() *admin.Team {
 		Admin:     nil,
 	}
 }
+
+type TeamRoleBuild struct {
+	*model.SysTeamRole
+}
+
+func NewTeamRoleBuild(role *model.SysTeamRole) *TeamRoleBuild {
+	return &TeamRoleBuild{
+		SysTeamRole: role,
+	}
+}
+
+func (b *TeamRoleBuild) ToApi() *admin.TeamRole {
+	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
+		return nil
+	}
+	return &admin.TeamRole{
+		Id:        b.ID,
+		Name:      b.Name,
+		Remark:    b.Remark,
+		CreatedAt: b.CreatedAt.String(),
+		UpdatedAt: b.UpdatedAt.String(),
+		Status:    api.Status(b.Status),
+		Resources: types.SliceTo(b.Apis, func(item *model.SysAPI) *admin.ResourceItem {
+			return NewResourceBuild(item).ToApi()
+		}),
+	}
+}
+
+// ToSelect 转换为Select数据
+func (b *TeamRoleBuild) ToSelect() *admin.Select {
+	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
+		return nil
+	}
+	return &admin.Select{
+		Value:    b.ID,
+		Label:    b.Name,
+		Disabled: b.DeletedAt > 0 || !b.Status.IsEnable(),
+	}
+}

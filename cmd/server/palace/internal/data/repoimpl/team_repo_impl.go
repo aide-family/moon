@@ -144,35 +144,28 @@ func (l *teamRepoImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*m
 }
 
 func (l *teamRepoImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
-	roles := make([]*model.SysTeamMemberRole, 0, len(params.Members))
 	members := types.SliceToWithFilter(params.Members, func(memberItem *bo.AddTeamMemberItem) (*model.SysTeamMember, bool) {
 		if types.IsNil(memberItem) {
 			return nil, false
 		}
-		userRoles := types.SliceToWithFilter(memberItem.RoleIds, func(roleId uint32) (*model.SysTeamMemberRole, bool) {
-			if roleId == 0 {
-				return nil, false
-			}
-			return &model.SysTeamMemberRole{
-				UserID: memberItem.UserID,
-				TeamID: params.ID,
-				RoleID: roleId,
-			}, true
-		})
-		roles = append(roles, userRoles...)
 		return &model.SysTeamMember{
 			UserID: memberItem.UserID,
 			TeamID: params.ID,
 			Status: vobj.StatusEnable,
 			Role:   memberItem.Role,
+			TeamRoles: types.SliceToWithFilter(memberItem.RoleIds, func(roleId uint32) (*model.SysTeamRole, bool) {
+				if roleId <= 0 {
+					return nil, false
+				}
+				return &model.SysTeamRole{
+					ID: roleId,
+				}, true
+			}),
 		}, true
 	})
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		if err := tx.SysTeamMember.WithContext(ctx).Create(members...); err != nil {
 			return err
-		}
-		if len(roles) > 0 {
-			return tx.SysTeamMemberRole.WithContext(ctx).Create(roles...)
 		}
 		return nil
 	})
@@ -189,7 +182,7 @@ func (l *teamRepoImpl) RemoveTeamMember(ctx context.Context, params *bo.RemoveTe
 			return err
 		}
 		if _, err := tx.SysTeamMemberRole.WithContext(ctx).
-			Where(query.SysTeamMemberRole.TeamID.Eq(params.ID), query.SysTeamMemberRole.UserID.In(params.MemberIds...)).
+			Where(query.SysTeamMemberRole.SysTeamMemberID.In(params.MemberIds...)).
 			Delete(); err != nil {
 			return err
 		}
@@ -206,29 +199,16 @@ func (l *teamRepoImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberA
 }
 
 func (l *teamRepoImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
-	roles := types.SliceToWithFilter(params.RoleIds, func(roleId uint32) (*model.SysTeamMemberRole, bool) {
+	roles := types.SliceToWithFilter(params.RoleIds, func(roleId uint32) (*model.SysTeamRole, bool) {
 		if roleId == 0 {
 			return nil, false
 		}
-		return &model.SysTeamMemberRole{
-			UserID: params.MemberID,
-			TeamID: params.ID,
-			RoleID: roleId,
+		return &model.SysTeamRole{
+			ID: roleId,
 		}, true
 	})
-	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		// 删除之前的全部角色信息
-		if _, err := tx.SysTeamMemberRole.WithContext(ctx).
-			Where(query.SysTeamMemberRole.TeamID.Eq(params.ID), query.SysTeamMemberRole.UserID.Eq(params.MemberID)).
-			Delete(); err != nil {
-			return err
-		}
-		if len(roles) > 0 {
-			// 创建新的角色信息
-			return tx.SysTeamMemberRole.WithContext(ctx).Create(roles...)
-		}
-		return nil
-	})
+	return query.Use(l.data.GetMainDB(ctx)).SysTeamMember.TeamRoles.
+		Model(&model.SysTeamMember{ID: params.MemberID}).Replace(roles...)
 }
 
 func (l *teamRepoImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*model.SysTeamMember, error) {
@@ -297,19 +277,5 @@ func (l *teamRepoImpl) GetUserTeamByID(ctx context.Context, userID, teamID uint3
 	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
 		query.SysTeamMember.TeamID.Eq(teamID),
 		query.SysTeamMember.UserID.Eq(userID),
-	).First()
-}
-
-func (l *teamRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*model.SysTeamMemberRole, error) {
-	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMemberRole.Where(
-		query.SysTeamMemberRole.TeamID.Eq(teamID),
-		query.SysTeamMemberRole.UserID.Eq(userID),
-	).Find()
-}
-
-func (l *teamRepoImpl) GetUserTeamRole(ctx context.Context, userID, teamID uint32) (*model.SysTeamMemberRole, error) {
-	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMemberRole.Where(
-		query.SysTeamMemberRole.TeamID.Eq(teamID),
-		query.SysTeamMemberRole.UserID.Eq(userID),
 	).First()
 }
