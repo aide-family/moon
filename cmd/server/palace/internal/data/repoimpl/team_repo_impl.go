@@ -43,6 +43,9 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 		teamId := sysTeamModel.ID
 		// 添加管理员成员
 		adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*model.SysTeamMember, bool) {
+			if memberId <= 0 {
+				return nil, false
+			}
 			return &model.SysTeamMember{
 				UserID: memberId,
 				TeamID: teamId,

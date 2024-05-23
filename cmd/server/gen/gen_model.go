@@ -55,6 +55,7 @@ func Run(datasource string, drive, outputPath string) {
 
 	usersTable := g.GenerateModel("sys_users")
 	teamTable := g.GenerateModel("sys_teams")
+	apiTable := g.GenerateModel("sys_apis")
 
 	tables := g.GenerateAllTable()
 	tables = append(tables, g.GenerateModel("sys_teams",
@@ -82,6 +83,13 @@ func Run(datasource string, drive, outputPath string) {
 				"foreignKey": []string{"TeamID"},
 			},
 			RelatePointer: true,
+		}),
+	), g.GenerateModel("sys_team_roles",
+		gen.FieldRelate(field.Many2Many, "Apis", apiTable, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"many2many": []string{"sys_team_role_apis"},
+			},
+			RelateSlicePointer: true,
 		}),
 	))
 

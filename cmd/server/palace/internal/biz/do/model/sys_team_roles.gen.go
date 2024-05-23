@@ -26,6 +26,7 @@ type SysTeamRole struct {
 	Name      string      `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`                                                      // 角色名称
 	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                           // 状态
 	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                   // 备注
+	Apis      []*SysAPI   `gorm:"many2many:sys_team_role_apis" json:"apis"`
 }
 
 // String json string

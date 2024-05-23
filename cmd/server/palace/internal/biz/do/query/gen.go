@@ -22,6 +22,7 @@ var (
 	SysTeamMember     *sysTeamMember
 	SysTeamMemberRole *sysTeamMemberRole
 	SysTeamRole       *sysTeamRole
+	SysTeamRoleAPI    *sysTeamRoleAPI
 	SysUser           *sysUser
 )
 
@@ -32,6 +33,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	SysTeamMember = &Q.SysTeamMember
 	SysTeamMemberRole = &Q.SysTeamMemberRole
 	SysTeamRole = &Q.SysTeamRole
+	SysTeamRoleAPI = &Q.SysTeamRoleAPI
 	SysUser = &Q.SysUser
 }
 
@@ -43,6 +45,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		SysTeamMember:     newSysTeamMember(db, opts...),
 		SysTeamMemberRole: newSysTeamMemberRole(db, opts...),
 		SysTeamRole:       newSysTeamRole(db, opts...),
+		SysTeamRoleAPI:    newSysTeamRoleAPI(db, opts...),
 		SysUser:           newSysUser(db, opts...),
 	}
 }
@@ -55,6 +58,7 @@ type Query struct {
 	SysTeamMember     sysTeamMember
 	SysTeamMemberRole sysTeamMemberRole
 	SysTeamRole       sysTeamRole
+	SysTeamRoleAPI    sysTeamRoleAPI
 	SysUser           sysUser
 }
 
@@ -68,6 +72,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		SysTeamMember:     q.SysTeamMember.clone(db),
 		SysTeamMemberRole: q.SysTeamMemberRole.clone(db),
 		SysTeamRole:       q.SysTeamRole.clone(db),
+		SysTeamRoleAPI:    q.SysTeamRoleAPI.clone(db),
 		SysUser:           q.SysUser.clone(db),
 	}
 }
@@ -88,6 +93,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		SysTeamMember:     q.SysTeamMember.replaceDB(db),
 		SysTeamMemberRole: q.SysTeamMemberRole.replaceDB(db),
 		SysTeamRole:       q.SysTeamRole.replaceDB(db),
+		SysTeamRoleAPI:    q.SysTeamRoleAPI.replaceDB(db),
 		SysUser:           q.SysUser.replaceDB(db),
 	}
 }
@@ -98,6 +104,7 @@ type queryCtx struct {
 	SysTeamMember     ISysTeamMemberDo
 	SysTeamMemberRole ISysTeamMemberRoleDo
 	SysTeamRole       ISysTeamRoleDo
+	SysTeamRoleAPI    ISysTeamRoleAPIDo
 	SysUser           ISysUserDo
 }
 
@@ -108,6 +115,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		SysTeamMember:     q.SysTeamMember.WithContext(ctx),
 		SysTeamMemberRole: q.SysTeamMemberRole.WithContext(ctx),
 		SysTeamRole:       q.SysTeamRole.WithContext(ctx),
+		SysTeamRoleAPI:    q.SysTeamRoleAPI.WithContext(ctx),
 		SysUser:           q.SysUser.WithContext(ctx),
 	}
 }
