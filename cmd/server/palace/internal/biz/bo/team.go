@@ -40,6 +40,9 @@ type (
 		CreatorID uint32 `json:"creatorID"`
 		// 负责人
 		LeaderID uint32 `json:"leaderID"`
+
+		// 指定人员的团队列表
+		UserID uint32 `json:"userID"`
 	}
 
 	AddTeamMemberItem struct {

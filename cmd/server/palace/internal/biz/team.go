@@ -3,13 +3,14 @@ package biz
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
 )
 
 func NewTeamBiz(teamRepo repo.TeamRepo) *TeamBiz {
@@ -47,6 +48,13 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, e
 
 // ListTeam 获取团队列表
 func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, bo.UnLoginErr
+	}
+	if !claims.IsAdminRole() {
+		params.UserID = claims.GetUser()
+	}
 	return t.teamRepo.GetTeamList(ctx, params)
 }
 
