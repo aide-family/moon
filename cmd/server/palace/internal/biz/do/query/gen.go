@@ -17,6 +17,7 @@ import (
 
 var (
 	Q                 = new(Query)
+	CasbinRule        *casbinRule
 	SysAPI            *sysAPI
 	SysTeam           *sysTeam
 	SysTeamMember     *sysTeamMember
@@ -27,6 +28,7 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	CasbinRule = &Q.CasbinRule
 	SysAPI = &Q.SysAPI
 	SysTeam = &Q.SysTeam
 	SysTeamMember = &Q.SysTeamMember
@@ -38,6 +40,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                db,
+		CasbinRule:        newCasbinRule(db, opts...),
 		SysAPI:            newSysAPI(db, opts...),
 		SysTeam:           newSysTeam(db, opts...),
 		SysTeamMember:     newSysTeamMember(db, opts...),
@@ -50,6 +53,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	CasbinRule        casbinRule
 	SysAPI            sysAPI
 	SysTeam           sysTeam
 	SysTeamMember     sysTeamMember
@@ -63,6 +67,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:                db,
+		CasbinRule:        q.CasbinRule.clone(db),
 		SysAPI:            q.SysAPI.clone(db),
 		SysTeam:           q.SysTeam.clone(db),
 		SysTeamMember:     q.SysTeamMember.clone(db),
@@ -83,6 +88,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:                db,
+		CasbinRule:        q.CasbinRule.replaceDB(db),
 		SysAPI:            q.SysAPI.replaceDB(db),
 		SysTeam:           q.SysTeam.replaceDB(db),
 		SysTeamMember:     q.SysTeamMember.replaceDB(db),
@@ -93,6 +99,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	CasbinRule        ICasbinRuleDo
 	SysAPI            ISysAPIDo
 	SysTeam           ISysTeamDo
 	SysTeamMember     ISysTeamMemberDo
@@ -103,6 +110,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		CasbinRule:        q.CasbinRule.WithContext(ctx),
 		SysAPI:            q.SysAPI.WithContext(ctx),
 		SysTeam:           q.SysTeam.WithContext(ctx),
 		SysTeamMember:     q.SysTeamMember.WithContext(ctx),

@@ -59,6 +59,8 @@ func Run(datasource string, drive, outputPath string) {
 	sysTeamRoleTable := g.GenerateModel("sys_team_roles")
 	// sys_team_member_roles
 	sysTeamMemberRoleTable := g.GenerateModel("sys_team_member_roles")
+	// casbin_rule
+	casbinRuleTable := g.GenerateModel("casbin_rule")
 
 	//tables := g.GenerateAllTable()
 	var tables []any
@@ -108,7 +110,7 @@ func Run(datasource string, drive, outputPath string) {
 			},
 			RelateSlicePointer: true,
 		}),
-	), sysTeamMemberRoleTable, usersTable)
+	), sysTeamMemberRoleTable, usersTable, casbinRuleTable)
 
 	g.ApplyBasic(tables...)
 

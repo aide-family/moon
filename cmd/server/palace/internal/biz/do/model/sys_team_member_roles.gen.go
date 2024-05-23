@@ -14,12 +14,11 @@ import (
 
 const TableNameSysTeamMemberRole = "sys_team_member_roles"
 
-// SysTeamMemberRole mapped from table <sys_team_member_roles>
+// SysTeamMemberRole 团队人员角色关联表
 type SysTeamMemberRole struct {
 	SysTeamMemberID uint32 `gorm:"column:sys_team_member_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team_id__role_id,priority:1;comment:团队用户ID" json:"sys_team_member_id"` // 团队用户ID
 	SysTeamRoleID   uint32 `gorm:"column:sys_team_role_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team_id__role_id,priority:2;comment:团队角色ID" json:"sys_team_role_id"`     // 团队角色ID
-	ID              uint32 `gorm:"column:id;type:int;primaryKey" json:"id"`
-	TeamID          int32  `gorm:"column:team_id;type:int;not null;index:idx__s__team_id,priority:1;comment:团队ID" json:"team_id"` // 团队ID
+	ID              uint32 `gorm:"column:id;type:int unsigned;primaryKey" json:"id"`
 }
 
 // String json string

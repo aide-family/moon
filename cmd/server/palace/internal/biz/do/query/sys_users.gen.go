@@ -48,6 +48,7 @@ func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
 	return _sysUser
 }
 
+// sysUser 系统人员表
 type sysUser struct {
 	sysUserDo
 

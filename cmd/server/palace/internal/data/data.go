@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -53,6 +54,11 @@ func NewData(c *conf.Bootstrap) (*Data, func(), error) {
 			log.Debugw("close main db", mainDBClose.Close())
 		})
 		query.SetDefault(mainDB)
+		d.enforcer, err = rbac.InitCasbinModel(d.mainDB)
+		if err != nil {
+			log.Errorw("casbin init error", err)
+			return nil, nil, err
+		}
 	}
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {

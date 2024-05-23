@@ -30,13 +30,13 @@ func newSysTeamMemberRole(db *gorm.DB, opts ...gen.DOOption) sysTeamMemberRole {
 	_sysTeamMemberRole.SysTeamMemberID = field.NewUint32(tableName, "sys_team_member_id")
 	_sysTeamMemberRole.SysTeamRoleID = field.NewUint32(tableName, "sys_team_role_id")
 	_sysTeamMemberRole.ID = field.NewUint32(tableName, "id")
-	_sysTeamMemberRole.TeamID = field.NewInt32(tableName, "team_id")
 
 	_sysTeamMemberRole.fillFieldMap()
 
 	return _sysTeamMemberRole
 }
 
+// sysTeamMemberRole 团队人员角色关联表
 type sysTeamMemberRole struct {
 	sysTeamMemberRoleDo
 
@@ -44,7 +44,6 @@ type sysTeamMemberRole struct {
 	SysTeamMemberID field.Uint32 // 团队用户ID
 	SysTeamRoleID   field.Uint32 // 团队角色ID
 	ID              field.Uint32
-	TeamID          field.Int32 // 团队ID
 
 	fieldMap map[string]field.Expr
 }
@@ -64,7 +63,6 @@ func (s *sysTeamMemberRole) updateTableName(table string) *sysTeamMemberRole {
 	s.SysTeamMemberID = field.NewUint32(table, "sys_team_member_id")
 	s.SysTeamRoleID = field.NewUint32(table, "sys_team_role_id")
 	s.ID = field.NewUint32(table, "id")
-	s.TeamID = field.NewInt32(table, "team_id")
 
 	s.fillFieldMap()
 
@@ -81,11 +79,10 @@ func (s *sysTeamMemberRole) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (s *sysTeamMemberRole) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 4)
+	s.fieldMap = make(map[string]field.Expr, 3)
 	s.fieldMap["sys_team_member_id"] = s.SysTeamMemberID
 	s.fieldMap["sys_team_role_id"] = s.SysTeamRoleID
 	s.fieldMap["id"] = s.ID
-	s.fieldMap["team_id"] = s.TeamID
 }
 
 func (s sysTeamMemberRole) clone(db *gorm.DB) sysTeamMemberRole {

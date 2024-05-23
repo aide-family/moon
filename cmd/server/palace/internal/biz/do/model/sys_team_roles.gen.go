@@ -16,7 +16,7 @@ import (
 
 const TableNameSysTeamRole = "sys_team_roles"
 
-// SysTeamRole mapped from table <sys_team_roles>
+// SysTeamRole 团队角色表
 type SysTeamRole struct {
 	ID        uint32      `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	CreatedAt *types.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间

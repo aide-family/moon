@@ -46,6 +46,7 @@ func newSysTeamRole(db *gorm.DB, opts ...gen.DOOption) sysTeamRole {
 	return _sysTeamRole
 }
 
+// sysTeamRole 团队角色表
 type sysTeamRole struct {
 	sysTeamRoleDo
 
