@@ -43,7 +43,14 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 
 // GetTeam 获取团队信息
 func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, error) {
-	return t.teamRepo.GetTeamDetail(ctx, teamId)
+	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamId}})
+	if err != nil {
+		return nil, err
+	}
+	if len(teamList) == 0 {
+		return nil, bo.TeamNotFoundErr
+	}
+	return teamList[0], nil
 }
 
 // ListTeam 获取团队列表

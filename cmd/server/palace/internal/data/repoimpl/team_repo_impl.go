@@ -89,15 +89,24 @@ func (l *teamRepoImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamList
 	if params.LeaderID > 0 {
 		q = q.Where(query.SysTeam.LeaderID.Eq(params.LeaderID))
 	}
+	var teamIds []uint32
+	queryTeamIds := false
 	if params.UserID > 0 {
-		var teamIds []uint32
+		queryTeamIds = true
 		if err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
 			query.SysTeamMember.UserID.Eq(params.UserID),
 		).Pluck(query.SysTeamMember.TeamID, &teamIds); err != nil {
 			return nil, err
 		}
+	}
+	if len(params.IDs) > 0 {
+		queryTeamIds = true
+		teamIds = append(teamIds, params.IDs...)
+	}
+	if queryTeamIds {
 		q = q.Where(query.SysTeam.ID.In(teamIds...))
 	}
+
 	if !types.IsNil(params.Page) {
 		total, err := q.Count()
 		if err != nil {
