@@ -58,7 +58,6 @@ func newSysTeamMember(db *gorm.DB, opts ...gen.DOOption) sysTeamMember {
 	return _sysTeamMember
 }
 
-// sysTeamMember 团队人员表
 type sysTeamMember struct {
 	sysTeamMemberDo
 

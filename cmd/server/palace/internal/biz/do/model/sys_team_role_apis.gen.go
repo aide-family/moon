@@ -16,9 +16,8 @@ const TableNameSysTeamRoleAPI = "sys_team_role_apis"
 
 // SysTeamRoleAPI mapped from table <sys_team_role_apis>
 type SysTeamRoleAPI struct {
-	SysAPIID      uint32 `gorm:"column:sys_api_id;type:int unsigned;not null;uniqueIndex:idx__api_id__team_role_id,priority:1" json:"sys_api_id"`
-	SysTeamRoleID uint32 `gorm:"column:sys_team_role_id;type:int unsigned;not null;uniqueIndex:idx__api_id__team_role_id,priority:2" json:"sys_team_role_id"`
-	ID            uint32 `gorm:"column:id;type:int unsigned;primaryKey" json:"id"`
+	SysTeamRoleID uint32 `gorm:"column:sys_team_role_id;type:int unsigned;primaryKey" json:"sys_team_role_id"`
+	SysAPIID      uint32 `gorm:"column:sys_api_id;type:int unsigned;primaryKey" json:"sys_api_id"`
 }
 
 // String json string
@@ -45,19 +44,9 @@ func (c *SysTeamRoleAPI) Update(ctx context.Context, tx *gorm.DB, conds []gen.Co
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
-// UpdateByID update func
-func (c *SysTeamRoleAPI) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Delete func
 func (c *SysTeamRoleAPI) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
-// DeleteByID delete func
-func (c *SysTeamRoleAPI) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // TableName SysTeamRoleAPI's table name

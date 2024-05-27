@@ -15,7 +15,7 @@ import (
 
 const TableNameSysUser = "sys_users"
 
-// SysUser 系统人员表
+// SysUser mapped from table <sys_users>
 type SysUser struct {
 	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	CreatedAt *time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`              // 创建时间

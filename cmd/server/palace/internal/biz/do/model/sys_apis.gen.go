@@ -17,7 +17,7 @@ const TableNameSysAPI = "sys_apis"
 
 // SysAPI mapped from table <sys_apis>
 type SysAPI struct {
-	ID           uint32         `gorm:"column:id;type:bigint unsigned;primaryKey;autoIncrement:true" json:"id"`
+	ID           uint32         `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	CreatedAt    *time.Time     `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`    // 创建时间
 	UpdatedAt    *time.Time     `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`    // 更新时间
 	Name         string         `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:api名称" json:"name"`  // api名称

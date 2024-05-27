@@ -27,9 +27,8 @@ func newSysTeamRoleAPI(db *gorm.DB, opts ...gen.DOOption) sysTeamRoleAPI {
 
 	tableName := _sysTeamRoleAPI.sysTeamRoleAPIDo.TableName()
 	_sysTeamRoleAPI.ALL = field.NewAsterisk(tableName)
-	_sysTeamRoleAPI.SysAPIID = field.NewUint32(tableName, "sys_api_id")
 	_sysTeamRoleAPI.SysTeamRoleID = field.NewUint32(tableName, "sys_team_role_id")
-	_sysTeamRoleAPI.ID = field.NewUint32(tableName, "id")
+	_sysTeamRoleAPI.SysAPIID = field.NewUint32(tableName, "sys_api_id")
 
 	_sysTeamRoleAPI.fillFieldMap()
 
@@ -40,9 +39,8 @@ type sysTeamRoleAPI struct {
 	sysTeamRoleAPIDo
 
 	ALL           field.Asterisk
-	SysAPIID      field.Uint32
 	SysTeamRoleID field.Uint32
-	ID            field.Uint32
+	SysAPIID      field.Uint32
 
 	fieldMap map[string]field.Expr
 }
@@ -59,9 +57,8 @@ func (s sysTeamRoleAPI) As(alias string) *sysTeamRoleAPI {
 
 func (s *sysTeamRoleAPI) updateTableName(table string) *sysTeamRoleAPI {
 	s.ALL = field.NewAsterisk(table)
-	s.SysAPIID = field.NewUint32(table, "sys_api_id")
 	s.SysTeamRoleID = field.NewUint32(table, "sys_team_role_id")
-	s.ID = field.NewUint32(table, "id")
+	s.SysAPIID = field.NewUint32(table, "sys_api_id")
 
 	s.fillFieldMap()
 
@@ -78,10 +75,9 @@ func (s *sysTeamRoleAPI) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (s *sysTeamRoleAPI) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 3)
-	s.fieldMap["sys_api_id"] = s.SysAPIID
+	s.fieldMap = make(map[string]field.Expr, 2)
 	s.fieldMap["sys_team_role_id"] = s.SysTeamRoleID
-	s.fieldMap["id"] = s.ID
+	s.fieldMap["sys_api_id"] = s.SysAPIID
 }
 
 func (s sysTeamRoleAPI) clone(db *gorm.DB) sysTeamRoleAPI {
