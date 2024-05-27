@@ -37,6 +37,24 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.CreatedAt = field.NewTime(tableName, "created_at")
 	_datasource.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_datasource.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_datasource.Metrics = datasourceHasManyMetrics{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Metrics", "model.DatasourceMetric"),
+		Labels: struct {
+			field.RelationField
+			Labels struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Metrics.Labels", "model.MetricLabel"),
+			Labels: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Metrics.Labels.Labels", "model.DatasourceLabelValue"),
+			},
+		},
+	}
 
 	_datasource.fillFieldMap()
 
@@ -57,6 +75,7 @@ type datasource struct {
 	CreatedAt field.Time   // 创建时间
 	UpdatedAt field.Time   // 更新时间
 	DeletedAt field.Int64  // 删除时间
+	Metrics   datasourceHasManyMetrics
 
 	fieldMap map[string]field.Expr
 }
@@ -99,7 +118,7 @@ func (d *datasource) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *datasource) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 10)
+	d.fieldMap = make(map[string]field.Expr, 11)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["name"] = d.Name
 	d.fieldMap["category"] = d.Category
@@ -110,6 +129,7 @@ func (d *datasource) fillFieldMap() {
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
 	d.fieldMap["deleted_at"] = d.DeletedAt
+
 }
 
 func (d datasource) clone(db *gorm.DB) datasource {
@@ -120,6 +140,84 @@ func (d datasource) clone(db *gorm.DB) datasource {
 func (d datasource) replaceDB(db *gorm.DB) datasource {
 	d.datasourceDo.ReplaceDB(db)
 	return d
+}
+
+type datasourceHasManyMetrics struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Labels struct {
+		field.RelationField
+		Labels struct {
+			field.RelationField
+		}
+	}
+}
+
+func (a datasourceHasManyMetrics) Where(conds ...field.Expr) *datasourceHasManyMetrics {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a datasourceHasManyMetrics) WithContext(ctx context.Context) *datasourceHasManyMetrics {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a datasourceHasManyMetrics) Session(session *gorm.Session) *datasourceHasManyMetrics {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a datasourceHasManyMetrics) Model(m *model.Datasource) *datasourceHasManyMetricsTx {
+	return &datasourceHasManyMetricsTx{a.db.Model(m).Association(a.Name())}
+}
+
+type datasourceHasManyMetricsTx struct{ tx *gorm.Association }
+
+func (a datasourceHasManyMetricsTx) Find() (result []*model.DatasourceMetric, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a datasourceHasManyMetricsTx) Append(values ...*model.DatasourceMetric) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a datasourceHasManyMetricsTx) Replace(values ...*model.DatasourceMetric) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a datasourceHasManyMetricsTx) Delete(values ...*model.DatasourceMetric) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a datasourceHasManyMetricsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a datasourceHasManyMetricsTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type datasourceDo struct{ gen.DO }

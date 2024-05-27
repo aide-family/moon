@@ -60,8 +60,37 @@ func Run(datasource string, drive, outputPath string) {
 	sysTeamMemberRoleTable := g.GenerateModel("sys_team_member_roles")
 	// casbin_rule
 	casbinRuleTable := g.GenerateModel("casbin_rule")
+
+	// datasource_label_values
+	datasourceLabelValuesTab := g.GenerateModel("datasource_label_values")
+	// metric_labels
+	metricsLabelTab := g.GenerateModel("metric_labels",
+		gen.FieldRelate(field.HasMany, "Labels", datasourceLabelValuesTab, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"foreignKey": []string{"LabelID"},
+			},
+			RelateSlicePointer: true,
+		}),
+	)
+	// datasource_metrics
+	datasourceMetricsTab := g.GenerateModel("datasource_metrics",
+		gen.FieldRelate(field.HasMany, "Labels", metricsLabelTab, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"foreignKey": []string{"MetricID"},
+			},
+			RelateSlicePointer: true,
+		}),
+	)
+
 	// datasource
-	datasourceTab := g.GenerateModel("datasource")
+	datasourceTab := g.GenerateModel("datasource",
+		gen.FieldRelate(field.HasMany, "Metrics", datasourceMetricsTab, &field.RelateConfig{
+			GORMTag: field.GormTag{
+				"foreignKey": []string{"DatasourceID"},
+			},
+			RelateSlicePointer: true,
+		}),
+	)
 
 	//tables := g.GenerateAllTable()
 	var tables []any
