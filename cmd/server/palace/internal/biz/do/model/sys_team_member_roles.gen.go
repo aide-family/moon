@@ -16,9 +16,8 @@ const TableNameSysTeamMemberRole = "sys_team_member_roles"
 
 // SysTeamMemberRole 团队人员角色关联表
 type SysTeamMemberRole struct {
-	SysTeamMemberID uint32 `gorm:"column:sys_team_member_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team_id__role_id,priority:1;comment:团队用户ID" json:"sys_team_member_id"` // 团队用户ID
-	SysTeamRoleID   uint32 `gorm:"column:sys_team_role_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team_id__role_id,priority:2;comment:团队角色ID" json:"sys_team_role_id"`     // 团队角色ID
-	ID              uint32 `gorm:"column:id;type:int unsigned;primaryKey" json:"id"`
+	SysTeamMemberID uint32 `gorm:"column:sys_team_member_id;type:int unsigned;primaryKey;uniqueIndex:idx__user_id__team_id__role_id,priority:1;comment:团队用户ID" json:"sys_team_member_id"` // 团队用户ID
+	SysTeamRoleID   uint32 `gorm:"column:sys_team_role_id;type:int unsigned;primaryKey;uniqueIndex:idx__user_id__team_id__role_id,priority:2;comment:团队角色ID" json:"sys_team_role_id"`     // 团队角色ID
 }
 
 // String json string
@@ -45,19 +44,9 @@ func (c *SysTeamMemberRole) Update(ctx context.Context, tx *gorm.DB, conds []gen
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
-// UpdateByID update func
-func (c *SysTeamMemberRole) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Delete func
 func (c *SysTeamMemberRole) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
-// DeleteByID delete func
-func (c *SysTeamMemberRole) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // TableName SysTeamMemberRole's table name

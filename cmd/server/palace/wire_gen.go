@@ -53,7 +53,10 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	resourceService := resource.NewResourceService(resourceBiz)
 	teamBiz := biz.NewTeamBiz(teamRepo)
 	teamService := team.NewTeamService(teamBiz)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService, resourceService, teamService)
+	teamRoleRepo := repoimpl.NewTeamRoleRepo(dataData)
+	teamRoleBiz := biz.NewTeamRoleBiz(teamRoleRepo)
+	roleService := team.NewRoleService(teamRoleBiz)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService, resourceService, teamService, roleService)
 	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
 		cleanup()

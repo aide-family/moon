@@ -8,6 +8,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
@@ -87,7 +88,7 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return bo.SystemErr.WithCause(err)
 	}
-	if !claims.Role.IsSuperadmin() && userDo.Role.IsAdmin() {
+	if !claims.Role.IsSuperadmin() && vobj.Role(userDo.Role).IsAdmin() {
 		return bo.AdminUserDeleteErr
 	}
 	// 记录操作日志
@@ -133,7 +134,7 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 			return bo.SystemErr.WithCause(err)
 		}
 		for _, user := range userDos {
-			if user.Role.IsAdmin() {
+			if vobj.Role(user.Role).IsAdmin() {
 				return bo.NoPermissionErr.WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 			}
 		}

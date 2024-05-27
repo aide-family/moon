@@ -27,23 +27,21 @@ type teamRoleRepoImpl struct {
 }
 
 func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*model.SysTeamRole, error) {
-	sysTeamRoleModel := &model.SysTeamRole{
-		TeamID: teamRole.TeamID,
-		Name:   teamRole.Name,
-		Status: teamRole.Status,
-		Remark: teamRole.Remark,
-	}
 	apis, err := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx).Where(query.SysAPI.ID.In(teamRole.Permissions...)).Find()
 	if err != nil {
 		return nil, err
 	}
+	sysTeamRoleModel := &model.SysTeamRole{
+		TeamID: teamRole.TeamID,
+		Name:   teamRole.Name,
+		Status: teamRole.Status.GetValue(),
+		Remark: teamRole.Remark,
+		Apis:   apis,
+	}
+
 	err = query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		// 创建角色
 		if err := tx.SysTeamRole.WithContext(ctx).Create(sysTeamRoleModel); err != nil {
-			return err
-		}
-		// 添加api关联
-		if err := tx.SysTeamRole.Apis.WithContext(ctx).Model(sysTeamRoleModel).Append(apis...); err != nil {
 			return err
 		}
 		roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
@@ -79,14 +77,14 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 	}
 	roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
+		if err = tx.SysTeamRole.Apis.WithContext(ctx).Model(sysTeamRoleModel).Replace(apis...); err != nil {
+			return err
+		}
+
 		if _, err = tx.SysTeamRole.WithContext(ctx).Where(tx.SysTeamRole.ID.Eq(sysTeamRoleModel.ID)).UpdateColumnSimple(
 			tx.SysTeamRole.Name.Value(teamRole.Name),
 			tx.SysTeamRole.Remark.Value(teamRole.Remark),
 		); err != nil {
-			return err
-		}
-
-		if err = tx.SysTeamRole.Apis.WithContext(ctx).Model(sysTeamRoleModel).Replace(apis...); err != nil {
 			return err
 		}
 
@@ -176,7 +174,7 @@ func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		if _, err := query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
 			Where(query.SysTeamRole.ID.In(ids...)).
-			UpdateColumnSimple(query.SysTeamRole.Status.Value(status)); err != nil {
+			UpdateColumnSimple(query.SysTeamRole.Status.Value(status.GetValue())); err != nil {
 			return err
 		}
 		// 启用则创建权限

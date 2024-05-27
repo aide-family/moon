@@ -42,16 +42,15 @@ func Run(datasource string, drive, outputPath string) {
 	g.WithOpts(gen.WithMethod(new(CommonMethod).MarshalBinary))
 	g.WithOpts(gen.WithMethod(new(CommonMethod).Create))
 	g.WithOpts(gen.WithMethod(new(CommonMethod).Update))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).UpdateByID))
 	g.WithOpts(gen.WithMethod(new(CommonMethod).Delete))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).DeleteByID))
 
 	g.WithOpts(gen.FieldType("id", "uint32"),
-		gen.FieldType("gender", "vobj.Gender"),
-		gen.FieldType("status", "vobj.Status"),
-		gen.FieldType("role", "vobj.Role"),
-		gen.FieldType("updated_at", "*types.Time"),
-		gen.FieldType("created_at", "*types.Time"))
+		gen.FieldType("gender", "int"),
+		gen.FieldType("status", "int"),
+		gen.FieldType("role", "int"),
+		//gen.FieldType("updated_at", "*types.Time"),
+		//gen.FieldType("created_at", "*types.Time"),
+	)
 
 	usersTable := g.GenerateModel("sys_users")
 	teamTable := g.GenerateModel("sys_teams")

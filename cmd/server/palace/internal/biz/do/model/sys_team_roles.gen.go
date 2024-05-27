@@ -7,9 +7,8 @@ package model
 import (
 	"context"
 	"encoding/json"
+	"time"
 
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -18,15 +17,15 @@ const TableNameSysTeamRole = "sys_team_roles"
 
 // SysTeamRole 团队角色表
 type SysTeamRole struct {
-	ID        uint32      `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt *types.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt *types.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
-	DeletedAt int64       `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
-	TeamID    uint32      `gorm:"column:team_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team__id,priority:1;comment:团队ID" json:"team_id"` // 团队ID
-	Name      string      `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`                                                      // 角色名称
-	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                           // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                   // 备注
-	Apis      []*SysAPI   `gorm:"many2many:sys_team_role_apis" json:"apis"`
+	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	CreatedAt *time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
+	UpdatedAt *time.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
+	DeletedAt int64      `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
+	TeamID    uint32     `gorm:"column:team_id;type:int unsigned;not null;comment:团队ID" json:"team_id"` // 团队ID
+	Name      string     `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`        // 角色名称
+	Status    int        `gorm:"column:status;type:int;not null;comment:状态" json:"status"`              // 状态
+	Remark    string     `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`     // 备注
+	Apis      []*SysAPI  `gorm:"many2many:sys_team_role_apis" json:"apis"`
 }
 
 // String json string
@@ -53,19 +52,9 @@ func (c *SysTeamRole) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condi
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
-// UpdateByID update func
-func (c *SysTeamRole) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Delete func
 func (c *SysTeamRole) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
-// DeleteByID delete func
-func (c *SysTeamRole) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // TableName SysTeamRole's table name

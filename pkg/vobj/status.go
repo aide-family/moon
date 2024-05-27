@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 )
 
-var _ driver.Valuer = Status(0)
+//var _ driver.Valuer = Status(0)
 
 // Status 数据状态
 //

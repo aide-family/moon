@@ -55,7 +55,7 @@ message ListResourceRequest {
 	string keyword = 2 [(buf.validate.field).cel = {
 		id: "keyword",
 		message: "关键字查询限制在20字以内",
-		expression: "this.size <= 20"
+		expression: "this.size() <= 20"
 	}];
 }
 message ListResourceReply {
@@ -84,7 +84,7 @@ message GetResourceSelectListRequest {
 	string keyword = 2 [(buf.validate.field).cel = {
 		id: "keyword",
 		message: "关键字查询限制在20字以内",
-		expression: "this.size <= 20"
+		expression: "this.size() <= 20"
 	}];
 }
 message GetResourceSelectListReply {

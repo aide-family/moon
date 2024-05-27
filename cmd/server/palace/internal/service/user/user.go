@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-cloud/moon/api/admin"
 	pb "github.com/aide-cloud/moon/api/admin/user"
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
@@ -46,16 +47,32 @@ func decryptPassword(password string) (string, error) {
 	return pass, nil
 }
 
+// 加密传输密码字符串
+func encryptPassword(password string) (string, error) {
+	aes, err := cipher.NewAes(defaultKey, defaultIv)
+	if err != nil {
+		return "", bo.SystemErr.WithCause(err)
+	}
+	encryptBase64Pass, err := aes.EncryptBase64([]byte(password))
+	if err != nil {
+		return "", bo.SystemErr.WithCause(err)
+	}
+	return encryptBase64Pass, nil
+}
+
 // CreateUser 创建用户 只允许管理员操作
 func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
 	pass, err := decryptPassword(req.GetPassword())
 	if err != nil {
-		return nil, err
+		return nil, merr.ErrorAlert("请使用加密后的密文传输").WithMetadata(map[string]string{
+			"password": "请使用加密密文",
+		})
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, bo.UnLoginErr
 	}
+
 	createParams := &bo.CreateUserParams{
 		Name:      req.GetName(),
 		Password:  types.NewPassword(pass),

@@ -28,13 +28,13 @@ func newSysTeamMember(db *gorm.DB, opts ...gen.DOOption) sysTeamMember {
 	tableName := _sysTeamMember.sysTeamMemberDo.TableName()
 	_sysTeamMember.ALL = field.NewAsterisk(tableName)
 	_sysTeamMember.ID = field.NewUint32(tableName, "id")
-	_sysTeamMember.CreatedAt = field.NewField(tableName, "created_at")
-	_sysTeamMember.UpdatedAt = field.NewField(tableName, "updated_at")
+	_sysTeamMember.CreatedAt = field.NewTime(tableName, "created_at")
+	_sysTeamMember.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysTeamMember.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysTeamMember.UserID = field.NewUint32(tableName, "user_id")
 	_sysTeamMember.TeamID = field.NewUint32(tableName, "team_id")
-	_sysTeamMember.Status = field.NewField(tableName, "status")
-	_sysTeamMember.Role = field.NewField(tableName, "role")
+	_sysTeamMember.Status = field.NewInt(tableName, "status")
+	_sysTeamMember.Role = field.NewInt(tableName, "role")
 	_sysTeamMember.Member = sysTeamMemberHasOneMember{
 		db: db.Session(&gorm.Session{}),
 
@@ -64,13 +64,13 @@ type sysTeamMember struct {
 
 	ALL       field.Asterisk
 	ID        field.Uint32
-	CreatedAt field.Field // 创建时间
-	UpdatedAt field.Field // 更新时间
+	CreatedAt field.Time // 创建时间
+	UpdatedAt field.Time // 更新时间
 	DeletedAt field.Int64
 	UserID    field.Uint32 // 系统用户ID
 	TeamID    field.Uint32 // 团队ID
-	Status    field.Field  // 状态
-	Role      field.Field  // 是否是管理员
+	Status    field.Int    // 状态
+	Role      field.Int    // 是否是管理员
 	Member    sysTeamMemberHasOneMember
 
 	Team sysTeamMemberHasOneTeam
@@ -93,13 +93,13 @@ func (s sysTeamMember) As(alias string) *sysTeamMember {
 func (s *sysTeamMember) updateTableName(table string) *sysTeamMember {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewField(table, "created_at")
-	s.UpdatedAt = field.NewField(table, "updated_at")
+	s.CreatedAt = field.NewTime(table, "created_at")
+	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.UserID = field.NewUint32(table, "user_id")
 	s.TeamID = field.NewUint32(table, "team_id")
-	s.Status = field.NewField(table, "status")
-	s.Role = field.NewField(table, "role")
+	s.Status = field.NewInt(table, "status")
+	s.Role = field.NewInt(table, "role")
 
 	s.fillFieldMap()
 

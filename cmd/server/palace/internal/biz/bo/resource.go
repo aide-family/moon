@@ -32,6 +32,6 @@ func (b *ResourceSelectOptionBuild) ToSelectOption() *SelectOptionBo {
 	return &SelectOptionBo{
 		Value:    b.ID,
 		Label:    b.Name,
-		Disabled: b.Status == vobj.StatusDisable,
+		Disabled: !vobj.Status(b.Status).IsEnable(),
 	}
 }

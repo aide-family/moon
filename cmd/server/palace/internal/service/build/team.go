@@ -5,6 +5,7 @@ import (
 	"github.com/aide-cloud/moon/api/admin"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type TeamBuild struct {
@@ -71,6 +72,6 @@ func (b *TeamRoleBuild) ToSelect() *admin.Select {
 	return &admin.Select{
 		Value:    b.ID,
 		Label:    b.Name,
-		Disabled: b.DeletedAt > 0 || !b.Status.IsEnable(),
+		Disabled: b.DeletedAt > 0 || !vobj.Status(b.Status).IsEnable(),
 	}
 }

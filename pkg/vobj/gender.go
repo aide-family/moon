@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 )
 
-var _ driver.Valuer = Gender(0)
+//var _ driver.Valuer = Gender(0)
 
 // Gender 性别
 //

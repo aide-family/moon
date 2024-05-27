@@ -52,6 +52,7 @@ func RegisterService(
 	authorizationService *authorization.Service,
 	resourceService *resource.Service,
 	teamService *team.Service,
+	teamRoleService *team.RoleService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -59,6 +60,7 @@ func RegisterService(
 	authorizationapi.RegisterAuthorizationServer(rpcSrv, authorizationService)
 	resourceapi.RegisterResourceServer(rpcSrv, resourceService)
 	teamapi.RegisterTeamServer(rpcSrv, teamService)
+	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -66,6 +68,7 @@ func RegisterService(
 	authorizationapi.RegisterAuthorizationHTTPServer(httpSrv, authorizationService)
 	resourceapi.RegisterResourceHTTPServer(httpSrv, resourceService)
 	teamapi.RegisterTeamHTTPServer(httpSrv, teamService)
+	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

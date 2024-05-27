@@ -28,7 +28,7 @@ type teamRepoImpl struct {
 func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
 	sysTeamModel := &model.SysTeam{
 		Name:      team.Name,
-		Status:    team.Status,
+		Status:    team.Status.GetValue(),
 		Remark:    team.Remark,
 		Logo:      team.Logo,
 		LeaderID:  team.LeaderID,
@@ -49,9 +49,15 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 			return &model.SysTeamMember{
 				UserID: memberId,
 				TeamID: teamId,
-				Status: vobj.StatusEnable,
-				Role:   vobj.RoleAdmin,
+				Status: vobj.StatusEnable.GetValue(),
+				Role:   vobj.RoleAdmin.GetValue(),
 			}, true
+		})
+		adminMembers = append(adminMembers, &model.SysTeamMember{
+			UserID: sysTeamModel.LeaderID,
+			TeamID: teamId,
+			Status: vobj.StatusEnable.GetValue(),
+			Role:   vobj.RoleAdmin.GetValue(),
 		})
 		if err := tx.SysTeamMember.Create(adminMembers...); err != nil {
 			return err
@@ -84,7 +90,7 @@ func (l *teamRepoImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamList
 		q = q.Where(query.SysTeam.Name.Like(params.Keyword))
 	}
 	if !params.Status.IsUnknown() {
-		q = q.Where(query.SysTeam.Status.Eq(params.Status))
+		q = q.Where(query.SysTeam.Status.Eq(params.Status.GetValue()))
 	}
 	if params.CreatorID > 0 {
 		q = q.Where(query.SysTeam.CreatorID.Eq(params.CreatorID))
@@ -129,7 +135,7 @@ func (l *teamRepoImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamList
 
 func (l *teamRepoImpl) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.Where(query.SysTeam.ID.In(ids...)).
-		UpdateColumnSimple(query.SysTeam.Status.Value(status))
+		UpdateColumnSimple(query.SysTeam.Status.Value(status.GetValue()))
 	return err
 }
 
@@ -151,8 +157,8 @@ func (l *teamRepoImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemb
 		return &model.SysTeamMember{
 			UserID: memberItem.UserID,
 			TeamID: params.ID,
-			Status: vobj.StatusEnable,
-			Role:   memberItem.Role,
+			Status: vobj.StatusEnable.GetValue(),
+			Role:   memberItem.Role.GetValue(),
 			TeamRoles: types.SliceToWithFilter(memberItem.RoleIds, func(roleId uint32) (*model.SysTeamRole, bool) {
 				if roleId <= 0 {
 					return nil, false
@@ -194,7 +200,7 @@ func (l *teamRepoImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberA
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
 		query.SysTeamMember.TeamID.Eq(params.ID),
 		query.SysTeamMember.UserID.In(params.MemberIds...),
-	).UpdateColumnSimple(query.SysTeamMember.Role.Value(params.Role))
+	).UpdateColumnSimple(query.SysTeamMember.Role.Value(params.Role.GetValue()))
 	return err
 }
 
@@ -218,13 +224,13 @@ func (l *teamRepoImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMe
 		ons = append(ons, query.SysUser.Username.Like(params.Keyword))
 	}
 	if !params.Gender.IsUnknown() {
-		ons = append(ons, query.SysUser.Gender.Eq(params.Gender))
+		ons = append(ons, query.SysUser.Gender.Eq(params.Gender.GetValue()))
 	}
 	if !params.Role.IsAll() {
-		wheres = append(wheres, query.SysTeamMember.Role.Eq(params.Role))
+		wheres = append(wheres, query.SysTeamMember.Role.Eq(params.Role.GetValue()))
 	}
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, query.SysTeamMember.Status.Eq(params.Status))
+		wheres = append(wheres, query.SysTeamMember.Status.Eq(params.Status.GetValue()))
 	}
 	if len(params.MemberIDs) > 0 {
 		wheres = append(wheres, query.SysTeamMember.UserID.In(params.MemberIDs...))
@@ -253,14 +259,14 @@ func (l *teamRepoImpl) TransferTeamLeader(ctx context.Context, params *bo.Transf
 		if _, err := tx.SysTeamMember.WithContext(ctx).Where(
 			query.SysTeamMember.TeamID.Eq(params.ID),
 			query.SysTeamMember.UserID.Eq(params.LeaderID),
-		).UpdateColumnSimple(query.SysTeamMember.Role.Value(vobj.RoleSuperAdmin)); err != nil {
+		).UpdateColumnSimple(query.SysTeamMember.Role.Value(vobj.RoleSuperAdmin.GetValue())); err != nil {
 			return err
 		}
 		// 设置老管理员
 		if _, err := tx.SysTeamMember.WithContext(ctx).Where(
 			query.SysTeamMember.TeamID.Eq(params.ID),
 			query.SysTeamMember.UserID.Neq(params.OldLeaderID),
-		).UpdateColumnSimple(query.SysTeamMember.Role.Value(vobj.RoleAdmin)); err != nil {
+		).UpdateColumnSimple(query.SysTeamMember.Role.Value(vobj.RoleAdmin.GetValue())); err != nil {
 			return err
 		}
 		// 系统团队信息

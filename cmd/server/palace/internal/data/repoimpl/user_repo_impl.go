@@ -24,15 +24,18 @@ type userRepoImpl struct {
 }
 
 func (l *userRepoImpl) UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error {
-	userModel := updateUserParamsToModel(user)
-	return userModel.UpdateByID(ctx, l.data.GetMainDB(ctx))
+	_, err := query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.Eq(user.ID)).UpdateSimple(
+		query.SysUser.Nickname.Value(user.Nickname),
+		query.SysUser.Avatar.Value(user.Avatar),
+		query.SysUser.Gender.Value(user.Gender.GetValue()),
+		query.SysUser.Remark.Value(user.Remark),
+	)
+	return err
 }
 
 func (l *userRepoImpl) DeleteByID(ctx context.Context, id uint32) error {
-	userModel := &model.SysUser{
-		ID: id,
-	}
-	return userModel.DeleteByID(ctx, l.data.GetMainDB(ctx))
+	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(id)).Delete()
+	return err
 }
 
 func (l *userRepoImpl) UpdateStatusByIds(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -41,12 +44,12 @@ func (l *userRepoImpl) UpdateStatusByIds(ctx context.Context, status vobj.Status
 }
 
 func (l *userRepoImpl) UpdatePassword(ctx context.Context, id uint32, password types.Password) error {
-	userModel := &model.SysUser{
-		ID:       id,
-		Password: password.String(),
-		Salt:     password.GetSalt(),
-	}
-	return userModel.UpdateByID(ctx, l.data.GetMainDB(ctx))
+	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(id)).
+		UpdateSimple(
+			query.SysUser.Password.Value(password.String()),
+			query.SysUser.Salt.Value(password.GetSalt()),
+		)
+	return err
 }
 
 func (l *userRepoImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
@@ -80,13 +83,13 @@ func (l *userRepoImpl) FindByPage(ctx context.Context, params *bo.QueryUserListP
 
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, query.SysUser.Status.Eq(params.Status))
+		wheres = append(wheres, query.SysUser.Status.Eq(params.Status.GetValue()))
 	}
 	if !params.Gender.IsUnknown() {
-		wheres = append(wheres, query.SysUser.Gender.Eq(params.Gender))
+		wheres = append(wheres, query.SysUser.Gender.Eq(params.Gender.GetValue()))
 	}
 	if !params.Role.IsAll() {
-		wheres = append(wheres, query.SysUser.Role.Eq(params.Role))
+		wheres = append(wheres, query.SysUser.Role.Eq(params.Role.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
 		q = q.Or(
@@ -117,7 +120,8 @@ func (l *userRepoImpl) FindByPage(ctx context.Context, params *bo.QueryUserListP
 }
 
 func (l *userRepoImpl) UpdateUser(ctx context.Context, user *model.SysUser) error {
-	return user.UpdateByID(ctx, l.data.GetMainDB(ctx))
+	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(user.ID)).Updates(user)
+	return err
 }
 
 func (l *userRepoImpl) FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error) {
@@ -135,20 +139,10 @@ func createUserParamsToModel(user *bo.CreateUserParams) *model.SysUser {
 		Password: user.Password.String(),
 		Email:    user.Email,
 		Phone:    user.Phone,
-		Status:   user.Status,
+		Status:   user.Status.GetValue(),
 		Remark:   user.Remark,
 		Avatar:   user.Avatar,
 		Salt:     user.Password.GetSalt(),
-		Gender:   user.Gender,
+		Gender:   user.Gender.GetValue(),
 	}
-}
-
-// updateUserParamsToModel update user params to model
-func updateUserParamsToModel(user *bo.UpdateUserParams) *model.SysUser {
-	if types.IsNil(user) {
-		return nil
-	}
-	userModel := createUserParamsToModel(&user.CreateUserParams)
-	userModel.ID = user.ID
-	return userModel
 }

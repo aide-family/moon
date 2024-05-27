@@ -127,7 +127,8 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 
 	for _, teamMember := range teamMemberList {
-		if teamMember.Role.IsSuperadmin() || teamMember.Role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
+		role := vobj.Role(teamMember.Role)
+		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
 			return bo.AdminUserDeleteErr
 		}
 		if teamMember.UserID == claims.GetUser() {

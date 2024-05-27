@@ -6,7 +6,9 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
+	"github.com/go-kratos/kratos/v2/encoding/json"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/server"
@@ -66,5 +68,12 @@ func Run(flagconf string) {
 	// start and wait for stop signal
 	if err = app.Run(); err != nil {
 		panic(err)
+	}
+}
+
+func init() {
+	//增加这段代码
+	json.MarshalOptions = protojson.MarshalOptions{
+		UseEnumNumbers: true, // 将枚举值作为数字发出，默认为枚举值的字符串
 	}
 }

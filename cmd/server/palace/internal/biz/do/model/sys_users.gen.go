@@ -7,9 +7,8 @@ package model
 import (
 	"context"
 	"encoding/json"
+	"time"
 
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -18,21 +17,21 @@ const TableNameSysUser = "sys_users"
 
 // SysUser 系统人员表
 type SysUser struct {
-	ID        uint32      `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt *types.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`              // 创建时间
-	UpdatedAt *types.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`              // 更新时间
-	Username  string      `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx__su__username,priority:1;comment:用户名" json:"username"` // 用户名
-	Nickname  string      `gorm:"column:nickname;type:varchar(64);not null;comment:昵称" json:"nickname"`                                           // 昵称
-	Password  string      `gorm:"column:password;type:varchar(255);not null;comment:密码" json:"password"`                                          // 密码
-	Email     string      `gorm:"column:email;type:varchar(64);not null;uniqueIndex:idx__su__email,priority:1;comment:邮箱" json:"email"`           // 邮箱
-	Phone     string      `gorm:"column:phone;type:varchar(64);not null;uniqueIndex:idx__su__phone,priority:1;comment:手机号" json:"phone"`          // 手机号
-	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                      // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
-	Avatar    string      `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`                                              // 头像
-	Salt      string      `gorm:"column:salt;type:varchar(16);not null;comment:盐" json:"salt"`                                                    // 盐
-	DeletedAt int64       `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
-	Gender    vobj.Gender `gorm:"column:gender;type:tinyint(1);not null;comment:性别" json:"gender"`   // 性别
-	Role      vobj.Role   `gorm:"column:role;type:tinyint(1);not null;comment:系统默认角色类型" json:"role"` // 系统默认角色类型
+	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	CreatedAt *time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`              // 创建时间
+	UpdatedAt *time.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`              // 更新时间
+	Username  string     `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx__su__username,priority:1;comment:用户名" json:"username"` // 用户名
+	Nickname  string     `gorm:"column:nickname;type:varchar(64);not null;comment:昵称" json:"nickname"`                                           // 昵称
+	Password  string     `gorm:"column:password;type:varchar(255);not null;comment:密码" json:"password"`                                          // 密码
+	Email     string     `gorm:"column:email;type:varchar(64);not null;uniqueIndex:idx__su__email,priority:1;comment:邮箱" json:"email"`           // 邮箱
+	Phone     string     `gorm:"column:phone;type:varchar(64);not null;uniqueIndex:idx__su__phone,priority:1;comment:手机号" json:"phone"`          // 手机号
+	Status    int        `gorm:"column:status;type:int;not null;comment:状态" json:"status"`                                                       // 状态
+	Remark    string     `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
+	Avatar    string     `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`                                              // 头像
+	Salt      string     `gorm:"column:salt;type:varchar(16);not null;comment:盐" json:"salt"`                                                    // 盐
+	DeletedAt int64      `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
+	Gender    int        `gorm:"column:gender;type:int;not null;comment:性别" json:"gender"`   // 性别
+	Role      int        `gorm:"column:role;type:int;not null;comment:系统默认角色类型" json:"role"` // 系统默认角色类型
 }
 
 // String json string
@@ -59,19 +58,9 @@ func (c *SysUser) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
-// UpdateByID update func
-func (c *SysUser) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Delete func
 func (c *SysUser) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
-// DeleteByID delete func
-func (c *SysUser) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // TableName SysUser's table name

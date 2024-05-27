@@ -7,9 +7,8 @@ package model
 import (
 	"context"
 	"encoding/json"
+	"time"
 
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -18,18 +17,18 @@ const TableNameSysTeam = "sys_teams"
 
 // SysTeam 系统团队表
 type SysTeam struct {
-	ID        uint32      `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt *types.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt *types.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
-	DeletedAt int64       `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
-	Name      string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:团队空间名" json:"name"`               // 团队空间名
-	Status    vobj.Status `gorm:"column:status;type:tinyint(1);not null;default:1;comment:状态" json:"status"`                                      // 状态
-	Remark    string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
-	Logo      string      `gorm:"column:logo;type:varchar(255);not null;comment:团队logo" json:"logo"`                                              // 团队logo
-	LeaderID  uint32      `gorm:"column:leader_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"leader_id"` // 负责人
-	CreatorID uint32      `gorm:"column:creator_id;type:int unsigned;not null;comment:创建者" json:"creator_id"`                                     // 创建者
-	Leader    *SysUser    `gorm:"foreignKey:LeaderID" json:"leader"`
-	Creator   *SysUser    `gorm:"foreignKey:CreatorID" json:"creator"`
+	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	CreatedAt *time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
+	UpdatedAt *time.Time `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
+	DeletedAt int64      `gorm:"column:deleted_at;type:bigint;not null" json:"deleted_at"`
+	Name      string     `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:团队空间名" json:"name"`               // 团队空间名
+	Status    int        `gorm:"column:status;type:int;not null;comment:状态" json:"status"`                                                       // 状态
+	Remark    string     `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
+	Logo      string     `gorm:"column:logo;type:varchar(255);not null;comment:团队logo" json:"logo"`                                              // 团队logo
+	LeaderID  uint32     `gorm:"column:leader_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"leader_id"` // 负责人
+	CreatorID uint32     `gorm:"column:creator_id;type:int unsigned;not null;comment:创建者" json:"creator_id"`                                     // 创建者
+	Leader    *SysUser   `gorm:"foreignKey:LeaderID" json:"leader"`
+	Creator   *SysUser   `gorm:"foreignKey:CreatorID" json:"creator"`
 }
 
 // String json string
@@ -56,19 +55,9 @@ func (c *SysTeam) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
-// UpdateByID update func
-func (c *SysTeam) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Delete func
 func (c *SysTeam) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
-// DeleteByID delete func
-func (c *SysTeam) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // TableName SysTeam's table name

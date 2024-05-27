@@ -29,7 +29,6 @@ func newSysTeamMemberRole(db *gorm.DB, opts ...gen.DOOption) sysTeamMemberRole {
 	_sysTeamMemberRole.ALL = field.NewAsterisk(tableName)
 	_sysTeamMemberRole.SysTeamMemberID = field.NewUint32(tableName, "sys_team_member_id")
 	_sysTeamMemberRole.SysTeamRoleID = field.NewUint32(tableName, "sys_team_role_id")
-	_sysTeamMemberRole.ID = field.NewUint32(tableName, "id")
 
 	_sysTeamMemberRole.fillFieldMap()
 
@@ -43,7 +42,6 @@ type sysTeamMemberRole struct {
 	ALL             field.Asterisk
 	SysTeamMemberID field.Uint32 // 团队用户ID
 	SysTeamRoleID   field.Uint32 // 团队角色ID
-	ID              field.Uint32
 
 	fieldMap map[string]field.Expr
 }
@@ -62,7 +60,6 @@ func (s *sysTeamMemberRole) updateTableName(table string) *sysTeamMemberRole {
 	s.ALL = field.NewAsterisk(table)
 	s.SysTeamMemberID = field.NewUint32(table, "sys_team_member_id")
 	s.SysTeamRoleID = field.NewUint32(table, "sys_team_role_id")
-	s.ID = field.NewUint32(table, "id")
 
 	s.fillFieldMap()
 
@@ -79,10 +76,9 @@ func (s *sysTeamMemberRole) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (s *sysTeamMemberRole) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 3)
+	s.fieldMap = make(map[string]field.Expr, 2)
 	s.fieldMap["sys_team_member_id"] = s.SysTeamMemberID
 	s.fieldMap["sys_team_role_id"] = s.SysTeamRoleID
-	s.fieldMap["id"] = s.ID
 }
 
 func (s sysTeamMemberRole) clone(db *gorm.DB) sysTeamMemberRole {

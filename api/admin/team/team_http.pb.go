@@ -69,7 +69,7 @@ func RegisterTeamHTTPServer(s *http.Server, srv TeamHTTPServer) {
 	r.GET("/v1/team/{id}", _Team_GetTeam0_HTTP_Handler(srv))
 	r.POST("/v1/team/list", _Team_ListTeam0_HTTP_Handler(srv))
 	r.PUT("/v1/team/{id}/status", _Team_UpdateTeamStatus0_HTTP_Handler(srv))
-	r.GET("/v1/team/my", _Team_MyTeam0_HTTP_Handler(srv))
+	r.GET("/v1/my/team", _Team_MyTeam0_HTTP_Handler(srv))
 	r.POST("/v1/team/{id}/member/add", _Team_AddTeamMember0_HTTP_Handler(srv))
 	r.DELETE("/v1/team/{id}/member/{user_id}", _Team_RemoveTeamMember0_HTTP_Handler(srv))
 	r.PUT("/v1/team/{id}/member/{user_id}/admin", _Team_SetTeamAdmin0_HTTP_Handler(srv))
@@ -474,7 +474,7 @@ func (c *TeamHTTPClientImpl) ListTeamMember(ctx context.Context, in *ListTeamMem
 
 func (c *TeamHTTPClientImpl) MyTeam(ctx context.Context, in *MyTeamRequest, opts ...http.CallOption) (*MyTeamReply, error) {
 	var out MyTeamReply
-	pattern := "/v1/team/my"
+	pattern := "/v1/my/team"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationTeamMyTeam))
 	opts = append(opts, http.PathTemplate(pattern))

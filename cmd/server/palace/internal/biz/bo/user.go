@@ -90,6 +90,6 @@ func (u *UserSelectOptionBuild) ToSelectOption() *SelectOptionBo {
 	return &SelectOptionBo{
 		Value:    u.ID,
 		Label:    u.Username,
-		Disabled: u.DeletedAt > 0 || !u.Status.IsEnable(),
+		Disabled: u.DeletedAt > 0 || !vobj.Status(u.Status).IsEnable(),
 	}
 }

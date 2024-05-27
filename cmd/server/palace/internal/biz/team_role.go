@@ -7,6 +7,8 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
 func NewTeamRoleBiz(teamRoleRepo repo.TeamRoleRepo) *TeamRoleBiz {
@@ -36,7 +38,14 @@ func (b *TeamRoleBiz) DeleteTeamRole(ctx context.Context, id uint32) error {
 
 // GetTeamRole 获取团队角色
 func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*model.SysTeamRole, error) {
-	return b.teamRoleRepo.GetTeamRole(ctx, id)
+	role, err := b.teamRoleRepo.GetTeamRole(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, bo.TeamRoleNotFoundErr
+		}
+		return nil, err
+	}
+	return role, nil
 }
 
 // ListTeamRole 获取团队角色列表

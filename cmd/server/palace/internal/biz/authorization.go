@@ -35,8 +35,8 @@ func NewAuthorizationBiz(
 
 // CheckPermission 检查用户是否有该资源权限
 func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
-	if req.JwtClaims.GetTeamRole() == 0 {
-		return merr.ErrorModal("此角色无权限")
+	if req.JwtClaims.GetTeamRole().IsSuperadmin() {
+		return nil
 	}
 	// 检查用户是否被团队禁用
 	teamDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
@@ -46,7 +46,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		}
 		return merr.ErrorNotification("系统错误")
 	}
-	if !teamDo.Status.IsEnable() {
+	if !vobj.Status(teamDo.Status).IsEnable() {
 		return merr.ErrorModal("用户被禁用")
 	}
 
@@ -76,7 +76,7 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 		}
 		return merr.ErrorNotification("系统错误")
 	}
-	if !userDo.Status.IsEnable() {
+	if !vobj.Status(userDo.Status).IsEnable() {
 		return merr.ErrorModal("用户被禁用")
 	}
 	return nil
@@ -102,7 +102,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	base := &middleware.JwtBaseInfo{}
 
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, userDo.Role, nil
+		return userDo.ID, vobj.Role(userDo.Role), nil
 	})
 	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
 		if req.Team <= 0 {
@@ -113,7 +113,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 		if err != nil {
 			return 0, 0, err
 		}
-		return req.Team, memberItem.Role, nil
+		return req.Team, vobj.Role(memberItem.Role), nil
 	})
 
 	jwtClaims := middleware.NewJwtClaims(base)
@@ -138,7 +138,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		}
 		return nil, bo.SystemErr
 	}
-	if !userDo.Status.IsEnable() {
+	if !vobj.Status(userDo.Status).IsEnable() {
 		return nil, merr.ErrorRedirect("用户被禁用").WithMetadata(map[string]string{
 			"redirect": "/login",
 		})
@@ -153,7 +153,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		return nil, bo.SystemErr
 	}
 
-	if !teamMemberDo.Status.IsEnable() {
+	if !vobj.Status(teamMemberDo.Status).IsEnable() {
 		return nil, merr.ErrorNotification("用户被禁用")
 	}
 
@@ -169,10 +169,10 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	// 生成token
 	base := &middleware.JwtBaseInfo{}
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, userDo.Role, nil
+		return userDo.ID, vobj.Role(userDo.Role), nil
 	})
 	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
-		return req.Team, memberItem.Role, nil
+		return req.Team, vobj.Role(memberItem.Role), nil
 	})
 
 	jwtClaims := middleware.NewJwtClaims(base)

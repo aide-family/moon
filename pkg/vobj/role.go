@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 )
 
-var _ driver.Valuer = Role(0)
+//var _ driver.Valuer = Role(0)
 
 // Role 系统全局角色
 //

@@ -28,12 +28,12 @@ func newSysTeamRole(db *gorm.DB, opts ...gen.DOOption) sysTeamRole {
 	tableName := _sysTeamRole.sysTeamRoleDo.TableName()
 	_sysTeamRole.ALL = field.NewAsterisk(tableName)
 	_sysTeamRole.ID = field.NewUint32(tableName, "id")
-	_sysTeamRole.CreatedAt = field.NewField(tableName, "created_at")
-	_sysTeamRole.UpdatedAt = field.NewField(tableName, "updated_at")
+	_sysTeamRole.CreatedAt = field.NewTime(tableName, "created_at")
+	_sysTeamRole.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysTeamRole.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysTeamRole.TeamID = field.NewUint32(tableName, "team_id")
 	_sysTeamRole.Name = field.NewString(tableName, "name")
-	_sysTeamRole.Status = field.NewField(tableName, "status")
+	_sysTeamRole.Status = field.NewInt(tableName, "status")
 	_sysTeamRole.Remark = field.NewString(tableName, "remark")
 	_sysTeamRole.Apis = sysTeamRoleManyToManyApis{
 		db: db.Session(&gorm.Session{}),
@@ -52,12 +52,12 @@ type sysTeamRole struct {
 
 	ALL       field.Asterisk
 	ID        field.Uint32
-	CreatedAt field.Field // 创建时间
-	UpdatedAt field.Field // 更新时间
+	CreatedAt field.Time // 创建时间
+	UpdatedAt field.Time // 更新时间
 	DeletedAt field.Int64
 	TeamID    field.Uint32 // 团队ID
 	Name      field.String // 角色名称
-	Status    field.Field  // 状态
+	Status    field.Int    // 状态
 	Remark    field.String // 备注
 	Apis      sysTeamRoleManyToManyApis
 
@@ -77,12 +77,12 @@ func (s sysTeamRole) As(alias string) *sysTeamRole {
 func (s *sysTeamRole) updateTableName(table string) *sysTeamRole {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewField(table, "created_at")
-	s.UpdatedAt = field.NewField(table, "updated_at")
+	s.CreatedAt = field.NewTime(table, "created_at")
+	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.TeamID = field.NewUint32(table, "team_id")
 	s.Name = field.NewString(table, "name")
-	s.Status = field.NewField(table, "status")
+	s.Status = field.NewInt(table, "status")
 	s.Remark = field.NewString(table, "remark")
 
 	s.fillFieldMap()

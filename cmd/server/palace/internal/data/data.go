@@ -3,13 +3,13 @@ package data
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
 	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
 	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
@@ -53,7 +53,7 @@ func NewData(c *conf.Bootstrap) (*Data, func(), error) {
 			mainDBClose, _ := d.mainDB.DB()
 			log.Debugw("close main db", mainDBClose.Close())
 		})
-		query.SetDefault(mainDB)
+		query.SetDefault(d.mainDB)
 		d.enforcer, err = rbac.InitCasbinModel(d.mainDB)
 		if err != nil {
 			log.Errorw("casbin init error", err)

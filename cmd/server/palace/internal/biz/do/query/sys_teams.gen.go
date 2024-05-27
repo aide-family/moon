@@ -28,11 +28,11 @@ func newSysTeam(db *gorm.DB, opts ...gen.DOOption) sysTeam {
 	tableName := _sysTeam.sysTeamDo.TableName()
 	_sysTeam.ALL = field.NewAsterisk(tableName)
 	_sysTeam.ID = field.NewUint32(tableName, "id")
-	_sysTeam.CreatedAt = field.NewField(tableName, "created_at")
-	_sysTeam.UpdatedAt = field.NewField(tableName, "updated_at")
+	_sysTeam.CreatedAt = field.NewTime(tableName, "created_at")
+	_sysTeam.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysTeam.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysTeam.Name = field.NewString(tableName, "name")
-	_sysTeam.Status = field.NewField(tableName, "status")
+	_sysTeam.Status = field.NewInt(tableName, "status")
 	_sysTeam.Remark = field.NewString(tableName, "remark")
 	_sysTeam.Logo = field.NewString(tableName, "logo")
 	_sysTeam.LeaderID = field.NewUint32(tableName, "leader_id")
@@ -60,11 +60,11 @@ type sysTeam struct {
 
 	ALL       field.Asterisk
 	ID        field.Uint32
-	CreatedAt field.Field // 创建时间
-	UpdatedAt field.Field // 更新时间
+	CreatedAt field.Time // 创建时间
+	UpdatedAt field.Time // 更新时间
 	DeletedAt field.Int64
 	Name      field.String // 团队空间名
-	Status    field.Field  // 状态
+	Status    field.Int    // 状态
 	Remark    field.String // 备注
 	Logo      field.String // 团队logo
 	LeaderID  field.Uint32 // 负责人
@@ -89,11 +89,11 @@ func (s sysTeam) As(alias string) *sysTeam {
 func (s *sysTeam) updateTableName(table string) *sysTeam {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewField(table, "created_at")
-	s.UpdatedAt = field.NewField(table, "updated_at")
+	s.CreatedAt = field.NewTime(table, "created_at")
+	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
-	s.Status = field.NewField(table, "status")
+	s.Status = field.NewInt(table, "status")
 	s.Remark = field.NewString(table, "remark")
 	s.Logo = field.NewString(table, "logo")
 	s.LeaderID = field.NewUint32(table, "leader_id")

@@ -7,10 +7,10 @@ server:
     background: 寓意为月宫，表示moon系列的统一管理平台
   http:
     addr: 0.0.0.0:8000
-    timeout: 2s
+    timeout: 10s
   grpc:
     addr: 0.0.0.0:9000
-    timeout: 2s
+    timeout: 10s
   registry:
     type: "etcd"
     etcd:

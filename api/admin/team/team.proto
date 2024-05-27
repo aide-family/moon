@@ -56,7 +56,7 @@ service Team {
   // 我的团队， 查看当前用户的团队列表
   rpc MyTeam (MyTeamRequest) returns (MyTeamReply) {
     option (google.api.http) = {
-      get: "/v1/team/my"
+      get: "/v1/my/team"
     };
   }
 
@@ -133,8 +133,8 @@ message CreateTeamRequest {
   }];
   // 团队状态
   Status status = 4 [(buf.validate.field).required = true];
-  // 负责人
-  uint32 leader_id = 5 [(buf.validate.field).required = true];
+  // 负责人, 不传为自己
+  uint32 leader_id = 5;
   // 管理员
   repeated uint32 admin_ids = 6;
 }

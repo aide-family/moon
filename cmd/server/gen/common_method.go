@@ -35,19 +35,9 @@ func (c *CommonMethod) Create(ctx context.Context, tx *gorm.DB) error {
 	return tx.WithContext(ctx).Create(c).Error
 }
 
-// UpdateByID update func
-func (c *CommonMethod) UpdateByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Model(c).Where("id = ?", c.ID).Updates(c).Error
-}
-
 // Update func
 func (c *CommonMethod) Update(ctx context.Context, tx *gorm.DB, conds ...gen.Condition) error {
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
-}
-
-// DeleteByID delete func
-func (c *CommonMethod) DeleteByID(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Delete(c, c.ID).Error
 }
 
 // Delete func
