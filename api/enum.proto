@@ -93,3 +93,15 @@ enum ModuleType {
 	// 监控模块
 	ModelTypeMonitor = 11;
 }
+
+// 数据源类型
+enum DatasourceType {
+	// 未知数据源类型
+	DatasourceTypeUnknown = 0;
+	// Metric
+	DatasourceTypeMetric = 1;
+	// Trace
+	DatasourceTypeTrace = 2;
+	// Log
+	DatasourceTypeLog = 3;
+}

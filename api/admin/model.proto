@@ -146,3 +146,25 @@ message TeamRole {
   // 资源列表
   repeated ResourceItem resources = 7;
 }
+
+// 数据源模块
+message Datasource {
+  // 数据源ID
+  uint32 id = 1;
+  // 数据源名称
+  string name = 2;
+  // 数据源类型
+  DatasourceType type = 3;
+  // 数据源地址
+  string endpoint = 4;
+  // 状态
+  Status status = 5;
+  // 创建时间
+  string created_at = 6;
+  // 更新时间
+  string updated_at = 7;
+  // 配置信息
+  map<string, string> config = 8;
+  // 描述
+  string remark = 9;
+}

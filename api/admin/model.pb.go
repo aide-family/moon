@@ -795,6 +795,127 @@ func (x *TeamRole) GetResources() []*ResourceItem {
 	return nil
 }
 
+// 数据源模块
+type Datasource struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 数据源ID
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 数据源名称
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 数据源类型
+	Type api.DatasourceType `protobuf:"varint,3,opt,name=type,proto3,enum=api.DatasourceType" json:"type,omitempty"`
+	// 数据源地址
+	Endpoint string `protobuf:"bytes,4,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	// 状态
+	Status api.Status `protobuf:"varint,5,opt,name=status,proto3,enum=api.Status" json:"status,omitempty"`
+	// 创建时间
+	CreatedAt string `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 更新时间
+	UpdatedAt string `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// 配置信息
+	Config map[string]string `protobuf:"bytes,8,rep,name=config,proto3" json:"config,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// 描述
+	Remark string `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
+}
+
+func (x *Datasource) Reset() {
+	*x = Datasource{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_model_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Datasource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Datasource) ProtoMessage() {}
+
+func (x *Datasource) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_model_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Datasource.ProtoReflect.Descriptor instead.
+func (*Datasource) Descriptor() ([]byte, []int) {
+	return file_admin_model_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Datasource) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Datasource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Datasource) GetType() api.DatasourceType {
+	if x != nil {
+		return x.Type
+	}
+	return api.DatasourceType(0)
+}
+
+func (x *Datasource) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Datasource) GetStatus() api.Status {
+	if x != nil {
+		return x.Status
+	}
+	return api.Status(0)
+}
+
+func (x *Datasource) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Datasource) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Datasource) GetConfig() map[string]string {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+func (x *Datasource) GetRemark() string {
+	if x != nil {
+		return x.Remark
+	}
+	return ""
+}
+
 var File_admin_model_proto protoreflect.FileDescriptor
 
 var file_admin_model_proto_rawDesc = []byte{
@@ -907,11 +1028,33 @@ var file_admin_model_proto_rawDesc = []byte{
 	0x09, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x0b,
 	0x32, 0x17, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x52, 0x65, 0x73,
 	0x6f, 0x75, 0x72, 0x63, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x73, 0x42, 0x39, 0x0a, 0x09, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69,
-	0x6e, 0x50, 0x01, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x61, 0x69, 0x64, 0x65, 0x2d, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x63, 0x65, 0x73, 0x22, 0xe6, 0x02, 0x0a, 0x0a, 0x44, 0x61, 0x74, 0x61, 0x73, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x27, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x13, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x44, 0x61, 0x74, 0x61,
+	0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65,
+	0x12, 0x1a, 0x0a, 0x08, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x23, 0x0a, 0x06,
+	0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0b, 0x2e, 0x61,
+	0x70, 0x69, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18,
+	0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74,
+	0x12, 0x1d, 0x0a, 0x0a, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x07,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12,
+	0x39, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x08, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x21, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x44, 0x61, 0x74, 0x61,
+	0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65,
+	0x6d, 0x61, 0x72, 0x6b, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x72, 0x65, 0x6d, 0x61,
+	0x72, 0x6b, 0x1a, 0x39, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x39, 0x0a,
+	0x09, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x01, 0x5a, 0x2a, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x63, 0x6c,
+	0x6f, 0x75, 0x64, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x64, 0x6d,
+	0x69, 0x6e, 0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -926,44 +1069,50 @@ func file_admin_model_proto_rawDescGZIP() []byte {
 	return file_admin_model_proto_rawDescData
 }
 
-var file_admin_model_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_admin_model_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_admin_model_proto_goTypes = []interface{}{
-	(*SelectExtend)(nil), // 0: api.admin.SelectExtend
-	(*Select)(nil),       // 1: api.admin.Select
-	(*User)(nil),         // 2: api.admin.User
-	(*ResourceItem)(nil), // 3: api.admin.ResourceItem
-	(*TeamMember)(nil),   // 4: api.admin.TeamMember
-	(*Team)(nil),         // 5: api.admin.Team
-	(*TeamRole)(nil),     // 6: api.admin.TeamRole
-	(api.Status)(0),      // 7: api.Status
-	(api.Gender)(0),      // 8: api.Gender
-	(api.Role)(0),        // 9: api.Role
-	(api.ModuleType)(0),  // 10: api.ModuleType
-	(api.DomainType)(0),  // 11: api.DomainType
+	(*SelectExtend)(nil),    // 0: api.admin.SelectExtend
+	(*Select)(nil),          // 1: api.admin.Select
+	(*User)(nil),            // 2: api.admin.User
+	(*ResourceItem)(nil),    // 3: api.admin.ResourceItem
+	(*TeamMember)(nil),      // 4: api.admin.TeamMember
+	(*Team)(nil),            // 5: api.admin.Team
+	(*TeamRole)(nil),        // 6: api.admin.TeamRole
+	(*Datasource)(nil),      // 7: api.admin.Datasource
+	nil,                     // 8: api.admin.Datasource.ConfigEntry
+	(api.Status)(0),         // 9: api.Status
+	(api.Gender)(0),         // 10: api.Gender
+	(api.Role)(0),           // 11: api.Role
+	(api.ModuleType)(0),     // 12: api.ModuleType
+	(api.DomainType)(0),     // 13: api.DomainType
+	(api.DatasourceType)(0), // 14: api.DatasourceType
 }
 var file_admin_model_proto_depIdxs = []int32{
 	1,  // 0: api.admin.Select.children:type_name -> api.admin.Select
 	0,  // 1: api.admin.Select.extend:type_name -> api.admin.SelectExtend
-	7,  // 2: api.admin.User.status:type_name -> api.Status
-	8,  // 3: api.admin.User.gender:type_name -> api.Gender
-	9,  // 4: api.admin.User.role:type_name -> api.Role
-	7,  // 5: api.admin.ResourceItem.status:type_name -> api.Status
-	10, // 6: api.admin.ResourceItem.module:type_name -> api.ModuleType
-	11, // 7: api.admin.ResourceItem.domain:type_name -> api.DomainType
-	9,  // 8: api.admin.TeamMember.roles:type_name -> api.Role
-	7,  // 9: api.admin.TeamMember.status:type_name -> api.Status
+	9,  // 2: api.admin.User.status:type_name -> api.Status
+	10, // 3: api.admin.User.gender:type_name -> api.Gender
+	11, // 4: api.admin.User.role:type_name -> api.Role
+	9,  // 5: api.admin.ResourceItem.status:type_name -> api.Status
+	12, // 6: api.admin.ResourceItem.module:type_name -> api.ModuleType
+	13, // 7: api.admin.ResourceItem.domain:type_name -> api.DomainType
+	11, // 8: api.admin.TeamMember.roles:type_name -> api.Role
+	9,  // 9: api.admin.TeamMember.status:type_name -> api.Status
 	2,  // 10: api.admin.TeamMember.user:type_name -> api.admin.User
-	7,  // 11: api.admin.Team.status:type_name -> api.Status
+	9,  // 11: api.admin.Team.status:type_name -> api.Status
 	2,  // 12: api.admin.Team.leader:type_name -> api.admin.User
 	2,  // 13: api.admin.Team.creator:type_name -> api.admin.User
 	4,  // 14: api.admin.Team.admin:type_name -> api.admin.TeamMember
-	7,  // 15: api.admin.TeamRole.status:type_name -> api.Status
+	9,  // 15: api.admin.TeamRole.status:type_name -> api.Status
 	3,  // 16: api.admin.TeamRole.resources:type_name -> api.admin.ResourceItem
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	14, // 17: api.admin.Datasource.type:type_name -> api.DatasourceType
+	9,  // 18: api.admin.Datasource.status:type_name -> api.Status
+	8,  // 19: api.admin.Datasource.config:type_name -> api.admin.Datasource.ConfigEntry
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_admin_model_proto_init() }
@@ -1056,6 +1205,18 @@ func file_admin_model_proto_init() {
 				return nil
 			}
 		}
+		file_admin_model_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Datasource); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_admin_model_proto_msgTypes[1].OneofWrappers = []interface{}{}
 	type x struct{}
@@ -1064,7 +1225,7 @@ func file_admin_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_admin_model_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

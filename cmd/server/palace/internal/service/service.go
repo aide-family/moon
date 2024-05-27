@@ -1,11 +1,12 @@
 package service
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/team"
 	"github.com/google/wire"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/resource"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/user"
 )
 
@@ -17,4 +18,5 @@ var ProviderSetService = wire.NewSet(
 	resource.NewResourceService,
 	team.NewTeamService,
 	team.NewRoleService,
+	datasource.NewDatasourceService,
 )
