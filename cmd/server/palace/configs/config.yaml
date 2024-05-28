@@ -11,14 +11,14 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 10s
-  registry:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - 127.0.0.1:20000
-      username: ""
-      password: ""
-      timeout: 10s
+#  registry:
+#    type: "etcd"
+#    etcd:
+#      endpoints:
+#        - 127.0.0.1:20000
+#      username: ""
+#      password: ""
+#      timeout: 10s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon-palace"
@@ -26,10 +26,12 @@ server:
       - /api.admin.authorization.Authorization/Login
       - /api.admin.authorization.Authorization/Captcha
       - /api.admin.authorization.Authorization/CreatePassword
+
+    # 角色权限白名单, 包含white_list， 因为不需要登录的接口自然也不需要RBAC
     rbac_white_list:
-      - /api.admin.authorization.Authorization/Login
-      - /api.admin.authorization.Authorization/Captcha
-      - /api.admin.authorization.Authorization/CreatePassword
+#      - /api.admin.authorization.Authorization/Login
+#      - /api.admin.authorization.Authorization/Captcha
+#      - /api.admin.authorization.Authorization/CreatePassword
 
 data:
   database:
@@ -37,7 +39,7 @@ data:
     dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   bizDatabase:
     driver: "mysql"
-    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+    dsn: "root:12345678@tcp(127.0.0.1:3306)/"
   cache:
     redis:
       network: "tcp"

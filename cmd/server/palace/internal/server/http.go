@@ -18,6 +18,8 @@ import (
 func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http.Server {
 	c := bc.GetServer()
 
+	apiWhiteList := bc.GetServer().GetJwt().GetWhiteList()
+	rbacApiWhiteList := append(apiWhiteList, bc.GetServer().GetJwt().GetRbacWhiteList()...)
 	// 验证是否登录
 	authMiddleware := middleware.Server(
 		middleware.JwtServer(),
@@ -28,7 +30,7 @@ func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http
 			}
 			return checkRes.GetIsLogin(), nil
 		}),
-	).Match(middleware.NewWhiteListMatcher(bc.GetServer().GetJwt().GetWhiteList())).Build()
+	).Match(middleware.NewWhiteListMatcher(apiWhiteList)).Build()
 
 	// 验证是否有数据权限
 	rbacMiddleware := middleware.Server(middleware.Rbac(func(ctx context.Context, operation string) (bool, error) {
@@ -39,7 +41,7 @@ func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http
 			return false, err
 		}
 		return permission.GetHasPermission(), nil
-	})).Match(middleware.NewWhiteListMatcher(bc.GetServer().GetJwt().GetRbacWhiteList())).Build()
+	})).Match(middleware.NewWhiteListMatcher(rbacApiWhiteList)).Build()
 
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),

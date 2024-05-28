@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type TeamRepo interface {
 	// GetUserTeamByID 查询用户指定团队信息
-	GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*model.SysTeamMember, error)
+	GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error)
 
 	// CreateTeam 创建团队
 	CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error)
@@ -43,7 +44,7 @@ type TeamRepo interface {
 	SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error
 
 	// ListTeamMember 获取团队成员列表
-	ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*model.SysTeamMember, error)
+	ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error)
 
 	// TransferTeamLeader 移交团队
 	TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error

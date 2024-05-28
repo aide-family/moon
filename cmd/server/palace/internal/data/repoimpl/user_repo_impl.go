@@ -3,14 +3,15 @@ package repoimpl
 import (
 	"context"
 
+	"gorm.io/gen"
+
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
-	"gorm.io/gen"
 )
 
 func NewUserRepo(data *data.Data) repo.UserRepo {
@@ -139,10 +140,10 @@ func createUserParamsToModel(user *bo.CreateUserParams) *model.SysUser {
 		Password: user.Password.String(),
 		Email:    user.Email,
 		Phone:    user.Phone,
-		Status:   user.Status.GetValue(),
+		Status:   user.Status,
 		Remark:   user.Remark,
 		Avatar:   user.Avatar,
 		Salt:     user.Password.GetSalt(),
-		Gender:   user.Gender.GetValue(),
+		Gender:   user.Gender,
 	}
 }

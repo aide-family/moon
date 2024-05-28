@@ -2,18 +2,20 @@ package data
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
-	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 
-	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
+	"github.com/aide-cloud/moon/pkg/conn/rbac"
+	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
 )
 
@@ -22,20 +24,26 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	mainDB   *gorm.DB
-	bizDB    *gorm.DB
-	cacher   conn.Cache
-	enforcer *casbin.SyncedEnforcer
+	mainDB          *gorm.DB
+	bizDB           *sql.DB
+	cacher          conn.Cache
+	enforcer        *casbin.SyncedEnforcer
+	bizDatabaseConf *palaceconf.Data_Database
+	teamBizDBMap    map[uint32]*gorm.DB
 }
 
 var closeFuncList []func()
 
 // NewData .
-func NewData(c *conf.Bootstrap) (*Data, func(), error) {
-	d := &Data{}
+func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	mainConf := c.GetData().GetDatabase()
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
+	d := &Data{
+		bizDatabaseConf: bizConf,
+		teamBizDBMap:    make(map[uint32]*gorm.DB),
+	}
+
 	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
@@ -62,14 +70,19 @@ func NewData(c *conf.Bootstrap) (*Data, func(), error) {
 	}
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
-		bizDB, err := conn.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
+		// 打开数据库连接
+		db, err := sql.Open(bizConf.GetDriver(), bizConf.GetDsn())
 		if err != nil {
-			return nil, nil, err
+			log.Fatalf("Error opening database: %v\n", err)
 		}
-		d.bizDB = bizDB
+
+		d.bizDB = db
 		closeFuncList = append(closeFuncList, func() {
-			bizDBClose, _ := d.bizDB.DB()
-			log.Debugw("close biz db", bizDBClose.Close())
+			log.Debugw("close biz db", d.bizDB.Close())
+			for _, db := range d.teamBizDBMap {
+				dbTmp, _ := db.DB()
+				log.Debugw("close biz orm db", dbTmp.Close())
+			}
 		})
 	}
 
@@ -92,12 +105,34 @@ func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
 }
 
 // GetBizDB 获取业务库连接
-func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
+func (d *Data) GetBizDB(ctx context.Context) *sql.DB {
+	db, exist := ctx.Value(conn.GormContextTxKey{}).(*sql.DB)
 	if exist {
 		return db
 	}
 	return d.bizDB
+}
+
+// GenBizDatabaseName 生成业务库名称
+func GenBizDatabaseName(teamId uint32) string {
+	return fmt.Sprintf("team_%d", teamId)
+}
+
+// GetBizGormDB 获取业务库连接
+func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
+	bizDB, exist := d.teamBizDBMap[teamId]
+	if exist {
+		return bizDB, nil
+	}
+
+	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamId) + "?charset=utf8mb4&parseTime=True&loc=Local"
+	bizDB, err := conn.NewGormDB(dsn, d.bizDatabaseConf.GetDriver())
+	if err != nil {
+		return nil, err
+	}
+	d.teamBizDBMap[teamId] = bizDB
+
+	return bizDB, nil
 }
 
 // GetCacher 获取缓存
@@ -114,7 +149,7 @@ func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *conf.Data_Cache) conn.Cache {
+func newCache(c *palaceconf.Data_Cache) conn.Cache {
 	if types.IsNil(c) {
 		return nil
 	}

@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
@@ -90,6 +90,6 @@ func (u *UserSelectOptionBuild) ToSelectOption() *SelectOptionBo {
 	return &SelectOptionBo{
 		Value:    u.ID,
 		Label:    u.Username,
-		Disabled: u.DeletedAt > 0 || !vobj.Status(u.Status).IsEnable(),
+		Disabled: u.DeletedAt > 0 || !u.Status.IsEnable(),
 	}
 }

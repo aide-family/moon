@@ -9,6 +9,7 @@ var (
 	datasource string
 	drive      string
 	outputPath string
+	isBiz      bool
 )
 
 var genCmd = &cobra.Command{
@@ -17,7 +18,7 @@ var genCmd = &cobra.Command{
 	Long:    `gen`,
 	Example: `cmd gen`,
 	Run: func(cmd *cobra.Command, args []string) {
-		gen.Run(datasource, drive, outputPath)
+		gen.Run(datasource, drive, outputPath, isBiz)
 	},
 }
 
@@ -25,4 +26,5 @@ func init() {
 	genCmd.Flags().StringVarP(&datasource, "datasource", "d", "", "datasource")
 	genCmd.Flags().StringVarP(&drive, "drive", "r", "", "drive")
 	genCmd.Flags().StringVarP(&outputPath, "output", "o", "", "output")
+	genCmd.Flags().BoolVarP(&isBiz, "isBiz", "b", false, "isBiz")
 }

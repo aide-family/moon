@@ -4,11 +4,13 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
-	"gorm.io/gen/field"
 	"gorm.io/gorm"
+
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 )
 
-func Run(datasource string, drive, outputPath string) {
+func Run(datasource string, drive, outputPath string, isBiz bool) {
 	if drive == "" || outputPath == "" || datasource == "" {
 		log.Warnw("err", "参数错误", "datasource", datasource, "drive", drive, "outputPath", outputPath)
 		return
@@ -37,112 +39,23 @@ func Run(datasource string, drive, outputPath string) {
 		panic(err)
 	}
 	g.UseDB(gormDB) // reuse your gorm db
-	g.WithOpts(gen.WithMethod(new(CommonMethod).String))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).UnmarshalBinary))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).MarshalBinary))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).Create))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).Update))
-	g.WithOpts(gen.WithMethod(new(CommonMethod).Delete))
 
-	g.WithOpts(gen.FieldType("id", "uint32"),
-		gen.FieldType("gender", "int"),
-		gen.FieldType("status", "int"),
-		gen.FieldType("role", "int"),
-		//gen.FieldType("updated_at", "*types.Time"),
-		//gen.FieldType("created_at", "*types.Time"),
-	)
-
-	usersTable := g.GenerateModel("sys_users")
-	teamTable := g.GenerateModel("sys_teams")
-	apiTable := g.GenerateModel("sys_apis")
-	sysTeamRoleTable := g.GenerateModel("sys_team_roles")
-	// sys_team_member_roles
-	sysTeamMemberRoleTable := g.GenerateModel("sys_team_member_roles")
-	// casbin_rule
-	casbinRuleTable := g.GenerateModel("casbin_rule")
-
-	// datasource_label_values
-	datasourceLabelValuesTab := g.GenerateModel("datasource_label_values")
-	// metric_labels
-	metricsLabelTab := g.GenerateModel("metric_labels",
-		gen.FieldRelate(field.HasMany, "Labels", datasourceLabelValuesTab, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"LabelID"},
-			},
-			RelateSlicePointer: true,
-		}),
-	)
-	// datasource_metrics
-	datasourceMetricsTab := g.GenerateModel("datasource_metrics",
-		gen.FieldRelate(field.HasMany, "Labels", metricsLabelTab, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"MetricID"},
-			},
-			RelateSlicePointer: true,
-		}),
-	)
-
-	// datasource
-	datasourceTab := g.GenerateModel("datasource",
-		gen.FieldRelate(field.HasMany, "Metrics", datasourceMetricsTab, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"DatasourceID"},
-			},
-			RelateSlicePointer: true,
-		}),
-	)
-
-	//tables := g.GenerateAllTable()
-	var tables []any
-	tables = append(tables, g.GenerateModel("sys_teams",
-		gen.FieldRelate(field.HasOne, "Leader", usersTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"LeaderID"},
-			},
-			RelatePointer: true,
-		}),
-		gen.FieldRelate(field.HasOne, "Creator", usersTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"CreatorID"},
-			},
-			RelatePointer: true,
-		}),
-	), g.GenerateModel("sys_team_members",
-		gen.FieldRelate(field.HasOne, "Member", usersTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"UserID"},
-			},
-			RelatePointer: true,
-		}),
-		gen.FieldRelate(field.HasOne, "Team", teamTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"foreignKey": []string{"TeamID"},
-			},
-			RelatePointer: true,
-		}),
-		gen.FieldRelate(field.Many2Many, "TeamRoles", sysTeamRoleTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"many2many": []string{"sys_team_member_roles"},
-			},
-			RelateSlicePointer: true,
-		}),
-	), g.GenerateModel("sys_team_roles",
-		gen.FieldRelate(field.Many2Many, "Apis", apiTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"many2many": []string{"sys_team_role_apis"},
-			},
-			RelateSlicePointer: true,
-		}),
-	), g.GenerateModel("sys_apis",
-		gen.FieldRelate(field.Many2Many, "SysTeamRoles", sysTeamRoleTable, &field.RelateConfig{
-			GORMTag: field.GormTag{
-				"many2many": []string{"sys_team_role_apis"},
-			},
-			RelateSlicePointer: true,
-		}),
-	), sysTeamMemberRoleTable, usersTable, casbinRuleTable, datasourceTab)
-
-	g.ApplyBasic(tables...)
+	if isBiz {
+		g.ApplyBasic(
+			bizmodel.CasbinRule{},
+			bizmodel.SysTeamAPI{},
+			bizmodel.SysTeamRole{},
+			bizmodel.SysTeamRoleAPI{},
+			bizmodel.SysTeamMember{},
+			bizmodel.SysTeamMemberRole{},
+			bizmodel.SysTeamAPI{},
+			bizmodel.MetricLabel{},
+			bizmodel.DatasourceLabelValue{},
+			bizmodel.Datasource{},
+		)
+	} else {
+		g.ApplyBasic(model.SysUser{}, model.SysAPI{}, model.SysTeam{})
+	}
 
 	// Generate the code
 	g.Execute()

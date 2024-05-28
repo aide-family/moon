@@ -7,8 +7,8 @@ import (
 	pb "github.com/aide-cloud/moon/api/admin/team"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
@@ -81,7 +81,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 		return nil, err
 	}
 	return &pb.ListRoleReply{
-		List: types.SliceTo(teamRoles, func(item *model.SysTeamRole) *admin.TeamRole {
+		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.TeamRole {
 			return build.NewTeamRoleBuild(item).ToApi()
 		}),
 	}, nil
@@ -104,7 +104,7 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSele
 		return nil, err
 	}
 	return &pb.GetRoleSelectListReply{
-		List: types.SliceTo(teamRoles, func(item *model.SysTeamRole) *admin.Select {
+		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.Select {
 			return build.NewTeamRoleBuild(item).ToSelect()
 		}),
 	}, nil

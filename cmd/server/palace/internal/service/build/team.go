@@ -3,7 +3,8 @@ package build
 import (
 	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/api/admin"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
@@ -30,18 +31,19 @@ func (b *TeamBuild) ToApi() *admin.Team {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		Leader:    NewUserBuild(b.Leader).ToApi(),
-		Creator:   NewUserBuild(b.Creator).ToApi(),
-		Logo:      b.Logo,
-		Admin:     nil,
+		// TODO 从全局中取
+		//Leader:    NewUserBuild(b.Leader).ToApi(),
+		//Creator:   NewUserBuild(b.Creator).ToApi(),
+		Logo:  b.Logo,
+		Admin: nil,
 	}
 }
 
 type TeamRoleBuild struct {
-	*model.SysTeamRole
+	*bizmodel.SysTeamRole
 }
 
-func NewTeamRoleBuild(role *model.SysTeamRole) *TeamRoleBuild {
+func NewTeamRoleBuild(role *bizmodel.SysTeamRole) *TeamRoleBuild {
 	return &TeamRoleBuild{
 		SysTeamRole: role,
 	}
@@ -58,8 +60,8 @@ func (b *TeamRoleBuild) ToApi() *admin.TeamRole {
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
 		Status:    api.Status(b.Status),
-		Resources: types.SliceTo(b.Apis, func(item *model.SysAPI) *admin.ResourceItem {
-			return NewResourceBuild(item).ToApi()
+		Resources: types.SliceTo(b.Apis, func(item *bizmodel.SysTeamAPI) *admin.ResourceItem {
+			return NewTeamResourceBuild(item).ToApi()
 		}),
 	}
 }

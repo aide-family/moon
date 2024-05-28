@@ -4,14 +4,15 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/query"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
@@ -26,12 +27,16 @@ type teamRoleRepoImpl struct {
 	data *data.Data
 }
 
-func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*model.SysTeamRole, error) {
-	apis, err := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx).Where(query.SysAPI.ID.In(teamRole.Permissions...)).Find()
+func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
+	bizDB, err := l.data.GetBizGormDB(teamRole.TeamID)
 	if err != nil {
 		return nil, err
 	}
-	sysTeamRoleModel := &model.SysTeamRole{
+	apis, err := bizquery.Use(bizDB).SysTeamAPI.WithContext(ctx).Where(bizquery.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	sysTeamRoleModel := &bizmodel.SysTeamRole{
 		TeamID: teamRole.TeamID,
 		Name:   teamRole.Name,
 		Status: teamRole.Status.GetValue(),
@@ -39,15 +44,15 @@ func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.Crea
 		Apis:   apis,
 	}
 
-	err = query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
+	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		// 创建角色
-		if err := tx.SysTeamRole.WithContext(ctx).Create(sysTeamRoleModel); err != nil {
+		if err = tx.SysTeamRole.WithContext(ctx).Create(sysTeamRoleModel); err != nil {
 			return err
 		}
 		roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
 		return tx.CasbinRule.WithContext(ctx).
-			Create(types.SliceTo(apis, func(apiItem *model.SysAPI) *model.CasbinRule {
-				return &model.CasbinRule{
+			Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
+				return &bizmodel.CasbinRule{
 					Ptype: "p",
 					V0:    roleIdStr,
 					V1:    apiItem.Path,
@@ -71,12 +76,16 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 		}
 		return err
 	}
-	apis, err := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx).Where(query.SysAPI.ID.In(teamRole.Permissions...)).Find()
+	bizDB, err := l.data.GetBizGormDB(sysTeamRoleModel.TeamID)
+	if err != nil {
+		return err
+	}
+	apis, err := bizquery.Use(bizDB).SysTeamAPI.WithContext(ctx).Where(bizquery.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
 	if err != nil {
 		return err
 	}
 	roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
-	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
+	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		if err = tx.SysTeamRole.Apis.WithContext(ctx).Model(sysTeamRoleModel).Replace(apis...); err != nil {
 			return err
 		}
@@ -96,9 +105,9 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 		if len(apis) == 0 {
 			return nil
 		}
-		if err := tx.CasbinRule.WithContext(ctx).
-			Create(types.SliceTo(apis, func(apiItem *model.SysAPI) *model.CasbinRule {
-				return &model.CasbinRule{
+		if err = tx.CasbinRule.WithContext(ctx).
+			Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
+				return &bizmodel.CasbinRule{
 					Ptype: "p",
 					V0:    roleIdStr,
 					V1:    apiItem.Path,
@@ -113,12 +122,20 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 }
 
 func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error {
-	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		if _, err := query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
-			Where(query.SysTeamRole.ID.Eq(id)).Delete(); err != nil {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return bo.UnLoginErr
+	}
+	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	if err != nil {
+		return err
+	}
+	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+		if _, err = tx.SysTeamRole.WithContext(ctx).
+			Where(bizquery.SysTeamRole.ID.Eq(id)).Delete(); err != nil {
 			return err
 		}
-		if _, err := tx.CasbinRule.WithContext(ctx).
+		if _, err = tx.CasbinRule.WithContext(ctx).
 			Where(tx.CasbinRule.V0.Eq(strconv.FormatUint(uint64(id), 10))).Delete(); err != nil {
 			return err
 		}
@@ -126,41 +143,68 @@ func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error 
 	})
 }
 
-func (l *teamRoleRepoImpl) GetTeamRole(ctx context.Context, id uint32) (*model.SysTeamRole, error) {
-	return query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
-		Where(query.SysTeamRole.ID.Eq(id)).Preload(query.SysTeamRole.Apis).First()
+func (l *teamRoleRepoImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, bo.UnLoginErr
+	}
+	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	if err != nil {
+		return nil, err
+	}
+	return bizquery.Use(bizDB).SysTeamRole.WithContext(ctx).
+		Where(bizquery.SysTeamRole.ID.Eq(id)).Preload(bizquery.SysTeamRole.Apis).First()
 }
 
-func (l *teamRoleRepoImpl) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*model.SysTeamRole, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
-		Where(query.SysTeamRole.TeamID.Eq(params.TeamID))
+func (l *teamRoleRepoImpl) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
+	bizDB, err := l.data.GetBizGormDB(params.TeamID)
+	if err != nil {
+		return nil, err
+	}
+	q := bizquery.Use(bizDB).SysTeamRole.WithContext(ctx).
+		Where(bizquery.SysTeamRole.TeamID.Eq(params.TeamID))
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Where(query.SysTeamRole.Name.Like(params.Keyword))
+		q = q.Where(bizquery.SysTeamRole.Name.Like(params.Keyword))
 	}
 	return q.Find()
 }
 
-func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*model.SysTeamRole, error) {
-	return query.Use(l.data.GetMainDB(ctx)).SysTeamMember.TeamRoles.
+func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error) {
+	bizDB, err := l.data.GetBizGormDB(teamID)
+	if err != nil {
+		return nil, err
+	}
+	return bizquery.Use(bizDB).SysTeamMember.TeamRoles.
 		WithContext(ctx).Where(
-		query.SysTeamMember.UserID.Eq(userID),
-		query.SysTeamMember.TeamID.Eq(teamID),
-	).Model(&model.SysTeamMember{TeamID: teamID, UserID: userID}).Find()
+		bizquery.SysTeamMember.UserID.Eq(userID),
+		bizquery.SysTeamMember.TeamID.Eq(teamID),
+	).Model(&bizmodel.SysTeamMember{TeamID: teamID, UserID: userID}).Find()
 }
 
 func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	roleList, err := query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
-		Where(query.SysTeamRole.ID.In(ids...)).
-		Preload(query.SysTeamRole.Apis).
+	if len(ids) == 0 {
+		return nil
+	}
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return bo.UnLoginErr
+	}
+	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	if err != nil {
+		return err
+	}
+	roleList, err := bizquery.Use(bizDB).SysTeamRole.WithContext(ctx).
+		Where(bizquery.SysTeamRole.ID.In(ids...)).
+		Preload(bizquery.SysTeamRole.Apis).
 		Find()
 	if err != nil {
 		return err
 	}
-	casbinRules := make([]*model.CasbinRule, 0, len(roleList))
+	casbinRules := make([]*bizmodel.CasbinRule, 0, len(roleList))
 	for _, roleItem := range roleList {
 		roleItemIdStr := strconv.FormatUint(uint64(roleItem.ID), 10)
 		for _, apiItem := range roleItem.Apis {
-			casbinRules = append(casbinRules, &model.CasbinRule{
+			casbinRules = append(casbinRules, &bizmodel.CasbinRule{
 				Ptype: "p",
 				V0:    roleItemIdStr,
 				V1:    apiItem.Path,
@@ -168,28 +212,29 @@ func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj
 			})
 		}
 	}
-	idStrs := types.SliceTo(ids, func(id uint32) string {
+	idStrList := types.SliceTo(ids, func(id uint32) string {
 		return strconv.FormatUint(uint64(id), 10)
 	})
-	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		if _, err := query.Use(l.data.GetMainDB(ctx)).SysTeamRole.WithContext(ctx).
-			Where(query.SysTeamRole.ID.In(ids...)).
-			UpdateColumnSimple(query.SysTeamRole.Status.Value(status.GetValue())); err != nil {
+	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+		if _, err = tx.SysTeamRole.WithContext(ctx).
+			Where(bizquery.SysTeamRole.ID.In(ids...)).
+			UpdateColumnSimple(bizquery.SysTeamRole.Status.Value(status.GetValue())); err != nil {
 			return err
 		}
 		// 启用则创建权限
 		if status.IsEnable() && len(casbinRules) > 0 {
-			if err := tx.CasbinRule.WithContext(ctx).Create(casbinRules...); err != nil {
+			if err = tx.CasbinRule.WithContext(ctx).Create(casbinRules...); err != nil {
 				return err
 			}
-			return nil
+		} else {
+			// 禁用则删除权限
+			if _, err = tx.CasbinRule.WithContext(ctx).
+				Where(tx.CasbinRule.V0.In(idStrList...)).
+				Delete(); err != nil {
+				return err
+			}
 		}
-		// 禁用则删除权限
-		if _, err := tx.CasbinRule.WithContext(ctx).
-			Where(tx.CasbinRule.V0.In(idStrs...)).
-			Delete(); err != nil {
-			return err
-		}
+
 		return l.data.GetCasbin().LoadPolicy()
 	})
 }

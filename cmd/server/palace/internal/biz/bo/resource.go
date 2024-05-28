@@ -1,9 +1,8 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type (
@@ -32,6 +31,6 @@ func (b *ResourceSelectOptionBuild) ToSelectOption() *SelectOptionBo {
 	return &SelectOptionBo{
 		Value:    b.ID,
 		Label:    b.Name,
-		Disabled: !vobj.Status(b.Status).IsEnable(),
+		Disabled: !b.Status.IsEnable(),
 	}
 }

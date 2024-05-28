@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 )
 
 func newSysAPI(db *gorm.DB, opts ...gen.DOOption) sysAPI {
@@ -28,20 +28,15 @@ func newSysAPI(db *gorm.DB, opts ...gen.DOOption) sysAPI {
 	tableName := _sysAPI.sysAPIDo.TableName()
 	_sysAPI.ALL = field.NewAsterisk(tableName)
 	_sysAPI.ID = field.NewUint32(tableName, "id")
-	_sysAPI.CreatedAt = field.NewTime(tableName, "created_at")
-	_sysAPI.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_sysAPI.CreatedAt = field.NewField(tableName, "created_at")
+	_sysAPI.UpdatedAt = field.NewField(tableName, "updated_at")
+	_sysAPI.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysAPI.Name = field.NewString(tableName, "name")
 	_sysAPI.Path = field.NewString(tableName, "path")
 	_sysAPI.Status = field.NewInt(tableName, "status")
 	_sysAPI.Remark = field.NewString(tableName, "remark")
-	_sysAPI.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysAPI.Module = field.NewInt32(tableName, "module")
 	_sysAPI.Domain = field.NewInt32(tableName, "domain")
-	_sysAPI.SysTeamRoles = sysAPIManyToManySysTeamRoles{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("SysTeamRoles", "model.SysTeamRole"),
-	}
 
 	_sysAPI.fillFieldMap()
 
@@ -51,18 +46,17 @@ func newSysAPI(db *gorm.DB, opts ...gen.DOOption) sysAPI {
 type sysAPI struct {
 	sysAPIDo
 
-	ALL          field.Asterisk
-	ID           field.Uint32
-	CreatedAt    field.Time   // 创建时间
-	UpdatedAt    field.Time   // 更新时间
-	Name         field.String // api名称
-	Path         field.String // api路径
-	Status       field.Int    // 状态
-	Remark       field.String // 备注
-	DeletedAt    field.Int64
-	Module       field.Int32 // 模块
-	Domain       field.Int32 // 领域
-	SysTeamRoles sysAPIManyToManySysTeamRoles
+	ALL       field.Asterisk
+	ID        field.Uint32
+	CreatedAt field.Field
+	UpdatedAt field.Field
+	DeletedAt field.Int64
+	Name      field.String
+	Path      field.String
+	Status    field.Int
+	Remark    field.String
+	Module    field.Int32
+	Domain    field.Int32
 
 	fieldMap map[string]field.Expr
 }
@@ -80,13 +74,13 @@ func (s sysAPI) As(alias string) *sysAPI {
 func (s *sysAPI) updateTableName(table string) *sysAPI {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewTime(table, "created_at")
-	s.UpdatedAt = field.NewTime(table, "updated_at")
+	s.CreatedAt = field.NewField(table, "created_at")
+	s.UpdatedAt = field.NewField(table, "updated_at")
+	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
 	s.Path = field.NewString(table, "path")
 	s.Status = field.NewInt(table, "status")
 	s.Remark = field.NewString(table, "remark")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Module = field.NewInt32(table, "module")
 	s.Domain = field.NewInt32(table, "domain")
 
@@ -105,18 +99,17 @@ func (s *sysAPI) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysAPI) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 11)
+	s.fieldMap = make(map[string]field.Expr, 10)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
+	s.fieldMap["deleted_at"] = s.DeletedAt
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["path"] = s.Path
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["remark"] = s.Remark
-	s.fieldMap["deleted_at"] = s.DeletedAt
 	s.fieldMap["module"] = s.Module
 	s.fieldMap["domain"] = s.Domain
-
 }
 
 func (s sysAPI) clone(db *gorm.DB) sysAPI {
@@ -127,77 +120,6 @@ func (s sysAPI) clone(db *gorm.DB) sysAPI {
 func (s sysAPI) replaceDB(db *gorm.DB) sysAPI {
 	s.sysAPIDo.ReplaceDB(db)
 	return s
-}
-
-type sysAPIManyToManySysTeamRoles struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysAPIManyToManySysTeamRoles) Where(conds ...field.Expr) *sysAPIManyToManySysTeamRoles {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysAPIManyToManySysTeamRoles) WithContext(ctx context.Context) *sysAPIManyToManySysTeamRoles {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysAPIManyToManySysTeamRoles) Session(session *gorm.Session) *sysAPIManyToManySysTeamRoles {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysAPIManyToManySysTeamRoles) Model(m *model.SysAPI) *sysAPIManyToManySysTeamRolesTx {
-	return &sysAPIManyToManySysTeamRolesTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysAPIManyToManySysTeamRolesTx struct{ tx *gorm.Association }
-
-func (a sysAPIManyToManySysTeamRolesTx) Find() (result []*model.SysTeamRole, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysAPIManyToManySysTeamRolesTx) Append(values ...*model.SysTeamRole) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysAPIManyToManySysTeamRolesTx) Replace(values ...*model.SysTeamRole) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysAPIManyToManySysTeamRolesTx) Delete(values ...*model.SysTeamRole) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysAPIManyToManySysTeamRolesTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysAPIManyToManySysTeamRolesTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type sysAPIDo struct{ gen.DO }

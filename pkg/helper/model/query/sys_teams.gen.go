@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 )
 
 func newSysTeam(db *gorm.DB, opts ...gen.DOOption) sysTeam {
@@ -28,8 +28,8 @@ func newSysTeam(db *gorm.DB, opts ...gen.DOOption) sysTeam {
 	tableName := _sysTeam.sysTeamDo.TableName()
 	_sysTeam.ALL = field.NewAsterisk(tableName)
 	_sysTeam.ID = field.NewUint32(tableName, "id")
-	_sysTeam.CreatedAt = field.NewTime(tableName, "created_at")
-	_sysTeam.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_sysTeam.CreatedAt = field.NewField(tableName, "created_at")
+	_sysTeam.UpdatedAt = field.NewField(tableName, "updated_at")
 	_sysTeam.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysTeam.Name = field.NewString(tableName, "name")
 	_sysTeam.Status = field.NewInt(tableName, "status")
@@ -37,17 +37,7 @@ func newSysTeam(db *gorm.DB, opts ...gen.DOOption) sysTeam {
 	_sysTeam.Logo = field.NewString(tableName, "logo")
 	_sysTeam.LeaderID = field.NewUint32(tableName, "leader_id")
 	_sysTeam.CreatorID = field.NewUint32(tableName, "creator_id")
-	_sysTeam.Leader = sysTeamHasOneLeader{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Leader", "model.SysUser"),
-	}
-
-	_sysTeam.Creator = sysTeamHasOneCreator{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Creator", "model.SysUser"),
-	}
+	_sysTeam.UUID = field.NewString(tableName, "uuid")
 
 	_sysTeam.fillFieldMap()
 
@@ -59,18 +49,16 @@ type sysTeam struct {
 
 	ALL       field.Asterisk
 	ID        field.Uint32
-	CreatedAt field.Time // 创建时间
-	UpdatedAt field.Time // 更新时间
+	CreatedAt field.Field
+	UpdatedAt field.Field
 	DeletedAt field.Int64
-	Name      field.String // 团队空间名
-	Status    field.Int    // 状态
-	Remark    field.String // 备注
-	Logo      field.String // 团队logo
-	LeaderID  field.Uint32 // 负责人
-	CreatorID field.Uint32 // 创建者
-	Leader    sysTeamHasOneLeader
-
-	Creator sysTeamHasOneCreator
+	Name      field.String
+	Status    field.Int
+	Remark    field.String
+	Logo      field.String
+	LeaderID  field.Uint32
+	CreatorID field.Uint32
+	UUID      field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -88,8 +76,8 @@ func (s sysTeam) As(alias string) *sysTeam {
 func (s *sysTeam) updateTableName(table string) *sysTeam {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewTime(table, "created_at")
-	s.UpdatedAt = field.NewTime(table, "updated_at")
+	s.CreatedAt = field.NewField(table, "created_at")
+	s.UpdatedAt = field.NewField(table, "updated_at")
 	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
 	s.Status = field.NewInt(table, "status")
@@ -97,6 +85,7 @@ func (s *sysTeam) updateTableName(table string) *sysTeam {
 	s.Logo = field.NewString(table, "logo")
 	s.LeaderID = field.NewUint32(table, "leader_id")
 	s.CreatorID = field.NewUint32(table, "creator_id")
+	s.UUID = field.NewString(table, "uuid")
 
 	s.fillFieldMap()
 
@@ -113,7 +102,7 @@ func (s *sysTeam) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysTeam) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 12)
+	s.fieldMap = make(map[string]field.Expr, 11)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -124,7 +113,7 @@ func (s *sysTeam) fillFieldMap() {
 	s.fieldMap["logo"] = s.Logo
 	s.fieldMap["leader_id"] = s.LeaderID
 	s.fieldMap["creator_id"] = s.CreatorID
-
+	s.fieldMap["uuid"] = s.UUID
 }
 
 func (s sysTeam) clone(db *gorm.DB) sysTeam {
@@ -135,148 +124,6 @@ func (s sysTeam) clone(db *gorm.DB) sysTeam {
 func (s sysTeam) replaceDB(db *gorm.DB) sysTeam {
 	s.sysTeamDo.ReplaceDB(db)
 	return s
-}
-
-type sysTeamHasOneLeader struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamHasOneLeader) Where(conds ...field.Expr) *sysTeamHasOneLeader {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamHasOneLeader) WithContext(ctx context.Context) *sysTeamHasOneLeader {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamHasOneLeader) Session(session *gorm.Session) *sysTeamHasOneLeader {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamHasOneLeader) Model(m *model.SysTeam) *sysTeamHasOneLeaderTx {
-	return &sysTeamHasOneLeaderTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamHasOneLeaderTx struct{ tx *gorm.Association }
-
-func (a sysTeamHasOneLeaderTx) Find() (result *model.SysUser, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamHasOneLeaderTx) Append(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamHasOneLeaderTx) Replace(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamHasOneLeaderTx) Delete(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamHasOneLeaderTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamHasOneLeaderTx) Count() int64 {
-	return a.tx.Count()
-}
-
-type sysTeamHasOneCreator struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamHasOneCreator) Where(conds ...field.Expr) *sysTeamHasOneCreator {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamHasOneCreator) WithContext(ctx context.Context) *sysTeamHasOneCreator {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamHasOneCreator) Session(session *gorm.Session) *sysTeamHasOneCreator {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamHasOneCreator) Model(m *model.SysTeam) *sysTeamHasOneCreatorTx {
-	return &sysTeamHasOneCreatorTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamHasOneCreatorTx struct{ tx *gorm.Association }
-
-func (a sysTeamHasOneCreatorTx) Find() (result *model.SysUser, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamHasOneCreatorTx) Append(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamHasOneCreatorTx) Replace(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamHasOneCreatorTx) Delete(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamHasOneCreatorTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamHasOneCreatorTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type sysTeamDo struct{ gen.DO }

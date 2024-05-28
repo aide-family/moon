@@ -3,13 +3,13 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/types"

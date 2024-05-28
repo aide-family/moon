@@ -1,8 +1,8 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 )
 
 type CheckPermissionParams struct {

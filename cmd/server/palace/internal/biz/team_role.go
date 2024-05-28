@@ -3,12 +3,13 @@ package biz
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
 )
 
 func NewTeamRoleBiz(teamRoleRepo repo.TeamRoleRepo) *TeamRoleBiz {
@@ -22,7 +23,7 @@ type TeamRoleBiz struct {
 }
 
 // CreateTeamRole 创建团队角色
-func (b *TeamRoleBiz) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*model.SysTeamRole, error) {
+func (b *TeamRoleBiz) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
 	return b.teamRoleRepo.CreateTeamRole(ctx, teamRole)
 }
 
@@ -37,7 +38,7 @@ func (b *TeamRoleBiz) DeleteTeamRole(ctx context.Context, id uint32) error {
 }
 
 // GetTeamRole 获取团队角色
-func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*model.SysTeamRole, error) {
+func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
 	role, err := b.teamRoleRepo.GetTeamRole(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -49,7 +50,7 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*model.SysTea
 }
 
 // ListTeamRole 获取团队角色列表
-func (b *TeamRoleBiz) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*model.SysTeamRole, error) {
+func (b *TeamRoleBiz) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
 	return b.teamRoleRepo.ListTeamRole(ctx, params)
 }
 

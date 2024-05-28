@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 )
 
 func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
@@ -28,20 +28,20 @@ func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
 	tableName := _sysUser.sysUserDo.TableName()
 	_sysUser.ALL = field.NewAsterisk(tableName)
 	_sysUser.ID = field.NewUint32(tableName, "id")
-	_sysUser.CreatedAt = field.NewTime(tableName, "created_at")
-	_sysUser.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_sysUser.CreatedAt = field.NewField(tableName, "created_at")
+	_sysUser.UpdatedAt = field.NewField(tableName, "updated_at")
+	_sysUser.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysUser.Username = field.NewString(tableName, "username")
 	_sysUser.Nickname = field.NewString(tableName, "nickname")
 	_sysUser.Password = field.NewString(tableName, "password")
 	_sysUser.Email = field.NewString(tableName, "email")
 	_sysUser.Phone = field.NewString(tableName, "phone")
-	_sysUser.Status = field.NewInt(tableName, "status")
 	_sysUser.Remark = field.NewString(tableName, "remark")
 	_sysUser.Avatar = field.NewString(tableName, "avatar")
 	_sysUser.Salt = field.NewString(tableName, "salt")
-	_sysUser.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysUser.Gender = field.NewInt(tableName, "gender")
 	_sysUser.Role = field.NewInt(tableName, "role")
+	_sysUser.Status = field.NewInt(tableName, "status")
 
 	_sysUser.fillFieldMap()
 
@@ -53,20 +53,20 @@ type sysUser struct {
 
 	ALL       field.Asterisk
 	ID        field.Uint32
-	CreatedAt field.Time   // 创建时间
-	UpdatedAt field.Time   // 更新时间
-	Username  field.String // 用户名
-	Nickname  field.String // 昵称
-	Password  field.String // 密码
-	Email     field.String // 邮箱
-	Phone     field.String // 手机号
-	Status    field.Int    // 状态
-	Remark    field.String // 备注
-	Avatar    field.String // 头像
-	Salt      field.String // 盐
+	CreatedAt field.Field
+	UpdatedAt field.Field
 	DeletedAt field.Int64
-	Gender    field.Int // 性别
-	Role      field.Int // 系统默认角色类型
+	Username  field.String
+	Nickname  field.String
+	Password  field.String
+	Email     field.String
+	Phone     field.String
+	Remark    field.String
+	Avatar    field.String
+	Salt      field.String
+	Gender    field.Int
+	Role      field.Int
+	Status    field.Int
 
 	fieldMap map[string]field.Expr
 }
@@ -84,20 +84,20 @@ func (s sysUser) As(alias string) *sysUser {
 func (s *sysUser) updateTableName(table string) *sysUser {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewUint32(table, "id")
-	s.CreatedAt = field.NewTime(table, "created_at")
-	s.UpdatedAt = field.NewTime(table, "updated_at")
+	s.CreatedAt = field.NewField(table, "created_at")
+	s.UpdatedAt = field.NewField(table, "updated_at")
+	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Username = field.NewString(table, "username")
 	s.Nickname = field.NewString(table, "nickname")
 	s.Password = field.NewString(table, "password")
 	s.Email = field.NewString(table, "email")
 	s.Phone = field.NewString(table, "phone")
-	s.Status = field.NewInt(table, "status")
 	s.Remark = field.NewString(table, "remark")
 	s.Avatar = field.NewString(table, "avatar")
 	s.Salt = field.NewString(table, "salt")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Gender = field.NewInt(table, "gender")
 	s.Role = field.NewInt(table, "role")
+	s.Status = field.NewInt(table, "status")
 
 	s.fillFieldMap()
 
@@ -118,18 +118,18 @@ func (s *sysUser) fillFieldMap() {
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
+	s.fieldMap["deleted_at"] = s.DeletedAt
 	s.fieldMap["username"] = s.Username
 	s.fieldMap["nickname"] = s.Nickname
 	s.fieldMap["password"] = s.Password
 	s.fieldMap["email"] = s.Email
 	s.fieldMap["phone"] = s.Phone
-	s.fieldMap["status"] = s.Status
 	s.fieldMap["remark"] = s.Remark
 	s.fieldMap["avatar"] = s.Avatar
 	s.fieldMap["salt"] = s.Salt
-	s.fieldMap["deleted_at"] = s.DeletedAt
 	s.fieldMap["gender"] = s.Gender
 	s.fieldMap["role"] = s.Role
+	s.fieldMap["status"] = s.Status
 }
 
 func (s sysUser) clone(db *gorm.DB) sysUser {

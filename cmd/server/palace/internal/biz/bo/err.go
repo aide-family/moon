@@ -36,4 +36,6 @@ var (
 
 	// TeamRoleNotFoundErr 团队角色不存在
 	TeamRoleNotFoundErr = merr.ErrorAlert("团队角色不存在")
+	// TeamNameExistErr 团队名称已存在
+	TeamNameExistErr = merr.ErrorAlert("团队名称已存在")
 )

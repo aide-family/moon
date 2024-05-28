@@ -3,7 +3,8 @@ package build
 import (
 	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/api/admin"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 )
 
@@ -39,10 +40,10 @@ func (b *UserBuild) ToApi() *admin.User {
 }
 
 type TeamMemberBuild struct {
-	*model.SysTeamMember
+	*bizmodel.SysTeamMember
 }
 
-func NewTeamMemberBuild(member *model.SysTeamMember) *TeamMemberBuild {
+func NewTeamMemberBuild(member *bizmodel.SysTeamMember) *TeamMemberBuild {
 	return &TeamMemberBuild{
 		SysTeamMember: member,
 	}
@@ -59,6 +60,7 @@ func (b *TeamMemberBuild) ToApi() *admin.TeamMember {
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		User:      NewUserBuild(b.Member).ToApi(),
+		// TODO 从全局变量获取
+		//User:      NewUserBuild(b.Member).ToApi(),
 	}
 }

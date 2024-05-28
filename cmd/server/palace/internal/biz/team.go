@@ -3,12 +3,13 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/pkg/helper/model"
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/do/model"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 )
@@ -171,7 +172,7 @@ func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRolePar
 }
 
 // ListTeamMember 获取团队成员列表
-func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*model.SysTeamMember, error) {
+func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {
 	return t.teamRepo.ListTeamMember(ctx, params)
 }
 
