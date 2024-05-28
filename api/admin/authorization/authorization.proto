@@ -90,8 +90,6 @@ message LogoutReply {
 message RefreshTokenRequest {
 	// 团队ID
 	uint32 team_id = 1;
-	// 团队角色ID
-	uint32 team_role_id = 2;
 }
 message RefreshTokenReply {
 	// token

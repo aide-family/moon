@@ -113,8 +113,6 @@ message ListRoleRequest {
 		message: "关键字长度必须在0到20个字符之间",
 		expression: "this.size() <= 20"
 	}];
-	// 团队ID
-	uint32 team_id = 2;
 }
 message ListRoleReply {
 	repeated TeamRole list = 1;
