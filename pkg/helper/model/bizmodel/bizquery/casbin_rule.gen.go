@@ -7,6 +7,7 @@ package bizquery
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
@@ -15,8 +16,6 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
-
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 )
 
 func newCasbinRule(db *gorm.DB, opts ...gen.DOOption) casbinRule {

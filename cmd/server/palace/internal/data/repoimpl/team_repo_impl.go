@@ -52,6 +52,10 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 	if err != nil {
 		return nil, err
 	}
+	sysMenus, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Find()
+	if err != nil {
+		return nil, err
+	}
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
 			ID:        apiItem.ID,
@@ -64,6 +68,21 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 			Remark:    apiItem.Remark,
 			Module:    apiItem.Module,
 			Domain:    apiItem.Domain,
+		}, true
+	})
+
+	teamMenus := types.SliceToWithFilter(sysMenus, func(menuItem *model.SysMenu) (*bizmodel.SysTeamMenu, bool) {
+		return &bizmodel.SysTeamMenu{
+			ID:        menuItem.ID,
+			CreatedAt: menuItem.CreatedAt,
+			UpdatedAt: menuItem.UpdatedAt,
+			DeletedAt: menuItem.DeletedAt,
+			Name:      menuItem.Name,
+			Path:      menuItem.Path,
+			Status:    menuItem.Status,
+			Icon:      menuItem.Icon,
+			ParentID:  menuItem.ParentID,
+			Level:     menuItem.Level,
 		}, true
 	})
 
@@ -117,7 +136,14 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 		}
 
 		// 迁移api数据到团队数据库
-		return bizquery.Use(bizDB).SysTeamAPI.Create(teamApis...)
+		if err = bizquery.Use(bizDB).SysTeamAPI.Create(teamApis...); err != nil {
+			return err
+		}
+		if err = bizquery.Use(bizDB).SysTeamMenu.Create(teamMenus...); err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err

@@ -20,10 +20,12 @@ var (
 	CasbinRule           *casbinRule
 	Datasource           *datasource
 	DatasourceLabelValue *datasourceLabelValue
+	DatasourceMetric     *datasourceMetric
 	MetricLabel          *metricLabel
 	SysTeamAPI           *sysTeamAPI
 	SysTeamMember        *sysTeamMember
 	SysTeamMemberRole    *sysTeamMemberRole
+	SysTeamMenu          *sysTeamMenu
 	SysTeamRole          *sysTeamRole
 	SysTeamRoleAPI       *sysTeamRoleAPI
 )
@@ -33,10 +35,12 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	CasbinRule = &Q.CasbinRule
 	Datasource = &Q.Datasource
 	DatasourceLabelValue = &Q.DatasourceLabelValue
+	DatasourceMetric = &Q.DatasourceMetric
 	MetricLabel = &Q.MetricLabel
 	SysTeamAPI = &Q.SysTeamAPI
 	SysTeamMember = &Q.SysTeamMember
 	SysTeamMemberRole = &Q.SysTeamMemberRole
+	SysTeamMenu = &Q.SysTeamMenu
 	SysTeamRole = &Q.SysTeamRole
 	SysTeamRoleAPI = &Q.SysTeamRoleAPI
 }
@@ -47,10 +51,12 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		CasbinRule:           newCasbinRule(db, opts...),
 		Datasource:           newDatasource(db, opts...),
 		DatasourceLabelValue: newDatasourceLabelValue(db, opts...),
+		DatasourceMetric:     newDatasourceMetric(db, opts...),
 		MetricLabel:          newMetricLabel(db, opts...),
 		SysTeamAPI:           newSysTeamAPI(db, opts...),
 		SysTeamMember:        newSysTeamMember(db, opts...),
 		SysTeamMemberRole:    newSysTeamMemberRole(db, opts...),
+		SysTeamMenu:          newSysTeamMenu(db, opts...),
 		SysTeamRole:          newSysTeamRole(db, opts...),
 		SysTeamRoleAPI:       newSysTeamRoleAPI(db, opts...),
 	}
@@ -62,10 +68,12 @@ type Query struct {
 	CasbinRule           casbinRule
 	Datasource           datasource
 	DatasourceLabelValue datasourceLabelValue
+	DatasourceMetric     datasourceMetric
 	MetricLabel          metricLabel
 	SysTeamAPI           sysTeamAPI
 	SysTeamMember        sysTeamMember
 	SysTeamMemberRole    sysTeamMemberRole
+	SysTeamMenu          sysTeamMenu
 	SysTeamRole          sysTeamRole
 	SysTeamRoleAPI       sysTeamRoleAPI
 }
@@ -78,10 +86,12 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		CasbinRule:           q.CasbinRule.clone(db),
 		Datasource:           q.Datasource.clone(db),
 		DatasourceLabelValue: q.DatasourceLabelValue.clone(db),
+		DatasourceMetric:     q.DatasourceMetric.clone(db),
 		MetricLabel:          q.MetricLabel.clone(db),
 		SysTeamAPI:           q.SysTeamAPI.clone(db),
 		SysTeamMember:        q.SysTeamMember.clone(db),
 		SysTeamMemberRole:    q.SysTeamMemberRole.clone(db),
+		SysTeamMenu:          q.SysTeamMenu.clone(db),
 		SysTeamRole:          q.SysTeamRole.clone(db),
 		SysTeamRoleAPI:       q.SysTeamRoleAPI.clone(db),
 	}
@@ -101,10 +111,12 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		CasbinRule:           q.CasbinRule.replaceDB(db),
 		Datasource:           q.Datasource.replaceDB(db),
 		DatasourceLabelValue: q.DatasourceLabelValue.replaceDB(db),
+		DatasourceMetric:     q.DatasourceMetric.replaceDB(db),
 		MetricLabel:          q.MetricLabel.replaceDB(db),
 		SysTeamAPI:           q.SysTeamAPI.replaceDB(db),
 		SysTeamMember:        q.SysTeamMember.replaceDB(db),
 		SysTeamMemberRole:    q.SysTeamMemberRole.replaceDB(db),
+		SysTeamMenu:          q.SysTeamMenu.replaceDB(db),
 		SysTeamRole:          q.SysTeamRole.replaceDB(db),
 		SysTeamRoleAPI:       q.SysTeamRoleAPI.replaceDB(db),
 	}
@@ -114,10 +126,12 @@ type queryCtx struct {
 	CasbinRule           ICasbinRuleDo
 	Datasource           IDatasourceDo
 	DatasourceLabelValue IDatasourceLabelValueDo
+	DatasourceMetric     IDatasourceMetricDo
 	MetricLabel          IMetricLabelDo
 	SysTeamAPI           ISysTeamAPIDo
 	SysTeamMember        ISysTeamMemberDo
 	SysTeamMemberRole    ISysTeamMemberRoleDo
+	SysTeamMenu          ISysTeamMenuDo
 	SysTeamRole          ISysTeamRoleDo
 	SysTeamRoleAPI       ISysTeamRoleAPIDo
 }
@@ -127,10 +141,12 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		CasbinRule:           q.CasbinRule.WithContext(ctx),
 		Datasource:           q.Datasource.WithContext(ctx),
 		DatasourceLabelValue: q.DatasourceLabelValue.WithContext(ctx),
+		DatasourceMetric:     q.DatasourceMetric.WithContext(ctx),
 		MetricLabel:          q.MetricLabel.WithContext(ctx),
 		SysTeamAPI:           q.SysTeamAPI.WithContext(ctx),
 		SysTeamMember:        q.SysTeamMember.WithContext(ctx),
 		SysTeamMemberRole:    q.SysTeamMemberRole.WithContext(ctx),
+		SysTeamMenu:          q.SysTeamMenu.WithContext(ctx),
 		SysTeamRole:          q.SysTeamRole.WithContext(ctx),
 		SysTeamRoleAPI:       q.SysTeamRoleAPI.WithContext(ctx),
 	}

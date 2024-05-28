@@ -13,5 +13,6 @@ func Models() []any {
 		&SysTeamMember{},
 		&SysTeamRoleAPI{},
 		&SysTeamRole{},
+		&SysTeamMenu{},
 	}
 }

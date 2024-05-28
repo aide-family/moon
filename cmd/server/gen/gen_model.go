@@ -41,20 +41,9 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 	g.UseDB(gormDB) // reuse your gorm db
 
 	if isBiz {
-		g.ApplyBasic(
-			bizmodel.CasbinRule{},
-			bizmodel.SysTeamAPI{},
-			bizmodel.SysTeamRole{},
-			bizmodel.SysTeamRoleAPI{},
-			bizmodel.SysTeamMember{},
-			bizmodel.SysTeamMemberRole{},
-			bizmodel.SysTeamAPI{},
-			bizmodel.MetricLabel{},
-			bizmodel.DatasourceLabelValue{},
-			bizmodel.Datasource{},
-		)
+		g.ApplyBasic(bizmodel.Models()...)
 	} else {
-		g.ApplyBasic(model.SysUser{}, model.SysAPI{}, model.SysTeam{})
+		g.ApplyBasic(model.Models()...)
 	}
 
 	// Generate the code
