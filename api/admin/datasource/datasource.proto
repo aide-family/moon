@@ -14,143 +14,140 @@ option java_package = "api.admin.datasource";
 
 // 数据源管理模块
 service Datasource {
-	// 创建数据源
-	rpc CreateDatasource (CreateDatasourceRequest) returns (CreateDatasourceReply) {
-		option (google.api.http) = {
-			post: "/v1/datasource"
-			body: "*"
-		};
-	}
+  // 创建数据源
+  rpc CreateDatasource (CreateDatasourceRequest) returns (CreateDatasourceReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource"
+      body: "*"
+    };
+  }
 
-	// 更新数据源
-	rpc UpdateDatasource (UpdateDatasourceRequest) returns (UpdateDatasourceReply) {
-		option (google.api.http) = {
-			put: "/v1/datasource/{id}"
-			body: "*"
-		};
-	}
+  // 更新数据源
+  rpc UpdateDatasource (UpdateDatasourceRequest) returns (UpdateDatasourceReply) {
+    option (google.api.http) = {
+      put: "/v1/datasource/{id}"
+      body: "*"
+    };
+  }
 
-	// 删除数据源
-	rpc DeleteDatasource (DeleteDatasourceRequest) returns (DeleteDatasourceReply) {
-		option (google.api.http) = {
-			delete: "/v1/datasource/{id}"
-		};
-	}
+  // 删除数据源
+  rpc DeleteDatasource (DeleteDatasourceRequest) returns (DeleteDatasourceReply) {
+    option (google.api.http) = {
+      delete: "/v1/datasource/{id}"
+    };
+  }
 
-	// 获取数据源详情
-	rpc GetDatasource (GetDatasourceRequest) returns (GetDatasourceReply) {
-		option (google.api.http) = {
-			get: "/v1/datasource/{id}"
-		};
-	}
+  // 获取数据源详情
+  rpc GetDatasource (GetDatasourceRequest) returns (GetDatasourceReply) {
+    option (google.api.http) = {
+      get: "/v1/datasource/{id}"
+    };
+  }
 
-	// 获取数据源列表
-	rpc ListDatasource (ListDatasourceRequest) returns (ListDatasourceReply) {
-		option (google.api.http) = {
-			post: "/v1/datasource/list"
-			body: "*"
-		};
-	}
+  // 获取数据源列表
+  rpc ListDatasource (ListDatasourceRequest) returns (ListDatasourceReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource/list"
+      body: "*"
+    };
+  }
 
-	// 更新数据源状态
-	rpc UpdateDatasourceStatus (UpdateDatasourceStatusRequest) returns (UpdateDatasourceStatusReply) {
-		option (google.api.http) = {
-			put: "/v1/datasource/{id}/status"
-			body: "*"
-		};
-	}
-	
-	// 下拉列表
-	rpc GetDatasourceSelect (GetDatasourceSelectRequest) returns (GetDatasourceSelectReply) {
-		option (google.api.http) = {
-			post: "/v1/datasource/select"
-			body: "*"
-		};
-	}
+  // 更新数据源状态
+  rpc UpdateDatasourceStatus (UpdateDatasourceStatusRequest) returns (UpdateDatasourceStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/datasource/{id}/status"
+      body: "*"
+    };
+  }
+
+  // 下拉列表
+  rpc GetDatasourceSelect (GetDatasourceSelectRequest) returns (GetDatasourceSelectReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource/select"
+      body: "*"
+    };
+  }
 }
 
 message CreateDatasourceRequest {
-	// 数据源名称
-	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		message: "数据源名称长度在 1 到 50 个字符之间"
-		expression: 'this.size() >= 1 && this.size() <= 50'
-	}];
-	// 数据源类型
-	DatasourceType type = 2 [(buf.validate.field).required = true];
-	// 数据源地址
-	string endpoint = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		message: "数据源地址长度在 1 到 255 个字符之间"
-		expression: 'this.size() >= 1 && this.size() <= 255'
-	}, (buf.validate.field).cel = {
-		message: "数据源地址必须是有效的 URI",
-		expression: "this.isUri()",
-	}];
-	// 状态
-	Status status = 4 [(buf.validate.field).required = true];
-	// 描述
-	string remark = 5 [(buf.validate.field).cel = {
-		message: "描述长度在255 个字符以内",
-		expression: 'this.size() <= 255'
-	}];
-	// 数据源配置
-	map<string, string> config = 6;
-	// 所属团队， 不填写默认全局
-	uint32 team_id = 7;
+  // 数据源名称
+  string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源名称长度在 1 到 50 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 50'
+  }];
+  // 数据源类型
+  DatasourceType type = 2 [(buf.validate.field).required = true];
+  // 数据源地址
+  string endpoint = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源地址长度在 1 到 255 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 255'
+  }, (buf.validate.field).cel = {
+    message: "数据源地址必须是有效的 URI",
+    expression: "this.isUri()",
+  }];
+  // 状态
+  Status status = 4 [(buf.validate.field).required = true];
+  // 描述
+  string remark = 5 [(buf.validate.field).cel = {
+    message: "描述长度在255 个字符以内",
+    expression: 'this.size() <= 255'
+  }];
+  // 数据源配置
+  map<string, string> config = 6;
 }
 message CreateDatasourceReply {}
 
 message UpdateDatasourceRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
-	CreateDatasourceRequest data = 2 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
+  CreateDatasourceRequest data = 2 [(buf.validate.field).required = true];
 }
 message UpdateDatasourceReply {}
 
 message DeleteDatasourceRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message DeleteDatasourceReply {}
 
 message GetDatasourceRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
-message GetDatasourceReply {}
+message GetDatasourceReply {
+  Datasource data = 1;
+}
 
 message ListDatasourceRequest {
-	// 分页参数
-	PaginationReq pagination = 1 [(buf.validate.field).required = true];
-	// 模糊查询
-	string keyword = 2 [(buf.validate.field).cel = {
-		message: "模糊查询长度在 20 个字符以内",
-		expression: 'this.size() <= 20'
-	}];
-	// 状态
-	Status status = 3;
-	// 数据源类型
-	DatasourceType type = 4;
-	// 所属团队
-	uint32 team_id = 5;
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "模糊查询长度在 20 个字符以内",
+    expression: 'this.size() <= 20'
+  }];
+  // 状态
+  Status status = 3;
+  // 数据源类型
+  DatasourceType type = 4;
 }
 message ListDatasourceReply {
-	PaginationReply pagination = 1;
-	repeated Datasource data = 2;
+  PaginationReply pagination = 1;
+  repeated Datasource data = 2;
 }
 
 message UpdateDatasourceStatusRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
-	Status status = 2 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
+  Status status = 2 [(buf.validate.field).required = true];
 }
 message UpdateDatasourceStatusReply {}
 
 message GetDatasourceSelectRequest {
-	uint32 team_id = 1;
-	repeated DatasourceType type = 2;
-	repeated Status status = 3;
-	string keyword = 4;
-	uint32 limit = 5 [(buf.validate.field).cel = {
-		message: "必须小于 1000",
-		expression: 'this <== 1000'
-	}];
+  DatasourceType type = 2;
+  Status status = 3;
+  string keyword = 4;
+  uint32 limit = 5 [(buf.validate.field).cel = {
+    message: "必须小于 1000",
+    expression: 'this <== 1000'
+  }];
 }
 message GetDatasourceSelectReply {
-	repeated Select data = 1;
+  repeated Select data = 1;
 }

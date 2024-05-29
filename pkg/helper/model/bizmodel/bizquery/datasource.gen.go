@@ -28,9 +28,8 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.ALL = field.NewAsterisk(tableName)
 	_datasource.ID = field.NewUint32(tableName, "id")
 	_datasource.Name = field.NewString(tableName, "name")
-	_datasource.Category = field.NewInt32(tableName, "category")
+	_datasource.Category = field.NewInt(tableName, "category")
 	_datasource.Config = field.NewString(tableName, "config")
-	_datasource.TeamID = field.NewUint32(tableName, "team_id")
 	_datasource.Endpoint = field.NewString(tableName, "endpoint")
 	_datasource.Status = field.NewInt(tableName, "status")
 	_datasource.CreatedAt = field.NewField(tableName, "created_at")
@@ -67,9 +66,8 @@ type datasource struct {
 	ALL       field.Asterisk
 	ID        field.Uint32
 	Name      field.String
-	Category  field.Int32
+	Category  field.Int
 	Config    field.String
-	TeamID    field.Uint32
 	Endpoint  field.String
 	Status    field.Int
 	CreatedAt field.Field
@@ -95,9 +93,8 @@ func (d *datasource) updateTableName(table string) *datasource {
 	d.ALL = field.NewAsterisk(table)
 	d.ID = field.NewUint32(table, "id")
 	d.Name = field.NewString(table, "name")
-	d.Category = field.NewInt32(table, "category")
+	d.Category = field.NewInt(table, "category")
 	d.Config = field.NewString(table, "config")
-	d.TeamID = field.NewUint32(table, "team_id")
 	d.Endpoint = field.NewString(table, "endpoint")
 	d.Status = field.NewInt(table, "status")
 	d.CreatedAt = field.NewField(table, "created_at")
@@ -120,12 +117,11 @@ func (d *datasource) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *datasource) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 12)
+	d.fieldMap = make(map[string]field.Expr, 11)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["name"] = d.Name
 	d.fieldMap["category"] = d.Category
 	d.fieldMap["config"] = d.Config
-	d.fieldMap["team_id"] = d.TeamID
 	d.fieldMap["endpoint"] = d.Endpoint
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["created_at"] = d.CreatedAt

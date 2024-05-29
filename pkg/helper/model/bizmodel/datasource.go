@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -15,11 +16,10 @@ const TableNameDatasource = "datasource"
 type Datasource struct {
 	ID        uint32              `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	Name      string              `gorm:"column:name;type:varchar(64);not null;comment:数据源名称" json:"name"`                                   // 数据源名称
-	Category  int32               `gorm:"column:category;type:int;not null;comment:数据源类型" json:"category"`                                   // 数据源类型
+	Category  vobj.DatasourceType `gorm:"column:category;type:int;not null;comment:数据源类型" json:"category"`                                   // 数据源类型
 	Config    string              `gorm:"column:config;type:varchar(255);not null;comment:数据源配置参数" json:"config"`                            // 数据源配置参数
-	TeamID    uint32              `gorm:"column:team_id;type:int unsigned;not null;comment:所属团队，为0时为全局可用" json:"team_id"`                    // 所属团队，为0时为全局可用
 	Endpoint  string              `gorm:"column:endpoint;type:varchar(255);not null;comment:数据源地址" json:"endpoint"`                          // 数据源地址
-	Status    int                 `gorm:"column:status;type:int;not null;comment:数据源状态" json:"status"`                                       // 数据源状态
+	Status    vobj.Status         `gorm:"column:status;type:int;not null;comment:数据源状态" json:"status"`                                       // 数据源状态
 	CreatedAt types.Time          `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
 	UpdatedAt types.Time          `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
 	DeletedAt int64               `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间" json:"deleted_at"`                             // 删除时间
