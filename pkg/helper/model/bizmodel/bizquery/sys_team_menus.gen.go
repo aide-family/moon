@@ -31,6 +31,7 @@ func newSysTeamMenu(db *gorm.DB, opts ...gen.DOOption) sysTeamMenu {
 	_sysTeamMenu.UpdatedAt = field.NewField(tableName, "updated_at")
 	_sysTeamMenu.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_sysTeamMenu.Name = field.NewString(tableName, "name")
+	_sysTeamMenu.EnName = field.NewString(tableName, "en_name")
 	_sysTeamMenu.Path = field.NewString(tableName, "path")
 	_sysTeamMenu.Status = field.NewInt(tableName, "status")
 	_sysTeamMenu.Icon = field.NewString(tableName, "icon")
@@ -61,6 +62,7 @@ type sysTeamMenu struct {
 	UpdatedAt field.Field
 	DeletedAt field.Int64
 	Name      field.String
+	EnName    field.String
 	Path      field.String
 	Status    field.Int
 	Icon      field.String
@@ -88,6 +90,7 @@ func (s *sysTeamMenu) updateTableName(table string) *sysTeamMenu {
 	s.UpdatedAt = field.NewField(table, "updated_at")
 	s.DeletedAt = field.NewInt64(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
+	s.EnName = field.NewString(table, "en_name")
 	s.Path = field.NewString(table, "path")
 	s.Status = field.NewInt(table, "status")
 	s.Icon = field.NewString(table, "icon")
@@ -109,12 +112,13 @@ func (s *sysTeamMenu) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysTeamMenu) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 11)
+	s.fieldMap = make(map[string]field.Expr, 12)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt
 	s.fieldMap["name"] = s.Name
+	s.fieldMap["en_name"] = s.EnName
 	s.fieldMap["path"] = s.Path
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["icon"] = s.Icon

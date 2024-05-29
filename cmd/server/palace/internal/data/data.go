@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -14,7 +15,6 @@ import (
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
-	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
 )
@@ -27,7 +27,7 @@ type Data struct {
 	mainDB          *gorm.DB
 	bizDB           *sql.DB
 	cacher          conn.Cache
-	enforcer        *casbin.SyncedEnforcer
+	enforcerMap     map[uint32]*casbin.SyncedEnforcer
 	bizDatabaseConf *palaceconf.Data_Database
 	teamBizDBMap    map[uint32]*gorm.DB
 }
@@ -42,6 +42,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
 		bizDatabaseConf: bizConf,
 		teamBizDBMap:    make(map[uint32]*gorm.DB),
+		enforcerMap:     make(map[uint32]*casbin.SyncedEnforcer),
 	}
 
 	if !types.IsNil(cacheConf) {
@@ -62,11 +63,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 			log.Debugw("close main db", mainDBClose.Close())
 		})
 		query.SetDefault(d.mainDB)
-		d.enforcer, err = rbac.InitCasbinModel(d.mainDB)
-		if err != nil {
-			log.Errorw("casbin init error", err)
-			return nil, nil, err
-		}
 	}
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
@@ -131,6 +127,12 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 		return nil, err
 	}
 	d.teamBizDBMap[teamId] = bizDB
+	enforcer, err := rbac.InitCasbinModel(d.mainDB)
+	if err != nil {
+		log.Errorw("casbin init error", err)
+		return nil, err
+	}
+	d.enforcerMap[teamId] = enforcer
 
 	return bizDB, nil
 }
@@ -144,8 +146,14 @@ func (d *Data) GetCacher() conn.Cache {
 }
 
 // GetCasbin 获取casbin
-func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
-	return d.enforcer
+func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
+	if _, exist := d.enforcerMap[teamId]; !exist {
+		_, err := d.GetBizGormDB(teamId)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return d.enforcerMap[teamId]
 }
 
 // newCache new cache

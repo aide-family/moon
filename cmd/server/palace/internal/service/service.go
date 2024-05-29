@@ -16,6 +16,7 @@ var ProviderSetService = wire.NewSet(
 	user.NewUserService,
 	authorization.NewAuthorizationService,
 	resource.NewResourceService,
+	resource.NewMenuService,
 	team.NewTeamService,
 	team.NewRoleService,
 	datasource.NewDatasourceService,

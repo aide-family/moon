@@ -14,6 +14,10 @@ type (
 	ResourceSelectOptionBuild struct {
 		*model.SysAPI
 	}
+
+	QueryTeamMenuListParams struct {
+		TeamID uint32 `json:"teamID"`
+	}
 )
 
 // NewResourceSelectOptionBuild 构建资源选项构建器

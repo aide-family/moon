@@ -2,8 +2,10 @@ package biz
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -16,27 +18,30 @@ import (
 )
 
 type AuthorizationBiz struct {
-	userRepo  repo.UserRepo
-	teamRepo  repo.TeamRepo
-	cacheRepo repo.CacheRepo
+	userRepo     repo.UserRepo
+	teamRepo     repo.TeamRepo
+	cacheRepo    repo.CacheRepo
+	teamRoleRepo repo.TeamRoleRepo
 }
 
 func NewAuthorizationBiz(
 	userRepo repo.UserRepo,
 	teamRepo repo.TeamRepo,
 	cacheRepo repo.CacheRepo,
+	teamRoleRepo repo.TeamRoleRepo,
 ) *AuthorizationBiz {
 	return &AuthorizationBiz{
-		userRepo:  userRepo,
-		teamRepo:  teamRepo,
-		cacheRepo: cacheRepo,
+		userRepo:     userRepo,
+		teamRepo:     teamRepo,
+		cacheRepo:    cacheRepo,
+		teamRoleRepo: teamRoleRepo,
 	}
 }
 
 // CheckPermission 检查用户是否有该资源权限
 func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
-	if req.JwtClaims.GetTeamRole().IsSuperadmin() {
-		return nil
+	if req.JwtClaims.GetTeamRole().IsAdmin() {
+		//return nil
 	}
 	// 检查用户是否被团队禁用
 	teamDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
@@ -50,7 +55,25 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return merr.ErrorModal("用户被禁用")
 	}
 
+	fmt.Print("===========")
 	// TODO 查询用户角色
+	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
+	if err != nil {
+		return merr.ErrorNotification("系统错误")
+	}
+	if len(memberRoles) == 0 {
+		return bo.NoPermissionErr
+	}
+	memberROleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
+		return role.ID
+	})
+	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberROleIds, req.Operation)
+	if err != nil {
+		return err
+	}
+	if !rbac {
+		return bo.NoPermissionErr
+	}
 
 	return nil
 }

@@ -29,4 +29,7 @@ type TeamRoleRepo interface {
 
 	// UpdateTeamRoleStatus 更新团队角色状态
 	UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error
+
+	// CheckRbac 检查用户是否有权限
+	CheckRbac(ctx context.Context, teamId uint32, roleIds []uint32, path string) (bool, error)
 }

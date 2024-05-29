@@ -45,6 +45,8 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
+	}
+	if err == nil {
 		return nil, bo.TeamNameExistErr
 	}
 

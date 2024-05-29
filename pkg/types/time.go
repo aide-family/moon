@@ -1,6 +1,8 @@
 package types
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
 
@@ -24,4 +26,28 @@ func (t *Time) Unix() int64 {
 
 func NewTime(t time.Time) *Time {
 	return (*Time)(&t)
+}
+
+// Scan 现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
+func (t *Time) Scan(value interface{}) error {
+	switch value.(type) {
+	case time.Time:
+		*t = Time(value.(time.Time))
+	case string:
+		tt, err := time.ParseInLocation(time.DateTime, value.(string), time.Local)
+		if err != nil {
+			return err
+		}
+		*t = Time(tt)
+	case nil:
+		*t = Time(time.Time{})
+	default:
+		return fmt.Errorf("can not convert %v to Time", value)
+	}
+	return nil
+}
+
+// Value 实现 driver.Valuer 接口，Value
+func (t Time) Value() (driver.Value, error) {
+	return time.Time(t), nil
 }

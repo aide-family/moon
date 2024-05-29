@@ -87,6 +87,30 @@ message ResourceItem {
   DomainType domain = 10;
 }
 
+// 系统菜单模块
+message Menu {
+  // 菜单ID
+  uint32 id = 1;
+  // 菜单名称
+  string name = 2;
+  // 菜单路径
+  string path = 3;
+  // 菜单图标
+  string icon = 4;
+  // 菜单状态
+  Status status = 5;
+  // 父级菜单
+  uint32 parent_id = 6;
+  // 创建时间
+  string created_at = 7;
+  // 更新时间
+  string updated_at = 8;
+  // 菜单层级
+  int32 level = 9;
+  // 菜单子级数据
+  repeated Menu children = 10;
+}
+
 // 团队成员
 message TeamMember {
   // 用户ID

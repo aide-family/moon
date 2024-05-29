@@ -65,7 +65,7 @@ func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.Crea
 		return nil, err
 	}
 
-	return sysTeamRoleModel, l.data.GetCasbin().LoadPolicy()
+	return sysTeamRoleModel, l.data.GetCasbin(teamRole.TeamID).LoadPolicy()
 }
 
 func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
@@ -119,7 +119,7 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 			return err
 		}
 
-		return l.data.GetCasbin().LoadPolicy()
+		return l.data.GetCasbin(sysTeamRoleModel.TeamID).LoadPolicy()
 	})
 }
 
@@ -141,7 +141,7 @@ func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error 
 			Where(tx.CasbinRule.V0.Eq(strconv.FormatUint(uint64(id), 10))).Delete(); err != nil {
 			return err
 		}
-		return l.data.GetCasbin().LoadPolicy()
+		return l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
 	})
 }
 
@@ -179,11 +179,13 @@ func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, team
 		return nil, err
 	}
 	q := bizquery.Use(bizDB)
-	return q.SysTeamMember.TeamRoles.
-		WithContext(ctx).Where(
-		q.SysTeamMember.UserID.Eq(userID),
-		q.SysTeamMember.TeamID.Eq(teamID),
-	).Model(&bizmodel.SysTeamMember{TeamID: teamID, UserID: userID}).Find()
+	// 查询member信息
+	memberDetail, err := q.SysTeamMember.WithContext(ctx).Where(q.SysTeamMember.UserID.Eq(userID)).First()
+	if err != nil {
+		return nil, err
+	}
+
+	return q.SysTeamMember.TeamRoles.WithContext(ctx).Model(memberDetail).Find()
 }
 
 func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -241,6 +243,21 @@ func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj
 			}
 		}
 
-		return l.data.GetCasbin().LoadPolicy()
+		return l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
 	})
+}
+
+func (l *teamRoleRepoImpl) CheckRbac(_ context.Context, teamId uint32, roleIds []uint32, path string) (bool, error) {
+	enforce := l.data.GetCasbin(teamId)
+	for _, roleId := range roleIds {
+		roleStr := strconv.FormatUint(uint64(roleId), 10)
+		has, err := enforce.Enforce(roleStr, path, path)
+		if err != nil {
+			return false, err
+		}
+		if has {
+			return true, nil
+		}
+	}
+	return false, nil
 }
