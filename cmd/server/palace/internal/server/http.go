@@ -4,6 +4,7 @@ import (
 	"context"
 	nHttp "net/http"
 
+	"github.com/aide-cloud/moon/pkg/log"
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
@@ -48,6 +49,7 @@ func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http
 		http.Middleware(
 			// TODO 开发完再开启
 			//recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			authMiddleware,
 			rbacMiddleware,
 			middleware.Validate(protovalidate.WithFailFast(true)),

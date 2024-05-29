@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/pkg/log"
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -15,6 +16,7 @@ func NewGRPCServer(bc *conf.Bootstrap) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}
