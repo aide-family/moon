@@ -9,6 +9,8 @@ package palace
 import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver/microserverrepoimpl"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
@@ -61,11 +63,18 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	datasourceBiz := biz.NewDatasourceBiz(repositoryDatasource)
 	datasourceService := datasource.NewDatasourceService(datasourceBiz)
 	teamMenu := repoimpl.NewTeamMenuRepository(dataData)
-	menuBiz := biz.NewMenuBiz(teamMenu)
+	rabbitConn, cleanup2, err := microserver.NewRabbitRpcConn(bootstrap)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	msg := microserverrepoimpl.NewMsgRepository(rabbitConn)
+	menuBiz := biz.NewMenuBiz(teamMenu, msg)
 	menuService := resource.NewMenuService(menuBiz)
 	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, healthService, userService, authorizationService, resourceService, teamService, roleService, datasourceService, menuService)
 	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

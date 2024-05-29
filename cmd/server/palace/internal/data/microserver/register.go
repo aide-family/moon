@@ -73,19 +73,19 @@ func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 	endpoint := microServerConf.GetEndpoint()
 	opts := []http.ClientOption{
 		http.WithEndpoint(endpoint),
-		http.WithMiddleware(
-			recovery.Recovery(),
-			mmd.Client(),
-			jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
-				return []byte(microServerConf.GetSecret()), nil
-			}),
-		),
+		//http.WithMiddleware(
+		//	recovery.Recovery(),
+		//	mmd.Client(),
+		//	jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
+		//		return []byte(microServerConf.GetSecret()), nil
+		//	}),
+		//),
 		http.WithTimeout(timeout),
 	}
 	if !types.TextIsNull(microServerConf.GetNodeVersion()) {
 		// 创建路由 Filter：筛选版本号为"2.0.0"的实例
-		nodeFilter := filter.Version(microServerConf.GetNodeVersion())
-		opts = append(opts, http.WithNodeFilter(nodeFilter))
+		//nodeFilter := filter.Version(microServerConf.GetNodeVersion())
+		//opts = append(opts, http.WithNodeFilter(nodeFilter))
 	}
 
 	if !types.IsNil(discovery) {

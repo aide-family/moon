@@ -1,7 +1,7 @@
 env: dev # dev、test、prod、local
 
 server:
-  name: moon-palace
+  name: moon_palace
   metadata:
     description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
     background: 寓意为月宫，表示moon系列的统一管理平台
@@ -11,14 +11,16 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 10s
-#  registry:
-#    type: "etcd"
-#    etcd:
-#      endpoints:
-#        - 127.0.0.1:20000
-#      username: ""
-#      password: ""
-#      timeout: 10s
+  registry:
+    type: "etcd"
+    etcd:
+      endpoints:
+        - 127.0.0.1:20000
+        - 127.0.0.1:20002
+        - 127.0.0.1:20004
+      username: ""
+      password: ""
+      timeout: 10s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon-palace"
@@ -55,17 +57,24 @@ data:
       bucket: test
 
 micro_server:
-  discovery:
-    etcd:
-      endpoints:
-        - 127.0.0.1:2379
-      token: ""
-      timeout: 10s
+#  discovery:
+#    etcd:
+#      endpoints:
+#        - 127.0.0.1:20000
+#        - 127.0.0.1:20002
+#        - 127.0.0.1:20004
+#      token: ""
+#      timeout: 10s
   rabbit_server:
-    endpoint: "127.0.0.1:9001"
-    timeout: 2s
-    token: ""
-  hou_yi_server:
-    endpoint: "127.0.0.1:9002"
-    timeout: 2s
-    token: ""
+    network: "http"
+    nodeVersion: ""
+#    endpoint: "discovery:///moon_rabbit"
+    endpoint: "127.0.0.1:8001"
+    timeout: 10s
+    secret: ""
+#  hou_yi_server:
+#    network: "http"
+#    nodeVersion: ""
+#    endpoint: "discovery:///moon_houyi"
+#    timeout: 2s
+#    secret: ""

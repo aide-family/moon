@@ -13,7 +13,7 @@ service Hook {
   // 发送消息, 用于接受http数据
   rpc SendMsg (SendMsgRequest) returns (SendMsgReply) {
     option (google.api.http) = {
-      post: "/api/rabbit/send/msg"
+      post: "/v1/rabbit/send/msg"
       body: "*"
     };
   }
@@ -21,7 +21,7 @@ service Hook {
 
 message SendMsgRequest {
   // 用于接收外界的数据， 兼容所有json格式
-  bytes json_data = 1;
+  string json_data = 1;
   // 用于匹配该数据发送给谁
   string route = 2;
 }

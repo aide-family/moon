@@ -8,6 +8,8 @@ package palace
 import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver/microserverrepoimpl"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/repoimpl"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
@@ -25,6 +27,8 @@ func wireApp(*palaceconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		repoimpl.ProviderSetRepoImpl,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
+		microserverrepoimpl.ProviderSetRpcRepoImpl,
+		microserver.ProviderSetRpcConn,
 		newApp,
 	))
 }

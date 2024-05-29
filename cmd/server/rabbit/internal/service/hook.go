@@ -28,7 +28,7 @@ func NewHookService(msgBiz *biz.MsgBiz) *HookService {
 func (s *HookService) SendMsg(ctx context.Context, req *pb.SendMsgRequest) (*pb.SendMsgReply, error) {
 	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{
 		Route: req.Route,
-		Data:  req.JsonData,
+		Data:  []byte(req.JsonData),
 	}); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 		if err != nil {
 			return err
 		}
-		in.JsonData = all
+		in.JsonData = string(all)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return s.SendMsg(ctx, req.(*pb.SendMsgRequest))
 		})

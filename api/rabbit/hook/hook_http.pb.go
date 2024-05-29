@@ -28,7 +28,7 @@ type HookHTTPServer interface {
 
 func RegisterHookHTTPServer(s *http.Server, srv HookHTTPServer) {
 	r := s.Route("/")
-	r.POST("/api/rabbit/send/msg", _Hook_SendMsg0_HTTP_Handler(srv))
+	r.POST("/v1/rabbit/send/msg", _Hook_SendMsg0_HTTP_Handler(srv))
 }
 
 func _Hook_SendMsg0_HTTP_Handler(srv HookHTTPServer) func(ctx http.Context) error {
@@ -67,7 +67,7 @@ func NewHookHTTPClient(client *http.Client) HookHTTPClient {
 
 func (c *HookHTTPClientImpl) SendMsg(ctx context.Context, in *SendMsgRequest, opts ...http.CallOption) (*SendMsgReply, error) {
 	var out SendMsgReply
-	pattern := "/api/rabbit/send/msg"
+	pattern := "/v1/rabbit/send/msg"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationHookSendMsg))
 	opts = append(opts, http.PathTemplate(pattern))

@@ -6,4 +6,5 @@ import (
 
 var ProviderSetRpcRepoImpl = wire.NewSet(
 	NewDatasourceMetricRepository,
+	NewMsgRepository,
 )
