@@ -100,7 +100,7 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 		}
 		return merr.ErrorNotification("系统错误")
 	}
-	if !vobj.Status(userDo.Status).IsEnable() {
+	if !userDo.Status.IsEnable() {
 		return merr.ErrorModal("用户被禁用")
 	}
 	return nil
@@ -126,7 +126,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	base := &middleware.JwtBaseInfo{}
 
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, vobj.Role(userDo.Role), nil
+		return userDo.ID, userDo.Role, nil
 	})
 	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
 		if req.Team <= 0 {
@@ -162,7 +162,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		}
 		return nil, bo.SystemErr
 	}
-	if !vobj.Status(userDo.Status).IsEnable() {
+	if !userDo.Status.IsEnable() {
 		return nil, merr.ErrorRedirect("用户被禁用").WithMetadata(map[string]string{
 			"redirect": "/login",
 		})
@@ -193,7 +193,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	// 生成token
 	base := &middleware.JwtBaseInfo{}
 	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, vobj.Role(userDo.Role), nil
+		return userDo.ID, userDo.Role, nil
 	})
 	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
 		return req.Team, vobj.Role(memberItem.Role), nil

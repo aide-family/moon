@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/api"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -50,6 +51,7 @@ func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
+	healthService *service.HealthService,
 	userService *user.Service,
 	authorizationService *authorization.Service,
 	resourceService *resource.Service,
@@ -67,6 +69,7 @@ func RegisterService(
 	teamapi.RegisterTeamServer(rpcSrv, teamService)
 	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceServer(rpcSrv, datasourceService)
+	api.RegisterHealthServer(rpcSrv, healthService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -77,6 +80,7 @@ func RegisterService(
 	teamapi.RegisterTeamHTTPServer(httpSrv, teamService)
 	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
+	api.RegisterHealthHTTPServer(httpSrv, healthService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

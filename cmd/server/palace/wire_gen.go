@@ -47,6 +47,7 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	greeterRepo := data.NewGreeterRepo(dataData)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo)
 	greeterService := service.NewGreeterService(greeterUsecase)
+	healthService := service.NewHealthService()
 	userBiz := biz.NewUserBiz(repositoryUser)
 	userService := user.NewUserService(userBiz)
 	repositoryResource := repoimpl.NewResourceRepository(dataData)
@@ -60,7 +61,7 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	teamMenu := repoimpl.NewTeamMenuRepository(dataData)
 	menuBiz := biz.NewMenuBiz(teamMenu)
 	menuService := resource.NewMenuService(menuBiz)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, userService, authorizationService, resourceService, teamService, roleService, datasourceService, menuService)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, healthService, userService, authorizationService, resourceService, teamService, roleService, datasourceService, menuService)
 	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
 		cleanup()

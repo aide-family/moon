@@ -13,6 +13,7 @@ import (
 // ProviderSetService is service providers.
 var ProviderSetService = wire.NewSet(
 	NewGreeterService,
+	NewHealthService,
 	user.NewUserService,
 	authorization.NewAuthorizationService,
 	resource.NewResourceService,

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-cloud/moon/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+// 健康检查接口
+service Health {
+	rpc Check(CheckRequest) returns (CheckReply) {
+		option (google.api.http) = {
+			get: "/health"
+		};
+	}
+}
+
+message CheckRequest {}
+message CheckReply {
+	bool healthy = 1;
+}

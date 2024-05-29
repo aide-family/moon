@@ -12,7 +12,6 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 func NewUserBiz(userRepo repository.User) *UserBiz {
@@ -87,7 +86,7 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return bo.SystemErr.WithCause(err)
 	}
-	if !claims.Role.IsSuperadmin() && vobj.Role(userDo.Role).IsAdmin() {
+	if !claims.Role.IsSuperadmin() && userDo.Role.IsAdmin() {
 		return bo.AdminUserDeleteErr
 	}
 	// 记录操作日志
@@ -133,7 +132,7 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 			return bo.SystemErr.WithCause(err)
 		}
 		for _, user := range userDos {
-			if vobj.Role(user.Role).IsAdmin() {
+			if user.Role.IsAdmin() {
 				return bo.NoPermissionErr.WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 			}
 		}
