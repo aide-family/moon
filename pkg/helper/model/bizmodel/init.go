@@ -5,7 +5,7 @@ func Models() []any {
 	return []any{
 		&CasbinRule{},
 		&Datasource{},
-		&DatasourceLabelValue{},
+		&MetricLabelValue{},
 		&DatasourceMetric{},
 		&MetricLabel{},
 		&SysTeamAPI{},

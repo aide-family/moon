@@ -82,4 +82,6 @@ message MicroServer {
   api.Discovery discovery = 1;
   // 月兔消息服务
   api.Server rabbit_server = 2;
+  // 后羿代理服务
+  api.Server hou_yi_server = 3;
 }

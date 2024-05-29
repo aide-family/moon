@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/aide-cloud/moon/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+// 指标标签值列表
+message MetricLabelValues {
+	repeated string values = 1;
+}
+
+// 查询到的数据详情， 用与元数据构建
+message MetricDetail {
+	// 指标名称
+	string name = 1;
+	// 帮助信息
+	string help = 2;
+	// 类型
+	string type = 3;
+	// 标签集合
+	map<string, MetricLabelValues> labels = 4;
+	// 指标单位
+	string unit = 5;
+}

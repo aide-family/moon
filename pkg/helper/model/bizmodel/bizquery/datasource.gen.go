@@ -42,15 +42,15 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 		RelationField: field.NewRelation("Metrics", "bizmodel.DatasourceMetric"),
 		Labels: struct {
 			field.RelationField
-			Labels struct {
+			LabelValues struct {
 				field.RelationField
 			}
 		}{
 			RelationField: field.NewRelation("Metrics.Labels", "bizmodel.MetricLabel"),
-			Labels: struct {
+			LabelValues: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Metrics.Labels.Labels", "bizmodel.DatasourceLabelValue"),
+				RelationField: field.NewRelation("Metrics.Labels.LabelValues", "bizmodel.MetricLabelValue"),
 			},
 		},
 	}
@@ -148,7 +148,7 @@ type datasourceHasManyMetrics struct {
 
 	Labels struct {
 		field.RelationField
-		Labels struct {
+		LabelValues struct {
 			field.RelationField
 		}
 	}

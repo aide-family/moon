@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package api.metadata;
+
+import "google/api/annotations.proto";
+import "metadata.proto";
+
+option go_package = "github.com/aide-cloud/moon/api/metadata;metadata";
+option java_multiple_files = true;
+option java_package = "api.metadata";
+
+// metric类型数据源元数据同步接口， 子服务需要实现该接口, 支持http和rpc两种同步方式
+service Metric {
+	rpc Sync(SyncRequest) returns (SyncReply) {
+		option (google.api.http) = {
+			post: "/metric/metadata/sync"
+			body: "*"
+		};
+	}
+}
+
+// TODO 前期先明文， 后面再考虑加密
+message SyncRequest {
+	// 数据源地址
+	string endpoint = 1;
+	// 配置信息
+	map<string, string> config = 2;
+}
+
+message SyncReply {
+	// 采集到的指标列表
+	repeated MetricDetail metrics = 1;
+}

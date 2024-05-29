@@ -28,7 +28,7 @@ func newDatasourceMetric(db *gorm.DB, opts ...gen.DOOption) datasourceMetric {
 	_datasourceMetric.ALL = field.NewAsterisk(tableName)
 	_datasourceMetric.ID = field.NewUint32(tableName, "id")
 	_datasourceMetric.Name = field.NewString(tableName, "name")
-	_datasourceMetric.Category = field.NewInt32(tableName, "category")
+	_datasourceMetric.Category = field.NewInt(tableName, "category")
 	_datasourceMetric.Unit = field.NewString(tableName, "unit")
 	_datasourceMetric.Remark = field.NewString(tableName, "remark")
 	_datasourceMetric.DatasourceID = field.NewUint32(tableName, "datasource_id")
@@ -39,10 +39,10 @@ func newDatasourceMetric(db *gorm.DB, opts ...gen.DOOption) datasourceMetric {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Labels", "bizmodel.MetricLabel"),
-		Labels: struct {
+		LabelValues: struct {
 			field.RelationField
 		}{
-			RelationField: field.NewRelation("Labels.Labels", "bizmodel.DatasourceLabelValue"),
+			RelationField: field.NewRelation("Labels.LabelValues", "bizmodel.MetricLabelValue"),
 		},
 	}
 
@@ -57,7 +57,7 @@ type datasourceMetric struct {
 	ALL          field.Asterisk
 	ID           field.Uint32
 	Name         field.String
-	Category     field.Int32
+	Category     field.Int
 	Unit         field.String
 	Remark       field.String
 	DatasourceID field.Uint32
@@ -83,7 +83,7 @@ func (d *datasourceMetric) updateTableName(table string) *datasourceMetric {
 	d.ALL = field.NewAsterisk(table)
 	d.ID = field.NewUint32(table, "id")
 	d.Name = field.NewString(table, "name")
-	d.Category = field.NewInt32(table, "category")
+	d.Category = field.NewInt(table, "category")
 	d.Unit = field.NewString(table, "unit")
 	d.Remark = field.NewString(table, "remark")
 	d.DatasourceID = field.NewUint32(table, "datasource_id")
@@ -134,7 +134,7 @@ type datasourceMetricHasManyLabels struct {
 
 	field.RelationField
 
-	Labels struct {
+	LabelValues struct {
 		field.RelationField
 	}
 }

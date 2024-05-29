@@ -33,10 +33,10 @@ func newMetricLabel(db *gorm.DB, opts ...gen.DOOption) metricLabel {
 	_metricLabel.UpdatedAt = field.NewField(tableName, "updated_at")
 	_metricLabel.DeletedAt = field.NewInt64(tableName, "deleted_at")
 	_metricLabel.Remark = field.NewString(tableName, "remark")
-	_metricLabel.Labels = metricLabelHasManyLabels{
+	_metricLabel.LabelValues = metricLabelHasManyLabelValues{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Labels", "bizmodel.DatasourceLabelValue"),
+		RelationField: field.NewRelation("LabelValues", "bizmodel.MetricLabelValue"),
 	}
 
 	_metricLabel.fillFieldMap()
@@ -47,15 +47,15 @@ func newMetricLabel(db *gorm.DB, opts ...gen.DOOption) metricLabel {
 type metricLabel struct {
 	metricLabelDo
 
-	ALL       field.Asterisk
-	ID        field.Uint32
-	Name      field.String
-	MetricID  field.Uint32
-	CreatedAt field.Field
-	UpdatedAt field.Field
-	DeletedAt field.Int64
-	Remark    field.String
-	Labels    metricLabelHasManyLabels
+	ALL         field.Asterisk
+	ID          field.Uint32
+	Name        field.String
+	MetricID    field.Uint32
+	CreatedAt   field.Field
+	UpdatedAt   field.Field
+	DeletedAt   field.Int64
+	Remark      field.String
+	LabelValues metricLabelHasManyLabelValues
 
 	fieldMap map[string]field.Expr
 }
@@ -116,13 +116,13 @@ func (m metricLabel) replaceDB(db *gorm.DB) metricLabel {
 	return m
 }
 
-type metricLabelHasManyLabels struct {
+type metricLabelHasManyLabelValues struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a metricLabelHasManyLabels) Where(conds ...field.Expr) *metricLabelHasManyLabels {
+func (a metricLabelHasManyLabelValues) Where(conds ...field.Expr) *metricLabelHasManyLabelValues {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -135,27 +135,27 @@ func (a metricLabelHasManyLabels) Where(conds ...field.Expr) *metricLabelHasMany
 	return &a
 }
 
-func (a metricLabelHasManyLabels) WithContext(ctx context.Context) *metricLabelHasManyLabels {
+func (a metricLabelHasManyLabelValues) WithContext(ctx context.Context) *metricLabelHasManyLabelValues {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a metricLabelHasManyLabels) Session(session *gorm.Session) *metricLabelHasManyLabels {
+func (a metricLabelHasManyLabelValues) Session(session *gorm.Session) *metricLabelHasManyLabelValues {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a metricLabelHasManyLabels) Model(m *bizmodel.MetricLabel) *metricLabelHasManyLabelsTx {
-	return &metricLabelHasManyLabelsTx{a.db.Model(m).Association(a.Name())}
+func (a metricLabelHasManyLabelValues) Model(m *bizmodel.MetricLabel) *metricLabelHasManyLabelValuesTx {
+	return &metricLabelHasManyLabelValuesTx{a.db.Model(m).Association(a.Name())}
 }
 
-type metricLabelHasManyLabelsTx struct{ tx *gorm.Association }
+type metricLabelHasManyLabelValuesTx struct{ tx *gorm.Association }
 
-func (a metricLabelHasManyLabelsTx) Find() (result []*bizmodel.DatasourceLabelValue, err error) {
+func (a metricLabelHasManyLabelValuesTx) Find() (result []*bizmodel.MetricLabelValue, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a metricLabelHasManyLabelsTx) Append(values ...*bizmodel.DatasourceLabelValue) (err error) {
+func (a metricLabelHasManyLabelValuesTx) Append(values ...*bizmodel.MetricLabelValue) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -163,7 +163,7 @@ func (a metricLabelHasManyLabelsTx) Append(values ...*bizmodel.DatasourceLabelVa
 	return a.tx.Append(targetValues...)
 }
 
-func (a metricLabelHasManyLabelsTx) Replace(values ...*bizmodel.DatasourceLabelValue) (err error) {
+func (a metricLabelHasManyLabelValuesTx) Replace(values ...*bizmodel.MetricLabelValue) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -171,7 +171,7 @@ func (a metricLabelHasManyLabelsTx) Replace(values ...*bizmodel.DatasourceLabelV
 	return a.tx.Replace(targetValues...)
 }
 
-func (a metricLabelHasManyLabelsTx) Delete(values ...*bizmodel.DatasourceLabelValue) (err error) {
+func (a metricLabelHasManyLabelValuesTx) Delete(values ...*bizmodel.MetricLabelValue) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -179,11 +179,11 @@ func (a metricLabelHasManyLabelsTx) Delete(values ...*bizmodel.DatasourceLabelVa
 	return a.tx.Delete(targetValues...)
 }
 
-func (a metricLabelHasManyLabelsTx) Clear() error {
+func (a metricLabelHasManyLabelValuesTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a metricLabelHasManyLabelsTx) Count() int64 {
+func (a metricLabelHasManyLabelValuesTx) Count() int64 {
 	return a.tx.Count()
 }
 

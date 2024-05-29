@@ -65,3 +65,7 @@ micro_server:
     endpoint: "127.0.0.1:9001"
     timeout: 2s
     token: ""
+  hou_yi_server:
+    endpoint: "127.0.0.1:9002"
+    timeout: 2s
+    token: ""

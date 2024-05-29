@@ -9,10 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
-const TableNameDatasourceLabelValue = "datasource_label_values"
+const TableNameMetricLabelValue = "metric_label_values"
 
-// DatasourceLabelValue mapped from table <datasource_label_values>
-type DatasourceLabelValue struct {
+// MetricLabelValue mapped from table <datasource_label_values>
+type MetricLabelValue struct {
 	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	Name      string     `gorm:"column:name;type:varchar(64);not null;comment:数据源名称" json:"name"`                                   // 数据源名称
 	LabelID   uint32     `gorm:"column:label_id;type:int unsigned;not null;comment:所属数据源" json:"label_id"`                          // 所属数据源
@@ -22,35 +22,35 @@ type DatasourceLabelValue struct {
 }
 
 // String json string
-func (c *DatasourceLabelValue) String() string {
+func (c *MetricLabelValue) String() string {
 	bs, _ := json.Marshal(c)
 	return string(bs)
 }
 
-func (c *DatasourceLabelValue) UnmarshalBinary(data []byte) error {
+func (c *MetricLabelValue) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
-func (c *DatasourceLabelValue) MarshalBinary() (data []byte, err error) {
+func (c *MetricLabelValue) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // Create func
-func (c *DatasourceLabelValue) Create(ctx context.Context, tx *gorm.DB) error {
+func (c *MetricLabelValue) Create(ctx context.Context, tx *gorm.DB) error {
 	return tx.WithContext(ctx).Create(c).Error
 }
 
 // Update func
-func (c *DatasourceLabelValue) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
+func (c *MetricLabelValue) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
 }
 
 // Delete func
-func (c *DatasourceLabelValue) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
+func (c *MetricLabelValue) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
 	return tx.WithContext(ctx).Where(conds).Delete(c).Error
 }
 
-// TableName DatasourceLabelValue's table name
-func (*DatasourceLabelValue) TableName() string {
-	return TableNameDatasourceLabelValue
+// TableName MetricLabelValue's table name
+func (*MetricLabelValue) TableName() string {
+	return TableNameMetricLabelValue
 }
