@@ -164,7 +164,11 @@ message Discovery {
 // 微服务配置
 message Server {
   string endpoint = 1;
-  optional string token = 2;
+  optional string secret = 2;
   optional google.protobuf.Duration timeout = 3;
+  // 网络类型， http, https, grpc
+  string network = 4;
+  // node版本， 不填写不走node filter
+  string nodeVersion = 5;
 }
 

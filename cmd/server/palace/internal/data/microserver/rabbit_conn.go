@@ -2,11 +2,12 @@ package microserver
 
 import (
 	"context"
-	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
 
+	"github.com/aide-cloud/moon/api/merr"
 	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
 	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
@@ -14,65 +15,97 @@ import (
 )
 
 // NewRabbitRpcConn 创建一个rabbit rpc连接
-func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitRpcConn, func(), error) {
-	var err error
-	var grpcConn *grpc.ClientConn
+func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	microServer := c.GetMicroServer()
 	rabbitServer := microServer.GetRabbitServer()
-	endpoint := rabbitServer.GetEndpoint()
-	network := vobj.NetworkRpc
-	httpEndpoint := endpoint
-	if strings.HasPrefix(endpoint, "http") {
-		network = vobj.NetworkHttp
-	} else if strings.HasPrefix(endpoint, "https") {
-		network = vobj.NetworkHttps
-	} else {
-		network = vobj.NetworkRpc
-		grpcConn, err = newRpcConn(rabbitServer, microServer.GetDiscovery())
+	rabbitConn := &RabbitConn{}
+	switch rabbitServer.GetNetwork() {
+	case "http", "HTTP":
+		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
+		if err != nil {
+			log.Errorw("连接HouYi http失败：", err)
+			return nil, nil, err
+		}
+		rabbitConn.httpClient = httpConn
+		rabbitConn.network = vobj.NetworkHttp
+	case "https", "HTTPS":
+		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
+		if err != nil {
+			log.Errorw("连接HouYi http失败：", err)
+			return nil, nil, err
+		}
+		rabbitConn.httpClient = httpConn
+		rabbitConn.network = vobj.NetworkHttps
+	case "rpc", "RPC", "grpc", "GRPC":
+		grpcConn, err := newRpcConn(rabbitServer, microServer.GetDiscovery())
 		if err != nil {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err
 		}
+		rabbitConn.rpcClient = grpcConn
+		rabbitConn.network = vobj.NetworkRpc
+	default:
+		return nil, nil, merr.ErrorNotification("暂不支持该网络类型：%s", rabbitServer.GetNetwork())
 	}
 
 	// 退出时清理资源
 	cleanup := func() {
-		if grpcConn != nil {
-			if err = grpcConn.Close(); err != nil {
-				log.Errorw("关闭 reseller rpc 连接失败：", err)
+		if rabbitConn.rpcClient != nil {
+			if err := rabbitConn.rpcClient.Close(); err != nil {
+				log.Errorw("关闭 rabbit rpc 连接失败：", err)
 			}
 		}
-		log.Info("关闭 reseller rpc连接已完成")
+		if rabbitConn.httpClient != nil {
+			if err := rabbitConn.httpClient.Close(); err != nil {
+				log.Errorw("关闭 rabbit http 连接失败：", err)
+			}
+		}
+		log.Info("关闭 rabbit rpc连接已完成")
 	}
-	return &RabbitRpcConn{
-		client:       grpcConn,
-		rpcClient:    grpcConn,
-		httpEndpoint: httpEndpoint,
-		network:      network,
-	}, cleanup, nil
+	return rabbitConn, cleanup, nil
 }
 
-var _ hookapi.HookClient = (*RabbitRpcConn)(nil)
-var _ pushapi.ConfigClient = (*RabbitRpcConn)(nil)
-
-type RabbitRpcConn struct {
-	client *grpc.ClientConn
+type RabbitConn struct {
 	// rpc连接
 	rpcClient *grpc.ClientConn
-	// http请求地址
-	httpEndpoint string
 	// 网络请求类型
 	network vobj.Network
+	// http连接
+	httpClient *http.Client
 }
 
 // NotifyObject 发送通道配置
-func (l *RabbitRpcConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectRequest, opts ...grpc.CallOption) (*pushapi.NotifyObjectReply, error) {
-	//TODO implement me
-	panic("implement me")
+func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectRequest, opts ...Option) (*pushapi.NotifyObjectReply, error) {
+	switch l.network {
+	case vobj.NetworkHttp, vobj.NetworkHttps:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HttpOpts...)
+		}
+		return pushapi.NewConfigHTTPClient(l.httpClient).NotifyObject(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+		}
+		return pushapi.NewConfigClient(l.rpcClient).NotifyObject(ctx, in, rpcOpts...)
+	}
 }
 
 // SendMsg 发送消息
-func (l *RabbitRpcConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, opts ...grpc.CallOption) (*hookapi.SendMsgReply, error) {
-	//TODO implement me
-	panic("implement me")
+func (l *RabbitConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, opts ...Option) (*hookapi.SendMsgReply, error) {
+	switch l.network {
+	case vobj.NetworkHttp, vobj.NetworkHttps:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HttpOpts...)
+		}
+		return hookapi.NewHookHTTPClient(l.httpClient).SendMsg(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+		}
+		return hookapi.NewHookClient(l.rpcClient).SendMsg(ctx, in, rpcOpts...)
+	}
 }
