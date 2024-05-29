@@ -1,10 +1,10 @@
 package biz
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 )
 
-func NewDepartmentBiz(departmentRepo repo.DepartmentRepo) *DepartmentBiz {
+func NewDepartmentBiz(departmentRepo repository.Department) *DepartmentBiz {
 	return &DepartmentBiz{
 		departmentRepo: departmentRepo,
 	}
@@ -12,5 +12,5 @@ func NewDepartmentBiz(departmentRepo repo.DepartmentRepo) *DepartmentBiz {
 
 // DepartmentBiz .
 type DepartmentBiz struct {
-	departmentRepo repo.DepartmentRepo
+	departmentRepo repository.Department
 }

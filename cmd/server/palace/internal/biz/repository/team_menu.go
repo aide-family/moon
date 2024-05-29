@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 )
 
-type TeamMenuRepo interface {
+type TeamMenu interface {
 	GetTeamMenuList(ctx context.Context, params *bo.QueryTeamMenuListParams) ([]*bizmodel.SysTeamMenu, error)
 }

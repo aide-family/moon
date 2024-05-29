@@ -8,15 +8,15 @@ import (
 
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/utils/captcha"
 )
 
 type CaptchaBiz struct {
-	captchaRepo repo.CaptchaRepo
+	captchaRepo repository.Captcha
 }
 
-func NewCaptchaBiz(captchaRepo repo.CaptchaRepo) *CaptchaBiz {
+func NewCaptchaBiz(captchaRepo repository.Captcha) *CaptchaBiz {
 	return &CaptchaBiz{
 		captchaRepo: captchaRepo,
 	}

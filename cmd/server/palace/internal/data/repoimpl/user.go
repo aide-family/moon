@@ -6,7 +6,7 @@ import (
 	"gorm.io/gen"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/helper/model/query"
@@ -14,17 +14,17 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-func NewUserRepo(data *data.Data) repo.UserRepo {
-	return &userRepoImpl{
+func NewUserRepository(data *data.Data) repository.User {
+	return &userRepositoryImpl{
 		data: data,
 	}
 }
 
-type userRepoImpl struct {
+type userRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *userRepoImpl) UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error {
+func (l *userRepositoryImpl) UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.Eq(user.ID)).UpdateSimple(
 		query.SysUser.Nickname.Value(user.Nickname),
 		query.SysUser.Avatar.Value(user.Avatar),
@@ -34,17 +34,17 @@ func (l *userRepoImpl) UpdateByID(ctx context.Context, user *bo.UpdateUserParams
 	return err
 }
 
-func (l *userRepoImpl) DeleteByID(ctx context.Context, id uint32) error {
+func (l *userRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(id)).Delete()
 	return err
 }
 
-func (l *userRepoImpl) UpdateStatusByIds(ctx context.Context, status vobj.Status, ids ...uint32) error {
+func (l *userRepositoryImpl) UpdateStatusByIds(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.In(ids...)).Update(query.SysUser.Status, status)
 	return err
 }
 
-func (l *userRepoImpl) UpdatePassword(ctx context.Context, id uint32, password types.Password) error {
+func (l *userRepositoryImpl) UpdatePassword(ctx context.Context, id uint32, password types.Password) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(id)).
 		UpdateSimple(
 			query.SysUser.Password.Value(password.String()),
@@ -53,7 +53,7 @@ func (l *userRepoImpl) UpdatePassword(ctx context.Context, id uint32, password t
 	return err
 }
 
-func (l *userRepoImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
+func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
 	userModel := createUserParamsToModel(user)
 	if err := userModel.Create(ctx, l.data.GetMainDB(ctx)); err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (l *userRepoImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*
 	return userModel, nil
 }
 
-func (l *userRepoImpl) BatchCreate(ctx context.Context, users []*bo.CreateUserParams) error {
+func (l *userRepositoryImpl) BatchCreate(ctx context.Context, users []*bo.CreateUserParams) error {
 	userModels := types.SliceToWithFilter(users, func(item *bo.CreateUserParams) (*model.SysUser, bool) {
 		if types.IsNil(item) || types.TextIsNull(item.Name) {
 			return nil, false
@@ -71,15 +71,15 @@ func (l *userRepoImpl) BatchCreate(ctx context.Context, users []*bo.CreateUserPa
 	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.CreateInBatches(userModels, 10)
 }
 
-func (l *userRepoImpl) GetByID(ctx context.Context, id uint32) (*model.SysUser, error) {
+func (l *userRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysUser, error) {
 	return query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.Eq(id)).First()
 }
 
-func (l *userRepoImpl) GetByUsername(ctx context.Context, username string) (*model.SysUser, error) {
+func (l *userRepositoryImpl) GetByUsername(ctx context.Context, username string) (*model.SysUser, error) {
 	return query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.Username.Eq(username)).First()
 }
 
-func (l *userRepoImpl) FindByPage(ctx context.Context, params *bo.QueryUserListParams) ([]*model.SysUser, error) {
+func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUserListParams) ([]*model.SysUser, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx)
 
 	var wheres []gen.Condition
@@ -120,12 +120,12 @@ func (l *userRepoImpl) FindByPage(ctx context.Context, params *bo.QueryUserListP
 	return q.Order(query.SysUser.ID.Desc()).Find()
 }
 
-func (l *userRepoImpl) UpdateUser(ctx context.Context, user *model.SysUser) error {
+func (l *userRepositoryImpl) UpdateUser(ctx context.Context, user *model.SysUser) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(user.ID)).Updates(user)
 	return err
 }
 
-func (l *userRepoImpl) FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error) {
+func (l *userRepositoryImpl) FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error) {
 	return query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.In(ids...)).Find()
 }
 

@@ -7,21 +7,21 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 )
 
-func NewTeamBiz(teamRepo repo.TeamRepo) *TeamBiz {
+func NewTeamBiz(teamRepo repository.Team) *TeamBiz {
 	return &TeamBiz{
 		teamRepo: teamRepo,
 	}
 }
 
 type TeamBiz struct {
-	teamRepo repo.TeamRepo
+	teamRepo repository.Team
 }
 
 // CreateTeam 创建团队

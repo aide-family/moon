@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	// UserRepo is the user repository
-	UserRepo interface {
+	// User is the user repository
+	User interface {
 		// Create a user
 		Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error)
 

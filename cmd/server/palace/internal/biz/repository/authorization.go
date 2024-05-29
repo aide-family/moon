@@ -1,6 +1,6 @@
-package repo
+package repository
 
-type AuthorizationRepo interface {
+type Authorization interface {
 	// 检查用户是否被团队禁用
 	// 检查用户是否有该资源权限
 	// 检查token是否过期

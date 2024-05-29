@@ -12,23 +12,23 @@ import (
 
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/types"
 )
 
 type AuthorizationBiz struct {
-	userRepo     repo.UserRepo
-	teamRepo     repo.TeamRepo
-	cacheRepo    repo.CacheRepo
-	teamRoleRepo repo.TeamRoleRepo
+	userRepo     repository.User
+	teamRepo     repository.Team
+	cacheRepo    repository.Cache
+	teamRoleRepo repository.TeamRole
 }
 
 func NewAuthorizationBiz(
-	userRepo repo.UserRepo,
-	teamRepo repo.TeamRepo,
-	cacheRepo repo.CacheRepo,
-	teamRoleRepo repo.TeamRoleRepo,
+	userRepo repository.User,
+	teamRepo repository.Team,
+	cacheRepo repository.Cache,
+	teamRoleRepo repository.TeamRole,
 ) *AuthorizationBiz {
 	return &AuthorizationBiz{
 		userRepo:     userRepo,

@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-type TeamRepo interface {
+type Team interface {
 	// GetUserTeamByID 查询用户指定团队信息
 	GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error)
 

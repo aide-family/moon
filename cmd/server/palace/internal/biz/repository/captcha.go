@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 )
 
-type CaptchaRepo interface {
+type Captcha interface {
 	// CreateCaptcha 创建验证码
 	CreateCaptcha(ctx context.Context, captcha *bo.ValidateCaptchaItem, duration time.Duration) error
 	// GetCaptchaById 通过id获取验证码详情

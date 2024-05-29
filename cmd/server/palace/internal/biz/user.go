@@ -8,23 +8,21 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-func NewUserBiz(userRepo repo.UserRepo, transactionRepo repo.TransactionRepo) *UserBiz {
+func NewUserBiz(userRepo repository.User) *UserBiz {
 	return &UserBiz{
-		userRepo:        userRepo,
-		TransactionRepo: transactionRepo,
+		userRepo: userRepo,
 	}
 }
 
 type UserBiz struct {
-	userRepo repo.UserRepo
-	repo.TransactionRepo
+	userRepo repository.User
 }
 
 // CreateUser 创建用户

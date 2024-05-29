@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-type TeamRoleRepo interface {
+type TeamRole interface {
 	// CreateTeamRole 创建团队角色
 	CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error)
 

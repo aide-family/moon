@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
@@ -12,14 +12,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewResourceBiz(resourceRepo repo.ResourceRepo) *ResourceBiz {
+func NewResourceBiz(resourceRepo repository.Resource) *ResourceBiz {
 	return &ResourceBiz{
 		resourceRepo: resourceRepo,
 	}
 }
 
 type ResourceBiz struct {
-	resourceRepo repo.ResourceRepo
+	resourceRepo repository.Resource
 }
 
 // GetResource 获取资源详情

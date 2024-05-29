@@ -1,9 +1,9 @@
-package repo
+package repository
 
 import (
 	"github.com/aide-cloud/moon/pkg/conn"
 )
 
-type CacheRepo interface {
+type Cache interface {
 	Cacher() conn.Cache
 }

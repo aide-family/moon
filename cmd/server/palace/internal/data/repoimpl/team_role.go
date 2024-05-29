@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
@@ -17,17 +17,17 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-func NewTeamRoleRepo(data *data.Data) repo.TeamRoleRepo {
-	return &teamRoleRepoImpl{
+func NewTeamRoleRepository(data *data.Data) repository.TeamRole {
+	return &teamRoleRepositoryImpl{
 		data: data,
 	}
 }
 
-type teamRoleRepoImpl struct {
+type teamRoleRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
+func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
 	bizDB, err := l.data.GetBizGormDB(teamRole.TeamID)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (l *teamRoleRepoImpl) CreateTeamRole(ctx context.Context, teamRole *bo.Crea
 	return sysTeamRoleModel, l.data.GetCasbin(teamRole.TeamID).LoadPolicy()
 }
 
-func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
+func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
 	// 查询角色
 	sysTeamRoleModel, err := l.GetTeamRole(ctx, teamRole.ID)
 	if err != nil {
@@ -123,7 +123,7 @@ func (l *teamRoleRepoImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.Upda
 	})
 }
 
-func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error {
+func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return bo.UnLoginErr
@@ -145,7 +145,7 @@ func (l *teamRoleRepoImpl) DeleteTeamRole(ctx context.Context, id uint32) error 
 	})
 }
 
-func (l *teamRoleRepoImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
+func (l *teamRoleRepositoryImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, bo.UnLoginErr
@@ -159,7 +159,7 @@ func (l *teamRoleRepoImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmode
 		Where(q.SysTeamRole.ID.Eq(id)).Preload(q.SysTeamRole.Apis).First()
 }
 
-func (l *teamRoleRepoImpl) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
+func (l *teamRoleRepositoryImpl) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
 	bizDB, err := l.data.GetBizGormDB(params.TeamID)
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ func (l *teamRoleRepoImpl) ListTeamRole(ctx context.Context, params *bo.ListTeam
 	return q.Find()
 }
 
-func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error) {
+func (l *teamRoleRepositoryImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error) {
 	bizDB, err := l.data.GetBizGormDB(teamID)
 	if err != nil {
 		return nil, err
@@ -188,7 +188,7 @@ func (l *teamRoleRepoImpl) GetTeamRoleByUserID(ctx context.Context, userID, team
 	return q.SysTeamMember.TeamRoles.WithContext(ctx).Model(memberDetail).Find()
 }
 
-func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
+func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -247,7 +247,7 @@ func (l *teamRoleRepoImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj
 	})
 }
 
-func (l *teamRoleRepoImpl) CheckRbac(_ context.Context, teamId uint32, roleIds []uint32, path string) (bool, error) {
+func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamId uint32, roleIds []uint32, path string) (bool, error) {
 	enforce := l.data.GetCasbin(teamId)
 	for _, roleId := range roleIds {
 		roleStr := strconv.FormatUint(uint64(roleId), 10)

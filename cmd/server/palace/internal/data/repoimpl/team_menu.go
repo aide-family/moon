@@ -4,23 +4,23 @@ import (
 	"context"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
 )
 
-func NewTeamMenuRepo(data *data.Data) repo.TeamMenuRepo {
-	return &teamMenuRepoImpl{
+func NewTeamMenuRepository(data *data.Data) repository.TeamMenu {
+	return &teamMenuRepositoryImpl{
 		data: data,
 	}
 }
 
-type teamMenuRepoImpl struct {
+type teamMenuRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *teamMenuRepoImpl) GetTeamMenuList(ctx context.Context, params *bo.QueryTeamMenuListParams) ([]*bizmodel.SysTeamMenu, error) {
+func (l *teamMenuRepositoryImpl) GetTeamMenuList(ctx context.Context, params *bo.QueryTeamMenuListParams) ([]*bizmodel.SysTeamMenu, error) {
 	bizDB, err := l.data.GetBizGormDB(params.TeamID)
 	if err != nil {
 		return nil, err

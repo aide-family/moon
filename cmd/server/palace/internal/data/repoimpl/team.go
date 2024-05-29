@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
@@ -19,17 +19,17 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-func NewTeamRepo(data *data.Data) repo.TeamRepo {
-	return &teamRepoImpl{
+func NewTeamRepository(data *data.Data) repository.Team {
+	return &teamRepositoryImpl{
 		data: data,
 	}
 }
 
-type teamRepoImpl struct {
+type teamRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
+func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
 	sysTeamModel := &model.SysTeam{
 		Name:      team.Name,
 		Status:    team.Status.GetValue(),
@@ -153,7 +153,7 @@ func (l *teamRepoImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams
 	return sysTeamModel, nil
 }
 
-func (l *teamRepoImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
+func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.
 		Where(query.SysTeam.ID.Eq(team.ID)).
 		UpdateColumnSimple(
@@ -163,11 +163,11 @@ func (l *teamRepoImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams
 	return err
 }
 
-func (l *teamRepoImpl) GetTeamDetail(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
+func (l *teamRepositoryImpl) GetTeamDetail(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
 	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.Where(query.SysTeam.ID.Eq(teamID)).First()
 }
 
-func (l *teamRepoImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
+func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam
 	if !types.TextIsNull(params.Keyword) {
 		q = q.Where(query.SysTeam.Name.Like(params.Keyword))
@@ -221,13 +221,13 @@ func (l *teamRepoImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamList
 	return q.Order(query.SysTeam.ID.Desc()).Find()
 }
 
-func (l *teamRepoImpl) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
+func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.Where(query.SysTeam.ID.In(ids...)).
 		UpdateColumnSimple(query.SysTeam.Status.Value(status.GetValue()))
 	return err
 }
 
-func (l *teamRepoImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
+func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam
 	// TODO 需要缓存用户的全部团队ID， 然后取出来使用
 	//var teamIds []uint32
@@ -241,7 +241,7 @@ func (l *teamRepoImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*m
 	return q.Find()
 }
 
-func (l *teamRepoImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
+func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
 	members := types.SliceToWithFilter(params.Members, func(memberItem *bo.AddTeamMemberItem) (*bizmodel.SysTeamMember, bool) {
 		if types.IsNil(memberItem) {
 			return nil, false
@@ -273,7 +273,7 @@ func (l *teamRepoImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemb
 	})
 }
 
-func (l *teamRepoImpl) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMemberParams) error {
+func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMemberParams) error {
 	if len(params.MemberIds) == 0 {
 		return nil
 	}
@@ -296,7 +296,7 @@ func (l *teamRepoImpl) RemoveTeamMember(ctx context.Context, params *bo.RemoveTe
 	})
 }
 
-func (l *teamRepoImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
+func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
 	if len(params.MemberIds) == 0 {
 		return nil
 	}
@@ -312,7 +312,7 @@ func (l *teamRepoImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberA
 	return err
 }
 
-func (l *teamRepoImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
+func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
 	roles := types.SliceToWithFilter(params.RoleIds, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
 		if roleId == 0 {
 			return nil, false
@@ -329,7 +329,7 @@ func (l *teamRepoImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRo
 		Model(&bizmodel.SysTeamMember{ID: params.MemberID}).Replace(roles...)
 }
 
-func (l *teamRepoImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {
+func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {
 	var wheres []gen.Condition
 	var userWheres []gen.Condition
 	bizDB, err := l.data.GetBizGormDB(params.ID)
@@ -380,7 +380,7 @@ func (l *teamRepoImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMe
 	return q.Order(qq.SysTeamMember.Role.Desc(), qq.SysTeamMember.ID.Asc()).Find()
 }
 
-func (l *teamRepoImpl) TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error {
+func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error {
 	bizDB, err := l.data.GetBizGormDB(params.ID)
 	if err != nil {
 		return err
@@ -410,7 +410,7 @@ func (l *teamRepoImpl) TransferTeamLeader(ctx context.Context, params *bo.Transf
 	})
 }
 
-func (l *teamRepoImpl) GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error) {
+func (l *teamRepositoryImpl) GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error) {
 	bizDB, err := l.data.GetBizGormDB(teamID)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package repo
+package repository
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-type ResourceRepo interface {
+type Resource interface {
 	// GetById get resource by id
 	GetById(ctx context.Context, id uint32) (*model.SysAPI, error)
 
