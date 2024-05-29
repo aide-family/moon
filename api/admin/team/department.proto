@@ -4,9 +4,9 @@ package api.admin.team;
 
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
-import "admin/model.proto";
-import "enum.proto";
-import "global.proto";
+//import "admin/model.proto";
+//import "enum.proto";
+//import "global.proto";
 
 option go_package = "github.com/aide-cloud/moon/api/admin/team;team";
 option java_multiple_files = true;

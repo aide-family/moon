@@ -3,10 +3,7 @@ syntax = "proto3";
 package api.admin.resource;
 
 import "google/api/annotations.proto";
-import "buf/validate/validate.proto";
 import "admin/model.proto";
-import "enum.proto";
-import "global.proto";
 
 option go_package = "github.com/aide-cloud/moon/api/admin/resource;resource";
 option java_multiple_files = true;
