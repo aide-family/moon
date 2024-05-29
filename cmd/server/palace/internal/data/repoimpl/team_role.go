@@ -4,13 +4,14 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-cloud/moon/pkg/types"
@@ -249,10 +250,12 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 
 func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamId uint32, roleIds []uint32, path string) (bool, error) {
 	enforce := l.data.GetCasbin(teamId)
+	_ = enforce.LoadPolicy()
 	for _, roleId := range roleIds {
 		roleStr := strconv.FormatUint(uint64(roleId), 10)
-		has, err := enforce.Enforce(roleStr, path, path)
+		has, err := enforce.Enforce(roleStr, path, "http")
 		if err != nil {
+			log.Errorw("check rbac error", "roleId", roleId, "path", path, "err", err)
 			return false, err
 		}
 		if has {

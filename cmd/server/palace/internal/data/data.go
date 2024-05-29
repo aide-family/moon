@@ -127,7 +127,7 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 		return nil, err
 	}
 	d.teamBizDBMap[teamId] = bizDB
-	enforcer, err := rbac.InitCasbinModel(d.mainDB)
+	enforcer, err := rbac.InitCasbinModel(bizDB)
 	if err != nil {
 		log.Errorw("casbin init error", err)
 		return nil, err

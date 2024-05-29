@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
@@ -55,8 +54,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return merr.ErrorModal("用户被禁用")
 	}
 
-	fmt.Print("===========")
-	// TODO 查询用户角色
+	// 查询用户角色
 	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if err != nil {
 		return merr.ErrorNotification("系统错误")
@@ -64,15 +62,18 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	if len(memberRoles) == 0 {
 		return bo.NoPermissionErr
 	}
-	memberROleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
+	memberRoleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
 		return role.ID
 	})
-	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberROleIds, req.Operation)
+	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
 	if err != nil {
 		return err
 	}
 	if !rbac {
-		return bo.NoPermissionErr
+		return bo.NoPermissionErr.WithMetadata(map[string]string{
+			"operation": req.Operation,
+			"rbac":      "false",
+		})
 	}
 
 	return nil
