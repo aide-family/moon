@@ -35,7 +35,9 @@ func wireApp(bootstrap *houyiconf.Bootstrap, logger log.Logger) (*kratos.App, fu
 	cacheRepo := repoimpl.NewCacheRepo(dataData)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, cacheRepo)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService)
+	metricService := service.NewMetricService()
+	healthService := service.NewHealthService()
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, metricService, healthService)
 	app := newApp(serverServer, logger)
 	return app, func() {
 		cleanup()

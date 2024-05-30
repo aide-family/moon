@@ -1,7 +1,9 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/api"
 	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	metadataapi "github.com/aide-cloud/moon/api/houyi/metadata"
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/service"
 
 	"github.com/go-kratos/kratos/v2/transport"
@@ -40,12 +42,17 @@ func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
+	metricService *service.MetricService,
+	healthService *service.HealthService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
-
+	metadataapi.RegisterMetricServer(rpcSrv, metricService)
+	api.RegisterHealthServer(rpcSrv, healthService)
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
+	metadataapi.RegisterMetricHTTPServer(httpSrv, metricService)
+	api.RegisterHealthHTTPServer(httpSrv, healthService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

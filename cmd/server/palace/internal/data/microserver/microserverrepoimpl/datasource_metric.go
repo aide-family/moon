@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/aide-cloud/moon/api/metadata"
+	"github.com/aide-cloud/moon/api/houyi/metadata"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"

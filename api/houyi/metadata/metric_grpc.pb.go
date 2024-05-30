@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.19.4
-// source: metadata/metric.proto
+// source: houyi/metadata/metric.proto
 
 package metadata
 
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metric_Sync_FullMethodName = "/api.metadata.Metric/Sync"
+	Metric_Sync_FullMethodName = "/api.houyi.metadata.Metric/Sync"
 )
 
 // MetricClient is the client API for Metric service.
@@ -96,7 +96,7 @@ func _Metric_Sync_Handler(srv interface{}, ctx context.Context, dec func(interfa
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Metric_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.metadata.Metric",
+	ServiceName: "api.houyi.metadata.Metric",
 	HandlerType: (*MetricServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -105,5 +105,5 @@ var Metric_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "metadata/metric.proto",
+	Metadata: "houyi/metadata/metric.proto",
 }

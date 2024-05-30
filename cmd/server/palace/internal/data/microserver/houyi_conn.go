@@ -3,8 +3,8 @@ package microserver
 import (
 	"context"
 
+	metadataapi "github.com/aide-cloud/moon/api/houyi/metadata"
 	"github.com/aide-cloud/moon/api/merr"
-	metadataapi "github.com/aide-cloud/moon/api/metadata"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"

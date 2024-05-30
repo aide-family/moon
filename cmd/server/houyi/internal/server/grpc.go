@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -15,6 +16,7 @@ func NewGRPCServer(bc *houyiconf.Bootstrap) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.7.3
 // - protoc             v3.19.4
-// source: metadata/metric.proto
+// source: houyi/metadata/metric.proto
 
 package metadata
 
@@ -19,7 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationMetricSync = "/api.metadata.Metric/Sync"
+const OperationMetricSync = "/api.houyi.metadata.Metric/Sync"
 
 type MetricHTTPServer interface {
 	Sync(context.Context, *SyncRequest) (*SyncReply, error)

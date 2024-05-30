@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package api.metadata;
+package api.houyi.metadata;
 
 import "google/api/annotations.proto";
 import "metadata.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/metadata;metadata";
+option go_package = "github.com/aide-cloud/moon/api/houyi/metadata;metadata";
 option java_multiple_files = true;
-option java_package = "api.metadata";
+option java_package = "api.houyi.metadata";
 
 // metric类型数据源元数据同步接口， 子服务需要实现该接口, 支持http和rpc两种同步方式
 service Metric {

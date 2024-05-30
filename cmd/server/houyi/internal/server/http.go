@@ -6,6 +6,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -21,6 +22,7 @@ func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
 		http.Middleware(
 			// TODO 开发完再开启
 			recovery.Recovery(),
+			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}
