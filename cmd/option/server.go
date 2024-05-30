@@ -2,6 +2,7 @@ package option
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/demo"
+	"github.com/aide-cloud/moon/cmd/server/houyi"
 	"github.com/aide-cloud/moon/cmd/server/palace"
 	"github.com/aide-cloud/moon/cmd/server/rabbit"
 
@@ -19,6 +20,7 @@ const (
 	ServicePalaceName = "palace"
 	ServiceDemoName   = "demo"
 	ServiceRabbitName = "rabbit"
+	ServiceHouYiName  = "houyi"
 )
 
 var serverCmd = &cobra.Command{
@@ -32,6 +34,8 @@ var serverCmd = &cobra.Command{
 			demo.Run(flagconf)
 		case ServiceRabbitName:
 			rabbit.Run(flagconf)
+		case ServiceHouYiName:
+			houyi.Run(flagconf)
 		default:
 			palace.Run(flagconf)
 		}

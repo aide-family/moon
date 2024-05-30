@@ -1,0 +1,19 @@
+package repoimpl
+
+import (
+	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/repository"
+	"github.com/aide-cloud/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-cloud/moon/pkg/conn"
+)
+
+func NewCacheRepo(data *data.Data) repository.CacheRepo {
+	return &cacheRepoImpl{data: data}
+}
+
+type cacheRepoImpl struct {
+	data *data.Data
+}
+
+func (l *cacheRepoImpl) Cacher() conn.Cache {
+	return l.data.GetCacher()
+}
