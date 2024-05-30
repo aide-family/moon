@@ -119,3 +119,11 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasource
 		}),
 	}, nil
 }
+
+// SyncDatasourceMeta 同步数据源元数据
+func (s *Service) SyncDatasourceMeta(ctx context.Context, req *pb.SyncDatasourceMetaRequest) (*pb.SyncDatasourceMetaReply, error) {
+	if err := s.datasourceBiz.SyncDatasourceMeta(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+	return &pb.SyncDatasourceMetaReply{}, nil
+}

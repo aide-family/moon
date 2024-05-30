@@ -38,4 +38,13 @@ var (
 	TeamRoleNotFoundErr = merr.ErrorAlert("团队角色不存在")
 	// TeamNameExistErr 团队名称已存在
 	TeamNameExistErr = merr.ErrorAlert("团队名称已存在")
+
+	// DatasourceNotFoundErr 数据源不存在
+	DatasourceNotFoundErr = merr.ErrorAlert("数据源不存在")
+
+	// LockFailedErr 加锁失败
+	LockFailedErr = merr.ErrorAlert("加锁失败")
+
+	// RetryLaterErr 数据源同步中，请稍后重试
+	RetryLaterErr = merr.ErrorAlert("稍后重试")
 )

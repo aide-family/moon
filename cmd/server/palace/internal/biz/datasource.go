@@ -2,23 +2,39 @@ package biz
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
-func NewDatasourceBiz(datasourceRepository repository.Datasource) *DatasourceBiz {
+func NewDatasourceBiz(
+	datasourceRepository repository.Datasource,
+	datasourceMetricRepository repository.DatasourceMetric,
+	datasourceMetricMicroRepository microrepository.DatasourceMetric,
+	lock repository.Lock,
+) *DatasourceBiz {
 	return &DatasourceBiz{
-		datasourceRepository: datasourceRepository,
+		lock:                            lock,
+		datasourceRepository:            datasourceRepository,
+		datasourceMetricRepository:      datasourceMetricRepository,
+		datasourceMetricMicroRepository: datasourceMetricMicroRepository,
 	}
 }
 
 // DatasourceBiz .
 type DatasourceBiz struct {
-	datasourceRepository repository.Datasource
+	lock                            repository.Lock
+	datasourceRepository            repository.Datasource
+	datasourceMetricRepository      repository.DatasourceMetric
+	datasourceMetricMicroRepository microrepository.DatasourceMetric
 }
 
 // CreateDatasource 创建数据源
@@ -66,4 +82,37 @@ func (b *DatasourceBiz) GetDatasourceSelect(ctx context.Context, params *bo.Quer
 func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	// 需要校验数据源是否被使用， 是否有权限
 	return b.datasourceRepository.UpdateDatasourceStatus(ctx, status, ids...)
+}
+
+// SyncDatasourceMeta 同步数据源元数据
+func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
+	syncDatasourceMetaKey := "sync:datasource:meta:" + strconv.FormatUint(uint64(id), 10)
+	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); err != nil {
+		if errors.Is(err, bo.LockFailedErr) {
+			return bo.RetryLaterErr.WithMetadata(map[string]string{
+				"retry": "数据源同步中，请稍后重试",
+			})
+		}
+		return err
+	}
+	defer b.lock.UnLock(ctx, syncDatasourceMetaKey)
+	// 获取数据源详情
+	datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return bo.DatasourceNotFoundErr
+		}
+		return err
+	}
+	// 获取元数据
+	metadata, err := b.datasourceMetricMicroRepository.GetMetadata(ctx, datasourceDetail)
+	if err != nil {
+		return err
+	}
+	// 创建元数据
+	if err = b.datasourceMetricRepository.CreateMetrics(ctx, metadata...); err != nil {
+		return err
+	}
+
+	return nil
 }

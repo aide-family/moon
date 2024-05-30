@@ -24,6 +24,7 @@ const OperationDatasourceDeleteDatasource = "/api.admin.datasource.Datasource/De
 const OperationDatasourceGetDatasource = "/api.admin.datasource.Datasource/GetDatasource"
 const OperationDatasourceGetDatasourceSelect = "/api.admin.datasource.Datasource/GetDatasourceSelect"
 const OperationDatasourceListDatasource = "/api.admin.datasource.Datasource/ListDatasource"
+const OperationDatasourceSyncDatasourceMeta = "/api.admin.datasource.Datasource/SyncDatasourceMeta"
 const OperationDatasourceUpdateDatasource = "/api.admin.datasource.Datasource/UpdateDatasource"
 const OperationDatasourceUpdateDatasourceStatus = "/api.admin.datasource.Datasource/UpdateDatasourceStatus"
 
@@ -38,6 +39,8 @@ type DatasourceHTTPServer interface {
 	GetDatasourceSelect(context.Context, *GetDatasourceSelectRequest) (*GetDatasourceSelectReply, error)
 	// ListDatasource 获取数据源列表
 	ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error)
+	// SyncDatasourceMeta 同步数据源元数据
+	SyncDatasourceMeta(context.Context, *SyncDatasourceMetaRequest) (*SyncDatasourceMetaReply, error)
 	// UpdateDatasource 更新数据源
 	UpdateDatasource(context.Context, *UpdateDatasourceRequest) (*UpdateDatasourceReply, error)
 	// UpdateDatasourceStatus 更新数据源状态
@@ -53,6 +56,7 @@ func RegisterDatasourceHTTPServer(s *http.Server, srv DatasourceHTTPServer) {
 	r.POST("/v1/datasource/list", _Datasource_ListDatasource0_HTTP_Handler(srv))
 	r.PUT("/v1/datasource/{id}/status", _Datasource_UpdateDatasourceStatus0_HTTP_Handler(srv))
 	r.POST("/v1/datasource/select", _Datasource_GetDatasourceSelect0_HTTP_Handler(srv))
+	r.POST("/v1/datasource/{id}/sync", _Datasource_SyncDatasourceMeta0_HTTP_Handler(srv))
 }
 
 func _Datasource_CreateDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
@@ -215,12 +219,38 @@ func _Datasource_GetDatasourceSelect0_HTTP_Handler(srv DatasourceHTTPServer) fun
 	}
 }
 
+func _Datasource_SyncDatasourceMeta0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SyncDatasourceMetaRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceSyncDatasourceMeta)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SyncDatasourceMeta(ctx, req.(*SyncDatasourceMetaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SyncDatasourceMetaReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DatasourceHTTPClient interface {
 	CreateDatasource(ctx context.Context, req *CreateDatasourceRequest, opts ...http.CallOption) (rsp *CreateDatasourceReply, err error)
 	DeleteDatasource(ctx context.Context, req *DeleteDatasourceRequest, opts ...http.CallOption) (rsp *DeleteDatasourceReply, err error)
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *GetDatasourceReply, err error)
 	GetDatasourceSelect(ctx context.Context, req *GetDatasourceSelectRequest, opts ...http.CallOption) (rsp *GetDatasourceSelectReply, err error)
 	ListDatasource(ctx context.Context, req *ListDatasourceRequest, opts ...http.CallOption) (rsp *ListDatasourceReply, err error)
+	SyncDatasourceMeta(ctx context.Context, req *SyncDatasourceMetaRequest, opts ...http.CallOption) (rsp *SyncDatasourceMetaReply, err error)
 	UpdateDatasource(ctx context.Context, req *UpdateDatasourceRequest, opts ...http.CallOption) (rsp *UpdateDatasourceReply, err error)
 	UpdateDatasourceStatus(ctx context.Context, req *UpdateDatasourceStatusRequest, opts ...http.CallOption) (rsp *UpdateDatasourceStatusReply, err error)
 }
@@ -290,6 +320,19 @@ func (c *DatasourceHTTPClientImpl) ListDatasource(ctx context.Context, in *ListD
 	pattern := "/v1/datasource/list"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDatasourceListDatasource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *DatasourceHTTPClientImpl) SyncDatasourceMeta(ctx context.Context, in *SyncDatasourceMetaRequest, opts ...http.CallOption) (*SyncDatasourceMetaReply, error) {
+	var out SyncDatasourceMetaReply
+	pattern := "/v1/datasource/{id}/sync"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDatasourceSyncDatasourceMeta))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

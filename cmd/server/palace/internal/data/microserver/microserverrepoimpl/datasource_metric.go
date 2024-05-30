@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 
 	"github.com/aide-cloud/moon/api/metadata"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
-func NewDatasourceMetricRepository(cli *microserver.HouYiConn) repository.DatasourceMetric {
+func NewDatasourceMetricRepository(cli *microserver.HouYiConn) microrepository.DatasourceMetric {
 	return &datasourceMetricRepositoryImpl{cli: cli}
 }
 

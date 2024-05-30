@@ -8,6 +8,6 @@ import (
 
 // DatasourceMetric .
 type DatasourceMetric interface {
-	// GetMetadata 同步指标元数据
-	GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error)
+	// CreateMetrics 创建指标
+	CreateMetrics(ctx context.Context, metrics ...*bizmodel.DatasourceMetric) error
 }

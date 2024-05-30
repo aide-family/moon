@@ -67,6 +67,14 @@ service Datasource {
       body: "*"
     };
   }
+
+  // 同步数据源元数据
+  rpc SyncDatasourceMeta (SyncDatasourceMetaRequest) returns (SyncDatasourceMetaReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource/{id}/sync"
+      body: "*"
+    };
+  }
 }
 
 message CreateDatasourceRequest {
@@ -151,3 +159,8 @@ message GetDatasourceSelectRequest {
 message GetDatasourceSelectReply {
   repeated Select data = 1;
 }
+
+message SyncDatasourceMetaRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+}
+message SyncDatasourceMetaReply {}
