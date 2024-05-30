@@ -6,8 +6,8 @@ package vobj
 type DatasourceType int
 
 const (
-	DataSourceTypeUnknown DatasourceType = iota // 未知
-	DataSourceTypeMetrics                       // 监控指标
-	DataSourceTypeTrace                         // 链路追踪
-	DataSourceTypeLog                           // 日志
+	DatasourceTypeUnknown DatasourceType = iota // 未知
+	DatasourceTypeMetrics                       // 监控指标
+	DatasourceTypeTrace                         // 链路追踪
+	DatasourceTypeLog                           // 日志
 )

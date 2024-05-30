@@ -27,8 +27,6 @@ type (
 		Page types.Pagination `json:"page"`
 		// 关键字
 		Keyword string `json:"keyword"`
-		// 团队ID
-		TeamID uint32 `json:"teamID"`
 		// 数据源类型
 		Type vobj.DatasourceType `json:"type"`
 		// 状态

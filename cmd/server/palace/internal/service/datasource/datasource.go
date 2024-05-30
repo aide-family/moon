@@ -9,7 +9,6 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
@@ -79,14 +78,9 @@ func (s *Service) GetDatasource(ctx context.Context, req *pb.GetDatasourceReques
 }
 
 func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequest) (*pb.ListDatasourceReply, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, bo.UnLoginErr
-	}
 	params := &bo.QueryDatasourceListParams{
 		Page:    types.NewPagination(req.GetPagination()),
 		Keyword: req.GetKeyword(),
-		TeamID:  claims.GetTeam(),
 		Type:    vobj.DatasourceType(req.GetType()),
 		Status:  vobj.Status(req.GetStatus()),
 	}
@@ -110,13 +104,8 @@ func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *pb.UpdateData
 }
 
 func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasourceSelectRequest) (*pb.GetDatasourceSelectReply, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, bo.UnLoginErr
-	}
 	params := &bo.QueryDatasourceListParams{
 		Keyword: req.GetKeyword(),
-		TeamID:  claims.GetTeam(),
 		Type:    vobj.DatasourceType(req.GetType()),
 		Status:  vobj.Status(req.GetStatus()),
 	}

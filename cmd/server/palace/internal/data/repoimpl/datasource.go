@@ -3,12 +3,15 @@ package repoimpl
 import (
 	"context"
 
+	"gorm.io/gen"
+
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
+	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
@@ -61,8 +64,36 @@ func (l *datasourceRepositoryImpl) GetDatasource(ctx context.Context, id uint32)
 }
 
 func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bizmodel.Datasource, error) {
-	//TODO implement me
-	panic("implement me")
+	q, err := getBizDB(ctx, l.data)
+	if err != nil {
+		return nil, err
+	}
+	qq := q.Datasource.WithContext(ctx)
+	var wheres []gen.Condition
+	if !types.TextIsNull(params.Keyword) {
+		wheres = append(wheres, q.Datasource.Name.Like(params.Keyword))
+	}
+	if !params.Type.IsUnknown() {
+		wheres = append(wheres, q.Datasource.Category.Eq(params.Type.GetValue()))
+	}
+	if !params.Status.IsUnknown() {
+		wheres = append(wheres, q.Datasource.Status.Eq(params.Status.GetValue()))
+	}
+	if !types.IsNil(params.Page) {
+		page := params.Page
+		total, err := qq.Count()
+		if err != nil {
+			return nil, err
+		}
+		params.Page.SetTotal(int(total))
+		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
+		if pageNum <= 1 {
+			qq = qq.Limit(pageSize)
+		} else {
+			qq = qq.Offset((pageNum - 1) * pageSize).Limit(pageSize)
+		}
+	}
+	return qq.Where(wheres...).Find()
 }
 
 func (l *datasourceRepositoryImpl) UpdateDatasourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {

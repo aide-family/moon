@@ -8,10 +8,10 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[DataSourceTypeUnknown-0]
-	_ = x[DataSourceTypeMetrics-1]
-	_ = x[DataSourceTypeTrace-2]
-	_ = x[DataSourceTypeLog-3]
+	_ = x[DatasourceTypeUnknown-0]
+	_ = x[DatasourceTypeMetrics-1]
+	_ = x[DatasourceTypeTrace-2]
+	_ = x[DatasourceTypeLog-3]
 }
 
 const _DatasourceType_name = "未知监控指标链路追踪日志"
@@ -25,24 +25,24 @@ func (i DatasourceType) String() string {
 	return _DatasourceType_name[_DatasourceType_index[i]:_DatasourceType_index[i+1]]
 }
 
-// IsDatasourcetypeunknown 是否是：未知
-func (i DatasourceType) IsDatasourcetypeunknown() bool {
-	return i == DataSourceTypeUnknown
+// IsUnknown 是否是：未知
+func (i DatasourceType) IsUnknown() bool {
+	return i == DatasourceTypeUnknown
 }
 
-// IsDatasourcetypemetrics 是否是：监控指标
-func (i DatasourceType) IsDatasourcetypemetrics() bool {
-	return i == DataSourceTypeMetrics
+// IsMetrics 是否是：监控指标
+func (i DatasourceType) IsMetrics() bool {
+	return i == DatasourceTypeMetrics
 }
 
-// IsDatasourcetypetrace 是否是：链路追踪
-func (i DatasourceType) IsDatasourcetypetrace() bool {
-	return i == DataSourceTypeTrace
+// IsTrace 是否是：链路追踪
+func (i DatasourceType) IsTrace() bool {
+	return i == DatasourceTypeTrace
 }
 
-// IsDatasourcetypelog 是否是：日志
-func (i DatasourceType) IsDatasourcetypelog() bool {
-	return i == DataSourceTypeLog
+// IsLog 是否是：日志
+func (i DatasourceType) IsLog() bool {
+	return i == DatasourceTypeLog
 }
 
 // GetValue 获取原始类型值
