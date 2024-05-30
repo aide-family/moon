@@ -2,6 +2,7 @@ package option
 
 import (
 	"github.com/aide-cloud/moon/cmd/server/gen"
+
 	"github.com/spf13/cobra"
 )
 

@@ -4,6 +4,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/demo"
 	"github.com/aide-cloud/moon/cmd/server/palace"
 	"github.com/aide-cloud/moon/cmd/server/rabbit"
+
 	"github.com/spf13/cobra"
 )
 
