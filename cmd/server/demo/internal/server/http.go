@@ -6,6 +6,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -19,8 +20,7 @@ func NewHTTPServer(bc *democonf.Bootstrap) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			// TODO 开发完再开启
-			recovery.Recovery(),
+			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
 	}

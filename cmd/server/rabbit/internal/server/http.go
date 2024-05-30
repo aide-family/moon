@@ -20,8 +20,7 @@ func NewHTTPServer(bc *rabbitconf.Bootstrap) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			// TODO 开发完再开启
-			recovery.Recovery(),
+			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),

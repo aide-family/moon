@@ -15,7 +15,7 @@ func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
 	c := bc.GetServer()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
-			recovery.Recovery(),
+			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(true)),
 		),
