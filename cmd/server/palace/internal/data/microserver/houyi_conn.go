@@ -8,7 +8,6 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
@@ -49,17 +48,17 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	}
 	// 退出时清理资源
 	cleanup := func() {
-		if houYiConn.rpcClient != nil {
+		if !types.IsNil(houYiConn.rpcClient) {
 			if err := houYiConn.rpcClient.Close(); !types.IsNil(err) {
 				log.Errorw("关闭 houYi rpc 连接失败：", err)
 			}
 		}
-		if houYiConn.httpClient != nil {
+		if !types.IsNil(houYiConn.httpClient) {
 			if err := houYiConn.httpClient.Close(); !types.IsNil(err) {
 				log.Errorw("关闭 houYi http 连接失败：", err)
 			}
 		}
-		log.Info("关闭 rabbit rpc连接已完成")
+		log.Info("关闭 houYi rpc连接已完成")
 	}
 
 	return houYiConn, cleanup, nil

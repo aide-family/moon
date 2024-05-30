@@ -7,10 +7,10 @@ server:
     background: 寓意为月宫，表示moon系列的统一管理平台
   http:
     addr: 0.0.0.0:8000
-    timeout: 10s
+    timeout: 50s
   grpc:
     addr: 0.0.0.0:9000
-    timeout: 10s
+    timeout: 50s
   registry:
     type: "etcd"
     etcd:
@@ -20,7 +20,7 @@ server:
         - 127.0.0.1:20004
       username: ""
       password: ""
-      timeout: 10s
+      timeout: 50s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon-palace"
@@ -58,23 +58,25 @@ data:
 
 micro_server:
   discovery:
+    type: "etcd"
     etcd:
       endpoints:
         - 127.0.0.1:20000
         - 127.0.0.1:20002
         - 127.0.0.1:20004
-      token: ""
-      timeout: 10s
+      username: ""
+      password: ""
+      timeout: 50s
   rabbit_server:
     network: "rpc"
     nodeVersion: ""
     endpoint: "discovery:///moon_rabbit"
 #    endpoint: "127.0.0.1:8001"
-    timeout: 10s
+    timeout: 50s
     secret: ""
   hou_yi_server:
-    network: "rpc"
+    network: "http"
     nodeVersion: ""
     endpoint: "discovery:///moon_houyi"
-    timeout: 2s
+    timeout: 50s
     secret: ""

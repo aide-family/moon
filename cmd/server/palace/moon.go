@@ -3,20 +3,27 @@ package palace
 import (
 	_ "go.uber.org/automaxprocs"
 
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/config"
-	"github.com/go-kratos/kratos/v2/config/file"
-	"github.com/go-kratos/kratos/v2/encoding/json"
-	"github.com/go-kratos/kratos/v2/log"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/env"
 	sLog "github.com/aide-cloud/moon/pkg/log"
 	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/config"
+	"github.com/go-kratos/kratos/v2/config/file"
+	"github.com/go-kratos/kratos/v2/encoding/json"
+	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/encoding/protojson"
 )
+
+func init() {
+	//增加这段代码
+	json.MarshalOptions = protojson.MarshalOptions{
+		UseEnumNumbers: true, // 将枚举值作为数字发出，默认为枚举值的字符串
+	}
+}
 
 func newApp(c *conf.Bootstrap, srv *server.Server, logger log.Logger) *kratos.App {
 	opts := []kratos.Option{
@@ -68,12 +75,5 @@ func Run(flagconf string) {
 	// start and wait for stop signal
 	if err = app.Run(); !types.IsNil(err) {
 		panic(err)
-	}
-}
-
-func init() {
-	//增加这段代码
-	json.MarshalOptions = protojson.MarshalOptions{
-		UseEnumNumbers: true, // 将枚举值作为数字发出，默认为枚举值的字符串
 	}
 }

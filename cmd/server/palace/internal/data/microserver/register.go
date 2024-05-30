@@ -53,14 +53,13 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 
 	if !types.IsNil(discovery) {
 		dis, err := conn.NewDiscovery(discovery)
-		if err == nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		opts = append(opts, kgrpc.WithDiscovery(dis))
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	grpcConn, err := kgrpc.DialInsecure(ctx, opts...)
+
+	grpcConn, err := kgrpc.DialInsecure(context.Background(), opts...)
 	if !types.IsNil(err) {
 		log.Errorw("连接rpc失败：", err, "endpoint", endpoint)
 		return nil, err
@@ -73,31 +72,30 @@ func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 	endpoint := microServerConf.GetEndpoint()
 	opts := []http.ClientOption{
 		http.WithEndpoint(endpoint),
-		//http.WithMiddleware(
-		//	recovery.Recovery(),
-		//	mmd.Client(),
-		//	jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
-		//		return []byte(microServerConf.GetSecret()), nil
-		//	}),
-		//),
+		http.WithMiddleware(
+			recovery.Recovery(),
+			mmd.Client(),
+			jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
+				return []byte(microServerConf.GetSecret()), nil
+			}),
+		),
 		http.WithTimeout(timeout),
 	}
 	if !types.TextIsNull(microServerConf.GetNodeVersion()) {
 		// 创建路由 Filter：筛选版本号为"2.0.0"的实例
-		//nodeFilter := filter.Version(microServerConf.GetNodeVersion())
-		//opts = append(opts, http.WithNodeFilter(nodeFilter))
+		nodeFilter := filter.Version(microServerConf.GetNodeVersion())
+		opts = append(opts, http.WithNodeFilter(nodeFilter))
 	}
 
 	if !types.IsNil(discovery) {
 		dis, err := conn.NewDiscovery(discovery)
-		if err == nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		opts = append(opts, http.WithDiscovery(dis))
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx := context.Background()
 	newClient, err := http.NewClient(ctx, opts...)
 	if !types.IsNil(err) {
 		log.Errorw("连接http失败：", err, "endpoint", endpoint)

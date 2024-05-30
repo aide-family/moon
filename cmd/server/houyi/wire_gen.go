@@ -40,7 +40,7 @@ func wireApp(bootstrap *houyiconf.Bootstrap, logger log.Logger) (*kratos.App, fu
 	metricService := service.NewMetricService(metricBiz)
 	healthService := service.NewHealthService()
 	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, metricService, healthService)
-	app := newApp(serverServer, logger)
+	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
 		cleanup()
 	}, nil

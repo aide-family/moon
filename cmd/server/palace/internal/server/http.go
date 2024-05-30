@@ -11,8 +11,6 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/log"
 	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
@@ -49,7 +47,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
+			//recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
 			authMiddleware,
 			rbacMiddleware,

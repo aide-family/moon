@@ -1,16 +1,26 @@
 env: dev # dev、test、prod、local
 
 server:
-  name: moon监控系统-houyi服务
+  name: moon_houyi
   metadata:
     description: 是moon监控系列的告警组件，可以独立部署，接受prom类型规则，也可以接受alertmanager类型组件的告警推送
     background: 寓意为天神后羿，专门用于监控规则告警事件
   http:
-    addr: 0.0.0.0:8000
-    timeout: 2s
+    addr: 0.0.0.0:8002
+    timeout: 50s
   grpc:
-    addr: 0.0.0.0:9000
-    timeout: 2s
+    addr: 0.0.0.0:9002
+    timeout: 50s
+  registry:
+    type: "etcd"
+    etcd:
+      endpoints:
+        - 127.0.0.1:20000
+        - 127.0.0.1:20002
+        - 127.0.0.1:20004
+      username: ""
+      password: ""
+      timeout: 50s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon监控系统"

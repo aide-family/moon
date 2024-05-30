@@ -3,6 +3,7 @@ syntax = "proto3";
 package moon.cmd.server.houyi.internal.houyiconf;
 
 import "google/protobuf/duration.proto";
+import "global.proto";
 
 option go_package = "github.com/aide-cloud/moon/cmd/server/houyi/internal/houyiconf;houyiconf";
 
@@ -39,6 +40,7 @@ message Server {
   string name = 3;
   map<string, string> metadata = 4;
   JWT jwt = 5;
+  api.Registry registry = 6;
 }
 
 message Data {
