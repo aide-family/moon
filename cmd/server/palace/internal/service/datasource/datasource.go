@@ -12,6 +12,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -38,7 +39,7 @@ func (s *Service) CreateDatasource(ctx context.Context, req *pb.CreateDatasource
 		Config:   string(configBytes),
 	}
 	datasourceDetail, err := s.datasourceBiz.CreateDatasource(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	// 记录操作日志
@@ -54,14 +55,14 @@ func (s *Service) UpdateDatasource(ctx context.Context, req *pb.UpdateDatasource
 		Status: vobj.Status(data.GetStatus()),
 		Remark: data.GetRemark(),
 	}
-	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); err != nil {
+	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateDatasourceReply{}, nil
 }
 
 func (s *Service) DeleteDatasource(ctx context.Context, req *pb.DeleteDatasourceRequest) (*pb.DeleteDatasourceReply, error) {
-	if err := s.datasourceBiz.DeleteDatasource(ctx, req.GetId()); err != nil {
+	if err := s.datasourceBiz.DeleteDatasource(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.DeleteDatasourceReply{}, nil
@@ -69,7 +70,7 @@ func (s *Service) DeleteDatasource(ctx context.Context, req *pb.DeleteDatasource
 
 func (s *Service) GetDatasource(ctx context.Context, req *pb.GetDatasourceRequest) (*pb.GetDatasourceReply, error) {
 	datasourceDetail, err := s.datasourceBiz.GetDatasource(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetDatasourceReply{
@@ -85,7 +86,7 @@ func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequ
 		Status:  vobj.Status(req.GetStatus()),
 	}
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListDatasourceReply{
@@ -97,7 +98,7 @@ func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequ
 }
 
 func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *pb.UpdateDatasourceStatusRequest) (*pb.UpdateDatasourceStatusReply, error) {
-	if err := s.datasourceBiz.UpdateDatasourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); err != nil {
+	if err := s.datasourceBiz.UpdateDatasourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateDatasourceStatusReply{}, nil
@@ -110,7 +111,7 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasource
 		Status:  vobj.Status(req.GetStatus()),
 	}
 	list, err := s.datasourceBiz.GetDatasourceSelect(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetDatasourceSelectReply{
@@ -122,7 +123,7 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasource
 
 // SyncDatasourceMeta 同步数据源元数据
 func (s *Service) SyncDatasourceMeta(ctx context.Context, req *pb.SyncDatasourceMetaRequest) (*pb.SyncDatasourceMetaReply, error) {
-	if err := s.datasourceBiz.SyncDatasourceMeta(ctx, req.GetId()); err != nil {
+	if err := s.datasourceBiz.SyncDatasourceMeta(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.SyncDatasourceMetaReply{}, nil

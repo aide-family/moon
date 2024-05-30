@@ -35,7 +35,7 @@ func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	if !types.IsNil(params.Page) {
 		page := params.Page
 		total, err := q.Count()
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		page.SetTotal(int(total))
@@ -63,7 +63,7 @@ func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *b
 	if !types.IsNil(params.Page) {
 		page := params.Page
 		total, err := q.Count()
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		page.SetTotal(int(total))

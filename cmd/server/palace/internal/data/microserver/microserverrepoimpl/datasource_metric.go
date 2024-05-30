@@ -22,7 +22,7 @@ type datasourceMetricRepositoryImpl struct {
 
 func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error) {
 	configMap := make(map[string]string)
-	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); err != nil {
+	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
 		return nil, err
 	}
 	in := &metadata.SyncRequest{
@@ -30,7 +30,7 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 		Config:   configMap,
 	}
 	syncReply, err := l.cli.Sync(ctx, in)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	metrics := make([]*bizmodel.DatasourceMetric, 0, len(syncReply.GetMetrics()))

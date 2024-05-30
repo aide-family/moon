@@ -3,8 +3,6 @@ package repoimpl
 import (
 	"context"
 
-	"gorm.io/gen"
-
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
@@ -12,6 +10,8 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
+	"gorm.io/gen"
 )
 
 func NewUserRepository(data *data.Data) repository.User {
@@ -55,7 +55,7 @@ func (l *userRepositoryImpl) UpdatePassword(ctx context.Context, id uint32, pass
 
 func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
 	userModel := createUserParamsToModel(user)
-	if err := userModel.Create(ctx, l.data.GetMainDB(ctx)); err != nil {
+	if err := userModel.Create(ctx, l.data.GetMainDB(ctx)); !types.IsNil(err) {
 		return nil, err
 	}
 	return userModel, nil
@@ -106,7 +106,7 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 	if !types.IsNil(params) {
 		page := params.Page
 		total, err := q.Count()
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		params.Page.SetTotal(int(total))

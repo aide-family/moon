@@ -3,10 +3,6 @@ package repoimpl
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gen"
-	"gorm.io/gorm"
-
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
@@ -17,6 +13,10 @@ import (
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/utils/random"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gen"
+	"gorm.io/gorm"
 )
 
 func NewTeamRepository(data *data.Data) repository.Team {
@@ -41,7 +41,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	}
 	// 判断团队名称是否重复
 	_, err := query.Use(l.data.GetMainDB(ctx)).SysTeam.WithContext(ctx).Where(query.SysTeam.Name.Eq(team.Name)).First()
-	if err != nil {
+	if !types.IsNil(err) {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
@@ -51,11 +51,11 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	}
 
 	sysApis, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysAPI.Find()
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	sysMenus, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Find()
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
@@ -90,7 +90,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 
 	err = query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		// 创建基础信息
-		if err = tx.SysTeam.Create(sysTeamModel); err != nil {
+		if err = tx.SysTeam.Create(sysTeamModel); !types.IsNil(err) {
 			return err
 		}
 		teamId := sysTeamModel.ID
@@ -121,33 +121,33 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 
 		// 创建团队数据库
 		_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamId) + "`")
-		if err != nil {
+		if !types.IsNil(err) {
 			return err
 		}
 		bizDB, err := l.data.GetBizGormDB(teamId)
-		if err != nil {
+		if !types.IsNil(err) {
 			return err
 		}
 		// TODO 初始化数据表
-		if err = bizDB.AutoMigrate(bizmodel.Models()...); err != nil {
+		if err = bizDB.AutoMigrate(bizmodel.Models()...); !types.IsNil(err) {
 			return err
 		}
 
-		if err = bizquery.Use(bizDB).SysTeamMember.WithContext(ctx).Create(adminMembers...); err != nil {
+		if err = bizquery.Use(bizDB).SysTeamMember.WithContext(ctx).Create(adminMembers...); !types.IsNil(err) {
 			return err
 		}
 
 		// 迁移api数据到团队数据库
-		if err = bizquery.Use(bizDB).SysTeamAPI.Create(teamApis...); err != nil {
+		if err = bizquery.Use(bizDB).SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
 			return err
 		}
-		if err = bizquery.Use(bizDB).SysTeamMenu.Create(teamMenus...); err != nil {
+		if err = bizquery.Use(bizDB).SysTeamMenu.Create(teamMenus...); !types.IsNil(err) {
 			return err
 		}
 
 		return nil
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return sysTeamModel, nil
@@ -187,12 +187,12 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 		// TODO 需要缓存用户的全部团队ID， 然后取出来使用
 		//queryTeamIds = true
 		//bizDB, err := l.data.GetBizGormDB(teamId)
-		//if err != nil {
+		//if !types.IsNil(err) {
 		//	return nil, err
 		//}
 		//if err := bizquery.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
 		//	bizquery.SysTeamMember.UserID.Eq(params.UserID),
-		//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); err != nil {
+		//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); !types.IsNil(err) {
 		//	return nil, err
 		//}
 	}
@@ -206,7 +206,7 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 
 	if !types.IsNil(params.Page) {
 		total, err := q.Count()
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		params.Page.SetTotal(int(total))
@@ -233,7 +233,7 @@ func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32)
 	//var teamIds []uint32
 	//if err := bizquery.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
 	//	bizquery.SysTeamMember.UserID.Eq(userID),
-	//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); err != nil {
+	//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); !types.IsNil(err) {
 	//	return nil, err
 	//}
 	//q = q.Where(query.SysTeam.ID.In(teamIds...))
@@ -262,11 +262,11 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 		}, true
 	})
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
-		if err := tx.SysTeamMember.WithContext(ctx).Create(members...); err != nil {
+		if err := tx.SysTeamMember.WithContext(ctx).Create(members...); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -278,18 +278,18 @@ func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.Re
 		return nil
 	}
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		if _, err = tx.SysTeamMember.WithContext(ctx).
 			Where(tx.SysTeamMember.TeamID.Eq(params.ID), tx.SysTeamMember.UserID.In(params.MemberIds...)).
-			Delete(); err != nil {
+			Delete(); !types.IsNil(err) {
 			return err
 		}
 		if _, err = tx.SysTeamMemberRole.WithContext(ctx).
 			Where(tx.SysTeamMemberRole.SysTeamMemberID.In(params.MemberIds...)).
-			Delete(); err != nil {
+			Delete(); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -301,7 +301,7 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 		return nil
 	}
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	q := bizquery.Use(bizDB)
@@ -322,7 +322,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 		}, true
 	})
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return bizquery.Use(bizDB).SysTeamMember.TeamRoles.
@@ -333,7 +333,7 @@ func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.List
 	var wheres []gen.Condition
 	var userWheres []gen.Condition
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	qq := bizquery.Use(bizDB)
@@ -346,7 +346,7 @@ func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.List
 	if len(userWheres) > 0 {
 		var userIds []uint32
 		if err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(userWheres...).
-			Pluck(query.SysUser.ID, &userIds); err != nil {
+			Pluck(query.SysUser.ID, &userIds); !types.IsNil(err) {
 			return nil, err
 		}
 		wheres = append(wheres, qq.SysTeamMember.UserID.In(userIds...))
@@ -365,7 +365,7 @@ func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.List
 	q := bizquery.Use(bizDB).WithContext(ctx).SysTeamMember.Where(wheres...)
 	if !types.IsNil(params.Page) {
 		total, err := q.Count()
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		params.Page.SetTotal(int(total))
@@ -382,7 +382,7 @@ func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.List
 
 func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error {
 	bizDB, err := l.data.GetBizGormDB(params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
@@ -390,20 +390,20 @@ func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.
 		if _, err = tx.SysTeamMember.WithContext(ctx).Where(
 			tx.SysTeamMember.TeamID.Eq(params.ID),
 			tx.SysTeamMember.UserID.Eq(params.LeaderID),
-		).UpdateColumnSimple(tx.SysTeamMember.Role.Value(vobj.RoleSuperAdmin.GetValue())); err != nil {
+		).UpdateColumnSimple(tx.SysTeamMember.Role.Value(vobj.RoleSuperAdmin.GetValue())); !types.IsNil(err) {
 			return err
 		}
 		// 设置老管理员
 		if _, err = tx.SysTeamMember.WithContext(ctx).Where(
 			tx.SysTeamMember.TeamID.Eq(params.ID),
 			tx.SysTeamMember.UserID.Neq(params.OldLeaderID),
-		).UpdateColumnSimple(tx.SysTeamMember.Role.Value(vobj.RoleAdmin.GetValue())); err != nil {
+		).UpdateColumnSimple(tx.SysTeamMember.Role.Value(vobj.RoleAdmin.GetValue())); !types.IsNil(err) {
 			return err
 		}
 		// 系统团队信息
 		if _, err = query.Use(l.data.GetMainDB(ctx)).SysTeam.WithContext(ctx).Where(
 			query.SysTeam.ID.Eq(params.ID),
-		).UpdateColumnSimple(query.SysTeam.LeaderID.Value(params.LeaderID)); err != nil {
+		).UpdateColumnSimple(query.SysTeam.LeaderID.Value(params.LeaderID)); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -412,7 +412,7 @@ func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.
 
 func (l *teamRepositoryImpl) GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error) {
 	bizDB, err := l.data.GetBizGormDB(teamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	q := bizquery.Use(bizDB)

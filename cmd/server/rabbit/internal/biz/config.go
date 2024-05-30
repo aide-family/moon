@@ -12,6 +12,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -106,7 +107,7 @@ func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
 	}
 	getJsonStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
 	if !types.TextIsNull(getJsonStr) {
-		if err := json.Unmarshal([]byte(getJsonStr), &params); err != nil {
+		if err := json.Unmarshal([]byte(getJsonStr), &params); !types.IsNil(err) {
 			return err
 		}
 	}

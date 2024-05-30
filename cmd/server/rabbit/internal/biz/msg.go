@@ -11,6 +11,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/notify/email"
 	"github.com/aide-cloud/moon/pkg/notify/hook"
 	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -24,7 +25,7 @@ type MsgBiz struct {
 
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	var msgMap notify.Msg
-	if err := json.Unmarshal(msg.Data, &msgMap); err != nil {
+	if err := json.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
 		return err
 	}
 
@@ -51,7 +52,7 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			emailItem.Template = temp
 		}
 
-		if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); err != nil {
+		if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); !types.IsNil(err) {
 			log.Warnw("send email error", err, "receiver", emailItem)
 			continue
 		}
@@ -87,10 +88,10 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	// 发送hook告警
 	for _, hookItem := range hookList {
 		newNotify, err := hook.NewNotify(hookItem)
-		if err != nil {
+		if !types.IsNil(err) {
 			continue
 		}
-		if err := newNotify.Send(ctx, msgMap); err != nil {
+		if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
 			log.Warnw("send hook error", err, "receiver", hookItem)
 			continue
 		}

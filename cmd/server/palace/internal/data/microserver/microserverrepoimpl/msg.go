@@ -8,6 +8,8 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -25,7 +27,7 @@ func (m *msgRepositoryImpl) Send(ctx context.Context, msg *bo.Message) error {
 		JsonData: string(dataBytes),
 		Route:    "test",
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	log.Infow("sendMsg", sendMsg)

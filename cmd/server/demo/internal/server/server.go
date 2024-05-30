@@ -1,13 +1,13 @@
 package server
 
 import (
+	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/service"
+
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
-
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/service"
 )
 
 // ProviderSetServer is server providers.

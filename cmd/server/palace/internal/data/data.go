@@ -6,11 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/casbin/casbin/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
-	"gorm.io/gorm"
-
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/conn"
@@ -19,6 +14,11 @@ import (
 	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/casbin/casbin/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // ProviderSetData is data providers.
@@ -57,7 +57,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, nil, err
 		}
 		d.mainDB = mainDB
@@ -71,7 +71,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
 		// 打开数据库连接
 		db, err := sql.Open(bizConf.GetDriver(), bizConf.GetDsn())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Fatalf("Error opening database: %v\n", err)
 		}
 
@@ -135,13 +135,13 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 
 	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamId) + "?charset=utf8mb4&parseTime=True&loc=Local"
 	bizDB, err := conn.NewGormDB(dsn, d.bizDatabaseConf.GetDriver())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	d.teamBizDBMap.Store(teamId, bizDB)
 	enforcer, err := rbac.InitCasbinModel(bizDB)
-	if err != nil {
+	if !types.IsNil(err) {
 		log.Errorw("casbin init error", err)
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
 	enforceVal, exist := d.enforcerMap.Load(teamId)
 	if !exist {
 		_, err := d.GetBizGormDB(teamId)
-		if err != nil {
+		if !types.IsNil(err) {
 			panic(err)
 		}
 	}
@@ -182,7 +182,7 @@ func newCache(c *palaceconf.Data_Cache) conn.Cache {
 	if !types.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); err != nil {
+		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
@@ -191,7 +191,7 @@ func newCache(c *palaceconf.Data_Cache) conn.Cache {
 	if !types.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli

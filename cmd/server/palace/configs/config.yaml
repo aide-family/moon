@@ -57,24 +57,24 @@ data:
       bucket: test
 
 micro_server:
-#  discovery:
-#    etcd:
-#      endpoints:
-#        - 127.0.0.1:20000
-#        - 127.0.0.1:20002
-#        - 127.0.0.1:20004
-#      token: ""
-#      timeout: 10s
+  discovery:
+    etcd:
+      endpoints:
+        - 127.0.0.1:20000
+        - 127.0.0.1:20002
+        - 127.0.0.1:20004
+      token: ""
+      timeout: 10s
   rabbit_server:
-    network: "http"
+    network: "rpc"
     nodeVersion: ""
-#    endpoint: "discovery:///moon_rabbit"
-    endpoint: "127.0.0.1:8001"
+    endpoint: "discovery:///moon_rabbit"
+#    endpoint: "127.0.0.1:8001"
     timeout: 10s
     secret: ""
-#  hou_yi_server:
-#    network: "http"
-#    nodeVersion: ""
-#    endpoint: "discovery:///moon_houyi"
-#    timeout: 2s
-#    secret: ""
+  hou_yi_server:
+    network: "rpc"
+    nodeVersion: ""
+    endpoint: "discovery:///moon_houyi"
+    timeout: 2s
+    secret: ""

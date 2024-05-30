@@ -2,11 +2,6 @@ package server
 
 import (
 	"github.com/aide-cloud/moon/api"
-	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/google/wire"
-
 	authorizationapi "github.com/aide-cloud/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-cloud/moon/api/admin/datasource"
 	resourceapi "github.com/aide-cloud/moon/api/admin/resource"
@@ -19,6 +14,11 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/user"
+
+	"github.com/go-kratos/kratos/v2/transport"
+	"github.com/go-kratos/kratos/v2/transport/grpc"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/google/wire"
 )
 
 // ProviderSetServer is server providers.

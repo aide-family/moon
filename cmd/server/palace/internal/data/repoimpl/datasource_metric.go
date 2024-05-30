@@ -6,6 +6,8 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-cloud/moon/pkg/types"
+
 	"gorm.io/gorm/clause"
 )
 
@@ -19,7 +21,7 @@ type datasourceMetricRepositoryImpl struct {
 
 func (l *datasourceMetricRepositoryImpl) CreateMetrics(ctx context.Context, metrics ...*bizmodel.DatasourceMetric) error {
 	q, err := getBizDB(ctx, l.data)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(metrics...)

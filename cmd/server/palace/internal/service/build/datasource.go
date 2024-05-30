@@ -7,6 +7,7 @@ import (
 	"github.com/aide-cloud/moon/api/admin"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -25,7 +26,7 @@ func (b *DatasourceBuild) ToApi() *admin.Datasource {
 		return nil
 	}
 	configMap := make(map[string]string)
-	if err := json.Unmarshal([]byte(b.Config), &configMap); err != nil {
+	if err := json.Unmarshal([]byte(b.Config), &configMap); !types.IsNil(err) {
 		log.Warnw("error", err)
 	}
 	return &admin.Datasource{

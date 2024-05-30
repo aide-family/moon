@@ -44,12 +44,12 @@ func Run(flagconf string) {
 	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()
 
-	if err := c.Load(); err != nil {
+	if err := c.Load(); !types.IsNil(err) {
 		panic(err)
 	}
 
 	var bc conf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
+	if err := c.Scan(&bc); !types.IsNil(err) {
 		panic(err)
 	}
 
@@ -60,13 +60,13 @@ func Run(flagconf string) {
 	logger := sLog.GetLogger()
 	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)
-	if err != nil {
+	if !types.IsNil(err) {
 		panic(err)
 	}
 	defer cleanup()
 
 	// start and wait for stop signal
-	if err = app.Run(); err != nil {
+	if err = app.Run(); !types.IsNil(err) {
 		panic(err)
 	}
 }

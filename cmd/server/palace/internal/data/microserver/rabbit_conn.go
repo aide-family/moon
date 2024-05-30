@@ -3,15 +3,16 @@ package microserver
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport/http"
-	"google.golang.org/grpc"
-
 	"github.com/aide-cloud/moon/api/merr"
 	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
 	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	"google.golang.org/grpc"
 )
 
 // NewRabbitRpcConn 创建一个rabbit rpc连接
@@ -22,7 +23,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	switch rabbitServer.GetNetwork() {
 	case "http", "HTTP":
 		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
@@ -30,7 +31,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 		rabbitConn.network = vobj.NetworkHttp
 	case "https", "HTTPS":
 		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
@@ -38,25 +39,25 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 		rabbitConn.network = vobj.NetworkHttps
 	case "rpc", "RPC", "grpc", "GRPC":
 		grpcConn, err := newRpcConn(rabbitServer, microServer.GetDiscovery())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err
 		}
 		rabbitConn.rpcClient = grpcConn
 		rabbitConn.network = vobj.NetworkRpc
 	default:
-		return nil, nil, merr.ErrorNotification("暂不支持该网络类型：%s", rabbitServer.GetNetwork())
+		return nil, nil, merr.ErrorNotification("Rabbit Server暂不支持该网络类型：[%s]", rabbitServer.GetNetwork())
 	}
 
 	// 退出时清理资源
 	cleanup := func() {
 		if rabbitConn.rpcClient != nil {
-			if err := rabbitConn.rpcClient.Close(); err != nil {
+			if err := rabbitConn.rpcClient.Close(); !types.IsNil(err) {
 				log.Errorw("关闭 rabbit rpc 连接失败：", err)
 			}
 		}
 		if rabbitConn.httpClient != nil {
-			if err := rabbitConn.httpClient.Close(); err != nil {
+			if err := rabbitConn.httpClient.Close(); !types.IsNil(err) {
 				log.Errorw("关闭 rabbit http 连接失败：", err)
 			}
 		}

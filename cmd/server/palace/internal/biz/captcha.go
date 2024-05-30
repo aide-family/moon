@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/utils/captcha"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type CaptchaBiz struct {
@@ -25,7 +26,7 @@ func NewCaptchaBiz(captchaRepo repository.Captcha) *CaptchaBiz {
 // GenerateCaptcha 生成验证码
 func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCaptchaParams) (*bo.CaptchaItem, error) {
 	id, base64s, err := captcha.CreateCode(ctx, params.Type, params.Theme, params.Size...)
-	if err != nil {
+	if !types.IsNil(err) {
 		log.Warnw("fun", "captcha.CreateCode", "err", err)
 		return nil, merr.ErrorNotification("获取验证码失败")
 	}
@@ -40,7 +41,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 		ExpireAt: expireAt,
 	}
 	// 存储验证码信息到缓存
-	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem, duration); err != nil {
+	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem, duration); !types.IsNil(err) {
 		log.Warnw("fun", "captchaRepo.CreateCaptcha", "err", err)
 		return nil, merr.ErrorNotification("获取验证码失败")
 	}
@@ -54,7 +55,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 func (l *CaptchaBiz) VerifyCaptcha(ctx context.Context, params *bo.ValidateCaptchaParams) error {
 	// 获取验证码信息
 	validateCaptchaItem, err := l.captchaRepo.GetCaptchaById(ctx, params.Id)
-	if err != nil {
+	if !types.IsNil(err) {
 		log.Warnw("fun", "captchaRepo.GetCaptchaById", "err", err)
 		return merr.ErrorAlert("验证码已失效").WithMetadata(map[string]string{
 			"code": "验证码无效",

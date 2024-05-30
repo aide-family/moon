@@ -11,6 +11,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 )
@@ -70,7 +71,7 @@ func (b *DatasourceBiz) GetDatasource(ctx context.Context, id uint32) (*bizmodel
 // GetDatasourceSelect 获取数据源下拉列表
 func (b *DatasourceBiz) GetDatasourceSelect(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bo.SelectOptionBo, error) {
 	list, err := b.datasourceRepository.ListDatasource(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return types.SliceTo(list, func(item *bizmodel.Datasource) *bo.SelectOptionBo {
@@ -87,7 +88,7 @@ func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.
 // SyncDatasourceMeta 同步数据源元数据
 func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
 	syncDatasourceMetaKey := "sync:datasource:meta:" + strconv.FormatUint(uint64(id), 10)
-	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); err != nil {
+	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); !types.IsNil(err) {
 		if errors.Is(err, bo.LockFailedErr) {
 			return bo.RetryLaterErr.WithMetadata(map[string]string{
 				"retry": "数据源同步中，请稍后重试",
@@ -98,7 +99,7 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	defer b.lock.UnLock(ctx, syncDatasourceMetaKey)
 	// 获取数据源详情
 	datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, id)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bo.DatasourceNotFoundErr
 		}
@@ -106,11 +107,11 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	}
 	// 获取元数据
 	metadata, err := b.datasourceMetricMicroRepository.GetMetadata(ctx, datasourceDetail)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	// 创建元数据
-	if err = b.datasourceMetricRepository.CreateMetrics(ctx, metadata...); err != nil {
+	if err = b.datasourceMetricRepository.CreateMetrics(ctx, metadata...); !types.IsNil(err) {
 		return err
 	}
 

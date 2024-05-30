@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-cloud/moon/api"
+	"github.com/aide-cloud/moon/pkg/conn"
+	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	mmd "github.com/go-kratos/kratos/v2/middleware/metadata"
@@ -17,10 +21,6 @@ import (
 	"github.com/google/wire"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
-
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/types"
 )
 
 var ProviderSetRpcConn = wire.NewSet(
@@ -61,7 +61,7 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	grpcConn, err := kgrpc.DialInsecure(ctx, opts...)
-	if err != nil {
+	if !types.IsNil(err) {
 		log.Errorw("连接rpc失败：", err, "endpoint", endpoint)
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	newClient, err := http.NewClient(ctx, opts...)
-	if err != nil {
+	if !types.IsNil(err) {
 		log.Errorw("连接http失败：", err, "endpoint", endpoint)
 		return nil, err
 	}

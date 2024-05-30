@@ -9,6 +9,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/utils/captcha"
 )
 
@@ -35,7 +36,7 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{
 		Id:    captchaInfo.GetId(),
 		Value: captchaInfo.GetCode(),
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, err
 	}
 
@@ -45,12 +46,12 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 		EnPassword: req.GetPassword(),
 		Team:       req.GetTeamId(),
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	token, err := loginJwtClaims.JwtClaims.GetToken()
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.LoginReply{
@@ -68,7 +69,7 @@ func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutRe
 
 	if err := s.authorizationBiz.Logout(ctx, &bo.LogoutParams{
 		JwtClaims: jwtClaims,
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, merr.ErrorNotification("系统错误")
 	}
 
@@ -86,12 +87,12 @@ func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest)
 		JwtClaims: jwtClaims,
 		Team:      req.GetTeamId(),
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	token, err := tokenRes.JwtClaims.GetToken()
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.RefreshTokenReply{
@@ -106,7 +107,7 @@ func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaR
 		Theme: captcha.Theme(req.GetTheme()),
 		Size:  []int{int(req.GetHeight()), int(req.GetWidth())},
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CaptchaReply{
@@ -128,7 +129,7 @@ func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRe
 	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
 		Operation: req.GetOperation(),
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CheckPermissionReply{HasPermission: true}, nil
@@ -140,7 +141,7 @@ func (s *Service) CheckToken(ctx context.Context, _ *pb.CheckTokenRequest) (*pb.
 	if !ok {
 		return nil, bo.UnLoginErr
 	}
-	if err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims}); err != nil {
+	if err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CheckTokenReply{IsLogin: true}, nil

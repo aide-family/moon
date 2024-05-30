@@ -3,16 +3,16 @@ package data
 import (
 	"context"
 
-	"github.com/casbin/casbin/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/google/wire"
-	"gorm.io/gorm"
-
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
 	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/casbin/casbin/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"gorm.io/gorm"
 )
 
 // ProviderSetData is data providers.
@@ -43,7 +43,7 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, nil, err
 		}
 		d.mainDB = mainDB
@@ -57,7 +57,7 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
 		bizDB, err := conn.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
-		if err != nil {
+		if !types.IsNil(err) {
 			return nil, nil, err
 		}
 		d.bizDB = bizDB
@@ -116,7 +116,7 @@ func newCache(c *democonf.Data_Cache) conn.Cache {
 	if !types.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); err != nil {
+		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
@@ -125,7 +125,7 @@ func newCache(c *democonf.Data_Cache) conn.Cache {
 	if !types.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
-		if err != nil {
+		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli

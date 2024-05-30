@@ -8,6 +8,7 @@ import (
 	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 )
@@ -25,7 +26,7 @@ type ResourceBiz struct {
 // GetResource 获取资源详情
 func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (*model.SysAPI, error) {
 	resource, err := b.resourceRepo.GetById(ctx, id)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, bo.ResourceNotFoundErr
 		}
@@ -37,7 +38,7 @@ func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (*model.SysAPI
 // ListResource 获取资源列表
 func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
 	resourceDos, err := b.resourceRepo.FindByPage(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, bo.SystemErr.WithCause(err)
 	}
 	return resourceDos, nil
@@ -45,7 +46,7 @@ func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResource
 
 func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	err := b.resourceRepo.UpdateStatus(ctx, status, ids...)
-	if err != nil {
+	if !types.IsNil(err) {
 		return bo.SystemErr.WithCause(err)
 	}
 	return nil
@@ -53,7 +54,7 @@ func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Stat
 
 func (b *ResourceBiz) GetResourceSelectList(ctx context.Context, params *bo.QueryResourceListParams) ([]*bo.SelectOptionBo, error) {
 	resourceDos, err := b.resourceRepo.FindSelectByPage(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, bo.SystemErr.WithCause(err)
 	}
 

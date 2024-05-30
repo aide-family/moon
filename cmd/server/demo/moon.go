@@ -3,15 +3,16 @@ package demo
 import (
 	_ "go.uber.org/automaxprocs"
 
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/config"
-	"github.com/go-kratos/kratos/v2/config/file"
-	"github.com/go-kratos/kratos/v2/log"
-
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-cloud/moon/cmd/server/demo/internal/server"
 	"github.com/aide-cloud/moon/pkg/env"
 	sLog "github.com/aide-cloud/moon/pkg/log"
+	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/config"
+	"github.com/go-kratos/kratos/v2/config/file"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 func newApp(srv *server.Server, logger log.Logger) *kratos.App {
@@ -33,12 +34,12 @@ func Run(flagconf string) {
 	)
 	defer c.Close()
 
-	if err := c.Load(); err != nil {
+	if err := c.Load(); !types.IsNil(err) {
 		panic(err)
 	}
 
 	var bc democonf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
+	if err := c.Scan(&bc); !types.IsNil(err) {
 		panic(err)
 	}
 
@@ -49,13 +50,13 @@ func Run(flagconf string) {
 	logger := sLog.GetLogger()
 	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)
-	if err != nil {
+	if !types.IsNil(err) {
 		panic(err)
 	}
 	defer cleanup()
 
 	// start and wait for stop signal
-	if err = app.Run(); err != nil {
+	if err = app.Run(); !types.IsNil(err) {
 		panic(err)
 	}
 }

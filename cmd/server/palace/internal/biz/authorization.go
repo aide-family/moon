@@ -3,17 +3,17 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-cloud/moon/pkg/vobj"
-	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
-
 	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
 type AuthorizationBiz struct {
@@ -44,7 +44,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	}
 	// 检查用户是否被团队禁用
 	teamDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorModal("用户不在该团队中")
 		}
@@ -56,7 +56,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 
 	// 查询用户角色
 	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
-	if err != nil {
+	if !types.IsNil(err) {
 		return merr.ErrorNotification("系统错误")
 	}
 	if len(memberRoles) == 0 {
@@ -66,7 +66,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return role.ID
 	})
 	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	if !rbac {
@@ -94,7 +94,7 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 
 	// 检查用户是否被系统禁用
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorModal("用户不存在")
 		}
@@ -110,7 +110,7 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.LoginReply, error) {
 	// 检查用户是否存在
 	userDo, err := b.userRepo.GetByUsername(ctx, req.Username)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// 统一包装成密码错误
 			return nil, bo.PasswordErr
@@ -118,7 +118,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 		return nil, bo.SystemErr
 	}
 	// 检查用户密码是否正确
-	if err = checkPassword(userDo, req.EnPassword); err != nil {
+	if err = checkPassword(userDo, req.EnPassword); !types.IsNil(err) {
 		return nil, err
 	}
 
@@ -134,7 +134,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 		}
 		// 查询用户所属团队是否存在，存在着set temId
 		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-		if err != nil {
+		if !types.IsNil(err) {
 			return 0, 0, err
 		}
 		return req.Team, vobj.Role(memberItem.Role), nil
@@ -155,7 +155,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	}
 	// 检查用户是否存在
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// 统一包装成密码错误
 			return nil, merr.ErrorModal("用户不存在")
@@ -170,7 +170,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 
 	// 查询用户所属团队是否存在，存在着set temId
 	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotification("用户不在该团队中")
 		}
@@ -183,7 +183,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 
 	// 查询用户所属团队角色是否存在，存在着set teamRoleId
 	memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotification("用户此权限已被移除")
 		}

@@ -26,7 +26,7 @@ func (s *ConfigService) NotifyObject(ctx context.Context, req *pb.NotifyObjectRe
 	if err := s.configBiz.CacheConfig(ctx, &bo.CacheConfigParams{
 		Receivers: req.GetReceivers(),
 		Templates: req.GetTemplates(),
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.NotifyObjectReply{

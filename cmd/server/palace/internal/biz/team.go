@@ -3,15 +3,16 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"gorm.io/gorm"
-
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/helper/model"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-cloud/moon/pkg/types"
 	"github.com/aide-cloud/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
 func NewTeamBiz(teamRepo repository.Team) *TeamBiz {
@@ -45,7 +46,7 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 // GetTeam 获取团队信息
 func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, error) {
 	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamId}})
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	if len(teamList) == 0 {
@@ -112,7 +113,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		ID:        params.ID,
 		MemberIDs: params.MemberIds,
 	})
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	if len(teamMemberList) == 0 {
@@ -120,7 +121,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 	// 查询团队信息
 	teamInfo, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bo.TeamNotFoundErr
 		}
@@ -180,7 +181,7 @@ func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberP
 func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error {
 	// 获取团队信息
 	team, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
-	if err != nil {
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bo.TeamNotFoundErr
 		}

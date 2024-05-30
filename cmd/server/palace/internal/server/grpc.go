@@ -1,17 +1,17 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/log"
+
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-
-	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(bc *conf.Bootstrap) *grpc.Server {
+func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
 	c := bc.GetServer()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(

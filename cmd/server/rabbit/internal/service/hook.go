@@ -5,12 +5,12 @@ import (
 	"io"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/transport/http"
-
 	pb "github.com/aide-cloud/moon/api/rabbit/hook"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 type HookService struct {
@@ -29,7 +29,7 @@ func (s *HookService) SendMsg(ctx context.Context, req *pb.SendMsgRequest) (*pb.
 	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{
 		Route: req.Route,
 		Data:  []byte(req.JsonData),
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.SendMsgReply{
@@ -42,13 +42,13 @@ func (s *HookService) SendMsg(ctx context.Context, req *pb.SendMsgRequest) (*pb.
 func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in pb.SendMsgRequest
-		if err := ctx.BindVars(&in); err != nil {
+		if err := ctx.BindVars(&in); !types.IsNil(err) {
 			return err
 		}
 
 		body := ctx.Request().Body
 		all, err := io.ReadAll(body)
-		if err != nil {
+		if !types.IsNil(err) {
 			return err
 		}
 		in.JsonData = string(all)
@@ -56,7 +56,7 @@ func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 			return s.SendMsg(ctx, req.(*pb.SendMsgRequest))
 		})
 		out, err := h(ctx, &in)
-		if err != nil {
+		if !types.IsNil(err) {
 			return err
 		}
 		reply := out.(*pb.SendMsgReply)

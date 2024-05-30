@@ -35,7 +35,7 @@ func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest)
 		Permissions: req.GetPermissions(),
 	}
 	_, err := s.teamRoleBiz.CreateTeamRole(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CreateRoleReply{}, nil
@@ -49,14 +49,14 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest)
 		Remark:      data.GetRemark(),
 		Permissions: data.GetPermissions(),
 	}
-	if err := s.teamRoleBiz.UpdateTeamRole(ctx, params); err != nil {
+	if err := s.teamRoleBiz.UpdateTeamRole(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateRoleReply{}, nil
 }
 
 func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest) (*pb.DeleteRoleReply, error) {
-	if err := s.teamRoleBiz.DeleteTeamRole(ctx, req.GetId()); err != nil {
+	if err := s.teamRoleBiz.DeleteTeamRole(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.DeleteRoleReply{}, nil
@@ -64,7 +64,7 @@ func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest)
 
 func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.GetRoleReply, error) {
 	roleDetail, err := s.teamRoleBiz.GetTeamRole(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetRoleReply{
@@ -82,7 +82,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 		Keyword: req.GetKeyword(),
 	}
 	teamRoles, err := s.teamRoleBiz.ListTeamRole(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListRoleReply{
@@ -93,7 +93,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 }
 
 func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *pb.UpdateRoleStatusRequest) (*pb.UpdateRoleStatusReply, error) {
-	if err := s.teamRoleBiz.UpdateTeamRoleStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); err != nil {
+	if err := s.teamRoleBiz.UpdateTeamRoleStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateRoleStatusReply{}, nil
@@ -109,7 +109,7 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSele
 		Keyword: req.GetKeyword(),
 	}
 	teamRoles, err := s.teamRoleBiz.ListTeamRole(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetRoleSelectListReply{

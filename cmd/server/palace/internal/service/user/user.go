@@ -36,11 +36,11 @@ const (
 // 解密传输密码字符串
 func decryptPassword(password string) (string, error) {
 	aes, err := cipher.NewAes(defaultKey, defaultIv)
-	if err != nil {
+	if !types.IsNil(err) {
 		return "", bo.SystemErr.WithCause(err)
 	}
 	decryptBase64Pass, err := aes.DecryptBase64(password)
-	if err != nil {
+	if !types.IsNil(err) {
 		return "", bo.SystemErr.WithCause(err)
 	}
 	pass := string(decryptBase64Pass)
@@ -50,11 +50,11 @@ func decryptPassword(password string) (string, error) {
 // 加密传输密码字符串
 func encryptPassword(password string) (string, error) {
 	aes, err := cipher.NewAes(defaultKey, defaultIv)
-	if err != nil {
+	if !types.IsNil(err) {
 		return "", bo.SystemErr.WithCause(err)
 	}
 	encryptBase64Pass, err := aes.EncryptBase64([]byte(password))
-	if err != nil {
+	if !types.IsNil(err) {
 		return "", bo.SystemErr.WithCause(err)
 	}
 	return encryptBase64Pass, nil
@@ -63,7 +63,7 @@ func encryptPassword(password string) (string, error) {
 // CreateUser 创建用户 只允许管理员操作
 func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
 	pass, err := decryptPassword(req.GetPassword())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, merr.ErrorAlert("请使用加密后的密文传输").WithMetadata(map[string]string{
 			"password": "请使用加密密文",
 		})
@@ -87,7 +87,7 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 		Role:      vobj.Role(req.GetRole()),
 	}
 	_, err = s.userBiz.CreateUser(ctx, createParams)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CreateUserReply{}, nil
@@ -110,14 +110,14 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 	if err := s.userBiz.UpdateUser(ctx, &bo.UpdateUserParams{
 		ID:               req.GetId(),
 		CreateUserParams: createParams,
-	}); err != nil {
+	}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateUserReply{}, nil
 }
 
 func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserReply, error) {
-	if err := s.userBiz.DeleteUser(ctx, req.GetId()); err != nil {
+	if err := s.userBiz.DeleteUser(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.DeleteUserReply{}, nil
@@ -125,7 +125,7 @@ func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*p
 
 func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserReply, error) {
 	userDo, err := s.userBiz.GetUser(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetUserReply{
@@ -142,7 +142,7 @@ func (s *Service) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.Li
 		Role:    vobj.Role(req.GetRole()),
 	}
 	userDos, err := s.userBiz.ListUser(ctx, queryParams)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListUserReply{
@@ -158,7 +158,7 @@ func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *pb.BatchUpdate
 		Status: vobj.Status(req.GetStatus()),
 		IDs:    req.GetIds(),
 	}
-	if err := s.userBiz.BatchUpdateUserStatus(ctx, params); err != nil {
+	if err := s.userBiz.BatchUpdateUserStatus(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.BatchUpdateUserStatusReply{}, nil
@@ -175,15 +175,15 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUser
 	}
 	// 查询用户详情
 	userDo, err := s.userBiz.GetUser(ctx, claims.GetUser())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	newPass, err := decryptPassword(req.GetNewPassword())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	oldPass, err := decryptPassword(req.GetOldPassword())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	// 对比旧密码正确
@@ -203,7 +203,7 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUser
 		// 使用新的盐
 		Password: types.NewPassword(newPass),
 	}
-	if err = s.userBiz.ResetUserPasswordBySelf(ctx, params); err != nil {
+	if err = s.userBiz.ResetUserPasswordBySelf(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ResetUserPasswordBySelfReply{}, nil
@@ -218,7 +218,7 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectLi
 		Role:    vobj.Role(req.GetRole()),
 	}
 	userSelectOptions, err := s.userBiz.GetUserSelectList(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetUserSelectListReply{
@@ -240,7 +240,7 @@ func (s *Service) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRe
 		UserId: claims.GetUser(),
 		Phone:  req.GetPhone(),
 	}
-	if err := s.userBiz.UpdateUserPhone(ctx, params); err != nil {
+	if err := s.userBiz.UpdateUserPhone(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateUserPhoneReply{}, nil
@@ -257,7 +257,7 @@ func (s *Service) UpdateUserEmail(ctx context.Context, req *pb.UpdateUserEmailRe
 		UserId: claims.GetUser(),
 		Email:  req.GetEmail(),
 	}
-	if err := s.userBiz.UpdateUserEmail(ctx, params); err != nil {
+	if err := s.userBiz.UpdateUserEmail(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateUserEmailReply{}, nil
@@ -273,7 +273,7 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *pb.UpdateUserAvatar
 		UserId: claims.GetUser(),
 		Avatar: req.GetAvatar(),
 	}
-	if err := s.userBiz.UpdateUserAvatar(ctx, params); err != nil {
+	if err := s.userBiz.UpdateUserAvatar(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateUserAvatarReply{}, nil

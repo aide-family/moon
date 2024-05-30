@@ -4,19 +4,20 @@ import (
 	"context"
 	nHttp "net/http"
 
-	"github.com/aide-cloud/moon/pkg/log"
-	"github.com/bufbuild/protovalidate-go"
-	"github.com/go-kratos/kratos/v2/transport/http"
-
 	authorizationapi "github.com/aide-cloud/moon/api/admin/authorization"
-	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
+	"github.com/aide-cloud/moon/pkg/log"
+	"github.com/aide-cloud/moon/pkg/types"
+
+	"github.com/bufbuild/protovalidate-go"
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http.Server {
+func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service) *http.Server {
 	c := bc.GetServer()
 
 	apiWhiteList := bc.GetServer().GetJwt().GetWhiteList()
@@ -26,7 +27,7 @@ func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http
 		middleware.JwtServer(),
 		middleware.JwtLoginMiddleware(func(ctx context.Context) (bool, error) {
 			checkRes, err := authService.CheckToken(ctx, &authorizationapi.CheckTokenRequest{})
-			if err != nil {
+			if !types.IsNil(err) {
 				return false, err
 			}
 			return checkRes.GetIsLogin(), nil
@@ -38,7 +39,7 @@ func NewHTTPServer(bc *conf.Bootstrap, authService *authorization.Service) *http
 		permission, err := authService.CheckPermission(ctx, &authorizationapi.CheckPermissionRequest{
 			Operation: operation,
 		})
-		if err != nil {
+		if !types.IsNil(err) {
 			return false, err
 		}
 		return permission.GetHasPermission(), nil

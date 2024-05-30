@@ -27,7 +27,7 @@ func NewResourceService(resourceBiz *biz.ResourceBiz) *Service {
 
 func (s *Service) GetResource(ctx context.Context, req *pb.GetResourceRequest) (*pb.GetResourceReply, error) {
 	resourceDo, err := s.resourceBiz.GetResource(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetResourceReply{
@@ -41,7 +41,7 @@ func (s *Service) ListResource(ctx context.Context, req *pb.ListResourceRequest)
 		Page:    types.NewPagination(req.GetPagination()),
 	}
 	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListResourceReply{
@@ -53,7 +53,7 @@ func (s *Service) ListResource(ctx context.Context, req *pb.ListResourceRequest)
 }
 
 func (s *Service) BatchUpdateResourceStatus(ctx context.Context, req *pb.BatchUpdateResourceStatusRequest) (*pb.BatchUpdateResourceStatusReply, error) {
-	if err := s.resourceBiz.UpdateResourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); err != nil {
+	if err := s.resourceBiz.UpdateResourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.BatchUpdateResourceStatusReply{}, nil
@@ -65,7 +65,7 @@ func (s *Service) GetResourceSelectList(ctx context.Context, req *pb.GetResource
 		Page:    types.NewPagination(req.GetPagination()),
 	}
 	resourceDos, err := s.resourceBiz.GetResourceSelectList(ctx, queryParams)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 

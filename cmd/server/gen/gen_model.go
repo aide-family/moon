@@ -1,13 +1,14 @@
 package gen
 
 import (
+	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gorm"
-
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 )
 
 func Run(datasource string, drive, outputPath string, isBiz bool) {
@@ -35,7 +36,7 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 	g := gen.NewGenerator(*c)
 
 	gormDB, err := gorm.Open(mysql.Open(datasource))
-	if err != nil {
+	if !types.IsNil(err) {
 		panic(err)
 	}
 	g.UseDB(gormDB) // reuse your gorm db

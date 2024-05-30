@@ -3,14 +3,14 @@ package server
 import (
 	nHttp "net/http"
 
-	"github.com/bufbuild/protovalidate-go"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	"github.com/go-kratos/kratos/v2/transport/http"
-
 	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-cloud/moon/pkg/env"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/log"
+
+	"github.com/bufbuild/protovalidate-go"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 // NewHTTPServer new an HTTP server.

@@ -6,6 +6,7 @@ import (
 	pb "github.com/aide-cloud/moon/api/admin/resource"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-cloud/moon/pkg/types"
 )
 
 type MenuService struct {
@@ -22,7 +23,7 @@ func NewMenuService(menuBiz *biz.MenuBiz) *MenuService {
 
 func (s *MenuService) ListMenu(ctx context.Context, _ *pb.ListMenuRequest) (*pb.ListMenuReply, error) {
 	menuTree, err := s.menuBiz.MenuList(ctx)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListMenuReply{

@@ -3,16 +3,17 @@ package server
 import (
 	"context"
 
+	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
+	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
+	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
+	"github.com/aide-cloud/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
-
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
-	hookapi "github.com/aide-cloud/moon/api/rabbit/hook"
-	pushapi "github.com/aide-cloud/moon/api/rabbit/push"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
 )
 
 // ProviderSetServer is server providers.
@@ -49,7 +50,7 @@ func RegisterService(
 	hookService *service.HookService,
 ) *Server {
 	// 加载缓存配置
-	if err := configService.LoadNotifyObject(context.Background()); err != nil {
+	if err := configService.LoadNotifyObject(context.Background()); !types.IsNil(err) {
 		log.Errorw("加载配置失败", err)
 	}
 	// 注册GRPC服务

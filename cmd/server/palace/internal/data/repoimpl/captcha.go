@@ -7,6 +7,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
+	"github.com/aide-cloud/moon/pkg/types"
 )
 
 func NewCaptchaRepository(data *data.Data) repository.Captcha {
@@ -21,7 +22,7 @@ type captchaRepositoryImpl struct {
 
 func (l *captchaRepositoryImpl) CreateCaptcha(ctx context.Context, captcha *bo.ValidateCaptchaItem, duration time.Duration) error {
 	bs, err := captcha.MarshalBinary()
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	return l.data.GetCacher().Set(ctx, captcha.Id, string(bs), duration)
@@ -29,11 +30,11 @@ func (l *captchaRepositoryImpl) CreateCaptcha(ctx context.Context, captcha *bo.V
 
 func (l *captchaRepositoryImpl) GetCaptchaById(ctx context.Context, id string) (*bo.ValidateCaptchaItem, error) {
 	str, err := l.data.GetCacher().Get(ctx, id)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	var captcha bo.ValidateCaptchaItem
-	if err = captcha.UnmarshalBinary([]byte(str)); err != nil {
+	if err = captcha.UnmarshalBinary([]byte(str)); !types.IsNil(err) {
 		return nil, err
 	}
 	return &captcha, nil

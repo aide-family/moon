@@ -1,12 +1,12 @@
 package server
 
 import (
+	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
+
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
 )
 
 // NewGRPCServer new a gRPC server.

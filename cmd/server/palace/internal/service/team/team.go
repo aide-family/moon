@@ -46,7 +46,7 @@ func (s *Service) CreateTeam(ctx context.Context, req *pb.CreateTeamRequest) (*p
 		Admins:    req.GetAdminIds(),
 	}
 	_, err := s.teamBiz.CreateTeam(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.CreateTeamReply{}, nil
@@ -58,7 +58,7 @@ func (s *Service) UpdateTeam(ctx context.Context, req *pb.UpdateTeamRequest) (*p
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
 	}
-	if err := s.teamBiz.UpdateTeam(ctx, params); err != nil {
+	if err := s.teamBiz.UpdateTeam(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateTeamReply{}, nil
@@ -66,7 +66,7 @@ func (s *Service) UpdateTeam(ctx context.Context, req *pb.UpdateTeamRequest) (*p
 
 func (s *Service) GetTeam(ctx context.Context, req *pb.GetTeamRequest) (*pb.GetTeamReply, error) {
 	teamInfo, err := s.teamBiz.GetTeam(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.GetTeamReply{
@@ -83,7 +83,7 @@ func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.Li
 		LeaderID:  req.GetLeaderId(),
 	}
 	teamList, err := s.teamBiz.ListTeam(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListTeamReply{
@@ -95,7 +95,7 @@ func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.Li
 }
 
 func (s *Service) UpdateTeamStatus(ctx context.Context, req *pb.UpdateTeamStatusRequest) (*pb.UpdateTeamStatusReply, error) {
-	if err := s.teamBiz.UpdateTeamStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); err != nil {
+	if err := s.teamBiz.UpdateTeamStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateTeamStatusReply{}, nil
@@ -107,7 +107,7 @@ func (s *Service) MyTeam(ctx context.Context, _ *pb.MyTeamRequest) (*pb.MyTeamRe
 		return nil, bo.UnLoginErr
 	}
 	teamList, err := s.teamBiz.GetUserTeamList(ctx, claims.GetUser())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.MyTeamReply{
@@ -128,7 +128,7 @@ func (s *Service) AddTeamMember(ctx context.Context, req *pb.AddTeamMemberReques
 			}
 		}),
 	}
-	if err := s.teamBiz.AddTeamMember(ctx, params); err != nil {
+	if err := s.teamBiz.AddTeamMember(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.AddTeamMemberReply{}, nil
@@ -139,7 +139,7 @@ func (s *Service) RemoveTeamMember(ctx context.Context, req *pb.RemoveTeamMember
 		ID:        req.GetId(),
 		MemberIds: []uint32{req.GetUserId()},
 	}
-	if err := s.teamBiz.RemoveTeamMember(ctx, params); err != nil {
+	if err := s.teamBiz.RemoveTeamMember(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.RemoveTeamMemberReply{}, nil
@@ -151,7 +151,7 @@ func (s *Service) SetTeamAdmin(ctx context.Context, req *pb.SetTeamAdminRequest)
 		MemberIds: []uint32{req.GetUserId()},
 		Role:      vobj.RoleAdmin,
 	}
-	if err := s.teamBiz.SetTeamAdmin(ctx, params); err != nil {
+	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.SetTeamAdminReply{}, nil
@@ -163,7 +163,7 @@ func (s *Service) RemoveTeamAdmin(ctx context.Context, req *pb.RemoveTeamAdminRe
 		MemberIds: []uint32{req.GetUserId()},
 		Role:      vobj.RoleUser,
 	}
-	if err := s.teamBiz.SetTeamAdmin(ctx, params); err != nil {
+	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.RemoveTeamAdminReply{}, nil
@@ -175,7 +175,7 @@ func (s *Service) SetMemberRole(ctx context.Context, req *pb.SetMemberRoleReques
 		MemberID: req.GetUserId(),
 		RoleIds:  req.GetRoles(),
 	}
-	if err := s.teamBiz.SetMemberRole(ctx, params); err != nil {
+	if err := s.teamBiz.SetMemberRole(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.SetMemberRoleReply{}, nil
@@ -191,7 +191,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequ
 		Status:  vobj.Status(req.GetStatus()),
 	}
 	memberList, err := s.teamBiz.ListTeamMember(ctx, params)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.ListTeamMemberReply{
@@ -212,7 +212,7 @@ func (s *Service) TransferTeamLeader(ctx context.Context, req *pb.TransferTeamLe
 		LeaderID:    req.GetUserId(),
 		OldLeaderID: claims.GetUser(),
 	}
-	if err := s.teamBiz.TransferTeamLeader(ctx, params); err != nil {
+	if err := s.teamBiz.TransferTeamLeader(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &pb.TransferTeamLeaderReply{}, nil
