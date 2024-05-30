@@ -4,17 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
 
-	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-cloud/moon/pkg/conn"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/nutsdbcacher"
 	"github.com/aide-cloud/moon/pkg/conn/cacher/rediscacher"
+	"github.com/aide-cloud/moon/pkg/conn/rbac"
 	"github.com/aide-cloud/moon/pkg/helper/model/query"
 	"github.com/aide-cloud/moon/pkg/types"
 )
@@ -24,12 +26,13 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	mainDB          *gorm.DB
-	bizDB           *sql.DB
-	cacher          conn.Cache
-	enforcerMap     map[uint32]*casbin.SyncedEnforcer
 	bizDatabaseConf *palaceconf.Data_Database
-	teamBizDBMap    map[uint32]*gorm.DB
+
+	mainDB       *gorm.DB
+	bizDB        *sql.DB
+	cacher       conn.Cache
+	enforcerMap  *sync.Map
+	teamBizDBMap *sync.Map
 }
 
 var closeFuncList []func()
@@ -41,8 +44,8 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	cacheConf := c.GetData().GetCache()
 	d := &Data{
 		bizDatabaseConf: bizConf,
-		teamBizDBMap:    make(map[uint32]*gorm.DB),
-		enforcerMap:     make(map[uint32]*casbin.SyncedEnforcer),
+		teamBizDBMap:    new(sync.Map),
+		enforcerMap:     new(sync.Map),
 	}
 
 	if !types.IsNil(cacheConf) {
@@ -75,10 +78,15 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		d.bizDB = db
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close biz db", d.bizDB.Close())
-			for _, db := range d.teamBizDBMap {
-				dbTmp, _ := db.DB()
+			d.teamBizDBMap.Range(func(key, value any) bool {
+				teamBizDB, ok := value.(*gorm.DB)
+				if !ok {
+					return true
+				}
+				dbTmp, _ := teamBizDB.DB()
 				log.Debugw("close biz orm db", dbTmp.Close())
-			}
+				return ok
+			})
 		})
 	}
 
@@ -116,9 +124,13 @@ func GenBizDatabaseName(teamId uint32) string {
 
 // GetBizGormDB 获取业务库连接
 func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
-	bizDB, exist := d.teamBizDBMap[teamId]
+	dbValue, exist := d.teamBizDBMap.Load(teamId)
 	if exist {
-		return bizDB, nil
+		bizDB, isBizDB := dbValue.(*gorm.DB)
+		if isBizDB {
+			return bizDB, nil
+		}
+		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 
 	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamId) + "?charset=utf8mb4&parseTime=True&loc=Local"
@@ -126,14 +138,14 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.teamBizDBMap[teamId] = bizDB
+
+	d.teamBizDBMap.Store(teamId, bizDB)
 	enforcer, err := rbac.InitCasbinModel(bizDB)
 	if err != nil {
 		log.Errorw("casbin init error", err)
 		return nil, err
 	}
-	d.enforcerMap[teamId] = enforcer
-
+	d.enforcerMap.Store(teamId, enforcer)
 	return bizDB, nil
 }
 
@@ -147,13 +159,18 @@ func (d *Data) GetCacher() conn.Cache {
 
 // GetCasbin 获取casbin
 func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
-	if _, exist := d.enforcerMap[teamId]; !exist {
+	enforceVal, exist := d.enforcerMap.Load(teamId)
+	if !exist {
 		_, err := d.GetBizGormDB(teamId)
 		if err != nil {
 			panic(err)
 		}
 	}
-	return d.enforcerMap[teamId]
+	enforce, ok := enforceVal.(*casbin.SyncedEnforcer)
+	if !ok {
+		panic("enforcer not found")
+	}
+	return enforce
 }
 
 // newCache new cache
