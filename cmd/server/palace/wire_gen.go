@@ -60,11 +60,20 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	teamRoleBiz := biz.NewTeamRoleBiz(teamRole)
 	roleService := team.NewRoleService(teamRoleBiz)
 	repositoryDatasource := repoimpl.NewDatasourceRepository(dataData)
-	datasourceBiz := biz.NewDatasourceBiz(repositoryDatasource)
+	datasourceMetric := repoimpl.NewDatasourceMetricRepository(dataData)
+	houYiConn, cleanup2, err := microserver.NewHouYiConn(bootstrap)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	microrepositoryDatasourceMetric := microserverrepoimpl.NewDatasourceMetricRepository(houYiConn)
+	lock := repoimpl.NewLockRepository(dataData)
+	datasourceBiz := biz.NewDatasourceBiz(repositoryDatasource, datasourceMetric, microrepositoryDatasourceMetric, lock)
 	datasourceService := datasource.NewDatasourceService(datasourceBiz)
 	teamMenu := repoimpl.NewTeamMenuRepository(dataData)
-	rabbitConn, cleanup2, err := microserver.NewRabbitRpcConn(bootstrap)
+	rabbitConn, cleanup3, err := microserver.NewRabbitRpcConn(bootstrap)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
@@ -74,6 +83,7 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, healthService, userService, authorizationService, resourceService, teamService, roleService, datasourceService, menuService)
 	app := newApp(bootstrap, serverServer, logger)
 	return app, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil
