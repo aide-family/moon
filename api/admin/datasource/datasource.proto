@@ -7,6 +7,7 @@ import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "enum.proto";
 import "global.proto";
+import "metadata.proto";
 
 option go_package = "github.com/aide-cloud/moon/api/admin/datasource;datasource";
 option java_multiple_files = true;
@@ -72,6 +73,14 @@ service Datasource {
   rpc SyncDatasourceMeta (SyncDatasourceMetaRequest) returns (SyncDatasourceMetaReply) {
     option (google.api.http) = {
       post: "/v1/datasource/{id}/sync"
+      body: "*"
+    };
+  }
+
+  // 获取数据
+  rpc DatasourceQuery (DatasourceQueryRequest) returns (DatasourceQueryReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource/{id}/query"
       body: "*"
     };
   }
@@ -170,3 +179,16 @@ message SyncDatasourceMetaRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message SyncDatasourceMetaReply {}
+
+message DatasourceQueryRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+  // 查询语句
+  string query = 2 [(buf.validate.field).required = true];
+  // 查询时间范围
+  repeated string range = 3 [(buf.validate.field).required = true];
+  // 步长
+  uint32 step = 4;
+}
+message DatasourceQueryReply {
+  repeated MetricQueryResult list = 1;
+}

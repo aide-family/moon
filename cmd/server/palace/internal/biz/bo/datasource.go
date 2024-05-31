@@ -60,6 +60,31 @@ type (
 	DatasourceOptionBuild struct {
 		*bizmodel.Datasource
 	}
+
+	DatasourceQueryParams struct {
+		DatasourceID uint32 `json:"datasourceID"`
+		// 查询语句
+		Query string `json:"query"`
+		// 步长
+		Step uint32 `json:"step"`
+		// 时间范围
+		TimeRange []string `json:"timeRange"`
+
+		// 数据源
+		*bizmodel.Datasource `json:"datasource"`
+	}
+
+	DatasourceQueryData struct {
+		Labels     map[string]string       `json:"labels"`
+		ResultType string                  `json:"resultType"`
+		Values     []*DatasourceQueryValue `json:"values"`
+		Value      *DatasourceQueryValue   `json:"value"`
+	}
+
+	DatasourceQueryValue struct {
+		Value     float64 `json:"value"`
+		Timestamp int64   `json:"timestamp"`
+	}
 )
 
 // NewDatasourceOptionBuild 创建数据源选项构建器

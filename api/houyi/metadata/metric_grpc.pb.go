@@ -19,14 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metric_Sync_FullMethodName = "/api.houyi.metadata.Metric/Sync"
+	Metric_SyncMetadata_FullMethodName = "/api.houyi.metadata.Metric/SyncMetadata"
+	Metric_Query_FullMethodName        = "/api.houyi.metadata.Metric/Query"
 )
 
 // MetricClient is the client API for Metric service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricClient interface {
-	Sync(ctx context.Context, in *SyncRequest, opts ...grpc.CallOption) (*SyncReply, error)
+	// 同步元数据
+	SyncMetadata(ctx context.Context, in *SyncMetadataRequest, opts ...grpc.CallOption) (*SyncMetadataReply, error)
+	// 查询
+	Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryReply, error)
 }
 
 type metricClient struct {
@@ -37,9 +41,18 @@ func NewMetricClient(cc grpc.ClientConnInterface) MetricClient {
 	return &metricClient{cc}
 }
 
-func (c *metricClient) Sync(ctx context.Context, in *SyncRequest, opts ...grpc.CallOption) (*SyncReply, error) {
-	out := new(SyncReply)
-	err := c.cc.Invoke(ctx, Metric_Sync_FullMethodName, in, out, opts...)
+func (c *metricClient) SyncMetadata(ctx context.Context, in *SyncMetadataRequest, opts ...grpc.CallOption) (*SyncMetadataReply, error) {
+	out := new(SyncMetadataReply)
+	err := c.cc.Invoke(ctx, Metric_SyncMetadata_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metricClient) Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryReply, error) {
+	out := new(QueryReply)
+	err := c.cc.Invoke(ctx, Metric_Query_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +63,10 @@ func (c *metricClient) Sync(ctx context.Context, in *SyncRequest, opts ...grpc.C
 // All implementations must embed UnimplementedMetricServer
 // for forward compatibility
 type MetricServer interface {
-	Sync(context.Context, *SyncRequest) (*SyncReply, error)
+	// 同步元数据
+	SyncMetadata(context.Context, *SyncMetadataRequest) (*SyncMetadataReply, error)
+	// 查询
+	Query(context.Context, *QueryRequest) (*QueryReply, error)
 	mustEmbedUnimplementedMetricServer()
 }
 
@@ -58,8 +74,11 @@ type MetricServer interface {
 type UnimplementedMetricServer struct {
 }
 
-func (UnimplementedMetricServer) Sync(context.Context, *SyncRequest) (*SyncReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Sync not implemented")
+func (UnimplementedMetricServer) SyncMetadata(context.Context, *SyncMetadataRequest) (*SyncMetadataReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncMetadata not implemented")
+}
+func (UnimplementedMetricServer) Query(context.Context, *QueryRequest) (*QueryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
 }
 func (UnimplementedMetricServer) mustEmbedUnimplementedMetricServer() {}
 
@@ -74,20 +93,38 @@ func RegisterMetricServer(s grpc.ServiceRegistrar, srv MetricServer) {
 	s.RegisterService(&Metric_ServiceDesc, srv)
 }
 
-func _Metric_Sync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncRequest)
+func _Metric_SyncMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncMetadataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetricServer).Sync(ctx, in)
+		return srv.(MetricServer).SyncMetadata(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Metric_Sync_FullMethodName,
+		FullMethod: Metric_SyncMetadata_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricServer).Sync(ctx, req.(*SyncRequest))
+		return srv.(MetricServer).SyncMetadata(ctx, req.(*SyncMetadataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Metric_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricServer).Query(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Metric_Query_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricServer).Query(ctx, req.(*QueryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -100,8 +137,12 @@ var Metric_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*MetricServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Sync",
-			Handler:    _Metric_Sync_Handler,
+			MethodName: "SyncMetadata",
+			Handler:    _Metric_SyncMetadata_Handler,
+		},
+		{
+			MethodName: "Query",
+			Handler:    _Metric_Query_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

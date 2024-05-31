@@ -73,19 +73,37 @@ type HouYiConn struct {
 	httpClient *http.Client
 }
 
-func (l *HouYiConn) Sync(ctx context.Context, in *metadataapi.SyncRequest, opts ...Option) (*metadataapi.SyncReply, error) {
+func (l *HouYiConn) Sync(ctx context.Context, in *metadataapi.SyncMetadataRequest, opts ...Option) (*metadataapi.SyncMetadataReply, error) {
 	switch l.network {
 	case vobj.NetworkHttp, vobj.NetworkHttps:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
 			httpOpts = append(httpOpts, opt.HttpOpts...)
 		}
-		return metadataapi.NewMetricHTTPClient(l.httpClient).Sync(ctx, in, httpOpts...)
+		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadata(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
 			rpcOpts = append(rpcOpts, opt.RpcOpts...)
 		}
-		return metadataapi.NewMetricClient(l.rpcClient).Sync(ctx, in, rpcOpts...)
+		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadata(ctx, in, rpcOpts...)
+	}
+}
+
+// Query 查询数据
+func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opts ...Option) (*metadataapi.QueryReply, error) {
+	switch l.network {
+	case vobj.NetworkHttp, vobj.NetworkHttps:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HttpOpts...)
+		}
+		return metadataapi.NewMetricHTTPClient(l.httpClient).Query(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+		}
+		return metadataapi.NewMetricClient(l.rpcClient).Query(ctx, in, rpcOpts...)
 	}
 }

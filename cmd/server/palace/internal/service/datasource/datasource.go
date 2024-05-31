@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/api/admin"
 	pb "github.com/aide-cloud/moon/api/admin/datasource"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
@@ -131,4 +132,23 @@ func (s *Service) SyncDatasourceMeta(ctx context.Context, req *pb.SyncDatasource
 		return nil, err
 	}
 	return &pb.SyncDatasourceMetaReply{}, nil
+}
+
+// DatasourceQuery 查询数据
+func (s *Service) DatasourceQuery(ctx context.Context, req *pb.DatasourceQueryRequest) (*pb.DatasourceQueryReply, error) {
+	params := &bo.DatasourceQueryParams{
+		DatasourceID: req.GetId(),
+		Query:        req.GetQuery(),
+		Step:         req.GetStep(),
+		TimeRange:    req.GetRange(),
+	}
+	query, err := s.datasourceBiz.Query(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.DatasourceQueryReply{
+		List: types.SliceTo(query, func(item *bo.DatasourceQueryData) *api.MetricQueryResult {
+			return build.NewDatasourceQueryDataBuild(item).ToApi()
+		}),
+	}, nil
 }

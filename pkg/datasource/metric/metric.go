@@ -13,13 +13,18 @@ type (
 		Password string `json:"password"`
 	}
 
+	QueryValue struct {
+		Value     float64 `json:"value"`
+		Timestamp int64   `json:"timestamp"`
+	}
 	QueryResponse struct {
-		// 指标集合
+		// 标签集合
 		Labels map[string]string `json:"labels"`
 		// 值
-		Value float64 `json:"value"`
-		// 时间戳
-		Timestamp int64 `json:"timestamp"`
+		Value  *QueryValue   `json:"value"`
+		Values []*QueryValue `json:"values"`
+		// 结果类型
+		ResultType string `json:"resultType"`
 	}
 
 	// Metric 查询到的数据详情， 用与元数据构建
@@ -47,7 +52,9 @@ type (
 	// Datasource 数据源完整接口定义
 	Datasource interface {
 		// Query 查询数据
-		Query(ctx context.Context, expr string, duration int64) (*QueryResponse, error)
+		Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error)
+		// QueryRange 查询数据
+		QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error)
 		// Metadata 查询元数据
 		Metadata(ctx context.Context) (*Metadata, error)
 	}

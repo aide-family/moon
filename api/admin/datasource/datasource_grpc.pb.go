@@ -27,6 +27,7 @@ const (
 	Datasource_UpdateDatasourceStatus_FullMethodName = "/api.admin.datasource.Datasource/UpdateDatasourceStatus"
 	Datasource_GetDatasourceSelect_FullMethodName    = "/api.admin.datasource.Datasource/GetDatasourceSelect"
 	Datasource_SyncDatasourceMeta_FullMethodName     = "/api.admin.datasource.Datasource/SyncDatasourceMeta"
+	Datasource_DatasourceQuery_FullMethodName        = "/api.admin.datasource.Datasource/DatasourceQuery"
 )
 
 // DatasourceClient is the client API for Datasource service.
@@ -49,6 +50,8 @@ type DatasourceClient interface {
 	GetDatasourceSelect(ctx context.Context, in *GetDatasourceSelectRequest, opts ...grpc.CallOption) (*GetDatasourceSelectReply, error)
 	// 同步数据源元数据
 	SyncDatasourceMeta(ctx context.Context, in *SyncDatasourceMetaRequest, opts ...grpc.CallOption) (*SyncDatasourceMetaReply, error)
+	// 获取数据
+	DatasourceQuery(ctx context.Context, in *DatasourceQueryRequest, opts ...grpc.CallOption) (*DatasourceQueryReply, error)
 }
 
 type datasourceClient struct {
@@ -131,6 +134,15 @@ func (c *datasourceClient) SyncDatasourceMeta(ctx context.Context, in *SyncDatas
 	return out, nil
 }
 
+func (c *datasourceClient) DatasourceQuery(ctx context.Context, in *DatasourceQueryRequest, opts ...grpc.CallOption) (*DatasourceQueryReply, error) {
+	out := new(DatasourceQueryReply)
+	err := c.cc.Invoke(ctx, Datasource_DatasourceQuery_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatasourceServer is the server API for Datasource service.
 // All implementations must embed UnimplementedDatasourceServer
 // for forward compatibility
@@ -151,6 +163,8 @@ type DatasourceServer interface {
 	GetDatasourceSelect(context.Context, *GetDatasourceSelectRequest) (*GetDatasourceSelectReply, error)
 	// 同步数据源元数据
 	SyncDatasourceMeta(context.Context, *SyncDatasourceMetaRequest) (*SyncDatasourceMetaReply, error)
+	// 获取数据
+	DatasourceQuery(context.Context, *DatasourceQueryRequest) (*DatasourceQueryReply, error)
 	mustEmbedUnimplementedDatasourceServer()
 }
 
@@ -181,6 +195,9 @@ func (UnimplementedDatasourceServer) GetDatasourceSelect(context.Context, *GetDa
 }
 func (UnimplementedDatasourceServer) SyncDatasourceMeta(context.Context, *SyncDatasourceMetaRequest) (*SyncDatasourceMetaReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncDatasourceMeta not implemented")
+}
+func (UnimplementedDatasourceServer) DatasourceQuery(context.Context, *DatasourceQueryRequest) (*DatasourceQueryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DatasourceQuery not implemented")
 }
 func (UnimplementedDatasourceServer) mustEmbedUnimplementedDatasourceServer() {}
 
@@ -339,6 +356,24 @@ func _Datasource_SyncDatasourceMeta_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Datasource_DatasourceQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DatasourceQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatasourceServer).DatasourceQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Datasource_DatasourceQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatasourceServer).DatasourceQuery(ctx, req.(*DatasourceQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Datasource_ServiceDesc is the grpc.ServiceDesc for Datasource service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -377,6 +412,10 @@ var Datasource_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncDatasourceMeta",
 			Handler:    _Datasource_SyncDatasourceMeta_Handler,
+		},
+		{
+			MethodName: "DatasourceQuery",
+			Handler:    _Datasource_DatasourceQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

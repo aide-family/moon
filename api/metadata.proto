@@ -24,3 +24,22 @@ message MetricDetail {
 	// 指标单位
 	string unit = 5;
 }
+
+// Metric类型数据查询结果
+message MetricQueryResult {
+	// 标签集合
+	map<string, string> labels = 1;
+	// 结果类型
+	string resultType = 2;
+	// 结果值(图表)
+	repeated MetricQueryValue values = 3;
+	// 结果值（单数据）
+	MetricQueryValue value = 4;
+}
+
+message MetricQueryValue {
+	// 值
+	double value = 1;
+	// 时间戳
+	int64 timestamp = 2;
+}

@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-cloud/moon/pkg/datasource/metric"
 	"github.com/aide-cloud/moon/pkg/types"
 )
 
@@ -33,5 +34,48 @@ func (b *MetricBuilder) ToApi() *api.MetricDetail {
 		Type:   b.Type,
 		Labels: labels,
 		Unit:   b.Unit,
+	}
+}
+
+func NewMetricQueryBuilder(queryResponse *metric.QueryResponse) *MetricQueryBuilder {
+	return &MetricQueryBuilder{
+		QueryResponse: queryResponse,
+	}
+}
+
+type MetricQueryBuilder struct {
+	*metric.QueryResponse
+}
+
+// ToApi 转换为api对象
+func (b *MetricQueryBuilder) ToApi() *api.MetricQueryResult {
+	if types.IsNil(b) || types.IsNil(b.QueryResponse) {
+		return nil
+	}
+	var value *api.MetricQueryValue
+	var values []*api.MetricQueryValue
+	if !types.IsNil(b.Value) {
+		value = &api.MetricQueryValue{
+			Value:     b.Value.Value,
+			Timestamp: b.Value.Timestamp,
+		}
+	}
+	if !types.IsNil(b.Values) {
+		values = types.SliceToWithFilter(b.Values, func(item *metric.QueryValue) (*api.MetricQueryValue, bool) {
+			if types.IsNil(item) {
+				return nil, false
+			}
+			return &api.MetricQueryValue{
+				Value:     item.Value,
+				Timestamp: item.Timestamp,
+			}, true
+		})
+	}
+
+	return &api.MetricQueryResult{
+		Labels:     b.Labels,
+		ResultType: b.ResultType,
+		Values:     values,
+		Value:      value,
 	}
 }

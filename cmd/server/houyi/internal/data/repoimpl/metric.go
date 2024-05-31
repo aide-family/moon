@@ -55,3 +55,22 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 	})
 	return list, nil
 }
+
+func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
+	opts, err := l.getMetricOptions(&req.GetMetricsParams)
+	if err != nil {
+		return nil, err
+	}
+	datasource, err := metric.NewMetricDatasource(req.StorageType, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if len(req.TimeRange) == 0 {
+		return nil, merr.ErrorNotification("time range is empty")
+	}
+	if len(req.TimeRange) == 1 {
+		return datasource.Query(ctx, req.QueryQL, types.NewTimeByString(req.TimeRange[0]).Unix())
+	}
+	start, end := types.NewTimeByString(req.TimeRange[0]).Unix(), types.NewTimeByString(req.TimeRange[1]).Unix()
+	return datasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
+}

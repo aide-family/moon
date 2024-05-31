@@ -24,4 +24,11 @@ type (
 		// 指标单位
 		Unit string `json:"unit"`
 	}
+
+	QueryQLParams struct {
+		GetMetricsParams
+		QueryQL   string   `json:"queryQL"`
+		TimeRange []string `json:"timeRange"`
+		Step      uint32   `json:"step"`
+	}
 )

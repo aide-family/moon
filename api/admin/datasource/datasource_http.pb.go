@@ -20,6 +20,7 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationDatasourceCreateDatasource = "/api.admin.datasource.Datasource/CreateDatasource"
+const OperationDatasourceDatasourceQuery = "/api.admin.datasource.Datasource/DatasourceQuery"
 const OperationDatasourceDeleteDatasource = "/api.admin.datasource.Datasource/DeleteDatasource"
 const OperationDatasourceGetDatasource = "/api.admin.datasource.Datasource/GetDatasource"
 const OperationDatasourceGetDatasourceSelect = "/api.admin.datasource.Datasource/GetDatasourceSelect"
@@ -31,6 +32,8 @@ const OperationDatasourceUpdateDatasourceStatus = "/api.admin.datasource.Datasou
 type DatasourceHTTPServer interface {
 	// CreateDatasource 创建数据源
 	CreateDatasource(context.Context, *CreateDatasourceRequest) (*CreateDatasourceReply, error)
+	// DatasourceQuery 获取数据
+	DatasourceQuery(context.Context, *DatasourceQueryRequest) (*DatasourceQueryReply, error)
 	// DeleteDatasource 删除数据源
 	DeleteDatasource(context.Context, *DeleteDatasourceRequest) (*DeleteDatasourceReply, error)
 	// GetDatasource 获取数据源详情
@@ -57,6 +60,7 @@ func RegisterDatasourceHTTPServer(s *http.Server, srv DatasourceHTTPServer) {
 	r.PUT("/v1/datasource/{id}/status", _Datasource_UpdateDatasourceStatus0_HTTP_Handler(srv))
 	r.POST("/v1/datasource/select", _Datasource_GetDatasourceSelect0_HTTP_Handler(srv))
 	r.POST("/v1/datasource/{id}/sync", _Datasource_SyncDatasourceMeta0_HTTP_Handler(srv))
+	r.POST("/v1/datasource/{id}/query", _Datasource_DatasourceQuery0_HTTP_Handler(srv))
 }
 
 func _Datasource_CreateDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
@@ -244,8 +248,34 @@ func _Datasource_SyncDatasourceMeta0_HTTP_Handler(srv DatasourceHTTPServer) func
 	}
 }
 
+func _Datasource_DatasourceQuery0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DatasourceQueryRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceDatasourceQuery)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DatasourceQuery(ctx, req.(*DatasourceQueryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DatasourceQueryReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DatasourceHTTPClient interface {
 	CreateDatasource(ctx context.Context, req *CreateDatasourceRequest, opts ...http.CallOption) (rsp *CreateDatasourceReply, err error)
+	DatasourceQuery(ctx context.Context, req *DatasourceQueryRequest, opts ...http.CallOption) (rsp *DatasourceQueryReply, err error)
 	DeleteDatasource(ctx context.Context, req *DeleteDatasourceRequest, opts ...http.CallOption) (rsp *DeleteDatasourceReply, err error)
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *GetDatasourceReply, err error)
 	GetDatasourceSelect(ctx context.Context, req *GetDatasourceSelectRequest, opts ...http.CallOption) (rsp *GetDatasourceSelectReply, err error)
@@ -268,6 +298,19 @@ func (c *DatasourceHTTPClientImpl) CreateDatasource(ctx context.Context, in *Cre
 	pattern := "/v1/datasource"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDatasourceCreateDatasource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *DatasourceHTTPClientImpl) DatasourceQuery(ctx context.Context, in *DatasourceQueryRequest, opts ...http.CallOption) (*DatasourceQueryReply, error) {
+	var out DatasourceQueryReply
+	pattern := "/v1/datasource/{id}/query"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDatasourceDatasourceQuery))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

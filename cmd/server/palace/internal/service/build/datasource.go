@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/api/admin"
+	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
 
@@ -40,5 +41,40 @@ func (b *DatasourceBuild) ToApi() *admin.Datasource {
 		Config:      configMap,
 		Remark:      b.Remark,
 		StorageType: api.StorageType(b.StorageType),
+	}
+}
+
+type DatasourceQueryDataBuild struct {
+	*bo.DatasourceQueryData
+}
+
+func NewDatasourceQueryDataBuild(data *bo.DatasourceQueryData) *DatasourceQueryDataBuild {
+	return &DatasourceQueryDataBuild{
+		DatasourceQueryData: data,
+	}
+}
+
+// ToApi 转换为api
+func (b *DatasourceQueryDataBuild) ToApi() *api.MetricQueryResult {
+	if types.IsNil(b) || types.IsNil(b.DatasourceQueryData) {
+		return nil
+	}
+	var value *api.MetricQueryValue
+	if !types.IsNil(b.Value) {
+		value = &api.MetricQueryValue{
+			Value:     b.Value.Value,
+			Timestamp: b.Value.Timestamp,
+		}
+	}
+	return &api.MetricQueryResult{
+		Labels:     b.Labels,
+		ResultType: b.ResultType,
+		Values: types.SliceTo(b.Values, func(item *bo.DatasourceQueryValue) *api.MetricQueryValue {
+			return &api.MetricQueryValue{
+				Value:     item.Value,
+				Timestamp: item.Timestamp,
+			}
+		}),
+		Value: value,
 	}
 }

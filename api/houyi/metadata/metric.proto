@@ -3,6 +3,7 @@ syntax = "proto3";
 package api.houyi.metadata;
 
 import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
 import "metadata.proto";
 import "enum.proto";
 
@@ -12,25 +13,55 @@ option java_package = "api.houyi.metadata";
 
 // metric类型数据源元数据同步接口， 子服务需要实现该接口, 支持http和rpc两种同步方式
 service Metric {
-	rpc Sync(SyncRequest) returns (SyncReply) {
-		option (google.api.http) = {
-			post: "/metric/metadata/sync"
-			body: "*"
-		};
-	}
+  // 同步元数据
+  rpc SyncMetadata(SyncMetadataRequest) returns (SyncMetadataReply) {
+    option (google.api.http) = {
+      post: "/metric/sync/metadata"
+      body: "*"
+    };
+  }
+
+  // 查询
+  rpc Query(QueryRequest) returns (QueryReply) {
+    option (google.api.http) = {
+      post: "/metric/query"
+      body: "*"
+    };
+  }
 }
 
 // TODO 前期先明文， 后面再考虑加密
-message SyncRequest {
-	// 数据源地址
-	string endpoint = 1;
-	// 配置信息
-	map<string, string> config = 2;
-	// 存储类型
-	StorageType storage_type = 3;
+message SyncMetadataRequest {
+  // 数据源地址
+  string endpoint = 1;
+  // 配置信息
+  map<string, string> config = 2;
+  // 存储类型
+  StorageType storage_type = 3;
 }
 
-message SyncReply {
-	// 采集到的指标列表
-	repeated MetricDetail metrics = 1;
+message SyncMetadataReply {
+  // 采集到的指标列表
+  repeated MetricDetail metrics = 1;
+}
+
+message QueryRequest {
+  // 查询语句
+  string query = 1;
+  // 查询时间范围
+  repeated string range = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "至少包含一个时间戳",
+    expression: "this.size() > 0"
+  }];
+  // 步长
+  uint32 step = 3;
+  // 数据源
+  string endpoint = 4;
+  // 配置信息
+  map<string, string> config = 5;
+  // 存储类型
+  StorageType storage_type = 6;
+}
+message QueryReply {
+  repeated MetricQueryResult list = 1;
 }

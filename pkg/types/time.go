@@ -28,6 +28,18 @@ func NewTime(t time.Time) *Time {
 	return (*Time)(&t)
 }
 
+func NewTimeByString(s string, layout ...string) *Time {
+	lay := time.DateTime
+	if len(layout) > 0 {
+		lay = layout[0]
+	}
+	t, err := time.ParseInLocation(lay, s, time.Local)
+	if err != nil {
+		return nil
+	}
+	return (*Time)(&t)
+}
+
 // Scan 现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (t *Time) Scan(value interface{}) error {
 	switch value.(type) {

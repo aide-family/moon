@@ -116,6 +116,23 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	return nil
 }
 
+// Query 查询数据
+func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryParams) ([]*bo.DatasourceQueryData, error) {
+	if types.IsNil(params.Datasource) {
+		// 查询数据源
+		datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, params.DatasourceID)
+		if !types.IsNil(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, bo.DatasourceNotFoundErr
+			}
+			return nil, err
+		}
+		params.Datasource = datasourceDetail
+	}
+
+	return b.datasourceMetricMicroRepository.Query(ctx, params)
+}
+
 func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint32) error {
 	// 获取数据源详情
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamId)
