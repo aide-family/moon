@@ -16,6 +16,9 @@ type Datasource interface {
 	// GetDatasource 获取数据源详情
 	GetDatasource(ctx context.Context, id uint32) (*bizmodel.Datasource, error)
 
+	// GetDatasourceNoAuth 获取数据源详情(不鉴权)
+	GetDatasourceNoAuth(ctx context.Context, id, teamId uint32) (*bizmodel.Datasource, error)
+
 	// ListDatasource 获取数据源列表
 	ListDatasource(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bizmodel.Datasource, error)
 

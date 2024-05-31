@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aide-cloud/moon/api"
 	"github.com/aide-cloud/moon/api/houyi/metadata"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data/microserver"
@@ -26,8 +27,9 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 		return nil, err
 	}
 	in := &metadata.SyncRequest{
-		Endpoint: datasourceInfo.Endpoint,
-		Config:   configMap,
+		Endpoint:    datasourceInfo.Endpoint,
+		Config:      configMap,
+		StorageType: api.StorageType(datasourceInfo.StorageType),
 	}
 	syncReply, err := l.cli.Sync(ctx, in)
 	if !types.IsNil(err) {

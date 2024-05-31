@@ -31,12 +31,13 @@ func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 func (s *Service) CreateDatasource(ctx context.Context, req *pb.CreateDatasourceRequest) (*pb.CreateDatasourceReply, error) {
 	configBytes, _ := json.Marshal(req.GetConfig())
 	params := &bo.CreateDatasourceParams{
-		Name:     req.GetName(),
-		Type:     vobj.DatasourceType(req.GetType()),
-		Endpoint: req.GetEndpoint(),
-		Status:   vobj.Status(req.GetStatus()),
-		Remark:   req.GetRemark(),
-		Config:   string(configBytes),
+		Name:        req.GetName(),
+		Type:        vobj.DatasourceType(req.GetType()),
+		Endpoint:    req.GetEndpoint(),
+		Status:      vobj.Status(req.GetStatus()),
+		Remark:      req.GetRemark(),
+		Config:      string(configBytes),
+		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	datasourceDetail, err := s.datasourceBiz.CreateDatasource(ctx, params)
 	if !types.IsNil(err) {
@@ -80,10 +81,11 @@ func (s *Service) GetDatasource(ctx context.Context, req *pb.GetDatasourceReques
 
 func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequest) (*pb.ListDatasourceReply, error) {
 	params := &bo.QueryDatasourceListParams{
-		Page:    types.NewPagination(req.GetPagination()),
-		Keyword: req.GetKeyword(),
-		Type:    vobj.DatasourceType(req.GetType()),
-		Status:  vobj.Status(req.GetStatus()),
+		Page:        types.NewPagination(req.GetPagination()),
+		Keyword:     req.GetKeyword(),
+		Type:        vobj.DatasourceType(req.GetType()),
+		Status:      vobj.Status(req.GetStatus()),
+		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
@@ -106,9 +108,11 @@ func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *pb.UpdateData
 
 func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasourceSelectRequest) (*pb.GetDatasourceSelectReply, error) {
 	params := &bo.QueryDatasourceListParams{
-		Keyword: req.GetKeyword(),
-		Type:    vobj.DatasourceType(req.GetType()),
-		Status:  vobj.Status(req.GetStatus()),
+		Page:        nil,
+		Keyword:     req.GetKeyword(),
+		Type:        vobj.DatasourceType(req.GetType()),
+		Status:      vobj.Status(req.GetStatus()),
+		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	list, err := s.datasourceBiz.GetDatasourceSelect(ctx, params)
 	if !types.IsNil(err) {

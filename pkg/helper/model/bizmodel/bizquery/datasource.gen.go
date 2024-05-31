@@ -29,6 +29,7 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.ID = field.NewUint32(tableName, "id")
 	_datasource.Name = field.NewString(tableName, "name")
 	_datasource.Category = field.NewInt(tableName, "category")
+	_datasource.StorageType = field.NewInt(tableName, "storage_type")
 	_datasource.Config = field.NewString(tableName, "config")
 	_datasource.Endpoint = field.NewString(tableName, "endpoint")
 	_datasource.Status = field.NewInt(tableName, "status")
@@ -63,18 +64,19 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 type datasource struct {
 	datasourceDo
 
-	ALL       field.Asterisk
-	ID        field.Uint32
-	Name      field.String
-	Category  field.Int
-	Config    field.String
-	Endpoint  field.String
-	Status    field.Int
-	CreatedAt field.Field
-	UpdatedAt field.Field
-	DeletedAt field.Int64
-	Remark    field.String
-	Metrics   datasourceHasManyMetrics
+	ALL         field.Asterisk
+	ID          field.Uint32
+	Name        field.String
+	Category    field.Int
+	StorageType field.Int
+	Config      field.String
+	Endpoint    field.String
+	Status      field.Int
+	CreatedAt   field.Field
+	UpdatedAt   field.Field
+	DeletedAt   field.Int64
+	Remark      field.String
+	Metrics     datasourceHasManyMetrics
 
 	fieldMap map[string]field.Expr
 }
@@ -94,6 +96,7 @@ func (d *datasource) updateTableName(table string) *datasource {
 	d.ID = field.NewUint32(table, "id")
 	d.Name = field.NewString(table, "name")
 	d.Category = field.NewInt(table, "category")
+	d.StorageType = field.NewInt(table, "storage_type")
 	d.Config = field.NewString(table, "config")
 	d.Endpoint = field.NewString(table, "endpoint")
 	d.Status = field.NewInt(table, "status")
@@ -117,10 +120,11 @@ func (d *datasource) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *datasource) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 11)
+	d.fieldMap = make(map[string]field.Expr, 12)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["name"] = d.Name
 	d.fieldMap["category"] = d.Category
+	d.fieldMap["storage_type"] = d.StorageType
 	d.fieldMap["config"] = d.Config
 	d.fieldMap["endpoint"] = d.Endpoint
 	d.fieldMap["status"] = d.Status

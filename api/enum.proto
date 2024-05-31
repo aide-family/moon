@@ -105,3 +105,13 @@ enum DatasourceType {
 	// Log
 	DatasourceTypeLog = 3;
 }
+
+// 存储器类型 prometheus、victoriametrics等
+enum StorageType {
+	// 未知存储器类型
+	StorageTypeUnknown = 0;
+	// Prometheus
+	StorageTypePrometheus = 1;
+	// VictoriaMetrics
+	StorageTypeVictoriaMetrics = 2;
+}

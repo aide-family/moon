@@ -30,14 +30,15 @@ func (b *DatasourceBuild) ToApi() *admin.Datasource {
 		log.Warnw("error", err)
 	}
 	return &admin.Datasource{
-		Id:        b.ID,
-		Name:      b.Name,
-		Type:      api.DatasourceType(b.Category),
-		Endpoint:  b.Endpoint,
-		Status:    api.Status(b.Status),
-		CreatedAt: b.CreatedAt.String(),
-		UpdatedAt: b.UpdatedAt.String(),
-		Config:    configMap,
-		Remark:    b.Remark,
+		Id:          b.ID,
+		Name:        b.Name,
+		Type:        api.DatasourceType(b.Category),
+		Endpoint:    b.Endpoint,
+		Status:      api.Status(b.Status),
+		CreatedAt:   b.CreatedAt.String(),
+		UpdatedAt:   b.UpdatedAt.String(),
+		Config:      configMap,
+		Remark:      b.Remark,
+		StorageType: api.StorageType(b.StorageType),
 	}
 }

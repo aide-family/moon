@@ -191,4 +191,6 @@ message Datasource {
   map<string, string> config = 8;
   // 描述
   string remark = 9;
+  // 存储器类型
+  StorageType storage_type = 10;
 }

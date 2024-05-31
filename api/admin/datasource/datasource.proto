@@ -102,6 +102,8 @@ message CreateDatasourceRequest {
   }];
   // 数据源配置
   map<string, string> config = 6;
+  // 存储器类型
+  StorageType storage_type = 7;
 }
 message CreateDatasourceReply {}
 
@@ -135,6 +137,8 @@ message ListDatasourceRequest {
   Status status = 3;
   // 数据源类型
   DatasourceType type = 4;
+  // 存储器类型
+  StorageType storage_type = 5;
 }
 message ListDatasourceReply {
   PaginationReply pagination = 1;
@@ -155,6 +159,8 @@ message GetDatasourceSelectRequest {
     message: "必须小于 1000",
     expression: 'this <== 1000'
   }];
+  // 存储器类型
+  StorageType storage_type = 6;
 }
 message GetDatasourceSelectReply {
   repeated Select data = 1;

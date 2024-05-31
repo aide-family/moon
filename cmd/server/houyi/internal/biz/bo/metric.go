@@ -1,9 +1,15 @@
 package bo
 
+import (
+	"github.com/aide-cloud/moon/pkg/vobj"
+)
+
 type (
 	GetMetricsParams struct {
 		Endpoint string            `json:"endpoint"`
 		Config   map[string]string `json:"config"`
+		// 存储类型
+		StorageType vobj.StorageType `json:"storageType"`
 	}
 
 	MetricDetail struct {

@@ -6,6 +6,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-cloud/moon/pkg/types"
 
 	"gorm.io/gorm/clause"
@@ -24,5 +25,14 @@ func (l *datasourceMetricRepositoryImpl) CreateMetrics(ctx context.Context, metr
 	if !types.IsNil(err) {
 		return err
 	}
-	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(metrics...)
+	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
+}
+
+func (l *datasourceMetricRepositoryImpl) CreateMetricsNoAuth(ctx context.Context, teamId uint32, metrics ...*bizmodel.DatasourceMetric) error {
+	bizDB, err := l.data.GetBizGormDB(teamId)
+	if !types.IsNil(err) {
+		return err
+	}
+	q := bizquery.Use(bizDB)
+	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
 }

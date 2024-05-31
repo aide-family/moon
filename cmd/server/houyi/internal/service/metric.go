@@ -9,6 +9,7 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/houyi/internal/service/build"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/vobj"
 )
 
 type MetricService struct {
@@ -25,8 +26,9 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 
 func (s *MetricService) Sync(ctx context.Context, req *pb.SyncRequest) (*pb.SyncReply, error) {
 	params := &bo.GetMetricsParams{
-		Endpoint: req.GetEndpoint(),
-		Config:   req.GetConfig(),
+		Endpoint:    req.GetEndpoint(),
+		Config:      req.GetConfig(),
+		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	metrics, err := s.metricBiz.SyncMetrics(ctx, params)
 	if err != nil {

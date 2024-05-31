@@ -42,12 +42,13 @@ func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasou
 		return nil, err
 	}
 	datasourceModel := &bizmodel.Datasource{
-		Name:     datasource.Name,
-		Category: datasource.Type,
-		Config:   datasource.Config,
-		Endpoint: datasource.Endpoint,
-		Status:   datasource.Status,
-		Remark:   datasource.Remark,
+		Name:        datasource.Name,
+		Category:    datasource.Type,
+		Config:      datasource.Config,
+		Endpoint:    datasource.Endpoint,
+		Status:      datasource.Status,
+		Remark:      datasource.Remark,
+		StorageType: datasource.StorageType,
 	}
 	if err = q.Datasource.WithContext(ctx).Create(datasourceModel); !types.IsNil(err) {
 		return nil, err
@@ -63,6 +64,15 @@ func (l *datasourceRepositoryImpl) GetDatasource(ctx context.Context, id uint32)
 	return q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(id)).First()
 }
 
+func (l *datasourceRepositoryImpl) GetDatasourceNoAuth(ctx context.Context, id, teamId uint32) (*bizmodel.Datasource, error) {
+	bizDB, err := l.data.GetBizGormDB(teamId)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	q := bizquery.Use(bizDB)
+	return q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(id)).First()
+}
+
 func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bizmodel.Datasource, error) {
 	q, err := getBizDB(ctx, l.data)
 	if !types.IsNil(err) {
@@ -75,6 +85,9 @@ func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *b
 	}
 	if !params.Type.IsUnknown() {
 		wheres = append(wheres, q.Datasource.Category.Eq(params.Type.GetValue()))
+	}
+	if !params.StorageType.IsUnknown() {
+		wheres = append(wheres, q.Datasource.StorageType.Eq(params.StorageType.GetValue()))
 	}
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, q.Datasource.Status.Eq(params.Status.GetValue()))
@@ -126,6 +139,7 @@ func (l *datasourceRepositoryImpl) UpdateDatasourceConfig(ctx context.Context, d
 	_, err = q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(datasource.ID)).UpdateColumnSimple(
 		q.Datasource.Config.Value(datasource.Config),
 		q.Datasource.Category.Value(datasource.Type.GetValue()),
+		q.Datasource.StorageType.Value(datasource.StorageType.GetValue()),
 	)
 	return err
 }

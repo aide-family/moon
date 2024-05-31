@@ -4,6 +4,7 @@ package api.houyi.metadata;
 
 import "google/api/annotations.proto";
 import "metadata.proto";
+import "enum.proto";
 
 option go_package = "github.com/aide-cloud/moon/api/houyi/metadata;metadata";
 option java_multiple_files = true;
@@ -25,6 +26,8 @@ message SyncRequest {
 	string endpoint = 1;
 	// 配置信息
 	map<string, string> config = 2;
+	// 存储类型
+	StorageType storage_type = 3;
 }
 
 message SyncReply {

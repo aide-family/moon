@@ -20,6 +20,8 @@ type (
 		Remark string `json:"remark"`
 		// 数据源配置(json 字符串)
 		Config string `json:"config"`
+		// 存储器类型
+		StorageType vobj.StorageType `json:"storageType"`
 	}
 
 	QueryDatasourceListParams struct {
@@ -31,6 +33,8 @@ type (
 		Type vobj.DatasourceType `json:"type"`
 		// 状态
 		Status vobj.Status `json:"status"`
+		// 存储器类型
+		StorageType vobj.StorageType `json:"storageType"`
 	}
 
 	UpdateDatasourceBaseInfoParams struct {
@@ -49,6 +53,8 @@ type (
 		Config string `json:"config"`
 		// 数据源类型
 		Type vobj.DatasourceType `json:"type"`
+		// 存储器类型
+		StorageType vobj.StorageType `json:"storageType"`
 	}
 
 	DatasourceOptionBuild struct {

@@ -8,9 +8,12 @@ import (
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-cloud/moon/pkg/helper/middleware"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-cloud/moon/pkg/utils/after"
 	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -96,9 +99,26 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 		}
 		return err
 	}
-	defer b.lock.UnLock(ctx, syncDatasourceMetaKey)
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return bo.UnLoginErr
+	}
+	go func() {
+		defer after.RecoverX()
+		defer b.lock.UnLock(context.Background(), syncDatasourceMetaKey)
+		log.Debugw("sync", "datasource meta", "id", id)
+		if err := b.syncDatasourceMeta(context.Background(), id, claims.GetTeam()); err != nil {
+			log.Errorw("err", err)
+			return
+		}
+	}()
+
+	return nil
+}
+
+func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint32) error {
 	// 获取数据源详情
-	datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, id)
+	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bo.DatasourceNotFoundErr
@@ -111,9 +131,8 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 		return err
 	}
 	// 创建元数据
-	if err = b.datasourceMetricRepository.CreateMetrics(ctx, metadata...); !types.IsNil(err) {
+	if err = b.datasourceMetricRepository.CreateMetricsNoAuth(ctx, teamId, metadata...); !types.IsNil(err) {
 		return err
 	}
-
 	return nil
 }
