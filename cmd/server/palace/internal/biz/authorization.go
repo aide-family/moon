@@ -213,9 +213,14 @@ func (b *AuthorizationBiz) Logout(ctx context.Context, params *bo.LogoutParams) 
 
 // 检查用户密码是否正确
 func checkPassword(user *model.SysUser, password string) error {
-	_, err := types.DecryptPassword(password, user.Salt)
-	if err == nil {
-		return nil
+	decryptPassword, err := types.DecryptPassword(password, types.DefaultKey)
+	if err != nil {
+		return bo.PasswordErr
 	}
-	return bo.PasswordErr
+
+	loginPass := types.NewPassword(decryptPassword, user.Salt)
+	if loginPass.String() != user.Password {
+		return bo.PasswordErr
+	}
+	return nil
 }

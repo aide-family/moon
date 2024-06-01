@@ -10,6 +10,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	DefaultKey = "1234567890123456"
+	DefaultIv  = "1234567890123456"
+)
+
 var (
 	defaultKey = "1234567890123456"
 	defaultIv  = "1234567890123456"
