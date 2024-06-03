@@ -115,9 +115,10 @@ message AuthCaptcha {
 // 验证码
 message CaptchaReq {
 	// 验证码类型, 0 图片验证码, 1 音频验证码
-	CaptchaType captcha_type = 1;
+	CaptchaType captcha_type = 1 [(buf.validate.field).required = true];
 	// 主题
 	string theme = 2 [(buf.validate.field).cel = {
+		id: "CaptchaReq_theme_type"
 		message: "必须为light或者dark",
 		expression: "this.size() == 0 || this == 'light' || this == 'dark'"
 	}];

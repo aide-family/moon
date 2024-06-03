@@ -47,7 +47,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		}
 	}
 	if err == nil {
-		return nil, bo.TeamNameExistErr
+		return nil, bo.TeamNameExistErr(ctx)
 	}
 
 	sysApis, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysAPI.Find()

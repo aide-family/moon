@@ -43,7 +43,7 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.Sys
 	role, err := b.teamRoleRepo.GetTeamRole(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, bo.TeamRoleNotFoundErr
+			return nil, bo.TeamRoleNotFoundErr(ctx)
 		}
 		return nil, err
 	}

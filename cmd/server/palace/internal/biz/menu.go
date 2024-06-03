@@ -26,7 +26,7 @@ type MenuBiz struct {
 func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr
+		return nil, bo.UnLoginErr(ctx)
 	}
 	fmt.Println(b.msgRepo.Send(ctx, &bo.Message{
 		Data: map[string]any{

@@ -9,20 +9,150 @@ option java_multiple_files = true;
 option java_package = "api.merr";
 
 enum ErrorReason {
-	option (errors.default_code) = 403;
+  option (errors.default_code) = 403;
 
-	// Alert 用于表单验证错误
-	ALERT = 0 [(errors.code) = 405];
+  // Alert 用于表单验证错误
+  ALERT = 0 [(errors.code) = 405];
 
-	// MODAL 用于弹窗验证错误
-	MODAL = 1 [(errors.code) = 405];
+  // MODAL 用于弹窗验证错误
+  MODAL = 1 [(errors.code) = 405];
 
-	// TOAST 用于toast验证错误
-	TOAST = 2 [(errors.code) = 405];
+  // TOAST 用于toast验证错误
+  TOAST = 2 [(errors.code) = 405];
 
-	// NOTIFICATION 用于通知验证错误
-	NOTIFICATION = 3 [(errors.code) = 405];
+  // NOTIFICATION 用于通知验证错误
+  NOTIFICATION = 3 [(errors.code) = 405];
 
-	// Redirect 用于重定向验证错误, 跳转到指定页面
-	REDIRECT = 4 [(errors.code) = 405];
+  // Redirect 用于重定向验证错误, 跳转到指定页面
+  REDIRECT = 4 [
+    (errors.code) = 405,
+    (errors.message) = "请登录",
+    (errors.id) = "REDIRECT"
+  ];
+
+  // AdminUserDeleteErr 管理员不能删除
+  ADMIN_USER_DELETE_ERR = 5 [
+    (errors.code) = 405,
+    (errors.message) = "管理员不能删除",
+    (errors.id) = "ADMIN_USER_DELETE_ERR"
+  ];
+
+  // DatasourceNotFoundErr 数据源不存在
+  DATASOURCE_NOT_FOUND_ERR = 6 [
+    (errors.code) = 405,
+    (errors.message) = "数据源不存在",
+    (errors.id) = "DATASOURCE_NOT_FOUND_ERR"
+  ];
+
+  // DeleteSelfErr 不能删除自己
+  DELETE_SELF_ERR = 7 [
+    (errors.code) = 405,
+    (errors.message) = "不能删除自己",
+    (errors.id) = "DELETE_SELF_ERR"
+  ];
+
+  // LockFailedErr 获取锁失败
+  LOCK_FAILED_ERR = 8 [
+    (errors.code) = 405,
+    (errors.message) = "获取锁失败",
+    (errors.id) = "LOCK_FAILED_ERR"
+  ];
+
+  // NoPermissionErr 您没有权限操作
+  NO_PERMISSION_ERR = 9 [
+    (errors.code) = 405,
+    (errors.message) = "您没有权限操作",
+    (errors.id) = "NO_PERMISSION_ERR"
+  ];
+
+  // ParamsErr 参数错误
+  PARAMS_ERR = 10 [
+    (errors.code) = 405,
+    (errors.message) = "参数错误",
+    (errors.id) = "PARAMS_ERR"
+  ];
+
+  // PasswordErr 密码错误
+  PASSWORD_ERR = 11 [
+    (errors.code) = 405,
+    (errors.message) = "密码错误",
+    (errors.id) = "PASSWORD_ERR"
+  ];
+
+  // PasswordSameErr 新旧密码不能相同
+  PASSWORD_SAME_ERR = 12 [
+    (errors.code) = 405,
+    (errors.message) = "新旧密码不能相同",
+    (errors.id) = "PASSWORD_SAME_ERR"
+  ];
+
+  // ResourceNotFoundErr 资源不存在
+  RESOURCE_NOT_FOUND_ERR = 13 [
+    (errors.code) = 405,
+    (errors.message) = "资源不存在",
+    (errors.id) = "RESOURCE_NOT_FOUND_ERR"
+  ];
+
+  // RetryLaterErr 请稍后重试
+  RETRY_LATER_ERR = 14 [
+    (errors.code) = 405,
+    (errors.message) = "请稍后重试",
+    (errors.id) = "RETRY_LATER_ERR"
+  ];
+
+  // SystemErr 系统错误
+  SYSTEM_ERR = 15 [
+    (errors.code) = 500,
+    (errors.message) = "系统错误",
+    (errors.id) = "SYSTEM_ERR"
+  ];
+
+  // TeamLeaderErr 团队负责人不能删除
+  TEAM_LEADER_ERR = 16 [
+    (errors.code) = 405,
+    (errors.message) = "团队负责人不能删除",
+    (errors.id) = "TEAM_LEADER_ERR"
+  ];
+
+  // TeamLeaderRepeatErr 你已经是团队负责人了
+  TEAM_LEADER_REPEAT_ERR = 17 [
+    (errors.code) = 405,
+    (errors.message) = "你已经是团队负责人了",
+    (errors.id) = "TEAM_LEADER_REPEAT_ERR"
+  ];
+
+  // TeamNameExistErr 团队名称已存在
+  TEAM_NAME_EXIST_ERR = 18 [
+    (errors.code) = 405,
+    (errors.message) = "团队名称已存在",
+    (errors.id) = "TEAM_NAME_EXIST_ERR"
+  ];
+
+  // TeamNotFoundErr 团队不存在
+  TEAM_NOT_FOUND_ERR = 19 [
+    (errors.code) = 405,
+    (errors.message) = "团队不存在",
+    (errors.id) = "TEAM_NOT_FOUND_ERR"
+  ];
+
+  // TeamRoleNotFoundErr 团队角色不存在
+  TEAM_ROLE_NOT_FOUND_ERR = 20 [
+    (errors.code) = 405,
+    (errors.message) = "团队角色不存在",
+    (errors.id) = "TEAM_ROLE_NOT_FOUND_ERR"
+  ];
+
+  // UnLoginErr 未登录
+  UN_LOGIN_ERR = 21 [
+    (errors.code) = 405,
+    (errors.message) = "未登录",
+    (errors.id) = "UN_LOGIN_ERR"
+  ];
+
+  // UserNotFoundErr 用户不存在
+  USER_NOT_FOUND_ERR = 22 [
+    (errors.code) = 405,
+    (errors.message) = "用户不存在",
+    (errors.id) = "USER_NOT_FOUND_ERR"
+  ];
 }

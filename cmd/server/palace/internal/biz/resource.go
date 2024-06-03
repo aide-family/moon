@@ -28,9 +28,9 @@ func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (*model.SysAPI
 	resource, err := b.resourceRepo.GetById(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, bo.ResourceNotFoundErr
+			return nil, bo.ResourceNotFoundErr(ctx)
 		}
-		return nil, bo.SystemErr.WithCause(err)
+		return nil, bo.SystemErr(ctx).WithCause(err)
 	}
 	return resource, nil
 }
@@ -39,7 +39,7 @@ func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (*model.SysAPI
 func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
 	resourceDos, err := b.resourceRepo.FindByPage(ctx, params)
 	if !types.IsNil(err) {
-		return nil, bo.SystemErr.WithCause(err)
+		return nil, bo.SystemErr(ctx).WithCause(err)
 	}
 	return resourceDos, nil
 }
@@ -47,7 +47,7 @@ func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResource
 func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	err := b.resourceRepo.UpdateStatus(ctx, status, ids...)
 	if !types.IsNil(err) {
-		return bo.SystemErr.WithCause(err)
+		return bo.SystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -55,7 +55,7 @@ func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Stat
 func (b *ResourceBiz) GetResourceSelectList(ctx context.Context, params *bo.QueryResourceListParams) ([]*bo.SelectOptionBo, error) {
 	resourceDos, err := b.resourceRepo.FindSelectByPage(ctx, params)
 	if !types.IsNil(err) {
-		return nil, bo.SystemErr.WithCause(err)
+		return nil, bo.SystemErr(ctx).WithCause(err)
 	}
 
 	return types.SliceTo(resourceDos, func(resource *model.SysAPI) *bo.SelectOptionBo {

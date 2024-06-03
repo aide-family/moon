@@ -1,0 +1,99 @@
+[required]
+description = "required"
+one = "parameters must be filled in"
+other = "parameters must be filled in"
+
+[CaptchaReq_theme_type]
+description = "CaptchaReq_theme_type"
+one = "it must be light or dark"
+other = "it must be light or dark"
+
+[ADMIN_USER_DELETE_ERR]
+description = "ADMIN_USER_DELETE_ERR"
+hash = "sha1-cd7c3e7dfc2570995ee0127db7479000369366ca"
+other = "admin cannot delete"
+
+[DATASOURCE_NOT_FOUND_ERR]
+description = "DATASOURCE_NOT_FOUND_ERR"
+hash = "sha1-cd60a85466499c1a12827aad6be51d544057d429"
+other = "data source does not exist"
+
+[DELETE_SELF_ERR]
+description = "DELETE_SELF_ERR"
+hash = "sha1-d8ce9125336770b6ce68ca574f246bd2acd3f317"
+other = "can't delete itself"
+
+[LOCK_FAILED_ERR]
+description = "LOCK_FAILED_ERR"
+hash = "sha1-58f41206f91afa321fc654e42584ad4404bbc37c"
+other = "failure to acquire lock"
+
+[NO_PERMISSION_ERR]
+description = "NO_PERMISSION_ERR"
+hash = "sha1-68a5a00d8ba7ff4ebc3814f238af4ad26eb7a394"
+other = "you do not have permission to operate"
+
+[PARAMS_ERR]
+description = "PARAMS_ERR"
+hash = "sha1-3f3f29981a1b1cc68e7122918745957dd85b7cb8"
+other = "parameter error"
+
+[PASSWORD_ERR]
+description = "PASSWORD_ERR"
+hash = "sha1-0bafedfcb872e9d21228c5d41ec458862e373575"
+other = "wrong password"
+
+[PASSWORD_SAME_ERR]
+description = "PASSWORD_SAME_ERR"
+hash = "sha1-55b9bee26161308592d521e4b9b5da61c3797855"
+other = "the old and new passwords should not be the same"
+
+[RESOURCE_NOT_FOUND_ERR]
+description = "RESOURCE_NOT_FOUND_ERR"
+hash = "sha1-d7654b42a8f3897c42fede34d41f23dc34c23699"
+other = "resource does not exist"
+
+[RETRY_LATER_ERR]
+description = "RETRY_LATER_ERR"
+hash = "sha1-fadfe95640bd23da6850a244cc4894b4bd845d4f"
+other = "please try again later"
+
+[SYSTEM_ERR]
+description = "SYSTEM_ERR"
+hash = "sha1-0825ac86e4d72a3bdaa52c986293706c252c7c05"
+other = "system error"
+
+[TEAM_LEADER_ERR]
+description = "TEAM_LEADER_ERR"
+hash = "sha1-4fa535315fb50e7bb7b1dbee6a03bf43b8d83217"
+other = "the team lead cannot be deleted"
+
+[TEAM_LEADER_REPEAT_ERR]
+description = "TEAM_LEADER_REPEAT_ERR"
+hash = "sha1-c396dd192b2e6f23db52b8f10d8160617c19e1ee"
+other = "you're already a team lead"
+
+[TEAM_NAME_EXIST_ERR]
+description = "TEAM_NAME_EXIST_ERR"
+hash = "sha1-8afda7eb7b0dfc99c4e336bd5dd4a788902cbbc9"
+other = "the team name already exists"
+
+[TEAM_NOT_FOUND_ERR]
+description = "TEAM_NOT_FOUND_ERR"
+hash = "sha1-6586ed3c4edc70c8191593874accc482f63cbcf4"
+other = "teams don't exist"
+
+[TEAM_ROLE_NOT_FOUND_ERR]
+description = "TEAM_ROLE_NOT_FOUND_ERR"
+hash = "sha1-30677d714171b89b2a94f90d0d00ecfb8f3f9e6b"
+other = "team roles don't exist"
+
+[UN_LOGIN_ERR]
+description = "UN_LOGIN_ERR"
+hash = "sha1-92b4e4d4b119b06c2e7ec0dd2034e4473f07377a"
+other = "please login first"
+
+[USER_NOT_FOUND_ERR]
+description = "USER_NOT_FOUND_ERR"
+hash = "sha1-94b4f0f23d5bc8ea992cae167a0abb56574daf91"
+other = "the user does not exist"

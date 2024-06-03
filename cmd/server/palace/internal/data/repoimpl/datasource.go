@@ -27,7 +27,7 @@ type datasourceRepositoryImpl struct {
 func getBizDB(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr
+		return nil, bo.UnLoginErr(ctx)
 	}
 	bizDB, err := data.GetBizGormDB(claims.GetTeam())
 	if !types.IsNil(err) {

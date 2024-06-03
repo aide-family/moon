@@ -75,7 +75,7 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr
+		return nil, bo.UnLoginErr(ctx)
 	}
 	params := &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),
@@ -102,7 +102,7 @@ func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *pb.UpdateRoleSt
 func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSelectListRequest) (*pb.GetRoleSelectListReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr
+		return nil, bo.UnLoginErr(ctx)
 	}
 	params := &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),

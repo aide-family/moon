@@ -20,7 +20,7 @@ type lockRepositoryImpl struct {
 func (l *lockRepositoryImpl) Lock(ctx context.Context, key string, expire time.Duration) error {
 	// 判断是否存在
 	if l.data.GetCacher().Exist(ctx, key) {
-		return bo.LockFailedErr
+		return bo.LockFailedErr(ctx)
 	}
 	return l.data.GetCacher().Set(ctx, key, key, expire)
 }

@@ -45,10 +45,17 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 					continue
 				}
 				msg := v.GetMessage()
+				id := v.GetConstraintId()
+				if !types.TextIsNull(id) {
+					_msg := merr.GetI18nMessage(ctx, id)
+					if !types.TextIsNull(_msg) {
+						msg = _msg
+					}
+				}
 				errMap[field] = getMsg(msg)
 			}
 
-			return nil, merr.ErrorAlert("参数错误").WithMetadata(errMap)
+			return nil, merr.ErrorI18nParamsErr(ctx).WithMetadata(errMap)
 		}
 	}
 }

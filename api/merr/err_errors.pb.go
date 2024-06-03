@@ -3,13 +3,44 @@
 package merr
 
 import (
+	context "context"
 	fmt "fmt"
 	errors "github.com/go-kratos/kratos/v2/errors"
+	i18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the kratos package it is being compiled against.
 const _ = errors.SupportPackageIsVersion1
+
+type localizeKey struct{}
+
+func FromContext(ctx context.Context) *i18n.Localizer {
+	return ctx.Value(localizeKey{}).(*i18n.Localizer)
+}
+
+func WithLocalize(ctx context.Context, localize *i18n.Localizer) context.Context {
+	return context.WithValue(context.Background(), localizeKey{}, localize)
+}
+
+// GetI18nMessage 获取错误信息
+func GetI18nMessage(ctx context.Context, id string, args ...interface{}) string {
+	if id == "" {
+		return ""
+	}
+	config := &i18n.LocalizeConfig{
+		MessageID: id,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return ""
+	}
+	return localize
+}
 
 // Alert 用于表单验证错误
 func IsAlert(err error) bool {
@@ -79,4 +110,598 @@ func IsRedirect(err error) bool {
 // Redirect 用于重定向验证错误, 跳转到指定页面
 func ErrorRedirect(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nRedirectID = "REDIRECT"
+
+// Redirect 用于重定向验证错误, 跳转到指定页面
+func ErrorI18nRedirect(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nRedirectID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf("请登录", args...))
+	}
+	return errors.New(405, ErrorReason_REDIRECT.String(), localize)
+}
+
+// AdminUserDeleteErr 管理员不能删除
+func IsAdminUserDeleteErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_ADMIN_USER_DELETE_ERR.String() && e.Code == 405
+}
+
+// AdminUserDeleteErr 管理员不能删除
+func ErrorAdminUserDeleteErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nAdminUserDeleteErrID = "ADMIN_USER_DELETE_ERR"
+
+// AdminUserDeleteErr 管理员不能删除
+func ErrorI18nAdminUserDeleteErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nAdminUserDeleteErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf("管理员不能删除", args...))
+	}
+	return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), localize)
+}
+
+// DatasourceNotFoundErr 数据源不存在
+func IsDatasourceNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_DATASOURCE_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// DatasourceNotFoundErr 数据源不存在
+func ErrorDatasourceNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nDatasourceNotFoundErrID = "DATASOURCE_NOT_FOUND_ERR"
+
+// DatasourceNotFoundErr 数据源不存在
+func ErrorI18nDatasourceNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nDatasourceNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("数据源不存在", args...))
+	}
+	return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), localize)
+}
+
+// DeleteSelfErr 不能删除自己
+func IsDeleteSelfErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_DELETE_SELF_ERR.String() && e.Code == 405
+}
+
+// DeleteSelfErr 不能删除自己
+func ErrorDeleteSelfErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nDeleteSelfErrID = "DELETE_SELF_ERR"
+
+// DeleteSelfErr 不能删除自己
+func ErrorI18nDeleteSelfErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nDeleteSelfErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf("不能删除自己", args...))
+	}
+	return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), localize)
+}
+
+// LockFailedErr 获取锁失败
+func IsLockFailedErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_LOCK_FAILED_ERR.String() && e.Code == 405
+}
+
+// LockFailedErr 获取锁失败
+func ErrorLockFailedErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nLockFailedErrID = "LOCK_FAILED_ERR"
+
+// LockFailedErr 获取锁失败
+func ErrorI18nLockFailedErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nLockFailedErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf("获取锁失败", args...))
+	}
+	return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), localize)
+}
+
+// NoPermissionErr 您没有权限操作
+func IsNoPermissionErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_NO_PERMISSION_ERR.String() && e.Code == 405
+}
+
+// NoPermissionErr 您没有权限操作
+func ErrorNoPermissionErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nNoPermissionErrID = "NO_PERMISSION_ERR"
+
+// NoPermissionErr 您没有权限操作
+func ErrorI18nNoPermissionErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nNoPermissionErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf("您没有权限操作", args...))
+	}
+	return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), localize)
+}
+
+// ParamsErr 参数错误
+func IsParamsErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_PARAMS_ERR.String() && e.Code == 405
+}
+
+// ParamsErr 参数错误
+func ErrorParamsErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nParamsErrID = "PARAMS_ERR"
+
+// ParamsErr 参数错误
+func ErrorI18nParamsErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nParamsErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf("参数错误", args...))
+	}
+	return errors.New(405, ErrorReason_PARAMS_ERR.String(), localize)
+}
+
+// PasswordErr 密码错误
+func IsPasswordErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_PASSWORD_ERR.String() && e.Code == 405
+}
+
+// PasswordErr 密码错误
+func ErrorPasswordErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nPasswordErrID = "PASSWORD_ERR"
+
+// PasswordErr 密码错误
+func ErrorI18nPasswordErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nPasswordErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf("密码错误", args...))
+	}
+	return errors.New(405, ErrorReason_PASSWORD_ERR.String(), localize)
+}
+
+// PasswordSameErr 新旧密码不能相同
+func IsPasswordSameErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_PASSWORD_SAME_ERR.String() && e.Code == 405
+}
+
+// PasswordSameErr 新旧密码不能相同
+func ErrorPasswordSameErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nPasswordSameErrID = "PASSWORD_SAME_ERR"
+
+// PasswordSameErr 新旧密码不能相同
+func ErrorI18nPasswordSameErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nPasswordSameErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf("新旧密码不能相同", args...))
+	}
+	return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), localize)
+}
+
+// ResourceNotFoundErr 资源不存在
+func IsResourceNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_RESOURCE_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// ResourceNotFoundErr 资源不存在
+func ErrorResourceNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nResourceNotFoundErrID = "RESOURCE_NOT_FOUND_ERR"
+
+// ResourceNotFoundErr 资源不存在
+func ErrorI18nResourceNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nResourceNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("资源不存在", args...))
+	}
+	return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), localize)
+}
+
+// RetryLaterErr 请稍后重试
+func IsRetryLaterErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_RETRY_LATER_ERR.String() && e.Code == 405
+}
+
+// RetryLaterErr 请稍后重试
+func ErrorRetryLaterErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nRetryLaterErrID = "RETRY_LATER_ERR"
+
+// RetryLaterErr 请稍后重试
+func ErrorI18nRetryLaterErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nRetryLaterErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf("请稍后重试", args...))
+	}
+	return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), localize)
+}
+
+// SystemErr 系统错误
+func IsSystemErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_SYSTEM_ERR.String() && e.Code == 500
+}
+
+// SystemErr 系统错误
+func ErrorSystemErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nSystemErrID = "SYSTEM_ERR"
+
+// SystemErr 系统错误
+func ErrorI18nSystemErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nSystemErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf("系统错误", args...))
+	}
+	return errors.New(500, ErrorReason_SYSTEM_ERR.String(), localize)
+}
+
+// TeamLeaderErr 团队负责人不能删除
+func IsTeamLeaderErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_TEAM_LEADER_ERR.String() && e.Code == 405
+}
+
+// TeamLeaderErr 团队负责人不能删除
+func ErrorTeamLeaderErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nTeamLeaderErrID = "TEAM_LEADER_ERR"
+
+// TeamLeaderErr 团队负责人不能删除
+func ErrorI18nTeamLeaderErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nTeamLeaderErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf("团队负责人不能删除", args...))
+	}
+	return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), localize)
+}
+
+// TeamLeaderRepeatErr 你已经是团队负责人了
+func IsTeamLeaderRepeatErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_TEAM_LEADER_REPEAT_ERR.String() && e.Code == 405
+}
+
+// TeamLeaderRepeatErr 你已经是团队负责人了
+func ErrorTeamLeaderRepeatErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nTeamLeaderRepeatErrID = "TEAM_LEADER_REPEAT_ERR"
+
+// TeamLeaderRepeatErr 你已经是团队负责人了
+func ErrorI18nTeamLeaderRepeatErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nTeamLeaderRepeatErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf("你已经是团队负责人了", args...))
+	}
+	return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), localize)
+}
+
+// TeamNameExistErr 团队名称已存在
+func IsTeamNameExistErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_TEAM_NAME_EXIST_ERR.String() && e.Code == 405
+}
+
+// TeamNameExistErr 团队名称已存在
+func ErrorTeamNameExistErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nTeamNameExistErrID = "TEAM_NAME_EXIST_ERR"
+
+// TeamNameExistErr 团队名称已存在
+func ErrorI18nTeamNameExistErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nTeamNameExistErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf("团队名称已存在", args...))
+	}
+	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), localize)
+}
+
+// TeamNotFoundErr 团队不存在
+func IsTeamNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_TEAM_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// TeamNotFoundErr 团队不存在
+func ErrorTeamNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nTeamNotFoundErrID = "TEAM_NOT_FOUND_ERR"
+
+// TeamNotFoundErr 团队不存在
+func ErrorI18nTeamNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nTeamNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf("团队不存在", args...))
+	}
+	return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), localize)
+}
+
+// TeamRoleNotFoundErr 团队角色不存在
+func IsTeamRoleNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// TeamRoleNotFoundErr 团队角色不存在
+func ErrorTeamRoleNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nTeamRoleNotFoundErrID = "TEAM_ROLE_NOT_FOUND_ERR"
+
+// TeamRoleNotFoundErr 团队角色不存在
+func ErrorI18nTeamRoleNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nTeamRoleNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf("团队角色不存在", args...))
+	}
+	return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), localize)
+}
+
+// UnLoginErr 未登录
+func IsUnLoginErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_UN_LOGIN_ERR.String() && e.Code == 405
+}
+
+// UnLoginErr 未登录
+func ErrorUnLoginErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nUnLoginErrID = "UN_LOGIN_ERR"
+
+// UnLoginErr 未登录
+func ErrorI18nUnLoginErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUnLoginErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf("未登录", args...))
+	}
+	return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), localize)
+}
+
+// UserNotFoundErr 用户不存在
+func IsUserNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_USER_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// UserNotFoundErr 用户不存在
+func ErrorUserNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nUserNotFoundErrID = "USER_NOT_FOUND_ERR"
+
+// UserNotFoundErr 用户不存在
+func ErrorI18nUserNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUserNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+
+	localize, err := FromContext(ctx).Localize(config)
+	if err != nil {
+		return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf("用户不存在", args...))
+	}
+	return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), localize)
 }

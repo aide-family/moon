@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package api.admin.datasource;
+
+option go_package = "github.com/aide-cloud/moon/api/admin/datasource;datasource";
+option java_multiple_files = true;
+option java_package = "api.admin.datasource";
+
+service Metric {
+	rpc CreateMetric (CreateMetricRequest) returns (CreateMetricReply);
+	rpc UpdateMetric (UpdateMetricRequest) returns (UpdateMetricReply);
+	rpc DeleteMetric (DeleteMetricRequest) returns (DeleteMetricReply);
+	rpc GetMetric (GetMetricRequest) returns (GetMetricReply);
+	rpc ListMetric (ListMetricRequest) returns (ListMetricReply);
+}
+
+message CreateMetricRequest {}
+message CreateMetricReply {}
+
+message UpdateMetricRequest {}
+message UpdateMetricReply {}
+
+message DeleteMetricRequest {}
+message DeleteMetricReply {}
+
+message GetMetricRequest {}
+message GetMetricReply {}
+
+message ListMetricRequest {}
+message ListMetricReply {}

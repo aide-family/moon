@@ -92,8 +92,8 @@ func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.
 func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
 	syncDatasourceMetaKey := "sync:datasource:meta:" + strconv.FormatUint(uint64(id), 10)
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); !types.IsNil(err) {
-		if errors.Is(err, bo.LockFailedErr) {
-			return bo.RetryLaterErr.WithMetadata(map[string]string{
+		if errors.Is(err, bo.LockFailedErr(ctx)) {
+			return bo.RetryLaterErr(ctx).WithMetadata(map[string]string{
 				"retry": "数据源同步中，请稍后重试",
 			})
 		}
@@ -101,7 +101,7 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr
+		return bo.UnLoginErr(ctx)
 	}
 	go func() {
 		defer after.RecoverX()
@@ -123,7 +123,7 @@ func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryPar
 		datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, params.DatasourceID)
 		if !types.IsNil(err) {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, bo.DatasourceNotFoundErr
+				return nil, bo.DatasourceNotFoundErr(ctx)
 			}
 			return nil, err
 		}
@@ -138,7 +138,7 @@ func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint3
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.DatasourceNotFoundErr
+			return bo.DatasourceNotFoundErr(ctx)
 		}
 		return err
 	}
