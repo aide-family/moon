@@ -26,3 +26,7 @@
 ## 架构
 
 ![architecture](docs/images/architecture.png)
+
+## 开发者
+
+* [开发文档](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
