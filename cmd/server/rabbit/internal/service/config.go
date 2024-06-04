@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/aide-cloud/moon/api/rabbit/push"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-cloud/moon/pkg/types"
+	pb "github.com/aide-family/moon/api/rabbit/push"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/types"
 )
 
 type ConfigService struct {

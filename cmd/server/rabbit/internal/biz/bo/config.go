@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/api"
+	"github.com/aide-family/moon/api"
 )
 
 type CacheConfigParams struct {

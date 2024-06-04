@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"

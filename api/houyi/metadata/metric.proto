@@ -7,7 +7,7 @@ import "buf/validate/validate.proto";
 import "metadata.proto";
 import "enum.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/houyi/metadata;metadata";
+option go_package = "github.com/aide-family/moon/api/houyi/metadata;metadata";
 option java_multiple_files = true;
 option java_package = "api.houyi.metadata";
 

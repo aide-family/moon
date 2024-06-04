@@ -7,12 +7,12 @@
 package rabbit
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/data"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/data/repoimpl"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/server"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/service"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/data"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/data/repoimpl"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/server"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )

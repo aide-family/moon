@@ -1,8 +1,6 @@
-module github.com/aide-cloud/moon
+module github.com/aide-family/moon
 
 go 1.21
-
-toolchain go1.22.1
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.1-20240508200655-46a4cf4ba109.1

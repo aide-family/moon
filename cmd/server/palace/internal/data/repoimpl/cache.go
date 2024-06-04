@@ -1,9 +1,9 @@
 package repoimpl
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
-	"github.com/aide-cloud/moon/pkg/conn"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/conn"
 )
 
 func NewCacheRepository(data *data.Data) repository.Cache {

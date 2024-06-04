@@ -1,8 +1,8 @@
 package hook
 
 import (
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/pkg/notify"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/notify"
 	"github.com/go-kratos/kratos/v2/errors"
 )
 

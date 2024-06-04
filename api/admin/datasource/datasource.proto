@@ -9,7 +9,7 @@ import "enum.proto";
 import "global.proto";
 import "metadata.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/admin/datasource;datasource";
+option go_package = "github.com/aide-family/moon/api/admin/datasource;datasource";
 option java_multiple_files = true;
 option java_package = "api.admin.datasource";
 

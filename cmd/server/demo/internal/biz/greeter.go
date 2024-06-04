@@ -3,11 +3,11 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz/repo"
+	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repo"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
+	v1 "github.com/aide-family/moon/api/helloworld/v1"
 )
 
 var (

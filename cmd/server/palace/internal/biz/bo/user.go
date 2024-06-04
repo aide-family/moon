@@ -1,9 +1,9 @@
 package bo
 
 import (
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type (

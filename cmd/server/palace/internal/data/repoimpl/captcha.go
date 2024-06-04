@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/types"
 )
 
 func NewCaptchaRepository(data *data.Data) repository.Captcha {

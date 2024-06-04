@@ -4,7 +4,7 @@ package api.rabbit.hook;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/rabbit/hook;hook";
+option go_package = "github.com/aide-family/moon/api/rabbit/hook;hook";
 option java_multiple_files = true;
 option java_package = "api.rabbit.hook";
 

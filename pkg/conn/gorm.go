@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
+	slog "github.com/aide-family/moon/pkg/log"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	slog "github.com/aide-cloud/moon/pkg/log"
 )
 
 var debug = true

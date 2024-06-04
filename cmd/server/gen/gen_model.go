@@ -1,9 +1,9 @@
 package gen
 
 import (
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"

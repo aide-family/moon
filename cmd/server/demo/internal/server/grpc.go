@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/democonf"
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
-	"github.com/aide-cloud/moon/pkg/log"
+	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
+	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"

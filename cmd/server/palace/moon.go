@@ -3,12 +3,12 @@ package palace
 import (
 	_ "go.uber.org/automaxprocs"
 
-	conf "github.com/aide-cloud/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/server"
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/env"
-	sLog "github.com/aide-cloud/moon/pkg/log"
-	"github.com/aide-cloud/moon/pkg/types"
+	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/cmd/server/palace/internal/server"
+	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/env"
+	sLog "github.com/aide-family/moon/pkg/log"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"

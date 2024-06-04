@@ -3,8 +3,8 @@ package biz
 import (
 	"context"
 
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/repository"
+	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"

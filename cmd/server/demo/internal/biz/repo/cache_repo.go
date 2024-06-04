@@ -1,7 +1,7 @@
 package repo
 
 import (
-	"github.com/aide-cloud/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/conn"
 )
 
 type CacheRepo interface {

@@ -1,10 +1,10 @@
 package option
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/demo"
-	"github.com/aide-cloud/moon/cmd/server/houyi"
-	"github.com/aide-cloud/moon/cmd/server/palace"
-	"github.com/aide-cloud/moon/cmd/server/rabbit"
+	"github.com/aide-family/moon/cmd/server/demo"
+	"github.com/aide-family/moon/cmd/server/houyi"
+	"github.com/aide-family/moon/cmd/server/palace"
+	"github.com/aide-family/moon/cmd/server/rabbit"
 
 	"github.com/spf13/cobra"
 )

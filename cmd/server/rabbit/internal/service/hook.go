@@ -5,10 +5,10 @@ import (
 	"io"
 	"time"
 
-	pb "github.com/aide-cloud/moon/api/rabbit/hook"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-cloud/moon/pkg/types"
+	pb "github.com/aide-family/moon/api/rabbit/hook"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 )

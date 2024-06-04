@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 
-	"github.com/aide-cloud/moon/cmd/server/gen"
+	"github.com/aide-family/moon/cmd/server/gen"
 )
 
 var (

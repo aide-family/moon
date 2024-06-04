@@ -3,14 +3,14 @@ package authorization
 import (
 	"context"
 
-	pb "github.com/aide-cloud/moon/api/admin/authorization"
-	"github.com/aide-cloud/moon/api/merr"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-cloud/moon/pkg/helper/middleware"
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/utils/captcha"
+	pb "github.com/aide-family/moon/api/admin/authorization"
+	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/utils/captcha"
 )
 
 type Service struct {

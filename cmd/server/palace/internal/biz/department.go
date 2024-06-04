@@ -1,7 +1,7 @@
 package biz
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 )
 
 func NewDepartmentBiz(departmentRepo repository.Department) *DepartmentBiz {

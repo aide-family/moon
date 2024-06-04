@@ -3,10 +3,10 @@ package resource
 import (
 	"context"
 
-	pb "github.com/aide-cloud/moon/api/admin/resource"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-cloud/moon/pkg/types"
+	pb "github.com/aide-family/moon/api/admin/resource"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/types"
 )
 
 type MenuService struct {

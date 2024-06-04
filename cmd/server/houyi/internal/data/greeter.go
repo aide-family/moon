@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

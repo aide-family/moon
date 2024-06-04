@@ -5,7 +5,7 @@ package moon.cmd.server.houyi.internal.houyiconf;
 import "google/protobuf/duration.proto";
 import "global.proto";
 
-option go_package = "github.com/aide-cloud/moon/cmd/server/houyi/internal/houyiconf;houyiconf";
+option go_package = "github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf;houyiconf";
 
 message Bootstrap {
   Server server = 1;

@@ -1,10 +1,10 @@
 package server
 
 import (
-	"github.com/aide-cloud/moon/api"
-	v1 "github.com/aide-cloud/moon/api/helloworld/v1"
-	metadataapi "github.com/aide-cloud/moon/api/houyi/metadata"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/service"
+	"github.com/aide-family/moon/api"
+	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/service"
 
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"

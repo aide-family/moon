@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/types"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )

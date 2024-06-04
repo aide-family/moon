@@ -3,9 +3,9 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz/repository"
-	"github.com/aide-cloud/moon/pkg/datasource/metric"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/datasource/metric"
 )
 
 func NewMetricBiz(metricRepository repository.Metric) *MetricBiz {

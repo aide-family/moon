@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/aide-cloud/moon/api/admin"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/types"
 )
 
 type SelectBuild struct {

@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
 
-	"github.com/aide-cloud/moon/api/merr"
+	"github.com/aide-family/moon/api/merr"
 )
 
 type CheckRbacFun func(ctx context.Context, operation string) (bool, error)

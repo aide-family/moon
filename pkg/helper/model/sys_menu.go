@@ -3,8 +3,8 @@ package model
 import (
 	"encoding/json"
 
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 const TableNameSysMenu = "sys_menus"

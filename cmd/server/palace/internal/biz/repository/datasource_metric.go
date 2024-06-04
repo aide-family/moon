@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 )
 
 // DatasourceMetric .

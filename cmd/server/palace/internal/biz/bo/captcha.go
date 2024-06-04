@@ -4,7 +4,7 @@ import (
 	"encoding"
 	"encoding/json"
 
-	"github.com/aide-cloud/moon/pkg/utils/captcha"
+	"github.com/aide-family/moon/pkg/utils/captcha"
 )
 
 // redis缓存实现

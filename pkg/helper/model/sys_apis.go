@@ -7,8 +7,8 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gorm"
 
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 const TableNameSysAPI = "sys_apis"

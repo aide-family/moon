@@ -5,7 +5,7 @@ package api.rabbit.push;
 import "google/api/annotations.proto";
 import "global.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/rabbit/push;push";
+option go_package = "github.com/aide-family/moon/api/rabbit/push;push";
 option java_multiple_files = true;
 option java_package = "api.rabbit.push";
 

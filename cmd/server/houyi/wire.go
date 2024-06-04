@@ -6,12 +6,12 @@
 package houyi
 
 import (
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/data"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/data/repoimpl"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/houyiconf"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/server"
-	"github.com/aide-cloud/moon/cmd/server/houyi/internal/service"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/data/repoimpl"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/server"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"

@@ -4,7 +4,7 @@ package api.merr;
 
 import "errors/errors.proto";
 
-option go_package = "github.com/aide-cloud/moon/api/merr;merr";
+option go_package = "github.com/aide-family/moon/api/merr;merr";
 option java_multiple_files = true;
 option java_package = "api.merr";
 

@@ -5,7 +5,7 @@ package moon.cmd.server.demo.internal.rabbitconf;
 import "google/protobuf/duration.proto";
 import "global.proto";
 
-option go_package = "github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf;rabbitconf";
+option go_package = "github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf;rabbitconf";
 
 message Bootstrap {
   Server server = 1;

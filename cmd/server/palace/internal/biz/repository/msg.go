@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 )
 
 // Msg .

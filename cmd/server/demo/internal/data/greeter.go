@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-cloud/moon/cmd/server/demo/internal/biz"
+	"github.com/aide-family/moon/cmd/server/demo/internal/biz"
 )
 
 type greeterRepo struct {

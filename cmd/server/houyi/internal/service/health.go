@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	pb "github.com/aide-cloud/moon/api"
+	pb "github.com/aide-family/moon/api"
 )
 
 type HealthService struct {

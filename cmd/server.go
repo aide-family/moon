@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/aide-cloud/moon/cmd/option"
-	"github.com/aide-cloud/moon/pkg/env"
+	"github.com/aide-family/moon/cmd/option"
+	"github.com/aide-family/moon/pkg/env"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"

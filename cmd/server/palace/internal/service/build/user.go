@@ -1,11 +1,11 @@
 package build
 
 import (
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/api/admin"
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/types"
 )
 
 type UserBuild struct {

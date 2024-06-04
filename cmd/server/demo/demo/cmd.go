@@ -6,8 +6,8 @@ package main
 import (
 	"flag"
 
-	"github.com/aide-cloud/moon/cmd/server/demo"
-	"github.com/aide-cloud/moon/pkg/env"
+	"github.com/aide-family/moon/cmd/server/demo"
+	"github.com/aide-family/moon/pkg/env"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"

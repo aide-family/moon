@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/aide-cloud/moon/api"
+	"github.com/aide-family/moon/api"
 )
 
 var _ Pagination = (*page)(nil)

@@ -3,7 +3,7 @@ package middleware
 import (
 	"testing"
 
-	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 func TestNewJwtClaims(t *testing.T) {

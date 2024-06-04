@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/biz/repo"
-	"github.com/aide-cloud/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-cloud/moon/pkg/conn"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

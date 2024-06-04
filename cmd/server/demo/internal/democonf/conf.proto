@@ -4,7 +4,7 @@ package moon.cmd.server.demo.internal.democonf;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/aide-cloud/moon/cmd/server/demo/internal/democonf;democonf";
+option go_package = "github.com/aide-family/moon/cmd/server/demo/internal/democonf;democonf";
 
 message Bootstrap {
   Server server = 1;

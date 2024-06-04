@@ -3,14 +3,14 @@ package resource
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/api/admin"
-	pb "github.com/aide-cloud/moon/api/admin/resource"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-cloud/moon/pkg/helper/model"
-	"github.com/aide-cloud/moon/pkg/types"
-	"github.com/aide-cloud/moon/pkg/vobj"
+	"github.com/aide-family/moon/api/admin"
+	pb "github.com/aide-family/moon/api/admin/resource"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type Service struct {

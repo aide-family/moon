@@ -1,9 +1,10 @@
 package conn
 
 import (
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/api/merr"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/types"
+
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	clientv3 "go.etcd.io/etcd/client/v3"

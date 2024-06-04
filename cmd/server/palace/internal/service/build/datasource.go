@@ -3,11 +3,11 @@ package build
 import (
 	"encoding/json"
 
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/api/admin"
-	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-cloud/moon/pkg/types"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

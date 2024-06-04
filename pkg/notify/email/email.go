@@ -3,12 +3,12 @@ package email
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/api"
-	"github.com/aide-cloud/moon/pkg/utils/email"
-	"github.com/aide-cloud/moon/pkg/utils/format"
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/utils/email"
+	"github.com/aide-family/moon/pkg/utils/format"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-cloud/moon/pkg/notify"
+	"github.com/aide-family/moon/pkg/notify"
 )
 
 var _ notify.Notify = (*e)(nil)

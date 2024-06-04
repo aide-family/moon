@@ -7,7 +7,7 @@ package query
 import (
 	"context"
 
-	"github.com/aide-cloud/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/helper/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
