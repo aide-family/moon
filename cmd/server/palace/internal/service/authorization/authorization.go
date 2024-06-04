@@ -64,7 +64,7 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 
 	if err := s.authorizationBiz.Logout(ctx, &bo.LogoutParams{
@@ -81,7 +81,7 @@ func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutRe
 func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	tokenRes, err := s.authorizationBiz.RefreshToken(ctx, &bo.RefreshTokenParams{
 		JwtClaims: jwtClaims,
@@ -121,7 +121,7 @@ func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaR
 func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRequest) (*pb.CheckPermissionReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if claims.IsAdminRole() {
 		return &pb.CheckPermissionReply{HasPermission: true}, nil
@@ -139,7 +139,7 @@ func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRe
 func (s *Service) CheckToken(ctx context.Context, _ *pb.CheckTokenRequest) (*pb.CheckTokenReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims}); !types.IsNil(err) {
 		return nil, err

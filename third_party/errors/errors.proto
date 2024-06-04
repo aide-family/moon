@@ -13,8 +13,14 @@ extend google.protobuf.EnumOptions {
   int32 default_code = 1108;
 }
 
+message Metadata {
+  string key = 1;
+  string value = 2;
+}
+
 extend google.protobuf.EnumValueOptions {
   int32 code = 1109;
   string message = 1110;
   string id = 1111;
+  repeated Metadata metadata = 1112;
 }

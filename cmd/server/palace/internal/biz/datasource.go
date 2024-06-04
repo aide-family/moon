@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
@@ -92,16 +93,16 @@ func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.
 func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
 	syncDatasourceMetaKey := "sync:datasource:meta:" + strconv.FormatUint(uint64(id), 10)
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); !types.IsNil(err) {
-		if errors.Is(err, bo.LockFailedErr(ctx)) {
-			return bo.RetryLaterErr(ctx).WithMetadata(map[string]string{
-				"retry": "数据源同步中，请稍后重试",
+		if errors.Is(err, merr.ErrorI18nLockFailedErr(ctx)) {
+			return merr.ErrorI18nRetryLaterErr(ctx).WithMetadata(map[string]string{
+				"retry": merr.GetI18nMessage(ctx, "DATASOURCE_SYNCING"),
 			})
 		}
 		return err
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	go func() {
 		defer after.RecoverX()
@@ -123,7 +124,7 @@ func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryPar
 		datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, params.DatasourceID)
 		if !types.IsNil(err) {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, bo.DatasourceNotFoundErr(ctx)
+				return nil, merr.ErrorI18nDatasourceNotFoundErr(ctx)
 			}
 			return nil, err
 		}
@@ -138,7 +139,7 @@ func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint3
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.DatasourceNotFoundErr(ctx)
+			return merr.ErrorI18nDatasourceNotFoundErr(ctx)
 		}
 		return err
 	}

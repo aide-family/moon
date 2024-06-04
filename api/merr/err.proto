@@ -27,7 +27,8 @@ enum ErrorReason {
   REDIRECT = 4 [
     (errors.code) = 405,
     (errors.message) = "请登录",
-    (errors.id) = "REDIRECT"
+    (errors.id) = "REDIRECT",
+    (errors.metadata) = {key: "redirect", value: "/login"}
   ];
 
   // AdminUserDeleteErr 管理员不能删除

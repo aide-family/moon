@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
@@ -26,7 +27,7 @@ type MenuBiz struct {
 func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	fmt.Println(b.msgRepo.Send(ctx, &bo.Message{
 		Data: map[string]any{

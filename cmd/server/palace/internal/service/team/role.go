@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-cloud/moon/api/admin"
 	pb "github.com/aide-cloud/moon/api/admin/team"
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
@@ -75,7 +76,7 @@ func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.
 func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	params := &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),
@@ -102,7 +103,7 @@ func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *pb.UpdateRoleSt
 func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSelectListRequest) (*pb.GetRoleSelectListReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	params := &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),

@@ -3,6 +3,7 @@ package repoimpl
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
@@ -27,7 +28,7 @@ type datasourceRepositoryImpl struct {
 func getBizDB(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	bizDB, err := data.GetBizGormDB(claims.GetTeam())
 	if !types.IsNil(err) {

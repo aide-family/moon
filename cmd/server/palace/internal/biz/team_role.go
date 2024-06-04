@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/model/bizmodel"
@@ -43,9 +44,9 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.Sys
 	role, err := b.teamRoleRepo.GetTeamRole(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, bo.TeamRoleNotFoundErr(ctx)
+			return nil, merr.ErrorI18nTeamRoleNotFoundErr(ctx)
 		}
-		return nil, err
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return role, nil
 }

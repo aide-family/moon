@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-cloud/moon/api/admin"
 	pb "github.com/aide-cloud/moon/api/admin/team"
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/service/build"
@@ -30,7 +31,7 @@ func NewTeamService(teamBiz *biz.TeamBiz) *Service {
 func (s *Service) CreateTeam(ctx context.Context, req *pb.CreateTeamRequest) (*pb.CreateTeamReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	leaderId := req.GetLeaderId()
 	if leaderId <= 0 {
@@ -104,7 +105,7 @@ func (s *Service) UpdateTeamStatus(ctx context.Context, req *pb.UpdateTeamStatus
 func (s *Service) MyTeam(ctx context.Context, _ *pb.MyTeamRequest) (*pb.MyTeamReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	teamList, err := s.teamBiz.GetUserTeamList(ctx, claims.GetUser())
 	if !types.IsNil(err) {
@@ -205,7 +206,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequ
 func (s *Service) TransferTeamLeader(ctx context.Context, req *pb.TransferTeamLeaderRequest) (*pb.TransferTeamLeaderReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	params := &bo.TransferTeamLeaderParams{
 		ID:          req.GetId(),

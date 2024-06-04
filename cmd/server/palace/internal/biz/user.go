@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
@@ -28,14 +29,14 @@ type UserBiz struct {
 func (b *UserBiz) CreateUser(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() {
-		return nil, bo.NoPermissionErr(ctx)
+		return nil, merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	userDo, err := b.userRepo.Create(ctx, user)
 	if !types.IsNil(err) {
-		return nil, bo.SystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return userDo, nil
 }
@@ -44,27 +45,27 @@ func (b *UserBiz) CreateUser(ctx context.Context, user *bo.CreateUserParams) (*m
 func (b *UserBiz) UpdateUser(ctx context.Context, user *bo.UpdateUserParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 查询用户
 	userDo, err := b.userRepo.GetByID(ctx, user.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.UserNotFoundErr(ctx)
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	// 记录操作日志
 	dePass, err := types.DecryptPassword(userDo.Password, userDo.Salt)
 	if !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	user.Password = types.NewPassword(dePass, userDo.Salt)
 	if err = b.userRepo.UpdateByID(ctx, user); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -73,21 +74,21 @@ func (b *UserBiz) UpdateUser(ctx context.Context, user *bo.UpdateUserParams) err
 func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 查询用户
 	userDo, err := b.userRepo.GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.UserNotFoundErr(ctx)
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if !claims.Role.IsSuperadmin() && userDo.Role.IsAdmin() {
-		return bo.AdminUserDeleteErr(ctx)
+		return merr.ErrorI18nAdminUserDeleteErr(ctx)
 	}
 	// 记录操作日志
 	log.Debugw("userDo", userDo)
@@ -99,9 +100,9 @@ func (b *UserBiz) GetUser(ctx context.Context, id uint32) (*model.SysUser, error
 	userDo, err := b.userRepo.GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, bo.UserNotFoundErr(ctx)
+			return nil, merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return nil, bo.SystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return userDo, nil
 }
@@ -110,7 +111,7 @@ func (b *UserBiz) GetUser(ctx context.Context, id uint32) (*model.SysUser, error
 func (b *UserBiz) ListUser(ctx context.Context, params *bo.QueryUserListParams) ([]*model.SysUser, error) {
 	userDos, err := b.userRepo.FindByPage(ctx, params)
 	if !types.IsNil(err) {
-		return nil, bo.SystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return userDos, nil
 }
@@ -119,27 +120,27 @@ func (b *UserBiz) ListUser(ctx context.Context, params *bo.QueryUserListParams) 
 func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpdateUserStatusParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 不允许修改管理员状态
 	// 查询所有用户详情
 	if !claims.Role.IsSuperadmin() {
 		userDos, err := b.userRepo.FindByIds(ctx, params.IDs...)
 		if !types.IsNil(err) {
-			return bo.SystemErr(ctx).WithCause(err)
+			return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 		}
 		for _, user := range userDos {
 			if user.Role.IsAdmin() {
-				return bo.NoPermissionErr(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
+				return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 			}
 		}
 	}
 
 	if err := b.userRepo.UpdateStatusByIds(ctx, params.Status, params.IDs...); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -147,7 +148,7 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 // ResetUserPasswordBySelf 重置自己的密码
 func (b *UserBiz) ResetUserPasswordBySelf(ctx context.Context, req *bo.ResetUserPasswordBySelfParams) error {
 	if err := b.userRepo.UpdatePassword(ctx, req.UserId, req.Password); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -162,7 +163,7 @@ func (b *UserBiz) GetUserSelectList(ctx context.Context, params *bo.QueryUserSel
 		Role:    params.Role,
 	})
 	if !types.IsNil(err) {
-		return nil, bo.SystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return types.SliceTo(userDos, func(user *model.SysUser) *bo.SelectOptionBo {
 		return bo.NewUserSelectOptionBuild(user).ToSelectOption()
@@ -174,13 +175,13 @@ func (b *UserBiz) UpdateUserPhone(ctx context.Context, req *bo.UpdateUserPhoneRe
 	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.UserNotFoundErr(ctx)
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	userDo.Phone = req.Phone
 	if err = b.userRepo.UpdateUser(ctx, userDo); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -190,13 +191,13 @@ func (b *UserBiz) UpdateUserEmail(ctx context.Context, req *bo.UpdateUserEmailRe
 	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.UserNotFoundErr(ctx)
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	userDo.Email = req.Email
 	if err = b.userRepo.UpdateUser(ctx, userDo); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -206,12 +207,12 @@ func (b *UserBiz) UpdateUserAvatar(ctx context.Context, req *bo.UpdateUserAvatar
 	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.UserNotFoundErr(ctx)
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
 	}
 	userDo.Avatar = req.Avatar
 	if err = b.userRepo.UpdateUser(ctx, userDo); !types.IsNil(err) {
-		return bo.SystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
 }

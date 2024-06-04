@@ -3,6 +3,7 @@ package repoimpl
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/data"
@@ -47,7 +48,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		}
 	}
 	if err == nil {
-		return nil, bo.TeamNameExistErr(ctx)
+		return nil, merr.ErrorI18nTeamNameExistErr(ctx)
 	}
 
 	sysApis, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysAPI.Find()

@@ -37,11 +37,11 @@ const (
 func decryptPassword(ctx context.Context, password string) (string, error) {
 	aes, err := cipher.NewAes(defaultKey, defaultIv)
 	if !types.IsNil(err) {
-		return "", bo.SystemErr(ctx).WithCause(err)
+		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	decryptBase64Pass, err := aes.DecryptBase64(password)
 	if !types.IsNil(err) {
-		return "", bo.SystemErr(ctx).WithCause(err)
+		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	pass := string(decryptBase64Pass)
 	return pass, nil
@@ -51,11 +51,11 @@ func decryptPassword(ctx context.Context, password string) (string, error) {
 func encryptPassword(ctx context.Context, password string) (string, error) {
 	aes, err := cipher.NewAes(defaultKey, defaultIv)
 	if !types.IsNil(err) {
-		return "", bo.SystemErr(ctx).WithCause(err)
+		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	encryptBase64Pass, err := aes.EncryptBase64([]byte(password))
 	if !types.IsNil(err) {
-		return "", bo.SystemErr(ctx).WithCause(err)
+		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return encryptBase64Pass, nil
 }
@@ -70,7 +70,7 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 
 	createParams := &bo.CreateUserParams{
@@ -171,7 +171,7 @@ func (s *Service) ResetUserPassword(ctx context.Context, req *pb.ResetUserPasswo
 func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUserPasswordBySelfRequest) (*pb.ResetUserPasswordBySelfReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// 查询用户详情
 	userDo, err := s.userBiz.GetUser(ctx, claims.GetUser())
@@ -190,12 +190,12 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUser
 	oldPassword := types.NewPassword(oldPass, userDo.Salt)
 	old := types.NewPassword(userDo.Password, userDo.Salt)
 	if !oldPassword.Equal(old) {
-		return nil, bo.PasswordErr(ctx)
+		return nil, merr.ErrorI18nPasswordErr(ctx)
 	}
 
 	// 对比两次密码相同, 相同修改无意义
 	if newPass == oldPass {
-		return nil, bo.PasswordSameErr(ctx)
+		return nil, merr.ErrorI18nPasswordSameErr(ctx)
 	}
 
 	params := &bo.ResetUserPasswordBySelfParams{
@@ -233,7 +233,7 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectLi
 func (s *Service) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRequest) (*pb.UpdateUserPhoneReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// TODO 验证手机号短信验证码
 	params := &bo.UpdateUserPhoneRequest{
@@ -250,7 +250,7 @@ func (s *Service) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRe
 func (s *Service) UpdateUserEmail(ctx context.Context, req *pb.UpdateUserEmailRequest) (*pb.UpdateUserEmailReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// TODO 验证邮箱验证码
 	params := &bo.UpdateUserEmailRequest{
@@ -267,7 +267,7 @@ func (s *Service) UpdateUserEmail(ctx context.Context, req *pb.UpdateUserEmailRe
 func (s *Service) UpdateUserAvatar(ctx context.Context, req *pb.UpdateUserAvatarRequest) (*pb.UpdateUserAvatarReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	params := &bo.UpdateUserAvatarRequest{
 		UserId: claims.GetUser(),

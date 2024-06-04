@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-cloud/moon/api/merr"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-cloud/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-cloud/moon/pkg/helper/middleware"
@@ -35,10 +36,10 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 	// 不是管理员不允许修改
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsTeamAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	return t.teamRepo.UpdateTeam(ctx, team)
 }
@@ -50,7 +51,7 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, e
 		return nil, err
 	}
 	if len(teamList) == 0 {
-		return nil, bo.TeamNotFoundErr(ctx)
+		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
 	}
 	return teamList[0], nil
 }
@@ -59,7 +60,7 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, e
 func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() {
 		params.UserID = claims.GetUser()
@@ -71,10 +72,10 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsAdminRole() && !claims.IsTeamAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	return t.teamRepo.UpdateTeamStatus(ctx, status, ids...)
 }
@@ -88,10 +89,10 @@ func (t *TeamBiz) GetUserTeamList(ctx context.Context, userId uint32) ([]*model.
 func (t *TeamBiz) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsTeamAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	return t.teamRepo.AddTeamMember(ctx, params)
 }
@@ -103,10 +104,10 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsTeamAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 查询团队管理员
 	teamMemberList, err := t.teamRepo.ListTeamMember(ctx, &bo.ListTeamMemberParams{
@@ -123,7 +124,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	teamInfo, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.TeamNotFoundErr(ctx)
+			return merr.ErrorI18nTeamNotFoundErr(ctx)
 		}
 		return err
 	}
@@ -131,10 +132,10 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	for _, teamMember := range teamMemberList {
 		role := vobj.Role(teamMember.Role)
 		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
-			return bo.AdminUserDeleteErr(ctx)
+			return merr.ErrorI18nAdminUserDeleteErr(ctx)
 		}
 		if teamMember.UserID == claims.GetUser() {
-			return bo.DeleteSelfErr(ctx)
+			return merr.ErrorI18nDeleteSelfErr(ctx)
 		}
 	}
 
@@ -146,15 +147,15 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.GetTeamRole().IsSuperadmin() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 不能设置自己
 	for _, memberID := range params.MemberIds {
 		if memberID == claims.GetUser() {
-			return bo.TeamLeaderRepeatErr(ctx)
+			return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
 		}
 	}
 	return t.teamRepo.SetMemberAdmin(ctx, params)
@@ -164,10 +165,10 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if !claims.IsTeamAdminRole() {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	return t.teamRepo.SetMemberRole(ctx, params)
 }
@@ -183,15 +184,15 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 	team, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return bo.TeamNotFoundErr(ctx)
+			return merr.ErrorI18nTeamNotFoundErr(ctx)
 		}
 		return err
 	}
 	if team.LeaderID != params.OldLeaderID {
-		return bo.TeamLeaderErr(ctx)
+		return merr.ErrorI18nTeamLeaderErr(ctx)
 	}
 	if team.LeaderID == params.LeaderID {
-		return bo.TeamLeaderRepeatErr(ctx)
+		return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
 	}
 	return t.teamRepo.TransferTeamLeader(ctx, params)
 }

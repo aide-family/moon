@@ -60,7 +60,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return merr.ErrorNotification("系统错误")
 	}
 	if len(memberRoles) == 0 {
-		return bo.NoPermissionErr(ctx)
+		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	memberRoleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
 		return role.ID
@@ -70,7 +70,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return err
 	}
 	if !rbac {
-		return bo.NoPermissionErr(ctx).WithMetadata(map[string]string{
+		return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{
 			"operation": req.Operation,
 			"rbac":      "false",
 		})
@@ -82,14 +82,14 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenParams) error {
 	// 检查token是否过期
 	if types.IsNil(req) || types.IsNil(req.JwtClaims) {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if middleware.IsExpire(req.JwtClaims) {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// 检查token是否被登出
 	if req.JwtClaims.IsLogout(ctx, b.cacheRepo.Cacher()) {
-		return bo.UnLoginErr(ctx)
+		return merr.ErrorI18nUnLoginErr(ctx)
 	}
 
 	// 检查用户是否被系统禁用
@@ -113,9 +113,9 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// 统一包装成密码错误
-			return nil, bo.PasswordErr(ctx)
+			return nil, merr.ErrorI18nPasswordErr(ctx)
 		}
-		return nil, bo.SystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 	// 检查用户密码是否正确
 	if err = checkPassword(ctx, userDo, req.EnPassword); !types.IsNil(err) {
@@ -151,7 +151,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshTokenParams) (*bo.RefreshTokenReply, error) {
 	// 检查token是否过期
 	if types.IsNil(req) || types.IsNil(req.JwtClaims) {
-		return nil, bo.UnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// 检查用户是否存在
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
@@ -160,7 +160,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 			// 统一包装成密码错误
 			return nil, merr.ErrorModal("用户不存在")
 		}
-		return nil, bo.SystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 	if !userDo.Status.IsEnable() {
 		return nil, merr.ErrorRedirect("用户被禁用").WithMetadata(map[string]string{
@@ -174,7 +174,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotification("用户不在该团队中")
 		}
-		return nil, bo.SystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 
 	if !vobj.Status(teamMemberDo.Status).IsEnable() {
@@ -187,7 +187,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotification("用户此权限已被移除")
 		}
-		return nil, bo.SystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 
 	// 生成token
@@ -215,12 +215,12 @@ func (b *AuthorizationBiz) Logout(ctx context.Context, params *bo.LogoutParams) 
 func checkPassword(ctx context.Context, user *model.SysUser, password string) error {
 	decryptPassword, err := types.DecryptPassword(password, types.DefaultKey)
 	if err != nil {
-		return bo.PasswordErr(ctx)
+		return merr.ErrorI18nPasswordErr(ctx)
 	}
 
 	loginPass := types.NewPassword(decryptPassword, user.Salt)
 	if loginPass.String() != user.Password {
-		return bo.PasswordErr(ctx)
+		return merr.ErrorI18nPasswordErr(ctx)
 	}
 	return nil
 }

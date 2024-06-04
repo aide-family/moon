@@ -15,8 +15,9 @@ const _ = errors.SupportPackageIsVersion1
 
 type localizeKey struct{}
 
-func FromContext(ctx context.Context) *i18n.Localizer {
-	return ctx.Value(localizeKey{}).(*i18n.Localizer)
+func FromContext(ctx context.Context) (*i18n.Localizer, bool) {
+	local, ok := ctx.Value(localizeKey{}).(*i18n.Localizer)
+	return local, ok
 }
 
 func WithLocalize(ctx context.Context, localize *i18n.Localizer) context.Context {
@@ -34,8 +35,11 @@ func GetI18nMessage(ctx context.Context, id string, args ...interface{}) string 
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
+	local, ok := FromContext(ctx)
+	if !ok {
+		return ""
+	}
+	localize, err := local.Localize(config)
 	if err != nil {
 		return ""
 	}
@@ -109,7 +113,7 @@ func IsRedirect(err error) bool {
 
 // Redirect 用于重定向验证错误, 跳转到指定页面
 func ErrorRedirect(format string, args ...interface{}) *errors.Error {
-	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...))
+	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{"redirect": "/login"})
 }
 
 const ErrorI18nRedirectID = "REDIRECT"
@@ -122,12 +126,18 @@ func ErrorI18nRedirect(ctx context.Context, args ...interface{}) *errors.Error {
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf("请登录", args...))
+	err := errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf("请登录", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf("请登录", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_REDIRECT.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_REDIRECT.String(), localize)
+
+	return err.WithMetadata(map[string]string{"redirect": "/login"})
 }
 
 // AdminUserDeleteErr 管理员不能删除
@@ -154,12 +164,18 @@ func ErrorI18nAdminUserDeleteErr(ctx context.Context, args ...interface{}) *erro
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf("管理员不能删除", args...))
+	err := errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf("管理员不能删除", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf("管理员不能删除", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), localize)
+
+	return err
 }
 
 // DatasourceNotFoundErr 数据源不存在
@@ -186,12 +202,18 @@ func ErrorI18nDatasourceNotFoundErr(ctx context.Context, args ...interface{}) *e
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("数据源不存在", args...))
+	err := errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("数据源不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("数据源不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), localize)
+
+	return err
 }
 
 // DeleteSelfErr 不能删除自己
@@ -218,12 +240,18 @@ func ErrorI18nDeleteSelfErr(ctx context.Context, args ...interface{}) *errors.Er
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf("不能删除自己", args...))
+	err := errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf("不能删除自己", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf("不能删除自己", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), localize)
+
+	return err
 }
 
 // LockFailedErr 获取锁失败
@@ -250,12 +278,18 @@ func ErrorI18nLockFailedErr(ctx context.Context, args ...interface{}) *errors.Er
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf("获取锁失败", args...))
+	err := errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf("获取锁失败", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf("获取锁失败", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), localize)
+
+	return err
 }
 
 // NoPermissionErr 您没有权限操作
@@ -282,12 +316,18 @@ func ErrorI18nNoPermissionErr(ctx context.Context, args ...interface{}) *errors.
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf("您没有权限操作", args...))
+	err := errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf("您没有权限操作", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf("您没有权限操作", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), localize)
+
+	return err
 }
 
 // ParamsErr 参数错误
@@ -314,12 +354,18 @@ func ErrorI18nParamsErr(ctx context.Context, args ...interface{}) *errors.Error 
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf("参数错误", args...))
+	err := errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf("参数错误", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf("参数错误", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_PARAMS_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_PARAMS_ERR.String(), localize)
+
+	return err
 }
 
 // PasswordErr 密码错误
@@ -346,12 +392,18 @@ func ErrorI18nPasswordErr(ctx context.Context, args ...interface{}) *errors.Erro
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf("密码错误", args...))
+	err := errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf("密码错误", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf("密码错误", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_PASSWORD_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_PASSWORD_ERR.String(), localize)
+
+	return err
 }
 
 // PasswordSameErr 新旧密码不能相同
@@ -378,12 +430,18 @@ func ErrorI18nPasswordSameErr(ctx context.Context, args ...interface{}) *errors.
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf("新旧密码不能相同", args...))
+	err := errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf("新旧密码不能相同", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf("新旧密码不能相同", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), localize)
+
+	return err
 }
 
 // ResourceNotFoundErr 资源不存在
@@ -410,12 +468,18 @@ func ErrorI18nResourceNotFoundErr(ctx context.Context, args ...interface{}) *err
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("资源不存在", args...))
+	err := errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("资源不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf("资源不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), localize)
+
+	return err
 }
 
 // RetryLaterErr 请稍后重试
@@ -442,12 +506,18 @@ func ErrorI18nRetryLaterErr(ctx context.Context, args ...interface{}) *errors.Er
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf("请稍后重试", args...))
+	err := errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf("请稍后重试", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf("请稍后重试", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), localize)
+
+	return err
 }
 
 // SystemErr 系统错误
@@ -474,12 +544,18 @@ func ErrorI18nSystemErr(ctx context.Context, args ...interface{}) *errors.Error 
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf("系统错误", args...))
+	err := errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf("系统错误", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf("系统错误", args...)).WithCause(err1)
+		} else {
+			err = errors.New(500, ErrorReason_SYSTEM_ERR.String(), localize)
+		}
 	}
-	return errors.New(500, ErrorReason_SYSTEM_ERR.String(), localize)
+
+	return err
 }
 
 // TeamLeaderErr 团队负责人不能删除
@@ -506,12 +582,18 @@ func ErrorI18nTeamLeaderErr(ctx context.Context, args ...interface{}) *errors.Er
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf("团队负责人不能删除", args...))
+	err := errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf("团队负责人不能删除", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf("团队负责人不能删除", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), localize)
+
+	return err
 }
 
 // TeamLeaderRepeatErr 你已经是团队负责人了
@@ -538,12 +620,18 @@ func ErrorI18nTeamLeaderRepeatErr(ctx context.Context, args ...interface{}) *err
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf("你已经是团队负责人了", args...))
+	err := errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf("你已经是团队负责人了", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf("你已经是团队负责人了", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), localize)
+
+	return err
 }
 
 // TeamNameExistErr 团队名称已存在
@@ -570,12 +658,18 @@ func ErrorI18nTeamNameExistErr(ctx context.Context, args ...interface{}) *errors
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf("团队名称已存在", args...))
+	err := errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf("团队名称已存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf("团队名称已存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), localize)
+
+	return err
 }
 
 // TeamNotFoundErr 团队不存在
@@ -602,12 +696,18 @@ func ErrorI18nTeamNotFoundErr(ctx context.Context, args ...interface{}) *errors.
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf("团队不存在", args...))
+	err := errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf("团队不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf("团队不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), localize)
+
+	return err
 }
 
 // TeamRoleNotFoundErr 团队角色不存在
@@ -634,12 +734,18 @@ func ErrorI18nTeamRoleNotFoundErr(ctx context.Context, args ...interface{}) *err
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf("团队角色不存在", args...))
+	err := errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf("团队角色不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf("团队角色不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), localize)
+
+	return err
 }
 
 // UnLoginErr 未登录
@@ -666,12 +772,18 @@ func ErrorI18nUnLoginErr(ctx context.Context, args ...interface{}) *errors.Error
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf("未登录", args...))
+	err := errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf("未登录", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf("未登录", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), localize)
+
+	return err
 }
 
 // UserNotFoundErr 用户不存在
@@ -698,10 +810,16 @@ func ErrorI18nUserNotFoundErr(ctx context.Context, args ...interface{}) *errors.
 	if len(args) > 0 {
 		config.TemplateData = args[0]
 	}
-
-	localize, err := FromContext(ctx).Localize(config)
-	if err != nil {
-		return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf("用户不存在", args...))
+	err := errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf("用户不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf("用户不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), localize)
+		}
 	}
-	return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), localize)
+
+	return err
 }

@@ -97,3 +97,8 @@ other = "请先登录"
 description = "USER_NOT_FOUND_ERR"
 hash = "sha1-94b4f0f23d5bc8ea992cae167a0abb56574daf91"
 other = "用户不存在"
+
+[DATASOURCE_SYNCING]
+description = "DATASOURCE_SYNCING"
+one = "数据源同步中，请稍后重试"
+other = "数据源同步中，请稍后重试"
