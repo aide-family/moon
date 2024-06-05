@@ -39,6 +39,7 @@ config:
 .PHONY: api
 # generate api proto
 api:
+	go install github.com/aide-cloud/protoc-gen-go-errors@latest
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \
