@@ -27,6 +27,7 @@ init:
 	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/google/wire/cmd/wire@latest
+	go install github.com/aide-cloud/protoc-gen-go-errors@latest
 
 .PHONY: config
 # generate internal config
@@ -39,7 +40,6 @@ config:
 .PHONY: api
 # generate api proto
 api:
-	go install github.com/aide-cloud/protoc-gen-go-errors@latest
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \
