@@ -17,7 +17,7 @@ func NewGRPCServer(bc *houyiconf.Bootstrap) *grpc.Server {
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
-			middleware.Validate(protovalidate.WithFailFast(true)),
+			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
 	if c.Grpc.Network != "" {

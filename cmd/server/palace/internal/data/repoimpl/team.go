@@ -33,7 +33,7 @@ type teamRepositoryImpl struct {
 func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
 	sysTeamModel := &model.SysTeam{
 		Name:      team.Name,
-		Status:    team.Status.GetValue(),
+		Status:    team.Status,
 		Remark:    team.Remark,
 		Logo:      team.Logo,
 		LeaderID:  team.LeaderID,
@@ -107,16 +107,16 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 			return &bizmodel.SysTeamMember{
 				UserID: memberId,
 				TeamID: teamId,
-				Status: vobj.StatusEnable.GetValue(),
-				Role:   vobj.RoleAdmin.GetValue(),
+				Status: vobj.StatusEnable,
+				Role:   vobj.RoleAdmin,
 			}, true
 		})
 		if flag {
 			adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
 				UserID: sysTeamModel.LeaderID,
 				TeamID: teamId,
-				Status: vobj.StatusEnable.GetValue(),
-				Role:   vobj.RoleAdmin.GetValue(),
+				Status: vobj.StatusEnable,
+				Role:   vobj.RoleAdmin,
 			})
 		}
 
@@ -250,8 +250,8 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 		return &bizmodel.SysTeamMember{
 			UserID: memberItem.UserID,
 			TeamID: params.ID,
-			Status: vobj.StatusEnable.GetValue(),
-			Role:   memberItem.Role.GetValue(),
+			Status: vobj.StatusEnable,
+			Role:   memberItem.Role,
 			TeamRoles: types.SliceToWithFilter(memberItem.RoleIds, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
 				if roleId <= 0 {
 					return nil, false

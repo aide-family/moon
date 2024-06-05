@@ -22,7 +22,7 @@ func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
 		http.Middleware(
 			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
-			middleware.Validate(protovalidate.WithFailFast(true)),
+			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
 	if c.Http.Network != "" {
