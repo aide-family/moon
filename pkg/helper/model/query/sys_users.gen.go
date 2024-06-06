@@ -29,7 +29,7 @@ func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
 	_sysUser.ID = field.NewUint32(tableName, "id")
 	_sysUser.CreatedAt = field.NewField(tableName, "created_at")
 	_sysUser.UpdatedAt = field.NewField(tableName, "updated_at")
-	_sysUser.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_sysUser.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_sysUser.Username = field.NewString(tableName, "username")
 	_sysUser.Nickname = field.NewString(tableName, "nickname")
 	_sysUser.Password = field.NewString(tableName, "password")
@@ -54,7 +54,7 @@ type sysUser struct {
 	ID        field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 	Username  field.String
 	Nickname  field.String
 	Password  field.String
@@ -85,7 +85,7 @@ func (s *sysUser) updateTableName(table string) *sysUser {
 	s.ID = field.NewUint32(table, "id")
 	s.CreatedAt = field.NewField(table, "created_at")
 	s.UpdatedAt = field.NewField(table, "updated_at")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
+	s.DeletedAt = field.NewUint(table, "deleted_at")
 	s.Username = field.NewString(table, "username")
 	s.Nickname = field.NewString(table, "nickname")
 	s.Password = field.NewString(table, "password")

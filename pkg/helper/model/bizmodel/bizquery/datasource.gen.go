@@ -35,7 +35,7 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.Status = field.NewInt(tableName, "status")
 	_datasource.CreatedAt = field.NewField(tableName, "created_at")
 	_datasource.UpdatedAt = field.NewField(tableName, "updated_at")
-	_datasource.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_datasource.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_datasource.Remark = field.NewString(tableName, "remark")
 	_datasource.Metrics = datasourceHasManyMetrics{
 		db: db.Session(&gorm.Session{}),
@@ -74,7 +74,7 @@ type datasource struct {
 	Status      field.Int
 	CreatedAt   field.Field
 	UpdatedAt   field.Field
-	DeletedAt   field.Int64
+	DeletedAt   field.Uint
 	Remark      field.String
 	Metrics     datasourceHasManyMetrics
 
@@ -102,7 +102,7 @@ func (d *datasource) updateTableName(table string) *datasource {
 	d.Status = field.NewInt(table, "status")
 	d.CreatedAt = field.NewField(table, "created_at")
 	d.UpdatedAt = field.NewField(table, "updated_at")
-	d.DeletedAt = field.NewInt64(table, "deleted_at")
+	d.DeletedAt = field.NewUint(table, "deleted_at")
 	d.Remark = field.NewString(table, "remark")
 
 	d.fillFieldMap()

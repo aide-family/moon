@@ -19,22 +19,29 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metric_CreateMetric_FullMethodName = "/api.admin.datasource.Metric/CreateMetric"
 	Metric_UpdateMetric_FullMethodName = "/api.admin.datasource.Metric/UpdateMetric"
-	Metric_DeleteMetric_FullMethodName = "/api.admin.datasource.Metric/DeleteMetric"
 	Metric_GetMetric_FullMethodName    = "/api.admin.datasource.Metric/GetMetric"
 	Metric_ListMetric_FullMethodName   = "/api.admin.datasource.Metric/ListMetric"
+	Metric_SelectMetric_FullMethodName = "/api.admin.datasource.Metric/SelectMetric"
+	Metric_DeleteMetric_FullMethodName = "/api.admin.datasource.Metric/DeleteMetric"
 )
 
 // MetricClient is the client API for Metric service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricClient interface {
-	CreateMetric(ctx context.Context, in *CreateMetricRequest, opts ...grpc.CallOption) (*CreateMetricReply, error)
+	// 更新元数据
 	UpdateMetric(ctx context.Context, in *UpdateMetricRequest, opts ...grpc.CallOption) (*UpdateMetricReply, error)
-	DeleteMetric(ctx context.Context, in *DeleteMetricRequest, opts ...grpc.CallOption) (*DeleteMetricReply, error)
+	// 获取元数据详情
 	GetMetric(ctx context.Context, in *GetMetricRequest, opts ...grpc.CallOption) (*GetMetricReply, error)
+	// 获取元数据列表
 	ListMetric(ctx context.Context, in *ListMetricRequest, opts ...grpc.CallOption) (*ListMetricReply, error)
+	// 获取元数据列表（下拉选择接口）
+	SelectMetric(ctx context.Context, in *SelectMetricRequest, opts ...grpc.CallOption) (*SelectMetricReply, error)
+	// 删除指标（用于删除数据源中不再使用的或者错误的指标
+	// 因为同步逻辑只会同步最近时间段的指标， 所以删除后需要重新同步）
+	// 删除会删除该指标的所有数据， 包括标签， 标签值等
+	DeleteMetric(ctx context.Context, in *DeleteMetricRequest, opts ...grpc.CallOption) (*DeleteMetricReply, error)
 }
 
 type metricClient struct {
@@ -45,27 +52,9 @@ func NewMetricClient(cc grpc.ClientConnInterface) MetricClient {
 	return &metricClient{cc}
 }
 
-func (c *metricClient) CreateMetric(ctx context.Context, in *CreateMetricRequest, opts ...grpc.CallOption) (*CreateMetricReply, error) {
-	out := new(CreateMetricReply)
-	err := c.cc.Invoke(ctx, Metric_CreateMetric_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *metricClient) UpdateMetric(ctx context.Context, in *UpdateMetricRequest, opts ...grpc.CallOption) (*UpdateMetricReply, error) {
 	out := new(UpdateMetricReply)
 	err := c.cc.Invoke(ctx, Metric_UpdateMetric_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *metricClient) DeleteMetric(ctx context.Context, in *DeleteMetricRequest, opts ...grpc.CallOption) (*DeleteMetricReply, error) {
-	out := new(DeleteMetricReply)
-	err := c.cc.Invoke(ctx, Metric_DeleteMetric_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,15 +79,40 @@ func (c *metricClient) ListMetric(ctx context.Context, in *ListMetricRequest, op
 	return out, nil
 }
 
+func (c *metricClient) SelectMetric(ctx context.Context, in *SelectMetricRequest, opts ...grpc.CallOption) (*SelectMetricReply, error) {
+	out := new(SelectMetricReply)
+	err := c.cc.Invoke(ctx, Metric_SelectMetric_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metricClient) DeleteMetric(ctx context.Context, in *DeleteMetricRequest, opts ...grpc.CallOption) (*DeleteMetricReply, error) {
+	out := new(DeleteMetricReply)
+	err := c.cc.Invoke(ctx, Metric_DeleteMetric_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetricServer is the server API for Metric service.
 // All implementations must embed UnimplementedMetricServer
 // for forward compatibility
 type MetricServer interface {
-	CreateMetric(context.Context, *CreateMetricRequest) (*CreateMetricReply, error)
+	// 更新元数据
 	UpdateMetric(context.Context, *UpdateMetricRequest) (*UpdateMetricReply, error)
-	DeleteMetric(context.Context, *DeleteMetricRequest) (*DeleteMetricReply, error)
+	// 获取元数据详情
 	GetMetric(context.Context, *GetMetricRequest) (*GetMetricReply, error)
+	// 获取元数据列表
 	ListMetric(context.Context, *ListMetricRequest) (*ListMetricReply, error)
+	// 获取元数据列表（下拉选择接口）
+	SelectMetric(context.Context, *SelectMetricRequest) (*SelectMetricReply, error)
+	// 删除指标（用于删除数据源中不再使用的或者错误的指标
+	// 因为同步逻辑只会同步最近时间段的指标， 所以删除后需要重新同步）
+	// 删除会删除该指标的所有数据， 包括标签， 标签值等
+	DeleteMetric(context.Context, *DeleteMetricRequest) (*DeleteMetricReply, error)
 	mustEmbedUnimplementedMetricServer()
 }
 
@@ -106,20 +120,20 @@ type MetricServer interface {
 type UnimplementedMetricServer struct {
 }
 
-func (UnimplementedMetricServer) CreateMetric(context.Context, *CreateMetricRequest) (*CreateMetricReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMetric not implemented")
-}
 func (UnimplementedMetricServer) UpdateMetric(context.Context, *UpdateMetricRequest) (*UpdateMetricReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetric not implemented")
-}
-func (UnimplementedMetricServer) DeleteMetric(context.Context, *DeleteMetricRequest) (*DeleteMetricReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetric not implemented")
 }
 func (UnimplementedMetricServer) GetMetric(context.Context, *GetMetricRequest) (*GetMetricReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetric not implemented")
 }
 func (UnimplementedMetricServer) ListMetric(context.Context, *ListMetricRequest) (*ListMetricReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMetric not implemented")
+}
+func (UnimplementedMetricServer) SelectMetric(context.Context, *SelectMetricRequest) (*SelectMetricReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectMetric not implemented")
+}
+func (UnimplementedMetricServer) DeleteMetric(context.Context, *DeleteMetricRequest) (*DeleteMetricReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetric not implemented")
 }
 func (UnimplementedMetricServer) mustEmbedUnimplementedMetricServer() {}
 
@@ -132,24 +146,6 @@ type UnsafeMetricServer interface {
 
 func RegisterMetricServer(s grpc.ServiceRegistrar, srv MetricServer) {
 	s.RegisterService(&Metric_ServiceDesc, srv)
-}
-
-func _Metric_CreateMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMetricRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MetricServer).CreateMetric(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Metric_CreateMetric_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricServer).CreateMetric(ctx, req.(*CreateMetricRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Metric_UpdateMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -166,24 +162,6 @@ func _Metric_UpdateMetric_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MetricServer).UpdateMetric(ctx, req.(*UpdateMetricRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Metric_DeleteMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteMetricRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MetricServer).DeleteMetric(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Metric_DeleteMetric_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricServer).DeleteMetric(ctx, req.(*DeleteMetricRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -224,6 +202,42 @@ func _Metric_ListMetric_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Metric_SelectMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SelectMetricRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricServer).SelectMetric(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Metric_SelectMetric_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricServer).SelectMetric(ctx, req.(*SelectMetricRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Metric_DeleteMetric_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMetricRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricServer).DeleteMetric(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Metric_DeleteMetric_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricServer).DeleteMetric(ctx, req.(*DeleteMetricRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Metric_ServiceDesc is the grpc.ServiceDesc for Metric service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -232,16 +246,8 @@ var Metric_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*MetricServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateMetric",
-			Handler:    _Metric_CreateMetric_Handler,
-		},
-		{
 			MethodName: "UpdateMetric",
 			Handler:    _Metric_UpdateMetric_Handler,
-		},
-		{
-			MethodName: "DeleteMetric",
-			Handler:    _Metric_DeleteMetric_Handler,
 		},
 		{
 			MethodName: "GetMetric",
@@ -250,6 +256,14 @@ var Metric_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMetric",
 			Handler:    _Metric_ListMetric_Handler,
+		},
+		{
+			MethodName: "SelectMetric",
+			Handler:    _Metric_SelectMetric_Handler,
+		},
+		{
+			MethodName: "DeleteMetric",
+			Handler:    _Metric_DeleteMetric_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

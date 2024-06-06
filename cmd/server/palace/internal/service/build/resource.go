@@ -33,7 +33,7 @@ func (b *ResourceBuild) ToApi() *admin.ResourceItem {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		DeletedAt: types.NewTime(time.Unix(b.DeletedAt, 0)).String(),
+		DeletedAt: types.NewTime(time.Unix(int64(b.DeletedAt), 0)).String(),
 		Module:    api.ModuleType(b.Module),
 		Domain:    api.DomainType(b.Domain),
 	}
@@ -62,7 +62,7 @@ func (b *TeamResourceBuild) ToApi() *admin.ResourceItem {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		DeletedAt: types.NewTime(time.Unix(b.DeletedAt, 0)).String(),
+		DeletedAt: types.NewTime(time.Unix(int64(b.DeletedAt), 0)).String(),
 		Module:    api.ModuleType(b.Module),
 		Domain:    api.DomainType(b.Domain),
 	}

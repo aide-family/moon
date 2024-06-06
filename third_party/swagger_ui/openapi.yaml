@@ -202,6 +202,119 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.admin.datasource.ListDatasourceReply'
+    /v1/datasource/metric/list:
+        post:
+            tags:
+                - Metric
+            description: 获取元数据列表
+            operationId: Metric_ListMetric
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.datasource.ListMetricRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.datasource.ListMetricReply'
+    /v1/datasource/metric/select:
+        post:
+            tags:
+                - Metric
+            description: 获取元数据列表（下拉选择接口）
+            operationId: Metric_SelectMetric
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.datasource.SelectMetricRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.datasource.SelectMetricReply'
+    /v1/datasource/metric/{id}:
+        get:
+            tags:
+                - Metric
+            description: 获取元数据详情
+            operationId: Metric_GetMetric
+            parameters:
+                - name: id
+                  in: path
+                  description: 指标ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: withRelation
+                  in: query
+                  description: 是否加载关联数据
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.datasource.GetMetricReply'
+        put:
+            tags:
+                - Metric
+            description: 更新元数据
+            operationId: Metric_UpdateMetric
+            parameters:
+                - name: id
+                  in: path
+                  description: 指标ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.datasource.UpdateMetricRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.datasource.UpdateMetricReply'
+        delete:
+            tags:
+                - Metric
+            description: |-
+                删除指标（用于删除数据源中不再使用的或者错误的指标
+                 因为同步逻辑只会同步最近时间段的指标， 所以删除后需要重新同步）
+                 删除会删除该指标的所有数据， 包括标签， 标签值等
+            operationId: Metric_DeleteMetric
+            parameters:
+                - name: id
+                  in: path
+                  description: 指标ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.datasource.DeleteMetricReply'
     /v1/datasource/select:
         post:
             tags:
@@ -1315,6 +1428,17 @@ components:
                     description: 发送的邮箱端口
                     format: uint32
             description: 邮件发送配置
+        api.EnumItem:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    description: 枚举值
+                    format: int32
+                label:
+                    type: string
+                    description: 枚举描述
+            description: 枚举类型
         api.MetricDetail:
             type: object
             properties:
@@ -1610,6 +1734,59 @@ components:
                         $ref: '#/components/schemas/api.admin.Menu'
                     description: 菜单子级数据
             description: 系统菜单模块
+        api.admin.MetricDetail:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 指标名称
+                help:
+                    type: string
+                    description: 帮助信息
+                type:
+                    allOf:
+                        - $ref: '#/components/schemas/api.EnumItem'
+                    description: 类型
+                labels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.admin.MetricLabel'
+                    description: 标签集合
+                unit:
+                    type: string
+                    description: 指标单位
+                id:
+                    type: integer
+                    description: ID
+                    format: uint32
+            description: 查询到的数据详情， 用与元数据构建
+        api.admin.MetricLabel:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 标签名称
+                values:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.admin.MetricLabelValue'
+                    description: 标签值
+                id:
+                    type: integer
+                    description: ID
+                    format: uint32
+            description: 指标数据标签
+        api.admin.MetricLabelValue:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: ID
+                    format: uint32
+                value:
+                    type: string
+                    description: 值
+            description: 指标数据标签值
         api.admin.ResourceItem:
             type: object
             properties:
@@ -1995,6 +2172,9 @@ components:
         api.admin.datasource.DeleteDatasourceReply:
             type: object
             properties: {}
+        api.admin.datasource.DeleteMetricReply:
+            type: object
+            properties: {}
         api.admin.datasource.GetDatasourceReply:
             type: object
             properties:
@@ -2025,6 +2205,17 @@ components:
                     type: integer
                     description: 存储器类型
                     format: enum
+        api.admin.datasource.GetMetricReply:
+            type: object
+            properties:
+                data:
+                    allOf:
+                        - $ref: '#/components/schemas/api.admin.MetricDetail'
+                    description: 详情
+                labelCount:
+                    type: integer
+                    description: label数量
+                    format: uint32
         api.admin.datasource.ListDatasourceReply:
             type: object
             properties:
@@ -2056,6 +2247,72 @@ components:
                     type: integer
                     description: 存储器类型
                     format: enum
+        api.admin.datasource.ListMetricReply:
+            type: object
+            properties:
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.PaginationReply'
+                    description: 分页参数
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.admin.MetricDetail'
+                    description: 数据
+        api.admin.datasource.ListMetricRequest:
+            type: object
+            properties:
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.PaginationReq'
+                    description: 分页参数
+                keyword:
+                    type: string
+                    description: 模糊查询， 不超过20字符搜索
+                metricType:
+                    type: integer
+                    description: 指标类型
+                    format: enum
+                datasourceId:
+                    type: integer
+                    description: 数据源ID
+                    format: uint32
+        api.admin.datasource.SelectMetricReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.admin.Select'
+                    description: 数据
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.PaginationReply'
+                    description: 分页参数
+        api.admin.datasource.SelectMetricRequest:
+            type: object
+            properties:
+                keyword:
+                    type: string
+                    description: 模糊查询， 不超过20字符搜索
+                metricType:
+                    type: integer
+                    description: 指标类型
+                    format: enum
+                datasourceId:
+                    type: integer
+                    description: 数据源ID
+                    format: uint32
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: metric ids (用于包含默认参数的场景， 例如：编辑时候， 映射某个指标)
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.PaginationReq'
+                    description: 分页参数
         api.admin.datasource.SyncDatasourceMetaReply:
             type: object
             properties: {}
@@ -2088,6 +2345,22 @@ components:
                 status:
                     type: integer
                     format: enum
+        api.admin.datasource.UpdateMetricReply:
+            type: object
+            properties: {}
+        api.admin.datasource.UpdateMetricRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 指标ID
+                    format: uint32
+                unit:
+                    type: string
+                    description: 指标单位
+                remark:
+                    type: string
+                    description: 指标描述
         api.admin.resource.BatchUpdateResourceStatusReply:
             type: object
             properties: {}
@@ -2784,6 +3057,8 @@ tags:
       description: 用于接受外界需要推送的消息
     - name: Menu
       description: 系统菜单管理模块
+    - name: Metric
+      description: metric数据源数据查询模块
     - name: Metric
       description: metric类型数据源元数据同步接口， 子服务需要实现该接口, 支持http和rpc两种同步方式
     - name: Resource

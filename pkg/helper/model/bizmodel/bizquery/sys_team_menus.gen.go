@@ -29,7 +29,7 @@ func newSysTeamMenu(db *gorm.DB, opts ...gen.DOOption) sysTeamMenu {
 	_sysTeamMenu.ID = field.NewUint32(tableName, "id")
 	_sysTeamMenu.CreatedAt = field.NewField(tableName, "created_at")
 	_sysTeamMenu.UpdatedAt = field.NewField(tableName, "updated_at")
-	_sysTeamMenu.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_sysTeamMenu.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_sysTeamMenu.Name = field.NewString(tableName, "name")
 	_sysTeamMenu.EnName = field.NewString(tableName, "en_name")
 	_sysTeamMenu.Path = field.NewString(tableName, "path")
@@ -60,7 +60,7 @@ type sysTeamMenu struct {
 	ID        field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 	Name      field.String
 	EnName    field.String
 	Path      field.String
@@ -88,7 +88,7 @@ func (s *sysTeamMenu) updateTableName(table string) *sysTeamMenu {
 	s.ID = field.NewUint32(table, "id")
 	s.CreatedAt = field.NewField(table, "created_at")
 	s.UpdatedAt = field.NewField(table, "updated_at")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
+	s.DeletedAt = field.NewUint(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
 	s.EnName = field.NewString(table, "en_name")
 	s.Path = field.NewString(table, "path")

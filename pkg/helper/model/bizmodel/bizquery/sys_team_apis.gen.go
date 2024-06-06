@@ -29,7 +29,7 @@ func newSysTeamAPI(db *gorm.DB, opts ...gen.DOOption) sysTeamAPI {
 	_sysTeamAPI.ID = field.NewUint32(tableName, "id")
 	_sysTeamAPI.CreatedAt = field.NewField(tableName, "created_at")
 	_sysTeamAPI.UpdatedAt = field.NewField(tableName, "updated_at")
-	_sysTeamAPI.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_sysTeamAPI.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_sysTeamAPI.Name = field.NewString(tableName, "name")
 	_sysTeamAPI.Path = field.NewString(tableName, "path")
 	_sysTeamAPI.Status = field.NewInt(tableName, "status")
@@ -49,7 +49,7 @@ type sysTeamAPI struct {
 	ID        field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 	Name      field.String
 	Path      field.String
 	Status    field.Int
@@ -75,7 +75,7 @@ func (s *sysTeamAPI) updateTableName(table string) *sysTeamAPI {
 	s.ID = field.NewUint32(table, "id")
 	s.CreatedAt = field.NewField(table, "created_at")
 	s.UpdatedAt = field.NewField(table, "updated_at")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
+	s.DeletedAt = field.NewUint(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
 	s.Path = field.NewString(table, "path")
 	s.Status = field.NewInt(table, "status")

@@ -21,4 +21,5 @@ var ProviderSetService = wire.NewSet(
 	team.NewTeamService,
 	team.NewRoleService,
 	datasource.NewDatasourceService,
+	datasource.NewMetricService,
 )

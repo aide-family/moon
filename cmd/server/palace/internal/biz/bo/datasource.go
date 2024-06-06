@@ -57,10 +57,6 @@ type (
 		StorageType vobj.StorageType `json:"storageType"`
 	}
 
-	DatasourceOptionBuild struct {
-		*bizmodel.Datasource
-	}
-
 	DatasourceQueryParams struct {
 		DatasourceID uint32 `json:"datasourceID"`
 		// 查询语句
@@ -86,19 +82,3 @@ type (
 		Timestamp int64   `json:"timestamp"`
 	}
 )
-
-// NewDatasourceOptionBuild 创建数据源选项构建器
-func NewDatasourceOptionBuild(datasource *bizmodel.Datasource) *DatasourceOptionBuild {
-	return &DatasourceOptionBuild{
-		Datasource: datasource,
-	}
-}
-
-// ToSelectOption 转换为选择项
-func (b *DatasourceOptionBuild) ToSelectOption() *SelectOptionBo {
-	return &SelectOptionBo{
-		Value:    b.ID,
-		Label:    b.Name,
-		Disabled: b.DeletedAt > 0 || !b.Status.IsEnable(),
-	}
-}

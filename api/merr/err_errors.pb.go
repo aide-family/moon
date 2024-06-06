@@ -21,7 +21,7 @@ func FromContext(ctx context.Context) (*i18n.Localizer, bool) {
 }
 
 func WithLocalize(ctx context.Context, localize *i18n.Localizer) context.Context {
-	return context.WithValue(context.Background(), localizeKey{}, localize)
+	return context.WithValue(ctx, localizeKey{}, localize)
 }
 
 // GetI18nMessage 获取错误信息

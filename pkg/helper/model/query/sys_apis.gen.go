@@ -29,7 +29,7 @@ func newSysAPI(db *gorm.DB, opts ...gen.DOOption) sysAPI {
 	_sysAPI.ID = field.NewUint32(tableName, "id")
 	_sysAPI.CreatedAt = field.NewField(tableName, "created_at")
 	_sysAPI.UpdatedAt = field.NewField(tableName, "updated_at")
-	_sysAPI.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_sysAPI.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_sysAPI.Name = field.NewString(tableName, "name")
 	_sysAPI.Path = field.NewString(tableName, "path")
 	_sysAPI.Status = field.NewInt(tableName, "status")
@@ -49,7 +49,7 @@ type sysAPI struct {
 	ID        field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 	Name      field.String
 	Path      field.String
 	Status    field.Int
@@ -75,7 +75,7 @@ func (s *sysAPI) updateTableName(table string) *sysAPI {
 	s.ID = field.NewUint32(table, "id")
 	s.CreatedAt = field.NewField(table, "created_at")
 	s.UpdatedAt = field.NewField(table, "updated_at")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
+	s.DeletedAt = field.NewUint(table, "deleted_at")
 	s.Name = field.NewString(table, "name")
 	s.Path = field.NewString(table, "path")
 	s.Status = field.NewInt(table, "status")

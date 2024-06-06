@@ -29,7 +29,7 @@ func newSysTeamRole(db *gorm.DB, opts ...gen.DOOption) sysTeamRole {
 	_sysTeamRole.ID = field.NewUint32(tableName, "id")
 	_sysTeamRole.CreatedAt = field.NewField(tableName, "created_at")
 	_sysTeamRole.UpdatedAt = field.NewField(tableName, "updated_at")
-	_sysTeamRole.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_sysTeamRole.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_sysTeamRole.TeamID = field.NewUint32(tableName, "team_id")
 	_sysTeamRole.Name = field.NewString(tableName, "name")
 	_sysTeamRole.Status = field.NewInt(tableName, "status")
@@ -52,7 +52,7 @@ type sysTeamRole struct {
 	ID        field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 	TeamID    field.Uint32
 	Name      field.String
 	Status    field.Int
@@ -77,7 +77,7 @@ func (s *sysTeamRole) updateTableName(table string) *sysTeamRole {
 	s.ID = field.NewUint32(table, "id")
 	s.CreatedAt = field.NewField(table, "created_at")
 	s.UpdatedAt = field.NewField(table, "updated_at")
-	s.DeletedAt = field.NewInt64(table, "deleted_at")
+	s.DeletedAt = field.NewUint(table, "deleted_at")
 	s.TeamID = field.NewUint32(table, "team_id")
 	s.Name = field.NewString(table, "name")
 	s.Status = field.NewInt(table, "status")

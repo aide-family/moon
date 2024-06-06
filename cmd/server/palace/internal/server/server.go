@@ -59,6 +59,7 @@ func RegisterService(
 	teamRoleService *team.RoleService,
 	datasourceService *datasource.Service,
 	teamMenuService *resource.MenuService,
+	metricService *datasource.MetricService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -69,6 +70,7 @@ func RegisterService(
 	teamapi.RegisterTeamServer(rpcSrv, teamService)
 	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceServer(rpcSrv, datasourceService)
+	datasourceapi.RegisterMetricServer(rpcSrv, metricService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 
 	// 注册HTTP服务
@@ -80,6 +82,7 @@ func RegisterService(
 	teamapi.RegisterTeamHTTPServer(httpSrv, teamService)
 	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
+	datasourceapi.RegisterMetricHTTPServer(httpSrv, metricService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 
 	return &Server{

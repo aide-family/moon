@@ -177,9 +177,7 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 				return nil, err
 			}
 			if !isLogin {
-				return nil, merr.ErrorRedirect("请先登录").WithMetadata(map[string]string{
-					"redirect": "/login",
-				})
+				return nil, merr.ErrorI18nUnLoginErr(ctx)
 			}
 			return handler(ctx, req)
 		}
@@ -225,9 +223,7 @@ func NewWhiteListMatcher(list []string) selector.MatchFunc {
 		whiteList[v] = struct{}{}
 	}
 	return func(ctx context.Context, operation string) bool {
-		if _, ok := whiteList[operation]; ok {
-			return false
-		}
-		return true
+		_, ok := whiteList[operation]
+		return !ok
 	}
 }

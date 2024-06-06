@@ -34,7 +34,7 @@ func newDatasourceMetric(db *gorm.DB, opts ...gen.DOOption) datasourceMetric {
 	_datasourceMetric.DatasourceID = field.NewUint32(tableName, "datasource_id")
 	_datasourceMetric.CreatedAt = field.NewField(tableName, "created_at")
 	_datasourceMetric.UpdatedAt = field.NewField(tableName, "updated_at")
-	_datasourceMetric.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_datasourceMetric.DeletedAt = field.NewUint(tableName, "deleted_at")
 	_datasourceMetric.Labels = datasourceMetricHasManyLabels{
 		db: db.Session(&gorm.Session{}),
 
@@ -63,7 +63,7 @@ type datasourceMetric struct {
 	DatasourceID field.Uint32
 	CreatedAt    field.Field
 	UpdatedAt    field.Field
-	DeletedAt    field.Int64
+	DeletedAt    field.Uint
 	Labels       datasourceMetricHasManyLabels
 
 	fieldMap map[string]field.Expr
@@ -89,7 +89,7 @@ func (d *datasourceMetric) updateTableName(table string) *datasourceMetric {
 	d.DatasourceID = field.NewUint32(table, "datasource_id")
 	d.CreatedAt = field.NewField(table, "created_at")
 	d.UpdatedAt = field.NewField(table, "updated_at")
-	d.DeletedAt = field.NewInt64(table, "deleted_at")
+	d.DeletedAt = field.NewUint(table, "deleted_at")
 
 	d.fillFieldMap()
 

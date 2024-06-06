@@ -31,7 +31,7 @@ func newMetricLabelValue(db *gorm.DB, opts ...gen.DOOption) metricLabelValue {
 	_metricLabelValue.LabelID = field.NewUint32(tableName, "label_id")
 	_metricLabelValue.CreatedAt = field.NewField(tableName, "created_at")
 	_metricLabelValue.UpdatedAt = field.NewField(tableName, "updated_at")
-	_metricLabelValue.DeletedAt = field.NewInt64(tableName, "deleted_at")
+	_metricLabelValue.DeletedAt = field.NewUint(tableName, "deleted_at")
 
 	_metricLabelValue.fillFieldMap()
 
@@ -47,7 +47,7 @@ type metricLabelValue struct {
 	LabelID   field.Uint32
 	CreatedAt field.Field
 	UpdatedAt field.Field
-	DeletedAt field.Int64
+	DeletedAt field.Uint
 
 	fieldMap map[string]field.Expr
 }
@@ -69,7 +69,7 @@ func (m *metricLabelValue) updateTableName(table string) *metricLabelValue {
 	m.LabelID = field.NewUint32(table, "label_id")
 	m.CreatedAt = field.NewField(table, "created_at")
 	m.UpdatedAt = field.NewField(table, "updated_at")
-	m.DeletedAt = field.NewInt64(table, "deleted_at")
+	m.DeletedAt = field.NewUint(table, "deleted_at")
 
 	m.fillFieldMap()
 

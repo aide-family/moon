@@ -1055,6 +1055,225 @@ func (x *Datasource) GetStorageType() api.StorageType {
 	return api.StorageType(0)
 }
 
+// 查询到的数据详情， 用与元数据构建
+type MetricDetail struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 指标名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 帮助信息
+	Help string `protobuf:"bytes,2,opt,name=help,proto3" json:"help,omitempty"`
+	// 类型
+	Type *api.EnumItem `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	// 标签集合
+	Labels []*MetricLabel `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty"`
+	// 指标单位
+	Unit string `protobuf:"bytes,5,opt,name=unit,proto3" json:"unit,omitempty"`
+	// ID
+	Id uint32 `protobuf:"varint,6,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *MetricDetail) Reset() {
+	*x = MetricDetail{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_model_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MetricDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricDetail) ProtoMessage() {}
+
+func (x *MetricDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_model_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricDetail.ProtoReflect.Descriptor instead.
+func (*MetricDetail) Descriptor() ([]byte, []int) {
+	return file_admin_model_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *MetricDetail) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricDetail) GetHelp() string {
+	if x != nil {
+		return x.Help
+	}
+	return ""
+}
+
+func (x *MetricDetail) GetType() *api.EnumItem {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
+func (x *MetricDetail) GetLabels() []*MetricLabel {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *MetricDetail) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *MetricDetail) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// 指标数据标签
+type MetricLabel struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 标签名称
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 标签值
+	Values []*MetricLabelValue `protobuf:"bytes,2,rep,name=values,proto3" json:"values,omitempty"`
+	// ID
+	Id uint32 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *MetricLabel) Reset() {
+	*x = MetricLabel{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_model_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MetricLabel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricLabel) ProtoMessage() {}
+
+func (x *MetricLabel) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_model_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricLabel.ProtoReflect.Descriptor instead.
+func (*MetricLabel) Descriptor() ([]byte, []int) {
+	return file_admin_model_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MetricLabel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricLabel) GetValues() []*MetricLabelValue {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+func (x *MetricLabel) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// 指标数据标签值
+type MetricLabelValue struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// ID
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 值
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *MetricLabelValue) Reset() {
+	*x = MetricLabelValue{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_model_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MetricLabelValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricLabelValue) ProtoMessage() {}
+
+func (x *MetricLabelValue) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_model_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricLabelValue.ProtoReflect.Descriptor instead.
+func (*MetricLabelValue) Descriptor() ([]byte, []int) {
+	return file_admin_model_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *MetricLabelValue) GetId() uint32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *MetricLabelValue) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 var File_admin_model_proto protoreflect.FileDescriptor
 
 var file_admin_model_proto_rawDesc = []byte{
@@ -1210,11 +1429,32 @@ var file_admin_model_proto_rawDesc = []byte{
 	0x39, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
 	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
 	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x3a, 0x0a, 0x09, 0x61, 0x70,
-	0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x01, 0x5a, 0x2b, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d, 0x69, 0x6c,
-	0x79, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e,
-	0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0xad, 0x01, 0x0a, 0x0c, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x12, 0x0a, 0x04, 0x68, 0x65, 0x6c, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68,
+	0x65, 0x6c, 0x70, 0x12, 0x21, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0d, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x45, 0x6e, 0x75, 0x6d, 0x49, 0x74, 0x65, 0x6d,
+	0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x2e, 0x0a, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73,
+	0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d,
+	0x69, 0x6e, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x52, 0x06,
+	0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x06, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x02, 0x69, 0x64, 0x22, 0x66, 0x0a, 0x0b, 0x4d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x33, 0x0a,
+	0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e,
+	0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x4c, 0x61, 0x62, 0x65, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x02,
+	0x69, 0x64, 0x22, 0x38, 0x0a, 0x10, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x4c, 0x61, 0x62, 0x65,
+	0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0d, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x3a, 0x0a, 0x09,
+	0x61, 0x70, 0x69, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x01, 0x5a, 0x2b, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d,
+	0x69, 0x6c, 0x79, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x64, 0x6d,
+	0x69, 0x6e, 0x3b, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1229,55 +1469,62 @@ func file_admin_model_proto_rawDescGZIP() []byte {
 	return file_admin_model_proto_rawDescData
 }
 
-var file_admin_model_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_admin_model_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_admin_model_proto_goTypes = []interface{}{
-	(*SelectExtend)(nil),    // 0: api.admin.SelectExtend
-	(*Select)(nil),          // 1: api.admin.Select
-	(*User)(nil),            // 2: api.admin.User
-	(*ResourceItem)(nil),    // 3: api.admin.ResourceItem
-	(*Menu)(nil),            // 4: api.admin.Menu
-	(*TeamMember)(nil),      // 5: api.admin.TeamMember
-	(*Team)(nil),            // 6: api.admin.Team
-	(*TeamRole)(nil),        // 7: api.admin.TeamRole
-	(*Datasource)(nil),      // 8: api.admin.Datasource
-	nil,                     // 9: api.admin.Datasource.ConfigEntry
-	(api.Status)(0),         // 10: api.Status
-	(api.Gender)(0),         // 11: api.Gender
-	(api.Role)(0),           // 12: api.Role
-	(api.ModuleType)(0),     // 13: api.ModuleType
-	(api.DomainType)(0),     // 14: api.DomainType
-	(api.DatasourceType)(0), // 15: api.DatasourceType
-	(api.StorageType)(0),    // 16: api.StorageType
+	(*SelectExtend)(nil),     // 0: api.admin.SelectExtend
+	(*Select)(nil),           // 1: api.admin.Select
+	(*User)(nil),             // 2: api.admin.User
+	(*ResourceItem)(nil),     // 3: api.admin.ResourceItem
+	(*Menu)(nil),             // 4: api.admin.Menu
+	(*TeamMember)(nil),       // 5: api.admin.TeamMember
+	(*Team)(nil),             // 6: api.admin.Team
+	(*TeamRole)(nil),         // 7: api.admin.TeamRole
+	(*Datasource)(nil),       // 8: api.admin.Datasource
+	(*MetricDetail)(nil),     // 9: api.admin.MetricDetail
+	(*MetricLabel)(nil),      // 10: api.admin.MetricLabel
+	(*MetricLabelValue)(nil), // 11: api.admin.MetricLabelValue
+	nil,                      // 12: api.admin.Datasource.ConfigEntry
+	(api.Status)(0),          // 13: api.Status
+	(api.Gender)(0),          // 14: api.Gender
+	(api.Role)(0),            // 15: api.Role
+	(api.ModuleType)(0),      // 16: api.ModuleType
+	(api.DomainType)(0),      // 17: api.DomainType
+	(api.DatasourceType)(0),  // 18: api.DatasourceType
+	(api.StorageType)(0),     // 19: api.StorageType
+	(*api.EnumItem)(nil),     // 20: api.EnumItem
 }
 var file_admin_model_proto_depIdxs = []int32{
 	1,  // 0: api.admin.Select.children:type_name -> api.admin.Select
 	0,  // 1: api.admin.Select.extend:type_name -> api.admin.SelectExtend
-	10, // 2: api.admin.User.status:type_name -> api.Status
-	11, // 3: api.admin.User.gender:type_name -> api.Gender
-	12, // 4: api.admin.User.role:type_name -> api.Role
-	10, // 5: api.admin.ResourceItem.status:type_name -> api.Status
-	13, // 6: api.admin.ResourceItem.module:type_name -> api.ModuleType
-	14, // 7: api.admin.ResourceItem.domain:type_name -> api.DomainType
-	10, // 8: api.admin.Menu.status:type_name -> api.Status
+	13, // 2: api.admin.User.status:type_name -> api.Status
+	14, // 3: api.admin.User.gender:type_name -> api.Gender
+	15, // 4: api.admin.User.role:type_name -> api.Role
+	13, // 5: api.admin.ResourceItem.status:type_name -> api.Status
+	16, // 6: api.admin.ResourceItem.module:type_name -> api.ModuleType
+	17, // 7: api.admin.ResourceItem.domain:type_name -> api.DomainType
+	13, // 8: api.admin.Menu.status:type_name -> api.Status
 	4,  // 9: api.admin.Menu.children:type_name -> api.admin.Menu
-	12, // 10: api.admin.TeamMember.roles:type_name -> api.Role
-	10, // 11: api.admin.TeamMember.status:type_name -> api.Status
+	15, // 10: api.admin.TeamMember.roles:type_name -> api.Role
+	13, // 11: api.admin.TeamMember.status:type_name -> api.Status
 	2,  // 12: api.admin.TeamMember.user:type_name -> api.admin.User
-	10, // 13: api.admin.Team.status:type_name -> api.Status
+	13, // 13: api.admin.Team.status:type_name -> api.Status
 	2,  // 14: api.admin.Team.leader:type_name -> api.admin.User
 	2,  // 15: api.admin.Team.creator:type_name -> api.admin.User
 	5,  // 16: api.admin.Team.admin:type_name -> api.admin.TeamMember
-	10, // 17: api.admin.TeamRole.status:type_name -> api.Status
+	13, // 17: api.admin.TeamRole.status:type_name -> api.Status
 	3,  // 18: api.admin.TeamRole.resources:type_name -> api.admin.ResourceItem
-	15, // 19: api.admin.Datasource.type:type_name -> api.DatasourceType
-	10, // 20: api.admin.Datasource.status:type_name -> api.Status
-	9,  // 21: api.admin.Datasource.config:type_name -> api.admin.Datasource.ConfigEntry
-	16, // 22: api.admin.Datasource.storage_type:type_name -> api.StorageType
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	18, // 19: api.admin.Datasource.type:type_name -> api.DatasourceType
+	13, // 20: api.admin.Datasource.status:type_name -> api.Status
+	12, // 21: api.admin.Datasource.config:type_name -> api.admin.Datasource.ConfigEntry
+	19, // 22: api.admin.Datasource.storage_type:type_name -> api.StorageType
+	20, // 23: api.admin.MetricDetail.type:type_name -> api.EnumItem
+	10, // 24: api.admin.MetricDetail.labels:type_name -> api.admin.MetricLabel
+	11, // 25: api.admin.MetricLabel.values:type_name -> api.admin.MetricLabelValue
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_admin_model_proto_init() }
@@ -1394,6 +1641,42 @@ func file_admin_model_proto_init() {
 				return nil
 			}
 		}
+		file_admin_model_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MetricDetail); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_admin_model_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MetricLabel); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_admin_model_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MetricLabelValue); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_admin_model_proto_msgTypes[1].OneofWrappers = []interface{}{}
 	type x struct{}
@@ -1402,7 +1685,7 @@ func file_admin_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_admin_model_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

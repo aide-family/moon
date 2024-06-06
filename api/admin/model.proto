@@ -194,3 +194,37 @@ message Datasource {
   // 存储器类型
   StorageType storage_type = 10;
 }
+
+// 查询到的数据详情， 用与元数据构建
+message MetricDetail {
+  // 指标名称
+  string name = 1;
+  // 帮助信息
+  string help = 2;
+  // 类型
+  EnumItem type = 3;
+  // 标签集合
+  repeated MetricLabel labels = 4;
+  // 指标单位
+  string unit = 5;
+  // ID
+  uint32 id = 6;
+}
+
+// 指标数据标签
+message MetricLabel {
+  // 标签名称
+  string name = 1;
+  // 标签值
+  repeated MetricLabelValue values = 2;
+  // ID
+  uint32 id = 3;
+}
+
+// 指标数据标签值
+message MetricLabelValue {
+  // ID
+  uint32 id = 1;
+  // 值
+  string value = 2;
+}
