@@ -2082,10 +2082,6 @@ components:
                     type: integer
                     description: 团队ID
                     format: uint32
-                teamRoleId:
-                    type: integer
-                    description: 团队角色ID
-                    format: uint32
         api.admin.authorization.LogoutReply:
             type: object
             properties:

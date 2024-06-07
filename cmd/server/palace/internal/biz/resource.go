@@ -46,8 +46,7 @@ func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResource
 }
 
 func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	err := b.resourceRepo.UpdateStatus(ctx, status, ids...)
-	if !types.IsNil(err) {
+	if err := b.resourceRepo.UpdateStatus(ctx, status, ids...); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil

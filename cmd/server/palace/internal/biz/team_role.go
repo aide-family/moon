@@ -26,17 +26,27 @@ type TeamRoleBiz struct {
 
 // CreateTeamRole 创建团队角色
 func (b *TeamRoleBiz) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
-	return b.teamRoleRepo.CreateTeamRole(ctx, teamRole)
+	detail, err := b.teamRoleRepo.CreateTeamRole(ctx, teamRole)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return detail, nil
 }
 
 // UpdateTeamRole 更新团队角色
 func (b *TeamRoleBiz) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
-	return b.teamRoleRepo.UpdateTeamRole(ctx, teamRole)
+	if err := b.teamRoleRepo.UpdateTeamRole(ctx, teamRole); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // DeleteTeamRole 删除团队角色
 func (b *TeamRoleBiz) DeleteTeamRole(ctx context.Context, id uint32) error {
-	return b.teamRoleRepo.DeleteTeamRole(ctx, id)
+	if err := b.teamRoleRepo.DeleteTeamRole(ctx, id); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // GetTeamRole 获取团队角色
@@ -53,10 +63,17 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.Sys
 
 // ListTeamRole 获取团队角色列表
 func (b *TeamRoleBiz) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
-	return b.teamRoleRepo.ListTeamRole(ctx, params)
+	list, err := b.teamRoleRepo.ListTeamRole(ctx, params)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return list, nil
 }
 
 // UpdateTeamRoleStatus 更新团队角色状态
 func (b *TeamRoleBiz) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	return b.teamRoleRepo.UpdateTeamRoleStatus(ctx, status, ids...)
+	if err := b.teamRoleRepo.UpdateTeamRoleStatus(ctx, status, ids...); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }

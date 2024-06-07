@@ -8,14 +8,16 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/types"
 	"github.com/aide-family/moon/pkg/utils/cipher"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	jwtv5 "github.com/golang-jwt/jwt/v5"
-
-	"github.com/aide-family/moon/pkg/types"
 )
 
 var (
@@ -101,9 +103,9 @@ func (l *JwtBaseInfo) IsTeamAdminRole() bool {
 }
 
 // SetUserInfo 设置用户信息
-func (l *JwtBaseInfo) SetUserInfo(f func() (userId uint32, role vobj.Role, err error)) *JwtBaseInfo {
-	userId, role, err := f()
-	if err == nil {
+func (l *JwtBaseInfo) SetUserInfo(userInfo *model.SysUser) *JwtBaseInfo {
+	if !types.IsNil(userInfo) {
+		userId, role := userInfo.ID, userInfo.Role
 		l.User = userId
 		l.Role = role
 	}
@@ -112,9 +114,9 @@ func (l *JwtBaseInfo) SetUserInfo(f func() (userId uint32, role vobj.Role, err e
 }
 
 // SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(f func() (teamId uint32, teamRole vobj.Role, err error)) *JwtBaseInfo {
-	teamId, teamRole, err := f()
-	if err == nil {
+func (l *JwtBaseInfo) SetTeamInfo(teamMemberInfo *bizmodel.SysTeamMember) *JwtBaseInfo {
+	if !types.IsNil(teamMemberInfo) {
+		teamId, teamRole := teamMemberInfo.TeamID, teamMemberInfo.Role
 		l.Team = teamId
 		l.TeamRole = teamRole
 	}

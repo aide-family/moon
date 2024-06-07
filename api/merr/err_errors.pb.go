@@ -46,7 +46,7 @@ func GetI18nMessage(ctx context.Context, id string, args ...interface{}) string 
 	return localize
 }
 
-// Alert 用于表单验证错误
+// IsAlert 用于表单验证错误
 func IsAlert(err error) bool {
 	if err == nil {
 		return false
@@ -55,12 +55,19 @@ func IsAlert(err error) bool {
 	return e.Reason == ErrorReason_ALERT.String() && e.Code == 405
 }
 
-// Alert 用于表单验证错误
+// ErrorAlert 用于表单验证错误
 func ErrorAlert(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_ALERT.String(), fmt.Sprintf(format, args...))
 }
 
-// MODAL 用于弹窗验证错误
+// ErrorAlertWithContext 用于表单验证错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorAlertWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_ALERT.String(), fmt.Sprintf(format, args...))
+}
+
+// IsModal 用于弹窗验证错误
 func IsModal(err error) bool {
 	if err == nil {
 		return false
@@ -69,12 +76,19 @@ func IsModal(err error) bool {
 	return e.Reason == ErrorReason_MODAL.String() && e.Code == 405
 }
 
-// MODAL 用于弹窗验证错误
+// ErrorModal 用于弹窗验证错误
 func ErrorModal(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_MODAL.String(), fmt.Sprintf(format, args...))
 }
 
-// TOAST 用于toast验证错误
+// ErrorModalWithContext 用于弹窗验证错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorModalWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_MODAL.String(), fmt.Sprintf(format, args...))
+}
+
+// IsToast 用于toast验证错误
 func IsToast(err error) bool {
 	if err == nil {
 		return false
@@ -83,12 +97,19 @@ func IsToast(err error) bool {
 	return e.Reason == ErrorReason_TOAST.String() && e.Code == 405
 }
 
-// TOAST 用于toast验证错误
+// ErrorToast 用于toast验证错误
 func ErrorToast(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TOAST.String(), fmt.Sprintf(format, args...))
 }
 
-// NOTIFICATION 用于通知验证错误
+// ErrorToastWithContext 用于toast验证错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorToastWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TOAST.String(), fmt.Sprintf(format, args...))
+}
+
+// IsNotification 用于通知验证错误
 func IsNotification(err error) bool {
 	if err == nil {
 		return false
@@ -97,12 +118,19 @@ func IsNotification(err error) bool {
 	return e.Reason == ErrorReason_NOTIFICATION.String() && e.Code == 405
 }
 
-// NOTIFICATION 用于通知验证错误
+// ErrorNotification 用于通知验证错误
 func ErrorNotification(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_NOTIFICATION.String(), fmt.Sprintf(format, args...))
 }
 
-// Redirect 用于重定向验证错误, 跳转到指定页面
+// ErrorNotificationWithContext 用于通知验证错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorNotificationWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_NOTIFICATION.String(), fmt.Sprintf(format, args...))
+}
+
+// IsRedirect 用于重定向验证错误, 跳转到指定页面
 func IsRedirect(err error) bool {
 	if err == nil {
 		return false
@@ -111,14 +139,30 @@ func IsRedirect(err error) bool {
 	return e.Reason == ErrorReason_REDIRECT.String() && e.Code == 405
 }
 
-// Redirect 用于重定向验证错误, 跳转到指定页面
+// ErrorRedirect 用于重定向验证错误, 跳转到指定页面
 func ErrorRedirect(format string, args ...interface{}) *errors.Error {
-	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{"redirect": "/login"})
+	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorRedirectWithContext 用于重定向验证错误, 跳转到指定页面
+//
+//	带上下文，支持国际化输出元数据
+func ErrorRedirectWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_REDIRECT.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
 }
 
 const ErrorI18nRedirectID = "REDIRECT"
 
-// Redirect 用于重定向验证错误, 跳转到指定页面
+// ErrorI18nRedirect 用于重定向验证错误, 跳转到指定页面
+//  支持国际化输出
 func ErrorI18nRedirect(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nRedirectID,
@@ -137,10 +181,18 @@ func ErrorI18nRedirect(ctx context.Context, args ...interface{}) *errors.Error {
 		}
 	}
 
-	return err.WithMetadata(map[string]string{"redirect": "/login"})
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
 }
 
-// AdminUserDeleteErr 管理员不能删除
+// IsAdminUserDeleteErr 管理员不能删除
 func IsAdminUserDeleteErr(err error) bool {
 	if err == nil {
 		return false
@@ -149,14 +201,22 @@ func IsAdminUserDeleteErr(err error) bool {
 	return e.Reason == ErrorReason_ADMIN_USER_DELETE_ERR.String() && e.Code == 405
 }
 
-// AdminUserDeleteErr 管理员不能删除
+// ErrorAdminUserDeleteErr 管理员不能删除
 func ErrorAdminUserDeleteErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorAdminUserDeleteErrWithContext 管理员不能删除
+//
+//	带上下文，支持国际化输出元数据
+func ErrorAdminUserDeleteErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_ADMIN_USER_DELETE_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nAdminUserDeleteErrID = "ADMIN_USER_DELETE_ERR"
 
-// AdminUserDeleteErr 管理员不能删除
+// ErrorI18nAdminUserDeleteErr 管理员不能删除
+//  支持国际化输出
 func ErrorI18nAdminUserDeleteErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nAdminUserDeleteErrID,
@@ -178,7 +238,7 @@ func ErrorI18nAdminUserDeleteErr(ctx context.Context, args ...interface{}) *erro
 	return err
 }
 
-// DatasourceNotFoundErr 数据源不存在
+// IsDatasourceNotFoundErr 数据源不存在
 func IsDatasourceNotFoundErr(err error) bool {
 	if err == nil {
 		return false
@@ -187,14 +247,22 @@ func IsDatasourceNotFoundErr(err error) bool {
 	return e.Reason == ErrorReason_DATASOURCE_NOT_FOUND_ERR.String() && e.Code == 405
 }
 
-// DatasourceNotFoundErr 数据源不存在
+// ErrorDatasourceNotFoundErr 数据源不存在
 func ErrorDatasourceNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorDatasourceNotFoundErrWithContext 数据源不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorDatasourceNotFoundErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_DATASOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nDatasourceNotFoundErrID = "DATASOURCE_NOT_FOUND_ERR"
 
-// DatasourceNotFoundErr 数据源不存在
+// ErrorI18nDatasourceNotFoundErr 数据源不存在
+//  支持国际化输出
 func ErrorI18nDatasourceNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nDatasourceNotFoundErrID,
@@ -216,7 +284,7 @@ func ErrorI18nDatasourceNotFoundErr(ctx context.Context, args ...interface{}) *e
 	return err
 }
 
-// DeleteSelfErr 不能删除自己
+// IsDeleteSelfErr 不能删除自己
 func IsDeleteSelfErr(err error) bool {
 	if err == nil {
 		return false
@@ -225,14 +293,22 @@ func IsDeleteSelfErr(err error) bool {
 	return e.Reason == ErrorReason_DELETE_SELF_ERR.String() && e.Code == 405
 }
 
-// DeleteSelfErr 不能删除自己
+// ErrorDeleteSelfErr 不能删除自己
 func ErrorDeleteSelfErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorDeleteSelfErrWithContext 不能删除自己
+//
+//	带上下文，支持国际化输出元数据
+func ErrorDeleteSelfErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_DELETE_SELF_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nDeleteSelfErrID = "DELETE_SELF_ERR"
 
-// DeleteSelfErr 不能删除自己
+// ErrorI18nDeleteSelfErr 不能删除自己
+//  支持国际化输出
 func ErrorI18nDeleteSelfErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nDeleteSelfErrID,
@@ -254,7 +330,7 @@ func ErrorI18nDeleteSelfErr(ctx context.Context, args ...interface{}) *errors.Er
 	return err
 }
 
-// LockFailedErr 获取锁失败
+// IsLockFailedErr 获取锁失败
 func IsLockFailedErr(err error) bool {
 	if err == nil {
 		return false
@@ -263,14 +339,22 @@ func IsLockFailedErr(err error) bool {
 	return e.Reason == ErrorReason_LOCK_FAILED_ERR.String() && e.Code == 405
 }
 
-// LockFailedErr 获取锁失败
+// ErrorLockFailedErr 获取锁失败
 func ErrorLockFailedErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorLockFailedErrWithContext 获取锁失败
+//
+//	带上下文，支持国际化输出元数据
+func ErrorLockFailedErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_LOCK_FAILED_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nLockFailedErrID = "LOCK_FAILED_ERR"
 
-// LockFailedErr 获取锁失败
+// ErrorI18nLockFailedErr 获取锁失败
+//  支持国际化输出
 func ErrorI18nLockFailedErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nLockFailedErrID,
@@ -292,7 +376,7 @@ func ErrorI18nLockFailedErr(ctx context.Context, args ...interface{}) *errors.Er
 	return err
 }
 
-// NoPermissionErr 您没有权限操作
+// IsNoPermissionErr NoPermissionErr 您没有权限操作
 func IsNoPermissionErr(err error) bool {
 	if err == nil {
 		return false
@@ -301,14 +385,30 @@ func IsNoPermissionErr(err error) bool {
 	return e.Reason == ErrorReason_NO_PERMISSION_ERR.String() && e.Code == 405
 }
 
-// NoPermissionErr 您没有权限操作
+// ErrorNoPermissionErr NoPermissionErr 您没有权限操作
 func ErrorNoPermissionErr(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf(format, args...))
 }
 
+// ErrorNoPermissionErrWithContext NoPermissionErr 您没有权限操作
+//
+//	带上下文，支持国际化输出元数据
+func ErrorNoPermissionErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_NO_PERMISSION_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"rbac": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "false"),
+	})
+}
+
 const ErrorI18nNoPermissionErrID = "NO_PERMISSION_ERR"
 
-// NoPermissionErr 您没有权限操作
+// ErrorI18nNoPermissionErr NoPermissionErr 您没有权限操作
+//  支持国际化输出
 func ErrorI18nNoPermissionErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nNoPermissionErrID,
@@ -327,10 +427,18 @@ func ErrorI18nNoPermissionErr(ctx context.Context, args ...interface{}) *errors.
 		}
 	}
 
-	return err
+	return err.WithMetadata(map[string]string{
+		"rbac": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "false"),
+	})
 }
 
-// ParamsErr 参数错误
+// IsParamsErr 参数错误
 func IsParamsErr(err error) bool {
 	if err == nil {
 		return false
@@ -339,14 +447,22 @@ func IsParamsErr(err error) bool {
 	return e.Reason == ErrorReason_PARAMS_ERR.String() && e.Code == 405
 }
 
-// ParamsErr 参数错误
+// ErrorParamsErr 参数错误
 func ErrorParamsErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorParamsErrWithContext 参数错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorParamsErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_PARAMS_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nParamsErrID = "PARAMS_ERR"
 
-// ParamsErr 参数错误
+// ErrorI18nParamsErr 参数错误
+//  支持国际化输出
 func ErrorI18nParamsErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nParamsErrID,
@@ -368,7 +484,7 @@ func ErrorI18nParamsErr(ctx context.Context, args ...interface{}) *errors.Error 
 	return err
 }
 
-// PasswordErr 密码错误
+// IsPasswordErr 密码错误
 func IsPasswordErr(err error) bool {
 	if err == nil {
 		return false
@@ -377,14 +493,22 @@ func IsPasswordErr(err error) bool {
 	return e.Reason == ErrorReason_PASSWORD_ERR.String() && e.Code == 405
 }
 
-// PasswordErr 密码错误
+// ErrorPasswordErr 密码错误
 func ErrorPasswordErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorPasswordErrWithContext 密码错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorPasswordErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_PASSWORD_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nPasswordErrID = "PASSWORD_ERR"
 
-// PasswordErr 密码错误
+// ErrorI18nPasswordErr 密码错误
+//  支持国际化输出
 func ErrorI18nPasswordErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nPasswordErrID,
@@ -406,7 +530,7 @@ func ErrorI18nPasswordErr(ctx context.Context, args ...interface{}) *errors.Erro
 	return err
 }
 
-// PasswordSameErr 新旧密码不能相同
+// IsPasswordSameErr 新旧密码不能相同
 func IsPasswordSameErr(err error) bool {
 	if err == nil {
 		return false
@@ -415,14 +539,22 @@ func IsPasswordSameErr(err error) bool {
 	return e.Reason == ErrorReason_PASSWORD_SAME_ERR.String() && e.Code == 405
 }
 
-// PasswordSameErr 新旧密码不能相同
+// ErrorPasswordSameErr 新旧密码不能相同
 func ErrorPasswordSameErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorPasswordSameErrWithContext 新旧密码不能相同
+//
+//	带上下文，支持国际化输出元数据
+func ErrorPasswordSameErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_PASSWORD_SAME_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nPasswordSameErrID = "PASSWORD_SAME_ERR"
 
-// PasswordSameErr 新旧密码不能相同
+// ErrorI18nPasswordSameErr 新旧密码不能相同
+//  支持国际化输出
 func ErrorI18nPasswordSameErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nPasswordSameErrID,
@@ -444,7 +576,7 @@ func ErrorI18nPasswordSameErr(ctx context.Context, args ...interface{}) *errors.
 	return err
 }
 
-// ResourceNotFoundErr 资源不存在
+// IsResourceNotFoundErr 资源不存在
 func IsResourceNotFoundErr(err error) bool {
 	if err == nil {
 		return false
@@ -453,14 +585,22 @@ func IsResourceNotFoundErr(err error) bool {
 	return e.Reason == ErrorReason_RESOURCE_NOT_FOUND_ERR.String() && e.Code == 405
 }
 
-// ResourceNotFoundErr 资源不存在
+// ErrorResourceNotFoundErr 资源不存在
 func ErrorResourceNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorResourceNotFoundErrWithContext 资源不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorResourceNotFoundErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_RESOURCE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nResourceNotFoundErrID = "RESOURCE_NOT_FOUND_ERR"
 
-// ResourceNotFoundErr 资源不存在
+// ErrorI18nResourceNotFoundErr 资源不存在
+//  支持国际化输出
 func ErrorI18nResourceNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nResourceNotFoundErrID,
@@ -482,7 +622,7 @@ func ErrorI18nResourceNotFoundErr(ctx context.Context, args ...interface{}) *err
 	return err
 }
 
-// RetryLaterErr 请稍后重试
+// IsRetryLaterErr 请稍后重试
 func IsRetryLaterErr(err error) bool {
 	if err == nil {
 		return false
@@ -491,14 +631,22 @@ func IsRetryLaterErr(err error) bool {
 	return e.Reason == ErrorReason_RETRY_LATER_ERR.String() && e.Code == 405
 }
 
-// RetryLaterErr 请稍后重试
+// ErrorRetryLaterErr 请稍后重试
 func ErrorRetryLaterErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorRetryLaterErrWithContext 请稍后重试
+//
+//	带上下文，支持国际化输出元数据
+func ErrorRetryLaterErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_RETRY_LATER_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nRetryLaterErrID = "RETRY_LATER_ERR"
 
-// RetryLaterErr 请稍后重试
+// ErrorI18nRetryLaterErr 请稍后重试
+//  支持国际化输出
 func ErrorI18nRetryLaterErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nRetryLaterErrID,
@@ -520,7 +668,7 @@ func ErrorI18nRetryLaterErr(ctx context.Context, args ...interface{}) *errors.Er
 	return err
 }
 
-// SystemErr 系统错误
+// IsSystemErr 系统错误
 func IsSystemErr(err error) bool {
 	if err == nil {
 		return false
@@ -529,14 +677,22 @@ func IsSystemErr(err error) bool {
 	return e.Reason == ErrorReason_SYSTEM_ERR.String() && e.Code == 500
 }
 
-// SystemErr 系统错误
+// ErrorSystemErr 系统错误
 func ErrorSystemErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorSystemErrWithContext 系统错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorSystemErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(500, ErrorReason_SYSTEM_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nSystemErrID = "SYSTEM_ERR"
 
-// SystemErr 系统错误
+// ErrorI18nSystemErr 系统错误
+//  支持国际化输出
 func ErrorI18nSystemErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nSystemErrID,
@@ -558,7 +714,7 @@ func ErrorI18nSystemErr(ctx context.Context, args ...interface{}) *errors.Error 
 	return err
 }
 
-// TeamLeaderErr 团队负责人不能删除
+// IsTeamLeaderErr 团队负责人不能删除
 func IsTeamLeaderErr(err error) bool {
 	if err == nil {
 		return false
@@ -567,14 +723,22 @@ func IsTeamLeaderErr(err error) bool {
 	return e.Reason == ErrorReason_TEAM_LEADER_ERR.String() && e.Code == 405
 }
 
-// TeamLeaderErr 团队负责人不能删除
+// ErrorTeamLeaderErr 团队负责人不能删除
 func ErrorTeamLeaderErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorTeamLeaderErrWithContext 团队负责人不能删除
+//
+//	带上下文，支持国际化输出元数据
+func ErrorTeamLeaderErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TEAM_LEADER_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nTeamLeaderErrID = "TEAM_LEADER_ERR"
 
-// TeamLeaderErr 团队负责人不能删除
+// ErrorI18nTeamLeaderErr 团队负责人不能删除
+//  支持国际化输出
 func ErrorI18nTeamLeaderErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nTeamLeaderErrID,
@@ -596,7 +760,7 @@ func ErrorI18nTeamLeaderErr(ctx context.Context, args ...interface{}) *errors.Er
 	return err
 }
 
-// TeamLeaderRepeatErr 你已经是团队负责人了
+// IsTeamLeaderRepeatErr 你已经是团队负责人了
 func IsTeamLeaderRepeatErr(err error) bool {
 	if err == nil {
 		return false
@@ -605,14 +769,22 @@ func IsTeamLeaderRepeatErr(err error) bool {
 	return e.Reason == ErrorReason_TEAM_LEADER_REPEAT_ERR.String() && e.Code == 405
 }
 
-// TeamLeaderRepeatErr 你已经是团队负责人了
+// ErrorTeamLeaderRepeatErr 你已经是团队负责人了
 func ErrorTeamLeaderRepeatErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorTeamLeaderRepeatErrWithContext 你已经是团队负责人了
+//
+//	带上下文，支持国际化输出元数据
+func ErrorTeamLeaderRepeatErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TEAM_LEADER_REPEAT_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nTeamLeaderRepeatErrID = "TEAM_LEADER_REPEAT_ERR"
 
-// TeamLeaderRepeatErr 你已经是团队负责人了
+// ErrorI18nTeamLeaderRepeatErr 你已经是团队负责人了
+//  支持国际化输出
 func ErrorI18nTeamLeaderRepeatErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nTeamLeaderRepeatErrID,
@@ -634,7 +806,7 @@ func ErrorI18nTeamLeaderRepeatErr(ctx context.Context, args ...interface{}) *err
 	return err
 }
 
-// TeamNameExistErr 团队名称已存在
+// IsTeamNameExistErr 团队名称已存在
 func IsTeamNameExistErr(err error) bool {
 	if err == nil {
 		return false
@@ -643,14 +815,22 @@ func IsTeamNameExistErr(err error) bool {
 	return e.Reason == ErrorReason_TEAM_NAME_EXIST_ERR.String() && e.Code == 405
 }
 
-// TeamNameExistErr 团队名称已存在
+// ErrorTeamNameExistErr 团队名称已存在
 func ErrorTeamNameExistErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorTeamNameExistErrWithContext 团队名称已存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorTeamNameExistErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nTeamNameExistErrID = "TEAM_NAME_EXIST_ERR"
 
-// TeamNameExistErr 团队名称已存在
+// ErrorI18nTeamNameExistErr 团队名称已存在
+//  支持国际化输出
 func ErrorI18nTeamNameExistErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nTeamNameExistErrID,
@@ -672,7 +852,7 @@ func ErrorI18nTeamNameExistErr(ctx context.Context, args ...interface{}) *errors
 	return err
 }
 
-// TeamNotFoundErr 团队不存在
+// IsTeamNotFoundErr 团队不存在
 func IsTeamNotFoundErr(err error) bool {
 	if err == nil {
 		return false
@@ -681,14 +861,22 @@ func IsTeamNotFoundErr(err error) bool {
 	return e.Reason == ErrorReason_TEAM_NOT_FOUND_ERR.String() && e.Code == 405
 }
 
-// TeamNotFoundErr 团队不存在
+// ErrorTeamNotFoundErr 团队不存在
 func ErrorTeamNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorTeamNotFoundErrWithContext 团队不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorTeamNotFoundErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TEAM_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nTeamNotFoundErrID = "TEAM_NOT_FOUND_ERR"
 
-// TeamNotFoundErr 团队不存在
+// ErrorI18nTeamNotFoundErr 团队不存在
+//  支持国际化输出
 func ErrorI18nTeamNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nTeamNotFoundErrID,
@@ -710,7 +898,7 @@ func ErrorI18nTeamNotFoundErr(ctx context.Context, args ...interface{}) *errors.
 	return err
 }
 
-// TeamRoleNotFoundErr 团队角色不存在
+// IsTeamRoleNotFoundErr 团队角色不存在
 func IsTeamRoleNotFoundErr(err error) bool {
 	if err == nil {
 		return false
@@ -719,14 +907,22 @@ func IsTeamRoleNotFoundErr(err error) bool {
 	return e.Reason == ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String() && e.Code == 405
 }
 
-// TeamRoleNotFoundErr 团队角色不存在
+// ErrorTeamRoleNotFoundErr 团队角色不存在
 func ErrorTeamRoleNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorTeamRoleNotFoundErrWithContext 团队角色不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorTeamRoleNotFoundErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_TEAM_ROLE_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
 }
 
 const ErrorI18nTeamRoleNotFoundErrID = "TEAM_ROLE_NOT_FOUND_ERR"
 
-// TeamRoleNotFoundErr 团队角色不存在
+// ErrorI18nTeamRoleNotFoundErr 团队角色不存在
+//  支持国际化输出
 func ErrorI18nTeamRoleNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nTeamRoleNotFoundErrID,
@@ -748,7 +944,7 @@ func ErrorI18nTeamRoleNotFoundErr(ctx context.Context, args ...interface{}) *err
 	return err
 }
 
-// UnLoginErr 未登录
+// IsUnLoginErr 未登录
 func IsUnLoginErr(err error) bool {
 	if err == nil {
 		return false
@@ -757,14 +953,30 @@ func IsUnLoginErr(err error) bool {
 	return e.Reason == ErrorReason_UN_LOGIN_ERR.String() && e.Code == 405
 }
 
-// UnLoginErr 未登录
+// ErrorUnLoginErr 未登录
 func ErrorUnLoginErr(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf(format, args...))
 }
 
+// ErrorUnLoginErrWithContext 未登录
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUnLoginErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_UN_LOGIN_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
 const ErrorI18nUnLoginErrID = "UN_LOGIN_ERR"
 
-// UnLoginErr 未登录
+// ErrorI18nUnLoginErr 未登录
+//  支持国际化输出
 func ErrorI18nUnLoginErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nUnLoginErrID,
@@ -783,10 +995,18 @@ func ErrorI18nUnLoginErr(ctx context.Context, args ...interface{}) *errors.Error
 		}
 	}
 
-	return err
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
 }
 
-// UserNotFoundErr 用户不存在
+// IsUserNotFoundErr 用户不存在
 func IsUserNotFoundErr(err error) bool {
 	if err == nil {
 		return false
@@ -795,14 +1015,30 @@ func IsUserNotFoundErr(err error) bool {
 	return e.Reason == ErrorReason_USER_NOT_FOUND_ERR.String() && e.Code == 405
 }
 
-// UserNotFoundErr 用户不存在
+// ErrorUserNotFoundErr 用户不存在
 func ErrorUserNotFoundErr(format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
 }
 
+// ErrorUserNotFoundErrWithContext 用户不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUserNotFoundErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
 const ErrorI18nUserNotFoundErrID = "USER_NOT_FOUND_ERR"
 
-// UserNotFoundErr 用户不存在
+// ErrorI18nUserNotFoundErr 用户不存在
+//  支持国际化输出
 func ErrorI18nUserNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
 	config := &i18n.LocalizeConfig{
 		MessageID: ErrorI18nUserNotFoundErrID,
@@ -818,6 +1054,708 @@ func ErrorI18nUserNotFoundErr(ctx context.Context, args ...interface{}) *errors.
 			err = errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), fmt.Sprintf("用户不存在", args...)).WithCause(err1)
 		} else {
 			err = errors.New(405, ErrorReason_USER_NOT_FOUND_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+// IsUserLimitErr 你已经被限制使用此平台
+func IsUserLimitErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_USER_LIMIT_ERR.String() && e.Code == 405
+}
+
+// ErrorUserLimitErr 你已经被限制使用此平台
+func ErrorUserLimitErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_LIMIT_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorUserLimitErrWithContext 你已经被限制使用此平台
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUserLimitErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_LIMIT_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+const ErrorI18nUserLimitErrID = "USER_LIMIT_ERR"
+
+// ErrorI18nUserLimitErr 你已经被限制使用此平台
+//  支持国际化输出
+func ErrorI18nUserLimitErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUserLimitErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_USER_LIMIT_ERR.String(), fmt.Sprintf("你已经被限制使用此平台", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_USER_LIMIT_ERR.String(), fmt.Sprintf("你已经被限制使用此平台", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_USER_LIMIT_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+// IsUserNotInTeamErr 你已经不在该团队中
+func IsUserNotInTeamErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_USER_NOT_IN_TEAM_ERR.String() && e.Code == 405
+}
+
+// ErrorUserNotInTeamErr 你已经不在该团队中
+func ErrorUserNotInTeamErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_NOT_IN_TEAM_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorUserNotInTeamErrWithContext 你已经不在该团队中
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUserNotInTeamErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_NOT_IN_TEAM_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+const ErrorI18nUserNotInTeamErrID = "USER_NOT_IN_TEAM_ERR"
+
+// ErrorI18nUserNotInTeamErr 你已经不在该团队中
+//  支持国际化输出
+func ErrorI18nUserNotInTeamErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUserNotInTeamErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_USER_NOT_IN_TEAM_ERR.String(), fmt.Sprintf("你已经不在该团队中", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_USER_NOT_IN_TEAM_ERR.String(), fmt.Sprintf("你已经不在该团队中", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_USER_NOT_IN_TEAM_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+// IsUserTeamDisabledErr 你已经被该团队禁用
+func IsUserTeamDisabledErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_USER_TEAM_DISABLED_ERR.String() && e.Code == 405
+}
+
+// ErrorUserTeamDisabledErr 你已经被该团队禁用
+func ErrorUserTeamDisabledErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_TEAM_DISABLED_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorUserTeamDisabledErrWithContext 你已经被该团队禁用
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUserTeamDisabledErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_USER_TEAM_DISABLED_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+const ErrorI18nUserTeamDisabledErrID = "USER_TEAM_DISABLED_ERR"
+
+// ErrorI18nUserTeamDisabledErr 你已经被该团队禁用
+//  支持国际化输出
+func ErrorI18nUserTeamDisabledErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUserTeamDisabledErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_USER_TEAM_DISABLED_ERR.String(), fmt.Sprintf("你已经被该团队禁用", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_USER_TEAM_DISABLED_ERR.String(), fmt.Sprintf("你已经被该团队禁用", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_USER_TEAM_DISABLED_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"redirect": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "/login"),
+	})
+}
+
+// IsGetCaptchaErr 获取验证码失败
+func IsGetCaptchaErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_GET_CAPTCHA_ERR.String() && e.Code == 405
+}
+
+// ErrorGetCaptchaErr 获取验证码失败
+func ErrorGetCaptchaErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_GET_CAPTCHA_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorGetCaptchaErrWithContext 获取验证码失败
+//
+//	带上下文，支持国际化输出元数据
+func ErrorGetCaptchaErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_GET_CAPTCHA_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nGetCaptchaErrID = "GET_CAPTCHA_ERR"
+
+// ErrorI18nGetCaptchaErr 获取验证码失败
+//  支持国际化输出
+func ErrorI18nGetCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nGetCaptchaErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_GET_CAPTCHA_ERR.String(), fmt.Sprintf("获取验证码失败", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_GET_CAPTCHA_ERR.String(), fmt.Sprintf("获取验证码失败", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_GET_CAPTCHA_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsCaptchaExpiredErr 验证码已失效
+func IsCaptchaExpiredErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_CAPTCHA_EXPIRED_ERR.String() && e.Code == 405
+}
+
+// ErrorCaptchaExpiredErr 验证码已失效
+func ErrorCaptchaExpiredErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_EXPIRED_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorCaptchaExpiredErrWithContext 验证码已失效
+//
+//	带上下文，支持国际化输出元数据
+func ErrorCaptchaExpiredErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_EXPIRED_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_EXPIRED_ERR"),
+	})
+}
+
+const ErrorI18nCaptchaExpiredErrID = "CAPTCHA_EXPIRED_ERR"
+
+// ErrorI18nCaptchaExpiredErr 验证码已失效
+//  支持国际化输出
+func ErrorI18nCaptchaExpiredErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nCaptchaExpiredErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_CAPTCHA_EXPIRED_ERR.String(), fmt.Sprintf("验证码已过期", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_CAPTCHA_EXPIRED_ERR.String(), fmt.Sprintf("验证码已过期", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_CAPTCHA_EXPIRED_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_EXPIRED_ERR"),
+	})
+}
+
+// IsCaptchaErr 验证码错误
+func IsCaptchaErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_CAPTCHA_ERR.String() && e.Code == 405
+}
+
+// ErrorCaptchaErr 验证码错误
+func ErrorCaptchaErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorCaptchaErrWithContext 验证码错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorCaptchaErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_ERR"),
+	})
+}
+
+const ErrorI18nCaptchaErrID = "CAPTCHA_ERR"
+
+// ErrorI18nCaptchaErr 验证码错误
+//  支持国际化输出
+func ErrorI18nCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nCaptchaErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_CAPTCHA_ERR.String(), fmt.Sprintf("验证码错误", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_CAPTCHA_ERR.String(), fmt.Sprintf("验证码错误", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_CAPTCHA_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_ERR"),
+	})
+}
+
+// IsCaptchaInvalidErr 验证码无效
+func IsCaptchaInvalidErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_CAPTCHA_INVALID_ERR.String() && e.Code == 405
+}
+
+// ErrorCaptchaInvalidErr 验证码无效
+func ErrorCaptchaInvalidErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_INVALID_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorCaptchaInvalidErrWithContext 验证码无效
+//
+//	带上下文，支持国际化输出元数据
+func ErrorCaptchaInvalidErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_CAPTCHA_INVALID_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_INVALID_ERR"),
+	})
+}
+
+const ErrorI18nCaptchaInvalidErrID = "CAPTCHA_INVALID_ERR"
+
+// ErrorI18nCaptchaInvalidErr 验证码无效
+//  支持国际化输出
+func ErrorI18nCaptchaInvalidErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nCaptchaInvalidErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_CAPTCHA_INVALID_ERR.String(), fmt.Sprintf("验证码无效", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_CAPTCHA_INVALID_ERR.String(), fmt.Sprintf("验证码无效", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_CAPTCHA_INVALID_ERR.String(), localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"code": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "CAPTCHA_INVALID_ERR"),
+	})
+}
+
+// IsMetricNotFoundErr metric指标不存在
+func IsMetricNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_METRIC_NOT_FOUND_ERR.String() && e.Code == 405
+}
+
+// ErrorMetricNotFoundErr metric指标不存在
+func ErrorMetricNotFoundErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_METRIC_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorMetricNotFoundErrWithContext metric指标不存在
+//
+//	带上下文，支持国际化输出元数据
+func ErrorMetricNotFoundErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_METRIC_NOT_FOUND_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nMetricNotFoundErrID = "METRIC_NOT_FOUND_ERR"
+
+// ErrorI18nMetricNotFoundErr metric指标不存在
+//  支持国际化输出
+func ErrorI18nMetricNotFoundErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nMetricNotFoundErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_METRIC_NOT_FOUND_ERR.String(), fmt.Sprintf("指标不存在", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_METRIC_NOT_FOUND_ERR.String(), fmt.Sprintf("指标不存在", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_METRIC_NOT_FOUND_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsDependencyErr 依赖错误
+func IsDependencyErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_DEPENDENCY_ERR.String() && e.Code == 405
+}
+
+// ErrorDependencyErr 依赖错误
+func ErrorDependencyErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DEPENDENCY_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorDependencyErrWithContext 依赖错误
+//
+//	带上下文，支持国际化输出元数据
+func ErrorDependencyErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DEPENDENCY_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nDependencyErrID = "DEPENDENCY_ERR"
+
+// ErrorI18nDependencyErr 依赖错误
+//  支持国际化输出
+func ErrorI18nDependencyErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nDependencyErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_DEPENDENCY_ERR.String(), fmt.Sprintf("依赖错误", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_DEPENDENCY_ERR.String(), fmt.Sprintf("依赖错误", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_DEPENDENCY_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsDbConnectErr 数据库连接失败
+func IsDbConnectErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_DB_CONNECT_ERR.String() && e.Code == 405
+}
+
+// ErrorDbConnectErr 数据库连接失败
+func ErrorDbConnectErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DB_CONNECT_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorDbConnectErrWithContext 数据库连接失败
+//
+//	带上下文，支持国际化输出元数据
+func ErrorDbConnectErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_DB_CONNECT_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nDbConnectErrID = "DB_CONNECT_ERR"
+
+// ErrorI18nDbConnectErr 数据库连接失败
+//  支持国际化输出
+func ErrorI18nDbConnectErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nDbConnectErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_DB_CONNECT_ERR.String(), fmt.Sprintf("数据库连接失败", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_DB_CONNECT_ERR.String(), fmt.Sprintf("数据库连接失败", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_DB_CONNECT_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsUnsupportedDatasourceTypeErr 不支持的数据源类型
+func IsUnsupportedDatasourceTypeErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String() && e.Code == 405
+}
+
+// ErrorUnsupportedDatasourceTypeErr 不支持的数据源类型
+func ErrorUnsupportedDatasourceTypeErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorUnsupportedDatasourceTypeErrWithContext 不支持的数据源类型
+//
+//	带上下文，支持国际化输出元数据
+func ErrorUnsupportedDatasourceTypeErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nUnsupportedDatasourceTypeErrID = "UNSUPPORTED_DATASOURCE_TYPE_ERR"
+
+// ErrorI18nUnsupportedDatasourceTypeErr 不支持的数据源类型
+//  支持国际化输出
+func ErrorI18nUnsupportedDatasourceTypeErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nUnsupportedDatasourceTypeErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String(), fmt.Sprintf("不支持的数据源类型", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String(), fmt.Sprintf("不支持的数据源类型", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_UNSUPPORTED_DATASOURCE_TYPE_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsNoPermissionToOperateErr 请联系管理员分配权限
+func IsNoPermissionToOperateErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String() && e.Code == 405
+}
+
+// ErrorNoPermissionToOperateErr 请联系管理员分配权限
+func ErrorNoPermissionToOperateErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorNoPermissionToOperateErrWithContext 请联系管理员分配权限
+//
+//	带上下文，支持国际化输出元数据
+func ErrorNoPermissionToOperateErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nNoPermissionToOperateErrID = "NO_PERMISSION_TO_OPERATE_ERR"
+
+// ErrorI18nNoPermissionToOperateErr 请联系管理员分配权限
+//  支持国际化输出
+func ErrorI18nNoPermissionToOperateErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nNoPermissionToOperateErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String(), fmt.Sprintf("请联系管理员分配权限", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String(), fmt.Sprintf("请联系管理员分配权限", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_NO_PERMISSION_TO_OPERATE_ERR.String(), localize)
+		}
+	}
+
+	return err
+}
+
+// IsParamsValidateErr 参数校验失败
+func IsParamsValidateErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_PARAMS_VALIDATE_ERR.String() && e.Code == 405
+}
+
+// ErrorParamsValidateErr 参数校验失败
+func ErrorParamsValidateErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PARAMS_VALIDATE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorParamsValidateErrWithContext 参数校验失败
+//
+//	带上下文，支持国际化输出元数据
+func ErrorParamsValidateErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_PARAMS_VALIDATE_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nParamsValidateErrID = "PARAMS_VALIDATE_ERR"
+
+// ErrorI18nParamsValidateErr 参数校验失败
+//  支持国际化输出
+func ErrorI18nParamsValidateErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nParamsValidateErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(405, ErrorReason_PARAMS_VALIDATE_ERR.String(), fmt.Sprintf("参数校验失败", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(405, ErrorReason_PARAMS_VALIDATE_ERR.String(), fmt.Sprintf("参数校验失败", args...)).WithCause(err1)
+		} else {
+			err = errors.New(405, ErrorReason_PARAMS_VALIDATE_ERR.String(), localize)
 		}
 	}
 

@@ -1,10 +1,10 @@
 package conn
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/aide-family/moon/api/merr"
 	slog "github.com/aide-family/moon/pkg/log"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -45,14 +45,13 @@ func NewGormDB(dsn, drive string, logger ...log.Logger) (*gorm.DB, error) {
 			return nil, err
 		}
 		dialector = sqlite.Open(dsn)
-
 	default:
-		return nil, fmt.Errorf("invalid driver: %s", drive)
+		return nil, merr.ErrorDependencyErr("invalid driver: %s", drive)
 	}
 
 	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
-		return nil, err
+		return nil, merr.ErrorDbConnectErr("connect db error: %s", err)
 	}
 
 	if drive == "sqlite" {
@@ -70,7 +69,7 @@ func NewGormDB(dsn, drive string, logger ...log.Logger) (*gorm.DB, error) {
 // checkDBFileExists .
 func checkDBFileExists(filename string) error {
 	if filename == "" {
-		return fmt.Errorf("db file is empty")
+		return merr.ErrorDependencyErr("db file is empty")
 	}
 	file, err := os.Stat(filename)
 	if err != nil {
@@ -90,7 +89,7 @@ func checkDBFileExists(filename string) error {
 		}
 	}
 	if file.IsDir() {
-		return fmt.Errorf("db file is dir")
+		return merr.ErrorDependencyErr("db file is dir")
 	}
 	return err
 }

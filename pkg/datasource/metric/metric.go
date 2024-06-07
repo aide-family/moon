@@ -75,7 +75,7 @@ func NewMetricDatasource(storageType vobj.StorageType, opts ...DatasourceBuildOp
 	case vobj.StorageTypePrometheus:
 		return NewPrometheusDatasource(d.prometheusOptions...), nil
 	default:
-		return nil, merr.ErrorNotification("不支持的数据源类型")
+		return nil, merr.ErrorUnsupportedDatasourceTypeErr("unsupported data source type")
 	}
 }
 

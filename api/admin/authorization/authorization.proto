@@ -69,8 +69,6 @@ message LoginRequest {
 	string redirect = 4;
 	// 团队ID
 	uint32 team_id = 5;
-	// 团队角色ID
-	uint32 team_role_id = 6;
 }
 message LoginReply {
 	// 用户信息

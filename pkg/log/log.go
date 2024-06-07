@@ -51,13 +51,13 @@ func GetLogger() log.Logger {
 	return defaultLogger
 }
 
-func RecoveryHandle(_ context.Context, req, err interface{}) error {
+func RecoveryHandle(ctx context.Context, req, err interface{}) error {
 	log.Errorw("panic", err)
 	myErr, ok := err.(*errors.Error)
 	if ok {
 		return myErr
 	}
-	return merr.ErrorNotification("系统错误").WithMetadata(map[string]string{
+	return merr.ErrorI18nSystemErr(ctx).WithMetadata(map[string]string{
 		"error":  fmt.Sprintf("%v", err),
 		"params": fmt.Sprintf("%v", req),
 	})

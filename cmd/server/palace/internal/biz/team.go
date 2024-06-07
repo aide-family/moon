@@ -28,7 +28,11 @@ type TeamBiz struct {
 
 // CreateTeam 创建团队
 func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (*model.SysTeam, error) {
-	return t.teamRepo.CreateTeam(ctx, params)
+	teamDo, err := t.teamRepo.CreateTeam(ctx, params)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return teamDo, nil
 }
 
 // UpdateTeam 更新团队
@@ -41,14 +45,20 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 	if !claims.IsTeamAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	return t.teamRepo.UpdateTeam(ctx, team)
+	if err := t.teamRepo.UpdateTeam(ctx, team); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // GetTeam 获取团队信息
 func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, error) {
+	if teamId == 0 {
+		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
+	}
 	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamId}})
 	if !types.IsNil(err) {
-		return nil, err
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if len(teamList) == 0 {
 		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
@@ -65,7 +75,11 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 	if !claims.IsAdminRole() {
 		params.UserID = claims.GetUser()
 	}
-	return t.teamRepo.GetTeamList(ctx, params)
+	list, err := t.teamRepo.GetTeamList(ctx, params)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return list, nil
 }
 
 // UpdateTeamStatus 更新团队状态
@@ -77,12 +91,19 @@ func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids 
 	if !claims.IsAdminRole() && !claims.IsTeamAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	return t.teamRepo.UpdateTeamStatus(ctx, status, ids...)
+	if err := t.teamRepo.UpdateTeamStatus(ctx, status, ids...); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // GetUserTeamList 获取用户团队列表
 func (t *TeamBiz) GetUserTeamList(ctx context.Context, userId uint32) ([]*model.SysTeam, error) {
-	return t.teamRepo.GetUserTeamList(ctx, userId)
+	list, err := t.teamRepo.GetUserTeamList(ctx, userId)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return list, nil
 }
 
 // AddTeamMember 添加团队成员
@@ -94,7 +115,10 @@ func (t *TeamBiz) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberPar
 	if !claims.IsTeamAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	return t.teamRepo.AddTeamMember(ctx, params)
+	if err := t.teamRepo.AddTeamMember(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // RemoveTeamMember 移除团队成员
@@ -115,7 +139,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		MemberIDs: params.MemberIds,
 	})
 	if !types.IsNil(err) {
-		return err
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if len(teamMemberList) == 0 {
 		return nil
@@ -126,11 +150,11 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nTeamNotFoundErr(ctx)
 		}
-		return err
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 
 	for _, teamMember := range teamMemberList {
-		role := vobj.Role(teamMember.Role)
+		role := teamMember.Role
 		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
 			return merr.ErrorI18nAdminUserDeleteErr(ctx)
 		}
@@ -140,7 +164,10 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 
 	// 判断移除的人员中是否包含当前用户和管理员
-	return t.teamRepo.RemoveTeamMember(ctx, params)
+	if err = t.teamRepo.RemoveTeamMember(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // SetTeamAdmin 设置团队管理员
@@ -158,7 +185,10 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 			return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
 		}
 	}
-	return t.teamRepo.SetMemberAdmin(ctx, params)
+	if err := t.teamRepo.SetMemberAdmin(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // SetMemberRole 设置团队成员角色
@@ -170,12 +200,19 @@ func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRolePar
 	if !claims.IsTeamAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	return t.teamRepo.SetMemberRole(ctx, params)
+	if err := t.teamRepo.SetMemberRole(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }
 
 // ListTeamMember 获取团队成员列表
 func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {
-	return t.teamRepo.ListTeamMember(ctx, params)
+	list, err := t.teamRepo.ListTeamMember(ctx, params)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return list, nil
 }
 
 // TransferTeamLeader 移交团队领导
@@ -186,7 +223,7 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nTeamNotFoundErr(ctx)
 		}
-		return err
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if team.LeaderID != params.OldLeaderID {
 		return merr.ErrorI18nTeamLeaderErr(ctx)
@@ -194,5 +231,8 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 	if team.LeaderID == params.LeaderID {
 		return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
 	}
-	return t.teamRepo.TransferTeamLeader(ctx, params)
+	if err = t.teamRepo.TransferTeamLeader(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }

@@ -13,7 +13,7 @@ import (
 // NewDiscovery 创建一个服务发现实例
 func NewDiscovery(c *api.Discovery) (registry.Discovery, error) {
 	if types.IsNil(c) {
-		return nil, merr.ErrorNotification("discovery config is nil")
+		return nil, merr.ErrorDependencyErr("discovery config is nil")
 	}
 	switch c.GetType() {
 	case "etcd", "ETCD":
@@ -30,6 +30,6 @@ func NewDiscovery(c *api.Discovery) (registry.Discovery, error) {
 		}
 		return etcd.New(client), nil
 	default:
-		return nil, merr.ErrorNotification("discovery config is not supported")
+		return nil, merr.ErrorDependencyErr("discovery config is not supported")
 	}
 }

@@ -13,7 +13,7 @@ import (
 // NewRegister 创建一个服务注册实例
 func NewRegister(c *api.Registry) (registry.Registrar, error) {
 	if types.IsNil(c) {
-		return nil, merr.ErrorNotification("registry config is nil")
+		return nil, merr.ErrorDependencyErr("registry config is nil")
 	}
 	switch c.GetType() {
 	case "etcd", "ETCD":
@@ -30,6 +30,6 @@ func NewRegister(c *api.Registry) (registry.Registrar, error) {
 		}
 		return etcd.New(client), nil
 	default:
-		return nil, merr.ErrorNotification("registry type is not support")
+		return nil, merr.ErrorDependencyErr("registry type is not support")
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -40,24 +39,24 @@ func NewAuthorizationBiz(
 // CheckPermission 检查用户是否有该资源权限
 func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
 	if req.JwtClaims.GetTeamRole().IsAdmin() {
-		//return nil
+		return nil
 	}
 	// 检查用户是否被团队禁用
-	teamDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
+	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorModal("用户不在该团队中")
+			return merr.ErrorI18nUserNotInTeamErr(ctx)
 		}
-		return merr.ErrorNotification("系统错误")
+		return merr.ErrorI18nSystemErr(ctx)
 	}
-	if !vobj.Status(teamDo.Status).IsEnable() {
-		return merr.ErrorModal("用户被禁用")
+	if !teamMemberDo.Status.IsEnable() {
+		return merr.ErrorI18nUserTeamDisabledErr(ctx)
 	}
 
 	// 查询用户角色
 	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
-		return merr.ErrorNotification("系统错误")
+		return merr.ErrorI18nSystemErr(ctx)
 	}
 	if len(memberRoles) == 0 {
 		return merr.ErrorI18nNoPermissionErr(ctx)
@@ -72,7 +71,6 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	if !rbac {
 		return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{
 			"operation": req.Operation,
-			"rbac":      "false",
 		})
 	}
 
@@ -96,14 +94,37 @@ func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenPar
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorModal("用户不存在")
+			return merr.ErrorI18nUserNotFoundErr(ctx)
 		}
-		return merr.ErrorNotification("系统错误")
+		return merr.ErrorI18nSystemErr(ctx)
 	}
 	if !userDo.Status.IsEnable() {
-		return merr.ErrorModal("用户被禁用")
+		return merr.ErrorI18nUserLimitErr(ctx)
 	}
 	return nil
+}
+
+// getJwtBaseInfo 获取jwtBaseInfo
+func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.SysUser, teamID uint32) (*middleware.JwtBaseInfo, error) {
+	if !userDo.Status.IsEnable() {
+		return nil, merr.ErrorI18nUserLimitErr(ctx)
+	}
+	// 生成token
+	base := new(middleware.JwtBaseInfo)
+	base.SetUserInfo(userDo)
+	// 查询用户所属团队是否存在，存在着set temId
+	if teamID > 0 {
+		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, teamID)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nUserNotInTeamErr(ctx)
+		}
+		if !memberItem.Status.IsEnable() {
+			return nil, merr.ErrorI18nUserTeamDisabledErr(ctx)
+		}
+		base.SetTeamInfo(memberItem)
+	}
+
+	return base, nil
 }
 
 // Login 登录
@@ -123,22 +144,10 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 	}
 
 	// 生成token
-	base := &middleware.JwtBaseInfo{}
-
-	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, userDo.Role, nil
-	})
-	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
-		if req.Team <= 0 {
-			return
-		}
-		// 查询用户所属团队是否存在，存在着set temId
-		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-		if !types.IsNil(err) {
-			return 0, 0, err
-		}
-		return req.Team, vobj.Role(memberItem.Role), nil
-	})
+	base, err := b.getJwtBaseInfo(ctx, userDo, req.Team)
+	if !types.IsNil(err) {
+		return nil, err
+	}
 
 	jwtClaims := middleware.NewJwtClaims(base)
 	return &bo.LoginReply{
@@ -157,47 +166,16 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// 统一包装成密码错误
-			return nil, merr.ErrorModal("用户不存在")
-		}
-		return nil, merr.ErrorI18nSystemErr(ctx)
-	}
-	if !userDo.Status.IsEnable() {
-		return nil, merr.ErrorRedirect("用户被禁用").WithMetadata(map[string]string{
-			"redirect": "/login",
-		})
-	}
-
-	// 查询用户所属团队是否存在，存在着set temId
-	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorNotification("用户不在该团队中")
-		}
-		return nil, merr.ErrorI18nSystemErr(ctx)
-	}
-
-	if !vobj.Status(teamMemberDo.Status).IsEnable() {
-		return nil, merr.ErrorNotification("用户被禁用")
-	}
-
-	// 查询用户所属团队角色是否存在，存在着set teamRoleId
-	memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
-	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorNotification("用户此权限已被移除")
+			return nil, merr.ErrorI18nUserNotFoundErr(ctx)
 		}
 		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 
 	// 生成token
-	base := &middleware.JwtBaseInfo{}
-	base.SetUserInfo(func() (userId uint32, role vobj.Role, err error) {
-		return userDo.ID, userDo.Role, nil
-	})
-	base.SetTeamInfo(func() (teamId uint32, teamRole vobj.Role, err error) {
-		return req.Team, vobj.Role(memberItem.Role), nil
-	})
+	base, err := b.getJwtBaseInfo(ctx, userDo, req.Team)
+	if !types.IsNil(err) {
+		return nil, err
+	}
 
 	jwtClaims := middleware.NewJwtClaims(base)
 	return &bo.RefreshTokenReply{

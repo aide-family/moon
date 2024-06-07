@@ -6,6 +6,7 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/types"
+
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"google.golang.org/protobuf/proto"
@@ -31,11 +32,11 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 			}
 			var validationError *protovalidate.ValidationError
 			if !errors.As(err, &validationError) {
-				return nil, merr.ErrorNotification(err.Error())
+				return nil, merr.ErrorI18nParamsValidateErr(ctx).WithCause(err)
 			}
 
 			if types.IsNil(validationError) || len(validationError.Violations) == 0 {
-				return nil, merr.ErrorNotification("参数校验失败")
+				return nil, merr.ErrorI18nParamsValidateErr(ctx)
 			}
 
 			errMap := make(map[string]string)
