@@ -20,6 +20,9 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	microServer := c.GetMicroServer()
 	rabbitServer := microServer.GetRabbitServer()
 	rabbitConn := &RabbitConn{}
+	if types.IsNil(rabbitServer) {
+		return nil, nil, merr.ErrorNotification("未配置MicroServer.RabbitServer")
+	}
 	switch rabbitServer.GetNetwork() {
 	case "http", "HTTP":
 		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())

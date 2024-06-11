@@ -30,6 +30,9 @@ type TeamBiz struct {
 func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (*model.SysTeam, error) {
 	teamDo, err := t.teamRepo.CreateTeam(ctx, params)
 	if !types.IsNil(err) {
+		if merr.IsTeamNameExistErr(err) {
+			return nil, err
+		}
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return teamDo, nil

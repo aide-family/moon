@@ -18,6 +18,9 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	microServer := c.GetMicroServer()
 	houYiServer := microServer.GetHouYiServer()
 	houYiConn := &HouYiConn{}
+	if types.IsNil(houYiServer) {
+		return nil, nil, merr.ErrorNotification("未配置MicroServer.HouYiServer")
+	}
 	switch houYiServer.GetNetwork() {
 	case "http", "HTTP":
 		httpConn, err := newHttpConn(houYiServer, microServer.GetDiscovery())

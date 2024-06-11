@@ -51,13 +51,36 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		return nil, merr.ErrorI18nTeamNameExistErr(ctx)
 	}
 
-	sysApis, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysAPI.Find()
+	err = query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
+		// 创建基础信息
+		if err = tx.SysTeam.Create(sysTeamModel); !types.IsNil(err) {
+			return err
+		}
+
+		return l.syncTeamBaseData(ctx, sysTeamModel, team)
+	})
 	if !types.IsNil(err) {
 		return nil, err
 	}
+
+	return sysTeamModel, nil
+}
+
+func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, team *bo.CreateTeamParams) (err error) {
+	teamId := sysTeamModel.ID
+	// 创建团队数据库
+	_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamId) + "`")
+	if !types.IsNil(err) {
+		return err
+	}
+
+	sysApis, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysAPI.Find()
+	if !types.IsNil(err) {
+		return err
+	}
 	sysMenus, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Find()
 	if !types.IsNil(err) {
-		return nil, err
+		return err
 	}
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
@@ -89,69 +112,68 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		}, true
 	})
 
-	err = query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		// 创建基础信息
-		if err = tx.SysTeam.Create(sysTeamModel); !types.IsNil(err) {
-			return err
+	flag := true
+	// 添加管理员成员
+	adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*bizmodel.SysTeamMember, bool) {
+		if memberId <= 0 {
+			return nil, false
 		}
-		teamId := sysTeamModel.ID
-		flag := true
-		// 添加管理员成员
-		adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*bizmodel.SysTeamMember, bool) {
-			if memberId <= 0 {
-				return nil, false
-			}
-			if memberId == sysTeamModel.LeaderID {
-				flag = false
-			}
-			return &bizmodel.SysTeamMember{
-				UserID: memberId,
-				TeamID: teamId,
-				Status: vobj.StatusEnable,
-				Role:   vobj.RoleAdmin,
-			}, true
+		if memberId == sysTeamModel.LeaderID {
+			flag = false
+		}
+		return &bizmodel.SysTeamMember{
+			UserID: memberId,
+			TeamID: teamId,
+			Status: vobj.StatusEnable,
+			Role:   vobj.RoleAdmin,
+		}, true
+	})
+	if flag {
+		adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
+			UserID: sysTeamModel.LeaderID,
+			TeamID: teamId,
+			Status: vobj.StatusEnable,
+			Role:   vobj.RoleAdmin,
 		})
-		if flag {
-			adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
-				UserID: sysTeamModel.LeaderID,
-				TeamID: teamId,
-				Status: vobj.StatusEnable,
-				Role:   vobj.RoleAdmin,
-			})
+	}
+	bizDB, bizDbErr := l.data.GetBizGormDB(teamId)
+	if !types.IsNil(bizDbErr) {
+		return err
+	}
+
+	modelList := bizmodel.Models()
+	if len(modelList) == 0 {
+		return nil
+	}
+
+	// 初始化数据表
+	if err = bizDB.AutoMigrate(modelList...); !types.IsNil(err) {
+		return err
+	}
+
+	return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		q := bizquery.Use(tx)
+		if len(adminMembers) > 0 {
+			if err = q.SysTeamMember.Create(adminMembers...); !types.IsNil(err) {
+				return err
+			}
 		}
 
-		// 创建团队数据库
-		_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamId) + "`")
-		if !types.IsNil(err) {
-			return err
-		}
-		bizDB, err := l.data.GetBizGormDB(teamId)
-		if !types.IsNil(err) {
-			return err
-		}
-		// TODO 初始化数据表
-		if err = bizDB.AutoMigrate(bizmodel.Models()...); !types.IsNil(err) {
-			return err
+		if len(teamApis) > 0 {
+			// 迁移api数据到团队数据库
+			if err = q.SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
+				return err
+			}
 		}
 
-		if err = bizquery.Use(bizDB).SysTeamMember.WithContext(ctx).Create(adminMembers...); !types.IsNil(err) {
-			return err
-		}
-
-		// 迁移api数据到团队数据库
-		if err = bizquery.Use(bizDB).SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
-			return err
-		}
-		if err = bizquery.Use(bizDB).SysTeamMenu.Create(teamMenus...); !types.IsNil(err) {
-			return err
+		if len(teamMenus) > 0 {
+			if err = q.SysTeamMenu.Create(teamMenus...); !types.IsNil(err) {
+				return err
+			}
 		}
 
 		return nil
 	})
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return sysTeamModel, nil
 }
 
 func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {

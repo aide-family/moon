@@ -75,7 +75,7 @@ micro_server:
     timeout: 50s
     secret: ""
   hou_yi_server:
-    network: "http"
+    network: "rpc"
     nodeVersion: ""
     endpoint: "discovery:///moon_houyi"
     timeout: 50s
