@@ -1,35 +1,45 @@
-package data
+package runtimecache
 
 import (
 	"context"
 	"sort"
 	"sync"
 
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/helper/model/query"
+	"github.com/google/wire"
 )
+
+// ProviderSetRuntimeCache is runtime_cache providers.
+var ProviderSetRuntimeCache = wire.NewSet(NewRuntimeCache)
 
 var (
 	runtimeCache         RuntimeCache
 	runtimeCacheInitOnce sync.Once
 )
 
-func init() {
-	runtimeCacheInitOnce.Do(func() {
-		runtimeCache = NewRuntimeCache()
-	})
-}
-
 // GetRuntimeCache 获取运行时缓存的环境变量
 func GetRuntimeCache() RuntimeCache {
 	return runtimeCache
 }
 
-func NewRuntimeCache() RuntimeCache {
-	return &env{
-		userTeamList:  make(map[uint32]map[uint32]*model.SysTeam),
-		teamAdminList: make(map[uint32]map[uint32]*bizmodel.SysTeamMember),
-	}
+func NewRuntimeCache(d *data.Data) RuntimeCache {
+	runtimeCacheInitOnce.Do(func() {
+		runtimeCache = &env{
+			userTeamList:  make(map[uint32]map[uint32]*model.SysTeam),
+			teamAdminList: make(map[uint32]map[uint32]*bizmodel.SysTeamMember),
+		}
+		// 获取所有的团队列表
+		teamList, err := query.Use(d.GetMainDB(context.Background())).SysTeam.Find()
+		if err != nil {
+			return
+		}
+		// TODO 根据真实数据映射
+		runtimeCache.AppendUserTeamList(context.Background(), 1, teamList)
+	})
+	return runtimeCache
 }
 
 type (

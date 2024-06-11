@@ -124,6 +124,9 @@ func GenBizDatabaseName(teamId uint32) string {
 
 // GetBizGormDB 获取业务库连接
 func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
+	if teamId == 0 {
+		return nil, merr.ErrorI18nNoTeamErr(context.Background())
+	}
 	dbValue, exist := d.teamBizDBMap.Load(teamId)
 	if exist {
 		bizDB, isBizDB := dbValue.(*gorm.DB)

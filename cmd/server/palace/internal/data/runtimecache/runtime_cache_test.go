@@ -1,17 +1,17 @@
-package data_test
+package runtimecache_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 func TestNewRuntimeCache(t *testing.T) {
-	cache := data.NewRuntimeCache()
+	cache := runtimecache.NewRuntimeCache()
 	ctx := context.Background()
 	cache.AppendUserTeamList(ctx, 1, []*model.SysTeam{
 		{

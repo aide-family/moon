@@ -256,4 +256,11 @@ enum ErrorReason {
     (errors.message) = "参数校验失败",
     (errors.id) = "PARAMS_VALIDATE_ERR"
   ];
+
+  // 请创建您的团队
+  NO_TEAM_ERR = 36 [
+    (errors.code) = 200,
+    (errors.message) = "请创建您的团队",
+    (errors.id) = "NO_TEAM_ERR"
+  ];
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel/bizquery"
@@ -21,14 +22,16 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewTeamRepository(data *data.Data) repository.Team {
+func NewTeamRepository(data *data.Data, cache runtimecache.RuntimeCache) repository.Team {
 	return &teamRepositoryImpl{
-		data: data,
+		data:  data,
+		cache: cache,
 	}
 }
 
 type teamRepositoryImpl struct {
-	data *data.Data
+	data  *data.Data
+	cache runtimecache.RuntimeCache
 }
 
 func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
@@ -199,6 +202,9 @@ func (l *teamRepositoryImpl) GetTeamDetail(ctx context.Context, teamID uint32) (
 
 func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam
+	if types.IsNil(params) {
+		return q.Find()
+	}
 	if !types.TextIsNull(params.Keyword) {
 		q = q.Where(query.SysTeam.Name.Like(params.Keyword))
 	}
@@ -216,7 +222,7 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 	if params.UserID > 0 {
 		queryTeamIds = true
 		// 缓存用户的全部团队ID， 然后取出来使用
-		teamList := data.GetRuntimeCache().GetUserTeamList(ctx, params.UserID)
+		teamList := runtimecache.GetRuntimeCache().GetUserTeamList(ctx, params.UserID)
 		teamIds = append(teamIds, types.SliceTo(teamList, func(team *model.SysTeam) uint32 { return team.ID })...)
 	}
 	if len(params.IDs) > 0 {
@@ -231,20 +237,21 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 		q = q.Where(query.SysTeam.ID.In(teamIds...))
 	}
 
-	if !types.IsNil(params.Page) {
-		total, err := q.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		page := params.Page
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			q = q.Limit(pageSize)
-		} else {
-			q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
-	}
+	// 团队列表不再分页
+	//if !types.IsNil(params.Page) {
+	//	total, err := q.Count()
+	//	if !types.IsNil(err) {
+	//		return nil, err
+	//	}
+	//	params.Page.SetTotal(int(total))
+	//	page := params.Page
+	//	pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
+	//	if pageNum <= 1 {
+	//		q = q.Limit(pageSize)
+	//	} else {
+	//		q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
+	//	}
+	//}
 	return q.Order(query.SysTeam.ID.Desc()).Preload(field.Associations).Find()
 }
 
@@ -256,7 +263,7 @@ func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.S
 
 func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
 	// 从全局缓存读取数据
-	return data.GetRuntimeCache().GetUserTeamList(ctx, userID), nil
+	return l.cache.GetUserTeamList(ctx, userID), nil
 }
 
 func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {

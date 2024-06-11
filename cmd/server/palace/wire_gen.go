@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver/microserverrepoimpl"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/repoimpl"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
@@ -40,7 +41,8 @@ func wireApp(bootstrap *palaceconf.Bootstrap, logger log.Logger) (*kratos.App, f
 	captcha := repoimpl.NewCaptchaRepository(dataData)
 	captchaBiz := biz.NewCaptchaBiz(captcha)
 	repositoryUser := repoimpl.NewUserRepository(dataData)
-	repositoryTeam := repoimpl.NewTeamRepository(dataData)
+	runtimeCache := runtimecache.NewRuntimeCache(dataData)
+	repositoryTeam := repoimpl.NewTeamRepository(dataData, runtimeCache)
 	cache := repoimpl.NewCacheRepository(dataData)
 	teamRole := repoimpl.NewTeamRoleRepository(dataData)
 	authorizationBiz := biz.NewAuthorizationBiz(repositoryUser, repositoryTeam, cache, teamRole)

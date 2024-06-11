@@ -32,9 +32,9 @@ server:
 
     # 角色权限白名单, 包含white_list， 因为不需要登录的接口自然也不需要RBAC
     rbac_white_list:
-#      - /api.admin.authorization.Authorization/Login
-#      - /api.admin.authorization.Authorization/Captcha
-#      - /api.admin.authorization.Authorization/CreatePassword
+      - /api.admin.authorization.Authorization/Logout
+      - /api.admin.team.Team/MyTeam
+      - /api.admin.authorization.Authorization/RefreshToken
 
 data:
   database:

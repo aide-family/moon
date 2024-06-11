@@ -1761,3 +1761,49 @@ func ErrorI18nParamsValidateErr(ctx context.Context, args ...interface{}) *error
 
 	return err
 }
+
+// IsNoTeamErr 请创建您的团队
+func IsNoTeamErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_NO_TEAM_ERR.String() && e.Code == 200
+}
+
+// ErrorNoTeamErr 请创建您的团队
+func ErrorNoTeamErr(format string, args ...interface{}) *errors.Error {
+	return errors.New(200, ErrorReason_NO_TEAM_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+// ErrorNoTeamErrWithContext 请创建您的团队
+//
+//	带上下文，支持国际化输出元数据
+func ErrorNoTeamErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(200, ErrorReason_NO_TEAM_ERR.String(), fmt.Sprintf(format, args...))
+}
+
+const ErrorI18nNoTeamErrID = "NO_TEAM_ERR"
+
+// ErrorI18nNoTeamErr 请创建您的团队
+//  支持国际化输出
+func ErrorI18nNoTeamErr(ctx context.Context, args ...interface{}) *errors.Error {
+	config := &i18n.LocalizeConfig{
+		MessageID: ErrorI18nNoTeamErrID,
+	}
+	if len(args) > 0 {
+		config.TemplateData = args[0]
+	}
+	err := errors.New(200, ErrorReason_NO_TEAM_ERR.String(), fmt.Sprintf("请创建您的团队", args...))
+	local, ok := FromContext(ctx)
+	if ok {
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(200, ErrorReason_NO_TEAM_ERR.String(), fmt.Sprintf("请创建您的团队", args...)).WithCause(err1)
+		} else {
+			err = errors.New(200, ErrorReason_NO_TEAM_ERR.String(), localize)
+		}
+	}
+
+	return err
+}

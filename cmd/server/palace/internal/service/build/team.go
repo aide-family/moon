@@ -5,7 +5,7 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-family/moon/pkg/types"
@@ -38,7 +38,7 @@ func (b *TeamBuild) ToApi(ctx context.Context) *admin.Team {
 		Creator:   NewUserBuild(b.Creator).ToApi(),
 		Logo:      b.Logo,
 		// 从全局中取
-		Admin: types.SliceTo(data.GetRuntimeCache().GetTeamAdminList(ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
+		Admin: types.SliceTo(runtimecache.GetRuntimeCache().GetTeamAdminList(ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
 			return NewTeamMemberBuild(item).ToApi()
 		}),
 	}
