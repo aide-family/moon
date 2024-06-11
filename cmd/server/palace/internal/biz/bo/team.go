@@ -30,6 +30,10 @@ type (
 		Name string `json:"name"`
 		// 团队备注
 		Remark string `json:"remark"`
+		// 团队logo
+		Logo string `json:"logo"`
+		// 状态
+		Status vobj.Status `json:"status"`
 	}
 
 	QueryTeamListParams struct {

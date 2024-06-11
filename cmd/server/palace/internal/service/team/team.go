@@ -58,6 +58,8 @@ func (s *Service) UpdateTeam(ctx context.Context, req *pb.UpdateTeamRequest) (*p
 		ID:     req.GetId(),
 		Name:   req.GetName(),
 		Remark: req.GetRemark(),
+		Logo:   req.GetLogo(),
+		Status: vobj.Status(req.GetStatus()),
 	}
 	if err := s.teamBiz.UpdateTeam(ctx, params); !types.IsNil(err) {
 		return nil, err
@@ -71,7 +73,7 @@ func (s *Service) GetTeam(ctx context.Context, req *pb.GetTeamRequest) (*pb.GetT
 		return nil, err
 	}
 	return &pb.GetTeamReply{
-		Team: build.NewTeamBuild(teamInfo).ToApi(),
+		Team: build.NewTeamBuild(teamInfo).ToApi(ctx),
 	}, nil
 }
 
@@ -90,7 +92,7 @@ func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.Li
 	return &pb.ListTeamReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuild(team).ToApi()
+			return build.NewTeamBuild(team).ToApi(ctx)
 		}),
 	}, nil
 }
@@ -113,7 +115,7 @@ func (s *Service) MyTeam(ctx context.Context, _ *pb.MyTeamRequest) (*pb.MyTeamRe
 	}
 	return &pb.MyTeamReply{
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuild(team).ToApi()
+			return build.NewTeamBuild(team).ToApi(ctx)
 		}),
 	}, nil
 }

@@ -26,6 +26,9 @@ type SysTeam struct {
 	LeaderID  uint32                `gorm:"column:leader_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"leader_id"` // 负责人
 	CreatorID uint32                `gorm:"column:creator_id;type:int unsigned;not null;comment:创建者" json:"creator_id"`                                     // 创建者
 	UUID      string                `gorm:"column:uuid;type:varchar(64);not null" json:"uuid"`
+
+	Leader  *SysUser `gorm:"foreignKey:LeaderID;references:ID" json:"leader"`
+	Creator *SysUser `gorm:"foreignKey:CreatorID;references:ID" json:"creator"`
 }
 
 // String json string

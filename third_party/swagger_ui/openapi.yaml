@@ -2716,6 +2716,13 @@ components:
                 remark:
                     type: string
                     description: 团队描述, 长度限制在0-200个字符
+                logo:
+                    type: string
+                    description: 团队logo, 长度限制在0-200个字符
+                status:
+                    type: integer
+                    description: 团队状态
+                    format: enum
             description: 只允许修改基础信息
         api.admin.team.UpdateTeamStatusReply:
             type: object

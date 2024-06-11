@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/types"
 	"github.com/aide-family/moon/pkg/utils/random"
 	"github.com/aide-family/moon/pkg/vobj"
+	"gorm.io/gen/field"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
@@ -182,12 +183,18 @@ func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeam
 		UpdateColumnSimple(
 			query.SysTeam.Name.Value(team.Name),
 			query.SysTeam.Remark.Value(team.Remark),
+			query.SysTeam.Logo.Value(team.Logo),
+			query.SysTeam.Status.Value(team.Status.GetValue()),
 		)
 	return err
 }
 
 func (l *teamRepositoryImpl) GetTeamDetail(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
-	return query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.Where(query.SysTeam.ID.Eq(teamID)).First()
+	return query.Use(l.data.GetMainDB(ctx)).
+		WithContext(ctx).SysTeam.
+		Where(query.SysTeam.ID.Eq(teamID)).
+		Preload(field.Associations).
+		First()
 }
 
 func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
@@ -207,21 +214,18 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 	var teamIds []uint32
 	queryTeamIds := false
 	if params.UserID > 0 {
-		// TODO 需要缓存用户的全部团队ID， 然后取出来使用
-		//queryTeamIds = true
-		//bizDB, err := l.data.GetBizGormDB(teamId)
-		//if !types.IsNil(err) {
-		//	return nil, err
-		//}
-		//if err := bizquery.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
-		//	bizquery.SysTeamMember.UserID.Eq(params.UserID),
-		//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); !types.IsNil(err) {
-		//	return nil, err
-		//}
+		queryTeamIds = true
+		// 缓存用户的全部团队ID， 然后取出来使用
+		teamList := data.GetRuntimeCache().GetUserTeamList(ctx, params.UserID)
+		teamIds = append(teamIds, types.SliceTo(teamList, func(team *model.SysTeam) uint32 { return team.ID })...)
 	}
 	if len(params.IDs) > 0 {
 		queryTeamIds = true
-		teamIds = append(teamIds, params.IDs...)
+		if len(teamIds) > 0 {
+			teamIds = types.SlicesIntersection(params.IDs, teamIds)
+		} else {
+			teamIds = params.IDs
+		}
 	}
 	if queryTeamIds {
 		q = q.Where(query.SysTeam.ID.In(teamIds...))
@@ -241,7 +245,7 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 			q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
 		}
 	}
-	return q.Order(query.SysTeam.ID.Desc()).Find()
+	return q.Order(query.SysTeam.ID.Desc()).Preload(field.Associations).Find()
 }
 
 func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -251,17 +255,8 @@ func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.S
 }
 
 func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam
-	// TODO 需要缓存用户的全部团队ID， 然后取出来使用
-	//var teamIds []uint32
-	//if err := bizquery.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeamMember.Where(
-	//	bizquery.SysTeamMember.UserID.Eq(userID),
-	//).Pluck(bizquery.SysTeamMember.TeamID, &teamIds); !types.IsNil(err) {
-	//	return nil, err
-	//}
-	//q = q.Where(query.SysTeam.ID.In(teamIds...))
-
-	return q.Find()
+	// 从全局缓存读取数据
+	return data.GetRuntimeCache().GetUserTeamList(ctx, userID), nil
 }
 
 func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {

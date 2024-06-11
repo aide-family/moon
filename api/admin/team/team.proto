@@ -153,6 +153,13 @@ message UpdateTeamRequest {
     message: "团队描述长度在0-100个字符之间"
     expression: 'this.size() <= 200'
   }];
+  // 团队logo, 长度限制在0-200个字符
+  string logo = 4 [(buf.validate.field).cel = {
+    message: "团队logo长度在0-200个字符之间, 且必须是合法的URL"
+    expression: 'this.size() == 0 || this.size() <= 200 && this.size() > 0 && this.isUri()'
+  }];
+  // 团队状态
+  Status status = 5 [(buf.validate.field).required = true];
 }
 message UpdateTeamReply {}
 
