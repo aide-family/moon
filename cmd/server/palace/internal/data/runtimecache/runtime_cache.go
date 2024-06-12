@@ -31,8 +31,8 @@ var (
 // runtimeCacheTimer 定时同步用户和团队基础信息缓存
 func runtimeCacheTimer(d *data.Data) {
 	runtimeCacheTimerOnce.Do(func() {
-		runtimeCacheEnv := runtimeCache.(*env)
-		tick := time.NewTicker(0)
+		syncBaseInfo(d)
+		tick := time.NewTicker(1 * time.Minute)
 		go func() {
 			defer after.RecoverX()
 			for {
@@ -42,54 +42,58 @@ func runtimeCacheTimer(d *data.Data) {
 					log.Debugw("stop", "runtimeCacheTimer")
 					return
 				case <-tick.C:
-					ctx := context.Background()
-					// 获取所有的团队列表
-					teamList, err := query.Use(d.GetMainDB(ctx)).SysTeam.Find()
-					if err != nil {
-						return
-					}
-
-					// 获取所有的团队管理员列表
-					for _, teamItem := range teamList {
-						runtimeCacheEnv.teamList[teamItem.ID] = teamItem
-						db, dbErr := d.GetBizGormDB(teamItem.ID)
-						if dbErr != nil {
-							continue
-						}
-						teamMemberList, queryErr := bizquery.Use(db).SysTeamMember.WithContext(ctx).Preload(field.Associations).Find()
-						if queryErr != nil {
-							continue
-						}
-						if _, exist := runtimeCacheEnv.teamAdminList[teamItem.ID]; !exist {
-							runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
-						}
-						for _, teamMemberItem := range teamMemberList {
-							runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
-							if _, ok := runtimeCacheEnv.userTeamList[teamMemberItem.UserID]; !ok {
-								runtimeCacheEnv.userTeamList[teamMemberItem.UserID] = make(map[uint32]*model.SysTeam)
-							}
-							runtimeCacheEnv.userTeamList[teamMemberItem.UserID][teamItem.ID] = teamItem
-							if _, ok := runtimeCacheEnv.teamAdminList[teamItem.ID]; !ok {
-								runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
-							}
-							if teamMemberItem.Role.IsAdmin() {
-								runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
-							}
-						}
-					}
-					// 获取所有人员
-					userList, err := query.Use(d.GetMainDB(ctx)).SysUser.Find()
-					if err != nil {
-						return
-					}
-					for _, userItem := range userList {
-						runtimeCacheEnv.userList[userItem.ID] = userItem
-					}
+					syncBaseInfo(d)
 				}
-
 			}
 		}()
 	})
+}
+
+func syncBaseInfo(d *data.Data) {
+	runtimeCacheEnv := runtimeCache.(*env)
+	ctx := context.Background()
+	// 获取所有的团队列表
+	teamList, err := query.Use(d.GetMainDB(ctx)).SysTeam.Find()
+	if err != nil {
+		return
+	}
+
+	// 获取所有的团队管理员列表
+	for _, teamItem := range teamList {
+		runtimeCacheEnv.teamList[teamItem.ID] = teamItem
+		db, dbErr := d.GetBizGormDB(teamItem.ID)
+		if dbErr != nil {
+			continue
+		}
+		teamMemberList, queryErr := bizquery.Use(db).SysTeamMember.WithContext(ctx).Preload(field.Associations).Find()
+		if queryErr != nil {
+			continue
+		}
+		if _, exist := runtimeCacheEnv.teamAdminList[teamItem.ID]; !exist {
+			runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
+		}
+		for _, teamMemberItem := range teamMemberList {
+			runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
+			if _, ok := runtimeCacheEnv.userTeamList[teamMemberItem.UserID]; !ok {
+				runtimeCacheEnv.userTeamList[teamMemberItem.UserID] = make(map[uint32]*model.SysTeam)
+			}
+			runtimeCacheEnv.userTeamList[teamMemberItem.UserID][teamItem.ID] = teamItem
+			if _, ok := runtimeCacheEnv.teamAdminList[teamItem.ID]; !ok {
+				runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
+			}
+			if teamMemberItem.Role.IsAdmin() {
+				runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
+			}
+		}
+	}
+	// 获取所有人员
+	userList, err := query.Use(d.GetMainDB(ctx)).SysUser.Find()
+	if err != nil {
+		return
+	}
+	for _, userItem := range userList {
+		runtimeCacheEnv.userList[userItem.ID] = userItem
+	}
 }
 
 // GetRuntimeCache 获取运行时缓存的环境变量
