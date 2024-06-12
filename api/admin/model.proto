@@ -118,7 +118,7 @@ message TeamMember {
   // 成员ID
   uint32 id = 2;
   // 角色
-  repeated Role roles = 3;
+  Role role = 3;
   // 状态
   Status status = 4;
   // 创建时间

@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/query"
 	"github.com/aide-family/moon/pkg/types"
@@ -58,6 +59,7 @@ func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserPara
 	if err := userModel.Create(ctx, l.data.GetMainDB(ctx)); !types.IsNil(err) {
 		return nil, err
 	}
+	runtimecache.GetRuntimeCache().AppendUser(ctx, userModel)
 	return userModel, nil
 }
 

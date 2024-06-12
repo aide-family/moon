@@ -60,7 +60,7 @@ func (b *TeamMemberBuild) ToApi(ctx context.Context) *admin.TeamMember {
 	return &admin.TeamMember{
 		UserId:    b.UserID,
 		Id:        b.ID,
-		Roles:     nil,
+		Role:      api.Role(b.Role),
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),

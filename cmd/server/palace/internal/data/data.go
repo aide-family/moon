@@ -33,6 +33,8 @@ type Data struct {
 	cacher       conn.Cache
 	enforcerMap  *sync.Map
 	teamBizDBMap *sync.Map
+
+	exit chan struct{}
 }
 
 var closeFuncList []func()
@@ -46,7 +48,18 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		bizDatabaseConf: bizConf,
 		teamBizDBMap:    new(sync.Map),
 		enforcerMap:     new(sync.Map),
+		exit:            make(chan struct{}),
 	}
+	cleanup := func() {
+		for _, f := range closeFuncList {
+			f()
+		}
+		log.Info("closing the data resources")
+	}
+	closeFuncList = append(closeFuncList, func() {
+		log.Debugw("close data")
+		d.exit <- struct{}{}
+	})
 
 	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
@@ -58,6 +71,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
 		if !types.IsNil(err) {
+			cleanup()
 			return nil, nil, err
 		}
 		d.mainDB = mainDB
@@ -73,6 +87,8 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		db, err := sql.Open(bizConf.GetDriver(), bizConf.GetDsn())
 		if !types.IsNil(err) {
 			log.Fatalf("Error opening database: %v\n", err)
+			cleanup()
+			return nil, nil, err
 		}
 
 		d.bizDB = db
@@ -90,13 +106,11 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		})
 	}
 
-	cleanup := func() {
-		for _, f := range closeFuncList {
-			f()
-		}
-		log.Info("closing the data resources")
-	}
 	return d, cleanup, nil
+}
+
+func (d *Data) Exit() <-chan struct{} {
+	return d.exit
 }
 
 // GetMainDB 获取主库连接

@@ -66,7 +66,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	if !types.IsNil(err) {
 		return nil, err
 	}
-
+	runtimecache.GetRuntimeCache().AppendUserTeamList(ctx, team.LeaderID, []*model.SysTeam{sysTeamModel})
 	return sysTeamModel, nil
 }
 
@@ -290,12 +290,18 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 	if !types.IsNil(err) {
 		return err
 	}
-	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+
+	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		if err := tx.SysTeamMember.WithContext(ctx).Create(members...); !types.IsNil(err) {
 			return err
 		}
 		return nil
 	})
+	if !types.IsNil(err) {
+		return err
+	}
+	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	return nil
 }
 
 func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMemberParams) error {
@@ -306,7 +312,7 @@ func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.Re
 	if !types.IsNil(err) {
 		return err
 	}
-	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		if _, err = tx.SysTeamMember.WithContext(ctx).
 			Where(tx.SysTeamMember.TeamID.Eq(params.ID), tx.SysTeamMember.UserID.In(params.MemberIds...)).
 			Delete(); !types.IsNil(err) {
@@ -319,6 +325,11 @@ func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.Re
 		}
 		return nil
 	})
+	if !types.IsNil(err) {
+		return err
+	}
+	runtimecache.GetRuntimeCache().RemoveTeamAdminList(ctx, params.ID, params.MemberIds)
+	return nil
 }
 
 func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
@@ -334,7 +345,19 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 		q.SysTeamMember.TeamID.Eq(params.ID),
 		q.SysTeamMember.UserID.In(params.MemberIds...),
 	).UpdateColumnSimple(q.SysTeamMember.Role.Value(params.Role.GetValue()))
-	return err
+	if !types.IsNil(err) {
+		return err
+	}
+	// 查询团队管理员列表
+	members, err := q.SysTeamMember.Where(
+		q.SysTeamMember.TeamID.Eq(params.ID),
+		q.SysTeamMember.UserID.In(params.MemberIds...),
+	).Find()
+	if !types.IsNil(err) {
+		return err
+	}
+	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	return nil
 }
 
 func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
@@ -410,7 +433,7 @@ func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.
 	if !types.IsNil(err) {
 		return err
 	}
-	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		// 设置新管理员
 		if _, err = tx.SysTeamMember.WithContext(ctx).Where(
 			tx.SysTeamMember.TeamID.Eq(params.ID),
@@ -433,6 +456,18 @@ func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.
 		}
 		return nil
 	})
+	if !types.IsNil(err) {
+		return err
+	}
+	members, err := bizquery.Use(bizDB).WithContext(ctx).SysTeamMember.Where(
+		bizquery.Use(bizDB).SysTeamMember.TeamID.Eq(params.ID),
+		bizquery.Use(bizDB).SysTeamMember.UserID.In(params.OldLeaderID, params.LeaderID),
+	).Find()
+	if !types.IsNil(err) {
+		return err
+	}
+	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	return nil
 }
 
 func (l *teamRepositoryImpl) GetUserTeamByID(ctx context.Context, userID, teamID uint32) (*bizmodel.SysTeamMember, error) {

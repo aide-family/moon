@@ -1914,12 +1914,10 @@ components:
                     type: integer
                     description: 成员ID
                     format: uint32
-                roles:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
+                role:
+                    type: integer
                     description: 角色
+                    format: enum
                 status:
                     type: integer
                     description: 状态
