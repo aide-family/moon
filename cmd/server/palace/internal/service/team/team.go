@@ -200,7 +200,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequ
 	return &pb.ListTeamMemberReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(memberList, func(member *bizmodel.SysTeamMember) *admin.TeamMember {
-			return build.NewTeamMemberBuild(member).ToApi()
+			return build.NewTeamMemberBuild(member).ToApi(ctx)
 		}),
 	}, nil
 }

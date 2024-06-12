@@ -27,6 +27,7 @@ func (b *TeamBuild) ToApi(ctx context.Context) *admin.Team {
 	if types.IsNil(b) || types.IsNil(b.SysTeam) {
 		return nil
 	}
+	cache := runtimecache.GetRuntimeCache()
 	return &admin.Team{
 		Id:        b.ID,
 		Name:      b.Name,
@@ -34,12 +35,12 @@ func (b *TeamBuild) ToApi(ctx context.Context) *admin.Team {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		Leader:    NewUserBuild(b.Leader).ToApi(),
-		Creator:   NewUserBuild(b.Creator).ToApi(),
+		Leader:    NewUserBuild(cache.GetUser(ctx, b.LeaderID)).ToApi(),
+		Creator:   NewUserBuild(cache.GetUser(ctx, b.CreatorID)).ToApi(),
 		Logo:      b.Logo,
 		// 从全局中取
-		Admin: types.SliceTo(runtimecache.GetRuntimeCache().GetTeamAdminList(ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
-			return NewTeamMemberBuild(item).ToApi()
+		Admin: types.SliceTo(cache.GetTeamAdminList(ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
+			return NewTeamMemberBuild(item).ToApi(ctx)
 		}),
 	}
 }

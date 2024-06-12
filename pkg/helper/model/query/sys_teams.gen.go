@@ -37,17 +37,6 @@ func newSysTeam(db *gorm.DB, opts ...gen.DOOption) sysTeam {
 	_sysTeam.LeaderID = field.NewUint32(tableName, "leader_id")
 	_sysTeam.CreatorID = field.NewUint32(tableName, "creator_id")
 	_sysTeam.UUID = field.NewString(tableName, "uuid")
-	_sysTeam.Leader = sysTeamBelongsToLeader{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Leader", "model.SysUser"),
-	}
-
-	_sysTeam.Creator = sysTeamBelongsToCreator{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Creator", "model.SysUser"),
-	}
 
 	_sysTeam.fillFieldMap()
 
@@ -69,9 +58,6 @@ type sysTeam struct {
 	LeaderID  field.Uint32
 	CreatorID field.Uint32
 	UUID      field.String
-	Leader    sysTeamBelongsToLeader
-
-	Creator sysTeamBelongsToCreator
 
 	fieldMap map[string]field.Expr
 }
@@ -115,7 +101,7 @@ func (s *sysTeam) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysTeam) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 13)
+	s.fieldMap = make(map[string]field.Expr, 11)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -127,7 +113,6 @@ func (s *sysTeam) fillFieldMap() {
 	s.fieldMap["leader_id"] = s.LeaderID
 	s.fieldMap["creator_id"] = s.CreatorID
 	s.fieldMap["uuid"] = s.UUID
-
 }
 
 func (s sysTeam) clone(db *gorm.DB) sysTeam {
@@ -138,148 +123,6 @@ func (s sysTeam) clone(db *gorm.DB) sysTeam {
 func (s sysTeam) replaceDB(db *gorm.DB) sysTeam {
 	s.sysTeamDo.ReplaceDB(db)
 	return s
-}
-
-type sysTeamBelongsToLeader struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamBelongsToLeader) Where(conds ...field.Expr) *sysTeamBelongsToLeader {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamBelongsToLeader) WithContext(ctx context.Context) *sysTeamBelongsToLeader {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamBelongsToLeader) Session(session *gorm.Session) *sysTeamBelongsToLeader {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamBelongsToLeader) Model(m *model.SysTeam) *sysTeamBelongsToLeaderTx {
-	return &sysTeamBelongsToLeaderTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamBelongsToLeaderTx struct{ tx *gorm.Association }
-
-func (a sysTeamBelongsToLeaderTx) Find() (result *model.SysUser, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamBelongsToLeaderTx) Append(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamBelongsToLeaderTx) Replace(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamBelongsToLeaderTx) Delete(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamBelongsToLeaderTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamBelongsToLeaderTx) Count() int64 {
-	return a.tx.Count()
-}
-
-type sysTeamBelongsToCreator struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a sysTeamBelongsToCreator) Where(conds ...field.Expr) *sysTeamBelongsToCreator {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a sysTeamBelongsToCreator) WithContext(ctx context.Context) *sysTeamBelongsToCreator {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a sysTeamBelongsToCreator) Session(session *gorm.Session) *sysTeamBelongsToCreator {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a sysTeamBelongsToCreator) Model(m *model.SysTeam) *sysTeamBelongsToCreatorTx {
-	return &sysTeamBelongsToCreatorTx{a.db.Model(m).Association(a.Name())}
-}
-
-type sysTeamBelongsToCreatorTx struct{ tx *gorm.Association }
-
-func (a sysTeamBelongsToCreatorTx) Find() (result *model.SysUser, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a sysTeamBelongsToCreatorTx) Append(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a sysTeamBelongsToCreatorTx) Replace(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a sysTeamBelongsToCreatorTx) Delete(values ...*model.SysUser) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a sysTeamBelongsToCreatorTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a sysTeamBelongsToCreatorTx) Count() int64 {
-	return a.tx.Count()
 }
 
 type sysTeamDo struct{ gen.DO }

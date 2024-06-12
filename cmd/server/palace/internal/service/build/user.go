@@ -1,8 +1,11 @@
 package build
 
 import (
+	"context"
+
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-family/moon/pkg/types"
@@ -49,10 +52,11 @@ func NewTeamMemberBuild(member *bizmodel.SysTeamMember) *TeamMemberBuild {
 	}
 }
 
-func (b *TeamMemberBuild) ToApi() *admin.TeamMember {
+func (b *TeamMemberBuild) ToApi(ctx context.Context) *admin.TeamMember {
 	if types.IsNil(b) || types.IsNil(b.SysTeamMember) {
 		return nil
 	}
+	cache := runtimecache.GetRuntimeCache()
 	return &admin.TeamMember{
 		UserId:    b.UserID,
 		Id:        b.ID,
@@ -60,7 +64,6 @@ func (b *TeamMemberBuild) ToApi() *admin.TeamMember {
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		// TODO 从全局变量获取
-		//User:      NewUserBuild(b.Member).ToApi(),
+		User:      NewUserBuild(cache.GetUser(ctx, b.UserID)).ToApi(),
 	}
 }

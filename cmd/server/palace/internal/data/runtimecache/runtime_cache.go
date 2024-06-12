@@ -8,8 +8,10 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/helper/model/query"
 	"github.com/google/wire"
+	"gorm.io/gen/field"
 )
 
 // ProviderSetRuntimeCache is runtime_cache providers.
@@ -27,18 +29,63 @@ func GetRuntimeCache() RuntimeCache {
 
 func NewRuntimeCache(d *data.Data) RuntimeCache {
 	runtimeCacheInitOnce.Do(func() {
-		runtimeCache = &env{
-			userTeamList:  make(map[uint32]map[uint32]*model.SysTeam),
-			teamAdminList: make(map[uint32]map[uint32]*bizmodel.SysTeamMember),
+		runtimeCacheEnv := &env{
+			userTeamList:   make(map[uint32]map[uint32]*model.SysTeam),
+			teamAdminList:  make(map[uint32]map[uint32]*bizmodel.SysTeamMember),
+			teamList:       make(map[uint32]*model.SysTeam),
+			userList:       make(map[uint32]*model.SysUser),
+			teamMemberList: make(map[uint32]map[uint32]*bizmodel.SysTeamMember),
+			lock:           sync.Mutex{},
 		}
+		defer func() {
+			runtimeCache = runtimeCacheEnv
+		}()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 		// 获取所有的团队列表
-		teamList, err := query.Use(d.GetMainDB(context.Background())).SysTeam.Find()
+		teamList, err := query.Use(d.GetMainDB(ctx)).SysTeam.Find()
 		if err != nil {
 			return
 		}
-		// TODO 根据真实数据映射
-		runtimeCache.AppendUserTeamList(context.Background(), 1, teamList)
+
+		// 获取所有的团队管理员列表
+		for _, teamItem := range teamList {
+			runtimeCacheEnv.teamList[teamItem.ID] = teamItem
+			db, dbErr := d.GetBizGormDB(teamItem.ID)
+			if dbErr != nil {
+				continue
+			}
+			teamMemberList, queryErr := bizquery.Use(db).SysTeamMember.WithContext(ctx).Preload(field.Associations).Find()
+			if queryErr != nil {
+				continue
+			}
+			if _, exist := runtimeCacheEnv.teamAdminList[teamItem.ID]; !exist {
+				runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
+			}
+			for _, teamMemberItem := range teamMemberList {
+				runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
+				if _, ok := runtimeCacheEnv.userTeamList[teamMemberItem.UserID]; !ok {
+					runtimeCacheEnv.userTeamList[teamMemberItem.UserID] = make(map[uint32]*model.SysTeam)
+				}
+				runtimeCacheEnv.userTeamList[teamMemberItem.UserID][teamItem.ID] = teamItem
+				if _, ok := runtimeCacheEnv.teamAdminList[teamItem.ID]; !ok {
+					runtimeCacheEnv.teamAdminList[teamItem.ID] = make(map[uint32]*bizmodel.SysTeamMember)
+				}
+				if teamMemberItem.Role.IsAdmin() {
+					runtimeCacheEnv.teamAdminList[teamItem.ID][teamMemberItem.UserID] = teamMemberItem
+				}
+			}
+		}
+		// 获取所有人员
+		userList, err := query.Use(d.GetMainDB(ctx)).SysUser.Find()
+		if err != nil {
+			return
+		}
+		for _, userItem := range userList {
+			runtimeCacheEnv.userList[userItem.ID] = userItem
+		}
 	})
+
 	return runtimeCache
 }
 
@@ -61,6 +108,11 @@ type (
 		removeTeamAdminList(ctx context.Context, teamID uint32, adminIDs []uint32)
 		// ClearTeamAdminList 清空团队管理员列表
 		ClearTeamAdminList(ctx context.Context, teamID uint32)
+
+		// GetUser 获取用户信息
+		GetUser(ctx context.Context, userID uint32) *model.SysUser
+		// GetTeam 获取团队信息
+		GetTeam(ctx context.Context, teamID uint32) *model.SysTeam
 	}
 
 	env struct {
@@ -69,9 +121,28 @@ type (
 		// 团队管理员列表
 		teamAdminList map[uint32]map[uint32]*bizmodel.SysTeamMember
 
+		// 团队列表
+		teamList map[uint32]*model.SysTeam
+		// 用户列表
+		userList map[uint32]*model.SysUser
+		// 团队人员列表
+		teamMemberList map[uint32]map[uint32]*bizmodel.SysTeamMember
+
 		lock sync.Mutex
 	}
 )
+
+func (e *env) GetUser(_ context.Context, userID uint32) *model.SysUser {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	return e.userList[userID]
+}
+
+func (e *env) GetTeam(_ context.Context, teamID uint32) *model.SysTeam {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	return e.teamList[teamID]
+}
 
 func (e *env) ClearUserTeamList(_ context.Context, userID uint32) {
 	e.lock.Lock()
