@@ -823,8 +823,16 @@ func ErrorTeamNameExistErr(format string, args ...interface{}) *errors.Error {
 // ErrorTeamNameExistErrWithContext 团队名称已存在
 //
 //	带上下文，支持国际化输出元数据
-func ErrorTeamNameExistErrWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
-	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf(format, args...))
+func ErrorTeamNameExistErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(405, ErrorReason_TEAM_NAME_EXIST_ERR.String(), fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"name": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "TEAM_NAME_EXIST_ERR"),
+	})
 }
 
 const ErrorI18nTeamNameExistErrID = "TEAM_NAME_EXIST_ERR"
@@ -849,7 +857,15 @@ func ErrorI18nTeamNameExistErr(ctx context.Context, args ...interface{}) *errors
 		}
 	}
 
-	return err
+	return err.WithMetadata(map[string]string{
+		"name": func(ctx context.Context, id string) string {
+			msg := GetI18nMessage(ctx, id)
+			if msg != "" {
+				return msg
+			}
+			return id
+		}(ctx, "TEAM_NAME_EXIST_ERR"),
+	})
 }
 
 // IsTeamNotFoundErr 团队不存在

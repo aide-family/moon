@@ -181,7 +181,15 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 }
 
 func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
-	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.
+	// 判断团队名称是否重复
+	teamInfo, err := query.Use(l.data.GetMainDB(ctx)).SysTeam.WithContext(ctx).Where(query.SysTeam.Name.Eq(team.Name)).First()
+	if !types.IsNil(err) && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if err == nil && teamInfo.ID != team.ID {
+		return merr.ErrorI18nTeamNameExistErr(ctx)
+	}
+	_, err = query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysTeam.
 		Where(query.SysTeam.ID.Eq(team.ID)).
 		UpdateColumnSimple(
 			query.SysTeam.Name.Value(team.Name),

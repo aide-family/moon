@@ -127,7 +127,8 @@ enum ErrorReason {
   TEAM_NAME_EXIST_ERR = 18 [
     (errors.code) = 405,
     (errors.message) = "团队名称已存在",
-    (errors.id) = "TEAM_NAME_EXIST_ERR"
+    (errors.id) = "TEAM_NAME_EXIST_ERR",
+    (errors.metadata) = {key: "name", value: "TEAM_NAME_EXIST_ERR"}
   ];
 
   // 团队不存在

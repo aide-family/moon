@@ -48,10 +48,8 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 	if !claims.IsTeamAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	if err := t.teamRepo.UpdateTeam(ctx, team); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	return nil
+
+	return t.teamRepo.UpdateTeam(ctx, team)
 }
 
 // GetTeam 获取团队信息
