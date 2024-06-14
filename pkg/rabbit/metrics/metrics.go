@@ -6,6 +6,11 @@ import (
 )
 
 var (
+	ReceiverTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "rabbit_runtime_receive_total",
+		Help: "Total number of receiver per rabbit",
+	}, []string{"receiver"})
+
 	WorkerTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "rabbit_runtime_worker_total",
 		Help: "Total number of worker per rabbit",
@@ -43,6 +48,7 @@ var (
 
 func init() {
 	prometheus.DefaultRegisterer.MustRegister(
+		ReceiverTotal,
 		WorkerTotal,
 		WorkerErrors,
 		WorkerTime,

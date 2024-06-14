@@ -38,7 +38,8 @@ type Manager struct {
 	Log                  *logr.Logger
 	tm                   *TemplateManger
 	rm                   *SuppressionRuleManager
-	sm                   *SenderManager
+	receivers            map[string]rabbit.Receiver
+	senders              map[string]rabbit.Sender
 }
 
 func New(name string, opts *Options) (*Manager, error) {
@@ -53,12 +54,15 @@ func New(name string, opts *Options) (*Manager, error) {
 		log := klogr.New()
 		opts.Log = &log
 	}
-
+	log := opts.Log.WithName(name)
 	return &Manager{
+		name:                 name,
 		MaxConcurrentWorkers: opts.MaxConcurrentWorkers,
 		Started:              false,
 		Queue:                rabbit.NewQueue(opts.MaxRetries, opts.Backoff),
-		Log:                  opts.Log,
+		Log:                  &log,
+		receivers:            make(map[string]rabbit.Receiver),
+		senders:              make(map[string]rabbit.Sender),
 	}, nil
 }
 
@@ -89,6 +93,18 @@ func (m *Manager) initMetrics() {
 	metrics.WorkerTotal.WithLabelValues(labelProposeFinish).Add(0)
 }
 
+func (m *Manager) RegisterReceivers(receivers ...rabbit.Receiver) {
+	for _, receiver := range receivers {
+		m.receivers[receiver.Name()] = receiver
+	}
+}
+
+func (m *Manager) RegisterSenders(senders ...rabbit.Sender) {
+	for _, sender := range senders {
+		m.senders[sender.Name()] = sender
+	}
+}
+
 func (m *Manager) Start(ctx context.Context) error {
 	if m.Started {
 		return errors.New("manager was started more than once")
@@ -100,6 +116,28 @@ func (m *Manager) Start(ctx context.Context) error {
 	wg := &sync.WaitGroup{}
 	err := func() error {
 		defer HandleCrash()
+
+		for name, receiver := range m.receivers {
+			rch, err := receiver.Receive()
+			if err != nil {
+				m.Log.Error(err, "receiver failed to receive", "name", name)
+				return err
+			}
+			metrics.ReceiverTotal.WithLabelValues(name).Add(0)
+			wg.Add(1)
+			go func(_ctx context.Context, group *sync.WaitGroup, ch <-chan *rabbit.Message, name string) {
+				defer group.Done()
+				for {
+					select {
+					case msg := <-ch:
+						m.Queue.Add(msg)
+						metrics.ReceiverTotal.WithLabelValues(name).Inc()
+					case <-_ctx.Done():
+						return
+					}
+				}
+			}(ctx, wg, rch, name)
+		}
 
 		// Launch workers to process resources
 		m.Log.Info("Starting workers", "worker count", m.MaxConcurrentWorkers)
@@ -237,5 +275,5 @@ func (m *Manager) GetSenderByTemplate(context context.Context, id int64) (rabbit
 	if err != nil {
 		return nil, err
 	}
-	return m.sm.Get(context, senderName)
+	return m.senders[senderName], nil
 }
