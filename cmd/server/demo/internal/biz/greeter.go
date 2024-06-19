@@ -3,7 +3,7 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repo"
+	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repository"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 
@@ -33,11 +33,11 @@ type GreeterRepo interface {
 type GreeterUsecase struct {
 	repo      GreeterRepo
 	log       *log.Helper
-	cacheRepo repo.CacheRepo
+	cacheRepo repository.CacheRepo
 }
 
 // NewGreeterUsecase new a Greeter usecase.
-func NewGreeterUsecase(repo GreeterRepo, cacheRepo repo.CacheRepo) *GreeterUsecase {
+func NewGreeterUsecase(repo GreeterRepo, cacheRepo repository.CacheRepo) *GreeterUsecase {
 	logger := log.GetLogger()
 	return &GreeterUsecase{
 		repo:      repo,

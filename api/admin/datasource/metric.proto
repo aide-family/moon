@@ -94,8 +94,8 @@ message ListMetricRequest {
 	// 模糊查询， 不超过20字符搜索
 	string keyword = 2 [(buf.validate.field).cel = {
 		id: "ListMetricRequestKeyword",
-		message: "关键字不能超过20个字符",
-		expression: 'this.size() <= 20'
+		message: "关键字不能超过200个字符",
+		expression: 'this.size() <= 200'
 	}];
 	// 指标类型
 	MetricType metricType = 3 [(buf.validate.field).enum.defined_only = true];

@@ -202,7 +202,7 @@ message MetricDetail {
   // 帮助信息
   string help = 2;
   // 类型
-  EnumItem type = 3;
+  MetricType type = 3;
   // 标签集合
   repeated MetricLabel labels = 4;
   // 指标单位

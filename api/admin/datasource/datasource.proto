@@ -151,7 +151,7 @@ message ListDatasourceRequest {
 }
 message ListDatasourceReply {
   PaginationReply pagination = 1;
-  repeated Datasource data = 2;
+  repeated Datasource list = 2;
 }
 
 message UpdateDatasourceStatusRequest {
@@ -166,7 +166,7 @@ message GetDatasourceSelectRequest {
   string keyword = 4;
   uint32 limit = 5 [(buf.validate.field).cel = {
     message: "必须小于 1000",
-    expression: 'this <== 1000'
+    expression: 'this <= 1000'
   }];
   // 存储器类型
   StorageType storage_type = 6;

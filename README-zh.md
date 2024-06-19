@@ -27,6 +27,11 @@
 
 ![architecture](docs/images/architecture.png)
 
+## 开发前需要了解的
+
+* [Gopher](docs/i18n/zh-CN/gopher.md)
+* [Moon开发指南](docs/i18n/zh-CN/dev.md)
+
 ## 开发者
 
 * [开发文档](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)

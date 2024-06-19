@@ -1,12 +1,12 @@
 package repoimpl
 
 import (
-	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repo"
+	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/demo/internal/data"
 	"github.com/aide-family/moon/pkg/conn"
 )
 
-func NewCacheRepo(data *data.Data) repo.CacheRepo {
+func NewCacheRepo(data *data.Data) repository.CacheRepo {
 	return &cacheRepoImpl{data: data}
 }
 

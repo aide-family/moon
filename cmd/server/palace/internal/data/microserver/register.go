@@ -33,6 +33,7 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 	endpoint := microServerConf.GetEndpoint()
 	// 由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
 	selector.SetGlobalSelector(wrr.NewBuilder())
+	maxMsgSize := 1024 * 1024 * 50 // 50 MB
 	opts := []kgrpc.ClientOption{
 		kgrpc.WithMiddleware(
 			recovery.Recovery(),
@@ -44,6 +45,12 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 		kgrpc.WithEndpoint(endpoint),
 		kgrpc.WithTimeout(timeout),
 		kgrpc.WithOptions(grpc.WithConnectParams(defaultGrpcConnectParam)),
+		kgrpc.WithOptions(
+			grpc.WithDefaultCallOptions(
+				grpc.MaxCallSendMsgSize(maxMsgSize),
+				grpc.MaxCallRecvMsgSize(maxMsgSize),
+			),
+		),
 	}
 	if !types.TextIsNull(microServerConf.GetNodeVersion()) {
 		// 创建路由 Filter：筛选版本号为"2.0.0"的实例

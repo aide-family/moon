@@ -2,6 +2,7 @@ package server
 
 import (
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	v1api "github.com/aide-family/moon/api/v1"
 	"github.com/aide-family/moon/cmd/server/demo/internal/service"
 
 	"github.com/go-kratos/kratos/v2/transport"
@@ -40,12 +41,15 @@ func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
+	helloService *service.HelloService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
+	v1api.RegisterHelloServer(rpcSrv, helloService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
+	v1api.RegisterHelloHTTPServer(httpSrv, helloService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

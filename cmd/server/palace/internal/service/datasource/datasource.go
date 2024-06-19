@@ -94,7 +94,7 @@ func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequ
 	}
 	return &pb.ListDatasourceReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
-		Data: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
+		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
 			return build.NewDatasourceBuild(item).ToApi()
 		}),
 	}, nil

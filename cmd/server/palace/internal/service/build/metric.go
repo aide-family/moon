@@ -1,6 +1,7 @@
 package build
 
 import (
+	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
 	"github.com/aide-family/moon/pkg/types"
@@ -23,7 +24,7 @@ func (b *DatasourceMetricBuild) ToApi() *admin.MetricDetail {
 	return &admin.MetricDetail{
 		Name: b.Name,
 		Help: b.Remark,
-		Type: EnumItem(b.Category),
+		Type: api.MetricType(b.Category),
 		Labels: types.SliceTo(b.Labels, func(item *bizmodel.MetricLabel) *admin.MetricLabel {
 			return NewDatasourceMetricLabelBuild(item).ToApi()
 		}),

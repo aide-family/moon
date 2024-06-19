@@ -12,6 +12,7 @@ require (
 	github.com/casbin/gorm-adapter/v3 v3.24.0
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240516020449-fbac5fa25e7a
 	github.com/go-kratos/kratos/v2 v2.7.3
+	github.com/go-logr/logr v1.4.1
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
@@ -19,6 +20,7 @@ require (
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/nutsdb/nutsdb v1.0.4
+	github.com/prometheus/client_golang v1.11.1
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spf13/cobra v1.8.0
 	go.etcd.io/etcd/client/v3 v3.5.13
@@ -37,13 +39,16 @@ require (
 	gorm.io/gen v0.3.26
 	gorm.io/gorm v1.25.9
 	gorm.io/plugin/dbresolver v1.5.0
+	gorm.io/plugin/soft_delete v1.2.1
 	k8s.io/client-go v0.30.1
+	k8s.io/klog/v2 v2.120.1
 )
 
 require (
 	github.com/antlabs/stl v0.0.1 // indirect
 	github.com/antlabs/timer v0.0.11 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/casbin/govaluate v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -56,7 +61,6 @@ require (
 	github.com/glebarez/go-sqlite v1.20.3 // indirect
 	github.com/glebarez/sqlite v1.7.0 // indirect
 	github.com/go-kratos/aegis v0.2.0 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/form/v4 v4.2.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
@@ -67,6 +71,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/cel-go v0.20.1 // indirect
+	github.com/google/subcommands v1.2.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -77,8 +82,13 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/microsoft/go-mssqldb v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/common v0.26.0 // indirect
+	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
@@ -105,7 +115,6 @@ require (
 	gorm.io/driver/sqlserver v1.5.3 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	k8s.io/apimachinery v0.30.1 // indirect
-	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	modernc.org/libc v1.22.2 // indirect
 	modernc.org/mathutil v1.5.0 // indirect

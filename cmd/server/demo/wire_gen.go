@@ -35,7 +35,10 @@ func wireApp(bootstrap *democonf.Bootstrap, logger log.Logger) (*kratos.App, fun
 	cacheRepo := repoimpl.NewCacheRepo(dataData)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, cacheRepo)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	serverServer := server.RegisterService(grpcServer, httpServer, greeterService)
+	hello := repoimpl.NewHelloRepository(dataData)
+	helloBiz := biz.NewHelloBiz(hello)
+	helloService := service.NewHelloService(helloBiz)
+	serverServer := server.RegisterService(grpcServer, httpServer, greeterService, helloService)
 	app := newApp(serverServer, logger)
 	return app, func() {
 		cleanup()

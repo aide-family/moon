@@ -590,6 +590,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.admin.team.DeleteDepartmentReply'
+    /v1/hello:
+        post:
+            tags:
+                - Hello
+            description: 测试接口, 用于输出Hello
+            operationId: Hello_SayHello
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.v1.SayHelloRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.v1.SayHelloReply'
     /v1/my/team:
         get:
             tags:
@@ -1428,17 +1447,6 @@ components:
                     description: 发送的邮箱端口
                     format: uint32
             description: 邮件发送配置
-        api.EnumItem:
-            type: object
-            properties:
-                value:
-                    type: integer
-                    description: 枚举值
-                    format: int32
-                label:
-                    type: string
-                    description: 枚举描述
-            description: 枚举类型
         api.MetricDetail:
             type: object
             properties:
@@ -1744,9 +1752,9 @@ components:
                     type: string
                     description: 帮助信息
                 type:
-                    allOf:
-                        - $ref: '#/components/schemas/api.EnumItem'
+                    type: integer
                     description: 类型
+                    format: enum
                 labels:
                     type: array
                     items:
@@ -2215,7 +2223,7 @@ components:
             properties:
                 pagination:
                     $ref: '#/components/schemas/api.PaginationReply'
-                data:
+                list:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.admin.Datasource'
@@ -3036,6 +3044,20 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        api.v1.SayHelloReply:
+            type: object
+            properties:
+                message:
+                    type: string
+                    description: 参数名称， 这些参数会以json的方式返回给请求方
+            description: 定义响应参数
+        api.v1.SayHelloRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 参数名称（对应请求方式，例如post请求，此数据会从body中获取）
+            description: 定义请求参数
         helloworld.v1.HelloReply:
             type: object
             properties:
@@ -3054,6 +3076,8 @@ tags:
       description: The greeting service definition.
     - name: Health
       description: 健康检查接口
+    - name: Hello
+      description: Hello模块接口定义
     - name: Hook
       description: 用于接受外界需要推送的消息
     - name: Menu

@@ -15,12 +15,12 @@ const TableNameMetricLabel = "metric_labels"
 // MetricLabel mapped from table <metric_labels>
 type MetricLabel struct {
 	ID          uint32                `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	Name        string                `gorm:"column:name;type:varchar(64);not null;comment:数据源名称" json:"name"`                                   // 数据源名称
-	MetricID    uint32                `gorm:"column:metric_id;type:int unsigned;not null;comment:所属指标" json:"metric_id"`                         // 所属指标
-	CreatedAt   types.Time            `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt   types.Time            `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
-	DeletedAt   soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间" json:"deleted_at"`                             // 删除时间
-	Remark      string                `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                 // 备注
+	Name        string                `gorm:"column:name;type:varchar(255);not null;comment:标签名称名称;uniqueIndex:idx__name__metric_id__deleted_at" json:"name"`
+	MetricID    uint32                `gorm:"column:metric_id;type:int unsigned;not null;comment:所属指标;uniqueIndex:idx__name__metric_id__deleted_at" json:"metric_id"` // 所属指标
+	CreatedAt   types.Time            `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`                      // 创建时间
+	UpdatedAt   types.Time            `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`                      // 更新时间
+	DeletedAt   soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间;uniqueIndex:idx__name__metric_id__deleted_at" json:"deleted_at"`     // 删除时间
+	Remark      string                `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                      // 备注
 	LabelValues []*MetricLabelValue   `gorm:"foreignKey:LabelID" json:"label_values"`
 }
 
