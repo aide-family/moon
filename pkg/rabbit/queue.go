@@ -2,12 +2,15 @@ package rabbit
 
 import (
 	"fmt"
-	"k8s.io/client-go/util/workqueue"
-	"k8s.io/klog/v2"
 	"math"
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/aide-family/moon/api/rabbit/rule"
+
+	"k8s.io/client-go/util/workqueue"
+	"k8s.io/klog/v2"
 )
 
 // MessageQueue 消息队列接口，用来处理信息
@@ -67,7 +70,7 @@ func (p *PriorityQueue) Add(item interface{}) {
 }
 
 // tryAdd 尝试往队列中添加数据
-func (p *PriorityQueue) tryAdd(msg *Message) {
+func (p *PriorityQueue) tryAdd(msg *rule.Message) {
 	info := InitQueuedMessageInfo(msg)
 
 	p.addMessageInfo(info, 0)
@@ -101,6 +104,7 @@ func (p *PriorityQueue) addMessageInfo(info *QueueInfo, duration time.Duration) 
 }
 
 // AddAfter 延时加入队列，加入对象 QueueInfo
+// TODO
 func (p *PriorityQueue) AddAfter(item interface{}, duration time.Duration) {
 	info, err := assignedMessageInfo(item)
 	if err != nil {
@@ -124,12 +128,12 @@ func (p *PriorityQueue) Next() (*QueueInfo, bool) {
 
 		key, ok := data.(string)
 		if !ok {
-			return nil, false
+			panic(fmt.Sprintf("Invalid queue key: %+v", data))
 		}
 
 		info, ok := p.dirty.loadAndDelete(key)
 		if !ok {
-			return nil, false
+			panic(fmt.Sprintf("Invalid queue info, key:%s", key))
 		}
 
 		// 检查该消息是否正在处理
@@ -185,8 +189,8 @@ func assignedMessageInfo(obj interface{}) (*QueueInfo, error) {
 }
 
 // assignedMessage 用来判断从收到的对象是否是 *Message 类型
-func assignedMessage(obj interface{}) (*Message, error) {
-	business, ok := obj.(*Message)
+func assignedMessage(obj interface{}) (*rule.Message, error) {
+	business, ok := obj.(*rule.Message)
 	if !ok {
 		return nil, fmt.Errorf("cannot convert to *Message %v\n", obj)
 	}
@@ -358,7 +362,7 @@ type QueueInfo struct {
 	// 消息的Key
 	Key string
 	// Message 原始消息
-	Message *Message
+	Message *rule.Message
 	// 消息添加到队列中的时间。
 	// 随着每次加入变更
 	Timestamp time.Time
@@ -371,11 +375,11 @@ type QueueInfo struct {
 	InitialAttemptTimestamp time.Time
 }
 
-// InitQueuedMessageInfo 初始化需要加入到调度队列的业务信息
-func InitQueuedMessageInfo(message *Message) *QueueInfo {
+// InitQueuedMessageInfo 初始化需要加入到消息队列的信息
+func InitQueuedMessageInfo(message *rule.Message) *QueueInfo {
 	first := time.Now()
 	return &QueueInfo{
-		Key:                     message.ID,
+		Key:                     message.Id,
 		Message:                 message,
 		Timestamp:               first,
 		Attempts:                0,
@@ -383,7 +387,7 @@ func InitQueuedMessageInfo(message *Message) *QueueInfo {
 	}
 }
 
-func (p *QueueInfo) UpdateMessage(message *Message) {
+func (p *QueueInfo) UpdateMessage(message *rule.Message) {
 	if message != nil {
 		p.Message = message
 	}

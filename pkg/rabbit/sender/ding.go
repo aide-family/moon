@@ -7,23 +7,26 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/aide-family/moon/pkg/rabbit"
-	"github.com/aide-family/moon/pkg/utils/httpx"
 	"io"
 	"time"
+
+	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/pkg/rabbit"
+	"github.com/aide-family/moon/pkg/utils/httpx"
 )
 
 type Ding struct {
 	url            string
+	conf           *DingConfig
 	client         *httpx.HttpX
-	secretProvider rabbit.SecretProvider
+	configProvider rabbit.ConfigProvider
 }
 
 func NewDing(url string) (*Ding, error) {
 	return &Ding{
 		url:            url,
 		client:         httpx.NewHttpX(),
-		secretProvider: &DingSecretProvider{},
+		configProvider: &DingConfigProvider{},
 	}, nil
 }
 
@@ -31,18 +34,30 @@ func (d *Ding) Name() string {
 	return "ding"
 }
 
-func (d *Ding) Send(ctx context.Context, content []byte, secret []byte) error {
-	sec := &DingSecret{}
-	err := d.secretProvider.Provider(secret, sec)
+func (d *Ding) Inject(data rabbit.Rule) (rabbit.Sender, error) {
+	conf := &DingConfig{}
+	sendRule := data.(*rule.SendRule)
+	config := sendRule.Config["config"]
+	err := d.configProvider.Provider([]byte(config), conf)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	clone := &Ding{
+		url:            d.url,
+		conf:           conf,
+		client:         d.client,
+		configProvider: d.configProvider,
+	}
+	return clone, nil
+}
+
+func (d *Ding) Send(ctx context.Context, content []byte) error {
 	params := map[string]any{
-		"access_token": sec.Token,
+		"access_token": d.conf.Token,
 	}
-	if sec.Secret != "" {
-		params["timestamp"] = sec.Timestamp
-		params["sign"] = sec.Sign
+	if d.conf.Secret != "" {
+		params["timestamp"] = d.conf.Timestamp
+		params["sign"] = d.conf.Sign
 	}
 	reqUrl := fmt.Sprintf("%s&%s", d.url, httpx.ParseQuery(params))
 	response, err := httpx.NewHttpX().POSTWithContext(ctx, reqUrl, content)
@@ -74,31 +89,30 @@ func (l *dingTalkHookResp) Error() string {
 	return fmt.Sprintf("errcode: %d, errmsg: %s", l.ErrCode, l.ErrMsg)
 }
 
-type DingSecretProvider struct {
+type DingConfigProvider struct {
 }
 
-type DingSecret struct {
-	Token     string
-	Secret    string
-	Sign      string
-	Timestamp int64
+type DingConfig struct {
+	Token     string `json:"token" yaml:"token"`
+	Secret    string `json:"secret" yaml:"secret"`
+	Sign      string `json:"sign" yaml:"sign"`
+	Timestamp int64  `json:"timestamp" yaml:"timestamp"`
 }
 
-func (d *DingSecretProvider) Provider(in []byte, out any) error {
-	_, ok := out.(*DingSecret)
+func (d *DingConfigProvider) Provider(in []byte, out any) error {
+	_, ok := out.(*DingConfig)
 	if !ok {
-		return fmt.Errorf("convert failed: target secret structure is not DingSecret")
+		return fmt.Errorf("convert failed: target secret structure is not DingConfig")
 	}
-	err := json.Unmarshal(in, out)
+	err := (&JsonProvider{}).Provider(in, out)
 	if err != nil {
 		return err
 	}
-	if out.(*DingSecret).Secret != "" {
+	if out.(*DingConfig).Secret != "" {
 		t := time.Now().UnixMilli()
-		out.(*DingSecret).Sign = DingSign(t, out.(*DingSecret).Secret)
-		out.(*DingSecret).Timestamp = t
+		out.(*DingConfig).Sign = DingSign(t, out.(*DingConfig).Secret)
+		out.(*DingConfig).Timestamp = t
 	}
-
 	return nil
 }
 

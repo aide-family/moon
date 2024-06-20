@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package api.rabbit.rule;
 
-import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 
@@ -14,7 +13,7 @@ option java_package = "api.rabbit.rule";
 // 消息过滤器类型
 enum MessageFilterType {
     // 符合规则消息过滤
-    MessageFilter_FILTTER = 0;
+    MessageFilter_FILTER = 0;
     // 符合规则消息通过
     MessageFilter_PASS = 1;
 }
@@ -35,44 +34,76 @@ enum MessageMatchType {
   MessageMatchType_ANY = 3;
 }
 
+message FilterRule {
+  // 消息过滤器类型
+  MessageFilterType filterType = 1;
+  // 消息匹配类型
+  MessageMatchType matchType = 2;
+  // 需要匹配的标签
+  repeated string matchLabel = 3;
+  // 扩展配置，可以用于存放一下特殊配置
+  map<string,string> extra = 4;
+}
+
 // 消息过滤规则
 message MessageFilterRule {
   // 消息过滤规则名称
   string name = 1;
   // 使用的过滤器名称
-  string useFilter = 2;
-  // 消息过滤器类型
-  MessageFilterType filterType = 3;
-  // 消息匹配类型
-  MessageMatchType matchType = 4;
-  // 需要匹配的标签
-  repeated string matchLabel = 5;
-  // 扩展配置，可以用于存放一下特殊配置
-  map<string,google.protobuf.Any> extra = 6;
+  string use = 2;
+  // 过滤规则
+  FilterRule rule = 3;
+}
+
+message AggregationRule {
+  // 聚合时,每个包中，至多包含的消息数量
+  uint32 count = 1;
+  // 发送消息的最大间隔，
+  google.protobuf.Duration interval = 2;
+  // 消息聚合时用于聚合的字段
+  string groupBy = 3;
 }
 
 // 消息聚合规则
 message MessageAggregationRule {
   // 消息聚合规则名称
   string name = 1;
-  // 聚合时,每个包中，至多包含的消息数量
-  uint32 count = 2;
-  // 发送消息的最大间隔，
-  google.protobuf.Duration interval = 3;
-  // 消息聚合时用于聚合的字段
-  string groupBy = 4;
+  // 使用的聚合器名称
+  string use = 2;
+  // 聚合规则
+  AggregationRule rule = 3;
+}
+
+// 消息模版规则
+message SendRule {
+  // 扩展配置，用于存放sender需要的密钥
+  map<string,string> config = 2;
+}
+
+// 消息发送规则
+message MessageSendRule {
+  // 消息发送规则名称
+  string name = 1;
+  // 发送者名称
+  string use = 2;
+  // 发送规则
+  SendRule rule = 3;
+}
+
+// 消息模版规则
+message TemplateRule {
+  // 模版
+  string template = 1;
 }
 
 // 消息模版规则
 message MessageTemplateRule {
-  // 模版规则名称
+  // 消息模版规则名称
   string name = 1;
-  // 模版
-  string template = 2;
-  // 发送则
-  string sendName = 3;
-  // 扩展配置，用于存放sender需要的密钥
-  map<string,google.protobuf.Any> extra = 4;
+  // 使用的模板解析器名称
+  string use = 2;
+  // 模板解析规则
+  TemplateRule rule = 3;
 }
 
 // 规则组
@@ -85,6 +116,8 @@ message RuleGroup {
   string aggregationRuleName = 3;
   // 模版规则名称
   string templateRuleName = 4;
+  // 发送规则名称
+  string sendRuleName = 5;
 }
 
 message Message {

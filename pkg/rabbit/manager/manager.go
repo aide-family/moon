@@ -5,15 +5,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aide-family/moon/pkg/rabbit"
-	"github.com/aide-family/moon/pkg/rabbit/metrics"
-	"github.com/go-logr/logr"
-	"k8s.io/klog/v2/klogr"
 	"sync"
 	"time"
+
+	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/pkg/rabbit"
+	"github.com/aide-family/moon/pkg/rabbit/metrics"
+
+	"github.com/go-logr/logr"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2/klogr"
 )
 
-var _ rabbit.ConfigGetter = &Manager{}
+var _ rabbit.ProcessorProvider = &Manager{}
 
 type Options struct {
 	// MaxConcurrentWorkers 是最大并发 worker 数量，默认为1
@@ -36,10 +40,12 @@ type Manager struct {
 	Queue                rabbit.MessageQueue
 	ctx                  context.Context
 	Log                  *logr.Logger
-	tm                   *TemplateManger
-	rm                   *SuppressionRuleManager
 	receivers            map[string]rabbit.Receiver
-	senders              map[string]rabbit.Sender
+	rg                   cache.Indexer
+	fm                   *FilterManager
+	am                   *AggregatorManager
+	tm                   *TemplaterManager
+	sm                   *SenderManager
 }
 
 func New(name string, opts *Options) (*Manager, error) {
@@ -62,18 +68,16 @@ func New(name string, opts *Options) (*Manager, error) {
 		Queue:                rabbit.NewQueue(opts.MaxRetries, opts.Backoff),
 		Log:                  &log,
 		receivers:            make(map[string]rabbit.Receiver),
-		senders:              make(map[string]rabbit.Sender),
 	}, nil
 }
 
 const (
-	labelError         = "error"
-	labelRequeue       = "requeue"
-	labelPropose       = "propose"
-	labelProposeFail   = "propose_fail"
-	labelProposePass   = "propose_pass"
-	labelProposeCancel = "propose_cancel"
-	labelProposeFinish = "propose_finish"
+	labelError       = "error"
+	labelRequeue     = "requeue"
+	labelFilter      = "filter"
+	labelAggregation = "aggregation"
+	labelTemplate    = "template"
+	labelSend        = "send"
 )
 
 func (m *Manager) Name() string {
@@ -86,22 +90,15 @@ func (m *Manager) initMetrics() {
 	metrics.WorkerCount.WithLabelValues().Set(float64(m.MaxConcurrentWorkers))
 	metrics.WorkerTotal.WithLabelValues(labelError).Add(0)
 	metrics.WorkerTotal.WithLabelValues(labelRequeue).Add(0)
-	metrics.WorkerTotal.WithLabelValues(labelPropose).Add(0)
-	metrics.WorkerTotal.WithLabelValues(labelProposeFail).Add(0)
-	metrics.WorkerTotal.WithLabelValues(labelProposePass).Add(0)
-	metrics.WorkerTotal.WithLabelValues(labelProposeCancel).Add(0)
-	metrics.WorkerTotal.WithLabelValues(labelProposeFinish).Add(0)
+	metrics.WorkerTotal.WithLabelValues(labelFilter).Add(0)
+	metrics.WorkerTotal.WithLabelValues(labelAggregation).Add(0)
+	metrics.WorkerTotal.WithLabelValues(labelTemplate).Add(0)
+	metrics.WorkerTotal.WithLabelValues(labelSend).Add(0)
 }
 
 func (m *Manager) RegisterReceivers(receivers ...rabbit.Receiver) {
 	for _, receiver := range receivers {
 		m.receivers[receiver.Name()] = receiver
-	}
-}
-
-func (m *Manager) RegisterSenders(senders ...rabbit.Sender) {
-	for _, sender := range senders {
-		m.senders[sender.Name()] = sender
 	}
 }
 
@@ -125,7 +122,7 @@ func (m *Manager) Start(ctx context.Context) error {
 			}
 			metrics.ReceiverTotal.WithLabelValues(name).Add(0)
 			wg.Add(1)
-			go func(_ctx context.Context, group *sync.WaitGroup, ch <-chan *rabbit.Message, name string) {
+			go func(_ctx context.Context, group *sync.WaitGroup, ch <-chan *rule.Message, name string) {
 				defer group.Done()
 				for {
 					select {
@@ -169,7 +166,6 @@ func (m *Manager) processNextWorkItem(ctx context.Context) bool {
 	if ok {
 		// 当从消息队列中获取消息失败时，表明发生了意料之外的错误，
 		// 此时，当前worker会退出。
-		// TODO: 获取消息失败不代表队列关闭，此处功能耦合，需要进行优化
 		return false
 	}
 
@@ -195,7 +191,7 @@ func (m *Manager) worker(ctx context.Context, info *rabbit.QueueInfo) {
 	// 对于构建失败的消息，应该将其重新加入队列，使其在达到退避时间后重新入队
 	// 当然，不是每一次失败，消息都能够重新入队，对于失败过多的消息，应该将其抛弃
 	snapshot := rabbit.NewMessageSnapshot(ctx, info.Message)
-	err := snapshot.CompleteMessageSnapshot(ctx, m)
+	err := snapshot.CompleteMessageSnapshot(ctx, m, m)
 	if err != nil {
 		log.Error(err, "build snapshot failed")
 		metrics.WorkerErrors.WithLabelValues().Inc()
@@ -216,64 +212,150 @@ func (m *Manager) worker(ctx context.Context, info *rabbit.QueueInfo) {
 
 }
 
-func (m *Manager) processor(ctx context.Context, log logr.Logger, message *rabbit.Message, processor *rabbit.Processor) {
-	// 在每个 processor 中，首先应该对消息发起提案，进行表决，
-	// 提案表决通过则进行下一步处理，反之则抛弃
-	metrics.WorkerTotal.WithLabelValues(labelPropose).Inc()
-	if processor.Suppressor.Propose(processor.Index) {
-		metrics.WorkerTotal.WithLabelValues(labelProposePass).Inc()
+func (m *Manager) processor(ctx context.Context, log logr.Logger, message *rule.Message, processor *rabbit.Processor) {
 
+	// 对需要处理的消息进行过滤，通过交给 Aggregator 进行聚合
+	metrics.WorkerTotal.WithLabelValues(labelFilter).Inc()
+	if processor.Filter.Allow(message) {
 		var err error
-		defer func() {
+
+		// 对于过滤通过的消息进行聚合,聚合完成则返回聚合后的消息，交给 Templater 进行模版解析
+		metrics.WorkerTotal.WithLabelValues(labelAggregation).Inc()
+		newMessage, err := processor.Aggregator.Group(message)
+		if err != nil {
+			log.Error(err, "group message failed", "aggregator", processor.Aggregator.Name(), "labels", message.Labels)
+		}
+		if newMessage != nil {
+			// 对于聚合完成的消息，则使用模版进行解析，解析成功则进行交给 Sender 进行发送
+			buf := &bytes.Buffer{}
+			metrics.WorkerTotal.WithLabelValues(labelTemplate).Inc()
+			err = processor.Templater.Parse(newMessage.Content, buf)
 			if err != nil {
-				processor.Suppressor.Cancel(processor.Index)
-				metrics.WorkerTotal.WithLabelValues(labelProposeCancel).Inc()
-			} else {
-				processor.Suppressor.Finish(processor.Index)
-				metrics.WorkerTotal.WithLabelValues(labelProposeFinish).Inc()
+				log.Error(err, "template parsing error", "templater", processor.Templater.Name(), "labels", newMessage.Labels)
+				return
 			}
-		}()
-
-		// 对于通提案的消息，则使用模版进行解析，解析成功则进行下一步，否则放弃提案
-		buf := &bytes.Buffer{}
-		err = processor.Templater.Parse(message.Content, buf)
-		if err != nil {
-			log.Error(err, "template parsing error", "index", processor.Index)
-			return
+			// 对与模版解析成功的，使用 Sender 进行发送
+			metrics.WorkerTotal.WithLabelValues(labelSend).Inc()
+			err = processor.Sender.Send(ctx, buf.Bytes())
+			if err != nil {
+				log.Error(err, "send error", "sender", processor.Sender.Name(), "labels", message.Labels)
+				return
+			}
+			log.V(5).Info("send successful", "sender", processor.Sender.Name(), "labels", message.Labels)
+		} else {
+			log.V(5).Info("waiting message group finish", "aggregator", processor.Aggregator.Name(), "labels", message.Labels)
 		}
-		// 对与模版解析成功的，使用 Sender 进行发送，发送成功则提案完成，否则放弃提案
-		err = processor.Sender.Send(ctx, buf.Bytes(), processor.Secret)
-		if err != nil {
-			log.Error(err, "send error", "index", processor.Index)
-			return
-		}
-		log.V(5).Info("send successful", "index", processor.Index)
 	} else {
-		metrics.WorkerTotal.WithLabelValues(labelProposeFail).Inc()
-		log.V(4).Info("propose fail", "index", processor.Index)
 	}
 }
 
-func (m *Manager) GetSecret(context context.Context, id int64) ([]byte, error) {
-	return m.tm.GetSecret(context, id)
-}
-
-func (m *Manager) GetTemplater(context context.Context, id int64) (rabbit.Templater, error) {
-	return m.tm.Get(context, id)
-}
-
-func (m *Manager) GetSuppressorByTemplate(context context.Context, id int64) (rabbit.Suppressor, error) {
-	suppressorID, err := m.tm.GetSuppressorID(context, id)
+func (m *Manager) RuleGroup(ctx context.Context, name string) (*rule.RuleGroup, error) {
+	origin, b, err := m.rg.Get(name)
 	if err != nil {
 		return nil, err
 	}
-	return m.rm.Get(context, suppressorID)
+	if !b {
+		return nil, fmt.Errorf("message rule group %s not found", name)
+	}
+	return origin.(*rule.RuleGroup), nil
 }
 
-func (m *Manager) GetSenderByTemplate(context context.Context, id int64) (rabbit.Sender, error) {
-	senderName, err := m.tm.GetSenderName(context, id)
+func (m *Manager) Filter(ctx context.Context, ruleName string) (rabbit.Filter, error) {
+	return m.fm.Filter(ctx, ruleName)
+}
+
+func (m *Manager) Aggregator(ctx context.Context, ruleName string) (rabbit.Aggregator, error) {
+	return m.am.Aggregator(ctx, ruleName)
+}
+
+func (m *Manager) Templater(ctx context.Context, ruleName string) (rabbit.Templater, error) {
+	return m.tm.Templater(ctx, ruleName)
+}
+
+func (m *Manager) Sender(ctx context.Context, ruleName string) (rabbit.Sender, error) {
+	return m.sm.Sender(ctx, ruleName)
+}
+
+type FilterManager struct {
+	rules     cache.Indexer
+	processor map[string]rabbit.Filter
+}
+
+func (x *FilterManager) Filter(ctx context.Context, ruleName string) (rabbit.Filter, error) {
+	origin, b, err := x.rules.Get(ruleName)
 	if err != nil {
 		return nil, err
 	}
-	return m.senders[senderName], nil
+	if !b {
+		return nil, fmt.Errorf("message filter rule %s not found", ruleName)
+	}
+	rule := origin.(*rule.MessageFilterRule)
+	processor, ok := x.processor[rule.Use]
+	if !ok {
+		return nil, fmt.Errorf("filter %s not found", rule.Use)
+	}
+	return processor.Inject(rule.Rule)
+}
+
+type AggregatorManager struct {
+	rules     cache.Indexer
+	processor map[string]rabbit.Aggregator
+}
+
+func (x *AggregatorManager) Aggregator(ctx context.Context, ruleName string) (rabbit.Aggregator, error) {
+	origin, b, err := x.rules.Get(ruleName)
+	if err != nil {
+		return nil, err
+	}
+	if !b {
+		return nil, fmt.Errorf("message aggregation rule %s not found", ruleName)
+	}
+	rule := origin.(*rule.MessageAggregationRule)
+	processor, ok := x.processor[rule.Use]
+	if !ok {
+		return nil, fmt.Errorf("aggregator %s not found", rule.Use)
+	}
+	return processor.Inject(rule.Rule)
+}
+
+type TemplaterManager struct {
+	rules     cache.Indexer
+	processor map[string]rabbit.Templater
+}
+
+func (x *TemplaterManager) Templater(ctx context.Context, ruleName string) (rabbit.Templater, error) {
+	origin, b, err := x.rules.Get(ruleName)
+	if err != nil {
+		return nil, err
+	}
+	if !b {
+		return nil, fmt.Errorf("message template rule %s not found", ruleName)
+	}
+	rule := origin.(*rule.MessageTemplateRule)
+	processor, ok := x.processor[rule.Use]
+	if !ok {
+		return nil, fmt.Errorf("templater %s not found", rule.Use)
+	}
+	return processor.Inject(rule.Rule)
+}
+
+type SenderManager struct {
+	rules     cache.Indexer
+	processor map[string]rabbit.Sender
+}
+
+func (x *SenderManager) Sender(ctx context.Context, ruleName string) (rabbit.Sender, error) {
+	origin, b, err := x.rules.Get(ruleName)
+	if err != nil {
+		return nil, err
+	}
+	if !b {
+		return nil, fmt.Errorf("message send rule %s not found", ruleName)
+	}
+	rule := origin.(*rule.MessageSendRule)
+	processor, ok := x.processor[rule.Use]
+	if !ok {
+		return nil, fmt.Errorf("sender %s not found", rule.Use)
+	}
+	return processor.Inject(rule.Rule)
 }

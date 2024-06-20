@@ -2,7 +2,8 @@ package rabbit
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/aide-family/moon/api/rabbit/rule"
 )
 
 // MessageSnapshot 消息快照
@@ -11,20 +12,19 @@ import (
 type MessageSnapshot struct {
 	Context    context.Context
 	CancelFunc context.CancelFunc
-	Message    *Message
+	Message    *rule.Message
 	// Processors 包含消息所有处理需要的处理器，进行处理时，直接使用即可
-	Processors map[int64]*Processor
+	Processors map[string]*Processor
 }
 
 type Processor struct {
-	Index      string
-	Secret     []byte
-	Suppressor Suppressor
+	Filter     Filter
+	Aggregator Aggregator
 	Templater  Templater
 	Sender     Sender
 }
 
-func NewMessageSnapshot(ctx context.Context, message *Message) *MessageSnapshot {
+func NewMessageSnapshot(ctx context.Context, message *rule.Message) *MessageSnapshot {
 	snapCtx, cancelFunc := context.WithCancel(ctx)
 
 	return &MessageSnapshot{
@@ -35,44 +35,44 @@ func NewMessageSnapshot(ctx context.Context, message *Message) *MessageSnapshot 
 }
 
 // CompleteMessageSnapshot 补全快照信息。
-func (m *MessageSnapshot) CompleteMessageSnapshot(ctx context.Context, configGetter ConfigGetter) error {
-	var runners = make(map[int64]*Processor, len(m.Message.Templates))
-	for _, id := range m.Message.Templates {
+func (m *MessageSnapshot) CompleteMessageSnapshot(ctx context.Context, rp RuleGroupProvider, pp ProcessorProvider) error {
+	var runners = make(map[string]*Processor, len(m.Message.UseGroups))
+	for _, name := range m.Message.UseGroups {
 		var (
+			filter     Filter
+			aggregator Aggregator
 			templater  Templater
-			suppressor Suppressor
 			sender     Sender
-			secret     []byte
 			err        error
 		)
-		templater, err = configGetter.GetTemplater(ctx, id)
+		rg, err := rp.RuleGroup(ctx, name)
 		if err != nil {
 			return err
 		}
-		suppressor, err = configGetter.GetSuppressorByTemplate(ctx, id)
+		filter, err = pp.Filter(ctx, rg.FilterRuleName)
 		if err != nil {
 			return err
 		}
-		sender, err = configGetter.GetSenderByTemplate(ctx, id)
+		aggregator, err = pp.Aggregator(ctx, rg.AggregationRuleName)
 		if err != nil {
 			return err
 		}
-		secret, err = configGetter.GetSecret(ctx, id)
+		templater, err = pp.Templater(ctx, rg.TemplateRuleName)
 		if err != nil {
 			return err
 		}
-		runners[id] = &Processor{
-			Index:      IndexFunc(id, m.Message.Group),
-			Suppressor: suppressor,
+		sender, err = pp.Sender(ctx, rg.SendRuleName)
+		if err != nil {
+			return err
+		}
+
+		runners[name] = &Processor{
+			Filter:     filter,
+			Aggregator: aggregator,
 			Templater:  templater,
 			Sender:     sender,
-			Secret:     secret,
 		}
 	}
 	m.Processors = runners
 	return nil
-}
-
-func IndexFunc(tid int64, group string) string {
-	return fmt.Sprintf("%d-%s", tid, group)
 }

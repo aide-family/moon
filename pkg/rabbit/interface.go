@@ -3,6 +3,8 @@ package rabbit
 import (
 	"context"
 	"io"
+
+	"github.com/aide-family/moon/api/rabbit/rule"
 )
 
 // Plugin 仅仅自定义一个Name的接口
@@ -14,23 +16,27 @@ type Plugin interface {
 // Receiver 用来接收来自外部消息
 type Receiver interface {
 	Plugin
-	Receive() (<-chan *Message, error)
+	Receive() (<-chan *rule.Message, error)
 }
 
-// Suppressor 负责按照规则对消息进行抑制。
-// Suppressor 需要在 Message 被提案时告知调用者，该消息的发送 Propose 是否通过。
-// 如果为未通过，则该条消息将会被抑制:
-// + 聚合: 按照规则将消息收集起来等待合适的时机一起发送
-// + 丢弃: 抛弃掉该条消息
-type Suppressor interface {
+// Filter 按照规则对消息进行过滤
+type Filter interface {
 	Plugin
-	Propose(index string) bool
-	Cancel(index string)
-	Finish(index string)
+	Inject(rule Rule) (Filter, error)
+	Allow(message *rule.Message) bool
+}
+
+// Aggregator 按照规则对消息进行聚合，聚合完成则返回消息
+type Aggregator interface {
+	Plugin
+	Inject(rule Rule) (Aggregator, error)
+	Group(in *rule.Message) (out *rule.Message, err error)
 }
 
 // Templater 负责对消息进行模版的解析。
 type Templater interface {
+	Plugin
+	Inject(rule Rule) (Templater, error)
 	Parse(in any, out io.Writer) error
 }
 
@@ -38,34 +44,31 @@ type Templater interface {
 // 它只负责在接收到消息时，将它按照已经确定的方式发送出去。
 type Sender interface {
 	Plugin
-	Send(context context.Context, content []byte, secret []byte) error
+	Inject(rule Rule) (Sender, error)
+	Send(ctx context.Context, content []byte) error
 }
 
-// SecretProvider Sender 发送消息时，有的需要 Secret 才能够将送达。
-// 然而 Sender 并不需要关心 Secret 如何正确生成，它只需调用 Provider 接口，获取到 Secret 使用即可。
+// ConfigProvider Sender 发送消息时，有的需要 Config 才能够将送达。
+// 然而 Sender 并不需要关心 Config 如何正确生成，它只需调用 Provider 接口，获取到 Config 使用即可。
 // 之所以这样设计，是因为:
-// + 不同的 Sender 需要的 Secret 的数据结构不同
-// + 相同的 Sender 不同的接收者需要的 Secret 不同
-type SecretProvider interface {
+// + 不同的 Sender 需要的 Config 的数据结构不同
+// + 相同的 Sender 不同的接收者需要的 Config 不同
+type ConfigProvider interface {
 	// Provider 负责在被调用时提供正确的密钥，否则返回错误
 	Provider(in []byte, out any) error
 }
 
-type ConfigGetter interface {
-	GetTemplater(context context.Context, id int64) (Templater, error)
-	GetSecret(context context.Context, id int64) ([]byte, error)
-	GetSuppressorByTemplate(context context.Context, id int64) (Suppressor, error)
-	GetSenderByTemplate(context context.Context, id int64) (Sender, error)
+type RuleGroupProvider interface {
+	RuleGroup(ctx context.Context, name string) (*rule.RuleGroup, error)
 }
 
-type SenderGetter interface {
-	Get(context context.Context, name string) (Sender, error)
+type ProcessorProvider interface {
+	Filter(ctx context.Context, ruleName string) (Filter, error)
+	Aggregator(ctx context.Context, ruleName string) (Aggregator, error)
+	Templater(ctx context.Context, ruleName string) (Templater, error)
+	Sender(ctx context.Context, ruleName string) (Sender, error)
 }
 
-type TemplaterGetter interface {
-	Get(context context.Context, id int64) (Templater, error)
-}
-
-type SuppressorGetter interface {
-	Get(context context.Context, id int64) (Suppressor, error)
+type Rule interface {
+	DeepCopyRule() Rule
 }
