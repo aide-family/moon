@@ -8,12 +8,12 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-family/moon/pkg/conn"
-	"github.com/aide-family/moon/pkg/conn/cacher/nutsdbcacher"
-	"github.com/aide-family/moon/pkg/conn/cacher/rediscacher"
-	"github.com/aide-family/moon/pkg/conn/rbac"
 	"github.com/aide-family/moon/pkg/helper/model/query"
 	"github.com/aide-family/moon/pkg/types"
+	conn2 "github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
+	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
+	"github.com/aide-family/moon/pkg/util/conn/rbac"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -30,7 +30,7 @@ type Data struct {
 
 	mainDB       *gorm.DB
 	bizDB        *sql.DB
-	cacher       conn.Cache
+	cacher       conn2.Cache
 	enforcerMap  *sync.Map
 	teamBizDBMap *sync.Map
 
@@ -69,7 +69,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
-		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
+		mainDB, err := conn2.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
 		if !types.IsNil(err) {
 			cleanup()
 			return nil, nil, err
@@ -115,7 +115,7 @@ func (d *Data) Exit() <-chan struct{} {
 
 // GetMainDB 获取主库连接
 func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
+	db, exist := ctx.Value(conn2.GormContextTxKey{}).(*gorm.DB)
 	if exist {
 		return db
 	}
@@ -124,7 +124,7 @@ func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
 
 // GetBizDB 获取业务库连接
 func (d *Data) GetBizDB(ctx context.Context) *sql.DB {
-	db, exist := ctx.Value(conn.GormContextTxKey{}).(*sql.DB)
+	db, exist := ctx.Value(conn2.GormContextTxKey{}).(*sql.DB)
 	if exist {
 		return db
 	}
@@ -151,7 +151,7 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 	}
 
 	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamId) + "?charset=utf8mb4&parseTime=True&loc=Local"
-	bizDB, err := conn.NewGormDB(dsn, d.bizDatabaseConf.GetDriver())
+	bizDB, err := conn2.NewGormDB(dsn, d.bizDatabaseConf.GetDriver())
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 }
 
 // GetCacher 获取缓存
-func (d *Data) GetCacher() conn.Cache {
+func (d *Data) GetCacher() conn2.Cache {
 	if types.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
@@ -191,14 +191,14 @@ func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *palaceconf.Data_Cache) conn.Cache {
+func newCache(c *palaceconf.Data_Cache) conn2.Cache {
 	if types.IsNil(c) {
 		return nil
 	}
 
 	if !types.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
-		cli := conn.NewRedisClient(c.GetRedis())
+		cli := conn2.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}

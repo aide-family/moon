@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
-	"github.com/aide-family/moon/pkg/datasource/metric"
+	metric2 "github.com/aide-family/moon/pkg/houyi/datasource/metric"
 	"github.com/aide-family/moon/pkg/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -20,13 +20,13 @@ type metricRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) ([]metric.DatasourceBuildOption, error) {
-	var opts []metric.DatasourceBuildOption
+func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) ([]metric2.DatasourceBuildOption, error) {
+	var opts []metric2.DatasourceBuildOption
 	switch datasourceInfo.StorageType {
 	case vobj.StorageTypePrometheus:
-		opts = append(opts, metric.WithPrometheusOption(
-			metric.WithPrometheusEndpoint(datasourceInfo.Endpoint),
-			metric.WithPrometheusConfig(datasourceInfo.Config),
+		opts = append(opts, metric2.WithPrometheusOption(
+			metric2.WithPrometheusEndpoint(datasourceInfo.Endpoint),
+			metric2.WithPrometheusConfig(datasourceInfo.Config),
 		))
 	default:
 		return nil, merr.ErrorNotification("不支持的存储类型").WithMetadata(map[string]string{
@@ -41,7 +41,7 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 	if err != nil {
 		return nil, err
 	}
-	datasource, err := metric.NewMetricDatasource(datasourceInfo.StorageType, opts...)
+	datasource, err := metric2.NewMetricDatasource(datasourceInfo.StorageType, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,18 +50,18 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 		return nil, err
 	}
 
-	list := types.SliceTo(metadata.Metric, func(item *metric.Metric) *bo.MetricDetail {
+	list := types.SliceTo(metadata.Metric, func(item *metric2.Metric) *bo.MetricDetail {
 		return &bo.MetricDetail{Name: item.Name, Help: item.Help, Type: item.Type, Labels: item.Labels, Unit: item.Unit}
 	})
 	return list, nil
 }
 
-func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
+func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric2.QueryResponse, error) {
 	opts, err := l.getMetricOptions(&req.GetMetricsParams)
 	if err != nil {
 		return nil, err
 	}
-	datasource, err := metric.NewMetricDatasource(req.StorageType, opts...)
+	datasource, err := metric2.NewMetricDatasource(req.StorageType, opts...)
 	if err != nil {
 		return nil, err
 	}

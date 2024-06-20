@@ -5,10 +5,10 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/conn"
-	"github.com/aide-family/moon/pkg/conn/cacher/nutsdbcacher"
-	"github.com/aide-family/moon/pkg/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/types"
+	conn2 "github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
+	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -19,7 +19,7 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	cacher conn.Cache
+	cacher conn2.Cache
 }
 
 var closeFuncList []func()
@@ -49,7 +49,7 @@ func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 }
 
 // GetCacher 获取缓存
-func (d *Data) GetCacher() conn.Cache {
+func (d *Data) GetCacher() conn2.Cache {
 	if types.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
@@ -57,14 +57,14 @@ func (d *Data) GetCacher() conn.Cache {
 }
 
 // newCache new cache
-func newCache(c *rabbitconf.Data_Cache) conn.Cache {
+func newCache(c *rabbitconf.Data_Cache) conn2.Cache {
 	if types.IsNil(c) {
 		return nil
 	}
 
 	if !types.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
-		cli := conn.NewRedisClient(c.GetRedis())
+		cli := conn2.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/redis/go-redis/v9"
 )
 

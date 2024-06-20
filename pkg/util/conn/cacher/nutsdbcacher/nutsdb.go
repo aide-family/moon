@@ -5,9 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/nutsdb/nutsdb"
-
-	"github.com/aide-family/moon/pkg/conn"
 )
 
 type NutsDbConfig interface {

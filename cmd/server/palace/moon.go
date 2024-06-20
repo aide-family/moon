@@ -1,11 +1,11 @@
 package palace
 
 import (
+	"github.com/aide-family/moon/pkg/util/conn"
 	_ "go.uber.org/automaxprocs"
 
 	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
-	"github.com/aide-family/moon/pkg/conn"
 	"github.com/aide-family/moon/pkg/env"
 	sLog "github.com/aide-family/moon/pkg/log"
 	"github.com/aide-family/moon/pkg/types"

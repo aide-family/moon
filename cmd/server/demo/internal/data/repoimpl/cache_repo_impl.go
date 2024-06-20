@@ -3,7 +3,7 @@ package repoimpl
 import (
 	"github.com/aide-family/moon/cmd/server/demo/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/demo/internal/data"
-	"github.com/aide-family/moon/pkg/conn"
+	"github.com/aide-family/moon/pkg/util/conn"
 )
 
 func NewCacheRepo(data *data.Data) repository.CacheRepo {

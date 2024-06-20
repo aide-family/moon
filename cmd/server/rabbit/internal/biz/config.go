@@ -10,8 +10,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/conn"
 	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/conn"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
