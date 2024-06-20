@@ -57,9 +57,10 @@ func NewQueue(maxRetries int, backoff *Backoff) *PriorityQueue {
 }
 
 // Add 往队列里面添加一条消息数据
-// 加入对象是 *Message
-// case 1：对象断言失败，则添加失败
-// case 2：调用 tryAdd 尝试添加数据到队列
+//
+//	加入对象是 *Message
+//	case 1：对象断言失败，则添加失败
+//	case 2：调用 tryAdd 尝试添加数据到队列
 func (p *PriorityQueue) Add(item interface{}) {
 	message, err := assignedMessage(item)
 	if err != nil {

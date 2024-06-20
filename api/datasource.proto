@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package api;
+
+import "enum.proto";
+
+option go_package = "github.com/aide-family/moon/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+message Datasource {
+  // 数据源类型
+  DatasourceType category = 1;
+  // 存储器类型
+  StorageType storage_type = 2;
+  // 数据源配置 json
+  string config = 3;
+  // 数据源地址
+  string endpoint = 4;
+}

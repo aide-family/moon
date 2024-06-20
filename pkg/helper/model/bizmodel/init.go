@@ -14,5 +14,7 @@ func Models() []any {
 		&SysTeamRoleAPI{},
 		&SysTeamRole{},
 		&SysTeamMenu{},
+		&Strategy{},
+		&StrategyTemplate{},
 	}
 }

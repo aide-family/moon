@@ -7,31 +7,31 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ log.Logger = (*Logger)(nil)
+var _ log.Logger = (*zapLogger)(nil)
 
-type Logger struct {
+type zapLogger struct {
 	log    *zap.Logger
 	msgKey string
 }
 
-type Option func(*Logger)
+type Option func(*zapLogger)
 
 // WithMessageKey with message key.
 func WithMessageKey(key string) Option {
-	return func(l *Logger) {
+	return func(l *zapLogger) {
 		l.msgKey = key
 	}
 }
 
 // WithZapLogger with zap logger.
 func WithZapLogger(zl *zap.Logger) Option {
-	return func(l *Logger) {
+	return func(l *zapLogger) {
 		l.log = zl
 	}
 }
 
-func NewLogger(opts ...Option) *Logger {
-	l := &Logger{
+func NewLogger(opts ...Option) *zapLogger {
+	l := &zapLogger{
 		log:    zap.NewExample(),
 		msgKey: log.DefaultMessageKey,
 	}
@@ -41,7 +41,7 @@ func NewLogger(opts ...Option) *Logger {
 	return l
 }
 
-func (l *Logger) Log(level log.Level, keyvals ...interface{}) error {
+func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 	var (
 		msg    = ""
 		keyLen = len(keyvals)
@@ -75,10 +75,10 @@ func (l *Logger) Log(level log.Level, keyvals ...interface{}) error {
 	return nil
 }
 
-func (l *Logger) Sync() error {
+func (l *zapLogger) Sync() error {
 	return l.log.Sync()
 }
 
-func (l *Logger) Close() error {
+func (l *zapLogger) Close() error {
 	return l.Sync()
 }

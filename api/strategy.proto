@@ -3,12 +3,11 @@ syntax = "proto3";
 package api;
 
 import "google/protobuf/duration.proto";
-import "google/protobuf/any.proto";
+import "datasource.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
-
 
 // metric类型数据策略定义
 
@@ -16,7 +15,7 @@ option java_package = "api";
 //  m时间内出现n次
 //  m时间内最多出现n次
 //  m时间内最少出现n次
-enum MetricSustainType {
+enum SustainType {
 	// 持续类型定义
 	MetricSustainType_UNKNOWN = 0;
 
@@ -30,7 +29,7 @@ enum MetricSustainType {
 	MetricSustainType_MIN = 3;
 }
 
-message MetricStrategy {
+message Strategy {
 	// 策略名称
 	string alert = 1;
 	// 策略语句
@@ -40,11 +39,13 @@ message MetricStrategy {
 	// 持续次数
 	uint32 count = 4;
 	// 持续的类型
-	MetricSustainType sustainType = 5;
+	SustainType sustainType = 5;
 	// 策略标签
 	map<string, string> labels = 6;
 	// 策略注解
 	map<string, string> annotations = 7;
 	// 执行频率
 	google.protobuf.Duration interval = 8;
+	// 数据源
+	repeated Datasource datasource = 9;
 }
