@@ -7,7 +7,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/aide-family/moon/pkg/utils/after"
+	"github.com/aide-family/moon/pkg/util/after"
 )
 
 // ReplaceString 替换字符串中的$为.

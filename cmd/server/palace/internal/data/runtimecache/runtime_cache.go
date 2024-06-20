@@ -12,7 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/helper/model/query"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/after"
+	"github.com/aide-family/moon/pkg/util/after"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"

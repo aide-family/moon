@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/captcha"
+	"github.com/aide-family/moon/pkg/util/captcha"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

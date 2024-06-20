@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/httpx"
+	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 )

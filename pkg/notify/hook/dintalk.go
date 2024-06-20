@@ -11,12 +11,12 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aide-family/moon/pkg/utils/format"
+	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/notify"
-	"github.com/aide-family/moon/pkg/utils/httpx"
+	"github.com/aide-family/moon/pkg/util/httpx"
 )
 
 var _ Notify = (*dingTalk)(nil)

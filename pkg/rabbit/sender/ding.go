@@ -12,7 +12,7 @@ import (
 
 	"github.com/aide-family/moon/api/rabbit/rule"
 	"github.com/aide-family/moon/pkg/rabbit"
-	"github.com/aide-family/moon/pkg/utils/httpx"
+	"github.com/aide-family/moon/pkg/util/httpx"
 )
 
 type Ding struct {

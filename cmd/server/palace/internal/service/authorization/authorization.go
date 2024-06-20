@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/captcha"
+	"github.com/aide-family/moon/pkg/util/captcha"
 )
 
 type Service struct {

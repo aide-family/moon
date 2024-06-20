@@ -12,7 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/helper/model"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/cipher"
+	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 

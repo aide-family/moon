@@ -13,7 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/helper/model/query"
 	"github.com/aide-family/moon/pkg/types"
-	"github.com/aide-family/moon/pkg/utils/random"
+	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/vobj"
 	"gorm.io/gen/field"
 
