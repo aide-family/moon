@@ -11,7 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/util/conn"
-	types2 "github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -24,7 +24,7 @@ func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repo.CacheRepo) *ConfigBiz 
 }
 
 func GetConfigData() *Config {
-	if types2.IsNil(configData) {
+	if types.IsNil(configData) {
 		configData = &Config{
 			Receivers: make(map[string]*api.Receiver),
 			Templates: make(map[string]string),
@@ -40,7 +40,7 @@ var configData = &Config{
 
 // GetReceivers 获取接收人
 func (l *Config) GetReceivers() map[string]*api.Receiver {
-	if types2.IsNil(l) {
+	if types.IsNil(l) {
 		return map[string]*api.Receiver{}
 	}
 	return GetConfigData().Receivers
@@ -48,7 +48,7 @@ func (l *Config) GetReceivers() map[string]*api.Receiver {
 
 // GetTemplates 获取模板
 func (l *Config) GetTemplates() map[string]string {
-	if types2.IsNil(l) {
+	if types.IsNil(l) {
 		return map[string]string{}
 	}
 	return GetConfigData().Templates
@@ -106,8 +106,8 @@ func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
 		Templates: make(map[string]string),
 	}
 	getJsonStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
-	if !types2.TextIsNull(getJsonStr) {
-		if err := json.Unmarshal([]byte(getJsonStr), &params); !types2.IsNil(err) {
+	if !types.TextIsNull(getJsonStr) {
+		if err := json.Unmarshal([]byte(getJsonStr), &params); !types.IsNil(err) {
 			return err
 		}
 	}

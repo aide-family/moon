@@ -2,14 +2,14 @@ package build
 
 import (
 	"github.com/aide-family/moon/api"
-	types2 "github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type PageBuild struct {
-	types2.Pagination
+	types.Pagination
 }
 
-func NewPageBuild(page types2.Pagination) *PageBuild {
+func NewPageBuild(page types.Pagination) *PageBuild {
 	return &PageBuild{
 		Pagination: page,
 	}
@@ -17,7 +17,7 @@ func NewPageBuild(page types2.Pagination) *PageBuild {
 
 // ToApi 转换为api对象
 func (b *PageBuild) ToApi() *api.PaginationReply {
-	if types2.IsNil(b) || types2.IsNil(b.Pagination) {
+	if types.IsNil(b) || types.IsNil(b.Pagination) {
 		return nil
 	}
 	return &api.PaginationReply{

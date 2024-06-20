@@ -3,7 +3,7 @@ package authorization
 import (
 	"context"
 
-	pb "github.com/aide-family/moon/api/admin/authorization"
+	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -14,7 +14,7 @@ import (
 )
 
 type Service struct {
-	pb.UnimplementedAuthorizationServer
+	authorizationapi.UnimplementedAuthorizationServer
 
 	captchaBiz       *biz.CaptchaBiz
 	authorizationBiz *biz.AuthorizationBiz
@@ -30,7 +30,7 @@ func NewAuthorizationService(
 	}
 }
 
-func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginReply, error) {
+func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest) (*authorizationapi.LoginReply, error) {
 	captchaInfo := req.GetCaptcha()
 	// 校验验证码
 	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{
@@ -54,14 +54,14 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginRep
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.LoginReply{
+	return &authorizationapi.LoginReply{
 		User:     build.NewUserBuild(loginJwtClaims.User).ToApi(),
 		Token:    token,
 		Redirect: "/",
 	}, nil
 }
 
-func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutReply, error) {
+func (s *Service) Logout(ctx context.Context, _ *authorizationapi.LogoutRequest) (*authorizationapi.LogoutReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -73,12 +73,12 @@ func (s *Service) Logout(ctx context.Context, _ *pb.LogoutRequest) (*pb.LogoutRe
 		return nil, merr.ErrorNotification("系统错误")
 	}
 
-	return &pb.LogoutReply{
+	return &authorizationapi.LogoutReply{
 		Redirect: "/login",
 	}, nil
 }
 
-func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
+func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.RefreshTokenRequest) (*authorizationapi.RefreshTokenReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -95,13 +95,13 @@ func (s *Service) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.RefreshTokenReply{
+	return &authorizationapi.RefreshTokenReply{
 		Token: token,
 		User:  build.NewUserBuild(tokenRes.User).ToApi(),
 	}, nil
 }
 
-func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaReply, error) {
+func (s *Service) Captcha(ctx context.Context, req *authorizationapi.CaptchaReq) (*authorizationapi.CaptchaReply, error) {
 	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, &bo.GenerateCaptchaParams{
 		Type:  captcha.Type(req.GetCaptchaType()),
 		Theme: captcha.Theme(req.GetTheme()),
@@ -110,7 +110,7 @@ func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaR
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CaptchaReply{
+	return &authorizationapi.CaptchaReply{
 		Captcha:     generateCaptcha.Base64s,
 		CaptchaType: req.GetCaptchaType(),
 		Id:          generateCaptcha.Id,
@@ -118,13 +118,13 @@ func (s *Service) Captcha(ctx context.Context, req *pb.CaptchaReq) (*pb.CaptchaR
 }
 
 // CheckPermission 权限检查
-func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRequest) (*pb.CheckPermissionReply, error) {
+func (s *Service) CheckPermission(ctx context.Context, req *authorizationapi.CheckPermissionRequest) (*authorizationapi.CheckPermissionReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if claims.IsAdminRole() {
-		return &pb.CheckPermissionReply{HasPermission: true}, nil
+		return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
 	}
 	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
@@ -132,11 +132,11 @@ func (s *Service) CheckPermission(ctx context.Context, req *pb.CheckPermissionRe
 	}); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CheckPermissionReply{HasPermission: true}, nil
+	return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
 }
 
 // CheckToken 检查token
-func (s *Service) CheckToken(ctx context.Context, _ *pb.CheckTokenRequest) (*pb.CheckTokenReply, error) {
+func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckTokenRequest) (*authorizationapi.CheckTokenReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -144,5 +144,5 @@ func (s *Service) CheckToken(ctx context.Context, _ *pb.CheckTokenRequest) (*pb.
 	if err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims}); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CheckTokenReply{IsLogin: true}, nil
+	return &authorizationapi.CheckTokenReply{IsLogin: true}, nil
 }

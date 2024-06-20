@@ -3,17 +3,17 @@ package service
 import (
 	"context"
 
-	pb "github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api"
 )
 
 type HealthService struct {
-	pb.UnimplementedHealthServer
+	api.UnimplementedHealthServer
 }
 
 func NewHealthService() *HealthService {
 	return &HealthService{}
 }
 
-func (s *HealthService) Check(_ context.Context, _ *pb.CheckRequest) (*pb.CheckReply, error) {
-	return &pb.CheckReply{Healthy: true}, nil
+func (s *HealthService) Check(_ context.Context, _ *api.CheckRequest) (*api.CheckReply, error) {
+	return &api.CheckReply{Healthy: true}, nil
 }

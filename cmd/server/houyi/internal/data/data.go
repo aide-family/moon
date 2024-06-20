@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
-	conn2 "github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
-	types2 "github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -22,7 +22,7 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 type Data struct {
 	mainDB   *gorm.DB
 	bizDB    *gorm.DB
-	cacher   conn2.Cache
+	cacher   conn.Cache
 	enforcer *casbin.SyncedEnforcer
 }
 
@@ -34,16 +34,16 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	mainConf := c.GetData().GetDatabase()
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
-	if !types2.IsNil(cacheConf) {
+	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
 		})
 	}
 
-	if !types2.IsNil(mainConf) && !types2.TextIsNull(mainConf.GetDsn()) {
-		mainDB, err := conn2.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if !types2.IsNil(err) {
+	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
+		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
+		if !types.IsNil(err) {
 			return nil, nil, err
 		}
 		d.mainDB = mainDB
@@ -55,9 +55,9 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 		//query.SetDefault(mainDB)
 	}
 
-	if !types2.IsNil(bizConf) && !types2.TextIsNull(bizConf.GetDsn()) {
-		bizDB, err := conn2.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
-		if !types2.IsNil(err) {
+	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
+		bizDB, err := conn.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
+		if !types.IsNil(err) {
 			return nil, nil, err
 		}
 		d.bizDB = bizDB
@@ -78,7 +78,7 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 
 // GetMainDB 获取主库连接
 func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn2.GormContextTxKey{}).(*gorm.DB)
+	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
 	if exist {
 		return db
 	}
@@ -87,7 +87,7 @@ func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
 
 // GetBizDB 获取业务库连接
 func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn2.GormContextTxKey{}).(*gorm.DB)
+	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
 	if exist {
 		return db
 	}
@@ -95,8 +95,8 @@ func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
 }
 
 // GetCacher 获取缓存
-func (d *Data) GetCacher() conn2.Cache {
-	if types2.IsNil(d.cacher) {
+func (d *Data) GetCacher() conn.Cache {
+	if types.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
 	return d.cacher
@@ -108,24 +108,24 @@ func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *houyiconf.Data_Cache) conn2.Cache {
-	if types2.IsNil(c) {
+func newCache(c *houyiconf.Data_Cache) conn.Cache {
+	if types.IsNil(c) {
 		return nil
 	}
 
-	if !types2.IsNil(c.GetRedis()) {
+	if !types.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
-		cli := conn2.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types2.IsNil(err) {
+		cli := conn.NewRedisClient(c.GetRedis())
+		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
 	}
 
-	if !types2.IsNil(c.GetNutsDB()) {
+	if !types.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
-		if !types2.IsNil(err) {
+		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli

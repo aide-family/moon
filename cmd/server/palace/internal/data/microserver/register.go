@@ -6,7 +6,7 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/util/conn"
-	types2 "github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
@@ -52,22 +52,22 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 			),
 		),
 	}
-	if !types2.TextIsNull(microServerConf.GetNodeVersion()) {
+	if !types.TextIsNull(microServerConf.GetNodeVersion()) {
 		// 创建路由 Filter：筛选版本号为"2.0.0"的实例
 		nodeFilter := filter.Version(microServerConf.GetNodeVersion())
 		opts = append(opts, kgrpc.WithNodeFilter(nodeFilter))
 	}
 
-	if !types2.IsNil(discovery) {
+	if !types.IsNil(discovery) {
 		dis, err := conn.NewDiscovery(discovery)
-		if !types2.IsNil(err) {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		opts = append(opts, kgrpc.WithDiscovery(dis))
 	}
 
 	grpcConn, err := kgrpc.DialInsecure(context.Background(), opts...)
-	if !types2.IsNil(err) {
+	if !types.IsNil(err) {
 		log.Errorw("连接rpc失败：", err, "endpoint", endpoint)
 		return nil, err
 	}
@@ -88,15 +88,15 @@ func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 		),
 		http.WithTimeout(timeout),
 	}
-	if !types2.TextIsNull(microServerConf.GetNodeVersion()) {
+	if !types.TextIsNull(microServerConf.GetNodeVersion()) {
 		// 创建路由 Filter：筛选版本号为"2.0.0"的实例
 		nodeFilter := filter.Version(microServerConf.GetNodeVersion())
 		opts = append(opts, http.WithNodeFilter(nodeFilter))
 	}
 
-	if !types2.IsNil(discovery) {
+	if !types.IsNil(discovery) {
 		dis, err := conn.NewDiscovery(discovery)
-		if !types2.IsNil(err) {
+		if !types.IsNil(err) {
 			return nil, err
 		}
 		opts = append(opts, http.WithDiscovery(dis))
@@ -104,7 +104,7 @@ func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 
 	ctx := context.Background()
 	newClient, err := http.NewClient(ctx, opts...)
-	if !types2.IsNil(err) {
+	if !types.IsNil(err) {
 		log.Errorw("连接http失败：", err, "endpoint", endpoint)
 		return nil, err
 	}

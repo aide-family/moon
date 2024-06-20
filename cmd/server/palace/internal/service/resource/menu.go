@@ -3,14 +3,14 @@ package resource
 import (
 	"context"
 
-	pb "github.com/aide-family/moon/api/admin/resource"
+	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type MenuService struct {
-	pb.UnimplementedMenuServer
+	resourceapi.UnimplementedMenuServer
 
 	menuBiz *biz.MenuBiz
 }
@@ -21,12 +21,12 @@ func NewMenuService(menuBiz *biz.MenuBiz) *MenuService {
 	}
 }
 
-func (s *MenuService) ListMenu(ctx context.Context, _ *pb.ListMenuRequest) (*pb.ListMenuReply, error) {
+func (s *MenuService) ListMenu(ctx context.Context, _ *resourceapi.ListMenuRequest) (*resourceapi.ListMenuReply, error) {
 	menuTree, err := s.menuBiz.MenuList(ctx)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListMenuReply{
+	return &resourceapi.ListMenuReply{
 		List: build.NewMenuBuild(menuTree, 0).ToTree(),
 	}, nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api"
-	pb "github.com/aide-family/moon/api/houyi/metadata"
+	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service/build"
@@ -14,7 +14,7 @@ import (
 )
 
 type MetricService struct {
-	pb.UnimplementedMetricServer
+	metadataapi.UnimplementedMetricServer
 
 	metricBiz *biz.MetricBiz
 }
@@ -25,7 +25,7 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 	}
 }
 
-func (s *MetricService) SyncMetadata(ctx context.Context, req *pb.SyncMetadataRequest) (*pb.SyncMetadataReply, error) {
+func (s *MetricService) SyncMetadata(ctx context.Context, req *metadataapi.SyncMetadataRequest) (*metadataapi.SyncMetadataReply, error) {
 	params := &bo.GetMetricsParams{
 		Endpoint:    req.GetEndpoint(),
 		Config:      req.GetConfig(),
@@ -35,7 +35,7 @@ func (s *MetricService) SyncMetadata(ctx context.Context, req *pb.SyncMetadataRe
 	if err != nil {
 		return nil, err
 	}
-	return &pb.SyncMetadataReply{
+	return &metadataapi.SyncMetadataReply{
 		Metrics: types.SliceTo(metrics, func(item *bo.MetricDetail) *api.MetricDetail {
 			return build.NewMetricBuilder(item).ToApi()
 		}),
@@ -43,7 +43,7 @@ func (s *MetricService) SyncMetadata(ctx context.Context, req *pb.SyncMetadataRe
 }
 
 // Query query metric data
-func (s *MetricService) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryReply, error) {
+func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest) (*metadataapi.QueryReply, error) {
 	params := &bo.QueryQLParams{
 		GetMetricsParams: bo.GetMetricsParams{
 			Endpoint:    req.GetEndpoint(),
@@ -58,7 +58,7 @@ func (s *MetricService) Query(ctx context.Context, req *pb.QueryRequest) (*pb.Qu
 	if err != nil {
 		return nil, err
 	}
-	return &pb.QueryReply{
+	return &metadataapi.QueryReply{
 		List: types.SliceTo(data, func(item *metric.QueryResponse) *api.MetricQueryResult {
 			return build.NewMetricQueryBuilder(item).ToApi()
 		}),
