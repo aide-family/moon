@@ -162,7 +162,7 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 func (m *Manager) processNextWorkItem(ctx context.Context) bool {
-	obj, ok := m.Queue.Next()
+	obj, ok := m.Queue.Get()
 	if ok {
 		// 当从消息队列中获取消息失败时，表明发生了意料之外的错误，
 		// 此时，当前worker会退出。

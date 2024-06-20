@@ -14,15 +14,41 @@ import (
 )
 
 // MessageQueue 消息队列接口，用来处理信息
-// 队列中，至多允许一个相同 key 的数据存在。
-// 加入时，如果数据未被消费，则会更新数据，如果是延时加入，则以第一次加入的为准。
-// 如果已经被消费，则会重新创建一个key，然后将数据存储起来。
+//
+//	队列中，至多允许一个相同 key 的数据存在。
+//	加入时，如果数据未被消费，则会更新数据，如果是延时加入，则以第一次加入的为准。
+//	如果已经被消费，则会重新创建一个key，然后将数据存储起来。
 type MessageQueue interface {
-	workqueue.DelayingInterface
-	// Next 用来顺序获取消息队列中的一条消息数据，如果队列中没有数据，则会阻塞，直到有数据入队
-	// 队列关闭/获取数据失败/数据类型转换失败，均会返回false
-	Next() (*QueueInfo, bool)
-	TryAgain(info *QueueInfo) bool
+	// Add 用来将一条数据加入到队列中
+	Add(item *rule.Message)
+
+	// TryAgain 尝试将数据加入再次加入到队列
+	//
+	//  尝试加入队列时，会通过即将加入的 item 的去计算再次加入的时间，如果超过限制，则会被抛弃
+	TryAgain(item *QueueInfo) bool
+
+	// Get 用来顺序获取消息队列中的一条消息数据
+	//
+	//  如果队列中没有数据，则会阻塞，直到有数据入队,队列关闭则返回false
+	Get() (*QueueInfo, bool)
+
+	// Done 用来销毁队列中的一条数据
+	//
+	// 当 Done 被调用时，表示这条数据已经处理完成，不需要重新入队，它将被完全移除，
+	// 正常情况下，我们每次处理完成数据，都应该调用这个方法，以保证队列中没有溢出的数据产生。
+	Done(item *QueueInfo)
+
+	// ShutDown 用来关闭队列
+	//
+	// 当 ShutDown 被调用时，队列将直接关闭，无论队列中的数据是否被消费完成
+	ShutDown()
+	// ShuttingDown 用于判断队列是否关闭
+	ShuttingDown() bool
+	// ShutDownWithDrain 用来关闭队列
+	//
+	// 当 ShutDownWithDrain 被调用时，队列将在数据被消费完成后关闭
+	ShutDownWithDrain()
+	Len() int
 }
 
 var _ MessageQueue = &PriorityQueue{}
@@ -61,13 +87,8 @@ func NewQueue(maxRetries int, backoff *Backoff) *PriorityQueue {
 //	加入对象是 *Message
 //	case 1：对象断言失败，则添加失败
 //	case 2：调用 tryAdd 尝试添加数据到队列
-func (p *PriorityQueue) Add(item interface{}) {
-	message, err := assignedMessage(item)
-	if err != nil {
-		klog.ErrorS(err, "add message to queue failed")
-		return
-	}
-	p.tryAdd(message)
+func (p *PriorityQueue) Add(msg *rule.Message) {
+	p.tryAdd(msg)
 }
 
 // tryAdd 尝试往队列中添加数据
@@ -104,20 +125,8 @@ func (p *PriorityQueue) addMessageInfo(info *QueueInfo, duration time.Duration) 
 	p.dirty.update(info)
 }
 
-// AddAfter 延时加入队列，加入对象 QueueInfo
-// TODO
-func (p *PriorityQueue) AddAfter(item interface{}, duration time.Duration) {
-	info, err := assignedMessageInfo(item)
-	if err != nil {
-		klog.ErrorS(err, "add object to queue failed")
-		return
-	}
-
-	p.addMessageInfo(info, duration)
-}
-
-// Next 获取下一个需要处理的消息
-func (p *PriorityQueue) Next() (*QueueInfo, bool) {
+// Get 获取下一个需要处理的消息
+func (p *PriorityQueue) Get() (*QueueInfo, bool) {
 	for {
 		// 从索引队列中获取消息的索引，获取索引失败则表示消息队列关闭
 		data, shutdown := p.queue.Get()
@@ -150,22 +159,13 @@ func (p *PriorityQueue) Next() (*QueueInfo, bool) {
 	}
 }
 
-func (p *PriorityQueue) Done(item interface{}) {
-	info, err := assignedMessageInfo(item)
-	if err != nil {
-		return
-	}
-	p.runner.delete(info.Key)
-	p.queue.Done(info.Key)
+func (p *PriorityQueue) Done(item *QueueInfo) {
+	p.runner.delete(item.Key)
+	p.queue.Done(item.Key)
 }
 
 func (p *PriorityQueue) Len() int {
 	return p.queue.Len()
-}
-
-// Get 从消息队列中顺序获取需要处理的消息的 key
-func (p *PriorityQueue) Get() (item interface{}, shutdown bool) {
-	return p.queue.Get()
 }
 
 func (p *PriorityQueue) ShutDown() {
@@ -178,24 +178,6 @@ func (p *PriorityQueue) ShuttingDown() bool {
 
 func (p *PriorityQueue) ShutDownWithDrain() {
 	p.queue.ShutDownWithDrain()
-}
-
-// assignedMessageInfo 用来判断从事件接收到的对象是否是 *QueueInfo 类
-func assignedMessageInfo(obj interface{}) (*QueueInfo, error) {
-	business, ok := obj.(*QueueInfo)
-	if !ok {
-		return nil, fmt.Errorf("cannot convert to *QueueInfo obj: %v\n", obj)
-	}
-	return business, nil
-}
-
-// assignedMessage 用来判断从收到的对象是否是 *Message 类型
-func assignedMessage(obj interface{}) (*rule.Message, error) {
-	business, ok := obj.(*rule.Message)
-	if !ok {
-		return nil, fmt.Errorf("cannot convert to *Message %v\n", obj)
-	}
-	return business, nil
 }
 
 type dirty struct {
