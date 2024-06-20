@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/pkg/types"
 	"github.com/aide-family/moon/pkg/util/httpx"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 )

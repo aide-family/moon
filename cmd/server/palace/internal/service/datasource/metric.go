@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/datasource"
+	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type MetricService struct {
-	pb.UnimplementedMetricServer
+	datasourceapi.UnimplementedMetricServer
 
 	metricBiz *biz.MetricBiz
 }
@@ -25,7 +25,7 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 	}
 }
 
-func (s *MetricService) UpdateMetric(ctx context.Context, req *pb.UpdateMetricRequest) (*pb.UpdateMetricReply, error) {
+func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.UpdateMetricRequest) (*datasourceapi.UpdateMetricReply, error) {
 	params := &bo.UpdateMetricParams{
 		ID:     req.GetId(),
 		Unit:   req.GetUnit(),
@@ -34,10 +34,10 @@ func (s *MetricService) UpdateMetric(ctx context.Context, req *pb.UpdateMetricRe
 	if err := s.metricBiz.UpdateMetricByID(ctx, params); err != nil {
 		return nil, err
 	}
-	return &pb.UpdateMetricReply{}, nil
+	return &datasourceapi.UpdateMetricReply{}, nil
 }
 
-func (s *MetricService) GetMetric(ctx context.Context, req *pb.GetMetricRequest) (*pb.GetMetricReply, error) {
+func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMetricRequest) (*datasourceapi.GetMetricReply, error) {
 	params := &bo.GetMetricParams{
 		ID:           req.GetId(),
 		WithRelation: req.GetWithRelation(),
@@ -50,13 +50,13 @@ func (s *MetricService) GetMetric(ctx context.Context, req *pb.GetMetricRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.GetMetricReply{
+	return &datasourceapi.GetMetricReply{
 		Data:       build.NewDatasourceMetricBuild(detail).ToApi(),
 		LabelCount: labelCount,
 	}, nil
 }
 
-func (s *MetricService) ListMetric(ctx context.Context, req *pb.ListMetricRequest) (*pb.ListMetricReply, error) {
+func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.ListMetricReply, error) {
 	params := &bo.QueryMetricListParams{
 		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
 		Keyword:      req.GetKeyword(),
@@ -67,7 +67,7 @@ func (s *MetricService) ListMetric(ctx context.Context, req *pb.ListMetricReques
 	if err != nil {
 		return nil, err
 	}
-	return &pb.ListMetricReply{
+	return &datasourceapi.ListMetricReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(list, func(item *bizmodel.DatasourceMetric) *admin.MetricDetail {
 			return build.NewDatasourceMetricBuild(item).ToApi()
@@ -75,7 +75,7 @@ func (s *MetricService) ListMetric(ctx context.Context, req *pb.ListMetricReques
 	}, nil
 }
 
-func (s *MetricService) SelectMetric(ctx context.Context, req *pb.SelectMetricRequest) (*pb.SelectMetricReply, error) {
+func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.SelectMetricRequest) (*datasourceapi.SelectMetricReply, error) {
 	params := &bo.QueryMetricListParams{
 		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
 		Keyword:      req.GetKeyword(),
@@ -87,7 +87,7 @@ func (s *MetricService) SelectMetric(ctx context.Context, req *pb.SelectMetricRe
 		return nil, err
 	}
 
-	return &pb.SelectMetricReply{
+	return &datasourceapi.SelectMetricReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.Select {
 			return build.NewSelectBuild(item).ToApi()
@@ -95,9 +95,9 @@ func (s *MetricService) SelectMetric(ctx context.Context, req *pb.SelectMetricRe
 	}, nil
 }
 
-func (s *MetricService) DeleteMetric(ctx context.Context, req *pb.DeleteMetricRequest) (*pb.DeleteMetricReply, error) {
+func (s *MetricService) DeleteMetric(ctx context.Context, req *datasourceapi.DeleteMetricRequest) (*datasourceapi.DeleteMetricReply, error) {
 	if err := s.metricBiz.DeleteMetricByID(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
-	return &pb.DeleteMetricReply{}, nil
+	return &datasourceapi.DeleteMetricReply{}, nil
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 )

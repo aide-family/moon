@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/aide-family/moon/api/merr"
-	slog "github.com/aide-family/moon/pkg/log"
+	slog "github.com/aide-family/moon/pkg/util/log"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"

@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
 	metric2 "github.com/aide-family/moon/pkg/houyi/datasource/metric"
-	"github.com/aide-family/moon/pkg/types"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -50,7 +50,7 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 		return nil, err
 	}
 
-	list := types.SliceTo(metadata.Metric, func(item *metric2.Metric) *bo.MetricDetail {
+	list := types2.SliceTo(metadata.Metric, func(item *metric2.Metric) *bo.MetricDetail {
 		return &bo.MetricDetail{Name: item.Name, Help: item.Help, Type: item.Type, Labels: item.Labels, Unit: item.Unit}
 	})
 	return list, nil
@@ -69,8 +69,8 @@ func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams)
 		return nil, merr.ErrorNotification("time range is empty")
 	}
 	if len(req.TimeRange) == 1 {
-		return datasource.Query(ctx, req.QueryQL, types.NewTimeByString(req.TimeRange[0]).Unix())
+		return datasource.Query(ctx, req.QueryQL, types2.NewTimeByString(req.TimeRange[0]).Unix())
 	}
-	start, end := types.NewTimeByString(req.TimeRange[0]).Unix(), types.NewTimeByString(req.TimeRange[1]).Unix()
+	start, end := types2.NewTimeByString(req.TimeRange[0]).Unix(), types2.NewTimeByString(req.TimeRange[1]).Unix()
 	return datasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
 }

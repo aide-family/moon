@@ -25,9 +25,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	outputPath = "./pkg/helper/model/query"
+	outputPath = "./pkg/palace/model/query"
 	if isBiz {
-		outputPath = "./pkg/helper/model/bizmodel/bizquery"
+		outputPath = "./pkg/palace/model/bizmodel/bizquery"
 	}
 	gen.Run(datasource, drive, outputPath, isBiz)
 }

@@ -6,7 +6,7 @@ import (
 	pb "github.com/aide-family/moon/api/admin/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type MenuService struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
 type TeamMenu interface {

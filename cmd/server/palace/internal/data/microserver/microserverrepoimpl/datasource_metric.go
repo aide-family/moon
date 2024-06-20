@@ -9,8 +9,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 

@@ -1,14 +1,13 @@
 package demo
 
 import (
+	sLog "github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/util/types"
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-family/moon/cmd/server/demo/internal/server"
 	"github.com/aide-family/moon/pkg/env"
-	sLog "github.com/aide-family/moon/pkg/log"
-	"github.com/aide-family/moon/pkg/types"
-
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"

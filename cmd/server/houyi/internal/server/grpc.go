@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/log"
+	"github.com/aide-family/moon/pkg/util/log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"

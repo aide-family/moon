@@ -4,19 +4,19 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/team"
+	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type RoleService struct {
-	pb.UnimplementedRoleServer
+	teamapi.UnimplementedRoleServer
 
 	teamRoleBiz *biz.TeamRoleBiz
 }
@@ -27,7 +27,7 @@ func NewRoleService(teamRoleBiz *biz.TeamRoleBiz) *RoleService {
 	}
 }
 
-func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest) (*pb.CreateRoleReply, error) {
+func (s *RoleService) CreateRole(ctx context.Context, req *teamapi.CreateRoleRequest) (*teamapi.CreateRoleReply, error) {
 	params := &bo.CreateTeamRoleParams{
 		TeamID:      req.GetTeamId(),
 		Name:        req.GetName(),
@@ -39,10 +39,10 @@ func (s *RoleService) CreateRole(ctx context.Context, req *pb.CreateRoleRequest)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CreateRoleReply{}, nil
+	return &teamapi.CreateRoleReply{}, nil
 }
 
-func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest) (*pb.UpdateRoleReply, error) {
+func (s *RoleService) UpdateRole(ctx context.Context, req *teamapi.UpdateRoleRequest) (*teamapi.UpdateRoleReply, error) {
 	data := req.GetData()
 	params := &bo.UpdateTeamRoleParams{
 		ID:          req.GetId(),
@@ -53,27 +53,27 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *pb.UpdateRoleRequest)
 	if err := s.teamRoleBiz.UpdateTeamRole(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateRoleReply{}, nil
+	return &teamapi.UpdateRoleReply{}, nil
 }
 
-func (s *RoleService) DeleteRole(ctx context.Context, req *pb.DeleteRoleRequest) (*pb.DeleteRoleReply, error) {
+func (s *RoleService) DeleteRole(ctx context.Context, req *teamapi.DeleteRoleRequest) (*teamapi.DeleteRoleReply, error) {
 	if err := s.teamRoleBiz.DeleteTeamRole(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.DeleteRoleReply{}, nil
+	return &teamapi.DeleteRoleReply{}, nil
 }
 
-func (s *RoleService) GetRole(ctx context.Context, req *pb.GetRoleRequest) (*pb.GetRoleReply, error) {
+func (s *RoleService) GetRole(ctx context.Context, req *teamapi.GetRoleRequest) (*teamapi.GetRoleReply, error) {
 	roleDetail, err := s.teamRoleBiz.GetTeamRole(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetRoleReply{
+	return &teamapi.GetRoleReply{
 		Role: build.NewTeamRoleBuild(roleDetail).ToApi(),
 	}, nil
 }
 
-func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*pb.ListRoleReply, error) {
+func (s *RoleService) ListRole(ctx context.Context, req *teamapi.ListRoleRequest) (*teamapi.ListRoleReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -86,21 +86,21 @@ func (s *RoleService) ListRole(ctx context.Context, req *pb.ListRoleRequest) (*p
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListRoleReply{
+	return &teamapi.ListRoleReply{
 		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.TeamRole {
 			return build.NewTeamRoleBuild(item).ToApi()
 		}),
 	}, nil
 }
 
-func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *pb.UpdateRoleStatusRequest) (*pb.UpdateRoleStatusReply, error) {
+func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *teamapi.UpdateRoleStatusRequest) (*teamapi.UpdateRoleStatusReply, error) {
 	if err := s.teamRoleBiz.UpdateTeamRoleStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateRoleStatusReply{}, nil
+	return &teamapi.UpdateRoleStatusReply{}, nil
 }
 
-func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSelectListRequest) (*pb.GetRoleSelectListReply, error) {
+func (s *RoleService) GetRoleSelectList(ctx context.Context, req *teamapi.GetRoleSelectListRequest) (*teamapi.GetRoleSelectListReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -113,7 +113,7 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *pb.GetRoleSele
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetRoleSelectListReply{
+	return &teamapi.GetRoleSelectListReply{
 		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.Select {
 			return build.NewTeamRoleBuild(item).ToSelect()
 		}),

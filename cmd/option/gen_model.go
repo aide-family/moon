@@ -19,6 +19,10 @@ var genCmd = &cobra.Command{
 	Long:    `gen`,
 	Example: `cmd gen`,
 	Run: func(cmd *cobra.Command, args []string) {
+		outputPath = "./pkg/palace/model/query"
+		if isBiz {
+			outputPath = "./pkg/palace/model/bizmodel/bizquery"
+		}
 		gen.Run(datasource, drive, outputPath, isBiz)
 	},
 }

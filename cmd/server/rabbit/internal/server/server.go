@@ -7,7 +7,7 @@ import (
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	pushapi "github.com/aide-family/moon/api/rabbit/push"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/service"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"

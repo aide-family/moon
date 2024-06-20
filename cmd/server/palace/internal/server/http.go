@@ -9,8 +9,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/log"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"

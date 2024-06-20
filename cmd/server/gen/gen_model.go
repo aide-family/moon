@@ -1,10 +1,9 @@
 package gen
 
 import (
-	"github.com/aide-family/moon/pkg/helper/model"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
-
+	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
@@ -12,7 +11,7 @@ import (
 )
 
 func Run(datasource string, drive, outputPath string, isBiz bool) {
-	if drive == "" || outputPath == "" || datasource == "" {
+	if drive == "" || outputPath == "" {
 		log.Warnw("err", "参数错误", "datasource", datasource, "drive", drive, "outputPath", outputPath)
 		return
 	}
@@ -35,11 +34,13 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 
 	g := gen.NewGenerator(*c)
 
-	gormDB, err := gorm.Open(mysql.Open(datasource))
-	if !types.IsNil(err) {
-		panic(err)
+	if datasource != "" {
+		gormDB, err := gorm.Open(mysql.Open(datasource))
+		if !types.IsNil(err) {
+			panic(err)
+		}
+		g.UseDB(gormDB) // reuse your gorm db
 	}
-	g.UseDB(gormDB) // reuse your gorm db
 
 	if isBiz {
 		g.ApplyBasic(bizmodel.Models()...)

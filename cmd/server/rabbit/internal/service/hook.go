@@ -8,7 +8,7 @@ import (
 	pb "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/types"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
@@ -29,26 +29,26 @@ func (s *HookService) SendMsg(ctx context.Context, req *pb.SendMsgRequest) (*pb.
 	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{
 		Route: req.Route,
 		Data:  []byte(req.JsonData),
-	}); !types.IsNil(err) {
+	}); !types2.IsNil(err) {
 		return nil, err
 	}
 	return &pb.SendMsgReply{
 		Msg:  "ok",
 		Code: 0,
-		Time: types.NewTime(time.Now()).String(),
+		Time: types2.NewTime(time.Now()).String(),
 	}, nil
 }
 
 func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in pb.SendMsgRequest
-		if err := ctx.BindVars(&in); !types.IsNil(err) {
+		if err := ctx.BindVars(&in); !types2.IsNil(err) {
 			return err
 		}
 
 		body := ctx.Request().Body
 		all, err := io.ReadAll(body)
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			return err
 		}
 		in.JsonData = string(all)
@@ -56,7 +56,7 @@ func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 			return s.SendMsg(ctx, req.(*pb.SendMsgRequest))
 		})
 		out, err := h(ctx, &in)
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			return err
 		}
 		reply := out.(*pb.SendMsgReply)

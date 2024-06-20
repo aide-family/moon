@@ -2,7 +2,7 @@ package bo
 
 import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/palace/model"
 )
 
 type CheckPermissionParams struct {

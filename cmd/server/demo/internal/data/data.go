@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
-	"github.com/aide-family/moon/pkg/types"
 	conn2 "github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -34,16 +34,16 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 	mainConf := c.GetData().GetDatabase()
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
-	if !types.IsNil(cacheConf) {
+	if !types2.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
 		})
 	}
 
-	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
+	if !types2.IsNil(mainConf) && !types2.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn2.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			return nil, nil, err
 		}
 		d.mainDB = mainDB
@@ -55,9 +55,9 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 		//query.SetDefault(mainDB)
 	}
 
-	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
+	if !types2.IsNil(bizConf) && !types2.TextIsNull(bizConf.GetDsn()) {
 		bizDB, err := conn2.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			return nil, nil, err
 		}
 		d.bizDB = bizDB
@@ -96,7 +96,7 @@ func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
 
 // GetCacher 获取缓存
 func (d *Data) GetCacher() conn2.Cache {
-	if types.IsNil(d.cacher) {
+	if types2.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
 	return d.cacher
@@ -109,23 +109,23 @@ func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 
 // newCache new cache
 func newCache(c *democonf.Data_Cache) conn2.Cache {
-	if types.IsNil(c) {
+	if types2.IsNil(c) {
 		return nil
 	}
 
-	if !types.IsNil(c.GetRedis()) {
+	if !types2.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
 		cli := conn2.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
+		if err := cli.Ping(context.Background()).Err(); !types2.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
 	}
 
-	if !types.IsNil(c.GetNutsDB()) {
+	if !types2.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli

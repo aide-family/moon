@@ -3,7 +3,7 @@ package conn
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"

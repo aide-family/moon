@@ -5,10 +5,10 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/types"
 	conn2 "github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"

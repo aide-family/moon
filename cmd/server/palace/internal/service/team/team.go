@@ -4,20 +4,20 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/team"
+	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/helper/model"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type Service struct {
-	pb.UnimplementedTeamServer
+	teamapi.UnimplementedTeamServer
 
 	teamBiz *biz.TeamBiz
 }
@@ -28,7 +28,7 @@ func NewTeamService(teamBiz *biz.TeamBiz) *Service {
 	}
 }
 
-func (s *Service) CreateTeam(ctx context.Context, req *pb.CreateTeamRequest) (*pb.CreateTeamReply, error) {
+func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest) (*teamapi.CreateTeamReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -50,10 +50,10 @@ func (s *Service) CreateTeam(ctx context.Context, req *pb.CreateTeamRequest) (*p
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CreateTeamReply{}, nil
+	return &teamapi.CreateTeamReply{}, nil
 }
 
-func (s *Service) UpdateTeam(ctx context.Context, req *pb.UpdateTeamRequest) (*pb.UpdateTeamReply, error) {
+func (s *Service) UpdateTeam(ctx context.Context, req *teamapi.UpdateTeamRequest) (*teamapi.UpdateTeamReply, error) {
 	params := &bo.UpdateTeamParams{
 		ID:     req.GetId(),
 		Name:   req.GetName(),
@@ -64,20 +64,20 @@ func (s *Service) UpdateTeam(ctx context.Context, req *pb.UpdateTeamRequest) (*p
 	if err := s.teamBiz.UpdateTeam(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateTeamReply{}, nil
+	return &teamapi.UpdateTeamReply{}, nil
 }
 
-func (s *Service) GetTeam(ctx context.Context, req *pb.GetTeamRequest) (*pb.GetTeamReply, error) {
+func (s *Service) GetTeam(ctx context.Context, req *teamapi.GetTeamRequest) (*teamapi.GetTeamReply, error) {
 	teamInfo, err := s.teamBiz.GetTeam(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetTeamReply{
+	return &teamapi.GetTeamReply{
 		Team: build.NewTeamBuild(teamInfo).ToApi(ctx),
 	}, nil
 }
 
-func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.ListTeamReply, error) {
+func (s *Service) ListTeam(ctx context.Context, req *teamapi.ListTeamRequest) (*teamapi.ListTeamReply, error) {
 	params := &bo.QueryTeamListParams{
 		Page:      types.NewPagination(req.GetPagination()),
 		Keyword:   req.GetKeyword(),
@@ -89,7 +89,7 @@ func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.Li
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListTeamReply{
+	return &teamapi.ListTeamReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
 			return build.NewTeamBuild(team).ToApi(ctx)
@@ -97,14 +97,14 @@ func (s *Service) ListTeam(ctx context.Context, req *pb.ListTeamRequest) (*pb.Li
 	}, nil
 }
 
-func (s *Service) UpdateTeamStatus(ctx context.Context, req *pb.UpdateTeamStatusRequest) (*pb.UpdateTeamStatusReply, error) {
+func (s *Service) UpdateTeamStatus(ctx context.Context, req *teamapi.UpdateTeamStatusRequest) (*teamapi.UpdateTeamStatusReply, error) {
 	if err := s.teamBiz.UpdateTeamStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateTeamStatusReply{}, nil
+	return &teamapi.UpdateTeamStatusReply{}, nil
 }
 
-func (s *Service) MyTeam(ctx context.Context, _ *pb.MyTeamRequest) (*pb.MyTeamReply, error) {
+func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamapi.MyTeamReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -113,17 +113,17 @@ func (s *Service) MyTeam(ctx context.Context, _ *pb.MyTeamRequest) (*pb.MyTeamRe
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.MyTeamReply{
+	return &teamapi.MyTeamReply{
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
 			return build.NewTeamBuild(team).ToApi(ctx)
 		}),
 	}, nil
 }
 
-func (s *Service) AddTeamMember(ctx context.Context, req *pb.AddTeamMemberRequest) (*pb.AddTeamMemberReply, error) {
+func (s *Service) AddTeamMember(ctx context.Context, req *teamapi.AddTeamMemberRequest) (*teamapi.AddTeamMemberReply, error) {
 	params := &bo.AddTeamMemberParams{
 		ID: req.GetId(),
-		Members: types.SliceTo(req.GetMembers(), func(member *pb.AddTeamMemberRequest_MemberItem) *bo.AddTeamMemberItem {
+		Members: types.SliceTo(req.GetMembers(), func(member *teamapi.AddTeamMemberRequest_MemberItem) *bo.AddTeamMemberItem {
 			return &bo.AddTeamMemberItem{
 				UserID:  member.GetUserId(),
 				Role:    vobj.Role(member.GetRole()),
@@ -134,10 +134,10 @@ func (s *Service) AddTeamMember(ctx context.Context, req *pb.AddTeamMemberReques
 	if err := s.teamBiz.AddTeamMember(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.AddTeamMemberReply{}, nil
+	return &teamapi.AddTeamMemberReply{}, nil
 }
 
-func (s *Service) RemoveTeamMember(ctx context.Context, req *pb.RemoveTeamMemberRequest) (*pb.RemoveTeamMemberReply, error) {
+func (s *Service) RemoveTeamMember(ctx context.Context, req *teamapi.RemoveTeamMemberRequest) (*teamapi.RemoveTeamMemberReply, error) {
 	params := &bo.RemoveTeamMemberParams{
 		ID:        req.GetId(),
 		MemberIds: []uint32{req.GetUserId()},
@@ -145,10 +145,10 @@ func (s *Service) RemoveTeamMember(ctx context.Context, req *pb.RemoveTeamMember
 	if err := s.teamBiz.RemoveTeamMember(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.RemoveTeamMemberReply{}, nil
+	return &teamapi.RemoveTeamMemberReply{}, nil
 }
 
-func (s *Service) SetTeamAdmin(ctx context.Context, req *pb.SetTeamAdminRequest) (*pb.SetTeamAdminReply, error) {
+func (s *Service) SetTeamAdmin(ctx context.Context, req *teamapi.SetTeamAdminRequest) (*teamapi.SetTeamAdminReply, error) {
 	params := &bo.SetMemberAdminParams{
 		ID:        req.GetId(),
 		MemberIds: []uint32{req.GetUserId()},
@@ -157,10 +157,10 @@ func (s *Service) SetTeamAdmin(ctx context.Context, req *pb.SetTeamAdminRequest)
 	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.SetTeamAdminReply{}, nil
+	return &teamapi.SetTeamAdminReply{}, nil
 }
 
-func (s *Service) RemoveTeamAdmin(ctx context.Context, req *pb.RemoveTeamAdminRequest) (*pb.RemoveTeamAdminReply, error) {
+func (s *Service) RemoveTeamAdmin(ctx context.Context, req *teamapi.RemoveTeamAdminRequest) (*teamapi.RemoveTeamAdminReply, error) {
 	params := &bo.SetMemberAdminParams{
 		ID:        req.GetId(),
 		MemberIds: []uint32{req.GetUserId()},
@@ -169,10 +169,10 @@ func (s *Service) RemoveTeamAdmin(ctx context.Context, req *pb.RemoveTeamAdminRe
 	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.RemoveTeamAdminReply{}, nil
+	return &teamapi.RemoveTeamAdminReply{}, nil
 }
 
-func (s *Service) SetMemberRole(ctx context.Context, req *pb.SetMemberRoleRequest) (*pb.SetMemberRoleReply, error) {
+func (s *Service) SetMemberRole(ctx context.Context, req *teamapi.SetMemberRoleRequest) (*teamapi.SetMemberRoleReply, error) {
 	params := &bo.SetMemberRoleParams{
 		ID:       req.GetId(),
 		MemberID: req.GetUserId(),
@@ -181,10 +181,10 @@ func (s *Service) SetMemberRole(ctx context.Context, req *pb.SetMemberRoleReques
 	if err := s.teamBiz.SetMemberRole(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.SetMemberRoleReply{}, nil
+	return &teamapi.SetMemberRoleReply{}, nil
 }
 
-func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequest) (*pb.ListTeamMemberReply, error) {
+func (s *Service) ListTeamMember(ctx context.Context, req *teamapi.ListTeamMemberRequest) (*teamapi.ListTeamMemberReply, error) {
 	params := &bo.ListTeamMemberParams{
 		Page:    types.NewPagination(req.GetPagination()),
 		ID:      req.GetId(),
@@ -197,7 +197,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequ
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListTeamMemberReply{
+	return &teamapi.ListTeamMemberReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(memberList, func(member *bizmodel.SysTeamMember) *admin.TeamMember {
 			return build.NewTeamMemberBuild(member).ToApi(ctx)
@@ -205,7 +205,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *pb.ListTeamMemberRequ
 	}, nil
 }
 
-func (s *Service) TransferTeamLeader(ctx context.Context, req *pb.TransferTeamLeaderRequest) (*pb.TransferTeamLeaderReply, error) {
+func (s *Service) TransferTeamLeader(ctx context.Context, req *teamapi.TransferTeamLeaderRequest) (*teamapi.TransferTeamLeaderReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -218,5 +218,5 @@ func (s *Service) TransferTeamLeader(ctx context.Context, req *pb.TransferTeamLe
 	if err := s.teamBiz.TransferTeamLeader(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.TransferTeamLeaderReply{}, nil
+	return &teamapi.TransferTeamLeaderReply{}, nil
 }

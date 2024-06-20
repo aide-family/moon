@@ -3,7 +3,7 @@ package option
 import (
 	"os"
 
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/cobra"

@@ -4,7 +4,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 var (

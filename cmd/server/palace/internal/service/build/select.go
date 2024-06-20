@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/aide-family/moon/api/admin"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/types"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 )
 
 type SelectBuild struct {
@@ -17,13 +17,13 @@ func NewSelectBuild(option *bo.SelectOptionBo) *SelectBuild {
 }
 
 func (b *SelectBuild) ToApi() *admin.Select {
-	if types.IsNil(b) || types.IsNil(b.SelectOptionBo) {
+	if types2.IsNil(b) || types2.IsNil(b.SelectOptionBo) {
 		return nil
 	}
 	return &admin.Select{
 		Value: b.Value,
 		Label: b.Label,
-		Children: types.SliceTo(b.Children, func(i *bo.SelectOptionBo) *admin.Select {
+		Children: types2.SliceTo(b.Children, func(i *bo.SelectOptionBo) *admin.Select {
 			return NewSelectBuild(i).ToApi()
 		}),
 		Disabled: b.Disabled,
@@ -32,7 +32,7 @@ func (b *SelectBuild) ToApi() *admin.Select {
 }
 
 func SelectExtendToApi(extend *bo.SelectExtend) *admin.SelectExtend {
-	if types.IsNil(extend) {
+	if types2.IsNil(extend) {
 		return nil
 	}
 	return &admin.SelectExtend{

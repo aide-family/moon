@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/types"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -35,21 +35,21 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 				return nil, merr.ErrorI18nParamsValidateErr(ctx).WithCause(err)
 			}
 
-			if types.IsNil(validationError) || len(validationError.Violations) == 0 {
+			if types2.IsNil(validationError) || len(validationError.Violations) == 0 {
 				return nil, merr.ErrorI18nParamsValidateErr(ctx)
 			}
 
 			errMap := make(map[string]string)
 			for _, v := range validationError.Violations {
 				field := v.GetFieldPath()
-				if types.TextIsNull(field) {
+				if types2.TextIsNull(field) {
 					continue
 				}
 				msg := v.GetMessage()
 				id := v.GetConstraintId()
-				if !types.TextIsNull(id) {
+				if !types2.TextIsNull(id) {
 					_msg := merr.GetI18nMessage(ctx, id)
-					if !types.TextIsNull(_msg) {
+					if !types2.TextIsNull(_msg) {
 						msg = _msg
 					}
 				}

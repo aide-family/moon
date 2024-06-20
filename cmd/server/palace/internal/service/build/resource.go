@@ -5,9 +5,9 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
-	"github.com/aide-family/moon/pkg/helper/model"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type ResourceBuild struct {

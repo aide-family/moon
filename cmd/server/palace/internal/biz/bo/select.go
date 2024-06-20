@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
 type (

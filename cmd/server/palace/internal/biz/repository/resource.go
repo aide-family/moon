@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/helper/model"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 

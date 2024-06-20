@@ -6,19 +6,19 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/datasource"
+	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 type Service struct {
-	pb.UnimplementedDatasourceServer
+	datasourceapi.UnimplementedDatasourceServer
 
 	datasourceBiz *biz.DatasourceBiz
 }
@@ -29,7 +29,7 @@ func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 	}
 }
 
-func (s *Service) CreateDatasource(ctx context.Context, req *pb.CreateDatasourceRequest) (*pb.CreateDatasourceReply, error) {
+func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.CreateDatasourceRequest) (*datasourceapi.CreateDatasourceReply, error) {
 	configBytes, _ := json.Marshal(req.GetConfig())
 	params := &bo.CreateDatasourceParams{
 		Name:        req.GetName(),
@@ -46,10 +46,10 @@ func (s *Service) CreateDatasource(ctx context.Context, req *pb.CreateDatasource
 	}
 	// 记录操作日志
 	log.Debugw("datasourceDetail", datasourceDetail)
-	return &pb.CreateDatasourceReply{}, nil
+	return &datasourceapi.CreateDatasourceReply{}, nil
 }
 
-func (s *Service) UpdateDatasource(ctx context.Context, req *pb.UpdateDatasourceRequest) (*pb.UpdateDatasourceReply, error) {
+func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.UpdateDatasourceRequest) (*datasourceapi.UpdateDatasourceReply, error) {
 	data := req.GetData()
 	params := &bo.UpdateDatasourceBaseInfoParams{
 		ID:     req.GetId(),
@@ -60,27 +60,27 @@ func (s *Service) UpdateDatasource(ctx context.Context, req *pb.UpdateDatasource
 	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateDatasourceReply{}, nil
+	return &datasourceapi.UpdateDatasourceReply{}, nil
 }
 
-func (s *Service) DeleteDatasource(ctx context.Context, req *pb.DeleteDatasourceRequest) (*pb.DeleteDatasourceReply, error) {
+func (s *Service) DeleteDatasource(ctx context.Context, req *datasourceapi.DeleteDatasourceRequest) (*datasourceapi.DeleteDatasourceReply, error) {
 	if err := s.datasourceBiz.DeleteDatasource(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.DeleteDatasourceReply{}, nil
+	return &datasourceapi.DeleteDatasourceReply{}, nil
 }
 
-func (s *Service) GetDatasource(ctx context.Context, req *pb.GetDatasourceRequest) (*pb.GetDatasourceReply, error) {
+func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatasourceRequest) (*datasourceapi.GetDatasourceReply, error) {
 	datasourceDetail, err := s.datasourceBiz.GetDatasource(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetDatasourceReply{
+	return &datasourceapi.GetDatasourceReply{
 		Data: build.NewDatasourceBuild(datasourceDetail).ToApi(),
 	}, nil
 }
 
-func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequest) (*pb.ListDatasourceReply, error) {
+func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.ListDatasourceReply, error) {
 	params := &bo.QueryDatasourceListParams{
 		Page:        types.NewPagination(req.GetPagination()),
 		Keyword:     req.GetKeyword(),
@@ -92,7 +92,7 @@ func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequ
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListDatasourceReply{
+	return &datasourceapi.ListDatasourceReply{
 		Pagination: build.NewPageBuild(params.Page).ToApi(),
 		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
 			return build.NewDatasourceBuild(item).ToApi()
@@ -100,14 +100,14 @@ func (s *Service) ListDatasource(ctx context.Context, req *pb.ListDatasourceRequ
 	}, nil
 }
 
-func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *pb.UpdateDatasourceStatusRequest) (*pb.UpdateDatasourceStatusReply, error) {
+func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *datasourceapi.UpdateDatasourceStatusRequest) (*datasourceapi.UpdateDatasourceStatusReply, error) {
 	if err := s.datasourceBiz.UpdateDatasourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateDatasourceStatusReply{}, nil
+	return &datasourceapi.UpdateDatasourceStatusReply{}, nil
 }
 
-func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasourceSelectRequest) (*pb.GetDatasourceSelectReply, error) {
+func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.GetDatasourceSelectRequest) (*datasourceapi.GetDatasourceSelectReply, error) {
 	params := &bo.QueryDatasourceListParams{
 		Page:        nil,
 		Keyword:     req.GetKeyword(),
@@ -119,7 +119,7 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasource
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetDatasourceSelectReply{
+	return &datasourceapi.GetDatasourceSelectReply{
 		Data: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.Select {
 			return build.NewSelectBuild(item).ToApi()
 		}),
@@ -127,15 +127,15 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *pb.GetDatasource
 }
 
 // SyncDatasourceMeta 同步数据源元数据
-func (s *Service) SyncDatasourceMeta(ctx context.Context, req *pb.SyncDatasourceMetaRequest) (*pb.SyncDatasourceMetaReply, error) {
+func (s *Service) SyncDatasourceMeta(ctx context.Context, req *datasourceapi.SyncDatasourceMetaRequest) (*datasourceapi.SyncDatasourceMetaReply, error) {
 	if err := s.datasourceBiz.SyncDatasourceMeta(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.SyncDatasourceMetaReply{}, nil
+	return &datasourceapi.SyncDatasourceMetaReply{}, nil
 }
 
 // DatasourceQuery 查询数据
-func (s *Service) DatasourceQuery(ctx context.Context, req *pb.DatasourceQueryRequest) (*pb.DatasourceQueryReply, error) {
+func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.DatasourceQueryRequest) (*datasourceapi.DatasourceQueryReply, error) {
 	params := &bo.DatasourceQueryParams{
 		DatasourceID: req.GetId(),
 		Query:        req.GetQuery(),
@@ -146,7 +146,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *pb.DatasourceQueryRe
 	if err != nil {
 		return nil, err
 	}
-	return &pb.DatasourceQueryReply{
+	return &datasourceapi.DatasourceQueryReply{
 		List: types.SliceTo(query, func(item *bo.DatasourceQueryData) *api.MetricQueryResult {
 			return build.NewDatasourceQueryDataBuild(item).ToApi()
 		}),

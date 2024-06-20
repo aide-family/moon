@@ -4,20 +4,20 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/user"
+	userapi "github.com/aide-family/moon/api/admin/user"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/helper/model"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/cipher"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type Service struct {
-	pb.UnimplementedUserServer
+	userapi.UnimplementedUserServer
 
 	userBiz *biz.UserBiz
 }
@@ -61,7 +61,7 @@ func encryptPassword(ctx context.Context, password string) (string, error) {
 }
 
 // CreateUser 创建用户 只允许管理员操作
-func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserReply, error) {
+func (s *Service) CreateUser(ctx context.Context, req *userapi.CreateUserRequest) (*userapi.CreateUserReply, error) {
 	pass, err := decryptPassword(ctx, req.GetPassword())
 	if !types.IsNil(err) {
 		return nil, merr.ErrorAlert("请使用加密后的密文传输").WithMetadata(map[string]string{
@@ -90,11 +90,11 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CreateUserReply{}, nil
+	return &userapi.CreateUserReply{}, nil
 }
 
 // UpdateUser 更新用户基础信息， 只允许管理员操作
-func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserReply, error) {
+func (s *Service) UpdateUser(ctx context.Context, req *userapi.UpdateUserRequest) (*userapi.UpdateUserReply, error) {
 	data := req.GetData()
 	createParams := bo.CreateUserParams{
 		Name:     data.GetName(),
@@ -113,27 +113,27 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 	}); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateUserReply{}, nil
+	return &userapi.UpdateUserReply{}, nil
 }
 
-func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserReply, error) {
+func (s *Service) DeleteUser(ctx context.Context, req *userapi.DeleteUserRequest) (*userapi.DeleteUserReply, error) {
 	if err := s.userBiz.DeleteUser(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.DeleteUserReply{}, nil
+	return &userapi.DeleteUserReply{}, nil
 }
 
-func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserReply, error) {
+func (s *Service) GetUser(ctx context.Context, req *userapi.GetUserRequest) (*userapi.GetUserReply, error) {
 	userDo, err := s.userBiz.GetUser(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetUserReply{
+	return &userapi.GetUserReply{
 		User: build.NewUserBuild(userDo).ToApi(),
 	}, nil
 }
 
-func (s *Service) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.ListUserReply, error) {
+func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*userapi.ListUserReply, error) {
 	queryParams := &bo.QueryUserListParams{
 		Keyword: req.GetKeyword(),
 		Page:    types.NewPagination(req.GetPagination()),
@@ -145,7 +145,7 @@ func (s *Service) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.Li
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListUserReply{
+	return &userapi.ListUserReply{
 		List: types.SliceTo(userDos, func(user *model.SysUser) *admin.User {
 			return build.NewUserBuild(user).ToApi()
 		}),
@@ -153,7 +153,7 @@ func (s *Service) ListUser(ctx context.Context, req *pb.ListUserRequest) (*pb.Li
 	}, nil
 }
 
-func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *pb.BatchUpdateUserStatusRequest) (*pb.BatchUpdateUserStatusReply, error) {
+func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchUpdateUserStatusRequest) (*userapi.BatchUpdateUserStatusReply, error) {
 	params := &bo.BatchUpdateUserStatusParams{
 		Status: vobj.Status(req.GetStatus()),
 		IDs:    req.GetIds(),
@@ -161,14 +161,14 @@ func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *pb.BatchUpdate
 	if err := s.userBiz.BatchUpdateUserStatus(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.BatchUpdateUserStatusReply{}, nil
+	return &userapi.BatchUpdateUserStatusReply{}, nil
 }
 
-func (s *Service) ResetUserPassword(ctx context.Context, req *pb.ResetUserPasswordRequest) (*pb.ResetUserPasswordReply, error) {
-	return &pb.ResetUserPasswordReply{}, nil
+func (s *Service) ResetUserPassword(ctx context.Context, req *userapi.ResetUserPasswordRequest) (*userapi.ResetUserPasswordReply, error) {
+	return &userapi.ResetUserPasswordReply{}, nil
 }
 
-func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUserPasswordBySelfRequest) (*pb.ResetUserPasswordBySelfReply, error) {
+func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.ResetUserPasswordBySelfRequest) (*userapi.ResetUserPasswordBySelfReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -206,10 +206,10 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *pb.ResetUser
 	if err = s.userBiz.ResetUserPasswordBySelf(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ResetUserPasswordBySelfReply{}, nil
+	return &userapi.ResetUserPasswordBySelfReply{}, nil
 }
 
-func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectListRequest) (*pb.GetUserSelectListReply, error) {
+func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.GetUserSelectListRequest) (*userapi.GetUserSelectListReply, error) {
 	params := &bo.QueryUserSelectParams{
 		Keyword: req.GetKeyword(),
 		Page:    types.NewPagination(req.GetPagination()),
@@ -221,7 +221,7 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectLi
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.GetUserSelectListReply{
+	return &userapi.GetUserSelectListReply{
 		List: types.SliceTo(userSelectOptions, func(option *bo.SelectOptionBo) *admin.Select {
 			return build.NewSelectBuild(option).ToApi()
 		}),
@@ -230,7 +230,7 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *pb.GetUserSelectLi
 }
 
 // UpdateUserPhone 更新用户手机号
-func (s *Service) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRequest) (*pb.UpdateUserPhoneReply, error) {
+func (s *Service) UpdateUserPhone(ctx context.Context, req *userapi.UpdateUserPhoneRequest) (*userapi.UpdateUserPhoneReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -243,11 +243,11 @@ func (s *Service) UpdateUserPhone(ctx context.Context, req *pb.UpdateUserPhoneRe
 	if err := s.userBiz.UpdateUserPhone(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateUserPhoneReply{}, nil
+	return &userapi.UpdateUserPhoneReply{}, nil
 }
 
 // UpdateUserEmail 更新用户邮箱
-func (s *Service) UpdateUserEmail(ctx context.Context, req *pb.UpdateUserEmailRequest) (*pb.UpdateUserEmailReply, error) {
+func (s *Service) UpdateUserEmail(ctx context.Context, req *userapi.UpdateUserEmailRequest) (*userapi.UpdateUserEmailReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -260,11 +260,11 @@ func (s *Service) UpdateUserEmail(ctx context.Context, req *pb.UpdateUserEmailRe
 	if err := s.userBiz.UpdateUserEmail(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateUserEmailReply{}, nil
+	return &userapi.UpdateUserEmailReply{}, nil
 }
 
 // UpdateUserAvatar 更新用户头像
-func (s *Service) UpdateUserAvatar(ctx context.Context, req *pb.UpdateUserAvatarRequest) (*pb.UpdateUserAvatarReply, error) {
+func (s *Service) UpdateUserAvatar(ctx context.Context, req *userapi.UpdateUserAvatarRequest) (*userapi.UpdateUserAvatarReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
@@ -276,5 +276,5 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *pb.UpdateUserAvatar
 	if err := s.userBiz.UpdateUserAvatar(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateUserAvatarReply{}, nil
+	return &userapi.UpdateUserAvatarReply{}, nil
 }

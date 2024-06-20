@@ -8,12 +8,12 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-family/moon/pkg/helper/model/query"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model/query"
 	conn2 "github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -61,16 +61,16 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		d.exit <- struct{}{}
 	})
 
-	if !types.IsNil(cacheConf) {
+	if !types2.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
 		})
 	}
 
-	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
+	if !types2.IsNil(mainConf) && !types2.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn2.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			cleanup()
 			return nil, nil, err
 		}
@@ -82,10 +82,10 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		query.SetDefault(d.mainDB)
 	}
 
-	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
+	if !types2.IsNil(bizConf) && !types2.TextIsNull(bizConf.GetDsn()) {
 		// 打开数据库连接
 		db, err := sql.Open(bizConf.GetDriver(), bizConf.GetDsn())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			log.Fatalf("Error opening database: %v\n", err)
 			cleanup()
 			return nil, nil, err
@@ -152,13 +152,13 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 
 	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamId) + "?charset=utf8mb4&parseTime=True&loc=Local"
 	bizDB, err := conn2.NewGormDB(dsn, d.bizDatabaseConf.GetDriver())
-	if !types.IsNil(err) {
+	if !types2.IsNil(err) {
 		return nil, err
 	}
 
 	d.teamBizDBMap.Store(teamId, bizDB)
 	enforcer, err := rbac.InitCasbinModel(bizDB)
-	if !types.IsNil(err) {
+	if !types2.IsNil(err) {
 		log.Errorw("casbin init error", err)
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (d *Data) GetBizGormDB(teamId uint32) (*gorm.DB, error) {
 
 // GetCacher 获取缓存
 func (d *Data) GetCacher() conn2.Cache {
-	if types.IsNil(d.cacher) {
+	if types2.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
 	return d.cacher
@@ -179,7 +179,7 @@ func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
 	enforceVal, exist := d.enforcerMap.Load(teamId)
 	if !exist {
 		_, err := d.GetBizGormDB(teamId)
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			panic(err)
 		}
 	}
@@ -192,23 +192,23 @@ func (d *Data) GetCasbin(teamId uint32) *casbin.SyncedEnforcer {
 
 // newCache new cache
 func newCache(c *palaceconf.Data_Cache) conn2.Cache {
-	if types.IsNil(c) {
+	if types2.IsNil(c) {
 		return nil
 	}
 
-	if !types.IsNil(c.GetRedis()) {
+	if !types2.IsNil(c.GetRedis()) {
 		log.Debugw("cache init", "redis")
 		cli := conn2.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
+		if err := cli.Ping(context.Background()).Err(); !types2.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return rediscacher.NewRedisCacher(cli)
 	}
 
-	if !types.IsNil(c.GetNutsDB()) {
+	if !types2.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
 		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
-		if !types.IsNil(err) {
+		if !types2.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cli

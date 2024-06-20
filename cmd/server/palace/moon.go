@@ -2,14 +2,13 @@ package palace
 
 import (
 	"github.com/aide-family/moon/pkg/util/conn"
+	sLog "github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/util/types"
 	_ "go.uber.org/automaxprocs"
 
 	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
 	"github.com/aide-family/moon/pkg/env"
-	sLog "github.com/aide-family/moon/pkg/log"
-	"github.com/aide-family/moon/pkg/types"
-
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"

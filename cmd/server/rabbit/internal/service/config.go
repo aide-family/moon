@@ -7,7 +7,7 @@ import (
 	pb "github.com/aide-family/moon/api/rabbit/push"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/types"
+	types2 "github.com/aide-family/moon/pkg/util/types"
 )
 
 type ConfigService struct {
@@ -26,13 +26,13 @@ func (s *ConfigService) NotifyObject(ctx context.Context, req *pb.NotifyObjectRe
 	if err := s.configBiz.CacheConfig(ctx, &bo.CacheConfigParams{
 		Receivers: req.GetReceivers(),
 		Templates: req.GetTemplates(),
-	}); !types.IsNil(err) {
+	}); !types2.IsNil(err) {
 		return nil, err
 	}
 	return &pb.NotifyObjectReply{
 		Msg:  "ok",
 		Code: 0,
-		Time: types.NewTime(time.Now()).String(),
+		Time: types2.NewTime(time.Now()).String(),
 	}, nil
 }
 

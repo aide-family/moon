@@ -1,8 +1,8 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/helper/model"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 

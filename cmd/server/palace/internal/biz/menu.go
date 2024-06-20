@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/helper/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
 func NewMenuBiz(teamMenuRepo repository.TeamMenu, msgRepo repository.Msg) *MenuBiz {

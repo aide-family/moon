@@ -5,7 +5,7 @@ import (
 
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
-	"github.com/aide-family/moon/pkg/types"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // GreeterService is a greeter service.
