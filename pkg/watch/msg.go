@@ -8,12 +8,31 @@ import (
 
 // 定义原始消息格式和传输消息格式
 
+const defaultRetryMax = 0
+
+// NewMessage 创建消息
+func NewMessage(data Indexer, topic vobj.Topic, opts ...MessageOption) *Message {
+	m := &Message{
+		data:     data,
+		topic:    topic,
+		schema:   NewEmptySchemer(),
+		retry:    0,
+		retryMax: defaultRetryMax,
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
 type (
 	// Message watch 消息结构体
 	Message struct {
 		lock sync.Mutex
+
 		// 传输的消息内容， 由用户自定义
 		data Indexer
+
 		// 消息类型， 如需要增加新的类型，去vobj包增加
 		topic vobj.Topic
 
@@ -26,18 +45,9 @@ type (
 		// 最大消息重试次数
 		retryMax int
 	}
-)
 
-// NewMessage 创建消息
-func NewMessage(data Indexer, topic vobj.Topic, schema Schemer, retryMax int) *Message {
-	return &Message{
-		data:     data,
-		topic:    topic,
-		schema:   schema,
-		retry:    0,
-		retryMax: retryMax,
-	}
-}
+	MessageOption func(m *Message)
+)
 
 // GetData 获取消息内容
 func (m *Message) GetData() Indexer {
@@ -79,4 +89,18 @@ func (m *Message) GetRetryMax() int {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.retryMax
+}
+
+// WithMessageSchema 设置消息编码器
+func WithMessageSchema(schema Schemer) MessageOption {
+	return func(m *Message) {
+		m.schema = schema
+	}
+}
+
+// WithMessageRetryMax 设置消息最大重试次数
+func WithMessageRetryMax(retryMax int) MessageOption {
+	return func(m *Message) {
+		m.retryMax = retryMax
+	}
 }

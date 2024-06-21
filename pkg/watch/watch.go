@@ -42,6 +42,21 @@ type (
 	WatcherOption func(w *Watcher)
 )
 
+// GetStorage 获取存储器
+func (w *Watcher) GetStorage() Storage {
+	return w.storage
+}
+
+// GetQueue 获取消息队列
+func (w *Watcher) GetQueue() Queue {
+	return w.queue
+}
+
+// GetHandler 获取消息处理器
+func (w *Watcher) GetHandler() Handler {
+	return w.handler
+}
+
 func (w *Watcher) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
@@ -107,9 +122,16 @@ func (w *Watcher) reader() {
 	// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
 	ctx, cancel := context.WithTimeout(context.Background(), w.timeout)
 	defer cancel()
-	if err := w.handler.Handle(ctx, msg, w.storage); err != nil {
+	if err := w.handler.Handle(ctx, msg); err != nil {
 		log.Errorw("method", "handle message error", "error", err)
 		w.retry(msg)
+		return
+	}
+	// 存储消息
+	if err := w.storage.Put(msg); err != nil {
+		log.Errorw("method", "put message to storage error", "error", err)
+		w.retry(msg)
+		return
 	}
 }
 

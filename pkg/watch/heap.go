@@ -8,9 +8,16 @@ import (
 
 // 定义运行时存储
 
+func NewDefaultStorage() Storage {
+	return &defaultStorage{
+		data: make(map[Indexer]*Message),
+	}
+}
+
 type (
 	// Indexer 索引器
 	Indexer interface {
+		// Index 索引生成器
 		Index() string
 	}
 
@@ -18,13 +25,18 @@ type (
 	Storage interface {
 		// Get 获取消息
 		Get(index Indexer) *Message
+
 		// Put 放入消息
 		Put(msg *Message) error
+
 		// Close 关闭存储器
 		Close() error
+
 		// Len 长度
 		Len() int
+
 		// Range 遍历
+		//  f返回值为bool类型，如果返回false，则停止range
 		Range(f func(index Indexer, msg *Message) bool)
 	}
 
@@ -76,10 +88,4 @@ func (d *defaultStorage) Close() error {
 	defer d.lock.Unlock()
 	d.data = nil
 	return nil
-}
-
-func NewDefaultStorage() Storage {
-	return &defaultStorage{
-		data: make(map[Indexer]*Message),
-	}
 }
