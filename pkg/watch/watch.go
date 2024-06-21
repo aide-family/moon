@@ -2,7 +2,6 @@ package watch
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/after"
@@ -20,7 +19,6 @@ func NewWatcher(opts ...WatcherOption) *Watcher {
 		stopCh:  make(chan struct{}),
 		timeout: watcherTimeout,
 	}
-	w.cond = sync.NewCond(&w.lock)
 	for _, opt := range opts {
 		opt(w)
 	}
@@ -29,9 +27,6 @@ func NewWatcher(opts ...WatcherOption) *Watcher {
 
 type (
 	Watcher struct {
-		lock sync.Mutex
-		cond *sync.Cond
-
 		// 停止监听的通道
 		stopCh chan struct{}
 		// 存储器
@@ -57,7 +52,7 @@ func (w *Watcher) Start(_ context.Context) error {
 				w.clear()
 				return
 			default:
-				if types.IsNil(w.queue) || w.queue.Len() == 0 {
+				if types.IsNil(w.queue) {
 					log.Warnw("method", "queue is empty")
 					continue
 				}
@@ -97,6 +92,7 @@ func (w *Watcher) retry(msg *Message) {
 		// 重试次数超过最大次数不再重试
 		return
 	}
+	// 消息重试次数+1
 	msg.RetryInc()
 	if err := w.queue.Push(msg); err != nil {
 		log.Errorw("method", "push message to queue error", "error", err)
@@ -104,14 +100,6 @@ func (w *Watcher) retry(msg *Message) {
 }
 
 func (w *Watcher) reader() {
-	w.lock.Lock()
-	defer w.lock.Unlock()
-	for w.queue.Len() == 0 {
-		// 等待被唤醒
-		w.cond.Wait()
-	}
-	// 唤醒
-	w.cond.Broadcast()
 	msg, ok := w.queue.Next()
 	if !ok {
 		return
