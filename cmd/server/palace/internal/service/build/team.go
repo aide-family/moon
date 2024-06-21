@@ -12,18 +12,18 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type TeamBuild struct {
+type TeamBuilder struct {
 	*model.SysTeam
 }
 
-func NewTeamBuild(team *model.SysTeam) *TeamBuild {
-	return &TeamBuild{
+func NewTeamBuilder(team *model.SysTeam) *TeamBuilder {
+	return &TeamBuilder{
 		SysTeam: team,
 	}
 }
 
 // ToApi 转换为API层数据
-func (b *TeamBuild) ToApi(ctx context.Context) *admin.Team {
+func (b *TeamBuilder) ToApi(ctx context.Context) *admin.Team {
 	if types.IsNil(b) || types.IsNil(b.SysTeam) {
 		return nil
 	}
@@ -35,27 +35,27 @@ func (b *TeamBuild) ToApi(ctx context.Context) *admin.Team {
 		Remark:    b.Remark,
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		Leader:    NewUserBuild(cache.GetUser(ctx, b.LeaderID)).ToApi(),
-		Creator:   NewUserBuild(cache.GetUser(ctx, b.CreatorID)).ToApi(),
+		Leader:    NewUserBuilder(cache.GetUser(ctx, b.LeaderID)).ToApi(),
+		Creator:   NewUserBuilder(cache.GetUser(ctx, b.CreatorID)).ToApi(),
 		Logo:      b.Logo,
 		// 从全局中取
 		Admin: types.SliceTo(cache.GetTeamAdminList(ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
-			return NewTeamMemberBuild(item).ToApi(ctx)
+			return NewTeamMemberBuilder(item).ToApi(ctx)
 		}),
 	}
 }
 
-type TeamRoleBuild struct {
+type TeamRoleBuilder struct {
 	*bizmodel.SysTeamRole
 }
 
-func NewTeamRoleBuild(role *bizmodel.SysTeamRole) *TeamRoleBuild {
-	return &TeamRoleBuild{
+func NewTeamRoleBuilder(role *bizmodel.SysTeamRole) *TeamRoleBuilder {
+	return &TeamRoleBuilder{
 		SysTeamRole: role,
 	}
 }
 
-func (b *TeamRoleBuild) ToApi() *admin.TeamRole {
+func (b *TeamRoleBuilder) ToApi() *admin.TeamRole {
 	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
 		return nil
 	}
@@ -67,13 +67,13 @@ func (b *TeamRoleBuild) ToApi() *admin.TeamRole {
 		UpdatedAt: b.UpdatedAt.String(),
 		Status:    api.Status(b.Status),
 		Resources: types.SliceTo(b.Apis, func(item *bizmodel.SysTeamAPI) *admin.ResourceItem {
-			return NewTeamResourceBuild(item).ToApi()
+			return NewTeamResourceBuilder(item).ToApi()
 		}),
 	}
 }
 
 // ToSelect 转换为Select数据
-func (b *TeamRoleBuild) ToSelect() *admin.Select {
+func (b *TeamRoleBuilder) ToSelect() *admin.Select {
 	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
 		return nil
 	}

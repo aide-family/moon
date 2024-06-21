@@ -73,7 +73,7 @@ func (s *Service) GetTeam(ctx context.Context, req *teamapi.GetTeamRequest) (*te
 		return nil, err
 	}
 	return &teamapi.GetTeamReply{
-		Team: build.NewTeamBuild(teamInfo).ToApi(ctx),
+		Team: build.NewTeamBuilder(teamInfo).ToApi(ctx),
 	}, nil
 }
 
@@ -90,9 +90,9 @@ func (s *Service) ListTeam(ctx context.Context, req *teamapi.ListTeamRequest) (*
 		return nil, err
 	}
 	return &teamapi.ListTeamReply{
-		Pagination: build.NewPageBuild(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuild(team).ToApi(ctx)
+			return build.NewTeamBuilder(team).ToApi(ctx)
 		}),
 	}, nil
 }
@@ -115,7 +115,7 @@ func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamap
 	}
 	return &teamapi.MyTeamReply{
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuild(team).ToApi(ctx)
+			return build.NewTeamBuilder(team).ToApi(ctx)
 		}),
 	}, nil
 }
@@ -198,9 +198,9 @@ func (s *Service) ListTeamMember(ctx context.Context, req *teamapi.ListTeamMembe
 		return nil, err
 	}
 	return &teamapi.ListTeamMemberReply{
-		Pagination: build.NewPageBuild(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(memberList, func(member *bizmodel.SysTeamMember) *admin.TeamMember {
-			return build.NewTeamMemberBuild(member).ToApi(ctx)
+			return build.NewTeamMemberBuilder(member).ToApi(ctx)
 		}),
 	}, nil
 }

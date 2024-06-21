@@ -11,18 +11,18 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-type UserBuild struct {
+type UserBuilder struct {
 	*model.SysUser
 }
 
-func NewUserBuild(user *model.SysUser) *UserBuild {
-	return &UserBuild{
+func NewUserBuilder(user *model.SysUser) *UserBuilder {
+	return &UserBuilder{
 		SysUser: user,
 	}
 }
 
 // ToApi 转换成api
-func (b *UserBuild) ToApi() *admin.User {
+func (b *UserBuilder) ToApi() *admin.User {
 	if types.IsNil(b) || types.IsNil(b.SysUser) {
 		return nil
 	}
@@ -42,17 +42,17 @@ func (b *UserBuild) ToApi() *admin.User {
 	}
 }
 
-type TeamMemberBuild struct {
+type TeamMemberBuilder struct {
 	*bizmodel.SysTeamMember
 }
 
-func NewTeamMemberBuild(member *bizmodel.SysTeamMember) *TeamMemberBuild {
-	return &TeamMemberBuild{
+func NewTeamMemberBuilder(member *bizmodel.SysTeamMember) *TeamMemberBuilder {
+	return &TeamMemberBuilder{
 		SysTeamMember: member,
 	}
 }
 
-func (b *TeamMemberBuild) ToApi(ctx context.Context) *admin.TeamMember {
+func (b *TeamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
 	if types.IsNil(b) || types.IsNil(b.SysTeamMember) {
 		return nil
 	}
@@ -64,6 +64,6 @@ func (b *TeamMemberBuild) ToApi(ctx context.Context) *admin.TeamMember {
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		User:      NewUserBuild(cache.GetUser(ctx, b.UserID)).ToApi(),
+		User:      NewUserBuilder(cache.GetUser(ctx, b.UserID)).ToApi(),
 	}
 }

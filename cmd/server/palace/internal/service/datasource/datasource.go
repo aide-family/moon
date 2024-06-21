@@ -76,7 +76,7 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceReply{
-		Data: build.NewDatasourceBuild(datasourceDetail).ToApi(),
+		Data: build.NewDatasourceBuilder(datasourceDetail).ToApi(),
 	}, nil
 }
 
@@ -93,9 +93,9 @@ func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDat
 		return nil, err
 	}
 	return &datasourceapi.ListDatasourceReply{
-		Pagination: build.NewPageBuild(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
-			return build.NewDatasourceBuild(item).ToApi()
+			return build.NewDatasourceBuilder(item).ToApi()
 		}),
 	}, nil
 }
@@ -121,7 +121,7 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.Ge
 	}
 	return &datasourceapi.GetDatasourceSelectReply{
 		Data: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuild(item).ToApi()
+			return build.NewSelectBuilder(item).ToApi()
 		}),
 	}, nil
 }
@@ -148,7 +148,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 	}
 	return &datasourceapi.DatasourceQueryReply{
 		List: types.SliceTo(query, func(item *bo.DatasourceQueryData) *api.MetricQueryResult {
-			return build.NewDatasourceQueryDataBuild(item).ToApi()
+			return build.NewDatasourceQueryDataBuilder(item).ToApi()
 		}),
 	}, nil
 }

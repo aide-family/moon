@@ -31,7 +31,7 @@ func (s *Service) GetResource(ctx context.Context, req *resourceapi.GetResourceR
 		return nil, err
 	}
 	return &resourceapi.GetResourceReply{
-		Resource: build.NewResourceBuild(resourceDo).ToApi(),
+		Resource: build.NewResourceBuilder(resourceDo).ToApi(),
 	}, nil
 }
 
@@ -45,9 +45,9 @@ func (s *Service) ListResource(ctx context.Context, req *resourceapi.ListResourc
 		return nil, err
 	}
 	return &resourceapi.ListResourceReply{
-		Pagination: build.NewPageBuild(queryParams.Page).ToApi(),
+		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 		List: types.SliceTo(resourceDos, func(item *model.SysAPI) *admin.ResourceItem {
-			return build.NewResourceBuild(item).ToApi()
+			return build.NewResourceBuilder(item).ToApi()
 		}),
 	}, nil
 }
@@ -70,9 +70,9 @@ func (s *Service) GetResourceSelectList(ctx context.Context, req *resourceapi.Ge
 	}
 
 	return &resourceapi.GetResourceSelectListReply{
-		Pagination: build.NewPageBuild(queryParams.Page).ToApi(),
+		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 		List: types.SliceTo(resourceDos, func(item *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuild(item).ToApi()
+			return build.NewSelectBuilder(item).ToApi()
 		}),
 	}, nil
 }

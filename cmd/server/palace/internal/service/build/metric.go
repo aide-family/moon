@@ -7,16 +7,16 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-type DatasourceMetricBuild struct {
+type DatasourceMetricBuilder struct {
 	*bizmodel.DatasourceMetric
 }
 
-func NewDatasourceMetricBuild(metric *bizmodel.DatasourceMetric) *DatasourceMetricBuild {
-	return &DatasourceMetricBuild{DatasourceMetric: metric}
+func NewDatasourceMetricBuilder(metric *bizmodel.DatasourceMetric) *DatasourceMetricBuilder {
+	return &DatasourceMetricBuilder{DatasourceMetric: metric}
 }
 
 // ToApi 转换为api对象
-func (b *DatasourceMetricBuild) ToApi() *admin.MetricDetail {
+func (b *DatasourceMetricBuilder) ToApi() *admin.MetricDetail {
 	if types.IsNil(b) || types.IsNil(b.DatasourceMetric) {
 		return nil
 	}
@@ -26,23 +26,23 @@ func (b *DatasourceMetricBuild) ToApi() *admin.MetricDetail {
 		Help: b.Remark,
 		Type: api.MetricType(b.Category),
 		Labels: types.SliceTo(b.Labels, func(item *bizmodel.MetricLabel) *admin.MetricLabel {
-			return NewDatasourceMetricLabelBuild(item).ToApi()
+			return NewDatasourceMetricLabelBuilder(item).ToApi()
 		}),
 		Unit: b.Unit,
 		Id:   b.ID,
 	}
 }
 
-type DatasourceMetricLabelBuild struct {
+type DatasourceMetricLabelBuilder struct {
 	*bizmodel.MetricLabel
 }
 
-func NewDatasourceMetricLabelBuild(label *bizmodel.MetricLabel) *DatasourceMetricLabelBuild {
-	return &DatasourceMetricLabelBuild{MetricLabel: label}
+func NewDatasourceMetricLabelBuilder(label *bizmodel.MetricLabel) *DatasourceMetricLabelBuilder {
+	return &DatasourceMetricLabelBuilder{MetricLabel: label}
 }
 
 // ToApi 转换为api对象
-func (b *DatasourceMetricLabelBuild) ToApi() *admin.MetricLabel {
+func (b *DatasourceMetricLabelBuilder) ToApi() *admin.MetricLabel {
 	if types.IsNil(b) || types.IsNil(b.MetricLabel) {
 		return nil
 	}
@@ -50,22 +50,22 @@ func (b *DatasourceMetricLabelBuild) ToApi() *admin.MetricLabel {
 	return &admin.MetricLabel{
 		Name: b.Name,
 		Values: types.SliceTo(b.LabelValues, func(item *bizmodel.MetricLabelValue) *admin.MetricLabelValue {
-			return NewDatasourceMetricLabelValueBuild(item).ToApi()
+			return NewDatasourceMetricLabelValueBuilder(item).ToApi()
 		}),
 		Id: b.ID,
 	}
 }
 
-type DatasourceMetricLabelValueBuild struct {
+type DatasourceMetricLabelValueBuilder struct {
 	*bizmodel.MetricLabelValue
 }
 
-func NewDatasourceMetricLabelValueBuild(value *bizmodel.MetricLabelValue) *DatasourceMetricLabelValueBuild {
-	return &DatasourceMetricLabelValueBuild{MetricLabelValue: value}
+func NewDatasourceMetricLabelValueBuilder(value *bizmodel.MetricLabelValue) *DatasourceMetricLabelValueBuilder {
+	return &DatasourceMetricLabelValueBuilder{MetricLabelValue: value}
 }
 
 // ToApi 转换为api对象
-func (b *DatasourceMetricLabelValueBuild) ToApi() *admin.MetricLabelValue {
+func (b *DatasourceMetricLabelValueBuilder) ToApi() *admin.MetricLabelValue {
 	if types.IsNil(b) || types.IsNil(b.MetricLabelValue) {
 		return nil
 	}

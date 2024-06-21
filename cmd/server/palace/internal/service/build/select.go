@@ -6,17 +6,17 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-type SelectBuild struct {
+type SelectBuilder struct {
 	*bo.SelectOptionBo
 }
 
-func NewSelectBuild(option *bo.SelectOptionBo) *SelectBuild {
-	return &SelectBuild{
+func NewSelectBuilder(option *bo.SelectOptionBo) *SelectBuilder {
+	return &SelectBuilder{
 		SelectOptionBo: option,
 	}
 }
 
-func (b *SelectBuild) ToApi() *admin.Select {
+func (b *SelectBuilder) ToApi() *admin.Select {
 	if types.IsNil(b) || types.IsNil(b.SelectOptionBo) {
 		return nil
 	}
@@ -24,7 +24,7 @@ func (b *SelectBuild) ToApi() *admin.Select {
 		Value: b.Value,
 		Label: b.Label,
 		Children: types.SliceTo(b.Children, func(i *bo.SelectOptionBo) *admin.Select {
-			return NewSelectBuild(i).ToApi()
+			return NewSelectBuilder(i).ToApi()
 		}),
 		Disabled: b.Disabled,
 		Extend:   SelectExtendToApi(b.Extend),

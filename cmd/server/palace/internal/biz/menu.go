@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -29,12 +28,5 @@ func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	fmt.Println(b.msgRepo.Send(ctx, &bo.Message{
-		Data: map[string]any{
-			"Title":   "我是Title",
-			"Content": "我是Content-msg",
-			"IsAtAll": true,
-		},
-	}))
 	return b.teamMenuRepo.GetTeamMenuList(ctx, &bo.QueryTeamMenuListParams{TeamID: claims.GetTeam()})
 }

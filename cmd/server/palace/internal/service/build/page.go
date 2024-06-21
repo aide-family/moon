@@ -5,18 +5,18 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-type PageBuild struct {
+type PageBuilder struct {
 	types.Pagination
 }
 
-func NewPageBuild(page types.Pagination) *PageBuild {
-	return &PageBuild{
+func NewPageBuilder(page types.Pagination) *PageBuilder {
+	return &PageBuilder{
 		Pagination: page,
 	}
 }
 
 // ToApi 转换为api对象
-func (b *PageBuild) ToApi() *api.PaginationReply {
+func (b *PageBuilder) ToApi() *api.PaginationReply {
 	if types.IsNil(b) || types.IsNil(b.Pagination) {
 		return nil
 	}

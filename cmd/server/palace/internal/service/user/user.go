@@ -129,7 +129,7 @@ func (s *Service) GetUser(ctx context.Context, req *userapi.GetUserRequest) (*us
 		return nil, err
 	}
 	return &userapi.GetUserReply{
-		User: build.NewUserBuild(userDo).ToApi(),
+		User: build.NewUserBuilder(userDo).ToApi(),
 	}, nil
 }
 
@@ -147,9 +147,9 @@ func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*
 	}
 	return &userapi.ListUserReply{
 		List: types.SliceTo(userDos, func(user *model.SysUser) *admin.User {
-			return build.NewUserBuild(user).ToApi()
+			return build.NewUserBuilder(user).ToApi()
 		}),
-		Pagination: build.NewPageBuild(queryParams.Page).ToApi(),
+		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 	}, nil
 }
 
@@ -223,9 +223,9 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.GetUserSel
 	}
 	return &userapi.GetUserSelectListReply{
 		List: types.SliceTo(userSelectOptions, func(option *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuild(option).ToApi()
+			return build.NewSelectBuilder(option).ToApi()
 		}),
-		Pagination: build.NewPageBuild(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 	}, nil
 }
 

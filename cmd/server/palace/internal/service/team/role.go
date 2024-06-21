@@ -69,7 +69,7 @@ func (s *RoleService) GetRole(ctx context.Context, req *teamapi.GetRoleRequest) 
 		return nil, err
 	}
 	return &teamapi.GetRoleReply{
-		Role: build.NewTeamRoleBuild(roleDetail).ToApi(),
+		Role: build.NewTeamRoleBuilder(roleDetail).ToApi(),
 	}, nil
 }
 
@@ -88,7 +88,7 @@ func (s *RoleService) ListRole(ctx context.Context, req *teamapi.ListRoleRequest
 	}
 	return &teamapi.ListRoleReply{
 		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.TeamRole {
-			return build.NewTeamRoleBuild(item).ToApi()
+			return build.NewTeamRoleBuilder(item).ToApi()
 		}),
 	}, nil
 }
@@ -115,7 +115,7 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *teamapi.GetRol
 	}
 	return &teamapi.GetRoleSelectListReply{
 		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.Select {
-			return build.NewTeamRoleBuild(item).ToSelect()
+			return build.NewTeamRoleBuilder(item).ToSelect()
 		}),
 	}, nil
 }

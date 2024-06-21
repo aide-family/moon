@@ -27,6 +27,6 @@ func (s *MenuService) ListMenu(ctx context.Context, _ *resourceapi.ListMenuReque
 		return nil, err
 	}
 	return &resourceapi.ListMenuReply{
-		List: build.NewMenuBuild(menuTree, 0).ToTree(),
+		List: build.NewMenuTreeBuilder(menuTree, 0).ToTree(),
 	}, nil
 }
