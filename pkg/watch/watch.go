@@ -122,16 +122,21 @@ func (w *Watcher) reader() {
 	// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
 	ctx, cancel := context.WithTimeout(context.Background(), w.timeout)
 	defer cancel()
-	if err := w.handler.Handle(ctx, msg); err != nil {
-		log.Errorw("method", "handle message error", "error", err)
-		w.retry(msg)
-		return
+	if !types.IsNil(w.handler) {
+		if err := w.handler.Handle(ctx, msg); err != nil {
+			log.Errorw("method", "handle message error", "error", err)
+			w.retry(msg)
+			return
+		}
 	}
-	// 存储消息
-	if err := w.storage.Put(msg); err != nil {
-		log.Errorw("method", "put message to storage error", "error", err)
-		w.retry(msg)
-		return
+
+	if !types.IsNil(w.storage) {
+		// 存储消息
+		if err := w.storage.Put(msg); err != nil {
+			log.Errorw("method", "put message to storage error", "error", err)
+			w.retry(msg)
+			return
+		}
 	}
 }
 
