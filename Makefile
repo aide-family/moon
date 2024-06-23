@@ -63,6 +63,7 @@ build-linux:
 .PHONY: wire
 # generate
 wire:
+	go install cmd/server/stringer/cmd.go
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
 	go generate ./...
