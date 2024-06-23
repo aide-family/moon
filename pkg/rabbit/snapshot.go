@@ -3,7 +3,7 @@ package rabbit
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/api"
 )
 
 // MessageSnapshot 消息快照
@@ -12,7 +12,7 @@ import (
 type MessageSnapshot struct {
 	Context    context.Context
 	CancelFunc context.CancelFunc
-	Message    *rule.Message
+	Message    *api.Message
 	// Processors 包含消息所有处理需要的处理器，进行处理时，直接使用即可
 	Processors map[string]*Processor
 }
@@ -24,7 +24,7 @@ type Processor struct {
 	Sender     Sender
 }
 
-func NewMessageSnapshot(ctx context.Context, message *rule.Message) *MessageSnapshot {
+func NewMessageSnapshot(ctx context.Context, message *api.Message) *MessageSnapshot {
 	snapCtx, cancelFunc := context.WithCancel(ctx)
 
 	return &MessageSnapshot{

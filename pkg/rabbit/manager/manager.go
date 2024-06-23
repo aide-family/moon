@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/rabbit"
 	"github.com/aide-family/moon/pkg/rabbit/metrics"
 
@@ -122,7 +122,7 @@ func (m *Manager) Start(ctx context.Context) error {
 			}
 			metrics.ReceiverTotal.WithLabelValues(name).Add(0)
 			wg.Add(1)
-			go func(_ctx context.Context, group *sync.WaitGroup, ch <-chan *rule.Message, name string) {
+			go func(_ctx context.Context, group *sync.WaitGroup, ch <-chan *api.Message, name string) {
 				defer group.Done()
 				for {
 					select {
@@ -212,7 +212,7 @@ func (m *Manager) worker(ctx context.Context, info *rabbit.QueueInfo) {
 
 }
 
-func (m *Manager) processor(ctx context.Context, log logr.Logger, message *rule.Message, processor *rabbit.Processor) {
+func (m *Manager) processor(ctx context.Context, log logr.Logger, message *api.Message, processor *rabbit.Processor) {
 
 	// 对需要处理的消息进行过滤，通过交给 Aggregator 进行聚合
 	metrics.WorkerTotal.WithLabelValues(labelFilter).Inc()
@@ -249,7 +249,7 @@ func (m *Manager) processor(ctx context.Context, log logr.Logger, message *rule.
 	}
 }
 
-func (m *Manager) RuleGroup(ctx context.Context, name string) (*rule.RuleGroup, error) {
+func (m *Manager) RuleGroup(ctx context.Context, name string) (*api.RuleGroup, error) {
 	origin, b, err := m.rg.Get(name)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ func (m *Manager) RuleGroup(ctx context.Context, name string) (*rule.RuleGroup, 
 	if !b {
 		return nil, fmt.Errorf("message rule group %s not found", name)
 	}
-	return origin.(*rule.RuleGroup), nil
+	return origin.(*api.RuleGroup), nil
 }
 
 func (m *Manager) Filter(ctx context.Context, ruleName string) (rabbit.Filter, error) {
@@ -289,12 +289,12 @@ func (x *FilterManager) Filter(ctx context.Context, ruleName string) (rabbit.Fil
 	if !b {
 		return nil, fmt.Errorf("message filter rule %s not found", ruleName)
 	}
-	rule := origin.(*rule.MessageFilterRule)
+	rule := origin.(*api.MessageFilterRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("filter %s not found", rule.Use)
 	}
-	return processor.Inject(rule.Rule)
+	return processor.Inject(rabbit.NewFilterRuleBuilder(rule.Rule))
 }
 
 type AggregatorManager struct {
@@ -310,12 +310,12 @@ func (x *AggregatorManager) Aggregator(ctx context.Context, ruleName string) (ra
 	if !b {
 		return nil, fmt.Errorf("message aggregation rule %s not found", ruleName)
 	}
-	rule := origin.(*rule.MessageAggregationRule)
+	rule := origin.(*api.MessageAggregationRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("aggregator %s not found", rule.Use)
 	}
-	return processor.Inject(rule.Rule)
+	return processor.Inject(rabbit.NewAggregationRuleBuilder(rule.Rule))
 }
 
 type TemplaterManager struct {
@@ -331,12 +331,12 @@ func (x *TemplaterManager) Templater(ctx context.Context, ruleName string) (rabb
 	if !b {
 		return nil, fmt.Errorf("message template rule %s not found", ruleName)
 	}
-	rule := origin.(*rule.MessageTemplateRule)
+	rule := origin.(*api.MessageTemplateRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("templater %s not found", rule.Use)
 	}
-	return processor.Inject(rule.Rule)
+	return processor.Inject(rabbit.NewTemplateRuleBuilder(rule.Rule))
 }
 
 type SenderManager struct {
@@ -352,10 +352,10 @@ func (x *SenderManager) Sender(ctx context.Context, ruleName string) (rabbit.Sen
 	if !b {
 		return nil, fmt.Errorf("message send rule %s not found", ruleName)
 	}
-	rule := origin.(*rule.MessageSendRule)
+	rule := origin.(*api.MessageSendRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("sender %s not found", rule.Use)
 	}
-	return processor.Inject(rule.Rule)
+	return processor.Inject(rabbit.NewSendRuleBuilder(rule.Rule))
 }

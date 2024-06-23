@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/api"
 
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
@@ -20,7 +20,7 @@ import (
 //	如果已经被消费，则会重新创建一个key，然后将数据存储起来。
 type MessageQueue interface {
 	// Add 用来将一条数据加入到队列中
-	Add(item *rule.Message)
+	Add(item *api.Message)
 
 	// TryAgain 尝试将数据加入再次加入到队列
 	//
@@ -87,12 +87,12 @@ func NewQueue(maxRetries int, backoff *Backoff) *PriorityQueue {
 //	加入对象是 *Message
 //	case 1：对象断言失败，则添加失败
 //	case 2：调用 tryAdd 尝试添加数据到队列
-func (p *PriorityQueue) Add(msg *rule.Message) {
+func (p *PriorityQueue) Add(msg *api.Message) {
 	p.tryAdd(msg)
 }
 
 // tryAdd 尝试往队列中添加数据
-func (p *PriorityQueue) tryAdd(msg *rule.Message) {
+func (p *PriorityQueue) tryAdd(msg *api.Message) {
 	info := InitQueuedMessageInfo(msg)
 
 	p.addMessageInfo(info, 0)
@@ -345,7 +345,7 @@ type QueueInfo struct {
 	// 消息的Key
 	Key string
 	// Message 原始消息
-	Message *rule.Message
+	Message *api.Message
 	// 消息添加到队列中的时间。
 	// 随着每次加入变更
 	Timestamp time.Time
@@ -359,7 +359,7 @@ type QueueInfo struct {
 }
 
 // InitQueuedMessageInfo 初始化需要加入到消息队列的信息
-func InitQueuedMessageInfo(message *rule.Message) *QueueInfo {
+func InitQueuedMessageInfo(message *api.Message) *QueueInfo {
 	first := time.Now()
 	return &QueueInfo{
 		Key:                     message.Id,
@@ -370,7 +370,7 @@ func InitQueuedMessageInfo(message *rule.Message) *QueueInfo {
 	}
 }
 
-func (p *QueueInfo) UpdateMessage(message *rule.Message) {
+func (p *QueueInfo) UpdateMessage(message *api.Message) {
 	if message != nil {
 		p.Message = message
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/aide-family/moon/api/rabbit/rule"
+	"github.com/aide-family/moon/api"
 )
 
 // Plugin 仅仅自定义一个Name的接口
@@ -16,21 +16,21 @@ type Plugin interface {
 // Receiver 用来接收来自外部消息
 type Receiver interface {
 	Plugin
-	Receive() (<-chan *rule.Message, error)
+	Receive() (<-chan *api.Message, error)
 }
 
 // Filter 按照规则对消息进行过滤
 type Filter interface {
 	Plugin
 	Inject(rule Rule) (Filter, error)
-	Allow(message *rule.Message) bool
+	Allow(message *api.Message) bool
 }
 
 // Aggregator 按照规则对消息进行聚合，聚合完成则返回消息
 type Aggregator interface {
 	Plugin
 	Inject(rule Rule) (Aggregator, error)
-	Group(in *rule.Message) (out *rule.Message, err error)
+	Group(in *api.Message) (out *api.Message, err error)
 }
 
 // Templater 负责对消息进行模版的解析。
@@ -59,7 +59,7 @@ type ConfigProvider interface {
 }
 
 type RuleGroupProvider interface {
-	RuleGroup(ctx context.Context, name string) (*rule.RuleGroup, error)
+	RuleGroup(ctx context.Context, name string) (*api.RuleGroup, error)
 }
 
 type ProcessorProvider interface {

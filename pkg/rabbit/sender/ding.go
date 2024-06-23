@@ -10,7 +10,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/aide-family/moon/api/rabbit/rule"
 	"github.com/aide-family/moon/pkg/rabbit"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
@@ -36,7 +35,7 @@ func (d *Ding) Name() string {
 
 func (d *Ding) Inject(data rabbit.Rule) (rabbit.Sender, error) {
 	conf := &DingConfig{}
-	sendRule := data.(*rule.SendRule)
+	sendRule := data.(*rabbit.SendRuleBuilder)
 	config := sendRule.Config["config"]
 	err := d.configProvider.Provider([]byte(config), conf)
 	if err != nil {

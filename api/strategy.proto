@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/any.proto";
 import "datasource.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
@@ -48,4 +49,126 @@ message Strategy {
 	google.protobuf.Duration interval = 8;
 	// 数据源
 	repeated Datasource datasource = 9;
+}
+
+
+// 消息过滤器类型
+enum MessageFilterType {
+	// 符合规则消息过滤
+	MessageFilter_FILTER = 0;
+	// 符合规则消息通过
+	MessageFilter_PASS = 1;
+}
+
+// 消息规则匹配类型
+// 假设:规则为a,消息为b
+enum MessageMatchType {
+	// 规则与消息进行全匹配,即a=b
+	MessageMatchType_EQ = 0;
+	// 规则包含消息全部标签,即a>=b
+	MessageMatchType_IN = 1;
+	// 消息包含规则全部标签,即b>=a
+	MessageMatchType_CONTAIN = 2;
+	// 规则与消息有任意标签匹配
+	// exp:
+	// a:[1,2,3]&b:[2,3,4]=true
+	// a:[1,2,3]&b:[4,5,6]=false
+	MessageMatchType_ANY = 3;
+}
+
+message FilterRule {
+	// 消息过滤器类型
+	MessageFilterType filterType = 1;
+	// 消息匹配类型
+	MessageMatchType matchType = 2;
+	// 需要匹配的标签
+	repeated string matchLabel = 3;
+	// 扩展配置，可以用于存放一下特殊配置
+	map<string,string> extra = 4;
+}
+
+// 消息过滤规则
+message MessageFilterRule {
+	// 消息过滤规则名称
+	string name = 1;
+	// 使用的过滤器名称
+	string use = 2;
+	// 过滤规则
+	FilterRule rule = 3;
+}
+
+message AggregationRule {
+	// 聚合时,每个包中，至多包含的消息数量
+	uint32 count = 1;
+	// 发送消息的最大间隔，
+	google.protobuf.Duration interval = 2;
+	// 消息聚合时用于聚合的字段
+	string groupBy = 3;
+}
+
+// 消息聚合规则
+message MessageAggregationRule {
+	// 消息聚合规则名称
+	string name = 1;
+	// 使用的聚合器名称
+	string use = 2;
+	// 聚合规则
+	AggregationRule rule = 3;
+}
+
+// 消息模版规则
+message SendRule {
+	// 扩展配置，用于存放sender需要的密钥
+	map<string,string> config = 2;
+}
+
+// 消息发送规则
+message MessageSendRule {
+	// 消息发送规则名称
+	string name = 1;
+	// 发送者名称
+	string use = 2;
+	// 发送规则
+	SendRule rule = 3;
+}
+
+// 消息模版规则
+message TemplateRule {
+	// 模版
+	string template = 1;
+}
+
+// 消息模版规则
+message MessageTemplateRule {
+	// 消息模版规则名称
+	string name = 1;
+	// 使用的模板解析器名称
+	string use = 2;
+	// 模板解析规则
+	TemplateRule rule = 3;
+}
+
+// 规则组
+message RuleGroup {
+	// 规则组名称
+	string name = 1;
+	// 消息过滤规则名称
+	string filterRuleName = 2;
+	// 消息聚合规则
+	string aggregationRuleName = 3;
+	// 模版规则名称
+	string templateRuleName = 4;
+	// 发送规则名称
+	string sendRuleName = 5;
+}
+
+message Message {
+	// 消息ID
+	string id = 1;
+	// 消息标签
+	repeated string labels = 2;
+	// 使用的规则组名称
+	repeated string useGroups = 3;
+	// 消息内容
+	map<string,google.protobuf.Any> content = 4;
 }
