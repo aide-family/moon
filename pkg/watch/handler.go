@@ -62,6 +62,8 @@ func (d *defaultHandler) Handle(ctx context.Context, msg *Message) error {
 
 func WithDefaultHandlerTopicHandle(topic vobj.Topic, handles ...HandleFun) DefaultHandlerOption {
 	return func(d *defaultHandler) {
+		d.lock.Lock()
+		defer d.lock.Unlock()
 		d.topicHandleMap[topic] = handles
 	}
 }
