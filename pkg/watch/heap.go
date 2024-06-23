@@ -29,6 +29,12 @@ type (
 		// Put 放入消息
 		Put(msg *Message) error
 
+		// Clear 清空消息
+		Clear()
+
+		// Remove 移除消息
+		Remove(index Indexer)
+
 		// Close 关闭存储器
 		Close() error
 
@@ -46,6 +52,18 @@ type (
 		data map[Indexer]*Message
 	}
 )
+
+func (d *defaultStorage) Clear() {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	d.data = make(map[Indexer]*Message)
+}
+
+func (d *defaultStorage) Remove(index Indexer) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	delete(d.data, index)
+}
 
 func (d *defaultStorage) Range(f func(index Indexer, msg *Message) bool) {
 	d.lock.Lock()
