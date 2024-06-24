@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package api.admin.strategy;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/strategy;strategy";
+option java_multiple_files = true;
+option java_package = "api.admin.strategy";
+
+// 策略管理模块
+service Strategy {
+	// 策略组模块
+
+	// 创建策略组
+	rpc CreateStrategyGroup (CreateStrategyGroupRequest) returns (CreateStrategyGroupReply) {
+		option (google.api.http) = {
+			post: "/v1/group/strategy"
+			body: "*"
+		};
+	}
+
+	// 删除策略组
+	rpc DeleteStrategyGroup (DeleteStrategyGroupRequest) returns (DeleteStrategyGroupReply) {
+		option (google.api.http) = {
+			delete: "/v1/group/strategy/{id}"
+		};
+	}
+
+	// 策略组列表
+	rpc ListStrategyGroup (ListStrategyGroupRequest) returns (ListStrategyGroupReply) {
+		option (google.api.http) = {
+			post: "/v1/group/strategy/list"
+			body: "*"
+		};
+	}
+
+	// 策略组详情
+	rpc GetStrategyGroup (GetStrategyGroupRequest) returns (GetStrategyGroupReply) {
+		option (google.api.http) = {
+			get: "/v1/group/strategy/{id}"
+		};
+	}
+
+	// 修改策略组
+	rpc UpdateStrategyGroup (UpdateStrategyGroupRequest) returns (UpdateStrategyGroupReply) {
+		option (google.api.http) = {
+			put: "/v1/group/strategy/{id}"
+			body: "*"
+		};
+	}
+
+	// 策略模块
+
+	// 创建策略
+	rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
+		option (google.api.http) = {
+			post: "/v1/strategy"
+			body: "*"
+		};
+	}
+
+	// 修改策略
+	rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
+		option (google.api.http) = {
+			put: "/v1/strategy/{id}"
+			body: "*"
+		};
+	}
+
+	// 删除策略
+	rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
+		option (google.api.http) = {
+			delete: "/v1/strategy/{id}"
+		};
+	}
+
+	// 获取策略
+	rpc GetStrategy (GetStrategyRequest) returns (GetStrategyReply) {
+		option (google.api.http) = {
+			get: "/v1/strategy/{id}"
+		};
+	}
+
+	// 策略列表
+	rpc ListStrategy (ListStrategyRequest) returns (ListStrategyReply) {
+		option (google.api.http) = {
+			post: "/v1/strategy/list"
+			body: "*"
+		};
+	}
+}
+
+message CreateStrategyGroupRequest {
+	// 策略组名称
+	string name = 1 [(buf.validate.field).string.min_len = 1];
+	// 策略组说明信息
+	string remark = 2;
+	// 策略组状态
+	Status status = 3;
+}
+message CreateStrategyGroupReply {}
+
+message DeleteStrategyGroupRequest {
+	// 策略组ID
+	uint32 id = 1;
+}
+message DeleteStrategyGroupReply {}
+
+message ListStrategyGroupRequest {
+	int32 limit = 1 [(buf.validate.field).cel = {
+		expression: "this > 0 && this <= 1000"
+		message: "查询最大数量为1-1000"
+	}];
+}
+message ListStrategyGroupReply {
+	// 策略组列表
+	repeated StrategyGroup list = 1;
+	// 总数量
+	int64 total = 2;
+}
+
+message GetStrategyGroupRequest {
+	// 策略组ID
+	uint32 id = 1;
+}
+message GetStrategyGroupReply {
+	StrategyGroup detail = 1;
+}
+
+message UpdateStrategyGroupRequest {
+	// 策略组ID
+	uint32 id = 1;
+	// 策略组名称
+	string name = 2;
+	// 策略组说明信息
+	string remark = 3;
+}
+message UpdateStrategyGroupReply {}
+
+message CreateStrategyRequest {
+	// 策略组ID
+	uint32 group_id = 1;
+}
+message CreateStrategyReply {}
+
+message UpdateStrategyRequest {
+	uint32 id = 1;
+	string name = 2;
+}
+message UpdateStrategyReply {}
+
+message DeleteStrategyRequest {
+	uint32 id = 1;
+}
+message DeleteStrategyReply {}
+
+message GetStrategyRequest {
+	uint32 id = 1;
+}
+message GetStrategyReply {}
+
+message ListStrategyRequest {
+	int32 limit = 1;
+}
+message ListStrategyReply {}

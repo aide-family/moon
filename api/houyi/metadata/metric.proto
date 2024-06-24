@@ -15,6 +15,7 @@ option java_package = "api.houyi.metadata";
 service Metric {
   // 同步元数据
   rpc SyncMetadata(SyncMetadataRequest) returns (SyncMetadataReply) {
+    // TODO 需要做成异步的， 由palace服务发送拉取信号， houyi服务组装数据分批次推送元数据，解决数据量大， 引起传输失败的问题
     option (google.api.http) = {
       post: "/metric/sync/metadata"
       body: "*"

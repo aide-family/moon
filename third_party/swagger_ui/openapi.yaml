@@ -590,6 +590,111 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.admin.team.DeleteDepartmentReply'
+    /v1/group/strategy:
+        post:
+            tags:
+                - Strategy
+            description: 创建策略组
+            operationId: Strategy_CreateStrategyGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.CreateStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.CreateStrategyGroupReply'
+    /v1/group/strategy/list:
+        post:
+            tags:
+                - Strategy
+            description: 策略组列表
+            operationId: Strategy_ListStrategyGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.ListStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.ListStrategyGroupReply'
+    /v1/group/strategy/{id}:
+        get:
+            tags:
+                - Strategy
+            description: 策略组详情
+            operationId: Strategy_GetStrategyGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.GetStrategyGroupReply'
+        put:
+            tags:
+                - Strategy
+            description: 修改策略组
+            operationId: Strategy_UpdateStrategyGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.UpdateStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.UpdateStrategyGroupReply'
+        delete:
+            tags:
+                - Strategy
+            description: 删除策略组
+            operationId: Strategy_DeleteStrategyGroup
+            parameters:
+                - name: id
+                  in: path
+                  description: 策略组ID
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.DeleteStrategyGroupReply'
     /v1/hello:
         post:
             tags:
@@ -736,6 +841,108 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.admin.resource.GetResourceReply'
+    /v1/strategy:
+        post:
+            tags:
+                - Strategy
+            description: 创建策略
+            operationId: Strategy_CreateStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.CreateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.CreateStrategyReply'
+    /v1/strategy/list:
+        post:
+            tags:
+                - Strategy
+            description: 策略列表
+            operationId: Strategy_ListStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.ListStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.ListStrategyReply'
+    /v1/strategy/{id}:
+        get:
+            tags:
+                - Strategy
+            description: 获取策略
+            operationId: Strategy_GetStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.GetStrategyReply'
+        put:
+            tags:
+                - Strategy
+            description: 修改策略
+            operationId: Strategy_UpdateStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.admin.strategy.UpdateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.UpdateStrategyReply'
+        delete:
+            tags:
+                - Strategy
+            description: 删除策略
+            operationId: Strategy_DeleteStrategy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.admin.strategy.DeleteStrategyReply'
     /v1/team:
         post:
             tags:
@@ -1871,6 +2078,36 @@ components:
                 image:
                     type: string
                     description: 图片URL
+        api.admin.StrategyGroup:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 策略组ID
+                    format: uint32
+                name:
+                    type: string
+                    description: 策略组名称
+                status:
+                    type: integer
+                    description: 策略组状态
+                    format: enum
+                createdAt:
+                    type: string
+                    description: 创建时间
+                updatedAt:
+                    type: string
+                    description: 更新时间
+                remark:
+                    type: string
+                    description: 策略组说明信息
+                creator:
+                    allOf:
+                        - $ref: '#/components/schemas/api.admin.User'
+                    description: 策略组创建人
+                creatorId:
+                    type: integer
+                    format: uint32
         api.admin.Team:
             type: object
             properties:
@@ -2420,6 +2657,99 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.PaginationReq'
                 keyword:
+                    type: string
+        api.admin.strategy.CreateStrategyGroupReply:
+            type: object
+            properties: {}
+        api.admin.strategy.CreateStrategyGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 策略组名称
+                remark:
+                    type: string
+                    description: 策略组说明信息
+                status:
+                    type: integer
+                    description: 策略组状态
+                    format: enum
+        api.admin.strategy.CreateStrategyReply:
+            type: object
+            properties: {}
+        api.admin.strategy.CreateStrategyRequest:
+            type: object
+            properties:
+                groupId:
+                    type: integer
+                    description: 策略组ID
+                    format: uint32
+        api.admin.strategy.DeleteStrategyGroupReply:
+            type: object
+            properties: {}
+        api.admin.strategy.DeleteStrategyReply:
+            type: object
+            properties: {}
+        api.admin.strategy.GetStrategyGroupReply:
+            type: object
+            properties:
+                detail:
+                    $ref: '#/components/schemas/api.admin.StrategyGroup'
+        api.admin.strategy.GetStrategyReply:
+            type: object
+            properties: {}
+        api.admin.strategy.ListStrategyGroupReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.admin.StrategyGroup'
+                    description: 策略组列表
+                total:
+                    type: string
+                    description: 总数量
+        api.admin.strategy.ListStrategyGroupRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+        api.admin.strategy.ListStrategyReply:
+            type: object
+            properties: {}
+        api.admin.strategy.ListStrategyRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+        api.admin.strategy.UpdateStrategyGroupReply:
+            type: object
+            properties: {}
+        api.admin.strategy.UpdateStrategyGroupRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 策略组ID
+                    format: uint32
+                name:
+                    type: string
+                    description: 策略组名称
+                remark:
+                    type: string
+                    description: 策略组说明信息
+        api.admin.strategy.UpdateStrategyReply:
+            type: object
+            properties: {}
+        api.admin.strategy.UpdateStrategyRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                name:
                     type: string
         api.admin.team.AddTeamMemberReply:
             type: object
@@ -3090,6 +3420,8 @@ tags:
       description: 系统公共API资源管理模块
     - name: Role
       description: 团队角色管理
+    - name: Strategy
+      description: 策略管理模块
     - name: Team
       description: 多租户下的团队管理
     - name: User
