@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"context"
 	"sync"
 
 	"github.com/aide-family/moon/pkg/vobj"
@@ -13,11 +14,12 @@ const defaultRetryMax = 0
 // NewMessage 创建消息
 func NewMessage(data Indexer, topic vobj.Topic, opts ...MessageOption) *Message {
 	m := &Message{
-		data:     data,
-		topic:    topic,
-		schema:   NewEmptySchemer(),
-		retry:    0,
-		retryMax: defaultRetryMax,
+		data:      data,
+		topic:     topic,
+		schema:    NewEmptySchemer(),
+		retry:     0,
+		retryMax:  defaultRetryMax,
+		handleCtx: context.Background(),
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -44,6 +46,9 @@ type (
 
 		// 最大消息重试次数
 		retryMax int
+
+		// 是否已经处理过
+		handleCtx context.Context
 	}
 
 	MessageOption func(m *Message)
@@ -89,6 +94,25 @@ func (m *Message) GetRetryMax() int {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.retryMax
+}
+
+// WithHandledPath 设置消息处理过的路径
+func (m *Message) WithHandledPath(index int, handle HandleFun) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.handleCtx = context.WithValue(m.handleCtx, index, handle)
+}
+
+// IsHandled 判断消息是否已经处理过
+func (m *Message) IsHandled(index int) bool {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	v := m.handleCtx.Value(index)
+	if v == nil {
+		return false
+	}
+	_, ok := v.(HandleFun)
+	return ok
 }
 
 // WithMessageSchema 设置消息编码器

@@ -52,10 +52,16 @@ func (d *defaultHandler) Handle(ctx context.Context, msg *Message) error {
 	}
 
 	// 调用处理器处理msg
-	for _, handle := range handles {
+	for index, handle := range handles {
+		// 消息已经被此handle处理过
+		if msg.IsHandled(index) {
+			continue
+		}
 		if err := handle(ctx, msg); err != nil {
 			return err
 		}
+		// 标记消息处理状态， 避免被重播
+		msg.WithHandledPath(index, handle)
 	}
 	return nil
 }
