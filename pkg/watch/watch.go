@@ -119,10 +119,11 @@ func (w *Watcher) reader() {
 	if !ok {
 		return
 	}
-	// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
-	ctx, cancel := context.WithTimeout(context.Background(), w.timeout)
-	defer cancel()
+
 	if !types.IsNil(w.handler) {
+		// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
+		ctx, cancel := context.WithTimeout(context.Background(), w.timeout)
+		defer cancel()
 		if err := w.handler.Handle(ctx, msg); err != nil {
 			log.Errorw("method", "handle message error", "error", err)
 			w.retry(msg)
