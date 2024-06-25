@@ -51,6 +51,17 @@ message Strategy {
 	repeated Datasource datasource = 9;
 }
 
+// 类型元数据，每个对象都应该包含这个字段
+// 表示这个对象的数据类型
+message TypeMeta {
+	string kind  = 1;
+}
+
+// 对象元数据，每个对象都应该包含这个字段
+// 相同类型数据的对象的唯一标识
+message ObjectMeta {
+	string name  = 1;
+}
 
 // 消息过滤器类型
 enum MessageFilterType {
@@ -89,12 +100,14 @@ message FilterRule {
 
 // 消息过滤规则
 message MessageFilterRule {
-	// 消息过滤规则名称
-	string name = 1;
+	// 类型
+	TypeMeta typeMeta  = 1;
+	// 规则名称
+	ObjectMeta objectMeta  = 2;
 	// 使用的过滤器名称
-	string use = 2;
+	string use = 3;
 	// 过滤规则
-	FilterRule rule = 3;
+	FilterRule rule = 4;
 }
 
 message AggregationRule {
@@ -108,12 +121,14 @@ message AggregationRule {
 
 // 消息聚合规则
 message MessageAggregationRule {
-	// 消息聚合规则名称
-	string name = 1;
+	// 类型
+	TypeMeta typeMeta  = 1;
+	// 规则名称
+	ObjectMeta objectMeta  = 2;
 	// 使用的聚合器名称
-	string use = 2;
+	string use = 3;
 	// 聚合规则
-	AggregationRule rule = 3;
+	AggregationRule rule = 4;
 }
 
 // 消息模版规则
@@ -124,12 +139,14 @@ message SendRule {
 
 // 消息发送规则
 message MessageSendRule {
-	// 消息发送规则名称
-	string name = 1;
+	// 类型
+	TypeMeta typeMeta  = 1;
+	// 规则名称
+	ObjectMeta objectMeta  = 2;
 	// 发送者名称
-	string use = 2;
+	string use = 3;
 	// 发送规则
-	SendRule rule = 3;
+	SendRule rule = 4;
 }
 
 // 消息模版规则
@@ -140,26 +157,30 @@ message TemplateRule {
 
 // 消息模版规则
 message MessageTemplateRule {
-	// 消息模版规则名称
-	string name = 1;
+	// 类型
+	TypeMeta typeMeta  = 1;
+	// 规则名称
+	ObjectMeta objectMeta  = 2;
 	// 使用的模板解析器名称
-	string use = 2;
+	string use = 3;
 	// 模板解析规则
-	TemplateRule rule = 3;
+	TemplateRule rule = 4;
 }
 
 // 规则组
 message RuleGroup {
-	// 规则组名称
-	string name = 1;
+	// 类型
+	TypeMeta typeMeta  = 1;
+	// 规则名称
+	ObjectMeta objectMeta  = 2;
 	// 消息过滤规则名称
-	string filterRuleName = 2;
+	string filterRuleName = 3;
 	// 消息聚合规则
-	string aggregationRuleName = 3;
+	string aggregationRuleName = 4;
 	// 模版规则名称
-	string templateRuleName = 4;
+	string templateRuleName = 5;
 	// 发送规则名称
-	string sendRuleName = 5;
+	string sendRuleName = 6;
 }
 
 message Message {

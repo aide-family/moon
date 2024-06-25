@@ -59,7 +59,7 @@ type ConfigProvider interface {
 }
 
 type RuleGroupProvider interface {
-	RuleGroup(ctx context.Context, name string) (*api.RuleGroup, error)
+	RuleGroup(ctx context.Context, name string) (*RuleGroup, error)
 }
 
 type ProcessorProvider interface {

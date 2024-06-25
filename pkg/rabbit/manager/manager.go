@@ -11,9 +11,9 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/rabbit"
 	"github.com/aide-family/moon/pkg/rabbit/metrics"
+	"github.com/aide-family/moon/pkg/runtime/cache"
 
 	"github.com/go-logr/logr"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2/klogr"
 )
 
@@ -41,7 +41,7 @@ type Manager struct {
 	ctx                  context.Context
 	Log                  *logr.Logger
 	receivers            map[string]rabbit.Receiver
-	rg                   cache.Indexer
+	rg                   cache.Cache
 	fm                   *FilterManager
 	am                   *AggregatorManager
 	tm                   *TemplaterManager
@@ -249,15 +249,13 @@ func (m *Manager) processor(ctx context.Context, log logr.Logger, message *api.M
 	}
 }
 
-func (m *Manager) RuleGroup(ctx context.Context, name string) (*api.RuleGroup, error) {
-	origin, b, err := m.rg.Get(name)
+func (m *Manager) RuleGroup(ctx context.Context, name string) (*rabbit.RuleGroup, error) {
+	rule := &rabbit.RuleGroup{}
+	err := m.rg.Get(ctx, name, rule)
 	if err != nil {
 		return nil, err
 	}
-	if !b {
-		return nil, fmt.Errorf("message rule group %s not found", name)
-	}
-	return origin.(*api.RuleGroup), nil
+	return rule, nil
 }
 
 func (m *Manager) Filter(ctx context.Context, ruleName string) (rabbit.Filter, error) {
@@ -277,19 +275,16 @@ func (m *Manager) Sender(ctx context.Context, ruleName string) (rabbit.Sender, e
 }
 
 type FilterManager struct {
-	rules     cache.Indexer
+	rules     cache.Cache
 	processor map[string]rabbit.Filter
 }
 
 func (x *FilterManager) Filter(ctx context.Context, ruleName string) (rabbit.Filter, error) {
-	origin, b, err := x.rules.Get(ruleName)
+	rule := &rabbit.MessageFilterRule{}
+	err := x.rules.Get(ctx, ruleName, rule)
 	if err != nil {
 		return nil, err
 	}
-	if !b {
-		return nil, fmt.Errorf("message filter rule %s not found", ruleName)
-	}
-	rule := origin.(*api.MessageFilterRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("filter %s not found", rule.Use)
@@ -298,19 +293,16 @@ func (x *FilterManager) Filter(ctx context.Context, ruleName string) (rabbit.Fil
 }
 
 type AggregatorManager struct {
-	rules     cache.Indexer
+	rules     cache.Cache
 	processor map[string]rabbit.Aggregator
 }
 
 func (x *AggregatorManager) Aggregator(ctx context.Context, ruleName string) (rabbit.Aggregator, error) {
-	origin, b, err := x.rules.Get(ruleName)
+	rule := &rabbit.MessageAggregationRule{}
+	err := x.rules.Get(ctx, ruleName, rule)
 	if err != nil {
 		return nil, err
 	}
-	if !b {
-		return nil, fmt.Errorf("message aggregation rule %s not found", ruleName)
-	}
-	rule := origin.(*api.MessageAggregationRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("aggregator %s not found", rule.Use)
@@ -319,19 +311,16 @@ func (x *AggregatorManager) Aggregator(ctx context.Context, ruleName string) (ra
 }
 
 type TemplaterManager struct {
-	rules     cache.Indexer
+	rules     cache.Cache
 	processor map[string]rabbit.Templater
 }
 
 func (x *TemplaterManager) Templater(ctx context.Context, ruleName string) (rabbit.Templater, error) {
-	origin, b, err := x.rules.Get(ruleName)
+	rule := &rabbit.MessageTemplateRule{}
+	err := x.rules.Get(ctx, ruleName, rule)
 	if err != nil {
 		return nil, err
 	}
-	if !b {
-		return nil, fmt.Errorf("message template rule %s not found", ruleName)
-	}
-	rule := origin.(*api.MessageTemplateRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("templater %s not found", rule.Use)
@@ -340,19 +329,16 @@ func (x *TemplaterManager) Templater(ctx context.Context, ruleName string) (rabb
 }
 
 type SenderManager struct {
-	rules     cache.Indexer
+	rules     cache.Cache
 	processor map[string]rabbit.Sender
 }
 
 func (x *SenderManager) Sender(ctx context.Context, ruleName string) (rabbit.Sender, error) {
-	origin, b, err := x.rules.Get(ruleName)
+	rule := &rabbit.MessageSendRule{}
+	err := x.rules.Get(ctx, ruleName, rule)
 	if err != nil {
 		return nil, err
 	}
-	if !b {
-		return nil, fmt.Errorf("message send rule %s not found", ruleName)
-	}
-	rule := origin.(*api.MessageSendRule)
 	processor, ok := x.processor[rule.Use]
 	if !ok {
 		return nil, fmt.Errorf("sender %s not found", rule.Use)

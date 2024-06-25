@@ -38,7 +38,8 @@ require (
 	gorm.io/gorm v1.25.9
 	gorm.io/plugin/dbresolver v1.5.0
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/client-go v0.30.1
+	k8s.io/apimachinery v0.30.1
+	k8s.io/client-go v0.23.5
 	k8s.io/klog/v2 v2.120.1
 )
 
@@ -121,7 +122,6 @@ require (
 	gorm.io/driver/postgres v1.5.7 // indirect
 	gorm.io/driver/sqlserver v1.5.3 // indirect
 	gorm.io/hints v1.1.0 // indirect
-	k8s.io/apimachinery v0.30.1 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	modernc.org/libc v1.22.2 // indirect
 	modernc.org/mathutil v1.5.0 // indirect

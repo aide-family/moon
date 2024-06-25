@@ -2,6 +2,8 @@ package rabbit
 
 import (
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/runtime"
+	"github.com/aide-family/moon/pkg/runtime/schema"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -30,6 +32,10 @@ func NewAggregationRuleBuilder(r *api.AggregationRule) Rule {
 }
 
 type (
+	TypeMetaBuilder struct {
+		*api.TypeMeta
+	}
+
 	FilterRuleBuilder struct {
 		*api.FilterRule
 	}
@@ -45,7 +51,72 @@ type (
 	AggregationRuleBuilder struct {
 		*api.AggregationRule
 	}
+
+	MessageFilterRule api.MessageFilterRule
+
+	MessageAggregationRule api.MessageAggregationRule
+
+	MessageTemplateRule api.MessageTemplateRule
+
+	MessageSendRule api.MessageSendRule
+
+	RuleGroup api.RuleGroup
 )
+
+func (r *RuleGroup) GetObjectKind() schema.ObjectKind {
+	return r
+}
+
+func (r *RuleGroup) DeepCopyObject() runtime.Object {
+	if types.IsNil(r) {
+		return nil
+	}
+	return &(*r)
+}
+
+func (r *MessageSendRule) GetObjectKind() schema.ObjectKind {
+	return r
+}
+
+func (r *MessageSendRule) DeepCopyObject() runtime.Object {
+	if types.IsNil(r) {
+		return nil
+	}
+	return &(*r)
+}
+
+func (r *MessageTemplateRule) GetObjectKind() schema.ObjectKind {
+	return r
+}
+
+func (r *MessageTemplateRule) DeepCopyObject() runtime.Object {
+	if types.IsNil(r) {
+		return nil
+	}
+	return &(*r)
+}
+
+func (r *MessageAggregationRule) GetObjectKind() schema.ObjectKind {
+	return r
+}
+
+func (r *MessageAggregationRule) DeepCopyObject() runtime.Object {
+	if types.IsNil(r) {
+		return nil
+	}
+	return &(*r)
+}
+
+func (r *MessageFilterRule) GetObjectKind() schema.ObjectKind {
+	return r
+}
+
+func (r *MessageFilterRule) DeepCopyObject() runtime.Object {
+	if types.IsNil(r) {
+		return nil
+	}
+	return &(*r)
+}
 
 func (r *AggregationRuleBuilder) DeepCopyRule() Rule {
 	if types.IsNil(r) || types.IsNil(r.AggregationRule) {
