@@ -1,10 +1,8 @@
 package vobj
 
-//var _ driver.Valuer = Role(0)
-
 // Role 系统全局角色
 //
-//go:generate stringer -type=Role -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=Role -linecomment
 type Role int
 
 const (

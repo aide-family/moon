@@ -264,4 +264,18 @@ enum ErrorReason {
     (errors.message) = "请创建您的团队",
     (errors.id) = "NO_TEAM_ERR"
   ];
+
+  // 策略模板不存在
+  STRATEGY_TEMPLATE_NOT_FOUND_ERR = 37 [
+    (errors.code) = 405,
+    (errors.message) = "策略模板不存在",
+    (errors.id) = "STRATEGY_TEMPLATE_NOT_FOUND_ERR"
+  ];
+
+  // 告警等级不存在
+  ALARM_LEVEL_NOT_FOUND_ERR = 38 [
+    (errors.code) = 405,
+    (errors.message) = "告警等级不存在",
+    (errors.id) = "ALARM_LEVEL_NOT_FOUND_ERR"
+  ];
 }

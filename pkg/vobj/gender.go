@@ -1,10 +1,8 @@
 package vobj
 
-//var _ driver.Valuer = Gender(0)
-
 // Gender 性别
 //
-//go:generate stringer -type=Gender -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=Gender -linecomment
 type Gender int
 
 const (

@@ -2,7 +2,7 @@ package vobj
 
 // MetricType 数据源类型
 //
-//go:generate stringer -type=MetricType -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=MetricType -linecomment
 type MetricType int
 
 const (

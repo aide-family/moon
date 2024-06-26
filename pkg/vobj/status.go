@@ -2,7 +2,7 @@ package vobj
 
 // Status 数据状态
 //
-//go:generate stringer -type=Status -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=Status -linecomment
 type Status int
 
 const (

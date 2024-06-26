@@ -1,18 +1,13 @@
-FROM golang:1.21.0 AS builder
+#FROM golang:1.21.0 AS builder
+FROM aidemoonio/build:latest AS builder
 
 COPY . /src
 WORKDIR /src
 
 RUN GOPROXY=https://goproxy.cn make build
 
-FROM debian:stable-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-		ca-certificates  \
-        netbase \
-        && rm -rf /var/lib/apt/lists/ \
-        && apt-get autoremove -y && apt-get autoclean -y
-
+#FROM debian:stable-slim
+FROM aidemoonio/deploy:latest
 
 WORKDIR /app
 

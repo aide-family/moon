@@ -2,7 +2,7 @@ package vobj
 
 // StorageType 存储类型
 //
-//go:generate stringer -type=StorageType -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=StorageType -linecomment
 type StorageType int
 
 const (

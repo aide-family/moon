@@ -7,5 +7,8 @@ func Models() []any {
 		&SysMenu{},
 		&SysTeam{},
 		&SysUser{},
+		&StrategyTemplate{},
+		&StrategyLevelTemplate{},
+		&StrategyAlarmLevel{},
 	}
 }

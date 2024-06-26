@@ -53,6 +53,11 @@ api:
 .PHONY: build
 # build
 build:
+	make api
+	go run cmd/server/gen/gen/cmd.go
+	go run cmd/server/gen/gen/cmd.go -b
+	make wire
+	go mod tidy
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 # CGO_ENABLED=0 GOOS=linux GOARCH=amd64
@@ -63,7 +68,6 @@ build-linux:
 .PHONY: wire
 # generate
 wire:
-	go install cmd/server/stringer/cmd.go
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
 	go generate ./...

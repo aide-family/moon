@@ -8,7 +8,7 @@ package vobj
 //	m时间内最多出现n次
 //	m时间内最少出现n次
 //
-//go:generate stringer -type=Sustain -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=Sustain -linecomment
 type Sustain int
 
 const (

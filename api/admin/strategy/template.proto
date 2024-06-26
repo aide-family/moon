@@ -1,0 +1,218 @@
+syntax = "proto3";
+
+package api.admin.strategy;
+
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "buf/validate/validate.proto";
+import "enum.proto";
+import "admin/model.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/strategy;strategy";
+option java_multiple_files = true;
+option java_package = "api.admin.strategy";
+
+// 策略模版管理
+service Template {
+  // 创建策略模版
+  rpc CreateTemplateStrategy (CreateTemplateStrategyRequest) returns (CreateTemplateStrategyReply) {
+    option (google.api.http) = {
+      post: "/v1/template/strategy"
+      body: "*"
+    };
+  }
+
+  // 更新策略模版
+  rpc UpdateTemplateStrategy (UpdateTemplateStrategyRequest) returns (UpdateTemplateStrategyReply) {
+    option (google.api.http) = {
+      put: "/v1/template/strategy/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除策略模版
+  rpc DeleteTemplateStrategy (DeleteTemplateStrategyRequest) returns (DeleteTemplateStrategyReply) {
+    option (google.api.http) = {
+      delete: "/v1/template/strategy/{id}"
+    };
+  }
+
+  // 获取策略模版详情
+  rpc GetTemplateStrategy (GetTemplateStrategyRequest) returns (GetTemplateStrategyReply) {
+    option (google.api.http) = {
+      get: "/v1/template/strategy/{id}"
+    };
+  }
+
+  // 获取策略模版列表
+  rpc ListTemplateStrategy (ListTemplateStrategyRequest) returns (ListTemplateStrategyReply) {
+    option (google.api.http) = {
+      get: "/v1/template/strategy/list"
+    };
+  }
+
+  // 更改模板启用状态
+  rpc UpdateTemplateStrategyStatus (UpdateTemplateStrategyStatusRequest) returns (UpdateTemplateStrategyStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/template/strategy/status"
+      body: "*"
+    };
+  }
+}
+
+// 策略等级挂钩的告警模板明细
+message MutationStrategyLevelTemplate {
+  // 策略持续时间
+  google.protobuf.Duration duration = 1;
+  // 持续次数
+  uint32 Count = 2;
+  // 持续的类型
+  SustainType sustainType = 3;
+  // 执行频率
+  google.protobuf.Duration interval = 4;
+  // 条件
+  string condition = 5;
+  // 阈值
+  double threshold = 6;
+  // ID
+  uint32 id = 7;
+}
+
+message CreateTemplateStrategyRequest {
+  // 策略名称
+  string Alert = 1 [(buf.validate.field).cel = {
+    expression: "this.size() > 0 && this.size() <= 50"
+    message: "策略名称长度必须大于0且小于50"
+    id: "CreateTemplateStrategyRequestAlert"
+  }];
+  // 策略表达式
+  string Expr = 2 [(buf.validate.field).cel = {
+    expression: "this.size() > 0 && this.size() <= 1000"
+    message: "策略表达式长度必须大于0且小于1000"
+    id: "CreateTemplateStrategyRequestExpr"
+  }];
+  // 备注
+  string Remark = 3 [(buf.validate.field).cel = {
+    expression: "this.size() <= 255"
+    message: "备注长度必须小于255"
+    id: "CreateTemplateStrategyRequestRemark"
+  }];
+  // 策略标签
+  map<string, string> Labels = 4 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
+    message: "标签数量必须大于0且小于等于20"
+    id: "CreateTemplateStrategyRequestLabels"
+  }];
+  // 策略注解
+  map<string, string> Annotations = 5 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
+    message: "注解数量必须大于0且小于等于5"
+    id: "CreateTemplateStrategyRequestAnnotations"
+  }];
+  // 策略等级模板
+  map<uint32, MutationStrategyLevelTemplate> Level = 6 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
+    message: "策略等级模板数量必须大于0且小于等于10"
+    id: "CreateTemplateStrategyRequestLevel"
+  }];
+}
+message CreateTemplateStrategyReply {}
+
+message UpdateTemplateStrategyRequest {
+  // 策略名称
+  string Alert = 1 [(buf.validate.field).cel = {
+    expression: "this.size() > 0 && this.size() <= 50"
+    message: "策略名称长度必须大于0且小于50"
+    id: "CreateTemplateStrategyRequestAlert"
+  }];
+  // 策略表达式
+  string Expr = 2 [(buf.validate.field).cel = {
+    expression: "this.size() > 0 && this.size() <= 1000"
+    message: "策略表达式长度必须大于0且小于1000"
+    id: "CreateTemplateStrategyRequestExpr"
+  }];
+  // 备注
+  string Remark = 3 [(buf.validate.field).cel = {
+    expression: "this.size() <= 255"
+    message: "备注长度必须小于255"
+    id: "CreateTemplateStrategyRequestRemark"
+  }];
+  // 策略标签
+  map<string, string> Labels = 4 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
+    message: "标签数量必须大于0且小于等于20"
+    id: "CreateTemplateStrategyRequestLabels"
+  }];
+  // 策略注解
+  map<string, string> Annotations = 5 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
+    message: "注解数量必须大于0且小于等于5"
+    id: "CreateTemplateStrategyRequestAnnotations"
+  }];
+  // 策略等级模板
+  map<uint32, MutationStrategyLevelTemplate> Level = 6 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
+    message: "策略等级模板数量必须大于0且小于等于10"
+    id: "CreateTemplateStrategyRequestLevel"
+  }];
+  // 策略ID
+  uint32 id = 7 [(buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的策略数据编辑"
+    id: "UpdateTemplateStrategyRequestID"
+  }];
+}
+message UpdateTemplateStrategyReply {}
+
+message DeleteTemplateStrategyRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的策略数据删除"
+    id: "DeleteTemplateStrategyRequestID"
+  }];
+}
+message DeleteTemplateStrategyReply {}
+
+message GetTemplateStrategyRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的策略数据查看详情"
+    id: "GetTemplateStrategyRequestID"
+  }];
+}
+message GetTemplateStrategyReply {
+  StrategyTemplate detail = 1;
+}
+
+message ListTemplateStrategyRequest {
+  // 页码
+  uint32 pageNum = 1;
+  // 每页数量
+  uint32 pageSize = 2;
+  // 策略名称（模糊查询）
+  string Alert = 3;
+  // 状态
+  Status status = 4;
+}
+message ListTemplateStrategyReply {
+  // 总数量
+  int64 total = 1;
+  // 策略列表
+  repeated StrategyTemplate list = 2;
+}
+
+message UpdateTemplateStrategyStatusRequest {
+  // 策略ID列表
+  repeated uint32 ids = 1 [(buf.validate.field).cel = {
+    expression: "this.size() >= 1"
+    message: "请选择正确的策略数据"
+    id: "UpdateTemplateStrategyStatusRequestID"
+  }];
+  // 启用状态
+  Status status = 2 [(buf.validate.field).cel = {
+    expression: "this in [1, 2]"
+    message: "请选择正确的启用状态, 启用(1);禁用(2)"
+    id: "UpdateTemplateStrategyStatusRequestStatus"
+  }];
+}
+message UpdateTemplateStrategyStatusReply {}

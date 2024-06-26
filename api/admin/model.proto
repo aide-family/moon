@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.admin;
 
 import "google/protobuf/duration.proto";
-import "strategy.proto";
 import "enum.proto";
 
 option go_package = "github.com/aide-family/moon/api/admin;admin";
@@ -307,4 +306,68 @@ message StrategyGroup {
   // 策略组创建人
   User creator = 7;
   uint32 creator_id = 8;
+}
+
+message StrategyLevelTemplate {
+  // ID
+  uint32 id = 1;
+  // 持续时间
+  google.protobuf.Duration duration = 3;
+  // 持续次数
+  uint32 count = 4;
+  // 持续类型
+  SustainType sustainType = 5;
+  // 执行频率
+  google.protobuf.Duration interval = 8;
+  // 状态
+  Status status = 9;
+  // 告警等级ID
+  uint32 level_id = 10;
+  // 告警等级
+  Select level = 11;
+  // 阈值
+  double threshold = 12;
+  // 条件
+  string condition = 13;
+  // 所属策略
+  uint32 strategy_id = 14;
+}
+
+message StrategyTemplate {
+  // 策略模板ID
+  uint32 id = 1;
+  // 策略模板名称
+  string Alert = 2;
+  // 策略语句
+  string expr = 3;
+  repeated StrategyLevelTemplate levels = 4;
+  // 策略标签
+  map<string, string> labels = 5;
+  // 策略注解
+  map<string, string> annotations = 6;
+  // 策略模板状态
+  Status status = 7;
+  // 创建时间
+  string created_at = 8;
+  // 更新时间
+  string updated_at = 9;
+  // 策略模板说明信息
+  string remark = 10;
+}
+
+message StrategyAlarmLevel {
+  // ID
+  uint32 id = 1;
+  // 告警等级名称
+  string name = 2;
+  // 告警等级颜色
+  string color = 3;
+  // 状态
+  Status status = 4;
+  // 创建时间
+  string created_at = 5;
+  // 更新时间
+  string updated_at = 6;
+  // 等级
+  int32 level = 7;
 }

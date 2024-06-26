@@ -1,0 +1,9 @@
+FROM debian:stable-slim
+
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        ca-certificates \
+        netbase \
+        && apt-get update -y \
+        && rm -rf /var/lib/apt/lists/* \
+        && apt-get autoremove -y && apt-get autoclean -y

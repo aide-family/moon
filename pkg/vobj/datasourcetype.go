@@ -2,7 +2,7 @@ package vobj
 
 // DatasourceType 数据源类型
 //
-//go:generate stringer -type=DatasourceType -linecomment
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=DatasourceType -linecomment
 type DatasourceType int
 
 const (

@@ -5,30 +5,13 @@ package api;
 import "google/protobuf/duration.proto";
 import "google/protobuf/any.proto";
 import "datasource.proto";
+import "enum.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
 // metric类型数据策略定义
-
-// 持续类型定义
-//  m时间内出现n次
-//  m时间内最多出现n次
-//  m时间内最少出现n次
-enum SustainType {
-	// 持续类型定义
-	MetricSustainType_UNKNOWN = 0;
-
-	// m时间内出现n次
-	MetricSustainType_FOR = 1;
-
-	// m时间内最多出现n次
-	MetricSustainType_MAX = 2;
-
-	// m时间内最少出现n次
-	MetricSustainType_MIN = 3;
-}
 
 message Strategy {
 	// 策略名称

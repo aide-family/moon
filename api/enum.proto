@@ -137,3 +137,15 @@ enum MetricType {
 	// Summary
 	MetricTypeSummary = 4;
 }
+
+// SustainType 持续类型
+enum SustainType {
+	// 未知持续类型
+	SustainTypeUnknown = 0;
+	// m时间内出现n次
+	SustainTypeFor = 1;
+	// m时间内最多出现n次
+	SustainTypeMax = 2;
+	// m时间内最少出现n次
+	SustainTypeMin = 3;
+}
