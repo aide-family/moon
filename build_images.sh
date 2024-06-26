@@ -2,7 +2,7 @@
 VERSION=$(git describe --tags --always)
 echo $VERSION
 # 可执行文件列表
-executables=("palace" "rabbit", "houyi")
+executables=("palace" "rabbit" "houyi")
 
 # 遍历每个可执行文件并构建镜像
 for exec in "${executables[@]}"; do
