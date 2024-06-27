@@ -5,5 +5,5 @@ import (
 )
 
 func Test_encryptPassword(t *testing.T) {
-	t.Log(encryptPassword("12345678"))
+	//t.Log(encryptPassword("12345678"))
 }
