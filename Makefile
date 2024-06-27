@@ -33,6 +33,9 @@ init:
 # generate internal config
 config:
 	@for app in $(APPS); do \
+  		if [ "$$app" = "gen" ] || [ "$$app" = "stringer" ]; then \
+			continue; \
+		fi; \
 		echo "generate internal config for $$app"; \
 		cd $(path)/$(server)/$$app && make config; \
 	done
@@ -52,17 +55,12 @@ api:
 
 .PHONY: build
 # build
-build:
-	make api
-	go run cmd/server/gen/gen/cmd.go
-	go run cmd/server/gen/gen/cmd.go -b
-	make wire
-	go mod tidy
+build: all
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 # CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 .PHONY: build-linux
-build-linux:
+build-linux: all
 	mkdir -p bin/linux/ && GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/linux ./...
 
 .PHONY: wire
@@ -70,14 +68,21 @@ build-linux:
 wire:
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
-	go generate ./...
+	go generate $(path)/pkg/vobj
+	@for app in $(APPS); do \
+  		if [ "$$app" = "gen" ] || [ "$$app" = "stringer" ]; then \
+			continue; \
+		fi; \
+		echo "generate internal config for $$app"; \
+		cd $(path)/$(server)/$$app && wire; \
+	done
 
 .PHONY: all
 # generate all
-all:
-	make api;
-	make config;
-	make wire;
+all: api config wire
+	go run cmd/server/gen/gen/cmd.go
+	go run cmd/server/gen/gen/cmd.go -b
+	go mod tidy
 
 .PHONY: clean
 # clean
