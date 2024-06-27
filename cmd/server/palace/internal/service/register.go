@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
@@ -24,4 +25,5 @@ var ProviderSetService = wire.NewSet(
 	datasource.NewDatasourceService,
 	datasource.NewMetricService,
 	strategy.NewStrategyService,
+	dict.NewDictService,
 )

@@ -2,8 +2,9 @@ package dict
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/dict"
+	dictapi "github.com/aide-family/moon/api/admin/dict"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -14,7 +15,7 @@ import (
 )
 
 type Service struct {
-	pb.UnimplementedDictServer
+	dictapi.UnimplementedDictServer
 
 	dictBiz *biz.DictBiz
 }
@@ -25,7 +26,7 @@ func NewDictService(dictBiz *biz.DictBiz) *Service {
 	}
 }
 
-func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*pb.CreateDictReply, error) {
+func (s *Service) CreateDict(ctx context.Context, req *dictapi.CreateDictRequest) (*dictapi.CreateDictReply, error) {
 	createParams := bo.CreateDictParams{
 		Name:         req.GetName(),
 		Value:        req.GetValue(),
@@ -46,10 +47,10 @@ func (s *Service) CreateDict(ctx context.Context, req *pb.CreateDictRequest) (*p
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.CreateDictReply{}, nil
+	return &dictapi.CreateDictReply{}, nil
 }
 
-func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*pb.UpdateDictReply, error) {
+func (s *Service) UpdateDict(ctx context.Context, req *dictapi.UpdateDictRequest) (*dictapi.UpdateDictReply, error) {
 	data := req.GetData()
 	createParams := bo.CreateDictParams{
 		Name:         data.GetName(),
@@ -71,10 +72,10 @@ func (s *Service) UpdateDict(ctx context.Context, req *pb.UpdateDictRequest) (*p
 	if err := s.dictBiz.UpdateDict(ctx, &updateParams); !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.UpdateDictReply{}, nil
+	return &dictapi.UpdateDictReply{}, nil
 }
 
-func (s *Service) ListDict(ctx context.Context, req *pb.GetDictSelectListRequest) (*pb.ListDictReply, error) {
+func (s *Service) ListDict(ctx context.Context, req *dictapi.GetDictSelectListRequest) (*dictapi.ListDictReply, error) {
 	queryParams := &bo.QueryDictListParams{
 		Keyword:  req.GetKeyword(),
 		Page:     types.NewPagination(req.GetPagination()),
@@ -86,7 +87,7 @@ func (s *Service) ListDict(ctx context.Context, req *pb.GetDictSelectListRequest
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &pb.ListDictReply{
+	return &dictapi.ListDictReply{
 		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 		List: types.SliceTo(dictPage, func(dict *model.SysDict) *admin.Dict {
 			return build.NewDictBuild(dict).ToApi()
@@ -94,7 +95,7 @@ func (s *Service) ListDict(ctx context.Context, req *pb.GetDictSelectListRequest
 	}, nil
 }
 
-func (s *Service) BatchUpdateDictStatus(ctx context.Context, params *pb.BatchUpdateDictStatusRequest) (*pb.BatchUpdateDictStatusReply, error) {
+func (s *Service) BatchUpdateDictStatus(ctx context.Context, params *dictapi.BatchUpdateDictStatusRequest) (*dictapi.BatchUpdateDictStatusReply, error) {
 	updateParams := bo.UpdateDictStatusParams{
 		IDs:    params.GetIds(),
 		Status: vobj.Status(params.Status),
@@ -104,26 +105,24 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, params *pb.BatchUpd
 	if err != nil {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
-	return &pb.BatchUpdateDictStatusReply{}, nil
+	return &dictapi.BatchUpdateDictStatusReply{}, nil
 }
 
-func (s *Service) DeleteDict(ctx context.Context, params *pb.DeleteDictRequest) (*pb.DeleteDictReply, error) {
-
+func (s *Service) DeleteDict(ctx context.Context, params *dictapi.DeleteDictRequest) (*dictapi.DeleteDictReply, error) {
 	err := s.dictBiz.DeleteDictById(ctx, params.GetId())
 	if err != nil {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
-	return &pb.DeleteDictReply{}, nil
+	return &dictapi.DeleteDictReply{}, nil
 }
 
-func (s *Service) GetDict(ctx context.Context, req *pb.GetDictRequest) (*pb.GetDictReply, error) {
-
+func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*dictapi.GetDictReply, error) {
 	dictDO, err := s.dictBiz.GetDict(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	resDict := build.NewDictBuild(dictDO).ToApi()
-	return &pb.GetDictReply{
+	return &dictapi.GetDictReply{
 		Dict: resDict,
 	}, nil
 }

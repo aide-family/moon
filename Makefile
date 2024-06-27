@@ -77,11 +77,14 @@ wire:
 		cd $(path)/$(server)/$$app && wire; \
 	done
 
-.PHONY: all
-# generate all
-all: api config wire
+.PHONY: model
+model:
 	go run cmd/server/gen/gen/cmd.go
 	go run cmd/server/gen/gen/cmd.go -b
+
+.PHONY: all
+# generate all
+all: api config model wire
 	go mod tidy
 
 .PHONY: clean

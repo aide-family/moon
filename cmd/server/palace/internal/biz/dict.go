@@ -2,11 +2,15 @@ package biz
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
+
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
 func NewDictBiz(dictRepo repository.Dict) *DictBiz {
@@ -48,7 +52,14 @@ func (b *DictBiz) ListDict(ctx context.Context, listParam *bo.QueryDictListParam
 
 // GetDict 获取字典
 func (b *DictBiz) GetDict(ctx context.Context, dictId uint32) (*model.SysDict, error) {
-	return b.dictRepo.GetByID(ctx, dictId)
+	dictDetail, err := b.dictRepo.GetByID(ctx, dictId)
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorI18nDictNotFoundErr(ctx)
+		}
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return dictDetail, nil
 }
 
 // UpdateDictStatusByIds 更新字典状态

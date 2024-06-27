@@ -2,13 +2,15 @@ package model
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/pkg/helper/model/base"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
 
-// 字典数据表
+// TableNameSysDict 字典数据表
 const TableNameSysDict = "sys_dict"
 
 type SysDict struct {
@@ -22,8 +24,7 @@ type SysDict struct {
 	Status       vobj.Status   `gorm:"column:status;type:tinyint;not null;default:1;comment:状态 1：开启 2:关闭"`
 	LanguageCode string        `gorm:"column:language_code;type:varchar(10);not null;default:zh;comment:语言：zh:中文 en:英文"`
 	Remark       string        `gorm:"column:remark;type:varchar(500);not null;comment:字典备注"`
-	base.BaseModel
-	base.BaseModelID
+	base.AllFieldModel
 }
 
 // Create func

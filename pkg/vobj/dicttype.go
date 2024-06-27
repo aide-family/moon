@@ -3,7 +3,7 @@ package vobj
 // DictType 字典类型
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=DictType -linecomment
-type DictType int32
+type DictType int
 
 const (
 	DictTypeUnknown DictType = iota // 未知
