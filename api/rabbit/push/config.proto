@@ -10,24 +10,24 @@ option java_multiple_files = true;
 option java_package = "api.rabbit.push";
 
 service Config {
-	rpc NotifyObject(NotifyObjectRequest) returns (NotifyObjectReply) {
-		option (google.api.http) = {
-			post: "/v1/rabbit/push/config"
-			body: "*"
-		};
-	}
+  rpc NotifyObject(NotifyObjectRequest) returns (NotifyObjectReply) {
+    option (google.api.http) = {
+      post: "/v1/rabbit/push/config"
+      body: "*"
+    };
+  }
 }
 
 message NotifyObjectRequest {
-	// 根据路由匹配具体的发送对象
-	map<string, Receiver> receivers = 4;
-	map<string, string> templates = 5;
+  // 根据路由匹配具体的发送对象
+  map<string, Receiver> receivers = 4;
+  map<string, string> templates = 5;
 }
 message NotifyObjectReply {
-	// 发送的结果
-	string msg = 1;
-	// 状态码
-	int32 code = 2;
-	// 发送时间
-	string time = 3;
+  // 发送的结果
+  string msg = 1;
+  // 状态码
+  int32 code = 2;
+  // 发送时间
+  string time = 3;
 }

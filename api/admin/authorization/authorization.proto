@@ -13,138 +13,138 @@ option java_package = "api.admin.authorization";
 
 // 系统权限控制
 service Authorization {
-	// 登录
-	rpc Login (LoginRequest) returns (LoginReply) {
-		option (google.api.http) = {
-			post: "/v1/authorization/login"
-			body: "*"
-		};
-	}
+  // 登录
+  rpc Login (LoginRequest) returns (LoginReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/login"
+      body: "*"
+    };
+  }
 
-	// 登出
-	rpc Logout (LogoutRequest) returns (LogoutReply) {
-		option (google.api.http) = {
-			post: "/v1/authorization/logout"
-			body: "*"
-		};
-	}
+  // 登出
+  rpc Logout (LogoutRequest) returns (LogoutReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/logout"
+      body: "*"
+    };
+  }
 
-	// 刷新token
-	rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
-		option (google.api.http) = {
-			post: "/v1/authorization/refresh"
-			body: "*"
-		};
-	}
+  // 刷新token
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/refresh"
+      body: "*"
+    };
+  }
 
-	// 获取验证码
-	rpc Captcha (CaptchaReq) returns (CaptchaReply) {
-		option (google.api.http) = {
-			post: "/v1/authorization/captcha"
-			body: "*"
-		};
-	}
+  // 获取验证码
+  rpc Captcha (CaptchaReq) returns (CaptchaReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/captcha"
+      body: "*"
+    };
+  }
 
-	// 校验用户在当前资源下是否有权限
-	rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
+  // 校验用户在当前资源下是否有权限
+  rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
 
-	// 校验token是否登录中的状态
-	rpc CheckToken (CheckTokenRequest) returns (CheckTokenReply);
+  // 校验token是否登录中的状态
+  rpc CheckToken (CheckTokenRequest) returns (CheckTokenReply);
 }
 
 message LoginRequest {
-	// 用户名
-	string username = 1 [(buf.validate.field).cel = {
-		message: "用户名不能为空",
-		expression: "this.size() != 0"
-	}];
-	// 密码
-	string password = 2 [(buf.validate.field).cel = {
-		message: "密码不能为空",
-		expression: "this.size() != 0"
-	}];
-	// 验证码
-	AuthCaptcha captcha = 3 [(buf.validate.field).required = true];
-	// 重定向地址
-	string redirect = 4;
-	// 团队ID
-	uint32 team_id = 5;
+  // 用户名
+  string username = 1 [(buf.validate.field).cel = {
+    message: "用户名不能为空",
+    expression: "this.size() != 0"
+  }];
+  // 密码
+  string password = 2 [(buf.validate.field).cel = {
+    message: "密码不能为空",
+    expression: "this.size() != 0"
+  }];
+  // 验证码
+  AuthCaptcha captcha = 3 [(buf.validate.field).required = true];
+  // 重定向地址
+  string redirect = 4;
+  // 团队ID
+  uint32 team_id = 5;
 }
 message LoginReply {
-	// 用户信息
-	User user = 1;
-	// token
-	string token = 2;
-	// 重定向地址
-	string redirect = 3;
+  // 用户信息
+  User user = 1;
+  // token
+  string token = 2;
+  // 重定向地址
+  string redirect = 3;
 }
 
 message LogoutRequest {}
 message LogoutReply {
-	// 重定向地址
-	string redirect = 1;
+  // 重定向地址
+  string redirect = 1;
 }
 
 message RefreshTokenRequest {
-	// 团队ID
-	uint32 team_id = 1;
+  // 团队ID
+  uint32 team_id = 1;
 }
 message RefreshTokenReply {
-	// token
-	string token = 1;
-	// 用户信息
-	User user = 2;
+  // token
+  string token = 1;
+  // 用户信息
+  User user = 2;
 }
 
 // 登录验证码
 message AuthCaptcha {
-	// 验证码
-	string code = 1 [(buf.validate.field).cel = {
-		expression: "this.size() != 0",
-		message: "验证码不能为空"
-	}];
-	// ID
-	string id = 2 [(buf.validate.field).cel = {
-		expression: "this.size() != 0",
-		message: "验证码唯一标识ID不能为空"
-	}];
+  // 验证码
+  string code = 1 [(buf.validate.field).cel = {
+    expression: "this.size() != 0",
+    message: "验证码不能为空"
+  }];
+  // ID
+  string id = 2 [(buf.validate.field).cel = {
+    expression: "this.size() != 0",
+    message: "验证码唯一标识ID不能为空"
+  }];
 }
 
 // 验证码
 message CaptchaReq {
-	// 验证码类型, 0 图片验证码, 1 音频验证码
-	CaptchaType captcha_type = 1;
-	// 主题
-	string theme = 2 [(buf.validate.field).cel = {
-		id: "CaptchaReq_theme_type"
-		message: "必须为light或者dark",
-		expression: "this.size() == 0 || this == 'light' || this == 'dark'"
-	}];
-	// 图片类型宽高， 不传为默认值
-	int32 width = 3;
-	int32 height = 4;
+  // 验证码类型, 0 图片验证码, 1 音频验证码
+  CaptchaType captcha_type = 1;
+  // 主题
+  string theme = 2 [(buf.validate.field).cel = {
+    id: "CaptchaReq_theme_type"
+    message: "必须为light或者dark",
+    expression: "this.size() == 0 || this == 'light' || this == 'dark'"
+  }];
+  // 图片类型宽高， 不传为默认值
+  int32 width = 3;
+  int32 height = 4;
 }
 message CaptchaReply {
-	// 验证码base64信息, 如果是图片验证码, 则直接使用img标签展示即可, 如果是音频验证码, 则需要调用相关接口播放音频
-	string captcha = 1;
-	// 验证码类型, 0 图片验证码, 1 音频验证码
-	CaptchaType captcha_type = 2;
-	// 验证码标识
-	string id = 3;
+  // 验证码base64信息, 如果是图片验证码, 则直接使用img标签展示即可, 如果是音频验证码, 则需要调用相关接口播放音频
+  string captcha = 1;
+  // 验证码类型, 0 图片验证码, 1 音频验证码
+  CaptchaType captcha_type = 2;
+  // 验证码标识
+  string id = 3;
 }
 
 message CheckPermissionRequest {
-	// 资源
-	string operation = 1 [(buf.validate.field).cel = {
-		message: "必须选择资源",
-		expression: "this.size() != 0"
-	}];
+  // 资源
+  string operation = 1 [(buf.validate.field).cel = {
+    message: "必须选择资源",
+    expression: "this.size() != 0"
+  }];
 }
 message CheckPermissionReply {
-	bool has_permission = 1;
+  bool has_permission = 1;
 }
 
 message CheckTokenRequest {}
 message CheckTokenReply {
-	bool is_login = 1;
+  bool is_login = 1;
 }

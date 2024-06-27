@@ -11,15 +11,15 @@ option java_package = "api.admin.resource";
 
 // 系统菜单管理模块
 service Menu {
-	// 获取菜单树
-	rpc ListMenu (ListMenuRequest) returns (ListMenuReply) {
-		option (google.api.http) = {
-			get: "/v1/admin/menu/list"
-		};
-	}
+  // 获取菜单树
+  rpc ListMenu (ListMenuRequest) returns (ListMenuReply) {
+    option (google.api.http) = {
+      get: "/v1/admin/menu/list"
+    };
+  }
 }
 
 message ListMenuRequest {}
 message ListMenuReply {
-	repeated Menu list = 1;
+  repeated Menu list = 1;
 }

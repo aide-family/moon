@@ -279,12 +279,10 @@ enum ErrorReason {
     (errors.id) = "ALARM_LEVEL_NOT_FOUND_ERR"
   ];
 
-
   // 字典不存在
   DICT_NOT_FOUND_ERR = 39 [
     (errors.code) = 405,
     (errors.message) = "字典不存在!",
     (errors.id) = "DICT_NOT_FOUND_ERR"
   ];
-
 }

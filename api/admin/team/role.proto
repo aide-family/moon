@@ -13,126 +13,126 @@ option java_package = "api.admin.team";
 
 // 团队角色管理
 service Role {
-	// 创建角色
-	rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
-		option (google.api.http) = {
-			post: "/v1/team/role"
-			body: "*"
-		};
-	}
+  // 创建角色
+  rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
+    option (google.api.http) = {
+      post: "/v1/team/role"
+      body: "*"
+    };
+  }
 
-	// 更新角色
-	rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
-		option (google.api.http) = {
-			put: "/v1/team/role/{id}"
-			body: "*"
-		};
-	}
+  // 更新角色
+  rpc UpdateRole (UpdateRoleRequest) returns (UpdateRoleReply) {
+    option (google.api.http) = {
+      put: "/v1/team/role/{id}"
+      body: "*"
+    };
+  }
 
-	// 删除角色
-	rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
-		option (google.api.http) = {
-			delete: "/v1/team/role/{id}"
-		};
-	}
+  // 删除角色
+  rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
+    option (google.api.http) = {
+      delete: "/v1/team/role/{id}"
+    };
+  }
 
-	// 获取角色详情
-	rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
-		option (google.api.http) = {
-			get: "/v1/team/role/{id}"
-		};
-	}
+  // 获取角色详情
+  rpc GetRole (GetRoleRequest) returns (GetRoleReply) {
+    option (google.api.http) = {
+      get: "/v1/team/role/{id}"
+    };
+  }
 
-	// 获取角色列表
-	rpc ListRole (ListRoleRequest) returns (ListRoleReply) {
-		option (google.api.http) = {
-			post: "/v1/team/role/list"
-			body: "*"
-		};
-	}
+  // 获取角色列表
+  rpc ListRole (ListRoleRequest) returns (ListRoleReply) {
+    option (google.api.http) = {
+      post: "/v1/team/role/list"
+      body: "*"
+    };
+  }
 
-	// 更新角色状态
-	rpc UpdateRoleStatus (UpdateRoleStatusRequest) returns (UpdateRoleStatusReply) {
-		option (google.api.http) = {
-			put: "/v1/team/role/{id}/status"
-			body: "*"
-		};
-	}
+  // 更新角色状态
+  rpc UpdateRoleStatus (UpdateRoleStatusRequest) returns (UpdateRoleStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/team/role/{id}/status"
+      body: "*"
+    };
+  }
 
-	// 角色下拉列表
-	rpc GetRoleSelectList (GetRoleSelectListRequest) returns (GetRoleSelectListReply) {
-		option (google.api.http) = {
-			post: "/v1/team/role/select"
-			body: "*"
-		};
-	}
+  // 角色下拉列表
+  rpc GetRoleSelectList (GetRoleSelectListRequest) returns (GetRoleSelectListReply) {
+    option (google.api.http) = {
+      post: "/v1/team/role/select"
+      body: "*"
+    };
+  }
 }
 
 message CreateRoleRequest {
-	// 角色名称
-	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		id: "name",
-		message: "角色名称长度必须在3到20个字符之间",
-		expression: "this.size() >= 3 && this.size() <= 20"
-	}];
-	// 角色描述
-	string remark = 2 [(buf.validate.field).cel = {
-		id: "remark",
-		message: "角色描述长度必须在0到200个字符之间",
-		expression: "this.size() <= 200"
-	}];
-	// 角色权限(对应api id 列表)
-	repeated uint32 permissions = 3;
-	// 所属团队
-	uint32 team_id = 4 [(buf.validate.field).required = true];
+  // 角色名称
+  string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "name",
+    message: "角色名称长度必须在3到20个字符之间",
+    expression: "this.size() >= 3 && this.size() <= 20"
+  }];
+  // 角色描述
+  string remark = 2 [(buf.validate.field).cel = {
+    id: "remark",
+    message: "角色描述长度必须在0到200个字符之间",
+    expression: "this.size() <= 200"
+  }];
+  // 角色权限(对应api id 列表)
+  repeated uint32 permissions = 3;
+  // 所属团队
+  uint32 team_id = 4 [(buf.validate.field).required = true];
 }
 message CreateRoleReply {}
 
 message UpdateRoleRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
-	CreateRoleRequest data = 2 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
+  CreateRoleRequest data = 2 [(buf.validate.field).required = true];
 }
 message UpdateRoleReply {}
 
 message DeleteRoleRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message DeleteRoleReply {}
 
 message GetRoleRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetRoleReply {
-	TeamRole role = 1;
+  TeamRole role = 1;
 }
 
 // 不分页
 message ListRoleRequest {
-	string keyword = 1 [(buf.validate.field).cel = {
-		id: "keyword",
-		message: "关键字长度必须在0到20个字符之间",
-		expression: "this.size() <= 20"
-	}];
+  string keyword = 1 [(buf.validate.field).cel = {
+    id: "keyword",
+    message: "关键字长度必须在0到20个字符之间",
+    expression: "this.size() <= 20"
+  }];
 }
 message ListRoleReply {
-	repeated TeamRole list = 1;
+  repeated TeamRole list = 1;
 }
 
 message UpdateRoleStatusRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
-	Status status = 2 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
+  Status status = 2 [(buf.validate.field).required = true];
 }
 message UpdateRoleStatusReply {}
 
 message GetRoleSelectListRequest {
-	string keyword = 1 [(buf.validate.field).cel = {
-		id: "keyword",
-		message: "关键字长度必须在0到20个字符之间",
-		expression: "this.size() <= 20"
-	}];
-	// 团队ID
-	uint32 team_id = 2;
+  string keyword = 1 [(buf.validate.field).cel = {
+    id: "keyword",
+    message: "关键字长度必须在0到20个字符之间",
+    expression: "this.size() <= 20"
+  }];
+  // 团队ID
+  uint32 team_id = 2;
 }
 message GetRoleSelectListReply {
-	repeated Select list = 1;
+  repeated Select list = 1;
 }

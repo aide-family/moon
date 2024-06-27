@@ -33,7 +33,6 @@ message PaginationReply {
   int64 total = 3;
 }
 
-
 // 邮件发送配置
 message EmailConfig {
   // 用户
@@ -89,7 +88,6 @@ message ReceiverHookOther {
   // 模板
   string template = 3;
 }
-
 
 // 邮件目标
 message ReceiverEmail {
@@ -163,8 +161,11 @@ message Discovery {
 
 // 微服务配置
 message Server {
+  // 服务地址
   string endpoint = 1;
+  // 密钥
   optional string secret = 2;
+  // 超时时间
   optional google.protobuf.Duration timeout = 3;
   // 网络类型， http, https, grpc
   string network = 4;

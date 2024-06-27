@@ -11,6 +11,7 @@ option java_package = "api.admin";
 
 // 此处定义admin下所有的基础model
 
+// 下拉选择扩展数据
 message SelectExtend {
   // 图标
   string icon = 1;
@@ -238,21 +239,21 @@ message Dict{
   // 字典类型
   DictType dict_type = 3;
   // 颜色类型
-  string color_type =4;
+  string color_type = 4;
   // css样式
-  string css_class =5;
+  string css_class = 5;
   // 字典值
   string value = 6;
   // 图标
-  string icon=7;
+  string icon = 7;
   //图片url
-  string image_url=8;
+  string image_url = 8;
   // 状态
   Status status = 9;
   // 语言
-  string language_code=10;
+  string language_code = 10;
   // 字典备注
-  string remark=11;
+  string remark = 11;
   // 创建时间
   string created_at = 12;
   // 更新时间

@@ -17,59 +17,71 @@ message EnumItem {
 // 数据状态
 enum Status {
 	// 全部
-	STATUS_ALL = 0;
+	StatusAll = 0;
+
 	// 启用
-	STATUS_ENABLE = 1;
+	StatusEnable= 1;
+
 	// 禁用
-	STATUS_DISABLE = 2;
+	StatusDisable = 2;
 }
 
 // 性别
 enum Gender {
 	// 全部
-	GENDER_ALL = 0;
+	GenderAll = 0;
+
 	// 男
-	GENDER_MALE = 1;
+	GenderMale = 1;
+
 	// 女
-	GENDER_FEMALE = 2;
+	GenderFemale= 2;
 }
 
 // 系统全局默认角色， 区别于空间下自定义角色类型
 enum Role {
 	// 全部 / 未知
-	ROLE_ALL = 0;
+	RoleAll = 0;
+
 	// 管理员
-	ROLE_SUPPER_ADMIN = 1;
+	RoleSupperAdmin = 1;
+
 	// 普通管理员
-	ROLE_ADMIN = 2;
+	RoleAdmin = 2;
+
 	// 普通用户
-	ROLE_USER = 3;
+	RoleUser = 3;
 }
 
 // 数据来源
 enum DataSource {
 	// 全部
-	DATA_SOURCE_ALL = 0;
+	DataSourceAll = 0;
+
 	// 本地
-	DATA_SOURCE_LOCAL = 1;
+	DataSourceLocal = 1;
+
 	// 远程
-	DATA_SOURCE_REMOTE = 2;
+	DataSourceRemote = 2;
 }
 
 // 验证码类型
 enum CaptchaType {
 	// 图片验证码
-	CAPTCHA_TYPE_IMAGE = 0;
+	CaptchaTypeImage = 0;
+
 	// 音频验证码
-	CAPTCHA_TYPE_AUDIO = 1;
+	CaptchaTypeAudio = 1;
 }
 
 // 领域类型枚举
 enum DomainType {
 	// 未知领域类型
 	DomainTypeUnknown = 0;
+
 	// 系统领域
 	DomainTypeSystem = 1;
+
 	// 监控领域
 	DomainTypeMonitor = 2;
 }
@@ -78,26 +90,37 @@ enum DomainType {
 enum ModuleType {
 	// 未知模块类型
 	ModuleTypeUnknown = 0;
+
 	// 接口模块
 	ModelTypeApi = 1;
+
 	// 菜单模块
 	ModelTypeMenu = 2;
+
 	// 角色模块
 	ModelTypeRole = 3;
+
 	// 用户模块
 	ModelTypeUser = 4;
+
 	// 字典模块
 	ModelTypeDict = 5;
+
 	// 配置模块
 	ModelTypeConfig = 6;
+
 	// 日志模块
 	ModelTypeLog = 7;
+
 	// 任务模块
 	ModelTypeJob = 8;
+
 	// 通知模块
 	ModelTypeNotify = 9;
+
 	// 系统模块
 	ModelTypeSystem = 10;
+
 	// 监控模块
 	ModelTypeMonitor = 11;
 }
@@ -106,10 +129,13 @@ enum ModuleType {
 enum DatasourceType {
 	// 未知数据源类型
 	DatasourceTypeUnknown = 0;
+
 	// Metric
 	DatasourceTypeMetric = 1;
+
 	// Trace
 	DatasourceTypeTrace = 2;
+
 	// Log
 	DatasourceTypeLog = 3;
 }
@@ -118,62 +144,71 @@ enum DatasourceType {
 enum StorageType {
 	// 未知存储器类型
 	StorageTypeUnknown = 0;
+
 	// Prometheus
 	StorageTypePrometheus = 1;
+
 	// VictoriaMetrics
 	StorageTypeVictoriaMetrics = 2;
 }
 
-// MetricType 指标类型
+// 指标类型
 enum MetricType {
 	// 未知指标类型
 	MetricTypeUnknown = 0;
+
 	// Counter
 	MetricTypeCounter = 1;
+
 	// Gauge
 	MetricTypeGauge = 2;
+
 	// Histogram
 	MetricTypeHistogram = 3;
+
 	// Summary
 	MetricTypeSummary = 4;
 }
 
-// SustainType 持续类型
+// 持续类型
 enum SustainType {
 	// 未知持续类型
 	SustainTypeUnknown = 0;
+
 	// m时间内出现n次
 	SustainTypeFor = 1;
+
 	// m时间内最多出现n次
 	SustainTypeMax = 2;
+
 	// m时间内最少出现n次
 	SustainTypeMin = 3;
 }
 
 // 分类, 区分字典中的各个模块数据
 enum DictType {
-	// UNKNOWN 未知, 用于默认值
-	DICT_TYPE_UNKNOWN = 0;
+	// 未知, 用于默认值
+	DictTypeUnknown = 0;
 
-	// PromLabel 标签
-	DICT_TYPE_PROM_LABEL = 1;
+	// 标签
+	DictTypePromLabel = 1;
 
-	// PromAnnotation 注解
-	DICT_TYPE_PROM_ANNOTATION = 2;
+	// 注解
+	DictTypePromAnnotation = 2;
 
-	// PromStrategy 策略
-	DICT_TYPE_PROM_STRATEGY = 3;
+	// 策略
+	DictTypePromStrategy = 3;
 
-	// PromStrategyGroup 策略组
-	DICT_TYPE_PROM_STRATEGY_GROUP = 4;
+	// 策略组
+	DictTypePromStrategyGroup = 4;
 
-	// AlarmLevel 告警级别
-	DICT_TYPE_ALARM_LEVEL = 5;
+	// 告警级别
+	DictTypeAlarmLevel = 5;
 
-	// AlarmStatus 告警状态
-	DICT_TYPE_ALARM_STATUS = 6;
+	// 告警状态
+	DictTypeAlarmStatus = 6;
 
-	// NotifyType 通知类型
-	DICT_TYPE_NOTIFY_TYPE = 7;
+	// 通知类型
+	DictTypeNotifyType = 7;
 }
 

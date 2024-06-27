@@ -13,7 +13,6 @@ option go_package = "github.com/aide-family/moon/api/admin/dict;dict";
 option java_multiple_files = true;
 option java_package = "api.admin.dict";
 
-
 // 字典服务
 service Dict {
   // 创建字典
@@ -27,7 +26,7 @@ service Dict {
   // 更新用户
   rpc UpdateDict (UpdateDictRequest) returns (UpdateDictReply) {
     option (google.api.http) = {
-      put: "/v1/dict/update"
+      put: "/v1/dict/update/{id}"
       body: "*"
     };
   }
@@ -53,7 +52,6 @@ service Dict {
     option (google.api.http) = {
       delete: "/v1/dict/delete/{id}"
     };
-
   }
 
   // 获取字典
@@ -79,9 +77,7 @@ message BatchUpdateDictStatusRequest{
     message: "状态值必须在[启用(1), 禁用(2)]之间",
   }];
 }
-
 message BatchUpdateDictStatusReply{}
-
 
 message CreateDictRequest {
   // 字典名称
@@ -95,27 +91,27 @@ message CreateDictRequest {
     expression: "this.size() <= 500"
   }];
   // 字典类型
-  DictType dict_type = 3 [(buf.validate.field).cel = {
+  DictType dictType = 3 [(buf.validate.field).cel = {
     expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7])",
     message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7)]之间",
   }];
   // 颜色类型
-  string color_type =4 [(buf.validate.field).cel = {
+  string colorType = 4 [(buf.validate.field).cel = {
     message: "颜色类型长度限制在0-50个字符",
     expression: "this.size() <= 50"
   }];
   // css样式
-  string css_class=5 [(buf.validate.field).cel = {
+  string cssClass = 5 [(buf.validate.field).cel = {
     message: "css样式长度限制在0-100个字符",
     expression: "this.size() <= 100"
   }];
   // 图标
-  string icon=6 [(buf.validate.field).cel = {
+  string icon = 6 [(buf.validate.field).cel = {
     message: "icon长度限制在0-500个字符",
     expression: "this.size() <= 500"
   }];
   // 图片地址
-  string image_url=7 [(buf.validate.field).cel = {
+  string imageUrl = 7 [(buf.validate.field).cel = {
     message: "image url长度限制在0-500个字符",
     expression: "this.size() <= 500"
   }];
@@ -125,20 +121,17 @@ message CreateDictRequest {
     message: "状态值必须在[ 启用(1), 禁用(0)]之间",
   }];
   // 语言编码
-  string language_code=9 [(buf.validate.field).cel = {
-    message: "语言编码长度限制在0-50个字符",
-    expression: "this.size() <= 50"
+  string languageCode = 9 [(buf.validate.field).cel = {
+    expression: "(this in ['zh-CN','en-US'])",
+    message: "字典类型值必须在[中文(zh), 英文(en)]之间",
   }];
   // 备注
-  string remark=10 [(buf.validate.field).cel = {
+  string remark = 10 [(buf.validate.field).cel = {
     message: "字典备注长度限制在0-500个字符",
     expression: "this.size() <= 500"
   }];
-
 }
-
 message CreateDictReply {}
-
 
 message GetDictSelectListRequest {
   // 分页参数
@@ -148,22 +141,20 @@ message GetDictSelectListRequest {
     message: "关键字模糊查询长度限制在0-20个字符",
     expression: "this.size() <= 20"
   }];
-
   // 状态查询
   Status status = 3 [(buf.validate.field).cel = {
     expression: "(this in [0, 1])",
     message: "状态值必须在[ 启用(1), 禁用(0)]之间",
   }];
-
   // 字典类型
-  DictType dict_type = 4 [(buf.validate.field).cel = {
+  DictType dictType = 4 [(buf.validate.field).cel = {
     expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7])",
     message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7)]之间",
   }];
-
+  // 语言编码
   string languageCode = 5 [(buf.validate.field).cel = {
-    expression: "(this in ['zh','en'])",
-    message: "字典类型值必须在[中文(zh), 英文(en)]之间",
+    expression: "(this in ['zh-CN','en-US'])",
+    message: "字典类型值必须在[中文(zh-CN), 英文(en-US)]之间",
   }];
 }
 
@@ -173,7 +164,6 @@ message ListUserReply {
   // 分页信息
   PaginationReply pagination = 2;
 }
-
 message ListDictReply{
   // 字典列表
   repeated Dict list = 1;
@@ -190,7 +180,6 @@ message UpdateDictRequest {
   // 更新的数据
   CreateDictRequest data = 2 [(buf.validate.field).required = true];
 }
-
 message UpdateDictReply {}
 
 message DeleteDictRequest {
@@ -200,7 +189,6 @@ message DeleteDictRequest {
     expression: "this > 0"
   }];
 }
-
 message DeleteDictReply {}
 
 message GetDictRequest{
@@ -210,9 +198,8 @@ message GetDictRequest{
     expression: "this > 0"
   }];
 }
-
 message GetDictReply{
-  Dict dict =1;
+  Dict dict = 1;
 }
 
 

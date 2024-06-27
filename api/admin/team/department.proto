@@ -4,9 +4,6 @@ package api.admin.team;
 
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
-//import "admin/model.proto";
-//import "enum.proto";
-//import "global.proto";
 
 option go_package = "github.com/aide-family/moon/api/admin/team;team";
 option java_multiple_files = true;
@@ -14,67 +11,67 @@ option java_package = "api.admin.team";
 
 // 部门管理模块
 service Department {
-	// 创建部门
-	rpc CreateDepartment (CreateDepartmentRequest) returns (CreateDepartmentReply) {
-		option (google.api.http) = {
-			post: "/v1/department"
-			body: "*"
-		};
-	}
+  // 创建部门
+  rpc CreateDepartment (CreateDepartmentRequest) returns (CreateDepartmentReply) {
+    option (google.api.http) = {
+      post: "/v1/department"
+      body: "*"
+    };
+  }
 
-	// 更新部门
-	rpc UpdateDepartment (UpdateDepartmentRequest) returns (UpdateDepartmentReply) {
-		option (google.api.http) = {
-			put: "/v1/department/{id}"
-			body: "*"
-		};
-	}
+  // 更新部门
+  rpc UpdateDepartment (UpdateDepartmentRequest) returns (UpdateDepartmentReply) {
+    option (google.api.http) = {
+      put: "/v1/department/{id}"
+      body: "*"
+    };
+  }
 
-	// 删除部门
-	rpc DeleteDepartment (DeleteDepartmentRequest) returns (DeleteDepartmentReply) {
-		option (google.api.http) = {
-			delete: "/v1/department/{id}"
-		};
-	}
+  // 删除部门
+  rpc DeleteDepartment (DeleteDepartmentRequest) returns (DeleteDepartmentReply) {
+    option (google.api.http) = {
+      delete: "/v1/department/{id}"
+    };
+  }
 
-	// 获取部门详情
-	rpc GetDepartment (GetDepartmentRequest) returns (GetDepartmentReply) {
-		option (google.api.http) = {
-			get: "/v1/department/{id}"
-		};
-	}
+  // 获取部门详情
+  rpc GetDepartment (GetDepartmentRequest) returns (GetDepartmentReply) {
+    option (google.api.http) = {
+      get: "/v1/department/{id}"
+    };
+  }
 
-	// 获取部门列表（树）
-	rpc ListDepartment (ListDepartmentRequest) returns (ListDepartmentReply) {
-		option (google.api.http) = {
-			get: "/v1/department"
-		};
-	}
+  // 获取部门列表（树）
+  rpc ListDepartment (ListDepartmentRequest) returns (ListDepartmentReply) {
+    option (google.api.http) = {
+      get: "/v1/department"
+    };
+  }
 
-	// 设置部门管理员
-	rpc SetDepartmentAdmin (SetDepartmentAdminRequest) returns (SetDepartmentAdminReply) {
-		option (google.api.http) = {
-			post: "/v1/department/admin"
-			body: "*"
-		};
-	}
+  // 设置部门管理员
+  rpc SetDepartmentAdmin (SetDepartmentAdminRequest) returns (SetDepartmentAdminReply) {
+    option (google.api.http) = {
+      post: "/v1/department/admin"
+      body: "*"
+    };
+  }
 }
 
 message CreateDepartmentRequest {}
 message CreateDepartmentReply {}
 
 message UpdateDepartmentRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message UpdateDepartmentReply {}
 
 message DeleteDepartmentRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message DeleteDepartmentReply {}
 
 message GetDepartmentRequest {
-	uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetDepartmentReply {}
 
