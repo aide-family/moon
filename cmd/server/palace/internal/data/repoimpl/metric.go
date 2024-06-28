@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -100,7 +101,9 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 		}
 	}
 
-	metric := &bizmodel.DatasourceMetric{ID: id}
+	metric := &bizmodel.DatasourceMetric{
+		BaseModel: model.BaseModel{ID: id},
+	}
 	return teamQuery.Transaction(func(tx *bizquery.Query) error {
 		cnt, err := tx.DatasourceMetric.WithContext(ctx).
 			Select(field.AssociationFields).

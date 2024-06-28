@@ -46,6 +46,7 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 		Remark: teamRole.Remark,
 		Apis:   apis,
 	}
+	sysTeamRoleModel.WithContext(ctx)
 
 	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		// 创建角色

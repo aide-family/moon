@@ -3,21 +3,15 @@ package model
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"google.golang.org/protobuf/types/known/durationpb"
 
-	"gorm.io/plugin/soft_delete"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const TableNameStrategyLevelTemplates = "strategy_level_templates"
 
 type StrategyLevelTemplate struct {
-	ID        uint32                `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间" json:"deleted_at"`
-
+	AllFieldModel
 	// 所属策略
 	StrategyID       uint32            `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID" json:"strategy_id"`
 	StrategyTemplate *StrategyTemplate `gorm:"foreignKey:StrategyID" json:"strategy_template"`
@@ -39,9 +33,7 @@ type StrategyLevelTemplate struct {
 	Level   *StrategyAlarmLevel `gorm:"foreignKey:LevelID" json:"level"`
 
 	// 状态
-	Status    vobj.Status `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
-	CreatorID uint32      `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
-	Creator   *SysUser    `gorm:"foreignKey:CreatorID" json:"creator"`
+	Status vobj.Status `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
 }
 
 // String json string

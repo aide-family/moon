@@ -11,8 +11,6 @@ type (
 		Name string `json:"name"`
 		// 团队备注
 		Remark string `json:"remark"`
-		// 创建人
-		CreatorID uint32 `json:"creatorID"`
 		// 团队logo
 		Logo string `json:"logo"`
 		// 状态

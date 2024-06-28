@@ -195,6 +195,8 @@ message Datasource {
   string remark = 9;
   // 存储器类型
   StorageType storage_type = 10;
+  // 创建者
+  User creator = 11;
 }
 
 // 查询到的数据详情， 用与元数据构建

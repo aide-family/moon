@@ -26,13 +26,16 @@ type templateRepositoryImpl struct {
 
 func (l *templateRepositoryImpl) CreateTemplateStrategy(ctx context.Context, templateStrategy *bo.CreateTemplateStrategyParams) error {
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
+		mainModel := templateStrategy.StrategyTemplate
+		mainModel.WithContext(ctx)
 		// 创建主数据
-		if err := tx.StrategyTemplate.WithContext(ctx).Create(templateStrategy.StrategyTemplate); err != nil {
+		if err := tx.StrategyTemplate.WithContext(ctx).Create(mainModel); err != nil {
 			return err
 		}
 
 		strategyLevelTemplates := types.SliceTo(templateStrategy.StrategyLevelTemplates, func(item *model.StrategyLevelTemplate) *model.StrategyLevelTemplate {
 			item.StrategyID = templateStrategy.ID
+			item.WithContext(ctx)
 			return item
 		})
 		// 创建子数据

@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"gorm.io/gen/field"
 
 	"gorm.io/gen"
 )
@@ -51,6 +52,7 @@ func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasou
 		Remark:      datasource.Remark,
 		StorageType: datasource.StorageType,
 	}
+	datasourceModel.WithContext(ctx)
 	if err = q.Datasource.WithContext(ctx).Create(datasourceModel); !types.IsNil(err) {
 		return nil, err
 	}
@@ -62,7 +64,7 @@ func (l *datasourceRepositoryImpl) GetDatasource(ctx context.Context, id uint32)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(id)).First()
+	return q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(id)).Preload(field.Associations).First()
 }
 
 func (l *datasourceRepositoryImpl) GetDatasourceNoAuth(ctx context.Context, id, teamId uint32) (*bizmodel.Datasource, error) {
@@ -79,7 +81,7 @@ func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *b
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	qq := q.Datasource.WithContext(ctx)
+	qq := q.Datasource.WithContext(ctx).Preload(field.Associations)
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Keyword) {
 		wheres = append(wheres, q.Datasource.Name.Like(params.Keyword))

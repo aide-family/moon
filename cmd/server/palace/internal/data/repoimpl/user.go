@@ -56,7 +56,9 @@ func (l *userRepositoryImpl) UpdatePassword(ctx context.Context, id uint32, pass
 
 func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
 	userModel := createUserParamsToModel(user)
-	if err := userModel.Create(ctx, l.data.GetMainDB(ctx)); !types.IsNil(err) {
+	userModel.WithContext(ctx)
+	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser
+	if err := q.Create(userModel); !types.IsNil(err) {
 		return nil, err
 	}
 	runtimecache.GetRuntimeCache().AppendUser(ctx, userModel)

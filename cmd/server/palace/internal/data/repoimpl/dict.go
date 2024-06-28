@@ -36,7 +36,9 @@ func (l *dictRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 
 func (l *dictRepositoryImpl) Create(ctx context.Context, dict *bo.CreateDictParams) (*model.SysDict, error) {
 	dictModel := createDictParamsToModel(dict)
-	if err := dictModel.Create(ctx, l.data.GetMainDB(ctx)); !types.IsNil(err) {
+	dictModel.WithContext(ctx)
+	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysDict
+	if err := q.Create(dictModel); !types.IsNil(err) {
 		return nil, err
 	}
 	return dictModel, nil

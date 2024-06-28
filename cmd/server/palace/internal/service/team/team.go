@@ -38,13 +38,12 @@ func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest
 		leaderId = claims.GetUser()
 	}
 	params := &bo.CreateTeamParams{
-		Name:      req.GetName(),
-		Remark:    req.GetRemark(),
-		CreatorID: claims.GetUser(),
-		Logo:      req.GetLogo(),
-		Status:    vobj.Status(req.GetStatus()),
-		LeaderID:  leaderId,
-		Admins:    req.GetAdminIds(),
+		Name:     req.GetName(),
+		Remark:   req.GetRemark(),
+		Logo:     req.GetLogo(),
+		Status:   vobj.Status(req.GetStatus()),
+		LeaderID: leaderId,
+		Admins:   req.GetAdminIds(),
 	}
 	_, err := s.teamBiz.CreateTeam(ctx, params)
 	if !types.IsNil(err) {

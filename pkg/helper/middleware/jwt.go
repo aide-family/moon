@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/palace/model"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -103,23 +101,16 @@ func (l *JwtBaseInfo) IsTeamAdminRole() bool {
 }
 
 // SetUserInfo 设置用户信息
-func (l *JwtBaseInfo) SetUserInfo(userInfo *model.SysUser) *JwtBaseInfo {
-	if !types.IsNil(userInfo) {
-		userId, role := userInfo.ID, userInfo.Role
-		l.User = userId
-		l.Role = role
-	}
-
+func (l *JwtBaseInfo) SetUserInfo(userId uint32, role vobj.Role) *JwtBaseInfo {
+	l.User = userId
+	l.Role = role
 	return l
 }
 
 // SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(teamMemberInfo *bizmodel.SysTeamMember) *JwtBaseInfo {
-	if !types.IsNil(teamMemberInfo) {
-		teamId, teamRole := teamMemberInfo.TeamID, teamMemberInfo.Role
-		l.Team = teamId
-		l.TeamRole = teamRole
-	}
+func (l *JwtBaseInfo) SetTeamInfo(teamId uint32, teamRole vobj.Role) *JwtBaseInfo {
+	l.Team = teamId
+	l.TeamRole = teamRole
 
 	return l
 }

@@ -4,19 +4,17 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin"
-	pb "github.com/aide-family/moon/api/admin/strategy"
-	"github.com/aide-family/moon/api/merr"
+	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type TemplateService struct {
-	pb.UnimplementedTemplateServer
+	strategyapi.UnimplementedTemplateServer
 
 	templateBiz *biz.TemplateBiz
 }
@@ -27,11 +25,7 @@ func NewTemplateService(templateBiz *biz.TemplateBiz) *TemplateService {
 	}
 }
 
-func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *pb.CreateTemplateStrategyRequest) (*pb.CreateTemplateStrategyReply, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
-	}
+func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strategyapi.CreateTemplateStrategyRequest) (*strategyapi.CreateTemplateStrategyReply, error) {
 	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
@@ -44,7 +38,6 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *pb.Cr
 			Threshold:   mutationStrategyLevelTemplate.GetThreshold(),
 			LevelID:     levelID,
 			Status:      vobj.StatusEnable,
-			CreatorID:   claims.GetUser(),
 		})
 	}
 	params := &bo.CreateTemplateStrategyParams{
@@ -56,20 +49,15 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *pb.Cr
 			Labels:                 req.GetLabels(),
 			Annotations:            req.GetAnnotations(),
 			StrategyLevelTemplates: strategyLevelTemplates,
-			CreatorID:              claims.GetUser(),
 		},
 	}
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
-	return &pb.CreateTemplateStrategyReply{}, nil
+	return &strategyapi.CreateTemplateStrategyReply{}, nil
 }
 
-func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *pb.UpdateTemplateStrategyRequest) (*pb.UpdateTemplateStrategyReply, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
-	}
+func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strategyapi.UpdateTemplateStrategyRequest) (*strategyapi.UpdateTemplateStrategyReply, error) {
 	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
@@ -82,12 +70,13 @@ func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *pb.Up
 			Threshold:   mutationStrategyLevelTemplate.GetThreshold(),
 			LevelID:     levelID,
 			Status:      vobj.StatusEnable,
-			CreatorID:   claims.GetUser(),
 		})
 	}
 	params := &bo.UpdateTemplateStrategyParams{
 		StrategyTemplate: &model.StrategyTemplate{
-			ID:                     req.GetId(),
+			AllFieldModel: model.AllFieldModel{
+				BaseModel: model.BaseModel{ID: req.GetId()},
+			},
 			Alert:                  req.GetAlert(),
 			Expr:                   req.GetExpr(),
 			Status:                 vobj.StatusEnable,
@@ -95,33 +84,32 @@ func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *pb.Up
 			Labels:                 req.GetLabels(),
 			Annotations:            req.GetAnnotations(),
 			StrategyLevelTemplates: strategyLevelTemplates,
-			CreatorID:              claims.GetUser(),
 		},
 	}
 	if err := s.templateBiz.UpdateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
-	return &pb.UpdateTemplateStrategyReply{}, nil
+	return &strategyapi.UpdateTemplateStrategyReply{}, nil
 }
 
-func (s *TemplateService) DeleteTemplateStrategy(ctx context.Context, req *pb.DeleteTemplateStrategyRequest) (*pb.DeleteTemplateStrategyReply, error) {
+func (s *TemplateService) DeleteTemplateStrategy(ctx context.Context, req *strategyapi.DeleteTemplateStrategyRequest) (*strategyapi.DeleteTemplateStrategyReply, error) {
 	if err := s.templateBiz.DeleteTemplateStrategy(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
-	return &pb.DeleteTemplateStrategyReply{}, nil
+	return &strategyapi.DeleteTemplateStrategyReply{}, nil
 }
 
-func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *pb.GetTemplateStrategyRequest) (*pb.GetTemplateStrategyReply, error) {
+func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategyapi.GetTemplateStrategyRequest) (*strategyapi.GetTemplateStrategyReply, error) {
 	detail, err := s.templateBiz.GetTemplateStrategy(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
-	return &pb.GetTemplateStrategyReply{
+	return &strategyapi.GetTemplateStrategyReply{
 		Detail: build.NewTemplateStrategyBuilder(detail).ToApi(),
 	}, nil
 }
 
-func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *pb.ListTemplateStrategyRequest) (*pb.ListTemplateStrategyReply, error) {
+func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strategyapi.ListTemplateStrategyRequest) (*strategyapi.ListTemplateStrategyReply, error) {
 	params := &bo.QueryTemplateStrategyListParams{
 		Page:   types.NewPage(int(req.GetPageNum()), int(req.GetPageSize())),
 		Alert:  req.GetAlert(),
@@ -131,7 +119,7 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *pb.List
 	if err != nil {
 		return nil, err
 	}
-	return &pb.ListTemplateStrategyReply{
+	return &strategyapi.ListTemplateStrategyReply{
 		Total: int64(params.Page.GetTotal()),
 		List: types.SliceTo(list, func(item *model.StrategyTemplate) *admin.StrategyTemplate {
 			return build.NewTemplateStrategyBuilder(item).ToApi()
@@ -139,9 +127,9 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *pb.List
 	}, nil
 }
 
-func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req *pb.UpdateTemplateStrategyStatusRequest) (*pb.UpdateTemplateStrategyStatusReply, error) {
+func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req *strategyapi.UpdateTemplateStrategyStatusRequest) (*strategyapi.UpdateTemplateStrategyStatusReply, error) {
 	if err := s.templateBiz.UpdateTemplateStrategyStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); err != nil {
 		return nil, err
 	}
-	return &pb.UpdateTemplateStrategyStatusReply{}, nil
+	return &strategyapi.UpdateTemplateStrategyStatusReply{}, nil
 }

@@ -1,6 +1,7 @@
 package build
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/aide-family/moon/api"
@@ -22,7 +23,7 @@ func NewDatasourceBuilder(datasource *bizmodel.Datasource) *DatasourceBuilder {
 	}
 }
 
-func (b *DatasourceBuilder) ToApi() *admin.Datasource {
+func (b *DatasourceBuilder) ToApi(ctx context.Context) *admin.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}
@@ -41,6 +42,7 @@ func (b *DatasourceBuilder) ToApi() *admin.Datasource {
 		Config:      configMap,
 		Remark:      b.Remark,
 		StorageType: api.StorageType(b.StorageType),
+		Creator:     NewUserBuilder(b.Creator).ToApi(),
 	}
 }
 

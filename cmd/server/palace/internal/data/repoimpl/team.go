@@ -36,14 +36,14 @@ type teamRepositoryImpl struct {
 
 func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {
 	sysTeamModel := &model.SysTeam{
-		Name:      team.Name,
-		Status:    team.Status,
-		Remark:    team.Remark,
-		Logo:      team.Logo,
-		LeaderID:  team.LeaderID,
-		CreatorID: team.CreatorID,
-		UUID:      random.UUIDToUpperCase(true),
+		Name:     team.Name,
+		Status:   team.Status,
+		Remark:   team.Remark,
+		Logo:     team.Logo,
+		LeaderID: team.LeaderID,
+		UUID:     random.UUIDToUpperCase(true),
 	}
+	sysTeamModel.WithContext(ctx)
 	// 判断团队名称是否重复
 	_, err := query.Use(l.data.GetMainDB(ctx)).SysTeam.WithContext(ctx).Where(query.SysTeam.Name.Eq(team.Name)).First()
 	if !types.IsNil(err) {
@@ -88,31 +88,23 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 	}
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
-			ID:        apiItem.ID,
-			CreatedAt: apiItem.CreatedAt,
-			UpdatedAt: apiItem.UpdatedAt,
-			DeletedAt: apiItem.DeletedAt,
-			Name:      apiItem.Name,
-			Path:      apiItem.Path,
-			Status:    apiItem.Status,
-			Remark:    apiItem.Remark,
-			Module:    apiItem.Module,
-			Domain:    apiItem.Domain,
+			Name:   apiItem.Name,
+			Path:   apiItem.Path,
+			Status: apiItem.Status,
+			Remark: apiItem.Remark,
+			Module: apiItem.Module,
+			Domain: apiItem.Domain,
 		}, true
 	})
 
 	teamMenus := types.SliceToWithFilter(sysMenus, func(menuItem *model.SysMenu) (*bizmodel.SysTeamMenu, bool) {
 		return &bizmodel.SysTeamMenu{
-			ID:        menuItem.ID,
-			CreatedAt: menuItem.CreatedAt,
-			UpdatedAt: menuItem.UpdatedAt,
-			DeletedAt: menuItem.DeletedAt,
-			Name:      menuItem.Name,
-			Path:      menuItem.Path,
-			Status:    menuItem.Status,
-			Icon:      menuItem.Icon,
-			ParentID:  menuItem.ParentID,
-			Level:     menuItem.Level,
+			Name:     menuItem.Name,
+			Path:     menuItem.Path,
+			Status:   menuItem.Status,
+			Icon:     menuItem.Icon,
+			ParentID: menuItem.ParentID,
+			Level:    menuItem.Level,
 		}, true
 	})
 
@@ -289,7 +281,7 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 					return nil, false
 				}
 				return &bizmodel.SysTeamRole{
-					ID: roleId,
+					AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: roleId}},
 				}, true
 			}),
 		}, true
@@ -374,7 +366,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 			return nil, false
 		}
 		return &bizmodel.SysTeamRole{
-			ID: roleId,
+			AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: roleId}},
 		}, true
 	})
 	bizDB, err := l.data.GetBizGormDB(params.ID)
@@ -382,7 +374,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 		return err
 	}
 	return bizquery.Use(bizDB).SysTeamMember.TeamRoles.
-		Model(&bizmodel.SysTeamMember{ID: params.MemberID}).Replace(roles...)
+		Model(&bizmodel.SysTeamMember{AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: params.MemberID}}}).Replace(roles...)
 }
 
 func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {

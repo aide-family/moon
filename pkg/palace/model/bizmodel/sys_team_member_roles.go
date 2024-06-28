@@ -1,11 +1,7 @@
 package bizmodel
 
 import (
-	"context"
 	"encoding/json"
-
-	"gorm.io/gen"
-	"gorm.io/gorm"
 )
 
 const TableNameSysTeamMemberRole = "sys_team_member_roles"
@@ -28,21 +24,6 @@ func (c *SysTeamMemberRole) UnmarshalBinary(data []byte) error {
 
 func (c *SysTeamMemberRole) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
-}
-
-// Create func
-func (c *SysTeamMemberRole) Create(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Create(c).Error
-}
-
-// Update func
-func (c *SysTeamMemberRole) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
-	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
-}
-
-// Delete func
-func (c *SysTeamMemberRole) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
-	return tx.WithContext(ctx).Where(conds).Delete(c).Error
 }
 
 // TableName SysTeamMemberRole's table name

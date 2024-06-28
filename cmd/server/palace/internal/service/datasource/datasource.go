@@ -76,7 +76,7 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceReply{
-		Data: build.NewDatasourceBuilder(datasourceDetail).ToApi(),
+		Data: build.NewDatasourceBuilder(datasourceDetail).ToApi(ctx),
 	}, nil
 }
 
@@ -95,7 +95,7 @@ func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDat
 	return &datasourceapi.ListDatasourceReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
-			return build.NewDatasourceBuilder(item).ToApi()
+			return build.NewDatasourceBuilder(item).ToApi(ctx)
 		}),
 	}, nil
 }
