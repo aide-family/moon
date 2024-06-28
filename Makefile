@@ -63,12 +63,15 @@ build: all
 build-linux: all
 	mkdir -p bin/linux/ && GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/linux ./...
 
+.PHONY: stringer
+stringer:
+	go generate $(path)/pkg/vobj
+
 .PHONY: wire
 # generate
 wire:
 	go mod tidy
 	go get github.com/google/wire/cmd/wire@latest
-	go generate $(path)/pkg/vobj
 	@for app in $(APPS); do \
   		if [ "$$app" = "gen" ] || [ "$$app" = "stringer" ]; then \
 			continue; \
@@ -84,7 +87,7 @@ model:
 
 .PHONY: all
 # generate all
-all: api config model wire
+all: api config stringer model wire
 	go mod tidy
 
 .PHONY: clean
