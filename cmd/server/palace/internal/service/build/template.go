@@ -59,7 +59,7 @@ func (b *TemplateStrategyLevelBuilder) ToApi() *admin.StrategyLevelTemplate {
 		Interval:    &b.Interval,
 		Status:      api.Status(b.Status),
 		LevelId:     b.LevelID,
-		Level:       NewStrategyAlarmLevelBuilder(b.Level).ToApiSelect(),
+		Level:       NewDictBuild(b.Level).ToApiSelect(),
 		Threshold:   b.Threshold,
 		StrategyId:  b.StrategyID,
 		Condition:   b.Condition,

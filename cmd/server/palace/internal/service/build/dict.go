@@ -37,3 +37,22 @@ func (b *DictBuild) ToApi() *admin.Dict {
 		UpdatedAt:    b.UpdatedAt.String(),
 	}
 }
+
+// ToApiSelect 转换成api下拉数据
+func (b *DictBuild) ToApiSelect() *admin.Select {
+	if types.IsNil(b) || types.IsNil(b.SysDict) {
+		return nil
+	}
+	return &admin.Select{
+		Value:    b.ID,
+		Label:    b.Name,
+		Children: nil,
+		Disabled: !b.Status.IsEnable() || b.DeletedAt > 0,
+		Extend: &admin.SelectExtend{
+			Icon:   b.Icon,
+			Color:  b.CssClass,
+			Remark: b.Remark,
+			Image:  b.ImageUrl,
+		},
+	}
+}
