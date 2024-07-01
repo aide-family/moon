@@ -29,15 +29,15 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
-			StrategyID:  0,
-			Duration:    *mutationStrategyLevelTemplate.GetDuration(),
-			Count:       mutationStrategyLevelTemplate.GetCount(),
-			SustainType: vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
-			Interval:    *mutationStrategyLevelTemplate.GetInterval(),
-			Condition:   mutationStrategyLevelTemplate.Condition,
-			Threshold:   mutationStrategyLevelTemplate.GetThreshold(),
-			LevelID:     levelID,
-			Status:      vobj.StatusEnable,
+			StrategyTemplateID: 0,
+			Duration:           *mutationStrategyLevelTemplate.GetDuration(),
+			Count:              mutationStrategyLevelTemplate.GetCount(),
+			SustainType:        vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
+			Interval:           *mutationStrategyLevelTemplate.GetInterval(),
+			Condition:          mutationStrategyLevelTemplate.Condition,
+			Threshold:          mutationStrategyLevelTemplate.GetThreshold(),
+			LevelID:            levelID,
+			Status:             vobj.StatusEnable,
 		})
 	}
 	params := &bo.CreateTemplateStrategyParams{
@@ -61,15 +61,15 @@ func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strat
 	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
-			StrategyID:  req.GetId(),
-			Duration:    *mutationStrategyLevelTemplate.GetDuration(),
-			Count:       mutationStrategyLevelTemplate.GetCount(),
-			SustainType: vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
-			Interval:    *mutationStrategyLevelTemplate.GetInterval(),
-			Condition:   mutationStrategyLevelTemplate.Condition,
-			Threshold:   mutationStrategyLevelTemplate.GetThreshold(),
-			LevelID:     levelID,
-			Status:      vobj.StatusEnable,
+			StrategyTemplateID: req.GetId(),
+			Duration:           *mutationStrategyLevelTemplate.GetDuration(),
+			Count:              mutationStrategyLevelTemplate.GetCount(),
+			SustainType:        vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
+			Interval:           *mutationStrategyLevelTemplate.GetInterval(),
+			Condition:          mutationStrategyLevelTemplate.Condition,
+			Threshold:          mutationStrategyLevelTemplate.GetThreshold(),
+			LevelID:            levelID,
+			Status:             vobj.StatusEnable,
 		})
 	}
 	params := &bo.UpdateTemplateStrategyParams{

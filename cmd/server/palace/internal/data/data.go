@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
@@ -17,6 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm/clause"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -82,6 +84,13 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		// 判断是否有默认用户， 如果没有，则创建一个默认用户
 		if err := d.initMainDatabase(); err != nil {
 			log.Fatalf("Error init default user: %v\n", err)
+			cleanup()
+			return nil, nil, err
+		}
+
+		// 同步业务模型到各个团队， 保证数据一致性
+		if err := d.syncBizDatabase(); err != nil {
+			log.Fatalf("Error init biz database: %v\n", err)
 			cleanup()
 			return nil, nil, err
 		}
@@ -159,7 +168,27 @@ func (d *Data) initMainDatabase() error {
 		Status:   vobj.StatusEnable,
 	}
 
-	return query.Use(d.mainDB).SysUser.Create(user)
+	return query.Use(d.mainDB).SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
+}
+
+// syncBizDatabase 同步业务模型到各个团队， 保证数据一致性
+func (d *Data) syncBizDatabase() error {
+	// 获取所有团队
+	teams, err := query.Use(d.mainDB).SysTeam.Find()
+	if err != nil {
+		return err
+	}
+	for _, team := range teams {
+		// 获取团队业务库连接
+		db, err := d.GetBizGormDB(team.ID)
+		if err != nil {
+			return err
+		}
+		if err := db.AutoMigrate(bizmodel.Models()...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GetMainDB 获取主库连接

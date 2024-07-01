@@ -1,20 +1,21 @@
-package model
+package bizmodel
 
 import (
 	"encoding/json"
 
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-const TableNameStrategyLevelTemplates = "strategy_level_templates"
+const TableNameStrategyLevel = "strategy_level"
 
-type StrategyLevelTemplate struct {
-	AllFieldModel
-	// 所属策略模板
-	StrategyTemplateID uint32            `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"strategy_template_id"`
-	StrategyTemplate   *StrategyTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_template"`
+type StrategyLevel struct {
+	model.AllFieldModel
+	// 所属策略
+	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID" json:"strategy_id"`
+	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 
 	// 持续时间
 	Duration durationpb.Duration `gorm:"column:duration;type:varchar(64);not null;comment:告警持续时间" json:"duration"`
@@ -37,20 +38,20 @@ type StrategyLevelTemplate struct {
 }
 
 // String json string
-func (c *StrategyLevelTemplate) String() string {
+func (c *StrategyLevel) String() string {
 	bs, _ := json.Marshal(c)
 	return string(bs)
 }
 
-func (c *StrategyLevelTemplate) UnmarshalBinary(data []byte) error {
+func (c *StrategyLevel) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
-func (c *StrategyLevelTemplate) MarshalBinary() (data []byte, err error) {
+func (c *StrategyLevel) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
-// TableName StrategyLevelTemplate's table name
-func (*StrategyLevelTemplate) TableName() string {
-	return TableNameStrategyLevelTemplates
+// TableName StrategyLevel's table name
+func (*StrategyLevel) TableName() string {
+	return TableNameStrategyLevel
 }

@@ -1,8 +1,9 @@
-package model
+package bizmodel
 
 import (
 	"encoding/json"
 
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -11,7 +12,7 @@ import (
 const TableNameStrategyLevelTemplates = "strategy_level_templates"
 
 type StrategyLevelTemplate struct {
-	AllFieldModel
+	model.AllFieldModel
 	// 所属策略模板
 	StrategyTemplateID uint32            `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"strategy_template_id"`
 	StrategyTemplate   *StrategyTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_template"`

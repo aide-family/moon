@@ -34,7 +34,7 @@ func (l *templateRepositoryImpl) CreateTemplateStrategy(ctx context.Context, tem
 		}
 
 		strategyLevelTemplates := types.SliceTo(templateStrategy.StrategyLevelTemplates, func(item *model.StrategyLevelTemplate) *model.StrategyLevelTemplate {
-			item.StrategyID = templateStrategy.ID
+			item.StrategyTemplateID = templateStrategy.ID
 			item.WithContext(ctx)
 			return item
 		})

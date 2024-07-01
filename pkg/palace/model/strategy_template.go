@@ -17,7 +17,7 @@ type StrategyTemplate struct {
 	Labels      vobj.Labels      `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
 	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	// 告警等级数据
-	StrategyLevelTemplates []*StrategyLevelTemplate `gorm:"foreignKey:StrategyID" json:"strategy_level_templates"`
+	StrategyLevelTemplates []*StrategyLevelTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_level_templates"`
 }
 
 // String json string
