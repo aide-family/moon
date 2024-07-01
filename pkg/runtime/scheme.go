@@ -75,15 +75,15 @@ func (s *Scheme) New(kind string) (Object, error) {
 	return nil, fmt.Errorf("kind %s not registered", kind)
 }
 
-func UseOrCreateObject(t ObjectTyper, c ObjectCreater, gvk string, obj Object) (Object, error) {
+func UseOrCreateObject(t ObjectTyper, c ObjectCreator, kind string, obj Object) (Object, error) {
 	if obj != nil {
-		kind, err := t.ObjectKind(obj)
+		_kind, err := t.ObjectKind(obj)
 		if err != nil {
 			return nil, err
 		}
-		if gvk == kind {
+		if kind == _kind {
 			return obj, nil
 		}
 	}
-	return c.New(gvk)
+	return c.New(kind)
 }

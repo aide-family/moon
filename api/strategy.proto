@@ -47,134 +47,179 @@ message ObjectMeta {
   string name = 1;
 }
 
-// 消息过滤器类型
-enum MessageFilterType {
-  // 符合规则消息过滤
-  MessageFilterTypeFilter = 0;
-  // 符合规则消息通过
-  MessageFilterTypePass = 1;
-}
-
-// 消息规则匹配类型
-// 假设:规则为a,消息为b
-enum MessageMatchType {
-  // 规则与消息进行全匹配,即a=b
-  MessageMatchTypeEQ = 0;
-  // 规则包含消息全部标签,即a>=b
-  MessageMatchTypeIN = 1;
-  // 消息包含规则全部标签,即b>=a
-  MessageMatchTypeContains = 2;
-  // 规则与消息有任意标签匹配
-  // exp:
-  // a:[1,2,3]&b:[2,3,4]=true
-  // a:[1,2,3]&b:[4,5,6]=false
-  MessageMatchTypeAny = 3;
-}
-
+// 过滤规则，过滤掉不需要的数据
 message FilterRule {
-  // 消息过滤器类型
-  MessageFilterType filterType = 1;
-  // 消息匹配类型
-  MessageMatchType matchType = 2;
-  // 需要匹配的标签
-  repeated string matchLabel = 3;
-  // 扩展配置，可以用于存放一下特殊配置
-  map<string, string> extra = 4;
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略，规则的详细描述
+	FilterRuleSpec spec = 3;
+	// 状态,描述规则的状态
+	Status status = 4;
 }
 
-// 消息过滤规则
-message MessageFilterRule {
-  // 类型
-  TypeMeta typeMeta = 1;
-  // 规则名称
-  ObjectMeta objectMeta = 2;
-  // 使用的过滤器名称
-  string use = 3;
-  // 过滤规则
-  FilterRule rule = 4;
+message FilterRuleSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 执行者
+	string executor = 2;
+	// 标签匹配，使用这个字段时，默认使用的匹配表达式是: IN
+	map<string,string> matchLabels = 3;
+	// 匹配表达式
+	repeated LabelRequirement matchExpression = 4;
 }
 
-message AggregationRule {
-  // 聚合时,每个包中，至多包含的消息数量
-  uint32 count = 1;
-  // 发送消息的最大间隔，
-  google.protobuf.Duration interval = 2;
-  // 消息聚合时用于聚合的字段
-  string groupBy = 3;
+enum Operator {
+	// 匹配操作
+	Operator_UNKNOWN = 0;
+	// 存在
+	Operator_EXIST = 1;
+	// 不存在
+	Operator_NOT_EXIST = 2;
+	// 包含
+	Operator_IN = 3;
+	// 不包含
+	Operator_NOT_IN = 4;
 }
 
-// 消息聚合规则
-message MessageAggregationRule {
-  // 类型
-  TypeMeta typeMeta = 1;
-  // 规则名称
-  ObjectMeta objectMeta = 2;
-  // 使用的聚合器名称
-  string use = 3;
-  // 聚合规则
-  AggregationRule rule = 4;
+message LabelRequirement {
+	// key 是需要用于匹配的键，不能为空
+	string key = 1;
+	// 匹配操作是一组用于键值匹配的表达式，它包含以下操作：IN,NOT_IN,EXIST,NOT_EXIST
+	Operator op = 2;
+	// 需要匹配的值
+	// 如何匹配表达式是 IN 或者 NOT_IN, values 必须不为空
+	// 如何匹配表达式是 EXIST 或者 NOT_EXIST, values 必须为空，此时，匹配操作与values无关
+	repeated string values = 3;
 }
 
-// 消息模版规则
-message SendRule {
-  // 扩展配置，用于存放sender需要的密钥
-  map<string, string> config = 2;
+message Status {
+	// 是否可用
+	bool available = 1;
+	// 状态码
+	uint32 code = 2;
+	// 错误信息
+	string message = 3;
 }
 
-// 消息发送规则
-message MessageSendRule {
-  // 类型
-  TypeMeta typeMeta = 1;
-  // 规则名称
-  ObjectMeta objectMeta = 2;
-  // 发送者名称
-  string use = 3;
-  // 发送规则
-  SendRule rule = 4;
+// 聚合规则，聚合相同指标的数据
+message AggregateRule {
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略
+	AggregateRuleSpec spec =3;
+	// 状态
+	Status status = 4;
 }
 
-// 消息模版规则
-message TemplateRule {
-  // 模版
-  string template = 1;
+message AggregateRuleSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 执行者
+	string executor = 2;
+	// 聚合次数
+	uint32 count = 3;
+	// 聚合时间
+	google.protobuf.Duration interval = 4;
+	// 扩展配置
+	map<string,string> extra = 5;
 }
 
-// 消息模版规则
-message MessageTemplateRule {
-  // 类型
-  TypeMeta typeMeta = 1;
-  // 规则名称
-  ObjectMeta objectMeta = 2;
-  // 使用的模板解析器名称
-  string use = 3;
-  // 模板解析规则
-  TemplateRule rule = 4;
+
+// 通知对象，每个通知对象包含多中告知对象的方式
+message NotifyObject {
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略
+	NotifyObjectSpec spec = 3;
+	// 状态
+	Status status = 4;
 }
 
-// 规则组
-message RuleGroup {
-  // 类型
-  TypeMeta typeMeta = 1;
-  // 规则名称
-  ObjectMeta objectMeta = 2;
-  // 消息过滤规则名称
-  string filterRuleName = 3;
-  // 消息聚合规则
-  string aggregationRuleName = 4;
-  // 模版规则名称
-  string templateRuleName = 5;
-  // 发送规则名称
-  string sendRuleName = 6;
+message NotifyObjectSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 发送配置
+	repeated SendConfig config = 2;
 }
 
-// 消息
-message Message {
-  // 消息ID
+
+// 通知配置，包含通知的方式和通知配置
+message SendConfig {
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略
+	SendConfigSpec spec = 3;
+	// 状态
+	Status status = 4;
+}
+
+message SendConfigSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 执行者
+	string executor = 2;
+	// 扩展配置
+	map<string,string> config = 3;
+}
+
+// 通知规则，是通知对象和聚合规则的集合
+// 通知规则包含一个聚合规则和一个通知对象
+// 通知对象将在聚合完成后，收到需要发送的消息
+message NotifyRule {
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略
+	NotifyRuleSpec spec = 3;
+}
+
+message NotifyRuleSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 通知对象
+	NotifyObject object = 2;
+	//聚合规则
+	AggregateRule aggregate = 3;
+}
+
+// 通知组，通知组包含多个通知规则和一个过滤规则
+// 消息在发送之前，会现经过过滤规则进行过滤，如果过滤规则匹配，则用通知规则进行发送
+message NotifyGroup {
+	// 类型
+	TypeMeta kind = 1;
+	// 对象
+	ObjectMeta object = 2;
+	// 策略
+	NotifyGroupSpec spec = 3;
+}
+
+message NotifyGroupSpec {
+	// 启用状态，默认启用
+	bool enabled = 1;
+	// 通知规则
+	repeated NotifyRule rule = 2;
+	// 过滤规则,过滤规则可以为空，为空则表示不需要过滤
+	FilterRule filter = 3;
+}
+
+message Message struct {
+	// 消息ID
   string id = 1;
-  // 消息标签
-  repeated string labels = 2;
-  // 使用的规则组名称
-  repeated string useGroups = 3;
-  // 消息内容
-  map<string, google.protobuf.Any> content = 4;
+	// 时间戳
+  int64 timestamp = 2;
+	// 消息内容
+  map<string, string> content = 3;
+	// 消息标签,在进行消息过滤时，使用这个字段进行过滤规则的匹配
+	map<string, string> labels = 4;
+	// 通知组，需要通知的对象组列表
+	repeated NotifyGroup groups = 5;
 }

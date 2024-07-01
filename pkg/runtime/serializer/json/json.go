@@ -10,18 +10,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/framer"
 )
 
-func NewSerializer(meta MetaFactory, creater runtime.ObjectCreater, typer runtime.ObjectTyper, pretty bool) *Serializer {
+func NewSerializer(meta MetaFactory, creater runtime.ObjectCreator, typer runtime.ObjectTyper, pretty bool) *Serializer {
 	return NewSerializerWithOptions(meta, creater, typer)
 }
 
-func NewYAMLSerializer(meta MetaFactory, creater runtime.ObjectCreater, typer runtime.ObjectTyper) *Serializer {
+func NewYAMLSerializer(meta MetaFactory, creater runtime.ObjectCreator, typer runtime.ObjectTyper) *Serializer {
 	return NewSerializerWithOptions(meta, creater, typer)
 }
 
-func NewSerializerWithOptions(meta MetaFactory, creater runtime.ObjectCreater, typer runtime.ObjectTyper) *Serializer {
+func NewSerializerWithOptions(meta MetaFactory, creater runtime.ObjectCreator, typer runtime.ObjectTyper) *Serializer {
 	return &Serializer{
 		meta:    meta,
-		creater: creater,
+		creator: creater,
 		typer:   typer,
 	}
 }
@@ -29,7 +29,7 @@ func NewSerializerWithOptions(meta MetaFactory, creater runtime.ObjectCreater, t
 // Serializer handles encoding versioned objects into the proper JSON form
 type Serializer struct {
 	meta    MetaFactory
-	creater runtime.ObjectCreater
+	creator runtime.ObjectCreator
 	typer   runtime.ObjectTyper
 }
 
@@ -71,7 +71,7 @@ func (s *Serializer) Decode(originalData []byte, gvk *string, into runtime.Objec
 	}
 
 	// use the target if necessary
-	obj, err := runtime.UseOrCreateObject(s.typer, s.creater, *actual, into)
+	obj, err := runtime.UseOrCreateObject(s.typer, s.creator, *actual, into)
 	if err != nil {
 		return nil, actual, err
 	}

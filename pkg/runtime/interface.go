@@ -30,9 +30,9 @@ type Framer interface {
 
 type ObjectTyper interface {
 	ObjectKind(Object) (string, error)
-	Recognizes(gvk string) bool
+	Recognizes(kind string) bool
 }
 
-type ObjectCreater interface {
+type ObjectCreator interface {
 	New(kind string) (out Object, err error)
 }
