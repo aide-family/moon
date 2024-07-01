@@ -105,19 +105,8 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 	}
 
 	q = q.Where(wheres...)
-	if !types.IsNil(params) {
-		page := params.Page
-		total, err := q.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			q = q.Limit(pageSize)
-		} else {
-			q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	if err := types.WithPageQuery[query.ISysUserDo](q, params.Page); err != nil {
+		return nil, err
 	}
 	return q.Order(query.SysUser.ID.Desc()).Find()
 }

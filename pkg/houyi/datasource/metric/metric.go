@@ -19,7 +19,7 @@ type (
 	}
 	QueryResponse struct {
 		// 标签集合
-		Labels map[string]string `json:"labels"`
+		Labels vobj.Labels `json:"labels"`
 		// 值
 		Value  *QueryValue   `json:"value"`
 		Values []*QueryValue `json:"values"`

@@ -19,7 +19,33 @@ type (
 		GetTotal() int
 		SetTotal(total int)
 	}
+
+	PageQuery[T any] interface {
+		Limit(limit int) T
+		Offset(offset int) T
+		Count() (count int64, err error)
+	}
 )
+
+// WithPageQuery 分页查询
+func WithPageQuery[T any](q PageQuery[T], page Pagination) error {
+	if IsNil(q) || IsNil(page) {
+		return nil
+	}
+	total, err := q.Count()
+	if !IsNil(err) {
+		return err
+	}
+	page.SetTotal(int(total))
+	pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
+	if pageNum <= 1 {
+		q.Limit(pageSize)
+	} else {
+		q.Offset((pageNum - 1) * pageSize)
+		q.Limit(pageSize)
+	}
+	return nil
+}
 
 // NewPage 创建一个分页器
 func NewPage(pageNum, pageSize int) Pagination {

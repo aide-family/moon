@@ -10,7 +10,7 @@ func TestNewJwtClaims(t *testing.T) {
 	token, err := NewJwtClaims(&JwtBaseInfo{
 		User:     1,
 		Role:     1,
-		Team:     17,
+		Team:     1,
 		TeamRole: vobj.RoleSuperAdmin,
 	}).GetToken()
 	if err != nil {
