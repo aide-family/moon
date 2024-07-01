@@ -19,5 +19,6 @@ func Models() []any {
 		&StrategyLevel{},
 		&StrategyTemplate{},
 		&StrategyLevelTemplate{},
+		&SendStrategy{},
 	}
 }
