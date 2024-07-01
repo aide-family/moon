@@ -97,13 +97,11 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 		wheres = append(wheres, query.SysUser.Role.Eq(params.Role.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Or(
-			query.SysUser.Username.Like(params.Keyword),
-			query.SysUser.Nickname.Like(params.Keyword),
-			query.SysUser.Email.Like(params.Keyword),
-			query.SysUser.Phone.Like(params.Keyword),
-			query.SysUser.Remark.Like(params.Keyword),
-		)
+		q = q.Or(query.SysUser.Username.Like(params.Keyword))
+		q = q.Or(query.SysUser.Nickname.Like(params.Keyword))
+		q = q.Or(query.SysUser.Email.Like(params.Keyword))
+		q = q.Or(query.SysUser.Phone.Like(params.Keyword))
+		q = q.Or(query.SysUser.Remark.Like(params.Keyword))
 	}
 
 	q = q.Where(wheres...)

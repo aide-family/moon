@@ -8,12 +8,15 @@ import (
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -74,7 +77,15 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 			cleanup()
 			return nil, nil, err
 		}
+
 		d.mainDB = mainDB
+		// 判断是否有默认用户， 如果没有，则创建一个默认用户
+		if err := d.initMainDatabase(); err != nil {
+			log.Fatalf("Error init default user: %v\n", err)
+			cleanup()
+			return nil, nil, err
+		}
+
 		closeFuncList = append(closeFuncList, func() {
 			mainDBClose, _ := d.mainDB.DB()
 			log.Debugw("close main db", mainDBClose.Close())
@@ -111,6 +122,44 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 
 func (d *Data) Exit() <-chan struct{} {
 	return d.exit
+}
+
+// initMainDatabase 初始化数据库
+func (d *Data) initMainDatabase() error {
+	if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
+		return err
+	}
+	// 获取默认用户
+	_, err := query.Use(d.mainDB).SysUser.First()
+	if err == nil {
+		return nil
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	pass := types.NewPassword("123456")
+	encryptValue, err := pass.GetEncryptValue()
+	if err != nil {
+		return err
+	}
+	// 如果没有默认用户，则创建一个默认用户
+	user := &model.SysUser{
+		Username: "admin",
+		Nickname: "超级管理员",
+		Password: encryptValue,
+		Email:    "moonio@moon.com",
+		Phone:    "18812341234",
+		Remark:   "这是个人很懒， 没有设置备注信息",
+		Avatar:   "https://img0.baidu.com/it/u=1128422789,3129806361&fm=253&app=120&size=w931&n=0&f=JPEG&fmt=auto?sec=1719766800&t=ff6081f1e5a590b3033596a43d165f3e",
+		Salt:     pass.GetSalt(),
+		Gender:   vobj.GenderMale,
+		Role:     vobj.RoleSuperAdmin,
+		Status:   vobj.StatusEnable,
+	}
+
+	return query.Use(d.mainDB).SysUser.Create(user)
 }
 
 // GetMainDB 获取主库连接

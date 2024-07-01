@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -31,6 +32,7 @@ func (b *DatasourceBuilder) ToApi(ctx context.Context) *admin.Datasource {
 	if err := json.Unmarshal([]byte(b.Config), &configMap); !types.IsNil(err) {
 		log.Warnw("error", err)
 	}
+	cache := runtimecache.GetRuntimeCache()
 	return &admin.Datasource{
 		Id:          b.ID,
 		Name:        b.Name,
@@ -42,7 +44,7 @@ func (b *DatasourceBuilder) ToApi(ctx context.Context) *admin.Datasource {
 		Config:      configMap,
 		Remark:      b.Remark,
 		StorageType: api.StorageType(b.StorageType),
-		Creator:     NewUserBuilder(b.Creator).ToApi(),
+		Creator:     NewUserBuilder(cache.GetUser(ctx, b.CreatorID)).ToApi(),
 	}
 }
 

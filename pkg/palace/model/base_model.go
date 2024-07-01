@@ -18,8 +18,7 @@ type BaseModel struct {
 	UpdatedAt types.Time `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
 
 	// 创建人
-	CreatorID uint32   `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
-	Creator   *SysUser `gorm:"foreignKey:CreatorID" json:"creator"`
+	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
 }
 
 type DeleteAtFieldModel struct {
@@ -38,7 +37,13 @@ func (u *BaseModel) WithContext(ctx context.Context) *BaseModel {
 }
 
 func (u *BaseModel) BeforeCreate(_ *gorm.DB) (err error) {
-	claims, _ := middleware.ParseJwtClaims(u.ctx)
+	if u.ctx == nil {
+		return
+	}
+	claims, ok := middleware.ParseJwtClaims(u.ctx)
+	if !ok {
+		return
+	}
 	u.CreatorID = claims.GetUser()
 	return
 }
