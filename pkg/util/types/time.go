@@ -1,9 +1,13 @@
 package types
 
 import (
-	"database/sql/driver"
 	"fmt"
 	"time"
+
+	"database/sql"
+	"database/sql/driver"
+
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type Time time.Time
@@ -62,4 +66,35 @@ func (t *Time) Scan(value interface{}) error {
 // Value 实现 driver.Valuer 接口，Value
 func (t Time) Value() (driver.Value, error) {
 	return time.Time(t), nil
+}
+
+var _ driver.Valuer = (*Duration)(nil)
+var _ sql.Scanner = (*Duration)(nil)
+
+type Duration struct {
+	Duration *durationpb.Duration
+}
+
+func (d *Duration) Value() (driver.Value, error) {
+	return int64(d.GetDuration().AsDuration()), nil
+}
+
+func (d *Duration) Scan(src any) error {
+	switch src.(type) {
+	case int:
+		d.Duration = durationpb.New(time.Duration(src.(int)))
+		return nil
+	case int64:
+		d.Duration = durationpb.New(time.Duration(src.(int64)))
+		return nil
+	default:
+		return fmt.Errorf("can not convert %v to Duration", src)
+	}
+}
+
+func (d *Duration) GetDuration() *durationpb.Duration {
+	if d == nil || d.Duration == nil {
+		return nil
+	}
+	return d.Duration
 }

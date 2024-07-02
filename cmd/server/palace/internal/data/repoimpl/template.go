@@ -24,20 +24,16 @@ type templateRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *templateRepositoryImpl) CreateTemplateStrategy(ctx context.Context, templateStrategy *bo.CreateTemplateStrategyParams) error {
+func (l *templateRepositoryImpl) CreateTemplateStrategy(ctx context.Context, createParam *bo.CreateTemplateStrategyParams) error {
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		mainModel := templateStrategy.StrategyTemplate
-		mainModel.WithContext(ctx)
+		templateStrategy := createTemplateStrategy(createParam)
+		templateStrategy.WithContext(ctx)
 		// 创建主数据
-		if err := tx.StrategyTemplate.WithContext(ctx).Create(mainModel); err != nil {
+		if err := tx.StrategyTemplate.WithContext(ctx).Create(templateStrategy); err != nil {
 			return err
 		}
-
-		strategyLevelTemplates := types.SliceTo(templateStrategy.StrategyLevelTemplates, func(item *model.StrategyLevelTemplate) *model.StrategyLevelTemplate {
-			item.StrategyTemplateID = templateStrategy.ID
-			item.WithContext(ctx)
-			return item
-		})
+		StrategyTemplateID := templateStrategy.ID
+		strategyLevelTemplates := createTemplateLevelParamsToModel(ctx, createParam.StrategyLevelTemplates, StrategyTemplateID)
 		// 创建子数据
 		if err := tx.StrategyLevelTemplate.WithContext(ctx).Create(strategyLevelTemplates...); err != nil {
 			return err
@@ -46,24 +42,25 @@ func (l *templateRepositoryImpl) CreateTemplateStrategy(ctx context.Context, tem
 	})
 }
 
-func (l *templateRepositoryImpl) UpdateTemplateStrategy(ctx context.Context, templateStrategy *bo.UpdateTemplateStrategyParams) error {
+func (l *templateRepositoryImpl) UpdateTemplateStrategy(ctx context.Context, updateParam *bo.UpdateTemplateStrategyParams) error {
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		// 删除全部关联数据
-		if _, err := tx.StrategyLevelTemplate.WithContext(ctx).Where(query.StrategyLevelTemplate.StrategyID.Eq(templateStrategy.ID)).Delete(); err != nil {
+		// 删除全部关联模板等级数据
+		if _, err := tx.StrategyLevelTemplate.WithContext(ctx).Where(query.StrategyLevelTemplate.StrategyTemplateID.Eq(updateParam.ID)).Delete(); err != nil {
 			return err
 		}
-		if err := tx.StrategyLevelTemplate.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(templateStrategy.StrategyLevelTemplates...); err != nil {
+		strategyLevelTemplates := createTemplateLevelParamsToModel(ctx, updateParam.Data.StrategyLevelTemplates, updateParam.ID)
+		if err := tx.StrategyLevelTemplate.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(strategyLevelTemplates...); err != nil {
 			return err
 		}
 		_, err := tx.StrategyTemplate.WithContext(ctx).
-			Where(query.StrategyTemplate.ID.Eq(templateStrategy.ID)).
+			Where(query.StrategyTemplate.ID.Eq(updateParam.ID)).
 			UpdateSimple(
-				query.StrategyTemplate.Expr.Value(templateStrategy.Expr),
-				query.StrategyTemplate.Remark.Value(templateStrategy.Remark),
-				query.StrategyTemplate.Labels.Value(templateStrategy.Labels),
-				query.StrategyTemplate.Annotations.Value(templateStrategy.Annotations),
-				query.StrategyTemplate.Alert.Value(templateStrategy.Alert),
-				query.StrategyTemplate.Status.Value(templateStrategy.Status.GetValue()),
+				query.StrategyTemplate.Expr.Value(updateParam.Data.Expr),
+				query.StrategyTemplate.Remark.Value(updateParam.Data.Remark),
+				query.StrategyTemplate.Labels.Value(updateParam.Data.Labels),
+				query.StrategyTemplate.Annotations.Value(updateParam.Data.Annotations),
+				query.StrategyTemplate.Alert.Value(updateParam.Data.Alert),
+				query.StrategyTemplate.Status.Value(updateParam.Data.Status.GetValue()),
 			)
 		return err
 	})
@@ -72,7 +69,7 @@ func (l *templateRepositoryImpl) UpdateTemplateStrategy(ctx context.Context, tem
 func (l *templateRepositoryImpl) DeleteTemplateStrategy(ctx context.Context, id uint32) error {
 	return query.Use(l.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		// 删除关联数据
-		if _, err := tx.StrategyLevelTemplate.WithContext(ctx).Where(query.StrategyLevelTemplate.StrategyID.Eq(id)).Delete(); err != nil {
+		if _, err := tx.StrategyLevelTemplate.WithContext(ctx).Where(query.StrategyLevelTemplate.StrategyTemplateID.Eq(id)).Delete(); err != nil {
 			return err
 		}
 		// 删除策略
@@ -86,14 +83,13 @@ func (l *templateRepositoryImpl) DeleteTemplateStrategy(ctx context.Context, id 
 
 func (l *templateRepositoryImpl) GetTemplateStrategy(ctx context.Context, id uint32) (*model.StrategyTemplate, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).StrategyTemplate
-	return q.Preload(field.Associations).
+	return q.Preload(field.Associations).Preload(query.StrategyTemplate.StrategyLevelTemplates.Level).
 		Where(query.StrategyTemplate.ID.Eq(id)).
 		First()
 }
 
 func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, params *bo.QueryTemplateStrategyListParams) ([]*model.StrategyTemplate, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).StrategyTemplate
-	qq := q.WithContext(ctx)
+	queryWrapper := query.Use(l.data.GetMainDB(ctx)).StrategyTemplate.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Alert) {
@@ -102,22 +98,18 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, query.StrategyTemplate.Status.Eq(params.Status.GetValue()))
 	}
-	qq = qq.Where(wheres...)
-	if !types.IsNil(params.Page) {
-		page := params.Page
-		total, err := qq.WithContext(ctx).Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			qq = qq.Limit(pageSize)
-		} else {
-			qq = qq.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+
+	if !types.TextIsNull(params.Keyword) {
+		queryWrapper = queryWrapper.Or(query.StrategyTemplate.Alert.Like(params.Keyword))
+		queryWrapper = queryWrapper.Or(query.StrategyTemplate.Expr.Like(params.Keyword))
+		queryWrapper = queryWrapper.Or(query.StrategyTemplate.Remark.Like(params.Keyword))
 	}
-	return qq.Order(q.ID.Desc()).Find()
+
+	queryWrapper = queryWrapper.Where(wheres...).Preload(query.StrategyTemplate.StrategyLevelTemplates.Level)
+	if err := types.WithPageQuery[query.IStrategyTemplateDo](queryWrapper, params.Page); err != nil {
+		return nil, err
+	}
+	return queryWrapper.Order(query.StrategyTemplate.ID).Find()
 }
 
 func (l *templateRepositoryImpl) UpdateTemplateStrategyStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -126,4 +118,34 @@ func (l *templateRepositoryImpl) UpdateTemplateStrategyStatus(ctx context.Contex
 		Where(query.StrategyTemplate.ID.In(ids...)).
 		UpdateSimple(query.StrategyTemplate.Status.Value(status.GetValue()))
 	return err
+}
+
+func createTemplateStrategy(createParam *bo.CreateTemplateStrategyParams) *model.StrategyTemplate {
+	return &model.StrategyTemplate{
+		Alert:       createParam.Alert,
+		Expr:        createParam.Expr,
+		Status:      createParam.Status,
+		Remark:      createParam.Remark,
+		Labels:      createParam.Labels,
+		Annotations: createParam.Annotations,
+	}
+}
+
+func createTemplateLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyLevelTemplate, templateID uint32) []*model.StrategyLevelTemplate {
+	strategyLevelTemplates := types.SliceTo(params, func(item *bo.CreateStrategyLevelTemplate) *model.StrategyLevelTemplate {
+		templateLevel := &model.StrategyLevelTemplate{
+			StrategyTemplateID: templateID,
+			Duration:           item.Duration,
+			Count:              item.Count,
+			SustainType:        item.SustainType,
+			Interval:           item.Interval,
+			Condition:          item.Condition,
+			Threshold:          item.Threshold,
+			LevelID:            item.LevelID,
+			Status:             item.Status,
+		}
+		templateLevel.WithContext(ctx)
+		return templateLevel
+	})
+	return strategyLevelTemplates
 }

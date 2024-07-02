@@ -143,8 +143,8 @@ message GetDictSelectListRequest {
   }];
   // 状态查询
   Status status = 3 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1])",
-    message: "状态值必须在[ 启用(1), 禁用(0)]之间",
+    expression: "(this in [1, 2])",
+    message: "状态值必须在[ 启用(1), 禁用(2)]之间",
   }];
   // 字典类型
   DictType dictType = 4 [(buf.validate.field).cel = {

@@ -66,6 +66,7 @@ func RegisterService(
 	metricService *datasource.MetricService,
 	dictService *dict.Service,
 	strategyService *strategy.Service,
+	strategyTemplateService *strategy.TemplateService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -80,6 +81,7 @@ func RegisterService(
 	dictapi.RegisterDictServer(rpcSrv, dictService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
+	strategyapi.RegisterTemplateServer(rpcSrv, strategyTemplateService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -94,6 +96,7 @@ func RegisterService(
 	dictapi.RegisterDictHTTPServer(httpSrv, dictService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
+	strategyapi.RegisterTemplateHTTPServer(httpSrv, strategyTemplateService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

@@ -32,7 +32,7 @@ func (b *TemplateBiz) CreateTemplateStrategy(ctx context.Context, templateStrate
 
 // UpdateTemplateStrategy 更新模板策略
 func (b *TemplateBiz) UpdateTemplateStrategy(ctx context.Context, templateStrategy *bo.UpdateTemplateStrategyParams) error {
-	if types.IsNil(templateStrategy.StrategyTemplate) {
+	if types.IsNil(templateStrategy.Data) {
 		return merr.ErrorI18nSystemErr(ctx)
 	}
 	// 查询策略详情

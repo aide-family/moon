@@ -94,15 +94,6 @@ message LabelRequirement {
 	repeated string values = 3;
 }
 
-message Status {
-	// 是否可用
-	bool available = 1;
-	// 状态码
-	uint32 code = 2;
-	// 错误信息
-	string message = 3;
-}
-
 // 聚合规则，聚合相同指标的数据
 message AggregateRule {
 	// 类型
@@ -211,7 +202,7 @@ message NotifyGroupSpec {
 	FilterRule filter = 3;
 }
 
-message Message struct {
+message Message  {
 	// 消息ID
   string id = 1;
 	// 时间戳

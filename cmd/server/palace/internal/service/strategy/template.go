@@ -26,30 +26,28 @@ func NewTemplateService(templateBiz *biz.TemplateBiz) *TemplateService {
 }
 
 func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strategyapi.CreateTemplateStrategyRequest) (*strategyapi.CreateTemplateStrategyReply, error) {
-	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
+	strategyLevelTemplates := make([]*bo.CreateStrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
-		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
-			StrategyTemplateID: 0,
-			Duration:           mutationStrategyLevelTemplate.GetDuration(),
-			Count:              mutationStrategyLevelTemplate.GetCount(),
-			SustainType:        vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
-			Interval:           mutationStrategyLevelTemplate.GetInterval(),
-			Condition:          mutationStrategyLevelTemplate.Condition,
-			Threshold:          mutationStrategyLevelTemplate.GetThreshold(),
-			LevelID:            levelID,
-			Status:             vobj.StatusEnable,
+		strategyLevelTemplates = append(strategyLevelTemplates, &bo.CreateStrategyLevelTemplate{
+			Duration:    &types.Duration{Duration: mutationStrategyLevelTemplate.Duration},
+			Count:       mutationStrategyLevelTemplate.GetCount(),
+			SustainType: vobj.Sustain(mutationStrategyLevelTemplate.GetSustainType()),
+			Interval:    &types.Duration{Duration: mutationStrategyLevelTemplate.Interval},
+			Condition:   mutationStrategyLevelTemplate.GetCondition(),
+			Threshold:   mutationStrategyLevelTemplate.GetThreshold(),
+			LevelID:     levelID,
+			Status:      vobj.StatusEnable,
 		})
 	}
+
 	params := &bo.CreateTemplateStrategyParams{
-		StrategyTemplate: &model.StrategyTemplate{
-			Alert:                  req.GetAlert(),
-			Expr:                   req.GetExpr(),
-			Status:                 vobj.StatusEnable,
-			Remark:                 req.GetRemark(),
-			Labels:                 req.GetLabels(),
-			Annotations:            req.GetAnnotations(),
-			StrategyLevelTemplates: strategyLevelTemplates,
-		},
+		Alert:                  req.GetAlert(),
+		Expr:                   req.GetExpr(),
+		Status:                 vobj.StatusEnable,
+		Remark:                 req.GetRemark(),
+		Labels:                 req.GetLabels(),
+		Annotations:            req.GetAnnotations(),
+		StrategyLevelTemplates: strategyLevelTemplates,
 	}
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
@@ -58,25 +56,22 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 }
 
 func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strategyapi.UpdateTemplateStrategyRequest) (*strategyapi.UpdateTemplateStrategyReply, error) {
-	strategyLevelTemplates := make([]*model.StrategyLevelTemplate, 0, len(req.GetLevel()))
+	strategyLevelTemplates := make([]*bo.CreateStrategyLevelTemplate, 0, len(req.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range req.GetLevel() {
-		strategyLevelTemplates = append(strategyLevelTemplates, &model.StrategyLevelTemplate{
+		strategyLevelTemplates = append(strategyLevelTemplates, &bo.CreateStrategyLevelTemplate{
 			StrategyTemplateID: req.GetId(),
-			Duration:           mutationStrategyLevelTemplate.GetDuration(),
+			Duration:           &types.Duration{Duration: mutationStrategyLevelTemplate.Duration},
 			Count:              mutationStrategyLevelTemplate.GetCount(),
-			SustainType:        vobj.Sustain(mutationStrategyLevelTemplate.SustainType),
-			Interval:           mutationStrategyLevelTemplate.GetInterval(),
-			Condition:          mutationStrategyLevelTemplate.Condition,
+			SustainType:        vobj.Sustain(mutationStrategyLevelTemplate.GetSustainType()),
+			Interval:           &types.Duration{Duration: mutationStrategyLevelTemplate.Interval},
+			Condition:          mutationStrategyLevelTemplate.GetCondition(),
 			Threshold:          mutationStrategyLevelTemplate.GetThreshold(),
 			LevelID:            levelID,
 			Status:             vobj.StatusEnable,
 		})
 	}
 	params := &bo.UpdateTemplateStrategyParams{
-		StrategyTemplate: &model.StrategyTemplate{
-			AllFieldModel: model.AllFieldModel{
-				BaseModel: model.BaseModel{ID: req.GetId()},
-			},
+		Data: bo.CreateTemplateStrategyParams{
 			Alert:                  req.GetAlert(),
 			Expr:                   req.GetExpr(),
 			Status:                 vobj.StatusEnable,
@@ -85,6 +80,7 @@ func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strat
 			Annotations:            req.GetAnnotations(),
 			StrategyLevelTemplates: strategyLevelTemplates,
 		},
+		ID: req.Id,
 	}
 	if err := s.templateBiz.UpdateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
@@ -111,8 +107,8 @@ func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategy
 
 func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strategyapi.ListTemplateStrategyRequest) (*strategyapi.ListTemplateStrategyReply, error) {
 	params := &bo.QueryTemplateStrategyListParams{
-		Page:   types.NewPage(int(req.GetPageNum()), int(req.GetPageSize())),
-		Alert:  req.GetAlert(),
+		Page:   types.NewPagination(req.GetPagination()),
+		Alert:  req.GetKeyword(),
 		Status: vobj.Status(req.GetStatus()),
 	}
 	list, err := s.templateBiz.ListTemplateStrategy(ctx, params)
@@ -120,7 +116,7 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strateg
 		return nil, err
 	}
 	return &strategyapi.ListTemplateStrategyReply{
-		Total: int64(params.Page.GetTotal()),
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(list, func(item *model.StrategyTemplate) *admin.StrategyTemplate {
 			return build.NewTemplateStrategyBuilder(item).ToApi()
 		}),
