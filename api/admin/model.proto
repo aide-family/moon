@@ -369,7 +369,7 @@ message StrategyTemplate {
   // 策略模板ID
   uint32 id = 1;
   // 策略模板名称
-  string Alert = 2;
+  string alert = 2;
   // 策略语句
   string expr = 3;
   repeated StrategyLevelTemplate levels = 4;

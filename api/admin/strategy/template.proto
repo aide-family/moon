@@ -78,41 +78,42 @@ message MutationStrategyLevelTemplate {
   double threshold = 6;
   // ID
   uint32 id = 7;
+  // TODO 考虑是否增加范围型阈值条件[1, 100]
 }
 
 message CreateTemplateStrategyRequest {
   // 策略名称
-  string Alert = 1 [(buf.validate.field).cel = {
+  string alert = 1 [(buf.validate.field).cel = {
     expression: "this.size() > 0 && this.size() <= 50"
     message: "策略名称长度必须大于0且小于50"
     id: "CreateTemplateStrategyRequestAlert"
   }];
   // 策略表达式
-  string Expr = 2 [(buf.validate.field).cel = {
+  string expr = 2 [(buf.validate.field).cel = {
     expression: "this.size() > 0 && this.size() <= 1000"
     message: "策略表达式长度必须大于0且小于1000"
     id: "CreateTemplateStrategyRequestExpr"
   }];
   // 备注
-  string Remark = 3 [(buf.validate.field).cel = {
+  string remark = 3 [(buf.validate.field).cel = {
     expression: "this.size() <= 255"
     message: "备注长度必须小于255"
     id: "CreateTemplateStrategyRequestRemark"
   }];
   // 策略标签
-  map<string, string> Labels = 4 [(buf.validate.field).cel = {
+  map<string, string> labels = 4 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
     message: "标签数量必须大于0且小于等于20"
     id: "CreateTemplateStrategyRequestLabels"
   }];
   // 策略注解
-  map<string, string> Annotations = 5 [(buf.validate.field).cel = {
+  map<string, string> annotations = 5 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
     message: "注解数量必须大于0且小于等于5"
     id: "CreateTemplateStrategyRequestAnnotations"
   }];
   // 策略等级模板
-  map<uint32, MutationStrategyLevelTemplate> Level = 6 [(buf.validate.field).cel = {
+  map<uint32, MutationStrategyLevelTemplate> level = 6 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
     message: "策略等级模板数量必须大于0且小于等于10"
     id: "CreateTemplateStrategyRequestLevel"
@@ -122,37 +123,37 @@ message CreateTemplateStrategyReply {}
 
 message UpdateTemplateStrategyRequest {
   // 策略名称
-  string Alert = 1 [(buf.validate.field).cel = {
+  string alert = 1 [(buf.validate.field).cel = {
     expression: "this.size() > 0 && this.size() <= 50"
     message: "策略名称长度必须大于0且小于50"
     id: "CreateTemplateStrategyRequestAlert"
   }];
   // 策略表达式
-  string Expr = 2 [(buf.validate.field).cel = {
+  string expr = 2 [(buf.validate.field).cel = {
     expression: "this.size() > 0 && this.size() <= 1000"
     message: "策略表达式长度必须大于0且小于1000"
     id: "CreateTemplateStrategyRequestExpr"
   }];
   // 备注
-  string Remark = 3 [(buf.validate.field).cel = {
+  string remark = 3 [(buf.validate.field).cel = {
     expression: "this.size() <= 255"
     message: "备注长度必须小于255"
     id: "CreateTemplateStrategyRequestRemark"
   }];
   // 策略标签
-  map<string, string> Labels = 4 [(buf.validate.field).cel = {
+  map<string, string> labels = 4 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
     message: "标签数量必须大于0且小于等于20"
     id: "CreateTemplateStrategyRequestLabels"
   }];
   // 策略注解
-  map<string, string> Annotations = 5 [(buf.validate.field).cel = {
+  map<string, string> annotations = 5 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
     message: "注解数量必须大于0且小于等于5"
     id: "CreateTemplateStrategyRequestAnnotations"
   }];
   // 策略等级模板
-  map<uint32, MutationStrategyLevelTemplate> Level = 6 [(buf.validate.field).cel = {
+  map<uint32, MutationStrategyLevelTemplate> level = 6 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
     message: "策略等级模板数量必须大于0且小于等于10"
     id: "CreateTemplateStrategyRequestLevel"

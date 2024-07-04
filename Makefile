@@ -82,6 +82,8 @@ wire:
 
 .PHONY: model
 model:
+	rm -rf pkg/palace/model/query
+	rm -rf pkg/palace/model/bizmodel/bizquery
 	go run cmd/server/gen/gen/cmd.go
 	go run cmd/server/gen/gen/cmd.go -b
 
