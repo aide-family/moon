@@ -1,13 +1,12 @@
 import { useContext, FC, useState, useEffect } from 'react'
 
-import type { ItemType } from 'antd/es/menu/hooks/useItems'
-
 import { Button, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { GlobalContext } from '@/context'
 
 import styles from './style/index.module.less'
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
+import { ItemType } from 'antd/es/menu/interface'
 
 export type SiderMenuProps = {
     items?: ItemType[]

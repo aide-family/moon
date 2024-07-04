@@ -1,9 +1,9 @@
 import { createContext } from 'react'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
-import type { ItemType } from 'antd/es/menu/hooks/useItems'
 import type { SpaceType } from './pages'
 import { UserListItem } from './apis/home/system/user/types'
 import { breadcrumbNameType } from './pages/menus'
+import { ItemType } from 'antd/es/menu/interface'
 
 export type ThemeType = 'light' | 'dark'
 

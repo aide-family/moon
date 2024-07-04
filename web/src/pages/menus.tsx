@@ -1,5 +1,5 @@
-import type { ItemType } from 'antd/es/menu/hooks/useItems'
 import { IconFont } from '@/components/IconFont/IconFont'
+import { ItemType } from 'antd/es/menu/interface'
 
 export const defaultMenuItems: ItemType[] = [
     {
