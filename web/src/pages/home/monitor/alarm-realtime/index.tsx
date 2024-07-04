@@ -40,7 +40,7 @@ const AlarmRealtime: FC = () => {
     const [queryParams, setQueryParams] = useState<AlarmRealtimeListRequest>(
         defaultAlarmRealtimeListRequest
     )
-    const [alarmPageIds, setAlarmPageIds] = useState<number[]>([])
+    const [alarmPageIds, setAlarmPageIds] = useState<number[]>()
     const [alarmCountMap, setAlarmCountMap] = useState<{
         [key: number]: number | string
     }>()
@@ -78,19 +78,19 @@ const AlarmRealtime: FC = () => {
 
     const handleGetAlarmPageList = () => {
         dictApi.myAlarmPageList().then((res) => {
-            setAlarmPageList(res.list)
-            setAlarmPageIds(res.list.map((item) => item.id))
+            setAlarmPageList(res?.list || [])
+            setAlarmPageIds(res?.list?.map((item) => item.id) || [])
             handleRefresh()
         })
     }
 
     const handleCountAlarmByPageIds = () => {
-        if (alarmPageIds.length === 0) {
+        if ((alarmPageIds?.length || 0) === 0) {
             return
         }
         dictApi
             .countAlarmPage({
-                ids: alarmPageIds
+                ids: alarmPageIds || []
             })
             .then((res) => {
                 setAlarmCountMap(res.alarmCount)
@@ -98,7 +98,7 @@ const AlarmRealtime: FC = () => {
     }
 
     const handleGetAlarmRealtime = () => {
-        if (alarmPageIds.length === 0) {
+        if ((alarmPageIds?.length || 0) === 0) {
             return
         }
 
@@ -262,10 +262,10 @@ const AlarmRealtime: FC = () => {
     useEffect(() => {
         handleCountAlarmByPageIds()
         const params = queryParams
-        if (!params.alarmPageId && alarmPageIds.length > 0) {
+        if (!params.alarmPageId && (alarmPageIds?.length || 0) > 0) {
             setQueryParams({
                 ...queryParams,
-                alarmPageId: alarmPageIds[0]
+                alarmPageId: alarmPageIds?.[0] || 0
             })
         }
     }, [alarmPageIds])
