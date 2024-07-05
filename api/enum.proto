@@ -212,3 +212,10 @@ enum DictType {
 	DictTypeNotifyType = 7;
 }
 
+// 菜单类型
+enum MenuType {
+  MenuTypeUnknown = 0 ;// 未知
+  MenuTypeMenu = 1;            // 菜单
+  MenuTypeButton = 2   ;     // 按钮
+  MenuTypeDir = 3      ;      // 文件夹
+}

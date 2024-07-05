@@ -117,8 +117,8 @@ message CreateDictRequest {
   }];
   // 状态
   Status status = 8 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1])",
-    message: "状态值必须在[ 启用(1), 禁用(0)]之间",
+    expression: "(this in [1,2])",
+    message: "状态值必须在[ 启用(1), 禁用(2)]之间",
   }];
   // 语言编码
   string languageCode = 9 [(buf.validate.field).cel = {
@@ -158,12 +158,7 @@ message GetDictSelectListRequest {
   }];
 }
 
-message ListUserReply {
-  // 用户列表
-  repeated Dict list = 1;
-  // 分页信息
-  PaginationReply pagination = 2;
-}
+
 message ListDictReply{
   // 字典列表
   repeated Dict list = 1;

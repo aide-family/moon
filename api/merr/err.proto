@@ -285,4 +285,12 @@ enum ErrorReason {
     (errors.message) = "字典不存在!",
     (errors.id) = "DICT_NOT_FOUND_ERR"
   ];
+
+  // 菜单不存在
+  MENU_NOT_FOUND_ERR = 40 [
+    (errors.code) = 405,
+    (errors.message) = "菜单不存在!",
+    (errors.id) = "MENU_NOT_FOUND_ERR"
+  ];
+
 }

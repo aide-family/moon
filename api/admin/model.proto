@@ -109,9 +109,53 @@ message Menu {
   string updated_at = 8;
   // 菜单层级
   int32 level = 9;
-  // 菜单子级数据
-  repeated Menu children = 10;
+  // 菜单类型
+  MenuType type = 10;
+  // 组件路径
+  string component=11;
+  // 权限
+  string permission=12;
+  // 排序
+  int32 sort=13;
+  // 英文名称
+  string en_name=14;
 }
+
+// 系统菜单树
+message MenuTree {
+  // 菜单ID
+  uint32 id = 1;
+  // 菜单名称
+  string name = 2;
+  // 菜单路径
+  string path = 3;
+  // 菜单图标
+  string icon = 4;
+  // 菜单状态
+  Status status = 5;
+  // 父级菜单
+  uint32 parent_id = 6;
+  // 创建时间
+  string created_at = 7;
+  // 更新时间
+  string updated_at = 8;
+  // 菜单层级
+  int32 level = 9;
+  // 菜单子级数据
+  repeated MenuTree children = 10;
+  // 菜单类型
+  MenuType type = 11;
+  // 组件路径
+  string component=12;
+  // 权限
+  string permission=13;
+  // 排序
+  int32 sort=14;
+  // 英文名称
+  string en_name=15;
+}
+
+
 
 // 团队成员
 message TeamMember {

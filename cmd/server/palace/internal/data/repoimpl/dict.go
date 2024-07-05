@@ -53,7 +53,7 @@ func (l *dictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDic
 	}
 
 	if !params.DictType.IsUnknown() {
-		wheres = append(wheres, query.SysUser.Gender.Eq(params.DictType.GetValue()))
+		wheres = append(wheres, query.SysDict.DictType.Eq(params.DictType.GetValue()))
 	}
 
 	if !types.TextIsNull(params.Keyword) {

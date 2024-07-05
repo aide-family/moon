@@ -3,33 +3,55 @@ package build
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type MenuBuilder struct {
-	*bizmodel.SysTeamMenu
+	Menu *model.SysMenu
 }
 
-func NewMenuBuilder(menu *bizmodel.SysTeamMenu) *MenuBuilder {
+func NewMenuBuilder(menu *model.SysMenu) *MenuBuilder {
 	return &MenuBuilder{
-		SysTeamMenu: menu,
+		Menu: menu,
+	}
+}
+
+func (b *MenuBuilder) ToApi() *admin.Menu {
+	if types.IsNil(b) || types.IsNil(b.Menu) {
+		return nil
+	}
+	return &admin.Menu{
+		Id:         b.Menu.ID,
+		Name:       b.Menu.Name,
+		Path:       b.Menu.Path,
+		Icon:       b.Menu.Icon,
+		Status:     api.Status(b.Menu.Status),
+		ParentId:   b.Menu.ParentID,
+		Sort:       b.Menu.Sort,
+		Type:       api.MenuType(b.Menu.Type),
+		Level:      b.Menu.Level,
+		Component:  b.Menu.Component,
+		Permission: b.Menu.Permission,
+		EnName:     b.Menu.EnName,
+		CreatedAt:  b.Menu.CreatedAt.String(),
+		UpdatedAt:  b.Menu.UpdatedAt.String(),
 	}
 }
 
 type MenuTreeBuilder struct {
-	menuMap  map[uint32][]*bizmodel.SysTeamMenu
+	menuMap  map[uint32][]*admin.Menu
 	parentID uint32
 }
 
-func NewMenuTreeBuilder(menuList []*bizmodel.SysTeamMenu, parentID uint32) *MenuTreeBuilder {
-	menuMap := make(map[uint32][]*bizmodel.SysTeamMenu)
+func NewMenuTreeBuilder(menuList []*admin.Menu, parentID uint32) *MenuTreeBuilder {
+	menuMap := make(map[uint32][]*admin.Menu)
 	// 按照父级ID分组
 	for _, menu := range menuList {
-		if _, ok := menuMap[menu.ParentID]; !ok {
-			menuMap[menu.ParentID] = make([]*bizmodel.SysTeamMenu, 0)
+		if _, ok := menuMap[menu.GetParentId()]; !ok {
+			menuMap[menu.GetParentId()] = make([]*admin.Menu, 0)
 		}
-		menuMap[menu.ParentID] = append(menuMap[menu.ParentID], menu)
+		menuMap[menu.GetParentId()] = append(menuMap[menu.GetParentId()], menu)
 	}
 	return &MenuTreeBuilder{
 		menuMap:  menuMap,
@@ -38,45 +60,29 @@ func NewMenuTreeBuilder(menuList []*bizmodel.SysTeamMenu, parentID uint32) *Menu
 }
 
 // ToTree 转换为树形菜单
-func (b *MenuTreeBuilder) ToTree() []*admin.Menu {
+func (b *MenuTreeBuilder) ToTree() []*admin.MenuTree {
 	if types.IsNil(b) || types.IsNil(b.menuMap) || len(b.menuMap) == 0 {
 		return nil
 	}
-	list := make([]*admin.Menu, 0)
+	list := make([]*admin.MenuTree, 0)
 	// 递归遍历
 	for _, menu := range b.menuMap[b.parentID] {
-		if menu.ParentID == b.parentID {
-			list = append(list, &admin.Menu{
-				Id:        menu.ID,
-				Name:      menu.Name,
-				Path:      menu.Path,
-				Icon:      menu.Icon,
-				Status:    api.Status(menu.Status),
-				ParentId:  menu.ParentID,
-				CreatedAt: menu.CreatedAt.String(),
-				UpdatedAt: menu.UpdatedAt.String(),
-				Level:     menu.Level,
-				Children:  NewMenuTreeBuilder(b.menuMap[menu.ID], menu.ID).ToTree(),
+		if menu.ParentId == b.parentID {
+			list = append(list, &admin.MenuTree{
+				Id:        menu.GetId(),
+				Name:      menu.GetName(),
+				Path:      menu.GetPath(),
+				Icon:      menu.GetIcon(),
+				Status:    menu.GetStatus(),
+				ParentId:  menu.GetParentId(),
+				CreatedAt: menu.GetCreatedAt(),
+				UpdatedAt: menu.GetUpdatedAt(),
+				Level:     menu.GetLevel(),
+				Sort:      menu.GetSort(),
+				EnName:    menu.GetEnName(),
+				Children:  NewMenuTreeBuilder(b.menuMap[menu.GetId()], menu.GetId()).ToTree(),
 			})
 		}
 	}
 	return list
-}
-
-func (b *MenuBuilder) ToApi() *admin.Menu {
-	if types.IsNil(b) || types.IsNil(b.SysTeamMenu) {
-		return nil
-	}
-	menu := b.SysTeamMenu
-	return &admin.Menu{
-		Id:        menu.ID,
-		Name:      menu.Name,
-		Path:      menu.Path,
-		Icon:      menu.Icon,
-		Status:    api.Status(menu.Status),
-		ParentId:  menu.ParentID,
-		CreatedAt: menu.CreatedAt.String(),
-		UpdatedAt: menu.UpdatedAt.String(),
-		Level:     menu.Level,
-	}
 }

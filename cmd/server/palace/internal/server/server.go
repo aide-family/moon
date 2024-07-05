@@ -5,6 +5,7 @@ import (
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
+	menuapi "github.com/aide-family/moon/api/admin/menu"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	teamapi "github.com/aide-family/moon/api/admin/team"
@@ -14,6 +15,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
@@ -62,7 +64,7 @@ func RegisterService(
 	teamService *team.Service,
 	teamRoleService *team.RoleService,
 	datasourceService *datasource.Service,
-	teamMenuService *resource.MenuService,
+	menuService *menu.MenuService,
 	metricService *datasource.MetricService,
 	dictService *dict.Service,
 	strategyService *strategy.Service,
@@ -73,7 +75,7 @@ func RegisterService(
 	userapi.RegisterUserServer(rpcSrv, userService)
 	authorizationapi.RegisterAuthorizationServer(rpcSrv, authorizationService)
 	resourceapi.RegisterResourceServer(rpcSrv, resourceService)
-	resourceapi.RegisterMenuServer(rpcSrv, teamMenuService)
+	menuapi.RegisterMenuServer(rpcSrv, menuService)
 	teamapi.RegisterTeamServer(rpcSrv, teamService)
 	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceServer(rpcSrv, datasourceService)
@@ -88,7 +90,7 @@ func RegisterService(
 	userapi.RegisterUserHTTPServer(httpSrv, userService)
 	authorizationapi.RegisterAuthorizationHTTPServer(httpSrv, authorizationService)
 	resourceapi.RegisterResourceHTTPServer(httpSrv, resourceService)
-	resourceapi.RegisterMenuHTTPServer(httpSrv, teamMenuService)
+	menuapi.RegisterMenuHTTPServer(httpSrv, menuService)
 	teamapi.RegisterTeamHTTPServer(httpSrv, teamService)
 	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
