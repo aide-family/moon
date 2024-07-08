@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const TableNameSendStrategy = "send_strategies"
@@ -21,7 +21,7 @@ type SendStrategy struct {
 	Remark   string        `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	Status   vobj.Status   `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
 	// 持续时间，0为永久有效
-	Duration *durationpb.Duration `gorm:"column:duration;type:varchar(64);not null;comment:持续时间" json:"duration"`
+	Duration *types.Duration `gorm:"column:duration;type:varchar(64);not null;comment:持续时间" json:"duration"`
 }
 
 // String json string

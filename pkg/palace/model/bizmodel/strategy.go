@@ -25,6 +25,8 @@ type Strategy struct {
 	Status      vobj.Status      `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
 
 	Datasource []*Datasource `gorm:"many2many:strategy_datasource;" json:"datasource"`
+	// 策略类型
+	Categories []*SysDict `gorm:"many2many:strategy_categories"`
 }
 
 // String json string
