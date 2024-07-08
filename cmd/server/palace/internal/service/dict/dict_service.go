@@ -126,3 +126,10 @@ func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*di
 		Dict: resDict,
 	}, nil
 }
+
+// ListDictType 获取字典类型列表
+func (s *Service) ListDictType(_ context.Context, _ *dictapi.ListDictTypeRequest) (*dictapi.ListDictTypeReply, error) {
+	return &dictapi.ListDictTypeReply{
+		List: build.NewDictTypeBuilder().ToApi(),
+	}, nil
+}

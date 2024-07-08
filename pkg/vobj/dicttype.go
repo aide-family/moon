@@ -23,4 +23,6 @@ const (
 	DictTypeNotifyType // 通知类型
 
 	DictTypeAlarmPage // 告警页面
+
+	DictTypeStrategyCategory // 策略分类
 )

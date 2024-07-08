@@ -5,20 +5,21 @@ import (
 	"github.com/aide-family/moon/api/admin"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type DictBuild struct {
+type DictBuilder struct {
 	*model.SysDict
 }
 
-func NewDictBuild(dict *model.SysDict) *DictBuild {
-	return &DictBuild{
+func NewDictBuild(dict *model.SysDict) *DictBuilder {
+	return &DictBuilder{
 		SysDict: dict,
 	}
 }
 
 // ToApi 转换成api
-func (b *DictBuild) ToApi() *admin.Dict {
+func (b *DictBuilder) ToApi() *admin.Dict {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
@@ -39,7 +40,7 @@ func (b *DictBuild) ToApi() *admin.Dict {
 }
 
 // ToApiSelect 转换成api下拉数据
-func (b *DictBuild) ToApiSelect() *admin.Select {
+func (b *DictBuilder) ToApiSelect() *admin.Select {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
@@ -55,4 +56,38 @@ func (b *DictBuild) ToApiSelect() *admin.Select {
 			Image:  b.ImageUrl,
 		},
 	}
+}
+
+type DictTypeBuilder struct {
+	list []vobj.DictType
+}
+
+func NewDictTypeBuilder() *DictTypeBuilder {
+	return &DictTypeBuilder{
+		list: []vobj.DictType{
+			vobj.DictTypePromLabel,
+			vobj.DictTypePromAnnotation,
+			vobj.DictTypeNotifyType,
+			vobj.DictTypePromStrategyGroup,
+			vobj.DictTypeAlarmLevel,
+			vobj.DictTypeAlarmPage,
+			vobj.DictTypeAlarmStatus,
+			vobj.DictTypePromStrategy,
+			vobj.DictTypeStrategyCategory,
+		},
+	}
+}
+
+func (b *DictTypeBuilder) ToApi() []*api.EnumItem {
+	if types.IsNil(b) {
+		return nil
+	}
+	var list []*api.EnumItem
+	for _, item := range b.list {
+		list = append(list, &api.EnumItem{
+			Value: int32(item),
+			Label: item.String(),
+		})
+	}
+	return list
 }

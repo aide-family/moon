@@ -60,6 +60,14 @@ service Dict {
       get: "/v1/dict/get/{id}"
     };
   }
+
+  // 字典类型列表
+  rpc ListDictType (ListDictTypeRequest) returns (ListDictTypeReply) {
+    option (google.api.http) = {
+      post: "/v1/dict/type/list"
+      body: "*"
+    };
+  }
 }
 
 message BatchUpdateDictStatusRequest{
@@ -195,6 +203,12 @@ message GetDictRequest{
 }
 message GetDictReply{
   Dict dict = 1;
+}
+
+message ListDictTypeRequest {}
+message ListDictTypeReply{
+  // 字典类型列表
+  repeated EnumItem list = 1;
 }
 
 
