@@ -95,21 +95,11 @@ func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *b
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, q.Datasource.Status.Eq(params.Status.GetValue()))
 	}
-	if !types.IsNil(params.Page) {
-		page := params.Page
-		total, err := qq.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			qq = qq.Limit(pageSize)
-		} else {
-			qq = qq.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	qq = qq.Where(wheres...)
+	if err := types.WithPageQuery[bizquery.IDatasourceDo](qq, params.Page); err != nil {
+		return nil, err
 	}
-	return qq.Where(wheres...).Find()
+	return qq.Order(bizquery.Datasource.ID.Desc()).Find()
 }
 
 func (l *datasourceRepositoryImpl) UpdateDatasourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {

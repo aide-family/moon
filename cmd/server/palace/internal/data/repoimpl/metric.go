@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -139,21 +138,10 @@ func (m *metricRepositoryImpl) List(ctx context.Context, params *bo.QueryMetricL
 		wheres = append(wheres, q.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
 	}
 	qq = qq.Where(wheres...)
-	if !types.IsNil(params.Page) {
-		page := params.Page
-		total, err := qq.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			qq = qq.Limit(pageSize)
-		} else {
-			qq = qq.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](qq, params.Page); err != nil {
+		return nil, err
 	}
-	return qq.Find()
+	return qq.Order(bizquery.Datasource.ID.Desc()).Find()
 }
 
 func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetricListParams) ([]*bizmodel.DatasourceMetric, error) {

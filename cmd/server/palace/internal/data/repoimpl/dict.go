@@ -63,22 +63,9 @@ func (l *dictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDic
 			query.SysDict.Remark.Like(params.Keyword),
 		)
 	}
-
 	queryWrapper = queryWrapper.Where(wheres...)
-
-	if !types.IsNil(params) {
-		page := params.Page
-		total, err := queryWrapper.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		params.Page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			queryWrapper = queryWrapper.Limit(pageSize)
-		} else {
-			queryWrapper = queryWrapper.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	if err := types.WithPageQuery[query.ISysDictDo](queryWrapper, params.Page); err != nil {
+		return nil, err
 	}
 	return queryWrapper.Order(query.SysDict.ID.Desc()).Find()
 }

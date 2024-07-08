@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"gorm.io/gen"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -29,22 +30,14 @@ func (l *resourceRepositoryImpl) GetById(ctx context.Context, id uint32) (*model
 func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
 	q := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx)
 
+	var wheres []gen.Condition
+
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Or(query.SysAPI.Name.Like(params.Keyword), query.SysAPI.Path.Like(params.Keyword))
+		wheres = append(wheres, q.Or(query.SysAPI.Name.Like(params.Keyword), query.SysAPI.Path.Like(params.Keyword)))
 	}
-	if !types.IsNil(params.Page) {
-		page := params.Page
-		total, err := q.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			q = q.Limit(pageSize)
-		} else {
-			q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	q = q.Where(wheres...)
+	if err := types.WithPageQuery[query.ISysAPIDo](q, params.Page); err != nil {
+		return nil, err
 	}
 	return q.Order(query.SysAPI.ID.Desc()).Find()
 }
