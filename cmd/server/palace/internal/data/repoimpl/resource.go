@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+
 	"gorm.io/gen"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -53,19 +54,8 @@ func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *b
 	if !types.TextIsNull(params.Keyword) {
 		q = q.Or(query.SysAPI.Name.Like(params.Keyword), query.SysAPI.Path.Like(params.Keyword))
 	}
-	if !types.IsNil(params.Page) {
-		page := params.Page
-		total, err := q.Count()
-		if !types.IsNil(err) {
-			return nil, err
-		}
-		page.SetTotal(int(total))
-		pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
-		if pageNum <= 1 {
-			q = q.Limit(pageSize)
-		} else {
-			q = q.Offset((pageNum - 1) * pageSize).Limit(pageSize)
-		}
+	if err := types.WithPageQuery[query.ISysAPIDo](q, params.Page); err != nil {
+		return nil, err
 	}
 	return q.Select(query.SysAPI.ID, query.SysAPI.Name, query.SysAPI.Status, query.SysAPI.DeletedAt).Order(query.SysAPI.ID.Desc()).Find()
 }
