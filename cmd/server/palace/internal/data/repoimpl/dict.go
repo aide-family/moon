@@ -45,7 +45,8 @@ func (l *dictRepositoryImpl) Create(ctx context.Context, dict *bo.CreateDictPara
 }
 
 func (l *dictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDictListParams) ([]*model.SysDict, error) {
-	queryWrapper := query.Use(l.data.GetMainDB(ctx)).SysDict.WithContext(ctx)
+	dict := query.Use(l.data.GetMainDB(ctx)).SysDict
+	queryWrapper := dict.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
@@ -67,7 +68,7 @@ func (l *dictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDic
 	if err := types.WithPageQuery[query.ISysDictDo](queryWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return queryWrapper.Order(query.SysDict.ID.Desc()).Find()
+	return queryWrapper.Order(dict.ID.Desc()).Find()
 }
 
 func (l *dictRepositoryImpl) BatchCreate(ctx context.Context, createDicts []*bo.CreateDictParams) error {

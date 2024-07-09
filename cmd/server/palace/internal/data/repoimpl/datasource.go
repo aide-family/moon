@@ -99,7 +99,7 @@ func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *b
 	if err := types.WithPageQuery[bizquery.IDatasourceDo](qq, params.Page); err != nil {
 		return nil, err
 	}
-	return qq.Order(bizquery.Datasource.ID.Desc()).Find()
+	return qq.Order(q.Datasource.ID.Desc()).Find()
 }
 
 func (l *datasourceRepositoryImpl) UpdateDatasourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {

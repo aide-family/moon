@@ -111,7 +111,8 @@ func (l *templateRepositoryImpl) GetTemplateStrategy(ctx context.Context, id uin
 }
 
 func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, params *bo.QueryTemplateStrategyListParams) ([]*model.StrategyTemplate, error) {
-	strategyWrapper := query.Use(l.data.GetMainDB(ctx)).StrategyTemplate.WithContext(ctx)
+	strategyTemplate := query.Use(l.data.GetMainDB(ctx)).StrategyTemplate
+	strategyWrapper := strategyTemplate.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Alert) {
@@ -145,7 +146,7 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 
 	}
 
-	strategyWrapper = strategyWrapper.Where(wheres...).Preload(query.StrategyTemplate.StrategyLevelTemplates.Level)
+	strategyWrapper = strategyWrapper.Where(wheres...).Preload(field.Associations)
 
 	if err := types.WithPageQuery[query.IStrategyTemplateDo](strategyWrapper, params.Page); err != nil {
 		return nil, err

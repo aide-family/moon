@@ -84,7 +84,8 @@ func (l *userRepositoryImpl) GetByUsername(ctx context.Context, username string)
 }
 
 func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUserListParams) ([]*model.SysUser, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx)
+	sysUser := query.Use(l.data.GetMainDB(ctx)).SysUser
+	q := sysUser.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
@@ -108,7 +109,7 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 	if err := types.WithPageQuery[query.ISysUserDo](q, params.Page); err != nil {
 		return nil, err
 	}
-	return q.Order(query.SysUser.ID.Desc()).Find()
+	return q.Order(sysUser.ID.Desc()).Find()
 }
 
 func (l *userRepositoryImpl) UpdateUser(ctx context.Context, user *model.SysUser) error {
