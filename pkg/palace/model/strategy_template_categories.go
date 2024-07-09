@@ -5,7 +5,7 @@ import "encoding/json"
 const TableNameStrategyTemplateCategories = "strategy_template_categories"
 
 type StrategyTemplateCategories struct {
-	AllFieldModel
+	BaseModel
 	StrategyTemplateID uint32 `gorm:"primaryKey"`
 	CategoriesID       uint32 `gorm:"primaryKey"`
 }

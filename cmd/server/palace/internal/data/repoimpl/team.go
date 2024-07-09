@@ -281,7 +281,7 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 					return nil, false
 				}
 				return &bizmodel.SysTeamRole{
-					AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: roleId}},
+					AllFieldModel: model.AllFieldModel{ID: roleId},
 				}, true
 			}),
 		}, true
@@ -366,7 +366,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 			return nil, false
 		}
 		return &bizmodel.SysTeamRole{
-			AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: roleId}},
+			AllFieldModel: model.AllFieldModel{ID: roleId},
 		}, true
 	})
 	bizDB, err := l.data.GetBizGormDB(params.ID)
@@ -374,7 +374,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 		return err
 	}
 	return bizquery.Use(bizDB).SysTeamMember.TeamRoles.
-		Model(&bizmodel.SysTeamMember{AllFieldModel: model.AllFieldModel{BaseModel: model.BaseModel{ID: params.MemberID}}}).Replace(roles...)
+		Model(&bizmodel.SysTeamMember{AllFieldModel: model.AllFieldModel{ID: params.MemberID}}).Replace(roles...)
 }
 
 func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {

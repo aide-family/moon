@@ -13,21 +13,17 @@ import (
 type BaseModel struct {
 	ctx context.Context `gorm:"-"`
 
-	ID        uint32     `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
-	CreatedAt types.Time `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt types.Time `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
+	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
+	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
+	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
 
 	// 创建人
 	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
 }
 
-type DeleteAtFieldModel struct {
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
-}
-
 type AllFieldModel struct {
+	ID uint32 `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
 	BaseModel
-	DeleteAtFieldModel
 }
 
 // WithContext 获取上下文
