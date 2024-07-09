@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "google/protobuf/duration.proto";
+import "buf/validate/validate.proto";
 import "datasource.proto";
 import "enum.proto";
 
@@ -13,23 +14,61 @@ option java_package = "api";
 // 类型数据策略定义
 message Strategy {
   // 策略名称
-  string alert = 1;
+  string alert = 1 [(buf.validate.field).cel = {
+    id: "Strategy_alert"
+    expression: 'this.size() > 0'
+    message: "策略名称不允许为空"
+  }];
   // 策略语句
-  string expr = 2;
+  string expr = 2 [(buf.validate.field).cel = {
+    id: "Strategy_expr"
+    expression: 'this.size() > 0'
+    message: "策略语句不允许为空"
+  }];
   // 策略持续时间
-  google.protobuf.Duration for = 3;
+  google.protobuf.Duration for = 3 [(buf.validate.field).cel = {
+    id: "Strategy_for"
+    expression: 'this.size() >= 2'
+    message: "策略持续时间不允许为空"
+  }, (buf.validate.field).cel = {
+    // 满足 数字+s格式
+    expression: 'this.matches(^\\d+s$)'
+    message: "策略持续时间格式错误"
+  }];
   // 持续次数
   uint32 count = 4;
   // 持续的类型
-  SustainType sustainType = 5;
+  SustainType sustainType = 5 [(buf.validate.field).enum.defined_only = true];
+  // 多数据源持续类型
+  MultiDatasourceSustainType multiDatasourceSustainType = 6 [(buf.validate.field).enum.defined_only = true];
   // 策略标签
-  map<string, string> labels = 6;
+  map<string, string> labels = 7 [(buf.validate.field).cel = {
+    id: "Strategy_labels"
+    expression: 'this.size() > 0'
+    message: "策略标签不允许为空"
+  }];
   // 策略注解
-  map<string, string> annotations = 7;
+  map<string, string> annotations = 8 [(buf.validate.field).cel = {
+    id: "Strategy_annotations"
+    expression: 'this.size() > 0'
+    message: "策略注解不允许为空"
+  }];
   // 执行频率
-  google.protobuf.Duration interval = 8;
+  google.protobuf.Duration interval = 9 [(buf.validate.field).cel = {
+    id: "Strategy_interval"
+    expression: 'this.size() >= 2'
+    message: "执行频率不允许为空"
+  }, (buf.validate.field).cel = {
+    // 满足 数字+s格式
+    expression: 'this.matches(^\\d+s$)'
+    message: "执行频率格式错误"
+  }];
   // 数据源
-  repeated Datasource datasource = 9;
+  repeated Datasource datasource = 10 [(buf.validate.field).cel = {
+    id: "Strategy_datasource"
+    expression: 'this.size() > 0'
+    message: "数据源不允许为空"
+  }];
 }
 
 // 类型元数据，每个对象都应该包含这个字段
@@ -48,168 +87,168 @@ message ObjectMeta {
 
 // 过滤规则，过滤掉不需要的数据
 message FilterRule {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略，规则的详细描述
-	FilterRuleSpec spec = 3;
-	// 状态,描述规则的状态
-	Status status = 4;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略，规则的详细描述
+  FilterRuleSpec spec = 3;
+  // 状态,描述规则的状态
+  Status status = 4;
 }
 
 message FilterRuleSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 执行者
-	string executor = 2;
-	// 标签匹配，使用这个字段时，默认使用的匹配表达式是: IN
-	map<string,string> matchLabels = 3;
-	// 匹配表达式
-	repeated LabelRequirement matchExpression = 4;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 执行者
+  string executor = 2;
+  // 标签匹配，使用这个字段时，默认使用的匹配表达式是: IN
+  map<string, string> matchLabels = 3;
+  // 匹配表达式
+  repeated LabelRequirement matchExpression = 4;
 }
 
 enum Operator {
-	// 匹配操作
-	Operator_UNKNOWN = 0;
-	// 存在
-	Operator_EXIST = 1;
-	// 不存在
-	Operator_NOT_EXIST = 2;
-	// 包含
-	Operator_IN = 3;
-	// 不包含
-	Operator_NOT_IN = 4;
+  // 匹配操作
+  Operator_UNKNOWN = 0;
+  // 存在
+  Operator_EXIST = 1;
+  // 不存在
+  Operator_NOT_EXIST = 2;
+  // 包含
+  Operator_IN = 3;
+  // 不包含
+  Operator_NOT_IN = 4;
 }
 
 message LabelRequirement {
-	// key 是需要用于匹配的键，不能为空
-	string key = 1;
-	// 匹配操作是一组用于键值匹配的表达式，它包含以下操作：IN,NOT_IN,EXIST,NOT_EXIST
-	Operator op = 2;
-	// 需要匹配的值
-	// 如何匹配表达式是 IN 或者 NOT_IN, values 必须不为空
-	// 如何匹配表达式是 EXIST 或者 NOT_EXIST, values 必须为空，此时，匹配操作与values无关
-	repeated string values = 3;
+  // key 是需要用于匹配的键，不能为空
+  string key = 1;
+  // 匹配操作是一组用于键值匹配的表达式，它包含以下操作：IN,NOT_IN,EXIST,NOT_EXIST
+  Operator op = 2;
+  // 需要匹配的值
+  // 如何匹配表达式是 IN 或者 NOT_IN, values 必须不为空
+  // 如何匹配表达式是 EXIST 或者 NOT_EXIST, values 必须为空，此时，匹配操作与values无关
+  repeated string values = 3;
 }
 
 // 聚合规则，聚合相同指标的数据
 message AggregateRule {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略
-	AggregateRuleSpec spec =3;
-	// 状态
-	Status status = 4;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略
+  AggregateRuleSpec spec = 3;
+  // 状态
+  Status status = 4;
 }
 
 message AggregateRuleSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 执行者
-	string executor = 2;
-	// 聚合次数
-	uint32 count = 3;
-	// 聚合时间
-	google.protobuf.Duration interval = 4;
-	// 扩展配置
-	map<string,string> extra = 5;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 执行者
+  string executor = 2;
+  // 聚合次数
+  uint32 count = 3;
+  // 聚合时间
+  google.protobuf.Duration interval = 4;
+  // 扩展配置
+  map<string, string> extra = 5;
 }
 
 
 // 通知对象，每个通知对象包含多中告知对象的方式
 message NotifyObject {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略
-	NotifyObjectSpec spec = 3;
-	// 状态
-	Status status = 4;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略
+  NotifyObjectSpec spec = 3;
+  // 状态
+  Status status = 4;
 }
 
 message NotifyObjectSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 发送配置
-	repeated SendConfig config = 2;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 发送配置
+  repeated SendConfig config = 2;
 }
 
 
 // 通知配置，包含通知的方式和通知配置
 message SendConfig {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略
-	SendConfigSpec spec = 3;
-	// 状态
-	Status status = 4;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略
+  SendConfigSpec spec = 3;
+  // 状态
+  Status status = 4;
 }
 
 message SendConfigSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 执行者
-	string executor = 2;
-	// 扩展配置
-	map<string,string> config = 3;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 执行者
+  string executor = 2;
+  // 扩展配置
+  map<string, string> config = 3;
 }
 
 // 通知规则，是通知对象和聚合规则的集合
 // 通知规则包含一个聚合规则和一个通知对象
 // 通知对象将在聚合完成后，收到需要发送的消息
 message NotifyRule {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略
-	NotifyRuleSpec spec = 3;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略
+  NotifyRuleSpec spec = 3;
 }
 
 message NotifyRuleSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 通知对象
-	NotifyObject object = 2;
-	//聚合规则
-	AggregateRule aggregate = 3;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 通知对象
+  NotifyObject object = 2;
+  //聚合规则
+  AggregateRule aggregate = 3;
 }
 
 // 通知组，通知组包含多个通知规则和一个过滤规则
 // 消息在发送之前，会现经过过滤规则进行过滤，如果过滤规则匹配，则用通知规则进行发送
 message NotifyGroup {
-	// 类型
-	TypeMeta kind = 1;
-	// 对象
-	ObjectMeta object = 2;
-	// 策略
-	NotifyGroupSpec spec = 3;
+  // 类型
+  TypeMeta kind = 1;
+  // 对象
+  ObjectMeta object = 2;
+  // 策略
+  NotifyGroupSpec spec = 3;
 }
 
 message NotifyGroupSpec {
-	// 启用状态，默认启用
-	bool enabled = 1;
-	// 通知规则
-	repeated NotifyRule rule = 2;
-	// 过滤规则,过滤规则可以为空，为空则表示不需要过滤
-	FilterRule filter = 3;
+  // 启用状态，默认启用
+  bool enabled = 1;
+  // 通知规则
+  repeated NotifyRule rule = 2;
+  // 过滤规则,过滤规则可以为空，为空则表示不需要过滤
+  FilterRule filter = 3;
 }
 
 message Message  {
-	// 消息ID
+  // 消息ID
   string id = 1;
-	// 时间戳
+  // 时间戳
   int64 timestamp = 2;
-	// 消息内容
+  // 消息内容
   map<string, string> content = 3;
-	// 消息标签,在进行消息过滤时，使用这个字段进行过滤规则的匹配
-	map<string, string> labels = 4;
-	// 通知组，需要通知的对象组列表
-	repeated NotifyGroup groups = 5;
+  // 消息标签,在进行消息过滤时，使用这个字段进行过滤规则的匹配
+  map<string, string> labels = 4;
+  // 通知组，需要通知的对象组列表
+  repeated NotifyGroup groups = 5;
 }

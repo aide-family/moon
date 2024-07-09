@@ -185,6 +185,21 @@ enum SustainType {
 	SustainTypeMin = 3;
 }
 
+// 多数据源持续类型
+enum MultiDatasourceSustainType {
+	// 未知持续类型
+	MultiDatasourceSustainTypeUnknown = 0;
+
+	// 同时满足 所有数据告警集合一致
+	MultiDatasourceSustainTypeAnd = 1;
+
+	// 其中一个满足 数据告警集合其中一个完全满足
+	MultiDatasourceSustainTypeOr = 2;
+
+	// 共同满足 所有数据告警集合合并起来后满足
+	MultiDatasourceSustainTypeAndOr = 3;
+}
+
 // 分类, 区分字典中的各个模块数据
 enum DictType {
 	// 未知, 用于默认值
