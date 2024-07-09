@@ -10,5 +10,6 @@ func Models() []any {
 		&SysDict{},
 		&StrategyTemplate{},
 		&StrategyLevelTemplate{},
+		&StrategyTemplateCategories{},
 	}
 }

@@ -22,6 +22,9 @@ type (
 		// 模板等级
 		// 告警等级数据
 		StrategyLevelTemplates []*CreateStrategyLevelTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategyLevelTemplates"`
+
+		//策略模板类型
+		CategoriesIDs []uint32 `json:"categoriesIds"`
 	}
 
 	UpdateTemplateStrategyParams struct {

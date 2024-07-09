@@ -118,7 +118,16 @@ message CreateTemplateStrategyRequest {
     message: "策略等级模板数量必须大于0且小于等于10"
     id: "CreateTemplateStrategyRequestLevel"
   }];
+  //策略模板类型
+  repeated uint32 categories_ids = 7 [(buf.validate.field).cel = {
+    message: "请选择策略模板类型",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须保证修改对象数据唯一",
+    expression: "this.unique()"
+  }];
 }
+
 message CreateTemplateStrategyReply {}
 
 message UpdateTemplateStrategyRequest {

@@ -18,6 +18,8 @@ type StrategyTemplate struct {
 	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	// 告警等级数据
 	StrategyLevelTemplates []*StrategyLevelTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_level_templates"`
+	//策略模板类型
+	Categories []*SysDict `gorm:"many2many:strategy_template_categories"`
 }
 
 // String json string

@@ -48,6 +48,7 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 		Labels:                 req.GetLabels(),
 		Annotations:            req.GetAnnotations(),
 		StrategyLevelTemplates: strategyLevelTemplates,
+		CategoriesIDs:          req.GetCategoriesIds(),
 	}
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
@@ -107,9 +108,9 @@ func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategy
 
 func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strategyapi.ListTemplateStrategyRequest) (*strategyapi.ListTemplateStrategyReply, error) {
 	params := &bo.QueryTemplateStrategyListParams{
-		Page:   types.NewPagination(req.GetPagination()),
-		Alert:  req.GetKeyword(),
-		Status: vobj.Status(req.GetStatus()),
+		Page:    types.NewPagination(req.GetPagination()),
+		Status:  vobj.Status(req.GetStatus()),
+		Keyword: req.GetKeyword(),
 	}
 	list, err := s.templateBiz.ListTemplateStrategy(ctx, params)
 	if err != nil {
