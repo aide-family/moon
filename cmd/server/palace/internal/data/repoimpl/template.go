@@ -142,8 +142,14 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 			return item.ID
 		})
 
-		strategyWrapper = strategyWrapper.Join(query.StrategyTemplateCategories, query.StrategyTemplateCategories.CategoriesID.In(categoriesIds...))
-
+		var strategyTemplateIds []uint32
+		strategyTemplateCategories := query.Use(l.data.GetMainDB(ctx)).StrategyTemplateCategories.WithContext(ctx)
+		_ = strategyTemplateCategories.Where(query.StrategyTemplateCategories.CategoriesID.In(categoriesIds...)).
+			Select(query.StrategyTemplateCategories.StrategyTemplateID).
+			Scan(&strategyTemplateIds)
+		if len(strategyTemplateIds) > 0 {
+			strategyWrapper = strategyWrapper.Or(query.StrategyTemplate.ID.In(strategyTemplateIds...))
+		}
 	}
 
 	strategyWrapper = strategyWrapper.Where(wheres...).Preload(field.Associations)
