@@ -429,6 +429,8 @@ message StrategyTemplate {
   string updated_at = 9;
   // 策略模板说明信息
   string remark = 10;
+  // 创建人
+  User creator = 11;
 }
 
 message StrategyAlarmLevel {

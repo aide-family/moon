@@ -102,7 +102,7 @@ func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategy
 		return nil, err
 	}
 	return &strategyapi.GetTemplateStrategyReply{
-		Detail: build.NewTemplateStrategyBuilder(detail).ToApi(),
+		Detail: build.NewTemplateStrategyBuilder(detail).ToApi(ctx),
 	}, nil
 }
 
@@ -119,7 +119,7 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strateg
 	return &strategyapi.ListTemplateStrategyReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(list, func(item *model.StrategyTemplate) *admin.StrategyTemplate {
-			return build.NewTemplateStrategyBuilder(item).ToApi()
+			return build.NewTemplateStrategyBuilder(item).ToApi(ctx)
 		}),
 	}, nil
 }

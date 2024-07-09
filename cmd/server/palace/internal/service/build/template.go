@@ -1,8 +1,11 @@
 package build
 
 import (
+	"context"
+
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
@@ -17,10 +20,11 @@ func NewTemplateStrategyBuilder(templateStrategy *model.StrategyTemplate) *Templ
 	}
 }
 
-func (b *TemplateStrategyBuilder) ToApi() *admin.StrategyTemplate {
+func (b *TemplateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemplate {
 	if types.IsNil(b) || types.IsNil(b.StrategyTemplate) {
 		return nil
 	}
+	cache := runtimecache.GetRuntimeCache()
 	return &admin.StrategyTemplate{
 		Id:    b.ID,
 		Alert: b.Alert,
@@ -34,6 +38,7 @@ func (b *TemplateStrategyBuilder) ToApi() *admin.StrategyTemplate {
 		CreatedAt:   b.CreatedAt.String(),
 		UpdatedAt:   b.UpdatedAt.String(),
 		Remark:      b.Remark,
+		Creator:     NewUserBuilder(cache.GetUser(ctx, b.CreatorID)).ToApi(),
 	}
 }
 
