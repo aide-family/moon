@@ -34,13 +34,7 @@ server:
       - /api.admin.authorization.Authorization/CreatePassword
 
 data:
-  database:
-    driver: "mysql"
-    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-  bizDatabase:
-    driver: "mysql"
-    dsn: "root:12345678@tcp(127.0.0.1:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-  cache:
+ cache:
     redis:
       network: "tcp"
       addr: 127.0.0.1:6379
@@ -52,3 +46,9 @@ data:
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
+
+watch:
+  strategy:
+    timeout: 10s
+    interval: 10s
+  alertEvent:

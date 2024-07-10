@@ -7,7 +7,7 @@ const TableNameStrategyTemplateCategories = "strategy_template_categories"
 type StrategyTemplateCategories struct {
 	BaseModel
 	StrategyTemplateID uint32 `gorm:"primaryKey"`
-	CategoriesID       uint32 `gorm:"primaryKey"`
+	SysDictID          uint32 `gorm:"primaryKey"`
 }
 
 // String json string

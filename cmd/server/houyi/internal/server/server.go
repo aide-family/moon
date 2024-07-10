@@ -5,7 +5,10 @@ import (
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service"
+	"github.com/aide-family/moon/pkg/watch"
 
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -17,8 +20,9 @@ import (
 var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterService)
 
 type Server struct {
-	rpcSrv  *grpc.Server
-	httpSrv *http.Server
+	rpcSrv        *grpc.Server
+	httpSrv       *http.Server
+	strategyWatch *watch.Watcher
 }
 
 // GetRpcServer 获取rpc server
@@ -36,10 +40,13 @@ func (s *Server) GetServers() []transport.Server {
 	return []transport.Server{
 		s.rpcSrv,
 		s.httpSrv,
+		s.strategyWatch,
 	}
 }
 
 func RegisterService(
+	c *houyiconf.Bootstrap,
+	data *data.Data,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
@@ -59,7 +66,8 @@ func RegisterService(
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
 
 	return &Server{
-		rpcSrv:  rpcSrv,
-		httpSrv: httpSrv,
+		rpcSrv:        rpcSrv,
+		httpSrv:       httpSrv,
+		strategyWatch: newStrategyWatch(c, data),
 	}
 }

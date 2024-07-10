@@ -7,4 +7,5 @@ import (
 var ProviderSetRepoImpl = wire.NewSet(
 	NewCacheRepo,
 	NewMetricRepository,
+	NewStrategyRepository,
 )

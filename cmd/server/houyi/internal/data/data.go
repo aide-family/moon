@@ -8,11 +8,10 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/watch"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
-	"gorm.io/gorm"
 )
 
 // ProviderSetData is data providers.
@@ -20,19 +19,21 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	mainDB   *gorm.DB
-	bizDB    *gorm.DB
-	cacher   conn.Cache
-	enforcer *casbin.SyncedEnforcer
+	cacher conn.Cache
+
+	strategyQueue   watch.Queue
+	strategyStorage watch.Storage
 }
 
 var closeFuncList []func()
 
 // NewData .
 func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
-	d := &Data{}
-	mainConf := c.GetData().GetDatabase()
-	bizConf := c.GetData().GetBizDatabase()
+	d := &Data{
+		strategyQueue:   watch.NewDefaultQueue(100),
+		strategyStorage: watch.NewDefaultStorage(),
+	}
+
 	cacheConf := c.GetData().GetCache()
 	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
@@ -41,29 +42,15 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 		})
 	}
 
-	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
-		mainDB, err := conn.NewGormDB(mainConf.GetDsn(), mainConf.GetDriver())
-		if !types.IsNil(err) {
-			return nil, nil, err
-		}
-		d.mainDB = mainDB
+	if !types.IsNil(d.strategyQueue) {
 		closeFuncList = append(closeFuncList, func() {
-			mainDBClose, _ := d.mainDB.DB()
-			log.Debugw("close main db", mainDBClose.Close())
+			log.Debugw("close strategyQueue", d.strategyQueue.Close())
 		})
-		// 开发需要开启
-		//query.SetDefault(mainDB)
 	}
 
-	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
-		bizDB, err := conn.NewGormDB(bizConf.GetDsn(), bizConf.GetDriver())
-		if !types.IsNil(err) {
-			return nil, nil, err
-		}
-		d.bizDB = bizDB
+	if !types.IsNil(d.strategyStorage) {
 		closeFuncList = append(closeFuncList, func() {
-			bizDBClose, _ := d.bizDB.DB()
-			log.Debugw("close biz db", bizDBClose.Close())
+			log.Debugw("close strategyStorage", d.strategyStorage.Close())
 		})
 	}
 
@@ -76,24 +63,6 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	return d, cleanup, nil
 }
 
-// GetMainDB 获取主库连接
-func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
-	if exist {
-		return db
-	}
-	return d.mainDB
-}
-
-// GetBizDB 获取业务库连接
-func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
-	db, exist := ctx.Value(conn.GormContextTxKey{}).(*gorm.DB)
-	if exist {
-		return db
-	}
-	return d.bizDB
-}
-
 // GetCacher 获取缓存
 func (d *Data) GetCacher() conn.Cache {
 	if types.IsNil(d.cacher) {
@@ -102,9 +71,20 @@ func (d *Data) GetCacher() conn.Cache {
 	return d.cacher
 }
 
-// GetCasbin 获取casbin
-func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
-	return d.enforcer
+// GetStrategyQueue 获取策略队列
+func (d *Data) GetStrategyQueue() watch.Queue {
+	if types.IsNil(d.strategyQueue) {
+		log.Warn("strategyQueue is nil")
+	}
+	return d.strategyQueue
+}
+
+// GetStrategyStorage 获取策略存储
+func (d *Data) GetStrategyStorage() watch.Storage {
+	if types.IsNil(d.strategyStorage) {
+		log.Warn("strategyStorage is nil")
+	}
+	return d.strategyStorage
 }
 
 // newCache new cache

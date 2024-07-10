@@ -431,6 +431,8 @@ message StrategyTemplate {
   string remark = 10;
   // 创建人
   User creator = 11;
+  // 模板类型
+  repeated Select categories = 12;
 }
 
 message StrategyAlarmLevel {

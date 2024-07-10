@@ -11,6 +11,7 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   string env = 3;
+  Watch watch = 4;
 }
 
 message Server {
@@ -44,11 +45,6 @@ message Server {
 }
 
 message Data {
-  message Database {
-    string driver = 1;
-    string dsn = 2;
-  }
-
   message Cache {
     message Redis {
       string network = 1;
@@ -66,11 +62,18 @@ message Data {
     Redis redis = 1;
     NutsDB nutsDB = 2;
   }
-
-  // 主库, 用于维护系统配置、用户等
-  Database database = 1;
-  // 业务数据库，多租户场景下的业务数据， 业务数据采用分表存储
-  Database bizDatabase = 2;
   // 缓存，支持多缓存方式
-  Cache cache = 3;
+  Cache cache = 1;
+}
+
+message Watch {
+  message Strategy {
+    // 超时时间
+    google.protobuf.Duration timeout = 1;
+    // 执行频率
+    google.protobuf.Duration interval = 2;
+  }
+  message AlertEvent {}
+  Strategy strategy = 1;
+  AlertEvent alertEvent = 2;
 }

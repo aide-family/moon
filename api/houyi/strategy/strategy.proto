@@ -22,9 +22,13 @@ service Strategy {
 
 message PushStrategyRequest {
 	repeated Strategy strategies = 1 [(buf.validate.field).cel = {
-		id: "PushStrategyRequest_strategies",
+		id: "PushStrategyRequest_strategies_gt0",
 		expression: "this.size() > 0"
 		message: "策略列表不能为空"
+	}, (buf.validate.field).cel = {
+		id: "PushStrategyRequest_strategies_lte10",
+		expression: "this.size() <= 10"
+		message: "策略列表不能超过10个"
 	}];
 }
 message PushStrategyReply {}

@@ -201,7 +201,7 @@ func createTemplateLevelParamsToModel(ctx context.Context, params []*bo.CreateSt
 func createTemplateCategoriesToModel(ctx context.Context, categoriesIds []uint32, templateID uint32) []*model.StrategyTemplateCategories {
 	return types.SliceTo(categoriesIds, func(id uint32) *model.StrategyTemplateCategories {
 		templateCategories := &model.StrategyTemplateCategories{
-			CategoriesID:       id,
+			SysDictID:          id,
 			StrategyTemplateID: templateID,
 		}
 		templateCategories.WithContext(ctx)
