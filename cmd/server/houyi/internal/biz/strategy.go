@@ -22,3 +22,8 @@ type StrategyBiz struct {
 func (s *StrategyBiz) SaveStrategy(ctx context.Context, strategy []*bo.Strategy) error {
 	return s.strategyRepository.Save(ctx, strategy)
 }
+
+// Eval 根据策略信息产生告警数据
+func (s *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+	return s.strategyRepository.Eval(ctx, strategy)
+}

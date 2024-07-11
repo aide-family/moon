@@ -43,3 +43,11 @@ func (a *Alarm) Index() string {
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *Alarm) Message() *watch.Message {
+	return watch.NewMessage(a, vobj.TopicAlarm)
+}
+
+func (a *Alert) Message() *watch.Message {
+	return watch.NewMessage(a, vobj.TopicAlert)
+}

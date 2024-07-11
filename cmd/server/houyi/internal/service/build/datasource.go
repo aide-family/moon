@@ -23,7 +23,7 @@ func (b *DatasourceApiBuilder) ToBo() *bo.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}
-	config := make(map[string]any)
+	config := make(map[string]string)
 	_ = json.Unmarshal([]byte(b.GetConfig()), &config)
 	return &bo.Datasource{
 		Category:    vobj.DatasourceType(b.GetCategory()),

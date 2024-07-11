@@ -4,6 +4,7 @@ import (
 	"context"
 
 	alertapi "github.com/aide-family/moon/api/houyi/alert"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service/build"
 	"github.com/go-kratos/kratos/v2/log"
@@ -11,10 +12,16 @@ import (
 
 type AlertService struct {
 	alertapi.UnimplementedAlertServer
+
+	alertBiz    *biz.AlertBiz
+	strategyBiz *biz.StrategyBiz
 }
 
-func NewAlertService() *AlertService {
-	return &AlertService{}
+func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *AlertService {
+	return &AlertService{
+		alertBiz:    alertBiz,
+		strategyBiz: strategyBiz,
+	}
 }
 
 func (s *AlertService) Hook(ctx context.Context, req *alertapi.HookRequest) (*alertapi.HookReply, error) {
@@ -28,6 +35,9 @@ func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*
 	if err != nil {
 		return nil, err
 	}
+	if err := s.alertBiz.SaveAlarm(ctx, innerAlarm); err != nil {
+		return nil, err
+	}
 	alarm := build.NewAlarmBuilder(innerAlarm).ToApi()
 	return &alertapi.AlarmReply{
 		Alarm: alarm,
@@ -37,5 +47,5 @@ func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*
 // InnerAlarm 内部告警
 func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Alarm, error) {
 	log.Debugw("InnerAlarm", req)
-	return &bo.Alarm{}, nil
+	return s.strategyBiz.Eval(ctx, req)
 }

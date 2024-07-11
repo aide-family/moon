@@ -44,7 +44,7 @@ type (
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
 		// 数据源配置 json
-		Config map[string]any `json:"config,omitempty"`
+		Config map[string]string `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 	}
