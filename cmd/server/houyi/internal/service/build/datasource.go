@@ -9,17 +9,17 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type DatasourceBuilder struct {
+type DatasourceApiBuilder struct {
 	*api.Datasource
 }
 
-func NewDatasourceBuilder(datasource *api.Datasource) *DatasourceBuilder {
-	return &DatasourceBuilder{
+func NewDatasourceApiBuilder(datasource *api.Datasource) *DatasourceApiBuilder {
+	return &DatasourceApiBuilder{
 		Datasource: datasource,
 	}
 }
 
-func (b *DatasourceBuilder) ToBo() *bo.Datasource {
+func (b *DatasourceApiBuilder) ToBo() *bo.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}

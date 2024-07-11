@@ -70,8 +70,8 @@ message Watch {
   message Strategy {
     // 超时时间
     google.protobuf.Duration timeout = 1;
-    // 执行频率
-    google.protobuf.Duration interval = 2;
+    // 执行频率 cron 表达式
+    string interval = 2;
   }
   message AlertEvent {
     // 超时时间

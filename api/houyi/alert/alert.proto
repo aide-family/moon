@@ -3,6 +3,8 @@ syntax = "proto3";
 package api.houyi.alert;
 
 import "google/api/annotations.proto";
+import "strategy.proto";
+import "alert.proto";
 
 option go_package = "github.com/aide-family/moon/api/houyi/alert;alert";
 option java_multiple_files = true;
@@ -15,7 +17,23 @@ service Alert {
 			body: "*"
 		};
 	}
+
+	rpc Alarm (AlarmRequest) returns (AlarmReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/alarm"
+			body: "*"
+		};
+	}
 }
 
 message HookRequest {}
 message HookReply {}
+
+message AlarmRequest {
+	// 策略
+	Strategy strategy = 1;
+}
+message AlarmReply {
+	// 告警
+	Alarm alarm = 1;
+}

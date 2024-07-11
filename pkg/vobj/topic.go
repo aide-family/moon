@@ -10,5 +10,7 @@ const (
 
 	TopicStrategy // 策略
 
-	TopicAlert // 告警
+	TopicAlert // 单条告警
+
+	TopicAlarm // 多条告警
 )

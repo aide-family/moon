@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/aide-family/moon/api"
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	alertapi "github.com/aide-family/moon/api/houyi/alert"
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
@@ -22,7 +23,7 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 type Server struct {
 	rpcSrv        *grpc.Server
 	httpSrv       *http.Server
-	strategyWatch *watch.Watcher
+	strategyWatch *StrategyWatch
 	alertWatch    *watch.Watcher
 }
 
@@ -42,7 +43,7 @@ func (s *Server) GetServers() []transport.Server {
 		s.rpcSrv,
 		s.httpSrv,
 		s.strategyWatch,
-		s.alertWatch,
+		//s.alertWatch,
 	}
 }
 
@@ -55,22 +56,25 @@ func RegisterService(
 	metricService *service.MetricService,
 	healthService *service.HealthService,
 	strategyService *service.StrategyService,
+	alertService *service.AlertService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
 	metadataapi.RegisterMetricServer(rpcSrv, metricService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
+	alertapi.RegisterAlertServer(rpcSrv, alertService)
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
 	metadataapi.RegisterMetricHTTPServer(httpSrv, metricService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
+	alertapi.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	return &Server{
 		rpcSrv:        rpcSrv,
 		httpSrv:       httpSrv,
-		strategyWatch: newStrategyWatch(c, data),
-		alertWatch:    newAlertWatch(c, data),
+		strategyWatch: newStrategyWatch(c, data, alertService),
+		alertWatch:    newAlertWatch(c, data, alertService),
 	}
 }

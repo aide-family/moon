@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"fmt"
+
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -32,6 +34,8 @@ type (
 		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源
 		Datasource []*Datasource `json:"datasource,omitempty"`
+		// 策略状态
+		Status vobj.Status `json:"status,omitempty"`
 	}
 
 	Datasource struct {
@@ -47,8 +51,10 @@ type (
 )
 
 func (s *Strategy) Index() string {
-	//TODO implement me
-	panic("implement me")
+	if types.IsNil(s) {
+		return "-"
+	}
+	return fmt.Sprintf("%d", s.ID)
 }
 
 func (s *Strategy) Message() *watch.Message {

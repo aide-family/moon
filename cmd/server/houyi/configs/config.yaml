@@ -50,5 +50,5 @@ data:
 watch:
   strategy:
     timeout: 10s
-    interval: 10s
+    interval: "@every 10s"
   alertEvent:

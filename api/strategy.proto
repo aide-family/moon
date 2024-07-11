@@ -26,15 +26,7 @@ message Strategy {
     message: "策略语句不允许为空"
   }];
   // 策略持续时间
-  google.protobuf.Duration for = 3 [(buf.validate.field).cel = {
-    id: "Strategy_for"
-    expression: 'this.size() >= 2'
-    message: "策略持续时间不允许为空"
-  }, (buf.validate.field).cel = {
-    // 满足 数字+s格式
-    expression: 'this.matches(^\\d+s$)'
-    message: "策略持续时间格式错误"
-  }];
+  google.protobuf.Duration for = 3;
   // 持续次数
   uint32 count = 4;
   // 持续的类型
@@ -54,15 +46,7 @@ message Strategy {
     message: "策略注解不允许为空"
   }];
   // 执行频率
-  google.protobuf.Duration interval = 9 [(buf.validate.field).cel = {
-    id: "Strategy_interval"
-    expression: 'this.size() >= 2'
-    message: "执行频率不允许为空"
-  }, (buf.validate.field).cel = {
-    // 满足 数字+s格式
-    expression: 'this.matches(^\\d+s$)'
-    message: "执行频率格式错误"
-  }];
+  google.protobuf.Duration interval = 9;
   // 数据源
   repeated Datasource datasource = 10 [(buf.validate.field).cel = {
     id: "Strategy_datasource"
@@ -70,7 +54,13 @@ message Strategy {
     message: "数据源不允许为空"
   }];
   // 策略ID, 用于标识唯一性
-  uint32 id = 11;
+  uint32 id = 11 [(buf.validate.field).cel = {
+    id: "Strategy_id"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
+  // 测了状态
+  Status status = 12 [(buf.validate.field).enum.defined_only = true];
 }
 
 // 类型元数据，每个对象都应该包含这个字段

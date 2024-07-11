@@ -33,7 +33,8 @@ func (b *StrategyApiBuilder) ToBo() *bo.Strategy {
 		Annotations:                b.GetAnnotations(),
 		Interval:                   types.NewDuration(b.GetInterval()),
 		Datasource: types.SliceTo(b.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
-			return NewDatasourceBuilder(ds).ToBo()
+			return NewDatasourceApiBuilder(ds).ToBo()
 		}),
+		Status: vobj.Status(b.GetStatus()),
 	}
 }
