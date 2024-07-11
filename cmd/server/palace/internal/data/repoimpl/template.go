@@ -144,7 +144,7 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 
 		var strategyTemplateIds []uint32
 		strategyTemplateCategories := query.Use(l.data.GetMainDB(ctx)).StrategyTemplateCategories.WithContext(ctx)
-		_ = strategyTemplateCategories.Where(query.StrategyTemplateCategories.CategoriesID.In(categoriesIds...)).
+		_ = strategyTemplateCategories.Where(query.StrategyTemplateCategories.SysDictID.In(categoriesIds...)).
 			Select(query.StrategyTemplateCategories.StrategyTemplateID).
 			Scan(&strategyTemplateIds)
 		if len(strategyTemplateIds) > 0 {
