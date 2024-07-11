@@ -23,6 +23,9 @@ type Data struct {
 
 	strategyQueue   watch.Queue
 	strategyStorage watch.Storage
+
+	alertQueue   watch.Queue
+	alertStorage watch.Storage
 }
 
 var closeFuncList []func()
@@ -32,6 +35,8 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
 		strategyQueue:   watch.NewDefaultQueue(100),
 		strategyStorage: watch.NewDefaultStorage(),
+		alertQueue:      watch.NewDefaultQueue(100),
+		alertStorage:    watch.NewDefaultStorage(),
 	}
 
 	cacheConf := c.GetData().GetCache()
@@ -39,18 +44,6 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 		d.cacher = newCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
-		})
-	}
-
-	if !types.IsNil(d.strategyQueue) {
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close strategyQueue", d.strategyQueue.Close())
-		})
-	}
-
-	if !types.IsNil(d.strategyStorage) {
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close strategyStorage", d.strategyStorage.Close())
 		})
 	}
 
@@ -85,6 +78,22 @@ func (d *Data) GetStrategyStorage() watch.Storage {
 		log.Warn("strategyStorage is nil")
 	}
 	return d.strategyStorage
+}
+
+// GetAlertQueue 获取告警队列
+func (d *Data) GetAlertQueue() watch.Queue {
+	if types.IsNil(d.alertQueue) {
+		log.Warn("alertQueue is nil")
+	}
+	return d.alertQueue
+}
+
+// GetAlertStorage 获取告警存储
+func (d *Data) GetAlertStorage() watch.Storage {
+	if types.IsNil(d.alertStorage) {
+		log.Warn("alertStorage is nil")
+	}
+	return d.alertStorage
 }
 
 // newCache new cache

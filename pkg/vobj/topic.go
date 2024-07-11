@@ -8,5 +8,7 @@ type Topic int
 const (
 	TopicUnknown Topic = iota // 未知
 
-	// TODO 定义其他的消息类型
+	TopicStrategy // 策略
+
+	TopicAlert // 告警
 )

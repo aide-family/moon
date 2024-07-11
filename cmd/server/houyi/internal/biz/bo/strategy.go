@@ -3,10 +3,15 @@ package bo
 import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 )
+
+var _ watch.Indexer = (*Strategy)(nil)
 
 type (
 	Strategy struct {
+		// 策略ID
+		ID uint32 `json:"id,omitempty"`
 		// 策略名称
 		Alert string `json:"alert,omitempty"`
 		// 策略语句
@@ -20,9 +25,9 @@ type (
 		// 多数据源持续类型
 		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
-		Labels map[string]string `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Labels vobj.Labels `protobuf_val:"bytes,2,opt,name=value,proto3"`
 		// 策略注解
-		Annotations map[string]string `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Annotations vobj.Annotations `protobuf_val:"bytes,2,opt,name=value,proto3"`
 		// 执行频率
 		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源
@@ -35,8 +40,17 @@ type (
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
 		// 数据源配置 json
-		Config string `json:"config,omitempty"`
+		Config map[string]any `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 	}
 )
+
+func (s *Strategy) Index() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Strategy) Message() *watch.Message {
+	return watch.NewMessage(s, vobj.TopicStrategy)
+}

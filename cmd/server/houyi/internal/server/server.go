@@ -23,6 +23,7 @@ type Server struct {
 	rpcSrv        *grpc.Server
 	httpSrv       *http.Server
 	strategyWatch *watch.Watcher
+	alertWatch    *watch.Watcher
 }
 
 // GetRpcServer 获取rpc server
@@ -41,6 +42,7 @@ func (s *Server) GetServers() []transport.Server {
 		s.rpcSrv,
 		s.httpSrv,
 		s.strategyWatch,
+		s.alertWatch,
 	}
 }
 
@@ -69,5 +71,6 @@ func RegisterService(
 		rpcSrv:        rpcSrv,
 		httpSrv:       httpSrv,
 		strategyWatch: newStrategyWatch(c, data),
+		alertWatch:    newAlertWatch(c, data),
 	}
 }

@@ -14,8 +14,8 @@ type Strategy struct {
 	model.AllFieldModel
 	// 模板ID, 用于标记是否从模板创建而来
 	StrategyTemplateID uint32 `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"strategy_template_id"`
-	// 策略模板
-	StrategyTemplate *StrategyTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_template"`
+	// 策略模板来源（系统、团队）
+	StrategyTemplateSource vobj.StrategyTemplateSource `gorm:"column:strategy_template_source;type:tinyint;not null;comment:策略模板来源（系统、团队）" json:"strategy_template_source"`
 
 	Alert       string           `gorm:"column:alert;type:varchar(64);not null;comment:策略名称" json:"alert"`
 	Expr        string           `gorm:"column:expr;type:text;not null;comment:告警表达式" json:"expr"`

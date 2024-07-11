@@ -1,11 +1,10 @@
 package types
 
 import (
-	"fmt"
-	"time"
-
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
+	"time"
 
 	"google.golang.org/protobuf/types/known/durationpb"
 )
@@ -70,6 +69,12 @@ func (t Time) Value() (driver.Value, error) {
 
 var _ driver.Valuer = (*Duration)(nil)
 var _ sql.Scanner = (*Duration)(nil)
+
+func NewDuration(dur *durationpb.Duration) *Duration {
+	return &Duration{
+		Duration: dur,
+	}
+}
 
 type Duration struct {
 	Duration *durationpb.Duration

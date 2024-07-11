@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package api.houyi.alert;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/houyi/alert;alert";
+option java_multiple_files = true;
+option java_package = "api.houyi.alert";
+
+service Alert {
+	rpc Hook (HookRequest) returns (HookReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/hook"
+			body: "*"
+		};
+	}
+}
+
+message HookRequest {}
+message HookReply {}

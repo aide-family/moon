@@ -73,7 +73,12 @@ message Watch {
     // 执行频率
     google.protobuf.Duration interval = 2;
   }
-  message AlertEvent {}
+  message AlertEvent {
+    // 超时时间
+    google.protobuf.Duration timeout = 1;
+    // 执行频率
+    google.protobuf.Duration interval = 2;
+  }
   Strategy strategy = 1;
   AlertEvent alertEvent = 2;
 }

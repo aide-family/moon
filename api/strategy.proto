@@ -69,6 +69,8 @@ message Strategy {
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
   }];
+  // 策略ID, 用于标识唯一性
+  uint32 id = 11;
 }
 
 // 类型元数据，每个对象都应该包含这个字段
