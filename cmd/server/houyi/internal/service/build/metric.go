@@ -73,7 +73,7 @@ func (b *MetricQueryBuilder) ToApi() *api.MetricQueryResult {
 	}
 
 	return &api.MetricQueryResult{
-		Labels:     b.Labels,
+		Labels:     b.Labels.Map(),
 		ResultType: b.ResultType,
 		Values:     values,
 		Value:      value,

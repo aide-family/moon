@@ -27,7 +27,7 @@ type (
 		// 多数据源持续类型
 		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
-		Labels vobj.Labels `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Labels *vobj.Labels `protobuf_val:"bytes,2,opt,name=value,proto3"`
 		// 策略注解
 		Annotations vobj.Annotations `protobuf_val:"bytes,2,opt,name=value,proto3"`
 		// 执行频率
@@ -36,6 +36,12 @@ type (
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态
 		Status vobj.Status `json:"status,omitempty"`
+		// 策略采样率
+		Step uint32 `json:"step,omitempty"`
+		// 判断条件
+		Condition vobj.Condition `json:"condition,omitempty"`
+		// 阈值
+		Threshold float64 `json:"threshold,omitempty"`
 	}
 
 	Datasource struct {

@@ -29,7 +29,7 @@ func (b *StrategyApiBuilder) ToBo() *bo.Strategy {
 		Count:                      b.GetCount(),
 		SustainType:                vobj.Sustain(b.GetSustainType()),
 		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(b.GetMultiDatasourceSustainType()),
-		Labels:                     b.GetLabels(),
+		Labels:                     vobj.NewLabels(b.GetLabels()),
 		Annotations:                b.GetAnnotations(),
 		Interval:                   types.NewDuration(b.GetInterval()),
 		Datasource: types.SliceTo(b.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {

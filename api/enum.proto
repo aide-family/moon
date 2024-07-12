@@ -8,229 +8,260 @@ option java_package = "api";
 
 // 枚举类型
 message EnumItem {
-	// 枚举值
-	int32 value = 1;
-	// 枚举描述
-	string label = 2;
+  // 枚举值
+  int32 value = 1;
+  // 枚举描述
+  string label = 2;
 }
 
 // 数据状态
 enum Status {
-	// 全部
-	StatusAll = 0;
+  // 全部
+  StatusAll = 0;
 
-	// 启用
-	StatusEnable= 1;
+  // 启用
+  StatusEnable = 1;
 
-	// 禁用
-	StatusDisable = 2;
+  // 禁用
+  StatusDisable = 2;
 }
 
 // 性别
 enum Gender {
-	// 全部
-	GenderAll = 0;
+  // 全部
+  GenderAll = 0;
 
-	// 男
-	GenderMale = 1;
+  // 男
+  GenderMale = 1;
 
-	// 女
-	GenderFemale= 2;
+  // 女
+  GenderFemale = 2;
 }
 
 // 系统全局默认角色， 区别于空间下自定义角色类型
 enum Role {
-	// 全部 / 未知
-	RoleAll = 0;
+  // 全部 / 未知
+  RoleAll = 0;
 
-	// 管理员
-	RoleSupperAdmin = 1;
+  // 管理员
+  RoleSupperAdmin = 1;
 
-	// 普通管理员
-	RoleAdmin = 2;
+  // 普通管理员
+  RoleAdmin = 2;
 
-	// 普通用户
-	RoleUser = 3;
+  // 普通用户
+  RoleUser = 3;
 }
 
 // 数据来源
 enum DataSource {
-	// 全部
-	DataSourceAll = 0;
+  // 全部
+  DataSourceAll = 0;
 
-	// 本地
-	DataSourceLocal = 1;
+  // 本地
+  DataSourceLocal = 1;
 
-	// 远程
-	DataSourceRemote = 2;
+  // 远程
+  DataSourceRemote = 2;
 }
 
 // 验证码类型
 enum CaptchaType {
-	// 图片验证码
-	CaptchaTypeImage = 0;
+  // 图片验证码
+  CaptchaTypeImage = 0;
 
-	// 音频验证码
-	CaptchaTypeAudio = 1;
+  // 音频验证码
+  CaptchaTypeAudio = 1;
 }
 
 // 领域类型枚举
 enum DomainType {
-	// 未知领域类型
-	DomainTypeUnknown = 0;
+  // 未知领域类型
+  DomainTypeUnknown = 0;
 
-	// 系统领域
-	DomainTypeSystem = 1;
+  // 系统领域
+  DomainTypeSystem = 1;
 
-	// 监控领域
-	DomainTypeMonitor = 2;
+  // 监控领域
+  DomainTypeMonitor = 2;
 }
 
 // 模块类型枚举
 enum ModuleType {
-	// 未知模块类型
-	ModuleTypeUnknown = 0;
+  // 未知模块类型
+  ModuleTypeUnknown = 0;
 
-	// 接口模块
-	ModelTypeApi = 1;
+  // 接口模块
+  ModelTypeApi = 1;
 
-	// 菜单模块
-	ModelTypeMenu = 2;
+  // 菜单模块
+  ModelTypeMenu = 2;
 
-	// 角色模块
-	ModelTypeRole = 3;
+  // 角色模块
+  ModelTypeRole = 3;
 
-	// 用户模块
-	ModelTypeUser = 4;
+  // 用户模块
+  ModelTypeUser = 4;
 
-	// 字典模块
-	ModelTypeDict = 5;
+  // 字典模块
+  ModelTypeDict = 5;
 
-	// 配置模块
-	ModelTypeConfig = 6;
+  // 配置模块
+  ModelTypeConfig = 6;
 
-	// 日志模块
-	ModelTypeLog = 7;
+  // 日志模块
+  ModelTypeLog = 7;
 
-	// 任务模块
-	ModelTypeJob = 8;
+  // 任务模块
+  ModelTypeJob = 8;
 
-	// 通知模块
-	ModelTypeNotify = 9;
+  // 通知模块
+  ModelTypeNotify = 9;
 
-	// 系统模块
-	ModelTypeSystem = 10;
+  // 系统模块
+  ModelTypeSystem = 10;
 
-	// 监控模块
-	ModelTypeMonitor = 11;
+  // 监控模块
+  ModelTypeMonitor = 11;
 }
 
 // 数据源类型
 enum DatasourceType {
-	// 未知数据源类型
-	DatasourceTypeUnknown = 0;
+  // 未知数据源类型
+  DatasourceTypeUnknown = 0;
 
-	// Metric
-	DatasourceTypeMetric = 1;
+  // Metric
+  DatasourceTypeMetric = 1;
 
-	// Trace
-	DatasourceTypeTrace = 2;
+  // Trace
+  DatasourceTypeTrace = 2;
 
-	// Log
-	DatasourceTypeLog = 3;
+  // Log
+  DatasourceTypeLog = 3;
 }
 
 // 存储器类型 prometheus、victoriametrics等
 enum StorageType {
-	// 未知存储器类型
-	StorageTypeUnknown = 0;
+  // 未知存储器类型
+  StorageTypeUnknown = 0;
 
-	// Prometheus
-	StorageTypePrometheus = 1;
+  // Prometheus
+  StorageTypePrometheus = 1;
 
-	// VictoriaMetrics
-	StorageTypeVictoriaMetrics = 2;
+  // VictoriaMetrics
+  StorageTypeVictoriaMetrics = 2;
 }
 
 // 指标类型
 enum MetricType {
-	// 未知指标类型
-	MetricTypeUnknown = 0;
+  // 未知指标类型
+  MetricTypeUnknown = 0;
 
-	// Counter
-	MetricTypeCounter = 1;
+  // Counter
+  MetricTypeCounter = 1;
 
-	// Gauge
-	MetricTypeGauge = 2;
+  // Gauge
+  MetricTypeGauge = 2;
 
-	// Histogram
-	MetricTypeHistogram = 3;
+  // Histogram
+  MetricTypeHistogram = 3;
 
-	// Summary
-	MetricTypeSummary = 4;
+  // Summary
+  MetricTypeSummary = 4;
 }
 
 // 持续类型
 enum SustainType {
-	// 未知持续类型
-	SustainTypeUnknown = 0;
+  // 未知持续类型
+  SustainTypeUnknown = 0;
 
-	// m时间内出现n次
-	SustainTypeFor = 1;
+  // m时间内出现n次
+  SustainTypeFor = 1;
 
-	// m时间内最多出现n次
-	SustainTypeMax = 2;
+  // m时间内最多出现n次
+  SustainTypeMax = 2;
 
-	// m时间内最少出现n次
-	SustainTypeMin = 3;
+  // m时间内最少出现n次
+  SustainTypeMin = 3;
 }
 
 // 多数据源持续类型
 enum MultiDatasourceSustainType {
-	// 未知持续类型
-	MultiDatasourceSustainTypeUnknown = 0;
+  // 未知持续类型
+  MultiDatasourceSustainTypeUnknown = 0;
 
-	// 同时满足 所有数据告警集合一致
-	MultiDatasourceSustainTypeAnd = 1;
+  // 同时满足 所有数据告警集合一致
+  MultiDatasourceSustainTypeAnd = 1;
 
-	// 其中一个满足 数据告警集合其中一个完全满足
-	MultiDatasourceSustainTypeOr = 2;
+  // 其中一个满足 数据告警集合其中一个完全满足
+  MultiDatasourceSustainTypeOr = 2;
 
-	// 共同满足 所有数据告警集合合并起来后满足
-	MultiDatasourceSustainTypeAndOr = 3;
+  // 共同满足 所有数据告警集合合并起来后满足
+  MultiDatasourceSustainTypeAndOr = 3;
 }
 
 // 分类, 区分字典中的各个模块数据
 enum DictType {
-	// 未知, 用于默认值
-	DictTypeUnknown = 0;
+  // 未知, 用于默认值
+  DictTypeUnknown = 0;
 
-	// 标签
-	DictTypePromLabel = 1;
+  // 标签
+  DictTypePromLabel = 1;
 
-	// 注解
-	DictTypePromAnnotation = 2;
+  // 注解
+  DictTypePromAnnotation = 2;
 
-	// 策略
-	DictTypePromStrategy = 3;
+  // 策略
+  DictTypePromStrategy = 3;
 
-	// 策略组
-	DictTypePromStrategyGroup = 4;
+  // 策略组
+  DictTypePromStrategyGroup = 4;
 
-	// 告警级别
-	DictTypeAlarmLevel = 5;
+  // 告警级别
+  DictTypeAlarmLevel = 5;
 
-	// 告警状态
-	DictTypeAlarmStatus = 6;
+  // 告警状态
+  DictTypeAlarmStatus = 6;
 
-	// 通知类型
-	DictTypeNotifyType = 7;
+  // 通知类型
+  DictTypeNotifyType = 7;
 }
 
 // 菜单类型
 enum MenuType {
-  MenuTypeUnknown = 0 ;// 未知
-  MenuTypeMenu = 1;            // 菜单
-  MenuTypeButton = 2   ;     // 按钮
-  MenuTypeDir = 3      ;      // 文件夹
+  // 未知
+  MenuTypeUnknown = 0 ;
+
+  // 菜单
+  MenuTypeMenu = 1;
+
+  // 按钮
+  MenuTypeButton = 2;
+
+  // 文件夹
+  MenuTypeDir = 3;
+}
+
+// 判断条件
+enum Condition {
+  // 未知
+  ConditionUnknown = 0;
+
+  // 等于
+  ConditionEQ = 1;
+
+  // 不等于
+  ConditionNE = 2;
+
+  // 大于
+  ConditionGT = 3;
+
+  // 大于等于
+  ConditionGTE = 4;
+
+  // 小于
+  ConditionLT = 5;
+
+  // 小于等于
+  ConditionLTE = 6;
 }

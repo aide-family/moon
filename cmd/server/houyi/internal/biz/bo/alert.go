@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 )
@@ -13,8 +14,8 @@ type (
 		Receiver          string           `json:"receiver"`
 		Status            vobj.AlertStatus `json:"status"`
 		Alerts            []*Alert         `json:"alerts"`
-		GroupLabels       vobj.Labels      `json:"groupLabels"`
-		CommonLabels      vobj.Labels      `json:"commonLabels"`
+		GroupLabels       *vobj.Labels     `json:"groupLabels"`
+		CommonLabels      *vobj.Labels     `json:"commonLabels"`
 		CommonAnnotations vobj.Annotations `json:"commonAnnotations"`
 		ExternalURL       string           `json:"externalURL"`
 		Version           string           `json:"version"`
@@ -24,10 +25,10 @@ type (
 
 	Alert struct {
 		Status       vobj.AlertStatus `json:"status"`
-		Labels       vobj.Labels      `json:"labels"`
+		Labels       *vobj.Labels     `json:"labels"`
 		Annotations  vobj.Annotations `json:"annotations"`
-		StartsAt     string           `json:"startsAt"`
-		EndsAt       string           `json:"endsAt"`
+		StartsAt     *types.Time      `json:"startsAt"`
+		EndsAt       *types.Time      `json:"endsAt"`
 		GeneratorURL string           `json:"generatorURL"`
 		Fingerprint  string           `json:"fingerprint"`
 		Value        float64          `json:"value"`

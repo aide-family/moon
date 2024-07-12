@@ -32,7 +32,7 @@ func (b *TemplateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemp
 		Levels: types.SliceTo(b.StrategyLevelTemplates, func(item *model.StrategyLevelTemplate) *admin.StrategyLevelTemplate {
 			return NewTemplateStrategyLevelBuilder(item).ToApi()
 		}),
-		Labels:      b.Labels,
+		Labels:      b.Labels.Map(),
 		Annotations: b.Annotations,
 		Status:      api.Status(b.Status),
 		CreatedAt:   b.CreatedAt.String(),

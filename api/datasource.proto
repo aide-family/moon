@@ -15,7 +15,7 @@ message Datasource {
   // 存储器类型
   StorageType storage_type = 2;
   // 数据源配置 json
-  string config = 3;
+  map<string, string> config = 3;
   // 数据源地址
   string endpoint = 4;
 }

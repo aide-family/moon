@@ -31,13 +31,16 @@ func (a *AlarmApiBuilder) ToBo() *bo.Strategy {
 		Count:                      strategyInfo.GetCount(),
 		SustainType:                vobj.Sustain(strategyInfo.GetSustainType()),
 		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(strategyInfo.GetMultiDatasourceSustainType()),
-		Labels:                     strategyInfo.GetLabels(),
+		Labels:                     vobj.NewLabels(strategyInfo.GetLabels()),
 		Annotations:                strategyInfo.GetAnnotations(),
 		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
 		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
 			return NewDatasourceApiBuilder(ds).ToBo()
 		}),
-		Status: vobj.Status(strategyInfo.GetStatus()),
+		Status:    vobj.Status(strategyInfo.GetStatus()),
+		Step:      strategyInfo.GetStep(),
+		Condition: vobj.Condition(strategyInfo.GetCondition()),
+		Threshold: strategyInfo.GetThreshold(),
 	}
 }
 
@@ -62,8 +65,8 @@ func (a *AlarmBuilder) ToApi() *api.Alarm {
 		Alerts: types.SliceTo(alarm.Alerts, func(alert *bo.Alert) *api.Alert {
 			return NewAlertBuilder(alert).ToApi()
 		}),
-		GroupLabels:       alarm.GroupLabels,
-		CommonLabels:      alarm.CommonLabels,
+		GroupLabels:       alarm.GroupLabels.Map(),
+		CommonLabels:      alarm.CommonLabels.Map(),
 		CommonAnnotations: alarm.CommonAnnotations,
 		ExternalURL:       alarm.ExternalURL,
 		Version:           alarm.Version,
@@ -89,10 +92,10 @@ func (a *AlertBuilder) ToApi() *api.Alert {
 	alert := a.Alert
 	return &api.Alert{
 		Status:       alert.Status.String(),
-		Labels:       alert.Labels,
+		Labels:       alert.Labels.Map(),
 		Annotations:  alert.Annotations,
-		StartsAt:     alert.StartsAt,
-		EndsAt:       alert.EndsAt,
+		StartsAt:     alert.StartsAt.String(),
+		EndsAt:       alert.EndsAt.String(),
 		GeneratorURL: alert.GeneratorURL,
 		Fingerprint:  alert.Fingerprint,
 	}

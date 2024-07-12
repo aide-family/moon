@@ -23,6 +23,8 @@ type Strategy struct {
 	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	Remark      string           `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	Status      vobj.Status      `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
+	// 采样率
+	Step uint32 `gorm:"column:step;type:int;not null;comment:采样率" json:"step"`
 
 	Datasource []*Datasource `gorm:"many2many:strategy_datasource;" json:"datasource"`
 	// 策略类型

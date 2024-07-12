@@ -16,7 +16,7 @@ type (
 		// 备注
 		Remark string `json:"remark"`
 		// 标签
-		Labels vobj.Labels `json:"labels"`
+		Labels *vobj.Labels `json:"labels"`
 		// 注解
 		Annotations vobj.Annotations `json:"annotations"`
 		// 模板等级

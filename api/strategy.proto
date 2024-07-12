@@ -59,8 +59,14 @@ message Strategy {
     expression: 'this > 0'
     message: "策略ID必须大于0"
   }];
-  // 测了状态
+  // 策略状态
   Status status = 12 [(buf.validate.field).enum.defined_only = true];
+  // 采样率
+  uint32 step = 13;
+  // 判断条件
+  Condition condition = 14;
+  // 阈值
+  double threshold = 15;
 }
 
 // 类型元数据，每个对象都应该包含这个字段

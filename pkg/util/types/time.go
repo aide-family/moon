@@ -14,7 +14,7 @@ type Time time.Time
 // String implements Stringer interface
 func (t *Time) String() string {
 	if t == nil {
-		return "-"
+		return ""
 	}
 	return time.Time(*t).Format(time.DateTime)
 }
@@ -40,6 +40,11 @@ func NewTimeByString(s string, layout ...string) *Time {
 	if err != nil {
 		return nil
 	}
+	return (*Time)(&t)
+}
+
+func NewTimeByUnix(unix int64) *Time {
+	t := time.Unix(unix, 0)
 	return (*Time)(&t)
 }
 

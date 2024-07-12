@@ -1,8 +1,6 @@
 package build
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -23,12 +21,11 @@ func (b *DatasourceApiBuilder) ToBo() *bo.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}
-	config := make(map[string]string)
-	_ = json.Unmarshal([]byte(b.GetConfig()), &config)
+
 	return &bo.Datasource{
 		Category:    vobj.DatasourceType(b.GetCategory()),
 		StorageType: vobj.StorageType(b.GetStorageType()),
-		Config:      config,
+		Config:      b.GetConfig(),
 		Endpoint:    b.GetEndpoint(),
 	}
 }

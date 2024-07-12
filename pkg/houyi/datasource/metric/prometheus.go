@@ -12,6 +12,7 @@ import (
 
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -152,7 +153,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 		}
 
 		result = append(result, &QueryResponse{
-			Labels:     v.Metric,
+			Labels:     vobj.NewLabels(v.Metric),
 			Values:     values,
 			ResultType: data.ResultType,
 		})
@@ -201,7 +202,7 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 			continue
 		}
 		result = append(result, &QueryResponse{
-			Labels: v.Metric,
+			Labels: vobj.NewLabels(v.Metric),
 			Value: &QueryValue{
 				Value:     metricValue,
 				Timestamp: int64(ts),
