@@ -41,14 +41,19 @@
 ![策略编辑](doc/img/runtime/alarm-strategy-edit.png)
 
 ### 在线体验
-  * 环境地址https://prometheus.aide-cloud.cn/
+  * ~~环境地址https://prometheus.aide-cloud.cn/~~
 
-  * 用户名：prometheus
-  * 密码：123456
+  * ~~用户名：prometheus~~
+  * ~~密码：123456~~
 
 
-  * 用户名：num1
-  * 密码：68b329da9893e34099c7d8ad5cb9c940
+  * ~~用户名：num1~~
+  * ~~密码：68b329da9893e34099c7d8ad5cb9c940~~
+
+moon demo环境更新了， 新域名
+https://moon.aide-cloud.cn
+账号：admin
+密码：123456
 
 ### 系统架构
   ![moon.svg](./doc/img/moon.jpg)
