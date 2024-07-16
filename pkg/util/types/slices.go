@@ -175,3 +175,16 @@ func Filter[T any](list []T, f func(T) bool) []T {
 	}
 	return rs
 }
+
+// SlicesHasDuplicates 是否有重复元素
+func SlicesHasDuplicates[T any, R comparable](arr []T, keyFunc func(T) R) bool {
+	keys := make(map[R]struct{})
+	for _, item := range arr {
+		key := keyFunc(item)
+		if _, exists := keys[key]; exists {
+			return true
+		}
+		keys[key] = struct{}{}
+	}
+	return false
+}

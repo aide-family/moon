@@ -62,11 +62,8 @@ type (
 		Count uint32 `json:"count"`
 		// 持续事件类型
 		SustainType vobj.Sustain `json:"sustainType"`
-
-		// 执行频率
-		Interval *types.Duration `json:"interval"`
 		// 条件
-		Condition string `json:"condition"`
+		Condition vobj.Condition `json:"condition"`
 		// 阈值
 		Threshold float64 `json:"threshold"`
 		// 告警等级 对应sys_dict字典id

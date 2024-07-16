@@ -67,18 +67,15 @@ message MutationStrategyLevelTemplate {
   // 策略持续时间
   google.protobuf.Duration duration = 1;
   // 持续次数
-  uint32 Count = 2;
+  uint32 count = 2;
   // 持续的类型
   SustainType sustainType = 3;
-  // 执行频率
-  google.protobuf.Duration interval = 4;
   // 条件
-  string condition = 5;
+  Condition condition = 4;
   // 阈值
-  double threshold = 6;
+  double threshold = 5;
   // ID
-  uint32 id = 7;
-  // TODO 考虑是否增加范围型阈值条件[1, 100]
+  uint32 id = 6;
 }
 
 message CreateTemplateStrategyRequest {
@@ -119,7 +116,7 @@ message CreateTemplateStrategyRequest {
     id: "CreateTemplateStrategyRequestLevel"
   }];
   //策略模板类型
-  repeated uint32 categories_ids = 7 [(buf.validate.field).cel = {
+  repeated uint32 categoriesIds = 7 [(buf.validate.field).cel = {
     message: "请选择策略模板类型",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {

@@ -17,13 +17,13 @@ type StrategyLevelTemplate struct {
 	StrategyTemplate   *StrategyTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_template"`
 
 	// 持续时间
-	Duration *types.Duration `gorm:"column:duration;type:varchar(64);not null;comment:告警持续时间" json:"duration"`
+	Duration *types.Duration `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
 	// 持续次数
 	Count uint32 `gorm:"column:count;type:int unsigned;not null;comment:持续次数" json:"count"`
 	// 持续事件类型
 	SustainType vobj.Sustain `gorm:"column:sustain_type;type:int(11);not null;comment:持续类型" json:"sustain_type"`
 	// 执行频率
-	Interval *types.Duration `gorm:"column:interval;type:varchar(64);not null;comment:执行频率" json:"interval"`
+	Interval *types.Duration `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval"`
 	// 条件
 	Condition string `gorm:"column:condition;type:varchar(2);not null;comment:条件" json:"condition"`
 	// 阈值

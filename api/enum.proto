@@ -265,3 +265,16 @@ enum Condition {
   // 小于等于
   ConditionLTE = 6;
 }
+
+
+// 模板来源类型
+enum TemplateSourceType {
+  // 未知
+  TemplateSourceTypeUnknown = 0;
+
+  // 系统
+  TemplateSourceTypeSystem = 1;
+
+  // 团队
+  TemplateSourceTypeTeam = 2;
+}

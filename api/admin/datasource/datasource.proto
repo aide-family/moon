@@ -112,7 +112,7 @@ message CreateDatasourceRequest {
   // 数据源配置
   map<string, string> config = 6;
   // 存储器类型
-  StorageType storage_type = 7;
+  StorageType storageType = 7;
 }
 message CreateDatasourceReply {}
 
@@ -147,7 +147,7 @@ message ListDatasourceRequest {
   // 数据源类型
   DatasourceType type = 4;
   // 存储器类型
-  StorageType storage_type = 5;
+  StorageType storageType = 5;
 }
 message ListDatasourceReply {
   PaginationReply pagination = 1;

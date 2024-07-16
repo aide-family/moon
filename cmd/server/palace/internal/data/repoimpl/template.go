@@ -186,7 +186,6 @@ func createTemplateLevelParamsToModel(ctx context.Context, params []*bo.CreateSt
 			Duration:           item.Duration,
 			Count:              item.Count,
 			SustainType:        item.SustainType,
-			Interval:           item.Interval,
 			Condition:          item.Condition,
 			Threshold:          item.Threshold,
 			LevelID:            item.LevelID,

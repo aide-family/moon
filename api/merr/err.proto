@@ -293,4 +293,17 @@ enum ErrorReason {
     (errors.id) = "MENU_NOT_FOUND_ERR"
   ];
 
+  // 策略不存在
+  STRATEGY_NOT_FOUND_ERR = 41 [
+    (errors.code) = 405,
+    (errors.message) = "策略不存在!",
+    (errors.id) = "STRATEGY_NOT_FOUND_ERR"
+  ];
+
+  // 策略等级不允许重复
+  STRATEGY_LEVEL_REPEAT_ERR = 42 [
+    (errors.code) = 405,
+    (errors.message) = "策略等级不允许重复!",
+    (errors.id) = "STRATEGY_LEVEL_REPEAT_ERR"
+  ];
 }

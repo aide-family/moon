@@ -60,9 +60,9 @@ message User {
   // 个人说明
   string remark = 10;
   // 创建时间
-  string created_at = 11;
+  string createdAt = 11;
   // 更新时间
-  string updated_at = 12;
+  string updatedAt = 12;
 }
 
 // 系统API资源模块
@@ -102,23 +102,23 @@ message Menu {
   // 菜单状态
   Status status = 5;
   // 父级菜单
-  uint32 parent_id = 6;
+  uint32 parentId = 6;
   // 创建时间
-  string created_at = 7;
+  string createdAt = 7;
   // 更新时间
-  string updated_at = 8;
+  string updatedAt = 8;
   // 菜单层级
   int32 level = 9;
   // 菜单类型
   MenuType type = 10;
   // 组件路径
-  string component=11;
+  string component = 11;
   // 权限
-  string permission=12;
+  string permission = 12;
   // 排序
-  int32 sort=13;
+  int32 sort = 13;
   // 英文名称
-  string en_name=14;
+  string enName = 14;
 }
 
 // 系统菜单树
@@ -134,11 +134,11 @@ message MenuTree {
   // 菜单状态
   Status status = 5;
   // 父级菜单
-  uint32 parent_id = 6;
+  uint32 parentId = 6;
   // 创建时间
-  string created_at = 7;
+  string createdAt = 7;
   // 更新时间
-  string updated_at = 8;
+  string updatedAt = 8;
   // 菜单层级
   int32 level = 9;
   // 菜单子级数据
@@ -146,13 +146,13 @@ message MenuTree {
   // 菜单类型
   MenuType type = 11;
   // 组件路径
-  string component=12;
+  string component = 12;
   // 权限
-  string permission=13;
+  string permission = 13;
   // 排序
-  int32 sort=14;
+  int32 sort = 14;
   // 英文名称
-  string en_name=15;
+  string enName = 15;
 }
 
 
@@ -168,9 +168,9 @@ message TeamMember {
   // 状态
   Status status = 4;
   // 创建时间
-  string created_at = 5;
+  string createdAt = 5;
   // 更新时间
-  string updated_at = 6;
+  string updatedAt = 6;
   // 用户明细
   User user = 7;
 }
@@ -186,9 +186,9 @@ message Team {
   // 团队描述
   string remark = 4;
   // 创建时间
-  string created_at = 5;
+  string createdAt = 5;
   // 更新时间
-  string updated_at = 6;
+  string updatedAt = 6;
   // 负责人
   User leader = 7;
   // 创建者
@@ -208,9 +208,9 @@ message TeamRole {
   // 角色描述
   string remark = 3;
   // 创建时间
-  string created_at = 4;
+  string createdAt = 4;
   // 更新时间
-  string updated_at = 5;
+  string updatedAt = 5;
   // 状态
   Status status = 6;
   // 资源列表
@@ -230,15 +230,15 @@ message Datasource {
   // 状态
   Status status = 5;
   // 创建时间
-  string created_at = 6;
+  string createdAt = 6;
   // 更新时间
-  string updated_at = 7;
+  string updatedAt = 7;
   // 配置信息
   map<string, string> config = 8;
   // 描述
   string remark = 9;
   // 存储器类型
-  StorageType storage_type = 10;
+  StorageType storageType = 10;
   // 创建者
   User creator = 11;
 }
@@ -283,32 +283,32 @@ message Dict{
   // 字典名称
   string name = 2;
   // 字典类型
-  DictType dict_type = 3;
+  DictType dictType = 3;
   // 颜色类型
-  string color_type = 4;
+  string colorType = 4;
   // css样式
-  string css_class = 5;
+  string cssClass = 5;
   // 字典值
   string value = 6;
   // 图标
   string icon = 7;
   //图片url
-  string image_url = 8;
+  string imageUrl = 8;
   // 状态
   Status status = 9;
   // 语言
-  string language_code = 10;
+  string languageCode = 10;
   // 字典备注
   string remark = 11;
   // 创建时间
-  string created_at = 12;
+  string createdAt = 12;
   // 更新时间
-  string updated_at = 13;
+  string updatedAt = 13;
 }
 
 message StrategyLevel {
   // 策略持续时间
-  google.protobuf.Duration for = 3;
+  google.protobuf.Duration duration = 3;
   // 持续次数
   uint32 count = 4;
   // 持续的类型
@@ -320,7 +320,7 @@ message StrategyLevel {
   // 数据主键
   uint32 id = 10;
   // 告警等级ID
-  uint32 level_id = 11;
+  uint32 levelId = 11;
   // 告警等级明细
   Select level = 12;
   // 告警页面
@@ -328,19 +328,19 @@ message StrategyLevel {
   // 阈值
   double threshold = 14;
   // 所属策略
-  uint32 strategy_id = 15;
+  uint32 strategyId = 15;
   // 条件
-  string condition = 16;
+  Condition condition = 16;
   // TODO 通知对象
 }
 
 message Strategy {
   // 策略名称
-  string alert = 1;
+  string name = 1;
   // 策略语句
   string expr = 2;
   // 根据策略等级配置的详细策略， key为策略等级ID
-  map<uint32, StrategyLevel> level = 3;
+  repeated StrategyLevel levels = 3;
   // 策略标签
   map<string, string> labels = 6;
   // 策略注解
@@ -352,18 +352,30 @@ message Strategy {
   // 策略状态
   Status status = 11;
   // 创建时间
-  string created_at = 12;
+  string createdAt = 12;
   // 更新时间
-  string updated_at = 13;
+  string updatedAt = 13;
   // 策略说明信息
   string remark = 14;
   // 所属策略组
-  uint32 group_id = 15;
+  uint32 groupId = 15;
   // 策略组信息
   StrategyGroup group = 16;
   // 告警页面
   repeated Select alarmPages = 17;
-  // TODO 公共通知对象
+  // 阈值
+  double threshold = 18;
+  // 条件
+  Condition condition = 19;
+  // 模板id
+  uint32 strategyTemplateId = 20;
+  // 持续时间
+  google.protobuf.Duration duration = 21;
+
+  uint32 step =22;
+  // 模板来源
+  TemplateSourceType sourceType = 23;
+
 }
 
 message StrategyGroup {
@@ -374,14 +386,14 @@ message StrategyGroup {
   // 策略组状态
   Status status = 3;
   // 创建时间
-  string created_at = 4;
+  string createdAt = 4;
   // 更新时间
-  string updated_at = 5;
+  string updatedAt = 5;
   // 策略组说明信息
   string remark = 6;
   // 策略组创建人
   User creator = 7;
-  uint32 creator_id = 8;
+  uint32 creatorId = 8;
 }
 
 message StrategyLevelTemplate {
@@ -398,15 +410,15 @@ message StrategyLevelTemplate {
   // 状态
   Status status = 9;
   // 告警等级ID
-  uint32 level_id = 10;
+  uint32 levelId = 10;
   // 告警等级
   Select level = 11;
   // 阈值
   double threshold = 12;
   // 条件
-  string condition = 13;
+  Condition condition = 13;
   // 所属策略
-  uint32 strategy_id = 14;
+  uint32 strategyId = 14;
 }
 
 message StrategyTemplate {
@@ -424,9 +436,9 @@ message StrategyTemplate {
   // 策略模板状态
   Status status = 7;
   // 创建时间
-  string created_at = 8;
+  string createdAt = 8;
   // 更新时间
-  string updated_at = 9;
+  string updatedAt = 9;
   // 策略模板说明信息
   string remark = 10;
   // 创建人
@@ -445,9 +457,9 @@ message StrategyAlarmLevel {
   // 状态
   Status status = 4;
   // 创建时间
-  string created_at = 5;
+  string createdAt = 5;
   // 更新时间
-  string updated_at = 6;
+  string updatedAt = 6;
   // 等级
   int32 level = 7;
 }

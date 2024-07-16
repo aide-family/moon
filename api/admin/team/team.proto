@@ -71,14 +71,14 @@ service Team {
   // 移除团队成员
   rpc RemoveTeamMember (RemoveTeamMemberRequest) returns (RemoveTeamMemberReply) {
     option (google.api.http) = {
-      delete: "/v1/team/{id}/member/{user_id}"
+      delete: "/v1/team/{id}/member/{userId}"
     };
   }
 
   // 设置成管理员
   rpc SetTeamAdmin (SetTeamAdminRequest) returns (SetTeamAdminReply) {
     option (google.api.http) = {
-      put: "/v1/team/{id}/member/{user_id}/admin"
+      put: "/v1/team/{id}/member/{userId}/admin"
       body: "*"
     };
   }
@@ -86,14 +86,14 @@ service Team {
   // 移除团队管理员
   rpc RemoveTeamAdmin (RemoveTeamAdminRequest) returns (RemoveTeamAdminReply) {
     option (google.api.http) = {
-      delete: "/v1/team/{id}/member/{user_id}/admin"
+      delete: "/v1/team/{id}/member/{userId}/admin"
     };
   }
 
   // 设置成员角色
   rpc SetMemberRole (SetMemberRoleRequest) returns (SetMemberRoleReply) {
     option (google.api.http) = {
-      put: "/v1/team/{id}/member/{user_id}/role"
+      put: "/v1/team/{id}/member/{userId}/role"
       body: "*"
     };
   }
@@ -134,9 +134,9 @@ message CreateTeamRequest {
   // 团队状态
   Status status = 4 [(buf.validate.field).required = true];
   // 负责人, 不传为自己
-  uint32 leader_id = 5;
+  uint32 leaderId = 5;
   // 管理员
-  repeated uint32 admin_ids = 6;
+  repeated uint32 adminIds = 6;
 }
 message CreateTeamReply {}
 
@@ -176,9 +176,9 @@ message ListTeamRequest {
   // 状态
   Status status = 3;
   // 创建人
-  uint32 creator_id = 4;
+  uint32 creatorId = 4;
   // 负责人
-  uint32 leader_id = 5;
+  uint32 leaderId = 5;
 }
 message ListTeamReply {
   PaginationReply pagination = 1;
@@ -212,25 +212,25 @@ message AddTeamMemberReply {}
 
 message RemoveTeamMemberRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 user_id = 2 [(buf.validate.field).required = true];
+  uint32 userId = 2 [(buf.validate.field).required = true];
 }
 message RemoveTeamMemberReply {}
 
 message SetTeamAdminRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 user_id = 2 [(buf.validate.field).required = true];
+  uint32 userId = 2 [(buf.validate.field).required = true];
 }
 message SetTeamAdminReply {}
 
 message RemoveTeamAdminRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 user_id = 2 [(buf.validate.field).required = true];
+  uint32 userId = 2 [(buf.validate.field).required = true];
 }
 message RemoveTeamAdminReply {}
 
 message SetMemberRoleRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 user_id = 2 [(buf.validate.field).required = true];
+  uint32 userId = 2 [(buf.validate.field).required = true];
   repeated uint32 roles = 3;
 }
 message SetMemberRoleReply {}
@@ -250,6 +250,6 @@ message ListTeamMemberReply {
 
 message TransferTeamLeaderRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 user_id = 2 [(buf.validate.field).required = true];
+  uint32 userId = 2 [(buf.validate.field).required = true];
 }
 message TransferTeamLeaderReply {}

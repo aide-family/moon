@@ -3,9 +3,11 @@ syntax = "proto3";
 package api.admin.strategy;
 
 import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "enum.proto";
+import "global.proto";
 
 option go_package = "github.com/aide-family/moon/api/admin/strategy;strategy";
 option java_multiple_files = true;
@@ -58,7 +60,7 @@ service Strategy {
   // 创建策略
   rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
     option (google.api.http) = {
-      post: "/v1/strategy"
+      post: "/v1/strategy/create"
       body: "*"
     };
   }
@@ -66,7 +68,7 @@ service Strategy {
   // 修改策略
   rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
     option (google.api.http) = {
-      put: "/v1/strategy/{id}"
+      put: "/v1/strategy/update/{id}"
       body: "*"
     };
   }
@@ -74,14 +76,14 @@ service Strategy {
   // 删除策略
   rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
     option (google.api.http) = {
-      delete: "/v1/strategy/{id}"
+      delete: "/v1/strategy/delete/{id}"
     };
   }
 
   // 获取策略
   rpc GetStrategy (GetStrategyRequest) returns (GetStrategyReply) {
     option (google.api.http) = {
-      get: "/v1/strategy/{id}"
+      get: "/v1/strategy/get/{id}"
     };
   }
 
@@ -143,13 +145,66 @@ message UpdateStrategyGroupReply {}
 
 message CreateStrategyRequest {
   // 策略组ID
-  uint32 group_id = 1;
+  uint32 groupId = 1 [(buf.validate.field).cel = {
+    message: "策略组不能为空！",
+    expression: "this > 0"
+  }];
+  // 策略模板id
+  uint32 templateId = 2 [(buf.validate.field).cel = {
+    message: "模板不能为空！",
+    expression: "this > 0"
+  }];
+  // 备注
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "字典备注长度限制在0-200个字符",
+    expression: "this.size() <= 200"
+    id: "CreateStrategyRequestRemark"
+  }];
+  // 状态
+  Status status = 4 [(buf.validate.field).cel = {
+    expression: "(this in [1,2])",
+    message: "状态值必须在[ 启用(1), 禁用(2)]之间",
+  }];
+
+  // 采样率
+  uint32 step = 5 [(buf.validate.field).cel = {
+    message: "采样率不能为空！",
+    expression: "this > 0"
+  }];
+
+  // 数据源id
+  repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
+    message: "请选择数据源",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须保证修改对象数据唯一",
+    expression: "this.unique()"
+  }];
+
+  // 模板来源
+  TemplateSourceType sourceType = 7 [(buf.validate.field).cel = {
+    expression: "(this in [1,2])",
+    message: "模板来源必须在[ 系统(1), 团队(2)]之间",
+  }];
+
+  // 策略名称
+  string name = 8 [(buf.validate.field).cel = {
+    expression: "this.size() > 0 && this.size() <= 50"
+    message: "策略名称长度必须大于0且小于50"
+    id: "CreateStrategyRequestName"
+  }];
+
+  // 策略等级
+  repeated CreateStrategyLevelRequest strategyLevel = 9 [(buf.validate.field).cel = {
+    message: "请填写策略等级数据",
+    expression: "this.size() > 0"
+  }];
 }
 message CreateStrategyReply {}
 
 message UpdateStrategyRequest {
   uint32 id = 1;
-  string name = 2;
+  CreateStrategyRequest data = 2 [(buf.validate.field).required = true];
 }
 message UpdateStrategyReply {}
 
@@ -161,9 +216,44 @@ message DeleteStrategyReply {}
 message GetStrategyRequest {
   uint32 id = 1;
 }
-message GetStrategyReply {}
+message GetStrategyReply {
+  Strategy detail = 1;
+}
 
 message ListStrategyRequest {
-  int32 limit = 1;
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
+  }];
+  // 状态查询
+  Status status = 3;
+  DatasourceType datasourceType = 4 ;
 }
-message ListStrategyReply {}
+message ListStrategyReply {
+  // 分页信息
+  PaginationReply pagination = 1;
+  // 策略列表
+  repeated Strategy list = 2;
+}
+
+message CreateStrategyLevelRequest{
+  // 策略持续时间
+  google.protobuf.Duration duration = 1;
+  // 持续次数
+  uint32 count = 2;
+  // 持续的类型
+  SustainType sustainType = 3;
+  // 执行频率
+  google.protobuf.Duration interval = 4;
+  // 状态
+  Status status = 5;
+  // 告警等级ID
+  uint32 levelId = 6;
+  // 阈值
+  double threshold = 7;
+  // 条件
+  Condition condition = 8;
+}

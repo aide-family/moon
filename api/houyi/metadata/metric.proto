@@ -38,7 +38,7 @@ message SyncMetadataRequest {
   // 配置信息
   map<string, string> config = 2;
   // 存储类型
-  StorageType storage_type = 3;
+  StorageType storageType = 3;
 }
 
 message SyncMetadataReply {
@@ -61,7 +61,7 @@ message QueryRequest {
   // 配置信息
   map<string, string> config = 5;
   // 存储类型
-  StorageType storage_type = 6;
+  StorageType storageType = 6;
 }
 message QueryReply {
   repeated MetricQueryResult list = 1;

@@ -79,13 +79,13 @@ message GetMetricRequest {
   // 指标ID
   uint32 id = 1 [(buf.validate.field).required = true];
   // 是否加载关联数据
-  bool with_relation = 2;
+  bool withRelation = 2;
 }
 message GetMetricReply {
   // 详情
   MetricDetail data = 1;
   // label数量
-  uint32 label_count = 2;
+  uint32 labelCount = 2;
 }
 
 message ListMetricRequest {
@@ -100,7 +100,7 @@ message ListMetricRequest {
   // 指标类型
   MetricType metricType = 3 [(buf.validate.field).enum.defined_only = true];
   // 数据源ID
-  uint32 datasource_id = 4;
+  uint32 datasourceId = 4;
 }
 message ListMetricReply {
   // 分页参数
@@ -119,7 +119,7 @@ message SelectMetricRequest {
   // 指标类型
   MetricType metricType = 2 [(buf.validate.field).enum.defined_only = true];
   // 数据源ID
-  uint32 datasource_id = 3;
+  uint32 datasourceId = 3;
   // metric ids (用于包含默认参数的场景， 例如：编辑时候， 映射某个指标)
   repeated uint32 ids = 4;
   // 分页参数
