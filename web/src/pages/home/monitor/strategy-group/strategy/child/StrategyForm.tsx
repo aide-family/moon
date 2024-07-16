@@ -24,8 +24,6 @@ import { DefaultOptionType } from 'antd/es/select'
 import { Rule } from 'antd/es/form'
 import { StrategyItemType } from '@/apis/home/monitor/strategy/types'
 import { Duration } from '@/apis/types'
-// import { TemplateAutoComplete } from '@/components/Data/TemplateAutoComplete'
-import { AnnotationEditor } from '@/components/Data/DataInput/child/AnnotationEditor'
 
 export type FormValuesType = {
     alert?: string
@@ -433,11 +431,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 }
                             ]}
                         >
-                            <AnnotationEditor
-                                height={100}
-                                disabled={disabled}
-                            />
-                            {/* <TemplateAutoComplete placeholder="请输入告警标题模板" /> */}
+                            <Input.TextArea placeholder='请输入告警标题模板' showCount />
                         </Form.Item>
                     </div>
                     <div ref={annotationsDescriptionRef}>
@@ -451,11 +445,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 }
                             ]}
                         >
-                            <AnnotationEditor
-                                height={100}
-                                disabled={disabled}
-                            />
-                            {/* <TemplateAutoComplete placeholder="请输入告警内容模板" /> */}
+                            <Input.TextArea placeholder='请输入告警内容模板' showCount />
                         </Form.Item>
                     </div>
                     {annotationFormItemList.map((item, index) => {
@@ -473,18 +463,7 @@ export const StrategyForm: FC<StrategyFormProps> = (props) => {
                                 key={index + item.name}
                             >
                                 <Space.Compact style={{ width: '100%' }}>
-                                    <AnnotationEditor
-                                        height={100}
-                                        disabled={disabled}
-                                        defaultValue={item.value}
-                                    />
-                                    {/* <TemplateAutoComplete
-                                        defaultValue={item.value}
-                                        placeholder={`请输入 ${item.label} 注释的值`}
-                                        autoCompleteProps={{
-                                            rows: 2
-                                        }}
-                                    /> */}
+                                    <Input.TextArea placeholder={`请输入 ${item.label} 注释的值`} showCount />
                                     <Button
                                         type="primary"
                                         danger
