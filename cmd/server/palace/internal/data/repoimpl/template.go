@@ -157,7 +157,7 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 	if err := types.WithPageQuery[query.IStrategyTemplateDo](strategyWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return strategyWrapper.Order(query.StrategyTemplate.ID).Find()
+	return strategyWrapper.Order(query.StrategyTemplate.ID.Desc()).Find()
 }
 
 func (l *templateRepositoryImpl) UpdateTemplateStrategyStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {

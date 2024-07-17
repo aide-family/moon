@@ -63,7 +63,7 @@ func templateFuncMap() template.FuncMap {
 		"hasPrefix":  strings.HasPrefix,
 		"hasSuffix":  strings.HasSuffix,
 		"contains":   strings.Contains,
-		"TrimSpace":  strings.TrimSpace,
+		"trimSpace":  strings.TrimSpace,
 		"trimPrefix": strings.TrimPrefix,
 		"trimSuffix": strings.TrimSuffix,
 		"toUpper":    strings.ToUpper,

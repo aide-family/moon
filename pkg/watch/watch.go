@@ -14,8 +14,9 @@ var _ transport.Server = (*Watcher)(nil)
 
 const watcherTimeout = time.Second * 10
 
-func NewWatcher(opts ...WatcherOption) *Watcher {
+func NewWatcher(name string, opts ...WatcherOption) *Watcher {
 	w := &Watcher{
+		name:    name,
 		stopCh:  make(chan struct{}),
 		timeout: watcherTimeout,
 	}
@@ -27,6 +28,8 @@ func NewWatcher(opts ...WatcherOption) *Watcher {
 
 type (
 	Watcher struct {
+		// 服务名称
+		name string
 		// 停止监听的通道
 		stopCh chan struct{}
 		// 存储器
@@ -66,19 +69,20 @@ func (w *Watcher) Start(_ context.Context) error {
 				log.Infow("method", "stop watcher")
 				w.clear()
 				return
-			default:
-				if types.IsNil(w.queue) {
-					log.Warnw("method", "queue is empty")
+			case msg, ok := <-w.queue.Next():
+				if !ok {
 					continue
 				}
-				w.reader()
+				w.reader(msg)
 			}
 		}
 	}()
+	log.Infof("[Watcher] %s server started", w.name)
 	return nil
 }
 
 func (w *Watcher) Stop(_ context.Context) error {
+	defer log.Infof("[Watcher] %s server stoped", w.name)
 	w.stopCh <- struct{}{}
 	return nil
 }
@@ -114,12 +118,8 @@ func (w *Watcher) retry(msg *Message) {
 	}
 }
 
-func (w *Watcher) reader() {
-	msg, ok := w.queue.Next()
-	if !ok {
-		return
-	}
-
+func (w *Watcher) reader(msg *Message) {
+	log.Debugw("method", "reader message", "msg", msg)
 	if !types.IsNil(w.handler) {
 		// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
 		ctx, cancel := context.WithTimeout(context.Background(), w.timeout)

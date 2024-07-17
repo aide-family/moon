@@ -169,7 +169,7 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Alert) {
-		wheres = append(wheres, bizquery.Strategy.Alert.Like(params.Alert))
+		wheres = append(wheres, bizquery.Strategy.Name.Like(params.Alert))
 	}
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, bizquery.Strategy.Status.Eq(params.Status.GetValue()))
@@ -178,7 +178,7 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	if !types.TextIsNull(params.Keyword) {
 		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Name.Like(params.Keyword))
 		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Remark.Like(params.Keyword))
-		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Alert.Like(params.Keyword))
+		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Name.Like(params.Keyword))
 
 		dictWrapper := query.Use(s.data.GetMainDB(ctx)).SysDict.WithContext(ctx)
 

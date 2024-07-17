@@ -43,7 +43,7 @@ func (s *Server) GetServers() []transport.Server {
 		s.rpcSrv,
 		s.httpSrv,
 		s.strategyWatch,
-		//s.alertWatch,
+		s.alertWatch,
 	}
 }
 

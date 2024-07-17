@@ -12,7 +12,7 @@ type (
 	// Queue 消息队列
 	Queue interface {
 		// Next 获取下一个消息
-		Next() (*Message, bool)
+		Next() <-chan *Message
 
 		// Push 添加消息
 		Push(msg *Message) error
@@ -34,9 +34,8 @@ type (
 	}
 )
 
-func (d *defaultQueue) Next() (*Message, bool) {
-	msg, ok := <-d.queue
-	return msg, ok
+func (d *defaultQueue) Next() <-chan *Message {
+	return d.queue
 }
 
 func (d *defaultQueue) Push(msg *Message) error {

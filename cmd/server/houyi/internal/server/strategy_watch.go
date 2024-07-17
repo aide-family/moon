@@ -75,33 +75,34 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 			select {
 			case <-s.stopCh:
 				return
-			default:
-				if err := s.addJob(); err != nil {
+			case msg, ok := <-s.data.GetStrategyQueue().Next():
+				if !ok || !msg.GetTopic().IsStrategy() {
+					continue
+				}
+				strategyMsg, ok := msg.GetData().(*bo.Strategy)
+				if !ok {
+					log.Warnf("strategy watch get data error: %v", msg.GetData())
+					continue
+				}
+				if err := s.addJob(strategyMsg); err != nil {
 					log.Errorw("add job err", err)
 				}
 			}
 		}
 	}()
 	s.cronInstance.Start()
+	log.Infof("[StrategyWatch] server started")
 	return nil
 }
 
 func (s *StrategyWatch) Stop(_ context.Context) error {
+	defer log.Infof("[StrategyWatch] server stopped")
 	close(s.stopCh)
 	s.cronInstance.Stop()
 	return nil
 }
 
-func (s *StrategyWatch) addJob() error {
-	msg, ok := s.data.GetStrategyQueue().Next()
-	if !ok || !msg.GetTopic().IsStrategy() {
-		return nil
-	}
-	strategyMsg, ok := msg.GetData().(*bo.Strategy)
-	if !ok {
-		log.Warnf("strategy watch get data error: %v", msg.GetData())
-		return nil
-	}
+func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 	// 删除策略任务
 	if _, exist := s.entryIdMap[strategyMsg.Index()]; exist {
 		log.Info("strategy watch remove job")
@@ -115,8 +116,14 @@ func (s *StrategyWatch) addJob() error {
 	entryID, err := s.cronInstance.AddFunc(s.interval, func() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
-		_, err := s.alertService.InnerAlarm(ctx, strategyMsg)
+		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)
 		if err != nil {
+			log.Warnw("inner alarm err", err)
+			return
+		}
+
+		if err := s.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
+			log.Warnw("push inner alarm err", err)
 			return
 		}
 	})

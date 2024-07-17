@@ -67,15 +67,27 @@ message MutationStrategyLevelTemplate {
   // 策略持续时间
   google.protobuf.Duration duration = 1;
   // 持续次数
-  uint32 count = 2;
+  uint32 count = 2 [(buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的持续次数"
+    id: "MutationStrategyLevelTemplateCount"
+  }];
   // 持续的类型
-  SustainType sustainType = 3;
+  SustainType sustainType = 3 [(buf.validate.field).enum.defined_only = true, (buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的持续类型"
+    id: "MutationStrategyLevelTemplateSustainType"
+  }];
   // 条件
-  Condition condition = 4;
+  Condition condition = 4 [(buf.validate.field).enum.defined_only = true, (buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的条件"
+    id: "MutationStrategyLevelTemplateCondition"
+  }];
   // 阈值
   double threshold = 5;
   // ID
-  uint32 id = 6;
+  uint32 id = 7;
 }
 
 message CreateTemplateStrategyRequest {

@@ -24,5 +24,5 @@ func newAlertWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *servic
 			}),
 		)),
 	}
-	return watch.NewWatcher(opts...)
+	return watch.NewWatcher("alertWatchServer", opts...)
 }

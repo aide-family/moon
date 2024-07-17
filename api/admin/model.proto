@@ -160,7 +160,7 @@ message MenuTree {
 // 团队成员
 message TeamMember {
   // 用户ID
-  uint32 user_id = 1;
+  uint32 userId = 1;
   // 成员ID
   uint32 id = 2;
   // 角色
@@ -375,7 +375,6 @@ message Strategy {
   uint32 step =22;
   // 模板来源
   TemplateSourceType sourceType = 23;
-
 }
 
 message StrategyGroup {
@@ -405,8 +404,6 @@ message StrategyLevelTemplate {
   uint32 count = 4;
   // 持续类型
   SustainType sustainType = 5;
-  // 执行频率
-  google.protobuf.Duration interval = 8;
   // 状态
   Status status = 9;
   // 告警等级ID
