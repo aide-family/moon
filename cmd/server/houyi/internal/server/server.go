@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/aide-family/moon/api"
-	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	v1api "github.com/aide-family/moon/api/helloworld/v1"
 	alertapi "github.com/aide-family/moon/api/houyi/alert"
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
@@ -59,13 +59,13 @@ func RegisterService(
 	alertService *service.AlertService,
 ) *Server {
 	// 注册GRPC服务
-	v1.RegisterGreeterServer(rpcSrv, greeter)
+	v1api.RegisterGreeterServer(rpcSrv, greeter)
 	metadataapi.RegisterMetricServer(rpcSrv, metricService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
 	alertapi.RegisterAlertServer(rpcSrv, alertService)
 	// 注册HTTP服务
-	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
+	v1api.RegisterGreeterHTTPServer(httpSrv, greeter)
 	metadataapi.RegisterMetricHTTPServer(httpSrv, metricService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)

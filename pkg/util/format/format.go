@@ -7,7 +7,9 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/util/after"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // ReplaceString 替换字符串中的$为.
@@ -55,6 +57,33 @@ func Formatter(format string, data any) (s string) {
 		return format
 	}
 	return resultIoWriter.String()
+}
+
+func FormatterWithErr(format string, data any) (s string, err error) {
+	formatStr := replaceString(format)
+	if formatStr == "" {
+		return "", merr.ErrorAlert("请输入模板信息")
+	}
+
+	if types.IsNil(data) {
+		return "", merr.ErrorAlert("模板数据为空，请检查你的查询语句")
+	}
+
+	defer after.RecoverX()
+	// 创建一个模板对象，定义模板字符串
+	t, err := template.New("alert").
+		Funcs(templateFuncMap()).
+		Parse(formatStr)
+	if err != nil {
+		return
+	}
+	tmpl := template.Must(t, err)
+	// 执行模板并填充数据
+	resultIoWriter := new(strings.Builder)
+	if err = tmpl.Execute(resultIoWriter, data); err != nil {
+		return
+	}
+	return resultIoWriter.String(), nil
 }
 
 func templateFuncMap() template.FuncMap {

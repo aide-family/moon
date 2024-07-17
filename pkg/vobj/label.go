@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aide-family/moon/pkg/util/types"
 	"golang.org/x/exp/maps"
 )
 
@@ -24,8 +25,26 @@ type Labels struct {
 	label map[string]string
 }
 
+type LabelsJSON map[string]string
+
 func NewLabels(labels map[string]string) *Labels {
 	return &Labels{label: labels}
+}
+
+func (l *Labels) String() string {
+	if types.IsNil(l) || l.label == nil {
+		return "{}"
+	}
+	bs, _ := json.Marshal(l.label)
+	return string(bs)
+}
+
+func (l LabelsJSON) String() string {
+	if types.IsNil(l) {
+		return "{}"
+	}
+	bs, _ := json.Marshal(l)
+	return string(bs)
 }
 
 func (l *Labels) Map() map[string]string {

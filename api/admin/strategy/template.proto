@@ -60,6 +60,14 @@ service Template {
       body: "*"
     };
   }
+
+  // 模板校验（返回校验成功的数据或者错误明细）
+  rpc ValidateAnnotationsTemplate(ValidateAnnotationsTemplateRequest) returns (ValidateAnnotationsTemplateReply) {
+    option (google.api.http) = {
+      post: "/v1/template/annotations/validate"
+      body: "*"
+    };
+  }
 }
 
 // 策略等级挂钩的告警模板明细
@@ -238,3 +246,18 @@ message UpdateTemplateStrategyStatusRequest {
   }];
 }
 message UpdateTemplateStrategyStatusReply {}
+
+message ValidateAnnotationsTemplateRequest {
+  string annotations = 1;
+  string expr = 2;
+  map<string, string> labels = 3;
+  string level = 4;
+  string alert = 5;
+  string datasource = 6;
+}
+message ValidateAnnotationsTemplateReply {
+  // 策略模板填充后的数据
+  string annotations = 1;
+  // 错误信息
+  string errors = 2;
+}

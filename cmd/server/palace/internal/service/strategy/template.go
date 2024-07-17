@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/api/admin"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
@@ -9,19 +10,23 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type TemplateService struct {
 	strategyapi.UnimplementedTemplateServer
 
-	templateBiz *biz.TemplateBiz
+	templateBiz   *biz.TemplateBiz
+	datasourceBiz *biz.DatasourceBiz
 }
 
-func NewTemplateService(templateBiz *biz.TemplateBiz) *TemplateService {
+func NewTemplateService(templateBiz *biz.TemplateBiz, datasourceBiz *biz.DatasourceBiz) *TemplateService {
 	return &TemplateService{
-		templateBiz: templateBiz,
+		templateBiz:   templateBiz,
+		datasourceBiz: datasourceBiz,
 	}
 }
 
@@ -127,4 +132,52 @@ func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req 
 		return nil, err
 	}
 	return &strategyapi.UpdateTemplateStrategyStatusReply{}, nil
+}
+
+func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *strategyapi.ValidateAnnotationsTemplateRequest) (*strategyapi.ValidateAnnotationsTemplateReply, error) {
+	timeNow := time.Now()
+	data := map[string]any{
+		"alert":     req.GetAlert(),
+		"level":     req.GetLevel(),
+		"value":     0.00,
+		"timestamp": timeNow.Unix(),
+		"labels":    vobj.LabelsJSON(req.GetLabels()),
+	}
+	labels := req.GetLabels()
+	queryParams := &bo.DatasourceQueryParams{
+		DatasourceID: 1, // TODO 增加数据源支持
+		Query:        req.GetExpr(),
+		Step:         0,
+		TimeRange:    []string{timeNow.Format(time.DateTime)},
+	}
+	queryData, err := s.datasourceBiz.Query(ctx, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	log.Debugw("queryData", queryData)
+	if len(queryData) > 0 {
+		for _, datum := range queryData {
+			if types.IsNil(datum) {
+				continue
+			}
+			labels = types.MapsMerge(labels, datum.Labels)
+		}
+		data["labels"] = vobj.LabelsJSON(labels)
+		data["value"] = queryData[0].Value.Value
+		data["timestamp"] = queryData[0].Value.Timestamp
+	}
+
+	log.Debugw("labels", labels)
+
+	formatterWithErr, err := format.FormatterWithErr(req.GetAnnotations(), data)
+
+	errorString := ""
+	if err != nil {
+		errorString = err.Error()
+	}
+
+	return &strategyapi.ValidateAnnotationsTemplateReply{
+		Annotations: formatterWithErr,
+		Errors:      errorString,
+	}, nil
 }

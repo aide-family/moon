@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -25,19 +26,22 @@ func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
 			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
-	if c.Http.Network != "" {
-		opts = append(opts, http.Network(c.Http.Network))
+	httpConf := c.GetHttp()
+	if !types.IsNil(httpConf) {
+		if httpConf.GetNetwork() != "" {
+			opts = append(opts, http.Network(httpConf.GetNetwork()))
+		}
+		if httpConf.GetAddr() != "" {
+			opts = append(opts, http.Address(httpConf.GetAddr()))
+		}
+		if httpConf.GetTimeout() != nil {
+			opts = append(opts, http.Timeout(httpConf.GetTimeout().AsDuration()))
+		}
 	}
-	if c.Http.Addr != "" {
-		opts = append(opts, http.Address(c.Http.Addr))
-	}
-	if c.Http.Timeout != nil {
-		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
-	}
+
 	srv := http.NewServer(opts...)
 
 	if env.IsDev() || env.IsTest() || env.IsLocal() {
-		// doc
 		srv.HandlePrefix("/doc/", nHttp.StripPrefix("/doc/", nHttp.FileServer(nHttp.Dir("./third_party/swagger_ui"))))
 	}
 
