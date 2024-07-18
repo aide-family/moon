@@ -14,17 +14,27 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-type DatasourceBuilder struct {
-	*bizmodel.Datasource
-}
-
-func NewDatasourceBuilder(datasource *bizmodel.Datasource) *DatasourceBuilder {
-	return &DatasourceBuilder{
-		Datasource: datasource,
+type (
+	DatasourceBuilder interface {
+		ToApi() *admin.Datasource
 	}
-}
 
-func (b *DatasourceBuilder) ToApi(ctx context.Context) *admin.Datasource {
+	DatasourceQueryDataBuilder interface {
+		ToApi() *api.MetricQueryResult
+	}
+
+	datasourceBuilder struct {
+		*bizmodel.Datasource
+		ctx context.Context
+	}
+
+	datasourceQueryDataBuilder struct {
+		*bo.DatasourceQueryData
+		ctx context.Context
+	}
+)
+
+func (b *datasourceBuilder) ToApi() *admin.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}
@@ -44,22 +54,12 @@ func (b *DatasourceBuilder) ToApi(ctx context.Context) *admin.Datasource {
 		Config:      configMap,
 		Remark:      b.Remark,
 		StorageType: api.StorageType(b.StorageType),
-		Creator:     NewUserBuilder(cache.GetUser(ctx, b.CreatorID)).ToApi(),
-	}
-}
-
-type DatasourceQueryDataBuilder struct {
-	*bo.DatasourceQueryData
-}
-
-func NewDatasourceQueryDataBuilder(data *bo.DatasourceQueryData) *DatasourceQueryDataBuilder {
-	return &DatasourceQueryDataBuilder{
-		DatasourceQueryData: data,
+		Creator:     NewUserBuilder(cache.GetUser(b.ctx, b.CreatorID)).ToApi(),
 	}
 }
 
 // ToApi 转换为api
-func (b *DatasourceQueryDataBuilder) ToApi() *api.MetricQueryResult {
+func (b *datasourceQueryDataBuilder) ToApi() *api.MetricQueryResult {
 	if types.IsNil(b) || types.IsNil(b.DatasourceQueryData) {
 		return nil
 	}

@@ -35,7 +35,7 @@ func (b *StrategyBuilder) ToApi(ctx context.Context) *admin.Strategy {
 		Labels:      b.Labels.Map(),
 		Annotations: b.Annotations,
 		Datasource: types.SliceTo(b.Datasource, func(datasource *bizmodel.Datasource) *admin.Datasource {
-			return NewDatasourceBuilder(datasource).ToApi(ctx)
+			return NewBuilder().WithContext(ctx).WithDoDatasource(datasource).ToApi()
 		}),
 		StrategyTemplateId: b.StrategyTemplateID,
 		Levels:             strategyLevels,
