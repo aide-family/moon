@@ -660,31 +660,59 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
             ]
         }
     ],
-    {
-        name: 'alarmPageIds',
-        label: '告警页面',
-        id: 'alarmPageIds',
-        dataProps: {
-            type: 'select-fetch',
-            parentProps: {
-                selectProps: {
-                    placeholder: '请选择告警页面',
-                    mode: 'multiple'
-                },
-                handleFetch: getAlarmPages,
-                defaultOptions: []
-            }
+    [
+        {
+            name: 'alarmPageIds',
+            label: '告警页面',
+            id: 'alarmPageIds',
+            dataProps: {
+                type: 'select-fetch',
+                parentProps: {
+                    selectProps: {
+                        placeholder: '请选择告警页面',
+                        mode: 'multiple'
+                    },
+                    handleFetch: getAlarmPages,
+                    defaultOptions: []
+                }
+            },
+            formItemProps: {
+                tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
+            },
+            rules: [
+                {
+                    required: true,
+                    message: '请选择报警页面'
+                }
+            ]
         },
-        formItemProps: {
-            tooltip: <p>报警页面: 当该规则触发时, 页面将跳转到报警页面</p>
+        {
+            name: 'sendInterval',
+            label: '告警通知间隔',
+            id: 'sendInterval',
+            dataProps: {
+                type: 'time-value',
+                parentProps: {
+                    name: 'sendInterval',
+                    placeholder: ['请输入通知间隔时间', '选择单位'],
+                    unitOptions: durationOptions
+                }
+            },
+            formItemProps: {
+                tooltip: (
+                    <p>
+                        告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
+                        则再次触发告警通知的时间
+                    </p>
+                )
+            },
+            rules: [
+                {
+                    validator: checkDuration('告警通知间隔时间')
+                }
+            ]
         },
-        rules: [
-            {
-                required: true,
-                message: '请选择报警页面'
-            }
-        ]
-    },
+    ],
     // [
     //     {
     //         name: 'maxSuppress',
@@ -710,32 +738,6 @@ export const strategyEditOptions: (DataFormItem | DataFormItem[])[] = [
     //         rules: [
     //             {
     //                 validator: checkDuration('抑制时间')
-    //             }
-    //         ]
-    //     },
-    //     {
-    //         name: 'sendInterval',
-    //         label: '告警通知间隔',
-    //         id: 'sendInterval',
-    //         dataProps: {
-    //             type: 'time-value',
-    //             parentProps: {
-    //                 name: 'sendInterval',
-    //                 placeholder: ['请输入通知间隔时间', '选择单位'],
-    //                 unitOptions: durationOptions
-    //             }
-    //         },
-    //         formItemProps: {
-    //             tooltip: (
-    //                 <p>
-    //                     告警通知间隔: 告警通知间隔, 在一定时间内没有消警,
-    //                     则再次触发告警通知的时间
-    //                 </p>
-    //             )
-    //         },
-    //         rules: [
-    //             {
-    //                 validator: checkDuration('告警通知间隔时间')
     //             }
     //         ]
     //     },
@@ -904,13 +906,13 @@ export const tourSteps = (refs: {
     //     placement: 'bottomRight',
     //     target: () => document.getElementById('maxSuppress')!
     // },
-    // {
-    //     title: '告警通知间隔配置',
-    //     description:
-    //         '告警发生时候会立即告警, 当持续通知间隔时长时, 会再次告警, 该时间默认时2小时',
-    //     placement: 'bottomRight',
-    //     target: () => document.getElementById('sendInterval')!
-    // },
+    {
+        title: '告警通知间隔配置',
+        description:
+            '告警发生时候会立即告警, 当持续通知间隔时长时, 会再次告警, 该时间默认时2小时',
+        placement: 'bottomRight',
+        target: () => document.getElementById('sendInterval')!
+    },
     // {
     //     title: '告警恢复通知配置',
     //     description: '告警恢复后是否发送告警恢复通知的开关, 默认是开启的',

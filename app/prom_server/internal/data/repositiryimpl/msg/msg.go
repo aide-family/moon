@@ -2,6 +2,7 @@ package msg
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/aide-family/moon/api/perrors"
@@ -50,7 +51,10 @@ func getHookAlarmTemplateMap(templates []*bo.NotifyTemplateBO) (map[vobj.NotifyA
 
 func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) error {
 	for _, v := range req {
-		if !l.cacheNotify(v.AlarmInfo) {
+		if v.StrategyBO == nil {
+			continue
+		}
+		if !l.cacheNotify(v.AlarmInfo, v.StrategyBO.SendInterval) {
 			continue
 		}
 
@@ -66,10 +70,10 @@ func (l *msgRepoImpl) SendAlarm(ctx context.Context, req ...*bo.AlarmMsgBo) erro
 	return nil
 }
 
-func (l *msgRepoImpl) cacheNotify(alarmInfo *bo.AlertBo) bool {
+func (l *msgRepoImpl) cacheNotify(alarmInfo *bo.AlertBo, sendInterval string) bool {
 	fingerprint := hash.MD5(alarmInfo.Fingerprint + ":" + alarmInfo.Status)
 	// 判断是否发送过告警， 如果已经发送过， 不再发送
-	return l.d.Cache().SetNX(context.Background(), consts.AlarmNotifyCache.Key(fingerprint).String(), alarmInfo.Bytes(), 2*time.Hour)
+	return l.d.Cache().SetNX(context.Background(), consts.AlarmNotifyCache.Key(fingerprint).String(), alarmInfo.Bytes(), ConvertTimeFromStringToDuration(sendInterval))
 }
 
 func (l *msgRepoImpl) sendAlarmToChatGroups(ctx context.Context, chatGroups []*bo.ChatGroupBO, hookTemplateMap map[vobj.NotifyApp]string, alarmInfo *bo.AlertBo) {
@@ -155,5 +159,32 @@ func NewMsgRepo(data *data.Data, logger log.Logger) repository.MsgRepo {
 	return &msgRepoImpl{
 		log: log.NewHelper(log.With(logger, "module", "repo.msg")),
 		d:   data,
+	}
+}
+
+func ConvertTimeFromStringToDuration(duration string) time.Duration {
+	return time.Duration(BuildDuration(duration)) * time.Second
+}
+
+// BuildDuration 字符串转为api时间
+func BuildDuration(duration string) int64 {
+	durationLen := len(duration)
+	if duration == "" || durationLen < 2 {
+		return 0
+	}
+	value, _ := strconv.Atoi(duration[:durationLen-1])
+	// 获取字符串最后一个字符
+	unit := string(duration[durationLen-1])
+	switch unit {
+	case "s":
+		return int64(value)
+	case "m":
+		return int64(value) * 60
+	case "h":
+		return int64(value) * 60 * 60
+	case "d":
+		return int64(value) * 60 * 60 * 24
+	default:
+		return 0
 	}
 }
