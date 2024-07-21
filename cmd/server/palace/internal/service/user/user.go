@@ -72,20 +72,7 @@ func (s *Service) CreateUser(ctx context.Context, req *userapi.CreateUserRequest
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-
-	createParams := &bo.CreateUserParams{
-		Name:      req.GetName(),
-		Password:  types.NewPassword(pass),
-		Email:     req.GetEmail(),
-		Phone:     req.GetPhone(),
-		Nickname:  req.GetNickname(),
-		Remark:    req.GetRemark(),
-		Avatar:    req.GetAvatar(),
-		CreatorID: claims.GetUser(),
-		Status:    vobj.Status(req.GetStatus()),
-		Gender:    vobj.Gender(req.GetGender()),
-		Role:      vobj.Role(req.GetRole()),
-	}
+	createParams := build.NewBuilder().WithCreateUserBo(req).ToCreateUserBO(claims.GetUser(), pass)
 	_, err = s.userBiz.CreateUser(ctx, createParams)
 	if !types.IsNil(err) {
 		return nil, err
@@ -95,22 +82,8 @@ func (s *Service) CreateUser(ctx context.Context, req *userapi.CreateUserRequest
 
 // UpdateUser 更新用户基础信息， 只允许管理员操作
 func (s *Service) UpdateUser(ctx context.Context, req *userapi.UpdateUserRequest) (*userapi.UpdateUserReply, error) {
-	data := req.GetData()
-	createParams := bo.CreateUserParams{
-		Name:     data.GetName(),
-		Email:    data.GetEmail(),
-		Phone:    data.GetPhone(),
-		Nickname: data.GetNickname(),
-		Remark:   data.GetRemark(),
-		Avatar:   data.GetAvatar(),
-		Status:   vobj.Status(data.GetStatus()),
-		Gender:   vobj.Gender(data.GetGender()),
-		Role:     vobj.Role(data.GetRole()),
-	}
-	if err := s.userBiz.UpdateUser(ctx, &bo.UpdateUserParams{
-		ID:               req.GetId(),
-		CreateUserParams: createParams,
-	}); !types.IsNil(err) {
+	updateParams := build.NewBuilder().WithUpdateUserBo(req).ToUpdateUserBO()
+	if err := s.userBiz.UpdateUser(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
 	return &userapi.UpdateUserReply{}, nil
@@ -129,7 +102,7 @@ func (s *Service) GetUser(ctx context.Context, req *userapi.GetUserRequest) (*us
 		return nil, err
 	}
 	return &userapi.GetUserReply{
-		User: build.NewUserBuilder(userDo).ToApi(),
+		User: build.NewBuilder().WithApiUserBo(userDo).ToApi(),
 	}, nil
 }
 
@@ -147,7 +120,7 @@ func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*
 	}
 	return &userapi.ListUserReply{
 		List: types.SliceTo(userDos, func(user *model.SysUser) *admin.User {
-			return build.NewUserBuilder(user).ToApi()
+			return build.NewBuilder().WithApiUserBo(user).ToApi()
 		}),
 		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 	}, nil

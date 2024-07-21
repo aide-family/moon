@@ -1,25 +1,44 @@
 package build
 
 import (
+	"context"
+
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	dictapi "github.com/aide-family/moon/api/admin/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type DictBuilder struct {
-	*model.SysDict
-}
-
-func NewDictBuild(dict *model.SysDict) *DictBuilder {
-	return &DictBuilder{
-		SysDict: dict,
+type (
+	DictModelBuilder interface {
+		ToApi() *admin.Dict
+		ToApiSelect() *admin.Select
 	}
-}
+
+	DictRequestBuilder interface {
+		ToCreateDictBO() *bo.CreateDictParams
+
+		ToUpdateDictBO() *bo.UpdateDictParams
+	}
+
+	dictBuilder struct {
+		// model
+		*model.SysDict
+
+		// request
+		CreateDictRequest *dictapi.CreateDictRequest
+		UpdateDictRequest *dictapi.UpdateDictRequest
+
+		// context
+		ctx context.Context
+	}
+)
 
 // ToApi 转换成api
-func (b *DictBuilder) ToApi() *admin.Dict {
+func (b *dictBuilder) ToApi() *admin.Dict {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
@@ -40,7 +59,7 @@ func (b *DictBuilder) ToApi() *admin.Dict {
 }
 
 // ToApiSelect 转换成api下拉数据
-func (b *DictBuilder) ToApiSelect() *admin.Select {
+func (b *dictBuilder) ToApiSelect() *admin.Select {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
@@ -55,6 +74,41 @@ func (b *DictBuilder) ToApiSelect() *admin.Select {
 			Remark: b.Remark,
 			Image:  b.ImageUrl,
 		},
+	}
+}
+
+func (b *dictBuilder) ToCreateDictBO() *bo.CreateDictParams {
+	return &bo.CreateDictParams{
+		Name:         b.CreateDictRequest.GetName(),
+		Value:        b.CreateDictRequest.GetValue(),
+		DictType:     vobj.DictType(b.CreateDictRequest.GetDictType()),
+		ColorType:    b.CreateDictRequest.GetColorType(),
+		CssClass:     b.CreateDictRequest.GetCssClass(),
+		Icon:         b.CreateDictRequest.GetIcon(),
+		ImageUrl:     b.CreateDictRequest.GetImageUrl(),
+		Status:       vobj.Status(b.CreateDictRequest.GetStatus()),
+		Remark:       b.CreateDictRequest.GetRemark(),
+		LanguageCode: b.CreateDictRequest.GetLanguageCode(),
+	}
+}
+
+func (b *dictBuilder) ToUpdateDictBO() *bo.UpdateDictParams {
+	data := b.UpdateDictRequest.GetData()
+	createParams := bo.CreateDictParams{
+		Name:         data.GetName(),
+		Value:        data.GetValue(),
+		DictType:     vobj.DictType(data.GetDictType()),
+		ColorType:    data.GetColorType(),
+		CssClass:     data.GetCssClass(),
+		Icon:         data.GetIcon(),
+		ImageUrl:     data.GetImageUrl(),
+		Status:       vobj.Status(data.GetStatus()),
+		Remark:       data.GetRemark(),
+		LanguageCode: data.GetLanguageCode(),
+	}
+	return &bo.UpdateDictParams{
+		ID:          b.UpdateDictRequest.GetId(),
+		UpdateParam: createParams,
 	}
 }
 

@@ -2,6 +2,7 @@ package menu
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/admin"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
 	"github.com/aide-family/moon/api/merr"
@@ -24,23 +25,8 @@ func NewMenuService(menuBiz *biz.MenuBiz) *MenuService {
 	}
 }
 func (m *MenuService) BatchCreateMenu(ctx context.Context, req *menuapi.BatchCreateMenuRequest) (*menuapi.BatchCreateMenuReply, error) {
-	createMenus := req.GetMenus()
-	params := types.SliceToWithFilter(createMenus, func(menu *menuapi.CreateMenuRequest) (*bo.CreateMenuParams, bool) {
-		createParam := bo.CreateMenuParams{
-			Name:       menu.GetName(),
-			Path:       menu.GetPath(),
-			Component:  menu.GetComponent(),
-			Type:       vobj.MenuType(menu.GetMenuType()),
-			Status:     vobj.Status(menu.GetStatus()),
-			Icon:       menu.GetIcon(),
-			Permission: menu.GetPermission(),
-			ParentId:   menu.GetParentId(),
-			EnName:     menu.GetEnName(),
-			Sort:       menu.GetSort(),
-			Level:      menu.GetLevel(),
-		}
-		return &createParam, true
-	})
+	params := build.NewBuilder().WithBatchCreateMenuBo(req).ToBatchCreateMenuBO()
+
 	err := m.menuBiz.BatchCreateMenu(ctx, params)
 	if err != nil {
 		return nil, err
@@ -48,25 +34,8 @@ func (m *MenuService) BatchCreateMenu(ctx context.Context, req *menuapi.BatchCre
 	return &menuapi.BatchCreateMenuReply{}, nil
 }
 func (m *MenuService) UpdateMenu(ctx context.Context, req *menuapi.UpdateMenuRequest) (*menuapi.UpdateMenuReply, error) {
-	data := req.GetData()
-	createParams := bo.CreateMenuParams{
-		Name:       data.GetName(),
-		Path:       data.GetPath(),
-		Component:  data.GetComponent(),
-		Type:       vobj.MenuType(data.GetMenuType()),
-		Status:     vobj.Status(data.GetStatus()),
-		Icon:       data.GetIcon(),
-		Permission: data.GetPermission(),
-		ParentId:   data.GetParentId(),
-		EnName:     data.GetEnName(),
-		Sort:       data.GetSort(),
-		Level:      data.GetLevel(),
-	}
-	updateParams := bo.UpdateMenuParams{
-		ID:          req.GetId(),
-		UpdateParam: createParams,
-	}
-	if err := m.menuBiz.UpdateMenu(ctx, &updateParams); !types.IsNil(err) {
+	updateParams := build.NewBuilder().WithUpdateMenuBo(req).ToUpdateMenuBO()
+	if err := m.menuBiz.UpdateMenu(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
 	return &menuapi.UpdateMenuReply{}, nil
@@ -81,11 +50,11 @@ func (m *MenuService) DeleteMenu(ctx context.Context, req *menuapi.DeleteMenuReq
 }
 
 func (m *MenuService) GetMenu(ctx context.Context, req *menuapi.GetMenuRequest) (*menuapi.GetMenuReply, error) {
-	data, err := m.menuBiz.GetMenu(ctx, req.GetId())
+	menu, err := m.menuBiz.GetMenu(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	resMenu := build.NewMenuBuilder(data).ToApi()
+	resMenu := build.NewBuilder().WithApiMenu(menu).ToApi()
 	return &menuapi.GetMenuReply{
 		Menu: resMenu,
 	}, nil
@@ -97,9 +66,9 @@ func (m *MenuService) TreeMenu(ctx context.Context, req *menuapi.TreeMenuRequest
 		return nil, err
 	}
 	menus := types.SliceTo(dbMenuList, func(menu *model.SysMenu) *admin.Menu {
-		return build.NewMenuBuilder(menu).ToApi()
+		return build.NewBuilder().WithApiMenu(menu).ToApi()
 	})
-	menuTrees := build.NewMenuTreeBuilder(menus, 0).ToTree()
+	menuTrees := build.NewBuilder().WithApiMenuTree(menus, 0).ToTree()
 	return &menuapi.TreeMenuReply{MenuTree: menuTrees}, nil
 }
 
@@ -116,7 +85,7 @@ func (m *MenuService) MenuListPage(ctx context.Context, req *menuapi.ListMenuReq
 	}
 	return &menuapi.ListMenuReply{
 		List: types.SliceTo(menuPage, func(menu *model.SysMenu) *admin.Menu {
-			return build.NewMenuBuilder(menu).ToApi()
+			return build.NewBuilder().WithApiMenu(menu).ToApi()
 		}),
 		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 	}, nil

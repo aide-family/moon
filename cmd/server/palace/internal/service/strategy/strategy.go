@@ -65,33 +65,8 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
 	}
 
-	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(req.GetStrategyLevel()))
-	for _, strategyLevel := range req.GetStrategyLevel() {
-		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
-			StrategyTemplateID: req.TemplateId,
-			Count:              strategyLevel.GetCount(),
-			Duration:           types.NewDuration(strategyLevel.GetDuration()),
-			SustainType:        vobj.Sustain(strategyLevel.SustainType),
-			Interval:           types.NewDuration(strategyLevel.GetInterval()),
-			Condition:          vobj.Condition(strategyLevel.GetCondition()),
-			Threshold:          strategyLevel.GetThreshold(),
-			Status:             vobj.Status(strategyLevel.Status),
-			LevelID:            strategyLevel.GetLevelId(),
-		})
-	}
+	param := build.NewBuilder().WithCreateBoStrategy(req).ToCreateStrategyBO(claims.GetTeam())
 
-	param := &bo.CreateStrategyParams{
-		TeamID:        claims.GetTeam(),
-		TemplateId:    req.GetTemplateId(),
-		GroupId:       req.GetGroupId(),
-		Name:          req.GetName(),
-		Remark:        req.GetRemark(),
-		Status:        vobj.Status(req.GetStatus()),
-		Step:          req.GetStep(),
-		SourceType:    vobj.TemplateSourceType(req.GetSourceType()),
-		DatasourceIds: req.GetDatasourceIds(),
-		StrategyLevel: strategyLevels,
-	}
 	if _, err := s.strategyBiz.CreateStrategy(ctx, param); err != nil {
 		return nil, err
 	}
@@ -111,37 +86,7 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 	}); has {
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
 	}
-
-	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(req.GetData().GetStrategyLevel()))
-	for _, strategyLevel := range req.GetData().GetStrategyLevel() {
-		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
-			StrategyTemplateID: req.GetData().TemplateId,
-			Count:              strategyLevel.GetCount(),
-			Duration:           types.NewDuration(strategyLevel.GetDuration()),
-			SustainType:        vobj.Sustain(strategyLevel.SustainType),
-			Interval:           types.NewDuration(strategyLevel.GetInterval()),
-			Condition:          vobj.Condition(strategyLevel.GetCondition()),
-			Threshold:          strategyLevel.GetThreshold(),
-			Status:             vobj.Status(strategyLevel.Status),
-			LevelID:            strategyLevel.GetLevelId(),
-		})
-	}
-
-	param := &bo.UpdateStrategyParams{
-		TeamID: claims.GetTeam(),
-		ID:     req.GetId(),
-		UpdateParam: bo.CreateStrategyParams{
-			TemplateId:    req.GetData().GetTemplateId(),
-			GroupId:       req.GetData().GetGroupId(),
-			Name:          req.GetData().GetName(),
-			Remark:        req.GetData().GetRemark(),
-			Status:        vobj.Status(req.GetData().GetStatus()),
-			Step:          req.GetData().GetStep(),
-			SourceType:    vobj.TemplateSourceType(req.GetData().GetSourceType()),
-			DatasourceIds: req.GetData().GetDatasourceIds(),
-			StrategyLevel: strategyLevels,
-		},
-	}
+	param := build.NewBuilder().WithUpdateBoStrategy(req).ToUpdateStrategyBO(claims.GetTeam())
 	if err := s.strategyBiz.UpdateByID(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}
@@ -177,7 +122,7 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 		return nil, err
 	}
 	return &strategyapi.GetStrategyReply{
-		Detail: build.NewStrategyBuilder(strategy).ToApi(ctx),
+		Detail: build.NewBuilder().WithApiStrategy(strategy).ToApi(ctx),
 	}, nil
 }
 
@@ -199,8 +144,8 @@ func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrateg
 	}
 	return &strategyapi.ListStrategyReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
-		List: types.SliceTo(strategies, func(str *bizmodel.Strategy) *admin.Strategy {
-			return build.NewStrategyBuilder(str).ToApi(ctx)
+		List: types.SliceTo(strategies, func(strategy *bizmodel.Strategy) *admin.Strategy {
+			return build.NewBuilder().WithApiStrategy(strategy).ToApi(ctx)
 		}),
 	}, nil
 }

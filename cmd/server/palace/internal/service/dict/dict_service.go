@@ -27,20 +27,8 @@ func NewDictService(dictBiz *biz.DictBiz) *Service {
 }
 
 func (s *Service) CreateDict(ctx context.Context, req *dictapi.CreateDictRequest) (*dictapi.CreateDictReply, error) {
-	createParams := bo.CreateDictParams{
-		Name:         req.GetName(),
-		Value:        req.GetValue(),
-		DictType:     vobj.DictType(req.GetDictType()),
-		ColorType:    req.GetColorType(),
-		CssClass:     req.GetCssClass(),
-		Icon:         req.GetIcon(),
-		ImageUrl:     req.GetImageUrl(),
-		Status:       vobj.Status(req.GetStatus()),
-		Remark:       req.GetRemark(),
-		LanguageCode: req.GetLanguageCode(),
-	}
-
-	_, err := s.dictBiz.CreateDict(ctx, &createParams)
+	createParams := build.NewBuilder().WithCreateBoDict(req).ToCreateDictBO()
+	_, err := s.dictBiz.CreateDict(ctx, createParams)
 	if err != nil {
 		return nil, err
 	}
@@ -51,25 +39,8 @@ func (s *Service) CreateDict(ctx context.Context, req *dictapi.CreateDictRequest
 }
 
 func (s *Service) UpdateDict(ctx context.Context, req *dictapi.UpdateDictRequest) (*dictapi.UpdateDictReply, error) {
-	data := req.GetData()
-	createParams := bo.CreateDictParams{
-		Name:         data.GetName(),
-		Value:        data.GetValue(),
-		DictType:     vobj.DictType(data.GetDictType()),
-		ColorType:    data.GetColorType(),
-		CssClass:     data.GetCssClass(),
-		Icon:         data.GetIcon(),
-		ImageUrl:     data.GetImageUrl(),
-		Status:       vobj.Status(data.GetStatus()),
-		Remark:       data.GetRemark(),
-		LanguageCode: data.GetLanguageCode(),
-	}
-
-	updateParams := bo.UpdateDictParams{
-		ID:          req.GetId(),
-		UpdateParam: createParams,
-	}
-	if err := s.dictBiz.UpdateDict(ctx, &updateParams); !types.IsNil(err) {
+	updateParams := build.NewBuilder().WithUpdateBoDict(req).ToUpdateDictBO()
+	if err := s.dictBiz.UpdateDict(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
 	return &dictapi.UpdateDictReply{}, nil
@@ -90,7 +61,7 @@ func (s *Service) ListDict(ctx context.Context, req *dictapi.GetDictSelectListRe
 	return &dictapi.ListDictReply{
 		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
 		List: types.SliceTo(dictPage, func(dict *model.SysDict) *admin.Dict {
-			return build.NewDictBuild(dict).ToApi()
+			return build.NewBuilder().WithApiDict(dict).ToApi()
 		}),
 	}, nil
 }
@@ -121,7 +92,7 @@ func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*di
 	if err != nil {
 		return nil, err
 	}
-	resDict := build.NewDictBuild(dictDO).ToApi()
+	resDict := build.NewBuilder().WithApiDict(dictDO).ToApi()
 	return &dictapi.GetDictReply{
 		Dict: resDict,
 	}, nil

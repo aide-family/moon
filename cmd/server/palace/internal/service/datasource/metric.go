@@ -51,7 +51,7 @@ func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMet
 		return nil, err
 	}
 	return &datasourceapi.GetMetricReply{
-		Data:       build.NewDatasourceMetricBuilder(detail).ToApi(),
+		Data:       build.NewBuilder().WithApiDatasourceMetric(detail).ToApi(),
 		LabelCount: labelCount,
 	}, nil
 }
@@ -70,7 +70,7 @@ func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListM
 	return &datasourceapi.ListMetricReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(list, func(item *bizmodel.DatasourceMetric) *admin.MetricDetail {
-			return build.NewDatasourceMetricBuilder(item).ToApi()
+			return build.NewBuilder().WithApiDatasourceMetric(item).ToApi()
 		}),
 	}, nil
 }

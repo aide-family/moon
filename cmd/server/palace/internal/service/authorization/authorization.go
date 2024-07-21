@@ -55,7 +55,7 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 		return nil, err
 	}
 	return &authorizationapi.LoginReply{
-		User:     build.NewUserBuilder(loginJwtClaims.User).ToApi(),
+		User:     build.NewBuilder().WithApiUserBo(loginJwtClaims.User).ToApi(),
 		Token:    token,
 		Redirect: "/",
 	}, nil
@@ -97,7 +97,7 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 	}
 	return &authorizationapi.RefreshTokenReply{
 		Token: token,
-		User:  build.NewUserBuilder(tokenRes.User).ToApi(),
+		User:  build.NewBuilder().WithApiUserBo(tokenRes.User).ToApi(),
 	}, nil
 }
 

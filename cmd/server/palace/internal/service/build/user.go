@@ -5,24 +5,83 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	userapi "github.com/aide-family/moon/api/admin/user"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type UserBuilder struct {
-	*model.SysUser
+type (
+	UserModelBuilder interface {
+		ToApi() *admin.User
+	}
+
+	UserRequestBuilder interface {
+		ToCreateUserBO(userId uint32, pass string) *bo.CreateUserParams
+
+		ToUpdateUserBO() *bo.UpdateUserParams
+	}
+
+	userBuilder struct {
+		// model
+		*model.SysUser
+
+		// request
+		CreateUserRequest *userapi.CreateUserRequest
+		UpdateUserRequest *userapi.UpdateUserRequest
+
+		// context
+		ctx context.Context
+	}
+
+	TeamMemberBuilder interface {
+		ToApi(ctx context.Context) *admin.TeamMember
+	}
+	teamMemberBuilder struct {
+		*bizmodel.SysTeamMember
+		ctx context.Context
+	}
+)
+
+func (b *userBuilder) ToCreateUserBO(userId uint32, pass string) *bo.CreateUserParams {
+	return &bo.CreateUserParams{
+		Name:      b.CreateUserRequest.GetName(),
+		Password:  types.NewPassword(pass),
+		Email:     b.CreateUserRequest.GetEmail(),
+		Phone:     b.CreateUserRequest.GetPhone(),
+		Nickname:  b.CreateUserRequest.GetNickname(),
+		Remark:    b.CreateUserRequest.GetRemark(),
+		Avatar:    b.CreateUserRequest.GetAvatar(),
+		CreatorID: userId,
+		Status:    vobj.Status(b.CreateUserRequest.GetStatus()),
+		Gender:    vobj.Gender(b.CreateUserRequest.GetGender()),
+		Role:      vobj.Role(b.CreateUserRequest.GetRole()),
+	}
 }
 
-func NewUserBuilder(user *model.SysUser) *UserBuilder {
-	return &UserBuilder{
-		SysUser: user,
+func (b *userBuilder) ToUpdateUserBO() *bo.UpdateUserParams {
+	createParams := bo.CreateUserParams{
+		Name:     b.UpdateUserRequest.GetData().GetName(),
+		Email:    b.UpdateUserRequest.GetData().GetEmail(),
+		Phone:    b.UpdateUserRequest.GetData().GetPhone(),
+		Nickname: b.UpdateUserRequest.GetData().GetNickname(),
+		Remark:   b.UpdateUserRequest.GetData().GetRemark(),
+		Avatar:   b.UpdateUserRequest.GetData().GetAvatar(),
+		Status:   vobj.Status(b.UpdateUserRequest.GetData().GetStatus()),
+		Gender:   vobj.Gender(b.UpdateUserRequest.GetData().GetGender()),
+		Role:     vobj.Role(b.UpdateUserRequest.GetData().GetRole()),
+	}
+	return &bo.UpdateUserParams{
+		ID:               b.UpdateUserRequest.GetId(),
+		CreateUserParams: createParams,
 	}
 }
 
 // ToApi 转换成api
-func (b *UserBuilder) ToApi() *admin.User {
+func (b *userBuilder) ToApi() *admin.User {
 	if types.IsNil(b) || types.IsNil(b.SysUser) {
 		return nil
 	}
@@ -42,17 +101,7 @@ func (b *UserBuilder) ToApi() *admin.User {
 	}
 }
 
-type TeamMemberBuilder struct {
-	*bizmodel.SysTeamMember
-}
-
-func NewTeamMemberBuilder(member *bizmodel.SysTeamMember) *TeamMemberBuilder {
-	return &TeamMemberBuilder{
-		SysTeamMember: member,
-	}
-}
-
-func (b *TeamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
+func (b *teamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
 	if types.IsNil(b) || types.IsNil(b.SysTeamMember) {
 		return nil
 	}
@@ -64,6 +113,6 @@ func (b *TeamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		User:      NewUserBuilder(cache.GetUser(ctx, b.UserID)).ToApi(),
+		User:      NewBuilder().WithApiUserBo(cache.GetUser(ctx, b.UserID)).ToApi(),
 	}
 }

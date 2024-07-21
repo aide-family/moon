@@ -31,15 +31,7 @@ func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 
 func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.CreateDatasourceRequest) (*datasourceapi.CreateDatasourceReply, error) {
 	configBytes, _ := json.Marshal(req.GetConfig())
-	params := &bo.CreateDatasourceParams{
-		Name:        req.GetName(),
-		Type:        vobj.DatasourceType(req.GetType()),
-		Endpoint:    req.GetEndpoint(),
-		Status:      vobj.Status(req.GetStatus()),
-		Remark:      req.GetRemark(),
-		Config:      string(configBytes),
-		StorageType: vobj.StorageType(req.GetStorageType()),
-	}
+	params := build.NewBuilder().WithCreateDatasourceBo(req).ToCreateDatasourceBO(configBytes)
 	datasourceDetail, err := s.datasourceBiz.CreateDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -50,13 +42,7 @@ func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.Creat
 }
 
 func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.UpdateDatasourceRequest) (*datasourceapi.UpdateDatasourceReply, error) {
-	data := req.GetData()
-	params := &bo.UpdateDatasourceBaseInfoParams{
-		ID:     req.GetId(),
-		Name:   data.GetName(),
-		Status: vobj.Status(data.GetStatus()),
-		Remark: data.GetRemark(),
-	}
+	params := build.NewBuilder().WithUpdateDatasourceBo(req).ToUpdateDatasourceBO()
 	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -81,13 +67,7 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 }
 
 func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.ListDatasourceReply, error) {
-	params := &bo.QueryDatasourceListParams{
-		Page:        types.NewPagination(req.GetPagination()),
-		Keyword:     req.GetKeyword(),
-		Type:        vobj.DatasourceType(req.GetType()),
-		Status:      vobj.Status(req.GetStatus()),
-		StorageType: vobj.StorageType(req.GetStorageType()),
-	}
+	params := build.NewBuilder().WithListDatasourceBo(req).ToListDatasourceBo()
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err

@@ -37,15 +37,8 @@ func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest
 	if leaderId <= 0 {
 		leaderId = claims.GetUser()
 	}
-	params := &bo.CreateTeamParams{
-		Name:     req.GetName(),
-		Remark:   req.GetRemark(),
-		Logo:     req.GetLogo(),
-		Status:   vobj.Status(req.GetStatus()),
-		LeaderID: leaderId,
-		Admins:   req.GetAdminIds(),
-	}
-	_, err := s.teamBiz.CreateTeam(ctx, params)
+	param := build.NewBuilder().WithCreateTeamBo(req, leaderId).ToCreateTeamBO()
+	_, err := s.teamBiz.CreateTeam(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -53,13 +46,7 @@ func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest
 }
 
 func (s *Service) UpdateTeam(ctx context.Context, req *teamapi.UpdateTeamRequest) (*teamapi.UpdateTeamReply, error) {
-	params := &bo.UpdateTeamParams{
-		ID:     req.GetId(),
-		Name:   req.GetName(),
-		Remark: req.GetRemark(),
-		Logo:   req.GetLogo(),
-		Status: vobj.Status(req.GetStatus()),
-	}
+	params := build.NewBuilder().WithUpdateTeamBo(req).ToUpdateRoleBO()
 	if err := s.teamBiz.UpdateTeam(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -72,26 +59,20 @@ func (s *Service) GetTeam(ctx context.Context, req *teamapi.GetTeamRequest) (*te
 		return nil, err
 	}
 	return &teamapi.GetTeamReply{
-		Team: build.NewTeamBuilder(teamInfo).ToApi(ctx),
+		Team: build.NewBuilder().WithApiTeam(teamInfo).ToApi(),
 	}, nil
 }
 
 func (s *Service) ListTeam(ctx context.Context, req *teamapi.ListTeamRequest) (*teamapi.ListTeamReply, error) {
-	params := &bo.QueryTeamListParams{
-		Page:      types.NewPagination(req.GetPagination()),
-		Keyword:   req.GetKeyword(),
-		Status:    vobj.Status(req.GetStatus()),
-		CreatorID: req.GetCreatorId(),
-		LeaderID:  req.GetLeaderId(),
-	}
-	teamList, err := s.teamBiz.ListTeam(ctx, params)
+	param := build.NewBuilder().WithListTeamBo(req).ToTeamListBO()
+	teamList, err := s.teamBiz.ListTeam(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.ListTeamReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(param.Page).ToApi(),
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuilder(team).ToApi(ctx)
+			return build.NewBuilder().WithApiTeam(team).ToApi()
 		}),
 	}, nil
 }
@@ -114,23 +95,14 @@ func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamap
 	}
 	return &teamapi.MyTeamReply{
 		List: types.SliceTo(teamList, func(team *model.SysTeam) *admin.Team {
-			return build.NewTeamBuilder(team).ToApi(ctx)
+			return build.NewBuilder().WithApiTeam(team).ToApi()
 		}),
 	}, nil
 }
 
 func (s *Service) AddTeamMember(ctx context.Context, req *teamapi.AddTeamMemberRequest) (*teamapi.AddTeamMemberReply, error) {
-	params := &bo.AddTeamMemberParams{
-		ID: req.GetId(),
-		Members: types.SliceTo(req.GetMembers(), func(member *teamapi.AddTeamMemberRequest_MemberItem) *bo.AddTeamMemberItem {
-			return &bo.AddTeamMemberItem{
-				UserID:  member.GetUserId(),
-				Role:    vobj.Role(member.GetRole()),
-				RoleIds: member.GetRoles(),
-			}
-		}),
-	}
-	if err := s.teamBiz.AddTeamMember(ctx, params); !types.IsNil(err) {
+	param := build.NewBuilder().WithAddTeamMemberBo(req).ToAddTeamMemberBO()
+	if err := s.teamBiz.AddTeamMember(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.AddTeamMemberReply{}, nil
@@ -184,14 +156,7 @@ func (s *Service) SetMemberRole(ctx context.Context, req *teamapi.SetMemberRoleR
 }
 
 func (s *Service) ListTeamMember(ctx context.Context, req *teamapi.ListTeamMemberRequest) (*teamapi.ListTeamMemberReply, error) {
-	params := &bo.ListTeamMemberParams{
-		Page:    types.NewPagination(req.GetPagination()),
-		ID:      req.GetId(),
-		Keyword: req.GetKeyword(),
-		Role:    vobj.Role(req.GetRole()),
-		Gender:  vobj.Gender(req.GetGender()),
-		Status:  vobj.Status(req.GetStatus()),
-	}
+	params := build.NewBuilder().WithListTeamTeamMemberBo(req).ToListTeamMemberBO()
 	memberList, err := s.teamBiz.ListTeamMember(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -199,7 +164,7 @@ func (s *Service) ListTeamMember(ctx context.Context, req *teamapi.ListTeamMembe
 	return &teamapi.ListTeamMemberReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(memberList, func(member *bizmodel.SysTeamMember) *admin.TeamMember {
-			return build.NewTeamMemberBuilder(member).ToApi(ctx)
+			return build.NewBuilder().WithApiTeamMember(member).ToApi(ctx)
 		}),
 	}, nil
 }

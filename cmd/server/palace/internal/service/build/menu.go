@@ -1,23 +1,50 @@
 package build
 
 import (
+	"context"
+
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	menuapi "github.com/aide-family/moon/api/admin/menu"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type MenuBuilder struct {
-	Menu *model.SysMenu
-}
-
-func NewMenuBuilder(menu *model.SysMenu) *MenuBuilder {
-	return &MenuBuilder{
-		Menu: menu,
+type (
+	MenuModelBuilder interface {
+		ToApi() *admin.Menu
 	}
-}
 
-func (b *MenuBuilder) ToApi() *admin.Menu {
+	MenuRequestBuilder interface {
+		ToCreateMenuBO(menu *menuapi.CreateMenuRequest) *bo.CreateMenuParams
+
+		ToBatchCreateMenuBO() []*bo.CreateMenuParams
+
+		ToUpdateMenuBO() *bo.UpdateMenuParams
+	}
+
+	MenuTreeBuilder interface {
+		ToTree() []*admin.MenuTree
+	}
+
+	menuBuilder struct {
+		Menu                   *model.SysMenu
+		BatchCreateMenuRequest *menuapi.BatchCreateMenuRequest
+		UpdateMenuRequest      *menuapi.UpdateMenuRequest
+		CreateMenuRequest      *menuapi.CreateMenuRequest
+		ctx                    context.Context
+	}
+
+	menuTreeBuilder struct {
+		MenuMap  map[uint32][]*admin.Menu
+		ParentID uint32
+		ctx      context.Context
+	}
+)
+
+func (b *menuBuilder) ToApi() *admin.Menu {
 	if types.IsNil(b) || types.IsNil(b.Menu) {
 		return nil
 	}
@@ -39,35 +66,72 @@ func (b *MenuBuilder) ToApi() *admin.Menu {
 	}
 }
 
-type MenuTreeBuilder struct {
-	menuMap  map[uint32][]*admin.Menu
-	parentID uint32
+func (b *menuBuilder) ToCreateMenuBO(menu *menuapi.CreateMenuRequest) *bo.CreateMenuParams {
+	return &bo.CreateMenuParams{
+		Name:       menu.GetName(),
+		Path:       menu.GetPath(),
+		Component:  menu.GetComponent(),
+		Type:       vobj.MenuType(menu.GetMenuType()),
+		Status:     vobj.Status(menu.GetStatus()),
+		Icon:       menu.GetIcon(),
+		Permission: menu.GetPermission(),
+		ParentId:   menu.GetParentId(),
+		EnName:     menu.GetEnName(),
+		Sort:       menu.GetSort(),
+		Level:      menu.GetLevel(),
+	}
 }
 
-func NewMenuTreeBuilder(menuList []*admin.Menu, parentID uint32) *MenuTreeBuilder {
-	menuMap := make(map[uint32][]*admin.Menu)
-	// 按照父级ID分组
-	for _, menu := range menuList {
-		if _, ok := menuMap[menu.GetParentId()]; !ok {
-			menuMap[menu.GetParentId()] = make([]*admin.Menu, 0)
+func (b *menuBuilder) ToUpdateMenuBO() *bo.UpdateMenuParams {
+	data := b.UpdateMenuRequest.GetData()
+	createParams := bo.CreateMenuParams{
+		Name:       data.GetName(),
+		Path:       data.GetPath(),
+		Component:  data.GetComponent(),
+		Type:       vobj.MenuType(data.GetMenuType()),
+		Status:     vobj.Status(data.GetStatus()),
+		Icon:       data.GetIcon(),
+		Permission: data.GetPermission(),
+		ParentId:   data.GetParentId(),
+		EnName:     data.GetEnName(),
+		Sort:       data.GetSort(),
+		Level:      data.GetLevel(),
+	}
+	return &bo.UpdateMenuParams{
+		ID:          b.UpdateMenuRequest.GetId(),
+		UpdateParam: createParams,
+	}
+}
+
+func (b *menuBuilder) ToBatchCreateMenuBO() []*bo.CreateMenuParams {
+	params := types.SliceToWithFilter(b.BatchCreateMenuRequest.GetMenus(), func(menu *menuapi.CreateMenuRequest) (*bo.CreateMenuParams, bool) {
+		createParam := bo.CreateMenuParams{
+			Name:       menu.GetName(),
+			Path:       menu.GetPath(),
+			Component:  menu.GetComponent(),
+			Type:       vobj.MenuType(menu.GetMenuType()),
+			Status:     vobj.Status(menu.GetStatus()),
+			Icon:       menu.GetIcon(),
+			Permission: menu.GetPermission(),
+			ParentId:   menu.GetParentId(),
+			EnName:     menu.GetEnName(),
+			Sort:       menu.GetSort(),
+			Level:      menu.GetLevel(),
 		}
-		menuMap[menu.GetParentId()] = append(menuMap[menu.GetParentId()], menu)
-	}
-	return &MenuTreeBuilder{
-		menuMap:  menuMap,
-		parentID: parentID,
-	}
+		return &createParam, true
+	})
+	return params
 }
 
 // ToTree 转换为树形菜单
-func (b *MenuTreeBuilder) ToTree() []*admin.MenuTree {
-	if types.IsNil(b) || types.IsNil(b.menuMap) || len(b.menuMap) == 0 {
+func (b *menuTreeBuilder) ToTree() []*admin.MenuTree {
+	if types.IsNil(b) || types.IsNil(b.MenuMap) || len(b.MenuMap) == 0 {
 		return nil
 	}
 	list := make([]*admin.MenuTree, 0)
 	// 递归遍历
-	for _, menu := range b.menuMap[b.parentID] {
-		if menu.ParentId == b.parentID {
+	for _, menu := range b.MenuMap[b.ParentID] {
+		if menu.ParentId == b.ParentID {
 			list = append(list, &admin.MenuTree{
 				Id:        menu.GetId(),
 				Name:      menu.GetName(),
@@ -80,7 +144,7 @@ func (b *MenuTreeBuilder) ToTree() []*admin.MenuTree {
 				Level:     menu.GetLevel(),
 				Sort:      menu.GetSort(),
 				EnName:    menu.GetEnName(),
-				Children:  NewMenuTreeBuilder(b.menuMap[menu.GetId()], menu.GetId()).ToTree(),
+				Children:  NewBuilder().WithApiMenuTree(b.MenuMap[menu.GetId()], menu.GetId()).ToTree(),
 			})
 		}
 	}

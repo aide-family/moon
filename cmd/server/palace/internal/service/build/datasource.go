@@ -6,17 +6,27 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
+	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 type (
-	DatasourceBuilder interface {
+	DatasourceModelBuilder interface {
 		ToApi() *admin.Datasource
+	}
+
+	DatasourceRequestBuilder interface {
+		ToCreateDatasourceBO(configBytes []byte) *bo.CreateDatasourceParams
+
+		ToUpdateDatasourceBO() *bo.UpdateDatasourceBaseInfoParams
+
+		ToListDatasourceBo() *bo.QueryDatasourceListParams
 	}
 
 	DatasourceQueryDataBuilder interface {
@@ -24,7 +34,15 @@ type (
 	}
 
 	datasourceBuilder struct {
+		// model
 		*bizmodel.Datasource
+
+		// request
+		CreateDatasourceRequest *datasourceapi.CreateDatasourceRequest
+		UpdateDatasourceRequest *datasourceapi.UpdateDatasourceRequest
+		ListDatasourceRequest   *datasourceapi.ListDatasourceRequest
+
+		//context
 		ctx context.Context
 	}
 
@@ -33,6 +51,37 @@ type (
 		ctx context.Context
 	}
 )
+
+func (b *datasourceBuilder) ToCreateDatasourceBO(configBytes []byte) *bo.CreateDatasourceParams {
+	return &bo.CreateDatasourceParams{
+		Name:        b.CreateDatasourceRequest.GetName(),
+		Type:        vobj.DatasourceType(b.CreateDatasourceRequest.GetType()),
+		Endpoint:    b.CreateDatasourceRequest.GetEndpoint(),
+		Status:      vobj.Status(b.CreateDatasourceRequest.GetStatus()),
+		Remark:      b.CreateDatasourceRequest.GetRemark(),
+		Config:      string(configBytes),
+		StorageType: vobj.StorageType(b.CreateDatasourceRequest.GetStorageType()),
+	}
+}
+
+func (b *datasourceBuilder) ToUpdateDatasourceBO() *bo.UpdateDatasourceBaseInfoParams {
+	return &bo.UpdateDatasourceBaseInfoParams{
+		ID:     b.UpdateDatasourceRequest.GetId(),
+		Name:   b.UpdateDatasourceRequest.GetData().GetName(),
+		Status: vobj.Status(b.UpdateDatasourceRequest.GetData().GetStatus()),
+		Remark: b.UpdateDatasourceRequest.GetData().GetRemark(),
+	}
+}
+
+func (b *datasourceBuilder) ToListDatasourceBo() *bo.QueryDatasourceListParams {
+	return &bo.QueryDatasourceListParams{
+		Page:        types.NewPagination(b.ListDatasourceRequest.GetPagination()),
+		Keyword:     b.ListDatasourceRequest.GetKeyword(),
+		Type:        vobj.DatasourceType(b.ListDatasourceRequest.GetType()),
+		Status:      vobj.Status(b.ListDatasourceRequest.GetStatus()),
+		StorageType: vobj.StorageType(b.ListDatasourceRequest.GetStorageType()),
+	}
+}
 
 func (b *datasourceBuilder) ToApi() *admin.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
@@ -54,7 +103,7 @@ func (b *datasourceBuilder) ToApi() *admin.Datasource {
 		Config:      configMap,
 		Remark:      b.Remark,
 		StorageType: api.StorageType(b.StorageType),
-		Creator:     NewUserBuilder(cache.GetUser(b.ctx, b.CreatorID)).ToApi(),
+		Creator:     NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.CreatorID)).ToApi(),
 	}
 }
 
