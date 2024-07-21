@@ -26,6 +26,10 @@ type (
 		TeamID uint32 `json:"teamID"`
 		// 策略等级
 		StrategyLevel []*CreateStrategyLevel `json:"strategyLevel"`
+		// 标签
+		Labels *vobj.Labels `json:"labels"`
+		// 注解
+		Annotations vobj.Annotations `json:"annotations"`
 	}
 
 	UpdateStrategyParams struct {

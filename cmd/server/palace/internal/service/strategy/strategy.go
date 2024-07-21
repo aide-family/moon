@@ -64,9 +64,8 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 	}); has {
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
 	}
-
-	param := build.NewBuilder().WithCreateBoStrategy(req).ToCreateStrategyBO(claims.GetTeam())
-
+	req.TeamId = claims.GetTeam()
+	param := build.NewBuilder().WithCreateBoStrategy(req).ToCreateStrategyBO()
 	if _, err := s.strategyBiz.CreateStrategy(ctx, param); err != nil {
 		return nil, err
 	}
@@ -86,7 +85,9 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 	}); has {
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
 	}
-	param := build.NewBuilder().WithUpdateBoStrategy(req).ToUpdateStrategyBO(claims.GetTeam())
+
+	req.GetData().TeamId = claims.GetTeam()
+	param := build.NewBuilder().WithUpdateBoStrategy(req).ToUpdateStrategyBO()
 	if err := s.strategyBiz.UpdateByID(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}

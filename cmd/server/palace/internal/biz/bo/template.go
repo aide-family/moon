@@ -19,10 +19,8 @@ type (
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
 		Annotations vobj.Annotations `json:"annotations"`
-		// 模板等级
 		// 告警等级数据
-		StrategyLevelTemplates []*CreateStrategyLevelTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategyLevelTemplates"`
-
+		StrategyLevelTemplates []*CreateStrategyLevelTemplate `json:"strategyLevelTemplates"`
 		//策略模板类型
 		CategoriesIDs []uint32 `json:"categoriesIds"`
 	}

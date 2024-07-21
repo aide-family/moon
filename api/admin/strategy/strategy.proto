@@ -199,6 +199,20 @@ message CreateStrategyRequest {
     message: "请填写策略等级数据",
     expression: "this.size() > 0"
   }];
+  // 策略标签
+  map<string, string> labels = 10 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
+    message: "标签数量必须大于0且小于等于20"
+    id: "CreateTemplateStrategyRequestLabels"
+  }];
+  // 策略注解
+  map<string, string> annotations = 11 [(buf.validate.field).cel = {
+    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
+    message: "注解数量必须大于0且小于等于5"
+    id: "CreateTemplateStrategyRequestAnnotations"
+  }];
+
+  uint32 teamId = 12;
 }
 message CreateStrategyReply {}
 

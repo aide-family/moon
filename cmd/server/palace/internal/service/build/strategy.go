@@ -18,8 +18,8 @@ type (
 	}
 
 	StrategyRequestBuilder interface {
-		ToCreateStrategyBO(teamID uint32) *bo.CreateStrategyParams
-		ToUpdateStrategyBO(teamID uint32) *bo.UpdateStrategyParams
+		ToCreateStrategyBO() *bo.CreateStrategyParams
+		ToUpdateStrategyBO() *bo.UpdateStrategyParams
 	}
 
 	StrategyLevelModelBuilder interface {
@@ -70,7 +70,7 @@ func (b *strategyBuilder) ToApi(ctx context.Context) *admin.Strategy {
 	}
 }
 
-func (b *strategyBuilder) ToCreateStrategyBO(teamID uint32) *bo.CreateStrategyParams {
+func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(b.CreateStrategy.GetStrategyLevel()))
 	for _, strategyLevel := range b.CreateStrategy.GetStrategyLevel() {
 		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
@@ -86,7 +86,7 @@ func (b *strategyBuilder) ToCreateStrategyBO(teamID uint32) *bo.CreateStrategyPa
 		})
 	}
 	return &bo.CreateStrategyParams{
-		TeamID:        teamID,
+		TeamID:        b.CreateStrategy.GetTeamId(),
 		TemplateId:    b.CreateStrategy.GetTemplateId(),
 		GroupId:       b.CreateStrategy.GetGroupId(),
 		Name:          b.CreateStrategy.GetName(),
@@ -95,11 +95,13 @@ func (b *strategyBuilder) ToCreateStrategyBO(teamID uint32) *bo.CreateStrategyPa
 		Step:          b.CreateStrategy.GetStep(),
 		SourceType:    vobj.TemplateSourceType(b.CreateStrategy.GetSourceType()),
 		DatasourceIds: b.CreateStrategy.GetDatasourceIds(),
+		Labels:        vobj.NewLabels(b.CreateStrategy.GetLabels()),
+		Annotations:   b.CreateStrategy.GetAnnotations(),
 		StrategyLevel: strategyLevels,
 	}
 }
 
-func (b *strategyBuilder) ToUpdateStrategyBO(teamID uint32) *bo.UpdateStrategyParams {
+func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
 
 	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(b.UpdateStrategy.GetData().GetStrategyLevel()))
 	for _, strategyLevel := range b.UpdateStrategy.GetData().GetStrategyLevel() {
@@ -116,7 +118,7 @@ func (b *strategyBuilder) ToUpdateStrategyBO(teamID uint32) *bo.UpdateStrategyPa
 		})
 	}
 	return &bo.UpdateStrategyParams{
-		TeamID: teamID,
+		TeamID: b.UpdateStrategy.GetData().GetTeamId(),
 		ID:     b.UpdateStrategy.GetId(),
 		UpdateParam: bo.CreateStrategyParams{
 			TemplateId:    b.UpdateStrategy.GetData().GetTemplateId(),

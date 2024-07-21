@@ -239,8 +239,8 @@ func createStrategyParamsToModel(ctx context.Context, strategyTemplate *model.St
 		StrategyTemplateID:     strategyTemplate.ID,
 		StrategyTemplateSource: vobj.StrategyTemplateSource(params.SourceType),
 		Expr:                   strategyTemplate.Expr,
-		Labels:                 strategyTemplate.Labels,
-		Annotations:            strategyTemplate.Annotations,
+		Labels:                 params.Labels,
+		Annotations:            params.Annotations,
 		Remark:                 params.Remark,
 		Step:                   params.Step,
 		Datasource: types.SliceToWithFilter(params.DatasourceIds, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
