@@ -84,4 +84,9 @@ type (
 		// 状态
 		Status vobj.Status `json:"status"`
 	}
+
+	CopyStrategyParams struct {
+		StrategyID uint32 `json:"strategyID"`
+		TeamID     uint32 `json:"teamID"`
+	}
 )

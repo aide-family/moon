@@ -150,3 +150,14 @@ func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrateg
 		}),
 	}, nil
 }
+
+func (s *Service) CopyStrategy(ctx context.Context, req *strategyapi.CopyStrategyRequest) (*strategyapi.CopyStrategyReply, error) {
+	param := &bo.CopyStrategyParams{
+		StrategyID: req.StrategyId,
+	}
+	strategy, err := s.strategyBiz.CopyStrategy(ctx, param)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &strategyapi.CopyStrategyReply{Id: strategy.ID}, nil
+}

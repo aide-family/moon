@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"fmt"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -94,7 +95,7 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 
 func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.UpdateStrategyParams) error {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	updateParam := params.UpdateParam
@@ -153,7 +154,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 
 func (s *strategyRepositoryImpl) GetByID(ctx context.Context, params *bo.GetStrategyDetailParams) (*bizmodel.Strategy, error) {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	bizWrapper := bizquery.Use(bizDB).Strategy.WithContext(ctx)
@@ -212,6 +213,40 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	}
 
 	return strategyWrapper.Order(bizquery.Use(bizDB).Strategy.ID.Desc()).Find()
+}
+
+func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, params *bo.CopyStrategyParams) (*bizmodel.Strategy, error) {
+
+	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	strategyWrapper := bizquery.Use(bizDB).Strategy.WithContext(ctx)
+	strategy, err := strategyWrapper.Where(bizquery.Use(bizDB).Strategy.ID.Eq(params.StrategyID)).Preload(field.Associations).First()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, params.StrategyID, "copy")
+	strategy.ID = 0
+	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+		if err := tx.Strategy.WithContext(ctx).Create(strategy); !types.IsNil(err) {
+			return err
+		}
+		copyLevels := make([]*bizmodel.StrategyLevel, 0, len(strategy.StrategyLevel))
+		for _, level := range strategy.StrategyLevel {
+			level.StrategyID = strategy.ID
+			level.ID = 0
+			copyLevels = append(copyLevels, level)
+		}
+		if err := bizquery.Use(bizDB).StrategyLevel.WithContext(ctx).Create(copyLevels...); !types.IsNil(err) {
+			return err
+		}
+		return nil
+	})
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return strategy, nil
 }
 
 func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyLevel, strategyId uint32) []*bizmodel.StrategyLevel {

@@ -94,6 +94,15 @@ service Strategy {
       body: "*"
     };
   }
+
+  // 根据策略id 生成策略
+  rpc CopyStrategy (CopyStrategyRequest) returns (CopyStrategyReply) {
+    option (google.api.http) = {
+      post: "/v1/strategy/copy"
+      body: "*"
+    };
+  }
+
 }
 
 message CreateStrategyGroupRequest {
@@ -270,4 +279,12 @@ message CreateStrategyLevelRequest{
   double threshold = 7;
   // 条件
   Condition condition = 8;
+}
+
+message CopyStrategyRequest {
+  uint32 strategyId = 1;
+}
+
+message CopyStrategyReply {
+  uint32 id = 1;
 }

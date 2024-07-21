@@ -25,4 +25,7 @@ type Strategy interface {
 
 	// DeleteByID 删除策略
 	DeleteByID(ctx context.Context, params *bo.DelStrategyParams) error
+
+	// CopyStrategy 复制策略
+	CopyStrategy(ctx context.Context, params *bo.CopyStrategyParams) (*bizmodel.Strategy, error)
 }

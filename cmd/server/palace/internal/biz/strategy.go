@@ -92,3 +92,19 @@ func (b *StrategyBiz) StrategyPage(ctx context.Context, param *bo.QueryStrategyL
 	}
 	return strategies, nil
 }
+
+func (b *StrategyBiz) CopyStrategy(ctx context.Context, param *bo.CopyStrategyParams) (*bizmodel.Strategy, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	param.TeamID = claims.Team
+	strategy, err := b.strategyRepo.CopyStrategy(ctx, param)
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return strategy, merr.ErrorI18nStrategyNotFoundErr(ctx)
+		}
+		return strategy, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return strategy, nil
+}
