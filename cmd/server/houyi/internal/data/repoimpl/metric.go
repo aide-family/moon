@@ -3,21 +3,26 @@ package repoimpl
 import (
 	"context"
 
+	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/admin"
+	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/data/microserver"
 	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-func NewMetricRepository(data *data.Data) repository.Metric {
-	return &metricRepositoryImpl{data: data}
+func NewMetricRepository(data *data.Data, palaceCli *microserver.PalaceConn) repository.Metric {
+	return &metricRepositoryImpl{data: data, palaceCli: palaceCli}
 }
 
 type metricRepositoryImpl struct {
-	data *data.Data
+	data      *data.Data
+	palaceCli *microserver.PalaceConn
 }
 
 func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) ([]metric.DatasourceBuildOption, error) {
@@ -50,9 +55,20 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 		return nil, err
 	}
 
-	list := types.SliceTo(metadata.Metric, func(item *metric.Metric) *bo.MetricDetail {
-		return &bo.MetricDetail{Name: item.Name, Help: item.Help, Type: item.Type, Labels: item.Labels, Unit: item.Unit}
-	})
+	metadataMap := make(map[string]*metric.Metric)
+	for _, item := range metadata.Metric {
+		metadataMap[item.Name] = item
+	}
+	list := make([]*bo.MetricDetail, 0, len(metadata.Metric))
+	for _, metricDetail := range metadataMap {
+		list = append(list, &bo.MetricDetail{
+			Name:   metricDetail.Name,
+			Help:   metricDetail.Help,
+			Type:   metricDetail.Type,
+			Unit:   metricDetail.Unit,
+			Labels: metricDetail.Labels,
+		})
+	}
 	return list, nil
 }
 
@@ -73,4 +89,32 @@ func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams)
 	}
 	start, end := types.NewTimeByString(req.TimeRange[0]).Unix(), types.NewTimeByString(req.TimeRange[1]).Unix()
 	return datasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
+}
+
+func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetricParams) error {
+	labels := make([]*admin.MetricLabel, 0, len(req.Labels))
+	for label, labelValue := range req.Labels {
+		labels = append(labels, &admin.MetricLabel{
+			Name: label,
+			Values: types.SliceTo(labelValue, func(item string) *admin.MetricLabelValue {
+				return &admin.MetricLabelValue{
+					Value: item,
+				}
+			}),
+		})
+	}
+
+	_, err := l.palaceCli.PushMetric(ctx, &datasourceapi.SyncMetricRequest{
+		Metrics: &admin.MetricDetail{
+			Name:   req.Name,
+			Help:   req.Help,
+			Type:   api.MetricType(vobj.GetMetricType(req.Type)),
+			Labels: labels,
+			Unit:   req.Unit,
+		},
+		Done:         req.Done,
+		DatasourceId: req.DatasourceId,
+		TeamId:       req.TeamId,
+	})
+	return err
 }

@@ -93,6 +93,23 @@ func (l *HouYiConn) Sync(ctx context.Context, in *metadataapi.SyncMetadataReques
 	}
 }
 
+func (l *HouYiConn) SyncV2(ctx context.Context, in *metadataapi.SyncMetadataV2Request, opts ...Option) (*metadataapi.SyncMetadataV2Reply, error) {
+	switch l.network {
+	case vobj.NetworkHttp, vobj.NetworkHttps:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HttpOpts...)
+		}
+		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadataV2(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+		}
+		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadataV2(ctx, in, rpcOpts...)
+	}
+}
+
 // Query 查询数据
 func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opts ...Option) (*metadataapi.QueryReply, error) {
 	switch l.network {

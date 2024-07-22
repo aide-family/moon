@@ -2,7 +2,7 @@ package biz
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/aide-family/moon/api/merr"
@@ -116,10 +116,13 @@ func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.
 	return nil
 }
 
+func syncDatasourceMetaKey(datasourceId uint32) string {
+	return fmt.Sprintf("sync:datasource:meta:%d", datasourceId)
+}
+
 // SyncDatasourceMeta 同步数据源元数据
 func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
-	syncDatasourceMetaKey := "sync:datasource:meta:" + strconv.FormatUint(uint64(id), 10)
-	if err := b.lock.Lock(ctx, syncDatasourceMetaKey, 10*time.Minute); !types.IsNil(err) {
+	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
 		if errors.Is(err, merr.ErrorI18nLockFailedErr(ctx)) {
 			return merr.ErrorI18nRetryLaterErr(ctx).WithMetadata(map[string]string{
 				"retry": merr.GetI18nMessage(ctx, "DATASOURCE_SYNCING"),
@@ -134,7 +137,7 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	go func() {
 		defer after.RecoverX()
 		defer func() {
-			if err := b.lock.UnLock(context.Background(), syncDatasourceMetaKey); !types.IsNil(err) {
+			if err := b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id)); !types.IsNil(err) {
 				log.Errorw("unlock err", err)
 			}
 		}()
@@ -146,6 +149,35 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 		}
 	}()
 
+	return nil
+}
+
+// SyncDatasourceMetaV2 同步数据源元数据
+func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) error {
+	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
+		if errors.Is(err, merr.ErrorI18nLockFailedErr(ctx)) {
+			return merr.ErrorI18nRetryLaterErr(ctx).WithMetadata(map[string]string{
+				"retry": merr.GetI18nMessage(ctx, "DATASOURCE_SYNCING"),
+			})
+		}
+		return err
+	}
+
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return merr.ErrorI18nUnLoginErr(ctx)
+	}
+	// 获取数据源详情
+	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, claims.GetTeam())
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return merr.ErrorI18nDatasourceNotFoundErr(ctx)
+		}
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	if err := b.datasourceMetricMicroRepository.InitiateSyncRequest(ctx, datasourceDetail); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
 	return nil
 }
 

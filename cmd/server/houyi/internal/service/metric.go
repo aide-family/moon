@@ -9,8 +9,10 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service/build"
 	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type MetricService struct {
@@ -63,4 +65,41 @@ func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest
 			return build.NewMetricQueryBuilder(item).ToApi()
 		}),
 	}, nil
+}
+
+// SyncMetadataV2 sync metric data
+func (s *MetricService) SyncMetadataV2(ctx context.Context, req *metadataapi.SyncMetadataV2Request) (*metadataapi.SyncMetadataV2Reply, error) {
+	params := &bo.GetMetricsParams{
+		Endpoint:    req.GetEndpoint(),
+		Config:      req.GetConfig(),
+		StorageType: vobj.StorageType(req.GetStorageType()),
+	}
+	metrics, err := s.metricBiz.SyncMetrics(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	// 异步推送
+	go func() {
+		defer after.RecoverX()
+		metricsLen := len(metrics)
+		labelsLen := 0
+		labelValuesLen := 0
+		for index, item := range metrics {
+			labelsLen += len(item.Labels)
+			for _, labelValues := range item.Labels {
+				labelValuesLen += len(labelValues)
+			}
+			if err := s.metricBiz.PushMetric(&bo.PushMetricParams{
+				MetricDetail: item,
+				DatasourceId: req.GetDatasourceId(),
+				Done:         index == metricsLen-1,
+				TeamId:       req.GetTeamId(),
+			}); err != nil {
+				log.Errorw("method", "push metric error", "err", err)
+				continue
+			}
+		}
+		log.Infow("method", "sync metric", "total", metricsLen, "labels", labelsLen, "labelValues", labelValuesLen)
+	}()
+	return &metadataapi.SyncMetadataV2Reply{}, nil
 }

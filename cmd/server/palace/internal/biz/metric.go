@@ -8,20 +8,22 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
-
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 )
 
-func NewMetricBiz(metricRepository repository.Metric) *MetricBiz {
+func NewMetricBiz(metricRepository repository.Metric, lock repository.Lock) *MetricBiz {
 	return &MetricBiz{
 		metricRepository: metricRepository,
+		lock:             lock,
 	}
 }
 
 // MetricBiz 指标业务
 type MetricBiz struct {
 	metricRepository repository.Metric
+	lock             repository.Lock
 }
 
 // UpdateMetricByID 通过ID修改指标信息
@@ -83,4 +85,20 @@ func (b *MetricBiz) GetMetricLabelCount(ctx context.Context, metricId uint32) (u
 		return 0, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return count, nil
+}
+
+// CreateMetric 创建指标信息
+func (b *MetricBiz) CreateMetric(ctx context.Context, params *bo.CreateMetricParams) error {
+	if params.Done {
+		defer func() {
+			if err := b.lock.UnLock(ctx, syncDatasourceMetaKey(params.DatasourceID)); !types.IsNil(err) {
+				log.Errorw("unlock err", err)
+			}
+		}()
+	}
+
+	if err := b.metricRepository.CreateMetrics(ctx, params.TeamId, params.ToModel()); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
 }

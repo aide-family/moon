@@ -14,4 +14,7 @@ type Metric interface {
 
 	// Query 查询QL数据
 	Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error)
+
+	// PushMetric 推送
+	PushMetric(ctx context.Context, req *bo.PushMetricParams) error
 }

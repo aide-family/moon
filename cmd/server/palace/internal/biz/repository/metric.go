@@ -29,4 +29,7 @@ type Metric interface {
 
 	// MetricLabelCount 指标标签数量
 	MetricLabelCount(ctx context.Context, id uint32) (uint32, error)
+
+	// CreateMetrics 创建指标
+	CreateMetrics(ctx context.Context, teamId uint32, metric *bizmodel.DatasourceMetric) error
 }

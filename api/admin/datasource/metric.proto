@@ -53,6 +53,14 @@ service Metric {
       delete: "/v1/datasource/metric/{id}"
     };
   }
+
+  // 推送元数据信息
+  rpc SyncMetric(SyncMetricRequest) returns (SyncMetricReply) {
+    option (google.api.http) = {
+      post: "/v1/datasource/metric/sync"
+      body: "*"
+    };
+  }
 }
 
 message UpdateMetricRequest {
@@ -131,3 +139,23 @@ message SelectMetricReply {
   // 分页参数
   PaginationReply pagination = 2;
 }
+
+message SyncMetricRequest {
+  // 推送一个指标数据
+  MetricDetail metrics = 1 [(buf.validate.field).required = true];
+  // 是否推送完毕
+  bool done = 2;
+  // 数据源ID
+  uint32 datasourceId = 3 [(buf.validate.field).cel = {
+    id: "SyncMetricRequestDatasourceId",
+    message: "数据源ID不能为空",
+    expression: 'this > 0'
+  }];
+  // 团队ID
+  uint32 teamId = 4 [(buf.validate.field).cel = {
+    id: "SyncMetricRequestTeamId",
+    message: "团队ID不能为空",
+    expression: 'this > 0'
+  }];
+}
+message SyncMetricReply {}

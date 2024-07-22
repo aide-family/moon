@@ -248,16 +248,38 @@ message UpdateTemplateStrategyStatusRequest {
 message UpdateTemplateStrategyStatusReply {}
 
 message ValidateAnnotationsTemplateRequest {
+  // 策略注解模板
   string annotations = 1;
+  // 策略表达式
   string expr = 2;
+  // 策略标签自定义标签
   map<string, string> labels = 3;
+  // 策略等级
   string level = 4;
+  // 策略名称
   string alert = 5;
+  // 策略数据源
   string datasource = 6;
+  // 策略数据源ID
+  uint32 datasourceId = 7;
+  // 策略持续时间
+  string duration = 8;
+  // 持续次数
+  uint32 count = 9;
+  // 持续的类型
+  SustainType sustainType = 10;
+  // 条件
+  Condition condition = 11;
+  // 阈值
+  double threshold = 12;
+  // 策略类型列表
+  repeated string categories = 13;
 }
 message ValidateAnnotationsTemplateReply {
   // 策略模板填充后的数据
   string annotations = 1;
   // 错误信息
   string errors = 2;
+  // 标签列表
+  repeated string labels = 3;
 }

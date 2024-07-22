@@ -17,7 +17,15 @@ service Metric {
   rpc SyncMetadata(SyncMetadataRequest) returns (SyncMetadataReply) {
     // TODO 需要做成异步的， 由palace服务发送拉取信号， houyi服务组装数据分批次推送元数据，解决数据量大， 引起传输失败的问题
     option (google.api.http) = {
-      post: "/metric/sync/metadata"
+      post: "/v1/metric/sync/metadata"
+      body: "*"
+    };
+  }
+
+  // 同步元数据V2
+  rpc SyncMetadataV2(SyncMetadataV2Request) returns (SyncMetadataV2Reply) {
+    option (google.api.http) = {
+      post: "/v2/metric/sync/metadata"
       body: "*"
     };
   }
@@ -25,7 +33,7 @@ service Metric {
   // 查询
   rpc Query(QueryRequest) returns (QueryReply) {
     option (google.api.http) = {
-      post: "/metric/query"
+      post: "/v1/metric/query"
       body: "*"
     };
   }
@@ -45,6 +53,20 @@ message SyncMetadataReply {
   // 采集到的指标列表
   repeated MetricDetail metrics = 1;
 }
+
+message SyncMetadataV2Request {
+  // 数据源地址
+  string endpoint = 1;
+  // 配置信息
+  map<string, string> config = 2;
+  // 存储类型
+  StorageType storageType = 3;
+  // 数据源ID
+  uint32 datasourceId = 4;
+  // 团队ID
+  uint32 teamId = 5;
+}
+message SyncMetadataV2Reply {}
 
 message QueryRequest {
   // 查询语句

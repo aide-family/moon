@@ -8,6 +8,7 @@ package houyi
 import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-family/moon/cmd/server/houyi/internal/data/microserver"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data/repoimpl"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/server"
@@ -25,6 +26,7 @@ func wireApp(*houyiconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		repoimpl.ProviderSetRepoImpl,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
+		microserver.ProviderSetRpcConn,
 		newApp,
 	))
 }

@@ -6,9 +6,11 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/houyi/metadata"
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -94,7 +96,7 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 		}
 		item := &bizmodel.DatasourceMetric{
 			Name:         metric.GetName(),
-			Category:     getMetricType(metric.GetType()),
+			Category:     vobj.MetricType(metric.GetType()),
 			Unit:         metric.GetUnit(),
 			Remark:       metric.GetHelp(),
 			DatasourceID: datasourceInfo.ID,
@@ -106,18 +108,22 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 	return metrics, nil
 }
 
-// getMetricType 获取指标类型
-func getMetricType(metricType string) vobj.MetricType {
-	switch metricType {
-	case "counter":
-		return vobj.MetricTypeCounter
-	case "histogram":
-		return vobj.MetricTypeHistogram
-	case "gauge":
-		return vobj.MetricTypeGauge
-	case "summary":
-		return vobj.MetricTypeSummary
-	default:
-		return vobj.MetricTypeUnknown
+func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error {
+	configMap := make(map[string]string)
+	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
+		return err
 	}
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return merr.ErrorI18nUnLoginErr(ctx)
+	}
+	in := &metadata.SyncMetadataV2Request{
+		Endpoint:     datasourceInfo.Endpoint,
+		Config:       configMap,
+		StorageType:  api.StorageType(datasourceInfo.StorageType),
+		DatasourceId: datasourceInfo.ID,
+		TeamId:       claims.GetTeam(),
+	}
+	_, err := l.cli.SyncV2(ctx, in)
+	return err
 }

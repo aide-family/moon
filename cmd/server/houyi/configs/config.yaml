@@ -52,3 +52,28 @@ watch:
     timeout: 10s
     interval: "@every 10s"
   alertEvent:
+
+micro_server:
+  discovery:
+    type: "etcd"
+    etcd:
+      endpoints:
+        - 127.0.0.1:20000
+        - 127.0.0.1:20002
+        - 127.0.0.1:20004
+      username: ""
+      password: ""
+      timeout: 50s
+  rabbit_server:
+    network: "rpc"
+    nodeVersion: ""
+    endpoint: "discovery:///moon_rabbit"
+    #    endpoint: "127.0.0.1:8001"
+    timeout: 50s
+    secret: ""
+  palace_server:
+    network: "rpc"
+    nodeVersion: ""
+    endpoint: "discovery:///moon_palace"
+    timeout: 50s
+    secret: ""

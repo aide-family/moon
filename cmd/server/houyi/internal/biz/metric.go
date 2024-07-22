@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
@@ -27,4 +28,11 @@ func (b *MetricBiz) SyncMetrics(ctx context.Context, datasourceInfo *bo.GetMetri
 // Query 查询数据
 func (b *MetricBiz) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
 	return b.metricRepository.Query(ctx, req)
+}
+
+// PushMetric 推送数据
+func (b *MetricBiz) PushMetric(req *bo.PushMetricParams) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+	return b.metricRepository.PushMetric(ctx, req)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 func NewMetricBuilder(metricDetail *bo.MetricDetail) *MetricBuilder {
@@ -31,7 +32,7 @@ func (b *MetricBuilder) ToApi() *api.MetricDetail {
 	return &api.MetricDetail{
 		Name:   b.Name,
 		Help:   b.Help,
-		Type:   b.Type,
+		Type:   api.MetricType(vobj.GetMetricType(b.Type)),
 		Labels: labels,
 		Unit:   b.Unit,
 	}

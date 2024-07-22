@@ -108,7 +108,7 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.Ge
 
 // SyncDatasourceMeta 同步数据源元数据
 func (s *Service) SyncDatasourceMeta(ctx context.Context, req *datasourceapi.SyncDatasourceMetaRequest) (*datasourceapi.SyncDatasourceMetaReply, error) {
-	if err := s.datasourceBiz.SyncDatasourceMeta(ctx, req.GetId()); !types.IsNil(err) {
+	if err := s.datasourceBiz.SyncDatasourceMetaV2(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
 	}
 	return &datasourceapi.SyncDatasourceMetaReply{}, nil

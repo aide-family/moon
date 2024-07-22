@@ -10,9 +10,9 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
-
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm/clause"
 )
 
 func NewMetricRepository(data *data.Data) repository.Metric {
@@ -166,4 +166,35 @@ func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetri
 		return nil, err
 	}
 	return qq.Find()
+}
+
+func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamId uint32, metric *bizmodel.DatasourceMetric) error {
+	// 根据指标名称查询指标
+	bizDB, err := m.data.GetBizGormDB(teamId)
+	if !types.IsNil(err) {
+		return err
+	}
+	bizQuery := bizquery.Use(bizDB)
+
+	return bizQuery.Transaction(func(tx *bizquery.Query) error {
+		if err := bizQuery.DatasourceMetric.WithContext(ctx).Omit(field.AssociationFields).Clauses(
+			clause.OnConflict{DoNothing: true},
+		).Create(metric); err != nil {
+			return err
+		}
+
+		labels := make([]*bizmodel.MetricLabel, 0, len(metric.Labels))
+		for _, label := range metric.Labels {
+			labelTmp := label
+			labelTmp.MetricID = metric.ID
+			labels = append(labels, labelTmp)
+		}
+		if err := bizQuery.MetricLabel.WithContext(ctx).Clauses(
+			clause.OnConflict{UpdateAll: true},
+		).Create(labels...); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

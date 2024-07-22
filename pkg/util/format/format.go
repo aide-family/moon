@@ -1,8 +1,6 @@
 package format
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -16,27 +14,27 @@ import (
 //
 //		eg: {{ $labels.instance }} 的值大于 {{ $value }} {{ .labels.instance }} 的值大于 {{ .value }}
 //	 如果{{}}中间存在$符号, 则替换成.符号
-func replaceString(str string) (s string) {
-	if str == "" {
-		return ""
-	}
-
-	// 正则表达式匹配 {{ $... }} 形式的子串
-	r := regexp.MustCompile(`\{\{\s*\$(.*?)\s*\}\}`)
-
-	// 使用 ReplaceAllStringFunc 函数替换匹配到的内容
-	s = r.ReplaceAllStringFunc(str, func(match string) string {
-		// 去掉 {{ 和 }} 符号，保留内部的变量名并替换 $
-		variable := strings.TrimSuffix(strings.TrimPrefix(match, "{{"), "}}")
-		return fmt.Sprintf("{{ %s }}", strings.Replace(variable, "$", ".", 1))
-	})
-
-	return s
-}
+//func replaceString(str string) (s string) {
+//	if str == "" {
+//		return ""
+//	}
+//
+//	// 正则表达式匹配 {{ $... }} 形式的子串
+//	r := regexp.MustCompile(`\{\{\s*\$(.*?)\s*\}\}`)
+//
+//	// 使用 ReplaceAllStringFunc 函数替换匹配到的内容
+//	s = r.ReplaceAllStringFunc(str, func(match string) string {
+//		// 去掉 {{ 和 }} 符号，保留内部的变量名并替换 $
+//		variable := strings.TrimSuffix(strings.TrimPrefix(match, "{{"), "}}")
+//		return fmt.Sprintf("{{ %s }}", strings.Replace(variable, "$", ".", 1))
+//	})
+//
+//	return s
+//}
 
 // Formatter 格式化告警文案
 func Formatter(format string, data any) (s string) {
-	formatStr := replaceString(format)
+	formatStr := format
 	if formatStr == "" || data == nil {
 		return ""
 	}
@@ -60,7 +58,7 @@ func Formatter(format string, data any) (s string) {
 }
 
 func FormatterWithErr(format string, data any) (s string, err error) {
-	formatStr := replaceString(format)
+	formatStr := format
 	if formatStr == "" {
 		return "", merr.ErrorAlert("请输入模板信息")
 	}

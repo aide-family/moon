@@ -26,6 +26,8 @@ type Labels struct {
 }
 
 type LabelsJSON map[string]string
+type JSON map[string]any
+type SlicesJSON[T any] []T
 
 func NewLabels(labels map[string]string) *Labels {
 	return &Labels{label: labels}
@@ -40,6 +42,22 @@ func (l *Labels) String() string {
 }
 
 func (l LabelsJSON) String() string {
+	if types.IsNil(l) {
+		return "{}"
+	}
+	bs, _ := json.Marshal(l)
+	return string(bs)
+}
+
+func (l JSON) String() string {
+	if types.IsNil(l) {
+		return "{}"
+	}
+	bs, _ := json.Marshal(l)
+	return string(bs)
+}
+
+func (l SlicesJSON[T]) String() string {
 	if types.IsNil(l) {
 		return "{}"
 	}

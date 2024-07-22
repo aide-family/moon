@@ -101,3 +101,32 @@ func (s *MetricService) DeleteMetric(ctx context.Context, req *datasourceapi.Del
 	}
 	return &datasourceapi.DeleteMetricReply{}, nil
 }
+
+// SyncMetric 同步指标
+func (s *MetricService) SyncMetric(ctx context.Context, req *datasourceapi.SyncMetricRequest) (*datasourceapi.SyncMetricReply, error) {
+	// 创建指标
+	metricInfo := req.GetMetrics()
+	createMetric := &bo.CreateMetricParams{
+		Metric: &bo.MetricBo{
+			Name: metricInfo.GetName(),
+			Help: metricInfo.GetHelp(),
+			Type: vobj.MetricType(metricInfo.GetType()),
+			Unit: metricInfo.GetUnit(),
+			Labels: types.SliceTo(metricInfo.GetLabels(), func(item *admin.MetricLabel) *bo.MetricLabel {
+				return &bo.MetricLabel{
+					Name: item.GetName(),
+					Values: types.SliceTo(item.GetValues(), func(item *admin.MetricLabelValue) string {
+						return item.GetValue()
+					}),
+				}
+			}),
+		},
+		Done:         req.GetDone(),
+		DatasourceID: req.GetDatasourceId(),
+		TeamId:       req.GetTeamId(),
+	}
+	if err := s.metricBiz.CreateMetric(ctx, createMetric); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}

@@ -190,6 +190,9 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 	}
 
 	data := allResp.Data
+	if types.IsNil(data) {
+		return nil, fmt.Errorf("query result is nil")
+	}
 	result := make([]*QueryResponse, 0, len(data.Result))
 	for _, v := range data.Result {
 		value := v.Value

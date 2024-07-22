@@ -31,4 +31,11 @@ type (
 		TimeRange []string `json:"timeRange"`
 		Step      uint32   `json:"step"`
 	}
+
+	PushMetricParams struct {
+		*MetricDetail
+		DatasourceId uint32 `json:"datasourceId"`
+		Done         bool   `json:"done"`
+		TeamId       uint32 `json:"teamId"`
+	}
 )

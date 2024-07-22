@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -91,18 +92,47 @@ func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req 
 func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *strategyapi.ValidateAnnotationsTemplateRequest) (*strategyapi.ValidateAnnotationsTemplateReply, error) {
 	timeNow := time.Now()
 	data := map[string]any{
-		"alert":     req.GetAlert(),
-		"level":     req.GetLevel(),
-		"value":     0.00,
-		"timestamp": timeNow.Unix(),
-		"labels":    vobj.LabelsJSON(req.GetLabels()),
+		// 策略告警时候的值
+		"value": 0.00,
+		// 策略告警unix时间戳
+		"eventAt": timeNow.Unix(),
+		// 策略告警标签
+		"labels": vobj.LabelsJSON(req.GetLabels()),
+		// 策略明细
+		"strategy": vobj.JSON(map[string]any{
+			// 策略名称
+			"alert": req.GetAlert(),
+			// 策略等级
+			"level": req.GetLevel(),
+			// 策略告警表达式
+			"expr": req.GetExpr(),
+			// 持续时间
+			"duration": req.GetDuration(),
+			// 持续次数
+			"count": req.GetCount(),
+			// 持续类型
+			"sustainType": vobj.Sustain(req.GetSustainType()).String(),
+			// 告警条件
+			"condition": vobj.Condition(req.GetCondition()).String(),
+			// 告警阈值
+			"threshold": req.GetThreshold(),
+			// 策略类目列表
+			"categories": vobj.SlicesJSON[string](req.GetCategories()),
+		}),
 	}
-	labels := req.GetLabels()
+	labels := vobj.LabelsJSON(req.GetLabels())
 	queryParams := &bo.DatasourceQueryParams{
-		DatasourceID: 1, // TODO 增加数据源支持
+		DatasourceID: req.GetDatasourceId(), // TODO 增加数据源支持
 		Query:        req.GetExpr(),
 		Step:         0,
 		TimeRange:    []string{timeNow.Format(time.DateTime)},
+	}
+	if req.GetDatasource() != "" {
+		queryParams.Datasource = &bizmodel.Datasource{
+			Endpoint:    req.GetDatasource(),
+			StorageType: vobj.StorageTypePrometheus,
+			Category:    vobj.DatasourceTypeMetrics,
+		}
 	}
 	queryData, err := s.datasourceBiz.Query(ctx, queryParams)
 	if err != nil {
@@ -116,9 +146,9 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 			}
 			labels = types.MapsMerge(labels, datum.Labels)
 		}
-		data["labels"] = vobj.LabelsJSON(labels)
+		data["labels"] = labels
 		data["value"] = queryData[0].Value.Value
-		data["timestamp"] = queryData[0].Value.Timestamp
+		data["eventAt"] = queryData[0].Value.Timestamp
 	}
 
 	log.Debugw("labels", labels)
@@ -129,9 +159,13 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 	if err != nil {
 		errorString = err.Error()
 	}
-
+	labelsString := make([]string, 0, len(labels))
+	for k := range labels {
+		labelsString = append(labelsString, k)
+	}
 	return &strategyapi.ValidateAnnotationsTemplateReply{
 		Annotations: formatterWithErr,
 		Errors:      errorString,
+		Labels:      labelsString,
 	}, nil
 }
