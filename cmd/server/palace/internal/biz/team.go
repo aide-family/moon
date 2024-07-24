@@ -28,6 +28,9 @@ type TeamBiz struct {
 
 // CreateTeam 创建团队
 func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (*model.SysTeam, error) {
+	if types.IsNil(params) {
+		return nil, merr.ErrorNotification("参数为空")
+	}
 	teamDo, err := t.teamRepo.CreateTeam(ctx, params)
 	if !types.IsNil(err) {
 		if merr.IsTeamNameExistErr(err) {

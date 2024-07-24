@@ -37,7 +37,7 @@ func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest
 	if leaderId <= 0 {
 		leaderId = claims.GetUser()
 	}
-	param := build.NewBuilder().WithCreateTeamBo(req, leaderId).ToCreateTeamBO()
+	param := build.NewBuilder().WithContext(ctx).WithCreateTeamBo(req).WithLeaderId(leaderId).ToCreateTeamBO()
 	_, err := s.teamBiz.CreateTeam(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err

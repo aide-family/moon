@@ -1,0 +1,305 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: houyi
+  name: houyi
+spec:
+  ports:
+    - name: "8001"
+      port: 8001
+      targetPort: 8000
+    - name: "9001"
+      port: 9001
+      targetPort: 9000
+  selector:
+    io.kompose.service: houyi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: palace
+  name: palace
+spec:
+  ports:
+    - name: "8000"
+      port: 8000
+      targetPort: 8000
+    - name: "9000"
+      port: 9000
+      targetPort: 9000
+  selector:
+    io.kompose.service: palace
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: houyi
+  name: houyi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: houyi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+        kompose.version: 1.34.0 (HEAD)
+      labels:
+        io.kompose.service: houyi
+    spec:
+      containers:
+        - image: aidemoonio/houyi:latest
+          name: moon-houyi
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+            - containerPort: 9000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data/conf
+              name: houyi-cm0
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: houyi-cm0
+          name: houyi-cm0
+
+---
+apiVersion: v1
+data:
+  config.yaml: |-
+    env: dev # dev、test、prod、local
+
+    server:
+      name: moon_houyi
+      metadata:
+        description: 是moon监控系列的告警组件，可以独立部署，接受prom类型规则，也可以接受alertmanager类型组件的告警推送
+        background: 寓意为天神后羿，专门用于监控规则告警事件
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 50s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 50s
+      registry:
+        type: "etcd"
+        etcd:
+          endpoints:
+            - 192.168.7.76:20000
+            - 192.168.7.76:20002
+            - 192.168.7.76:20004
+          username: ""
+          password: ""
+          timeout: 50s
+      jwt:
+        sign_key: "moon-sign_key"
+        issuer: "moon监控系统"
+        white_list:
+          - /api.admin.authorization.Authorization/Login
+          - /api.admin.authorization.Authorization/Captcha
+          - /api.admin.authorization.Authorization/CreatePassword
+        rbac_white_list:
+          - /api.admin.authorization.Authorization/Login
+          - /api.admin.authorization.Authorization/Captcha
+          - /api.admin.authorization.Authorization/CreatePassword
+
+    data:
+     cache:
+        redis:
+          network: "tcp"
+          addr: 192.168.7.76:6379
+          db: 0
+          password: ""
+          read_timeout: 0.2s
+          write_timeout: 0.2s
+          dial_timeout: 0.2s
+        nutsDB:
+          path: ./tmp/nutsdb
+          bucket: test
+
+    watch:
+      strategy:
+        timeout: 10s
+        interval: "@every 10s"
+      alertEvent:
+
+    micro_server:
+      discovery:
+        type: "etcd"
+        etcd:
+          endpoints:
+            - 192.168.7.76:20000
+            - 192.168.7.76:20002
+            - 192.168.7.76:20004
+          username: ""
+          password: ""
+          timeout: 50s
+      rabbit_server:
+        network: "rpc"
+        nodeVersion: ""
+        endpoint: "discovery:///moon_rabbit"
+        timeout: 50s
+        secret: ""
+      palace_server:
+        network: "rpc"
+        nodeVersion: ""
+        endpoint: "discovery:///moon_palace"
+        timeout: 50s
+        secret: ""
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: houyi
+  name: houyi-cm0
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: palace
+  name: palace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: palace
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yaml -o ./moon.yaml
+        kompose.version: 1.34.0 (HEAD)
+      labels:
+        io.kompose.service: palace
+    spec:
+      containers:
+        - image: aidemoonio/palace:latest
+          name: moon-palace
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+            - containerPort: 9000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data/conf
+              name: palace-cm0
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: palace-cm0
+          name: palace-cm0
+
+---
+apiVersion: v1
+data:
+  config.yaml: |-
+    env: dev # dev、test、prod、local
+
+    server:
+      name: moon_palace
+      metadata:
+        description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
+        background: 寓意为月宫，表示moon系列的统一管理平台
+      http:
+        addr: 0.0.0.0:8000
+        timeout: 50s
+      grpc:
+        addr: 0.0.0.0:9000
+        timeout: 50s
+      registry:
+        type: "etcd"
+        etcd:
+          endpoints:
+            - localhost:20000
+            - localhost:20002
+            - localhost:20004
+          username: ""
+          password: ""
+          timeout: 50s
+      jwt:
+        sign_key: "moon-sign_key"
+        issuer: "moon-palace"
+        white_list:
+          - /api.admin.authorization.Authorization/Login
+          - /api.admin.authorization.Authorization/Captcha
+          - /api.admin.authorization.Authorization/CreatePassword
+          - /api.Health/Check
+
+        # 角色权限白名单, 包含white_list， 因为不需要登录的接口自然也不需要RBAC
+        rbac_white_list:
+          - /api.admin.authorization.Authorization/Logout
+          - /api.admin.team.Team/MyTeam
+          - /api.admin.authorization.Authorization/RefreshToken
+
+    data:
+      database:
+        driver: "mysql"
+        dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+      bizDatabase:
+        driver: "mysql"
+        dsn: "root:12345678@tcp(localhost:3306)/"
+      cache:
+        redis:
+          network: "tcp"
+          addr: localhost:6379
+          db: 0
+          password: ""
+          read_timeout: 0.2s
+          write_timeout: 0.2s
+          dial_timeout: 0.2s
+        nutsDB:
+          path: ./tmp/nutsdb
+          bucket: test
+
+    micro_server:
+      discovery:
+        type: "etcd"
+        etcd:
+          endpoints:
+            - localhost:20000
+            - localhost:20002
+            - localhost:20004
+          username: ""
+          password: ""
+          timeout: 50s
+      rabbit_server:
+        network: "rpc"
+        nodeVersion: ""
+        endpoint: "discovery:///moon_rabbit"
+        timeout: 50s
+        secret: ""
+      hou_yi_server:
+        network: "rpc"
+        nodeVersion: ""
+        endpoint: "discovery:///moon_houyi"
+        timeout: 50s
+        secret: ""
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: palace
+  name: palace-cm0
+

@@ -32,12 +32,12 @@ type (
 
 		ToAddTeamMemberBO() *bo.AddTeamMemberParams
 
-		WithLeaderId(leaderId uint32)
+		WithLeaderId(leaderId uint32) TeamRequestBuilder
 	}
 
 	teamBuilder struct {
 		// model
-		*model.SysTeam
+		SystemModel *model.SysTeam
 
 		// request
 		CreateRoleRequest     *teamapi.CreateTeamRequest
@@ -57,8 +57,8 @@ type (
 	}
 
 	teamRoleBuilder struct {
-		*bizmodel.SysTeamRole
-		ctx context.Context
+		SysTeamRole *bizmodel.SysTeamRole
+		ctx         context.Context
 	}
 )
 
@@ -82,34 +82,37 @@ func (b *teamBuilder) ToQueryTeamListBO() *bo.QueryTeamListParams {
 
 // ToApi 转换为API层数据
 func (b *teamBuilder) ToApi() *admin.Team {
-	if types.IsNil(b) || types.IsNil(b.SysTeam) {
+	if types.IsNil(b) || types.IsNil(b.SystemModel) {
 		return nil
 	}
 	cache := runtimecache.GetRuntimeCache()
 	return &admin.Team{
-		Id:        b.ID,
-		Name:      b.Name,
-		Status:    api.Status(b.Status),
-		Remark:    b.Remark,
-		CreatedAt: b.CreatedAt.String(),
-		UpdatedAt: b.UpdatedAt.String(),
-		Leader:    NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.LeaderID)).ToApi(),
-		Creator:   NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.CreatorID)).ToApi(),
-		Logo:      b.Logo,
+		Id:        b.SystemModel.ID,
+		Name:      b.SystemModel.Name,
+		Status:    api.Status(b.SystemModel.Status),
+		Remark:    b.SystemModel.Remark,
+		CreatedAt: b.SystemModel.CreatedAt.String(),
+		UpdatedAt: b.SystemModel.UpdatedAt.String(),
+		Leader:    NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.SystemModel.LeaderID)).ToApi(),
+		Creator:   NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.SystemModel.CreatorID)).ToApi(),
+		Logo:      b.SystemModel.Logo,
 		// 从全局中取
-		Admin: types.SliceTo(cache.GetTeamAdminList(b.ctx, b.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
+		Admin: types.SliceTo(cache.GetTeamAdminList(b.ctx, b.SystemModel.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
 			return NewBuilder().WithApiTeamMember(item).ToApi(b.ctx)
 		}),
 	}
 }
 
 func (b *teamBuilder) ToCreateTeamBO() *bo.CreateTeamParams {
+	if types.IsNil(b) || types.IsNil(b.CreateRoleRequest) {
+		return nil
+	}
 	return &bo.CreateTeamParams{
 		Name:     b.CreateRoleRequest.GetName(),
 		Remark:   b.CreateRoleRequest.GetRemark(),
 		Logo:     b.CreateRoleRequest.GetLogo(),
 		Status:   vobj.Status(b.CreateRoleRequest.GetStatus()),
-		LeaderID: b.LeaderID,
+		LeaderID: b.LeaderId,
 		Admins:   b.CreateRoleRequest.GetAdminIds(),
 	}
 }
@@ -167,8 +170,9 @@ func (b *teamBuilder) ToTeamListBO() *bo.QueryTeamListParams {
 	}
 }
 
-func (b *teamBuilder) WithLeaderId(leaderId uint32) {
+func (b *teamBuilder) WithLeaderId(leaderId uint32) TeamRequestBuilder {
 	b.LeaderId = leaderId
+	return b
 }
 
 func (b *teamRoleBuilder) ToApi() *admin.TeamRole {
@@ -176,13 +180,13 @@ func (b *teamRoleBuilder) ToApi() *admin.TeamRole {
 		return nil
 	}
 	return &admin.TeamRole{
-		Id:        b.ID,
-		Name:      b.Name,
-		Remark:    b.Remark,
-		CreatedAt: b.CreatedAt.String(),
-		UpdatedAt: b.UpdatedAt.String(),
-		Status:    api.Status(b.Status),
-		Resources: types.SliceTo(b.Apis, func(item *bizmodel.SysTeamAPI) *admin.ResourceItem {
+		Id:        b.SysTeamRole.ID,
+		Name:      b.SysTeamRole.Name,
+		Remark:    b.SysTeamRole.Remark,
+		CreatedAt: b.SysTeamRole.CreatedAt.String(),
+		UpdatedAt: b.SysTeamRole.UpdatedAt.String(),
+		Status:    api.Status(b.SysTeamRole.Status),
+		Resources: types.SliceTo(b.SysTeamRole.Apis, func(item *bizmodel.SysTeamAPI) *admin.ResourceItem {
 			return NewTeamResourceBuilder(item).ToApi()
 		}),
 	}
@@ -194,8 +198,8 @@ func (b *teamRoleBuilder) ToSelect() *admin.Select {
 		return nil
 	}
 	return &admin.Select{
-		Value:    b.ID,
-		Label:    b.Name,
-		Disabled: b.DeletedAt > 0 || !vobj.Status(b.Status).IsEnable(),
+		Value:    b.SysTeamRole.ID,
+		Label:    b.SysTeamRole.Name,
+		Disabled: b.SysTeamRole.DeletedAt > 0 || !vobj.Status(b.SysTeamRole.Status).IsEnable(),
 	}
 }

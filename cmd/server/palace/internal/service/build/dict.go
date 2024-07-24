@@ -26,7 +26,7 @@ type (
 
 	dictBuilder struct {
 		// model
-		*model.SysDict
+		SysDict *model.SysDict
 
 		// request
 		CreateDictRequest *dictapi.CreateDictRequest
@@ -43,18 +43,18 @@ func (b *dictBuilder) ToApi() *admin.Dict {
 		return nil
 	}
 	return &admin.Dict{
-		Id:           b.ID,
-		Name:         b.Name,
-		Value:        b.Value,
-		ColorType:    b.ColorType,
-		Icon:         b.Icon,
-		Status:       api.Status(b.Status),
-		DictType:     api.DictType(b.DictType),
-		ImageUrl:     b.ImageUrl,
-		LanguageCode: b.LanguageCode,
-		Remark:       b.Remark,
-		CreatedAt:    b.CreatedAt.String(),
-		UpdatedAt:    b.UpdatedAt.String(),
+		Id:           b.SysDict.ID,
+		Name:         b.SysDict.Name,
+		Value:        b.SysDict.Value,
+		ColorType:    b.SysDict.ColorType,
+		Icon:         b.SysDict.Icon,
+		Status:       api.Status(b.SysDict.Status),
+		DictType:     api.DictType(b.SysDict.DictType),
+		ImageUrl:     b.SysDict.ImageUrl,
+		LanguageCode: b.SysDict.LanguageCode,
+		Remark:       b.SysDict.Remark,
+		CreatedAt:    b.SysDict.CreatedAt.String(),
+		UpdatedAt:    b.SysDict.UpdatedAt.String(),
 	}
 }
 
@@ -64,15 +64,15 @@ func (b *dictBuilder) ToApiSelect() *admin.Select {
 		return nil
 	}
 	return &admin.Select{
-		Value:    b.ID,
-		Label:    b.Name,
+		Value:    b.SysDict.ID,
+		Label:    b.SysDict.Name,
 		Children: nil,
-		Disabled: !b.Status.IsEnable() || b.DeletedAt > 0,
+		Disabled: !b.SysDict.Status.IsEnable() || b.SysDict.DeletedAt > 0,
 		Extend: &admin.SelectExtend{
-			Icon:   b.Icon,
-			Color:  b.CssClass,
-			Remark: b.Remark,
-			Image:  b.ImageUrl,
+			Icon:   b.SysDict.Icon,
+			Color:  b.SysDict.CssClass,
+			Remark: b.SysDict.Remark,
+			Image:  b.SysDict.ImageUrl,
 		},
 	}
 }

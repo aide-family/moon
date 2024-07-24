@@ -22,7 +22,7 @@ type (
 	}
 
 	DatasourceRequestBuilder interface {
-		ToCreateDatasourceBO(configBytes []byte) *bo.CreateDatasourceParams
+		ToCreateDatasourceBO([]byte) *bo.CreateDatasourceParams
 
 		ToUpdateDatasourceBO() *bo.UpdateDatasourceBaseInfoParams
 
@@ -35,7 +35,7 @@ type (
 
 	datasourceBuilder struct {
 		// model
-		*bizmodel.Datasource
+		Datasource *bizmodel.Datasource
 
 		// request
 		CreateDatasourceRequest *datasourceapi.CreateDatasourceRequest
@@ -97,22 +97,22 @@ func (b *datasourceBuilder) ToApi() *admin.Datasource {
 		return nil
 	}
 	configMap := make(map[string]string)
-	if err := json.Unmarshal([]byte(b.Config), &configMap); !types.IsNil(err) {
+	if err := json.Unmarshal([]byte(b.Datasource.Config), &configMap); !types.IsNil(err) {
 		log.Warnw("error", err)
 	}
 	cache := runtimecache.GetRuntimeCache()
 	return &admin.Datasource{
-		Id:          b.ID,
-		Name:        b.Name,
-		Type:        api.DatasourceType(b.Category),
-		Endpoint:    b.Endpoint,
-		Status:      api.Status(b.Status),
-		CreatedAt:   b.CreatedAt.String(),
-		UpdatedAt:   b.UpdatedAt.String(),
+		Id:          b.Datasource.ID,
+		Name:        b.Datasource.Name,
+		Type:        api.DatasourceType(b.Datasource.Category),
+		Endpoint:    b.Datasource.Endpoint,
+		Status:      api.Status(b.Datasource.Status),
+		CreatedAt:   b.Datasource.CreatedAt.String(),
+		UpdatedAt:   b.Datasource.UpdatedAt.String(),
 		Config:      configMap,
-		Remark:      b.Remark,
-		StorageType: api.StorageType(b.StorageType),
-		Creator:     NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.CreatorID)).ToApi(),
+		Remark:      b.Datasource.Remark,
+		StorageType: api.StorageType(b.Datasource.StorageType),
+		Creator:     NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.Datasource.CreatorID)).ToApi(),
 	}
 }
 
