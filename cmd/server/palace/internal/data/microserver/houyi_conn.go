@@ -17,13 +17,14 @@ import (
 func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	microServer := c.GetMicroServer()
 	houYiServer := microServer.GetHouYiServer()
+	discoveryConf := c.GetDiscovery()
 	houYiConn := &HouYiConn{}
 	if types.IsNil(houYiServer) {
 		return nil, nil, merr.ErrorNotification("未配置MicroServer.HouYiServer")
 	}
 	switch houYiServer.GetNetwork() {
 	case "http", "HTTP":
-		httpConn, err := newHttpConn(houYiServer, microServer.GetDiscovery())
+		httpConn, err := newHttpConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
@@ -31,7 +32,7 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 		houYiConn.httpClient = httpConn
 		houYiConn.network = vobj.NetworkHttp
 	case "https", "HTTPS":
-		httpConn, err := newHttpConn(houYiServer, microServer.GetDiscovery())
+		httpConn, err := newHttpConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
@@ -39,7 +40,7 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 		houYiConn.httpClient = httpConn
 		houYiConn.network = vobj.NetworkHttps
 	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRpcConn(houYiServer, microServer.GetDiscovery())
+		grpcConn, err := newRpcConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err

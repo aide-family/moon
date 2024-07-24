@@ -11,7 +11,7 @@ import (
 )
 
 // NewRegister 创建一个服务注册实例
-func NewRegister(c *api.Registry) (registry.Registrar, error) {
+func NewRegister(c *api.Discovery) (registry.Registrar, error) {
 	if types.IsNil(c) {
 		return nil, merr.ErrorDependencyErr("registry config is nil")
 	}

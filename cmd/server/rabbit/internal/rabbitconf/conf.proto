@@ -16,6 +16,8 @@ message Bootstrap {
   map<string, string> templates = 5;
   // 全局邮件配置
   api.EmailConfig global_email_config = 6;
+  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
+  api.Discovery discovery = 7;
 }
 
 message Server {
@@ -34,7 +36,6 @@ message Server {
   GRPC grpc = 2;
   string name = 3;
   map<string, string> metadata = 4;
-  api.Registry registry = 6;
 }
 
 message Data {

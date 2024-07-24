@@ -145,14 +145,7 @@ message ETCD {
   optional string password = 4;
 }
 
-// 服务注册
-message Registry {
-  // 类型， 名称和数据源保持一致，例如etcd
-  string type = 1;
-  optional ETCD etcd = 2;
-}
-
-// 服务发现配置
+// 服务注册发现配置
 message Discovery {
   // 类型， 名称和数据源保持一致，例如etcd
   string type = 1;

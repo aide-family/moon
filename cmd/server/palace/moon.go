@@ -33,9 +33,9 @@ func newApp(c *conf.Bootstrap, srv *server.Server, logger log.Logger) *kratos.Ap
 		kratos.Logger(logger),
 		kratos.Server(srv.GetServers()...),
 	}
-	registerConf := c.GetServer().GetRegistry()
+	registerConf := c.GetDiscovery()
 	if !types.IsNil(registerConf) {
-		register, err := conn.NewRegister(c.GetServer().GetRegistry())
+		register, err := conn.NewRegister(c.GetDiscovery())
 		if !types.IsNil(err) {
 			log.Warnw("register error", err)
 			panic(err)

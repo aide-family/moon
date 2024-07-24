@@ -11,16 +11,6 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 50s
-  registry:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - 192.168.7.76:20000
-        - 192.168.7.76:20002
-        - 192.168.7.76:20004
-      username: ""
-      password: ""
-      timeout: 50s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon监控系统"
@@ -53,17 +43,18 @@ watch:
     interval: "@every 10s"
   alertEvent:
 
+discovery:
+  type: "etcd"
+  etcd:
+    endpoints:
+      - localhost:20000
+      - localhost:20002
+      - localhost:20004
+    username: ""
+    password: ""
+    timeout: 50s
+
 micro_server:
-  discovery:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - 192.168.7.76:20000
-        - 192.168.7.76:20002
-        - 192.168.7.76:20004
-      username: ""
-      password: ""
-      timeout: 50s
   rabbit_server:
     network: "rpc"
     nodeVersion: ""

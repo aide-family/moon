@@ -31,9 +31,8 @@ func WithZapLogger(zl *zap.Logger) Option {
 }
 
 func NewLogger(opts ...Option) *zapLogger {
-	lo, _ := zap.NewDevelopment()
 	l := &zapLogger{
-		log:    lo,
+		log:    zap.NewExample(),
 		msgKey: log.DefaultMessageKey,
 	}
 	for _, opt := range opts {

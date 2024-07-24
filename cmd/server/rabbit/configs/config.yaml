@@ -11,16 +11,6 @@ server:
   grpc:
     addr: 0.0.0.0:9001
     timeout: 2s
-  registry:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - 127.0.0.1:20000
-        - 127.0.0.1:20002
-        - 127.0.0.1:20004
-      username: ""
-      password: ""
-      timeout: 10s
 data:
   cache:
 #    redis:
@@ -75,3 +65,14 @@ receivers:
 #          secret: ""
 #          content: ""
 #          template: "dingTalk"
+
+discovery:
+  type: "etcd"
+  etcd:
+    endpoints:
+      - 127.0.0.1:20000
+      - 127.0.0.1:20002
+      - 127.0.0.1:20004
+    username: ""
+    password: ""
+    timeout: 10s

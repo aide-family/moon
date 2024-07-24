@@ -11,16 +11,6 @@ server:
   grpc:
     addr: 0.0.0.0:9000
     timeout: 50s
-  registry:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - localhost:20000
-        - localhost:20002
-        - localhost:20004
-      username: ""
-      password: ""
-      timeout: 50s
   jwt:
     sign_key: "moon-sign_key"
     issuer: "moon-palace"
@@ -56,17 +46,18 @@ data:
       path: ./tmp/nutsdb
       bucket: test
 
+discovery:
+  type: "etcd"
+  etcd:
+    endpoints:
+      - localhost:20000
+      - localhost:20002
+      - localhost:20004
+    username: ""
+    password: ""
+    timeout: 50s
+
 micro_server:
-  discovery:
-    type: "etcd"
-    etcd:
-      endpoints:
-        - localhost:20000
-        - localhost:20002
-        - localhost:20004
-      username: ""
-      password: ""
-      timeout: 50s
   rabbit_server:
     network: "rpc"
     nodeVersion: ""

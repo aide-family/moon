@@ -19,13 +19,14 @@ import (
 func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	microServer := c.GetMicroServer()
 	rabbitServer := microServer.GetRabbitServer()
+	discoveryConf := c.GetDiscovery()
 	rabbitConn := &RabbitConn{}
 	if types.IsNil(rabbitServer) {
 		return nil, nil, merr.ErrorNotification("未配置MicroServer.RabbitServer")
 	}
 	switch rabbitServer.GetNetwork() {
 	case "http", "HTTP":
-		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
+		httpConn, err := newHttpConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
@@ -33,7 +34,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 		rabbitConn.httpClient = httpConn
 		rabbitConn.network = vobj.NetworkHttp
 	case "https", "HTTPS":
-		httpConn, err := newHttpConn(rabbitServer, microServer.GetDiscovery())
+		httpConn, err := newHttpConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
@@ -41,7 +42,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 		rabbitConn.httpClient = httpConn
 		rabbitConn.network = vobj.NetworkHttps
 	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRpcConn(rabbitServer, microServer.GetDiscovery())
+		grpcConn, err := newRpcConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err

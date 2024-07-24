@@ -13,6 +13,8 @@ message Bootstrap {
   string env = 3;
   Watch watch = 4;
   MicroServer micro_server = 5;
+  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
+  api.Discovery discovery = 6;
 }
 
 message Server {
@@ -42,7 +44,6 @@ message Server {
   string name = 3;
   map<string, string> metadata = 4;
   JWT jwt = 5;
-  api.Registry registry = 6;
 }
 
 message Data {
@@ -86,10 +87,8 @@ message Watch {
 
 // 微服务配置
 message MicroServer {
-  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
-  api.Discovery discovery = 1;
   // 月兔消息服务
-  api.Server rabbit_server = 2;
+  api.Server rabbit_server = 1;
   // 月宫代理服务
-  api.Server palace_server = 3;
+  api.Server palace_server = 2;
 }
