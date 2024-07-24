@@ -16,6 +16,7 @@ ENV CMD_PARAMS_ENV=${CMD_PARAMS}
 # 复制脚本到容器中
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --from=builder /src/bin/${CMD_PARAMS} /app/${CMD_PARAMS}
+COPY --from=builder /src/third_party/swagger_ui /app/third_party/swagger_ui/
 
 EXPOSE 8000
 EXPOSE 9000
