@@ -71,6 +71,9 @@ func (b *templateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemp
 }
 
 func (b *templateStrategyBuilder) ToCreateTemplateBO() *bo.CreateTemplateStrategyParams {
+	if types.IsNil(b) || types.IsNil(b.CreateStrategy) {
+		return nil
+	}
 	strategyLevelTemplates := make([]*bo.CreateStrategyLevelTemplate, 0, len(b.CreateStrategy.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range b.CreateStrategy.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &bo.CreateStrategyLevelTemplate{
@@ -97,6 +100,9 @@ func (b *templateStrategyBuilder) ToCreateTemplateBO() *bo.CreateTemplateStrateg
 }
 
 func (b *templateStrategyBuilder) ToUpdateTemplateBO() *bo.UpdateTemplateStrategyParams {
+	if types.IsNil(b) || types.IsNil(b.UpdateStrategy) {
+		return nil
+	}
 	strategyLevelTemplates := make([]*bo.CreateStrategyLevelTemplate, 0, len(b.UpdateStrategy.GetLevel()))
 	for levelID, mutationStrategyLevelTemplate := range b.UpdateStrategy.GetLevel() {
 		strategyLevelTemplates = append(strategyLevelTemplates, &bo.CreateStrategyLevelTemplate{

@@ -15,6 +15,7 @@ type Strategy struct {
 	// 模板ID, 用于标记是否从模板创建而来
 	StrategyTemplateID uint32 `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"strategy_template_id"`
 	StrategyLevelID    uint32 `gorm:"column:strategy_level_id;type:int unsigned;not null;comment:策略等级ID" json:"strategy_level_id"`
+	GroupID            uint32 `gorm:"column:group_id;type:int unsigned;not null;comment:策略规则组ID;" json:"group_id"`
 	// 策略模板来源（系统、团队）
 	StrategyTemplateSource vobj.StrategyTemplateSource `gorm:"column:strategy_template_source;type:tinyint;not null;comment:策略模板来源（系统、团队）" json:"strategy_template_source"`
 	Name                   string                      `gorm:"column:alert;type:varchar(64);not null;comment:策略名称" json:"name"`

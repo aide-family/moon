@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/api/admin"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -42,6 +43,31 @@ type (
 		// context
 		ctx context.Context
 	}
+
+	StrategyGroupModelBuilder interface {
+		ToApi() *admin.StrategyGroup
+	}
+
+	StrategyGroupRequestBuilder interface {
+		ToCreateStrategyGroupBO() *bo.CreateStrategyGroupParams
+
+		ToUpdateStrategyGroupBO() *bo.UpdateStrategyGroupParams
+
+		ToListStrategyGroupBO() *bo.QueryStrategyGroupListParams
+	}
+
+	strategyGroupBuilder struct {
+		// Model
+		StrategyGroup *bizmodel.StrategyGroup
+
+		// request
+		CreateStrategyGroupRequest *strategyapi.CreateStrategyGroupRequest
+		UpdateStrategyGroupRequest *strategyapi.UpdateStrategyGroupRequest
+		ListStrategyGroupRequest   *strategyapi.ListStrategyGroupRequest
+
+		// context
+		ctx context.Context
+	}
 )
 
 // ToApi 转换为API层数据
@@ -71,6 +97,9 @@ func (b *strategyBuilder) ToApi(ctx context.Context) *admin.Strategy {
 }
 
 func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
+	if types.IsNil(b) || types.IsNil(b.CreateStrategy) {
+		return nil
+	}
 	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(b.CreateStrategy.GetStrategyLevel()))
 	for _, strategyLevel := range b.CreateStrategy.GetStrategyLevel() {
 		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
@@ -102,7 +131,9 @@ func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 }
 
 func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
-
+	if types.IsNil(b) || types.IsNil(b.UpdateStrategy) {
+		return nil
+	}
 	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(b.UpdateStrategy.GetData().GetStrategyLevel()))
 	for _, strategyLevel := range b.UpdateStrategy.GetData().GetStrategyLevel() {
 		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
@@ -152,4 +183,61 @@ func (b *strategyLevelBuilder) ToApi() *admin.StrategyLevel {
 		Condition:   api.Condition(b.Condition),
 	}
 	return strategyLevel
+}
+
+func (b *strategyGroupBuilder) ToApi() *admin.StrategyGroup {
+	if types.IsNil(b) || types.IsNil(b.StrategyGroup) {
+		return nil
+	}
+	cache := runtimecache.GetRuntimeCache()
+	return &admin.StrategyGroup{
+		Id:        b.StrategyGroup.ID,
+		Name:      b.StrategyGroup.Name,
+		Remark:    b.StrategyGroup.Remark,
+		Status:    api.Status(b.StrategyGroup.Status),
+		CreatedAt: b.StrategyGroup.CreatedAt.String(),
+		UpdatedAt: b.StrategyGroup.UpdatedAt.String(),
+		Creator:   NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.StrategyGroup.CreatorID)).ToApi(),
+	}
+}
+
+func (b *strategyGroupBuilder) ToCreateStrategyGroupBO() *bo.CreateStrategyGroupParams {
+	if types.IsNil(b) || types.IsNil(b.CreateStrategyGroupRequest) {
+		return nil
+	}
+	return &bo.CreateStrategyGroupParams{
+		Name:          b.CreateStrategyGroupRequest.GetName(),
+		Remark:        b.CreateStrategyGroupRequest.GetRemark(),
+		Status:        b.CreateStrategyGroupRequest.GetStatus(),
+		CategoriesIds: b.CreateStrategyGroupRequest.GetCategoriesIds(),
+		TeamID:        b.CreateStrategyGroupRequest.GetTeamId(),
+	}
+}
+
+func (b *strategyGroupBuilder) ToUpdateStrategyGroupBO() *bo.UpdateStrategyGroupParams {
+	if types.IsNil(b) || types.IsNil(b.UpdateStrategyGroupRequest) {
+		return nil
+	}
+	return &bo.UpdateStrategyGroupParams{
+		ID: b.UpdateStrategyGroupRequest.GetId(),
+		UpdateParam: bo.CreateStrategyGroupParams{
+			Name:          b.UpdateStrategyGroupRequest.Update.GetName(),
+			Remark:        b.UpdateStrategyGroupRequest.Update.GetRemark(),
+			CategoriesIds: b.UpdateStrategyGroupRequest.Update.GetCategoriesIds(),
+			TeamID:        b.UpdateStrategyGroupRequest.Update.GetTeamId(),
+		},
+		TeamID: b.UpdateStrategyGroupRequest.GetTeamId(),
+	}
+}
+
+func (b *strategyGroupBuilder) ToListStrategyGroupBO() *bo.QueryStrategyGroupListParams {
+	if types.IsNil(b) || types.IsNil(b.ListStrategyGroupRequest) {
+		return nil
+	}
+	return &bo.QueryStrategyGroupListParams{
+		Keyword: b.ListStrategyGroupRequest.GetKeyword(),
+		TeamID:  b.ListStrategyGroupRequest.GetTeamId(),
+		Status:  vobj.Status(b.ListStrategyGroupRequest.GetStatus()),
+		Page:    types.NewPagination(b.ListStrategyGroupRequest.GetPagination()),
+	}
 }

@@ -20,7 +20,7 @@ service Strategy {
   // 创建策略组
   rpc CreateStrategyGroup (CreateStrategyGroupRequest) returns (CreateStrategyGroupReply) {
     option (google.api.http) = {
-      post: "/v1/group/strategy"
+      post: "/v1/group/strategy/create"
       body: "*"
     };
   }
@@ -55,6 +55,14 @@ service Strategy {
     };
   }
 
+  // 修改策略分组状态
+  rpc UpdateStrategyGroupStatus(UpdateStrategyGroupStatusRequest) returns (UpdateStrategyGroupStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/group/strategy/update/status"
+      body: "*"
+    };
+  }
+
   // 策略模块
 
   // 创建策略
@@ -69,6 +77,14 @@ service Strategy {
   rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
     option (google.api.http) = {
       put: "/v1/strategy/update/{id}"
+      body: "*"
+    };
+  }
+
+  // 修改策略状态
+  rpc UpdateStrategyStatus(UpdateStrategyStatusRequest) returns (UpdateStrategyStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/strategy/status"
       body: "*"
     };
   }
@@ -112,6 +128,16 @@ message CreateStrategyGroupRequest {
   string remark = 2;
   // 策略组状态
   Status status = 3;
+  //策略分组类型
+  repeated uint32 categoriesIds = 4 [(buf.validate.field).cel = {
+    message: "请选择策略分组类型",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须保证修改对象数据唯一",
+    expression: "this.unique()"
+  }];
+
+  uint32 teamId = 5;
 }
 message CreateStrategyGroupReply {}
 
@@ -122,16 +148,23 @@ message DeleteStrategyGroupRequest {
 message DeleteStrategyGroupReply {}
 
 message ListStrategyGroupRequest {
-  int32 limit = 1 [(buf.validate.field).cel = {
-    expression: "this > 0 && this <= 1000"
-    message: "查询最大数量为1-1000"
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
   }];
+  // 状态查询
+  Status status = 3;
+
+  uint32 teamId = 5;
 }
 message ListStrategyGroupReply {
   // 策略组列表
   repeated StrategyGroup list = 1;
-  // 总数量
-  int64 total = 2;
+  // 分页信息
+  PaginationReply pagination = 2;
 }
 
 message GetStrategyGroupRequest {
@@ -144,11 +177,9 @@ message GetStrategyGroupReply {
 
 message UpdateStrategyGroupRequest {
   // 策略组ID
-  uint32 id = 1;
-  // 策略组名称
-  string name = 2;
-  // 策略组说明信息
-  string remark = 3;
+  uint32 id = 1 [(buf.validate.field).required = true];
+  CreateStrategyGroupRequest update = 2 [(buf.validate.field).required = true];
+  uint32 teamId = 3;
 }
 message UpdateStrategyGroupReply {}
 
@@ -225,8 +256,25 @@ message CreateStrategyRequest {
 }
 message CreateStrategyReply {}
 
+
+message UpdateStrategyGroupStatusRequest {
+  // 策略分组ID列表
+  repeated uint32 ids = 1 [(buf.validate.field).cel = {
+    expression: "this.size() >= 1"
+    message: "请选择正确的策略数据"
+  }];
+  // 启用状态
+  Status status = 2 [(buf.validate.field).cel = {
+    expression: "this in [1, 2]"
+    message: "请选择正确的启用状态, 启用(1);禁用(2)"
+  }];
+}
+
+message UpdateStrategyGroupStatusReply{}
+
+
 message UpdateStrategyRequest {
-  uint32 id = 1;
+  uint32 id = 1 [(buf.validate.field).required = true];
   CreateStrategyRequest data = 2 [(buf.validate.field).required = true];
 }
 message UpdateStrategyReply {}
@@ -261,6 +309,22 @@ message ListStrategyReply {
   // 策略列表
   repeated Strategy list = 2;
 }
+
+
+message UpdateStrategyStatusRequest {
+  // 策略ID列表
+  repeated uint32 ids = 1 [(buf.validate.field).cel = {
+    expression: "this.size() >= 1"
+    message: "请选择正确的策略数据"
+  }];
+  // 启用状态
+  Status status = 2 [(buf.validate.field).cel = {
+    expression: "this in [1, 2]"
+    message: "请选择正确的启用状态, 启用(1);禁用(2)"
+  }];
+}
+
+message UpdateStrategyStatusReply {}
 
 message CreateStrategyLevelRequest{
   // 策略持续时间

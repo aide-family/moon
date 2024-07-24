@@ -32,71 +32,51 @@ type (
 		WithDoDatasource(d *bizmodel.Datasource) DatasourceModelBuilder
 		WithCreateDatasourceBo(user *datasourceapi.CreateDatasourceRequest) DatasourceRequestBuilder
 		WithListDatasourceBo(user *datasourceapi.ListDatasourceRequest) DatasourceRequestBuilder
-
 		WithBoDatasourceQueryData(d *bo.DatasourceQueryData) DatasourceQueryDataBuilder
 
 		WithApiTemplateStrategy(template *model.StrategyTemplate) TemplateModelBuilder
 		WithCreateBoTemplateStrategy(template *strategyapi.CreateTemplateStrategyRequest) TemplateRequestBuilder
 		WithUpdateBoTemplateStrategy(template *strategyapi.UpdateTemplateStrategyRequest) TemplateRequestBuilder
-
 		WithApiTemplateStrategyLevel(*model.StrategyLevelTemplate) TemplateLevelBuilder
 
 		WithApiStrategy(strategy *bizmodel.Strategy) StrategyModelBuilder
-
 		WithCreateBoStrategy(strategy *strategyapi.CreateStrategyRequest) StrategyRequestBuilder
-
 		WithUpdateBoStrategy(strategy *strategyapi.UpdateStrategyRequest) StrategyRequestBuilder
+
+		WithApiStrategyGroup(strategy *bizmodel.StrategyGroup) StrategyGroupModelBuilder
+		WithCreateBoStrategyGroup(strategy *strategyapi.CreateStrategyGroupRequest) StrategyGroupRequestBuilder
+		WithUpdateBoStrategyGroup(strategy *strategyapi.UpdateStrategyGroupRequest) StrategyGroupRequestBuilder
+		WithListStrategyGroup(strategy *strategyapi.ListStrategyGroupRequest) StrategyGroupRequestBuilder
 
 		WithApiStrategyLevel(strategy *bizmodel.StrategyLevel) StrategyLevelModelBuilder
 
 		WithCreateBoDict(dict *dictapi.CreateDictRequest) DictRequestBuilder
-
 		WithUpdateBoDict(dict *dictapi.UpdateDictRequest) DictRequestBuilder
-
 		WithApiDict(dict *model.SysDict) DictModelBuilder
-
 		WithApiDictSelect(dict *model.SysDict) DictModelBuilder
 
 		WithCreateMenuBo(menu *menuapi.CreateMenuRequest) MenuRequestBuilder
-
 		WithUpdateMenuBo(menu *menuapi.UpdateMenuRequest) MenuRequestBuilder
-
 		WithApiMenu(menu *model.SysMenu) MenuModelBuilder
-
 		WithBatchCreateMenuBo(menus *menuapi.BatchCreateMenuRequest) MenuRequestBuilder
-
 		WithApiMenuTree(menuList []*admin.Menu, parentID uint32) MenuTreeBuilder
 
 		WithApiTeam(team *model.SysTeam) TeamModelBuilder
-
 		WithSelectTeamRole(team *bizmodel.SysTeamRole) TeamRoleBuilder
-
 		WithApiTeamRole(team *bizmodel.SysTeamRole) TeamRoleBuilder
-
 		WithCreateTeamBo(team *teamapi.CreateTeamRequest, LeaderId uint32) TeamRequestBuilder
-
 		WithUpdateTeamBo(team *teamapi.UpdateTeamRequest) TeamRequestBuilder
-
 		WithListTeamBo(team *teamapi.ListTeamRequest) TeamRequestBuilder
-
 		WithListTeamTeamMemberBo(team *teamapi.ListTeamMemberRequest) TeamRequestBuilder
-
 		WithAddTeamMemberBo(team *teamapi.AddTeamMemberRequest) TeamRequestBuilder
-
 		WithLeaderIdBo(leaderId uint32) TeamRequestBuilder
-
 		WithApiTeamMember(teamMember *bizmodel.SysTeamMember) TeamMemberBuilder
 
 		WithApiUserBo(user *model.SysUser) UserModelBuilder
-
 		WithCreateUserBo(user *userapi.CreateUserRequest) UserRequestBuilder
-
 		WithUpdateUserBo(user *userapi.UpdateUserRequest) UserRequestBuilder
-
 		WithApiDatasourceMetric(metric *bizmodel.DatasourceMetric) DatasourceMetricModelBuilder
-
 		WithApiDatasourceMetricLabel(metric *bizmodel.MetricLabel) DatasourceMetricLabelModelBuilder
-
 		WithApiDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder
 	}
 )
@@ -375,6 +355,34 @@ func (b *builder) WithApiStrategyLevel(strategy *bizmodel.StrategyLevel) Strateg
 	}
 
 }
+
+func (b *builder) WithApiStrategyGroup(strategy *bizmodel.StrategyGroup) StrategyGroupModelBuilder {
+	return &strategyGroupBuilder{
+		StrategyGroup: strategy,
+		ctx:           b.ctx,
+	}
+}
+
+func (b *builder) WithCreateBoStrategyGroup(strategy *strategyapi.CreateStrategyGroupRequest) StrategyGroupRequestBuilder {
+	return &strategyGroupBuilder{
+		CreateStrategyGroupRequest: strategy,
+		ctx:                        b.ctx,
+	}
+}
+
+func (b *builder) WithUpdateBoStrategyGroup(strategy *strategyapi.UpdateStrategyGroupRequest) StrategyGroupRequestBuilder {
+	return &strategyGroupBuilder{
+		UpdateStrategyGroupRequest: strategy,
+		ctx:                        b.ctx,
+	}
+}
+func (b *builder) WithListStrategyGroup(strategy *strategyapi.ListStrategyGroupRequest) StrategyGroupRequestBuilder {
+	return &strategyGroupBuilder{
+		ListStrategyGroupRequest: strategy,
+		ctx:                      b.ctx,
+	}
+}
+
 func (b *builder) WithContext(ctx context.Context) Builder {
 	b.ctx = ctx
 	return b

@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -88,5 +89,47 @@ type (
 	CopyStrategyParams struct {
 		StrategyID uint32 `json:"strategyID"`
 		TeamID     uint32 `json:"teamID"`
+	}
+
+	CreateStrategyGroupParams struct {
+		// 策略组名称
+		Name string `json:"name,omitempty"`
+		// 策略组说明信息
+		Remark string `json:"remark,omitempty"`
+		// 策略组状态
+		Status api.Status `json:"status,omitempty"`
+		// 策略分组类型
+		CategoriesIds []uint32 `json:"categoriesIds,omitempty"`
+		TeamID        uint32   `json:"teamID"`
+	}
+
+	UpdateStrategyGroupStatusParams struct {
+		Ids    []uint32 `json:"ids"`
+		TeamID uint32   `json:"teamID"`
+		Status vobj.Status
+	}
+
+	UpdateStrategyGroupParams struct {
+		ID          uint32 `json:"id"`
+		UpdateParam CreateStrategyGroupParams
+		TeamID      uint32 `json:"teamID"`
+	}
+
+	GetStrategyGroupDetailParams struct {
+		ID     uint32 `json:"id"`
+		TeamID uint32 `json:"teamID"`
+	}
+
+	DelStrategyGroupParams struct {
+		ID     uint32 `json:"id"`
+		TeamID uint32 `json:"teamID"`
+	}
+
+	QueryStrategyGroupListParams struct {
+		Keyword string `json:"keyword"`
+		Page    types.Pagination
+		Name    string
+		Status  vobj.Status
+		TeamID  uint32 `json:"teamID"`
 	}
 )

@@ -44,7 +44,7 @@ func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.Up
 
 func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, params *bo.DelStrategyParams) error {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	queryWrapper := bizquery.Use(bizDB)
@@ -163,7 +163,7 @@ func (s *strategyRepositoryImpl) GetByID(ctx context.Context, params *bo.GetStra
 
 func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error) {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	strategyWrapper := bizquery.Use(bizDB).Strategy.WithContext(ctx)
@@ -179,7 +179,6 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	if !types.TextIsNull(params.Keyword) {
 		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Name.Like(params.Keyword))
 		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Remark.Like(params.Keyword))
-		strategyWrapper = strategyWrapper.Or(bizquery.Use(bizDB).Strategy.Name.Like(params.Keyword))
 
 		dictWrapper := query.Use(s.data.GetMainDB(ctx)).SysDict.WithContext(ctx)
 
@@ -294,6 +293,7 @@ func createStrategyParamsToModel(ctx context.Context, strategyTemplate *model.St
 				AllFieldModel: model.AllFieldModel{ID: dict.ID},
 			}, true
 		}),
+		GroupID: params.GroupId,
 	}
 	strategyModel.WithContext(ctx)
 	return strategyModel

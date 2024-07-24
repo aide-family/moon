@@ -53,6 +53,9 @@ type (
 )
 
 func (b *datasourceBuilder) ToCreateDatasourceBO(configBytes []byte) *bo.CreateDatasourceParams {
+	if types.IsNil(b) || types.IsNil(b.CreateDatasourceRequest) {
+		return nil
+	}
 	return &bo.CreateDatasourceParams{
 		Name:        b.CreateDatasourceRequest.GetName(),
 		Type:        vobj.DatasourceType(b.CreateDatasourceRequest.GetType()),
@@ -65,6 +68,9 @@ func (b *datasourceBuilder) ToCreateDatasourceBO(configBytes []byte) *bo.CreateD
 }
 
 func (b *datasourceBuilder) ToUpdateDatasourceBO() *bo.UpdateDatasourceBaseInfoParams {
+	if types.IsNil(b) || types.IsNil(b.UpdateDatasourceRequest) {
+		return nil
+	}
 	return &bo.UpdateDatasourceBaseInfoParams{
 		ID:     b.UpdateDatasourceRequest.GetId(),
 		Name:   b.UpdateDatasourceRequest.GetData().GetName(),
@@ -74,6 +80,9 @@ func (b *datasourceBuilder) ToUpdateDatasourceBO() *bo.UpdateDatasourceBaseInfoP
 }
 
 func (b *datasourceBuilder) ToListDatasourceBo() *bo.QueryDatasourceListParams {
+	if types.IsNil(b) || types.IsNil(b.ListDatasourceRequest) {
+		return nil
+	}
 	return &bo.QueryDatasourceListParams{
 		Page:        types.NewPagination(b.ListDatasourceRequest.GetPagination()),
 		Keyword:     b.ListDatasourceRequest.GetKeyword(),

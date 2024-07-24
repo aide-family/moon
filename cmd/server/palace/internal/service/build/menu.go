@@ -104,6 +104,9 @@ func (b *menuBuilder) ToUpdateMenuBO() *bo.UpdateMenuParams {
 }
 
 func (b *menuBuilder) ToBatchCreateMenuBO() []*bo.CreateMenuParams {
+	if types.IsNil(b) || types.IsNil(b.BatchCreateMenuRequest) || len(b.BatchCreateMenuRequest.GetMenus()) == 0 {
+		return nil
+	}
 	params := types.SliceToWithFilter(b.BatchCreateMenuRequest.GetMenus(), func(menu *menuapi.CreateMenuRequest) (*bo.CreateMenuParams, bool) {
 		createParam := bo.CreateMenuParams{
 			Name:       menu.GetName(),

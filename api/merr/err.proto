@@ -306,4 +306,11 @@ enum ErrorReason {
     (errors.message) = "策略等级不允许重复!",
     (errors.id) = "STRATEGY_LEVEL_REPEAT_ERR"
   ];
+
+  // 策略不存在
+  STRATEGY_GROUP_NOT_FOUND_ERR = 43 [
+    (errors.code) = 405,
+    (errors.message) = "策略分组不存在!",
+    (errors.id) = "STRATEGY_GROUP_NOT_FOUND_ERR"
+  ];
 }

@@ -47,6 +47,9 @@ type (
 )
 
 func (b *userBuilder) ToCreateUserBO(userId uint32, pass string) *bo.CreateUserParams {
+	if types.IsNil(b) || types.IsNil(b.CreateUserRequest) {
+		return nil
+	}
 	return &bo.CreateUserParams{
 		Name:      b.CreateUserRequest.GetName(),
 		Password:  types.NewPassword(pass),
@@ -63,6 +66,9 @@ func (b *userBuilder) ToCreateUserBO(userId uint32, pass string) *bo.CreateUserP
 }
 
 func (b *userBuilder) ToUpdateUserBO() *bo.UpdateUserParams {
+	if types.IsNil(b) || types.IsNil(b.UpdateUserRequest) {
+		return nil
+	}
 	createParams := bo.CreateUserParams{
 		Name:     b.UpdateUserRequest.GetData().GetName(),
 		Email:    b.UpdateUserRequest.GetData().GetEmail(),

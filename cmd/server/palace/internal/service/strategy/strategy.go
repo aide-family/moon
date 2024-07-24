@@ -20,35 +20,109 @@ import (
 
 type Service struct {
 	strategyapi.UnimplementedStrategyServer
-	templateBiz *biz.TemplateBiz
-	strategyBiz *biz.StrategyBiz
+	templateBiz      *biz.TemplateBiz
+	strategyBiz      *biz.StrategyBiz
+	strategyGroupBiz *biz.StrategyGroupBiz
 }
 
-func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz) *Service {
+func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz, strategyGroupBiz *biz.StrategyGroupBiz) *Service {
 	return &Service{
-		templateBiz: templateBiz,
-		strategyBiz: strategy,
+		templateBiz:      templateBiz,
+		strategyBiz:      strategy,
+		strategyGroupBiz: strategyGroupBiz,
 	}
 }
 
 func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.CreateStrategyGroupRequest) (*strategyapi.CreateStrategyGroupReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	req.TeamId = claims.Team
+	params := build.NewBuilder().WithCreateBoStrategyGroup(req).ToCreateStrategyGroupBO()
+	if _, err := s.strategyGroupBiz.CreateStrategyGroup(ctx, params); err != nil {
+		return nil, err
+	}
 	return &strategyapi.CreateStrategyGroupReply{}, nil
 }
 
 func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.DeleteStrategyGroupRequest) (*strategyapi.DeleteStrategyGroupReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	params := &bo.DelStrategyGroupParams{
+		ID:     req.GetId(),
+		TeamID: claims.Team,
+	}
+	if err := s.strategyGroupBiz.DeleteStrategyGroup(ctx, params); err != nil {
+		return nil, err
+	}
 	return &strategyapi.DeleteStrategyGroupReply{}, nil
 }
 
 func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListStrategyGroupRequest) (*strategyapi.ListStrategyGroupReply, error) {
-	return &strategyapi.ListStrategyGroupReply{}, nil
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	req.TeamId = claims.Team
+	params := build.NewBuilder().WithContext(ctx).WithListStrategyGroup(req).ToListStrategyGroupBO()
+	listPage, err := s.strategyGroupBiz.ListPage(ctx, params)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &strategyapi.ListStrategyGroupReply{
+		Pagination: build.NewPageBuilder(params.Page).ToApi(),
+		List: types.SliceTo(listPage, func(strategy *bizmodel.StrategyGroup) *admin.StrategyGroup {
+			return build.NewBuilder().WithApiStrategyGroup(strategy).ToApi()
+		}),
+	}, nil
 }
 
 func (s *Service) GetStrategyGroup(ctx context.Context, req *strategyapi.GetStrategyGroupRequest) (*strategyapi.GetStrategyGroupReply, error) {
-	return &strategyapi.GetStrategyGroupReply{}, nil
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	params := &bo.GetStrategyGroupDetailParams{
+		ID:     req.GetId(),
+		TeamID: claims.GetTeam(),
+	}
+	groupDetail, err := s.strategyGroupBiz.GetStrategyGroupDetail(ctx, params)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &strategyapi.GetStrategyGroupReply{Detail: build.NewBuilder().WithApiStrategyGroup(groupDetail).ToApi()}, nil
 }
 
 func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.UpdateStrategyGroupRequest) (*strategyapi.UpdateStrategyGroupReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	req.TeamId = claims.GetTeam()
+	params := build.NewBuilder().WithUpdateBoStrategyGroup(req).ToUpdateStrategyGroupBO()
+	if err := s.strategyGroupBiz.UpdateStrategyGroup(ctx, params); err != nil {
+		return nil, err
+	}
 	return &strategyapi.UpdateStrategyGroupReply{}, nil
+}
+
+func (s *Service) UpdateStrategyGroupStatus(ctx context.Context, req *strategyapi.UpdateStrategyGroupStatusRequest) (*strategyapi.UpdateStrategyGroupStatusReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	param := &bo.UpdateStrategyGroupStatusParams{
+		Ids:    req.GetIds(),
+		Status: vobj.Status(req.GetStatus()),
+		TeamID: claims.GetTeam(),
+	}
+	if err := s.strategyGroupBiz.UpdateStatus(ctx, param); err != nil {
+		return nil, err
+	}
+	return &strategyapi.UpdateStrategyGroupStatusReply{}, nil
 }
 
 func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStrategyRequest) (*strategyapi.CreateStrategyReply, error) {
@@ -149,6 +223,23 @@ func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrateg
 			return build.NewBuilder().WithApiStrategy(strategy).ToApi(ctx)
 		}),
 	}, nil
+}
+
+func (s *Service) UpdateStrategyStatus(ctx context.Context, req *strategyapi.UpdateStrategyStatusRequest) (*strategyapi.UpdateStrategyStatusReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	params := &bo.UpdateStrategyStatusParams{
+		Ids:    req.GetIds(),
+		Status: vobj.Status(req.GetStatus()),
+		TeamID: claims.GetTeam(),
+	}
+	err := s.strategyBiz.UpdateStatus(ctx, params)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &strategyapi.UpdateStrategyStatusReply{}, nil
 }
 
 func (s *Service) CopyStrategy(ctx context.Context, req *strategyapi.CopyStrategyRequest) (*strategyapi.CopyStrategyReply, error) {

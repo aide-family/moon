@@ -115,6 +115,9 @@ func (b *teamBuilder) ToCreateTeamBO() *bo.CreateTeamParams {
 }
 
 func (b *teamBuilder) ToUpdateRoleBO() *bo.UpdateTeamParams {
+	if types.IsNil(b) || types.IsNil(b.UpdateTeamRequest) {
+		return nil
+	}
 	return &bo.UpdateTeamParams{
 		ID:     b.UpdateTeamRequest.GetId(),
 		Name:   b.UpdateTeamRequest.GetName(),
@@ -125,6 +128,9 @@ func (b *teamBuilder) ToUpdateRoleBO() *bo.UpdateTeamParams {
 }
 
 func (b *teamBuilder) ToQueryTeamList() *bo.QueryTeamListParams {
+	if types.IsNil(b) || types.IsNil(b.ListTeamRequest) {
+		return nil
+	}
 	return &bo.QueryTeamListParams{
 		Page:      types.NewPagination(b.ListTeamRequest.GetPagination()),
 		Keyword:   b.ListTeamRequest.GetKeyword(),
@@ -135,6 +141,9 @@ func (b *teamBuilder) ToQueryTeamList() *bo.QueryTeamListParams {
 }
 
 func (b *teamBuilder) ToListTeamMemberBO() *bo.ListTeamMemberParams {
+	if types.IsNil(b) || types.IsNil(b.ListTeamMemberRequest) {
+		return nil
+	}
 	return &bo.ListTeamMemberParams{
 		Page:    types.NewPagination(b.ListTeamMemberRequest.GetPagination()),
 		ID:      b.ListTeamMemberRequest.GetId(),
@@ -146,6 +155,9 @@ func (b *teamBuilder) ToListTeamMemberBO() *bo.ListTeamMemberParams {
 }
 
 func (b *teamBuilder) ToTeamListBO() *bo.QueryTeamListParams {
+	if types.IsNil(b) || types.IsNil(b.ListTeamRequest) {
+		return nil
+	}
 	return &bo.QueryTeamListParams{
 		Page:      types.NewPagination(b.ListTeamRequest.GetPagination()),
 		Keyword:   b.ListTeamRequest.GetKeyword(),
