@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type Service struct {
@@ -161,8 +162,8 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 	}
 	// 对比旧密码正确
 	oldPassword := types.NewPassword(oldPass, userDo.Salt)
-	old := types.NewPassword(userDo.Password, userDo.Salt)
-	if !oldPassword.Equal(old) {
+	log.Debugw("oldPassword", oldPassword.String(), "userDo.Password", userDo.Password)
+	if oldPassword.String() != userDo.Password {
 		return nil, merr.ErrorI18nPasswordErr(ctx)
 	}
 
