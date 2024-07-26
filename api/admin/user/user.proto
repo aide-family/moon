@@ -25,7 +25,7 @@ service User {
   // 更新用户
   rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
     option (google.api.http) = {
-      put: "/v1/user/{id}"
+      put: "/v1/user/update/{id}"
       body: "*"
     };
   }
