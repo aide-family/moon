@@ -25,6 +25,15 @@ type userRepositoryImpl struct {
 	data *data.Data
 }
 
+func (l *userRepositoryImpl) UpdateBaseByID(ctx context.Context, user *bo.UpdateUserBaseParams) error {
+	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysUser.Where(query.SysUser.ID.Eq(user.ID)).UpdateSimple(
+		query.SysUser.Nickname.Value(user.Nickname),
+		query.SysUser.Gender.Value(user.Gender.GetValue()),
+		query.SysUser.Remark.Value(user.Remark),
+	)
+	return err
+}
+
 func (l *userRepositoryImpl) UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error {
 	_, err := query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.ID.Eq(user.ID)).UpdateSimple(
 		query.SysUser.Nickname.Value(user.Nickname),

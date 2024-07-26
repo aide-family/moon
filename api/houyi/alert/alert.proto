@@ -11,7 +11,7 @@ option java_multiple_files = true;
 option java_package = "api.houyi.alert";
 
 service Alert {
-	rpc Hook (HookRequest) returns (HookReply) {
+	rpc Hook (AlarmItem) returns (HookReply) {
 		option (google.api.http) = {
 			post: "/v1/alert/hook"
 			body: "*"
@@ -26,8 +26,12 @@ service Alert {
 	}
 }
 
-message HookRequest {}
-message HookReply {}
+message HookReply {
+	// 响应消息
+	string msg = 1;
+	// 响应码
+	int32 code = 2;
+}
 
 message AlarmRequest {
 	// 策略
@@ -35,5 +39,5 @@ message AlarmRequest {
 }
 message AlarmReply {
 	// 告警
-	Alarm alarm = 1;
+	AlarmItem alarm = 1;
 }

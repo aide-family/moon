@@ -27,6 +27,9 @@ type (
 		// UpdateByID update user by id
 		UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error
 
+		// UpdateBaseByID update user base info by id
+		UpdateBaseByID(ctx context.Context, user *bo.UpdateUserBaseParams) error
+		
 		// DeleteByID delete user by id
 		DeleteByID(ctx context.Context, id uint32) error
 

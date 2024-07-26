@@ -4,45 +4,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 )
-
-type AlarmApiBuilder struct {
-	*api.Strategy
-}
-
-func NewAlarmApiBuilder(strategyInfo *api.Strategy) *AlarmApiBuilder {
-	return &AlarmApiBuilder{
-		Strategy: strategyInfo,
-	}
-}
-
-// ToBo 转换为业务对象
-func (a *AlarmApiBuilder) ToBo() *bo.Strategy {
-	if types.IsNil(a) || types.IsNil(a.Strategy) {
-		return nil
-	}
-	strategyInfo := a.Strategy
-	return &bo.Strategy{
-		ID:                         strategyInfo.GetId(),
-		Alert:                      strategyInfo.GetAlert(),
-		Expr:                       strategyInfo.GetExpr(),
-		For:                        types.NewDuration(strategyInfo.GetFor()),
-		Count:                      strategyInfo.GetCount(),
-		SustainType:                vobj.Sustain(strategyInfo.GetSustainType()),
-		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(strategyInfo.GetMultiDatasourceSustainType()),
-		Labels:                     vobj.NewLabels(strategyInfo.GetLabels()),
-		Annotations:                strategyInfo.GetAnnotations(),
-		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
-		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
-			return NewDatasourceApiBuilder(ds).ToBo()
-		}),
-		Status:    vobj.Status(strategyInfo.GetStatus()),
-		Step:      strategyInfo.GetStep(),
-		Condition: vobj.Condition(strategyInfo.GetCondition()),
-		Threshold: strategyInfo.GetThreshold(),
-	}
-}
 
 type AlarmBuilder struct {
 	*bo.Alarm
@@ -54,15 +16,15 @@ func NewAlarmBuilder(alarm *bo.Alarm) *AlarmBuilder {
 	}
 }
 
-func (a *AlarmBuilder) ToApi() *api.Alarm {
+func (a *AlarmBuilder) ToApi() *api.AlarmItem {
 	if types.IsNil(a) || types.IsNil(a.Alarm) {
 		return nil
 	}
 	alarm := a.Alarm
-	return &api.Alarm{
+	return &api.AlarmItem{
 		Receiver: alarm.Receiver,
 		Status:   alarm.Status.String(),
-		Alerts: types.SliceTo(alarm.Alerts, func(alert *bo.Alert) *api.Alert {
+		Alerts: types.SliceTo(alarm.Alerts, func(alert *bo.Alert) *api.AlertItem {
 			return NewAlertBuilder(alert).ToApi()
 		}),
 		GroupLabels:       alarm.GroupLabels.Map(),
@@ -85,12 +47,12 @@ func NewAlertBuilder(alert *bo.Alert) *AlertBuilder {
 	}
 }
 
-func (a *AlertBuilder) ToApi() *api.Alert {
+func (a *AlertBuilder) ToApi() *api.AlertItem {
 	if types.IsNil(a) || types.IsNil(a.Alert) {
 		return nil
 	}
 	alert := a.Alert
-	return &api.Alert{
+	return &api.AlertItem{
 		Status:       alert.Status.String(),
 		Labels:       alert.Labels.Map(),
 		Annotations:  alert.Annotations,

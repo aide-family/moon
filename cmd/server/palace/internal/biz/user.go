@@ -70,6 +70,14 @@ func (b *UserBiz) UpdateUser(ctx context.Context, user *bo.UpdateUserParams) err
 	return nil
 }
 
+// UpdateUserBaseInfo 更新用户基础信息
+func (b *UserBiz) UpdateUserBaseInfo(ctx context.Context, user *bo.UpdateUserBaseParams) error {
+	if err := b.userRepo.UpdateBaseByID(ctx, user); !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return nil
+}
+
 // DeleteUser 删除用户
 func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)

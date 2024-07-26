@@ -107,6 +107,14 @@ service User {
       body: "*"
     };
   }
+
+  // 修改个人基础信息
+  rpc UpdateUserBaseInfo (UpdateUserBaseInfoRequest) returns (UpdateUserBaseInfoReply) {
+    option (google.api.http) = {
+      put: "/v1/user/self/base"
+      body: "*"
+    };
+  }
 }
 
 message CreateUserRequest {
@@ -336,3 +344,22 @@ message UpdateUserAvatarRequest {
   }];
 }
 message UpdateUserAvatarReply {}
+
+message UpdateUserBaseInfoRequest {
+  // 用户昵称
+  string nickname = 1 [(buf.validate.field).cel = {
+    message: "用户昵称不允许为空",
+    expression: "this.size() != 0"
+  }];
+  // 用户性别
+  Gender gender = 2 [(buf.validate.field).cel = {
+    expression: "(this in [0, 1, 2])",
+    message: "性别值必须在[全部(0), 男(1), 女(2)]之间",
+  }];
+  // 备注
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "备注长度限制在0-200个字符",
+    expression: "this.size() <= 200"
+  }];
+}
+message UpdateUserBaseInfoReply {}

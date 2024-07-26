@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/aide-family/moon/api"
 	alertapi "github.com/aide-family/moon/api/houyi/alert"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
@@ -24,13 +25,13 @@ func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *Aler
 	}
 }
 
-func (s *AlertService) Hook(ctx context.Context, req *alertapi.HookRequest) (*alertapi.HookReply, error) {
+func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*alertapi.HookReply, error) {
 	return &alertapi.HookReply{}, nil
 }
 
 // Alarm 告警
 func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*alertapi.AlarmReply, error) {
-	strategyInfo := build.NewAlarmApiBuilder(req.GetStrategy()).ToBo()
+	strategyInfo := build.NewStrategyBuilder(req.GetStrategy()).ToBo()
 	innerAlarm, err := s.InnerAlarm(ctx, strategyInfo)
 	if err != nil {
 		return nil, err

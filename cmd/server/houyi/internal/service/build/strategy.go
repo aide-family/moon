@@ -38,3 +38,40 @@ func (b *StrategyApiBuilder) ToBo() *bo.Strategy {
 		Status: vobj.Status(b.GetStatus()),
 	}
 }
+
+type StrategyBuilder struct {
+	*api.Strategy
+}
+
+func NewStrategyBuilder(strategyInfo *api.Strategy) *StrategyBuilder {
+	return &StrategyBuilder{
+		Strategy: strategyInfo,
+	}
+}
+
+// ToBo 转换为业务对象
+func (a *StrategyBuilder) ToBo() *bo.Strategy {
+	if types.IsNil(a) || types.IsNil(a.Strategy) {
+		return nil
+	}
+	strategyInfo := a.Strategy
+	return &bo.Strategy{
+		ID:                         strategyInfo.GetId(),
+		Alert:                      strategyInfo.GetAlert(),
+		Expr:                       strategyInfo.GetExpr(),
+		For:                        types.NewDuration(strategyInfo.GetFor()),
+		Count:                      strategyInfo.GetCount(),
+		SustainType:                vobj.Sustain(strategyInfo.GetSustainType()),
+		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(strategyInfo.GetMultiDatasourceSustainType()),
+		Labels:                     vobj.NewLabels(strategyInfo.GetLabels()),
+		Annotations:                strategyInfo.GetAnnotations(),
+		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
+		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
+			return NewDatasourceApiBuilder(ds).ToBo()
+		}),
+		Status:    vobj.Status(strategyInfo.GetStatus()),
+		Step:      strategyInfo.GetStep(),
+		Condition: vobj.Condition(strategyInfo.GetCondition()),
+		Threshold: strategyInfo.GetThreshold(),
+	}
+}

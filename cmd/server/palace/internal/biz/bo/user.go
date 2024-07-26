@@ -29,6 +29,13 @@ type (
 		CreateUserParams
 	}
 
+	UpdateUserBaseParams struct {
+		ID       uint32      `json:"id"`
+		Nickname string      `json:"nickname"`
+		Remark   string      `json:"remark"`
+		Gender   vobj.Gender `json:"gender"`
+	}
+
 	QueryUserSelectParams struct {
 		Keyword string           `json:"keyword"`
 		Page    types.Pagination `json:"page"`

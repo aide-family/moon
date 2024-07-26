@@ -251,3 +251,21 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *userapi.UpdateUserA
 	}
 	return &userapi.UpdateUserAvatarReply{}, nil
 }
+
+// UpdateUserBaseInfo 更新用户基础信息
+func (s *Service) UpdateUserBaseInfo(ctx context.Context, req *userapi.UpdateUserBaseInfoRequest) (*userapi.UpdateUserBaseInfoReply, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
+	}
+	updateParams := &bo.UpdateUserBaseParams{
+		ID:       claims.GetUser(),
+		Gender:   vobj.Gender(req.GetGender()),
+		Remark:   req.GetRemark(),
+		Nickname: req.GetNickname(),
+	}
+	if err := s.userBiz.UpdateUserBaseInfo(ctx, updateParams); !types.IsNil(err) {
+		return nil, err
+	}
+	return &userapi.UpdateUserBaseInfoReply{}, nil
+}

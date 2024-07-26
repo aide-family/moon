@@ -6,13 +6,13 @@ option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
-message Alarm {
+message AlarmItem {
   // 接收者
   string receiver = 1;
   // 报警状态, firing, resolved
   string status = 2;
   // 告警列表
-  repeated Alert alerts = 3;
+  repeated AlertItem alerts = 3;
   // 告警组标签
   map<string, string> groupLabels = 4;
   // 公共标签
@@ -30,7 +30,7 @@ message Alarm {
 }
 
 // 告警明细
-message Alert {
+message AlertItem {
   // 告警状态, firing, resolved
   string status = 1;
   // 标签
