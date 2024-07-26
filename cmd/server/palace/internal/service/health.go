@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/env"
 )
 
 type HealthService struct {
@@ -15,5 +16,5 @@ func NewHealthService() *HealthService {
 }
 
 func (s *HealthService) Check(_ context.Context, _ *api.CheckRequest) (*api.CheckReply, error) {
-	return &api.CheckReply{Healthy: true}, nil
+	return &api.CheckReply{Healthy: true, Version: env.Version()}, nil
 }

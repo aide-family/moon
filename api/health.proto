@@ -20,4 +20,5 @@ service Health {
 message CheckRequest {}
 message CheckReply {
 	bool healthy = 1;
+	string version = 2;
 }
