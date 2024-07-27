@@ -130,7 +130,11 @@ func (l *hookHttpInterflow) Close() error {
 }
 
 func (l *hookHttpInterflow) Send(ctx context.Context, msg *interflow.HookMsg) (err error) {
-	_, err = httpx.NewHttpX().POSTWithContext(ctx, l.server.GetUrl(), msg.Bytes())
+	response, err := httpx.NewHttpX().POSTWithContext(ctx, l.server.GetUrl(), msg.Bytes())
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
 	return err
 }
 
