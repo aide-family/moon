@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/api/admin"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -15,6 +15,7 @@ import (
 type (
 	DictModelBuilder interface {
 		ToApi() *admin.Dict
+
 		ToApiSelect() *admin.Select
 	}
 
@@ -26,7 +27,7 @@ type (
 
 	dictBuilder struct {
 		// model
-		SysDict *model.SysDict
+		SysDict imodel.IDict
 
 		// request
 		CreateDictRequest *dictapi.CreateDictRequest
@@ -43,18 +44,18 @@ func (b *dictBuilder) ToApi() *admin.Dict {
 		return nil
 	}
 	return &admin.Dict{
-		Id:           b.SysDict.ID,
-		Name:         b.SysDict.Name,
-		Value:        b.SysDict.Value,
-		ColorType:    b.SysDict.ColorType,
-		Icon:         b.SysDict.Icon,
-		Status:       api.Status(b.SysDict.Status),
-		DictType:     api.DictType(b.SysDict.DictType),
-		ImageUrl:     b.SysDict.ImageUrl,
-		LanguageCode: b.SysDict.LanguageCode,
-		Remark:       b.SysDict.Remark,
-		CreatedAt:    b.SysDict.CreatedAt.String(),
-		UpdatedAt:    b.SysDict.UpdatedAt.String(),
+		Id:           b.SysDict.GetID(),
+		Name:         b.SysDict.GetName(),
+		Value:        b.SysDict.GetValue(),
+		ColorType:    b.SysDict.GetColorType(),
+		Icon:         b.SysDict.GetIcon(),
+		Status:       api.Status(b.SysDict.GetStatus()),
+		DictType:     api.DictType(b.SysDict.GetDictType()),
+		ImageUrl:     b.SysDict.GetImageUrl(),
+		LanguageCode: b.SysDict.GetLanguageCode(),
+		Remark:       b.SysDict.GetRemark(),
+		CreatedAt:    b.SysDict.GetCreatedAt().String(),
+		UpdatedAt:    b.SysDict.GetUpdatedAt().String(),
 	}
 }
 
@@ -64,15 +65,15 @@ func (b *dictBuilder) ToApiSelect() *admin.Select {
 		return nil
 	}
 	return &admin.Select{
-		Value:    b.SysDict.ID,
-		Label:    b.SysDict.Name,
+		Value:    b.SysDict.GetID(),
+		Label:    b.SysDict.GetName(),
 		Children: nil,
-		Disabled: !b.SysDict.Status.IsEnable() || b.SysDict.DeletedAt > 0,
+		Disabled: !b.SysDict.GetStatus().IsEnable() || b.SysDict.GetDeletedAt() > 0,
 		Extend: &admin.SelectExtend{
-			Icon:   b.SysDict.Icon,
-			Color:  b.SysDict.CssClass,
-			Remark: b.SysDict.Remark,
-			Image:  b.SysDict.ImageUrl,
+			Icon:   b.SysDict.GetIcon(),
+			Color:  b.SysDict.GetCssClass(),
+			Remark: b.SysDict.GetRemark(),
+			Image:  b.SysDict.GetImageUrl(),
 		},
 	}
 }

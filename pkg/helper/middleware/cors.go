@@ -28,6 +28,7 @@ func Cors() func(http.Handler) http.Handler {
 			"Accept-Language",
 			"X-Requested-With",
 			"X-Requested-With",
+			"Source-Type",
 		}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"}),
 		handlers.AllowCredentials(),

@@ -313,4 +313,24 @@ enum ErrorReason {
     (errors.message) = "策略分组不存在!",
     (errors.id) = "STRATEGY_GROUP_NOT_FOUND_ERR"
   ];
+
+  REQUEST_SOURCE_PARSING_ERROR = 44 [
+    (errors.code) = 405,
+    (errors.message) = "请求类型解析错误!",
+    (errors.id) = "REQUEST_SOURCE_PARSING_ERROR"
+  ];
+
+
+  // 字典名称已经存在
+  DICT_NAME_ALREADY_EXISTS_ERR = 45 [
+    (errors.code) = 405,
+    (errors.message) = "字典名称已经存在!",
+    (errors.id) = "DICT_NOT_FOUND_ERR"
+  ];
+
+  DICT_CREATE_PARAM_CANNOT_EMPTY = 46[
+    (errors.code) = 405,
+    (errors.message) = "创建字典参数不能为空!",
+    (errors.id) = "DICT_CREATE_PARAM_CANNOT_EMPTY"
+  ];
 }

@@ -43,3 +43,10 @@ func (u *BaseModel) BeforeCreate(_ *gorm.DB) (err error) {
 	u.CreatorID = claims.GetUser()
 	return
 }
+
+func (u *BaseModel) GetContext() context.Context {
+	if types.IsNil(u.ctx) {
+		return context.TODO()
+	}
+	return u.ctx
+}

@@ -131,7 +131,7 @@ message CreateDictRequest {
   // 语言编码
   string languageCode = 9 [(buf.validate.field).cel = {
     expression: "(this in ['zh-CN','en-US'])",
-    message: "字典类型值必须在[中文(zh), 英文(en)]之间",
+    message: "字典类型值必须在[中文(zh-CN), 英文(en-US)]之间",
   }];
   // 备注
   string remark = 10 [(buf.validate.field).cel = {
@@ -151,8 +151,8 @@ message GetDictSelectListRequest {
   }];
   // 状态查询
   Status status = 3 [(buf.validate.field).cel = {
-    expression: "(this in [1, 2])",
-    message: "状态值必须在[ 启用(1), 禁用(2)]之间",
+    expression: "(this in [0, 1, 2])",
+    message: "状态值必须在[全部(0), 启用(1), 禁用(2)]之间",
   }];
   // 字典类型
   DictType dictType = 4 [(buf.validate.field).cel = {

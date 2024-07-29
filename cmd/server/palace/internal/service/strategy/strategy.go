@@ -75,7 +75,7 @@ func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListSt
 	return &strategyapi.ListStrategyGroupReply{
 		Pagination: build.NewPageBuilder(params.Page).ToApi(),
 		List: types.SliceTo(listPage, func(strategy *bizmodel.StrategyGroup) *admin.StrategyGroup {
-			return build.NewBuilder().WithApiStrategyGroup(strategy).ToApi()
+			return build.NewBuilder().WithContext(ctx).WithApiStrategyGroup(strategy).ToApi()
 		}),
 	}, nil
 }
@@ -93,7 +93,7 @@ func (s *Service) GetStrategyGroup(ctx context.Context, req *strategyapi.GetStra
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &strategyapi.GetStrategyGroupReply{Detail: build.NewBuilder().WithApiStrategyGroup(groupDetail).ToApi()}, nil
+	return &strategyapi.GetStrategyGroupReply{Detail: build.NewBuilder().WithContext(ctx).WithApiStrategyGroup(groupDetail).ToApi()}, nil
 }
 
 func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.UpdateStrategyGroupRequest) (*strategyapi.UpdateStrategyGroupReply, error) {

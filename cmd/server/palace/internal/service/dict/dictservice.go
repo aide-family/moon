@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -53,16 +53,16 @@ func (s *Service) ListDict(ctx context.Context, req *dictapi.GetDictSelectListRe
 		Status:   vobj.Status(req.GetStatus()),
 		DictType: vobj.DictType(req.GetDictType()),
 	}
-
 	dictPage, err := s.dictBiz.ListDict(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *admin.Dict {
+		return build.NewBuilder().WithContext(ctx).WithDict(dict).ToApi()
+	})
 	return &dictapi.ListDictReply{
 		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
-		List: types.SliceTo(dictPage, func(dict *model.SysDict) *admin.Dict {
-			return build.NewBuilder().WithApiDict(dict).ToApi()
-		}),
+		List:       resList,
 	}, nil
 }
 
@@ -71,17 +71,15 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, params *dictapi.Bat
 		IDs:    params.GetIds(),
 		Status: vobj.Status(params.Status),
 	}
-
 	err := s.dictBiz.UpdateDictStatusByIds(ctx, &updateParams)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return &dictapi.BatchUpdateDictStatusReply{}, nil
 }
 
-func (s *Service) DeleteDict(ctx context.Context, params *dictapi.DeleteDictRequest) (*dictapi.DeleteDictReply, error) {
-	err := s.dictBiz.DeleteDictById(ctx, params.GetId())
-	if err != nil {
+func (s *Service) DeleteDict(ctx context.Context, req *dictapi.DeleteDictRequest) (*dictapi.DeleteDictReply, error) {
+	if err := s.dictBiz.DeleteDictById(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return &dictapi.DeleteDictReply{}, nil
@@ -89,12 +87,11 @@ func (s *Service) DeleteDict(ctx context.Context, params *dictapi.DeleteDictRequ
 
 func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*dictapi.GetDictReply, error) {
 	dictDO, err := s.dictBiz.GetDict(ctx, req.GetId())
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
-	resDict := build.NewBuilder().WithApiDict(dictDO).ToApi()
 	return &dictapi.GetDictReply{
-		Dict: resDict,
+		Dict: build.NewBuilder().WithContext(ctx).WithDict(dictDO).ToApi(),
 	}, nil
 }
 

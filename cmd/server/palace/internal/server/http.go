@@ -55,6 +55,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 			authMiddleware,
 			rbacMiddleware,
 			middleware.Validate(protovalidate.WithFailFast(false)),
+			middleware.SourceType(),
 		),
 	}
 	if c.Http.Network != "" {

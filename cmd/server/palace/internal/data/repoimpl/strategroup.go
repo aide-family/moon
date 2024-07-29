@@ -93,7 +93,7 @@ func (s strategyGroupRepositoryImpl) DeleteStrategyGroup(ctx context.Context, pa
 
 func (s strategyGroupRepositoryImpl) GetStrategyGroup(ctx context.Context, params *bo.GetStrategyGroupDetailParams) (*bizmodel.StrategyGroup, error) {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	if err != nil {
+	if !types.IsNil(err) {
 		return nil, err
 	}
 	bizWrapper := bizquery.Use(bizDB).StrategyGroup.WithContext(ctx)
