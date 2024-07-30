@@ -10,6 +10,7 @@ var _ watch.Indexer = (*Alarm)(nil)
 var _ watch.Indexer = (*Alert)(nil)
 
 type (
+	// Alarm alarm detail info
 	Alarm struct {
 		Receiver          string           `json:"receiver"`
 		Status            vobj.AlertStatus `json:"status"`
@@ -23,6 +24,7 @@ type (
 		TruncatedAlerts   int32            `json:"truncatedAlerts"`
 	}
 
+	// Alert alert detail info
 	Alert struct {
 		Status       vobj.AlertStatus `json:"status"`
 		Labels       *vobj.Labels     `json:"labels"`
@@ -35,20 +37,24 @@ type (
 	}
 )
 
+// Index gen alert index
 func (a *Alert) Index() string {
 	//TODO implement me
 	panic("implement me")
 }
 
+// Index gen alarm index
 func (a *Alarm) Index() string {
 	//TODO implement me
 	panic("implement me")
 }
 
+// Message gen alarm message
 func (a *Alarm) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlarm)
 }
 
+// Message gen alert message
 func (a *Alert) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlert)
 }

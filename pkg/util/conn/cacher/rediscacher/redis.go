@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// NewRedisCacher create redis cacher
 func NewRedisCacher(cli *redis.Client) conn.Cache {
 	return &redisCacher{
 		cli: cli,

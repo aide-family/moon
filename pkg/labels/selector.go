@@ -2,6 +2,7 @@ package labels
 
 import "strings"
 
+// Selector is a label selector.
 type Selector interface {
 	// Matches returns true if the specified Labels match this Selector.
 	Matches(labels Labels) bool
@@ -22,8 +23,10 @@ func (e *emptySelector) AddRequirement(r ...Requirement) Selector {
 	return nil
 }
 
+// Requirements is a single element selector.
 type Requirements []Requirement
 
+// NewSelector creates an empty Selector.
 func NewSelector() Selector {
 	return Requirements(nil)
 }
@@ -38,6 +41,7 @@ func (x Requirements) Matches(labels Labels) bool {
 	return true
 }
 
+// AddRequirement adds new Requirement to this Selector.
 func (x Requirements) AddRequirement(r ...Requirement) Selector {
 	req := make(Requirements, 0, len(x)+len(r))
 	req = append(req, x...)
@@ -45,6 +49,7 @@ func (x Requirements) AddRequirement(r ...Requirement) Selector {
 	return req
 }
 
+// String converts this Selector to a string.
 func (x Requirements) String() string {
 	strs := make([]string, 0, len(x))
 	for _, requirement := range x {

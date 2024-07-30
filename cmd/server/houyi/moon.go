@@ -4,7 +4,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
-	_ "go.uber.org/automaxprocs"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/server"
@@ -46,6 +45,7 @@ func newApp(c *houyiconf.Bootstrap, srv *server.Server, logger log.Logger) *krat
 	return kratos.New(opts...)
 }
 
+// Run start moon server
 func Run(flagconf string) {
 	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()

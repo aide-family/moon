@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameSendStrategy = "send_strategies"
+const tableNameSendStrategy = "send_strategies"
 
 // SendStrategy 发送策略， 用于控制发送的消息完成抑制或聚合动作
 type SendStrategy struct {
@@ -30,15 +30,17 @@ func (c *SendStrategy) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *SendStrategy) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *SendStrategy) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SendStrategy's table name
 func (*SendStrategy) TableName() string {
-	return TableNameSendStrategy
+	return tableNameSendStrategy
 }

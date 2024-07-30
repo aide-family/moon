@@ -45,6 +45,7 @@ message Data {
   message Database {
     string driver = 1;
     string dsn = 2;
+    bool debug = 3;
   }
 
   message Cache {

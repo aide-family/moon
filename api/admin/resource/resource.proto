@@ -89,5 +89,5 @@ message GetResourceSelectListRequest {
 }
 message GetResourceSelectListReply {
   PaginationReply pagination = 1;
-  repeated Select list = 2;
+  repeated SelectItem list = 2;
 }

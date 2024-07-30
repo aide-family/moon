@@ -101,6 +101,7 @@ func GetRuntimeCache() RuntimeCache {
 	return runtimeCache
 }
 
+// NewRuntimeCache 创建运行时缓存的环境变量
 func NewRuntimeCache(d *data.Data) RuntimeCache {
 	runtimeCacheInitOnce.Do(func() {
 		runtimeCache = &env{

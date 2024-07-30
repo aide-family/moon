@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// AuthorizationBiz 授权业务
 type AuthorizationBiz struct {
 	userRepo     repository.User
 	teamRepo     repository.Team
@@ -22,6 +23,7 @@ type AuthorizationBiz struct {
 	teamRoleRepo repository.TeamRole
 }
 
+// NewAuthorizationBiz 创建授权业务
 func NewAuthorizationBiz(
 	userRepo repository.User,
 	teamRepo repository.Team,
@@ -77,6 +79,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	return nil
 }
 
+// CheckToken 检查token
 func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenParams) error {
 	// 检查token是否过期
 	if types.IsNil(req) || types.IsNil(req.JwtClaims) {

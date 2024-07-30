@@ -19,6 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewTeamRoleRepository 创建团队角色仓库
 func NewTeamRoleRepository(data *data.Data) repository.TeamRole {
 	return &teamRoleRepositoryImpl{
 		data: data,
@@ -53,12 +54,12 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 		if err = tx.SysTeamRole.WithContext(ctx).Create(sysTeamRoleModel); !types.IsNil(err) {
 			return err
 		}
-		roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
+		roleIDStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
 		return tx.CasbinRule.WithContext(ctx).
 			Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
 				return &bizmodel.CasbinRule{
 					Ptype: "p",
-					V0:    roleIdStr,
+					V0:    roleIDStr,
 					V1:    apiItem.Path,
 					V2:    "http",
 				}
@@ -89,7 +90,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 	if !types.IsNil(err) {
 		return err
 	}
-	roleIdStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
+	roleIDStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
 	return bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
 		if err = tx.SysTeamRole.Apis.WithContext(ctx).Model(sysTeamRoleModel).Replace(apis...); !types.IsNil(err) {
 			return err
@@ -103,7 +104,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 		}
 
 		// 删除角色权限
-		_, err = tx.CasbinRule.WithContext(ctx).Where(tx.CasbinRule.V0.Eq(roleIdStr)).Delete()
+		_, err = tx.CasbinRule.WithContext(ctx).Where(tx.CasbinRule.V0.Eq(roleIDStr)).Delete()
 		if !types.IsNil(err) {
 			return err
 		}
@@ -114,7 +115,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 			Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
 				return &bizmodel.CasbinRule{
 					Ptype: "p",
-					V0:    roleIdStr,
+					V0:    roleIDStr,
 					V1:    apiItem.Path,
 					V2:    "http",
 				}
@@ -213,11 +214,11 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	}
 	casbinRules := make([]*bizmodel.CasbinRule, 0, len(roleList))
 	for _, roleItem := range roleList {
-		roleItemIdStr := strconv.FormatUint(uint64(roleItem.ID), 10)
+		roleItemIDStr := strconv.FormatUint(uint64(roleItem.ID), 10)
 		for _, apiItem := range roleItem.Apis {
 			casbinRules = append(casbinRules, &bizmodel.CasbinRule{
 				Ptype: "p",
-				V0:    roleItemIdStr,
+				V0:    roleItemIDStr,
 				V1:    apiItem.Path,
 				V2:    "http",
 			})
@@ -250,14 +251,14 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	})
 }
 
-func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamId uint32, roleIds []uint32, path string) (bool, error) {
-	enforce := l.data.GetCasbin(teamId)
+func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamID uint32, roleIDs []uint32, path string) (bool, error) {
+	enforce := l.data.GetCasbin(teamID)
 	_ = enforce.LoadPolicy()
-	for _, roleId := range roleIds {
-		roleStr := strconv.FormatUint(uint64(roleId), 10)
+	for _, roleID := range roleIDs {
+		roleStr := strconv.FormatUint(uint64(roleID), 10)
 		has, err := enforce.Enforce(roleStr, path, "http")
 		if !types.IsNil(err) {
-			log.Errorw("check rbac error", "roleId", roleId, "path", path, "err", err)
+			log.Errorw("check rbac error", "roleId", roleID, "path", path, "err", err)
 			return false, err
 		}
 		if has {

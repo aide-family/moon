@@ -17,6 +17,7 @@ type MessageSnapshot struct {
 	Processors map[string]*Processor
 }
 
+// Processor 处理器
 type Processor struct {
 	Filter     Filter
 	Aggregator Aggregator
@@ -24,6 +25,7 @@ type Processor struct {
 	Sender     Sender
 }
 
+// NewMessageSnapshot 创建消息快照。
 func NewMessageSnapshot(ctx context.Context, message *api.Message) *MessageSnapshot {
 	snapCtx, cancelFunc := context.WithCancel(ctx)
 

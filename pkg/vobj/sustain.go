@@ -12,11 +12,15 @@ package vobj
 type Sustain int
 
 const (
+	// SustainUnknown 未知
 	SustainUnknown Sustain = iota // 未知
 
+	// SustainFor m时间内出现n次
 	SustainFor // m时间内出现n次
 
+	// SustainMax m时间内最多出现n次
 	SustainMax // m时间内最多出现n次
 
+	// SustainMin m时间内最少出现n次
 	SustainMin // m时间内最少出现n次
 )

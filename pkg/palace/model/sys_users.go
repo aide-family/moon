@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameSysUser = "sys_users"
+const tableNameSysUser = "sys_users"
 
 // SysUser mapped from table <sys_users>
 type SysUser struct {
@@ -30,15 +30,17 @@ func (c *SysUser) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis缓存实现
 func (c *SysUser) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis缓存实现
 func (c *SysUser) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SysUser's table name
 func (*SysUser) TableName() string {
-	return TableNameSysUser
+	return tableNameSysUser
 }

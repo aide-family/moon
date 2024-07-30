@@ -14,18 +14,19 @@ import (
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterService)
 
+// Server moon server register providers.
 type Server struct {
 	rpcSrv  *grpc.Server
 	httpSrv *http.Server
 }
 
-// GetRpcServer 获取rpc server
-func (s *Server) GetRpcServer() *grpc.Server {
+// GetRPCServer 获取rpc server
+func (s *Server) GetRPCServer() *grpc.Server {
 	return s.rpcSrv
 }
 
-// GetHttpServer 获取http server
-func (s *Server) GetHttpServer() *http.Server {
+// GetHTTPServer 获取http server
+func (s *Server) GetHTTPServer() *http.Server {
 	return s.httpSrv
 }
 
@@ -37,6 +38,7 @@ func (s *Server) GetServers() []transport.Server {
 	}
 }
 
+// RegisterService register moon service
 func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,

@@ -23,3 +23,10 @@ func Models() []any {
 		&StrategyGroup{},
 	}
 }
+
+// AlarmModels 注册biz model下告警相关模型
+func AlarmModels() []any {
+	return []any{
+		&RealtimeAlarm{},
+	}
+}

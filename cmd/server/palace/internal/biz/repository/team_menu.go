@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
+// TeamMenu 团队菜单接口
 type TeamMenu interface {
-	GetTeamMenuList(ctx context.Context, params *bo.QueryTeamMenuListParams) ([]*bizmodel.SysTeamMenu, error)
+	GetTeamMenuList(context.Context, *bo.QueryTeamMenuListParams) ([]*bizmodel.SysTeamMenu, error)
 }

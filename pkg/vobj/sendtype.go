@@ -6,9 +6,12 @@ package vobj
 type SendType int
 
 const (
+	// SendTypeUnknown 未知
 	SendTypeUnknown SendType = iota // 未知
 
+	// SendTypeInhibit 抑制
 	SendTypeInhibit // 抑制
 
+	// SendTypeAggregate 聚合
 	SendTypeAggregate // 聚合
 )

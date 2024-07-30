@@ -4,7 +4,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
-	_ "go.uber.org/automaxprocs"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/server"
@@ -39,6 +38,7 @@ func newApp(c *rabbitconf.Bootstrap, srv *server.Server, logger log.Logger) *kra
 	return kratos.New(opts...)
 }
 
+// Run 启动服务
 func Run(flagconf string) {
 	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()

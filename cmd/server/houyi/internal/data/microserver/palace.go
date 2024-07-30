@@ -24,29 +24,29 @@ func NewPalaceConn(c *houyiconf.Bootstrap) (*PalaceConn, func(), error) {
 	}
 	switch palaceServer.GetNetwork() {
 	case "http", "HTTP":
-		httpConn, err := newHttpConn(palaceServer, discoveryConf)
+		httpConn, err := newHTTPConn(palaceServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接Palace http失败：", err)
 			return nil, nil, err
 		}
 		palaceConn.httpClient = httpConn
-		palaceConn.network = vobj.NetworkHttp
+		palaceConn.network = vobj.NetworkHTTP
 	case "https", "HTTPS":
-		httpConn, err := newHttpConn(palaceServer, discoveryConf)
+		httpConn, err := newHTTPConn(palaceServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接Palace http失败：", err)
 			return nil, nil, err
 		}
 		palaceConn.httpClient = httpConn
-		palaceConn.network = vobj.NetworkHttps
+		palaceConn.network = vobj.NetworkHTTPS
 	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRpcConn(palaceServer, discoveryConf)
+		grpcConn, err := newRPCConn(palaceServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接Palace rpc失败：", err)
 			return nil, nil, err
 		}
 		palaceConn.rpcClient = grpcConn
-		palaceConn.network = vobj.NetworkRpc
+		palaceConn.network = vobj.NetworkRPC
 	default:
 		return nil, nil, merr.ErrorNotification("Palace Server暂不支持该网络类型：[%s]", palaceServer.GetNetwork())
 	}
@@ -68,6 +68,7 @@ func NewPalaceConn(c *houyiconf.Bootstrap) (*PalaceConn, func(), error) {
 	return palaceConn, cleanup, nil
 }
 
+// PalaceConn Palace服务连接
 type PalaceConn struct {
 	// rpc连接
 	rpcClient *grpc.ClientConn
@@ -77,18 +78,19 @@ type PalaceConn struct {
 	httpClient *http.Client
 }
 
+// PushMetric 向palace推送指标数据
 func (l *PalaceConn) PushMetric(ctx context.Context, in *datasourceapi.SyncMetricRequest, opts ...Option) (*datasourceapi.SyncMetricReply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return datasourceapi.NewMetricHTTPClient(l.httpClient).SyncMetric(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return datasourceapi.NewMetricClient(l.rpcClient).SyncMetric(ctx, in, rpcOpts...)
 	}

@@ -7,6 +7,7 @@ import (
 
 var _ log.Logger = (*k8sLogger)(nil)
 
+// NewK8sLogger 创建k8s日志
 func NewK8sLogger(opts ...K8sLoggerOption) log.Logger {
 	k := &k8sLogger{}
 	for _, o := range opts {
@@ -20,9 +21,11 @@ type (
 		log klog.Logger
 	}
 
+	// K8sLoggerOption k8s日志配置
 	K8sLoggerOption func(k *k8sLogger)
 )
 
+// Log k8s日志实现kratos接口
 func (k *k8sLogger) Log(level log.Level, keyvals ...interface{}) error {
 	//TODO implement me
 	panic("implement me")

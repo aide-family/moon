@@ -24,13 +24,13 @@ message SelectExtend {
 }
 
 // 下拉选择基础数据
-message Select {
+message SelectItem {
   // 数据值
   uint32 value = 1;
   // 数据label
   string label = 2;
   // 子级数据, 针对级联选择
-  repeated Select children = 3;
+  repeated SelectItem children = 3;
   // 是否禁用
   bool disabled = 4;
   // 针对有图标类型的配置项(可选，默认为null)
@@ -218,7 +218,7 @@ message TeamRole {
 }
 
 // 数据源模块
-message Datasource {
+message DatasourceItem {
   // 数据源ID
   uint32 id = 1;
   // 数据源名称
@@ -322,9 +322,9 @@ message StrategyLevel {
   // 告警等级ID
   uint32 levelId = 11;
   // 告警等级明细
-  Select level = 12;
+  SelectItem level = 12;
   // 告警页面
-  repeated Select alarmPages = 13;
+  repeated SelectItem alarmPages = 13;
   // 阈值
   double threshold = 14;
   // 所属策略
@@ -334,7 +334,7 @@ message StrategyLevel {
   // TODO 通知对象
 }
 
-message Strategy {
+message StrategyItem {
   // 策略名称
   string name = 1;
   // 策略语句
@@ -346,7 +346,7 @@ message Strategy {
   // 策略注解
   map<string, string> annotations = 7;
   // 数据源
-  repeated Datasource datasource = 9;
+  repeated DatasourceItem datasource = 9;
   // 策略ID
   uint32 id = 10;
   // 策略状态
@@ -360,9 +360,9 @@ message Strategy {
   // 所属策略组
   uint32 groupId = 15;
   // 策略组信息
-  StrategyGroup group = 16;
+  StrategyGroupItem group = 16;
   // 告警页面
-  repeated Select alarmPages = 17;
+  repeated SelectItem alarmPages = 17;
   // 阈值
   double threshold = 18;
   // 条件
@@ -377,7 +377,7 @@ message Strategy {
   TemplateSourceType sourceType = 23;
 }
 
-message StrategyGroup {
+message StrategyGroupItem {
   // 策略组ID
   uint32 id = 1;
   // 策略组名称
@@ -392,7 +392,10 @@ message StrategyGroup {
   string remark = 6;
   // 策略组创建人
   User creator = 7;
+  // 创建者ID
   uint32 creatorId = 8;
+  // 策略列表
+  repeated StrategyItem strategies = 9;
 }
 
 message StrategyLevelTemplate {
@@ -409,7 +412,7 @@ message StrategyLevelTemplate {
   // 告警等级ID
   uint32 levelId = 10;
   // 告警等级
-  Select level = 11;
+  SelectItem level = 11;
   // 阈值
   double threshold = 12;
   // 条件
@@ -441,7 +444,7 @@ message StrategyTemplate {
   // 创建人
   User creator = 11;
   // 模板类型
-  repeated Select categories = 12;
+  repeated SelectItem categories = 12;
 }
 
 message StrategyAlarmLevel {
@@ -459,4 +462,77 @@ message StrategyAlarmLevel {
   string updatedAt = 6;
   // 等级
   int32 level = 7;
+}
+
+message DashboardItem {
+  // 仪表板ID
+  uint32 id = 1;
+  // 仪表板名称
+  string title = 2;
+  // 仪表板说明
+  string remark = 3;
+  // 仪表板创建时间, unix时间戳
+  string createdAt = 4;
+  // 仪表板更新时间, unix时间戳
+  string updatedAt = 5;
+  // 仪表板删除时间, unix时间戳
+  string deletedAt = 6;
+  // 仪表板颜色
+  string color = 7;
+  // 图表列表
+  repeated ChartItem charts = 8;
+  // 仪表板状态
+  Status status = 9;
+  // 关联策略组
+  repeated StrategyGroupItem groups = 10;
+}
+
+message ChartItem {
+  // 图表ID
+  uint32 id = 1;
+  // 图表标题
+  string title = 2;
+  // 图表说明
+  string remark = 3;
+  // 图表url
+  string url = 4;
+  // 图表状态
+  Status status = 5;
+  // 图表类型
+  ChartType chartType = 6;
+  // 宽度
+  string  width = 7;
+  // 高度
+  string  height = 8;
+}
+
+message RealtimeAlarmItem {
+  // ID
+  uint32 id = 1;
+  // 告警开始时间
+  string startsAt = 2;
+  // 告警结束时间
+  string endsAt = 3;
+  // 告警状态
+  AlertStatus status = 4;
+  // 告警级别
+  SelectItem level = 5;
+  // 告警级别ID
+  uint32 levelId = 6;
+  // 告警策略ID
+  uint32 strategyId = 7;
+  // 告警策略
+  StrategyItem strategy = 8;
+  // 告警摘要
+  string summary = 9;
+  // 告警详情
+  string description = 10;
+  // 触发告警表达式
+  string expr = 11;
+  // 数据源ID
+  uint32 datasourceId = 12;
+  // 数据源
+  DatasourceItem datasource = 13;
+  // 指纹
+  string fingerprint = 14;
 }

@@ -15,6 +15,7 @@ func MD5(str string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+// GenerateRandomString 生成随机字符串, 分别指定字母和数字的长度
 func GenerateRandomString(letterLength, numberLength int) string {
 	// 设置随机数种子
 	rand.Seed(time.Now().UnixNano())

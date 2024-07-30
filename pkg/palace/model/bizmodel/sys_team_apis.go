@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameSysAPI = "sys_team_apis"
+const tableNameSysAPI = "sys_team_apis"
 
 // SysTeamAPI mapped from table <sys_apis>
 type SysTeamAPI struct {
@@ -26,15 +26,17 @@ func (c *SysTeamAPI) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis 存储实现
 func (c *SysTeamAPI) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis 存储实现
 func (c *SysTeamAPI) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SysTeamAPI's table name
 func (*SysTeamAPI) TableName() string {
-	return TableNameSysAPI
+	return tableNameSysAPI
 }

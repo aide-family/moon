@@ -24,8 +24,8 @@ func newAlertWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *servic
 				if !ok || types.IsNil(alarmData) {
 					return nil
 				}
-				alarmApiData := build.NewAlarmBuilder(alarmData).ToApi()
-				_, err := alertService.Hook(ctx, alarmApiData)
+				alarmAPIData := build.NewAlarmBuilder(alarmData).ToAPI()
+				_, err := alertService.Hook(ctx, alarmAPIData)
 				return err
 			}),
 		)),

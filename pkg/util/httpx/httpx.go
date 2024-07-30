@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-type HttpX struct {
+// HTTPX http请求封装
+type HTTPX struct {
 	http.Client
 
 	headers map[string]string
@@ -18,8 +19,9 @@ type HttpX struct {
 	pass    string
 }
 
-func NewHttpX() *HttpX {
-	return &HttpX{
+// NewHTTPX 创建一个http请求
+func NewHTTPX() *HTTPX {
+	return &HTTPX{
 		Client: http.Client{
 			Transport: &http.Transport{
 				MaxIdleConns:        100,
@@ -31,7 +33,7 @@ func NewHttpX() *HttpX {
 }
 
 // SetHeader 设置请求头
-func (h *HttpX) SetHeader(headers map[string]string) *HttpX {
+func (h *HTTPX) SetHeader(headers map[string]string) *HTTPX {
 	h.headers = headers
 	return h
 }
@@ -39,14 +41,14 @@ func (h *HttpX) SetHeader(headers map[string]string) *HttpX {
 // SetBasicAuth 将用户名和密码添加到请求头中
 //
 //	req.SetBasicAuth(username, password)
-func (h *HttpX) SetBasicAuth(username, password string) *HttpX {
+func (h *HTTPX) SetBasicAuth(username, password string) *HTTPX {
 	h.user = username
 	h.pass = password
 	return h
 }
 
 // POST 发起post请求
-func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
+func (h *HTTPX) POST(url string, data []byte) (*http.Response, error) {
 	reader := bytes.NewReader(data)
 	// 设置请求头
 	req, err := http.NewRequest(http.MethodPost, url, reader)
@@ -68,7 +70,7 @@ func (h *HttpX) POST(url string, data []byte) (*http.Response, error) {
 }
 
 // POSTWithContext 发起post请求
-func (h *HttpX) POSTWithContext(ctx context.Context, url string, data []byte) (*http.Response, error) {
+func (h *HTTPX) POSTWithContext(ctx context.Context, url string, data []byte) (*http.Response, error) {
 	reader := bytes.NewReader(data)
 	// 设置请求头
 	req, err := http.NewRequest(http.MethodPost, url, reader)
@@ -91,7 +93,7 @@ func (h *HttpX) POSTWithContext(ctx context.Context, url string, data []byte) (*
 }
 
 // GET 发起get请求
-func (h *HttpX) GET(u string) (*http.Response, error) {
+func (h *HTTPX) GET(u string) (*http.Response, error) {
 	// 验证URL是否有效
 	if u == "" || !isValidURL(u) {
 		return nil, errors.New("invalid URL")
@@ -112,7 +114,8 @@ func (h *HttpX) GET(u string) (*http.Response, error) {
 	return h.Do(req)
 }
 
-func (h *HttpX) GETWithContext(ctx context.Context, u string) (*http.Response, error) {
+// GETWithContext 发起get请求
+func (h *HTTPX) GETWithContext(ctx context.Context, u string) (*http.Response, error) {
 	// 验证URL是否有效
 	if u == "" || !isValidURL(u) {
 		return nil, errors.New("invalid URL")

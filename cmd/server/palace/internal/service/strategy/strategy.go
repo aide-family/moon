@@ -18,6 +18,7 @@ import (
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 )
 
+// Service 策略管理服务
 type Service struct {
 	strategyapi.UnimplementedStrategyServer
 	templateBiz      *biz.TemplateBiz
@@ -25,6 +26,7 @@ type Service struct {
 	strategyGroupBiz *biz.StrategyGroupBiz
 }
 
+// NewStrategyService 创建策略管理服务
 func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz, strategyGroupBiz *biz.StrategyGroupBiz) *Service {
 	return &Service{
 		templateBiz:      templateBiz,
@@ -33,6 +35,7 @@ func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz,
 	}
 }
 
+// CreateStrategyGroup 创建策略组
 func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.CreateStrategyGroupRequest) (*strategyapi.CreateStrategyGroupReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -46,6 +49,7 @@ func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.Crea
 	return &strategyapi.CreateStrategyGroupReply{}, nil
 }
 
+// DeleteStrategyGroup 删除策略组
 func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.DeleteStrategyGroupRequest) (*strategyapi.DeleteStrategyGroupReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -61,6 +65,7 @@ func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.Dele
 	return &strategyapi.DeleteStrategyGroupReply{}, nil
 }
 
+// ListStrategyGroup 策略组列表
 func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListStrategyGroupRequest) (*strategyapi.ListStrategyGroupReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -73,13 +78,14 @@ func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListSt
 		return nil, err
 	}
 	return &strategyapi.ListStrategyGroupReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
-		List: types.SliceTo(listPage, func(strategy *bizmodel.StrategyGroup) *admin.StrategyGroup {
-			return build.NewBuilder().WithContext(ctx).WithApiStrategyGroup(strategy).ToApi()
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List: types.SliceTo(listPage, func(strategy *bizmodel.StrategyGroup) *admin.StrategyGroupItem {
+			return build.NewBuilder().WithContext(ctx).WithAPIStrategyGroup(strategy).ToAPI()
 		}),
 	}, nil
 }
 
+// GetStrategyGroup 获取策略组详情
 func (s *Service) GetStrategyGroup(ctx context.Context, req *strategyapi.GetStrategyGroupRequest) (*strategyapi.GetStrategyGroupReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -93,9 +99,10 @@ func (s *Service) GetStrategyGroup(ctx context.Context, req *strategyapi.GetStra
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &strategyapi.GetStrategyGroupReply{Detail: build.NewBuilder().WithContext(ctx).WithApiStrategyGroup(groupDetail).ToApi()}, nil
+	return &strategyapi.GetStrategyGroupReply{Detail: build.NewBuilder().WithContext(ctx).WithAPIStrategyGroup(groupDetail).ToAPI()}, nil
 }
 
+// UpdateStrategyGroup 更新策略组
 func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.UpdateStrategyGroupRequest) (*strategyapi.UpdateStrategyGroupReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -109,13 +116,14 @@ func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.Upda
 	return &strategyapi.UpdateStrategyGroupReply{}, nil
 }
 
+// UpdateStrategyGroupStatus 更新策略组状态
 func (s *Service) UpdateStrategyGroupStatus(ctx context.Context, req *strategyapi.UpdateStrategyGroupStatusRequest) (*strategyapi.UpdateStrategyGroupStatusReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	param := &bo.UpdateStrategyGroupStatusParams{
-		Ids:    req.GetIds(),
+		IDs:    req.GetIds(),
 		Status: vobj.Status(req.GetStatus()),
 		TeamID: claims.GetTeam(),
 	}
@@ -125,6 +133,7 @@ func (s *Service) UpdateStrategyGroupStatus(ctx context.Context, req *strategyap
 	return &strategyapi.UpdateStrategyGroupStatusReply{}, nil
 }
 
+// CreateStrategy 创建策略
 func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStrategyRequest) (*strategyapi.CreateStrategyReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -146,6 +155,7 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 	return &strategyapi.CreateStrategyReply{}, nil
 }
 
+// UpdateStrategy 更新策略
 func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStrategyRequest) (*strategyapi.UpdateStrategyReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -168,6 +178,7 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 	return &strategyapi.UpdateStrategyReply{}, nil
 }
 
+// DeleteStrategy 删除策略
 func (s *Service) DeleteStrategy(ctx context.Context, req *strategyapi.DeleteStrategyRequest) (*strategyapi.DeleteStrategyReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -183,6 +194,7 @@ func (s *Service) DeleteStrategy(ctx context.Context, req *strategyapi.DeleteStr
 	return &strategyapi.DeleteStrategyReply{}, nil
 }
 
+// GetStrategy 获取策略详情
 func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyRequest) (*strategyapi.GetStrategyReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -197,10 +209,11 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 		return nil, err
 	}
 	return &strategyapi.GetStrategyReply{
-		Detail: build.NewBuilder().WithApiStrategy(strategy).ToApi(ctx),
+		Detail: build.NewBuilder().WithAPIStrategy(strategy).ToAPI(ctx),
 	}, nil
 }
 
+// ListStrategy 获取策略列表
 func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrategyRequest) (*strategyapi.ListStrategyReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -218,13 +231,14 @@ func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrateg
 		return nil, err
 	}
 	return &strategyapi.ListStrategyReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
-		List: types.SliceTo(strategies, func(strategy *bizmodel.Strategy) *admin.Strategy {
-			return build.NewBuilder().WithApiStrategy(strategy).ToApi(ctx)
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List: types.SliceTo(strategies, func(strategy *bizmodel.Strategy) *admin.StrategyItem {
+			return build.NewBuilder().WithAPIStrategy(strategy).ToAPI(ctx)
 		}),
 	}, nil
 }
 
+// UpdateStrategyStatus 更新策略状态
 func (s *Service) UpdateStrategyStatus(ctx context.Context, req *strategyapi.UpdateStrategyStatusRequest) (*strategyapi.UpdateStrategyStatusReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -242,6 +256,7 @@ func (s *Service) UpdateStrategyStatus(ctx context.Context, req *strategyapi.Upd
 	return &strategyapi.UpdateStrategyStatusReply{}, nil
 }
 
+// CopyStrategy 复制策略
 func (s *Service) CopyStrategy(ctx context.Context, req *strategyapi.CopyStrategyRequest) (*strategyapi.CopyStrategyReply, error) {
 	param := &bo.CopyStrategyParams{
 		StrategyID: req.StrategyId,

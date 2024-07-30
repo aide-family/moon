@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewStrategyGroupRepository 创建策略分组仓库
 func NewStrategyGroupRepository(data *data.Data) repository.StrategyGroup {
 	return &strategyGroupRepositoryImpl{
 		data: data,
@@ -134,7 +135,7 @@ func (s strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *b
 		return err
 	}
 	bizWrapper := bizquery.Use(bizDB).StrategyGroup.WithContext(ctx)
-	if _, err = bizWrapper.Where(bizquery.Use(bizDB).StrategyGroup.ID.In(params.Ids...)).Update(bizquery.Use(bizDB).StrategyGroup.Status, params.Status); !types.IsNil(err) {
+	if _, err = bizWrapper.Where(bizquery.Use(bizDB).StrategyGroup.ID.In(params.IDs...)).Update(bizquery.Use(bizDB).StrategyGroup.Status, params.Status); !types.IsNil(err) {
 		return err
 	}
 	return nil

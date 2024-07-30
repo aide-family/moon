@@ -2,8 +2,9 @@ package model
 
 import "encoding/json"
 
-const TableNameStrategyTemplateCategories = "strategy_template_categories"
+const tableNameStrategyTemplateCategories = "strategy_template_categories"
 
+// StrategyTemplateCategories 策略模板类型
 type StrategyTemplateCategories struct {
 	BaseModel
 	StrategyTemplateID uint32 `gorm:"primaryKey"`
@@ -16,15 +17,17 @@ func (c *StrategyTemplateCategories) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary 实现redis数据转换
 func (c *StrategyTemplateCategories) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary 实现redis数据转换
 func (c *StrategyTemplateCategories) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName StrategyTemplateCategories's table name
 func (*StrategyTemplateCategories) TableName() string {
-	return TableNameStrategyTemplateCategories
+	return tableNameStrategyTemplateCategories
 }

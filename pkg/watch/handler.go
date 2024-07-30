@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// NewDefaultHandler 创建默认消息处理
 func NewDefaultHandler(opts ...DefaultHandlerOption) Handler {
 	d := &defaultHandler{
 		topicHandleMap: make(map[vobj.Topic][]HandleFun),
@@ -31,6 +32,7 @@ type (
 		Handle(ctx context.Context, msg *Message) error
 	}
 
+	// HandleFun 消息处理函数
 	HandleFun func(ctx context.Context, msg *Message) error
 
 	// defaultHandler 默认消息处理
@@ -39,6 +41,7 @@ type (
 		topicHandleMap map[vobj.Topic][]HandleFun
 	}
 
+	// DefaultHandlerOption 默认消息处理配置
 	DefaultHandlerOption func(d *defaultHandler)
 )
 
@@ -66,6 +69,7 @@ func (d *defaultHandler) Handle(ctx context.Context, msg *Message) error {
 	return nil
 }
 
+// WithDefaultHandlerTopicHandle 设置默认消息处理
 func WithDefaultHandlerTopicHandle(topic vobj.Topic, handles ...HandleFun) DefaultHandlerOption {
 	return func(d *defaultHandler) {
 		d.lock.Lock()

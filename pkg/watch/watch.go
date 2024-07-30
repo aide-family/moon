@@ -14,6 +14,7 @@ var _ transport.Server = (*Watcher)(nil)
 
 const watcherTimeout = time.Second * 10
 
+// NewWatcher 创建监听器
 func NewWatcher(name string, opts ...WatcherOption) *Watcher {
 	w := &Watcher{
 		name:    name,
@@ -27,6 +28,7 @@ func NewWatcher(name string, opts ...WatcherOption) *Watcher {
 }
 
 type (
+	// Watcher 监听器
 	Watcher struct {
 		// 服务名称
 		name string
@@ -42,6 +44,7 @@ type (
 		timeout time.Duration
 	}
 
+	// WatcherOption 监听器配置
 	WatcherOption func(w *Watcher)
 )
 
@@ -60,6 +63,7 @@ func (w *Watcher) GetHandler() Handler {
 	return w.handler
 }
 
+// Start 启动监听
 func (w *Watcher) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
@@ -81,6 +85,7 @@ func (w *Watcher) Start(_ context.Context) error {
 	return nil
 }
 
+// Stop 停止监听
 func (w *Watcher) Stop(_ context.Context) error {
 	defer log.Infof("[Watcher] %s server stoped", w.name)
 	w.stopCh <- struct{}{}

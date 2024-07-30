@@ -7,17 +7,20 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type DatasourceApiBuilder struct {
+// DatasourceAPIBuilder 数据源api构建器
+type DatasourceAPIBuilder struct {
 	*api.Datasource
 }
 
-func NewDatasourceApiBuilder(datasource *api.Datasource) *DatasourceApiBuilder {
-	return &DatasourceApiBuilder{
+// NewDatasourceAPIBuilder 创建数据源api构建器
+func NewDatasourceAPIBuilder(datasource *api.Datasource) *DatasourceAPIBuilder {
+	return &DatasourceAPIBuilder{
 		Datasource: datasource,
 	}
 }
 
-func (b *DatasourceApiBuilder) ToBo() *bo.Datasource {
+// ToBo 转换为业务对象
+func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
 	if types.IsNil(b) || types.IsNil(b.Datasource) {
 		return nil
 	}

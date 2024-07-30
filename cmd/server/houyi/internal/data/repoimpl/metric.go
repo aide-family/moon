@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewMetricRepository 实例化MetricRepository
 func NewMetricRepository(data *data.Data, palaceCli *microserver.PalaceConn) repository.Metric {
 	return &metricRepositoryImpl{data: data, palaceCli: palaceCli}
 }
@@ -41,6 +42,7 @@ func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsPar
 	return opts, nil
 }
 
+// GetMetrics 获取指标列表
 func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *bo.GetMetricsParams) ([]*bo.MetricDetail, error) {
 	opts, err := l.getMetricOptions(datasourceInfo)
 	if err != nil {
@@ -72,6 +74,7 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 	return list, nil
 }
 
+// Query 查询指标
 func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
 	opts, err := l.getMetricOptions(&req.GetMetricsParams)
 	if err != nil {
@@ -91,6 +94,7 @@ func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams)
 	return datasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
 }
 
+// PushMetric 推送指标
 func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetricParams) error {
 	labels := make([]*admin.MetricLabel, 0, len(req.Labels))
 	for label, labelValue := range req.Labels {
@@ -113,8 +117,8 @@ func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetri
 			Unit:   req.Unit,
 		},
 		Done:         req.Done,
-		DatasourceId: req.DatasourceId,
-		TeamId:       req.TeamId,
+		DatasourceId: req.DatasourceID,
+		TeamId:       req.TeamID,
 	})
 	return err
 }

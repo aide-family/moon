@@ -7,6 +7,6 @@ import (
 const baidu = "https://www.baidu.com"
 
 func TestNewHttpX(t *testing.T) {
-	h := NewHttpX()
+	h := NewHTTPX()
 	t.Log(h.POST(baidu, nil))
 }

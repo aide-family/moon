@@ -3,7 +3,6 @@ package demo
 import (
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
-	_ "go.uber.org/automaxprocs"
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-family/moon/cmd/server/demo/internal/server"
@@ -25,6 +24,7 @@ func newApp(srv *server.Server, logger log.Logger) *kratos.App {
 	)
 }
 
+// Run 启动服务
 func Run(flagconf string) {
 	c := config.New(
 		config.WithSource(

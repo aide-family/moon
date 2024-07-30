@@ -2,8 +2,9 @@ package runtime
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/conversion"
 	"reflect"
+
+	"k8s.io/apimachinery/pkg/conversion"
 )
 
 type Scheme struct {

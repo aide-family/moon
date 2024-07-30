@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameSysTeamMember = "sys_team_members"
+const tableNameSysTeamMember = "sys_team_members"
 
 // SysTeamMember mapped from table <sys_team_members>
 type SysTeamMember struct {
@@ -25,15 +25,17 @@ func (c *SysTeamMember) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *SysTeamMember) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *SysTeamMember) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SysTeamMember's table name
 func (*SysTeamMember) TableName() string {
-	return TableNameSysTeamMember
+	return tableNameSysTeamMember
 }

@@ -16,6 +16,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// NewTemplateRepository 创建模板策略仓库
 func NewTemplateRepository(data *data.Data) repository.Template {
 	return &templateRepositoryImpl{data: data}
 }

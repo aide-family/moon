@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// Execute executes the root command.
 func Execute() {
 	rootCmd.AddCommand(serverCmd, versionCmd, genCmd)
 	if err := rootCmd.Execute(); !types.IsNil(err) {

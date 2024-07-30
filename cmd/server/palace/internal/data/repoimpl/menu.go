@@ -14,6 +14,7 @@ import (
 	"gorm.io/gen"
 )
 
+// NewMenuRepository 创建菜单仓库
 func NewMenuRepository(data *data.Data) repository.Menu {
 	return &menuRepositoryImpl{
 		data: data,
@@ -44,7 +45,7 @@ func (m *menuRepositoryImpl) BatchCreate(ctx context.Context, menus []*bo.Create
 	return query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.CreateInBatches(menuModels, 10)
 }
 
-func (m *menuRepositoryImpl) UpdateById(ctx context.Context, menu *bo.UpdateMenuParams) error {
+func (m *menuRepositoryImpl) UpdateByID(ctx context.Context, menu *bo.UpdateMenuParams) error {
 	updateParam := menu.UpdateParam
 	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Where(query.SysMenu.ID.Eq(menu.ID)).UpdateSimple(
 		query.SysMenu.Name.Value(updateParam.Name),
@@ -57,12 +58,12 @@ func (m *menuRepositoryImpl) UpdateById(ctx context.Context, menu *bo.UpdateMenu
 	return err
 }
 
-func (m *menuRepositoryImpl) DeleteById(ctx context.Context, id uint32) error {
+func (m *menuRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysDict.Where(query.SysMenu.ID.Eq(id)).Delete()
 	return err
 }
 
-func (m *menuRepositoryImpl) GetById(ctx context.Context, id uint32) (*model.SysMenu, error) {
+func (m *menuRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysMenu, error) {
 	return query.Use(m.data.GetMainDB(ctx)).SysMenu.WithContext(ctx).Where(query.SysMenu.ID.Eq(id)).First()
 }
 
@@ -120,7 +121,7 @@ func createMenuParamsToModel(ctx context.Context, param *bo.CreateMenuParams) *m
 		Icon:       param.Icon,
 		Type:       param.Type,
 		Sort:       param.Sort,
-		ParentID:   param.ParentId,
+		ParentID:   param.ParentID,
 		Status:     param.Status,
 		Permission: param.Permission,
 		EnName:     param.EnName,

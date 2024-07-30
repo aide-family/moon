@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	// GetMetricsParams 查询指标请求参数
 	GetMetricsParams struct {
 		Endpoint string            `json:"endpoint"`
 		Config   map[string]string `json:"config"`
@@ -12,6 +13,7 @@ type (
 		StorageType vobj.StorageType `json:"storageType"`
 	}
 
+	// MetricDetail 指标详情
 	MetricDetail struct {
 		// 指标名称
 		Name string `json:"name"`
@@ -25,17 +27,27 @@ type (
 		Unit string `json:"unit"`
 	}
 
+	// QueryQLParams 查询QL请求参数
 	QueryQLParams struct {
+		// 查询指标请求参数
 		GetMetricsParams
-		QueryQL   string   `json:"queryQL"`
+		// 查询QL
+		QueryQL string `json:"queryQL"`
+		// 时间范围
 		TimeRange []string `json:"timeRange"`
-		Step      uint32   `json:"step"`
+		// 步长
+		Step uint32 `json:"step"`
 	}
 
+	// PushMetricParams 推送指标请求参数
 	PushMetricParams struct {
+		// 指标明细
 		*MetricDetail
-		DatasourceId uint32 `json:"datasourceId"`
-		Done         bool   `json:"done"`
-		TeamId       uint32 `json:"teamId"`
+		// 数据源ID
+		DatasourceID uint32 `json:"datasourceId"`
+		// 是否完成
+		Done bool `json:"done"`
+		// 团队ID
+		TeamID uint32 `json:"teamId"`
 	}
 )

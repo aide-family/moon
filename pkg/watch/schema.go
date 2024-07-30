@@ -5,15 +5,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// NewDefaultSchemer 默认编解码器
 func NewDefaultSchemer() Schemer {
 	return &defaultSchemer{}
 }
 
+// NewEmptySchemer 空编解码器
 func NewEmptySchemer() Schemer {
 	return &emptySchemer{}
 }
 
 type (
+	// Schemer 消息编解码器
 	Schemer interface {
 		// Decode 解码
 		Decode(in *Message, out any) error

@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameStrategy = "strategies"
+const tableNameStrategy = "strategies"
 
 // Strategy mapped from table <Strategy>
 type Strategy struct {
@@ -39,15 +39,17 @@ func (c *Strategy) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *Strategy) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *Strategy) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName Strategy's table name
 func (*Strategy) TableName() string {
-	return TableNameStrategy
+	return tableNameStrategy
 }

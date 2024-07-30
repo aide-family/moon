@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Run gen gorm gen model code
 func Run(datasource string, drive, outputPath string, isBiz bool) {
 	if drive == "" || outputPath == "" {
 		log.Warnw("err", "参数错误", "datasource", datasource, "drive", drive, "outputPath", outputPath)

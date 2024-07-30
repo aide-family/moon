@@ -16,6 +16,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewConfigBiz 创建配置业务
 func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repo.CacheRepo) *ConfigBiz {
 	return &ConfigBiz{
 		cacheRepo: cacheRepo,
@@ -23,6 +24,7 @@ func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repo.CacheRepo) *ConfigBiz 
 	}
 }
 
+// GetConfigData 获取配置数据
 func GetConfigData() *Config {
 	if types.IsNil(configData) {
 		configData = &Config{
@@ -54,11 +56,13 @@ func (l *Config) GetTemplates() map[string]string {
 	return GetConfigData().Templates
 }
 
+// ConfigBiz 配置业务
 type ConfigBiz struct {
 	cacheRepo repo.CacheRepo
 	c         *rabbitconf.Bootstrap
 }
 
+// Config 配置数据
 type Config struct {
 	Receivers map[string]*api.Receiver
 	Templates map[string]string
@@ -105,9 +109,9 @@ func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
 		Receivers: make(map[string]*api.Receiver),
 		Templates: make(map[string]string),
 	}
-	getJsonStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
-	if !types.TextIsNull(getJsonStr) {
-		if err := json.Unmarshal([]byte(getJsonStr), &params); !types.IsNil(err) {
+	getJSONStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
+	if !types.TextIsNull(getJSONStr) {
+		if err := json.Unmarshal([]byte(getJSONStr), &params); !types.IsNil(err) {
 			return err
 		}
 	}

@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewMenuBiz 菜单业务
 func NewMenuBiz(teamMenuRepo repository.TeamMenu, msgRepo repository.Msg, menuRepo repository.Menu) *MenuBiz {
 	return &MenuBiz{
 		teamMenuRepo: teamMenuRepo,
@@ -23,6 +24,7 @@ func NewMenuBiz(teamMenuRepo repository.TeamMenu, msgRepo repository.Msg, menuRe
 	}
 }
 
+// MenuBiz 菜单业务
 type MenuBiz struct {
 	teamMenuRepo repository.TeamMenu
 	menuRepo     repository.Menu
@@ -38,8 +40,9 @@ func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error)
 	return b.teamMenuRepo.GetTeamMenuList(ctx, &bo.QueryTeamMenuListParams{TeamID: claims.GetTeam()})
 }
 
-func (b *MenuBiz) GetMenu(ctx context.Context, menuId uint32) (*model.SysMenu, error) {
-	menuDetail, err := b.menuRepo.GetById(ctx, menuId)
+// GetMenu 获取菜单详情
+func (b *MenuBiz) GetMenu(ctx context.Context, menuID uint32) (*model.SysMenu, error) {
+	menuDetail, err := b.menuRepo.GetByID(ctx, menuID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nMenuNotFoundErr(ctx)
@@ -60,14 +63,14 @@ func (b *MenuBiz) BatchCreateMenu(ctx context.Context, params []*bo.CreateMenuPa
 
 // UpdateMenu 更新菜单
 func (b *MenuBiz) UpdateMenu(ctx context.Context, params *bo.UpdateMenuParams) error {
-	_, err := b.menuRepo.GetById(ctx, params.ID)
+	_, err := b.menuRepo.GetByID(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nMenuNotFoundErr(ctx)
 		}
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
-	return b.menuRepo.UpdateById(ctx, params)
+	return b.menuRepo.UpdateByID(ctx, params)
 }
 
 // UpdateMenuStatus 更新菜单状态
@@ -93,15 +96,15 @@ func (b *MenuBiz) ListMenuPage(ctx context.Context, params *bo.QueryMenuListPara
 }
 
 // DeleteMenu 删除菜单
-func (b *MenuBiz) DeleteMenu(ctx context.Context, menuId uint32) error {
-	_, err := b.menuRepo.GetById(ctx, menuId)
+func (b *MenuBiz) DeleteMenu(ctx context.Context, menuID uint32) error {
+	_, err := b.menuRepo.GetByID(ctx, menuID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nMenuNotFoundErr(ctx)
 		}
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
-	return b.menuRepo.DeleteById(ctx, menuId)
+	return b.menuRepo.DeleteByID(ctx, menuID)
 }
 
 // MenuAllList 获取所有菜单

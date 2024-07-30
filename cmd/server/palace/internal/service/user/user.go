@@ -14,15 +14,16 @@ import (
 	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
+// Service 用户管理服务
 type Service struct {
 	userapi.UnimplementedUserServer
 
 	userBiz *biz.UserBiz
 }
 
+// NewUserService 创建用户服务
 func NewUserService(userBiz *biz.UserBiz) *Service {
 	return &Service{
 		userBiz: userBiz,
@@ -90,6 +91,7 @@ func (s *Service) UpdateUser(ctx context.Context, req *userapi.UpdateUserRequest
 	return &userapi.UpdateUserReply{}, nil
 }
 
+// DeleteUser 删除用户 只允许管理员操作
 func (s *Service) DeleteUser(ctx context.Context, req *userapi.DeleteUserRequest) (*userapi.DeleteUserReply, error) {
 	if err := s.userBiz.DeleteUser(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
@@ -97,16 +99,18 @@ func (s *Service) DeleteUser(ctx context.Context, req *userapi.DeleteUserRequest
 	return &userapi.DeleteUserReply{}, nil
 }
 
+// GetUser 获取用户详情
 func (s *Service) GetUser(ctx context.Context, req *userapi.GetUserRequest) (*userapi.GetUserReply, error) {
 	userDo, err := s.userBiz.GetUser(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &userapi.GetUserReply{
-		User: build.NewBuilder().WithApiUserBo(userDo).ToApi(),
+		User: build.NewBuilder().WithAPIUserBo(userDo).ToAPI(),
 	}, nil
 }
 
+// ListUser 获取用户列表
 func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*userapi.ListUserReply, error) {
 	queryParams := &bo.QueryUserListParams{
 		Keyword: req.GetKeyword(),
@@ -121,12 +125,13 @@ func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*
 	}
 	return &userapi.ListUserReply{
 		List: types.SliceTo(userDos, func(user *model.SysUser) *admin.User {
-			return build.NewBuilder().WithApiUserBo(user).ToApi()
+			return build.NewBuilder().WithAPIUserBo(user).ToAPI()
 		}),
-		Pagination: build.NewPageBuilder(queryParams.Page).ToApi(),
+		Pagination: build.NewPageBuilder(queryParams.Page).ToAPI(),
 	}, nil
 }
 
+// BatchUpdateUserStatus 批量更新用户状态
 func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchUpdateUserStatusRequest) (*userapi.BatchUpdateUserStatusReply, error) {
 	params := &bo.BatchUpdateUserStatusParams{
 		Status: vobj.Status(req.GetStatus()),
@@ -138,10 +143,12 @@ func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchU
 	return &userapi.BatchUpdateUserStatusReply{}, nil
 }
 
+// ResetUserPassword 重置用户密码
 func (s *Service) ResetUserPassword(ctx context.Context, req *userapi.ResetUserPasswordRequest) (*userapi.ResetUserPasswordReply, error) {
 	return &userapi.ResetUserPasswordReply{}, nil
 }
 
+// ResetUserPasswordBySelf 重置用户密码
 func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.ResetUserPasswordBySelfRequest) (*userapi.ResetUserPasswordBySelfReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -162,7 +169,6 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 	}
 	// 对比旧密码正确
 	oldPassword := types.NewPassword(oldPass, userDo.Salt)
-	log.Debugw("oldPassword", oldPassword.String(), "userDo.Password", userDo.Password)
 	if oldPassword.String() != userDo.Password {
 		return nil, merr.ErrorI18nPasswordErr(ctx)
 	}
@@ -173,7 +179,7 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 	}
 
 	params := &bo.ResetUserPasswordBySelfParams{
-		UserId: claims.GetUser(),
+		UserID: claims.GetUser(),
 		// 使用新的盐
 		Password: types.NewPassword(newPass),
 	}
@@ -183,6 +189,7 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 	return &userapi.ResetUserPasswordBySelfReply{}, nil
 }
 
+// GetUserSelectList 获取用户下拉列表
 func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.GetUserSelectListRequest) (*userapi.GetUserSelectListReply, error) {
 	params := &bo.QueryUserSelectParams{
 		Keyword: req.GetKeyword(),
@@ -196,10 +203,10 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.GetUserSel
 		return nil, err
 	}
 	return &userapi.GetUserSelectListReply{
-		List: types.SliceTo(userSelectOptions, func(option *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuilder(option).ToApi()
+		List: types.SliceTo(userSelectOptions, func(option *bo.SelectOptionBo) *admin.SelectItem {
+			return build.NewSelectBuilder(option).ToAPI()
 		}),
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
 	}, nil
 }
 
@@ -211,7 +218,7 @@ func (s *Service) UpdateUserPhone(ctx context.Context, req *userapi.UpdateUserPh
 	}
 	// TODO 验证手机号短信验证码
 	params := &bo.UpdateUserPhoneRequest{
-		UserId: claims.GetUser(),
+		UserID: claims.GetUser(),
 		Phone:  req.GetPhone(),
 	}
 	if err := s.userBiz.UpdateUserPhone(ctx, params); !types.IsNil(err) {
@@ -228,7 +235,7 @@ func (s *Service) UpdateUserEmail(ctx context.Context, req *userapi.UpdateUserEm
 	}
 	// TODO 验证邮箱验证码
 	params := &bo.UpdateUserEmailRequest{
-		UserId: claims.GetUser(),
+		UserID: claims.GetUser(),
 		Email:  req.GetEmail(),
 	}
 	if err := s.userBiz.UpdateUserEmail(ctx, params); !types.IsNil(err) {
@@ -244,7 +251,7 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *userapi.UpdateUserA
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	params := &bo.UpdateUserAvatarRequest{
-		UserId: claims.GetUser(),
+		UserID: claims.GetUser(),
 		Avatar: req.GetAvatar(),
 	}
 	if err := s.userBiz.UpdateUserAvatar(ctx, params); !types.IsNil(err) {

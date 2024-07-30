@@ -10,17 +10,20 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// ResourceBuilder 资源构造器
 type ResourceBuilder struct {
 	*model.SysAPI
 }
 
+// NewResourceBuilder 创建资源构造器
 func NewResourceBuilder(resource *model.SysAPI) *ResourceBuilder {
 	return &ResourceBuilder{
 		SysAPI: resource,
 	}
 }
 
-func (b *ResourceBuilder) ToApi() *admin.ResourceItem {
+// ToAPI 转换为API模型
+func (b *ResourceBuilder) ToAPI() *admin.ResourceItem {
 	if types.IsNil(b) || types.IsNil(b.SysAPI) {
 		return nil
 	}
@@ -39,17 +42,20 @@ func (b *ResourceBuilder) ToApi() *admin.ResourceItem {
 	}
 }
 
+// TeamResourceBuilder 团队资源构造器
 type TeamResourceBuilder struct {
 	*bizmodel.SysTeamAPI
 }
 
+// NewTeamResourceBuilder 创建团队资源构造器
 func NewTeamResourceBuilder(resource *bizmodel.SysTeamAPI) *TeamResourceBuilder {
 	return &TeamResourceBuilder{
 		SysTeamAPI: resource,
 	}
 }
 
-func (b *TeamResourceBuilder) ToApi() *admin.ResourceItem {
+// ToAPI 转换为API模型
+func (b *TeamResourceBuilder) ToAPI() *admin.ResourceItem {
 	if types.IsNil(b) || types.IsNil(b.SysTeamAPI) {
 		return nil
 	}

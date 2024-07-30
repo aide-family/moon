@@ -7,15 +7,15 @@ import (
 )
 
 type (
+	// CreateUserParams 创建用户参数
 	CreateUserParams struct {
 		Name     string         `json:"name"`
 		Password types.Password `json:"password"`
 		Email    string         `json:"email"`
 		Phone    string         `json:"phone"`
-
-		Nickname string `json:"nickname"`
-		Remark   string `json:"remark"`
-		Avatar   string `json:"avatar"`
+		Nickname string         `json:"nickname"`
+		Remark   string         `json:"remark"`
+		Avatar   string         `json:"avatar"`
 		// 创建人
 		CreatorID uint32 `json:"creatorID"`
 
@@ -24,11 +24,13 @@ type (
 		Role   vobj.Role   `json:"role"`
 	}
 
+	// UpdateUserParams 更新用户参数
 	UpdateUserParams struct {
 		ID uint32 `json:"id"`
 		CreateUserParams
 	}
 
+	// UpdateUserBaseParams 更新用户基础信息参数
 	UpdateUserBaseParams struct {
 		ID       uint32      `json:"id"`
 		Nickname string      `json:"nickname"`
@@ -36,6 +38,7 @@ type (
 		Gender   vobj.Gender `json:"gender"`
 	}
 
+	// QueryUserSelectParams 查询用户选择参数
 	QueryUserSelectParams struct {
 		Keyword string           `json:"keyword"`
 		Page    types.Pagination `json:"page"`
@@ -44,6 +47,7 @@ type (
 		Role    vobj.Role        `json:"role"`
 	}
 
+	// QueryUserListParams 查询用户列表参数
 	QueryUserListParams struct {
 		Keyword string           `json:"keyword"`
 		Page    types.Pagination `json:"page"`
@@ -52,31 +56,37 @@ type (
 		Role    vobj.Role        `json:"role"`
 	}
 
+	// BatchUpdateUserStatusParams 批量更新用户状态参数
 	BatchUpdateUserStatusParams struct {
 		Status vobj.Status `json:"status"`
 		IDs    []uint32    `json:"ids"`
 	}
 
+	// ResetUserPasswordBySelfParams 重置用户密码参数
 	ResetUserPasswordBySelfParams struct {
-		UserId   uint32         `json:"userId"`
+		UserID   uint32         `json:"userId"`
 		Password types.Password `json:"password"`
 	}
 
+	// UpdateUserPhoneRequest 更新用户手机号参数
 	UpdateUserPhoneRequest struct {
-		UserId uint32 `json:"userId"`
+		UserID uint32 `json:"userId"`
 		Phone  string `json:"phone"`
 	}
 
+	// UpdateUserEmailRequest 更新用户邮箱参数
 	UpdateUserEmailRequest struct {
-		UserId uint32 `json:"userId"`
+		UserID uint32 `json:"userId"`
 		Email  string `json:"email"`
 	}
 
+	// UpdateUserAvatarRequest 更新用户头像参数
 	UpdateUserAvatarRequest struct {
-		UserId uint32 `json:"userId"`
+		UserID uint32 `json:"userId"`
 		Avatar string `json:"avatar"`
 	}
 
+	// UserSelectOptionBuild 用户选择项构建器
 	UserSelectOptionBuild struct {
 		*model.SysUser
 	}

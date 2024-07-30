@@ -9,6 +9,7 @@ import (
 	"github.com/mojocn/base64Captcha"
 )
 
+// Type 验证码类型
 type Type int8
 
 const (
@@ -24,10 +25,12 @@ const (
 	TypeDigit
 )
 
+// Theme 验证码主题
 type Theme string
 
 const (
-	_          Theme = "dark"
+	_ Theme = "dark"
+	// LightTheme light
 	LightTheme Theme = "light"
 )
 
@@ -186,7 +189,7 @@ func VerifyCaptcha(id, VerifyValue string) bool {
 //
 //	@Pram codeId 验证码id
 //	@Result 验证码答案
-func GetCodeAnswer(codeId string) string {
+func GetCodeAnswer(codeID string) string {
 	// result 为步骤1 创建的图片验证码存储对象
-	return result.Get(codeId, false)
+	return result.Get(codeID, false)
 }

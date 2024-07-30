@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 )
 
+// NewCacheRepo 创建缓存操作
 func NewCacheRepo(data *data.Data) repo.CacheRepo {
 	return &cacheRepoImpl{data: data}
 }

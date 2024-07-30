@@ -5,6 +5,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
+// RedisConfig redis配置
 type RedisConfig interface {
 	GetNetwork() string
 	GetAddr() string

@@ -8,12 +8,14 @@ import (
 )
 
 type (
+	// AesCipher aes加密解密
 	AesCipher struct {
 		key   []byte
 		iv    []byte
 		block cipher.Block
 	}
 
+	// AesInterface aes加密解密接口
 	AesInterface interface {
 		EncryptBase64(in []byte) (string, error)
 		DecryptBase64(b string) ([]byte, error)

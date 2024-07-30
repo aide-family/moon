@@ -1,14 +1,10 @@
 package bizmodel
 
 import (
-	"context"
 	"encoding/json"
-
-	"gorm.io/gen"
-	"gorm.io/gorm"
 )
 
-const TableNameCasbinRule = "casbin_rule"
+const tableNameCasbinRule = "casbin_rule"
 
 // CasbinRule mapped from table <casbin_rule>
 type CasbinRule struct {
@@ -28,30 +24,7 @@ func (c *CasbinRule) String() string {
 	return string(bs)
 }
 
-func (c *CasbinRule) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
-}
-
-func (c *CasbinRule) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
-}
-
-// Create func
-func (c *CasbinRule) Create(ctx context.Context, tx *gorm.DB) error {
-	return tx.WithContext(ctx).Create(c).Error
-}
-
-// Update func
-func (c *CasbinRule) Update(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
-	return tx.WithContext(ctx).Model(c).Where(conds).Updates(c).Error
-}
-
-// Delete func
-func (c *CasbinRule) Delete(ctx context.Context, tx *gorm.DB, conds []gen.Condition) error {
-	return tx.WithContext(ctx).Where(conds).Delete(c).Error
-}
-
 // TableName CasbinRule's table name
 func (*CasbinRule) TableName() string {
-	return TableNameCasbinRule
+	return tableNameCasbinRule
 }

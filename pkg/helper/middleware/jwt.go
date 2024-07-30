@@ -55,6 +55,7 @@ type JwtClaims struct {
 	*jwtv5.RegisteredClaims
 }
 
+// JwtBaseInfo jwt base info
 type JwtBaseInfo struct {
 	User     uint32    `json:"user"`
 	Role     vobj.Role `json:"role"`
@@ -62,6 +63,7 @@ type JwtBaseInfo struct {
 	TeamRole vobj.Role `json:"team_role"`
 }
 
+// GetUser 获取用户id
 func (l *JwtBaseInfo) GetUser() uint32 {
 	if types.IsNil(l) {
 		return 0
@@ -69,6 +71,7 @@ func (l *JwtBaseInfo) GetUser() uint32 {
 	return l.User
 }
 
+// GetRole 获取角色
 func (l *JwtBaseInfo) GetRole() vobj.Role {
 	if types.IsNil(l) {
 		return 0
@@ -76,6 +79,7 @@ func (l *JwtBaseInfo) GetRole() vobj.Role {
 	return l.Role
 }
 
+// GetTeam 获取团队id
 func (l *JwtBaseInfo) GetTeam() uint32 {
 	if types.IsNil(l) {
 		return 0
@@ -83,6 +87,7 @@ func (l *JwtBaseInfo) GetTeam() uint32 {
 	return l.Team
 }
 
+// GetTeamRole 获取团队角色
 func (l *JwtBaseInfo) GetTeamRole() vobj.Role {
 	if types.IsNil(l) {
 		return 0
@@ -101,15 +106,15 @@ func (l *JwtBaseInfo) IsTeamAdminRole() bool {
 }
 
 // SetUserInfo 设置用户信息
-func (l *JwtBaseInfo) SetUserInfo(userId uint32, role vobj.Role) *JwtBaseInfo {
-	l.User = userId
+func (l *JwtBaseInfo) SetUserInfo(userID uint32, role vobj.Role) *JwtBaseInfo {
+	l.User = userID
 	l.Role = role
 	return l
 }
 
 // SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(teamId uint32, teamRole vobj.Role) *JwtBaseInfo {
-	l.Team = teamId
+func (l *JwtBaseInfo) SetTeamInfo(teamID uint32, teamRole vobj.Role) *JwtBaseInfo {
+	l.Team = teamID
 	l.TeamRole = teamRole
 
 	return l
@@ -159,6 +164,7 @@ func (l *JwtClaims) IsLogout(ctx context.Context, cache conn.Cache) bool {
 	return isLogout(ctx, cache, l)
 }
 
+// CheckTokenFun check token fun
 type CheckTokenFun func(ctx context.Context) (bool, error)
 
 // JwtLoginMiddleware jwt login middleware
@@ -210,6 +216,7 @@ func JwtServer() middleware.Middleware {
 	)
 }
 
+// NewWhiteListMatcher new white list matcher
 func NewWhiteListMatcher(list []string) selector.MatchFunc {
 	whiteList := make(map[string]struct{})
 	for _, v := range list {

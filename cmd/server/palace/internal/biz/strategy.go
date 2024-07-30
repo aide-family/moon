@@ -14,12 +14,14 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// NewStrategyBiz 创建策略业务
 func NewStrategyBiz(dictRepo repository.Strategy) *StrategyBiz {
 	return &StrategyBiz{
 		strategyRepo: dictRepo,
 	}
 }
 
+// StrategyBiz 策略业务
 type StrategyBiz struct {
 	strategyRepo repository.Strategy
 }
@@ -30,8 +32,8 @@ func (b *StrategyBiz) GetStrategy(ctx context.Context, param *bo.GetStrategyDeta
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	teamId := claims.Team
-	param.TeamID = teamId
+	teamID := claims.Team
+	param.TeamID = teamID
 	strategy, err := b.strategyRepo.GetByID(ctx, param)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -93,6 +95,7 @@ func (b *StrategyBiz) StrategyPage(ctx context.Context, param *bo.QueryStrategyL
 	return strategies, nil
 }
 
+// CopyStrategy 复制策略
 func (b *StrategyBiz) CopyStrategy(ctx context.Context, param *bo.CopyStrategyParams) (*bizmodel.Strategy, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {

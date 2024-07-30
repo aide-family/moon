@@ -2,9 +2,11 @@ package yaml
 
 import (
 	"bytes"
-	"gopkg.in/yaml.v3"
+	"encoding/json"
 	"reflect"
 	"unicode"
+
+	"gopkg.in/yaml.v3"
 )
 
 // IsJSONBuffer scans the provided buffer, looking

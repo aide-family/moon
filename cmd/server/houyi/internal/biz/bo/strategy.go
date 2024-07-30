@@ -11,6 +11,7 @@ import (
 var _ watch.Indexer = (*Strategy)(nil)
 
 type (
+	// Strategy 策略明细
 	Strategy struct {
 		// 策略ID
 		ID uint32 `json:"id,omitempty"`
@@ -44,6 +45,7 @@ type (
 		Threshold float64 `json:"threshold,omitempty"`
 	}
 
+	// Datasource 数据源明细
 	Datasource struct {
 		// 数据源类型
 		Category vobj.DatasourceType `json:"category,omitempty"`
@@ -56,6 +58,7 @@ type (
 	}
 )
 
+// Index 策略唯一索引
 func (s *Strategy) Index() string {
 	if types.IsNil(s) {
 		return "-"
@@ -63,6 +66,7 @@ func (s *Strategy) Index() string {
 	return fmt.Sprintf("%d", s.ID)
 }
 
+// Message 策略转消息
 func (s *Strategy) Message() *watch.Message {
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }

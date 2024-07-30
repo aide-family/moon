@@ -13,6 +13,7 @@ type (
 		total    int
 	}
 
+	// Pagination 分页器
 	Pagination interface {
 		GetPageNum() int
 		GetPageSize() int
@@ -20,6 +21,7 @@ type (
 		SetTotal(total int)
 	}
 
+	// PageQuery 分页查询
 	PageQuery[T any] interface {
 		Limit(limit int) T
 		Offset(offset int) T
@@ -60,18 +62,22 @@ func NewPagination(page *api.PaginationReq) Pagination {
 	return NewPage(int(page.GetPageNum()), int(page.GetPageSize()))
 }
 
+// GetPageNum 获取页码
 func (l *page) GetPageNum() int {
 	return l.PageNum
 }
 
+// GetPageSize 获取每页数量
 func (l *page) GetPageSize() int {
 	return l.PageSize
 }
 
+// GetTotal 获取总条数
 func (l *page) GetTotal() int {
 	return l.total
 }
 
+// SetTotal 设置总条数
 func (l *page) SetTotal(total int) {
 	l.total = total
 }

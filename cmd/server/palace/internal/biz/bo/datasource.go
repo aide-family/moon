@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// CreateDatasourceParams 创建数据源请求参数
 	CreateDatasourceParams struct {
 		// 数据源名称
 		Name string `json:"name"`
@@ -24,6 +25,7 @@ type (
 		StorageType vobj.StorageType `json:"storageType"`
 	}
 
+	// QueryDatasourceListParams 查询数据源列表请求参数
 	QueryDatasourceListParams struct {
 		// 分页, 不传不分页
 		Page types.Pagination `json:"page"`
@@ -37,6 +39,7 @@ type (
 		StorageType vobj.StorageType `json:"storageType"`
 	}
 
+	// UpdateDatasourceBaseInfoParams 更新数据源基础信息请求参数
 	UpdateDatasourceBaseInfoParams struct {
 		ID uint32 `json:"id"`
 		// 数据源名称
@@ -47,6 +50,7 @@ type (
 		Remark string `json:"remark"`
 	}
 
+	// UpdateDatasourceConfigParams 更新数据源配置请求参数
 	UpdateDatasourceConfigParams struct {
 		ID uint32 `json:"id"`
 		// 数据源配置(json 字符串)
@@ -57,6 +61,7 @@ type (
 		StorageType vobj.StorageType `json:"storageType"`
 	}
 
+	// DatasourceQueryParams 查询数据源请求参数
 	DatasourceQueryParams struct {
 		DatasourceID uint32 `json:"datasourceID"`
 		// 查询语句
@@ -70,6 +75,7 @@ type (
 		*bizmodel.Datasource `json:"datasource"`
 	}
 
+	// DatasourceQueryData 数据源查询结果
 	DatasourceQueryData struct {
 		Labels     map[string]string       `json:"labels"`
 		ResultType string                  `json:"resultType"`
@@ -77,6 +83,7 @@ type (
 		Value      *DatasourceQueryValue   `json:"value"`
 	}
 
+	// DatasourceQueryValue 数据源查询结果值
 	DatasourceQueryValue struct {
 		Value     float64 `json:"value"`
 		Timestamp int64   `json:"timestamp"`

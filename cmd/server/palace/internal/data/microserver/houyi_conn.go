@@ -24,29 +24,29 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	}
 	switch houYiServer.GetNetwork() {
 	case "http", "HTTP":
-		httpConn, err := newHttpConn(houYiServer, discoveryConf)
+		httpConn, err := newHTTPConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
 		houYiConn.httpClient = httpConn
-		houYiConn.network = vobj.NetworkHttp
+		houYiConn.network = vobj.NetworkHTTP
 	case "https", "HTTPS":
-		httpConn, err := newHttpConn(houYiServer, discoveryConf)
+		httpConn, err := newHTTPConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
 		houYiConn.httpClient = httpConn
-		houYiConn.network = vobj.NetworkHttps
+		houYiConn.network = vobj.NetworkHTTPS
 	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRpcConn(houYiServer, discoveryConf)
+		grpcConn, err := newRPCConn(houYiServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err
 		}
 		houYiConn.rpcClient = grpcConn
-		houYiConn.network = vobj.NetworkRpc
+		houYiConn.network = vobj.NetworkRPC
 	default:
 		return nil, nil, merr.ErrorNotification("HouYi Server暂不支持该网络类型：[%s]", houYiServer.GetNetwork())
 	}
@@ -68,6 +68,7 @@ func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	return houYiConn, cleanup, nil
 }
 
+// HouYiConn HouYi服务连接
 type HouYiConn struct {
 	// rpc连接
 	rpcClient *grpc.ClientConn
@@ -77,35 +78,37 @@ type HouYiConn struct {
 	httpClient *http.Client
 }
 
+// Sync 同步数据
 func (l *HouYiConn) Sync(ctx context.Context, in *metadataapi.SyncMetadataRequest, opts ...Option) (*metadataapi.SyncMetadataReply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadata(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadata(ctx, in, rpcOpts...)
 	}
 }
 
+// SyncV2 同步数据
 func (l *HouYiConn) SyncV2(ctx context.Context, in *metadataapi.SyncMetadataV2Request, opts ...Option) (*metadataapi.SyncMetadataV2Reply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadataV2(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadataV2(ctx, in, rpcOpts...)
 	}
@@ -114,16 +117,16 @@ func (l *HouYiConn) SyncV2(ctx context.Context, in *metadataapi.SyncMetadataV2Re
 // Query 查询数据
 func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opts ...Option) (*metadataapi.QueryReply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return metadataapi.NewMetricHTTPClient(l.httpClient).Query(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return metadataapi.NewMetricClient(l.rpcClient).Query(ctx, in, rpcOpts...)
 	}

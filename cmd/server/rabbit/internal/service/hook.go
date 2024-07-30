@@ -13,18 +13,21 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
+// HookService hook服务
 type HookService struct {
 	hookapi.UnimplementedHookServer
 
 	msgBiz *biz.MsgBiz
 }
 
+// NewHookService 创建hook服务
 func NewHookService(msgBiz *biz.MsgBiz) *HookService {
 	return &HookService{
 		msgBiz: msgBiz,
 	}
 }
 
+// SendMsg 发送消息
 func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) (*hookapi.SendMsgReply, error) {
 	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{
 		Route: req.Route,
@@ -39,6 +42,7 @@ func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) 
 	}, nil
 }
 
+// HookSendMsgHTTPHandler hook发送消息http handler
 func (s *HookService) HookSendMsgHTTPHandler() func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in hookapi.SendMsgRequest

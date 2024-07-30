@@ -6,11 +6,12 @@ import (
 )
 
 type (
+	// CreateMenuParams 创建菜单请求参数
 	CreateMenuParams struct {
 		// 菜单名称
 		Name string `json:"name"`
 		// 父id
-		ParentId uint32 `json:"parent_id"`
+		ParentID uint32 `json:"parent_id"`
 		// 路径
 		Path string `json:"path"`
 		// 图标
@@ -31,21 +32,25 @@ type (
 		EnName string `json:"en_name"`
 	}
 
+	// UpdateMenuParams 更新菜单请求参数
 	UpdateMenuParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam CreateMenuParams
 	}
 
+	// UpdateMenuStatusParams 更新菜单状态请求参数
 	UpdateMenuStatusParams struct {
 		IDs    []uint32    `json:"ids"`
 		Status vobj.Status `json:"status"`
 	}
 
+	// UpdateMenuTypeParams 更新菜单类型请求参数
 	UpdateMenuTypeParams struct {
 		IDs  []uint32      `json:"ids"`
 		Type vobj.MenuType `json:"type"`
 	}
 
+	// QueryMenuListParams 查询菜单列表请求参数
 	QueryMenuListParams struct {
 		Keyword  string           `json:"keyword"`
 		Page     types.Pagination `json:"page"`

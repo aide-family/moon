@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -13,22 +14,31 @@ import (
 	"gorm.io/gorm"
 )
 
-var debug = true
+// gormContextTxKey GORM事务的上下文
+type gormContextTxKey struct{}
 
-// SetDebug 设置debug
-func SetDebug(b bool) {
-	debug = b
+// GormDBConfig GORM数据库配置
+type GormDBConfig interface {
+	GetDriver() string
+	GetDsn() string
+	GetDebug() bool
 }
 
-// GormContextTxKey GORM事务的上下文
-type GormContextTxKey struct{}
+// GetDB 获取数据库连接
+func GetDB(ctx context.Context) (*gorm.DB, bool) {
+	if v, ok := ctx.Value(gormContextTxKey{}).(*gorm.DB); ok {
+		return v, true
+	}
+	return nil, false
+}
 
 // NewGormDB 获取数据库连接
-func NewGormDB(dsn, drive string, logger ...log.Logger) (*gorm.DB, error) {
+func NewGormDB(c GormDBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	var opts []gorm.Option
 	gormConfig := &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 	}
+
 	if len(logger) > 0 {
 		gormLog := slog.NewGormLogger(logger[0])
 		gormConfig.Logger = gormLog
@@ -36,6 +46,8 @@ func NewGormDB(dsn, drive string, logger ...log.Logger) (*gorm.DB, error) {
 	opts = append(opts, gormConfig)
 
 	var dialector gorm.Dialector
+	dsn := c.GetDsn()
+	drive := c.GetDriver()
 	switch drive {
 	case "mysql":
 		dialector = mysql.Open(dsn)
@@ -59,7 +71,7 @@ func NewGormDB(dsn, drive string, logger ...log.Logger) (*gorm.DB, error) {
 		_ = conn.Exec("PRAGMA journal_mode=WAL;")
 	}
 
-	if debug {
+	if c.GetDebug() {
 		conn = conn.Debug()
 	}
 

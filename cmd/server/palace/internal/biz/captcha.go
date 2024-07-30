@@ -13,10 +13,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// CaptchaBiz 验证码业务
 type CaptchaBiz struct {
 	captchaRepo repository.Captcha
 }
 
+// NewCaptchaBiz 创建验证码业务
 func NewCaptchaBiz(captchaRepo repository.Captcha) *CaptchaBiz {
 	return &CaptchaBiz{
 		captchaRepo: captchaRepo,
@@ -35,7 +37,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 	expireAt := time.Now().Add(duration).Unix()
 	validateCaptchaItem := bo.ValidateCaptchaItem{
 		ValidateCaptchaParams: bo.ValidateCaptchaParams{
-			Id:    id,
+			ID:    id,
 			Value: captcha.GetCodeAnswer(id),
 		},
 		ExpireAt: expireAt,
@@ -54,9 +56,9 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 // VerifyCaptcha 验证验证码
 func (l *CaptchaBiz) VerifyCaptcha(ctx context.Context, params *bo.ValidateCaptchaParams) error {
 	// 获取验证码信息
-	validateCaptchaItem, err := l.captchaRepo.GetCaptchaById(ctx, params.Id)
+	validateCaptchaItem, err := l.captchaRepo.GetCaptchaByID(ctx, params.ID)
 	if !types.IsNil(err) {
-		log.Warnw("fun", "captchaRepo.GetCaptchaById", "err", err)
+		log.Warnw("fun", "captchaRepo.GetCaptchaByID", "err", err)
 		return merr.ErrorI18nCaptchaInvalidErr(ctx)
 	}
 	// 验证码是否过期

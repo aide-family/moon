@@ -49,6 +49,7 @@ message Data {
   message Database {
     string driver = 1;
     string dsn = 2;
+    bool debug = 3;
   }
 
   message Cache {
@@ -73,8 +74,10 @@ message Data {
   Database database = 1;
   // 业务数据库，多租户场景下的业务数据， 业务数据采用分表存储
   Database bizDatabase = 2;
+  // 告警历史存储位置
+  Database alarmDatabase = 3;
   // 缓存，支持多缓存方式
-  Cache cache = 3;
+  Cache cache = 4;
 }
 
 // 微服务配置

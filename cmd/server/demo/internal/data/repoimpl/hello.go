@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/demo/internal/data"
 )
 
+// NewHelloRepository new hello repository.
 func NewHelloRepository(data *data.Data) repository.Hello {
 	return &helloRepositoryImpl{data: data}
 }

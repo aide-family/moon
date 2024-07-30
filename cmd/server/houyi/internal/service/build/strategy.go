@@ -7,17 +7,20 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type StrategyApiBuilder struct {
+// StrategyAPIBuilder 策略api构建器
+type StrategyAPIBuilder struct {
 	*api.Strategy
 }
 
-func NewStrategyApiBuilder(strategy *api.Strategy) *StrategyApiBuilder {
-	return &StrategyApiBuilder{
+// NewStrategyAPIBuilder 创建策略api构建器
+func NewStrategyAPIBuilder(strategy *api.Strategy) *StrategyAPIBuilder {
+	return &StrategyAPIBuilder{
 		Strategy: strategy,
 	}
 }
 
-func (b *StrategyApiBuilder) ToBo() *bo.Strategy {
+// ToBo 转换为业务对象
+func (b *StrategyAPIBuilder) ToBo() *bo.Strategy {
 	if types.IsNil(b) || types.IsNil(b.Strategy) {
 		return nil
 	}
@@ -33,16 +36,18 @@ func (b *StrategyApiBuilder) ToBo() *bo.Strategy {
 		Annotations:                b.GetAnnotations(),
 		Interval:                   types.NewDuration(b.GetInterval()),
 		Datasource: types.SliceTo(b.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
-			return NewDatasourceApiBuilder(ds).ToBo()
+			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
 		Status: vobj.Status(b.GetStatus()),
 	}
 }
 
+// StrategyBuilder 策略构建器
 type StrategyBuilder struct {
 	*api.Strategy
 }
 
+// NewStrategyBuilder 创建策略构建器
 func NewStrategyBuilder(strategyInfo *api.Strategy) *StrategyBuilder {
 	return &StrategyBuilder{
 		Strategy: strategyInfo,
@@ -67,7 +72,7 @@ func (a *StrategyBuilder) ToBo() *bo.Strategy {
 		Annotations:                strategyInfo.GetAnnotations(),
 		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
 		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
-			return NewDatasourceApiBuilder(ds).ToBo()
+			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
 		Status:    vobj.Status(strategyInfo.GetStatus()),
 		Step:      strategyInfo.GetStep(),

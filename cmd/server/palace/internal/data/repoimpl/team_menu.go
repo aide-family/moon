@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// NewTeamMenuRepository 创建团队菜单仓库
 func NewTeamMenuRepository(data *data.Data) repository.TeamMenu {
 	return &teamMenuRepositoryImpl{
 		data: data,

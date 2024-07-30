@@ -14,13 +14,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewTemplateBiz 创建模板管理业务
 func NewTemplateBiz(templateRepository repository.Template) *TemplateBiz {
 	return &TemplateBiz{
 		templateRepository: templateRepository,
 	}
 }
 
-// TemplateBiz 模板管理biz
+// TemplateBiz 模板管理业务
 type TemplateBiz struct {
 	templateRepository repository.Template
 }

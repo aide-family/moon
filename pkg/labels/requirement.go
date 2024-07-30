@@ -7,25 +7,37 @@ import (
 	"strings"
 )
 
+// Requirement is a single key/value pair that is used to filter
 type Requirement struct {
 	key      string
 	operator Operator
 	values   []string
 }
 
+// Operator represents a key's relationship operator.
 type Operator string
 
 const (
-	Exists         Operator = "exists"
-	NotExist       Operator = "!"
-	Equals         Operator = "="
-	NotEquals      Operator = "!="
-	In             Operator = "in"
-	NotIn          Operator = "notin"
-	GreaterThan    Operator = ">"
-	LessThan       Operator = "<"
+	// Exists is a special operator that checks whether a key exists.
+	Exists Operator = "exists"
+	// NotExist is a special operator that checks whether a key does not exist.
+	NotExist Operator = "!"
+	// Equals is a regular key/value matching.
+	Equals Operator = "="
+	// NotEquals is a regular key/value matching.
+	NotEquals Operator = "!="
+	// In is a regular key/value matching.
+	In Operator = "in"
+	// NotIn is a regular key/value matching.
+	NotIn Operator = "notin"
+	// GreaterThan is a regular key/value matching.
+	GreaterThan Operator = ">"
+	// LessThan is a regular key/value matching.
+	LessThan Operator = "<"
+	// GreaterOrEqual is a regular key/value matching.
 	GreaterOrEqual Operator = ">="
-	LessOrEqual    Operator = "<="
+	// LessOrEqual is a regular key/value matching.
+	LessOrEqual Operator = "<="
 )
 
 // NewRequirement creates a new Requirement based on the provided key, operator and values.
@@ -75,6 +87,7 @@ func (r *Requirement) hasValue(value string) bool {
 	return false
 }
 
+// Matches checks whether the given Labels match this Requirement.
 func (r *Requirement) Matches(labels Labels) bool {
 	switch r.operator {
 	case Equals, In:
@@ -113,6 +126,7 @@ func (r *Requirement) Matches(labels Labels) bool {
 	}
 }
 
+// String converts a Requirement to a string.
 func (r *Requirement) String() string {
 	var sb strings.Builder
 	length := 0
@@ -158,6 +172,7 @@ func (r *Requirement) String() string {
 	return sb.String()
 }
 
+// Parse parses a string into a Requirements.
 func Parse(in string) Selector {
 	return parse(in)
 }

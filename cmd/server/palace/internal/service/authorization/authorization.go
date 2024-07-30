@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// Service 权限服务
 type Service struct {
 	authorizationapi.UnimplementedAuthorizationServer
 
@@ -20,6 +21,7 @@ type Service struct {
 	authorizationBiz *biz.AuthorizationBiz
 }
 
+// NewAuthorizationService 创建权限服务
 func NewAuthorizationService(
 	captchaBiz *biz.CaptchaBiz,
 	authorizationBiz *biz.AuthorizationBiz,
@@ -30,11 +32,12 @@ func NewAuthorizationService(
 	}
 }
 
+// Login 登录
 func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest) (*authorizationapi.LoginReply, error) {
 	captchaInfo := req.GetCaptcha()
 	// 校验验证码
 	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{
-		Id:    captchaInfo.GetId(),
+		ID:    captchaInfo.GetId(),
 		Value: captchaInfo.GetCode(),
 	}); !types.IsNil(err) {
 		return nil, err
@@ -55,12 +58,13 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 		return nil, err
 	}
 	return &authorizationapi.LoginReply{
-		User:     build.NewBuilder().WithApiUserBo(loginJwtClaims.User).ToApi(),
+		User:     build.NewBuilder().WithAPIUserBo(loginJwtClaims.User).ToAPI(),
 		Token:    token,
 		Redirect: "/",
 	}, nil
 }
 
+// Logout 登出
 func (s *Service) Logout(ctx context.Context, _ *authorizationapi.LogoutRequest) (*authorizationapi.LogoutReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -78,6 +82,7 @@ func (s *Service) Logout(ctx context.Context, _ *authorizationapi.LogoutRequest)
 	}, nil
 }
 
+// RefreshToken 刷新token
 func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.RefreshTokenRequest) (*authorizationapi.RefreshTokenReply, error) {
 	jwtClaims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -97,10 +102,11 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 	}
 	return &authorizationapi.RefreshTokenReply{
 		Token: token,
-		User:  build.NewBuilder().WithApiUserBo(tokenRes.User).ToApi(),
+		User:  build.NewBuilder().WithAPIUserBo(tokenRes.User).ToAPI(),
 	}, nil
 }
 
+// Captcha 获取验证码
 func (s *Service) Captcha(ctx context.Context, req *authorizationapi.CaptchaReq) (*authorizationapi.CaptchaReply, error) {
 	generateCaptcha, err := s.captchaBiz.GenerateCaptcha(ctx, &bo.GenerateCaptchaParams{
 		Type:  captcha.Type(req.GetCaptchaType()),
@@ -113,7 +119,7 @@ func (s *Service) Captcha(ctx context.Context, req *authorizationapi.CaptchaReq)
 	return &authorizationapi.CaptchaReply{
 		Captcha:     generateCaptcha.Base64s,
 		CaptchaType: req.GetCaptchaType(),
-		Id:          generateCaptcha.Id,
+		Id:          generateCaptcha.ID,
 	}, nil
 }
 

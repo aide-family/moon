@@ -1,6 +1,6 @@
 package vobj
 
-// 策略模板来源
+// TemplateSourceType 策略模板来源
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=TemplateSourceType -linecomment
 type TemplateSourceType int

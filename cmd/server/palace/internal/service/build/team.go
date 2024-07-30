@@ -15,10 +15,12 @@ import (
 )
 
 type (
+	// TeamModelBuilder 团队模型构建器
 	TeamModelBuilder interface {
-		ToApi() *admin.Team
+		ToAPI() *admin.Team
 	}
 
+	// TeamRequestBuilder 团队请求构建器
 	TeamRequestBuilder interface {
 		ToCreateTeamBO() *bo.CreateTeamParams
 
@@ -32,7 +34,7 @@ type (
 
 		ToAddTeamMemberBO() *bo.AddTeamMemberParams
 
-		WithLeaderId(leaderId uint32) TeamRequestBuilder
+		WithLeaderID(uint32) TeamRequestBuilder
 	}
 
 	teamBuilder struct {
@@ -45,15 +47,16 @@ type (
 		ListTeamRequest       *teamapi.ListTeamRequest
 		ListTeamMemberRequest *teamapi.ListTeamMemberRequest
 		AddTeamMemberRequest  *teamapi.AddTeamMemberRequest
-		LeaderId              uint32
+		LeaderID              uint32
 
 		// context
 		ctx context.Context
 	}
 
+	// TeamRoleBuilder 团队角色构建器
 	TeamRoleBuilder interface {
-		ToSelect() *admin.Select
-		ToApi() *admin.TeamRole
+		ToSelect() *admin.SelectItem
+		ToAPI() *admin.TeamRole
 	}
 
 	teamRoleBuilder struct {
@@ -69,7 +72,7 @@ func (b *teamBuilder) ToAddTeamMemberBO() *bo.AddTeamMemberParams {
 			return &bo.AddTeamMemberItem{
 				UserID:  member.GetUserId(),
 				Role:    vobj.Role(member.GetRole()),
-				RoleIds: member.GetRoles(),
+				RoleIDs: member.GetRoles(),
 			}
 		}),
 	}
@@ -80,8 +83,8 @@ func (b *teamBuilder) ToQueryTeamListBO() *bo.QueryTeamListParams {
 	panic("implement me")
 }
 
-// ToApi 转换为API层数据
-func (b *teamBuilder) ToApi() *admin.Team {
+// ToAPI 转换为API层数据
+func (b *teamBuilder) ToAPI() *admin.Team {
 	if types.IsNil(b) || types.IsNil(b.SystemModel) {
 		return nil
 	}
@@ -93,12 +96,12 @@ func (b *teamBuilder) ToApi() *admin.Team {
 		Remark:    b.SystemModel.Remark,
 		CreatedAt: b.SystemModel.CreatedAt.String(),
 		UpdatedAt: b.SystemModel.UpdatedAt.String(),
-		Leader:    NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.SystemModel.LeaderID)).ToApi(),
-		Creator:   NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.SystemModel.CreatorID)).ToApi(),
+		Leader:    NewBuilder().WithAPIUserBo(cache.GetUser(b.ctx, b.SystemModel.LeaderID)).ToAPI(),
+		Creator:   NewBuilder().WithAPIUserBo(cache.GetUser(b.ctx, b.SystemModel.CreatorID)).ToAPI(),
 		Logo:      b.SystemModel.Logo,
 		// 从全局中取
 		Admin: types.SliceTo(cache.GetTeamAdminList(b.ctx, b.SystemModel.ID), func(item *bizmodel.SysTeamMember) *admin.TeamMember {
-			return NewBuilder().WithApiTeamMember(item).ToApi(b.ctx)
+			return NewBuilder().WithAPITeamMember(item).ToAPI(b.ctx)
 		}),
 	}
 }
@@ -112,7 +115,7 @@ func (b *teamBuilder) ToCreateTeamBO() *bo.CreateTeamParams {
 		Remark:   b.CreateRoleRequest.GetRemark(),
 		Logo:     b.CreateRoleRequest.GetLogo(),
 		Status:   vobj.Status(b.CreateRoleRequest.GetStatus()),
-		LeaderID: b.LeaderId,
+		LeaderID: b.LeaderID,
 		Admins:   b.CreateRoleRequest.GetAdminIds(),
 	}
 }
@@ -170,12 +173,12 @@ func (b *teamBuilder) ToTeamListBO() *bo.QueryTeamListParams {
 	}
 }
 
-func (b *teamBuilder) WithLeaderId(leaderId uint32) TeamRequestBuilder {
-	b.LeaderId = leaderId
+func (b *teamBuilder) WithLeaderID(leaderID uint32) TeamRequestBuilder {
+	b.LeaderID = leaderID
 	return b
 }
 
-func (b *teamRoleBuilder) ToApi() *admin.TeamRole {
+func (b *teamRoleBuilder) ToAPI() *admin.TeamRole {
 	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
 		return nil
 	}
@@ -187,17 +190,17 @@ func (b *teamRoleBuilder) ToApi() *admin.TeamRole {
 		UpdatedAt: b.SysTeamRole.UpdatedAt.String(),
 		Status:    api.Status(b.SysTeamRole.Status),
 		Resources: types.SliceTo(b.SysTeamRole.Apis, func(item *bizmodel.SysTeamAPI) *admin.ResourceItem {
-			return NewTeamResourceBuilder(item).ToApi()
+			return NewTeamResourceBuilder(item).ToAPI()
 		}),
 	}
 }
 
 // ToSelect 转换为Select数据
-func (b *teamRoleBuilder) ToSelect() *admin.Select {
+func (b *teamRoleBuilder) ToSelect() *admin.SelectItem {
 	if types.IsNil(b) || types.IsNil(b.SysTeamRole) {
 		return nil
 	}
-	return &admin.Select{
+	return &admin.SelectItem{
 		Value:    b.SysTeamRole.ID,
 		Label:    b.SysTeamRole.Name,
 		Disabled: b.SysTeamRole.DeletedAt > 0 || !vobj.Status(b.SysTeamRole.Status).IsEnable(),

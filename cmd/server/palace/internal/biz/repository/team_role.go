@@ -8,28 +8,29 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// TeamRole 团队角色接口
 type TeamRole interface {
 	// CreateTeamRole 创建团队角色
-	CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error)
+	CreateTeamRole(context.Context, *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error)
 
 	// UpdateTeamRole 更新团队角色
-	UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error
+	UpdateTeamRole(context.Context, *bo.UpdateTeamRoleParams) error
 
 	// DeleteTeamRole 删除团队角色
-	DeleteTeamRole(ctx context.Context, id uint32) error
+	DeleteTeamRole(context.Context, uint32) error
 
 	// GetTeamRole 获取团队角色
-	GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error)
+	GetTeamRole(context.Context, uint32) (*bizmodel.SysTeamRole, error)
 
 	// ListTeamRole 获取团队角色列表
-	ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error)
+	ListTeamRole(context.Context, *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error)
 
 	// GetTeamRoleByUserID 获取用户团队角色
-	GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error)
+	GetTeamRoleByUserID(context.Context, uint32, uint32) ([]*bizmodel.SysTeamRole, error)
 
 	// UpdateTeamRoleStatus 更新团队角色状态
-	UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error
+	UpdateTeamRoleStatus(context.Context, vobj.Status, ...uint32) error
 
 	// CheckRbac 检查用户是否有权限
-	CheckRbac(ctx context.Context, teamId uint32, roleIds []uint32, path string) (bool, error)
+	CheckRbac(context.Context, uint32, []uint32, string) (bool, error)
 }

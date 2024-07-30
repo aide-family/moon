@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewResourceRepository 创建资源仓库
 func NewResourceRepository(data *data.Data) repository.Resource {
 	return &resourceRepositoryImpl{
 		data: data,
@@ -24,7 +25,7 @@ type resourceRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *resourceRepositoryImpl) GetById(ctx context.Context, id uint32) (*model.SysAPI, error) {
+func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysAPI, error) {
 	return query.Use(l.data.GetMainDB(ctx)).SysAPI.Where(query.SysAPI.ID.Eq(id)).First()
 }
 

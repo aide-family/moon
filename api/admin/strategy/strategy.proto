@@ -162,7 +162,7 @@ message ListStrategyGroupRequest {
 }
 message ListStrategyGroupReply {
   // 策略组列表
-  repeated StrategyGroup list = 1;
+  repeated StrategyGroupItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }
@@ -172,7 +172,7 @@ message GetStrategyGroupRequest {
   uint32 id = 1;
 }
 message GetStrategyGroupReply {
-  StrategyGroup detail = 1;
+  StrategyGroupItem detail = 1;
 }
 
 message UpdateStrategyGroupRequest {
@@ -288,7 +288,7 @@ message GetStrategyRequest {
   uint32 id = 1;
 }
 message GetStrategyReply {
-  Strategy detail = 1;
+  StrategyItem detail = 1;
 }
 
 message ListStrategyRequest {
@@ -307,7 +307,7 @@ message ListStrategyReply {
   // 分页信息
   PaginationReply pagination = 1;
   // 策略列表
-  repeated Strategy list = 2;
+  repeated StrategyItem list = 2;
 }
 
 

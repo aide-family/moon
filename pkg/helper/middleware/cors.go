@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/handlers"
 )
 
+// Cors 跨域中间件
 func Cors() func(http.Handler) http.Handler {
 	return handlers.CORS(
 		handlers.AllowedOriginValidator(func(origin string) bool {

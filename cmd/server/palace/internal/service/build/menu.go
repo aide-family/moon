@@ -13,10 +13,12 @@ import (
 )
 
 type (
+	// MenuModelBuilder 菜单构建器
 	MenuModelBuilder interface {
-		ToApi() *admin.Menu
+		ToAPI() *admin.Menu
 	}
 
+	// MenuRequestBuilder 菜单请求参数构建器
 	MenuRequestBuilder interface {
 		ToCreateMenuBO(menu *menuapi.CreateMenuRequest) *bo.CreateMenuParams
 
@@ -25,6 +27,7 @@ type (
 		ToUpdateMenuBO() *bo.UpdateMenuParams
 	}
 
+	// MenuTreeBuilder 菜单树形构建器
 	MenuTreeBuilder interface {
 		ToTree() []*admin.MenuTree
 	}
@@ -44,7 +47,8 @@ type (
 	}
 )
 
-func (b *menuBuilder) ToApi() *admin.Menu {
+// ToAPI 转换为API菜单模型
+func (b *menuBuilder) ToAPI() *admin.Menu {
 	if types.IsNil(b) || types.IsNil(b.Menu) {
 		return nil
 	}
@@ -75,7 +79,7 @@ func (b *menuBuilder) ToCreateMenuBO(menu *menuapi.CreateMenuRequest) *bo.Create
 		Status:     vobj.Status(menu.GetStatus()),
 		Icon:       menu.GetIcon(),
 		Permission: menu.GetPermission(),
-		ParentId:   menu.GetParentId(),
+		ParentID:   menu.GetParentId(),
 		EnName:     menu.GetEnName(),
 		Sort:       menu.GetSort(),
 		Level:      menu.GetLevel(),
@@ -92,7 +96,7 @@ func (b *menuBuilder) ToUpdateMenuBO() *bo.UpdateMenuParams {
 		Status:     vobj.Status(data.GetStatus()),
 		Icon:       data.GetIcon(),
 		Permission: data.GetPermission(),
-		ParentId:   data.GetParentId(),
+		ParentID:   data.GetParentId(),
 		EnName:     data.GetEnName(),
 		Sort:       data.GetSort(),
 		Level:      data.GetLevel(),
@@ -116,7 +120,7 @@ func (b *menuBuilder) ToBatchCreateMenuBO() []*bo.CreateMenuParams {
 			Status:     vobj.Status(menu.GetStatus()),
 			Icon:       menu.GetIcon(),
 			Permission: menu.GetPermission(),
-			ParentId:   menu.GetParentId(),
+			ParentID:   menu.GetParentId(),
 			EnName:     menu.GetEnName(),
 			Sort:       menu.GetSort(),
 			Level:      menu.GetLevel(),
@@ -147,7 +151,7 @@ func (b *menuTreeBuilder) ToTree() []*admin.MenuTree {
 				Level:     menu.GetLevel(),
 				Sort:      menu.GetSort(),
 				EnName:    menu.GetEnName(),
-				Children:  NewBuilder().WithApiMenuTree(b.MenuMap[menu.GetId()], menu.GetId()).ToTree(),
+				Children:  NewBuilder().WithAPIMenuTree(b.MenuMap[menu.GetId()], menu.GetId()).ToTree(),
 			})
 		}
 	}

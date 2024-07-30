@@ -8,16 +8,17 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// Resource 资源管理接口
 type Resource interface {
 	// GetById get resource by id
-	GetById(ctx context.Context, id uint32) (*model.SysAPI, error)
+	GetByID(context.Context, uint32) (*model.SysAPI, error)
 
 	// FindByPage find resource by page
-	FindByPage(ctx context.Context, page *bo.QueryResourceListParams) ([]*model.SysAPI, error)
+	FindByPage(context.Context, *bo.QueryResourceListParams) ([]*model.SysAPI, error)
 
 	// UpdateStatus update resource status
-	UpdateStatus(ctx context.Context, status vobj.Status, ids ...uint32) error
+	UpdateStatus(context.Context, vobj.Status, ...uint32) error
 
 	// FindSelectByPage find select resource by page
-	FindSelectByPage(ctx context.Context, page *bo.QueryResourceListParams) ([]*model.SysAPI, error)
+	FindSelectByPage(context.Context, *bo.QueryResourceListParams) ([]*model.SysAPI, error)
 }

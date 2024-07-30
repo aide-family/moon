@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
 )
 
+// NewMetricBiz new MetricBiz
 func NewMetricBiz(metricRepository repository.Metric) *MetricBiz {
 	return &MetricBiz{
 		metricRepository: metricRepository,

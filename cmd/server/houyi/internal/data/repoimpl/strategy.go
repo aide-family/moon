@@ -18,6 +18,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewStrategyRepository 创建策略操作器
 func NewStrategyRepository(data *data.Data) repository.Strategy {
 	return &strategyRepositoryImpl{data: data}
 }
@@ -26,6 +27,7 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+// Save 保存策略
 func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strategy) error {
 	queue := s.data.GetStrategyQueue()
 	go func() {
@@ -40,6 +42,7 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strate
 	return nil
 }
 
+// Eval 评估策略
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
 	datasourceList := strategy.Datasource
 	if len(datasourceList) == 0 {

@@ -2,16 +2,21 @@ package labels
 
 import "strings"
 
+// Labels is a set of labels.
 type Labels interface {
 	Get(key string) string
 	Has(key string) bool
 }
 
+// Set is a set of key-value pairs.
 type Set map[string]string
 
+// Get returns the value of the given label.
 func (s Set) Get(key string) string {
 	return s[key]
 }
+
+// Has returns true if the given label is set.
 func (s Set) Has(key string) bool {
 	_, ok := s[key]
 	return ok

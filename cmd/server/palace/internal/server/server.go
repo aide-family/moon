@@ -6,6 +6,7 @@ import (
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
+	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	teamapi "github.com/aide-family/moon/api/admin/team"
@@ -16,6 +17,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
@@ -30,18 +32,19 @@ import (
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterService)
 
+// Server 服务
 type Server struct {
 	rpcSrv  *grpc.Server
 	httpSrv *http.Server
 }
 
-// GetRpcServer 获取rpc server
-func (s *Server) GetRpcServer() *grpc.Server {
+// GetRPCServer 获取rpc server
+func (s *Server) GetRPCServer() *grpc.Server {
 	return s.rpcSrv
 }
 
-// GetHttpServer 获取http server
-func (s *Server) GetHttpServer() *http.Server {
+// GetHTTPServer 获取http server
+func (s *Server) GetHTTPServer() *http.Server {
 	return s.httpSrv
 }
 
@@ -53,6 +56,7 @@ func (s *Server) GetServers() []transport.Server {
 	}
 }
 
+// RegisterService 注册服务
 func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
@@ -64,11 +68,13 @@ func RegisterService(
 	teamService *team.Service,
 	teamRoleService *team.RoleService,
 	datasourceService *datasource.Service,
-	menuService *menu.MenuService,
+	menuService *menu.Service,
 	metricService *datasource.MetricService,
 	dictService *dict.Service,
 	strategyService *strategy.Service,
 	strategyTemplateService *strategy.TemplateService,
+	dashboardService *realtime.DashboardService,
+	alarmService *realtime.AlarmService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -84,6 +90,8 @@ func RegisterService(
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
 	strategyapi.RegisterTemplateServer(rpcSrv, strategyTemplateService)
+	realtimeapi.RegisterDashboardServer(rpcSrv, dashboardService)
+	realtimeapi.RegisterAlarmServer(rpcSrv, alarmService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -99,6 +107,8 @@ func RegisterService(
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
 	strategyapi.RegisterTemplateHTTPServer(httpSrv, strategyTemplateService)
+	realtimeapi.RegisterDashboardHTTPServer(httpSrv, dashboardService)
+	realtimeapi.RegisterAlarmHTTPServer(httpSrv, alarmService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

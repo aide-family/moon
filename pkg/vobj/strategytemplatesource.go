@@ -6,9 +6,12 @@ package vobj
 type StrategyTemplateSource int
 
 const (
+	// StrategyTemplateSourceUnknown 未知
 	StrategyTemplateSourceUnknown StrategyTemplateSource = iota // 未知
 
+	// StrategyTemplateSourceSystem 系统来源
 	StrategyTemplateSourceSystem // 系统来源
 
+	// StrategyTemplateSourceTeam 团队来源
 	StrategyTemplateSourceTeam // 团队来源
 )

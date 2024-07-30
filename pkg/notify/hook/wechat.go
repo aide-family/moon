@@ -43,7 +43,7 @@ func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
 		msgStr = temp
 	}
 	msgStr = format.Formatter(msgStr, msg)
-	response, err := httpx.NewHttpX().POSTWithContext(ctx, l.GetWebhook(), []byte(msgStr))
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), []byte(msgStr))
 	if err != nil {
 		return err
 	}

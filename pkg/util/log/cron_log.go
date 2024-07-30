@@ -17,6 +17,7 @@ func (c *cronLog) Error(err error, msg string, keysAndValues ...interface{}) {
 	_ = c.log.Log(log.LevelError, append([]any{"err", err, "msg", msg}, keysAndValues...))
 }
 
+// NewCronLog cron日志
 func NewCronLog(logger log.Logger) cron.Logger {
 	return &cronLog{
 		log: logger,

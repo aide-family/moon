@@ -6,6 +6,7 @@ import (
 )
 
 type (
+	// CreateTemplateStrategyParams 创建模板策略参数
 	CreateTemplateStrategyParams struct {
 		// 策略名称
 		Alert string `json:"alert"`
@@ -25,11 +26,13 @@ type (
 		CategoriesIDs []uint32 `json:"categoriesIds"`
 	}
 
+	// UpdateTemplateStrategyParams 更新模板策略参数
 	UpdateTemplateStrategyParams struct {
 		ID   uint32                       `json:"id"`
 		Data CreateTemplateStrategyParams `json:"data"`
 	}
 
+	// QueryTemplateStrategyListParams 查询模板策略列表参数
 	QueryTemplateStrategyListParams struct {
 		Keyword string `json:"keyword"`
 		Page    types.Pagination
@@ -37,20 +40,7 @@ type (
 		Status  vobj.Status
 	}
 
-	CreateStrategyAlarmLevel struct {
-		//*model.StrategyAlarmLevel
-	}
-
-	UpdateStrategyAlarmLevel struct {
-		//*model.StrategyAlarmLevel
-	}
-
-	QueryStrategyAlarmLevelListParams struct {
-		Page    types.Pagination
-		Keyword string
-		Status  vobj.Status
-	}
-
+	// CreateStrategyLevelTemplate 创建策略模板等级参数
 	CreateStrategyLevelTemplate struct {
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`

@@ -13,12 +13,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewDictBiz 创建字典业务
 func NewDictBiz(dictRepo repository.Dict) *DictBiz {
 	return &DictBiz{
 		dictRepo: dictRepo,
 	}
 }
 
+// DictBiz 字典业务
 type DictBiz struct {
 	dictRepo repository.Dict
 }
@@ -67,7 +69,7 @@ func (b *DictBiz) UpdateDictStatusByIds(ctx context.Context, updateParams *bo.Up
 	return b.dictRepo.UpdateStatusByIds(ctx, updateParams)
 }
 
-// DeleteDictById 删除字典
-func (b *DictBiz) DeleteDictById(ctx context.Context, id uint32) error {
+// DeleteDictByID 删除字典
+func (b *DictBiz) DeleteDictByID(ctx context.Context, id uint32) error {
 	return b.dictRepo.DeleteByID(ctx, id)
 }

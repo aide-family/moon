@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// Notify 通知通用接口
 	Notify interface {
 		notify.Notify
 	}

@@ -19,6 +19,7 @@ import (
 	"gorm.io/gen"
 )
 
+// NewDictRepository 创建数据库字典操作
 func NewDictRepository(data *data.Data) repository.Dict {
 	return &dictRepositoryImpl{
 		data: data,
@@ -94,9 +95,8 @@ func (l *dictRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IDi
 func (l *dictRepositoryImpl) UpdateByID(ctx context.Context, dict *bo.UpdateDictParams) error {
 	if middleware.GetSourceType(ctx).IsTeam() {
 		return l.updateBizDictModel(ctx, dict)
-	} else {
-		return l.updateDictModel(ctx, dict)
 	}
+	return l.updateDictModel(ctx, dict)
 }
 
 func (l *dictRepositoryImpl) listDictModel(ctx context.Context, params *bo.QueryDictListParams) ([]imodel.IDict, error) {
@@ -188,10 +188,10 @@ func (l *dictRepositoryImpl) updateDictModel(ctx context.Context, params *bo.Upd
 	_, err := query.Use(l.data.GetMainDB(ctx)).SysDict.WithContext(ctx).Where(query.SysDict.ID.Eq(id)).UpdateSimple(
 		query.SysDict.Name.Value(updateParam.Name),
 		query.SysDict.Value.Value(updateParam.Value),
-		query.SysDict.CssClass.Value(updateParam.CssClass),
+		query.SysDict.CssClass.Value(updateParam.CSSClass),
 		query.SysDict.ColorType.Value(updateParam.ColorType),
 		query.SysDict.Remark.Value(updateParam.Remark),
-		query.SysDict.ImageUrl.Value(updateParam.ImageUrl),
+		query.SysDict.ImageUrl.Value(updateParam.ImageURL),
 		query.SysDict.Icon.Value(updateParam.Icon),
 	)
 	return err
@@ -208,9 +208,9 @@ func (l *dictRepositoryImpl) updateBizDictModel(ctx context.Context, params *bo.
 		bizDB.SysDict.Name.Value(updateParam.Name),
 		bizDB.SysDict.Remark.Value(updateParam.Remark),
 		bizDB.SysDict.Value.Value(updateParam.Value),
-		bizDB.SysDict.CssClass.Value(updateParam.CssClass),
+		bizDB.SysDict.CssClass.Value(updateParam.CSSClass),
 		bizDB.SysDict.ColorType.Value(updateParam.ColorType),
-		bizDB.SysDict.ImageUrl.Value(updateParam.ImageUrl),
+		bizDB.SysDict.ImageUrl.Value(updateParam.ImageURL),
 		bizDB.SysDict.Icon.Value(updateParam.Icon),
 	)
 	return err
@@ -225,11 +225,11 @@ func createBizDictParamsToModel(ctx context.Context, dict *bo.CreateDictParams) 
 		Value:        dict.Value,
 		DictType:     dict.DictType,
 		ColorType:    dict.ColorType,
-		CssClass:     dict.CssClass,
+		CSSClass:     dict.CSSClass,
 		Status:       dict.Status,
 		Remark:       dict.Remark,
 		Icon:         dict.Icon,
-		ImageUrl:     dict.ImageUrl,
+		ImageURL:     dict.ImageURL,
 		LanguageCode: dict.LanguageCode,
 	}
 	modelDict.WithContext(ctx)
@@ -246,11 +246,11 @@ func createDictParamsToModel(ctx context.Context, dict *bo.CreateDictParams) *mo
 		Value:        dict.Value,
 		DictType:     dict.DictType,
 		ColorType:    dict.ColorType,
-		CssClass:     dict.CssClass,
+		CSSClass:     dict.CSSClass,
 		Status:       dict.Status,
 		Remark:       dict.Remark,
 		Icon:         dict.Icon,
-		ImageUrl:     dict.ImageUrl,
+		ImageURL:     dict.ImageURL,
 		LanguageCode: dict.LanguageCode,
 	}
 	dictModel.WithContext(ctx)

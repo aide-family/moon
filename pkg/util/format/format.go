@@ -57,6 +57,7 @@ func Formatter(format string, data any) (s string) {
 	return resultIoWriter.String()
 }
 
+// FormatterWithErr 格式化告警文案
 func FormatterWithErr(format string, data any) (s string, err error) {
 	formatStr := format
 	if formatStr == "" {

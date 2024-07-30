@@ -9,7 +9,7 @@ import (
 	"gorm.io/plugin/soft_delete"
 )
 
-const TableNameDatasourceMetric = "datasource_metrics"
+const tableNameDatasourceMetric = "datasource_metrics"
 
 // DatasourceMetric mapped from table <datasource_metrics>
 type DatasourceMetric struct {
@@ -30,15 +30,17 @@ func (c *DatasourceMetric) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *DatasourceMetric) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *DatasourceMetric) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName DatasourceMetric's table name
 func (*DatasourceMetric) TableName() string {
-	return TableNameDatasourceMetric
+	return tableNameDatasourceMetric
 }

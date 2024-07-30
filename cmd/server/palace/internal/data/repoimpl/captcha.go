@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// NewCaptchaRepository 创建验证码操作
 func NewCaptchaRepository(data *data.Data) repository.Captcha {
 	return &captchaRepositoryImpl{
 		data: data,
@@ -25,10 +26,10 @@ func (l *captchaRepositoryImpl) CreateCaptcha(ctx context.Context, captcha *bo.V
 	if !types.IsNil(err) {
 		return err
 	}
-	return l.data.GetCacher().Set(ctx, captcha.Id, string(bs), duration)
+	return l.data.GetCacher().Set(ctx, captcha.ID, string(bs), duration)
 }
 
-func (l *captchaRepositoryImpl) GetCaptchaById(ctx context.Context, id string) (*bo.ValidateCaptchaItem, error) {
+func (l *captchaRepositoryImpl) GetCaptchaByID(ctx context.Context, id string) (*bo.ValidateCaptchaItem, error) {
 	str, err := l.data.GetCacher().Get(ctx, id)
 	if !types.IsNil(err) {
 		return nil, err

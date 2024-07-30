@@ -78,6 +78,7 @@ func SetMetadata(m map[string]string) {
 	})
 }
 
+// SetEnv 设置服务环境变量
 func SetEnv(e string) {
 	if e == "" {
 		return
@@ -91,10 +92,14 @@ func SetEnv(e string) {
 type Type string
 
 const (
-	Local Type = "local" // 本地环境
-	Dev   Type = "dev"   // 开发环境
-	Test  Type = "test"  // 测试环境
-	Prod  Type = "prod"  // 生产环境
+	// Local 本地环境
+	Local Type = "local"
+	// Dev  开发环境
+	Dev Type = "dev"
+	// Test 测试环境
+	Test Type = "test"
+	// Prod 生产环境
+	Prod Type = "prod"
 )
 
 // IsLocal 是否是本地环境

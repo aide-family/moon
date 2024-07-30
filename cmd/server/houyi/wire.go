@@ -26,7 +26,7 @@ func wireApp(*houyiconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		repoimpl.ProviderSetRepoImpl,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
-		microserver.ProviderSetRpcConn,
+		microserver.ProviderSetRPCConn,
 		newApp,
 	))
 }

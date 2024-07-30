@@ -15,14 +15,17 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewMsgBiz 创建消息业务
 func NewMsgBiz(c *rabbitconf.Bootstrap) *MsgBiz {
 	return &MsgBiz{c: c}
 }
 
+// MsgBiz 消息业务
 type MsgBiz struct {
 	c *rabbitconf.Bootstrap
 }
 
+// SendMsg 发送消息
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	var msgMap notify.Msg
 	if err := json.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {

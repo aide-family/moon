@@ -14,18 +14,22 @@ import (
 )
 
 type (
+	// StrategyModelBuilder 策略模型构建器
 	StrategyModelBuilder interface {
-		ToApi(ctx context.Context) *admin.Strategy
+		ToAPI(ctx context.Context) *admin.StrategyItem
 	}
 
+	// StrategyRequestBuilder 策略请求构建器
 	StrategyRequestBuilder interface {
 		ToCreateStrategyBO() *bo.CreateStrategyParams
 		ToUpdateStrategyBO() *bo.UpdateStrategyParams
 	}
 
+	// StrategyLevelModelBuilder 策略等级模型构建器
 	StrategyLevelModelBuilder interface {
-		ToApi() *admin.StrategyLevel
+		ToAPI() *admin.StrategyLevel
 	}
+
 	strategyLevelBuilder struct {
 		// model
 		*bizmodel.StrategyLevel
@@ -44,10 +48,12 @@ type (
 		ctx context.Context
 	}
 
+	// StrategyGroupModelBuilder 策略组模型构建器
 	StrategyGroupModelBuilder interface {
-		ToApi() *admin.StrategyGroup
+		ToAPI() *admin.StrategyGroupItem
 	}
 
+	// StrategyGroupRequestBuilder 策略组请求构建器
 	StrategyGroupRequestBuilder interface {
 		ToCreateStrategyGroupBO() *bo.CreateStrategyGroupParams
 
@@ -70,23 +76,23 @@ type (
 	}
 )
 
-// ToApi 转换为API层数据
-func (b *strategyBuilder) ToApi(ctx context.Context) *admin.Strategy {
+// ToAPI 转换为API层数据
+func (b *strategyBuilder) ToAPI(ctx context.Context) *admin.StrategyItem {
 	if types.IsNil(b) || types.IsNil(b.Strategy) {
 		return nil
 	}
 	strategyLevels := types.SliceToWithFilter(b.Strategy.StrategyLevel, func(level *bizmodel.StrategyLevel) (*admin.StrategyLevel, bool) {
-		return NewBuilder().WithApiStrategyLevel(level).ToApi(), true
+		return NewBuilder().WithAPIStrategyLevel(level).ToAPI(), true
 	})
 
-	return &admin.Strategy{
+	return &admin.StrategyItem{
 		Name:        b.Strategy.Name,
 		Id:          b.Strategy.ID,
 		Expr:        b.Strategy.Expr,
 		Labels:      b.Strategy.Labels.Map(),
 		Annotations: b.Strategy.Annotations,
-		Datasource: types.SliceTo(b.Strategy.Datasource, func(datasource *bizmodel.Datasource) *admin.Datasource {
-			return NewBuilder().WithContext(ctx).WithDoDatasource(datasource).ToApi()
+		Datasource: types.SliceTo(b.Strategy.Datasource, func(datasource *bizmodel.Datasource) *admin.DatasourceItem {
+			return NewBuilder().WithContext(ctx).WithDoDatasource(datasource).ToAPI()
 		}),
 		StrategyTemplateId: b.Strategy.StrategyTemplateID,
 		Levels:             strategyLevels,
@@ -116,14 +122,14 @@ func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 	}
 	return &bo.CreateStrategyParams{
 		TeamID:        b.CreateStrategy.GetTeamId(),
-		TemplateId:    b.CreateStrategy.GetTemplateId(),
-		GroupId:       b.CreateStrategy.GetGroupId(),
+		TemplateID:    b.CreateStrategy.GetTemplateId(),
+		GroupID:       b.CreateStrategy.GetGroupId(),
 		Name:          b.CreateStrategy.GetName(),
 		Remark:        b.CreateStrategy.GetRemark(),
 		Status:        vobj.Status(b.CreateStrategy.GetStatus()),
 		Step:          b.CreateStrategy.GetStep(),
 		SourceType:    vobj.TemplateSourceType(b.CreateStrategy.GetSourceType()),
-		DatasourceIds: b.CreateStrategy.GetDatasourceIds(),
+		DatasourceIDs: b.CreateStrategy.GetDatasourceIds(),
 		Labels:        vobj.NewLabels(b.CreateStrategy.GetLabels()),
 		Annotations:   b.CreateStrategy.GetAnnotations(),
 		StrategyLevel: strategyLevels,
@@ -152,20 +158,20 @@ func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
 		TeamID: b.UpdateStrategy.GetData().GetTeamId(),
 		ID:     b.UpdateStrategy.GetId(),
 		UpdateParam: bo.CreateStrategyParams{
-			TemplateId:    b.UpdateStrategy.GetData().GetTemplateId(),
-			GroupId:       b.UpdateStrategy.GetData().GetGroupId(),
+			TemplateID:    b.UpdateStrategy.GetData().GetTemplateId(),
+			GroupID:       b.UpdateStrategy.GetData().GetGroupId(),
 			Name:          b.UpdateStrategy.GetData().GetName(),
 			Remark:        b.UpdateStrategy.GetData().GetRemark(),
 			Status:        vobj.Status(b.UpdateStrategy.GetData().GetStatus()),
 			Step:          b.UpdateStrategy.GetData().GetStep(),
 			SourceType:    vobj.TemplateSourceType(b.UpdateStrategy.GetData().GetSourceType()),
-			DatasourceIds: b.UpdateStrategy.GetData().GetDatasourceIds(),
+			DatasourceIDs: b.UpdateStrategy.GetData().GetDatasourceIds(),
 			StrategyLevel: strategyLevels,
 		},
 	}
 }
 
-func (b *strategyLevelBuilder) ToApi() *admin.StrategyLevel {
+func (b *strategyLevelBuilder) ToAPI() *admin.StrategyLevel {
 	if types.IsNil(b) || types.IsNil(b.StrategyLevel) {
 		return nil
 	}
@@ -185,19 +191,19 @@ func (b *strategyLevelBuilder) ToApi() *admin.StrategyLevel {
 	return strategyLevel
 }
 
-func (b *strategyGroupBuilder) ToApi() *admin.StrategyGroup {
+func (b *strategyGroupBuilder) ToAPI() *admin.StrategyGroupItem {
 	if types.IsNil(b) || types.IsNil(b.StrategyGroup) {
 		return nil
 	}
 	cache := runtimecache.GetRuntimeCache()
-	return &admin.StrategyGroup{
+	return &admin.StrategyGroupItem{
 		Id:        b.StrategyGroup.ID,
 		Name:      b.StrategyGroup.Name,
 		Remark:    b.StrategyGroup.Remark,
 		Status:    api.Status(b.StrategyGroup.Status),
 		CreatedAt: b.StrategyGroup.CreatedAt.String(),
 		UpdatedAt: b.StrategyGroup.UpdatedAt.String(),
-		Creator:   NewBuilder().WithApiUserBo(cache.GetUser(b.ctx, b.StrategyGroup.CreatorID)).ToApi(),
+		Creator:   NewBuilder().WithAPIUserBo(cache.GetUser(b.ctx, b.StrategyGroup.CreatorID)).ToAPI(),
 	}
 }
 

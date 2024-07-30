@@ -4,7 +4,8 @@ import (
 	"github.com/google/wire"
 )
 
-var ProviderSetRpcRepoImpl = wire.NewSet(
+// ProviderSetRPCRepoImpl rpc repo impl provider
+var ProviderSetRPCRepoImpl = wire.NewSet(
 	NewDatasourceMetricRepository,
 	NewMsgRepository,
 )

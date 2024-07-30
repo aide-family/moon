@@ -134,5 +134,5 @@ message GetRoleSelectListRequest {
   uint32 team_id = 2;
 }
 message GetRoleSelectListReply {
-  repeated Select list = 1;
+  repeated SelectItem list = 1;
 }

@@ -58,7 +58,7 @@ func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 	notifyMsg["timestamp"] = strconv.FormatInt(timeNow.Unix(), 10)
 	notifyMsg["sign"] = genSign(l.GetSecret(), timeNow.Unix())
 	notifyMsgBytes, _ := json.Marshal(notifyMsg)
-	response, err := httpx.NewHttpX().POSTWithContext(ctx, l.GetWebhook(), notifyMsgBytes)
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), notifyMsgBytes)
 	if err != nil {
 		return err
 	}

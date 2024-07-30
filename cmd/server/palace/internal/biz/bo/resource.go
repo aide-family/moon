@@ -6,15 +6,18 @@ import (
 )
 
 type (
+	// QueryResourceListParams 查询资源列表请求参数
 	QueryResourceListParams struct {
 		Keyword string `json:"keyword"`
 		Page    types.Pagination
 	}
 
+	// ResourceSelectOptionBuild 资源选项构建器
 	ResourceSelectOptionBuild struct {
 		*model.SysAPI
 	}
 
+	// QueryTeamMenuListParams 查询团队菜单列表请求参数
 	QueryTeamMenuListParams struct {
 		TeamID uint32 `json:"teamID"`
 	}

@@ -5,9 +5,11 @@ import (
 )
 
 type (
+	// RecoverCallback 恢复回调
 	RecoverCallback func(err error)
 )
 
+// Recover 恢复
 func Recover(logHelper *log.Helper, calls ...RecoverCallback) {
 	if err := recover(); err != nil {
 		logHelper.Errorf("panic error: %v", err)
@@ -17,6 +19,7 @@ func Recover(logHelper *log.Helper, calls ...RecoverCallback) {
 	}
 }
 
+// RecoverX 恢复, 默认使用log.Errorw
 func RecoverX(calls ...RecoverCallback) {
 	if err := recover(); err != nil {
 		log.Errorw("type", "panic", "err", err)

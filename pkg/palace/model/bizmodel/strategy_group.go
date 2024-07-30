@@ -7,8 +7,9 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameStrategyGroup = "strategy_group"
+const tableNameStrategyGroup = "strategy_group"
 
+// StrategyGroup 告警规则组
 type StrategyGroup struct {
 	model.AllFieldModel
 	Name       string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:规则组名称"`
@@ -18,15 +19,17 @@ type StrategyGroup struct {
 	Categories []*SysDict  `gorm:"many2many:strategy_group_categories" json:"categories"`
 }
 
+// UnmarshalBinary redis存储实现
 func (c *StrategyGroup) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *StrategyGroup) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName Strategy's table name
 func (*StrategyGroup) TableName() string {
-	return TableNameStrategyGroup
+	return tableNameStrategyGroup
 }

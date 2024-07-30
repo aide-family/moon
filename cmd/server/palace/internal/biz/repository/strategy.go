@@ -7,25 +7,26 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
+// Strategy 策略管理接口
 type Strategy interface {
 	// CreateStrategy 创建策略
-	CreateStrategy(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.Strategy, error)
+	CreateStrategy(context.Context, *bo.CreateStrategyParams) (*bizmodel.Strategy, error)
 
 	// UpdateByID 更新策略
-	UpdateByID(ctx context.Context, params *bo.UpdateStrategyParams) error
+	UpdateByID(context.Context, *bo.UpdateStrategyParams) error
 
 	// GetByID 获取策略详情
-	GetByID(ctx context.Context, params *bo.GetStrategyDetailParams) (*bizmodel.Strategy, error)
+	GetByID(context.Context, *bo.GetStrategyDetailParams) (*bizmodel.Strategy, error)
 
 	// UpdateStatus 更新状态
-	UpdateStatus(ctx context.Context, params *bo.UpdateStrategyStatusParams) error
+	UpdateStatus(context.Context, *bo.UpdateStrategyStatusParams) error
 
 	// FindByPage 策略分页列表
-	FindByPage(ctx context.Context, params *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error)
+	FindByPage(context.Context, *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error)
 
 	// DeleteByID 删除策略
-	DeleteByID(ctx context.Context, params *bo.DelStrategyParams) error
+	DeleteByID(context.Context, *bo.DelStrategyParams) error
 
 	// CopyStrategy 复制策略
-	CopyStrategy(ctx context.Context, params *bo.CopyStrategyParams) (*bizmodel.Strategy, error)
+	CopyStrategy(context.Context, *bo.CopyStrategyParams) (*bizmodel.Strategy, error)
 }

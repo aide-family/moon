@@ -15,6 +15,7 @@ type (
 		mail   *gomail.Message
 	}
 
+	// Interface 邮件接口
 	Interface interface {
 		// Send 发送邮件
 		Send() error
@@ -25,6 +26,7 @@ type (
 		SetCc(cc ...string) Interface
 	}
 
+	// Config 邮件配置
 	Config interface {
 		GetUser() string
 		GetPass() string
@@ -40,23 +42,28 @@ type (
 	}
 )
 
+// GetUser 获取用户
 func (c *config) GetUser() string {
 	return c.user
 }
 
+// GetPass 获取密码
 func (c *config) GetPass() string {
 	return c.pass
 }
 
+// GetHost 获取主机
 func (c *config) GetHost() string {
 	return c.host
 }
 
+// GetPort 获取端口
 func (c *config) GetPort() uint32 {
 	return c.port
 }
 
 const (
+	// DOMAIN 域名
 	DOMAIN = "Moon监控系统"
 )
 
@@ -69,24 +76,28 @@ func (l *Email) init() Interface {
 	return l
 }
 
+// SetTo 设置收件人
 func (l *Email) SetTo(to ...string) Interface {
 	l.init()
 	l.mail.SetHeader("To", to...) // 发送给用户(可以多个)
 	return l
 }
 
+// SetCc 设置抄送人
 func (l *Email) SetCc(cc ...string) Interface {
 	l.init()
 	l.mail.SetHeader("Cc", cc...)
 	return l
 }
 
+// SetSubject 设置邮件主题
 func (l *Email) SetSubject(subject string) Interface {
 	l.init()
 	l.mail.SetHeader("Subject", subject) // 设置邮件主题
 	return l
 }
 
+// SetBody 设置邮件正文
 func (l *Email) SetBody(body string, contentType ...string) Interface {
 	cType := "text/plain"
 	if len(contentType) > 0 && contentType[0] != "" {
@@ -97,6 +108,7 @@ func (l *Email) SetBody(body string, contentType ...string) Interface {
 	return l
 }
 
+// SetAttach 设置附件
 func (l *Email) SetAttach(attach ...string) Interface {
 	l.init()
 	for _, v := range attach {
@@ -116,6 +128,7 @@ func (l *Email) setFrom(from string) *Email {
 	return l
 }
 
+// Send 发送邮件
 func (l *Email) Send() error {
 	l.init()
 	l.setFrom(l.config.GetUser())
@@ -129,6 +142,7 @@ func (l *Email) Send() error {
 	return err
 }
 
+// New 创建邮件
 func New(cfg Config) Interface {
 	return &Email{config: cfg}
 }

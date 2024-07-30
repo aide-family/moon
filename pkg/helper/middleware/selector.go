@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Selector is middleware selector
 	Selector struct {
 		ms     []middle.Middleware
 		match  selector.MatchFunc

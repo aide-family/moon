@@ -48,7 +48,7 @@ func TestNewWatcher(t *testing.T) {
 			watch.WithDefaultHandlerTopicHandle(vobj.TopicUnknown, msgHandle),
 		)),
 	}
-	w := watch.NewWatcher(opts...)
+	w := watch.NewWatcher("test_watch", opts...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

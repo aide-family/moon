@@ -16,14 +16,17 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewDatasourceMetricRepository 创建数据源指标操作
 func NewDatasourceMetricRepository(cli *microserver.HouYiConn) microrepository.DatasourceMetric {
 	return &datasourceMetricRepositoryImpl{cli: cli}
 }
 
+// datasourceMetricRepositoryImpl 数据源指标操作实现
 type datasourceMetricRepositoryImpl struct {
 	cli *microserver.HouYiConn
 }
 
+// Query 查询数据源指标
 func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.DatasourceQueryData, error) {
 	configMap := make(map[string]string)
 	if !types.TextIsNull(req.Config) {
@@ -67,6 +70,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 	return list, nil
 }
 
+// GetMetadata 获取数据源指标元数据
 func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error) {
 	configMap := make(map[string]string)
 	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
@@ -108,6 +112,7 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 	return metrics, nil
 }
 
+// InitiateSyncRequest 发起同步请求
 func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error {
 	configMap := make(map[string]string)
 	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {

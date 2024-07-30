@@ -6,17 +6,20 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// AlarmBuilder alarm 构造器
 type AlarmBuilder struct {
 	*bo.Alarm
 }
 
+// NewAlarmBuilder 创建 alarm 构造器
 func NewAlarmBuilder(alarm *bo.Alarm) *AlarmBuilder {
 	return &AlarmBuilder{
 		Alarm: alarm,
 	}
 }
 
-func (a *AlarmBuilder) ToApi() *api.AlarmItem {
+// ToAPI 转换为 api 对象
+func (a *AlarmBuilder) ToAPI() *api.AlarmItem {
 	if types.IsNil(a) || types.IsNil(a.Alarm) {
 		return nil
 	}
@@ -25,7 +28,7 @@ func (a *AlarmBuilder) ToApi() *api.AlarmItem {
 		Receiver: alarm.Receiver,
 		Status:   alarm.Status.String(),
 		Alerts: types.SliceTo(alarm.Alerts, func(alert *bo.Alert) *api.AlertItem {
-			return NewAlertBuilder(alert).ToApi()
+			return NewAlertBuilder(alert).ToAPI()
 		}),
 		GroupLabels:       alarm.GroupLabels.Map(),
 		CommonLabels:      alarm.CommonLabels.Map(),
@@ -37,17 +40,20 @@ func (a *AlarmBuilder) ToApi() *api.AlarmItem {
 	}
 }
 
+// AlertBuilder alert 构造器
 type AlertBuilder struct {
 	*bo.Alert
 }
 
+// NewAlertBuilder 创建 alert 构造器
 func NewAlertBuilder(alert *bo.Alert) *AlertBuilder {
 	return &AlertBuilder{
 		Alert: alert,
 	}
 }
 
-func (a *AlertBuilder) ToApi() *api.AlertItem {
+// ToAPI 转换为 api 对象
+func (a *AlertBuilder) ToAPI() *api.AlertItem {
 	if types.IsNil(a) || types.IsNil(a.Alert) {
 		return nil
 	}

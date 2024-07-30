@@ -15,18 +15,21 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// RoleService 角色服务
 type RoleService struct {
 	teamapi.UnimplementedRoleServer
 
 	teamRoleBiz *biz.TeamRoleBiz
 }
 
+// NewRoleService 创建角色服务
 func NewRoleService(teamRoleBiz *biz.TeamRoleBiz) *RoleService {
 	return &RoleService{
 		teamRoleBiz: teamRoleBiz,
 	}
 }
 
+// CreateRole 创建角色
 func (s *RoleService) CreateRole(ctx context.Context, req *teamapi.CreateRoleRequest) (*teamapi.CreateRoleReply, error) {
 	params := &bo.CreateTeamRoleParams{
 		TeamID:      req.GetTeamId(),
@@ -42,6 +45,7 @@ func (s *RoleService) CreateRole(ctx context.Context, req *teamapi.CreateRoleReq
 	return &teamapi.CreateRoleReply{}, nil
 }
 
+// UpdateRole 更新角色
 func (s *RoleService) UpdateRole(ctx context.Context, req *teamapi.UpdateRoleRequest) (*teamapi.UpdateRoleReply, error) {
 	data := req.GetData()
 	params := &bo.UpdateTeamRoleParams{
@@ -56,6 +60,7 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *teamapi.UpdateRoleReq
 	return &teamapi.UpdateRoleReply{}, nil
 }
 
+// DeleteRole 删除角色
 func (s *RoleService) DeleteRole(ctx context.Context, req *teamapi.DeleteRoleRequest) (*teamapi.DeleteRoleReply, error) {
 	if err := s.teamRoleBiz.DeleteTeamRole(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
@@ -63,16 +68,18 @@ func (s *RoleService) DeleteRole(ctx context.Context, req *teamapi.DeleteRoleReq
 	return &teamapi.DeleteRoleReply{}, nil
 }
 
+// GetRole 获取角色详情
 func (s *RoleService) GetRole(ctx context.Context, req *teamapi.GetRoleRequest) (*teamapi.GetRoleReply, error) {
 	roleDetail, err := s.teamRoleBiz.GetTeamRole(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.GetRoleReply{
-		Role: build.NewBuilder().WithApiTeamRole(roleDetail).ToApi(),
+		Role: build.NewBuilder().WithAPITeamRole(roleDetail).ToAPI(),
 	}, nil
 }
 
+// ListRole 获取角色列表
 func (s *RoleService) ListRole(ctx context.Context, req *teamapi.ListRoleRequest) (*teamapi.ListRoleReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -88,11 +95,12 @@ func (s *RoleService) ListRole(ctx context.Context, req *teamapi.ListRoleRequest
 	}
 	return &teamapi.ListRoleReply{
 		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.TeamRole {
-			return build.NewBuilder().WithApiTeamRole(item).ToApi()
+			return build.NewBuilder().WithAPITeamRole(item).ToAPI()
 		}),
 	}, nil
 }
 
+// UpdateRoleStatus 更新角色状态
 func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *teamapi.UpdateRoleStatusRequest) (*teamapi.UpdateRoleStatusReply, error) {
 	if err := s.teamRoleBiz.UpdateTeamRoleStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
@@ -100,6 +108,7 @@ func (s *RoleService) UpdateRoleStatus(ctx context.Context, req *teamapi.UpdateR
 	return &teamapi.UpdateRoleStatusReply{}, nil
 }
 
+// GetRoleSelectList 获取角色下拉列表
 func (s *RoleService) GetRoleSelectList(ctx context.Context, req *teamapi.GetRoleSelectListRequest) (*teamapi.GetRoleSelectListReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
@@ -114,7 +123,7 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *teamapi.GetRol
 		return nil, err
 	}
 	return &teamapi.GetRoleSelectListReply{
-		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.Select {
+		List: types.SliceTo(teamRoles, func(item *bizmodel.SysTeamRole) *admin.SelectItem {
 			return build.NewBuilder().WithSelectTeamRole(item).ToSelect()
 		}),
 	}, nil

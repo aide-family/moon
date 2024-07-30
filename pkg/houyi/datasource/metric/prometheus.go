@@ -18,22 +18,23 @@ import (
 )
 
 const (
-	// prometheusApiV1Query 查询接口
-	prometheusApiV1Query = "/api/v1/query"
-	// prometheusApiV1QueryRange 查询接口
-	prometheusApiV1QueryRange = "/api/v1/query_range"
-	// prometheusApiV1Metadata 元数据查询接口
-	prometheusApiV1Metadata = "/api/v1/metadata"
-	// prometheusApiV1Series /api/v1/series
-	prometheusApiV1Series = "/api/v1/series"
+	// prometheusAPIV1Query 查询接口
+	prometheusAPIV1Query = "/api/v1/query"
+	// prometheusAPIV1QueryRange 查询接口
+	prometheusAPIV1QueryRange = "/api/v1/query_range"
+	// prometheusAPIV1Metadata 元数据查询接口
+	prometheusAPIV1Metadata = "/api/v1/metadata"
+	// prometheusAPIV1Series /api/v1/series
+	prometheusAPIV1Series = "/api/v1/series"
 )
 
+// NewPrometheusDatasource 创建 prometheus 数据源
 func NewPrometheusDatasource(opts ...PrometheusOption) Datasource {
 	p := &prometheusDatasource{
-		prometheusApiV1Query:      prometheusApiV1Query,
-		prometheusApiV1QueryRange: prometheusApiV1QueryRange,
-		prometheusApiV1Metadata:   prometheusApiV1Metadata,
-		prometheusApiV1Series:     prometheusApiV1Series,
+		prometheusAPIV1Query:      prometheusAPIV1Query,
+		prometheusAPIV1QueryRange: prometheusAPIV1QueryRange,
+		prometheusAPIV1Metadata:   prometheusAPIV1Metadata,
+		prometheusAPIV1Series:     prometheusAPIV1Series,
 	}
 	for _, o := range opts {
 		o(p)
@@ -44,13 +45,13 @@ func NewPrometheusDatasource(opts ...PrometheusOption) Datasource {
 type (
 	prometheusDatasource struct {
 		// prom ql 查询接口
-		prometheusApiV1Query string
+		prometheusAPIV1Query string
 		// prom ql 查询接口
-		prometheusApiV1QueryRange string
+		prometheusAPIV1QueryRange string
 		// prom 元数据查询接口
-		prometheusApiV1Metadata string
+		prometheusAPIV1Metadata string
 		// prom series 查询接口
-		prometheusApiV1Series string
+		prometheusAPIV1Series string
 
 		// basicAuth 数据源基础认证
 		basicAuth *BasicAuth
@@ -59,21 +60,26 @@ type (
 		endpoint string
 	}
 
+	// PrometheusOption 数据源配置
 	PrometheusOption func(p *prometheusDatasource)
 
 	// 响应参数处理
 
+	// PromQueryResult 查询响应数据
 	PromQueryResult struct {
 		Metric map[string]string `json:"metric"`
 		Value  [2]any            `json:"value"`
 		Values [][2]any          `json:"values"`
 	}
 
+	// PromQueryData 查询数据
 	PromQueryData struct {
 		ResultType string             `json:"resultType"`
 		Result     []*PromQueryResult `json:"result"`
 	}
 
+	// PromQueryResponse 查询响应
+	// {"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"node_cpu_seconds_total","cpu":"0","instance":"10.0.0.1:9100","job":"node-exporter","mode":"idle"},"value":[1629874800.0,"0.01"]},{"metric":{"__name__":"node_cpu_seconds_total","cpu":"0","instance":"10.0.0.2:9100","job":"node-exporter","mode":"idle"},"value":[1629874800.0,"0.01"]}]}}
 	PromQueryResponse struct {
 		Status    string         `json:"status"`
 		Data      *PromQueryData `json:"data"`
@@ -81,17 +87,20 @@ type (
 		Error     string         `json:"error"`
 	}
 
+	// PromMetricInfo 元数据信息
 	PromMetricInfo struct {
 		Type string `json:"type"`
 		Help string `json:"help"`
 		Unit string `json:"unit"`
 	}
 
+	// PromMetadataResponse 元数据响应
 	PromMetadataResponse struct {
 		Status string                      `json:"status"`
 		Data   map[string][]PromMetricInfo `json:"data"`
 	}
 
+	// PromMetricSeriesResponse 元数据响应
 	PromMetricSeriesResponse struct {
 		Status    string              `json:"status"`
 		Data      []map[string]string `json:"data"`
@@ -112,7 +121,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 		"step":  st,
 	})
 
-	hx := httpx.NewHttpX()
+	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
 		"Accept-Language": "zh-CN,zh;q=0.9",
@@ -120,7 +129,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 	if p.basicAuth != nil {
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
-	api, err := url.JoinPath(p.endpoint, prometheusApiV1QueryRange)
+	api, err := url.JoinPath(p.endpoint, prometheusAPIV1QueryRange)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +176,7 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 		"time":  duration,
 	})
 
-	hx := httpx.NewHttpX()
+	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
 		"Accept-Language": "zh-CN,zh;q=0.9",
@@ -175,7 +184,7 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 	if p.basicAuth != nil {
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
-	api, err := url.JoinPath(p.endpoint, prometheusApiV1Query)
+	api, err := url.JoinPath(p.endpoint, prometheusAPIV1Query)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +291,7 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 
 // metadata 获取原始数据
 func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromMetricInfo, error) {
-	hx := httpx.NewHttpX()
+	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
 		"Accept-Language": "zh-CN,zh;q=0.9",
@@ -290,7 +299,7 @@ func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromM
 	if p.basicAuth != nil {
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
-	api, err := url.JoinPath(p.endpoint, prometheusApiV1Metadata)
+	api, err := url.JoinPath(p.endpoint, prometheusAPIV1Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +333,7 @@ func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 		}))
 	}
 
-	hx := httpx.NewHttpX()
+	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
 		"Accept-Language": "zh-CN,zh;q=0.9",
@@ -333,12 +342,12 @@ func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
 
-	api, err := url.JoinPath(p.endpoint, prometheusApiV1Series)
+	api, err := url.JoinPath(p.endpoint, prometheusAPIV1Series)
 	if err != nil {
 		return nil, err
 	}
-	reqUrl := fmt.Sprintf("%s?%s&%s", api, params, strings.Join(metricNameParams, "&"))
-	getResponse, err := hx.GETWithContext(ctx, reqUrl)
+	reqURL := fmt.Sprintf("%s?%s&%s", api, params, strings.Join(metricNameParams, "&"))
+	getResponse, err := hx.GETWithContext(ctx, reqURL)
 	if err != nil {
 		return nil, err
 	}

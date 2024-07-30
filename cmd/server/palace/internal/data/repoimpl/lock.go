@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 )
 
+// NewLockRepository 创建全局锁
 func NewLockRepository(data *data.Data) repository.Lock {
 	return &lockRepositoryImpl{data: data}
 }

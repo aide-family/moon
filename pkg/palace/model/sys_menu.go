@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameSysMenu = "sys_menus"
+const tableNameSysMenu = "sys_menus"
 
 // SysMenu mapped from table <sys_menus>
 type SysMenu struct {
@@ -32,15 +32,17 @@ func (c *SysMenu) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *SysMenu) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *SysMenu) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SysAPI's table name
 func (*SysMenu) TableName() string {
-	return TableNameSysMenu
+	return tableNameSysMenu
 }

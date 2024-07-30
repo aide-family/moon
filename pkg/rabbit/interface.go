@@ -58,10 +58,12 @@ type ConfigProvider interface {
 	Provider(in []byte, out any) error
 }
 
+// RuleGroupProvider 负责提供 RuleGroup
 type RuleGroupProvider interface {
 	RuleGroup(ctx context.Context, name string) (*RuleGroup, error)
 }
 
+// ProcessorProvider 负责提供 Processor
 type ProcessorProvider interface {
 	Filter(ctx context.Context, ruleName string) (Filter, error)
 	Aggregator(ctx context.Context, ruleName string) (Aggregator, error)
@@ -69,6 +71,7 @@ type ProcessorProvider interface {
 	Sender(ctx context.Context, ruleName string) (Sender, error)
 }
 
+// Rule 是一个规则，它包含一个 Filter、一个 Aggregator、一个 Templater 和一个 Sender
 type Rule interface {
 	DeepCopyRule() Rule
 }

@@ -13,18 +13,21 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// MetricService 指标服务
 type MetricService struct {
 	datasourceapi.UnimplementedMetricServer
 
 	metricBiz *biz.MetricBiz
 }
 
+// NewMetricService 创建指标服务
 func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 	return &MetricService{
 		metricBiz: metricBiz,
 	}
 }
 
+// UpdateMetric 更新指标
 func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.UpdateMetricRequest) (*datasourceapi.UpdateMetricReply, error) {
 	params := &bo.UpdateMetricParams{
 		ID:     req.GetId(),
@@ -37,6 +40,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.Upd
 	return &datasourceapi.UpdateMetricReply{}, nil
 }
 
+// GetMetric 获取指标
 func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMetricRequest) (*datasourceapi.GetMetricReply, error) {
 	params := &bo.GetMetricParams{
 		ID:           req.GetId(),
@@ -51,11 +55,12 @@ func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMet
 		return nil, err
 	}
 	return &datasourceapi.GetMetricReply{
-		Data:       build.NewBuilder().WithApiDatasourceMetric(detail).ToApi(),
+		Data:       build.NewBuilder().WithAPIDatasourceMetric(detail).ToAPI(),
 		LabelCount: labelCount,
 	}, nil
 }
 
+// ListMetric 获取指标列表
 func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.ListMetricReply, error) {
 	params := &bo.QueryMetricListParams{
 		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
@@ -68,13 +73,14 @@ func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListM
 		return nil, err
 	}
 	return &datasourceapi.ListMetricReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
 		List: types.SliceTo(list, func(item *bizmodel.DatasourceMetric) *admin.MetricDetail {
-			return build.NewBuilder().WithApiDatasourceMetric(item).ToApi()
+			return build.NewBuilder().WithAPIDatasourceMetric(item).ToAPI()
 		}),
 	}, nil
 }
 
+// SelectMetric 获取指标下拉列表
 func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.SelectMetricRequest) (*datasourceapi.SelectMetricReply, error) {
 	params := &bo.QueryMetricListParams{
 		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
@@ -88,13 +94,14 @@ func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.Sel
 	}
 
 	return &datasourceapi.SelectMetricReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
-		List: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuilder(item).ToApi()
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.SelectItem {
+			return build.NewSelectBuilder(item).ToAPI()
 		}),
 	}, nil
 }
 
+// DeleteMetric 删除指标
 func (s *MetricService) DeleteMetric(ctx context.Context, req *datasourceapi.DeleteMetricRequest) (*datasourceapi.DeleteMetricReply, error) {
 	if err := s.metricBiz.DeleteMetricByID(ctx, req.GetId()); err != nil {
 		return nil, err
@@ -123,7 +130,7 @@ func (s *MetricService) SyncMetric(ctx context.Context, req *datasourceapi.SyncM
 		},
 		Done:         req.GetDone(),
 		DatasourceID: req.GetDatasourceId(),
-		TeamId:       req.GetTeamId(),
+		TeamID:       req.GetTeamId(),
 	}
 	if err := s.metricBiz.CreateMetric(ctx, createMetric); err != nil {
 		return nil, err

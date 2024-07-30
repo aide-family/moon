@@ -17,18 +17,21 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// Service 数据源服务
 type Service struct {
 	datasourceapi.UnimplementedDatasourceServer
 
 	datasourceBiz *biz.DatasourceBiz
 }
 
+// NewDatasourceService 创建数据源服务
 func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 	return &Service{
 		datasourceBiz: datasourceBiz,
 	}
 }
 
+// CreateDatasource 创建数据源
 func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.CreateDatasourceRequest) (*datasourceapi.CreateDatasourceReply, error) {
 	configBytes, _ := json.Marshal(req.GetConfig())
 	params := build.NewBuilder().WithCreateDatasourceBo(req).ToCreateDatasourceBO(configBytes)
@@ -41,6 +44,7 @@ func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.Creat
 	return &datasourceapi.CreateDatasourceReply{}, nil
 }
 
+// UpdateDatasource 更新数据源
 func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.UpdateDatasourceRequest) (*datasourceapi.UpdateDatasourceReply, error) {
 	params := build.NewBuilder().WithUpdateDatasourceBo(req).ToUpdateDatasourceBO()
 	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
@@ -49,6 +53,7 @@ func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.Updat
 	return &datasourceapi.UpdateDatasourceReply{}, nil
 }
 
+// DeleteDatasource 删除数据源
 func (s *Service) DeleteDatasource(ctx context.Context, req *datasourceapi.DeleteDatasourceRequest) (*datasourceapi.DeleteDatasourceReply, error) {
 	if err := s.datasourceBiz.DeleteDatasource(ctx, req.GetId()); !types.IsNil(err) {
 		return nil, err
@@ -56,16 +61,18 @@ func (s *Service) DeleteDatasource(ctx context.Context, req *datasourceapi.Delet
 	return &datasourceapi.DeleteDatasourceReply{}, nil
 }
 
+// GetDatasource 获取数据源详情
 func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatasourceRequest) (*datasourceapi.GetDatasourceReply, error) {
 	datasourceDetail, err := s.datasourceBiz.GetDatasource(ctx, req.GetId())
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceReply{
-		Data: build.NewBuilder().WithContext(ctx).WithDoDatasource(datasourceDetail).ToApi(),
+		Data: build.NewBuilder().WithContext(ctx).WithDoDatasource(datasourceDetail).ToAPI(),
 	}, nil
 }
 
+// ListDatasource 获取数据源列表
 func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.ListDatasourceReply, error) {
 	params := build.NewBuilder().WithListDatasourceBo(req).ToListDatasourceBo()
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
@@ -73,13 +80,14 @@ func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDat
 		return nil, err
 	}
 	return &datasourceapi.ListDatasourceReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
-		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.Datasource {
-			return build.NewBuilder().WithContext(ctx).WithDoDatasource(item).ToApi()
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.DatasourceItem {
+			return build.NewBuilder().WithContext(ctx).WithDoDatasource(item).ToAPI()
 		}),
 	}, nil
 }
 
+// UpdateDatasourceStatus 更新数据源状态
 func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *datasourceapi.UpdateDatasourceStatusRequest) (*datasourceapi.UpdateDatasourceStatusReply, error) {
 	if err := s.datasourceBiz.UpdateDatasourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetId()); !types.IsNil(err) {
 		return nil, err
@@ -87,6 +95,7 @@ func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *datasourceapi
 	return &datasourceapi.UpdateDatasourceStatusReply{}, nil
 }
 
+// GetDatasourceSelect 获取数据源下拉列表
 func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.GetDatasourceSelectRequest) (*datasourceapi.GetDatasourceSelectReply, error) {
 	params := &bo.QueryDatasourceListParams{
 		Page:        nil,
@@ -100,8 +109,8 @@ func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.Ge
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceSelectReply{
-		Data: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.Select {
-			return build.NewSelectBuilder(item).ToApi()
+		Data: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.SelectItem {
+			return build.NewSelectBuilder(item).ToAPI()
 		}),
 	}, nil
 }
@@ -128,7 +137,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 	}
 	return &datasourceapi.DatasourceQueryReply{
 		List: types.SliceTo(query, func(item *bo.DatasourceQueryData) *api.MetricQueryResult {
-			return build.NewBuilder().WithBoDatasourceQueryData(item).ToApi()
+			return build.NewBuilder().WithBoDatasourceQueryData(item).ToAPI()
 		}),
 	}, nil
 }

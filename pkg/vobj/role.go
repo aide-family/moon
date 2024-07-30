@@ -6,11 +6,15 @@ package vobj
 type Role int
 
 const (
+	// RoleAll 未知
 	RoleAll Role = iota // 未知
 
+	// RoleSuperAdmin 超级管理员
 	RoleSuperAdmin // 超级管理员
 
+	// RoleAdmin 管理员
 	RoleAdmin // 管理员
 
+	// RoleUser 普通用户
 	RoleUser // 普通用户
 )

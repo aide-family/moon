@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 )
 
-const TableNameSysTeamMemberRole = "sys_team_member_roles"
+const tableNameSysTeamMemberRole = "sys_team_member_roles"
 
 // SysTeamMemberRole mapped from table <sys_team_member_roles>
 type SysTeamMemberRole struct {
@@ -21,15 +21,7 @@ func (c *SysTeamMemberRole) String() string {
 	return string(bs)
 }
 
-func (c *SysTeamMemberRole) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
-}
-
-func (c *SysTeamMemberRole) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
-}
-
 // TableName SysTeamMemberRole's table name
 func (*SysTeamMemberRole) TableName() string {
-	return TableNameSysTeamMemberRole
+	return tableNameSysTeamMemberRole
 }

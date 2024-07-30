@@ -15,12 +15,14 @@ import (
 )
 
 type (
+	// UserModelBuilder 用户模型转换
 	UserModelBuilder interface {
-		ToApi() *admin.User
+		ToAPI() *admin.User
 	}
 
+	// UserRequestBuilder 用户请求转换
 	UserRequestBuilder interface {
-		ToCreateUserBO(userId uint32, pass string) *bo.CreateUserParams
+		ToCreateUserBO(uint32, string) *bo.CreateUserParams
 
 		ToUpdateUserBO() *bo.UpdateUserParams
 	}
@@ -37,16 +39,18 @@ type (
 		ctx context.Context
 	}
 
+	// TeamMemberBuilder 团队成员构造器
 	TeamMemberBuilder interface {
-		ToApi(ctx context.Context) *admin.TeamMember
+		ToAPI(ctx context.Context) *admin.TeamMember
 	}
+
 	teamMemberBuilder struct {
 		*bizmodel.SysTeamMember
 		ctx context.Context
 	}
 )
 
-func (b *userBuilder) ToCreateUserBO(userId uint32, pass string) *bo.CreateUserParams {
+func (b *userBuilder) ToCreateUserBO(userID uint32, pass string) *bo.CreateUserParams {
 	if types.IsNil(b) || types.IsNil(b.CreateUserRequest) {
 		return nil
 	}
@@ -58,7 +62,7 @@ func (b *userBuilder) ToCreateUserBO(userId uint32, pass string) *bo.CreateUserP
 		Nickname:  b.CreateUserRequest.GetNickname(),
 		Remark:    b.CreateUserRequest.GetRemark(),
 		Avatar:    b.CreateUserRequest.GetAvatar(),
-		CreatorID: userId,
+		CreatorID: userID,
 		Status:    vobj.Status(b.CreateUserRequest.GetStatus()),
 		Gender:    vobj.Gender(b.CreateUserRequest.GetGender()),
 		Role:      vobj.Role(b.CreateUserRequest.GetRole()),
@@ -86,8 +90,8 @@ func (b *userBuilder) ToUpdateUserBO() *bo.UpdateUserParams {
 	}
 }
 
-// ToApi 转换成api
-func (b *userBuilder) ToApi() *admin.User {
+// ToAPI 转换成api
+func (b *userBuilder) ToAPI() *admin.User {
 	if types.IsNil(b) || types.IsNil(b.SysUser) {
 		return nil
 	}
@@ -107,7 +111,7 @@ func (b *userBuilder) ToApi() *admin.User {
 	}
 }
 
-func (b *teamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
+func (b *teamMemberBuilder) ToAPI(ctx context.Context) *admin.TeamMember {
 	if types.IsNil(b) || types.IsNil(b.SysTeamMember) {
 		return nil
 	}
@@ -119,6 +123,6 @@ func (b *teamMemberBuilder) ToApi(ctx context.Context) *admin.TeamMember {
 		Status:    api.Status(b.Status),
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
-		User:      NewBuilder().WithApiUserBo(cache.GetUser(ctx, b.UserID)).ToApi(),
+		User:      NewBuilder().WithAPIUserBo(cache.GetUser(ctx, b.UserID)).ToAPI(),
 	}
 }

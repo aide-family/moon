@@ -14,19 +14,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewResourceBiz 创建资源业务
 func NewResourceBiz(resourceRepo repository.Resource) *ResourceBiz {
 	return &ResourceBiz{
 		resourceRepo: resourceRepo,
 	}
 }
 
+// ResourceBiz 资源业务
 type ResourceBiz struct {
 	resourceRepo repository.Resource
 }
 
 // GetResource 获取资源详情
 func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (*model.SysAPI, error) {
-	resource, err := b.resourceRepo.GetById(ctx, id)
+	resource, err := b.resourceRepo.GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nResourceNotFoundErr(ctx)
@@ -45,6 +47,7 @@ func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResource
 	return resourceDos, nil
 }
 
+// UpdateResourceStatus 更新资源状态
 func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	if err := b.resourceRepo.UpdateStatus(ctx, status, ids...); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
@@ -52,6 +55,7 @@ func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Stat
 	return nil
 }
 
+// GetResourceSelectList 获取资源下拉列表
 func (b *ResourceBiz) GetResourceSelectList(ctx context.Context, params *bo.QueryResourceListParams) ([]*bo.SelectOptionBo, error) {
 	resourceDos, err := b.resourceRepo.FindSelectByPage(ctx, params)
 	if !types.IsNil(err) {

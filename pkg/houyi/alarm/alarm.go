@@ -13,13 +13,15 @@ import (
 
 var _ watch.Indexer = (*EventMsg)(nil)
 
+// NewWatchAlarm 创建一个告警监听器
 func NewWatchAlarm(opts ...watch.WatcherOption) *WatchAlarm {
 	return &WatchAlarm{
-		Watcher: watch.NewWatcher(opts...),
+		Watcher: watch.NewWatcher("alarm watch", opts...),
 	}
 }
 
 type (
+	// WatchAlarm 告警监听器
 	WatchAlarm struct {
 		*watch.Watcher
 	}
@@ -43,15 +45,16 @@ type (
 	}
 )
 
+// Index 索引
 func (e *EventMsg) Index() string {
 	str := strings.Builder{}
 	str.WriteString("{")
-	keys := maps.Keys(e.Labels)
+	keys := maps.Keys(e.Labels.Map())
 	// 排序
 	sort.Strings(keys)
 	for _, key := range keys {
 		k := key
-		v := e.Labels[key]
+		v := e.Labels.Get(key)
 		str.WriteString(`"` + k + `"`)
 		str.WriteString(":")
 		str.WriteString(`"` + v + `"`)

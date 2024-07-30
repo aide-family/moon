@@ -15,18 +15,21 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// MetricService 指标服务
 type MetricService struct {
 	metadataapi.UnimplementedMetricServer
 
 	metricBiz *biz.MetricBiz
 }
 
+// NewMetricService 创建指标服务
 func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 	return &MetricService{
 		metricBiz: metricBiz,
 	}
 }
 
+// SyncMetadata sync metric data
 func (s *MetricService) SyncMetadata(ctx context.Context, req *metadataapi.SyncMetadataRequest) (*metadataapi.SyncMetadataReply, error) {
 	params := &bo.GetMetricsParams{
 		Endpoint:    req.GetEndpoint(),
@@ -39,7 +42,7 @@ func (s *MetricService) SyncMetadata(ctx context.Context, req *metadataapi.SyncM
 	}
 	return &metadataapi.SyncMetadataReply{
 		Metrics: types.SliceTo(metrics, func(item *bo.MetricDetail) *api.MetricDetail {
-			return build.NewMetricBuilder(item).ToApi()
+			return build.NewMetricBuilder(item).ToAPI()
 		}),
 	}, nil
 }
@@ -62,7 +65,7 @@ func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest
 	}
 	return &metadataapi.QueryReply{
 		List: types.SliceTo(data, func(item *metric.QueryResponse) *api.MetricQueryResult {
-			return build.NewMetricQueryBuilder(item).ToApi()
+			return build.NewMetricQueryBuilder(item).ToAPI()
 		}),
 	}, nil
 }
@@ -91,9 +94,9 @@ func (s *MetricService) SyncMetadataV2(ctx context.Context, req *metadataapi.Syn
 			}
 			if err := s.metricBiz.PushMetric(&bo.PushMetricParams{
 				MetricDetail: item,
-				DatasourceId: req.GetDatasourceId(),
+				DatasourceID: req.GetDatasourceId(),
 				Done:         index == metricsLen-1,
-				TeamId:       req.GetTeamId(),
+				TeamID:       req.GetTeamId(),
 			}); err != nil {
 				log.Errorw("method", "push metric error", "err", err)
 				continue

@@ -9,8 +9,10 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 )
 
+// CheckRbacFun 权限校验函数
 type CheckRbacFun func(ctx context.Context, operation string) (bool, error)
 
+// Rbac 权限校验中间件
 func Rbac(check CheckRbacFun) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {

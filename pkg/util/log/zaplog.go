@@ -14,23 +14,25 @@ type zapLogger struct {
 	msgKey string
 }
 
-type Option func(*zapLogger)
+// ZapLogOption is logger option.
+type ZapLogOption func(*zapLogger)
 
 // WithMessageKey with message key.
-func WithMessageKey(key string) Option {
+func WithMessageKey(key string) ZapLogOption {
 	return func(l *zapLogger) {
 		l.msgKey = key
 	}
 }
 
 // WithZapLogger with zap logger.
-func WithZapLogger(zl *zap.Logger) Option {
+func WithZapLogger(zl *zap.Logger) ZapLogOption {
 	return func(l *zapLogger) {
 		l.log = zl
 	}
 }
 
-func NewLogger(opts ...Option) *zapLogger {
+// NewLogger new a zap logger.
+func NewLogger(opts ...ZapLogOption) log.Logger {
 	l := &zapLogger{
 		log:    zap.NewExample(),
 		msgKey: log.DefaultMessageKey,
@@ -41,6 +43,7 @@ func NewLogger(opts ...Option) *zapLogger {
 	return l
 }
 
+// Log 实现kratos log接口
 func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 	var (
 		msg    = ""
@@ -75,10 +78,12 @@ func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 	return nil
 }
 
+// Sync sync logger.
 func (l *zapLogger) Sync() error {
 	return l.log.Sync()
 }
 
+// Close logger.
 func (l *zapLogger) Close() error {
 	return l.Sync()
 }

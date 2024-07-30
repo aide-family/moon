@@ -11,6 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// AlertService 告警服务
 type AlertService struct {
 	alertapi.UnimplementedAlertServer
 
@@ -18,6 +19,7 @@ type AlertService struct {
 	strategyBiz *biz.StrategyBiz
 }
 
+// NewAlertService 创建告警服务
 func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *AlertService {
 	return &AlertService{
 		alertBiz:    alertBiz,
@@ -25,6 +27,7 @@ func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *Aler
 	}
 }
 
+// Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*alertapi.HookReply, error) {
 	return &alertapi.HookReply{}, nil
 }
@@ -39,7 +42,7 @@ func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*
 	if err := s.alertBiz.SaveAlarm(ctx, innerAlarm); err != nil {
 		return nil, err
 	}
-	alarm := build.NewAlarmBuilder(innerAlarm).ToApi()
+	alarm := build.NewAlarmBuilder(innerAlarm).ToAPI()
 	return &alertapi.AlarmReply{
 		Alarm: alarm,
 	}, nil

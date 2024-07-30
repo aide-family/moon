@@ -23,11 +23,12 @@ import (
 	"google.golang.org/grpc/backoff"
 )
 
-var ProviderSetRpcConn = wire.NewSet(
+// ProviderSetRPCConn wire set
+var ProviderSetRPCConn = wire.NewSet(
 	NewPalaceConn,
 )
 
-func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.ClientConn, error) {
+func newRPCConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.ClientConn, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()
 	// 由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
@@ -73,7 +74,7 @@ func newRpcConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 	return grpcConn, nil
 }
 
-func newHttpConn(microServerConf *api.Server, discovery *api.Discovery) (*http.Client, error) {
+func newHTTPConn(microServerConf *api.Server, discovery *api.Discovery) (*http.Client, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()
 	opts := []http.ClientOption{
@@ -117,7 +118,8 @@ var defaultGrpcConnectParam = grpc.ConnectParams{
 	MinConnectTimeout: 3 * time.Second,
 }
 
+// Option grpc/http option
 type Option struct {
-	RpcOpts  []grpc.CallOption
-	HttpOpts []http.CallOption
+	RPCOpts  []grpc.CallOption
+	HTTPOpts []http.CallOption
 }

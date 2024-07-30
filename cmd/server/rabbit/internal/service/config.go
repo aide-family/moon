@@ -10,18 +10,21 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// ConfigService 配置服务
 type ConfigService struct {
 	pushapi.UnimplementedConfigServer
 
 	configBiz *biz.ConfigBiz
 }
 
+// NewConfigService 创建配置服务
 func NewConfigService(configBiz *biz.ConfigBiz) *ConfigService {
 	return &ConfigService{
 		configBiz: configBiz,
 	}
 }
 
+// NotifyObject 配置模板同步
 func (s *ConfigService) NotifyObject(ctx context.Context, req *pushapi.NotifyObjectRequest) (*pushapi.NotifyObjectReply, error) {
 	if err := s.configBiz.CacheConfig(ctx, &bo.CacheConfigParams{
 		Receivers: req.GetReceivers(),

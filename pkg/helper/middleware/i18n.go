@@ -16,9 +16,12 @@ import (
 	"golang.org/x/text/language"
 )
 
+// LocaleFS 加载国际化文件
+//
 //go:embed locale/active.*.toml
 var LocaleFS embed.FS
 
+// I18N 国际化中间件
 func I18N() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {

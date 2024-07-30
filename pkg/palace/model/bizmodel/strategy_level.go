@@ -8,8 +8,9 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameStrategyLevel = "strategy_level"
+const tableNameStrategyLevel = "strategy_level"
 
+// StrategyLevel 策略等级
 type StrategyLevel struct {
 	model.AllFieldModel
 	// 所属策略
@@ -41,15 +42,17 @@ func (c *StrategyLevel) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *StrategyLevel) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *StrategyLevel) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName StrategyLevel's table name
 func (*StrategyLevel) TableName() string {
-	return TableNameStrategyLevel
+	return tableNameStrategyLevel
 }

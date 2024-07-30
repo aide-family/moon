@@ -22,6 +22,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewTeamRepository 创建团队仓库
 func NewTeamRepository(data *data.Data, cache runtimecache.RuntimeCache) repository.Team {
 	return &teamRepositoryImpl{
 		data:  data,
@@ -71,9 +72,9 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 }
 
 func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, team *bo.CreateTeamParams) (err error) {
-	teamId := sysTeamModel.ID
+	teamID := sysTeamModel.ID
 	// 创建团队数据库
-	_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamId) + "`")
+	_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamID) + "`")
 	if !types.IsNil(err) {
 		return err
 	}
@@ -119,7 +120,7 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 		}
 		return &bizmodel.SysTeamMember{
 			UserID: memberId,
-			TeamID: teamId,
+			TeamID: teamID,
 			Status: vobj.StatusEnable,
 			Role:   vobj.RoleAdmin,
 		}, true
@@ -127,12 +128,12 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 	if flag {
 		adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
 			UserID: sysTeamModel.LeaderID,
-			TeamID: teamId,
+			TeamID: teamID,
 			Status: vobj.StatusEnable,
 			Role:   vobj.RoleAdmin,
 		})
 	}
-	bizDB, bizDbErr := l.data.GetBizGormDB(teamId)
+	bizDB, bizDbErr := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(bizDbErr) {
 		return err
 	}
@@ -276,7 +277,7 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 			TeamID: params.ID,
 			Status: vobj.StatusEnable,
 			Role:   memberItem.Role,
-			TeamRoles: types.SliceToWithFilter(memberItem.RoleIds, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
+			TeamRoles: types.SliceToWithFilter(memberItem.RoleIDs, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
 				if roleId <= 0 {
 					return nil, false
 				}
@@ -333,7 +334,7 @@ func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.Re
 }
 
 func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
-	if len(params.MemberIds) == 0 {
+	if len(params.MemberIDs) == 0 {
 		return nil
 	}
 	bizDB, err := l.data.GetBizGormDB(params.ID)
@@ -343,7 +344,7 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 	q := bizquery.Use(bizDB)
 	_, err = q.WithContext(ctx).SysTeamMember.Where(
 		q.SysTeamMember.TeamID.Eq(params.ID),
-		q.SysTeamMember.UserID.In(params.MemberIds...),
+		q.SysTeamMember.UserID.In(params.MemberIDs...),
 	).UpdateColumnSimple(q.SysTeamMember.Role.Value(params.Role.GetValue()))
 	if !types.IsNil(err) {
 		return err
@@ -351,7 +352,7 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 	// 查询团队管理员列表
 	members, err := q.SysTeamMember.Where(
 		q.SysTeamMember.TeamID.Eq(params.ID),
-		q.SysTeamMember.UserID.In(params.MemberIds...),
+		q.SysTeamMember.UserID.In(params.MemberIDs...),
 	).Find()
 	if !types.IsNil(err) {
 		return err
@@ -361,7 +362,7 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 }
 
 func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
-	roles := types.SliceToWithFilter(params.RoleIds, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
+	roles := types.SliceToWithFilter(params.RoleIDs, func(roleId uint32) (*bizmodel.SysTeamRole, bool) {
 		if roleId == 0 {
 			return nil, false
 		}

@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package api.admin.realtime;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "enum.proto";
+import "admin/model.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/realtime;realtime";
+option java_multiple_files = true;
+option java_package = "api.admin.realtime";
+
+service Alarm {
+  // 获取告警详情
+  rpc GetAlarm (GetAlarmRequest) returns (GetAlarmReply) {
+    option (google.api.http) = {
+      get: "/v1/admin/realtime/alarm/{id}"
+    };
+  }
+
+  // 获取告警列表
+  rpc ListAlarm (ListAlarmRequest) returns (ListAlarmReply) {
+    option (google.api.http) = {
+      post: "/v1/admin/realtime/alarm/list"
+      body: "*"
+    };
+  }
+}
+
+message GetAlarmRequest {
+  // 告警ID
+  uint32 id = 1;
+}
+message GetAlarmReply {}
+
+message ListAlarmRequest {
+  // 分页
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 告警时间范围
+  int64 eventAtStart = 2;
+  int64 eventAtEnd = 3;
+  // 告警恢复时间
+  int64 recoverAtStart = 4;
+  int64 recoverAtEnd = 5;
+  // 告警级别
+  repeated uint32 alarmLevels = 6;
+  // 告警状态
+  repeated AlertStatus alarmStatuses = 7;
+  // 关键字
+  string keyword = 8 [(buf.validate.field).cel = {
+    message: "关键字查询限制在20字符以内"
+    expression: "this.size() <= 20"
+  }];
+
+  option (buf.validate.message).cel = {
+    id: "ListAlarmRequest_eventAtStart_less_than_eventAtEnd",
+    message: "告警开始时间必须小于告警结束时间",
+    expression: "this.eventAtStart <= this.eventAtEnd"
+  };
+  option (buf.validate.message).cel = {
+    id: "ListAlarmRequest_recoverAtStart_less_than_recoverAtEnd",
+    message: "告警恢复开始时间必须小于告警恢复结束时间",
+    expression: "this.recoverAtStart <= this.recoverAtEnd"
+  };
+}
+message ListAlarmReply {
+  // 告警列表
+  repeated RealtimeAlarmItem list = 1;
+  // 分页
+  PaginationReply pagination = 2;
+}

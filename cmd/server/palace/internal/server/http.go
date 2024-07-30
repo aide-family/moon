@@ -22,7 +22,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 	c := bc.GetServer()
 
 	apiWhiteList := bc.GetServer().GetJwt().GetWhiteList()
-	rbacApiWhiteList := append(apiWhiteList, bc.GetServer().GetJwt().GetRbacWhiteList()...)
+	rbacAPIWhiteList := append(apiWhiteList, bc.GetServer().GetJwt().GetRbacWhiteList()...)
 	// 验证是否登录
 	authMiddleware := middleware.Server(
 		middleware.JwtServer(),
@@ -44,7 +44,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 			return false, err
 		}
 		return permission.GetHasPermission(), nil
-	})).Match(middleware.NewWhiteListMatcher(rbacApiWhiteList)).Build()
+	})).Match(middleware.NewWhiteListMatcher(rbacAPIWhiteList)).Build()
 
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),

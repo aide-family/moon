@@ -19,6 +19,7 @@ import (
 
 var _ rabbit.ProcessorProvider = &Manager{}
 
+// Options 是 Manager 的配置项
 type Options struct {
 	// MaxConcurrentWorkers 是最大并发 worker 数量，默认为1
 	MaxConcurrentWorkers int
@@ -33,6 +34,7 @@ type Options struct {
 	MaxRetries int
 }
 
+// Manager 是一个消息队列的 Manager
 type Manager struct {
 	name                 string
 	MaxConcurrentWorkers int
@@ -48,6 +50,7 @@ type Manager struct {
 	sm                   *SenderManager
 }
 
+// New 创建一个 Manager
 func New(name string, opts *Options) (*Manager, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("invalid manager name")
@@ -80,6 +83,7 @@ const (
 	labelSend        = "send"
 )
 
+// Name 返回 Manager 的名称
 func (m *Manager) Name() string {
 	return m.name
 }
@@ -96,12 +100,14 @@ func (m *Manager) initMetrics() {
 	metrics.WorkerTotal.WithLabelValues(labelSend).Add(0)
 }
 
+// RegisterReceivers 注册一个或多个 Receiver
 func (m *Manager) RegisterReceivers(receivers ...rabbit.Receiver) {
 	for _, receiver := range receivers {
 		m.receivers[receiver.Name()] = receiver
 	}
 }
 
+// Start 启动 Manager
 func (m *Manager) Start(ctx context.Context) error {
 	if m.Started {
 		return errors.New("manager was started more than once")

@@ -51,7 +51,12 @@ type (
 		handleCtx context.Context
 	}
 
+	// MessageOption 消息选项
 	MessageOption func(m *Message)
+
+	handleCtx struct {
+		index int
+	}
 )
 
 // GetData 获取消息内容

@@ -53,6 +53,7 @@ type MessageQueue interface {
 
 var _ MessageQueue = &PriorityQueue{}
 
+// PriorityQueue 优先级队列，用来存储消息
 type PriorityQueue struct {
 	// 退避管理器，消息再次加入时，用来决定消息重新入队的时间
 	backoff *Backoff
@@ -66,6 +67,7 @@ type PriorityQueue struct {
 	maxRetries int
 }
 
+// NewQueue 创建一个优先级队列
 func NewQueue(maxRetries int, backoff *Backoff) *PriorityQueue {
 	if backoff == nil {
 		backoff = DefaultBackOff
@@ -159,23 +161,28 @@ func (p *PriorityQueue) Get() (*QueueInfo, bool) {
 	}
 }
 
+// Done .
 func (p *PriorityQueue) Done(item *QueueInfo) {
 	p.runner.delete(item.Key)
 	p.queue.Done(item.Key)
 }
 
+// Len 获取队列长度
 func (p *PriorityQueue) Len() int {
 	return p.queue.Len()
 }
 
+// ShutDown 关闭队列
 func (p *PriorityQueue) ShutDown() {
 	p.queue.ShutDown()
 }
 
+// ShuttingDown 判断队列是否关闭
 func (p *PriorityQueue) ShuttingDown() bool {
 	return p.queue.ShuttingDown()
 }
 
+// ShutDownWithDrain 关闭队列
 func (p *PriorityQueue) ShutDownWithDrain() {
 	p.queue.ShutDownWithDrain()
 }

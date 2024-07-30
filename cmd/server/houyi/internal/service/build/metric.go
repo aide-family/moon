@@ -8,18 +8,20 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewMetricBuilder 创建Metric构造器
 func NewMetricBuilder(metricDetail *bo.MetricDetail) *MetricBuilder {
 	return &MetricBuilder{
 		MetricDetail: metricDetail,
 	}
 }
 
+// MetricBuilder 构建Metric对象
 type MetricBuilder struct {
 	*bo.MetricDetail
 }
 
-// ToApi 转换为api对象
-func (b *MetricBuilder) ToApi() *api.MetricDetail {
+// ToAPI 转换为api对象
+func (b *MetricBuilder) ToAPI() *api.MetricDetail {
 	if types.IsNil(b) || types.IsNil(b.MetricDetail) {
 		return nil
 	}
@@ -38,18 +40,20 @@ func (b *MetricBuilder) ToApi() *api.MetricDetail {
 	}
 }
 
+// NewMetricQueryBuilder 创建MetricQuery构造器
 func NewMetricQueryBuilder(queryResponse *metric.QueryResponse) *MetricQueryBuilder {
 	return &MetricQueryBuilder{
 		QueryResponse: queryResponse,
 	}
 }
 
+// MetricQueryBuilder 构建MetricQuery对象
 type MetricQueryBuilder struct {
 	*metric.QueryResponse
 }
 
-// ToApi 转换为api对象
-func (b *MetricQueryBuilder) ToApi() *api.MetricQueryResult {
+// ToAPI 转换为api对象
+func (b *MetricQueryBuilder) ToAPI() *api.MetricQueryResult {
 	if types.IsNil(b) || types.IsNil(b.QueryResponse) {
 		return nil
 	}

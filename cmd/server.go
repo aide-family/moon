@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/aide-family/moon/cmd/option"
 	"github.com/aide-family/moon/pkg/env"
 )
@@ -14,4 +16,5 @@ var (
 func main() {
 	env.SetVersion(Version)
 	option.Execute()
+
 }

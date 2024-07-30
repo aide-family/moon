@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
 )
 
+// NewAlertRepository 实例化alert
 func NewAlertRepository(data *data.Data) repository.Alert {
 	return &alertRepositoryImpl{data: data}
 }

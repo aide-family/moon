@@ -12,14 +12,17 @@ import (
 var _ encoding.BinaryMarshaler = (*CommonMethod)(nil)
 var _ encoding.BinaryUnmarshaler = (*CommonMethod)(nil)
 
+// CommonMethod common method
 type CommonMethod struct {
 	ID uint32
 }
 
+// UnmarshalBinary json unmarshal
 func (c *CommonMethod) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary json marshal
 func (c *CommonMethod) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }

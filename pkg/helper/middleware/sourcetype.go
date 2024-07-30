@@ -24,6 +24,7 @@ func SourceType() middleware.Middleware {
 // SourceTypeInfo Request header source
 type sourceTypeKey struct{}
 
+// GetSourceType get source type
 func GetSourceType(ctx context.Context) vobj.SourceType {
 	sourceTypeInfo, ok := ctx.Value(sourceTypeKey{}).(vobj.SourceType)
 	if ok {

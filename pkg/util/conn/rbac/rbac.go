@@ -15,6 +15,7 @@ var rbacModelConf string
 var rbacOnce sync.Once
 var enforcer *casbin.SyncedEnforcer
 
+// InitCasbinModel init casbin model
 func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	if enforcer != nil {
 		return enforcer, nil

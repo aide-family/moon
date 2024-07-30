@@ -15,6 +15,7 @@ import (
 	"gorm.io/gen"
 )
 
+// NewUserRepository 创建用户仓库
 func NewUserRepository(data *data.Data) repository.User {
 	return &userRepositoryImpl{
 		data: data,

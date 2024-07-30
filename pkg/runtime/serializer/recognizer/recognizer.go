@@ -2,6 +2,7 @@ package recognizer
 
 import (
 	"fmt"
+
 	"github.com/aide-family/moon/pkg/runtime"
 )
 

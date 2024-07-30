@@ -1,7 +1,6 @@
 package watch
 
-// 定义接收消息和发送消息的消息队列
-
+// NewDefaultQueue 定义接收消息和发送消息的消息队列
 func NewDefaultQueue(size int) Queue {
 	return &defaultQueue{
 		queue: make(chan *Message, size),

@@ -13,12 +13,13 @@ import (
 )
 
 type (
+	// DictModelBuilder 字典模型构造器
 	DictModelBuilder interface {
-		ToApi() *admin.Dict
-
-		ToApiSelect() *admin.Select
+		ToAPI() *admin.Dict
+		ToAPISelect() *admin.SelectItem
 	}
 
+	// DictRequestBuilder 字典请求参数构造器
 	DictRequestBuilder interface {
 		ToCreateDictBO() *bo.CreateDictParams
 
@@ -38,8 +39,8 @@ type (
 	}
 )
 
-// ToApi 转换成api
-func (b *dictBuilder) ToApi() *admin.Dict {
+// ToAPI 转换成api
+func (b *dictBuilder) ToAPI() *admin.Dict {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
@@ -51,7 +52,7 @@ func (b *dictBuilder) ToApi() *admin.Dict {
 		Icon:         b.SysDict.GetIcon(),
 		Status:       api.Status(b.SysDict.GetStatus()),
 		DictType:     api.DictType(b.SysDict.GetDictType()),
-		ImageUrl:     b.SysDict.GetImageUrl(),
+		ImageUrl:     b.SysDict.GetImageURL(),
 		LanguageCode: b.SysDict.GetLanguageCode(),
 		Remark:       b.SysDict.GetRemark(),
 		CreatedAt:    b.SysDict.GetCreatedAt().String(),
@@ -60,20 +61,20 @@ func (b *dictBuilder) ToApi() *admin.Dict {
 }
 
 // ToApiSelect 转换成api下拉数据
-func (b *dictBuilder) ToApiSelect() *admin.Select {
+func (b *dictBuilder) ToAPISelect() *admin.SelectItem {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil
 	}
-	return &admin.Select{
+	return &admin.SelectItem{
 		Value:    b.SysDict.GetID(),
 		Label:    b.SysDict.GetName(),
 		Children: nil,
 		Disabled: !b.SysDict.GetStatus().IsEnable() || b.SysDict.GetDeletedAt() > 0,
 		Extend: &admin.SelectExtend{
 			Icon:   b.SysDict.GetIcon(),
-			Color:  b.SysDict.GetCssClass(),
+			Color:  b.SysDict.GetCSSClass(),
 			Remark: b.SysDict.GetRemark(),
-			Image:  b.SysDict.GetImageUrl(),
+			Image:  b.SysDict.GetImageURL(),
 		},
 	}
 }
@@ -84,9 +85,9 @@ func (b *dictBuilder) ToCreateDictBO() *bo.CreateDictParams {
 		Value:        b.CreateDictRequest.GetValue(),
 		DictType:     vobj.DictType(b.CreateDictRequest.GetDictType()),
 		ColorType:    b.CreateDictRequest.GetColorType(),
-		CssClass:     b.CreateDictRequest.GetCssClass(),
+		CSSClass:     b.CreateDictRequest.GetCssClass(),
 		Icon:         b.CreateDictRequest.GetIcon(),
-		ImageUrl:     b.CreateDictRequest.GetImageUrl(),
+		ImageURL:     b.CreateDictRequest.GetImageUrl(),
 		Status:       vobj.Status(b.CreateDictRequest.GetStatus()),
 		Remark:       b.CreateDictRequest.GetRemark(),
 		LanguageCode: b.CreateDictRequest.GetLanguageCode(),
@@ -100,9 +101,9 @@ func (b *dictBuilder) ToUpdateDictBO() *bo.UpdateDictParams {
 		Value:        data.GetValue(),
 		DictType:     vobj.DictType(data.GetDictType()),
 		ColorType:    data.GetColorType(),
-		CssClass:     data.GetCssClass(),
+		CSSClass:     data.GetCssClass(),
 		Icon:         data.GetIcon(),
-		ImageUrl:     data.GetImageUrl(),
+		ImageURL:     data.GetImageUrl(),
 		Status:       vobj.Status(data.GetStatus()),
 		Remark:       data.GetRemark(),
 		LanguageCode: data.GetLanguageCode(),
@@ -113,10 +114,12 @@ func (b *dictBuilder) ToUpdateDictBO() *bo.UpdateDictParams {
 	}
 }
 
+// DictTypeBuilder 字典类型构造器
 type DictTypeBuilder struct {
 	list []vobj.DictType
 }
 
+// NewDictTypeBuilder 创建字典类型构造器
 func NewDictTypeBuilder() *DictTypeBuilder {
 	return &DictTypeBuilder{
 		list: []vobj.DictType{
@@ -133,7 +136,8 @@ func NewDictTypeBuilder() *DictTypeBuilder {
 	}
 }
 
-func (b *DictTypeBuilder) ToApi() []*api.EnumItem {
+// ToAPI 转换成api模型
+func (b *DictTypeBuilder) ToAPI() []*api.EnumItem {
 	if types.IsNil(b) {
 		return nil
 	}

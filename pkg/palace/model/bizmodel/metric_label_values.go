@@ -8,7 +8,7 @@ import (
 	"gorm.io/plugin/soft_delete"
 )
 
-const TableNameMetricLabelValue = "metric_label_values"
+const tableNameMetricLabelValue = "metric_label_values"
 
 // MetricLabelValue mapped from table <datasource_label_values>
 type MetricLabelValue struct {
@@ -24,15 +24,17 @@ func (c *MetricLabelValue) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *MetricLabelValue) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *MetricLabelValue) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName MetricLabelValue's table name
 func (*MetricLabelValue) TableName() string {
-	return TableNameMetricLabelValue
+	return tableNameMetricLabelValue
 }

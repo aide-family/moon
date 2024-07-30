@@ -2,9 +2,10 @@ package manager
 
 import (
 	"fmt"
-	"k8s.io/klog/v2"
 	"runtime"
 	"strings"
+
+	"k8s.io/klog/v2"
 )
 
 // print stack trace for debug
@@ -22,6 +23,7 @@ func trace(message string) string {
 	return str.String()
 }
 
+// HandleCrash handles panic and recover
 func HandleCrash() {
 	if err := recover(); err != nil {
 		message := fmt.Sprintf("%s", err)

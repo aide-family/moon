@@ -28,8 +28,8 @@ func wireApp(*palaceconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		repoimpl.ProviderSetRepoImpl,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
-		microserverrepoimpl.ProviderSetRpcRepoImpl,
-		microserver.ProviderSetRpcConn,
+		microserverrepoimpl.ProviderSetRPCRepoImpl,
+		microserver.ProviderSetRPCConn,
 		runtimecache.ProviderSetRuntimeCache,
 		newApp,
 	))

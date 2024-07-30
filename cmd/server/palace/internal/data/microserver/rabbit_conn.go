@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// NewRabbitRpcConn 创建一个rabbit rpc连接
-func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
+// NewRabbitRPCConn 创建一个rabbit rpc连接
+func NewRabbitRPCConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	microServer := c.GetMicroServer()
 	rabbitServer := microServer.GetRabbitServer()
 	discoveryConf := c.GetDiscovery()
@@ -26,29 +26,29 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	}
 	switch rabbitServer.GetNetwork() {
 	case "http", "HTTP":
-		httpConn, err := newHttpConn(rabbitServer, discoveryConf)
+		httpConn, err := newHTTPConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
 		rabbitConn.httpClient = httpConn
-		rabbitConn.network = vobj.NetworkHttp
+		rabbitConn.network = vobj.NetworkHTTP
 	case "https", "HTTPS":
-		httpConn, err := newHttpConn(rabbitServer, discoveryConf)
+		httpConn, err := newHTTPConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi http失败：", err)
 			return nil, nil, err
 		}
 		rabbitConn.httpClient = httpConn
-		rabbitConn.network = vobj.NetworkHttps
+		rabbitConn.network = vobj.NetworkHTTPS
 	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRpcConn(rabbitServer, discoveryConf)
+		grpcConn, err := newRPCConn(rabbitServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接HouYi rpc失败：", err)
 			return nil, nil, err
 		}
 		rabbitConn.rpcClient = grpcConn
-		rabbitConn.network = vobj.NetworkRpc
+		rabbitConn.network = vobj.NetworkRPC
 	default:
 		return nil, nil, merr.ErrorNotification("Rabbit Server暂不支持该网络类型：[%s]", rabbitServer.GetNetwork())
 	}
@@ -70,6 +70,7 @@ func NewRabbitRpcConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	return rabbitConn, cleanup, nil
 }
 
+// RabbitConn rabbit服务连接
 type RabbitConn struct {
 	// rpc连接
 	rpcClient *grpc.ClientConn
@@ -82,16 +83,16 @@ type RabbitConn struct {
 // NotifyObject 发送通道配置
 func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectRequest, opts ...Option) (*pushapi.NotifyObjectReply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return pushapi.NewConfigHTTPClient(l.httpClient).NotifyObject(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return pushapi.NewConfigClient(l.rpcClient).NotifyObject(ctx, in, rpcOpts...)
 	}
@@ -100,16 +101,16 @@ func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectR
 // SendMsg 发送消息
 func (l *RabbitConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, opts ...Option) (*hookapi.SendMsgReply, error) {
 	switch l.network {
-	case vobj.NetworkHttp, vobj.NetworkHttps:
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HttpOpts...)
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
 		return hookapi.NewHookHTTPClient(l.httpClient).SendMsg(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RpcOpts...)
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return hookapi.NewHookClient(l.rpcClient).SendMsg(ctx, in, rpcOpts...)
 	}

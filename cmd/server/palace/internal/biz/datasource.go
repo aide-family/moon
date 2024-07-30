@@ -20,6 +20,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewDatasourceBiz 创建数据源业务
 func NewDatasourceBiz(
 	datasourceRepository repository.Datasource,
 	datasourceMetricRepository repository.DatasourceMetric,
@@ -34,7 +35,7 @@ func NewDatasourceBiz(
 	}
 }
 
-// DatasourceBiz .
+// DatasourceBiz 数据源业务
 type DatasourceBiz struct {
 	lock                            repository.Lock
 	datasourceRepository            repository.Datasource
@@ -116,8 +117,8 @@ func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.
 	return nil
 }
 
-func syncDatasourceMetaKey(datasourceId uint32) string {
-	return fmt.Sprintf("sync:datasource:meta:%d", datasourceId)
+func syncDatasourceMetaKey(datasourceID uint32) string {
+	return fmt.Sprintf("sync:datasource:meta:%d", datasourceID)
 }
 
 // SyncDatasourceMeta 同步数据源元数据
@@ -198,9 +199,9 @@ func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryPar
 	return b.datasourceMetricMicroRepository.Query(ctx, params)
 }
 
-func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint32) error {
+func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamID uint32) error {
 	// 获取数据源详情
-	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamId)
+	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nDatasourceNotFoundErr(ctx)
@@ -213,7 +214,7 @@ func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamId uint3
 		return err
 	}
 	// 创建元数据
-	if err = b.datasourceMetricRepository.CreateMetricsNoAuth(ctx, teamId, metadata...); !types.IsNil(err) {
+	if err = b.datasourceMetricRepository.CreateMetricsNoAuth(ctx, teamID, metadata...); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil

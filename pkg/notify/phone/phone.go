@@ -8,6 +8,7 @@ import (
 )
 
 type (
+	// Phone is a phone service.
 	Phone interface {
 		notify.Notify
 		Call(ctx context.Context) error

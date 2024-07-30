@@ -14,12 +14,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewTeamRoleBiz 创建团队角色业务
 func NewTeamRoleBiz(teamRoleRepo repository.TeamRole) *TeamRoleBiz {
 	return &TeamRoleBiz{
 		teamRoleRepo: teamRoleRepo,
 	}
 }
 
+// TeamRoleBiz 团队角色业务
 type TeamRoleBiz struct {
 	teamRoleRepo repository.TeamRole
 }

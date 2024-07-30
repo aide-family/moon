@@ -10,34 +10,40 @@ import (
 )
 
 type (
+	// DatasourceMetricModelBuilder 数据源指标模型转换器
 	DatasourceMetricModelBuilder interface {
-		ToApi() *admin.MetricDetail
+		ToAPI() *admin.MetricDetail
 	}
+
 	datasourceMetricModelBuilder struct {
 		*bizmodel.DatasourceMetric
 
 		ctx context.Context
 	}
 
+	// DatasourceMetricLabelModelBuilder 数据源指标标签模型转换器
 	DatasourceMetricLabelModelBuilder interface {
-		ToApi() *admin.MetricLabel
+		ToAPI() *admin.MetricLabel
 	}
+
 	datasourceMetricLabelModelBuilder struct {
 		*bizmodel.MetricLabel
 		ctx context.Context
 	}
 
+	// DatasourceMetricLabelValueBuilder 数据源指标标签值模型转换器
 	DatasourceMetricLabelValueBuilder interface {
-		ToApi() *admin.MetricLabelValue
+		ToAPI() *admin.MetricLabelValue
 	}
+
 	datasourceMetricLabelValueBuilder struct {
 		*bizmodel.MetricLabelValue
 		ctx context.Context
 	}
 )
 
-// ToApi 转换为api对象
-func (b *datasourceMetricModelBuilder) ToApi() *admin.MetricDetail {
+// ToAPI 转换为api对象
+func (b *datasourceMetricModelBuilder) ToAPI() *admin.MetricDetail {
 	if types.IsNil(b) || types.IsNil(b.DatasourceMetric) {
 		return nil
 	}
@@ -47,15 +53,15 @@ func (b *datasourceMetricModelBuilder) ToApi() *admin.MetricDetail {
 		Help: b.Remark,
 		Type: api.MetricType(b.Category),
 		Labels: types.SliceTo(b.Labels, func(item *bizmodel.MetricLabel) *admin.MetricLabel {
-			return NewBuilder().WithApiDatasourceMetricLabel(item).ToApi()
+			return NewBuilder().WithAPIDatasourceMetricLabel(item).ToAPI()
 		}),
 		Unit: b.Unit,
 		Id:   b.ID,
 	}
 }
 
-// ToApi 转换为api对象
-func (b *datasourceMetricLabelModelBuilder) ToApi() *admin.MetricLabel {
+// ToAPI 转换为api对象
+func (b *datasourceMetricLabelModelBuilder) ToAPI() *admin.MetricLabel {
 	if types.IsNil(b) || types.IsNil(b.MetricLabel) {
 		return nil
 	}
@@ -63,14 +69,14 @@ func (b *datasourceMetricLabelModelBuilder) ToApi() *admin.MetricLabel {
 	return &admin.MetricLabel{
 		Name: b.Name,
 		Values: types.SliceTo(b.LabelValues, func(item *bizmodel.MetricLabelValue) *admin.MetricLabelValue {
-			return NewBuilder().WithApiDatasourceMetricLabelValue(item).ToApi()
+			return NewBuilder().WithAPIDatasourceMetricLabelValue(item).ToAPI()
 		}),
 		Id: b.ID,
 	}
 }
 
-// ToApi 转换为api对象
-func (b *datasourceMetricLabelValueBuilder) ToApi() *admin.MetricLabelValue {
+// ToAPI 转换为api对象
+func (b *datasourceMetricLabelValueBuilder) ToAPI() *admin.MetricLabelValue {
 	if types.IsNil(b) || types.IsNil(b.MetricLabelValue) {
 		return nil
 	}

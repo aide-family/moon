@@ -20,6 +20,7 @@ import (
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterService)
 
+// Server 服务
 type Server struct {
 	rpcSrv        *grpc.Server
 	httpSrv       *http.Server
@@ -27,13 +28,13 @@ type Server struct {
 	alertWatch    *watch.Watcher
 }
 
-// GetRpcServer 获取rpc server
-func (s *Server) GetRpcServer() *grpc.Server {
+// GetRPCServer 获取rpc server
+func (s *Server) GetRPCServer() *grpc.Server {
 	return s.rpcSrv
 }
 
-// GetHttpServer 获取http server
-func (s *Server) GetHttpServer() *http.Server {
+// GetHTTPServer 获取http server
+func (s *Server) GetHTTPServer() *http.Server {
 	return s.httpSrv
 }
 
@@ -47,6 +48,7 @@ func (s *Server) GetServers() []transport.Server {
 	}
 }
 
+// RegisterService 注册服务
 func RegisterService(
 	c *houyiconf.Bootstrap,
 	data *data.Data,

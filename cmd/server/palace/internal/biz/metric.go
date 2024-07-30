@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewMetricBiz 创建指标业务
 func NewMetricBiz(metricRepository repository.Metric, lock repository.Lock) *MetricBiz {
 	return &MetricBiz{
 		metricRepository: metricRepository,
@@ -79,8 +80,8 @@ func (b *MetricBiz) DeleteMetricByID(ctx context.Context, id uint32) error {
 }
 
 // GetMetricLabelCount 获取指标标签数量
-func (b *MetricBiz) GetMetricLabelCount(ctx context.Context, metricId uint32) (uint32, error) {
-	count, err := b.metricRepository.MetricLabelCount(ctx, metricId)
+func (b *MetricBiz) GetMetricLabelCount(ctx context.Context, metricID uint32) (uint32, error) {
+	count, err := b.metricRepository.MetricLabelCount(ctx, metricID)
 	if !types.IsNil(err) {
 		return 0, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
@@ -97,7 +98,7 @@ func (b *MetricBiz) CreateMetric(ctx context.Context, params *bo.CreateMetricPar
 		}()
 	}
 
-	if err := b.metricRepository.CreateMetrics(ctx, params.TeamId, params.ToModel()); !types.IsNil(err) {
+	if err := b.metricRepository.CreateMetrics(ctx, params.TeamID, params.ToModel()); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil

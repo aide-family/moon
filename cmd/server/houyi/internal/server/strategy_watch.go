@@ -39,7 +39,7 @@ func newStrategyWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *ser
 		data:         data,
 		cronInstance: cronInstance,
 		stopCh:       make(chan struct{}),
-		entryIdMap:   make(map[string]cron.EntryID),
+		entryIDMap:   make(map[string]cron.EntryID),
 		alertService: alertService,
 		interval:     interval,
 		timeout:      timeout,
@@ -48,17 +48,19 @@ func newStrategyWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *ser
 
 var _ transport.Server = (*StrategyWatch)(nil)
 
+// StrategyWatch 策略任务执行器
 type StrategyWatch struct {
 	data         *data.Data
 	cronInstance *cron.Cron
 	stopCh       chan struct{}
-	entryIdMap   map[string]cron.EntryID
+	entryIDMap   map[string]cron.EntryID
 	interval     string
 	timeout      time.Duration
 
 	alertService *service.AlertService
 }
 
+// Start 启动策略任务执行器
 func (s *StrategyWatch) Start(_ context.Context) error {
 	if types.IsNil(s) || types.IsNil(s.cronInstance) {
 		return merr.ErrorSystemErr("strategy watch is nil")
@@ -95,6 +97,7 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 	return nil
 }
 
+// Stop 停止策略任务执行器
 func (s *StrategyWatch) Stop(_ context.Context) error {
 	defer log.Infof("[StrategyWatch] server stopped")
 	close(s.stopCh)
@@ -104,9 +107,9 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 
 func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 	// 删除策略任务
-	if _, exist := s.entryIdMap[strategyMsg.Index()]; exist {
+	if _, exist := s.entryIDMap[strategyMsg.Index()]; exist {
 		log.Info("strategy watch remove job")
-		s.cronInstance.Remove(s.entryIdMap[strategyMsg.Index()])
+		s.cronInstance.Remove(s.entryIDMap[strategyMsg.Index()])
 	}
 	if !strategyMsg.Status.IsEnable() {
 		return nil
@@ -130,9 +133,9 @@ func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 	if err != nil {
 		return err
 	}
-	s.entryIdMap[strategyMsg.Index()] = entryID
+	s.entryIDMap[strategyMsg.Index()] = entryID
 
-	log.Infow("strategy watch add job", s.entryIdMap[strategyMsg.Index()])
+	log.Infow("strategy watch add job", s.entryIDMap[strategyMsg.Index()])
 
 	return nil
 }

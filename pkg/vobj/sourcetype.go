@@ -9,21 +9,24 @@ const (
 	// SourceTypeUnknown 未知
 	SourceTypeUnknown SourceType = iota // 未知
 
+	// SourceTypeSystem 系统来源
 	SourceTypeSystem // 系统来源
 
+	// SourceTypeTeam 团队来源
 	SourceTypeTeam // 团队来源
 )
 
 const (
-	SourceCodeSystem = "System"
-	SourceCodeTeam   = "Team"
+	sourceCodeSystem = "System"
+	sourceCodeTeam   = "Team"
 )
 
+// GetSourceType 根据来源编码获取来源类型
 func GetSourceType(sourceCode string) SourceType {
 	switch sourceCode {
-	case SourceCodeSystem:
+	case sourceCodeSystem:
 		return SourceTypeSystem
-	case SourceCodeTeam:
+	case sourceCodeTeam:
 		return SourceTypeTeam
 	default:
 		return SourceTypeTeam

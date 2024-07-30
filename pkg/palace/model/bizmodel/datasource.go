@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameDatasource = "datasource"
+const tableNameDatasource = "datasource"
 
 // Datasource mapped from table <datasource>
 type Datasource struct {
@@ -31,15 +31,17 @@ func (c *Datasource) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *Datasource) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *Datasource) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName Datasource's table name
 func (*Datasource) TableName() string {
-	return TableNameDatasource
+	return tableNameDatasource
 }

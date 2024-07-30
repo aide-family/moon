@@ -17,6 +17,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// TemplateService 模板策略服务
 type TemplateService struct {
 	strategyapi.UnimplementedTemplateServer
 
@@ -24,6 +25,7 @@ type TemplateService struct {
 	datasourceBiz *biz.DatasourceBiz
 }
 
+// NewTemplateService 创建模板策略服务
 func NewTemplateService(templateBiz *biz.TemplateBiz, datasourceBiz *biz.DatasourceBiz) *TemplateService {
 	return &TemplateService{
 		templateBiz:   templateBiz,
@@ -31,6 +33,7 @@ func NewTemplateService(templateBiz *biz.TemplateBiz, datasourceBiz *biz.Datasou
 	}
 }
 
+// CreateTemplateStrategy 创建模板策略
 func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strategyapi.CreateTemplateStrategyRequest) (*strategyapi.CreateTemplateStrategyReply, error) {
 	params := build.NewBuilder().WithCreateBoTemplateStrategy(req).ToCreateTemplateBO()
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
@@ -39,6 +42,7 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 	return &strategyapi.CreateTemplateStrategyReply{}, nil
 }
 
+// UpdateTemplateStrategy 更新模板策略
 func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strategyapi.UpdateTemplateStrategyRequest) (*strategyapi.UpdateTemplateStrategyReply, error) {
 	params := build.NewBuilder().WithUpdateBoTemplateStrategy(req).ToUpdateTemplateBO()
 	if err := s.templateBiz.UpdateTemplateStrategy(ctx, params); err != nil {
@@ -47,6 +51,7 @@ func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strat
 	return &strategyapi.UpdateTemplateStrategyReply{}, nil
 }
 
+// DeleteTemplateStrategy 删除模板策略
 func (s *TemplateService) DeleteTemplateStrategy(ctx context.Context, req *strategyapi.DeleteTemplateStrategyRequest) (*strategyapi.DeleteTemplateStrategyReply, error) {
 	if err := s.templateBiz.DeleteTemplateStrategy(ctx, req.GetId()); err != nil {
 		return nil, err
@@ -54,16 +59,18 @@ func (s *TemplateService) DeleteTemplateStrategy(ctx context.Context, req *strat
 	return &strategyapi.DeleteTemplateStrategyReply{}, nil
 }
 
+// GetTemplateStrategy 获取模板策略
 func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategyapi.GetTemplateStrategyRequest) (*strategyapi.GetTemplateStrategyReply, error) {
 	detail, err := s.templateBiz.GetTemplateStrategy(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	return &strategyapi.GetTemplateStrategyReply{
-		Detail: build.NewBuilder().WithApiTemplateStrategy(detail).ToApi(ctx),
+		Detail: build.NewBuilder().WithAPITemplateStrategy(detail).ToAPI(ctx),
 	}, nil
 }
 
+// ListTemplateStrategy 列表模板策略
 func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strategyapi.ListTemplateStrategyRequest) (*strategyapi.ListTemplateStrategyReply, error) {
 	params := &bo.QueryTemplateStrategyListParams{
 		Page:    types.NewPagination(req.GetPagination()),
@@ -75,13 +82,14 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strateg
 		return nil, err
 	}
 	return &strategyapi.ListTemplateStrategyReply{
-		Pagination: build.NewPageBuilder(params.Page).ToApi(),
+		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
 		List: types.SliceTo(list, func(item *model.StrategyTemplate) *admin.StrategyTemplate {
-			return build.NewBuilder().WithApiTemplateStrategy(item).ToApi(ctx)
+			return build.NewBuilder().WithAPITemplateStrategy(item).ToAPI(ctx)
 		}),
 	}, nil
 }
 
+// UpdateTemplateStrategyStatus 更新模板策略状态
 func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req *strategyapi.UpdateTemplateStrategyStatusRequest) (*strategyapi.UpdateTemplateStrategyStatusReply, error) {
 	if err := s.templateBiz.UpdateTemplateStrategyStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); err != nil {
 		return nil, err
@@ -89,6 +97,7 @@ func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req 
 	return &strategyapi.UpdateTemplateStrategyStatusReply{}, nil
 }
 
+// ValidateAnnotationsTemplate 验证模板策略告警模板
 func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *strategyapi.ValidateAnnotationsTemplateRequest) (*strategyapi.ValidateAnnotationsTemplateReply, error) {
 	timeNow := time.Now()
 	data := map[string]any{

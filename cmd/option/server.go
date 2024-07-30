@@ -17,10 +17,10 @@ var (
 )
 
 const (
-	ServicePalaceName = "palace"
-	ServiceDemoName   = "demo"
-	ServiceRabbitName = "rabbit"
-	ServiceHouYiName  = "houyi"
+	servicePalaceName = "palace"
+	serviceDemoName   = "demo"
+	serviceRabbitName = "rabbit"
+	serviceHouYiName  = "houyi"
 )
 
 var serverCmd = &cobra.Command{
@@ -30,11 +30,11 @@ var serverCmd = &cobra.Command{
 	Example: `cmd server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		switch name {
-		case ServiceDemoName:
+		case serviceDemoName:
 			demo.Run(flagconf)
-		case ServiceRabbitName:
+		case serviceRabbitName:
 			rabbit.Run(flagconf)
-		case ServiceHouYiName:
+		case serviceHouYiName:
 			houyi.Run(flagconf)
 		default:
 			palace.Run(flagconf)
@@ -45,5 +45,5 @@ var serverCmd = &cobra.Command{
 func init() {
 	// conf参数
 	serverCmd.Flags().StringVarP(&flagconf, "conf", "c", "./configs", "config path, eg: -conf config.yaml")
-	serverCmd.Flags().StringVarP(&name, "name", "n", ServicePalaceName, "name of the service")
+	serverCmd.Flags().StringVarP(&name, "name", "n", servicePalaceName, "name of the service")
 }

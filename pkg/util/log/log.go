@@ -11,24 +11,28 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 )
 
+// ID 获取服务ID
 func ID() log.Valuer {
 	return func(ctx context.Context) interface{} {
 		return env.Env()
 	}
 }
 
+// Name 获取服务名称
 func Name() log.Valuer {
 	return func(ctx context.Context) interface{} {
 		return env.Name()
 	}
 }
 
+// Version 获取服务版本
 func Version() log.Valuer {
 	return func(ctx context.Context) interface{} {
 		return env.Version()
 	}
 }
 
+// Env 获取服务环境
 func Env() log.Valuer {
 	return func(ctx context.Context) interface{} {
 		return env.Env()
@@ -51,6 +55,7 @@ func GetLogger() log.Logger {
 	return defaultLogger
 }
 
+// RecoveryHandle 错误处理
 func RecoveryHandle(ctx context.Context, req, err interface{}) error {
 	log.Errorw("panic", err)
 	myErr, ok := err.(*errors.Error)

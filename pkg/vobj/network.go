@@ -6,11 +6,15 @@ package vobj
 type Network int
 
 const (
+	// NetworkUnknown 未知
 	NetworkUnknown Network = iota // 未知
 
-	NetworkHttp // http
+	// NetworkHTTP http
+	NetworkHTTP // http
 
-	NetworkHttps // https
+	// NetworkHTTPS https
+	NetworkHTTPS // https
 
-	NetworkRpc // rpc
+	// NetworkRPC rpc
+	NetworkRPC // rpc
 )

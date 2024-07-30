@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package api.admin.realtime;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/realtime;realtime";
+option java_multiple_files = true;
+option java_package = "api.admin.realtime";
+
+// 实时监控之数据大盘
+service Dashboard {
+	// 创建大盘
+	rpc CreateDashboard (CreateDashboardRequest) returns (CreateDashboardReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/create"
+			body: "*"
+		};
+	}
+
+	// 更新大盘
+	rpc UpdateDashboard (UpdateDashboardRequest) returns (UpdateDashboardReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/dashboard/update/{id}"
+			body: "*"
+		};
+	}
+
+	// 删除大盘
+	rpc DeleteDashboard (DeleteDashboardRequest) returns (DeleteDashboardReply) {
+		option (google.api.http) = {
+			delete: "/v1/admin/realtime/dashboard/delete"
+		};
+	}
+
+	// 获取大盘明细
+	rpc GetDashboard (GetDashboardRequest) returns (GetDashboardReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/realtime/dashboard/get/{id}"
+		};
+	}
+
+	// 获取大盘列表
+	rpc ListDashboard (ListDashboardRequest) returns (ListDashboardReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/list"
+			body: "*"
+		};
+	}
+
+	// 获取大盘下拉列表
+	rpc ListDashboardSelect (ListDashboardSelectRequest) returns (ListDashboardSelectReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/list/select"
+			body: "*"
+		};
+	}
+}
+
+message CreateDashboardRequest {
+	// 仪表板名称
+	string title = 1 [(buf.validate.field).cel = {
+		message: "仪表标题在1-20个字符",
+		expression: 'this.size() >= 1 && this.size() <= 20'
+	}];
+	// 仪表板说明
+	string remark = 2 [(buf.validate.field).cel = {
+		message: "仪表说明在200个字符以内",
+		expression: 'this.size() <= 200'
+	}];
+	// 仪表板颜色
+	string color = 3;
+	// 图表列表
+	repeated ChartItem charts = 4;
+	// 策略组
+	repeated uint32 strategyGroups = 5;
+}
+message CreateDashboardReply {}
+
+message UpdateDashboardRequest {
+	// 仪表板ID
+	uint32 id = 1;
+	// 仪表板名称
+	string title = 2;
+	// 仪表板说明
+	string remark = 3;
+	// 仪表板颜色
+	string color = 4;
+	// 图表列表
+	repeated ChartItem charts = 5;
+	// 策略组
+	repeated uint32 strategyGroups = 6;
+}
+message UpdateDashboardReply {}
+
+message DeleteDashboardRequest {
+	// 仪表板ID
+	uint32 id = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+}
+message DeleteDashboardReply {}
+
+message GetDashboardRequest {
+	// 仪表板ID
+	uint32 id = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+}
+message GetDashboardReply {
+	// 仪表板详情
+	DashboardItem detail = 1;
+}
+
+message ListDashboardRequest {
+	// 仪表板名称
+	string keyword = 1 [(buf.validate.field).cel = {
+		message: "模糊搜索在20个字符以内",
+		expression: 'this.size() <= 20'
+	}];
+	// 仪表板状态
+	Status status = 2;
+	// 分页
+	PaginationReq pagination = 3 [(buf.validate.field).required = true];
+}
+message ListDashboardReply {
+	// 仪表板列表
+	repeated DashboardItem list = 1;
+	// 分页
+	PaginationReply pagination = 2;
+}
+
+message ListDashboardSelectRequest {
+	// 仪表板名称
+	string keyword = 1 [(buf.validate.field).cel = {
+		message: "模糊搜索在20个字符以内",
+		expression: 'this.size() <= 20'
+	}];
+	// 仪表板状态
+	Status status = 2;
+	// 分页
+	PaginationReq pagination = 3 [(buf.validate.field).required = true];
+}
+message ListDashboardSelectReply {
+	// 仪表板列表
+	repeated SelectItem list = 1;
+	// 分页
+	PaginationReply pagination = 2;
+}

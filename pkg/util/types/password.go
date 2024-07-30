@@ -11,8 +11,10 @@ import (
 )
 
 const (
+	// DefaultKey 默认aes cbc key
 	DefaultKey = "1234567890123456"
-	DefaultIv  = "1234567890123456"
+	// DefaultIv  默认aes cbc iv
+	DefaultIv = "1234567890123456"
 )
 
 var (
@@ -20,6 +22,7 @@ var (
 	defaultIv  = "1234567890123456"
 )
 
+// ErrValidatePassword 密码错误
 var ErrValidatePassword = status.Error(http.StatusUnauthorized, "密码错误")
 
 // SetDefaultKey 设置默认key
@@ -32,6 +35,7 @@ func SetDefaultIv(iv string) {
 	defaultIv = iv
 }
 
+// NewPassword 创建密码
 func NewPassword(values ...string) Password {
 	var value, salt string
 	switch len(values) {
@@ -52,6 +56,7 @@ func NewPassword(values ...string) Password {
 }
 
 type (
+	// Password 密码
 	Password interface {
 		GetEncryptValue() (string, error)
 		GetValue() string
@@ -63,10 +68,12 @@ type (
 	}
 )
 
+// GetSalt 获取盐
 func (p *password) GetSalt() string {
 	return p.salt
 }
 
+// String 获取加密值
 func (p *password) String() string {
 	v, _ := p.GetEncryptValue()
 	return v

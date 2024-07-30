@@ -47,14 +47,14 @@ func (l *dingTalk) Send(ctx context.Context, msg notify.Msg) error {
 		"timestamp": timestamp,
 		"sign":      l.generateSignature(timestamp, l.GetSecret()),
 	})
-	reqUrl := fmt.Sprintf("%s&%s", l.GetWebhook(), params)
+	reqURL := fmt.Sprintf("%s&%s", l.GetWebhook(), params)
 	temp := l.GetTemplate()
 	msgStr := l.GetContent()
 	if temp != "" {
 		msgStr = temp
 	}
 	msgStr = format.Formatter(msgStr, msg)
-	response, err := httpx.NewHttpX().POSTWithContext(ctx, reqUrl, []byte(msgStr))
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, reqURL, []byte(msgStr))
 	if err != nil {
 		return err
 	}

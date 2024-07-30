@@ -2,22 +2,25 @@ package biz
 
 import (
 	"context"
-	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 )
 
+// NewStrategyGroupBiz 创建策略分组业务
 func NewStrategyGroupBiz(strategy repository.StrategyGroup) *StrategyGroupBiz {
 	return &StrategyGroupBiz{
 		strategyRepo: strategy,
 	}
 }
 
+// StrategyGroupBiz 策略分组业务
 type StrategyGroupBiz struct {
 	strategyRepo repository.StrategyGroup
 }

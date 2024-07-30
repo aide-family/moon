@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 )
 
+// NewStrategyBiz new StrategyBiz
 func NewStrategyBiz(strategyRepository repository.Strategy) *StrategyBiz {
 	return &StrategyBiz{
 		strategyRepository: strategyRepository,

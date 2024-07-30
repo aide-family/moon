@@ -16,12 +16,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewTeamBiz 创建团队业务
 func NewTeamBiz(teamRepo repository.Team) *TeamBiz {
 	return &TeamBiz{
 		teamRepo: teamRepo,
 	}
 }
 
+// TeamBiz 团队业务
 type TeamBiz struct {
 	teamRepo repository.Team
 }
@@ -56,11 +58,11 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 }
 
 // GetTeam 获取团队信息
-func (t *TeamBiz) GetTeam(ctx context.Context, teamId uint32) (*model.SysTeam, error) {
-	if teamId == 0 {
+func (t *TeamBiz) GetTeam(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
+	if teamID == 0 {
 		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
 	}
-	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamId}})
+	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamID}})
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
@@ -102,8 +104,8 @@ func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids 
 }
 
 // GetUserTeamList 获取用户团队列表
-func (t *TeamBiz) GetUserTeamList(ctx context.Context, userId uint32) ([]*model.SysTeam, error) {
-	list, err := t.teamRepo.GetUserTeamList(ctx, userId)
+func (t *TeamBiz) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
+	list, err := t.teamRepo.GetUserTeamList(ctx, userID)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
@@ -184,7 +186,7 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 不能设置自己
-	for _, memberID := range params.MemberIds {
+	for _, memberID := range params.MemberIDs {
 		if memberID == claims.GetUser() {
 			return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
 		}

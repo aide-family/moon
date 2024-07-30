@@ -135,7 +135,7 @@ message SelectMetricRequest {
 }
 message SelectMetricReply {
   // 数据
-  repeated Select list = 1;
+  repeated SelectItem list = 1;
   // 分页参数
   PaginationReply pagination = 2;
 }

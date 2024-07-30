@@ -9,11 +9,13 @@ import (
 	"github.com/nutsdb/nutsdb"
 )
 
+// NutsDbConfig nuts db 配置
 type NutsDbConfig interface {
 	GetPath() string
 	GetBucket() string
 }
 
+// NewNutsDbCacher 创建一个 nuts db 缓存
 func NewNutsDbCacher(cfg NutsDbConfig) (conn.Cache, error) {
 	db, err := nutsdb.Open(
 		nutsdb.DefaultOptions,

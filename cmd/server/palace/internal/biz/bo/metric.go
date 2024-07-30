@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// QueryMetricListParams 查询指标列表请求参数
 	QueryMetricListParams struct {
 		Page         types.Pagination `json:"page"`
 		Keyword      string           `json:"keyword"`
@@ -14,11 +15,13 @@ type (
 		MetricType   vobj.MetricType  `json:"metricType"`
 	}
 
+	// GetMetricParams 获取指标请求参数
 	GetMetricParams struct {
 		ID           uint32 `json:"id"`
 		WithRelation bool   `json:"withRelation"`
 	}
 
+	// UpdateMetricParams 更新指标请求参数
 	UpdateMetricParams struct {
 		ID uint32 `json:"id"`
 		// 单位
@@ -27,11 +30,13 @@ type (
 		Remark string `json:"remark"`
 	}
 
+	// MetricLabel 指标标签
 	MetricLabel struct {
 		Name   string   `json:"name"`
 		Values []string `json:"values"`
 	}
 
+	// MetricBo 指标明细
 	MetricBo struct {
 		Name   string          `json:"name"`
 		Help   string          `json:"help"`
@@ -40,11 +45,12 @@ type (
 		Labels []*MetricLabel  `json:"labels"`
 	}
 
+	// CreateMetricParams 创建指标请求参数
 	CreateMetricParams struct {
 		Metric       *MetricBo `json:"metric"`
 		Done         bool      `json:"done"`
 		DatasourceID uint32    `json:"datasourceID"`
-		TeamId       uint32    `json:"teamId"`
+		TeamID       uint32    `json:"teamId"`
 	}
 )
 

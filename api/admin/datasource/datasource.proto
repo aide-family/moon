@@ -131,7 +131,7 @@ message GetDatasourceRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetDatasourceReply {
-  Datasource data = 1;
+  DatasourceItem data = 1;
 }
 
 message ListDatasourceRequest {
@@ -151,7 +151,7 @@ message ListDatasourceRequest {
 }
 message ListDatasourceReply {
   PaginationReply pagination = 1;
-  repeated Datasource list = 2;
+  repeated DatasourceItem list = 2;
 }
 
 message UpdateDatasourceStatusRequest {
@@ -172,7 +172,7 @@ message GetDatasourceSelectRequest {
   StorageType storage_type = 6;
 }
 message GetDatasourceSelectReply {
-  repeated Select data = 1;
+  repeated SelectItem data = 1;
 }
 
 message SyncDatasourceMetaRequest {

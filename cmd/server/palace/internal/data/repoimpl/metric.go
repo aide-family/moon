@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// NewMetricRepository 创建指标仓库
 func NewMetricRepository(data *data.Data) repository.Metric {
 	return &metricRepositoryImpl{data: data}
 }
@@ -168,9 +169,9 @@ func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetri
 	return qq.Find()
 }
 
-func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamId uint32, metric *bizmodel.DatasourceMetric) error {
+func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32, metric *bizmodel.DatasourceMetric) error {
 	// 根据指标名称查询指标
-	bizDB, err := m.data.GetBizGormDB(teamId)
+	bizDB, err := m.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return err
 	}

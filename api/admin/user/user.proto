@@ -307,7 +307,7 @@ message GetUserSelectListRequest {
 }
 message GetUserSelectListReply {
   // 用户列表
-  repeated Select list = 1;
+  repeated SelectItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }

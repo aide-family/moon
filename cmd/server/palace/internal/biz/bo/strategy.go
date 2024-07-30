@@ -7,11 +7,12 @@ import (
 )
 
 type (
+	// CreateStrategyParams 创建策略请求参数
 	CreateStrategyParams struct {
 		// 策略组ID
-		GroupId uint32 `json:"group_id"`
+		GroupID uint32 `json:"group_id"`
 		// 策略模板id
-		TemplateId uint32 `json:"template_id"`
+		TemplateID uint32 `json:"template_id"`
 		// 备注
 		Remark string `json:"remark"`
 		// 状态
@@ -19,7 +20,7 @@ type (
 		// 采样率
 		Step uint32 `json:"step"`
 		// 数据源id
-		DatasourceIds []uint32 `json:"datasource_ids"`
+		DatasourceIDs []uint32 `json:"datasource_ids"`
 		// 模板来源
 		SourceType vobj.TemplateSourceType `json:"source_type"`
 		// 策略名称
@@ -33,12 +34,14 @@ type (
 		Annotations vobj.Annotations `json:"annotations"`
 	}
 
+	// UpdateStrategyParams 更新策略请求参数
 	UpdateStrategyParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam CreateStrategyParams
 		TeamID      uint32 `json:"teamID"`
 	}
 
+	// QueryStrategyListParams 查询策略列表请求参数
 	QueryStrategyListParams struct {
 		Keyword    string `json:"keyword"`
 		Page       types.Pagination
@@ -48,22 +51,26 @@ type (
 		TeamID     uint32 `json:"teamID"`
 	}
 
+	// GetStrategyDetailParams 获取策略详情请求参数
 	GetStrategyDetailParams struct {
 		ID     uint32 `json:"id"`
 		TeamID uint32 `json:"teamID"`
 	}
 
+	// DelStrategyParams 删除策略请求参数
 	DelStrategyParams struct {
 		ID     uint32 `json:"id"`
 		TeamID uint32 `json:"teamID"`
 	}
 
+	// UpdateStrategyStatusParams 更新策略状态请求参数
 	UpdateStrategyStatusParams struct {
 		Ids    []uint32 `json:"ids"`
 		TeamID uint32   `json:"teamID"`
 		Status vobj.Status
 	}
 
+	// CreateStrategyLevel 策略模板策略等级
 	CreateStrategyLevel struct {
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`
@@ -86,11 +93,13 @@ type (
 		Status vobj.Status `json:"status"`
 	}
 
+	// CopyStrategyParams 复制策略请求参数
 	CopyStrategyParams struct {
 		StrategyID uint32 `json:"strategyID"`
 		TeamID     uint32 `json:"teamID"`
 	}
 
+	// CreateStrategyGroupParams 创建策略组请求参数
 	CreateStrategyGroupParams struct {
 		// 策略组名称
 		Name string `json:"name,omitempty"`
@@ -103,28 +112,33 @@ type (
 		TeamID        uint32   `json:"teamID"`
 	}
 
+	// UpdateStrategyGroupStatusParams 更新策略组状态请求参数
 	UpdateStrategyGroupStatusParams struct {
-		Ids    []uint32 `json:"ids"`
+		IDs    []uint32 `json:"ids"`
 		TeamID uint32   `json:"teamID"`
 		Status vobj.Status
 	}
 
+	// UpdateStrategyGroupParams 更新策略组请求参数
 	UpdateStrategyGroupParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam CreateStrategyGroupParams
 		TeamID      uint32 `json:"teamID"`
 	}
 
+	// GetStrategyGroupDetailParams 获取策略组详情请求参数
 	GetStrategyGroupDetailParams struct {
 		ID     uint32 `json:"id"`
 		TeamID uint32 `json:"teamID"`
 	}
 
+	// DelStrategyGroupParams 删除策略组请求参数
 	DelStrategyGroupParams struct {
 		ID     uint32 `json:"id"`
 		TeamID uint32 `json:"teamID"`
 	}
 
+	// QueryStrategyGroupListParams 查询策略组列表请求参数
 	QueryStrategyGroupListParams struct {
 		Keyword string `json:"keyword"`
 		Page    types.Pagination

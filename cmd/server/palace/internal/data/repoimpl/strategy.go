@@ -18,6 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// NewStrategyRepository 创建策略仓库
 func NewStrategyRepository(data *data.Data) repository.Strategy {
 	return &strategyRepositoryImpl{
 		data: data,
@@ -61,7 +62,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, params *bo.DelS
 
 func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
 	bizDB, err := s.data.GetBizGormDB(params.TeamID)
-	templateId := params.TemplateId
+	templateID := params.TemplateID
 
 	if !types.IsNil(err) {
 		return nil, err
@@ -69,7 +70,7 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 
 	mainDb := s.data.GetMainDB(ctx).WithContext(ctx)
 
-	strategyTemplate, err := query.Use(mainDb).StrategyTemplate.Where(query.StrategyTemplate.ID.Eq(templateId)).Preload(field.Associations).First()
+	strategyTemplate, err := query.Use(mainDb).StrategyTemplate.Where(query.StrategyTemplate.ID.Eq(templateID)).Preload(field.Associations).First()
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	}
 	updateParam := params.UpdateParam
 	queryWrapper := bizquery.Use(bizDB)
-	datasourceIds := types.SliceToWithFilter(updateParam.DatasourceIds, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
+	datasourceIds := types.SliceToWithFilter(updateParam.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 		if datasourceId <= 0 {
 			return nil, false
 		}
@@ -114,7 +115,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 
-		strategyTemplate, err := queryWrapper.StrategyTemplate.Where(query.StrategyTemplate.ID.Eq(params.UpdateParam.TemplateId)).Preload(field.Associations).First()
+		strategyTemplate, err := queryWrapper.StrategyTemplate.Where(query.StrategyTemplate.ID.Eq(params.UpdateParam.TemplateID)).Preload(field.Associations).First()
 
 		if strategyTemplate != nil {
 			categories := types.SliceToWithFilter(strategyTemplate.Categories, func(dict *bizmodel.SysDict) (*bizmodel.SysDict, bool) {
@@ -248,10 +249,10 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, params *bo.Co
 	return strategy, nil
 }
 
-func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyLevel, strategyId uint32) []*bizmodel.StrategyLevel {
+func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyLevel, strategyID uint32) []*bizmodel.StrategyLevel {
 	strategyLevel := types.SliceTo(params, func(item *bo.CreateStrategyLevel) *bizmodel.StrategyLevel {
 		templateLevel := &bizmodel.StrategyLevel{
-			StrategyID:  strategyId,
+			StrategyID:  strategyID,
 			Duration:    item.Duration,
 			Count:       item.Count,
 			SustainType: item.SustainType,
@@ -277,7 +278,7 @@ func createStrategyParamsToModel(ctx context.Context, strategyTemplate *model.St
 		Annotations:            params.Annotations,
 		Remark:                 params.Remark,
 		Step:                   params.Step,
-		Datasource: types.SliceToWithFilter(params.DatasourceIds, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
+		Datasource: types.SliceToWithFilter(params.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 			if datasourceId <= 0 {
 				return nil, false
 			}
@@ -293,7 +294,7 @@ func createStrategyParamsToModel(ctx context.Context, strategyTemplate *model.St
 				AllFieldModel: model.AllFieldModel{ID: dict.ID},
 			}, true
 		}),
-		GroupID: params.GroupId,
+		GroupID: params.GroupID,
 	}
 	strategyModel.WithContext(ctx)
 	return strategyModel

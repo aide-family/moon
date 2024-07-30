@@ -7,8 +7,9 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const TableNameStrategyTemplate = "strategy_templates"
+const tableNameStrategyTemplate = "strategy_templates"
 
+// StrategyTemplate 策略模板
 type StrategyTemplate struct {
 	model.AllFieldModel
 	Alert       string           `gorm:"column:alert;type:varchar(64);not null;comment:策略名称" json:"alert"`
@@ -30,15 +31,17 @@ func (c *StrategyTemplate) String() string {
 	return string(bs)
 }
 
+// UnmarshalBinary redis存储实现
 func (c *StrategyTemplate) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
+// MarshalBinary redis存储实现
 func (c *StrategyTemplate) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName StrategyTemplate's table name
 func (*StrategyTemplate) TableName() string {
-	return TableNameStrategyTemplate
+	return tableNameStrategyTemplate
 }

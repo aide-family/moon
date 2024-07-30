@@ -15,12 +15,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewUserBiz 创建用户业务
 func NewUserBiz(userRepo repository.User) *UserBiz {
 	return &UserBiz{
 		userRepo: userRepo,
 	}
 }
 
+// UserBiz 用户业务
 type UserBiz struct {
 	userRepo repository.User
 }
@@ -155,7 +157,7 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 
 // ResetUserPasswordBySelf 重置自己的密码
 func (b *UserBiz) ResetUserPasswordBySelf(ctx context.Context, req *bo.ResetUserPasswordBySelfParams) error {
-	if err := b.userRepo.UpdatePassword(ctx, req.UserId, req.Password); !types.IsNil(err) {
+	if err := b.userRepo.UpdatePassword(ctx, req.UserID, req.Password); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil
@@ -180,7 +182,7 @@ func (b *UserBiz) GetUserSelectList(ctx context.Context, params *bo.QueryUserSel
 
 // UpdateUserPhone 更新用户手机号
 func (b *UserBiz) UpdateUserPhone(ctx context.Context, req *bo.UpdateUserPhoneRequest) error {
-	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
+	userDo, err := b.userRepo.GetByID(ctx, req.UserID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nUserNotFoundErr(ctx)
@@ -196,7 +198,7 @@ func (b *UserBiz) UpdateUserPhone(ctx context.Context, req *bo.UpdateUserPhoneRe
 
 // UpdateUserEmail 更新用户邮箱
 func (b *UserBiz) UpdateUserEmail(ctx context.Context, req *bo.UpdateUserEmailRequest) error {
-	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
+	userDo, err := b.userRepo.GetByID(ctx, req.UserID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nUserNotFoundErr(ctx)
@@ -212,7 +214,7 @@ func (b *UserBiz) UpdateUserEmail(ctx context.Context, req *bo.UpdateUserEmailRe
 
 // UpdateUserAvatar 更新用户头像
 func (b *UserBiz) UpdateUserAvatar(ctx context.Context, req *bo.UpdateUserAvatarRequest) error {
-	userDo, err := b.userRepo.GetByID(ctx, req.UserId)
+	userDo, err := b.userRepo.GetByID(ctx, req.UserID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nUserNotFoundErr(ctx)

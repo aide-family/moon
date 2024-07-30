@@ -8,15 +8,19 @@ import (
 )
 
 type (
+	// BasicAuth 基础认证信息
 	BasicAuth struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
 
+	// QueryValue 查询到的值
 	QueryValue struct {
 		Value     float64 `json:"value"`
 		Timestamp int64   `json:"timestamp"`
 	}
+
+	// QueryResponse 查询到的响应
 	QueryResponse struct {
 		// 标签集合
 		Labels *vobj.Labels `json:"labels"`
@@ -63,9 +67,11 @@ type (
 		prometheusOptions []PrometheusOption
 	}
 
+	// DatasourceBuildOption 数据源构建选项
 	DatasourceBuildOption func(p *datasourceBuild)
 )
 
+// NewMetricDatasource 创建数据源
 func NewMetricDatasource(storageType vobj.StorageType, opts ...DatasourceBuildOption) (Datasource, error) {
 	d := &datasourceBuild{}
 	for _, opt := range opts {

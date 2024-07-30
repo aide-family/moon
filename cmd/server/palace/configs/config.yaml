@@ -29,9 +29,15 @@ server:
 data:
   database:
     driver: "mysql"
+    debug: false
     dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   bizDatabase:
     driver: "mysql"
+    debug: false
+    dsn: "root:12345678@tcp(localhost:3306)/"
+  alarmDatabase:
+    driver: "mysql"
+    debug: false
     dsn: "root:12345678@tcp(localhost:3306)/"
   cache:
     redis:

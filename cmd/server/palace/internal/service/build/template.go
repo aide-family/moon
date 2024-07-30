@@ -14,10 +14,12 @@ import (
 )
 
 type (
+	// TemplateModelBuilder 模版模型构造器
 	TemplateModelBuilder interface {
-		ToApi(ctx context.Context) *admin.StrategyTemplate
+		ToAPI(ctx context.Context) *admin.StrategyTemplate
 	}
 
+	// TemplateRequestBuilder 模版请求参数构造器
 	TemplateRequestBuilder interface {
 		ToCreateTemplateBO() *bo.CreateTemplateStrategyParams
 		ToUpdateTemplateBO() *bo.UpdateTemplateStrategyParams
@@ -35,8 +37,9 @@ type (
 		ctx context.Context
 	}
 
+	// TemplateLevelBuilder 模版级别构造器
 	TemplateLevelBuilder interface {
-		ToApi() *admin.StrategyLevelTemplate
+		ToAPI() *admin.StrategyLevelTemplate
 	}
 
 	templateStrategyLevelBuilder struct {
@@ -45,7 +48,7 @@ type (
 	}
 )
 
-func (b *templateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemplate {
+func (b *templateStrategyBuilder) ToAPI(ctx context.Context) *admin.StrategyTemplate {
 	if types.IsNil(b) || types.IsNil(b.StrategyTemplate) {
 		return nil
 	}
@@ -55,7 +58,7 @@ func (b *templateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemp
 		Alert: b.Alert,
 		Expr:  b.Expr,
 		Levels: types.SliceTo(b.StrategyLevelTemplates, func(item *model.StrategyLevelTemplate) *admin.StrategyLevelTemplate {
-			return NewBuilder().WithApiTemplateStrategyLevel(item).ToApi()
+			return NewBuilder().WithAPITemplateStrategyLevel(item).ToAPI()
 		}),
 		Labels:      b.Labels.Map(),
 		Annotations: b.Annotations,
@@ -63,9 +66,9 @@ func (b *templateStrategyBuilder) ToApi(ctx context.Context) *admin.StrategyTemp
 		CreatedAt:   b.CreatedAt.String(),
 		UpdatedAt:   b.UpdatedAt.String(),
 		Remark:      b.Remark,
-		Creator:     NewBuilder().WithApiUserBo(cache.GetUser(ctx, b.CreatorID)).ToApi(),
-		Categories: types.SliceTo(b.Categories, func(item *model.SysDict) *admin.Select {
-			return NewBuilder().WithApiDictSelect(item).ToApiSelect()
+		Creator:     NewBuilder().WithAPIUserBo(cache.GetUser(ctx, b.CreatorID)).ToAPI(),
+		Categories: types.SliceTo(b.Categories, func(item *model.SysDict) *admin.SelectItem {
+			return NewBuilder().WithAPIDictSelect(item).ToAPISelect()
 		}),
 	}
 }
@@ -130,7 +133,7 @@ func (b *templateStrategyBuilder) ToUpdateTemplateBO() *bo.UpdateTemplateStrateg
 	}
 }
 
-func (b *templateStrategyLevelBuilder) ToApi() *admin.StrategyLevelTemplate {
+func (b *templateStrategyLevelBuilder) ToAPI() *admin.StrategyLevelTemplate {
 	if types.IsNil(b) || types.IsNil(b.StrategyLevelTemplate) {
 		return nil
 	}
@@ -141,7 +144,7 @@ func (b *templateStrategyLevelBuilder) ToApi() *admin.StrategyLevelTemplate {
 		SustainType: api.SustainType(b.SustainType),
 		Status:      api.Status(b.Status),
 		LevelId:     b.LevelID,
-		Level:       NewBuilder().WithApiDictSelect(b.Level).ToApiSelect(),
+		Level:       NewBuilder().WithAPIDictSelect(b.Level).ToAPISelect(),
 		Threshold:   b.Threshold,
 		StrategyId:  b.StrategyTemplateID,
 		Condition:   api.Condition(b.Condition),

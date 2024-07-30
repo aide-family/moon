@@ -6,9 +6,12 @@ package vobj
 type StorageType int
 
 const (
+	// StorageTypeUnknown 未知
 	StorageTypeUnknown StorageType = iota // 未知
 
+	// StorageTypePrometheus Prometheus
 	StorageTypePrometheus // Prometheus
 
+	// StorageTypeVictoriametrics VictoriaMetrics
 	StorageTypeVictoriametrics // VictoriaMetrics
 )

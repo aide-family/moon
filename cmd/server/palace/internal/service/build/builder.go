@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
+// NewBuilder 创建公共构造器
 func NewBuilder() Builder {
 	return &builder{
 		ctx: context.TODO(),
@@ -27,6 +28,7 @@ type (
 		ctx context.Context
 	}
 
+	// Builder 构造器公共接口
 	Builder interface {
 		WithContext(ctx context.Context) Builder
 
@@ -38,50 +40,50 @@ type (
 		WithUpdateDatasourceBo(*datasourceapi.UpdateDatasourceRequest) DatasourceRequestBuilder
 		WithBoDatasourceQueryData(*bo.DatasourceQueryData) DatasourceQueryDataBuilder
 
-		WithApiTemplateStrategy(*model.StrategyTemplate) TemplateModelBuilder
+		WithAPITemplateStrategy(*model.StrategyTemplate) TemplateModelBuilder
 		WithCreateBoTemplateStrategy(*strategyapi.CreateTemplateStrategyRequest) TemplateRequestBuilder
 		WithUpdateBoTemplateStrategy(*strategyapi.UpdateTemplateStrategyRequest) TemplateRequestBuilder
-		WithApiTemplateStrategyLevel(*model.StrategyLevelTemplate) TemplateLevelBuilder
+		WithAPITemplateStrategyLevel(*model.StrategyLevelTemplate) TemplateLevelBuilder
 
-		WithApiStrategy(*bizmodel.Strategy) StrategyModelBuilder
+		WithAPIStrategy(*bizmodel.Strategy) StrategyModelBuilder
 		WithCreateBoStrategy(*strategyapi.CreateStrategyRequest) StrategyRequestBuilder
 		WithUpdateBoStrategy(*strategyapi.UpdateStrategyRequest) StrategyRequestBuilder
-		WithApiStrategyLevel(*bizmodel.StrategyLevel) StrategyLevelModelBuilder
+		WithAPIStrategyLevel(*bizmodel.StrategyLevel) StrategyLevelModelBuilder
 
-		WithApiStrategyGroup(*bizmodel.StrategyGroup) StrategyGroupModelBuilder
+		WithAPIStrategyGroup(*bizmodel.StrategyGroup) StrategyGroupModelBuilder
 		WithCreateBoStrategyGroup(*strategyapi.CreateStrategyGroupRequest) StrategyGroupRequestBuilder
 		WithUpdateBoStrategyGroup(*strategyapi.UpdateStrategyGroupRequest) StrategyGroupRequestBuilder
 		WithListStrategyGroup(*strategyapi.ListStrategyGroupRequest) StrategyGroupRequestBuilder
 
 		WithCreateBoDict(*dictapi.CreateDictRequest) DictRequestBuilder
 		WithUpdateBoDict(*dictapi.UpdateDictRequest) DictRequestBuilder
-		WithApiDictSelect(*model.SysDict) DictModelBuilder
+		WithAPIDictSelect(*model.SysDict) DictModelBuilder
 		WithDict(imodel.IDict) DictModelBuilder
 
 		WithCreateMenuBo(*menuapi.CreateMenuRequest) MenuRequestBuilder
 		WithUpdateMenuBo(*menuapi.UpdateMenuRequest) MenuRequestBuilder
-		WithApiMenu(*model.SysMenu) MenuModelBuilder
+		WithAPIMenu(*model.SysMenu) MenuModelBuilder
 		WithBatchCreateMenuBo(*menuapi.BatchCreateMenuRequest) MenuRequestBuilder
-		WithApiMenuTree([]*admin.Menu, uint32) MenuTreeBuilder
+		WithAPIMenuTree([]*admin.Menu, uint32) MenuTreeBuilder
 
-		WithApiTeam(*model.SysTeam) TeamModelBuilder
+		WithAPITeam(*model.SysTeam) TeamModelBuilder
 		WithSelectTeamRole(*bizmodel.SysTeamRole) TeamRoleBuilder
-		WithApiTeamRole(*bizmodel.SysTeamRole) TeamRoleBuilder
+		WithAPITeamRole(*bizmodel.SysTeamRole) TeamRoleBuilder
 		WithCreateTeamBo(*teamapi.CreateTeamRequest) TeamRequestBuilder
 		WithUpdateTeamBo(*teamapi.UpdateTeamRequest) TeamRequestBuilder
 		WithListTeamBo(*teamapi.ListTeamRequest) TeamRequestBuilder
 
 		WithListTeamTeamMemberBo(*teamapi.ListTeamMemberRequest) TeamRequestBuilder
 		WithAddTeamMemberBo(*teamapi.AddTeamMemberRequest) TeamRequestBuilder
-		WithApiTeamMember(*bizmodel.SysTeamMember) TeamMemberBuilder
+		WithAPITeamMember(*bizmodel.SysTeamMember) TeamMemberBuilder
 
-		WithApiUserBo(*model.SysUser) UserModelBuilder
+		WithAPIUserBo(*model.SysUser) UserModelBuilder
 		WithCreateUserBo(*userapi.CreateUserRequest) UserRequestBuilder
 		WithUpdateUserBo(*userapi.UpdateUserRequest) UserRequestBuilder
-		WithApiDatasourceMetric(*bizmodel.DatasourceMetric) DatasourceMetricModelBuilder
+		WithAPIDatasourceMetric(*bizmodel.DatasourceMetric) DatasourceMetricModelBuilder
 
-		WithApiDatasourceMetricLabel(metric *bizmodel.MetricLabel) DatasourceMetricLabelModelBuilder
-		WithApiDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder
+		WithAPIDatasourceMetricLabel(metric *bizmodel.MetricLabel) DatasourceMetricLabelModelBuilder
+		WithAPIDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder
 	}
 )
 
@@ -105,7 +107,7 @@ func (b *builder) WithDoDatasource(d *bizmodel.Datasource) DatasourceModelBuilde
 		ctx:        b.ctx,
 	}
 }
-func (b *builder) WithApiTemplateStrategy(template *model.StrategyTemplate) TemplateModelBuilder {
+func (b *builder) WithAPITemplateStrategy(template *model.StrategyTemplate) TemplateModelBuilder {
 	return &templateStrategyBuilder{
 		StrategyTemplate: template,
 		ctx:              b.ctx,
@@ -126,14 +128,14 @@ func (b *builder) WithUpdateBoTemplateStrategy(template *strategyapi.UpdateTempl
 	}
 }
 
-func (b *builder) WithApiTemplateStrategyLevel(template *model.StrategyLevelTemplate) TemplateLevelBuilder {
+func (b *builder) WithAPITemplateStrategyLevel(template *model.StrategyLevelTemplate) TemplateLevelBuilder {
 	return &templateStrategyLevelBuilder{
 		StrategyLevelTemplate: template,
 		ctx:                   b.ctx,
 	}
 }
 
-func (b *builder) WithApiStrategy(strategy *bizmodel.Strategy) StrategyModelBuilder {
+func (b *builder) WithAPIStrategy(strategy *bizmodel.Strategy) StrategyModelBuilder {
 	return &strategyBuilder{
 		Strategy: strategy,
 		ctx:      b.ctx,
@@ -168,7 +170,7 @@ func (b *builder) WithUpdateBoDict(dict *dictapi.UpdateDictRequest) DictRequestB
 	}
 }
 
-func (b *builder) WithApiDictSelect(dict *model.SysDict) DictModelBuilder {
+func (b *builder) WithAPIDictSelect(dict *model.SysDict) DictModelBuilder {
 	return &dictBuilder{
 		SysDict: dict,
 		ctx:     b.ctx,
@@ -189,7 +191,7 @@ func (b *builder) WithUpdateMenuBo(menu *menuapi.UpdateMenuRequest) MenuRequestB
 	}
 }
 
-func (b *builder) WithApiMenu(menu *model.SysMenu) MenuModelBuilder {
+func (b *builder) WithAPIMenu(menu *model.SysMenu) MenuModelBuilder {
 	return &menuBuilder{
 		Menu: menu,
 		ctx:  b.ctx,
@@ -203,7 +205,7 @@ func (b *builder) WithBatchCreateMenuBo(menu *menuapi.BatchCreateMenuRequest) Me
 	}
 }
 
-func (b *builder) WithApiMenuTree(menuList []*admin.Menu, parentID uint32) MenuTreeBuilder {
+func (b *builder) WithAPIMenuTree(menuList []*admin.Menu, parentID uint32) MenuTreeBuilder {
 	menuMap := make(map[uint32][]*admin.Menu)
 	// 按照父级ID分组
 	for _, menu := range menuList {
@@ -219,7 +221,7 @@ func (b *builder) WithApiMenuTree(menuList []*admin.Menu, parentID uint32) MenuT
 	}
 }
 
-func (b *builder) WithApiTeam(team *model.SysTeam) TeamModelBuilder {
+func (b *builder) WithAPITeam(team *model.SysTeam) TeamModelBuilder {
 	return &teamBuilder{
 		SystemModel: team,
 		ctx:         b.ctx,
@@ -233,7 +235,7 @@ func (b *builder) WithSelectTeamRole(team *bizmodel.SysTeamRole) TeamRoleBuilder
 	}
 }
 
-func (b *builder) WithApiTeamRole(team *bizmodel.SysTeamRole) TeamRoleBuilder {
+func (b *builder) WithAPITeamRole(team *bizmodel.SysTeamRole) TeamRoleBuilder {
 	return &teamRoleBuilder{
 		SysTeamRole: team,
 		ctx:         b.ctx,
@@ -275,14 +277,14 @@ func (b *builder) WithAddTeamMemberBo(req *teamapi.AddTeamMemberRequest) TeamReq
 	}
 }
 
-func (b *builder) WithApiTeamMember(teamMember *bizmodel.SysTeamMember) TeamMemberBuilder {
+func (b *builder) WithAPITeamMember(teamMember *bizmodel.SysTeamMember) TeamMemberBuilder {
 	return &teamMemberBuilder{
 		SysTeamMember: teamMember,
 		ctx:           b.ctx,
 	}
 }
 
-func (b *builder) WithApiUserBo(user *model.SysUser) UserModelBuilder {
+func (b *builder) WithAPIUserBo(user *model.SysUser) UserModelBuilder {
 	return &userBuilder{
 		SysUser: user,
 		ctx:     b.ctx,
@@ -322,21 +324,21 @@ func (b *builder) WithListDatasourceBo(req *datasourceapi.ListDatasourceRequest)
 	}
 }
 
-func (b *builder) WithApiDatasourceMetric(metric *bizmodel.DatasourceMetric) DatasourceMetricModelBuilder {
+func (b *builder) WithAPIDatasourceMetric(metric *bizmodel.DatasourceMetric) DatasourceMetricModelBuilder {
 	return &datasourceMetricModelBuilder{
 		DatasourceMetric: metric,
 		ctx:              b.ctx,
 	}
 }
 
-func (b *builder) WithApiDatasourceMetricLabel(metric *bizmodel.MetricLabel) DatasourceMetricLabelModelBuilder {
+func (b *builder) WithAPIDatasourceMetricLabel(metric *bizmodel.MetricLabel) DatasourceMetricLabelModelBuilder {
 	return &datasourceMetricLabelModelBuilder{
 		MetricLabel: metric,
 		ctx:         b.ctx,
 	}
 }
 
-func (b *builder) WithApiDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder {
+func (b *builder) WithAPIDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder {
 
 	return &datasourceMetricLabelValueBuilder{
 		MetricLabelValue: metric,
@@ -344,7 +346,7 @@ func (b *builder) WithApiDatasourceMetricLabelValue(metric *bizmodel.MetricLabel
 	}
 }
 
-func (b *builder) WithApiStrategyLevel(strategy *bizmodel.StrategyLevel) StrategyLevelModelBuilder {
+func (b *builder) WithAPIStrategyLevel(strategy *bizmodel.StrategyLevel) StrategyLevelModelBuilder {
 	return &strategyLevelBuilder{
 		StrategyLevel: strategy,
 		ctx:           b.ctx,
@@ -352,7 +354,7 @@ func (b *builder) WithApiStrategyLevel(strategy *bizmodel.StrategyLevel) Strateg
 
 }
 
-func (b *builder) WithApiStrategyGroup(strategy *bizmodel.StrategyGroup) StrategyGroupModelBuilder {
+func (b *builder) WithAPIStrategyGroup(strategy *bizmodel.StrategyGroup) StrategyGroupModelBuilder {
 	return &strategyGroupBuilder{
 		StrategyGroup: strategy,
 		ctx:           b.ctx,

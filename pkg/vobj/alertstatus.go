@@ -6,11 +6,15 @@ package vobj
 type AlertStatus int
 
 const (
+	// AlertStatusUnknown 未知
 	AlertStatusUnknown AlertStatus = iota // 未知
 
+	// AlertStatusFiring firing
 	AlertStatusFiring // firing
 
+	// AlertStatusResolved resolved
 	AlertStatusResolved // resolved
 
+	// AlertStatusSilenced silenced
 	AlertStatusSilenced // Silenced
 )

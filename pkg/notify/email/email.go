@@ -13,6 +13,7 @@ import (
 
 var _ notify.Notify = (*e)(nil)
 
+// New a notify service with options.
 func New(cfg email.Config, to *api.ReceiverEmail) notify.Notify {
 	cli := email.New(cfg)
 	cli.SetAttach(to.GetAttachUrl()...).

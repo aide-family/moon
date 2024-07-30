@@ -6,8 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-// 定义运行时存储
-
+// NewDefaultStorage 定义运行时存储
 func NewDefaultStorage() Storage {
 	return &defaultStorage{
 		data: make(map[Indexer]*Message),
@@ -70,8 +69,7 @@ func (d *defaultStorage) Range(f func(index Indexer, msg *Message) bool) {
 	copyMap := make(map[Indexer]*Message)
 	for k, v := range d.data {
 		if !types.IsNil(v) {
-			msg := *v
-			copyMap[k] = &msg
+			copyMap[k] = v
 		}
 	}
 	defer d.lock.Unlock()

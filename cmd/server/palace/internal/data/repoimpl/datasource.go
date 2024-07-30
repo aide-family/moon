@@ -17,6 +17,7 @@ import (
 	"gorm.io/gen"
 )
 
+// NewDatasourceRepository 创建数据源
 func NewDatasourceRepository(data *data.Data) repository.Datasource {
 	return &datasourceRepositoryImpl{data: data}
 }
@@ -67,8 +68,8 @@ func (l *datasourceRepositoryImpl) GetDatasource(ctx context.Context, id uint32)
 	return q.Datasource.WithContext(ctx).Where(q.Datasource.ID.Eq(id)).Preload(field.Associations).First()
 }
 
-func (l *datasourceRepositoryImpl) GetDatasourceNoAuth(ctx context.Context, id, teamId uint32) (*bizmodel.Datasource, error) {
-	bizDB, err := l.data.GetBizGormDB(teamId)
+func (l *datasourceRepositoryImpl) GetDatasourceNoAuth(ctx context.Context, id, teamID uint32) (*bizmodel.Datasource, error) {
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}

@@ -278,3 +278,31 @@ enum TemplateSourceType {
   // 团队
   TemplateSourceTypeTeam = 2;
 }
+
+enum ChartType {
+  // UNKNOWN 未知, 用于默认值
+  CHART_TYPE_UNKNOWN = 0;
+
+  // 全屏
+  CHART_TYPE_FULLSCREEN = 1;
+
+  // 整行
+  CHART_TYPE_ROW = 2;
+
+  // 单个
+  CHART_TYPE_COL = 3;
+}
+
+enum AlertStatus {
+  // UNKNOWN 未知
+  ALERT_STATUS_UNKNOWN = 0;
+
+  // 告警中
+  ALERT_STATUS_FIRING = 1;
+
+  // 告警已恢复
+  ALERT_STATUS_RESOLVED = 2;
+
+  // 告警已静音
+  ALERT_STATUS_Silenced = 3;
+}

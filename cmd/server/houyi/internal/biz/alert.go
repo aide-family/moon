@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 )
 
+// NewAlertBiz new AlertBiz
 func NewAlertBiz(alertRepository repository.Alert) *AlertBiz {
 	return &AlertBiz{
 		alertRepository: alertRepository,

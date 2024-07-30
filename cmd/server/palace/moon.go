@@ -4,7 +4,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
-	_ "go.uber.org/automaxprocs"
 
 	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
@@ -46,6 +45,7 @@ func newApp(c *conf.Bootstrap, srv *server.Server, logger log.Logger) *kratos.Ap
 	return kratos.New(opts...)
 }
 
+// Run 启动服务
 func Run(flagconf string) {
 	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()
