@@ -23,6 +23,7 @@ var logo = `
 │                        ╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝                        │
 │                                  good luck and no bug                                 │`
 
+// Hello print logo and system info
 func Hello() {
 	fmt.Println(env.Name() + " service starting...")
 
