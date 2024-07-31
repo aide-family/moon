@@ -22,7 +22,7 @@ type (
 
 	// UserRequestBuilder 用户请求转换
 	UserRequestBuilder interface {
-		ToCreateUserBO(uint32, string) *bo.CreateUserParams
+		ToCreateUserBO(uint32, types.Password) *bo.CreateUserParams
 
 		ToUpdateUserBO() *bo.UpdateUserParams
 	}
@@ -50,13 +50,13 @@ type (
 	}
 )
 
-func (b *userBuilder) ToCreateUserBO(userID uint32, pass string) *bo.CreateUserParams {
+func (b *userBuilder) ToCreateUserBO(userID uint32, pass types.Password) *bo.CreateUserParams {
 	if types.IsNil(b) || types.IsNil(b.CreateUserRequest) {
 		return nil
 	}
 	return &bo.CreateUserParams{
 		Name:      b.CreateUserRequest.GetName(),
-		Password:  types.NewPassword(pass),
+		Password:  pass,
 		Email:     b.CreateUserRequest.GetEmail(),
 		Phone:     b.CreateUserRequest.GetPhone(),
 		Nickname:  b.CreateUserRequest.GetNickname(),

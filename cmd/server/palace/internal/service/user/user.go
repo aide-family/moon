@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -30,52 +29,15 @@ func NewUserService(userBiz *biz.UserBiz) *Service {
 	}
 }
 
-const (
-	defaultKey = "1234567890123456"
-	defaultIv  = "1234567890123456"
-)
-
-// 解密传输密码字符串
-func decryptPassword(ctx context.Context, password string) (string, error) {
-	aes, err := cipher.NewAes(defaultKey, defaultIv)
-	if !types.IsNil(err) {
-		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	decryptBase64Pass, err := aes.DecryptBase64(password)
-	if !types.IsNil(err) {
-		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	pass := string(decryptBase64Pass)
-	return pass, nil
-}
-
-// 加密传输密码字符串
-func encryptPassword(ctx context.Context, password string) (string, error) {
-	aes, err := cipher.NewAes(defaultKey, defaultIv)
-	if !types.IsNil(err) {
-		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	encryptBase64Pass, err := aes.EncryptBase64([]byte(password))
-	if !types.IsNil(err) {
-		return "", merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	return encryptBase64Pass, nil
-}
-
 // CreateUser 创建用户 只允许管理员操作
 func (s *Service) CreateUser(ctx context.Context, req *userapi.CreateUserRequest) (*userapi.CreateUserReply, error) {
-	pass, err := decryptPassword(ctx, req.GetPassword())
-	if !types.IsNil(err) {
-		return nil, merr.ErrorAlert("请使用加密后的密文传输").WithMetadata(map[string]string{
-			"password": "请使用加密密文",
-		})
-	}
+	pass := types.NewPassword(req.GetPassword())
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	createParams := build.NewBuilder().WithCreateUserBo(req).ToCreateUserBO(claims.GetUser(), pass)
-	_, err = s.userBiz.CreateUser(ctx, createParams)
+	_, err := s.userBiz.CreateUser(ctx, createParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -145,6 +107,7 @@ func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchU
 
 // ResetUserPassword 重置用户密码
 func (s *Service) ResetUserPassword(ctx context.Context, req *userapi.ResetUserPasswordRequest) (*userapi.ResetUserPasswordReply, error) {
+	// TODO 发送邮件等相关操作
 	return &userapi.ResetUserPasswordReply{}, nil
 }
 
@@ -159,29 +122,22 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	newPass, err := decryptPassword(ctx, req.GetNewPassword())
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	oldPass, err := decryptPassword(ctx, req.GetOldPassword())
-	if !types.IsNil(err) {
-		return nil, err
-	}
+	newPass := types.NewPassword(req.GetNewPassword(), userDo.Salt)
+	oldPass := userDo.Password
 	// 对比旧密码正确
-	oldPassword := types.NewPassword(oldPass, userDo.Salt)
-	if oldPassword.String() != userDo.Password {
+	if oldPass != req.OldPassword {
 		return nil, merr.ErrorI18nPasswordErr(ctx)
 	}
 
 	// 对比两次密码相同, 相同修改无意义
-	if newPass == oldPass {
+	if newPass.String() == oldPass {
 		return nil, merr.ErrorI18nPasswordSameErr(ctx)
 	}
 
 	params := &bo.ResetUserPasswordBySelfParams{
 		UserID: claims.GetUser(),
 		// 使用新的盐
-		Password: types.NewPassword(newPass),
+		Password: types.NewPassword(req.GetNewPassword()),
 	}
 	if err = s.userBiz.ResetUserPasswordBySelf(ctx, params); !types.IsNil(err) {
 		return nil, err

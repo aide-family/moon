@@ -52,21 +52,8 @@ func (b *UserBiz) UpdateUser(ctx context.Context, user *bo.UpdateUserParams) err
 	if !claims.IsAdminRole() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
-	// 查询用户
-	userDo, err := b.userRepo.GetByID(ctx, user.ID)
-	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nUserNotFoundErr(ctx)
-		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
 	// 记录操作日志
-	dePass, err := types.DecryptPassword(userDo.Password, userDo.Salt)
-	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
-	}
-	user.Password = types.NewPassword(dePass, userDo.Salt)
-	if err = b.userRepo.UpdateByID(ctx, user); !types.IsNil(err) {
+	if err := b.userRepo.UpdateByID(ctx, user); !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	return nil

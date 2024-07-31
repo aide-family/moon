@@ -142,7 +142,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 		return nil, merr.ErrorI18nSystemErr(ctx)
 	}
 	// 检查用户密码是否正确
-	if err = checkPassword(ctx, userDo, req.EnPassword); !types.IsNil(err) {
+	if err = checkPassword(ctx, userDo, req.Password); !types.IsNil(err) {
 		return nil, err
 	}
 
@@ -194,14 +194,8 @@ func (b *AuthorizationBiz) Logout(ctx context.Context, params *bo.LogoutParams) 
 
 // 检查用户密码是否正确
 func checkPassword(ctx context.Context, user *model.SysUser, password string) error {
-	decryptPassword, err := types.DecryptPassword(password, types.DefaultKey)
-	if err != nil {
-		return merr.ErrorI18nPasswordErr(ctx)
-	}
-
-	loginPass := types.NewPassword(decryptPassword, user.Salt)
-	if loginPass.String() != user.Password {
-		return merr.ErrorI18nPasswordErr(ctx)
+	if err := types.ValidatePassword(user.Password, password, user.Salt); err != nil {
+		return merr.ErrorI18nPasswordErr(ctx).WithCause(err)
 	}
 	return nil
 }

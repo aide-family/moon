@@ -18,9 +18,9 @@ type CheckTokenParams struct {
 
 // LoginParams 登录请求参数
 type LoginParams struct {
-	Username   string
-	EnPassword string // 加密后的密码
-	Team       uint32 // 对应团队ID
+	Username string
+	Password string // 加密后的密码
+	Team     uint32 // 对应团队ID
 }
 
 // LoginReply 登录响应

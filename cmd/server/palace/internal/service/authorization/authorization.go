@@ -35,7 +35,7 @@ func NewAuthorizationService(
 // Login 登录
 func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest) (*authorizationapi.LoginReply, error) {
 	captchaInfo := req.GetCaptcha()
-	// 校验验证码
+	//// 校验验证码
 	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{
 		ID:    captchaInfo.GetId(),
 		Value: captchaInfo.GetCode(),
@@ -43,12 +43,13 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 		return nil, err
 	}
 
+	params := &bo.LoginParams{
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
+		Team:     req.GetTeamId(),
+	}
 	// 执行登录逻辑
-	loginJwtClaims, err := s.authorizationBiz.Login(ctx, &bo.LoginParams{
-		Username:   req.GetUsername(),
-		EnPassword: req.GetPassword(),
-		Team:       req.GetTeamId(),
-	})
+	loginJwtClaims, err := s.authorizationBiz.Login(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
