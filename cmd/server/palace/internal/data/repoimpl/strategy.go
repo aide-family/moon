@@ -114,7 +114,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 
-		strategyTemplate, err := queryWrapper.StrategyTemplate.Where(query.StrategyTemplate.ID.Eq(params.UpdateParam.TemplateID)).Preload(field.Associations).First()
+		strategyTemplate, err := tx.StrategyTemplate.Where(tx.StrategyTemplate.ID.Eq(params.UpdateParam.TemplateID)).Preload(field.Associations).First()
 
 		if strategyTemplate != nil {
 			categories := types.SliceToWithFilter(strategyTemplate.Categories, func(dict *bizmodel.SysDict) (*bizmodel.SysDict, bool) {
@@ -126,16 +126,9 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 				}, true
 			})
 
-			if err = queryWrapper.Strategy.Categories.Model(&bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(categories...); !types.IsNil(err) {
+			if err = tx.Strategy.Categories.Model(&bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(categories...); !types.IsNil(err) {
 				return err
 			}
-			return &bizmodel.SysDict{
-				AllFieldModel: model.AllFieldModel{ID: dict.ID},
-			}, true
-		})
-
-		if err = tx.Strategy.Categories.Model(&bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(categories...); !types.IsNil(err) {
-			return err
 		}
 		// 删除策略等级数据
 		if _, err = tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Delete(); !types.IsNil(err) {
