@@ -1,6 +1,7 @@
 package palace
 
 import (
+	"github.com/aide-family/moon/pkg/helper/hello"
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -71,6 +72,7 @@ func Run(flagconf string) {
 	}
 	defer cleanup()
 
+	hello.Hello()
 	// start and wait for stop signal
 	if err = app.Run(); !types.IsNil(err) {
 		panic(err)
