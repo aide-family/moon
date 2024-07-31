@@ -42,33 +42,38 @@ func (m *menuRepositoryImpl) BatchCreate(ctx context.Context, menus []*bo.Create
 		}
 		return createMenuParamsToModel(ctx, item), true
 	})
-	return query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.CreateInBatches(menuModels, 10)
+	mainQuery := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx)
+	return mainQuery.SysMenu.CreateInBatches(menuModels, 10)
 }
 
 func (m *menuRepositoryImpl) UpdateByID(ctx context.Context, menu *bo.UpdateMenuParams) error {
 	updateParam := menu.UpdateParam
-	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Where(query.SysMenu.ID.Eq(menu.ID)).UpdateSimple(
-		query.SysMenu.Name.Value(updateParam.Name),
-		query.SysMenu.Component.Value(updateParam.Component),
-		query.SysMenu.Path.Value(updateParam.Path),
-		query.SysMenu.Icon.Value(updateParam.Icon),
-		query.SysMenu.Permission.Value(updateParam.Permission),
-		query.SysMenu.Level.Value(updateParam.Level),
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysMenu.Where(mainQuery.SysMenu.ID.Eq(menu.ID)).UpdateSimple(
+		mainQuery.SysMenu.Name.Value(updateParam.Name),
+		mainQuery.SysMenu.Component.Value(updateParam.Component),
+		mainQuery.SysMenu.Path.Value(updateParam.Path),
+		mainQuery.SysMenu.Icon.Value(updateParam.Icon),
+		mainQuery.SysMenu.Permission.Value(updateParam.Permission),
+		mainQuery.SysMenu.Level.Value(updateParam.Level),
 	)
 	return err
 }
 
 func (m *menuRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
-	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysDict.Where(query.SysMenu.ID.Eq(id)).Delete()
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysDict.Where(mainQuery.SysMenu.ID.Eq(id)).Delete()
 	return err
 }
 
 func (m *menuRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysMenu, error) {
-	return query.Use(m.data.GetMainDB(ctx)).SysMenu.WithContext(ctx).Where(query.SysMenu.ID.Eq(id)).First()
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	return mainQuery.SysMenu.WithContext(ctx).Where(mainQuery.SysMenu.ID.Eq(id)).First()
 }
 
 func (m *menuRepositoryImpl) ListAll(ctx context.Context) ([]*model.SysMenu, error) {
-	menus, err := query.Use(m.data.GetMainDB(ctx)).SysMenu.WithContext(ctx).Order(query.SysMenu.Sort.Asc()).Find()
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	menus, err := mainQuery.SysMenu.WithContext(ctx).Order(mainQuery.SysMenu.Sort.Asc()).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -76,37 +81,40 @@ func (m *menuRepositoryImpl) ListAll(ctx context.Context) ([]*model.SysMenu, err
 }
 
 func (m *menuRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryMenuListParams) ([]*model.SysMenu, error) {
-	queryWrapper := query.Use(m.data.GetMainDB(ctx)).SysMenu.WithContext(ctx)
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	queryWrapper := mainQuery.SysMenu.WithContext(ctx)
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, query.SysMenu.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, mainQuery.SysMenu.Status.Eq(params.Status.GetValue()))
 	}
 
 	if !params.MenuType.IsUnknown() {
-		wheres = append(wheres, query.SysMenu.Type.Eq(params.MenuType.GetValue()))
+		wheres = append(wheres, mainQuery.SysMenu.Type.Eq(params.MenuType.GetValue()))
 	}
 
 	if !types.TextIsNull(params.Keyword) {
 		queryWrapper = queryWrapper.Or(
-			query.SysMenu.Name.Like(params.Keyword),
-			query.SysMenu.Path.Like(params.Keyword),
-			query.SysMenu.EnName.Like(params.Keyword),
+			mainQuery.SysMenu.Name.Like(params.Keyword),
+			mainQuery.SysMenu.Path.Like(params.Keyword),
+			mainQuery.SysMenu.EnName.Like(params.Keyword),
 		)
 	}
 	queryWrapper = queryWrapper.Where(wheres...)
 	if err := types.WithPageQuery[query.ISysMenuDo](queryWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return queryWrapper.Order(query.SysMenu.ID.Desc()).Find()
+	return queryWrapper.Order(mainQuery.SysMenu.ID.Desc()).Find()
 }
 
 func (m *menuRepositoryImpl) UpdateStatusByIds(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Where(query.SysMenu.ID.In(ids...)).Update(query.SysMenu.Status, status)
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysMenu.Where(mainQuery.SysMenu.ID.In(ids...)).Update(mainQuery.SysMenu.Status, status)
 	return err
 }
 
 func (m *menuRepositoryImpl) UpdateTypeByIds(ctx context.Context, menuType vobj.MenuType, ids ...uint32) error {
-	_, err := query.Use(m.data.GetMainDB(ctx)).WithContext(ctx).SysMenu.Where(query.SysMenu.ID.In(ids...)).Update(query.SysMenu.Type, menuType)
+	mainQuery := query.Use(m.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysMenu.Where(mainQuery.SysMenu.ID.In(ids...)).Update(mainQuery.SysMenu.Type, menuType)
 	return err
 }
 

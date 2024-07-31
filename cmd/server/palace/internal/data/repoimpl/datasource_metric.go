@@ -22,11 +22,11 @@ type datasourceMetricRepositoryImpl struct {
 }
 
 func (l *datasourceMetricRepositoryImpl) CreateMetrics(ctx context.Context, metrics ...*bizmodel.DatasourceMetric) error {
-	q, err := getBizDB(ctx, l.data)
+	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
 		return err
 	}
-	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
+	return bizQuery.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
 }
 
 func (l *datasourceMetricRepositoryImpl) CreateMetricsNoAuth(ctx context.Context, teamID uint32, metrics ...*bizmodel.DatasourceMetric) error {
@@ -34,6 +34,6 @@ func (l *datasourceMetricRepositoryImpl) CreateMetricsNoAuth(ctx context.Context
 	if !types.IsNil(err) {
 		return err
 	}
-	q := bizquery.Use(bizDB)
-	return q.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
+	bizQuery := bizquery.Use(bizDB)
+	return bizQuery.DatasourceMetric.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(metrics, 10)
 }

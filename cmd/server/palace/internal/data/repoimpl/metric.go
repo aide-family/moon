@@ -25,66 +25,66 @@ type metricRepositoryImpl struct {
 }
 
 func (m *metricRepositoryImpl) MetricLabelCount(ctx context.Context, id uint32) (uint32, error) {
-	teamQuery, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return 0, err
 	}
-	total, err := teamQuery.MetricLabel.
+	total, err := bizQuery.MetricLabel.
 		WithContext(ctx).
-		Where(teamQuery.MetricLabel.MetricID.Eq(id)).Count()
+		Where(bizQuery.MetricLabel.MetricID.Eq(id)).Count()
 	return uint32(total), err
 }
 
 func (m *metricRepositoryImpl) Update(ctx context.Context, params *bo.UpdateMetricParams) error {
-	teamQuery, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return err
 	}
-	_, err = teamQuery.MetricLabel.
+	_, err = bizQuery.MetricLabel.
 		WithContext(ctx).
-		Where(teamQuery.MetricLabel.MetricID.Eq(params.ID)).
+		Where(bizQuery.MetricLabel.MetricID.Eq(params.ID)).
 		UpdateColumnSimple(
-			teamQuery.DatasourceMetric.Unit.Value(params.Unit),
-			teamQuery.DatasourceMetric.Remark.Value(params.Remark),
+			bizQuery.DatasourceMetric.Unit.Value(params.Unit),
+			bizQuery.DatasourceMetric.Remark.Value(params.Remark),
 		)
 	return err
 }
 
 func (m *metricRepositoryImpl) Get(ctx context.Context, id uint32) (*bizmodel.DatasourceMetric, error) {
-	teamQuery, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return nil, err
 	}
-	return teamQuery.DatasourceMetric.
+	return bizQuery.DatasourceMetric.
 		WithContext(ctx).
-		Where(teamQuery.DatasourceMetric.ID.Eq(id)).
+		Where(bizQuery.DatasourceMetric.ID.Eq(id)).
 		First()
 }
 
 func (m *metricRepositoryImpl) GetWithRelation(ctx context.Context, id uint32) (*bizmodel.DatasourceMetric, error) {
-	teamQuery, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return nil, err
 	}
-	return teamQuery.DatasourceMetric.
+	return bizQuery.DatasourceMetric.
 		WithContext(ctx).
-		Where(teamQuery.DatasourceMetric.ID.Eq(id)).
-		Preload(teamQuery.DatasourceMetric.Labels.LabelValues).
+		Where(bizQuery.DatasourceMetric.ID.Eq(id)).
+		Preload(bizQuery.DatasourceMetric.Labels.LabelValues).
 		First()
 }
 
 func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
-	teamQuery, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return err
 	}
 
 	var labelIds []uint32
 	// 查询所有label id
-	err = teamQuery.MetricLabel.
+	err = bizQuery.MetricLabel.
 		WithContext(ctx).
-		Where(teamQuery.MetricLabel.MetricID.Eq(id)).
-		Select(teamQuery.MetricLabel.ID).
+		Where(bizQuery.MetricLabel.MetricID.Eq(id)).
+		Select(bizQuery.MetricLabel.ID).
 		Scan(&labelIds)
 	if err != nil {
 		return err
@@ -92,10 +92,10 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 	// 查询所有的label value ids
 	var labelValueIds []uint32
 	if len(labelIds) > 0 {
-		err = teamQuery.MetricLabelValue.
+		err = bizQuery.MetricLabelValue.
 			WithContext(ctx).
-			Where(teamQuery.MetricLabelValue.LabelID.In(labelIds...)).
-			Select(teamQuery.MetricLabelValue.ID).
+			Where(bizQuery.MetricLabelValue.LabelID.In(labelIds...)).
+			Select(bizQuery.MetricLabelValue.ID).
 			Scan(&labelValueIds)
 		if err != nil {
 			return err
@@ -105,7 +105,7 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 	metric := &bizmodel.DatasourceMetric{
 		AllFieldModel: model.AllFieldModel{ID: id},
 	}
-	return teamQuery.Transaction(func(tx *bizquery.Query) error {
+	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		cnt, err := tx.DatasourceMetric.WithContext(ctx).
 			Select(field.AssociationFields).
 			Delete(metric)
@@ -124,49 +124,49 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 }
 
 func (m *metricRepositoryImpl) List(ctx context.Context, params *bo.QueryMetricListParams) ([]*bizmodel.DatasourceMetric, error) {
-	q, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return nil, err
 	}
-	qq := q.DatasourceMetric.WithContext(ctx)
+	metricQuery := bizQuery.DatasourceMetric.WithContext(ctx)
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Keyword) {
-		wheres = append(wheres, q.DatasourceMetric.Name.Like(params.Keyword))
+		wheres = append(wheres, bizQuery.DatasourceMetric.Name.Like(params.Keyword))
 	}
 	if params.DatasourceID > 0 {
-		wheres = append(wheres, q.DatasourceMetric.DatasourceID.Eq(params.DatasourceID))
+		wheres = append(wheres, bizQuery.DatasourceMetric.DatasourceID.Eq(params.DatasourceID))
 	}
 	if !params.MetricType.IsUnknown() {
-		wheres = append(wheres, q.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
+		wheres = append(wheres, bizQuery.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
 	}
-	qq = qq.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](qq, params.Page); err != nil {
+	metricQuery = metricQuery.Where(wheres...)
+	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](metricQuery, params.Page); err != nil {
 		return nil, err
 	}
-	return qq.Order(q.DatasourceMetric.ID.Desc()).Find()
+	return metricQuery.Order(bizQuery.DatasourceMetric.ID.Desc()).Find()
 }
 
 func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetricListParams) ([]*bizmodel.DatasourceMetric, error) {
-	q, err := getBizDB(ctx, m.data)
+	bizQuery, err := getBizQuery(ctx, m.data)
 	if err != nil {
 		return nil, err
 	}
-	qq := q.DatasourceMetric.WithContext(ctx)
-	qq.Select(q.DatasourceMetric.ID, q.DatasourceMetric.Name, q.DatasourceMetric.Unit, q.DatasourceMetric.DeletedAt)
+	metricQuery := bizQuery.DatasourceMetric.WithContext(ctx)
+	metricQuery.Select(bizQuery.DatasourceMetric.ID, bizQuery.DatasourceMetric.Name, bizQuery.DatasourceMetric.Unit, bizQuery.DatasourceMetric.DeletedAt)
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Keyword) {
-		wheres = append(wheres, q.DatasourceMetric.Name.Like(params.Keyword))
+		wheres = append(wheres, bizQuery.DatasourceMetric.Name.Like(params.Keyword))
 	}
 	if params.DatasourceID > 0 {
-		wheres = append(wheres, q.DatasourceMetric.DatasourceID.Eq(params.DatasourceID))
+		wheres = append(wheres, bizQuery.DatasourceMetric.DatasourceID.Eq(params.DatasourceID))
 	}
 	if !params.MetricType.IsUnknown() {
-		wheres = append(wheres, q.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
+		wheres = append(wheres, bizQuery.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
 	}
-	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](qq, params.Page); err != nil {
+	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](metricQuery, params.Page); err != nil {
 		return nil, err
 	}
-	return qq.Find()
+	return metricQuery.Find()
 }
 
 func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32, metric *bizmodel.DatasourceMetric) error {

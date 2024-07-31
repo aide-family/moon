@@ -35,8 +35,8 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	q := bizquery.Use(bizDB)
-	apis, err := bizquery.Use(bizDB).SysTeamAPI.WithContext(ctx).Where(q.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
+	bizQuery := bizquery.Use(bizDB)
+	apis, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 	}
 	sysTeamRoleModel.WithContext(ctx)
 
-	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 创建角色
 		if err = tx.SysTeamRole.WithContext(ctx).Create(sysTeamRoleModel); !types.IsNil(err) {
 			return err
@@ -85,8 +85,8 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 	if !types.IsNil(err) {
 		return err
 	}
-	q := bizquery.Use(bizDB)
-	apis, err := q.SysTeamAPI.WithContext(ctx).Where(q.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
+	bizQuery := bizquery.Use(bizDB)
+	apis, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.ID.In(teamRole.Permissions...)).Find()
 	if !types.IsNil(err) {
 		return err
 	}
@@ -158,9 +158,9 @@ func (l *teamRoleRepositoryImpl) GetTeamRole(ctx context.Context, id uint32) (*b
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	q := bizquery.Use(bizDB)
-	return q.SysTeamRole.WithContext(ctx).
-		Where(q.SysTeamRole.ID.Eq(id)).Preload(q.SysTeamRole.Apis).First()
+	bizQuery := bizquery.Use(bizDB)
+	return bizQuery.SysTeamRole.WithContext(ctx).
+		Where(bizQuery.SysTeamRole.ID.Eq(id)).Preload(bizQuery.SysTeamRole.Apis).First()
 }
 
 func (l *teamRoleRepositoryImpl) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
@@ -168,13 +168,13 @@ func (l *teamRoleRepositoryImpl) ListTeamRole(ctx context.Context, params *bo.Li
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	qq := bizquery.Use(bizDB)
-	q := qq.SysTeamRole.WithContext(ctx).
-		Where(qq.SysTeamRole.TeamID.Eq(params.TeamID))
+	bizQuery := bizquery.Use(bizDB)
+	teamRoleQuery := bizQuery.SysTeamRole.WithContext(ctx).
+		Where(bizQuery.SysTeamRole.TeamID.Eq(params.TeamID))
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Where(qq.SysTeamRole.Name.Like(params.Keyword))
+		teamRoleQuery = teamRoleQuery.Where(bizQuery.SysTeamRole.Name.Like(params.Keyword))
 	}
-	return q.Find()
+	return teamRoleQuery.Find()
 }
 
 func (l *teamRoleRepositoryImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error) {
@@ -182,14 +182,14 @@ func (l *teamRoleRepositoryImpl) GetTeamRoleByUserID(ctx context.Context, userID
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	q := bizquery.Use(bizDB)
+	bizQuery := bizquery.Use(bizDB)
 	// 查询member信息
-	memberDetail, err := q.SysTeamMember.WithContext(ctx).Where(q.SysTeamMember.UserID.Eq(userID)).First()
+	memberDetail, err := bizQuery.SysTeamMember.WithContext(ctx).Where(bizQuery.SysTeamMember.UserID.Eq(userID)).First()
 	if !types.IsNil(err) {
 		return nil, err
 	}
 
-	return q.SysTeamMember.TeamRoles.WithContext(ctx).Model(memberDetail).Find()
+	return bizQuery.SysTeamMember.TeamRoles.WithContext(ctx).Model(memberDetail).Find()
 }
 
 func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -204,10 +204,10 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	if !types.IsNil(err) {
 		return err
 	}
-	q := bizquery.Use(bizDB)
-	roleList, err := q.SysTeamRole.WithContext(ctx).
-		Where(q.SysTeamRole.ID.In(ids...)).
-		Preload(q.SysTeamRole.Apis).
+	bizQuery := bizquery.Use(bizDB)
+	roleList, err := bizQuery.SysTeamRole.WithContext(ctx).
+		Where(bizQuery.SysTeamRole.ID.In(ids...)).
+		Preload(bizQuery.SysTeamRole.Apis).
 		Find()
 	if !types.IsNil(err) {
 		return err

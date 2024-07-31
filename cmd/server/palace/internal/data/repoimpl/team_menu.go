@@ -27,6 +27,6 @@ func (l *teamMenuRepositoryImpl) GetTeamMenuList(ctx context.Context, params *bo
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	q := bizquery.Use(bizDB)
-	return q.SysTeamMenu.WithContext(ctx).Find()
+	bizQuery := bizquery.Use(bizDB)
+	return bizQuery.SysTeamMenu.WithContext(ctx).Find()
 }

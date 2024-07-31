@@ -26,37 +26,41 @@ type resourceRepositoryImpl struct {
 }
 
 func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysAPI, error) {
-	return query.Use(l.data.GetMainDB(ctx)).SysAPI.Where(query.SysAPI.ID.Eq(id)).First()
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	return mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.ID.Eq(id)).First()
 }
 
 func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx)
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	apiQuery := mainQuery.SysAPI.WithContext(ctx)
 
 	var wheres []gen.Condition
 
 	if !types.TextIsNull(params.Keyword) {
-		wheres = append(wheres, q.Or(query.SysAPI.Name.Like(params.Keyword), query.SysAPI.Path.Like(params.Keyword)))
+		wheres = append(wheres, apiQuery.Or(mainQuery.SysAPI.Name.Like(params.Keyword), mainQuery.SysAPI.Path.Like(params.Keyword)))
 	}
-	q = q.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysAPIDo](q, params.Page); err != nil {
+	apiQuery = apiQuery.Where(wheres...)
+	if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
 		return nil, err
 	}
-	return q.Order(query.SysAPI.ID.Desc()).Find()
+	return apiQuery.Order(mainQuery.SysAPI.ID.Desc()).Find()
 }
 
 func (l *resourceRepositoryImpl) UpdateStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	_, err := query.Use(l.data.GetMainDB(ctx)).SysAPI.Where(query.SysAPI.ID.In(ids...)).Update(query.SysAPI.Status, status)
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	_, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.ID.In(ids...)).Update(mainQuery.SysAPI.Status, status)
 	return err
 }
 
 func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
-	q := query.Use(l.data.GetMainDB(ctx)).SysAPI.WithContext(ctx)
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	apiQuery := mainQuery.SysAPI.WithContext(ctx)
 
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Or(query.SysAPI.Name.Like(params.Keyword), query.SysAPI.Path.Like(params.Keyword))
+		apiQuery = apiQuery.Or(mainQuery.SysAPI.Name.Like(params.Keyword), mainQuery.SysAPI.Path.Like(params.Keyword))
 	}
-	if err := types.WithPageQuery[query.ISysAPIDo](q, params.Page); err != nil {
+	if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
 		return nil, err
 	}
-	return q.Select(query.SysAPI.ID, query.SysAPI.Name, query.SysAPI.Status, query.SysAPI.DeletedAt).Order(query.SysAPI.ID.Desc()).Find()
+	return apiQuery.Select(mainQuery.SysAPI.ID, query.SysAPI.Name, mainQuery.SysAPI.Status, mainQuery.SysAPI.DeletedAt).Order(mainQuery.SysAPI.ID.Desc()).Find()
 }

@@ -33,7 +33,8 @@ func (s strategyGroupRepositoryImpl) CreateStrategyGroup(ctx context.Context, pa
 		return nil, err
 	}
 	strategyGroupModel := createStrategyGroupParamsToModel(ctx, params)
-	err = bizquery.Use(bizDB).Transaction(func(tx *bizquery.Query) error {
+	bizQuery := bizquery.Use(bizDB)
+	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.StrategyGroup.WithContext(ctx).Create(strategyGroupModel); !types.IsNil(err) {
 			return err
 		}
@@ -62,15 +63,15 @@ func (s strategyGroupRepositoryImpl) UpdateStrategyGroup(ctx context.Context, pa
 					AllFieldModel: model.AllFieldModel{ID: id},
 				}, true
 			})
-			if err = queryWrapper.StrategyGroup.Categories.
+			if err = tx.StrategyGroup.Categories.
 				Model(&bizmodel.StrategyGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(Categories...); !types.IsNil(err) {
 				return err
 			}
 		}
 		// 更新策略分组
-		if _, err = tx.StrategyGroup.WithContext(ctx).Where(queryWrapper.StrategyGroup.ID.Eq(params.ID)).UpdateSimple(
-			queryWrapper.StrategyGroup.Name.Value(params.UpdateParam.Name),
-			queryWrapper.StrategyGroup.Remark.Value(params.UpdateParam.Remark),
+		if _, err = tx.StrategyGroup.WithContext(ctx).Where(tx.StrategyGroup.ID.Eq(params.ID)).UpdateSimple(
+			tx.StrategyGroup.Name.Value(params.UpdateParam.Name),
+			tx.StrategyGroup.Remark.Value(params.UpdateParam.Remark),
 		); !types.IsNil(err) {
 			return err
 		}
@@ -97,8 +98,9 @@ func (s strategyGroupRepositoryImpl) GetStrategyGroup(ctx context.Context, param
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizquery.Use(bizDB).StrategyGroup.WithContext(ctx)
-	return bizWrapper.Where(bizquery.Use(bizDB).StrategyGroup.ID.Eq(params.ID)).Preload(field.Associations).First()
+	bizQuery := bizquery.Use(bizDB)
+	bizWrapper := bizQuery.StrategyGroup.WithContext(ctx)
+	return bizWrapper.Where(bizQuery.StrategyGroup.ID.Eq(params.ID)).Preload(field.Associations).First()
 }
 
 func (s strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, params *bo.QueryStrategyGroupListParams) ([]*bizmodel.StrategyGroup, error) {
@@ -106,19 +108,20 @@ func (s strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, para
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizquery.Use(bizDB).StrategyGroup.WithContext(ctx)
+	bizQuery := bizquery.Use(bizDB)
+	bizWrapper := bizQuery.StrategyGroup.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Name) {
-		wheres = append(wheres, bizquery.StrategyGroup.Name.Like(params.Name))
+		wheres = append(wheres, bizQuery.StrategyGroup.Name.Like(params.Name))
 	}
 
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, bizquery.StrategyGroup.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, bizQuery.StrategyGroup.Status.Eq(params.Status.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
-		bizWrapper = bizWrapper.Or(bizquery.Use(bizDB).StrategyGroup.Name.Like(params.Keyword))
-		bizWrapper = bizWrapper.Or(bizquery.Use(bizDB).StrategyGroup.Remark.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.StrategyGroup.Name.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.StrategyGroup.Remark.Like(params.Keyword))
 	}
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
@@ -126,7 +129,7 @@ func (s strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, para
 	if err := types.WithPageQuery[bizquery.IStrategyGroupDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Order(bizquery.Use(bizDB).StrategyGroup.ID.Desc()).Find()
+	return bizWrapper.Order(bizQuery.StrategyGroup.ID.Desc()).Find()
 }
 
 func (s strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyGroupStatusParams) error {
@@ -134,8 +137,9 @@ func (s strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *b
 	if !types.IsNil(err) {
 		return err
 	}
-	bizWrapper := bizquery.Use(bizDB).StrategyGroup.WithContext(ctx)
-	if _, err = bizWrapper.Where(bizquery.Use(bizDB).StrategyGroup.ID.In(params.IDs...)).Update(bizquery.Use(bizDB).StrategyGroup.Status, params.Status); !types.IsNil(err) {
+	bizQuery := bizquery.Use(bizDB)
+	bizWrapper := bizQuery.StrategyGroup.WithContext(ctx)
+	if _, err = bizWrapper.Where(bizQuery.StrategyGroup.ID.In(params.IDs...)).Update(bizQuery.StrategyGroup.Status, params.Status); !types.IsNil(err) {
 		return err
 	}
 	return nil

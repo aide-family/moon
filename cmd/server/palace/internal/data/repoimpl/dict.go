@@ -33,27 +33,30 @@ type dictRepositoryImpl struct {
 func (l *dictRepositoryImpl) UpdateStatusByIds(ctx context.Context, params *bo.UpdateDictStatusParams) error {
 	ids := params.IDs
 	if middleware.GetSourceType(ctx).IsTeam() {
-		bizDB, err := getBizDB(ctx, l.data)
+		bizQuery, err := getBizQuery(ctx, l.data)
 		if !types.IsNil(err) {
 			return err
 		}
-		_, err = bizDB.SysDict.WithContext(ctx).Where(bizDB.SysDict.ID.In(ids...)).Update(bizDB.SysDict.Status, params.Status)
+
+		_, err = bizQuery.SysDict.WithContext(ctx).Where(bizQuery.SysDict.ID.In(ids...)).Update(bizQuery.SysDict.Status, params.Status)
 		return err
 	}
-	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysDict.Where(query.SysDict.ID.In(ids...)).Update(query.SysDict.Status, params.Status)
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysDict.Where(mainQuery.SysDict.ID.In(ids...)).Update(mainQuery.SysDict.Status, params.Status)
 	return err
 }
 
 func (l *dictRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 	if middleware.GetSourceType(ctx).IsTeam() {
-		bizDB, err := getBizDB(ctx, l.data)
+		bizQuery, err := getBizQuery(ctx, l.data)
 		if !types.IsNil(err) {
 			return err
 		}
-		_, err = bizDB.SysDict.Where(bizDB.SysDict.ID.Eq(id)).Delete()
+		_, err = bizQuery.SysDict.Where(bizQuery.SysDict.ID.Eq(id)).Delete()
 		return err
 	}
-	_, err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysDict.Where(query.SysDict.ID.Eq(id)).Delete()
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	_, err := mainQuery.WithContext(ctx).SysDict.Where(mainQuery.SysDict.ID.Eq(id)).Delete()
 	return err
 }
 
@@ -67,7 +70,8 @@ func (l *dictRepositoryImpl) Create(ctx context.Context, dict *bo.CreateDictPara
 	if types.IsNil(dictModel) {
 		return nil, merr.ErrorI18nDictCreateParamCannotEmpty(ctx)
 	}
-	if err := query.Use(l.data.GetMainDB(ctx)).WithContext(ctx).SysDict.Create(dictModel); !types.IsNil(err) {
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	if err := mainQuery.WithContext(ctx).SysDict.Create(dictModel); !types.IsNil(err) {
 		return nil, err
 	}
 	return dictModel, nil
@@ -82,14 +86,15 @@ func (l *dictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDic
 
 func (l *dictRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IDict, error) {
 	if middleware.GetSourceType(ctx).IsTeam() {
-		bizDB, err := getBizDB(ctx, l.data)
+		bizQuery, err := getBizQuery(ctx, l.data)
 		if !types.IsNil(err) {
 			return nil, err
 		}
-		bizWrapper := bizDB.SysDict.WithContext(ctx)
-		return bizWrapper.Where(bizDB.SysDict.ID.Eq(id)).Preload(field.Associations).First()
+		bizWrapper := bizQuery.SysDict.WithContext(ctx)
+		return bizWrapper.Where(bizQuery.SysDict.ID.Eq(id)).Preload(field.Associations).First()
 	}
-	return query.Use(l.data.GetMainDB(ctx)).SysDict.WithContext(ctx).Where(query.SysDict.ID.Eq(id)).First()
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	return mainQuery.SysDict.WithContext(ctx).Where(mainQuery.SysDict.ID.Eq(id)).First()
 }
 
 func (l *dictRepositoryImpl) UpdateByID(ctx context.Context, dict *bo.UpdateDictParams) error {
@@ -100,55 +105,55 @@ func (l *dictRepositoryImpl) UpdateByID(ctx context.Context, dict *bo.UpdateDict
 }
 
 func (l *dictRepositoryImpl) listDictModel(ctx context.Context, params *bo.QueryDictListParams) ([]imodel.IDict, error) {
-	dict := query.Use(l.data.GetMainDB(ctx)).SysDict
-	queryWrapper := dict.WithContext(ctx)
+	dictQuery := query.Use(l.data.GetMainDB(ctx)).SysDict
+	queryWrapper := dictQuery.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, query.SysDict.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, dictQuery.Status.Eq(params.Status.GetValue()))
 	}
 
 	if !params.DictType.IsUnknown() {
-		wheres = append(wheres, query.SysDict.DictType.Eq(params.DictType.GetValue()))
+		wheres = append(wheres, dictQuery.DictType.Eq(params.DictType.GetValue()))
 	}
 
 	if !types.TextIsNull(params.Keyword) {
 		queryWrapper = queryWrapper.Or(
-			query.SysDict.Name.Like(params.Keyword),
-			query.SysDict.Value.Like(params.Keyword),
-			query.SysDict.Remark.Like(params.Keyword),
+			dictQuery.Name.Like(params.Keyword),
+			dictQuery.Value.Like(params.Keyword),
+			dictQuery.Remark.Like(params.Keyword),
 		)
 	}
 	queryWrapper = queryWrapper.Where(wheres...)
 	if err := types.WithPageQuery[query.ISysDictDo](queryWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	dbDicts, err := queryWrapper.Order(query.SysDict.ID.Desc()).Find()
+	dbDictList, err := queryWrapper.Order(dictQuery.ID.Desc()).Find()
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	dicts := types.SliceTo(dbDicts, func(dict *model.SysDict) imodel.IDict {
+	dictList := types.SliceTo(dbDictList, func(dict *model.SysDict) imodel.IDict {
 		return dict
 	})
-	return dicts, nil
+	return dictList, nil
 }
 
 func (l *dictRepositoryImpl) listBizDictModel(ctx context.Context, params *bo.QueryDictListParams) ([]imodel.IDict, error) {
-	bizDB, err := getBizDB(ctx, l.data)
+	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizDB.SysDict.WithContext(ctx)
+	bizWrapper := bizQuery.SysDict.WithContext(ctx)
 
 	var wheres []gen.Condition
 
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, bizDB.SysDict.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, bizQuery.SysDict.Status.Eq(params.Status.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
-		bizWrapper = bizWrapper.Or(bizDB.SysDict.Name.Like(params.Keyword))
-		bizWrapper = bizWrapper.Or(bizDB.SysDict.Value.Like(params.Keyword))
-		bizWrapper = bizWrapper.Or(bizDB.SysDict.Remark.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.SysDict.Name.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.SysDict.Value.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.SysDict.Remark.Like(params.Keyword))
 	}
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
@@ -156,19 +161,19 @@ func (l *dictRepositoryImpl) listBizDictModel(ctx context.Context, params *bo.Qu
 	if err := types.WithPageQuery[bizquery.ISysDictDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	sysDicts, err := bizWrapper.Order(bizDB.SysDict.ID.Desc()).Find()
+	sysDictList, err := bizWrapper.Order(bizQuery.SysDict.ID.Desc()).Find()
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	dicts := types.SliceTo(sysDicts, func(dict *bizmodel.SysDict) imodel.IDict {
+	dictList := types.SliceTo(sysDictList, func(dict *bizmodel.SysDict) imodel.IDict {
 		return dict
 	})
-	return dicts, nil
+	return dictList, nil
 }
 
 // createBizDictModel create team dict model
 func (l *dictRepositoryImpl) createBizDictModel(ctx context.Context, dict *bo.CreateDictParams) (*bizmodel.SysDict, error) {
-	bizDB, err := getBizDB(ctx, l.data)
+	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -176,7 +181,7 @@ func (l *dictRepositoryImpl) createBizDictModel(ctx context.Context, dict *bo.Cr
 	if types.IsNil(dictBizModel) {
 		return nil, merr.ErrorI18nDictCreateParamCannotEmpty(ctx)
 	}
-	if err := bizDB.SysDict.WithContext(ctx).Create(dictBizModel); !types.IsNil(err) {
+	if err := bizQuery.SysDict.WithContext(ctx).Create(dictBizModel); !types.IsNil(err) {
 		return nil, err
 	}
 	return dictBizModel, nil
@@ -185,33 +190,34 @@ func (l *dictRepositoryImpl) createBizDictModel(ctx context.Context, dict *bo.Cr
 func (l *dictRepositoryImpl) updateDictModel(ctx context.Context, params *bo.UpdateDictParams) error {
 	id := params.ID
 	updateParam := params.UpdateParam
-	_, err := query.Use(l.data.GetMainDB(ctx)).SysDict.WithContext(ctx).Where(query.SysDict.ID.Eq(id)).UpdateSimple(
-		query.SysDict.Name.Value(updateParam.Name),
-		query.SysDict.Value.Value(updateParam.Value),
-		query.SysDict.CssClass.Value(updateParam.CSSClass),
-		query.SysDict.ColorType.Value(updateParam.ColorType),
-		query.SysDict.Remark.Value(updateParam.Remark),
-		query.SysDict.ImageUrl.Value(updateParam.ImageURL),
-		query.SysDict.Icon.Value(updateParam.Icon),
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	_, err := mainQuery.SysDict.WithContext(ctx).Where(mainQuery.SysDict.ID.Eq(id)).UpdateSimple(
+		mainQuery.SysDict.Name.Value(updateParam.Name),
+		mainQuery.SysDict.Value.Value(updateParam.Value),
+		mainQuery.SysDict.CSSClass.Value(updateParam.CSSClass),
+		mainQuery.SysDict.ColorType.Value(updateParam.ColorType),
+		mainQuery.SysDict.Remark.Value(updateParam.Remark),
+		mainQuery.SysDict.ImageURL.Value(updateParam.ImageURL),
+		mainQuery.SysDict.Icon.Value(updateParam.Icon),
 	)
 	return err
 }
 
 func (l *dictRepositoryImpl) updateBizDictModel(ctx context.Context, params *bo.UpdateDictParams) error {
-	bizDB, err := getBizDB(ctx, l.data)
+	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
 		return err
 	}
 	updateParam := params.UpdateParam
 	id := params.ID
-	_, err = bizDB.SysDict.Where(bizDB.SysDict.ID.Eq(id)).UpdateSimple(
-		bizDB.SysDict.Name.Value(updateParam.Name),
-		bizDB.SysDict.Remark.Value(updateParam.Remark),
-		bizDB.SysDict.Value.Value(updateParam.Value),
-		bizDB.SysDict.CssClass.Value(updateParam.CSSClass),
-		bizDB.SysDict.ColorType.Value(updateParam.ColorType),
-		bizDB.SysDict.ImageUrl.Value(updateParam.ImageURL),
-		bizDB.SysDict.Icon.Value(updateParam.Icon),
+	_, err = bizQuery.SysDict.Where(bizQuery.SysDict.ID.Eq(id)).UpdateSimple(
+		bizQuery.SysDict.Name.Value(updateParam.Name),
+		bizQuery.SysDict.Remark.Value(updateParam.Remark),
+		bizQuery.SysDict.Value.Value(updateParam.Value),
+		bizQuery.SysDict.CSSClass.Value(updateParam.CSSClass),
+		bizQuery.SysDict.ColorType.Value(updateParam.ColorType),
+		bizQuery.SysDict.ImageURL.Value(updateParam.ImageURL),
+		bizQuery.SysDict.Icon.Value(updateParam.Icon),
 	)
 	return err
 }
