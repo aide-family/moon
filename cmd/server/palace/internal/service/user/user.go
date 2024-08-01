@@ -153,6 +153,7 @@ func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.GetUserSel
 		Status:  vobj.Status(req.GetStatus()),
 		Gender:  vobj.Gender(req.GetGender()),
 		Role:    vobj.Role(req.GetRole()),
+		IDs:     req.GetIds(),
 	}
 	userSelectOptions, err := s.userBiz.GetUserSelectList(ctx, params)
 	if !types.IsNil(err) {

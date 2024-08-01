@@ -32,7 +32,7 @@ func (b *StrategyBiz) GetStrategy(ctx context.Context, param *bo.GetStrategyDeta
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	teamID := claims.Team
+	teamID := claims.TeamID
 	param.TeamID = teamID
 	strategy, err := b.strategyRepo.GetByID(ctx, param)
 	if !types.IsNil(err) {
@@ -101,7 +101,7 @@ func (b *StrategyBiz) CopyStrategy(ctx context.Context, param *bo.CopyStrategyPa
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	param.TeamID = claims.Team
+	param.TeamID = claims.TeamID
 	strategy, err := b.strategyRepo.CopyStrategy(ctx, param)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

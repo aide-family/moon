@@ -41,7 +41,7 @@ func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.Crea
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	req.TeamId = claims.Team
+	req.TeamId = claims.TeamID
 	params := build.NewBuilder().WithCreateBoStrategyGroup(req).ToCreateStrategyGroupBO()
 	if _, err := s.strategyGroupBiz.CreateStrategyGroup(ctx, params); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.Dele
 	}
 	params := &bo.DelStrategyGroupParams{
 		ID:     req.GetId(),
-		TeamID: claims.Team,
+		TeamID: claims.TeamID,
 	}
 	if err := s.strategyGroupBiz.DeleteStrategyGroup(ctx, params); err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListSt
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	req.TeamId = claims.Team
+	req.TeamId = claims.TeamID
 	params := build.NewBuilder().WithContext(ctx).WithListStrategyGroup(req).ToListStrategyGroupBO()
 	listPage, err := s.strategyGroupBiz.ListPage(ctx, params)
 	if !types.IsNil(err) {

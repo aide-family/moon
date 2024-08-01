@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
@@ -57,10 +57,8 @@ type JwtClaims struct {
 
 // JwtBaseInfo jwt base info
 type JwtBaseInfo struct {
-	User     uint32    `json:"user"`
-	Role     vobj.Role `json:"role"`
-	Team     uint32    `json:"team"`
-	TeamRole vobj.Role `json:"team_role"`
+	UserID uint32 `json:"user"`
+	TeamID uint32 `json:"team"`
 }
 
 // GetUser 获取用户id
@@ -68,15 +66,7 @@ func (l *JwtBaseInfo) GetUser() uint32 {
 	if types.IsNil(l) {
 		return 0
 	}
-	return l.User
-}
-
-// GetRole 获取角色
-func (l *JwtBaseInfo) GetRole() vobj.Role {
-	if types.IsNil(l) {
-		return 0
-	}
-	return l.Role
+	return l.UserID
 }
 
 // GetTeam 获取团队id
@@ -84,39 +74,18 @@ func (l *JwtBaseInfo) GetTeam() uint32 {
 	if types.IsNil(l) {
 		return 0
 	}
-	return l.Team
-}
-
-// GetTeamRole 获取团队角色
-func (l *JwtBaseInfo) GetTeamRole() vobj.Role {
-	if types.IsNil(l) {
-		return 0
-	}
-	return l.TeamRole
-}
-
-// IsAdminRole 是否是管理员角色
-func (l *JwtBaseInfo) IsAdminRole() bool {
-	return l.GetRole() == vobj.RoleSuperAdmin || l.GetRole() == vobj.RoleAdmin
-}
-
-// IsTeamAdminRole 是否是团队管理员角色
-func (l *JwtBaseInfo) IsTeamAdminRole() bool {
-	return l.GetTeamRole() == vobj.RoleAdmin || l.GetTeamRole() == vobj.RoleSuperAdmin
+	return l.TeamID
 }
 
 // SetUserInfo 设置用户信息
-func (l *JwtBaseInfo) SetUserInfo(userID uint32, role vobj.Role) *JwtBaseInfo {
-	l.User = userID
-	l.Role = role
+func (l *JwtBaseInfo) SetUserInfo(userID uint32) *JwtBaseInfo {
+	l.UserID = userID
 	return l
 }
 
 // SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(teamID uint32, teamRole vobj.Role) *JwtBaseInfo {
-	l.Team = teamID
-	l.TeamRole = teamRole
-
+func (l *JwtBaseInfo) SetTeamInfo(teamID uint32) *JwtBaseInfo {
+	l.TeamID = teamID
 	return l
 }
 
@@ -164,20 +133,54 @@ func (l *JwtClaims) IsLogout(ctx context.Context, cache conn.Cache) bool {
 	return isLogout(ctx, cache, l)
 }
 
+type (
+	userRoleContextKey struct{}
+	teamRoleContextKey struct{}
+)
+
+// WithUserRoleContextKey with user role context key
+func WithUserRoleContextKey(ctx context.Context, role vobj.Role) context.Context {
+	return context.WithValue(ctx, userRoleContextKey{}, role)
+}
+
+// WithTeamRoleContextKey with team role context key
+func WithTeamRoleContextKey(ctx context.Context, role vobj.Role) context.Context {
+	return context.WithValue(ctx, teamRoleContextKey{}, role)
+}
+
+// GetUserRole get user role
+func GetUserRole(ctx context.Context) vobj.Role {
+	role, ok := ctx.Value(userRoleContextKey{}).(vobj.Role)
+	if !ok {
+		return vobj.RoleUser
+	}
+	return role
+}
+
+// GetTeamRole get team role
+func GetTeamRole(ctx context.Context) vobj.Role {
+	role, ok := ctx.Value(teamRoleContextKey{}).(vobj.Role)
+	if !ok {
+		return vobj.RoleUser
+	}
+	return role
+}
+
 // CheckTokenFun check token fun
-type CheckTokenFun func(ctx context.Context) (bool, error)
+type CheckTokenFun func(ctx context.Context) (*authorization.CheckTokenReply, error)
 
 // JwtLoginMiddleware jwt login middleware
 func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			isLogin, err := check(ctx)
+			checked, err := check(ctx)
 			if err != nil {
 				return nil, err
 			}
-			if !isLogin {
+			if !checked.GetIsLogin() {
 				return nil, merr.ErrorI18nUnLoginErr(ctx)
 			}
+			ctx = WithUserRoleContextKey(ctx, vobj.Role(checked.GetUser().GetRole()))
 			return handler(ctx, req)
 		}
 	}

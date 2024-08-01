@@ -46,7 +46,7 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 	params := &bo.LoginParams{
 		Username: req.GetUsername(),
 		Password: req.GetPassword(),
-		Team:     req.GetTeamId(),
+		Team:     req.GetTeamID(),
 	}
 	// 执行登录逻辑
 	loginJwtClaims, err := s.authorizationBiz.Login(ctx, params)
@@ -91,7 +91,7 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 	}
 	tokenRes, err := s.authorizationBiz.RefreshToken(ctx, &bo.RefreshTokenParams{
 		JwtClaims: jwtClaims,
-		Team:      req.GetTeamId(),
+		Team:      req.GetTeamID(),
 	})
 	if !types.IsNil(err) {
 		return nil, err
@@ -130,16 +130,20 @@ func (s *Service) CheckPermission(ctx context.Context, req *authorizationapi.Che
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	if claims.IsAdminRole() {
+	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
 	}
-	if err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
+	teamMemberDo, err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
 		Operation: req.GetOperation(),
-	}); !types.IsNil(err) {
+	})
+	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
+	return &authorizationapi.CheckPermissionReply{
+		HasPermission: true,
+		TeamMember:    build.NewBuilder().WithAPITeamMember(teamMemberDo).ToAPI(ctx),
+	}, nil
 }
 
 // CheckToken 检查token
@@ -148,8 +152,12 @@ func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckToken
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	if err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims}); !types.IsNil(err) {
+	userDo, err := s.authorizationBiz.CheckToken(ctx, &bo.CheckTokenParams{JwtClaims: claims})
+	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &authorizationapi.CheckTokenReply{IsLogin: true}, nil
+	return &authorizationapi.CheckTokenReply{
+		IsLogin: true,
+		User:    build.NewBuilder().WithAPIUserBo(userDo).ToAPI(),
+	}, nil
 }

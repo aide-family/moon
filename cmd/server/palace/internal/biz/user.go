@@ -29,11 +29,7 @@ type UserBiz struct {
 
 // CreateUser 创建用户
 func (b *UserBiz) CreateUser(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsAdminRole() {
+	if !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return nil, merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	userDo, err := b.userRepo.Create(ctx, user)
@@ -45,11 +41,7 @@ func (b *UserBiz) CreateUser(ctx context.Context, user *bo.CreateUserParams) (*m
 
 // UpdateUser 更新用户
 func (b *UserBiz) UpdateUser(ctx context.Context, user *bo.UpdateUserParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsAdminRole() {
+	if !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 记录操作日志
@@ -69,11 +61,7 @@ func (b *UserBiz) UpdateUserBaseInfo(ctx context.Context, user *bo.UpdateUserBas
 
 // DeleteUser 删除用户
 func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsAdminRole() {
+	if !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 查询用户
@@ -84,7 +72,7 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
-	if !claims.Role.IsSuperadmin() && userDo.Role.IsAdmin() {
+	if !middleware.GetUserRole(ctx).IsSuperadmin() && userDo.Role.IsAdmin() {
 		return merr.ErrorI18nAdminUserDeleteErr(ctx)
 	}
 	// 记录操作日志
@@ -115,24 +103,18 @@ func (b *UserBiz) ListUser(ctx context.Context, params *bo.QueryUserListParams) 
 
 // BatchUpdateUserStatus 批量更新用户状态
 func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpdateUserStatusParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsAdminRole() {
+	if !!middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 不允许修改管理员状态
 	// 查询所有用户详情
-	if !claims.Role.IsSuperadmin() {
-		userDos, err := b.userRepo.FindByIds(ctx, params.IDs...)
-		if !types.IsNil(err) {
-			return merr.ErrorI18nSystemErr(ctx).WithCause(err)
-		}
-		for _, user := range userDos {
-			if user.Role.IsAdmin() {
-				return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
-			}
+	userDos, err := b.userRepo.FindByIds(ctx, params.IDs...)
+	if !types.IsNil(err) {
+		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	for _, user := range userDos {
+		if user.Role.IsAdmin() {
+			return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 		}
 	}
 
@@ -158,6 +140,7 @@ func (b *UserBiz) GetUserSelectList(ctx context.Context, params *bo.QueryUserSel
 		Status:  params.Status,
 		Gender:  params.Gender,
 		Role:    params.Role,
+		IDs:     params.IDs,
 	})
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)

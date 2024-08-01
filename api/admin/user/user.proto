@@ -304,6 +304,8 @@ message GetUserSelectListRequest {
     expression: "(this in [0, 1, 2, 3])",
     message: "角色值必须在[全部(0), 超级管理员(1), 管理员(2), 普通用户(3)]之间",
   }];
+  // 用户ID列表
+  repeated uint32 ids = 6;
 }
 message GetUserSelectListReply {
   // 用户列表

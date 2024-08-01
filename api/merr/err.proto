@@ -260,8 +260,8 @@ enum ErrorReason {
 
   // 请创建您的团队
   NO_TEAM_ERR = 36 [
-    (errors.code) = 200,
-    (errors.message) = "请创建您的团队",
+    (errors.code) = 405,
+    (errors.message) = "请创建或选择您的团队",
     (errors.id) = "NO_TEAM_ERR"
   ];
 
@@ -332,5 +332,11 @@ enum ErrorReason {
     (errors.code) = 405,
     (errors.message) = "创建字典参数不能为空!",
     (errors.id) = "DICT_CREATE_PARAM_CANNOT_EMPTY"
+  ];
+
+  OPERATION_NOT_ALLOWED_ERR = 47 [
+    (errors.code) = 405,
+    (errors.message) = "操作不允许!",
+    (errors.id) = "OPERATION_NOT_ALLOWED_ERR"
   ];
 }

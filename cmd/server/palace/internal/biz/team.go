@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 )
@@ -46,11 +45,7 @@ func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (
 // UpdateTeam 更新团队
 func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
 	// 不是管理员不允许修改
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsTeamAdminRole() {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 
@@ -78,7 +73,8 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 	if !ok {
 		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
-	if !claims.IsAdminRole() {
+	// 不是管理员不允许修改
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		params.UserID = claims.GetUser()
 	}
 	list, err := t.teamRepo.GetTeamList(ctx, params)
@@ -90,11 +86,7 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 
 // UpdateTeamStatus 更新团队状态
 func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsAdminRole() && !claims.IsTeamAdminRole() {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	if err := t.teamRepo.UpdateTeamStatus(ctx, status, ids...); !types.IsNil(err) {
@@ -114,11 +106,7 @@ func (t *TeamBiz) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.
 
 // AddTeamMember 添加团队成员
 func (t *TeamBiz) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsTeamAdminRole() {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	if err := t.teamRepo.AddTeamMember(ctx, params); !types.IsNil(err) {
@@ -132,11 +120,8 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	if len(params.MemberIds) == 0 {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsTeamAdminRole() {
+
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 查询团队管理员
@@ -159,6 +144,10 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return merr.ErrorI18nUnLoginErr(ctx)
+	}
 	for _, teamMember := range teamMemberList {
 		role := teamMember.Role
 		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
@@ -182,7 +171,7 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 	if !ok {
 		return merr.ErrorI18nUnLoginErr(ctx)
 	}
-	if !claims.GetTeamRole().IsSuperadmin() {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	// 不能设置自己
@@ -199,11 +188,7 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 
 // SetMemberRole 设置团队成员角色
 func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
-	}
-	if !claims.IsTeamAdminRole() {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	if err := t.teamRepo.SetMemberRole(ctx, params); !types.IsNil(err) {

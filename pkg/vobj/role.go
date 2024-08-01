@@ -18,3 +18,8 @@ const (
 	// RoleUser 普通用户
 	RoleUser // 普通用户
 )
+
+// IsAdminOrSuperAdmin 是否是：管理员 | 超级管理员
+func (i Role) IsAdminOrSuperAdmin() bool {
+	return i == RoleAdmin || i == RoleSuperAdmin
+}

@@ -2,16 +2,12 @@ package middleware
 
 import (
 	"testing"
-
-	"github.com/aide-family/moon/pkg/vobj"
 )
 
 func TestNewJwtClaims(t *testing.T) {
 	token, err := NewJwtClaims(&JwtBaseInfo{
-		User:     1,
-		Role:     1,
-		Team:     1,
-		TeamRole: vobj.RoleSuperAdmin,
+		UserID: 1,
+		TeamID: 1,
 	}).GetToken()
 	if err != nil {
 		t.Fatal(err)

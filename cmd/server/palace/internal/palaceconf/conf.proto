@@ -36,6 +36,8 @@ message Server {
     repeated string white_list = 6;
     // 免rbac白名单
     repeated string rbac_white_list = 7;
+    // 黑名单
+    repeated string black_list = 8;
   }
 
   HTTP http = 1;

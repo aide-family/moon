@@ -103,7 +103,7 @@ func (l *userRepositoryImpl) GetByUsername(ctx context.Context, username string)
 
 func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUserListParams) ([]*model.SysUser, error) {
 	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
-	q := userQuery.WithContext(ctx)
+	userCtxQuery := userQuery.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if !params.Status.IsUnknown() {
@@ -116,18 +116,21 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 		wheres = append(wheres, userQuery.Role.Eq(params.Role.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
-		q = q.Or(userQuery.Username.Like(params.Keyword))
-		q = q.Or(userQuery.Nickname.Like(params.Keyword))
-		q = q.Or(userQuery.Email.Like(params.Keyword))
-		q = q.Or(userQuery.Phone.Like(params.Keyword))
-		q = q.Or(userQuery.Remark.Like(params.Keyword))
+		userCtxQuery = userCtxQuery.Or(userQuery.Username.Like(params.Keyword))
+		userCtxQuery = userCtxQuery.Or(userQuery.Nickname.Like(params.Keyword))
+		userCtxQuery = userCtxQuery.Or(userQuery.Email.Like(params.Keyword))
+		userCtxQuery = userCtxQuery.Or(userQuery.Phone.Like(params.Keyword))
+		userCtxQuery = userCtxQuery.Or(userQuery.Remark.Like(params.Keyword))
+	}
+	if len(params.IDs) > 0 {
+		userCtxQuery = userCtxQuery.Or(userQuery.ID.In(params.IDs...))
 	}
 
-	q = q.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysUserDo](q, params.Page); err != nil {
+	userCtxQuery = userCtxQuery.Where(wheres...)
+	if err := types.WithPageQuery[query.ISysUserDo](userCtxQuery, params.Page); err != nil {
 		return nil, err
 	}
-	return q.Order(userQuery.ID.Desc()).Find()
+	return userCtxQuery.Order(userQuery.ID.Desc()).Find()
 }
 
 func (l *userRepositoryImpl) UpdateUser(ctx context.Context, user *model.SysUser) error {

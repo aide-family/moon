@@ -26,14 +26,17 @@ server:
       - /api.admin.team.Team/MyTeam
       - /api.admin.authorization.Authorization/RefreshToken
 
+    # 黑名单接口， 用于禁用某些接口
+    black_list:
+
 data:
   database:
     driver: "mysql"
-    debug: false
+    debug: true
     dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   bizDatabase:
     driver: "mysql"
-    debug: false
+    debug: true
     dsn: "root:12345678@tcp(localhost:3306)/"
   alarmDatabase:
     driver: "mysql"

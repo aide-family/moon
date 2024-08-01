@@ -28,9 +28,13 @@ func Logging(logger log.Logger) middleware.Middleware {
 				operation = info.Operation()
 			}
 			reply, err = handler(ctx, req)
-			if se := errors.FromError(err); se != nil {
-				code = se.Code
-				reason = se.Reason
+			if err != nil {
+				code = 500
+				reason = "未知系统错误"
+				if se := errors.FromError(err); se != nil {
+					code = se.Code
+					reason = se.Reason
+				}
 			}
 			latency := time.Since(startTime)
 			level, stack := extractError(err)

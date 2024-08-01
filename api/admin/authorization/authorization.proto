@@ -68,7 +68,7 @@ message LoginRequest {
   // 重定向地址
   string redirect = 4;
   // 团队ID
-  uint32 team_id = 5;
+  uint32 teamID = 5;
 }
 message LoginReply {
   // 用户信息
@@ -87,7 +87,7 @@ message LogoutReply {
 
 message RefreshTokenRequest {
   // 团队ID
-  uint32 team_id = 1;
+  uint32 teamID = 1;
 }
 message RefreshTokenReply {
   // token
@@ -141,10 +141,12 @@ message CheckPermissionRequest {
   }];
 }
 message CheckPermissionReply {
-  bool has_permission = 1;
+  bool hasPermission = 1;
+  TeamMember teamMember = 2;
 }
 
 message CheckTokenRequest {}
 message CheckTokenReply {
-  bool is_login = 1;
+  bool isLogin = 1;
+  User user = 2;
 }

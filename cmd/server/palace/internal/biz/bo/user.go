@@ -45,6 +45,7 @@ type (
 		Status  vobj.Status      `json:"status"`
 		Gender  vobj.Gender      `json:"gender"`
 		Role    vobj.Role        `json:"role"`
+		IDs     []uint32         `json:"ids"`
 	}
 
 	// QueryUserListParams 查询用户列表参数
@@ -54,6 +55,7 @@ type (
 		Status  vobj.Status      `json:"status"`
 		Gender  vobj.Gender      `json:"gender"`
 		Role    vobj.Role        `json:"role"`
+		IDs     []uint32         `json:"ids"`
 	}
 
 	// BatchUpdateUserStatusParams 批量更新用户状态参数

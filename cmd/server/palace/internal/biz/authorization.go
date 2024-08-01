@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -39,72 +40,76 @@ func NewAuthorizationBiz(
 }
 
 // CheckPermission 检查用户是否有该资源权限
-func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
-	if req.JwtClaims.GetTeamRole().IsAdmin() {
-		return nil
+func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) (*bizmodel.SysTeamMember, error) {
+	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+		return nil, nil
 	}
+	log.Debugw("user role", middleware.GetUserRole(ctx), "ctx", ctx)
 	// 检查用户是否被团队禁用
 	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nUserNotInTeamErr(ctx)
+			return nil, merr.ErrorI18nUserNotInTeamErr(ctx).WithCause(err)
 		}
-		return merr.ErrorI18nSystemErr(ctx)
+		return nil, err
 	}
 	if !teamMemberDo.Status.IsEnable() {
-		return merr.ErrorI18nUserTeamDisabledErr(ctx)
+		return nil, merr.ErrorI18nUserTeamDisabledErr(ctx)
 	}
 
+	if middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() {
+		return teamMemberDo, nil
+	}
 	// 查询用户角色
 	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if len(memberRoles) == 0 {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return nil, merr.ErrorI18nNoPermissionErr(ctx)
 	}
 	memberRoleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
 		return role.ID
 	})
 	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
 	if !types.IsNil(err) {
-		return err
+		return nil, err
 	}
 	if !rbac {
-		return merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{
+		return nil, merr.ErrorI18nNoPermissionErr(ctx).WithMetadata(map[string]string{
 			"operation": req.Operation,
 		})
 	}
 
-	return nil
+	return teamMemberDo, nil
 }
 
 // CheckToken 检查token
-func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenParams) error {
+func (b *AuthorizationBiz) CheckToken(ctx context.Context, req *bo.CheckTokenParams) (*model.SysUser, error) {
 	// 检查token是否过期
 	if types.IsNil(req) || types.IsNil(req.JwtClaims) {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	if middleware.IsExpire(req.JwtClaims) {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 	// 检查token是否被登出
 	if req.JwtClaims.IsLogout(ctx, b.cacheRepo.Cacher()) {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnLoginErr(ctx)
 	}
 
 	// 检查用户是否被系统禁用
 	userDo, err := b.userRepo.GetByID(ctx, req.JwtClaims.GetUser())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nUserNotFoundErr(ctx)
+			return nil, merr.ErrorI18nUserNotFoundErr(ctx).WithCause(err)
 		}
-		return merr.ErrorI18nSystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	if !userDo.Status.IsEnable() {
-		return merr.ErrorI18nUserLimitErr(ctx)
+		return nil, merr.ErrorI18nUserLimitErr(ctx)
 	}
-	return nil
+	return userDo, nil
 }
 
 // getJwtBaseInfo 获取jwtBaseInfo
@@ -114,7 +119,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 	}
 	// 生成token
 	base := new(middleware.JwtBaseInfo)
-	base.SetUserInfo(userDo.ID, userDo.Role)
+	base.SetUserInfo(userDo.ID)
 	// 查询用户所属团队是否存在，存在着set temId
 	if teamID > 0 {
 		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, teamID)
@@ -124,7 +129,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 		if !memberItem.Status.IsEnable() {
 			return nil, merr.ErrorI18nUserTeamDisabledErr(ctx)
 		}
-		base.SetTeamInfo(memberItem.TeamID, memberItem.Role)
+		base.SetTeamInfo(memberItem.TeamID)
 	}
 
 	return base, nil
@@ -139,7 +144,7 @@ func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.
 			// 统一包装成密码错误
 			return nil, merr.ErrorI18nPasswordErr(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx)
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
 	// 检查用户密码是否正确
 	if err = checkPassword(ctx, userDo, req.Password); !types.IsNil(err) {
