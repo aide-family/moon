@@ -88,6 +88,9 @@ type (
 		WithAPIDatasourceMetricLabelValue(metric *bizmodel.MetricLabelValue) DatasourceMetricLabelValueBuilder
 
 		StrategyGroupModuleBuilder() StrategyGroupModuleBuilder
+
+		RealTimeAlarmModule() RealtimeAlarmModuleBuilder
+		DashboardModule() DashboardModuleBuilder
 	}
 )
 
@@ -99,6 +102,14 @@ func (b *builder) WithStrategyGroupList(strategyGroup []*bizmodel.StrategyGroup,
 	return &strategyGroupBuilder{
 		StrategyGroups: strategyGroup,
 	}
+}
+
+func (b *builder) DashboardModule() DashboardModuleBuilder {
+	return NewDashboardModuleBuilder(b.ctx)
+}
+
+func (b *builder) RealTimeAlarmModule() RealtimeAlarmModuleBuilder {
+	return newRealtimeAlarmModuleBuilder(b.ctx)
 }
 
 func (b *builder) WithDict(dict imodel.IDict) DictModelBuilder {

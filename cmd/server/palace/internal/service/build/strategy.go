@@ -16,7 +16,7 @@ import (
 type (
 	// StrategyModelBuilder 策略模型构建器
 	StrategyModelBuilder interface {
-		ToAPI(ctx context.Context) *admin.StrategyItem
+		ToAPI() *admin.StrategyItem
 	}
 
 	// StrategyRequestBuilder 策略请求构建器
@@ -108,7 +108,7 @@ type (
 )
 
 // ToAPI 转换为API层数据
-func (b *strategyBuilder) ToAPI(ctx context.Context) *admin.StrategyItem {
+func (b *strategyBuilder) ToAPI() *admin.StrategyItem {
 	if types.IsNil(b) || types.IsNil(b.Strategy) {
 		return nil
 	}
@@ -123,7 +123,7 @@ func (b *strategyBuilder) ToAPI(ctx context.Context) *admin.StrategyItem {
 		Labels:      b.Strategy.Labels.Map(),
 		Annotations: b.Strategy.Annotations,
 		Datasource: types.SliceTo(b.Strategy.Datasource, func(datasource *bizmodel.Datasource) *admin.DatasourceItem {
-			return NewBuilder().WithContext(ctx).WithDoDatasource(datasource).ToAPI()
+			return NewBuilder().WithContext(b.ctx).WithDoDatasource(datasource).ToAPI()
 		}),
 		StrategyTemplateId: b.Strategy.StrategyTemplateID,
 		Levels:             strategyLevels,

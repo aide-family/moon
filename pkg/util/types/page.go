@@ -59,6 +59,9 @@ func NewPage(pageNum, pageSize int) Pagination {
 
 // NewPagination 获取分页器
 func NewPagination(page *api.PaginationReq) Pagination {
+	if IsNil(page) {
+		return nil
+	}
 	return NewPage(int(page.GetPageNum()), int(page.GetPageSize()))
 }
 

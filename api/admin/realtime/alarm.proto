@@ -33,7 +33,10 @@ message GetAlarmRequest {
   // 告警ID
   uint32 id = 1;
 }
-message GetAlarmReply {}
+message GetAlarmReply {
+  // 告警详情
+  RealtimeAlarmItem detail = 1;
+}
 
 message ListAlarmRequest {
   // 分页

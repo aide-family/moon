@@ -21,6 +21,8 @@ func Models() []any {
 		&StrategyLevelTemplate{},
 		&SendStrategy{},
 		&StrategyGroup{},
+		&Dashboard{},
+		&DashboardChart{},
 	}
 }
 

@@ -45,6 +45,7 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 
 	if isBiz {
 		g.ApplyBasic(bizmodel.Models()...)
+		g.ApplyBasic(bizmodel.AlarmModels()...)
 	} else {
 		g.ApplyBasic(model.Models()...)
 	}

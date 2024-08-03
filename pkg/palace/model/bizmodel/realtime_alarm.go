@@ -13,10 +13,8 @@ const tableNameRealtimeAlarm = "realtime_alarm"
 type RealtimeAlarm struct {
 	model.EasyModel
 	// 发生这条告警的具体策略信息
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;uniqueIndex:idx__ar__strategy_id,priority:1;comment:策略ID"`
-	Strategy   *Strategy `gorm:"foreignKey:StrategyID"`
-	LevelID    uint32    `gorm:"column:level_id;type:int unsigned;not null;uniqueIndex:idx__ar__level_id,priority:1;comment:告警等级ID"`
-	Level      *SysDict  `gorm:"foreignKey:LevelID"`
+	StrategyID uint32 `gorm:"column:strategy_id;type:int unsigned;not null;uniqueIndex:idx__ar__strategy_id,priority:1;comment:策略ID"`
+	LevelID    uint32 `gorm:"column:level_id;type:int unsigned;not null;uniqueIndex:idx__ar__level_id,priority:1;comment:告警等级ID"`
 	// 告警状态: 1告警;2恢复
 	Status vobj.AlertStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// 告警时间
@@ -32,8 +30,7 @@ type RealtimeAlarm struct {
 	// 触发告警表达式
 	Expr string `gorm:"column:expr;type:text;not null;comment:告警表达式"`
 	// 数据源
-	DatasourceID uint32      `gorm:"column:datasource_id;type:int unsigned;not null;comment:数据源ID"`
-	Datasource   *Datasource `gorm:"foreignKey:DatasourceID"`
+	DatasourceID uint32 `gorm:"column:datasource_id;type:int unsigned;not null;comment:数据源ID"`
 	// 指纹
 	Fingerprint string `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex"`
 }

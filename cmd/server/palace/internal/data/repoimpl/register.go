@@ -23,4 +23,6 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewStrategyRepository,
 	NewStrategyGroupRepository,
 	NewStrategyCountRepository,
+	NewRealtimeAlarmRepository,
+	NewDashboardRepository,
 )

@@ -5,6 +5,11 @@
 在开发前， 请确保你已经安装了go环境，以及protobuf、kratos框架相关依赖
 如果没有， 请参考：[kratos项目初始化依赖安装](https://go-kratos.dev/docs/getting-started/start)
 
+mac安装protoc插件
+```bash
+brew install protobuf
+```
+
 安装自定义errors生成插件, 此插件支持i18n
 
 ```bash

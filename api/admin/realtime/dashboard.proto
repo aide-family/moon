@@ -83,11 +83,20 @@ message CreateDashboardReply {}
 
 message UpdateDashboardRequest {
 	// 仪表板ID
-	uint32 id = 1;
+	uint32 id = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
 	// 仪表板名称
-	string title = 2;
+	string title = 2 [(buf.validate.field).cel = {
+		message: "仪表标题在1-20个字符",
+		expression: 'this.size() >= 1 && this.size() <= 20'
+	}];
 	// 仪表板说明
-	string remark = 3;
+	string remark = 3 [(buf.validate.field).cel = {
+		message: "仪表说明在200个字符以内",
+		expression: 'this.size() <= 200'
+	}];
 	// 仪表板颜色
 	string color = 4;
 	// 图表列表
@@ -145,7 +154,7 @@ message ListDashboardSelectRequest {
 	// 仪表板状态
 	Status status = 2;
 	// 分页
-	PaginationReq pagination = 3 [(buf.validate.field).required = true];
+	PaginationReq pagination = 3;
 }
 message ListDashboardSelectReply {
 	// 仪表板列表

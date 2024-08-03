@@ -328,15 +328,31 @@ enum ErrorReason {
     (errors.id) = "DICT_NOT_FOUND_ERR"
   ];
 
+  // 创建字典参数不能为空
   DICT_CREATE_PARAM_CANNOT_EMPTY = 46[
     (errors.code) = 405,
     (errors.message) = "创建字典参数不能为空!",
     (errors.id) = "DICT_CREATE_PARAM_CANNOT_EMPTY"
   ];
 
+  // 操作不允许
   OPERATION_NOT_ALLOWED_ERR = 47 [
     (errors.code) = 405,
     (errors.message) = "操作不允许!",
     (errors.id) = "OPERATION_NOT_ALLOWED_ERR"
+  ];
+
+  // 告警数据不存在
+  ALARM_DATA_NOT_FOUND_ERR = 48 [
+    (errors.code) = 405,
+    (errors.message) = "告警数据不存在!",
+    (errors.id) = "ALARM_DATA_NOT_FOUND_ERR"
+  ];
+
+  // 仪表盘数据不存在
+  DASHBOARD_DATA_NOT_FOUND_ERR = 49 [
+    (errors.code) = 405,
+    (errors.message) = "仪表盘数据不存在!",
+    (errors.id) = "DASHBOARD_DATA_NOT_FOUND_ERR"
   ];
 }

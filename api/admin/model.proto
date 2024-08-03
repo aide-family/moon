@@ -523,9 +523,9 @@ message RealtimeAlarmItem {
   // 告警级别
   SelectItem level = 5;
   // 告警级别ID
-  uint32 levelId = 6;
+  uint32 levelID = 6;
   // 告警策略ID
-  uint32 strategyId = 7;
+  uint32 strategyID = 7;
   // 告警策略
   StrategyItem strategy = 8;
   // 告警摘要
@@ -535,7 +535,7 @@ message RealtimeAlarmItem {
   // 触发告警表达式
   string expr = 11;
   // 数据源ID
-  uint32 datasourceId = 12;
+  uint32 datasourceID = 12;
   // 数据源
   DatasourceItem datasource = 13;
   // 指纹
