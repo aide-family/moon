@@ -143,7 +143,7 @@ message CreateDictReply {}
 
 message GetDictSelectListRequest {
   // 分页参数
-  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  PaginationReq pagination = 1 ;
   // 关键字模糊查询
   string keyword = 2 [(buf.validate.field).cel = {
     message: "关键字模糊查询长度限制在0-20个字符",

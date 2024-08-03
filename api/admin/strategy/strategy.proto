@@ -136,8 +136,6 @@ message CreateStrategyGroupRequest {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
-
-  uint32 teamId = 5;
 }
 message CreateStrategyGroupReply {}
 
@@ -157,8 +155,6 @@ message ListStrategyGroupRequest {
   }];
   // 状态查询
   Status status = 3;
-
-  uint32 teamId = 5;
 }
 message ListStrategyGroupReply {
   // 策略组列表
@@ -179,7 +175,6 @@ message UpdateStrategyGroupRequest {
   // 策略组ID
   uint32 id = 1 [(buf.validate.field).required = true];
   CreateStrategyGroupRequest update = 2 [(buf.validate.field).required = true];
-  uint32 teamId = 3;
 }
 message UpdateStrategyGroupReply {}
 
@@ -251,8 +246,6 @@ message CreateStrategyRequest {
     message: "注解数量必须大于0且小于等于5"
     id: "CreateTemplateStrategyRequestAnnotations"
   }];
-
-  uint32 teamId = 12;
 }
 message CreateStrategyReply {}
 

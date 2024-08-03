@@ -150,6 +150,11 @@ func (l *dictRepositoryImpl) listBizDictModel(ctx context.Context, params *bo.Qu
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, bizQuery.SysDict.Status.Eq(params.Status.GetValue()))
 	}
+
+	if !params.DictType.IsUnknown() {
+		wheres = append(wheres, bizQuery.SysDict.DictType.Eq(params.DictType.GetValue()))
+	}
+
 	if !types.TextIsNull(params.Keyword) {
 		bizWrapper = bizWrapper.Or(bizQuery.SysDict.Name.Like(params.Keyword))
 		bizWrapper = bizWrapper.Or(bizQuery.SysDict.Value.Like(params.Keyword))

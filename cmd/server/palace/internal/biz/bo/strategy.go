@@ -38,7 +38,6 @@ type (
 	UpdateStrategyParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam CreateStrategyParams
-		TeamID      uint32 `json:"teamID"`
 	}
 
 	// QueryStrategyListParams 查询策略列表请求参数
@@ -48,25 +47,11 @@ type (
 		Alert      string
 		Status     vobj.Status
 		SourceType vobj.TemplateSourceType
-		TeamID     uint32 `json:"teamID"`
-	}
-
-	// GetStrategyDetailParams 获取策略详情请求参数
-	GetStrategyDetailParams struct {
-		ID     uint32 `json:"id"`
-		TeamID uint32 `json:"teamID"`
-	}
-
-	// DelStrategyParams 删除策略请求参数
-	DelStrategyParams struct {
-		ID     uint32 `json:"id"`
-		TeamID uint32 `json:"teamID"`
 	}
 
 	// UpdateStrategyStatusParams 更新策略状态请求参数
 	UpdateStrategyStatusParams struct {
 		Ids    []uint32 `json:"ids"`
-		TeamID uint32   `json:"teamID"`
 		Status vobj.Status
 	}
 
@@ -93,12 +78,6 @@ type (
 		Status vobj.Status `json:"status"`
 	}
 
-	// CopyStrategyParams 复制策略请求参数
-	CopyStrategyParams struct {
-		StrategyID uint32 `json:"strategyID"`
-		TeamID     uint32 `json:"teamID"`
-	}
-
 	// CreateStrategyGroupParams 创建策略组请求参数
 	CreateStrategyGroupParams struct {
 		// 策略组名称
@@ -109,13 +88,11 @@ type (
 		Status api.Status `json:"status,omitempty"`
 		// 策略分组类型
 		CategoriesIds []uint32 `json:"categoriesIds,omitempty"`
-		TeamID        uint32   `json:"teamID"`
 	}
 
 	// UpdateStrategyGroupStatusParams 更新策略组状态请求参数
 	UpdateStrategyGroupStatusParams struct {
 		IDs    []uint32 `json:"ids"`
-		TeamID uint32   `json:"teamID"`
 		Status vobj.Status
 	}
 
@@ -123,19 +100,11 @@ type (
 	UpdateStrategyGroupParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam CreateStrategyGroupParams
-		TeamID      uint32 `json:"teamID"`
-	}
-
-	// GetStrategyGroupDetailParams 获取策略组详情请求参数
-	GetStrategyGroupDetailParams struct {
-		ID     uint32 `json:"id"`
-		TeamID uint32 `json:"teamID"`
 	}
 
 	// DelStrategyGroupParams 删除策略组请求参数
 	DelStrategyGroupParams struct {
-		ID     uint32 `json:"id"`
-		TeamID uint32 `json:"teamID"`
+		ID uint32 `json:"id"`
 	}
 
 	// QueryStrategyGroupListParams 查询策略组列表请求参数
@@ -144,6 +113,25 @@ type (
 		Page    types.Pagination
 		Name    string
 		Status  vobj.Status
-		TeamID  uint32 `json:"teamID"`
+	}
+
+	// GetStrategyCountParams 查询策略总数参数
+	GetStrategyCountParams struct {
+		StrategyGroupIds []uint32 `json:"strategyGroupIds"`
+		Status           vobj.Status
+	}
+
+	// StrategyCountModel 策略数量统计  策略总数,策略开启总数接收model
+	StrategyCountModel struct {
+		GroupID uint32 `gorm:"column:group_id"`
+		// 总数
+		Total uint64 `gorm:"column:total"`
+	}
+	// StrategyCountMap 策略总数map
+	StrategyCountMap struct {
+		// 策略开启总数
+		StrategyCountMap map[uint32]*StrategyCountModel `json:"strategyCountMap"`
+		// 策略总数
+		StrategyEnableMap map[uint32]*StrategyCountModel `json:"strategyEnableMap"`
 	}
 )

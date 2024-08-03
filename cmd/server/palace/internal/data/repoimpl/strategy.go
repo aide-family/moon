@@ -30,28 +30,26 @@ type strategyRepositoryImpl struct {
 }
 
 func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyStatusParams) error {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if err != nil {
 		return err
 	}
-	queryWrapper := bizquery.Use(bizDB)
-	_, err = queryWrapper.WithContext(ctx).
-		Strategy.Where(queryWrapper.Strategy.ID.In(params.Ids...)).
-		Update(queryWrapper.Strategy.Status, params.Status)
+	_, err = bizQuery.WithContext(ctx).
+		Strategy.Where(bizQuery.Strategy.ID.In(params.Ids...)).
+		Update(bizQuery.Strategy.Status, params.Status)
 	return err
 }
 
-func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, params *bo.DelStrategyParams) error {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint32) error {
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return err
 	}
-	queryWrapper := bizquery.Use(bizDB)
-	return queryWrapper.Transaction(func(tx *bizquery.Query) error {
-		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
+	return bizQuery.Transaction(func(tx *bizquery.Query) error {
+		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(strategyID)).Delete(); !types.IsNil(err) {
 			return err
 		}
-		if _, err = tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Delete(); !types.IsNil(err) {
+		if _, err = tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(strategyID)).Delete(); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -59,13 +57,11 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, params *bo.DelS
 }
 
 func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+	bizQuery, err := getBizQuery(ctx, s.data)
 	templateID := params.TemplateID
-
 	if !types.IsNil(err) {
 		return nil, err
 	}
-
 	mainDb := s.data.GetMainDB(ctx).WithContext(ctx)
 	mainQuery := query.Use(mainDb)
 	strategyTemplate, err := mainQuery.WithContext(ctx).StrategyTemplate.Where(mainQuery.StrategyTemplate.ID.Eq(templateID)).Preload(field.Associations).First()
@@ -75,7 +71,6 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 
 	strategyModel := createStrategyParamsToModel(ctx, strategyTemplate, params)
 
-	bizQuery := bizquery.Use(bizDB)
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.Strategy.WithContext(ctx).Create(strategyModel); !types.IsNil(err) {
 			return err
@@ -94,12 +89,11 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 }
 
 func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.UpdateStrategyParams) error {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return err
 	}
 	updateParam := params.UpdateParam
-	queryWrapper := bizquery.Use(bizDB)
 	datasourceIds := types.SliceToWithFilter(updateParam.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 		if datasourceId <= 0 {
 			return nil, false
@@ -108,7 +102,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			AllFieldModel: model.AllFieldModel{ID: datasourceId},
 		}, true
 	})
-	return queryWrapper.Transaction(func(tx *bizquery.Query) error {
+	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err = tx.Strategy.Datasource.
 			Model(&bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(datasourceIds...); !types.IsNil(err) {
 			return err
@@ -152,22 +146,20 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	})
 }
 
-func (s *strategyRepositoryImpl) GetByID(ctx context.Context, params *bo.GetStrategyDetailParams) (*bizmodel.Strategy, error) {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+func (s *strategyRepositoryImpl) GetByID(ctx context.Context, strategyID uint32) (*bizmodel.Strategy, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizQuery := bizquery.Use(bizDB)
 	bizWrapper := bizQuery.Strategy.WithContext(ctx)
-	return bizWrapper.Where(bizQuery.Strategy.ID.Eq(params.ID)).Preload(field.Associations).First()
+	return bizWrapper.Where(bizQuery.Strategy.ID.Eq(strategyID)).Preload(field.Associations).First()
 }
 
 func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error) {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizQuery := bizquery.Use(bizDB)
 	strategyWrapper := bizQuery.Strategy.WithContext(ctx)
 
 	var wheres []gen.Condition
@@ -217,18 +209,17 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	return strategyWrapper.Order(bizQuery.Strategy.ID.Desc()).Find()
 }
 
-func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, params *bo.CopyStrategyParams) (*bizmodel.Strategy, error) {
-	bizDB, err := s.data.GetBizGormDB(params.TeamID)
+func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID uint32) (*bizmodel.Strategy, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizQuery := bizquery.Use(bizDB)
 	strategyWrapper := bizQuery.Strategy.WithContext(ctx)
-	strategy, err := strategyWrapper.Where(bizQuery.Strategy.ID.Eq(params.StrategyID)).Preload(field.Associations).First()
+	strategy, err := strategyWrapper.Where(bizQuery.Strategy.ID.Eq(strategyID)).Preload(field.Associations).First()
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, params.StrategyID, "copy")
+	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, strategyID, "copy")
 	strategy.ID = 0
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.Strategy.WithContext(ctx).Create(strategy); !types.IsNil(err) {
@@ -279,6 +270,7 @@ func createStrategyParamsToModel(ctx context.Context, strategyTemplate *model.St
 		Labels:                 params.Labels,
 		Annotations:            params.Annotations,
 		Remark:                 params.Remark,
+		Status:                 vobj.Status(params.Status.GetValue()),
 		Step:                   params.Step,
 		Datasource: types.SliceToWithFilter(params.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 			if datasourceId <= 0 {

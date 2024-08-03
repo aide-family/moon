@@ -18,6 +18,8 @@ type (
 	// UserModelBuilder 用户模型转换
 	UserModelBuilder interface {
 		ToAPI() *admin.User
+
+		GetUsername() string
 	}
 
 	// UserRequestBuilder 用户请求转换
@@ -109,6 +111,13 @@ func (b *userBuilder) ToAPI() *admin.User {
 		CreatedAt: b.CreatedAt.String(),
 		UpdatedAt: b.UpdatedAt.String(),
 	}
+}
+
+func (b *userBuilder) GetUsername() string {
+	if types.IsNil(b) || types.IsNil(b.SysUser) {
+		return ""
+	}
+	return b.Username
 }
 
 func (b *teamMemberBuilder) ToAPI(ctx context.Context) *admin.TeamMember {

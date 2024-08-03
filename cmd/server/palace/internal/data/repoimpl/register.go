@@ -22,4 +22,5 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewTemplateRepository,
 	NewStrategyRepository,
 	NewStrategyGroupRepository,
+	NewStrategyCountRepository,
 )

@@ -372,7 +372,7 @@ message StrategyItem {
   // 持续时间
   google.protobuf.Duration duration = 21;
 
-  uint32 step =22;
+  uint32 step = 22;
   // 模板来源
   TemplateSourceType sourceType = 23;
 }
@@ -391,11 +391,16 @@ message StrategyGroupItem {
   // 策略组说明信息
   string remark = 6;
   // 策略组创建人
-  User creator = 7;
+  string creator = 7;
   // 创建者ID
   uint32 creatorId = 8;
   // 策略列表
   repeated StrategyItem strategies = 9;
+  // 策略总数
+  uint64 strategyCount = 10;
+  // 策略开启总数
+  uint64 enableStrategyCount = 11;
+
 }
 
 message StrategyLevelTemplate {

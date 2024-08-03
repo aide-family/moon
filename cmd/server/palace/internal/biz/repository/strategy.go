@@ -16,7 +16,7 @@ type Strategy interface {
 	UpdateByID(context.Context, *bo.UpdateStrategyParams) error
 
 	// GetByID 获取策略详情
-	GetByID(context.Context, *bo.GetStrategyDetailParams) (*bizmodel.Strategy, error)
+	GetByID(context.Context, uint32) (*bizmodel.Strategy, error)
 
 	// UpdateStatus 更新状态
 	UpdateStatus(context.Context, *bo.UpdateStrategyStatusParams) error
@@ -25,8 +25,8 @@ type Strategy interface {
 	FindByPage(context.Context, *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error)
 
 	// DeleteByID 删除策略
-	DeleteByID(context.Context, *bo.DelStrategyParams) error
+	DeleteByID(context.Context, uint32) error
 
 	// CopyStrategy 复制策略
-	CopyStrategy(context.Context, *bo.CopyStrategyParams) (*bizmodel.Strategy, error)
+	CopyStrategy(context.Context, uint32) (*bizmodel.Strategy, error)
 }
