@@ -1,5 +1,9 @@
 package vobj
 
+import (
+	"strings"
+)
+
 // NotifyType 通知类型
 type NotifyType int
 
@@ -30,14 +34,18 @@ func (n NotifyType) IsEmail() bool {
 }
 
 func (n NotifyType) String() string {
-	switch n {
-	case Phone:
-		return "Phone"
-	case SMS:
-		return "SMS"
-	case Email:
-		return "Email"
-	default:
-		return "Unknown"
+	notify := make([]string, 0, 4)
+	if n.IsPhone() {
+		notify = append(notify, "电话")
 	}
+	if n.IsSMS() {
+		notify = append(notify, "短信")
+	}
+	if n.IsEmail() {
+		notify = append(notify, "邮件")
+	}
+	if len(notify) == 0 {
+		return "未知"
+	}
+	return strings.Join(notify, ",")
 }
