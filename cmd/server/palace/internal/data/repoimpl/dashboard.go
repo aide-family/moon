@@ -35,15 +35,15 @@ func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddD
 		return err
 	}
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err = bizQuery.Dashboard.WithContext(ctx).Create(dashboardModel); err != nil {
+		if err = tx.Dashboard.WithContext(ctx).Create(dashboardModel); err != nil {
 			return err
 		}
 		strategyGroups := dashboardModuleBuilder.WithDashboardID(dashboardModel.ID).ToDoStrategyGroups()
-		if err = bizQuery.Dashboard.StrategyGroups.Model(dashboardModel).Append(strategyGroups...); err != nil {
+		if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Append(strategyGroups...); err != nil {
 			return err
 		}
 		charts := dashboardModuleBuilder.WithDashboardID(dashboardModel.ID).ToDoCharts()
-		if err = bizQuery.Dashboard.Charts.Model(dashboardModel).Append(charts...); err != nil {
+		if err = tx.Dashboard.Charts.Model(dashboardModel).Append(charts...); err != nil {
 			return err
 		}
 		return nil
@@ -59,13 +59,13 @@ func (d *dashboardRepositoryImpl) DeleteDashboard(ctx context.Context, req *bo.D
 		AllFieldModel: model.AllFieldModel{ID: req.ID},
 	}
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err = bizQuery.Dashboard.Charts.Model(dashboardModel).Clear(); err != nil {
+		if err = tx.Dashboard.Charts.Model(dashboardModel).Clear(); err != nil {
 			return err
 		}
-		if err = bizQuery.Dashboard.StrategyGroups.Model(dashboardModel).Clear(); err != nil {
+		if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Clear(); err != nil {
 			return err
 		}
-		_, err = bizQuery.Dashboard.WithContext(ctx).Where(bizQuery.Dashboard.ID.Eq(req.ID), bizQuery.Dashboard.Status.Eq(req.Status.GetValue())).Delete()
+		_, err = tx.Dashboard.WithContext(ctx).Where(bizQuery.Dashboard.ID.Eq(req.ID), bizQuery.Dashboard.Status.Eq(req.Status.GetValue())).Delete()
 		return err
 	})
 }

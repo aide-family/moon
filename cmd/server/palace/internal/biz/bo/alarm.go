@@ -30,5 +30,9 @@ type (
 		AlarmStatuses []vobj.AlertStatus
 		// 关键字
 		Keyword string
+		// 告警页面
+		AlarmPageID uint32
+		// 我的告警
+		MyAlarm bool
 	}
 )

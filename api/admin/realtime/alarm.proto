@@ -56,6 +56,10 @@ message ListAlarmRequest {
     message: "关键字查询限制在20字符以内"
     expression: "this.size() <= 20"
   }];
+  // 告警页面
+  uint32 alarmPage = 9;
+  // 我的告警
+  bool myAlarm = 10;
 
   option (buf.validate.message).cel = {
     id: "ListAlarmRequest_eventAtStart_less_than_eventAtEnd",

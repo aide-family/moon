@@ -83,6 +83,8 @@ func (a *apiGetRealTimeAlarmsParamsBuilder) ToBo() *bo.GetRealTimeAlarmsParams {
 		AlarmLevels:     params.GetAlarmLevels(),
 		AlarmStatuses:   types.SliceTo(params.GetAlarmStatuses(), func(item api.AlertStatus) vobj.AlertStatus { return vobj.AlertStatus(item) }),
 		Keyword:         params.GetKeyword(),
+		AlarmPageID:     params.GetAlarmPage(),
+		MyAlarm:         params.GetMyAlarm(),
 	}
 }
 
