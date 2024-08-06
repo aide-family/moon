@@ -31,4 +31,5 @@ var ProviderSetService = wire.NewSet(
 	dict.NewDictService,
 	realtime.NewDashboardService,
 	realtime.NewAlarmService,
+	realtime.NewAlarmPageSelfService,
 )

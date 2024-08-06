@@ -23,6 +23,8 @@ func Models() []any {
 		&StrategyGroup{},
 		&Dashboard{},
 		&DashboardChart{},
+		&DashboardSelf{},
+		&AlarmPageSelf{},
 	}
 }
 

@@ -541,3 +541,25 @@ message RealtimeAlarmItem {
   // 指纹
   string fingerprint = 14;
 }
+
+// 我的告警页面明细
+message SelfAlarmPageItem {
+  // ID
+  uint32 id = 1;
+  // 告警页面名称
+  string name = 2;
+  // 颜色类型
+  string colorType = 4;
+  // css样式
+  string cssClass = 5;
+  // 告警页面值
+  string value = 6;
+  // 图标
+  string icon = 7;
+  //图片url
+  string imageUrl = 8;
+  // 语言
+  string languageCode = 10;
+  // 告警页面备注
+  string remark = 11;
+}

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package api.admin.realtime;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/realtime;realtime";
+option java_multiple_files = true;
+option java_package = "api.admin.realtime";
+
+// 告警页面模块
+service AlarmPageSelf {
+	// 维护个人告警页面信息
+	rpc UpdateAlarmPage (UpdateAlarmPageRequest) returns (UpdateAlarmPageReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/self/alarm/page/update"
+			body: "*"
+		};
+	}
+
+	// 获取个人告警页面列表
+	rpc ListAlarmPage (ListAlarmPageRequest) returns (ListAlarmPageReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/realtime/self/alarm/page/list"
+		};
+	}
+}
+
+message UpdateAlarmPageRequest {
+	// 告警页面ID
+	repeated uint32 alarmPageIds = 1 [(buf.validate.field).cel = {
+		expression: "this > 0 && this.size() <= 10"
+	}];
+}
+message UpdateAlarmPageReply {}
+
+message ListAlarmPageRequest {}
+message ListAlarmPageReply {
+	repeated SelfAlarmPageItem list = 1;
+}

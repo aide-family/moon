@@ -137,6 +137,8 @@ message ListDashboardRequest {
 	Status status = 2;
 	// 分页
 	PaginationReq pagination = 3 [(buf.validate.field).required = true];
+	// 我的大盘
+	bool myDashboard = 4;
 }
 message ListDashboardReply {
 	// 仪表板列表

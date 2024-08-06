@@ -75,6 +75,7 @@ func RegisterService(
 	strategyTemplateService *strategy.TemplateService,
 	dashboardService *realtime.DashboardService,
 	alarmService *realtime.AlarmService,
+	alarmPageSelfService *realtime.AlarmPageSelfService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -92,6 +93,7 @@ func RegisterService(
 	strategyapi.RegisterTemplateServer(rpcSrv, strategyTemplateService)
 	realtimeapi.RegisterDashboardServer(rpcSrv, dashboardService)
 	realtimeapi.RegisterAlarmServer(rpcSrv, alarmService)
+	realtimeapi.RegisterAlarmPageSelfServer(rpcSrv, alarmPageSelfService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -109,6 +111,7 @@ func RegisterService(
 	strategyapi.RegisterTemplateHTTPServer(httpSrv, strategyTemplateService)
 	realtimeapi.RegisterDashboardHTTPServer(httpSrv, dashboardService)
 	realtimeapi.RegisterAlarmHTTPServer(httpSrv, alarmService)
+	realtimeapi.RegisterAlarmPageSelfHTTPServer(httpSrv, alarmPageSelfService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,
