@@ -25,6 +25,7 @@ func Models() []any {
 		&DashboardChart{},
 		&DashboardSelf{},
 		&AlarmPageSelf{},
+		&AlarmHook{},
 	}
 }
 
