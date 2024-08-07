@@ -11,10 +11,10 @@ const tableNameAlarmPageSelf = "alarm_page_self"
 // AlarmPageSelf mapped from table <alarm_page_self>
 type AlarmPageSelf struct {
 	model.AllFieldModel
-	UserID      uint `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__alarm_page__id,priority:1;comment:用户ID" json:"user_id"`
-	MemberID    uint `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`
-	Sort        uint `gorm:"column:sort;type:int unsigned;not null;default:0;comment:排序(值越小越靠前， 默认为0)" json:"sort"`
-	AlarmPageID uint `gorm:"column:alarm_page_id;type:int unsigned;not null;uniqueIndex:idx__user_id__alarm_page__id,priority:2;comment:报警页面ID" json:"alarm_page_id"`
+	UserID      uint32 `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__alarm_page__id,priority:1;comment:用户ID" json:"user_id"`
+	MemberID    uint32 `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`
+	Sort        uint32 `gorm:"column:sort;type:int unsigned;not null;default:0;comment:排序(值越小越靠前， 默认为0)" json:"sort"`
+	AlarmPageID uint32 `gorm:"column:alarm_page_id;type:int unsigned;not null;uniqueIndex:idx__user_id__alarm_page__id,priority:2;comment:报警页面ID" json:"alarm_page_id"`
 
 	Member    *SysTeamMember `gorm:"foreignKey:MemberID" json:"member"`
 	AlarmPage *SysDict       `gorm:"foreignKey:AlarmPageID" json:"alarm_page"`
