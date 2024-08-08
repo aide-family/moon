@@ -88,9 +88,9 @@ data:
       hook:
         http:
           agent:
-            url: http://moon-agent.moon.svc.cluster.local:8000/api/v1/interflows/receive
+            url: http://moon-agent-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
           server:
-            url: http://moon-server.moon.svc.cluster.local:8000/api/v1/interflows/receive
+            url: http://moon-server-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
 kind: ConfigMap
 metadata:
   name: moon-agent-config
