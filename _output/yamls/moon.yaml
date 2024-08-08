@@ -80,11 +80,17 @@ data:
       encoder: json
       maxSize: 500
       compress: true
-    watchProm:
-      interval: 10s
+    # NOTE: 实际运行中需要替换为容器可访问地址，当前主机为容器在本地一站式拉起可访问的主机地址，生产根据自身配置修改
     interflow:
-      server: http://moon-server-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
-      agent: http://moon-agent-svc.moon.svc.cluster.local:8000/api/v1/interflows/receive
+      version: v2
+      watchProm:
+        interval: 10s
+      hook:
+        http:
+          agent:
+            url: http://moon-agent.moon.svc.cluster.local:8000/api/v1/interflows/receive
+          server:
+            url: http://moon-server.moon.svc.cluster.local:8000/api/v1/interflows/receive
 kind: ConfigMap
 metadata:
   name: moon-agent-config
@@ -135,6 +141,10 @@ data:
       rbacApi:
         - /api.server.auth.Auth/Logout
         - /api.server.auth.Auth/RefreshToken
+    interflow:
+      version: v2
+      hook:
+        network: http
 kind: ConfigMap
 metadata:
   name: moon-server-config
