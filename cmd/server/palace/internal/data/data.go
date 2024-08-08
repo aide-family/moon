@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
@@ -176,16 +177,12 @@ func (d *Data) initMainDatabase() error {
 		return err
 	}
 
-	pass := types.NewPassword("123456")
-	encryptValue, err := pass.GetEncryptValue()
-	if err != nil {
-		return err
-	}
+	pass := types.NewPassword(cipher.MD5("123456" + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
 	// 如果没有默认用户，则创建一个默认用户
 	user := &model.SysUser{
 		Username: "admin",
 		Nickname: "超级管理员",
-		Password: encryptValue,
+		Password: pass.String(),
 		Email:    "moonio@moon.com",
 		Phone:    "18812341234",
 		Remark:   "这是个人很懒， 没有设置备注信息",

@@ -40,7 +40,7 @@ data:
     dsn: "root:12345678@tcp(localhost:3306)/"
   alarmDatabase:
     driver: "mysql"
-    debug: true
+    debug: false
     dsn: "root:12345678@tcp(localhost:3306)/"
   cache:
     redis:
