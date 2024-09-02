@@ -192,3 +192,12 @@ message DatasourceQueryRequest {
 message DatasourceQueryReply {
   repeated MetricQueryResult list = 1;
 }
+
+message ProxyQueryRequest {
+  // 指定请求地址
+  string to = 1;
+  // 指定数据源
+  uint32 datasourceID = 2;
+  // 数据源明细信息
+  DatasourceItem datasource = 3;
+}

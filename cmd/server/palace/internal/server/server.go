@@ -128,6 +128,11 @@ func RegisterService(
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 
+	// custom api
+	customAPI := httpSrv.Route("/v1/admin")
+	customAPI.GET("/proxy", datasourceService.ProxyQuery)
+	customAPI.POST("/proxy", datasourceService.ProxyQuery)
+
 	return &Server{
 		rpcSrv:  rpcSrv,
 		httpSrv: httpSrv,

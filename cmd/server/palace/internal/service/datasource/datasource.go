@@ -3,6 +3,9 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	"io"
+	nethttp "net/http"
+	"net/url"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
@@ -13,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/transport/http"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -140,4 +144,65 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 			return build.NewBuilder().WithBoDatasourceQueryData(item).ToAPI()
 		}),
 	}, nil
+}
+
+// ProxyQuery 查询数据
+func (s *Service) ProxyQuery(ctx http.Context) error {
+	// 代理http请求
+	var in datasourceapi.ProxyQueryRequest
+	if err := ctx.BindQuery(&in); err != nil {
+		return err
+	}
+	if err := ctx.BindVars(&in); err != nil {
+		return err
+	}
+	to := in.GetTo()
+	if in.GetDatasourceID() > 0 {
+		datasourceDetail, err := s.datasourceBiz.GetDatasource(ctx, in.GetDatasourceID())
+		if !types.IsNil(err) {
+			return err
+		}
+		to = datasourceDetail.Endpoint
+	}
+
+	parsedURL, err := url.Parse(to)
+	if err != nil {
+		return err
+	}
+
+	req := ctx.Request()
+	method := req.Method
+	body := req.Body
+	parsedURL.RawQuery = req.URL.Query().Encode()
+	log.Debugw("method", method, "url", parsedURL.String())
+	// 转发请求
+	proxyReq, err := nethttp.NewRequestWithContext(ctx, method, parsedURL.String(), body)
+	if err != nil {
+		return err
+	}
+	for key, values := range req.Header {
+		for _, value := range values {
+			proxyReq.Header.Add(key, value)
+		}
+	}
+
+	// 发起请求
+	client := &nethttp.Client{}
+	resp, err := client.Do(proxyReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	response := ctx.Response()
+	// 将响应头复制到客户端
+	for key, values := range resp.Header {
+		for _, value := range values {
+			response.Header().Add(key, value)
+		}
+	}
+	// 设置响应状态码
+	response.WriteHeader(resp.StatusCode)
+	// 将响应体复制到客户端
+	_, err = io.Copy(response, resp.Body)
+	return err
 }
