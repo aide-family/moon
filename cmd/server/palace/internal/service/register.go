@@ -1,13 +1,16 @@
 package service
 
 import (
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/alarm"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	hookservice "github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 
@@ -31,5 +34,8 @@ var ProviderSetService = wire.NewSet(
 	dict.NewDictService,
 	realtime.NewDashboardService,
 	realtime.NewAlarmService,
+	alarm.NewAlarmService,
 	realtime.NewAlarmPageSelfService,
+	subscriber.NewSubscriberService,
+	hookservice.NewHookService,
 )

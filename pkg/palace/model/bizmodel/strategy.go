@@ -31,6 +31,10 @@ type Strategy struct {
 	// 策略类型
 	Categories    []*SysDict       `gorm:"many2many:strategy_categories" json:"categories"`
 	StrategyLevel []*StrategyLevel `gorm:"foreignKey:StrategyID" json:"strategyLevel"`
+	// 策略告警组
+	AlarmGroups []*AlarmGroup `gorm:"many2many:strategies_alarm_groups;" json:"strategyAlarmGroups"`
+	// 策略labels
+	StrategyNoticeLabels []*StrategyLabels `gorm:"many2many:strategies_notice_labels;" json:"strategyLabels"`
 }
 
 // String json string

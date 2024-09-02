@@ -306,3 +306,27 @@ enum AlertStatus {
   // 告警已静音
   ALERT_STATUS_Silenced = 3;
 }
+
+enum NotifyType{
+  // UNKNOWN 未知
+  NOTIFY_UNKNOWN = 0;
+  // 手机
+  NOTIFY_PHONE = 1;
+  // 短信
+  NOTIFY_SMS = 2;
+  // 邮箱
+  NOTIFY_EMAIL = 4;
+}
+
+enum HookApp {
+  // UNKNOWN 未知
+  HOOK_APP_UNKNOWN = 0;
+  // HOOK_APP_WEB_HOOK 自定义
+  HOOK_APP_WEB_HOOK = 1;
+  // HOOK_APP_WEB_HOOK 钉钉
+  HOOK_APP_DING_TALK = 2;
+  // HOOK_APP_WE_CHAT 企业微信
+  HOOK_APP_WE_CHAT = 3;
+  // HOOK_APP_FEI_SHU 飞书
+  HOOK_APP_FEI_SHU = 4;
+}

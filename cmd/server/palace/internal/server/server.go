@@ -2,24 +2,30 @@ package server
 
 import (
 	"github.com/aide-family/moon/api"
+	alarmapi "github.com/aide-family/moon/api/admin/alarm"
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
+	hookapi "github.com/aide-family/moon/api/admin/hook"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
+	subscriberapi "github.com/aide-family/moon/api/admin/subscriber"
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	userapi "github.com/aide-family/moon/api/admin/user"
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/alarm"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 
@@ -76,6 +82,9 @@ func RegisterService(
 	dashboardService *realtime.DashboardService,
 	alarmService *realtime.AlarmService,
 	alarmPageSelfService *realtime.AlarmPageSelfService,
+	alarmGroupService *alarm.GroupService,
+	subscriberService *subscriber.Service,
+	hookService *hook.Service,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -94,6 +103,9 @@ func RegisterService(
 	realtimeapi.RegisterDashboardServer(rpcSrv, dashboardService)
 	realtimeapi.RegisterAlarmServer(rpcSrv, alarmService)
 	realtimeapi.RegisterAlarmPageSelfServer(rpcSrv, alarmPageSelfService)
+	alarmapi.RegisterAlarmServer(rpcSrv, alarmGroupService)
+	subscriberapi.RegisterSubscriberServer(rpcSrv, subscriberService)
+	hookapi.RegisterHookServer(rpcSrv, hookService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -112,6 +124,9 @@ func RegisterService(
 	realtimeapi.RegisterDashboardHTTPServer(httpSrv, dashboardService)
 	realtimeapi.RegisterAlarmHTTPServer(httpSrv, alarmService)
 	realtimeapi.RegisterAlarmPageSelfHTTPServer(httpSrv, alarmPageSelfService)
+	alarmapi.RegisterAlarmHTTPServer(httpSrv, alarmGroupService)
+	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
+	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 
 	return &Server{
 		rpcSrv:  rpcSrv,

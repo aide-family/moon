@@ -34,6 +34,10 @@ type StrategyLevel struct {
 	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
 	// 状态
 	Status vobj.Status `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
+	// 告警页面
+	AlarmPage []*SysDict `gorm:"many2many:strategy_level_alarm_pages" json:"alarm_page"`
+	// 策略告警组
+	AlarmGroups []*AlarmGroup `gorm:"many2many:strategy_level_alarm_groups;" json:"alarm_groups"`
 }
 
 // String json string

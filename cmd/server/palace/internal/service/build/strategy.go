@@ -25,17 +25,6 @@ type (
 		ToUpdateStrategyBO() *bo.UpdateStrategyParams
 	}
 
-	// StrategyLevelModelBuilder 策略等级模型构建器
-	StrategyLevelModelBuilder interface {
-		ToAPI() *admin.StrategyLevel
-	}
-
-	strategyLevelBuilder struct {
-		// model
-		*bizmodel.StrategyLevel
-		ctx context.Context
-	}
-
 	strategyBuilder struct {
 		// model
 		Strategy      *bizmodel.Strategy
@@ -51,8 +40,6 @@ type (
 	// StrategyGroupModelBuilder 策略组模型构建器
 	StrategyGroupModelBuilder interface {
 		ToAPI() *admin.StrategyGroupItem
-
-		ToStrategyGroupList() []*admin.StrategyGroupItem
 	}
 
 	// StrategyGroupRequestBuilder 策略组请求构建器
@@ -64,6 +51,7 @@ type (
 		ToListStrategyGroupBO() *bo.QueryStrategyGroupListParams
 	}
 
+	// StrategyGroupModuleBuilder StrategyGroupBuilder 策略组构建器
 	StrategyGroupModuleBuilder interface {
 		WithDoStrategyCount(items *bo.StrategyCountMap) DosStrategyGroupBuilder
 		WithDoStrategyGroupList(items []*bizmodel.StrategyGroup) DosStrategyGroupBuilder
@@ -74,12 +62,14 @@ type (
 		ctx context.Context
 	}
 
+	// DosStrategyGroupBuilder   do  alarm group builder
 	DosStrategyGroupBuilder interface {
 		WithStrategyCountMap(item *bo.StrategyCountMap) DosStrategyGroupBuilder
 		ToAPIs() []*admin.StrategyGroupItem
 		ToAPI() *admin.StrategyGroupItem
 	}
 
+	// dosStrategyGroupBuilder dos  alarm group builder
 	dosStrategyGroupBuilder struct {
 		StrategyGroups []*bizmodel.StrategyGroup
 		StrategyGroup  *bizmodel.StrategyGroup
@@ -105,7 +95,66 @@ type (
 		// context
 		ctx context.Context
 	}
+
+	// StrategyLevelModuleBuilder 策略等级模型构建器
+	StrategyLevelModuleBuilder interface {
+		WithAPIStrategyLevel(*strategyapi.CreateStrategyLevelRequest) APIAddStrategyLevelParamsBuilder
+		WithDoStrategyLevel(*bizmodel.StrategyLevel) DoStrategyLevelBuilder
+	}
+
+	strategyLevelModuleBuilder struct {
+		ctx context.Context
+	}
+
+	// APIAddStrategyLevelParamsBuilder 策略等级请求参数构建器
+	APIAddStrategyLevelParamsBuilder interface {
+		ToBo() *bo.CreateStrategyLevel
+	}
+
+	apiAddStrategyLevelParamsBuilder struct {
+		params *strategyapi.CreateStrategyLevelRequest
+
+		// context
+		ctx context.Context
+	}
+
+	// DoStrategyLevelBuilder 策略等级模型构建器
+	DoStrategyLevelBuilder interface {
+		ToAPI() *admin.StrategyLevel
+	}
+
+	doStrategyLevelBuilder struct {
+		strategyLevel *bizmodel.StrategyLevel
+
+		ctx context.Context
+	}
 )
+
+func (d doStrategyLevelBuilder) ToAPI() *admin.StrategyLevel {
+	if types.IsNil(d) || types.IsNil(d.strategyLevel) {
+		return nil
+	}
+	level := d.strategyLevel
+	strategyLevel := &admin.StrategyLevel{
+		Duration:    level.Duration.GetDuration(),
+		Count:       level.Count,
+		SustainType: api.SustainType(level.SustainType),
+		Interval:    level.Interval.GetDuration(),
+		Status:      api.Status(level.Status),
+		Id:          level.ID,
+		LevelId:     level.LevelID,
+		Threshold:   level.Threshold,
+		StrategyId:  level.StrategyID,
+		Condition:   api.Condition(level.Condition),
+		AlarmPages: types.SliceTo(level.AlarmPage, func(page *bizmodel.SysDict) *admin.SelectItem {
+			return NewBuilder().WithDict(page).ToAPISelect()
+		}),
+		AlarmGroups: types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
+			return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
+		}),
+	}
+	return strategyLevel
+}
 
 // ToAPI 转换为API层数据
 func (b *strategyBuilder) ToAPI() *admin.StrategyItem {
@@ -113,7 +162,18 @@ func (b *strategyBuilder) ToAPI() *admin.StrategyItem {
 		return nil
 	}
 	strategyLevels := types.SliceToWithFilter(b.Strategy.StrategyLevel, func(level *bizmodel.StrategyLevel) (*admin.StrategyLevel, bool) {
-		return NewBuilder().WithAPIStrategyLevel(level).ToAPI(), true
+		return NewBuilder().StrategyLevelModelBuilder().WithDoStrategyLevel(level).ToAPI(), true
+	})
+
+	labelsNotice := types.SliceTo(b.Strategy.StrategyNoticeLabels, func(label *bizmodel.StrategyLabels) *admin.StrategyLabelsItem {
+		strategyItem := &admin.StrategyLabelsItem{
+			Name:  label.Name,
+			Value: label.Value,
+			AlarmGroups: types.SliceTo(label.AlarmGroups, func(group *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
+				return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
+			}),
+		}
+		return strategyItem
 	})
 
 	return &admin.StrategyItem{
@@ -130,6 +190,13 @@ func (b *strategyBuilder) ToAPI() *admin.StrategyItem {
 		Status:             api.Status(b.Strategy.Status),
 		Step:               b.Strategy.Step,
 		SourceType:         api.TemplateSourceType(b.Strategy.StrategyTemplateSource),
+		Categories: types.SliceTo(b.Strategy.Categories, func(dict *bizmodel.SysDict) *admin.Dict {
+			return NewBuilder().WithContext(b.ctx).WithDict(dict).ToAPI()
+		}),
+		AlarmGroups: types.SliceTo(b.Strategy.AlarmGroups, func(alarmGroup *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
+			return NewBuilder().WithContext(b.ctx).AlarmGroupModule().WithDoAlarmGroup(alarmGroup).ToAPI()
+		}),
+		StrategyLabels: labelsNotice,
 	}
 }
 
@@ -149,6 +216,8 @@ func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 			Threshold:          strategyLevel.GetThreshold(),
 			Status:             vobj.Status(strategyLevel.GetStatus()),
 			LevelID:            strategyLevel.GetLevelId(),
+			AlarmPageIds:       strategyLevel.GetAlarmPageIds(),
+			AlarmGroupIds:      strategyLevel.GetAlarmGroupIds(),
 		})
 	}
 	return &bo.CreateStrategyParams{
@@ -162,7 +231,35 @@ func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 		DatasourceIDs: b.CreateStrategy.GetDatasourceIds(),
 		Labels:        vobj.NewLabels(b.CreateStrategy.GetLabels()),
 		Annotations:   b.CreateStrategy.GetAnnotations(),
+		Expr:          b.CreateStrategy.GetExpr(),
+		CategoriesIds: b.CreateStrategy.GetCategoriesIds(),
+		AlarmGroupIds: b.CreateStrategy.GetAlarmGroupIds(),
 		StrategyLevel: strategyLevels,
+		StrategyLabels: types.SliceTo(b.CreateStrategy.GetStrategyLabels(), func(strategyLabel *strategyapi.CreateStrategyLabelsRequest) *bo.StrategyLabels {
+			return &bo.StrategyLabels{
+				Name:          strategyLabel.GetName(),
+				Value:         strategyLabel.GetValue(),
+				AlarmGroupIds: strategyLabel.GetAlarmGroupIds(),
+			}
+		}),
+	}
+}
+
+func (s *apiAddStrategyLevelParamsBuilder) ToBo() *bo.CreateStrategyLevel {
+	if types.IsNil(s) || types.IsNil(s.params) {
+		return nil
+	}
+	createLevel := s.params
+	return &bo.CreateStrategyLevel{
+		Count:        createLevel.GetCount(),
+		Duration:     types.NewDuration(createLevel.GetDuration()),
+		SustainType:  vobj.Sustain(createLevel.SustainType),
+		Interval:     types.NewDuration(createLevel.GetInterval()),
+		Condition:    vobj.Condition(createLevel.GetCondition()),
+		Threshold:    createLevel.GetThreshold(),
+		Status:       vobj.Status(createLevel.GetStatus()),
+		LevelID:      createLevel.GetLevelId(),
+		AlarmPageIds: createLevel.GetAlarmPageIds(),
 	}
 }
 
@@ -182,6 +279,7 @@ func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
 			Threshold:          strategyLevel.GetThreshold(),
 			Status:             vobj.Status(strategyLevel.GetStatus()),
 			LevelID:            strategyLevel.GetLevelId(),
+			StrategyID:         b.UpdateStrategy.GetId(),
 		})
 	}
 	return &bo.UpdateStrategyParams{
@@ -195,29 +293,21 @@ func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
 			Step:          b.UpdateStrategy.GetData().GetStep(),
 			SourceType:    vobj.TemplateSourceType(b.UpdateStrategy.GetData().GetSourceType()),
 			DatasourceIDs: b.UpdateStrategy.GetData().GetDatasourceIds(),
+			Labels:        vobj.NewLabels(b.UpdateStrategy.GetData().GetLabels()),
+			Annotations:   b.UpdateStrategy.GetData().GetAnnotations(),
+			Expr:          b.UpdateStrategy.GetData().GetExpr(),
+			CategoriesIds: b.UpdateStrategy.GetData().GetCategoriesIds(),
+			AlarmGroupIds: b.UpdateStrategy.GetData().GetAlarmGroupIds(),
 			StrategyLevel: strategyLevels,
+			StrategyLabels: types.SliceTo(b.UpdateStrategy.GetData().GetStrategyLabels(), func(strategyLabel *strategyapi.CreateStrategyLabelsRequest) *bo.StrategyLabels {
+				return &bo.StrategyLabels{
+					Name:          strategyLabel.GetName(),
+					Value:         strategyLabel.GetValue(),
+					AlarmGroupIds: strategyLabel.GetAlarmGroupIds(),
+				}
+			}),
 		},
 	}
-}
-
-func (b *strategyLevelBuilder) ToAPI() *admin.StrategyLevel {
-	if types.IsNil(b) || types.IsNil(b.StrategyLevel) {
-		return nil
-	}
-
-	strategyLevel := &admin.StrategyLevel{
-		Duration:    b.Duration.GetDuration(),
-		Count:       b.Count,
-		SustainType: api.SustainType(b.SustainType),
-		Interval:    b.Interval.GetDuration(),
-		Status:      api.Status(b.Status),
-		Id:          b.ID,
-		LevelId:     b.LevelID,
-		Threshold:   b.Threshold,
-		StrategyId:  b.StrategyID,
-		Condition:   api.Condition(b.Condition),
-	}
-	return strategyLevel
 }
 
 func (b *strategyGroupBuilder) ToAPI() *admin.StrategyGroupItem {
@@ -250,7 +340,10 @@ func (b *dosStrategyGroupBuilder) ToAPI() *admin.StrategyGroupItem {
 		Status:    api.Status(b.StrategyGroup.Status),
 		CreatedAt: b.StrategyGroup.CreatedAt.String(),
 		UpdatedAt: b.StrategyGroup.UpdatedAt.String(),
-		Creator:   NewBuilder().WithAPIUserBo(cache.GetUser(b.ctx, b.StrategyGroup.CreatorID)).GetUsername(),
+		Categories: types.SliceTo(b.StrategyGroup.Categories, func(category *bizmodel.SysDict) *admin.Dict {
+			return NewBuilder().WithDict(category).ToAPI()
+		}),
+		Creator: NewBuilder().WithAPIUserBo(cache.GetUser(b.ctx, b.StrategyGroup.CreatorID)).GetUsername(),
 	}
 	count := b.StrategyCountMap[id]
 	enableCount := b.StrategyEnableMap[id]
@@ -332,51 +425,31 @@ func (b *strategyGroupBuilder) ToListStrategyGroupBO() *bo.QueryStrategyGroupLis
 		return nil
 	}
 	return &bo.QueryStrategyGroupListParams{
-		Keyword: b.ListStrategyGroupRequest.GetKeyword(),
-		Status:  vobj.Status(b.ListStrategyGroupRequest.GetStatus()),
-		Page:    types.NewPagination(b.ListStrategyGroupRequest.GetPagination()),
+		Keyword:       b.ListStrategyGroupRequest.GetKeyword(),
+		Status:        vobj.Status(b.ListStrategyGroupRequest.GetStatus()),
+		Page:          types.NewPagination(b.ListStrategyGroupRequest.GetPagination()),
+		CategoriesIds: b.ListStrategyGroupRequest.GetCategoriesIds(),
 	}
 }
 
-func (b *strategyGroupBuilder) ToStrategyGroupList() []*admin.StrategyGroupItem {
-	if types.IsNil(b) || types.IsNil(b.StrategyGroups) {
-		return nil
-	}
-	countMap := map[uint32]uint64{}
-	enableCountMap := map[uint32]uint64{}
-	if !types.IsNil(b.StrategyCountModel) {
-		for _, strategy := range b.StrategyCountModel {
-			countMap[strategy.GroupID] = strategy.Total
-		}
-	}
-	if !types.IsNil(b.StrategyEnableCountModel) {
-		for _, strategy := range b.StrategyEnableCountModel {
-			enableCountMap[strategy.GroupID] = strategy.Total
-		}
-	}
-	return types.SliceTo(b.StrategyGroups, func(item *bizmodel.StrategyGroup) *admin.StrategyGroupItem {
-		groupAPI := NewBuilder().WithAPIStrategyGroup(item).ToAPI()
-		count, exists := countMap[item.ID]
-		if exists {
-			groupAPI.StrategyCount = count
-		}
-		enableCount, exists := enableCountMap[item.ID]
-		if exists {
-			groupAPI.EnableStrategyCount = enableCount
-		}
-
-		return groupAPI
-	})
+func (s *strategyGroupModuleBuilder) WithDosStrategyGroup(item []*bizmodel.StrategyGroup) DosStrategyGroupBuilder {
+	return &dosStrategyGroupBuilder{ctx: s.ctx, StrategyGroups: item}
 }
 
-func newDosStrategyGroupBuilder(ctx context.Context, strategyGroup []*bizmodel.StrategyGroup) DosStrategyGroupBuilder {
-	return &dosStrategyGroupBuilder{ctx: ctx, StrategyGroups: strategyGroup}
-}
-
-func (d *strategyGroupModuleBuilder) WithDosStrategyGroup(item []*bizmodel.StrategyGroup) DosStrategyGroupBuilder {
-	return &dosStrategyGroupBuilder{ctx: d.ctx, StrategyGroups: item}
-}
-
+// NewStrategyGroupModuleBuilder 创建策略组模块构建器
 func NewStrategyGroupModuleBuilder(ctx context.Context) StrategyGroupModuleBuilder {
 	return &strategyGroupModuleBuilder{ctx: ctx}
+}
+
+// NewStrategyLevelModelBuilder 创建策略等级构建器
+func NewStrategyLevelModelBuilder(ctx context.Context) StrategyLevelModuleBuilder {
+	return &strategyLevelModuleBuilder{ctx: ctx}
+}
+
+func (d *strategyLevelModuleBuilder) WithAPIStrategyLevel(request *strategyapi.CreateStrategyLevelRequest) APIAddStrategyLevelParamsBuilder {
+	return &apiAddStrategyLevelParamsBuilder{params: request, ctx: d.ctx}
+}
+
+func (d *strategyLevelModuleBuilder) WithDoStrategyLevel(model *bizmodel.StrategyLevel) DoStrategyLevelBuilder {
+	return &doStrategyLevelBuilder{strategyLevel: model, ctx: d.ctx}
 }

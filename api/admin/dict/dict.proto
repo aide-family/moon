@@ -100,8 +100,8 @@ message CreateDictRequest {
   }];
   // 字典类型
   DictType dictType = 3 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7])",
-    message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7)]之间",
+    expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7, 8])",
+    message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7),告警页面(8)]之间",
   }];
   // 颜色类型
   string colorType = 4 [(buf.validate.field).cel = {
@@ -156,8 +156,8 @@ message GetDictSelectListRequest {
   }];
   // 字典类型
   DictType dictType = 4 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7])",
-    message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7)]之间",
+    expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7, 8])",
+    message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7),告警页面(8)]之间",
   }];
   // 语言编码
   string languageCode = 5 [(buf.validate.field).cel = {

@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package api.admin.alarm;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/alarm;alarm";
+option java_multiple_files = true;
+option java_package = "api.admin.alarm";
+
+// 告警管理模块
+service Alarm {
+  // 告警组模块
+
+  // 创建告警组
+  rpc CreateAlarmGroup (CreateAlarmGroupRequest) returns (CreateAlarmGroupReply) {
+    option (google.api.http) = {
+      post: "/v1/group/alarm/create"
+      body: "*"
+    };
+  }
+
+  // 删除告警组
+  rpc DeleteAlarmGroup (DeleteAlarmGroupRequest) returns (DeleteAlarmGroupReply) {
+    option (google.api.http) = {
+      delete: "/v1/group/alarm/delete/{id}"
+    };
+  }
+
+  // 告警组列表
+  rpc ListAlarmGroup (ListAlarmGroupRequest) returns (ListAlarmGroupReply) {
+    option (google.api.http) = {
+      post: "/v1/group/alarm/list"
+      body: "*"
+    };
+  }
+
+  // 告警组详情
+  rpc GetAlarmGroup (GetAlarmGroupRequest) returns (GetAlarmGroupReply) {
+    option (google.api.http) = {
+      get: "/v1/group/alarm/detail/{id}"
+    };
+  }
+
+  // 修改告警组
+  rpc UpdateAlarmGroup (UpdateAlarmGroupRequest) returns (UpdateAlarmGroupReply) {
+    option (google.api.http) = {
+      put: "/v1/group/alarm/{id}"
+      body: "*"
+    };
+  }
+
+  // 修改告警分组状态
+  rpc UpdateAlarmGroupStatus(UpdateAlarmGroupStatusRequest) returns (UpdateAlarmGroupStatusReply) {
+    option (google.api.http) = {
+      put: "/v1/group/alarm/update/status"
+      body: "*"
+    };
+  }
+}
+
+message CreateAlarmGroupRequest {
+  // 告警组名称
+  string name = 1 [(buf.validate.field).cel = {
+    message: "告警组名称长度限制在1-20个字符",
+    expression: "this.size() >= 1 && this.size() <= 20"
+  }];
+  // 告警组说明信息
+  string remark = 2[(buf.validate.field).cel = {
+    message: "告警组说明长度限制在0-200个字符",
+    expression: "this.size() <= 200"
+  }];
+  // 告警组状态
+  Status status = 3;
+  // 通知人
+  repeated CreateNoticeUserRequest noticeUser = 4;
+  // hook ids
+  repeated uint32 hookIds = 5;
+}
+message CreateAlarmGroupReply {}
+
+message CreateNoticeUserRequest {
+  uint32 userId = 1 [(buf.validate.field).required = true];
+  NotifyType notifyType = 2;
+}
+
+message DeleteAlarmGroupRequest {
+  // 告警组ID
+  uint32 id = 1;
+}
+message DeleteAlarmGroupReply {}
+
+message ListAlarmGroupRequest {
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
+  }];
+  // 状态查询
+  Status status = 3;
+}
+
+message ListAlarmGroupReply {
+  // 告警组列表
+  repeated AlarmGroupItem list = 1;
+  // 分页信息
+  PaginationReply pagination = 2;
+}
+
+message GetAlarmGroupRequest {
+  // 告警组ID
+  uint32 id = 1 [(buf.validate.field).required = true];
+}
+
+message GetAlarmGroupReply {
+  AlarmGroupItem detail = 1;
+}
+
+message UpdateAlarmGroupRequest {
+  // 告警组ID
+  uint32 id = 1 [(buf.validate.field).required = true];
+  CreateAlarmGroupRequest update = 2 [(buf.validate.field).required = true];
+}
+message UpdateAlarmGroupReply {}
+
+message UpdateAlarmGroupStatusRequest {
+  // 告警分组ID列表
+  repeated uint32 ids = 1 [(buf.validate.field).cel = {
+    expression: "this.size() >= 1"
+    message: "请选择正确的告警分组数据"
+  }];
+  // 启用状态
+  Status status = 2 [(buf.validate.field).cel = {
+    expression: "this in [1, 2]"
+    message: "请选择正确的启用状态, 启用(1);禁用(2)"
+  }];
+}
+
+message UpdateAlarmGroupStatusReply{}

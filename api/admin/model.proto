@@ -331,7 +331,8 @@ message StrategyLevel {
   uint32 strategyId = 15;
   // 条件
   Condition condition = 16;
-  // TODO 通知对象
+  // 告警分组
+  repeated AlarmGroupItem alarmGroups = 25;
 }
 
 message StrategyItem {
@@ -375,6 +376,12 @@ message StrategyItem {
   uint32 step = 22;
   // 模板来源
   TemplateSourceType sourceType = 23;
+  // 策略类型
+  repeated Dict  categories = 24;
+  // 告警分组
+  repeated AlarmGroupItem alarmGroups = 25;
+  // 策略labels
+  repeated StrategyLabelsItem strategyLabels = 26;
 }
 
 message StrategyGroupItem {
@@ -400,7 +407,8 @@ message StrategyGroupItem {
   uint64 strategyCount = 10;
   // 策略开启总数
   uint64 enableStrategyCount = 11;
-
+  // 分组类型
+  repeated Dict  categories = 12;
 }
 
 message StrategyLevelTemplate {
@@ -562,4 +570,80 @@ message SelfAlarmPageItem {
   string languageCode = 10;
   // 告警页面备注
   string remark = 11;
+}
+
+
+message AlarmGroupItem {
+  // 告警组ID
+  uint32 id = 1;
+  // 告警组名称
+  string name = 2;
+  // 告警组状态
+  Status status = 3;
+  // 创建时间
+  string createdAt = 4;
+  // 更新时间
+  string updatedAt = 5;
+  // 告警组说明信息
+  string remark = 6;
+  // 告警组创建人
+  string creator = 7;
+  // 创建者ID
+  uint32 creatorId = 8;
+  // 通知人列表
+  repeated NoticeItem noticeUsers = 9;
+  // hooks
+  repeated AlarmHookItem hooks = 10;
+}
+
+// 通知人
+message NoticeItem {
+  // 用户明细
+  User user = 1;
+  // 通知类型
+  NotifyType notifyType = 2;
+}
+
+// 策略标签
+message StrategyLabelsItem {
+  // 标签名
+  string name = 1;
+  // 标签值
+  string value = 2;
+  // 告警组
+  repeated AlarmGroupItem alarmGroups = 3;
+}
+
+// 策略订阅item
+message StrategySubscriberItem {
+  // 订阅ID
+  uint32 id = 1;
+  // 用户明细
+  User user = 2;
+  // 通知类型
+  NotifyType notifyType = 3;
+}
+
+// hook item
+message AlarmHookItem {
+  // hookID
+  uint32 id = 1;
+  // hook名称
+  string name = 2;
+  // hook状态
+  Status status = 3;
+  // 创建时间
+  string createdAt = 4;
+  // 更新时间
+  string updatedAt = 5;
+  // hook说明信息
+  string remark = 6;
+  // hook创建人
+  string creator = 7;
+  // hook应用类型
+  HookApp hookApp = 8;
+  // secret
+  string secret = 9;
+  // url
+  string  url = 10;
 }

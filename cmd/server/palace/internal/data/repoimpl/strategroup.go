@@ -70,10 +70,7 @@ func (s *strategyGroupRepositoryImpl) CreateStrategyGroup(ctx context.Context, p
 	}
 	strategyGroupModel := createStrategyGroupParamsToModel(ctx, params)
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := tx.StrategyGroup.WithContext(ctx).Create(strategyGroupModel); !types.IsNil(err) {
-			return err
-		}
-		return nil
+		return tx.StrategyGroup.WithContext(ctx).Create(strategyGroupModel)
 	})
 	if !types.IsNil(err) {
 		return nil, err
@@ -118,8 +115,14 @@ func (s *strategyGroupRepositoryImpl) DeleteStrategyGroup(ctx context.Context, p
 	if !types.IsNil(err) {
 		return err
 	}
+	groupModel := &bizmodel.StrategyGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if _, err = bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
+		// 清除策略类型中间表信息
+		if err := tx.StrategyGroup.Categories.Model(groupModel).Clear(); err != nil {
+			return err
+		}
+
+		if _, err = tx.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -131,8 +134,7 @@ func (s *strategyGroupRepositoryImpl) GetStrategyGroup(ctx context.Context, grou
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizQuery.StrategyGroup.WithContext(ctx)
-	return bizWrapper.Where(bizQuery.StrategyGroup.ID.Eq(groupID)).Preload(field.Associations).First()
+	return bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(groupID)).Preload(field.Associations).First()
 }
 
 func (s *strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, params *bo.QueryStrategyGroupListParams) ([]*bizmodel.StrategyGroup, error) {
@@ -155,7 +157,19 @@ func (s *strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, par
 		bizWrapper = bizWrapper.Or(bizQuery.StrategyGroup.Remark.Like(params.Keyword))
 	}
 
-	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
+	// 通过策略分组类型进行查询
+	if len(params.CategoriesIds) > 0 {
+		var strategyGroupIds []uint32
+		_ = bizQuery.StrategyGroupCategories.
+			Where(bizQuery.StrategyGroupCategories.SysDictID.In(params.CategoriesIds...)).
+			Select(bizQuery.StrategyGroupCategories.StrategyGroupID).
+			Scan(&strategyGroupIds)
+		if len(strategyGroupIds) > 0 {
+			bizWrapper = bizWrapper.Or(bizQuery.StrategyGroup.ID.In(strategyGroupIds...))
+		}
+	}
+
+	bizWrapper = bizWrapper.Where(wheres...)
 
 	if err := types.WithPageQuery[bizquery.IStrategyGroupDo](bizWrapper, params.Page); err != nil {
 		return nil, err

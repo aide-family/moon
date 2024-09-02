@@ -12,8 +12,8 @@ const (
 	// HookAPPWebHook 自定义
 	HookAPPWebHook // 自定义
 
-	// HookAPPDingDing 钉钉
-	HookAPPDingDing // 钉钉
+	// HookAPPDingTalk 钉钉
+	HookAPPDingTalk // 钉钉
 
 	// HookAPPWeChat 企业微信
 	HookAPPWeChat // 企业微信

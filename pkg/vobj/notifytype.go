@@ -49,3 +49,7 @@ func (n NotifyType) String() string {
 	}
 	return strings.Join(notify, ",")
 }
+
+func (n NotifyType) GetValue() int {
+	return int(n)
+}

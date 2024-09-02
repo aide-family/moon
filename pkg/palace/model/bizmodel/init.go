@@ -21,11 +21,16 @@ func Models() []any {
 		&StrategyLevelTemplate{},
 		&SendStrategy{},
 		&StrategyGroup{},
+		&StrategyGroupCategories{},
 		&Dashboard{},
 		&DashboardChart{},
+		&AlarmGroup{},
+		&AlarmNoticeUser{},
 		&DashboardSelf{},
 		&AlarmPageSelf{},
 		&AlarmHook{},
+		&StrategyLabels{},
+		&StrategySubscribers{},
 	}
 }
 

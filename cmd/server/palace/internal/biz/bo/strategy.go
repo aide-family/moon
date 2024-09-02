@@ -32,6 +32,14 @@ type (
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
 		Annotations vobj.Annotations `json:"annotations"`
+		// 告警表达式
+		Expr string `json:"expr"`
+		// 策略类型
+		CategoriesIds []uint32 `json:"categoriesIds"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 策略标签
+		StrategyLabels []*StrategyLabels `json:"strategyLabels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -76,6 +84,12 @@ type (
 		LevelID uint32 `json:"LevelID"`
 		// 状态
 		Status vobj.Status `json:"status"`
+		// 告警页面
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 策略ID
+		StrategyID uint32 `json:"strategyID"`
 	}
 
 	// CreateStrategyGroupParams 创建策略组请求参数
@@ -109,10 +123,11 @@ type (
 
 	// QueryStrategyGroupListParams 查询策略组列表请求参数
 	QueryStrategyGroupListParams struct {
-		Keyword string `json:"keyword"`
-		Page    types.Pagination
-		Name    string
-		Status  vobj.Status
+		Keyword       string `json:"keyword"`
+		Page          types.Pagination
+		Name          string
+		Status        vobj.Status
+		CategoriesIds []uint32 `json:"categoriesIds"`
 	}
 
 	// GetStrategyCountParams 查询策略总数参数
@@ -133,5 +148,15 @@ type (
 		StrategyCountMap map[uint32]*StrategyCountModel `json:"strategyCountMap"`
 		// 策略总数
 		StrategyEnableMap map[uint32]*StrategyCountModel `json:"strategyEnableMap"`
+	}
+
+	// StrategyLabels 策略标签
+	StrategyLabels struct {
+		// 标签名称
+		Name string `json:"name"`
+		// 标签值
+		Value string `json:"value"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
 	}
 )

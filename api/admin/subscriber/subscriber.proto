@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package api.admin.subscriber;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/subscriber;subscriber";
+option java_multiple_files = true;
+option java_package = "api.admin.subscriber";
+
+service Subscriber {
+  // 当前用户订阅某个策略
+  rpc UserSubscriberStrategy (SubscriberStrategyRequest) returns (SubscriberStrategyReply){
+    option (google.api.http) = {
+      post: "/v1/strategy/subscriber"
+      body: "*"
+    };
+  };
+  // 当前取消订阅策略
+  rpc UnSubscriber (UnSubscriberRequest) returns (UnSubscriberReply){
+    option (google.api.http) = {
+      post: "/v1/strategy/un/subscriber"
+      body: "*"
+    };
+  };
+  // 当前用户订阅策略列表
+  rpc UserSubscriberList (UserSubscriberListRequest) returns (UserSubscriberListReply){
+    option (google.api.http) = {
+      post: "/v1/strategy/user/subscriber/list"
+      body: "*"
+    };
+  };
+  // 策略订阅者列表
+  rpc GetStrategySubscriber (StrategySubscriberRequest) returns (StrategySubscriberReply){
+    option (google.api.http) = {
+      post: "/v1/strategy/subscriber/list"
+      body: "*"
+    };
+  };
+}
+
+// 订阅某个策略
+message SubscriberStrategyRequest {
+  // 订阅策略Id
+  uint32 strategyId = 1 [(buf.validate.field).required = true];
+  // 通知类型
+  NotifyType notifyType = 2;
+}
+message SubscriberStrategyReply {}
+
+// 取消订阅某个策略
+message UnSubscriberRequest {
+  // 订阅策略Id
+  uint32 strategyId = 1 [(buf.validate.field).required = true];
+}
+message UnSubscriberReply {}
+
+// 用户订阅策略参数
+message UserSubscriberListRequest {
+  // 分页参数
+  PaginationReq pagination = 1;
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
+  }];
+  // 通知方式
+  NotifyType notifyType = 3;
+}
+// 用户订阅策略列表
+message UserSubscriberListReply {
+  // 订阅的告警策略
+  repeated StrategyItem strategies = 1;
+  // 分页信息
+  PaginationReply pagination = 2;
+}
+
+// 策略订阅者参数
+message StrategySubscriberRequest {
+  // 订阅策略Id
+  uint32 strategyId = 1 [(buf.validate.field).required = true];
+  // 分页参数
+  PaginationReq pagination = 2 ;
+  // 通知方式
+  NotifyType notifyType = 3;
+}
+// 策略订阅者列表
+message StrategySubscriberReply {
+  // 订阅者列表
+  repeated StrategySubscriberItem subscribers = 1;
+  // 分页信息
+  PaginationReply pagination = 2;
+}
