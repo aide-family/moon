@@ -10,27 +10,13 @@ option go_package = "github.com/aide-family/moon/api/houyi/alert;alert";
 option java_multiple_files = true;
 option java_package = "api.houyi.alert";
 
-service Alert {
-	rpc Hook (AlarmItem) returns (HookReply) {
-		option (google.api.http) = {
-			post: "/v1/alert/hook"
-			body: "*"
-		};
-	}
-
+service PushAlert {
 	rpc Alarm (AlarmRequest) returns (AlarmReply) {
 		option (google.api.http) = {
 			post: "/v1/alert/alarm"
 			body: "*"
 		};
 	}
-}
-
-message HookReply {
-	// 响应消息
-	string msg = 1;
-	// 响应码
-	int32 code = 2;
 }
 
 message AlarmRequest {

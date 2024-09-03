@@ -13,7 +13,8 @@ import (
 
 // AlertService 告警服务
 type AlertService struct {
-	alertapi.UnimplementedAlertServer
+	alertapi.UnimplementedPushAlertServer
+	api.UnimplementedAlertServer
 
 	alertBiz    *biz.AlertBiz
 	strategyBiz *biz.StrategyBiz
@@ -28,8 +29,8 @@ func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *Aler
 }
 
 // Hook 告警hook
-func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*alertapi.HookReply, error) {
-	return &alertapi.HookReply{}, nil
+func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+	return &api.HookReply{}, nil
 }
 
 // Alarm 告警

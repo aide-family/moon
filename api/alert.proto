@@ -2,9 +2,28 @@ syntax = "proto3";
 
 package api;
 
+
+import "google/api/annotations.proto";
+
 option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
+
+service Alert {
+  rpc Hook (AlarmItem) returns (HookReply) {
+    option (google.api.http) = {
+      post: "/v1/alert/hook"
+      body: "*"
+    };
+  }
+}
+
+message HookReply {
+  // 响应消息
+  string msg = 1;
+  // 响应码
+  int32 code = 2;
+}
 
 message AlarmItem {
   // 接收者

@@ -65,13 +65,15 @@ func RegisterService(
 	metadataapi.RegisterMetricServer(rpcSrv, metricService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
-	alertapi.RegisterAlertServer(rpcSrv, alertService)
+	alertapi.RegisterPushAlertServer(rpcSrv, alertService)
+	api.RegisterAlertServer(rpcSrv, alertService)
 	// 注册HTTP服务
 	v1api.RegisterGreeterHTTPServer(httpSrv, greeter)
 	metadataapi.RegisterMetricHTTPServer(httpSrv, metricService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
-	alertapi.RegisterAlertHTTPServer(httpSrv, alertService)
+	alertapi.RegisterPushAlertHTTPServer(httpSrv, alertService)
+	api.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	return &Server{
 		rpcSrv:        rpcSrv,
