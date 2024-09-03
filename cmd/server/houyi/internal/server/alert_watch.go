@@ -19,7 +19,7 @@ func newAlertWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *servic
 		watch.WithWatcherQueue(data.GetAlertQueue()),
 		watch.WithWatcherTimeout(c.GetWatch().GetAlertEvent().GetTimeout().AsDuration()),
 		watch.WithWatcherHandler(watch.NewDefaultHandler(
-			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlert, func(ctx context.Context, msg *watch.Message) error {
+			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlarm, func(ctx context.Context, msg *watch.Message) error {
 				alarmData, ok := msg.GetData().(*bo.Alarm)
 				if !ok || types.IsNil(alarmData) {
 					return nil

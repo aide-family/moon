@@ -29,4 +29,7 @@ type Strategy interface {
 
 	// CopyStrategy 复制策略
 	CopyStrategy(context.Context, uint32) (*bizmodel.Strategy, error)
+
+	// Eval 策略评估
+	Eval(context.Context, *bo.Strategy) (*bo.Alarm, error)
 }

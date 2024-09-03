@@ -18,6 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm/clause"
 
@@ -43,6 +44,11 @@ type Data struct {
 	teamBizDBMap *sync.Map
 	alarmDBMap   *sync.Map
 
+	// 策略队列
+	strategyQueue watch.Queue
+	// 告警队列
+	alertQueue watch.Queue
+
 	exit chan struct{}
 }
 
@@ -60,6 +66,8 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		teamBizDBMap:      new(sync.Map),
 		alarmDBMap:        new(sync.Map),
 		enforcerMap:       new(sync.Map),
+		strategyQueue:     watch.NewDefaultQueue(100),
+		alertQueue:        watch.NewDefaultQueue(100),
 		exit:              make(chan struct{}),
 	}
 	cleanup := func() {
@@ -355,4 +363,19 @@ func newCache(c *palaceconf.Data_Cache) conn.Cache {
 		return cli
 	}
 	return nil
+}
+
+// GetStrategyQueue 获取策略队列
+func (d *Data) GetStrategyQueue() watch.Queue {
+	if types.IsNil(d.strategyQueue) {
+		log.Warn("strategyQueue is nil")
+	}
+	return d.strategyQueue
+}
+
+func (d *Data) GetAlertQueue() watch.Queue {
+	if types.IsNil(d.alertQueue) {
+		log.Warn("alertQueue is nil")
+	}
+	return d.alertQueue
 }

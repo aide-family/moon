@@ -14,6 +14,7 @@ message Bootstrap {
   MicroServer micro_server = 4;
   // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
   api.Discovery discovery = 5;
+  Watch watch = 6;
 }
 
 message Server {
@@ -88,4 +89,21 @@ message MicroServer {
   api.Server rabbit_server = 1;
   // 后羿代理服务
   api.Server hou_yi_server = 2;
+}
+
+message Watch {
+  message Strategy {
+    // 超时时间
+    google.protobuf.Duration timeout = 1;
+    // 执行频率 cron 表达式
+    string interval = 2;
+  }
+  message AlertEvent {
+    // 超时时间
+    google.protobuf.Duration timeout = 1;
+    // 执行频率
+    google.protobuf.Duration interval = 2;
+  }
+  Strategy strategy = 1;
+  AlertEvent alertEvent = 2;
 }

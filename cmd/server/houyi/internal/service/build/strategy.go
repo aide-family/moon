@@ -38,7 +38,10 @@ func (b *StrategyAPIBuilder) ToBo() *bo.Strategy {
 		Datasource: types.SliceTo(b.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
 			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
-		Status: vobj.Status(b.GetStatus()),
+		Status:    vobj.Status(b.GetStatus()),
+		Step:      b.GetStep(),
+		Condition: vobj.Condition(b.GetCondition()),
+		Threshold: b.GetThreshold(),
 	}
 }
 

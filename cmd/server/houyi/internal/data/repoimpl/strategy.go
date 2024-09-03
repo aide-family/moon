@@ -87,9 +87,10 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		evalPoints, err := cli.Eval(ctx, strategy.Expr, step)
 		if err != nil {
 			log.Warnw("method", "Eval", "error", err)
+			continue
 		}
 		if len(evalPoints) == 0 {
-			return nil, merr.ErrorNotification("no data")
+			continue
 		}
 
 		for index, point := range evalPoints {

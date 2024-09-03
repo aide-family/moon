@@ -99,3 +99,8 @@ func (b *StrategyBiz) CopyStrategy(ctx context.Context, strategyID uint32) (*biz
 	}
 	return strategy, nil
 }
+
+// Eval 策略评估
+func (b *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+	return b.strategyRepo.Eval(ctx, strategy)
+}

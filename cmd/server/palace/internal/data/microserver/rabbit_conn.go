@@ -22,6 +22,7 @@ func NewRabbitRPCConn(c *palaceconf.Bootstrap) (*RabbitConn, func(), error) {
 	discoveryConf := c.GetDiscovery()
 	rabbitConn := &RabbitConn{}
 	if types.IsNil(rabbitServer) {
+		return nil, nil, nil
 		return nil, nil, merr.ErrorNotification("未配置MicroServer.RabbitServer")
 	}
 	switch rabbitServer.GetNetwork() {

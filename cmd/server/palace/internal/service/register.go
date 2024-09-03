@@ -38,4 +38,5 @@ var ProviderSetService = wire.NewSet(
 	realtime.NewAlarmPageSelfService,
 	subscriber.NewSubscriberService,
 	hookservice.NewHookService,
+	NewAlertService,
 )

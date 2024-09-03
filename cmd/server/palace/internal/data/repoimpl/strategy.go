@@ -29,6 +29,11 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyStatusParams) error {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if err != nil {

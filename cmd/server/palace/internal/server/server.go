@@ -15,6 +15,8 @@ import (
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	userapi "github.com/aide-family/moon/api/admin/user"
 	v1 "github.com/aide-family/moon/api/helloworld/v1"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/alarm"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
@@ -40,8 +42,9 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 
 // Server 服务
 type Server struct {
-	rpcSrv  *grpc.Server
-	httpSrv *http.Server
+	rpcSrv        *grpc.Server
+	httpSrv       *http.Server
+	strategyWatch *StrategyWatch
 }
 
 // GetRPCServer 获取rpc server
@@ -59,11 +62,15 @@ func (s *Server) GetServers() []transport.Server {
 	return []transport.Server{
 		s.rpcSrv,
 		s.httpSrv,
+		s.strategyWatch,
 	}
 }
 
 // RegisterService 注册服务
 func RegisterService(
+	c *palaceconf.Bootstrap,
+	data *data.Data,
+	alertService *service.AlertService,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
@@ -134,7 +141,8 @@ func RegisterService(
 	customAPI.POST("/proxy", datasourceService.ProxyQuery)
 
 	return &Server{
-		rpcSrv:  rpcSrv,
-		httpSrv: httpSrv,
+		rpcSrv:        rpcSrv,
+		httpSrv:       httpSrv,
+		strategyWatch: newStrategyWatch(c, data, alertService),
 	}
 }
