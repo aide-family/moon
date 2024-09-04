@@ -169,7 +169,7 @@ func (s *strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, par
 		}
 	}
 
-	bizWrapper = bizWrapper.Where(wheres...)
+	bizWrapper = bizWrapper.Where(wheres...).Preload(bizQuery.StrategyGroup.Categories)
 
 	if err := types.WithPageQuery[bizquery.IStrategyGroupDo](bizWrapper, params.Page); err != nil {
 		return nil, err
