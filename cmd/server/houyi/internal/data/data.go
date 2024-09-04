@@ -21,8 +21,7 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 type Data struct {
 	cacher conn.Cache
 
-	strategyQueue   watch.Queue
-	strategyStorage watch.Storage
+	strategyQueue watch.Queue
 
 	alertQueue   watch.Queue
 	alertStorage watch.Storage
@@ -33,16 +32,17 @@ var closeFuncList []func()
 // NewData .
 func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
-		strategyQueue:   watch.NewDefaultQueue(100),
-		strategyStorage: watch.NewDefaultStorage(),
-		alertQueue:      watch.NewDefaultQueue(100),
-		alertStorage:    watch.NewDefaultStorage(),
+		strategyQueue: watch.NewDefaultQueue(100),
+		alertQueue:    watch.NewDefaultQueue(100),
+		alertStorage:  watch.NewDefaultStorage(),
 	}
 
 	cacheConf := c.GetData().GetCache()
 	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
+		d.alertStorage = watch.NewCacheStorage(d.cacher)
 		closeFuncList = append(closeFuncList, func() {
+			log.Debugw("close alert storage", d.alertStorage.Close())
 			log.Debugw("close cache", d.cacher.Close())
 		})
 	}
@@ -70,14 +70,6 @@ func (d *Data) GetStrategyQueue() watch.Queue {
 		log.Warn("strategyQueue is nil")
 	}
 	return d.strategyQueue
-}
-
-// GetStrategyStorage 获取策略存储
-func (d *Data) GetStrategyStorage() watch.Storage {
-	if types.IsNil(d.strategyStorage) {
-		log.Warn("strategyStorage is nil")
-	}
-	return d.strategyStorage
 }
 
 // GetAlertQueue 获取告警队列

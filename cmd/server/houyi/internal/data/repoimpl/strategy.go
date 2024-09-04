@@ -2,7 +2,10 @@ package repoimpl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/merr"
@@ -42,27 +45,10 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strate
 	return nil
 }
 
-// Eval 评估策略
-func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]datasource.Datasource, error) {
 	datasourceList := strategy.Datasource
-	if len(datasourceList) == 0 {
-		return nil, merr.ErrorNotification("datasource is empty")
-	}
-	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
-	category := datasourceList[0].Category
-	alarmInfo := bo.Alarm{
-		Receiver:          "",
-		Status:            vobj.AlertStatusFiring,
-		Alerts:            nil,
-		GroupLabels:       strategy.Labels,
-		CommonLabels:      strategy.Labels,
-		CommonAnnotations: strategy.Annotations,
-		ExternalURL:       "",
-		Version:           env.Version(),
-		GroupKey:          "",
-		TruncatedAlerts:   0,
-	}
 	datasourceCliList := make([]datasource.Datasource, 0, len(datasourceList))
+	category := datasourceList[0].Category
 	for _, datasourceItem := range datasourceList {
 		if datasourceItem.Category != category {
 			log.Warnw("method", "Eval", "error", "datasource category is not same")
@@ -81,7 +67,37 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		}
 		datasourceCliList = append(datasourceCliList, newDatasource)
 	}
+	if len(datasourceCliList) == 0 {
+		return nil, merr.ErrorNotification("datasource is empty")
+	}
+	return datasourceCliList, nil
+}
 
+func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
+	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
+
+	alarmInfo := bo.Alarm{
+		Receiver:          "",
+		Status:            vobj.AlertStatusFiring,
+		Alerts:            nil,
+		GroupLabels:       strategy.Labels,
+		CommonLabels:      strategy.Labels,
+		CommonAnnotations: strategy.Annotations,
+		ExternalURL:       "",
+		Version:           env.Version(),
+		GroupKey:          "",
+		TruncatedAlerts:   0,
+	}
+	return &alarmInfo
+}
+
+// Eval 评估策略 告警/恢复
+func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+	datasourceCliList, err := s.getDatasourceCliList(strategy)
+	if err != nil {
+		return nil, err
+	}
+	alarmInfo := builderAlarmBaseInfo(strategy)
 	var alerts []*bo.Alert
 	for _, cli := range datasourceCliList {
 		evalPoints, err := cli.Eval(ctx, strategy.Expr, strategy.For)
@@ -90,6 +106,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			continue
 		}
 		if len(evalPoints) == 0 {
+			// 生成恢复事件（如果有存在的告警），并补充当前时间为告警恢复事件
 			continue
 		}
 
@@ -120,19 +137,94 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 				Annotations:  annotations,  // 填充
 				StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
 				EndsAt:       nil,
-				GeneratorURL: "",
-				Fingerprint:  "",
+				GeneratorURL: "", // 生成事件图表链接
+				Fingerprint:  "", // TODO 指纹生成逻辑
 				Value:        endPointValue.Value,
 			}
+			alert = s.getFiringAlert(ctx, alert)
 			alerts = append(alerts, alert)
 			alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
 		}
 	}
+	alertIndexList := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
+		return alert.Index(), alert.Status.IsFiring()
+	})
+	// 获取存在的告警标识列表
+	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
+	if !types.TextIsNull(alertsStr) {
+		existAlerts := strings.Split(alertsStr, ",")
+		alertIndexListMap := make(map[string]struct{}, len(alerts))
+		for _, alertItem := range alerts {
+			alertIndexListMap[alertItem.Index()] = struct{}{}
+		}
+		for _, existAlert := range existAlerts {
+			if _, ok := alertIndexListMap[existAlert]; !ok {
+				// 获取存在的告警信息
+				existAlertStr, err := s.data.GetCacher().Get(ctx, existAlert)
+				if err != nil {
+					continue
+				}
+
+				var existAlertItem bo.Alert
+				if err := json.Unmarshal([]byte(existAlertStr), &existAlertItem); err != nil {
+					continue
+				}
+				// 获取存在的告警信息， 并且更新为告警恢复状态
+				existAlertItem.Status = vobj.AlertStatusResolved
+				existAlertItem.EndsAt = types.NewTimeByUnix(time.Now().Unix())
+				alerts = append(alerts, &existAlertItem)
+			}
+		}
+	}
+
 	if len(alerts) == 0 {
 		return nil, merr.ErrorNotification("no data")
 	}
+	if len(alertIndexList) > 0 {
+		// 缓存告警指纹， 用于完全消失时候的告警恢复
+		s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(alertIndexList, ","), 0)
+	}
 	alarmInfo.Alerts = alerts
-	return &alarmInfo, nil
+	return alarmInfo, nil
+}
+
+func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.Alert) *bo.Alert {
+	// 获取已存在的告警
+	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, alert.Labels.Index())
+	if err != nil {
+		return alert
+	}
+
+	var firingAlert bo.Alert
+	if err := json.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
+		return alert
+	}
+	alert.StartsAt = firingAlert.StartsAt
+	// 更新最新的告警数据值
+	if err := s.data.GetCacher().Set(ctx, alert.Labels.Index(), alert.String(), 0); err != nil {
+		log.Warnw("method", "storage.put", "error", err)
+		// TODO 存在争议， 不确定是否要把缓存失败的数据推出去
+		// 如果不推， 会导致告警丢失，如果推送，会导致此事件没有告警恢复
+		// 基于此原因， 选择推出去
+	}
+	return alert
+}
+
+func (s *strategyRepositoryImpl) getResolvedAlert(ctx context.Context, labels *vobj.Labels) (*bo.Alert, error) {
+	// 获取已存在的告警
+	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, labels.Index())
+	if err != nil {
+		return nil, err
+	}
+
+	var resolvedAlert bo.Alert
+	if err := json.Unmarshal([]byte(resolvedAlertStr), &resolvedAlert); err != nil {
+		return nil, err
+	}
+	// 删除缓存
+	s.data.GetAlertStorage().Remove(labels)
+	resolvedAlert.EndsAt = types.NewTime(time.Now())
+	return &resolvedAlert, nil
 }
 
 func isCompletelyMeet(pointValues []*datasource.Value, strategy *bo.Strategy) bool {

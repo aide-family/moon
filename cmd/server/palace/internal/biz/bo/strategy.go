@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/api"
@@ -213,6 +214,11 @@ type (
 		Endpoint string `json:"endpoint,omitempty"`
 	}
 )
+
+func (s *Strategy) String() string {
+	bs, _ := json.Marshal(s)
+	return string(bs)
+}
 
 // Index 策略唯一索引
 func (s *Strategy) Index() string {

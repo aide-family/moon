@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/pkg/util/types"
@@ -58,12 +59,17 @@ type (
 	}
 )
 
+func (s *Strategy) String() string {
+	bs, _ := json.Marshal(s)
+	return string(bs)
+}
+
 // Index 策略唯一索引
 func (s *Strategy) Index() string {
 	if types.IsNil(s) {
-		return "-"
+		return "houyi:strategy:0"
 	}
-	return fmt.Sprintf("%d", s.ID)
+	return fmt.Sprintf("houyi:strategy:%d", s.ID)
 }
 
 // Message 策略转消息

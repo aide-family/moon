@@ -1,8 +1,12 @@
 package watch
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 
+	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -13,9 +17,17 @@ func NewDefaultStorage() Storage {
 	}
 }
 
+// NewCacheStorage 定义缓存存储器
+func NewCacheStorage(cacher conn.Cache) Storage {
+	return &cacheStorage{
+		cacher: cacher,
+	}
+}
+
 type (
 	// Indexer 索引器
 	Indexer interface {
+		fmt.Stringer
 		// Index 索引生成器
 		Index() string
 	}
@@ -50,7 +62,58 @@ type (
 		lock sync.Mutex
 		data map[Indexer]*Message
 	}
+
+	// cacheStorage 缓存存储器
+	cacheStorage struct {
+		cacher conn.Cache
+	}
+
+	CacheStorageMsg string
 )
+
+func (c CacheStorageMsg) String() string {
+	return string(c)
+}
+
+func (c CacheStorageMsg) Index() string {
+	return string(c)
+}
+
+func (c CacheStorageMsg) Unmarshal(v any) error {
+	return json.Unmarshal([]byte(c), v)
+}
+
+func (c *cacheStorage) Get(index Indexer) *Message {
+	var msg Message
+	cacheStr, err := c.cacher.Get(context.Background(), index.Index())
+	if err == nil {
+		msg.data = CacheStorageMsg(cacheStr)
+	}
+
+	return &msg
+}
+
+func (c *cacheStorage) Put(msg *Message) error {
+	return c.cacher.Set(context.Background(), msg.data.Index(), msg.data.String(), 0)
+}
+
+func (c *cacheStorage) Clear() {
+}
+
+func (c *cacheStorage) Remove(index Indexer) {
+	c.cacher.Delete(context.Background(), index.Index())
+}
+
+func (c *cacheStorage) Close() error {
+	return c.cacher.Close()
+}
+
+func (c *cacheStorage) Len() int {
+	return 0
+}
+
+func (c *cacheStorage) Range(f func(index Indexer, msg *Message) bool) {
+}
 
 func (d *defaultStorage) Clear() {
 	d.lock.Lock()

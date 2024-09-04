@@ -48,8 +48,15 @@ func (l *Labels) String() string {
 	if types.IsNil(l) || l.label == nil {
 		return "{}"
 	}
-	bs, _ := json.Marshal(l.label)
-	return string(bs)
+	bs := strings.Builder{}
+	bs.WriteString(`{`)
+	labelKeys := maps.Keys(l.label)
+	sort.Strings(labelKeys)
+	for _, k := range labelKeys {
+		bs.WriteString(`"` + k + `":"` + l.label[k] + `",`)
+	}
+	str := strings.TrimRight(bs.String(), ",")
+	return str + "}"
 }
 
 // LabelsJSON 转json字符串
@@ -57,8 +64,15 @@ func (l LabelsJSON) String() string {
 	if types.IsNil(l) {
 		return "{}"
 	}
-	bs, _ := json.Marshal(l)
-	return string(bs)
+	bs := strings.Builder{}
+	bs.WriteString(`{`)
+	labelKeys := maps.Keys(l)
+	sort.Strings(labelKeys)
+	for _, k := range labelKeys {
+		bs.WriteString(`"` + k + `":"` + l[k] + `",`)
+	}
+	str := strings.TrimRight(bs.String(), ",")
+	return str + "}"
 }
 
 // JSON 转json字符串
