@@ -26,6 +26,7 @@ func (a *alertRepositoryImpl) PushAlarm(ctx context.Context, alarm *bo.Alarm) er
 	in := build.NewAlarmBuilder(alarm).ToAPI()
 	pushAlarm, err := a.palaceCli.PushAlarm(ctx, in)
 	if err != nil {
+		log.Errorw("method", "PushAlarm", "err", err)
 		return err
 	}
 	log.Debugw("pushAlarm", pushAlarm)

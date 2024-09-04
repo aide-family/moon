@@ -67,6 +67,5 @@ micro_server:
     network: "rpc"
     nodeVersion: ""
     endpoint: "discovery:///moon_palace"
-#    endpoint: "localhost:9000"
     timeout: 50s
     secret: ""

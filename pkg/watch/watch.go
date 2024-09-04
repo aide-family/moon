@@ -170,6 +170,10 @@ func WithWatcherHandler(handler Handler) WatcherOption {
 // WithWatcherTimeout 设置超时时间
 func WithWatcherTimeout(timeout time.Duration) WatcherOption {
 	return func(w *Watcher) {
+		// 如果timeout小于1s， 则默认设置为10s
+		if timeout < time.Second {
+			timeout = time.Second * 10
+		}
 		w.timeout = timeout
 	}
 }
