@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service/build"
-	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -64,7 +64,7 @@ func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest
 		return nil, err
 	}
 	return &metadataapi.QueryReply{
-		List: types.SliceTo(data, func(item *metric.QueryResponse) *api.MetricQueryResult {
+		List: types.SliceTo(data, func(item *datasource.QueryResponse) *api.MetricQueryResult {
 			return build.NewMetricQueryBuilder(item).ToAPI()
 		}),
 	}, nil

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 )
@@ -27,20 +28,31 @@ type (
 
 // Datasource 数据源通用接口
 type Datasource interface {
-	Eval(ctx context.Context, expr string, step uint32) (map[watch.Indexer]*Point, error)
+	Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error)
 	Step() uint32
 }
 
 // NewDatasource 根据配置创建对应的数据源
-func NewDatasource(config *api.Datasource) Datasource {
-	// TODO 根据配置创建对应的数据源
-	return NewMockDatasource()
+func NewDatasource(config *api.Datasource) (Datasource, error) {
+	// 根据配置创建对应的数据源
+	category := vobj.DatasourceType(config.GetCategory())
+	switch category {
+	case vobj.DatasourceTypeMetrics:
+		opts := []MetricDatasourceBuildOption{
+			WithMetricStep(10),
+			WithMetricEndpoint(config.GetEndpoint()),
+			WithMetricBasicAuth(config.GetConfig()["username"], config.GetConfig()["password"]),
+		}
+		return NewMetricDatasource(vobj.StorageType(config.GetStorageType()), opts...)
+	default:
+		return NewMockDatasource(), nil
+	}
 }
 
 type mockDatasource struct {
 }
 
-func (m *mockDatasource) Eval(_ context.Context, _ string, _ uint32) (map[watch.Indexer]*Point, error) {
+func (m *mockDatasource) Eval(_ context.Context, _ string, _ *types.Duration) (map[watch.Indexer]*Point, error) {
 	res := make(map[watch.Indexer]*Point)
 	labels := vobj.NewLabels(map[string]string{"env": "mock"})
 	values := make([]*Value, 0, 100)

@@ -28,9 +28,9 @@ type (
 		// 多数据源持续类型
 		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
-		Labels *vobj.Labels `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
-		Annotations vobj.Annotations `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Annotations vobj.Annotations `json:"annotations,omitempty"`
 		// 执行频率
 		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源

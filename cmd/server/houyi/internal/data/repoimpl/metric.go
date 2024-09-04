@@ -11,7 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data/microserver"
-	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -26,38 +26,27 @@ type metricRepositoryImpl struct {
 	palaceCli *microserver.PalaceConn
 }
 
-func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) ([]metric.DatasourceBuildOption, error) {
-	var opts []metric.DatasourceBuildOption
-	switch datasourceInfo.StorageType {
-	case vobj.StorageTypePrometheus:
-		opts = append(opts, metric.WithPrometheusOption(
-			metric.WithPrometheusEndpoint(datasourceInfo.Endpoint),
-			metric.WithPrometheusConfig(datasourceInfo.Config),
-		))
-	default:
-		return nil, merr.ErrorNotification("不支持的存储类型").WithMetadata(map[string]string{
-			"storage_type": datasourceInfo.StorageType.String(),
-		})
+func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) []datasource.MetricDatasourceBuildOption {
+	return []datasource.MetricDatasourceBuildOption{
+		datasource.WithMetricStep(10),
+		datasource.WithMetricEndpoint(datasourceInfo.Endpoint),
+		datasource.WithMetricBasicAuth(datasourceInfo.Config["username"], datasourceInfo.Config["password"]),
 	}
-	return opts, nil
 }
 
 // GetMetrics 获取指标列表
 func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *bo.GetMetricsParams) ([]*bo.MetricDetail, error) {
-	opts, err := l.getMetricOptions(datasourceInfo)
+	opts := l.getMetricOptions(datasourceInfo)
+	metricDatasource, err := datasource.NewMetricDatasource(datasourceInfo.StorageType, opts...)
 	if err != nil {
 		return nil, err
 	}
-	datasource, err := metric.NewMetricDatasource(datasourceInfo.StorageType, opts...)
-	if err != nil {
-		return nil, err
-	}
-	metadata, err := datasource.Metadata(ctx)
+	metadata, err := metricDatasource.Metadata(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	metadataMap := make(map[string]*metric.Metric)
+	metadataMap := make(map[string]*datasource.Metric)
 	for _, item := range metadata.Metric {
 		metadataMap[item.Name] = item
 	}
@@ -75,12 +64,9 @@ func (l *metricRepositoryImpl) GetMetrics(ctx context.Context, datasourceInfo *b
 }
 
 // Query 查询指标
-func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
-	opts, err := l.getMetricOptions(&req.GetMetricsParams)
-	if err != nil {
-		return nil, err
-	}
-	datasource, err := metric.NewMetricDatasource(req.StorageType, opts...)
+func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams) ([]*datasource.QueryResponse, error) {
+	opts := l.getMetricOptions(&req.GetMetricsParams)
+	metricDatasource, err := datasource.NewMetricDatasource(req.StorageType, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +74,10 @@ func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams)
 		return nil, merr.ErrorNotification("time range is empty")
 	}
 	if len(req.TimeRange) == 1 {
-		return datasource.Query(ctx, req.QueryQL, types.NewTimeByString(req.TimeRange[0]).Unix())
+		return metricDatasource.Query(ctx, req.QueryQL, types.NewTimeByString(req.TimeRange[0]).Unix())
 	}
 	start, end := types.NewTimeByString(req.TimeRange[0]).Unix(), types.NewTimeByString(req.TimeRange[1]).Unix()
-	return datasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
+	return metricDatasource.QueryRange(ctx, req.QueryQL, start, end, req.Step)
 }
 
 // PushMetric 推送指标

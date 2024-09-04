@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -41,7 +41,7 @@ func (b *MetricBuilder) ToAPI() *api.MetricDetail {
 }
 
 // NewMetricQueryBuilder 创建MetricQuery构造器
-func NewMetricQueryBuilder(queryResponse *metric.QueryResponse) *MetricQueryBuilder {
+func NewMetricQueryBuilder(queryResponse *datasource.QueryResponse) *MetricQueryBuilder {
 	return &MetricQueryBuilder{
 		QueryResponse: queryResponse,
 	}
@@ -49,7 +49,7 @@ func NewMetricQueryBuilder(queryResponse *metric.QueryResponse) *MetricQueryBuil
 
 // MetricQueryBuilder 构建MetricQuery对象
 type MetricQueryBuilder struct {
-	*metric.QueryResponse
+	*datasource.QueryResponse
 }
 
 // ToAPI 转换为api对象
@@ -66,7 +66,7 @@ func (b *MetricQueryBuilder) ToAPI() *api.MetricQueryResult {
 		}
 	}
 	if !types.IsNil(b.Values) {
-		values = types.SliceToWithFilter(b.Values, func(item *metric.QueryValue) (*api.MetricQueryValue, bool) {
+		values = types.SliceToWithFilter(b.Values, func(item *datasource.QueryValue) (*api.MetricQueryValue, bool) {
 			if types.IsNil(item) {
 				return nil, false
 			}

@@ -20,7 +20,7 @@ import (
 const (
 	// 策略任务执行间隔， 默认10s
 	strategyWatchJobSpec = "@every 10s"
-	// 测了执行任务超时时间
+	// 执行任务超时时间
 	strategyWatchJobTimeout = 10 * time.Second
 )
 
@@ -116,7 +116,7 @@ func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 	}
 
 	// 重新加入
-	entryID, err := s.cronInstance.AddFunc(s.interval, func() {
+	entryID, err := s.cronInstance.AddFunc(strategyMsg.Interval.CronTime(), func() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
 		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)

@@ -1,4 +1,4 @@
-package metric
+package datasource
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -29,7 +30,7 @@ const (
 )
 
 // NewPrometheusDatasource 创建 prometheus 数据源
-func NewPrometheusDatasource(opts ...PrometheusOption) Datasource {
+func NewPrometheusDatasource(opts ...PrometheusOption) MetricDatasource {
 	p := &prometheusDatasource{
 		prometheusAPIV1Query:      prometheusAPIV1Query,
 		prometheusAPIV1QueryRange: prometheusAPIV1QueryRange,
@@ -58,6 +59,8 @@ type (
 
 		// endpoint 数据源地址
 		endpoint string
+		// 查询步长
+		step uint32
 	}
 
 	// PrometheusOption 数据源配置
@@ -109,10 +112,43 @@ type (
 	}
 )
 
+func (p *prometheusDatasource) Step() uint32 {
+	if p.step == 0 {
+		return 14
+	}
+	return p.step
+}
+
+func (p *prometheusDatasource) Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
+	endAt := time.Now()
+	startAt := types.NewTime(time.Now().Add(-duration.Duration.AsDuration()))
+	queryRange, err := p.QueryRange(ctx, expr, startAt.Unix(), endAt.Unix(), p.Step())
+	if err != nil {
+		return nil, err
+	}
+	var responseMap = make(map[watch.Indexer]*Point)
+	for _, response := range queryRange {
+		labels := response.Labels
+		values := make([]*Value, 0, len(response.Values))
+		for _, v := range response.Values {
+			values = append(values, &Value{
+				Value:     v.Value,
+				Timestamp: v.Timestamp,
+			})
+		}
+		responseMap[labels] = &Point{
+			Values: values,
+			Labels: labels,
+		}
+	}
+	log.Debugw("responseMap", responseMap)
+	return responseMap, nil
+}
+
 func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
 	st := step
 	if step == 0 {
-		st = 14
+		st = p.step
 	}
 	params := httpx.ParseQuery(map[string]any{
 		"query": expr,
@@ -387,11 +423,20 @@ func WithPrometheusEndpoint(endpoint string) PrometheusOption {
 	}
 }
 
-// WithPrometheusConfig 设置数据源配置
-func WithPrometheusConfig(config map[string]string) PrometheusOption {
+// WithPrometheusStep 设置步长
+func WithPrometheusStep(step uint32) PrometheusOption {
 	return func(p *prometheusDatasource) {
-		username := config["username"]
-		password := config["password"]
+		if step <= 0 {
+			p.step = 10
+			return
+		}
+		p.step = step
+	}
+}
+
+// WithPrometheusBasicAuth 设置数据源配置
+func WithPrometheusBasicAuth(username, password string) PrometheusOption {
+	return func(p *prometheusDatasource) {
 		if types.TextIsNull(username) || types.TextIsNull(password) {
 			return
 		}

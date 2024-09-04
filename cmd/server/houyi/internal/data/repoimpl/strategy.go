@@ -74,17 +74,17 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			Config:      datasourceItem.Config,
 			Endpoint:    datasourceItem.Endpoint,
 		}
-		datasourceCliList = append(datasourceCliList, datasource.NewDatasource(cfg))
+		newDatasource, err := datasource.NewDatasource(cfg)
+		if err != nil {
+			log.Warnw("method", "NewDatasource", "error", err)
+			continue
+		}
+		datasourceCliList = append(datasourceCliList, newDatasource)
 	}
 
 	var alerts []*bo.Alert
 	for _, cli := range datasourceCliList {
-		// TODO async eval
-		step := cli.Step()
-		if strategy.Step > 0 {
-			step = strategy.Step
-		}
-		evalPoints, err := cli.Eval(ctx, strategy.Expr, step)
+		evalPoints, err := cli.Eval(ctx, strategy.Expr, strategy.For)
 		if err != nil {
 			log.Warnw("method", "Eval", "error", err)
 			continue
@@ -136,52 +136,9 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 }
 
 func isCompletelyMeet(pointValues []*datasource.Value, strategy *bo.Strategy) bool {
-	switch strategy.Condition {
-	case vobj.ConditionEQ: // equal
-		for _, point := range pointValues {
-			if point.Value != strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	case vobj.ConditionNE: // not equal
-		for _, point := range pointValues {
-			if point.Value == strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	case vobj.ConditionGT: // greater than
-		for _, point := range pointValues {
-			if point.Value <= strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	case vobj.ConditionLT: // less than
-		for _, point := range pointValues {
-			if point.Value >= strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	case vobj.ConditionGTE:
-		for _, point := range pointValues {
-			if point.Value < strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	case vobj.ConditionLTE:
-		for _, point := range pointValues {
-			if point.Value > strategy.Threshold {
-				return false
-			}
-		}
-		return true
-	default:
-		return false
-	}
+	values := types.SliceTo(pointValues, func(v *datasource.Value) float64 { return v.Value })
+	judge := strategy.SustainType.Judge(strategy.Condition, strategy.Count, strategy.Threshold)
+	return judge(values)
 }
 
 func findCommonKeys(maps ...*vobj.Labels) *vobj.Labels {

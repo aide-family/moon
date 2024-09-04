@@ -6,7 +6,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/houyi/datasource/metric"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 )
 
 // NewMetricBiz new MetricBiz
@@ -27,7 +27,7 @@ func (b *MetricBiz) SyncMetrics(ctx context.Context, datasourceInfo *bo.GetMetri
 }
 
 // Query 查询数据
-func (b *MetricBiz) Query(ctx context.Context, req *bo.QueryQLParams) ([]*metric.QueryResponse, error) {
+func (b *MetricBiz) Query(ctx context.Context, req *bo.QueryQLParams) ([]*datasource.QueryResponse, error) {
 	return b.metricRepository.Query(ctx, req)
 }
 

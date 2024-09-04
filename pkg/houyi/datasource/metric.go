@@ -1,4 +1,4 @@
-package metric
+package datasource
 
 import (
 	"context"
@@ -53,8 +53,10 @@ type (
 		Timestamp int64 `json:"timestamp"`
 	}
 
-	// Datasource 数据源完整接口定义
-	Datasource interface {
+	// MetricDatasource 数据源完整接口定义
+	MetricDatasource interface {
+		Datasource
+
 		// Query 查询数据
 		Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error)
 		// QueryRange 查询数据
@@ -64,30 +66,53 @@ type (
 	}
 
 	datasourceBuild struct {
-		prometheusOptions []PrometheusOption
+		endpoint  string
+		step      uint32
+		basicAuth *BasicAuth
 	}
 
-	// DatasourceBuildOption 数据源构建选项
-	DatasourceBuildOption func(p *datasourceBuild)
+	// MetricDatasourceBuildOption 数据源构建选项
+	MetricDatasourceBuildOption func(p *datasourceBuild)
 )
 
 // NewMetricDatasource 创建数据源
-func NewMetricDatasource(storageType vobj.StorageType, opts ...DatasourceBuildOption) (Datasource, error) {
+func NewMetricDatasource(storageType vobj.StorageType, opts ...MetricDatasourceBuildOption) (MetricDatasource, error) {
 	d := &datasourceBuild{}
 	for _, opt := range opts {
 		opt(d)
 	}
 	switch storageType {
 	case vobj.StorageTypePrometheus:
-		return NewPrometheusDatasource(d.prometheusOptions...), nil
+		return NewPrometheusDatasource(
+			WithPrometheusEndpoint(d.endpoint),
+			WithPrometheusStep(d.step),
+			WithPrometheusBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
+		), nil
 	default:
 		return nil, merr.ErrorUnsupportedDatasourceTypeErr("unsupported data source type")
 	}
 }
 
-// WithPrometheusOption 配置 prometheus 数据源
-func WithPrometheusOption(opts ...PrometheusOption) DatasourceBuildOption {
+// WithMetricEndpoint 设置数据源地址
+func WithMetricEndpoint(endpoint string) MetricDatasourceBuildOption {
 	return func(p *datasourceBuild) {
-		p.prometheusOptions = append(p.prometheusOptions, opts...)
+		p.endpoint = endpoint
+	}
+}
+
+// WithMetricStep 设置数据源步长
+func WithMetricStep(step uint32) MetricDatasourceBuildOption {
+	return func(p *datasourceBuild) {
+		p.step = step
+	}
+}
+
+// WithMetricBasicAuth 设置数据源认证信息
+func WithMetricBasicAuth(username, password string) MetricDatasourceBuildOption {
+	return func(p *datasourceBuild) {
+		p.basicAuth = &BasicAuth{
+			Username: username,
+			Password: password,
+		}
 	}
 }

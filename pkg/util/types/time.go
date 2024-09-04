@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"strconv"
 	"time"
 
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -89,6 +90,11 @@ func NewDuration(dur *durationpb.Duration) *Duration {
 // Duration 包装后的时间类型
 type Duration struct {
 	Duration *durationpb.Duration
+}
+
+// CronTime 定义一个时间间隔，单位为秒
+func (d *Duration) CronTime() string {
+	return "@every " + strconv.Itoa(int(d.GetDuration().AsDuration().Seconds())) + "s"
 }
 
 // Value 实现 driver.Valuer 接口，Value
