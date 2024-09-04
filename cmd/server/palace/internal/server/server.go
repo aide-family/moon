@@ -113,6 +113,7 @@ func RegisterService(
 	alarmapi.RegisterAlarmServer(rpcSrv, alarmGroupService)
 	subscriberapi.RegisterSubscriberServer(rpcSrv, subscriberService)
 	hookapi.RegisterHookServer(rpcSrv, hookService)
+	api.RegisterAlertServer(rpcSrv, alertService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -134,6 +135,7 @@ func RegisterService(
 	alarmapi.RegisterAlarmHTTPServer(httpSrv, alarmGroupService)
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
+	api.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	// custom api
 	customAPI := httpSrv.Route("/v1/admin")

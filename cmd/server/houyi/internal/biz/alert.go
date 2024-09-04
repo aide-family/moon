@@ -23,3 +23,8 @@ type AlertBiz struct {
 func (a *AlertBiz) SaveAlarm(ctx context.Context, alarm *bo.Alarm) error {
 	return a.alertRepository.SaveAlarm(ctx, alarm)
 }
+
+// PushAlarm 告警推送
+func (a *AlertBiz) PushAlarm(ctx context.Context, alarm *bo.Alarm) error {
+	return a.alertRepository.PushAlarm(ctx, alarm)
+}

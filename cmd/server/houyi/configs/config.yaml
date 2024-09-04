@@ -42,6 +42,8 @@ watch:
     timeout: 10s
     interval: "@every 10s"
   alertEvent:
+    timeout: 10s
+    interval: 10s
 
 discovery:
   type: "etcd"
@@ -65,5 +67,6 @@ micro_server:
     network: "rpc"
     nodeVersion: ""
     endpoint: "discovery:///moon_palace"
+#    endpoint: "localhost:9000"
     timeout: 50s
     secret: ""

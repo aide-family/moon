@@ -18,3 +18,17 @@ const (
 	// AlertStatusSilenced silenced
 	AlertStatusSilenced // Silenced
 )
+
+// ToAlertStatus convert
+func ToAlertStatus(s string) AlertStatus {
+	switch s {
+	case "firing":
+		return AlertStatusFiring
+	case "resolved":
+		return AlertStatusResolved
+	case "silenced":
+		return AlertStatusSilenced
+	default:
+		return AlertStatusUnknown
+	}
+}

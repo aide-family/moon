@@ -33,5 +33,8 @@ func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Al
 
 // Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
-	return &api.HookReply{}, nil
+	return &api.HookReply{
+		Msg:  "success",
+		Code: 200,
+	}, nil
 }

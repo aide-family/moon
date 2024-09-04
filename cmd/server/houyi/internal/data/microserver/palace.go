@@ -3,11 +3,13 @@ package microserver
 import (
 	"context"
 
+	"github.com/aide-family/moon/api"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
@@ -93,5 +95,23 @@ func (l *PalaceConn) PushMetric(ctx context.Context, in *datasourceapi.SyncMetri
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return datasourceapi.NewMetricClient(l.rpcClient).SyncMetric(ctx, in, rpcOpts...)
+	}
+}
+
+// PushAlarm 向palace推送告警数据
+func (l *PalaceConn) PushAlarm(ctx context.Context, in *api.AlarmItem, opts ...Option) (*api.HookReply, error) {
+	switch l.network {
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
+		}
+		return api.NewAlertHTTPClient(l.httpClient).Hook(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
+		}
+		return api.NewAlertClient(l.rpcClient).Hook(ctx, in, rpcOpts...)
 	}
 }

@@ -30,6 +30,10 @@ func NewAlertService(alertBiz *biz.AlertBiz, strategyBiz *biz.StrategyBiz) *Aler
 
 // Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+	alarmBo := build.NewAlarmAPIBuilder(req).ToBo()
+	if err := s.alertBiz.PushAlarm(ctx, alarmBo); err != nil {
+		return nil, err
+	}
 	return &api.HookReply{}, nil
 }
 
