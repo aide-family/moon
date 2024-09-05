@@ -63,6 +63,23 @@ type (
 	}
 )
 
+func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
+	var a alertInfo
+	if err := json.Unmarshal([]byte(info), &a); err != nil {
+		return nil, err
+	}
+	return &Alert{
+		Status:       vobj.ToAlertStatus(a.Status),
+		Labels:       vobj.NewLabels(a.Labels),
+		Annotations:  a.Annotations,
+		StartsAt:     types.NewTimeByString(a.StartsAt),
+		EndsAt:       types.NewTimeByString(a.EndsAt),
+		GeneratorURL: a.GeneratorURL,
+		Fingerprint:  a.Fingerprint,
+		Value:        a.Value,
+	}, nil
+}
+
 func (a *Alarm) String() string {
 	alarm := alarmInfo{
 		Receiver: a.Receiver,

@@ -159,30 +159,27 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		}
 		for _, existAlert := range existAlerts {
 			if _, ok := alertIndexListMap[existAlert]; !ok {
-				// 获取存在的告警信息
-				existAlertStr, err := s.data.GetCacher().Get(ctx, existAlert)
+				getResolvedAlert, err := s.getResolvedAlert(ctx, existAlert)
 				if err != nil {
+					log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
 					continue
 				}
-
-				var existAlertItem bo.Alert
-				if err := json.Unmarshal([]byte(existAlertStr), &existAlertItem); err != nil {
-					continue
-				}
-				// 获取存在的告警信息， 并且更新为告警恢复状态
-				existAlertItem.Status = vobj.AlertStatusResolved
-				existAlertItem.EndsAt = types.NewTimeByUnix(time.Now().Unix())
-				alerts = append(alerts, &existAlertItem)
+				alerts = append(alerts, getResolvedAlert)
 			}
 		}
 	}
 
 	if len(alerts) == 0 {
-		return nil, merr.ErrorNotification("no data")
+		// 删除缓存
+		s.data.GetCacher().Delete(ctx, strategy.Index())
+		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
+		return nil, merr.ErrorNotification("暂无告警")
 	}
 	if len(alertIndexList) > 0 {
 		// 缓存告警指纹， 用于完全消失时候的告警恢复
 		s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(alertIndexList, ","), 0)
+	} else {
+		s.data.GetCacher().Delete(ctx, strategy.Index())
 	}
 	alarmInfo.Alerts = alerts
 	return alarmInfo, nil
@@ -190,18 +187,20 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 
 func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.Alert) *bo.Alert {
 	// 获取已存在的告警
-	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, alert.Labels.Index())
+	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, alert.Index())
 	if err != nil {
-		return alert
+		log.Warnw("method", "storage.get", "error", err)
+	} else {
+		var firingAlert bo.Alert
+		if err := json.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
+			log.Warnw("method", "json.Unmarshal", "error", err)
+		} else {
+			alert.StartsAt = firingAlert.StartsAt
+		}
 	}
 
-	var firingAlert bo.Alert
-	if err := json.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
-		return alert
-	}
-	alert.StartsAt = firingAlert.StartsAt
 	// 更新最新的告警数据值
-	if err := s.data.GetCacher().Set(ctx, alert.Labels.Index(), alert.String(), 0); err != nil {
+	if err := s.data.GetCacher().Set(ctx, alert.Index(), alert.String(), 0); err != nil {
 		log.Warnw("method", "storage.put", "error", err)
 		// TODO 存在争议， 不确定是否要把缓存失败的数据推出去
 		// 如果不推， 会导致告警丢失，如果推送，会导致此事件没有告警恢复
@@ -210,21 +209,25 @@ func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.A
 	return alert
 }
 
-func (s *strategyRepositoryImpl) getResolvedAlert(ctx context.Context, labels *vobj.Labels) (*bo.Alert, error) {
-	// 获取已存在的告警
-	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, labels.Index())
+func (s *strategyRepositoryImpl) getResolvedAlert(ctx context.Context, uniqueKey string) (*bo.Alert, error) {
+	// 获取存在的告警信息
+	existAlertStr, err := s.data.GetCacher().Get(ctx, uniqueKey)
 	if err != nil {
+		log.Warnw("method", "storage.get", "error", err)
 		return nil, err
 	}
 
-	var resolvedAlert bo.Alert
-	if err := json.Unmarshal([]byte(resolvedAlertStr), &resolvedAlert); err != nil {
+	resolvedAlert, err := bo.NewAlertWithAlertStrInfo(existAlertStr)
+	if err != nil {
+		log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
 		return nil, err
 	}
+	// 获取存在的告警信息， 并且更新为告警恢复状态
+	resolvedAlert.Status = vobj.AlertStatusResolved
+	resolvedAlert.EndsAt = types.NewTimeByUnix(time.Now().Unix())
 	// 删除缓存
-	s.data.GetAlertStorage().Remove(labels)
-	resolvedAlert.EndsAt = types.NewTime(time.Now())
-	return &resolvedAlert, nil
+	s.data.GetCacher().Delete(ctx, uniqueKey)
+	return resolvedAlert, nil
 }
 
 func isCompletelyMeet(pointValues []*datasource.Value, strategy *bo.Strategy) bool {
