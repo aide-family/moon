@@ -12,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewStrategyRepository new a strategy repository
 func NewStrategyRepository(data *data.Data, houyiClient *microserver.HouYiConn) microrepository.Strategy {
 	return &strategyRepositoryImpl{data: data, houyiClient: houyiClient}
 }

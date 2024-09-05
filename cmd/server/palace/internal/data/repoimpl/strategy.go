@@ -33,6 +33,14 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uint32) ([]*bizmodel.Strategy, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.Strategy.WithContext(ctx).Preload(bizQuery.Strategy.StrategyGroup).Where(bizQuery.Strategy.ID.In(ids...)).Find()
+}
+
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
 	// TODO 告警评估
 	return nil, merr.ErrorNotification("未实现本地告警评估逻辑")

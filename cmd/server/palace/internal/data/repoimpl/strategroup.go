@@ -218,8 +218,14 @@ func (s *strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *
 	if !types.IsNil(err) {
 		return err
 	}
-	bizWrapper := bizQuery.StrategyGroup.WithContext(ctx)
-	if _, err = bizWrapper.Where(bizQuery.StrategyGroup.ID.In(params.IDs...)).Update(bizQuery.StrategyGroup.Status, params.Status); !types.IsNil(err) {
+	// 关闭当前分组所有的策略
+	if params.Status.IsDisable() {
+		if _, err := bizQuery.Strategy.WithContext(ctx).Where(bizQuery.Strategy.GroupID.In(params.IDs...)).Update(bizQuery.Strategy.Status, params.Status); err != nil {
+			return err
+		}
+	}
+
+	if _, err = bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.In(params.IDs...)).Update(bizQuery.StrategyGroup.Status, params.Status); !types.IsNil(err) {
 		return err
 	}
 	s.syncStrategiesByGroupIds(ctx, params.IDs...)

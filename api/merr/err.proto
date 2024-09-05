@@ -383,4 +383,11 @@ enum ErrorReason {
     (errors.message) = "告警hook不存在!",
     (errors.id) = "ALARM_HOOK_DATA_NOT_FOUND_ERR"
   ];
+
+  // 策略不允许开启
+  STRATEGY_NOT_ALLOWED_ERR = 54 [
+    (errors.code) = 405,
+    (errors.message) = "策略：[%s] 不允许打开!，请打开策略分组：[%s]",
+    (errors.id) = "STRATEGY_NOT_ALLOWED_ERR"
+  ];
 }

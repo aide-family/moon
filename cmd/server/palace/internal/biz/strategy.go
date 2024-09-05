@@ -63,6 +63,12 @@ func (b *StrategyBiz) UpdateByID(ctx context.Context, param *bo.UpdateStrategyPa
 
 // UpdateStatus 更新策略状态
 func (b *StrategyBiz) UpdateStatus(ctx context.Context, param *bo.UpdateStrategyStatusParams) error {
+	// 校验策略分组是否打开
+	if param.Status.IsEnable() {
+		if err := b.verifyStrategyStatus(ctx, param.Ids); err != nil {
+			return err
+		}
+	}
 	err := b.strategyRepo.UpdateStatus(ctx, param)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
@@ -111,4 +117,18 @@ func (b *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alar
 // PushStrategy 推送策略
 func (b *StrategyBiz) PushStrategy(ctx context.Context, strategies []*bo.Strategy) error {
 	return b.strategyRPCRepo.Push(ctx, strategies)
+}
+
+// 校验策略分组是否打开,未打开策略分组不允许打开策略
+func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) error {
+	strategies, err := b.strategyRepo.GetStrategyByIds(ctx, ids)
+	if err != nil {
+		return err
+	}
+	for _, strategy := range strategies {
+		if strategy.StrategyGroup.Status.IsDisable() {
+			return merr.ErrorI18nStrategyNotAllowedErr(ctx, strategy.Name, strategy.StrategyGroup.Name)
+		}
+	}
+	return nil
 }
