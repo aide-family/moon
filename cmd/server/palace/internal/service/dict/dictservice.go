@@ -3,7 +3,7 @@ package dict
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/admin"
+	adminapi "github.com/aide-family/moon/api/admin"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
@@ -51,7 +51,7 @@ func (s *Service) UpdateDict(ctx context.Context, req *dictapi.UpdateDictRequest
 }
 
 // ListDict 获取字典列表
-func (s *Service) ListDict(ctx context.Context, req *dictapi.GetDictSelectListRequest) (*dictapi.ListDictReply, error) {
+func (s *Service) ListDict(ctx context.Context, req *dictapi.ListDictRequest) (*dictapi.ListDictReply, error) {
 	queryParams := &bo.QueryDictListParams{
 		Keyword:  req.GetKeyword(),
 		Page:     types.NewPagination(req.GetPagination()),
@@ -62,7 +62,7 @@ func (s *Service) ListDict(ctx context.Context, req *dictapi.GetDictSelectListRe
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *admin.Dict {
+	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *adminapi.Dict {
 		return build.NewBuilder().WithContext(ctx).WithDict(dict).ToAPI()
 	})
 	return &dictapi.ListDictReply{
@@ -107,5 +107,25 @@ func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*di
 func (s *Service) ListDictType(_ context.Context, _ *dictapi.ListDictTypeRequest) (*dictapi.ListDictTypeReply, error) {
 	return &dictapi.ListDictTypeReply{
 		List: build.NewDictTypeBuilder().ToAPI(),
+	}, nil
+}
+
+// DictSelectList 获取字典下拉列表
+func (s *Service) DictSelectList(ctx context.Context, req *dictapi.ListDictRequest) (*dictapi.DictSelectListReply, error) {
+	queryParams := &bo.QueryDictListParams{
+		Keyword:  req.GetKeyword(),
+		Page:     types.NewPagination(req.GetPagination()),
+		Status:   vobj.Status(req.GetStatus()),
+		DictType: vobj.DictType(req.GetDictType()),
+	}
+	dictPage, err := s.dictBiz.ListDict(ctx, queryParams)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *adminapi.SelectItem {
+		return build.NewBuilder().WithContext(ctx).WithDict(dict).ToAPISelect()
+	})
+	return &dictapi.DictSelectListReply{
+		List: resList,
 	}, nil
 }

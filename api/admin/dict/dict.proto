@@ -32,7 +32,7 @@ service Dict {
   }
 
   // 字典列表
-  rpc ListDict (GetDictSelectListRequest) returns (ListDictReply) {
+  rpc ListDict (ListDictRequest) returns (ListDictReply) {
     option (google.api.http) = {
       post: "/v1/dict/list"
       body: "*"
@@ -65,6 +65,14 @@ service Dict {
   rpc ListDictType (ListDictTypeRequest) returns (ListDictTypeReply) {
     option (google.api.http) = {
       post: "/v1/dict/type/list"
+      body: "*"
+    };
+  }
+
+  // 获取字典下拉列表
+  rpc DictSelectList (ListDictRequest) returns (DictSelectListReply) {
+    option (google.api.http) = {
+      post: "/v1/dict/select/list"
       body: "*"
     };
   }
@@ -141,7 +149,7 @@ message CreateDictRequest {
 }
 message CreateDictReply {}
 
-message GetDictSelectListRequest {
+message ListDictRequest {
   // 分页参数
   PaginationReq pagination = 1 ;
   // 关键字模糊查询
@@ -211,4 +219,7 @@ message ListDictTypeReply{
   repeated EnumItem list = 1;
 }
 
+message DictSelectListReply {
+  repeated SelectItem list = 1;
+}
 
