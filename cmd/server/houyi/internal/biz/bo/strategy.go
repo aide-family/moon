@@ -16,6 +16,8 @@ type (
 	Strategy struct {
 		// 策略ID
 		ID uint32 `json:"id,omitempty"`
+		// 策略等级ID
+		LevelID uint32 `json:"levelId,omitempty"`
 		// 策略名称
 		Alert string `json:"alert,omitempty"`
 		// 策略语句

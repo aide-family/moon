@@ -67,6 +67,12 @@ message Strategy {
   Condition condition = 14;
   // 阈值
   double threshold = 15;
+  // 策略等级ID
+  uint32 levelID = 16 [(buf.validate.field).cel = {
+    id: "Strategy_level"
+    expression: 'this > 0'
+    message: "策略等级必须大于0"
+  }];
 }
 
 // 类型元数据，每个对象都应该包含这个字段

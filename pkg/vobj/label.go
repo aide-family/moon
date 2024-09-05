@@ -15,7 +15,9 @@ import (
 
 const (
 	// StrategyID 策略id
-	StrategyID = "strategy_id"
+	StrategyID = "moon__strategy_id"
+	// LevelID 策略级别id
+	LevelID = "moon__level_id"
 )
 
 var _ sql.Scanner = (*Labels)(nil)
@@ -113,6 +115,14 @@ func (l *Labels) Get(key string) string {
 // Append 追加
 func (l *Labels) Append(key, val string) *Labels {
 	l.label[key] = val
+	return l
+}
+
+// AppendMap 追加map
+func (l *Labels) AppendMap(m map[string]string) *Labels {
+	for k, v := range m {
+		l.label[k] = v
+	}
 	return l
 }
 

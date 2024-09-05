@@ -28,7 +28,7 @@ func NewStrategyService(strategyBiz *biz.StrategyBiz) *StrategyService {
 // PushStrategy 推送策略
 func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.PushStrategyRequest) (*strategyapi.PushStrategyReply, error) {
 	strategies := types.SliceTo(req.GetStrategies(), func(item *api.Strategy) *bo.Strategy {
-		return build.NewStrategyAPIBuilder(item).ToBo()
+		return build.NewStrategyBuilder(item).ToBo()
 	})
 	if err := s.strategyBiz.SaveStrategy(ctx, strategies); err != nil {
 		return nil, err

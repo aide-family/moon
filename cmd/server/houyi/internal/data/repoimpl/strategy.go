@@ -75,6 +75,7 @@ func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]
 
 func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
+	strategy.Labels.Append(vobj.LevelID, fmt.Sprintf("%d", strategy.LevelID))
 
 	alarmInfo := bo.Alarm{
 		Receiver:          "",
@@ -133,11 +134,11 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			}
 			alert := &bo.Alert{
 				Status:       vobj.AlertStatusFiring,
-				Labels:       point.Labels, // 合并label
-				Annotations:  annotations,  // 填充
+				Labels:       point.Labels.AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
+				Annotations:  annotations,                                          // 填充
 				StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
 				EndsAt:       nil,
-				GeneratorURL: "", // 生成事件图表链接
+				GeneratorURL: "", // TODO 生成事件图表链接
 				Fingerprint:  "", // TODO 指纹生成逻辑
 				Value:        endPointValue.Value,
 			}

@@ -107,6 +107,22 @@ func (a *Alarm) String() string {
 	return string(bs)
 }
 
+// GetFingerprint gen alert fingerprint
+func (a *Alert) GetFingerprint() string {
+	fingerprint := a.Fingerprint
+	if types.TextIsNull(fingerprint) {
+		// 唯一索引+告警时间生成唯一告警指纹
+		fingerprint = cipher.MD5(a.Index() + a.StartsAt.String())
+	}
+	return fingerprint
+}
+
+// GetExternalURL gen alert external url
+func (a *Alert) GetExternalURL() string {
+	// TODO 生成图表链接
+	return a.GeneratorURL
+}
+
 func (a *Alert) String() string {
 	alert := alertInfo{
 		Status:       a.Status.String(),
