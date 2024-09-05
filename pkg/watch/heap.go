@@ -68,6 +68,7 @@ type (
 		cacher conn.Cache
 	}
 
+	// CacheStorageMsg 缓存存储器消息
 	CacheStorageMsg string
 )
 
@@ -75,10 +76,12 @@ func (c CacheStorageMsg) String() string {
 	return string(c)
 }
 
+// Index 实现Indexer接口
 func (c CacheStorageMsg) Index() string {
 	return string(c)
 }
 
+// Unmarshal 反序列化
 func (c CacheStorageMsg) Unmarshal(v any) error {
 	return json.Unmarshal([]byte(c), v)
 }

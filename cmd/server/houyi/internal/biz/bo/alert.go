@@ -63,6 +63,7 @@ type (
 	}
 )
 
+// NewAlertWithAlertStrInfo create alert from alert string
 func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
 	var a alertInfo
 	if err := json.Unmarshal([]byte(info), &a); err != nil {

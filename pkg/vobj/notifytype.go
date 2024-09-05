@@ -50,6 +50,7 @@ func (n NotifyType) String() string {
 	return strings.Join(notify, ",")
 }
 
+// GetValue 获取值
 func (n NotifyType) GetValue() int {
 	return int(n)
 }

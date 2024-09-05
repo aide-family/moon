@@ -81,6 +81,9 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 
 func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
 	strategyModel := createStrategyParamsToModel(ctx, params)
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.Strategy.WithContext(ctx).Create(strategyModel); !types.IsNil(err) {

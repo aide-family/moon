@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -14,6 +15,10 @@ import (
 
 type MyMsg struct {
 	Data int
+}
+
+func (m *MyMsg) String() string {
+	return strconv.Itoa(m.Data)
 }
 
 func (m *MyMsg) Index() string {

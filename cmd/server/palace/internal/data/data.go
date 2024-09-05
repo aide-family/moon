@@ -373,6 +373,7 @@ func (d *Data) GetStrategyQueue() watch.Queue {
 	return d.strategyQueue
 }
 
+// GetAlertQueue 获取告警队列
 func (d *Data) GetAlertQueue() watch.Queue {
 	if types.IsNil(d.alertQueue) {
 		log.Warn("alertQueue is nil")
