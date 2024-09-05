@@ -17,6 +17,23 @@ type (
 	// StrategyModelBuilder 策略模型构建器
 	StrategyModelBuilder interface {
 		ToAPI() *admin.StrategyItem
+		ToBos() []*bo.Strategy
+	}
+
+	// BoStrategyBuilder bo 策略模型构建器
+	BoStrategyBuilder interface {
+		ToAPI() *api.Strategy
+	}
+
+	// BoStrategiesBuilder bo 策略模型构建器
+	BoStrategiesBuilder interface {
+		ToAPIs() []*api.Strategy
+	}
+
+	// BoStrategyModelBuilder bo 策略模型构建器
+	BoStrategyModelBuilder interface {
+		WithBoStrategy(*bo.Strategy) BoStrategyBuilder
+		WithBoStrategies([]*bo.Strategy) BoStrategiesBuilder
 	}
 
 	// StrategyRequestBuilder 策略请求构建器
@@ -34,6 +51,10 @@ type (
 		UpdateStrategy *strategyapi.UpdateStrategyRequest
 
 		// context
+		ctx context.Context
+	}
+
+	boStrategyModelBuilder struct {
 		ctx context.Context
 	}
 
@@ -128,7 +149,104 @@ type (
 
 		ctx context.Context
 	}
+
+	boStrategyBuilder struct {
+		strategy *bo.Strategy
+		ctx      context.Context
+	}
+
+	boStrategiesBuilder struct {
+		strategies []*bo.Strategy
+		ctx        context.Context
+	}
 )
+
+func (b *strategyBuilder) ToBos() []*bo.Strategy {
+	if types.IsNil(b) || types.IsNil(b.Strategy) || types.IsNil(b.Strategy.StrategyLevel) || len(b.Strategy.StrategyLevel) == 0 {
+		return nil
+	}
+	strategy := b.Strategy
+	datasource := types.SliceToWithFilter(strategy.Datasource, func(s *bizmodel.Datasource) (*bo.Datasource, bool) {
+		item := newDatasourceModelBuilder(b.ctx, s).ToBo()
+		return item, !types.IsNil(item)
+	})
+	list := make([]*bo.Strategy, 0, len(strategy.StrategyLevel))
+	for _, strategyLevel := range strategy.StrategyLevel {
+		status := vobj.StatusDisable
+		if strategyLevel.Status.IsEnable() &&
+			!types.IsNil(strategy.StrategyGroup) &&
+			strategy.StrategyGroup.Status.IsEnable() &&
+			strategy.StrategyGroup.DeletedAt == 0 &&
+			strategy.Status.IsEnable() &&
+			strategyLevel.DeletedAt == 0 &&
+			strategy.DeletedAt == 0 {
+			status = vobj.StatusEnable
+		}
+		item := &bo.Strategy{
+			ID:                         strategy.ID,
+			LevelID:                    strategyLevel.ID,
+			Alert:                      b.Strategy.Name,
+			Expr:                       b.Strategy.Expr,
+			For:                        strategyLevel.Duration,
+			Count:                      strategyLevel.Count,
+			SustainType:                strategyLevel.SustainType,
+			MultiDatasourceSustainType: 0,
+			Labels:                     strategy.Labels,
+			Annotations:                strategy.Annotations,
+			Interval:                   strategyLevel.Interval,
+			Datasource:                 datasource,
+			Status:                     status,
+			Step:                       strategy.Step,
+			Condition:                  strategyLevel.Condition,
+			Threshold:                  strategyLevel.Threshold,
+		}
+		list = append(list, item)
+	}
+	return list
+}
+
+func (b *boStrategiesBuilder) ToAPIs() []*api.Strategy {
+	if types.IsNil(b) || types.IsNil(b.strategies) {
+		return nil
+	}
+	return types.SliceToWithFilter(b.strategies, func(s *bo.Strategy) (*api.Strategy, bool) {
+		item := newBoStrategyBuilder(b.ctx, s).ToAPI()
+		return item, !types.IsNil(item)
+	})
+}
+
+func (b *boStrategyBuilder) ToAPI() *api.Strategy {
+	if types.IsNil(b) || types.IsNil(b.strategy) {
+		return nil
+	}
+	strategy := b.strategy
+	return &api.Strategy{
+		Alert:                      strategy.Alert,
+		Expr:                       strategy.Expr,
+		For:                        strategy.For.GetDuration(),
+		Count:                      strategy.Count,
+		SustainType:                api.SustainType(strategy.SustainType),
+		MultiDatasourceSustainType: api.MultiDatasourceSustainType(strategy.MultiDatasourceSustainType),
+		Labels:                     strategy.Labels.Map(),
+		Annotations:                strategy.Annotations,
+		Interval:                   strategy.Interval.GetDuration(),
+		Datasource:                 newBoDatasourceBuilder(b.ctx, strategy.Datasource).ToAPIs(),
+		Id:                         strategy.ID,
+		Status:                     api.Status(strategy.Status),
+		Step:                       strategy.Step,
+		Condition:                  api.Condition(strategy.Condition),
+		Threshold:                  strategy.Threshold,
+		LevelID:                    strategy.LevelID,
+	}
+}
+
+func (b *boStrategyModelBuilder) WithBoStrategy(strategy *bo.Strategy) BoStrategyBuilder {
+	return newBoStrategyBuilder(b.ctx, strategy)
+}
+
+func (b *boStrategyModelBuilder) WithBoStrategies(strategies []*bo.Strategy) BoStrategiesBuilder {
+	return newBoStrategiesBuilder(b.ctx, strategies)
+}
 
 func (d doStrategyLevelBuilder) ToAPI() *admin.StrategyLevel {
 	if types.IsNil(d) || types.IsNil(d.strategyLevel) {
@@ -452,4 +570,16 @@ func (d *strategyLevelModuleBuilder) WithAPIStrategyLevel(request *strategyapi.C
 
 func (d *strategyLevelModuleBuilder) WithDoStrategyLevel(model *bizmodel.StrategyLevel) DoStrategyLevelBuilder {
 	return &doStrategyLevelBuilder{strategyLevel: model, ctx: d.ctx}
+}
+
+func newBoStrategyModelBuilder(ctx context.Context) BoStrategyModelBuilder {
+	return &boStrategyModelBuilder{ctx: ctx}
+}
+
+func newBoStrategiesBuilder(ctx context.Context, strategies []*bo.Strategy) BoStrategiesBuilder {
+	return &boStrategiesBuilder{ctx: ctx, strategies: strategies}
+}
+
+func newBoStrategyBuilder(ctx context.Context, strategy *bo.Strategy) BoStrategyBuilder {
+	return &boStrategyBuilder{ctx: ctx, strategy: strategy}
 }

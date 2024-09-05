@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
@@ -14,15 +15,17 @@ import (
 )
 
 // NewStrategyBiz 创建策略业务
-func NewStrategyBiz(dictRepo repository.Strategy) *StrategyBiz {
+func NewStrategyBiz(dictRepo repository.Strategy, strategyRPCRepo microrepository.Strategy) *StrategyBiz {
 	return &StrategyBiz{
-		strategyRepo: dictRepo,
+		strategyRepo:    dictRepo,
+		strategyRPCRepo: strategyRPCRepo,
 	}
 }
 
 // StrategyBiz 策略业务
 type StrategyBiz struct {
-	strategyRepo repository.Strategy
+	strategyRepo    repository.Strategy
+	strategyRPCRepo microrepository.Strategy
 }
 
 // GetStrategy 获取策略
@@ -103,4 +106,9 @@ func (b *StrategyBiz) CopyStrategy(ctx context.Context, strategyID uint32) (*biz
 // Eval 策略评估
 func (b *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
 	return b.strategyRepo.Eval(ctx, strategy)
+}
+
+// PushStrategy 推送策略
+func (b *StrategyBiz) PushStrategy(ctx context.Context, strategies []*bo.Strategy) error {
+	return b.strategyRPCRepo.Push(ctx, strategies)
 }

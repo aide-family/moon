@@ -31,6 +31,11 @@ func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Al
 	return s.strategyBiz.Eval(ctx, req)
 }
 
+// PushStrategy 推送策略
+func (s *AlertService) PushStrategy(ctx context.Context, strategies []*bo.Strategy) error {
+	return s.strategyBiz.PushStrategy(ctx, strategies)
+}
+
 // Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
 	return &api.HookReply{

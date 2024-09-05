@@ -8,4 +8,5 @@ import (
 var ProviderSetRPCRepoImpl = wire.NewSet(
 	NewDatasourceMetricRepository,
 	NewMsgRepository,
+	NewStrategyRepository,
 )

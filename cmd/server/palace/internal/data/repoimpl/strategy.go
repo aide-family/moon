@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -30,8 +34,39 @@ type strategyRepositoryImpl struct {
 }
 
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
-	//TODO implement me
-	panic("implement me")
+	// TODO 告警评估
+	return nil, merr.ErrorNotification("未实现本地告警评估逻辑")
+}
+
+func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strategyIds ...uint32) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if err != nil {
+		log.Errorw("method", "syncStrategiesByIds", "err", err)
+		return
+	}
+	// 关联查询等级等明细信息
+	strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
+		Where(bizQuery.Strategy.ID.In(strategyIds...)).
+		Preload(field.Associations).
+		Find()
+	if !types.IsNil(err) {
+		log.Errorw("method", "syncStrategiesByIds", "err", err)
+		return
+	}
+	go func() {
+		defer after.RecoverX()
+		for _, strategy := range strategies {
+			items := build.NewBuilder().WithAPIStrategy(strategy).ToBos()
+			if items == nil || len(items) == 0 {
+				continue
+			}
+			for _, item := range items {
+				if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
+					return
+				}
+			}
+		}
+	}()
 }
 
 func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyStatusParams) error {
@@ -42,7 +77,11 @@ func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.Up
 	_, err = bizQuery.WithContext(ctx).
 		Strategy.Where(bizQuery.Strategy.ID.In(params.Ids...)).
 		Update(bizQuery.Strategy.Status, params.Status)
-	return err
+	if !types.IsNil(err) {
+		return err
+	}
+	s.syncStrategiesByIds(ctx, params.Ids...)
+	return nil
 }
 
 func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint32) error {
@@ -75,6 +114,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(strategyID)).Delete(); !types.IsNil(err) {
 			return err
 		}
+		s.syncStrategiesByIds(ctx, strategyID)
 		return nil
 	})
 }
@@ -94,6 +134,7 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	s.syncStrategiesByIds(ctx, strategyModel.ID)
 	return strategyModel, nil
 }
 
@@ -173,6 +214,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		); !types.IsNil(err) {
 			return err
 		}
+		s.syncStrategiesByIds(ctx, params.ID)
 		return nil
 	})
 }
@@ -280,6 +322,7 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	s.syncStrategiesByIds(ctx, strategy.ID)
 	return strategy, nil
 }
 

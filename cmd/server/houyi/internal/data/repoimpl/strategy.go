@@ -94,12 +94,33 @@ func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 
 // Eval 评估策略 告警/恢复
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+	alarmInfo := builderAlarmBaseInfo(strategy)
+	var alerts []*bo.Alert
+	// 获取存在的告警标识列表
+	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
+	// 移除策略， 直接生成告警恢复事件
+	if !strategy.Status.IsEnable() {
+		existAlerts := strings.Split(alertsStr, ",")
+		if len(existAlerts) == 0 {
+			return nil, merr.ErrorNotification("暂无告警")
+		}
+		for _, existAlert := range existAlerts {
+			getResolvedAlert, err := s.getResolvedAlert(ctx, existAlert)
+			if err != nil {
+				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
+				continue
+			}
+			alerts = append(alerts, getResolvedAlert)
+		}
+		alarmInfo.Alerts = alerts
+		alarmInfo.Status = vobj.AlertStatusResolved
+		return alarmInfo, nil
+	}
 	datasourceCliList, err := s.getDatasourceCliList(strategy)
 	if err != nil {
 		return nil, err
 	}
-	alarmInfo := builderAlarmBaseInfo(strategy)
-	var alerts []*bo.Alert
+
 	for _, cli := range datasourceCliList {
 		evalPoints, err := cli.Eval(ctx, strategy.Expr, strategy.For)
 		if err != nil {
@@ -150,8 +171,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	alertIndexList := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
 		return alert.Index(), alert.Status.IsFiring()
 	})
-	// 获取存在的告警标识列表
-	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
+
 	if !types.TextIsNull(alertsStr) {
 		existAlerts := strings.Split(alertsStr, ",")
 		alertIndexListMap := make(map[string]struct{}, len(alerts))

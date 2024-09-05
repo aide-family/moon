@@ -4,10 +4,12 @@ import (
 	"context"
 
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
+	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
@@ -129,5 +131,23 @@ func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opt
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return metadataapi.NewMetricClient(l.rpcClient).Query(ctx, in, rpcOpts...)
+	}
+}
+
+// PushStrategy 推送策略
+func (l *HouYiConn) PushStrategy(ctx context.Context, in *strategyapi.PushStrategyRequest, opts ...Option) (*strategyapi.PushStrategyReply, error) {
+	switch l.network {
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
+		}
+		return strategyapi.NewStrategyHTTPClient(l.httpClient).PushStrategy(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
+		}
+		return strategyapi.NewStrategyClient(l.rpcClient).PushStrategy(ctx, in, rpcOpts...)
 	}
 }

@@ -66,9 +66,6 @@ type StrategyWatch struct {
 
 // Start 启动策略任务执行器
 func (s *StrategyWatch) Start(_ context.Context) error {
-	if !s.isStart {
-		return nil
-	}
 	if types.IsNil(s) || types.IsNil(s.cronInstance) {
 		return merr.ErrorSystemErr("strategy watch is nil")
 	}
@@ -106,9 +103,6 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 
 // Stop 停止策略任务执行器
 func (s *StrategyWatch) Stop(_ context.Context) error {
-	if !s.isStart {
-		return nil
-	}
 	defer log.Infof("[StrategyWatch] server stopped")
 	close(s.stopCh)
 	s.cronInstance.Stop()
@@ -116,6 +110,10 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 }
 
 func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
+	if !s.isStart {
+		// 推送到houyi服务去
+		return s.alertService.PushStrategy(context.Background(), []*bo.Strategy{strategyMsg})
+	}
 	// 删除策略任务
 	if _, exist := s.entryIDMap[strategyMsg.Index()]; exist {
 		log.Info("strategy watch remove job")

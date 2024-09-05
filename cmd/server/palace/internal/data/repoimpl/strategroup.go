@@ -6,9 +6,11 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -39,6 +41,38 @@ type (
 		data *data.Data
 	}
 )
+
+func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Context, groupIds ...uint32) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return
+	}
+	strategyList := make([]*bizmodel.Strategy, 0)
+	for _, groupID := range groupIds {
+		strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
+			Where(bizQuery.Strategy.GroupID.Eq(groupID)).
+			Preload(field.Associations).
+			Find()
+		if !types.IsNil(err) {
+			continue
+		}
+		strategyList = append(strategyList, strategies...)
+	}
+	go func() {
+		defer after.RecoverX()
+		for _, strategy := range strategyList {
+			items := build.NewBuilder().WithAPIStrategy(strategy).ToBos()
+			if items == nil || len(items) == 0 {
+				continue
+			}
+			for _, item := range items {
+				if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
+					return
+				}
+			}
+		}
+	}()
+}
 
 func (s *strategyCountRepositoryImpl) FindStrategyCount(ctx context.Context, params *bo.GetStrategyCountParams) ([]*bo.StrategyCountModel, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
@@ -75,6 +109,7 @@ func (s *strategyGroupRepositoryImpl) CreateStrategyGroup(ctx context.Context, p
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	s.syncStrategiesByGroupIds(ctx, strategyGroupModel.ID)
 	return strategyGroupModel, err
 }
 
@@ -106,6 +141,7 @@ func (s *strategyGroupRepositoryImpl) UpdateStrategyGroup(ctx context.Context, p
 		); !types.IsNil(err) {
 			return err
 		}
+		s.syncStrategiesByGroupIds(ctx, params.ID)
 		return nil
 	})
 }
@@ -125,6 +161,7 @@ func (s *strategyGroupRepositoryImpl) DeleteStrategyGroup(ctx context.Context, p
 		if _, err = tx.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
 			return err
 		}
+		s.syncStrategiesByGroupIds(ctx, params.ID)
 		return nil
 	})
 }
@@ -186,6 +223,7 @@ func (s *strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *
 	if _, err = bizWrapper.Where(bizQuery.StrategyGroup.ID.In(params.IDs...)).Update(bizQuery.StrategyGroup.Status, params.Status); !types.IsNil(err) {
 		return err
 	}
+	s.syncStrategiesByGroupIds(ctx, params.IDs...)
 	return nil
 }
 

@@ -112,7 +112,8 @@ func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 		s.cronInstance.Remove(s.entryIDMap[strategyMsg.Index()])
 	}
 	if !strategyMsg.Status.IsEnable() {
-		return nil
+		// 生成告警恢复事件（如果有告警发生过）
+		return s.alertResolve(strategyMsg)
 	}
 
 	// 重新加入
@@ -137,5 +138,21 @@ func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 
 	log.Infow("strategy watch add job", s.entryIDMap[strategyMsg.Index()])
 
+	return nil
+}
+
+func (s *StrategyWatch) alertResolve(strategyMsg *bo.Strategy) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+	innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)
+	if err != nil {
+		log.Warnw("inner alarm err", err)
+		return err
+	}
+
+	if err := s.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
+		log.Warnw("push inner alarm err", err)
+		return err
+	}
 	return nil
 }

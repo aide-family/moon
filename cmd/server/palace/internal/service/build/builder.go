@@ -92,8 +92,20 @@ type (
 		SubscriberStrategyModuleBuilder() SubscriberStrategyModuleBuilder
 
 		HookModuleBuilder() HookModuleBuilder
+
+		BoStrategyModelBuilder() BoStrategyModelBuilder
+
+		BoDatasourceModuleBuilder() BoDatasourceModuleBuilder
 	}
 )
+
+func (b *builder) BoDatasourceModuleBuilder() BoDatasourceModuleBuilder {
+	return newBoDatasourceModuleBuilder(b.ctx)
+}
+
+func (b *builder) BoStrategyModelBuilder() BoStrategyModelBuilder {
+	return newBoStrategyModelBuilder(b.ctx)
+}
 
 func (b *builder) HookModuleBuilder() HookModuleBuilder {
 	return newHookModuleBuilder(b.ctx)

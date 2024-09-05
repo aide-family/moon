@@ -172,6 +172,8 @@ type (
 	Strategy struct {
 		// 策略ID
 		ID uint32 `json:"id,omitempty"`
+		// 等级ID
+		LevelID uint32 `json:"levelID,omitempty"`
 		// 策略名称
 		Alert string `json:"alert,omitempty"`
 		// 策略语句
@@ -185,9 +187,9 @@ type (
 		// 多数据源持续类型
 		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
-		Labels *vobj.Labels `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Labels *vobj.Labels `json:"labels"`
 		// 策略注解
-		Annotations vobj.Annotations `protobuf_val:"bytes,2,opt,name=value,proto3"`
+		Annotations vobj.Annotations `json:"annotations"`
 		// 执行频率
 		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源

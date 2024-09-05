@@ -2,8 +2,6 @@ package yaml
 
 import (
 	"bytes"
-	"encoding/json"
-	"reflect"
 	"unicode"
 
 	"gopkg.in/yaml.v3"
@@ -46,28 +44,4 @@ func JSONToYAML(j []byte) ([]byte, error) {
 
 	// Marshal this object into YAML.
 	return yaml.Marshal(jsonObj)
-}
-func YAMLToJSON(y []byte) ([]byte, error) {
-	return yamlToJSON(y, nil, yaml.Unmarshal)
-}
-
-func yamlToJSON(y []byte, jsonTarget *reflect.Value, yamlUnmarshal func([]byte, interface{}) error) ([]byte, error) {
-	// Convert the YAML to an object.
-	var yamlObj interface{}
-	err := yamlUnmarshal(y, &yamlObj)
-	if err != nil {
-		return nil, err
-	}
-
-	// YAML objects are not completely compatible with JSON objects (e.g. you
-	// can have non-string keys in YAML). So, convert the YAML-compatible object
-	// to a JSON-compatible object, failing with an error if irrecoverable
-	// incompatibilties happen along the way.
-	jsonObj, err := convertToJSONableObject(yamlObj, jsonTarget)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert this object to JSON and return the data.
-	return json.Marshal(jsonObj)
 }

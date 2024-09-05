@@ -20,6 +20,7 @@ type (
 	// DatasourceModelBuilder 数据源模型构造器接口
 	DatasourceModelBuilder interface {
 		ToAPI() *admin.DatasourceItem
+		ToBo() *bo.Datasource
 	}
 
 	// DatasourceRequestBuilder 数据源请求参数构造器接口
@@ -31,9 +32,28 @@ type (
 		ToListDatasourceBo() *bo.QueryDatasourceListParams
 	}
 
+	// BoDatasourceBuilder 数据源模型
+	BoDatasourceBuilder interface {
+		ToAPIs() []*api.Datasource
+	}
+
+	// BoDatasourceModuleBuilder 数据源模型构造器接口
+	BoDatasourceModuleBuilder interface {
+		WithBoDatasource([]*bo.Datasource) BoDatasourceBuilder
+	}
+
 	// DatasourceQueryDataBuilder 数据源查询结果构造器接口
 	DatasourceQueryDataBuilder interface {
 		ToAPI() *api.MetricQueryResult
+	}
+
+	boDatasourceBuilder struct {
+		datasource []*bo.Datasource
+		ctx        context.Context
+	}
+
+	boDatasourceModuleBuilder struct {
+		ctx context.Context
 	}
 
 	datasourceBuilder struct {
@@ -54,6 +74,39 @@ type (
 		ctx context.Context
 	}
 )
+
+func (b *datasourceBuilder) ToBo() *bo.Datasource {
+	if types.IsNil(b) || types.IsNil(b.Datasource) {
+		return nil
+	}
+	d := b.Datasource
+	c := make(map[string]string)
+	_ = json.Unmarshal([]byte(d.Config), &c)
+	return &bo.Datasource{
+		Category:    d.Category,
+		StorageType: d.StorageType,
+		Config:      c,
+		Endpoint:    d.Endpoint,
+	}
+}
+
+func (b *boDatasourceBuilder) ToAPIs() []*api.Datasource {
+	if types.IsNil(b) || types.IsNil(b.datasource) {
+		return nil
+	}
+	return types.SliceTo(b.datasource, func(item *bo.Datasource) *api.Datasource {
+		return &api.Datasource{
+			Category:    api.DatasourceType(item.Category),
+			StorageType: api.StorageType(item.StorageType),
+			Config:      item.Config,
+			Endpoint:    item.Endpoint,
+		}
+	})
+}
+
+func (b *boDatasourceModuleBuilder) WithBoDatasource(datasource []*bo.Datasource) BoDatasourceBuilder {
+	return newBoDatasourceBuilder(b.ctx, datasource)
+}
 
 func (b *datasourceBuilder) ToCreateDatasourceBO(configBytes []byte) *bo.CreateDatasourceParams {
 	if types.IsNil(b) || types.IsNil(b.CreateDatasourceRequest) {
@@ -141,5 +194,20 @@ func (b *datasourceQueryDataBuilder) ToAPI() *api.MetricQueryResult {
 			}
 		}),
 		Value: value,
+	}
+}
+
+func newBoDatasourceModuleBuilder(ctx context.Context) BoDatasourceModuleBuilder {
+	return &boDatasourceModuleBuilder{ctx: ctx}
+}
+
+func newBoDatasourceBuilder(ctx context.Context, datasource []*bo.Datasource) BoDatasourceBuilder {
+	return &boDatasourceBuilder{datasource: datasource, ctx: ctx}
+}
+
+func newDatasourceModelBuilder(ctx context.Context, datasource *bizmodel.Datasource) DatasourceModelBuilder {
+	return &datasourceBuilder{
+		Datasource: datasource,
+		ctx:        ctx,
 	}
 }
