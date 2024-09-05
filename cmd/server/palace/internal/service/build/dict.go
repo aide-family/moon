@@ -60,7 +60,7 @@ func (b *dictBuilder) ToAPI() *admin.Dict {
 	}
 }
 
-// ToApiSelect 转换成api下拉数据
+// ToAPISelect 转换成api下拉数据
 func (b *dictBuilder) ToAPISelect() *admin.SelectItem {
 	if types.IsNil(b) || types.IsNil(b.SysDict) {
 		return nil

@@ -32,6 +32,7 @@ type (
 	// DoAlarmHookBuilder do  alarm hook builder
 	DoAlarmHookBuilder interface {
 		ToAPI() *adminapi.AlarmHookItem
+		ToAPISelect() *adminapi.SelectItem
 	}
 
 	// DosAlarmHookBuilder do alarm hook builder
@@ -95,6 +96,22 @@ type (
 		ctx context.Context
 	}
 )
+
+func (a *doAlarmHookBuilder) ToAPISelect() *adminapi.SelectItem {
+	if types.IsNil(a) || types.IsNil(a.hookModel) {
+		return nil
+	}
+	hookModel := a.hookModel
+	return &adminapi.SelectItem{
+		Value:    hookModel.ID,
+		Label:    hookModel.Name,
+		Children: nil,
+		Disabled: hookModel.DeletedAt > 0 || !hookModel.Status.IsEnable(),
+		Extend: &adminapi.SelectExtend{
+			Remark: hookModel.Remark,
+		},
+	}
+}
 
 func (a *apiUpdateStatusParamsBuilder) ToBo() *bo.UpdateAlarmHookStatusParams {
 	if types.IsNil(a) || types.IsNil(a.params) {

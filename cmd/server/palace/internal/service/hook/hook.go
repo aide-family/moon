@@ -101,3 +101,20 @@ func (s *Service) UpdateHookStatus(ctx context.Context, req *hookapi.UpdateHookS
 	}
 	return &hookapi.UpdateHookStatusReply{}, nil
 }
+
+// ListHookSelectList 获取hook下拉列表
+func (s *Service) ListHookSelectList(ctx context.Context, req *hookapi.ListHookRequest) (*hookapi.ListHookSelectListReply, error) {
+	params := build.NewBuilder().
+		HookModuleBuilder().
+		WithAPIQueryAlarmHookListRequest(req).
+		ToBo()
+	alarmHooks, err := s.alarmHookBiz.ListPage(ctx, params)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &hookapi.ListHookSelectListReply{
+		List: types.SliceTo(alarmHooks, func(hook *bizmodel.AlarmHook) *admin.SelectItem {
+			return build.NewBuilder().HookModuleBuilder().WithDoAlarmHook(hook).ToAPISelect()
+		}),
+	}, nil
+}

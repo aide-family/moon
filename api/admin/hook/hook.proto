@@ -21,6 +21,7 @@ service Hook {
       body: "*"
     };
   };
+
   // 更新hook
   rpc UpdateHook (UpdateHookRequest) returns (UpdateHookReply){
     option (google.api.http) = {
@@ -43,12 +44,14 @@ service Hook {
       delete: "/v1/hook/delete/{id}"
     };
   };
+
   // 获取hook详情
   rpc GetHook (GetHookRequest) returns (GetHookReply){
     option (google.api.http) = {
       get: "/v1/hook/detail/{id}"
     };
   };
+
   // 获取hook列表
   rpc ListHook (ListHookRequest) returns (ListHookReply){
     option (google.api.http) = {
@@ -56,6 +59,14 @@ service Hook {
       body: "*"
     };
   };
+
+  // 获取hook下拉列表
+  rpc ListHookSelectList (ListHookRequest) returns (ListHookSelectListReply){
+    option (google.api.http) = {
+      post: "/v1/hook/select/list"
+      body: "*"
+    };
+  }
 }
 
 // 创建hook
@@ -135,5 +146,8 @@ message UpdateHookStatusRequest {
     message: "请选择正确的启用状态, 启用(1);禁用(2)"
   }];
 }
-
 message UpdateHookStatusReply{}
+
+message ListHookSelectListReply {
+  repeated SelectItem list = 1;
+}
