@@ -38,11 +38,13 @@ type (
 	// DoAlarmGroupBuilder do  alarm group builder
 	DoAlarmGroupBuilder interface {
 		ToAPI() *adminapi.AlarmGroupItem
+		ToSelect() *adminapi.SelectItem
 	}
 
 	// DosAlarmGroupBuilder do  alarm group builder
 	DosAlarmGroupBuilder interface {
 		ToAPIs() []*adminapi.AlarmGroupItem
+		ToSelects() []*adminapi.SelectItem
 	}
 
 	// APICreateAlarmGroupParamsBuilder create alarm group params builder
@@ -146,6 +148,32 @@ type (
 		param *alarmapi.ListAlarmGroupRequest
 	}
 )
+
+func (a *doAlarmGroupBuilder) ToSelect() *adminapi.SelectItem {
+	if types.IsNil(a) {
+		return nil
+	}
+	return &adminapi.SelectItem{
+		Value:    a.alarm.ID,
+		Label:    a.alarm.Name,
+		Children: nil,
+		Disabled: a.alarm.DeletedAt > 0 || !a.alarm.Status.IsEnable(),
+		Extend: &adminapi.SelectExtend{
+			Remark: a.alarm.Remark,
+		},
+	}
+}
+
+func (a *dosAlarmGroupBuilder) ToSelects() []*adminapi.SelectItem {
+	if types.IsNil(a) || types.IsNil(a.alarms) {
+		return nil
+	}
+	return types.SliceTo(a.alarms, func(item *bizmodel.AlarmGroup) *adminapi.SelectItem {
+		groupSelectInfo := NewBuilder().AlarmGroupModule().
+			WithContext(a.ctx).WithDoAlarmGroup(item).ToSelect()
+		return groupSelectInfo
+	})
+}
 
 func (a *dosAlarmGroupBuilder) ToAPIs() []*adminapi.AlarmGroupItem {
 	if types.IsNil(a) || types.IsNil(a.alarms) {

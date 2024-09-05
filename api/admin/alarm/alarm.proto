@@ -61,6 +61,14 @@ service Alarm {
       body: "*"
     };
   }
+
+  // 告警组下拉列表
+  rpc ListAlarmGroupSelect (ListAlarmGroupRequest) returns (ListAlarmGroupSelectReply) {
+    option (google.api.http) = {
+      post: "/v1/group/alarm/list/select"
+      body: "*"
+    };
+  }
 }
 
 message CreateAlarmGroupRequest {
@@ -143,3 +151,7 @@ message UpdateAlarmGroupStatusRequest {
 }
 
 message UpdateAlarmGroupStatusReply{}
+
+message ListAlarmGroupSelectReply {
+  repeated SelectItem list = 1;
+}

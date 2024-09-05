@@ -117,3 +117,19 @@ func (s *GroupService) UpdateAlarmGroupStatus(ctx context.Context, req *alarmyap
 	}
 	return &alarmyapi.UpdateAlarmGroupStatusReply{}, nil
 }
+
+// ListAlarmGroupSelect 获取告警组下拉列表
+func (s *GroupService) ListAlarmGroupSelect(ctx context.Context, req *alarmyapi.ListAlarmGroupRequest) (*alarmyapi.ListAlarmGroupSelectReply, error) {
+	param := build.NewBuilder().WithContext(ctx).AlarmGroupModule().WithAPIQueryAlarmGroupListRequest(req).ToBo()
+	alarmGroups, err := s.alarmGroupBiz.ListPage(ctx, param)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &alarmyapi.ListAlarmGroupSelectReply{
+		List: build.NewBuilder().
+			WithContext(ctx).
+			AlarmGroupModule().
+			WithDosAlarmGroup(alarmGroups).
+			ToSelects(),
+	}, nil
+}
