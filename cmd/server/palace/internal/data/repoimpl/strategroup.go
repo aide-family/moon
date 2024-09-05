@@ -47,7 +47,7 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 	if !types.IsNil(err) {
 		return
 	}
-	strategyList := make([]*bizmodel.Strategy, 0)
+
 	for _, groupID := range groupIds {
 		strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
 			Where(bizQuery.Strategy.GroupID.Eq(groupID)).
@@ -56,22 +56,21 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 		if !types.IsNil(err) {
 			continue
 		}
-		strategyList = append(strategyList, strategies...)
-	}
-	go func() {
-		defer after.RecoverX()
-		for _, strategy := range strategyList {
-			items := build.NewBuilder().WithAPIStrategy(strategy).ToBos()
-			if items == nil || len(items) == 0 {
-				continue
-			}
-			for _, item := range items {
-				if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
-					return
+		go func() {
+			defer after.RecoverX()
+			for _, strategy := range strategies {
+				items := build.NewBuilder().WithAPIStrategy(strategy).ToBos()
+				if items == nil || len(items) == 0 {
+					continue
+				}
+				for _, item := range items {
+					if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
+						return
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 }
 
 func (s *strategyCountRepositoryImpl) FindStrategyCount(ctx context.Context, params *bo.GetStrategyCountParams) ([]*bo.StrategyCountModel, error) {
