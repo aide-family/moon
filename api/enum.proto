@@ -225,6 +225,9 @@ enum DictType {
 
   // 通知类型
   DictTypeNotifyType = 7;
+
+  // 告警页面
+  DictTypeAlarmPage = 8;
 }
 
 // 菜单类型

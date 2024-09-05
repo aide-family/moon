@@ -131,7 +131,6 @@ func NewDictTypeBuilder() *DictTypeBuilder {
 			vobj.DictTypeAlarmPage,
 			vobj.DictTypeAlarmStatus,
 			vobj.DictTypePromStrategy,
-			vobj.DictTypeStrategyCategory,
 		},
 	}
 }

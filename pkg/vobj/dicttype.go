@@ -32,7 +32,4 @@ const (
 
 	// DictTypeAlarmPage 告警页面
 	DictTypeAlarmPage // 告警页面
-
-	// DictTypeStrategyCategory 策略分类
-	DictTypeStrategyCategory // 策略分类
 )
