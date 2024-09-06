@@ -28,7 +28,7 @@ type (
 )
 
 // CreateAlarmGroup 创建告警分组
-func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmGroup, error) {
+func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroup, err := s.strategyRepo.CreateAlarmGroup(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
@@ -48,7 +48,7 @@ func (s *AlarmGroupBiz) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateA
 }
 
 // GetAlarmGroupDetail 获取告警分组详情
-func (s *AlarmGroupBiz) GetAlarmGroupDetail(ctx context.Context, groupID uint32) (*bizmodel.AlarmGroup, error) {
+func (s *AlarmGroupBiz) GetAlarmGroupDetail(ctx context.Context, groupID uint32) (*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroup, err := s.strategyRepo.GetAlarmGroup(ctx, groupID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -79,7 +79,7 @@ func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarm
 }
 
 // ListPage 分页查询告警分组
-func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmGroup, error) {
+func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroups, err := s.strategyRepo.AlarmGroupPage(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)

@@ -195,17 +195,12 @@ message CreateStrategyRequest {
     id: "CreateStrategyRequestRemark"
   }];
   // 状态
-  Status status = 4 [(buf.validate.field).cel = {
-    expression: "(this in [1,2])",
-    message: "状态值必须在[启用(1), 禁用(2)]之间",
-  }];
-
+  Status status = 4;
   // 采样率
   uint32 step = 5 [(buf.validate.field).cel = {
     message: "采样率不能为空！",
     expression: "this > 0"
   }];
-
   // 数据源id
   repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
     message: "请选择数据源",
@@ -214,31 +209,21 @@ message CreateStrategyRequest {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
-
   // 模板来源
-  TemplateSourceType sourceType = 7 [(buf.validate.field).cel = {
-    expression: "(this in [1,2])",
-    message: "模板来源必须在[ 系统(1), 团队(2)]之间",
-  }];
-
+  TemplateSourceType sourceType = 7;
   // 策略名称
   string name = 8 [(buf.validate.field).cel = {
     expression: "this.size() > 0 && this.size() <= 50"
     message: "策略名称长度必须大于0且小于50"
     id: "CreateStrategyRequestName"
   }];
-
   // 策略等级
   repeated CreateStrategyLevelRequest strategyLevel = 9 [(buf.validate.field).cel = {
     message: "请填写策略等级数据",
     expression: "this.size() > 0"
   }];
   // 策略标签
-  map<string, string> labels = 10 [(buf.validate.field).cel = {
-    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 20"
-    message: "标签数量必须大于0且小于等于20"
-    id: "CreateStrategyRequestLabels"
-  }];
+  map<string, string> labels = 10;
   // 策略注解
   map<string, string> annotations = 11 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
@@ -253,25 +238,16 @@ message CreateStrategyRequest {
   }];
   //策略类型
   repeated uint32 categoriesIds = 13 [(buf.validate.field).cel = {
-    message: "请选择策略类型",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
   // 告警组
   repeated uint32 alarmGroupIds = 14 [(buf.validate.field).cel = {
-    message: "请选择告警组",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
-  // 策略Labels
-  repeated CreateStrategyLabelsRequest strategyLabels = 15;
 }
 message CreateStrategyReply {}
-
 
 message UpdateStrategyGroupStatusRequest {
   // 策略分组ID列表
@@ -287,7 +263,6 @@ message UpdateStrategyGroupStatusRequest {
 }
 
 message UpdateStrategyGroupStatusReply{}
-
 
 message UpdateStrategyRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
@@ -326,7 +301,6 @@ message ListStrategyReply {
   repeated StrategyItem list = 2;
 }
 
-
 message UpdateStrategyStatusRequest {
   // 策略ID列表
   repeated uint32 ids = 1 [(buf.validate.field).cel = {
@@ -339,7 +313,6 @@ message UpdateStrategyStatusRequest {
     message: "请选择正确的启用状态, 启用(1);禁用(2)"
   }];
 }
-
 message UpdateStrategyStatusReply {}
 
 message CreateStrategyLevelRequest{
@@ -374,25 +347,26 @@ message CreateStrategyLevelRequest{
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 15;
 }
 
 message CopyStrategyRequest {
   uint32 strategyId = 1;
 }
-
 message CopyStrategyReply {
   uint32 id = 1;
 }
 
-message CreateStrategyLabelsRequest {
+message CreateStrategyLabelNoticeRequest {
   string name = 1 [(buf.validate.field).cel = {
-    message: "标签名称长度限制在0-200个字符",
-    expression: "this.size() <= 200"
+    message: "标签名称长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
     id: "CreateStrategyLabelsRequestName"
   }];
   string value = 2 [(buf.validate.field).cel = {
-    message: "标签值长度限制在0-200个字符",
-    expression: "this.size() <= 200"
+    message: "标签值长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
     id: "CreateStrategyLabelsRequestValue"
   }];
   repeated uint32 alarmGroupIds = 10 [(buf.validate.field).cel = {
@@ -402,7 +376,4 @@ message CreateStrategyLabelsRequest {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
-}
-
-message CreateStrategyLabelsReply {
 }

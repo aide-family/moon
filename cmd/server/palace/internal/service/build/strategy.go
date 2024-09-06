@@ -162,7 +162,7 @@ type (
 )
 
 func (b *strategyBuilder) ToBos() []*bo.Strategy {
-	if types.IsNil(b) || types.IsNil(b.Strategy) || types.IsNil(b.Strategy.StrategyLevel) || len(b.Strategy.StrategyLevel) == 0 {
+	if types.IsNil(b) || types.IsNil(b.Strategy) || types.IsNil(b.Strategy.Levels) || len(b.Strategy.Levels) == 0 {
 		return nil
 	}
 	strategy := b.Strategy
@@ -170,13 +170,13 @@ func (b *strategyBuilder) ToBos() []*bo.Strategy {
 		item := newDatasourceModelBuilder(b.ctx, s).ToBo()
 		return item, !types.IsNil(item)
 	})
-	list := make([]*bo.Strategy, 0, len(strategy.StrategyLevel))
-	for _, strategyLevel := range strategy.StrategyLevel {
+	list := make([]*bo.Strategy, 0, len(strategy.Levels))
+	for _, strategyLevel := range strategy.Levels {
 		status := vobj.StatusDisable
 		if strategyLevel.Status.IsEnable() &&
-			!types.IsNil(strategy.StrategyGroup) &&
-			strategy.StrategyGroup.Status.IsEnable() &&
-			strategy.StrategyGroup.DeletedAt == 0 &&
+			!types.IsNil(strategy.Group) &&
+			strategy.Group.Status.IsEnable() &&
+			strategy.Group.DeletedAt == 0 &&
 			strategy.Status.IsEnable() &&
 			strategyLevel.DeletedAt == 0 &&
 			strategy.DeletedAt == 0 {
@@ -248,11 +248,21 @@ func (b *boStrategyModelBuilder) WithBoStrategies(strategies []*bo.Strategy) BoS
 	return newBoStrategiesBuilder(b.ctx, strategies)
 }
 
-func (d doStrategyLevelBuilder) ToAPI() *admin.StrategyLevel {
+func (d *doStrategyLevelBuilder) ToAPI() *admin.StrategyLevel {
 	if types.IsNil(d) || types.IsNil(d.strategyLevel) {
 		return nil
 	}
 	level := d.strategyLevel
+	labelsNotice := types.SliceTo(d.strategyLevel.LabelNotices, func(label *bizmodel.StrategyLabelNotice) *admin.LabelNoticeItem {
+		strategyItem := &admin.LabelNoticeItem{
+			Name:  label.Name,
+			Value: label.Value,
+			AlarmGroups: types.SliceTo(label.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) *admin.AlarmNoticeGroupItem {
+				return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
+			}),
+		}
+		return strategyItem
+	})
 	strategyLevel := &admin.StrategyLevel{
 		Duration:    level.Duration.GetDuration(),
 		Count:       level.Count,
@@ -261,15 +271,17 @@ func (d doStrategyLevelBuilder) ToAPI() *admin.StrategyLevel {
 		Status:      api.Status(level.Status),
 		Id:          level.ID,
 		LevelId:     level.LevelID,
-		Threshold:   level.Threshold,
-		StrategyId:  level.StrategyID,
-		Condition:   api.Condition(level.Condition),
+		Level:       NewBuilder().WithDict(level.Level).ToAPISelect(),
 		AlarmPages: types.SliceTo(level.AlarmPage, func(page *bizmodel.SysDict) *admin.SelectItem {
 			return NewBuilder().WithDict(page).ToAPISelect()
 		}),
-		AlarmGroups: types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
+		Threshold:  level.Threshold,
+		StrategyId: level.StrategyID,
+		Condition:  api.Condition(level.Condition),
+		AlarmGroups: types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) *admin.AlarmNoticeGroupItem {
 			return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
 		}),
+		LabelNotices: labelsNotice,
 	}
 	return strategyLevel
 }
@@ -279,42 +291,35 @@ func (b *strategyBuilder) ToAPI() *admin.StrategyItem {
 	if types.IsNil(b) || types.IsNil(b.Strategy) {
 		return nil
 	}
-	strategyLevels := types.SliceToWithFilter(b.Strategy.StrategyLevel, func(level *bizmodel.StrategyLevel) (*admin.StrategyLevel, bool) {
+	strategyLevels := types.SliceToWithFilter(b.Strategy.Levels, func(level *bizmodel.StrategyLevel) (*admin.StrategyLevel, bool) {
 		return NewBuilder().StrategyLevelModelBuilder().WithDoStrategyLevel(level).ToAPI(), true
 	})
 
-	labelsNotice := types.SliceTo(b.Strategy.StrategyNoticeLabels, func(label *bizmodel.StrategyLabels) *admin.StrategyLabelsItem {
-		strategyItem := &admin.StrategyLabelsItem{
-			Name:  label.Name,
-			Value: label.Value,
-			AlarmGroups: types.SliceTo(label.AlarmGroups, func(group *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
-				return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
-			}),
-		}
-		return strategyItem
-	})
-
+	strategyItem := b.Strategy
 	return &admin.StrategyItem{
-		Name:        b.Strategy.Name,
-		Id:          b.Strategy.ID,
-		Expr:        b.Strategy.Expr,
-		Labels:      b.Strategy.Labels.Map(),
-		Annotations: b.Strategy.Annotations,
-		Datasource: types.SliceTo(b.Strategy.Datasource, func(datasource *bizmodel.Datasource) *admin.DatasourceItem {
+		Name:        strategyItem.Name,
+		Expr:        strategyItem.Expr,
+		Levels:      strategyLevels,
+		Labels:      strategyItem.Labels.Map(),
+		Annotations: strategyItem.Annotations,
+		Datasource: types.SliceTo(strategyItem.Datasource, func(datasource *bizmodel.Datasource) *admin.DatasourceItem {
 			return NewBuilder().WithContext(b.ctx).WithDoDatasource(datasource).ToAPI()
 		}),
-		StrategyTemplateId: b.Strategy.StrategyTemplateID,
-		Levels:             strategyLevels,
-		Status:             api.Status(b.Strategy.Status),
-		Step:               b.Strategy.Step,
-		SourceType:         api.TemplateSourceType(b.Strategy.StrategyTemplateSource),
+		Id:             strategyItem.ID,
+		Status:         api.Status(strategyItem.Status),
+		CreatedAt:      strategyItem.CreatedAt.String(),
+		UpdatedAt:      strategyItem.UpdatedAt.String(),
+		Remark:         strategyItem.Remark,
+		GroupId:        strategyItem.GroupID,
+		Group:          NewBuilder().StrategyGroupModuleBuilder().WithDoStrategyGroup(strategyItem.Group).ToAPI(),
+		TemplateId:     strategyItem.TemplateID,
+		TemplateSource: api.TemplateSourceType(b.Strategy.TemplateSource),
 		Categories: types.SliceTo(b.Strategy.Categories, func(dict *bizmodel.SysDict) *admin.Dict {
 			return NewBuilder().WithContext(b.ctx).WithDict(dict).ToAPI()
 		}),
-		AlarmGroups: types.SliceTo(b.Strategy.AlarmGroups, func(alarmGroup *bizmodel.AlarmGroup) *admin.AlarmGroupItem {
-			return NewBuilder().WithContext(b.ctx).AlarmGroupModule().WithDoAlarmGroup(alarmGroup).ToAPI()
+		AlarmNoticeGroups: types.SliceTo(strategyItem.AlarmNoticeGroups, func(group *bizmodel.AlarmNoticeGroup) *admin.AlarmNoticeGroupItem {
+			return NewBuilder().AlarmGroupModule().WithDoAlarmGroup(group).ToAPI()
 		}),
-		StrategyLabels: labelsNotice,
 	}
 }
 
@@ -336,30 +341,30 @@ func (b *strategyBuilder) ToCreateStrategyBO() *bo.CreateStrategyParams {
 			LevelID:            strategyLevel.GetLevelId(),
 			AlarmPageIds:       strategyLevel.GetAlarmPageIds(),
 			AlarmGroupIds:      strategyLevel.GetAlarmGroupIds(),
+			LabelNotices: types.SliceTo(strategyLevel.GetLabelNotices(), func(strategyLabel *strategyapi.CreateStrategyLabelNoticeRequest) *bo.StrategyLabelNotice {
+				return &bo.StrategyLabelNotice{
+					Name:          strategyLabel.GetName(),
+					Value:         strategyLabel.GetValue(),
+					AlarmGroupIds: strategyLabel.GetAlarmGroupIds(),
+				}
+			}),
 		})
 	}
 	return &bo.CreateStrategyParams{
-		TemplateID:    b.CreateStrategy.GetTemplateId(),
-		GroupID:       b.CreateStrategy.GetGroupId(),
-		Name:          b.CreateStrategy.GetName(),
-		Remark:        b.CreateStrategy.GetRemark(),
-		Status:        vobj.Status(b.CreateStrategy.GetStatus()),
-		Step:          b.CreateStrategy.GetStep(),
-		SourceType:    vobj.TemplateSourceType(b.CreateStrategy.GetSourceType()),
-		DatasourceIDs: b.CreateStrategy.GetDatasourceIds(),
-		Labels:        vobj.NewLabels(b.CreateStrategy.GetLabels()),
-		Annotations:   b.CreateStrategy.GetAnnotations(),
-		Expr:          b.CreateStrategy.GetExpr(),
-		CategoriesIds: b.CreateStrategy.GetCategoriesIds(),
-		AlarmGroupIds: b.CreateStrategy.GetAlarmGroupIds(),
-		StrategyLevel: strategyLevels,
-		StrategyLabels: types.SliceTo(b.CreateStrategy.GetStrategyLabels(), func(strategyLabel *strategyapi.CreateStrategyLabelsRequest) *bo.StrategyLabels {
-			return &bo.StrategyLabels{
-				Name:          strategyLabel.GetName(),
-				Value:         strategyLabel.GetValue(),
-				AlarmGroupIds: strategyLabel.GetAlarmGroupIds(),
-			}
-		}),
+		TemplateID:     b.CreateStrategy.GetTemplateId(),
+		GroupID:        b.CreateStrategy.GetGroupId(),
+		Name:           b.CreateStrategy.GetName(),
+		Remark:         b.CreateStrategy.GetRemark(),
+		Status:         vobj.Status(b.CreateStrategy.GetStatus()),
+		Step:           b.CreateStrategy.GetStep(),
+		TemplateSource: vobj.StrategyTemplateSource(b.CreateStrategy.GetSourceType()),
+		DatasourceIDs:  b.CreateStrategy.GetDatasourceIds(),
+		Labels:         vobj.NewLabels(b.CreateStrategy.GetLabels()),
+		Annotations:    b.CreateStrategy.GetAnnotations(),
+		Expr:           b.CreateStrategy.GetExpr(),
+		CategoriesIds:  b.CreateStrategy.GetCategoriesIds(),
+		AlarmGroupIds:  b.CreateStrategy.GetAlarmGroupIds(),
+		Levels:         strategyLevels,
 	}
 }
 
@@ -385,46 +390,9 @@ func (b *strategyBuilder) ToUpdateStrategyBO() *bo.UpdateStrategyParams {
 	if types.IsNil(b) || types.IsNil(b.UpdateStrategy) {
 		return nil
 	}
-	strategyLevels := make([]*bo.CreateStrategyLevel, 0, len(b.UpdateStrategy.GetData().GetStrategyLevel()))
-	for _, strategyLevel := range b.UpdateStrategy.GetData().GetStrategyLevel() {
-		strategyLevels = append(strategyLevels, &bo.CreateStrategyLevel{
-			StrategyTemplateID: b.UpdateStrategy.GetData().TemplateId,
-			Count:              strategyLevel.GetCount(),
-			Duration:           types.NewDuration(strategyLevel.GetDuration()),
-			SustainType:        vobj.Sustain(strategyLevel.SustainType),
-			Interval:           types.NewDuration(strategyLevel.GetInterval()),
-			Condition:          vobj.Condition(strategyLevel.GetCondition()),
-			Threshold:          strategyLevel.GetThreshold(),
-			Status:             vobj.Status(strategyLevel.GetStatus()),
-			LevelID:            strategyLevel.GetLevelId(),
-			StrategyID:         b.UpdateStrategy.GetId(),
-		})
-	}
 	return &bo.UpdateStrategyParams{
-		ID: b.UpdateStrategy.GetId(),
-		UpdateParam: bo.CreateStrategyParams{
-			TemplateID:    b.UpdateStrategy.GetData().GetTemplateId(),
-			GroupID:       b.UpdateStrategy.GetData().GetGroupId(),
-			Name:          b.UpdateStrategy.GetData().GetName(),
-			Remark:        b.UpdateStrategy.GetData().GetRemark(),
-			Status:        vobj.Status(b.UpdateStrategy.GetData().GetStatus()),
-			Step:          b.UpdateStrategy.GetData().GetStep(),
-			SourceType:    vobj.TemplateSourceType(b.UpdateStrategy.GetData().GetSourceType()),
-			DatasourceIDs: b.UpdateStrategy.GetData().GetDatasourceIds(),
-			Labels:        vobj.NewLabels(b.UpdateStrategy.GetData().GetLabels()),
-			Annotations:   b.UpdateStrategy.GetData().GetAnnotations(),
-			Expr:          b.UpdateStrategy.GetData().GetExpr(),
-			CategoriesIds: b.UpdateStrategy.GetData().GetCategoriesIds(),
-			AlarmGroupIds: b.UpdateStrategy.GetData().GetAlarmGroupIds(),
-			StrategyLevel: strategyLevels,
-			StrategyLabels: types.SliceTo(b.UpdateStrategy.GetData().GetStrategyLabels(), func(strategyLabel *strategyapi.CreateStrategyLabelsRequest) *bo.StrategyLabels {
-				return &bo.StrategyLabels{
-					Name:          strategyLabel.GetName(),
-					Value:         strategyLabel.GetValue(),
-					AlarmGroupIds: strategyLabel.GetAlarmGroupIds(),
-				}
-			}),
-		},
+		ID:          b.UpdateStrategy.GetId(),
+		UpdateParam: NewBuilder().WithCreateBoStrategy(b.UpdateStrategy.GetData()).ToCreateStrategyBO(),
 	}
 }
 

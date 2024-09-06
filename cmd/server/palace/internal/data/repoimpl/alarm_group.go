@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmGroup, error) {
+func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -37,7 +37,7 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	alarmGroupModel := createAlarmGroupParamsToModel(ctx, params)
 
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := tx.AlarmGroup.WithContext(ctx).Create(alarmGroupModel); err != nil {
+		if err := tx.AlarmNoticeGroup.WithContext(ctx).Create(alarmGroupModel); err != nil {
 			return err
 		}
 		noticeUsers := createAlarmNoticeUsersToModel(ctx, params.NoticeUsers, alarmGroupModel.ID)
@@ -61,12 +61,12 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 	noticeUsers := createAlarmNoticeUsersToModel(ctx, params.UpdateParam.NoticeUsers, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		//告警组关联通知人中间表操作
-		groupModel := &bizmodel.AlarmGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+		groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 		noticeParams := params.UpdateParam.NoticeUsers
 		// 告警通知人与hook参数为空则清空
 		if !types.IsNil(noticeParams) && len(noticeParams) > 0 {
 			// 替换通知人员关联信息
-			if err := tx.AlarmGroup.NoticeUsers.Model(groupModel).Replace(noticeUsers...); err != nil {
+			if err := tx.AlarmNoticeGroup.NoticeUsers.Model(groupModel).Replace(noticeUsers...); err != nil {
 				return err
 			}
 		} else {
@@ -81,7 +81,7 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 			hookModels := types.SliceTo(params.UpdateParam.HookIds, func(hookID uint32) *bizmodel.AlarmHook {
 				return &bizmodel.AlarmHook{AllFieldModel: model.AllFieldModel{ID: hookID}}
 			})
-			if err := tx.AlarmGroup.AlarmHooks.Model(groupModel).Replace(hookModels...); err != nil {
+			if err := tx.AlarmNoticeGroup.AlarmHooks.Model(groupModel).Replace(hookModels...); err != nil {
 				return err
 			}
 		} else {
@@ -92,9 +92,9 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 		}
 
 		// 更新告警分组
-		if _, err = tx.AlarmGroup.WithContext(ctx).Where(tx.AlarmGroup.ID.Eq(params.ID)).UpdateSimple(
-			tx.AlarmGroup.Name.Value(params.UpdateParam.Name),
-			tx.AlarmGroup.Remark.Value(params.UpdateParam.Remark),
+		if _, err = tx.AlarmNoticeGroup.WithContext(ctx).Where(tx.AlarmNoticeGroup.ID.Eq(params.ID)).UpdateSimple(
+			tx.AlarmNoticeGroup.Name.Value(params.UpdateParam.Name),
+			tx.AlarmNoticeGroup.Remark.Value(params.UpdateParam.Remark),
 		); !types.IsNil(err) {
 			return err
 		}
@@ -118,45 +118,45 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 			return err
 		}
 
-		if _, err = tx.AlarmGroup.WithContext(ctx).Where(bizQuery.AlarmGroup.ID.Eq(alarmID)).Delete(); !types.IsNil(err) {
+		if _, err = tx.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).Delete(); !types.IsNil(err) {
 			return err
 		}
 		return nil
 	})
 }
 
-func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID uint32) (*bizmodel.AlarmGroup, error) {
+func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID uint32) (*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.AlarmGroup.WithContext(ctx).Where(bizQuery.AlarmGroup.ID.Eq(alarmID)).Preload(field.Associations).First()
+	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).Preload(field.Associations).First()
 }
 
-func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmGroup, error) {
+func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizQuery.AlarmGroup.WithContext(ctx)
+	bizWrapper := bizQuery.AlarmNoticeGroup.WithContext(ctx)
 	var wheres []gen.Condition
 	if !types.TextIsNull(params.Name) {
-		wheres = append(wheres, bizQuery.AlarmGroup.Name.Like(params.Name))
+		wheres = append(wheres, bizQuery.AlarmNoticeGroup.Name.Like(params.Name))
 	}
 
 	if !params.Status.IsUnknown() {
-		wheres = append(wheres, bizQuery.AlarmGroup.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, bizQuery.AlarmNoticeGroup.Status.Eq(params.Status.GetValue()))
 	}
 	if !types.TextIsNull(params.Keyword) {
-		bizWrapper = bizWrapper.Or(bizQuery.AlarmGroup.Name.Like(params.Keyword))
-		bizWrapper = bizWrapper.Or(bizQuery.AlarmGroup.Remark.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.AlarmNoticeGroup.Name.Like(params.Keyword))
+		bizWrapper = bizWrapper.Or(bizQuery.AlarmNoticeGroup.Remark.Like(params.Keyword))
 	}
 	bizWrapper = bizWrapper.Where(wheres...)
 
-	if err := types.WithPageQuery[bizquery.IAlarmGroupDo](bizWrapper, params.Page); err != nil {
+	if err := types.WithPageQuery[bizquery.IAlarmNoticeGroupDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Order(bizQuery.AlarmGroup.ID.Desc()).Find()
+	return bizWrapper.Order(bizQuery.AlarmNoticeGroup.ID.Desc()).Find()
 }
 
 func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmGroupStatusParams) error {
@@ -169,13 +169,13 @@ func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.
 		return err
 	}
 
-	_, err = bizQuery.AlarmGroup.WithContext(ctx).Where(bizQuery.AlarmGroup.ID.In(params.IDs...)).Update(bizQuery.AlarmGroup.Status, params.Status)
+	_, err = bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.In(params.IDs...)).Update(bizQuery.AlarmNoticeGroup.Status, params.Status)
 	return nil
 }
 
 // convert bo params to model
-func createAlarmGroupParamsToModel(ctx context.Context, params *bo.CreateAlarmGroupParams) *bizmodel.AlarmGroup {
-	alarmGroup := &bizmodel.AlarmGroup{
+func createAlarmGroupParamsToModel(ctx context.Context, params *bo.CreateAlarmGroupParams) *bizmodel.AlarmNoticeGroup {
+	alarmGroup := &bizmodel.AlarmNoticeGroup{
 		Name:   params.Name,
 		Status: params.Status,
 		Remark: params.Remark,

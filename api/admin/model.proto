@@ -332,7 +332,9 @@ message StrategyLevel {
   // 条件
   Condition condition = 16;
   // 告警分组
-  repeated AlarmGroupItem alarmGroups = 25;
+  repeated AlarmNoticeGroupItem alarmGroups = 25;
+  // label匹配的告警通知组
+  repeated LabelNoticeItem labelNotices = 26;
 }
 
 message StrategyItem {
@@ -362,26 +364,14 @@ message StrategyItem {
   uint32 groupId = 15;
   // 策略组信息
   StrategyGroupItem group = 16;
-  // 告警页面
-  repeated SelectItem alarmPages = 17;
-  // 阈值
-  double threshold = 18;
-  // 条件
-  Condition condition = 19;
   // 模板id
-  uint32 strategyTemplateId = 20;
-  // 持续时间
-  google.protobuf.Duration duration = 21;
-
-  uint32 step = 22;
+  uint32 templateId = 20;
   // 模板来源
-  TemplateSourceType sourceType = 23;
+  TemplateSourceType templateSource = 23;
   // 策略类型
-  repeated Dict  categories = 24;
+  repeated Dict categories = 24;
   // 告警分组
-  repeated AlarmGroupItem alarmGroups = 25;
-  // 策略labels
-  repeated StrategyLabelsItem strategyLabels = 26;
+  repeated AlarmNoticeGroupItem alarmNoticeGroups = 25;
 }
 
 message StrategyGroupItem {
@@ -573,7 +563,7 @@ message SelfAlarmPageItem {
 }
 
 
-message AlarmGroupItem {
+message AlarmNoticeGroupItem {
   // 告警组ID
   uint32 id = 1;
   // 告警组名称
@@ -605,13 +595,13 @@ message NoticeItem {
 }
 
 // 策略标签
-message StrategyLabelsItem {
+message LabelNoticeItem {
   // 标签名
   string name = 1;
   // 标签值
   string value = 2;
   // 告警组
-  repeated AlarmGroupItem alarmGroups = 3;
+  repeated AlarmNoticeGroupItem alarmGroups = 3;
 }
 
 // 策略订阅item

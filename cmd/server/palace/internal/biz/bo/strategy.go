@@ -26,12 +26,12 @@ type (
 		// 数据源id
 		DatasourceIDs []uint32 `json:"datasource_ids"`
 		// 模板来源
-		SourceType vobj.TemplateSourceType `json:"source_type"`
+		TemplateSource vobj.StrategyTemplateSource `json:"source_type"`
 		// 策略名称
 		Name   string `json:"name"`
 		TeamID uint32 `json:"teamID"`
 		// 策略等级
-		StrategyLevel []*CreateStrategyLevel `json:"strategyLevel"`
+		Levels []*CreateStrategyLevel `json:"strategyLevel"`
 		// 标签
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
@@ -42,14 +42,12 @@ type (
 		CategoriesIds []uint32 `json:"categoriesIds"`
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
-		// 策略标签
-		StrategyLabels []*StrategyLabels `json:"strategyLabels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
 	UpdateStrategyParams struct {
 		ID          uint32 `json:"id"`
-		UpdateParam CreateStrategyParams
+		UpdateParam *CreateStrategyParams
 	}
 
 	// QueryStrategyListParams 查询策略列表请求参数
@@ -58,7 +56,7 @@ type (
 		Page       types.Pagination
 		Alert      string
 		Status     vobj.Status
-		SourceType vobj.TemplateSourceType
+		SourceType vobj.StrategyTemplateSource
 	}
 
 	// UpdateStrategyStatusParams 更新策略状态请求参数
@@ -77,7 +75,6 @@ type (
 		Count uint32 `json:"count"`
 		// 持续事件类型
 		SustainType vobj.Sustain `json:"sustainType"`
-
 		// 执行频率
 		Interval *types.Duration `json:"interval"`
 		// 条件
@@ -94,6 +91,8 @@ type (
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
 		// 策略ID
 		StrategyID uint32 `json:"strategyID"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
 	}
 
 	// CreateStrategyGroupParams 创建策略组请求参数
@@ -154,8 +153,8 @@ type (
 		StrategyEnableMap map[uint32]*StrategyCountModel `json:"strategyEnableMap"`
 	}
 
-	// StrategyLabels 策略标签
-	StrategyLabels struct {
+	// StrategyLabelNotice 策略标签
+	StrategyLabelNotice struct {
 		// 标签名称
 		Name string `json:"name"`
 		// 标签值

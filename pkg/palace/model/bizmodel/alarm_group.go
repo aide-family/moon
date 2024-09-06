@@ -7,10 +7,10 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const tableNameAlarmGroup = "alarm_group"
+const tableNameAlarmNoticeGroup = "alarm_notice_group"
 
-// AlarmGroup 告警组
-type AlarmGroup struct {
+// AlarmNoticeGroup 告警通知组
+type AlarmNoticeGroup struct {
 	model.AllFieldModel
 	Name        string             `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:告警组名称" json:"name"`
 	Status      vobj.Status        `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用" json:"status"`
@@ -20,16 +20,16 @@ type AlarmGroup struct {
 }
 
 // UnmarshalBinary redis存储实现
-func (c *AlarmGroup) UnmarshalBinary(data []byte) error {
+func (c *AlarmNoticeGroup) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
-func (c *AlarmGroup) MarshalBinary() (data []byte, err error) {
+func (c *AlarmNoticeGroup) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
-// TableName AlarmGroup's table name
-func (*AlarmGroup) TableName() string {
-	return tableNameAlarmGroup
+// TableName AlarmNoticeGroup's table name
+func (*AlarmNoticeGroup) TableName() string {
+	return tableNameAlarmNoticeGroup
 }

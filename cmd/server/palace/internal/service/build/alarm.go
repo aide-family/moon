@@ -26,8 +26,8 @@ type (
 
 	// AlarmGroupModuleBuilder 告警组模块构造器
 	AlarmGroupModuleBuilder interface {
-		WithDoAlarmGroup(*bizmodel.AlarmGroup) DoAlarmGroupBuilder
-		WithDosAlarmGroup([]*bizmodel.AlarmGroup) DosAlarmGroupBuilder
+		WithDoAlarmGroup(*bizmodel.AlarmNoticeGroup) DoAlarmGroupBuilder
+		WithDosAlarmGroup([]*bizmodel.AlarmNoticeGroup) DosAlarmGroupBuilder
 		WithAPICreateAlarmGroupRequest(item *alarmapi.CreateAlarmGroupRequest) APICreateAlarmGroupParamsBuilder
 		WithAPIQueryAlarmGroupListRequest(request *alarmapi.ListAlarmGroupRequest) APIQueryAlarmGroupListParamsBuilder
 		WithAPIUpdateAlarmGroupRequest(*alarmapi.UpdateAlarmGroupRequest) APIUpdateAlarmGroupParamsBuilder
@@ -37,13 +37,13 @@ type (
 
 	// DoAlarmGroupBuilder do  alarm group builder
 	DoAlarmGroupBuilder interface {
-		ToAPI() *adminapi.AlarmGroupItem
+		ToAPI() *adminapi.AlarmNoticeGroupItem
 		ToSelect() *adminapi.SelectItem
 	}
 
 	// DosAlarmGroupBuilder do  alarm group builder
 	DosAlarmGroupBuilder interface {
-		ToAPIs() []*adminapi.AlarmGroupItem
+		ToAPIs() []*adminapi.AlarmNoticeGroupItem
 		ToSelects() []*adminapi.SelectItem
 	}
 
@@ -115,12 +115,12 @@ type (
 
 	// alarm group
 	doAlarmGroupBuilder struct {
-		alarm *bizmodel.AlarmGroup
+		alarm *bizmodel.AlarmNoticeGroup
 		ctx   context.Context
 	}
 
 	dosAlarmGroupBuilder struct {
-		alarms []*bizmodel.AlarmGroup
+		alarms []*bizmodel.AlarmNoticeGroup
 		ctx    context.Context
 	}
 
@@ -168,29 +168,29 @@ func (a *dosAlarmGroupBuilder) ToSelects() []*adminapi.SelectItem {
 	if types.IsNil(a) || types.IsNil(a.alarms) {
 		return nil
 	}
-	return types.SliceTo(a.alarms, func(item *bizmodel.AlarmGroup) *adminapi.SelectItem {
+	return types.SliceTo(a.alarms, func(item *bizmodel.AlarmNoticeGroup) *adminapi.SelectItem {
 		groupSelectInfo := NewBuilder().AlarmGroupModule().
 			WithContext(a.ctx).WithDoAlarmGroup(item).ToSelect()
 		return groupSelectInfo
 	})
 }
 
-func (a *dosAlarmGroupBuilder) ToAPIs() []*adminapi.AlarmGroupItem {
+func (a *dosAlarmGroupBuilder) ToAPIs() []*adminapi.AlarmNoticeGroupItem {
 	if types.IsNil(a) || types.IsNil(a.alarms) {
 		return nil
 	}
-	return types.SliceTo(a.alarms, func(item *bizmodel.AlarmGroup) *adminapi.AlarmGroupItem {
+	return types.SliceTo(a.alarms, func(item *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
 		alarmGroup := NewBuilder().AlarmGroupModule().
 			WithContext(a.ctx).WithDoAlarmGroup(item).ToAPI()
 		return alarmGroup
 	})
 }
 
-func (a *alarmModuleBuilder) WithDoAlarmGroup(group *bizmodel.AlarmGroup) DoAlarmGroupBuilder {
+func (a *alarmModuleBuilder) WithDoAlarmGroup(group *bizmodel.AlarmNoticeGroup) DoAlarmGroupBuilder {
 	return newDoAlarmGroupBuilder(a.ctx, group)
 }
 
-func (a *alarmModuleBuilder) WithDosAlarmGroup(groups []*bizmodel.AlarmGroup) DosAlarmGroupBuilder {
+func (a *alarmModuleBuilder) WithDosAlarmGroup(groups []*bizmodel.AlarmNoticeGroup) DosAlarmGroupBuilder {
 	return newDosAlarmGroupBuilder(a.ctx, groups)
 }
 
@@ -218,12 +218,12 @@ func (a *alarmModuleBuilder) WithContext(ctx context.Context) AlarmGroupModuleBu
 	return a
 }
 
-func (a *doAlarmGroupBuilder) ToAPI() *adminapi.AlarmGroupItem {
+func (a *doAlarmGroupBuilder) ToAPI() *adminapi.AlarmNoticeGroupItem {
 	if types.IsNil(a) || types.IsNil(a.alarm) {
 		return nil
 	}
 	cache := runtimecache.GetRuntimeCache()
-	alarmGroup := &adminapi.AlarmGroupItem{
+	alarmGroup := &adminapi.AlarmNoticeGroupItem{
 		Id:        a.alarm.ID,
 		Name:      a.alarm.Name,
 		Remark:    a.alarm.Remark,
@@ -434,11 +434,11 @@ func newAPIListAlarmGroupParamsBuilder(ctx context.Context, req *alarmapi.ListAl
 	return &apiListAlarmGroupParamsBuilder{ctx: ctx, param: req}
 }
 
-func newDoAlarmGroupBuilder(ctx context.Context, alarmGroup *bizmodel.AlarmGroup) DoAlarmGroupBuilder {
+func newDoAlarmGroupBuilder(ctx context.Context, alarmGroup *bizmodel.AlarmNoticeGroup) DoAlarmGroupBuilder {
 	return &doAlarmGroupBuilder{ctx: ctx, alarm: alarmGroup}
 }
 
-func newDosAlarmGroupBuilder(ctx context.Context, alarmGroups []*bizmodel.AlarmGroup) DosAlarmGroupBuilder {
+func newDosAlarmGroupBuilder(ctx context.Context, alarmGroups []*bizmodel.AlarmNoticeGroup) DosAlarmGroupBuilder {
 	return &dosAlarmGroupBuilder{ctx: ctx, alarms: alarmGroups}
 }
 

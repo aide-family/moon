@@ -207,7 +207,7 @@ func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrateg
 		Page:       types.NewPagination(req.GetPagination()),
 		Status:     vobj.Status(req.GetStatus()),
 		Keyword:    req.GetKeyword(),
-		SourceType: vobj.TemplateSourceType(req.GetDatasourceType()),
+		SourceType: vobj.StrategyTemplateSource(req.GetDatasourceType()),
 	}
 	strategies, err := s.strategyBiz.StrategyPage(ctx, params)
 	if err != nil {

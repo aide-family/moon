@@ -14,9 +14,8 @@ const tableNameStrategyLevel = "strategy_level"
 type StrategyLevel struct {
 	model.AllFieldModel
 	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID" json:"strategy_id"`
+	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__level_id" json:"strategy_id"`
 	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
-
 	// 持续时间
 	Duration *types.Duration `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
 	// 持续次数
@@ -30,14 +29,16 @@ type StrategyLevel struct {
 	// 阈值
 	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold"`
 	// 告警等级
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级" json:"level_id"`
+	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级;uniqueIndex:idx__strategy_id__level_id" json:"level_id"`
 	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
 	// 状态
 	Status vobj.Status `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
 	// 告警页面
 	AlarmPage []*SysDict `gorm:"many2many:strategy_level_alarm_pages" json:"alarm_page"`
 	// 策略告警组
-	AlarmGroups []*AlarmGroup `gorm:"many2many:strategy_level_alarm_groups;" json:"alarm_groups"`
+	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_level_alarm_groups;" json:"alarm_groups"`
+	// 策略labels
+	LabelNotices []*StrategyLabelNotice `gorm:"foreignKey:LevelID;" json:"label_notices"`
 }
 
 // String json string

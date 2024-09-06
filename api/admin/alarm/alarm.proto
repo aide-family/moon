@@ -116,7 +116,7 @@ message ListAlarmGroupRequest {
 
 message ListAlarmGroupReply {
   // 告警组列表
-  repeated AlarmGroupItem list = 1;
+  repeated AlarmNoticeGroupItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }
@@ -127,7 +127,7 @@ message GetAlarmGroupRequest {
 }
 
 message GetAlarmGroupReply {
-  AlarmGroupItem detail = 1;
+  AlarmNoticeGroupItem detail = 1;
 }
 
 message UpdateAlarmGroupRequest {

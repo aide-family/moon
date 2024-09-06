@@ -24,12 +24,12 @@ func Models() []any {
 		&StrategyGroupCategories{},
 		&Dashboard{},
 		&DashboardChart{},
-		&AlarmGroup{},
+		&AlarmNoticeGroup{},
 		&AlarmNoticeUser{},
 		&DashboardSelf{},
 		&AlarmPageSelf{},
 		&AlarmHook{},
-		&StrategyLabels{},
+		&StrategyLabelNotice{},
 		&StrategySubscribers{},
 	}
 }

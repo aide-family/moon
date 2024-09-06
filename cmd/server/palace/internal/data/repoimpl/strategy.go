@@ -17,9 +17,9 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
-
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm/clause"
 )
 
 // NewStrategyRepository 创建策略仓库
@@ -38,7 +38,7 @@ func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uin
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.Strategy.WithContext(ctx).Preload(bizQuery.Strategy.StrategyGroup).Where(bizQuery.Strategy.ID.In(ids...)).Find()
+	return bizQuery.Strategy.WithContext(ctx).Preload(bizQuery.Strategy.Group).Where(bizQuery.Strategy.ID.In(ids...)).Find()
 }
 
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
@@ -110,12 +110,12 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 		}
 
 		// 移除告警组中间表
-		if err = tx.Strategy.AlarmGroups.Model(strategy).Clear(); err != nil {
+		if err = tx.Strategy.AlarmNoticeGroups.Model(strategy).Clear(); err != nil {
 			return err
 		}
 
 		// 移除策略等级中间表
-		if err = tx.Strategy.StrategyLevel.WithContext(ctx).Model(strategy).Clear(); !types.IsNil(err) {
+		if err = tx.Strategy.Levels.WithContext(ctx).Model(strategy).Clear(); !types.IsNil(err) {
 			return err
 		}
 
@@ -152,6 +152,9 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		return err
 	}
 	updateParam := params.UpdateParam
+	if types.IsNil(updateParam) {
+		return merr.ErrorNotification("更新策略参数为空")
+	}
 	datasource := types.SliceToWithFilter(updateParam.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 		if datasourceId <= 0 {
 			return nil, false
@@ -171,14 +174,18 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	})
 
 	// 告警分组
-	alarmGroups := types.SliceToWithFilter(updateParam.AlarmGroupIds, func(alarmGroupsID uint32) (*bizmodel.AlarmGroup, bool) {
+	alarmGroups := types.SliceToWithFilter(updateParam.AlarmGroupIds, func(alarmGroupsID uint32) (*bizmodel.AlarmNoticeGroup, bool) {
 		if alarmGroupsID <= 0 {
 			return nil, false
 		}
-		return &bizmodel.AlarmGroup{AllFieldModel: model.AllFieldModel{ID: alarmGroupsID}}, true
+		return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: alarmGroupsID}}, true
 	})
 
-	strategyLabelsModels := createStrategyLabelsToModel(ctx, updateParam.StrategyLabels)
+	strategyLevels := createStrategyLevelParamsToModel(ctx, updateParam.Levels)
+	strategyLevels = types.SliceToWithFilter(strategyLevels, func(item *bizmodel.StrategyLevel) (*bizmodel.StrategyLevel, bool) {
+		item.StrategyID = params.ID
+		return item, true
+	})
 
 	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 
@@ -194,11 +201,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 		// AlarmGroups
-		if err = tx.Strategy.AlarmGroups.Model(strategyModel).Replace(alarmGroups...); !types.IsNil(err) {
-			return err
-		}
-		// StrategyLabels
-		if err = tx.Strategy.StrategyNoticeLabels.Model(strategyModel).Replace(strategyLabelsModels...); !types.IsNil(err) {
+		if err = tx.Strategy.AlarmNoticeGroups.Model(strategyModel).Replace(alarmGroups...); !types.IsNil(err) {
 			return err
 		}
 		// StrategyLevel
@@ -206,8 +209,8 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		if _, err = tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Delete(); !types.IsNil(err) {
 			return err
 		}
-		strategyLevels := createStrategyLevelParamsToModel(ctx, updateParam.StrategyLevel)
-		if err = tx.StrategyLevel.Create(strategyLevels...); !types.IsNil(err) {
+
+		if err = tx.StrategyLevel.Clauses(clause.OnConflict{UpdateAll: true}).Create(strategyLevels...); !types.IsNil(err) {
 			return err
 		}
 
@@ -236,9 +239,11 @@ func (s *strategyRepositoryImpl) GetByID(ctx context.Context, strategyID uint32)
 	strategy, err := bizWrapper.
 		Where(bizQuery.Strategy.ID.Eq(strategyID)).
 		Preload(field.Associations).
-		Preload(bizQuery.Strategy.StrategyLevel.AlarmPage).
-		Preload(bizQuery.Strategy.StrategyLevel.AlarmGroups).
-		Preload(bizQuery.Strategy.StrategyNoticeLabels.RelationField).
+		Preload(bizQuery.Strategy.Levels.AlarmPage).
+		Preload(bizQuery.Strategy.Levels.AlarmGroups).
+		Preload(bizQuery.Strategy.Levels.LabelNotices).
+		Preload(bizQuery.Strategy.Levels.LabelNotices.AlarmGroups).
+		Preload(bizQuery.Strategy.Levels.RelationField).
 		First()
 	if !types.IsNil(err) {
 		return nil, err
@@ -287,7 +292,7 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 			Select(mainQuery.StrategyTemplateCategories.StrategyTemplateID).
 			Scan(&strategyTemplateIds)
 		if len(strategyTemplateIds) > 0 {
-			strategyWrapper = strategyWrapper.Or(bizQuery.Strategy.StrategyTemplateID.In(strategyTemplateIds...))
+			strategyWrapper = strategyWrapper.Or(bizQuery.Strategy.TemplateID.In(strategyTemplateIds...))
 		}
 	}
 
@@ -312,12 +317,13 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 	}
 	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, strategyID, "copy")
 	strategy.ID = 0
+	strategy.Status = vobj.StatusDisable
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.Strategy.WithContext(ctx).Create(strategy); !types.IsNil(err) {
 			return err
 		}
-		copyLevels := make([]*bizmodel.StrategyLevel, 0, len(strategy.StrategyLevel))
-		for _, level := range strategy.StrategyLevel {
+		copyLevels := make([]*bizmodel.StrategyLevel, 0, len(strategy.Levels))
+		for _, level := range strategy.Levels {
 			level.StrategyID = strategy.ID
 			level.ID = 0
 			copyLevels = append(copyLevels, level)
@@ -353,8 +359,18 @@ func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateSt
 					},
 				}
 			}),
-			AlarmGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmGroup {
-				return &bizmodel.AlarmGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+			AlarmGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+			}),
+			LabelNotices: types.SliceTo(item.LabelNotices, func(notice *bo.StrategyLabelNotice) *bizmodel.StrategyLabelNotice {
+				return &bizmodel.StrategyLabelNotice{
+					Name:    notice.Name,
+					Value:   notice.Value,
+					LevelID: item.LevelID,
+					AlarmGroups: types.SliceTo(notice.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+						return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+					}),
+				}
 			}),
 		}
 		templateLevel.WithContext(ctx)
@@ -365,16 +381,16 @@ func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateSt
 
 func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyParams) *bizmodel.Strategy {
 	strategyModel := &bizmodel.Strategy{
-		Name:                   params.Name,
-		StrategyTemplateID:     params.TemplateID,
-		StrategyTemplateSource: vobj.StrategyTemplateSource(params.SourceType),
-		Expr:                   params.Expr,
-		Labels:                 params.Labels,
-		Annotations:            params.Annotations,
-		Remark:                 params.Remark,
-		Status:                 vobj.Status(params.Status.GetValue()),
-		Step:                   params.Step,
-		GroupID:                params.GroupID,
+		TemplateID:     params.TemplateID,
+		GroupID:        params.GroupID,
+		TemplateSource: params.TemplateSource,
+		Name:           params.Name,
+		Expr:           params.Expr,
+		Labels:         params.Labels,
+		Annotations:    params.Annotations,
+		Remark:         params.Remark,
+		Status:         vobj.Status(params.Status.GetValue()),
+		Step:           params.Step,
 		Datasource: types.SliceToWithFilter(params.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 			if datasourceId <= 0 {
 				return nil, false
@@ -391,30 +407,29 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 				AllFieldModel: model.AllFieldModel{ID: categoriesID},
 			}, true
 		}),
-		AlarmGroups: types.SliceToWithFilter(params.AlarmGroupIds, func(groupID uint32) (*bizmodel.AlarmGroup, bool) {
-			return &bizmodel.AlarmGroup{
+		Levels: createStrategyLevelParamsToModel(ctx, params.Levels),
+		AlarmNoticeGroups: types.SliceToWithFilter(params.AlarmGroupIds, func(groupID uint32) (*bizmodel.AlarmNoticeGroup, bool) {
+			return &bizmodel.AlarmNoticeGroup{
 				AllFieldModel: model.AllFieldModel{
 					ID: groupID,
 				},
 			}, true
 		}),
-		StrategyLevel:        createStrategyLevelParamsToModel(ctx, params.StrategyLevel),
-		StrategyNoticeLabels: createStrategyLabelsToModel(ctx, params.StrategyLabels),
 	}
 	strategyModel.WithContext(ctx)
 	return strategyModel
 }
 
-func createStrategyLabelsToModel(ctx context.Context, labels []*bo.StrategyLabels) []*bizmodel.StrategyLabels {
-	strategyLabelsModels := types.SliceTo(labels, func(label *bo.StrategyLabels) *bizmodel.StrategyLabels {
-		labelsModel := &bizmodel.StrategyLabels{
+func createStrategyLabelsToModel(ctx context.Context, labels []*bo.StrategyLabelNotice) []*bizmodel.StrategyLabelNotice {
+	strategyLabelsModels := types.SliceTo(labels, func(label *bo.StrategyLabelNotice) *bizmodel.StrategyLabelNotice {
+		labelsModel := &bizmodel.StrategyLabelNotice{
 			Name:  label.Name,
 			Value: label.Value,
-			AlarmGroups: types.SliceToWithFilter(label.AlarmGroupIds, func(groupID uint32) (*bizmodel.AlarmGroup, bool) {
+			AlarmGroups: types.SliceToWithFilter(label.AlarmGroupIds, func(groupID uint32) (*bizmodel.AlarmNoticeGroup, bool) {
 				if groupID <= 0 {
 					return nil, false
 				}
-				return &bizmodel.AlarmGroup{
+				return &bizmodel.AlarmNoticeGroup{
 					AllFieldModel: model.AllFieldModel{
 						ID: groupID,
 					},

@@ -126,8 +126,8 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 		return err
 	}
 	for _, strategy := range strategies {
-		if strategy.StrategyGroup.Status.IsDisable() {
-			return merr.ErrorI18nStrategyNotAllowedErr(ctx, strategy.Name, strategy.StrategyGroup.Name)
+		if strategy.Group.Status.IsDisable() {
+			return merr.ErrorI18nStrategyNotAllowedErr(ctx, strategy.Name, strategy.Group.Name)
 		}
 	}
 	return nil
