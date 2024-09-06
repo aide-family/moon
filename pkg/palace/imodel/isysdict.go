@@ -27,7 +27,7 @@ type IDict interface {
 	// GetStatus 字典状态
 	GetStatus() vobj.Status
 	// GetLanguageCode 字典语言
-	GetLanguageCode() string
+	GetLanguageCode() vobj.Language
 	// GetRemark 字典备注
 	GetRemark() string
 	// GetCreatedAt 创建时间

@@ -53,7 +53,7 @@ func (b *dictBuilder) ToAPI() *admin.Dict {
 		Status:       api.Status(b.SysDict.GetStatus()),
 		DictType:     api.DictType(b.SysDict.GetDictType()),
 		ImageUrl:     b.SysDict.GetImageURL(),
-		LanguageCode: b.SysDict.GetLanguageCode(),
+		LanguageCode: b.SysDict.GetLanguageCode().String(),
 		Remark:       b.SysDict.GetRemark(),
 		CreatedAt:    b.SysDict.GetCreatedAt().String(),
 		UpdatedAt:    b.SysDict.GetUpdatedAt().String(),
@@ -90,7 +90,7 @@ func (b *dictBuilder) ToCreateDictBO() *bo.CreateDictParams {
 		ImageURL:     b.CreateDictRequest.GetImageUrl(),
 		Status:       vobj.Status(b.CreateDictRequest.GetStatus()),
 		Remark:       b.CreateDictRequest.GetRemark(),
-		LanguageCode: b.CreateDictRequest.GetLanguageCode(),
+		LanguageCode: vobj.ToLanguage(b.CreateDictRequest.GetLanguageCode()),
 	}
 }
 
@@ -106,7 +106,7 @@ func (b *dictBuilder) ToUpdateDictBO() *bo.UpdateDictParams {
 		ImageURL:     data.GetImageUrl(),
 		Status:       vobj.Status(data.GetStatus()),
 		Remark:       data.GetRemark(),
-		LanguageCode: data.GetLanguageCode(),
+		LanguageCode: vobj.ToLanguage(data.GetLanguageCode()),
 	}
 	return &bo.UpdateDictParams{
 		ID:          b.UpdateDictRequest.GetId(),
@@ -123,14 +123,10 @@ type DictTypeBuilder struct {
 func NewDictTypeBuilder() *DictTypeBuilder {
 	return &DictTypeBuilder{
 		list: []vobj.DictType{
-			vobj.DictTypePromLabel,
-			vobj.DictTypePromAnnotation,
-			vobj.DictTypeNotifyType,
-			vobj.DictTypePromStrategyGroup,
+			vobj.DictTypeStrategyCategory,
+			vobj.DictTypeStrategyGroupCategory,
 			vobj.DictTypeAlarmLevel,
 			vobj.DictTypeAlarmPage,
-			vobj.DictTypeAlarmStatus,
-			vobj.DictTypePromStrategy,
 		},
 	}
 }

@@ -89,6 +89,10 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 	if !types.IsNil(err) {
 		return err
 	}
+	sysDict, err := mainQuery.WithContext(ctx).SysDict.Find()
+	if !types.IsNil(err) {
+		return err
+	}
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
 			Name:   apiItem.Name,
@@ -108,6 +112,21 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 			Icon:     menuItem.Icon,
 			ParentID: menuItem.ParentID,
 			Level:    menuItem.Level,
+		}, true
+	})
+
+	dictList := types.SliceToWithFilter(sysDict, func(dictItem *model.SysDict) (*bizmodel.SysDict, bool) {
+		return &bizmodel.SysDict{
+			Name:         dictItem.Name,
+			Value:        dictItem.Value,
+			DictType:     dictItem.DictType,
+			ColorType:    dictItem.ColorType,
+			CSSClass:     dictItem.CSSClass,
+			Icon:         dictItem.Icon,
+			ImageURL:     dictItem.ImageURL,
+			Status:       dictItem.Status,
+			LanguageCode: dictItem.LanguageCode,
+			Remark:       dictItem.Remark,
 		}, true
 	})
 
@@ -167,6 +186,12 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 
 		if len(teamMenus) > 0 {
 			if err = bizQuery.SysTeamMenu.Create(teamMenus...); !types.IsNil(err) {
+				return err
+			}
+		}
+
+		if len(dictList) > 0 {
+			if err = bizQuery.SysDict.Create(dictList...); !types.IsNil(err) {
 				return err
 			}
 		}

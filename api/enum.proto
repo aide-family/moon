@@ -205,29 +205,17 @@ enum DictType {
   // 未知, 用于默认值
   DictTypeUnknown = 0;
 
-  // 标签
-  DictTypePromLabel = 1;
+  // DictTypeStrategyCategory 策略类目
+  DictTypeStrategyCategory = 1;// 策略类目
 
-  // 注解
-  DictTypePromAnnotation = 2;
+  // DictTypeStrategyGroupCategory 策略组类目
+  DictTypeStrategyGroupCategory = 2;// 策略组类目
 
-  // 策略
-  DictTypePromStrategy = 3;
+  // DictTypeAlarmLevel 告警级别
+  DictTypeAlarmLevel = 3;// 告警级别
 
-  // 策略组
-  DictTypePromStrategyGroup = 4;
-
-  // 告警级别
-  DictTypeAlarmLevel = 5;
-
-  // 告警状态
-  DictTypeAlarmStatus = 6;
-
-  // 通知类型
-  DictTypeNotifyType = 7;
-
-  // 告警页面
-  DictTypeAlarmPage = 8;
+  // DictTypeAlarmPage 告警页面
+  DictTypeAlarmPage = 4;// 告警页面
 }
 
 // 菜单类型

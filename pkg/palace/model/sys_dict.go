@@ -26,7 +26,7 @@ type SysDict struct {
 	Icon         string        `gorm:"column:icon;type:varchar(500);default:'';comment:图标"`
 	ImageURL     string        `gorm:"column:image_url;type:varchar(500);default:'';comment:图片url"`
 	Status       vobj.Status   `gorm:"column:status;type:tinyint;not null;default:1;comment:状态 1：开启 2:关闭"`
-	LanguageCode string        `gorm:"column:language_code;type:varchar(10);not null;default:zh-CN;comment:语言：zh-CN:中文 en-US:英文"`
+	LanguageCode vobj.Language `gorm:"column:language_code;type:tinyint;not null;default:1;comment:语言：zh-CN:中文 en-US:英文"`
 	Remark       string        `gorm:"column:remark;type:varchar(500);not null;comment:字典备注"`
 }
 
@@ -127,9 +127,9 @@ func (c *SysDict) GetStatus() vobj.Status {
 }
 
 // GetLanguageCode get language code
-func (c *SysDict) GetLanguageCode() string {
+func (c *SysDict) GetLanguageCode() vobj.Language {
 	if types.IsNil(c) {
-		return ""
+		return vobj.LanguageUnknown
 	}
 	return c.LanguageCode
 }

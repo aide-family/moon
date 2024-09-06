@@ -95,7 +95,7 @@ func (a *alarmPageBuilder) ToAPI() *adminapi.SelfAlarmPageItem {
 		Value:        alarmPage.GetValue(),
 		Icon:         alarmPage.GetIcon(),
 		ImageUrl:     alarmPage.GetImageURL(),
-		LanguageCode: alarmPage.GetLanguageCode(),
+		LanguageCode: alarmPage.GetLanguageCode().String(),
 		Remark:       alarmPage.GetRemark(),
 	}
 }

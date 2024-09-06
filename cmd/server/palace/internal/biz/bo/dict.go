@@ -25,8 +25,8 @@ type (
 		// 图片
 		ImageURL string `json:"image_url"`
 		// 状态
-		Status       vobj.Status `json:"status"`
-		LanguageCode string      `json:"language_code"`
+		Status       vobj.Status   `json:"status"`
+		LanguageCode vobj.Language `json:"language_code"`
 	}
 
 	// UpdateDictParams 更新字典请求参数
