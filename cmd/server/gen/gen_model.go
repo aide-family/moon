@@ -2,6 +2,7 @@ package gen
 
 import (
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -45,7 +46,7 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 
 	if isBiz {
 		g.ApplyBasic(bizmodel.Models()...)
-		g.ApplyBasic(bizmodel.AlarmModels()...)
+		g.ApplyBasic(alarmmodel.AlarmModels()...)
 	} else {
 		g.ApplyBasic(model.Models()...)
 	}
