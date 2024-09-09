@@ -32,3 +32,17 @@ A one-stop monitoring system started with prometheus and ultimately beyond prome
 * [develop a document](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
 
 * [Demand pool](https://byiraveryh.feishu.cn/docx/SaFMd58DboPAg7xeoOZc0M6Wn7f?from=from_copylink)
+
+## User
+
+* [quick start](docs/i18n/quick-start.md)
+
+## License
+
+[MIT](LICENSE)
+
+## Contributors
+
+* [contributors](https://github.com/aide-family/moon/graphs/contributors) This project exists thanks to all the people who have contributed.
+
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>

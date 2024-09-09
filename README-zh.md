@@ -37,3 +37,17 @@
 * [开发文档](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
 
 * [需求池](https://byiraveryh.feishu.cn/docx/SaFMd58DboPAg7xeoOZc0M6Wn7f?from=from_copylink)
+
+## 使用者
+
+* [快速开始](docs/i18n/zh-CN/quick-start.md)
+
+## 许可证
+
+[MIT](LICENSE)
+
+## 贡献者
+
+* [贡献者](https://github.com/aide-family/moon/graphs/contributors) 这个项目的存在要感谢所有做出贡献的人。
+
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
