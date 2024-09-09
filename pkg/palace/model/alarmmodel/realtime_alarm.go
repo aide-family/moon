@@ -1,4 +1,4 @@
-package bizmodel
+package alarmmodel
 
 import (
 	"github.com/aide-family/moon/pkg/palace/model"

@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -40,7 +40,7 @@ func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, er
 	return bizquery.Use(bizDB), nil
 }
 
-func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*bizmodel.RealtimeAlarm, error) {
+func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*alarmmodel.RealtimeAlarm, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	return detail, nil
 }
 
-func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*bizmodel.RealtimeAlarm, error) {
+func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*alarmmodel.RealtimeAlarm, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
 	if err != nil {
 		return nil, err

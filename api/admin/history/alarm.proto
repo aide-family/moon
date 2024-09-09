@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package api.admin.history;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/./api/admin/history;history";
+option java_multiple_files = true;
+option java_package = "api.admin.history";
+
+service History {
+  // 获取告警历史记录
+  rpc GetHistory (GetHistoryRequest) returns (GetHistoryReply){
+    option (google.api.http) = {
+      get: "/v1/admin/history/alarm/{id}"
+    };
+  };
+  rpc ListHistory (ListHistoryRequest) returns (ListHistoryReply){
+    option (google.api.http) = {
+      get: "/v1/admin/history/alarm/list"
+    };
+  };
+}
+
+
+message GetHistoryRequest {
+  uint32 id = 1;
+}
+message GetHistoryReply {
+  // 告警历史记录
+  AlarmHistory alarmHistory = 1;
+}
+
+message ListHistoryRequest {
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
+  }];
+}
+message ListHistoryReply {
+  // 告警历史记录列表
+  repeated AlarmHistory alarmHistory = 1;
+  // 分页
+  PaginationReply pagination = 2;
+}

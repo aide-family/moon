@@ -636,6 +636,30 @@ message AlarmHookItem {
   string  url = 10;
 }
 
+// 告警历史
+message AlarmHistory{
+  // ID
+  uint32 id = 1;
+  // 告警开始时间
+  string startsAt = 2;
+  // 告警结束时间
+  string endsAt = 3;
+  // 告警状态
+  AlertStatus status = 4;
+  // 告警级别
+  SelectItem level = 5;
+  // 告警策略
+  StrategyItem strategy = 7;
+  // 告警详情
+  string description = 8;
+  // 触发告警表达式
+  string expr = 9;
+  // 数据源
+  DatasourceItem datasource = 10;
+  // 指纹
+  string fingerprint = 11;
+}
+
 message NoticeUserMessage {
   uint32 id = 1;
   // 消息类型 'info' | 'success' | 'warning' | 'error'
