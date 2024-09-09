@@ -183,7 +183,7 @@ func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) err
 }
 
 // Query 查询数据
-func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryParams) ([]*bo.DatasourceQueryData, error) {
+func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryParams) ([]*bo.MetricQueryData, error) {
 	if types.IsNil(params.Datasource) {
 		// 查询数据源
 		datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, params.DatasourceID)

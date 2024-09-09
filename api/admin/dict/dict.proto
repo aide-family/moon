@@ -177,7 +177,7 @@ message ListDictRequest {
 
 message ListDictReply{
   // 字典列表
-  repeated Dict list = 1;
+  repeated DictItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }
@@ -210,7 +210,7 @@ message GetDictRequest{
   }];
 }
 message GetDictReply{
-  Dict dict = 1;
+  DictItem detail = 1;
 }
 
 message ListDictTypeRequest {}

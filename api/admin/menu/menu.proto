@@ -190,7 +190,7 @@ message GetMenuRequest{
   }];
 }
 message GetMenuReply{
-  Menu menu = 1;
+  MenuItem menu = 1;
 }
 
 message ListMenuRequest{
@@ -208,7 +208,7 @@ message ListMenuRequest{
 }
 
 message ListMenuReply{
-  repeated Menu list = 1;
+  repeated MenuItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }

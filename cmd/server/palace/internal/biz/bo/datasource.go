@@ -12,7 +12,7 @@ type (
 		// 数据源名称
 		Name string `json:"name"`
 		// 数据源类型
-		Type vobj.DatasourceType `json:"type"`
+		DatasourceType vobj.DatasourceType `json:"datasourceType"`
 		// 数据源地址
 		Endpoint string `json:"endpoint"`
 		// 状态
@@ -20,7 +20,7 @@ type (
 		// 描述
 		Remark string `json:"remark"`
 		// 数据源配置(json 字符串)
-		Config string `json:"config"`
+		Config map[string]string `json:"config"`
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storageType"`
 	}
@@ -32,7 +32,7 @@ type (
 		// 关键字
 		Keyword string `json:"keyword"`
 		// 数据源类型
-		Type vobj.DatasourceType `json:"type"`
+		DatasourceType vobj.DatasourceType `json:"datasourceType"`
 		// 状态
 		Status vobj.Status `json:"status"`
 		// 存储器类型
@@ -75,8 +75,8 @@ type (
 		*bizmodel.Datasource `json:"datasource"`
 	}
 
-	// DatasourceQueryData 数据源查询结果
-	DatasourceQueryData struct {
+	// MetricQueryData 数据源查询结果
+	MetricQueryData struct {
 		Labels     map[string]string       `json:"labels"`
 		ResultType string                  `json:"resultType"`
 		Values     []*DatasourceQueryValue `json:"values"`

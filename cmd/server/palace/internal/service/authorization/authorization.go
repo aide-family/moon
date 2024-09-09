@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -59,7 +59,7 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 		return nil, err
 	}
 	return &authorizationapi.LoginReply{
-		User:     build.NewBuilder().WithAPIUserBo(loginJwtClaims.User).ToAPI(),
+		User:     builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginJwtClaims.User),
 		Token:    token,
 		Redirect: "/",
 	}, nil
@@ -103,7 +103,7 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 	}
 	return &authorizationapi.RefreshTokenReply{
 		Token: token,
-		User:  build.NewBuilder().WithAPIUserBo(tokenRes.User).ToAPI(),
+		User:  builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(tokenRes.User),
 	}, nil
 }
 
@@ -142,7 +142,7 @@ func (s *Service) CheckPermission(ctx context.Context, req *authorizationapi.Che
 	}
 	return &authorizationapi.CheckPermissionReply{
 		HasPermission: true,
-		TeamMember:    build.NewBuilder().WithAPITeamMember(teamMemberDo).ToAPI(ctx),
+		TeamMember:    builder.NewParamsBuild().WithContext(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(teamMemberDo),
 	}, nil
 }
 
@@ -158,6 +158,6 @@ func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckToken
 	}
 	return &authorizationapi.CheckTokenReply{
 		IsLogin: true,
-		User:    build.NewBuilder().WithAPIUserBo(userDo).ToAPI(),
+		User:    builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
 	}, nil
 }

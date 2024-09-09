@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
@@ -59,7 +59,7 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := build.NewBuilder().WithAPIStrategy(strategy).ToBos()
+				items := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 				if items == nil || len(items) == 0 {
 					continue
 				}

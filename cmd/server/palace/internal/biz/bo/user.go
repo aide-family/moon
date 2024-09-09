@@ -27,7 +27,7 @@ type (
 	// UpdateUserParams 更新用户参数
 	UpdateUserParams struct {
 		ID uint32 `json:"id"`
-		CreateUserParams
+		*CreateUserParams
 	}
 
 	// UpdateUserBaseParams 更新用户基础信息参数

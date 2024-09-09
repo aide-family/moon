@@ -62,7 +62,7 @@ service Datasource {
   }
 
   // 下拉列表
-  rpc GetDatasourceSelect (GetDatasourceSelectRequest) returns (GetDatasourceSelectReply) {
+  rpc GetDatasourceSelect (ListDatasourceRequest) returns (GetDatasourceSelectReply) {
     option (google.api.http) = {
       post: "/v1/datasource/select"
       body: "*"
@@ -93,7 +93,7 @@ message CreateDatasourceRequest {
     expression: 'this.size() >= 1 && this.size() <= 50'
   }];
   // 数据源类型
-  DatasourceType type = 2 [(buf.validate.field).required = true];
+  DatasourceType datasourceType = 2 [(buf.validate.field).required = true];
   // 数据源地址
   string endpoint = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
     message: "数据源地址长度在 1 到 255 个字符之间"
@@ -118,7 +118,18 @@ message CreateDatasourceReply {}
 
 message UpdateDatasourceRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  CreateDatasourceRequest data = 2 [(buf.validate.field).required = true];
+  // 数据源名称
+  string name = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源名称长度在 1 到 50 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 50'
+  }];
+  // 状态
+  Status status = 3 [(buf.validate.field).required = true];
+  // 描述
+  string remark = 4 [(buf.validate.field).cel = {
+    message: "描述长度在255 个字符以内",
+    expression: 'this.size() <= 255'
+  }];
 }
 message UpdateDatasourceReply {}
 
@@ -145,7 +156,7 @@ message ListDatasourceRequest {
   // 状态
   Status status = 3;
   // 数据源类型
-  DatasourceType type = 4;
+  DatasourceType datasourceType = 4;
   // 存储器类型
   StorageType storageType = 5;
 }
@@ -160,19 +171,8 @@ message UpdateDatasourceStatusRequest {
 }
 message UpdateDatasourceStatusReply {}
 
-message GetDatasourceSelectRequest {
-  DatasourceType type = 2;
-  Status status = 3;
-  string keyword = 4;
-  uint32 limit = 5 [(buf.validate.field).cel = {
-    message: "必须小于 1000",
-    expression: 'this <= 1000'
-  }];
-  // 存储器类型
-  StorageType storage_type = 6;
-}
 message GetDatasourceSelectReply {
-  repeated SelectItem data = 1;
+  repeated SelectItem list = 1;
 }
 
 message SyncDatasourceMetaRequest {

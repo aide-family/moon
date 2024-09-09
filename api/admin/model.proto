@@ -38,7 +38,7 @@ message SelectItem {
 }
 
 // 用户模块
-message User {
+message UserItem {
   // 用户id
   uint32 id = 1;
   // 用户名
@@ -81,8 +81,6 @@ message ResourceItem {
   string createdAt = 6;
   // 更新时间
   string updatedAt = 7;
-  // 删除时间
-  string deletedAt = 8;
   // 所属模块
   ModuleType module = 9;
   // 所属领域
@@ -90,7 +88,7 @@ message ResourceItem {
 }
 
 // 系统菜单模块
-message Menu {
+message MenuItem {
   // 菜单ID
   uint32 id = 1;
   // 菜单名称
@@ -158,7 +156,7 @@ message MenuTree {
 
 
 // 团队成员
-message TeamMember {
+message TeamMemberItem {
   // 用户ID
   uint32 userId = 1;
   // 成员ID
@@ -172,11 +170,11 @@ message TeamMember {
   // 更新时间
   string updatedAt = 6;
   // 用户明细
-  User user = 7;
+  UserItem user = 7;
 }
 
 // 团队模块
-message Team {
+message TeamItem {
   // 团队ID
   uint32 id = 1;
   // 团队名称
@@ -190,13 +188,13 @@ message Team {
   // 更新时间
   string updatedAt = 6;
   // 负责人
-  User leader = 7;
+  UserItem leader = 7;
   // 创建者
-  User creator = 8;
+  UserItem creator = 8;
   // 团队LOGO
   string logo = 9;
   // 管理员（不包含创建者， 因为创建者不一定是管理员，但是包含负责人）
-  repeated TeamMember admin = 10;
+  repeated TeamMemberItem admin = 10;
 }
 
 // 团队角色模块
@@ -224,7 +222,7 @@ message DatasourceItem {
   // 数据源名称
   string name = 2;
   // 数据源类型
-  DatasourceType type = 3;
+  DatasourceType datasourceType = 3;
   // 数据源地址
   string endpoint = 4;
   // 状态
@@ -240,11 +238,11 @@ message DatasourceItem {
   // 存储器类型
   StorageType storageType = 10;
   // 创建者
-  User creator = 11;
+  UserItem creator = 11;
 }
 
 // 查询到的数据详情， 用与元数据构建
-message MetricDetail {
+message MetricItem {
   // 指标名称
   string name = 1;
   // 帮助信息
@@ -252,7 +250,7 @@ message MetricDetail {
   // 类型
   MetricType type = 3;
   // 标签集合
-  repeated MetricLabel labels = 4;
+  repeated MetricLabelItem labels = 4;
   // 指标单位
   string unit = 5;
   // ID
@@ -260,24 +258,24 @@ message MetricDetail {
 }
 
 // 指标数据标签
-message MetricLabel {
+message MetricLabelItem {
   // 标签名称
   string name = 1;
   // 标签值
-  repeated MetricLabelValue values = 2;
+  repeated MetricLabelValueItem values = 2;
   // ID
   uint32 id = 3;
 }
 
 // 指标数据标签值
-message MetricLabelValue {
+message MetricLabelValueItem {
   // ID
   uint32 id = 1;
   // 值
   string value = 2;
 }
 
-message Dict{
+message DictItem{
   // ID
   uint32 id = 1;
   // 字典名称
@@ -306,7 +304,7 @@ message Dict{
   string updatedAt = 13;
 }
 
-message StrategyLevel {
+message StrategyLevelItem {
   // 策略持续时间
   google.protobuf.Duration duration = 3;
   // 持续次数
@@ -343,7 +341,7 @@ message StrategyItem {
   // 策略语句
   string expr = 2;
   // 根据策略等级配置的详细策略， key为策略等级ID
-  repeated StrategyLevel levels = 3;
+  repeated StrategyLevelItem levels = 3;
   // 策略标签
   map<string, string> labels = 6;
   // 策略注解
@@ -369,7 +367,7 @@ message StrategyItem {
   // 模板来源
   TemplateSourceType templateSource = 23;
   // 策略类型
-  repeated Dict categories = 24;
+  repeated DictItem categories = 24;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmNoticeGroups = 25;
 }
@@ -398,10 +396,10 @@ message StrategyGroupItem {
   // 策略开启总数
   uint64 enableStrategyCount = 11;
   // 分组类型
-  repeated Dict  categories = 12;
+  repeated DictItem  categories = 12;
 }
 
-message StrategyLevelTemplate {
+message StrategyLevelTemplateItem {
   // ID
   uint32 id = 1;
   // 持续时间
@@ -424,14 +422,14 @@ message StrategyLevelTemplate {
   uint32 strategyId = 14;
 }
 
-message StrategyTemplate {
+message StrategyTemplateItem {
   // 策略模板ID
   uint32 id = 1;
   // 策略模板名称
   string alert = 2;
   // 策略语句
   string expr = 3;
-  repeated StrategyLevelTemplate levels = 4;
+  repeated StrategyLevelTemplateItem levels = 4;
   // 策略标签
   map<string, string> labels = 5;
   // 策略注解
@@ -445,7 +443,7 @@ message StrategyTemplate {
   // 策略模板说明信息
   string remark = 10;
   // 创建人
-  User creator = 11;
+  UserItem creator = 11;
   // 模板类型
   repeated SelectItem categories = 12;
 }
@@ -478,8 +476,6 @@ message DashboardItem {
   string createdAt = 4;
   // 仪表板更新时间, unix时间戳
   string updatedAt = 5;
-  // 仪表板删除时间, unix时间戳
-  string deletedAt = 6;
   // 仪表板颜色
   string color = 7;
   // 图表列表
@@ -589,7 +585,7 @@ message AlarmNoticeGroupItem {
 // 通知人
 message NoticeItem {
   // 用户明细
-  User user = 1;
+  UserItem user = 1;
   // 通知类型
   NotifyType notifyType = 2;
 }
@@ -609,7 +605,7 @@ message StrategySubscriberItem {
   // 订阅ID
   uint32 id = 1;
   // 用户明细
-  User user = 2;
+  UserItem user = 2;
   // 通知类型
   NotifyType notifyType = 3;
 }

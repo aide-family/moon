@@ -15,8 +15,8 @@ type (
 		// UserUnSubscriberStrategy 用户取消订阅策略
 		UserUnSubscriberStrategy(ctx context.Context, params *bo.UnSubscriberStrategyParams) error
 		// UserSubscriberStrategyList 用户订阅策略列表
-		UserSubscriberStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscribers, error)
+		UserSubscriberStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscriber, error)
 		// StrategySubscriberList 策略订阅用户列表
-		StrategySubscriberList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscribers, error)
+		StrategySubscriberList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscriber, error)
 	}
 )

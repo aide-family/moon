@@ -60,7 +60,7 @@ service Role {
   }
 
   // 角色下拉列表
-  rpc GetRoleSelectList (GetRoleSelectListRequest) returns (GetRoleSelectListReply) {
+  rpc GetRoleSelectList (ListRoleRequest) returns (GetRoleSelectListReply) {
     option (google.api.http) = {
       post: "/v1/team/role/select"
       body: "*"
@@ -103,7 +103,7 @@ message GetRoleRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetRoleReply {
-  TeamRole role = 1;
+  TeamRole detail = 1;
 }
 
 // 不分页
@@ -124,15 +124,6 @@ message UpdateRoleStatusRequest {
 }
 message UpdateRoleStatusReply {}
 
-message GetRoleSelectListRequest {
-  string keyword = 1 [(buf.validate.field).cel = {
-    id: "keyword",
-    message: "关键字长度必须在0到20个字符之间",
-    expression: "this.size() <= 20"
-  }];
-  // 团队ID
-  uint32 team_id = 2;
-}
 message GetRoleSelectListReply {
   repeated SelectItem list = 1;
 }

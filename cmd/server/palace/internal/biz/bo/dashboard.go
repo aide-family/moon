@@ -39,7 +39,6 @@ type (
 		ID             uint32
 		Name           string
 		Remark         string
-		Status         vobj.Status
 		Color          string
 		Charts         []*ChartItem
 		StrategyGroups []uint32

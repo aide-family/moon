@@ -33,63 +33,63 @@ func (s *subscriberStrategyRepository) UserSubscriberStrategy(ctx context.Contex
 		return err
 	}
 	subscriberModel := createSubscriberStrategyToModel(ctx, params)
-	return bizQuery.StrategySubscribers.Create(subscriberModel)
+	return bizQuery.StrategySubscriber.Create(subscriberModel)
 }
 func (s *subscriberStrategyRepository) UserUnSubscriberStrategy(ctx context.Context, params *bo.UnSubscriberStrategyParams) error {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return err
 	}
-	_, err = bizQuery.StrategySubscribers.Where(bizQuery.StrategySubscribers.StrategyID.Eq(params.StrategyID), bizQuery.StrategySubscribers.UserID.Eq(params.UserID)).Delete()
+	_, err = bizQuery.StrategySubscriber.Where(bizQuery.StrategySubscriber.StrategyID.Eq(params.StrategyID), bizQuery.StrategySubscriber.UserID.Eq(params.UserID)).Delete()
 	if !types.IsNil(err) {
 		return err
 	}
 	return nil
 }
 
-func (s *subscriberStrategyRepository) UserSubscriberStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscribers, error) {
+func (s *subscriberStrategyRepository) UserSubscriberStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizQuery.StrategySubscribers.WithContext(ctx)
+	bizWrapper := bizQuery.StrategySubscriber.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if params.NotifyType != 0 {
-		wheres = append(wheres, bizQuery.StrategySubscribers.AlarmNoticeType.Eq(params.NotifyType.GetValue()))
+		wheres = append(wheres, bizQuery.StrategySubscriber.AlarmNoticeType.Eq(params.NotifyType.GetValue()))
 	}
-	wheres = append(wheres, bizQuery.StrategySubscribers.UserID.Eq(params.UserID))
+	wheres = append(wheres, bizQuery.StrategySubscriber.UserID.Eq(params.UserID))
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
 
-	if err = types.WithPageQuery[bizquery.IStrategySubscribersDo](bizWrapper, params.Page); err != nil {
+	if err = types.WithPageQuery[bizquery.IStrategySubscriberDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Order(bizQuery.StrategySubscribers.ID.Desc()).Find()
+	return bizWrapper.Order(bizQuery.StrategySubscriber.ID.Desc()).Find()
 }
 
-func (s *subscriberStrategyRepository) StrategySubscriberList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscribers, error) {
+func (s *subscriberStrategyRepository) StrategySubscriberList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	bizWrapper := bizQuery.StrategySubscribers.WithContext(ctx)
+	bizWrapper := bizQuery.StrategySubscriber.WithContext(ctx)
 
 	var wheres []gen.Condition
 	if params.NotifyType != 0 {
-		wheres = append(wheres, bizQuery.StrategySubscribers.AlarmNoticeType.Eq(params.NotifyType.GetValue()))
+		wheres = append(wheres, bizQuery.StrategySubscriber.AlarmNoticeType.Eq(params.NotifyType.GetValue()))
 	}
-	wheres = append(wheres, bizQuery.StrategySubscribers.StrategyID.Eq(params.StrategyID))
+	wheres = append(wheres, bizQuery.StrategySubscriber.StrategyID.Eq(params.StrategyID))
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
-	if err = types.WithPageQuery[bizquery.IStrategySubscribersDo](bizWrapper, params.Page); err != nil {
+	if err = types.WithPageQuery[bizquery.IStrategySubscriberDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Order(bizQuery.StrategySubscribers.ID.Desc()).Find()
+	return bizWrapper.Order(bizQuery.StrategySubscriber.ID.Desc()).Find()
 }
 
-func createSubscriberStrategyToModel(ctx context.Context, params *bo.SubscriberStrategyParams) *bizmodel.StrategySubscribers {
-	subscriberModel := &bizmodel.StrategySubscribers{
+func createSubscriberStrategyToModel(ctx context.Context, params *bo.SubscriberStrategyParams) *bizmodel.StrategySubscriber {
+	subscriberModel := &bizmodel.StrategySubscriber{
 		StrategyID:      params.StrategyID,
 		UserID:          params.UserID,
 		AlarmNoticeType: params.NotifyType,

@@ -12,8 +12,6 @@ type (
 		Alert string `json:"alert"`
 		// 告警表达式
 		Expr string `json:"expr"`
-		// 策略状态
-		Status vobj.Status `json:"status"`
 		// 备注
 		Remark string `json:"remark"`
 		// 标签
@@ -28,8 +26,8 @@ type (
 
 	// UpdateTemplateStrategyParams 更新模板策略参数
 	UpdateTemplateStrategyParams struct {
-		ID   uint32                       `json:"id"`
-		Data CreateTemplateStrategyParams `json:"data"`
+		ID   uint32                        `json:"id"`
+		Data *CreateTemplateStrategyParams `json:"data"`
 	}
 
 	// QueryTemplateStrategyListParams 查询模板策略列表参数
@@ -57,6 +55,12 @@ type (
 		// 告警等级 对应sys_dict字典id
 		LevelID uint32 `json:"LevelID"`
 		// 状态
+		Status vobj.Status `json:"status"`
+	}
+
+	// UpdateTemplateStrategyStatusParams 更新模板策略状态参数
+	UpdateTemplateStrategyStatusParams struct {
+		IDs    []uint32    `json:"ids"`
 		Status vobj.Status `json:"status"`
 	}
 )

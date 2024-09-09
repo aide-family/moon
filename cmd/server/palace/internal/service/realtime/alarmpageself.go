@@ -6,7 +6,7 @@ import (
 	pb "github.com/aide-family/moon/api/admin/realtime"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 )
 
@@ -47,6 +47,6 @@ func (s *AlarmPageSelfService) ListAlarmPage(ctx context.Context, _ *pb.ListAlar
 		return nil, err
 	}
 	return &pb.ListAlarmPageReply{
-		List: build.NewBuilder().WithContext(ctx).AlarmPageModule().WithAlarmPages(alarmPageList).ToAPIs(),
+		List: builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoAlarmPageSelfBuilder().ToAPIs(alarmPageList),
 	}, nil
 }

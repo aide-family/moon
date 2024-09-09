@@ -78,7 +78,7 @@ service Team {
   // 设置成管理员
   rpc SetTeamAdmin (SetTeamAdminRequest) returns (SetTeamAdminReply) {
     option (google.api.http) = {
-      put: "/v1/team/{id}/member/{userId}/admin"
+      put: "/v1/team/{id}/member/set/admin"
       body: "*"
     };
   }
@@ -86,7 +86,7 @@ service Team {
   // 移除团队管理员
   rpc RemoveTeamAdmin (RemoveTeamAdminRequest) returns (RemoveTeamAdminReply) {
     option (google.api.http) = {
-      delete: "/v1/team/{id}/member/{userId}/admin"
+      delete: "/v1/team/{id}/member/remove/admin"
     };
   }
 
@@ -167,7 +167,7 @@ message GetTeamRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetTeamReply {
-  Team team = 1;
+  TeamItem detail = 1;
 }
 
 message ListTeamRequest {
@@ -179,10 +179,12 @@ message ListTeamRequest {
   uint32 creatorId = 4;
   // 负责人
   uint32 leaderId = 5;
+  // ids
+  repeated uint32 ids = 6;
 }
 message ListTeamReply {
   PaginationReply pagination = 1;
-  repeated Team list = 2;
+  repeated TeamItem list = 2;
 }
 
 message UpdateTeamStatusRequest {
@@ -193,7 +195,7 @@ message UpdateTeamStatusReply {}
 
 message MyTeamRequest {}
 message MyTeamReply {
-  repeated Team list = 1;
+  repeated TeamItem list = 1;
 }
 
 message AddTeamMemberRequest {
@@ -218,13 +220,13 @@ message RemoveTeamMemberReply {}
 
 message SetTeamAdminRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 userId = 2 [(buf.validate.field).required = true];
+  repeated uint32 userIds = 2 [(buf.validate.field).required = true];
 }
 message SetTeamAdminReply {}
 
 message RemoveTeamAdminRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
-  uint32 userId = 2 [(buf.validate.field).required = true];
+  repeated uint32 userIds = 2 [(buf.validate.field).required = true];
 }
 message RemoveTeamAdminReply {}
 
@@ -242,10 +244,11 @@ message ListTeamMemberRequest {
   Gender gender = 4;
   Status status = 5;
   Role role = 6;
+  repeated uint32 memberIds = 7;
 }
 message ListTeamMemberReply {
   PaginationReply pagination = 1;
-  repeated TeamMember list = 2;
+  repeated TeamMemberItem list = 2;
 }
 
 message TransferTeamLeaderRequest {

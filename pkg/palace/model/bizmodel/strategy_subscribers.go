@@ -9,8 +9,8 @@ import (
 
 const tableNameStrategySubscribers = "strategy_subscribers"
 
-// StrategySubscribers 策略订阅者信息
-type StrategySubscribers struct {
+// StrategySubscriber 策略订阅者信息
+type StrategySubscriber struct {
 	model.AllFieldModel
 	Strategy        *Strategy       `gorm:"foreignKey:StrategyID" json:"strategy"`
 	AlarmNoticeType vobj.NotifyType `gorm:"column:notice_type;type:int;not null;comment:通知类型;" json:"alarm_notice_type"`
@@ -19,16 +19,16 @@ type StrategySubscribers struct {
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategySubscribers) UnmarshalBinary(data []byte) error {
+func (c *StrategySubscriber) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategySubscribers) MarshalBinary() (data []byte, err error) {
+func (c *StrategySubscriber) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
-// TableName StrategySubscribers  table name
-func (*StrategySubscribers) TableName() string {
+// TableName StrategySubscriber  table name
+func (*StrategySubscriber) TableName() string {
 	return tableNameStrategySubscribers
 }

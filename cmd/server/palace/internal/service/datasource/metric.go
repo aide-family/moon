@@ -7,8 +7,7 @@ import (
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -29,11 +28,7 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 
 // UpdateMetric 更新指标
 func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.UpdateMetricRequest) (*datasourceapi.UpdateMetricReply, error) {
-	params := &bo.UpdateMetricParams{
-		ID:     req.GetId(),
-		Unit:   req.GetUnit(),
-		Remark: req.GetRemark(),
-	}
+	params := builder.NewParamsBuild().MetricModuleBuilder().WithUpdateMetricRequest(req).ToBo()
 	if err := s.metricBiz.UpdateMetricByID(ctx, params); err != nil {
 		return nil, err
 	}
@@ -42,10 +37,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.Upd
 
 // GetMetric 获取指标
 func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMetricRequest) (*datasourceapi.GetMetricReply, error) {
-	params := &bo.GetMetricParams{
-		ID:           req.GetId(),
-		WithRelation: req.GetWithRelation(),
-	}
+	params := builder.NewParamsBuild().MetricModuleBuilder().WithGetMetricRequest(req).ToBo()
 	detail, err := s.metricBiz.GetMetricByID(ctx, params)
 	if err != nil {
 		return nil, err
@@ -55,49 +47,35 @@ func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMet
 		return nil, err
 	}
 	return &datasourceapi.GetMetricReply{
-		Data:       build.NewBuilder().WithAPIDatasourceMetric(detail).ToAPI(),
+		Data:       builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().DoMetricBuilder().ToAPI(detail),
 		LabelCount: labelCount,
 	}, nil
 }
 
 // ListMetric 获取指标列表
 func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.ListMetricReply, error) {
-	params := &bo.QueryMetricListParams{
-		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
-		Keyword:      req.GetKeyword(),
-		DatasourceID: req.GetDatasourceId(),
-		MetricType:   vobj.MetricType(req.GetMetricType()),
-	}
+	params := builder.NewParamsBuild().MetricModuleBuilder().WithListMetricRequest(req).ToBo()
 	list, err := s.metricBiz.ListMetric(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 	return &datasourceapi.ListMetricReply{
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
-		List: types.SliceTo(list, func(item *bizmodel.DatasourceMetric) *admin.MetricDetail {
-			return build.NewBuilder().WithAPIDatasourceMetric(item).ToAPI()
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().MetricModuleBuilder().DoMetricBuilder().ToAPIs(list),
 	}, nil
 }
 
 // SelectMetric 获取指标下拉列表
-func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.SelectMetricRequest) (*datasourceapi.SelectMetricReply, error) {
-	params := &bo.QueryMetricListParams{
-		Page:         types.NewPage(int(req.GetPagination().GetPageNum()), int(req.GetPagination().GetPageSize())),
-		Keyword:      req.GetKeyword(),
-		DatasourceID: req.GetDatasourceId(),
-		MetricType:   vobj.MetricType(req.GetMetricType()),
-	}
-	list, err := s.metricBiz.SelectMetric(ctx, params)
+func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.SelectMetricReply, error) {
+	params := builder.NewParamsBuild().MetricModuleBuilder().WithListMetricRequest(req).ToBo()
+	list, err := s.metricBiz.ListMetric(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	return &datasourceapi.SelectMetricReply{
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
-		List: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.SelectItem {
-			return build.NewSelectBuilder(item).ToAPI()
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().MetricModuleBuilder().DoMetricBuilder().ToSelects(list),
 	}, nil
 }
 
@@ -119,10 +97,10 @@ func (s *MetricService) SyncMetric(ctx context.Context, req *datasourceapi.SyncM
 			Help: metricInfo.GetHelp(),
 			Type: vobj.MetricType(metricInfo.GetType()),
 			Unit: metricInfo.GetUnit(),
-			Labels: types.SliceTo(metricInfo.GetLabels(), func(item *admin.MetricLabel) *bo.MetricLabel {
+			Labels: types.SliceTo(metricInfo.GetLabels(), func(item *admin.MetricLabelItem) *bo.MetricLabel {
 				return &bo.MetricLabel{
 					Name: item.GetName(),
-					Values: types.SliceTo(item.GetValues(), func(item *admin.MetricLabelValue) string {
+					Values: types.SliceTo(item.GetValues(), func(item *admin.MetricLabelValueItem) string {
 						return item.GetValue()
 					}),
 				}

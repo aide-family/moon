@@ -35,7 +35,7 @@ type (
 	// UpdateMenuParams 更新菜单请求参数
 	UpdateMenuParams struct {
 		ID          uint32 `json:"id"`
-		UpdateParam CreateMenuParams
+		UpdateParam *CreateMenuParams
 	}
 
 	// UpdateMenuStatusParams 更新菜单状态请求参数

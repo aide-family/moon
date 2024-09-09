@@ -30,7 +30,7 @@ func Models() []any {
 		&AlarmPageSelf{},
 		&AlarmHook{},
 		&StrategyLabelNotice{},
-		&StrategySubscribers{},
+		&StrategySubscriber{},
 	}
 }
 

@@ -72,7 +72,7 @@ message LoginRequest {
 }
 message LoginReply {
   // 用户信息
-  User user = 1;
+  UserItem user = 1;
   // token
   string token = 2;
   // 重定向地址
@@ -93,7 +93,7 @@ message RefreshTokenReply {
   // token
   string token = 1;
   // 用户信息
-  User user = 2;
+  UserItem user = 2;
 }
 
 // 登录验证码
@@ -142,11 +142,11 @@ message CheckPermissionRequest {
 }
 message CheckPermissionReply {
   bool hasPermission = 1;
-  TeamMember teamMember = 2;
+  TeamMemberItem teamMember = 2;
 }
 
 message CheckTokenRequest {}
 message CheckTokenReply {
   bool isLogin = 1;
-  User user = 2;
+  UserItem user = 2;
 }

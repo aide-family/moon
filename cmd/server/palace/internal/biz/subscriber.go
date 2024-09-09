@@ -43,7 +43,7 @@ func (s *SubscriberBiz) UnSubscriptionStrategy(ctx context.Context, params *bo.U
 }
 
 // UserSubscriptionStrategyList 当前用户订阅策略列表
-func (s *SubscriberBiz) UserSubscriptionStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscribers, error) {
+func (s *SubscriberBiz) UserSubscriptionStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	strategyList, err := s.subscriberRepo.UserSubscriberStrategyList(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
@@ -52,7 +52,7 @@ func (s *SubscriberBiz) UserSubscriptionStrategyList(ctx context.Context, params
 }
 
 // StrategySubscribersList 策略订阅用户列表
-func (s *SubscriberBiz) StrategySubscribersList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscribers, error) {
+func (s *SubscriberBiz) StrategySubscribersList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	subscriberList, err := s.subscriberRepo.StrategySubscriberList(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)

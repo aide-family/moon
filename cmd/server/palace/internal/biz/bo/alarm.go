@@ -7,8 +7,8 @@ import (
 
 type (
 
-	// CreateAlarmGroupParams 创建告警组请求参数
-	CreateAlarmGroupParams struct {
+	// CreateAlarmNoticeGroupParams 创建告警组请求参数
+	CreateAlarmNoticeGroupParams struct {
 		// 告警组名称
 		Name string `json:"name,omitempty"`
 		// 告警组说明信息
@@ -29,20 +29,20 @@ type (
 		NotifyType vobj.NotifyType
 	}
 
-	// UpdateAlarmGroupStatusParams 更新告警组状态请求参数
-	UpdateAlarmGroupStatusParams struct {
+	// UpdateAlarmNoticeGroupStatusParams 更新告警组状态请求参数
+	UpdateAlarmNoticeGroupStatusParams struct {
 		IDs    []uint32 `json:"ids"`
 		Status vobj.Status
 	}
 
-	// UpdateAlarmGroupParams 更新告警组请求参数
-	UpdateAlarmGroupParams struct {
+	// UpdateAlarmNoticeGroupParams 更新告警组请求参数
+	UpdateAlarmNoticeGroupParams struct {
 		ID          uint32 `json:"id"`
-		UpdateParam *CreateAlarmGroupParams
+		UpdateParam *CreateAlarmNoticeGroupParams
 	}
 
-	// QueryAlarmGroupListParams 查询告警组列表请求参数
-	QueryAlarmGroupListParams struct {
+	// QueryAlarmNoticeGroupListParams 查询告警组列表请求参数
+	QueryAlarmNoticeGroupListParams struct {
 		Keyword string `json:"keyword"`
 		Page    types.Pagination
 		Name    string

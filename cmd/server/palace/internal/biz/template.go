@@ -8,8 +8,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
-
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 )
@@ -71,6 +69,6 @@ func (b *TemplateBiz) ListTemplateStrategy(ctx context.Context, params *bo.Query
 }
 
 // UpdateTemplateStrategyStatus 更新模板策略状态
-func (b *TemplateBiz) UpdateTemplateStrategyStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	return b.templateRepository.UpdateTemplateStrategyStatus(ctx, status, ids...)
+func (b *TemplateBiz) UpdateTemplateStrategyStatus(ctx context.Context, params *bo.UpdateTemplateStrategyStatusParams) error {
+	return b.templateRepository.UpdateTemplateStrategyStatus(ctx, params.Status, params.IDs...)
 }

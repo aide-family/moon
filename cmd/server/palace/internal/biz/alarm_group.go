@@ -28,7 +28,7 @@ type (
 )
 
 // CreateAlarmGroup 创建告警分组
-func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
+func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmNoticeGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroup, err := s.strategyRepo.CreateAlarmGroup(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
@@ -37,7 +37,7 @@ func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateA
 }
 
 // UpdateAlarmGroup 更新告警分组
-func (s *AlarmGroupBiz) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmGroupParams) error {
+func (s *AlarmGroupBiz) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmNoticeGroupParams) error {
 	if err := s.strategyRepo.UpdateAlarmGroup(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nAlarmGroupDataNotFoundErr(ctx)
@@ -68,7 +68,7 @@ func (s *AlarmGroupBiz) DeleteAlarmGroup(ctx context.Context, alarmID uint32) er
 }
 
 // UpdateStatus 更新告警分组状态
-func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmGroupStatusParams) error {
+func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmNoticeGroupStatusParams) error {
 	if err := s.strategyRepo.UpdateStatus(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nAlarmGroupDataNotFoundErr(ctx)
@@ -79,7 +79,7 @@ func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarm
 }
 
 // ListPage 分页查询告警分组
-func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
+func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroups, err := s.strategyRepo.AlarmGroupPage(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)

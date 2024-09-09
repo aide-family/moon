@@ -43,7 +43,7 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 	sysTeamRoleModel := &bizmodel.SysTeamRole{
 		TeamID: teamRole.TeamID,
 		Name:   teamRole.Name,
-		Status: teamRole.Status.GetValue(),
+		Status: teamRole.Status,
 		Remark: teamRole.Remark,
 		Apis:   apis,
 	}

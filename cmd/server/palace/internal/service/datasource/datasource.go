@@ -2,23 +2,19 @@ package datasource
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	nethttp "net/http"
 	"net/url"
 
-	"github.com/aide-family/moon/api"
-	"github.com/aide-family/moon/api/admin"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"github.com/go-kratos/kratos/v2/transport/http"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 // Service 数据源服务
@@ -37,8 +33,7 @@ func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 
 // CreateDatasource 创建数据源
 func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.CreateDatasourceRequest) (*datasourceapi.CreateDatasourceReply, error) {
-	configBytes, _ := json.Marshal(req.GetConfig())
-	params := build.NewBuilder().WithCreateDatasourceBo(req).ToCreateDatasourceBO(configBytes)
+	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithCreateDatasourceRequest(req).ToBo()
 	datasourceDetail, err := s.datasourceBiz.CreateDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -50,7 +45,7 @@ func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.Creat
 
 // UpdateDatasource 更新数据源
 func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.UpdateDatasourceRequest) (*datasourceapi.UpdateDatasourceReply, error) {
-	params := build.NewBuilder().WithUpdateDatasourceBo(req).ToUpdateDatasourceBO()
+	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithUpdateDatasourceRequest(req).ToBo()
 	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -72,22 +67,20 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceReply{
-		Data: build.NewBuilder().WithContext(ctx).WithDoDatasource(datasourceDetail).ToAPI(),
+		Data: builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasourceDetail),
 	}, nil
 }
 
 // ListDatasource 获取数据源列表
 func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.ListDatasourceReply, error) {
-	params := build.NewBuilder().WithListDatasourceBo(req).ToListDatasourceBo()
+	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &datasourceapi.ListDatasourceReply{
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
-		List: types.SliceTo(datasourceList, func(item *bizmodel.Datasource) *admin.DatasourceItem {
-			return build.NewBuilder().WithContext(ctx).WithDoDatasource(item).ToAPI()
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPIs(datasourceList),
 	}, nil
 }
 
@@ -100,22 +93,14 @@ func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *datasourceapi
 }
 
 // GetDatasourceSelect 获取数据源下拉列表
-func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.GetDatasourceSelectRequest) (*datasourceapi.GetDatasourceSelectReply, error) {
-	params := &bo.QueryDatasourceListParams{
-		Page:        nil,
-		Keyword:     req.GetKeyword(),
-		Type:        vobj.DatasourceType(req.GetType()),
-		Status:      vobj.Status(req.GetStatus()),
-		StorageType: vobj.StorageType(req.GetStorageType()),
-	}
-	list, err := s.datasourceBiz.GetDatasourceSelect(ctx, params)
+func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.GetDatasourceSelectReply, error) {
+	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
+	list, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceSelectReply{
-		Data: types.SliceTo(list, func(item *bo.SelectOptionBo) *admin.SelectItem {
-			return build.NewSelectBuilder(item).ToAPI()
-		}),
+		List: builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToSelects(list),
 	}, nil
 }
 
@@ -140,9 +125,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 		return nil, err
 	}
 	return &datasourceapi.DatasourceQueryReply{
-		List: types.SliceTo(query, func(item *bo.DatasourceQueryData) *api.MetricQueryResult {
-			return build.NewBuilder().WithBoDatasourceQueryData(item).ToAPI()
-		}),
+		List: builder.NewParamsBuild().MetricDataModuleBuilder().BoMetricDataBuilder().ToAPIs(query),
 	}, nil
 }
 

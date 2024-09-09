@@ -3,12 +3,9 @@ package resource
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/admin"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -34,25 +31,20 @@ func (s *Service) GetResource(ctx context.Context, req *resourceapi.GetResourceR
 		return nil, err
 	}
 	return &resourceapi.GetResourceReply{
-		Resource: build.NewResourceBuilder(resourceDo).ToAPI(),
+		Detail: builder.NewParamsBuild().ResourceModuleBuilder().DoResourceBuilder().ToAPI(resourceDo),
 	}, nil
 }
 
 // ListResource 获取资源列表
 func (s *Service) ListResource(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.ListResourceReply, error) {
-	queryParams := &bo.QueryResourceListParams{
-		Keyword: req.GetKeyword(),
-		Page:    types.NewPagination(req.GetPagination()),
-	}
+	queryParams := builder.NewParamsBuild().ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
 	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &resourceapi.ListResourceReply{
-		Pagination: build.NewPageBuilder(queryParams.Page).ToAPI(),
-		List: types.SliceTo(resourceDos, func(item *model.SysAPI) *admin.ResourceItem {
-			return build.NewResourceBuilder(item).ToAPI()
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild().ResourceModuleBuilder().DoResourceBuilder().ToAPIs(resourceDos),
 	}, nil
 }
 
@@ -65,20 +57,15 @@ func (s *Service) BatchUpdateResourceStatus(ctx context.Context, req *resourceap
 }
 
 // GetResourceSelectList 获取资源下拉列表
-func (s *Service) GetResourceSelectList(ctx context.Context, req *resourceapi.GetResourceSelectListRequest) (*resourceapi.GetResourceSelectListReply, error) {
-	queryParams := &bo.QueryResourceListParams{
-		Keyword: req.GetKeyword(),
-		Page:    types.NewPagination(req.GetPagination()),
-	}
-	resourceDos, err := s.resourceBiz.GetResourceSelectList(ctx, queryParams)
+func (s *Service) GetResourceSelectList(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.GetResourceSelectListReply, error) {
+	queryParams := builder.NewParamsBuild().ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
+	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	return &resourceapi.GetResourceSelectListReply{
-		Pagination: build.NewPageBuilder(queryParams.Page).ToAPI(),
-		List: types.SliceTo(resourceDos, func(item *bo.SelectOptionBo) *admin.SelectItem {
-			return build.NewSelectBuilder(item).ToAPI()
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild().ResourceModuleBuilder().DoResourceBuilder().ToSelects(resourceDos),
 	}, nil
 }

@@ -82,12 +82,12 @@ func (l *metricRepositoryImpl) Query(ctx context.Context, req *bo.QueryQLParams)
 
 // PushMetric 推送指标
 func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetricParams) error {
-	labels := make([]*admin.MetricLabel, 0, len(req.Labels))
+	labels := make([]*admin.MetricLabelItem, 0, len(req.Labels))
 	for label, labelValue := range req.Labels {
-		labels = append(labels, &admin.MetricLabel{
+		labels = append(labels, &admin.MetricLabelItem{
 			Name: label,
-			Values: types.SliceTo(labelValue, func(item string) *admin.MetricLabelValue {
-				return &admin.MetricLabelValue{
+			Values: types.SliceTo(labelValue, func(item string) *admin.MetricLabelValueItem {
+				return &admin.MetricLabelValueItem{
 					Value: item,
 				}
 			}),
@@ -95,7 +95,7 @@ func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetri
 	}
 
 	_, err := l.palaceCli.PushMetric(ctx, &datasourceapi.SyncMetricRequest{
-		Metrics: &admin.MetricDetail{
+		Metrics: &admin.MetricItem{
 			Name:   req.Name,
 			Help:   req.Help,
 			Type:   api.MetricType(vobj.GetMetricType(req.Type)),

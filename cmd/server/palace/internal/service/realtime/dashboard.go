@@ -5,7 +5,7 @@ import (
 
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 )
 
 // DashboardService 监控大盘服务
@@ -24,7 +24,7 @@ func NewDashboardService(dashboardBiz *biz.DashboardBiz) *DashboardService {
 
 // CreateDashboard 创建监控大盘
 func (s *DashboardService) CreateDashboard(ctx context.Context, req *realtimeapi.CreateDashboardRequest) (*realtimeapi.CreateDashboardReply, error) {
-	params := build.NewBuilder().WithContext(ctx).DashboardModule().WithAPIAddDashboardParams(req).ToBo()
+	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithCreateDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.CreateDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -33,11 +33,7 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, req *realtimeapi
 
 // UpdateDashboard 更新监控大盘
 func (s *DashboardService) UpdateDashboard(ctx context.Context, req *realtimeapi.UpdateDashboardRequest) (*realtimeapi.UpdateDashboardReply, error) {
-	params := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithAPIUpdateDashboardParams(req).
-		ToBo()
+	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithUpdateDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.UpdateDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -46,11 +42,7 @@ func (s *DashboardService) UpdateDashboard(ctx context.Context, req *realtimeapi
 
 // DeleteDashboard 删除监控大盘
 func (s *DashboardService) DeleteDashboard(ctx context.Context, req *realtimeapi.DeleteDashboardRequest) (*realtimeapi.DeleteDashboardReply, error) {
-	params := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithAPIDeleteDashboardParams(req).
-		ToBo()
+	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithDeleteDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.DeleteDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -63,56 +55,34 @@ func (s *DashboardService) GetDashboard(ctx context.Context, req *realtimeapi.Ge
 	if err != nil {
 		return nil, err
 	}
-	apiDetail := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithDoDashboard(detail).
-		ToAPI()
 	return &realtimeapi.GetDashboardReply{
-		Detail: apiDetail,
+		Detail: builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPI(detail),
 	}, nil
 }
 
 // ListDashboard 获取监控大盘列表
 func (s *DashboardService) ListDashboard(ctx context.Context, req *realtimeapi.ListDashboardRequest) (*realtimeapi.ListDashboardReply, error) {
-	params := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithAPIQueryDashboardListParams(req).
-		ToBo()
+	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithListDashboardRequest(req).ToBo()
 	list, err := s.dashboardBiz.ListDashboard(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	apiList := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithDoDashboardList(list).
-		ToAPIs()
+
 	return &realtimeapi.ListDashboardReply{
-		List:       apiList,
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List:       builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
 
 // ListDashboardSelect 获取监控大盘下拉列表
-func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *realtimeapi.ListDashboardSelectRequest) (*realtimeapi.ListDashboardSelectReply, error) {
-	params := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithAPIQueryDashboardSelectParams(req).
-		ToBo()
+func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *realtimeapi.ListDashboardRequest) (*realtimeapi.ListDashboardSelectReply, error) {
+	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithListDashboardRequest(req).ToBo()
 	list, err := s.dashboardBiz.ListDashboard(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	apiList := build.NewBuilder().
-		WithContext(ctx).
-		DashboardModule().
-		WithDoDashboardList(list).
-		ToSelects()
 	return &realtimeapi.ListDashboardSelectReply{
-		List:       apiList,
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
+		List:       builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToSelects(list),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }

@@ -32,7 +32,7 @@ type (
 	// UpdateDictParams 更新字典请求参数
 	UpdateDictParams struct {
 		ID          uint32 `json:"id"`
-		UpdateParam CreateDictParams
+		UpdateParam *CreateDictParams
 	}
 
 	// UpdateDictStatusParams 更新字典状态请求参数

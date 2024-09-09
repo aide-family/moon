@@ -16,5 +16,5 @@ type DatasourceMetric interface {
 	InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error
 
 	// Query 查询指标数据
-	Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.DatasourceQueryData, error)
+	Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.MetricQueryData, error)
 }

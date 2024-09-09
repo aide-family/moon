@@ -68,7 +68,6 @@ func (l *templateRepositoryImpl) UpdateTemplateStrategy(ctx context.Context, upd
 				queryInstance.StrategyTemplate.Labels.Value(updateParam.Data.Labels),
 				queryInstance.StrategyTemplate.Annotations.Value(updateParam.Data.Annotations),
 				queryInstance.StrategyTemplate.Alert.Value(updateParam.Data.Alert),
-				queryInstance.StrategyTemplate.Status.Value(updateParam.Data.Status.GetValue()),
 			)
 		// 删除全部关联模板类型数据
 		if _, err = tx.StrategyTemplateCategories.WithContext(ctx).Where(queryInstance.StrategyTemplateCategories.StrategyTemplateID.Eq(updateParam.ID)).Delete(); err != nil {
@@ -178,7 +177,7 @@ func createTemplateStrategy(ctx context.Context, createParam *bo.CreateTemplateS
 	templateItem := &model.StrategyTemplate{
 		Alert:       createParam.Alert,
 		Expr:        createParam.Expr,
-		Status:      createParam.Status,
+		Status:      vobj.StatusEnable,
 		Remark:      createParam.Remark,
 		Labels:      createParam.Labels,
 		Annotations: createParam.Annotations,

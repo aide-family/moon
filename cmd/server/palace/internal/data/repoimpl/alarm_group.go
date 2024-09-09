@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
+func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmNoticeGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -53,7 +53,7 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 
 }
 
-func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmGroupParams) error {
+func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmNoticeGroupParams) error {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return err
@@ -133,7 +133,7 @@ func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID ui
 	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).Preload(field.Associations).First()
 }
 
-func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
+func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -159,7 +159,7 @@ func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *b
 	return bizWrapper.Order(bizQuery.AlarmNoticeGroup.ID.Desc()).Find()
 }
 
-func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmGroupStatusParams) error {
+func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmNoticeGroupStatusParams) error {
 	if len(params.IDs) == 0 {
 		return nil
 	}
@@ -174,7 +174,7 @@ func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.
 }
 
 // convert bo params to model
-func createAlarmGroupParamsToModel(ctx context.Context, params *bo.CreateAlarmGroupParams) *bizmodel.AlarmNoticeGroup {
+func createAlarmGroupParamsToModel(ctx context.Context, params *bo.CreateAlarmNoticeGroupParams) *bizmodel.AlarmNoticeGroup {
 	alarmGroup := &bizmodel.AlarmNoticeGroup{
 		Name:   params.Name,
 		Status: params.Status,

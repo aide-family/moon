@@ -27,7 +27,7 @@ type datasourceMetricRepositoryImpl struct {
 }
 
 // Query 查询数据源指标
-func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.DatasourceQueryData, error) {
+func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.MetricQueryData, error) {
 	configMap := make(map[string]string)
 	if !types.TextIsNull(req.Config) {
 		if err := json.Unmarshal([]byte(req.Config), &configMap); !types.IsNil(err) {
@@ -47,7 +47,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	list := types.SliceTo(queryReply.GetList(), func(item *api.MetricQueryResult) *bo.DatasourceQueryData {
+	list := types.SliceTo(queryReply.GetList(), func(item *api.MetricQueryResult) *bo.MetricQueryData {
 		var value *bo.DatasourceQueryValue
 		if !types.IsNil(item.GetValue()) {
 			value = &bo.DatasourceQueryValue{
@@ -55,7 +55,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 				Value:     item.GetValue().GetValue(),
 			}
 		}
-		return &bo.DatasourceQueryData{
+		return &bo.MetricQueryData{
 			Labels:     item.GetLabels(),
 			ResultType: item.GetResultType(),
 			Values: types.SliceTo(item.GetValues(), func(item *api.MetricQueryValue) *bo.DatasourceQueryValue {

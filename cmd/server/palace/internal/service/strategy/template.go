@@ -4,16 +4,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/api/admin"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -35,7 +34,7 @@ func NewTemplateService(templateBiz *biz.TemplateBiz, datasourceBiz *biz.Datasou
 
 // CreateTemplateStrategy 创建模板策略
 func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strategyapi.CreateTemplateStrategyRequest) (*strategyapi.CreateTemplateStrategyReply, error) {
-	params := build.NewBuilder().WithCreateBoTemplateStrategy(req).ToCreateTemplateBO()
+	params := builder.NewParamsBuild().StrategyModuleBuilder().WithCreateTemplateStrategyRequest(req).ToBo()
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
@@ -44,7 +43,7 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 
 // UpdateTemplateStrategy 更新模板策略
 func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strategyapi.UpdateTemplateStrategyRequest) (*strategyapi.UpdateTemplateStrategyReply, error) {
-	params := build.NewBuilder().WithUpdateBoTemplateStrategy(req).ToUpdateTemplateBO()
+	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateTemplateStrategyRequest(req).ToBo()
 	if err := s.templateBiz.UpdateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
@@ -66,7 +65,7 @@ func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategy
 		return nil, err
 	}
 	return &strategyapi.GetTemplateStrategyReply{
-		Detail: build.NewBuilder().WithAPITemplateStrategy(detail).ToAPI(ctx),
+		Detail: builder.NewParamsBuild().StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPI(detail),
 	}, nil
 }
 
@@ -82,16 +81,15 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strateg
 		return nil, err
 	}
 	return &strategyapi.ListTemplateStrategyReply{
-		Pagination: build.NewPageBuilder(params.Page).ToAPI(),
-		List: types.SliceTo(list, func(item *model.StrategyTemplate) *admin.StrategyTemplate {
-			return build.NewBuilder().WithAPITemplateStrategy(item).ToAPI(ctx)
-		}),
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPIs(list),
 	}, nil
 }
 
 // UpdateTemplateStrategyStatus 更新模板策略状态
 func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req *strategyapi.UpdateTemplateStrategyStatusRequest) (*strategyapi.UpdateTemplateStrategyStatusReply, error) {
-	if err := s.templateBiz.UpdateTemplateStrategyStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); err != nil {
+	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateTemplateStrategyStatusRequest(req).ToBo()
+	if err := s.templateBiz.UpdateTemplateStrategyStatus(ctx, params); err != nil {
 		return nil, err
 	}
 	return &strategyapi.UpdateTemplateStrategyStatusReply{}, nil

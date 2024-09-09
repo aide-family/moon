@@ -35,7 +35,7 @@ service Resource {
     };
   }
   // 获取资源下拉列表
-  rpc GetResourceSelectList (GetResourceSelectListRequest) returns (GetResourceSelectListReply) {
+  rpc GetResourceSelectList (ListResourceRequest) returns (GetResourceSelectListReply) {
     option (google.api.http) = {
       post: "/v1/resource/select"
       body: "*"
@@ -47,7 +47,7 @@ message GetResourceRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetResourceReply {
-  ResourceItem resource = 1;
+  ResourceItem detail = 1;
 }
 
 message ListResourceRequest {
@@ -79,14 +79,6 @@ message BatchUpdateResourceStatusRequest {
 }
 message BatchUpdateResourceStatusReply {}
 
-message GetResourceSelectListRequest {
-  PaginationReq pagination = 1 [(buf.validate.field).required = true];
-  string keyword = 2 [(buf.validate.field).cel = {
-    id: "keyword",
-    message: "关键字查询限制在20字以内",
-    expression: "this.size() <= 20"
-  }];
-}
 message GetResourceSelectListReply {
   PaginationReply pagination = 1;
   repeated SelectItem list = 2;

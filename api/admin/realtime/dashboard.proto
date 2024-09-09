@@ -53,7 +53,7 @@ service Dashboard {
 	}
 
 	// 获取大盘下拉列表
-	rpc ListDashboardSelect (ListDashboardSelectRequest) returns (ListDashboardSelectReply) {
+	rpc ListDashboardSelect (ListDashboardRequest) returns (ListDashboardSelectReply) {
 		option (google.api.http) = {
 			post: "/v1/admin/realtime/dashboard/list/select"
 			body: "*"
@@ -147,17 +147,6 @@ message ListDashboardReply {
 	PaginationReply pagination = 2;
 }
 
-message ListDashboardSelectRequest {
-	// 仪表板名称
-	string keyword = 1 [(buf.validate.field).cel = {
-		message: "模糊搜索在20个字符以内",
-		expression: 'this.size() <= 20'
-	}];
-	// 仪表板状态
-	Status status = 2;
-	// 分页
-	PaginationReq pagination = 3;
-}
 message ListDashboardSelectReply {
 	// 仪表板列表
 	repeated SelectItem list = 1;

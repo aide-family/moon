@@ -110,7 +110,7 @@ message GetHookRequest {
   uint32 id = 1;
 }
 message GetHookReply {
-  AlarmHookItem hook = 1;
+  AlarmHookItem detail = 1;
 }
 
 // hook 列表
@@ -126,6 +126,11 @@ message ListHookRequest {
   Status status = 3;
   // hook应用
   repeated HookApp hookApp = 5;
+  // Name
+  string name = 6 [(buf.validate.field).cel = {
+    message: "名称长度限制在1-20个字符",
+    expression: "this.size() >= 1 && this.size() <= 20"
+  }];
 }
 message ListHookReply {
   repeated AlarmHookItem hooks = 1;

@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
@@ -28,7 +28,7 @@ type dashboardRepositoryImpl struct {
 }
 
 func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddDashboardParams) error {
-	dashboardModuleBuilder := build.NewBuilder().DashboardModule().WithBoAddDashboardParams(req)
+	dashboardModuleBuilder := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithBoAddDashboardParams(req)
 	dashboardModel := dashboardModuleBuilder.ToDo()
 	bizQuery, err := getBizQuery(ctx, d.data)
 	if err != nil {
@@ -71,7 +71,7 @@ func (d *dashboardRepositoryImpl) DeleteDashboard(ctx context.Context, req *bo.D
 }
 
 func (d *dashboardRepositoryImpl) UpdateDashboard(ctx context.Context, req *bo.UpdateDashboardParams) error {
-	dashboardModuleBuilder := build.NewBuilder().DashboardModule().WithBoUpdateDashboardParams(req)
+	dashboardModuleBuilder := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithBoUpdateDashboardParams(req)
 	dashboardModel := dashboardModuleBuilder.ToDo()
 	strategyGroups := dashboardModuleBuilder.ToDoStrategyGroups()
 	charts := dashboardModuleBuilder.ToDoCharts()

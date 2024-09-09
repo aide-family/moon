@@ -3,15 +3,11 @@ package dict
 import (
 	"context"
 
-	adminapi "github.com/aide-family/moon/api/admin"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/palace/imodel"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // Service 字典服务
@@ -30,7 +26,7 @@ func NewDictService(dictBiz *biz.DictBiz) *Service {
 
 // CreateDict 创建字典
 func (s *Service) CreateDict(ctx context.Context, req *dictapi.CreateDictRequest) (*dictapi.CreateDictReply, error) {
-	createParams := build.NewBuilder().WithCreateBoDict(req).ToCreateDictBO()
+	createParams := builder.NewParamsBuild().DictModuleBuilder().WithCreateDictRequest(req).ToBo()
 	_, err := s.dictBiz.CreateDict(ctx, createParams)
 	if err != nil {
 		return nil, err
@@ -43,7 +39,7 @@ func (s *Service) CreateDict(ctx context.Context, req *dictapi.CreateDictRequest
 
 // UpdateDict 更新字典
 func (s *Service) UpdateDict(ctx context.Context, req *dictapi.UpdateDictRequest) (*dictapi.UpdateDictReply, error) {
-	updateParams := build.NewBuilder().WithUpdateBoDict(req).ToUpdateDictBO()
+	updateParams := builder.NewParamsBuild().DictModuleBuilder().WithUpdateDictRequest(req).ToBo()
 	if err := s.dictBiz.UpdateDict(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
@@ -52,32 +48,22 @@ func (s *Service) UpdateDict(ctx context.Context, req *dictapi.UpdateDictRequest
 
 // ListDict 获取字典列表
 func (s *Service) ListDict(ctx context.Context, req *dictapi.ListDictRequest) (*dictapi.ListDictReply, error) {
-	queryParams := &bo.QueryDictListParams{
-		Keyword:  req.GetKeyword(),
-		Page:     types.NewPagination(req.GetPagination()),
-		Status:   vobj.Status(req.GetStatus()),
-		DictType: vobj.DictType(req.GetDictType()),
-	}
-	dictPage, err := s.dictBiz.ListDict(ctx, queryParams)
+	queryParams := builder.NewParamsBuild().DictModuleBuilder().WithListDictRequest(req).ToBo()
+	dictList, err := s.dictBiz.ListDict(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *adminapi.Dict {
-		return build.NewBuilder().WithContext(ctx).WithDict(dict).ToAPI()
-	})
+
 	return &dictapi.ListDictReply{
-		Pagination: build.NewPageBuilder(queryParams.Page).ToAPI(),
-		List:       resList,
+		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild().DictModuleBuilder().DoDictBuilder().ToAPIs(dictList),
 	}, nil
 }
 
 // BatchUpdateDictStatus 批量更新字典状态
-func (s *Service) BatchUpdateDictStatus(ctx context.Context, params *dictapi.BatchUpdateDictStatusRequest) (*dictapi.BatchUpdateDictStatusReply, error) {
-	updateParams := bo.UpdateDictStatusParams{
-		IDs:    params.GetIds(),
-		Status: vobj.Status(params.Status),
-	}
-	err := s.dictBiz.UpdateDictStatusByIds(ctx, &updateParams)
+func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *dictapi.BatchUpdateDictStatusRequest) (*dictapi.BatchUpdateDictStatusReply, error) {
+	updateParams := builder.NewParamsBuild().DictModuleBuilder().WithUpdateDictStatusParams(req).ToBo()
+	err := s.dictBiz.UpdateDictStatusByIds(ctx, updateParams)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
 	}
@@ -99,33 +85,26 @@ func (s *Service) GetDict(ctx context.Context, req *dictapi.GetDictRequest) (*di
 		return nil, err
 	}
 	return &dictapi.GetDictReply{
-		Dict: build.NewBuilder().WithContext(ctx).WithDict(dictDO).ToAPI(),
+		Detail: builder.NewParamsBuild().DictModuleBuilder().DoDictBuilder().ToAPI(dictDO),
 	}, nil
 }
 
 // ListDictType 获取字典类型列表
 func (s *Service) ListDictType(_ context.Context, _ *dictapi.ListDictTypeRequest) (*dictapi.ListDictTypeReply, error) {
 	return &dictapi.ListDictTypeReply{
-		List: build.NewDictTypeBuilder().ToAPI(),
+		List: builder.NewParamsBuild().DictModuleBuilder().DictTypeList(),
 	}, nil
 }
 
 // DictSelectList 获取字典下拉列表
 func (s *Service) DictSelectList(ctx context.Context, req *dictapi.ListDictRequest) (*dictapi.DictSelectListReply, error) {
-	queryParams := &bo.QueryDictListParams{
-		Keyword:  req.GetKeyword(),
-		Page:     types.NewPagination(req.GetPagination()),
-		Status:   vobj.Status(req.GetStatus()),
-		DictType: vobj.DictType(req.GetDictType()),
-	}
-	dictPage, err := s.dictBiz.ListDict(ctx, queryParams)
+	queryParams := builder.NewParamsBuild().DictModuleBuilder().WithListDictRequest(req).ToBo()
+	dictList, err := s.dictBiz.ListDict(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	resList := types.SliceTo(dictPage, func(dict imodel.IDict) *adminapi.SelectItem {
-		return build.NewBuilder().WithContext(ctx).WithDict(dict).ToAPISelect()
-	})
+
 	return &dictapi.DictSelectListReply{
-		List: resList,
+		List: builder.NewParamsBuild().DictModuleBuilder().DoDictBuilder().ToSelects(dictList),
 	}, nil
 }

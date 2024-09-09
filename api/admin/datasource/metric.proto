@@ -38,7 +38,7 @@ service Metric {
   }
 
   // 获取元数据列表（下拉选择接口）
-  rpc SelectMetric(SelectMetricRequest) returns (SelectMetricReply) {
+  rpc SelectMetric(ListMetricRequest) returns (SelectMetricReply) {
     option (google.api.http) = {
       post: "/v1/datasource/metric/select"
       body: "*"
@@ -91,7 +91,7 @@ message GetMetricRequest {
 }
 message GetMetricReply {
   // 详情
-  MetricDetail data = 1;
+  MetricItem data = 1;
   // label数量
   uint32 labelCount = 2;
 }
@@ -114,25 +114,9 @@ message ListMetricReply {
   // 分页参数
   PaginationReply pagination = 1;
   // 数据
-  repeated MetricDetail list = 2;
+  repeated MetricItem list = 2;
 }
 
-message SelectMetricRequest {
-  // 模糊查询， 不超过20字符搜索
-  string keyword = 1 [(buf.validate.field).cel = {
-    id: "SelectMetricRequestKeyword",
-    message: "关键字不能超过20个字符",
-    expression: 'this.size() <= 20'
-  }];
-  // 指标类型
-  MetricType metricType = 2 [(buf.validate.field).enum.defined_only = true];
-  // 数据源ID
-  uint32 datasourceId = 3;
-  // metric ids (用于包含默认参数的场景， 例如：编辑时候， 映射某个指标)
-  repeated uint32 ids = 4;
-  // 分页参数
-  PaginationReq pagination = 5 [(buf.validate.field).required = true];
-}
 message SelectMetricReply {
   // 数据
   repeated SelectItem list = 1;
@@ -142,7 +126,7 @@ message SelectMetricReply {
 
 message SyncMetricRequest {
   // 推送一个指标数据
-  MetricDetail metrics = 1 [(buf.validate.field).required = true];
+  MetricItem metrics = 1 [(buf.validate.field).required = true];
   // 是否推送完毕
   bool done = 2;
   // 数据源ID

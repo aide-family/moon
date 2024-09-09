@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -102,7 +101,7 @@ type (
 		// 策略组说明信息
 		Remark string `json:"remark,omitempty"`
 		// 策略组状态
-		Status api.Status `json:"status,omitempty"`
+		Status vobj.Status `json:"status,omitempty"`
 		// 策略分组类型
 		CategoriesIds []uint32 `json:"categoriesIds,omitempty"`
 	}
@@ -116,7 +115,7 @@ type (
 	// UpdateStrategyGroupParams 更新策略组请求参数
 	UpdateStrategyGroupParams struct {
 		ID          uint32 `json:"id"`
-		UpdateParam CreateStrategyGroupParams
+		UpdateParam *CreateStrategyGroupParams
 	}
 
 	// DelStrategyGroupParams 删除策略组请求参数
@@ -163,6 +162,26 @@ type (
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
 	}
 )
+
+func (s *StrategyCountMap) GetStrategyCountMap(strategyGroupIds uint32) uint64 {
+	if types.IsNil(s) {
+		return 0
+	}
+	if v, ok := s.StrategyCountMap[strategyGroupIds]; ok {
+		return v.Total
+	}
+	return 0
+}
+
+func (s *StrategyCountMap) GetStrategyEnableMap(strategyGroupIds uint32) uint64 {
+	if types.IsNil(s) {
+		return 0
+	}
+	if v, ok := s.StrategyEnableMap[strategyGroupIds]; ok {
+		return v.Total
+	}
+	return 0
+}
 
 var _ watch.Indexer = (*Strategy)(nil)
 

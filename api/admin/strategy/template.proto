@@ -71,7 +71,7 @@ service Template {
 }
 
 // 策略等级挂钩的告警模板明细
-message MutationStrategyLevelTemplate {
+message MutationStrategyLevelTemplateItem {
   // 策略持续时间
   google.protobuf.Duration duration = 1;
   // 持续次数
@@ -96,6 +96,12 @@ message MutationStrategyLevelTemplate {
   double threshold = 5;
   // ID
   uint32 id = 7;
+  // 策略等级
+  uint32 levelId = 6 [(buf.validate.field).enum.defined_only = true, (buf.validate.field).cel = {
+    expression: "this > 0"
+    message: "请选择正确的策略等级"
+    id: "MutationStrategyLevelTemplateLevel"
+  }];
 }
 
 message CreateTemplateStrategyRequest {
@@ -130,16 +136,13 @@ message CreateTemplateStrategyRequest {
     id: "CreateTemplateStrategyRequestAnnotations"
   }];
   // 策略等级模板
-  map<uint32, MutationStrategyLevelTemplate> level = 6 [(buf.validate.field).cel = {
+  repeated MutationStrategyLevelTemplateItem levels = 6 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
     message: "策略等级模板数量必须大于0且小于等于10"
     id: "CreateTemplateStrategyRequestLevel"
   }];
   //策略模板类型
   repeated uint32 categoriesIds = 7 [(buf.validate.field).cel = {
-    message: "请选择策略模板类型",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
@@ -179,7 +182,7 @@ message UpdateTemplateStrategyRequest {
     id: "CreateTemplateStrategyRequestAnnotations"
   }];
   // 策略等级模板
-  map<uint32, MutationStrategyLevelTemplate> level = 6 [(buf.validate.field).cel = {
+  repeated MutationStrategyLevelTemplateItem levels = 6 [(buf.validate.field).cel = {
     expression: "uint(this.size()) >= 1 && uint(this.size()) <= 10"
     message: "策略等级模板数量必须大于0且小于等于10"
     id: "CreateTemplateStrategyRequestLevel"
@@ -189,6 +192,11 @@ message UpdateTemplateStrategyRequest {
     expression: "this > 0"
     message: "请选择正确的策略数据编辑"
     id: "UpdateTemplateStrategyRequestID"
+  }];
+  // 策略类型
+  repeated uint32 categoriesIds = 8 [(buf.validate.field).cel = {
+    message: "必须保证修改对象数据唯一",
+    expression: "this.unique()"
   }];
 }
 message UpdateTemplateStrategyReply {}
@@ -210,7 +218,7 @@ message GetTemplateStrategyRequest {
   }];
 }
 message GetTemplateStrategyReply {
-  StrategyTemplate detail = 1;
+  StrategyTemplateItem detail = 1;
 }
 
 message ListTemplateStrategyRequest {
@@ -223,12 +231,17 @@ message ListTemplateStrategyRequest {
   }];
   // 状态查询
   Status status = 3;
+  // Alert 名称
+  string alert = 4 [(buf.validate.field).cel = {
+    message: "Alert 名称长度限制在0-50个字符",
+    expression: "this.size() <= 50"
+  }];
 }
 message ListTemplateStrategyReply {
   // 分页信息
   PaginationReply pagination = 1;
   // 策略列表
-  repeated StrategyTemplate list = 2;
+  repeated StrategyTemplateItem list = 2;
 }
 
 message UpdateTemplateStrategyStatusRequest {

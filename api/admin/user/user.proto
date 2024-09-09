@@ -77,7 +77,7 @@ service User {
   }
 
   // 获取用户下拉列表
-  rpc GetUserSelectList (GetUserSelectListRequest) returns (GetUserSelectListReply) {
+  rpc GetUserSelectList (ListUserRequest) returns (GetUserSelectListReply) {
     option (google.api.http) = {
       post: "/v1/user/select"
       body: "*"
@@ -206,7 +206,7 @@ message GetUserRequest {
 }
 message GetUserReply {
   // 用户详情
-  User user = 1;
+  UserItem detail = 1;
 }
 
 message ListUserRequest {
@@ -232,10 +232,12 @@ message ListUserRequest {
     expression: "(this in [0, 1, 2, 3])",
     message: "角色值必须在[全部(0), 超级管理员(1), 管理员(2), 普通用户(3)]之间",
   }];
+  // ID 列表
+  repeated uint32 ids = 6;
 }
 message ListUserReply {
   // 用户列表
-  repeated User list = 1;
+  repeated UserItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }
@@ -281,32 +283,6 @@ message ResetUserPasswordBySelfRequest {
 }
 message ResetUserPasswordBySelfReply {}
 
-message GetUserSelectListRequest {
-  // 分页参数
-  PaginationReq pagination = 1;
-  // 关键字模糊查询
-  string keyword = 2 [(buf.validate.field).cel = {
-    message: "关键字模糊查询长度限制在0-20个字符",
-    expression: "this.size() <= 20"
-  }];
-  // 状态查询
-  Status status = 3 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2])",
-    message: "状态值必须在[全部(0), 启用(1), 禁用(2)]之间",
-  }];
-  // 性别查询
-  Gender gender = 4 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2])",
-    message: "性别值必须在[全部(0), 男(1), 女(2)]之间",
-  }];
-  // 角色查询
-  Role role = 5 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2, 3])",
-    message: "角色值必须在[全部(0), 超级管理员(1), 管理员(2), 普通用户(3)]之间",
-  }];
-  // 用户ID列表
-  repeated uint32 ids = 6;
-}
 message GetUserSelectListReply {
   // 用户列表
   repeated SelectItem list = 1;
