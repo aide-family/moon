@@ -16,15 +16,15 @@ type (
 		// 告警组状态
 		Status vobj.Status `json:"status,omitempty"`
 		// 告警分组通知人
-		NoticeUsers []*CreateNoticeUserParams `json:"noticeUsers,omitempty"`
+		NoticeMembers []*CreateNoticeMemberParams `json:"noticeMembers,omitempty"`
 		// hook ids
 		HookIds []uint32 `json:"hookIds"`
 	}
 
-	// CreateNoticeUserParams 创建通知人参数
-	CreateNoticeUserParams struct {
+	// CreateNoticeMemberParams 创建通知人参数
+	CreateNoticeMemberParams struct {
 		// 用户id
-		UserID uint32
+		MemberID uint32
 		// 通知方式
 		NotifyType vobj.NotifyType
 	}
@@ -43,6 +43,14 @@ type (
 
 	// QueryAlarmNoticeGroupListParams 查询告警组列表请求参数
 	QueryAlarmNoticeGroupListParams struct {
+		Keyword string `json:"keyword"`
+		Page    types.Pagination
+		Name    string
+		Status  vobj.Status
+	}
+
+	// MyAlarmGroupListParams 我的告警组列表请求参数
+	MyAlarmGroupListParams struct {
 		Keyword string `json:"keyword"`
 		Page    types.Pagination
 		Name    string

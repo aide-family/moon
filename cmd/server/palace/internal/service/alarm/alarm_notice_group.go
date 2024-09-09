@@ -2,7 +2,7 @@ package alarm
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"strings"
 
 	alarmyapi "github.com/aide-family/moon/api/admin/alarm"
@@ -28,9 +28,9 @@ func NewAlarmService(alarmGroupBiz *biz.AlarmGroupBiz) *GroupService {
 // CreateAlarmGroup 创建告警组
 func (s *GroupService) CreateAlarmGroup(ctx context.Context, req *alarmyapi.CreateAlarmGroupRequest) (*alarmyapi.CreateAlarmGroupReply, error) {
 	// 校验通知人是否重复
-	if has := types.SlicesHasDuplicates(req.GetNoticeUser(), func(request *alarmyapi.CreateNoticeUserRequest) string {
+	if has := types.SlicesHasDuplicates(req.GetNoticeMember(), func(request *alarmyapi.CreateNoticeMemberRequest) string {
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%d-", request.GetUserId()))
+		sb.WriteString(strconv.FormatInt(int64(request.GetMemberId()), 10))
 		return sb.String()
 	}); has {
 		return nil, merr.ErrorI18nAlarmNoticeRepeatErr(ctx)
@@ -81,9 +81,9 @@ func (s *GroupService) GetAlarmGroup(ctx context.Context, req *alarmyapi.GetAlar
 // UpdateAlarmGroup 更新告警组信息
 func (s *GroupService) UpdateAlarmGroup(ctx context.Context, req *alarmyapi.UpdateAlarmGroupRequest) (*alarmyapi.UpdateAlarmGroupReply, error) {
 	// 校验通知人是否重复
-	if has := types.SlicesHasDuplicates(req.GetUpdate().GetNoticeUser(), func(request *alarmyapi.CreateNoticeUserRequest) string {
+	if has := types.SlicesHasDuplicates(req.GetUpdate().GetNoticeMember(), func(request *alarmyapi.CreateNoticeMemberRequest) string {
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%d-", request.GetUserId()))
+		sb.WriteString(strconv.FormatInt(int64(request.GetMemberId()), 10))
 		return sb.String()
 	}); has {
 		return nil, merr.ErrorI18nAlarmNoticeRepeatErr(ctx)
@@ -115,5 +115,30 @@ func (s *GroupService) ListAlarmGroupSelect(ctx context.Context, req *alarmyapi.
 	}
 	return &alarmyapi.ListAlarmGroupSelectReply{
 		List: builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToSelects(alarmGroups),
+	}, nil
+}
+
+// MyAlarmGroupList 获取我的告警组
+func (s *GroupService) MyAlarmGroupList(ctx context.Context, req *alarmyapi.MyAlarmGroupRequest) (*alarmyapi.MyAlarmGroupReply, error) {
+	param := builder.NewParamsBuild().
+		WithContext(ctx).
+		AlarmNoticeGroupModuleBuilder().
+		WithAPIMyAlarmGroupListRequest(req).
+		ToBo()
+
+	myAlarmGroup, err := s.alarmGroupBiz.MyAlarmGroups(ctx, param)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	return &alarmyapi.MyAlarmGroupReply{
+		Pagination: builder.NewParamsBuild().
+			PaginationModuleBuilder().
+			ToAPI(param.Page),
+		List: builder.NewParamsBuild().
+			WithContext(ctx).
+			AlarmNoticeGroupModuleBuilder().
+			DoAlarmNoticeGroupItemBuilder().
+			ToAPIs(myAlarmGroup),
 	}, nil
 }

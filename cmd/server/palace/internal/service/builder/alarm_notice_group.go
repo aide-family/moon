@@ -85,6 +85,15 @@ type (
 		ctx context.Context
 	}
 
+	IMyAlarmGroupListParamsBuilder interface {
+		ToBo() *bo.MyAlarmGroupListParams
+	}
+
+	myAlarmGroupListParamsBuilder struct {
+		ctx context.Context
+		*alarmapi.MyAlarmGroupRequest
+	}
+
 	IAlarmNoticeGroupModuleBuilder interface {
 		WithCreateAlarmGroupRequest(*alarmapi.CreateAlarmGroupRequest) ICreateAlarmGroupRequestBuilder
 		WithUpdateAlarmGroupRequest(*alarmapi.UpdateAlarmGroupRequest) IUpdateAlarmGroupRequestBuilder
@@ -93,8 +102,20 @@ type (
 		APICreateStrategyLabelNoticeRequest() ICreateStrategyLabelNoticeRequestBuilder
 		DoAlarmNoticeGroupItemBuilder() IDoAlarmNoticeGroupItemBuilder
 		DoLabelNoticeBuilder() IDoLabelNoticeBuilder
+		WithAPIMyAlarmGroupListRequest(*alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder
 	}
 )
+
+func (a *myAlarmGroupListParamsBuilder) ToBo() *bo.MyAlarmGroupListParams {
+	if types.IsNil(a) || types.IsNil(a.MyAlarmGroupRequest) {
+		return nil
+	}
+	return &bo.MyAlarmGroupListParams{
+		Keyword: a.GetKeyword(),
+		Status:  vobj.Status(a.GetStatus()),
+		Page:    types.NewPagination(a.GetPagination()),
+	}
+}
 
 func (c *createStrategyLabelNoticeRequestBuilder) ToBo(request *strategyapi.CreateStrategyLabelNoticeRequest) *bo.StrategyLabelNotice {
 	if types.IsNil(request) || types.IsNil(c) {
@@ -187,7 +208,7 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) 
 		Remark:      group.Remark,
 		Creator:     "", // TODO impl
 		CreatorId:   group.CreatorID,
-		NoticeUsers: NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeUsers),
+		NoticeUsers: NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
 		Hooks:       NewParamsBuild().WithContext(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
 	}
 }
@@ -245,10 +266,10 @@ func (c *createAlarmGroupRequestBuilder) ToBo() *bo.CreateAlarmNoticeGroupParams
 		Name:   c.GetName(),
 		Remark: c.GetRemark(),
 		Status: vobj.Status(c.GetStatus()),
-		NoticeUsers: types.SliceTo(c.NoticeUser, func(user *alarmapi.CreateNoticeUserRequest) *bo.CreateNoticeUserParams {
-			return &bo.CreateNoticeUserParams{
-				UserID:     user.GetUserId(),
-				NotifyType: vobj.NotifyType(user.GetNotifyType()),
+		NoticeMembers: types.SliceTo(c.NoticeMember, func(member *alarmapi.CreateNoticeMemberRequest) *bo.CreateNoticeMemberParams {
+			return &bo.CreateNoticeMemberParams{
+				MemberID:   member.GetMemberId(),
+				NotifyType: vobj.NotifyType(member.GetNotifyType()),
 			}
 		}),
 		HookIds: c.GetHookIds(),
@@ -269,6 +290,10 @@ func (a *alarmNoticeGroupModuleBuilder) WithListAlarmGroupRequest(request *alarm
 
 func (a *alarmNoticeGroupModuleBuilder) WithUpdateAlarmGroupStatusRequest(request *alarmapi.UpdateAlarmGroupStatusRequest) IUpdateAlarmGroupStatusRequestBuilder {
 	return &updateAlarmGroupStatusRequestBuilder{ctx: a.ctx, UpdateAlarmGroupStatusRequest: request}
+}
+
+func (a *alarmNoticeGroupModuleBuilder) WithAPIMyAlarmGroupListRequest(request *alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder {
+	return &myAlarmGroupListParamsBuilder{ctx: a.ctx, MyAlarmGroupRequest: request}
 }
 
 func (a *alarmNoticeGroupModuleBuilder) DoAlarmNoticeGroupItemBuilder() IDoAlarmNoticeGroupItemBuilder {

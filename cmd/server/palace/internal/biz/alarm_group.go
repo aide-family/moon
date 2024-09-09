@@ -86,3 +86,12 @@ func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmNotic
 	}
 	return alarmGroups, nil
 }
+
+// MyAlarmGroups 查询我的告警分组
+func (s *AlarmGroupBiz) MyAlarmGroups(ctx context.Context, params *bo.MyAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
+	alarmGroups, err := s.strategyRepo.MyAlarmGroups(ctx, params)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+	}
+	return alarmGroups, nil
+}

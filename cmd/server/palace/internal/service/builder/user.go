@@ -131,8 +131,8 @@ type (
 	}
 
 	INoticeUserBuilder interface {
-		ToAPI(*bizmodel.AlarmNoticeUser) *adminapi.NoticeItem
-		ToAPIs([]*bizmodel.AlarmNoticeUser) []*adminapi.NoticeItem
+		ToAPI(*bizmodel.AlarmNoticeMember) *adminapi.NoticeItem
+		ToAPIs([]*bizmodel.AlarmNoticeMember) []*adminapi.NoticeItem
 	}
 
 	doNoticeUserBuilder struct {
@@ -140,7 +140,7 @@ type (
 	}
 )
 
-func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeUser) *adminapi.NoticeItem {
+func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeMember) *adminapi.NoticeItem {
 	if types.IsNil(user) {
 		return nil
 	}
@@ -151,12 +151,12 @@ func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeUser) *adminapi.No
 	}
 }
 
-func (d *doNoticeUserBuilder) ToAPIs(users []*bizmodel.AlarmNoticeUser) []*adminapi.NoticeItem {
+func (d *doNoticeUserBuilder) ToAPIs(users []*bizmodel.AlarmNoticeMember) []*adminapi.NoticeItem {
 	if types.IsNil(users) {
 		return nil
 	}
 
-	return types.SliceTo(users, func(user *bizmodel.AlarmNoticeUser) *adminapi.NoticeItem {
+	return types.SliceTo(users, func(user *bizmodel.AlarmNoticeMember) *adminapi.NoticeItem {
 		return d.ToAPI(user)
 	})
 }

@@ -120,7 +120,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 	// 生成token
 	base := new(middleware.JwtBaseInfo)
 	base.SetUserInfo(userDo.ID)
-	// 查询用户所属团队是否存在，存在着set temId
+	// 查询用户所属团队是否存在，存在着set temId memberId
 	if teamID > 0 {
 		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, teamID)
 		if !types.IsNil(err) {
@@ -130,6 +130,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 			return nil, merr.ErrorI18nUserTeamDisabledErr(ctx)
 		}
 		base.SetTeamInfo(memberItem.TeamID)
+		base.SetMember(memberItem.ID)
 	}
 
 	return base, nil

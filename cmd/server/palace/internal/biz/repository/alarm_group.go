@@ -22,5 +22,7 @@ type (
 		AlarmGroupPage(context.Context, *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error)
 		// UpdateStatus 更新状态
 		UpdateStatus(context.Context, *bo.UpdateAlarmNoticeGroupStatusParams) error
+		// MyAlarmGroups 获取我的告警组
+		MyAlarmGroups(ctx context.Context, params *bo.MyAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error)
 	}
 )

@@ -69,6 +69,14 @@ service Alarm {
       body: "*"
     };
   }
+
+  // 我的告警组
+  rpc MyAlarmGroupList (MyAlarmGroupRequest) returns (MyAlarmGroupReply) {
+    option (google.api.http) = {
+      post: "/v1/group/alarm/my/list"
+      body: "*"
+    };
+  }
 }
 
 message CreateAlarmGroupRequest {
@@ -85,14 +93,14 @@ message CreateAlarmGroupRequest {
   // 告警组状态
   Status status = 3;
   // 通知人
-  repeated CreateNoticeUserRequest noticeUser = 4;
+  repeated CreateNoticeMemberRequest noticeMember = 4;
   // hook ids
   repeated uint32 hookIds = 5;
 }
 message CreateAlarmGroupReply {}
 
-message CreateNoticeUserRequest {
-  uint32 userId = 1 [(buf.validate.field).required = true];
+message CreateNoticeMemberRequest {
+  uint32 memberId = 1 [(buf.validate.field).required = true];
   NotifyType notifyType = 2;
 }
 
@@ -154,4 +162,23 @@ message UpdateAlarmGroupStatusReply{}
 
 message ListAlarmGroupSelectReply {
   repeated SelectItem list = 1;
+}
+
+message MyAlarmGroupRequest {
+  // 分页参数
+  PaginationReq pagination = 1 ;
+  // 关键字模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "关键字模糊查询长度限制在0-20个字符",
+    expression: "this.size() <= 20"
+  }];
+  // 状态查询
+  Status status = 3;
+}
+
+message MyAlarmGroupReply {
+  // 告警组列表
+  repeated AlarmNoticeGroupItem list = 1;
+  // 分页信息
+  PaginationReply pagination = 2;
 }

@@ -2,7 +2,7 @@ package strategy
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"strings"
 
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
@@ -144,7 +144,7 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 	// 校验数组是否有重复数据
 	if has := types.SlicesHasDuplicates(req.GetStrategyLevel(), func(request *strategyapi.CreateStrategyLevelRequest) string {
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%d-", request.GetLevelId()))
+		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 		return sb.String()
 	}); has {
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
@@ -161,7 +161,7 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 	// 校验数组是否有重复数据
 	if has := types.SlicesHasDuplicates(req.GetData().GetStrategyLevel(), func(request *strategyapi.CreateStrategyLevelRequest) string {
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%d-", request.GetLevelId()))
+		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 		return sb.String()
 	}); has {
 		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)

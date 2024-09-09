@@ -57,8 +57,17 @@ type JwtClaims struct {
 
 // JwtBaseInfo jwt base info
 type JwtBaseInfo struct {
-	UserID uint32 `json:"user"`
-	TeamID uint32 `json:"team"`
+	UserID   uint32 `json:"user"`
+	TeamID   uint32 `json:"team"`
+	MemberID uint32 `json:"member"`
+}
+
+// GetMember 获取成员id
+func (l *JwtBaseInfo) GetMember() uint32 {
+	if types.IsNil(l) {
+		return 0
+	}
+	return l.MemberID
 }
 
 // GetUser 获取用户id
@@ -86,6 +95,12 @@ func (l *JwtBaseInfo) SetUserInfo(userID uint32) *JwtBaseInfo {
 // SetTeamInfo 设置团队信息
 func (l *JwtBaseInfo) SetTeamInfo(teamID uint32) *JwtBaseInfo {
 	l.TeamID = teamID
+	return l
+}
+
+// SetMember 设置成员信息
+func (l *JwtBaseInfo) SetMember(memberID uint32) *JwtBaseInfo {
+	l.MemberID = memberID
 	return l
 }
 
