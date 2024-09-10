@@ -16,7 +16,7 @@ type AlarmHistory struct {
 	// 实例名称
 	InstanceName string `gorm:"column:alert;type:varchar(64);not null;comment:实例名称" json:"instanceName"`
 	// 告警消息状态
-	Status vobj.AlertStatus `gorm:"column:status;type:varchar(16);not null;comment:告警消息状态"`
+	AlertStatus vobj.AlertStatus `gorm:"column:status;type:varchar(16);not null;comment:告警消息状态"`
 	// 原始告警消息
 	Info string `gorm:"column:info;type:json;not null;comment:原始告警消息"`
 	// 报警开始时间

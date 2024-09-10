@@ -30,6 +30,7 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewSubscriberStrategyRepository,
 	NewAlarmHookRepository,
 	NewGithubUserRepository,
+	NewAlarmHistoryRepository,
 	NewInviteRepository,
 	NewUserMessageRepository,
 )
