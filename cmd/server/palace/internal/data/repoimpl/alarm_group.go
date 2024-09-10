@@ -17,7 +17,7 @@ import (
 	"gorm.io/gen/field"
 )
 
-// NewAlarmGroupRepository 创建策略分组仓库
+// NewAlarmGroupRepository 创建告警分组仓库
 func NewAlarmGroupRepository(data *data.Data) repository.AlarmGroup {
 	return &alarmGroupRepositoryImpl{
 		data: data,

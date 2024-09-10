@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "global.proto";
+import "enum.proto";
 
 option go_package = "github.com/aide-family/moon/./api/admin/history;history";
 option java_multiple_files = true;
@@ -20,7 +21,8 @@ service History {
   };
   rpc ListHistory (ListHistoryRequest) returns (ListHistoryReply){
     option (google.api.http) = {
-      get: "/v1/admin/history/alarm/list"
+      post: "/v1/admin/history/alarm/list"
+      body: "*"
     };
   };
 }
@@ -31,7 +33,7 @@ message GetHistoryRequest {
 }
 message GetHistoryReply {
   // 告警历史记录
-  AlarmHistory alarmHistory = 1;
+  AlarmHistoryItem alarmHistory = 1;
 }
 
 message ListHistoryRequest {
@@ -42,10 +44,14 @@ message ListHistoryRequest {
     message: "关键字模糊查询长度限制在0-20个字符",
     expression: "this.size() <= 20"
   }];
+  // 告警状态
+  AlertStatus alarmStatuses = 3;
+  // 告警名称
+  string instanceName = 4;
 }
 message ListHistoryReply {
   // 告警历史记录列表
-  repeated AlarmHistory alarmHistory = 1;
+  repeated AlarmHistoryItem list = 1;
   // 分页
   PaginationReply pagination = 2;
 }

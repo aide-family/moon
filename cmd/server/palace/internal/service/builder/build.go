@@ -49,8 +49,14 @@ type (
 
 		TeamModuleBuilder() ITeamModuleBuilder
 		InviteModuleBuilder() InviteModuleBuilder
+
+		AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder
 	}
 )
+
+func (p *paramsBuilder) AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder {
+	return &alarmHistoryModuleBuilder{ctx: p.ctx}
+}
 
 func (p *paramsBuilder) InviteModuleBuilder() InviteModuleBuilder {
 	return &inviteModuleBuilder{ctx: p.ctx}
