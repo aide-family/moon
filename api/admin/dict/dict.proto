@@ -151,29 +151,19 @@ message CreateDictReply {}
 
 message ListDictRequest {
   // 分页参数
-  PaginationReq pagination = 1 ;
+  PaginationReq pagination = 1;
   // 关键字模糊查询
   string keyword = 2 [(buf.validate.field).cel = {
     message: "关键字模糊查询长度限制在0-20个字符",
     expression: "this.size() <= 20"
   }];
   // 状态查询
-  Status status = 3 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2])",
-    message: "状态值必须在[全部(0), 启用(1), 禁用(2)]之间",
-  }];
+  Status status = 3;
   // 字典类型
-  DictType dictType = 4 [(buf.validate.field).cel = {
-    expression: "(this in [0, 1, 2, 3, 4, 5, 6, 7, 8])",
-    message: "字典类型值必须在[未知(0), 标签(1), 注解(2), 策略(3), 策略组(4),告警级别(5),告警状态(6),通知类型(7),告警页面(8)]之间",
-  }];
+  DictType dictType = 4;
   // 语言编码
-  string languageCode = 5 [(buf.validate.field).cel = {
-    expression: "(this in ['zh-CN','en-US'])",
-    message: "字典类型值必须在[中文(zh-CN), 英文(en-US)]之间",
-  }];
+  string languageCode = 5;
 }
-
 
 message ListDictReply{
   // 字典列表

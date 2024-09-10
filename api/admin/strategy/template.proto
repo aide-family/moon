@@ -285,8 +285,6 @@ message ValidateAnnotationsTemplateRequest {
   Condition condition = 11;
   // 阈值
   double threshold = 12;
-  // 策略类型列表
-  repeated string categories = 13;
 }
 message ValidateAnnotationsTemplateReply {
   // 策略模板填充后的数据

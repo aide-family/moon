@@ -146,6 +146,7 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 		if err := b.syncDatasourceMeta(context.Background(), id, claims.GetTeam()); err != nil {
 			log.Debugw("sync", "datasource meta", "id", id)
 			log.Errorw("sync err", err)
+			b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
 			return
 		}
 	}()

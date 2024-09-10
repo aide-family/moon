@@ -123,8 +123,6 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 			"condition": vobj.Condition(req.GetCondition()).String(),
 			// 告警阈值
 			"threshold": req.GetThreshold(),
-			// 策略类目列表
-			"categories": vobj.SlicesJSON[string](req.GetCategories()),
 		}),
 	}
 	labels := vobj.LabelsJSON(req.GetLabels())

@@ -20,6 +20,7 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateAlarmGroupRequestBuilder 创建告警组请求参数构造器
 	ICreateAlarmGroupRequestBuilder interface {
 		ToBo() *bo.CreateAlarmNoticeGroupParams
 	}
@@ -29,6 +30,7 @@ type (
 		*alarmapi.CreateAlarmGroupRequest
 	}
 
+	// IUpdateAlarmGroupRequestBuilder 更新告警组请求参数构造器
 	IUpdateAlarmGroupRequestBuilder interface {
 		ToBo() *bo.UpdateAlarmNoticeGroupParams
 	}
@@ -38,6 +40,7 @@ type (
 		*alarmapi.UpdateAlarmGroupRequest
 	}
 
+	// IListAlarmGroupRequestBuilder 获取告警组列表请求参数构造器
 	IListAlarmGroupRequestBuilder interface {
 		ToBo() *bo.QueryAlarmNoticeGroupListParams
 	}
@@ -47,6 +50,7 @@ type (
 		*alarmapi.ListAlarmGroupRequest
 	}
 
+	// IUpdateAlarmGroupStatusRequestBuilder 更新告警组状态请求参数构造器
 	IUpdateAlarmGroupStatusRequestBuilder interface {
 		ToBo() *bo.UpdateAlarmNoticeGroupStatusParams
 	}
@@ -56,6 +60,7 @@ type (
 		*alarmapi.UpdateAlarmGroupStatusRequest
 	}
 
+	// IDoAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
 	IDoAlarmNoticeGroupItemBuilder interface {
 		ToAPI(*bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem
 		ToAPIs([]*bizmodel.AlarmNoticeGroup) []*adminapi.AlarmNoticeGroupItem
@@ -67,6 +72,7 @@ type (
 		ctx context.Context
 	}
 
+	// IDoLabelNoticeBuilder 告警组标签通知对象返回值构造器
 	IDoLabelNoticeBuilder interface {
 		ToAPI(*bizmodel.StrategyLabelNotice) *adminapi.LabelNoticeItem
 		ToAPIs([]*bizmodel.StrategyLabelNotice) []*adminapi.LabelNoticeItem

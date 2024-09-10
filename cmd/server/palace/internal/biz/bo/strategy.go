@@ -163,6 +163,7 @@ type (
 	}
 )
 
+// GetStrategyCountMap 获取策略总数
 func (s *StrategyCountMap) GetStrategyCountMap(strategyGroupIds uint32) uint64 {
 	if types.IsNil(s) {
 		return 0
@@ -173,6 +174,7 @@ func (s *StrategyCountMap) GetStrategyCountMap(strategyGroupIds uint32) uint64 {
 	return 0
 }
 
+// GetStrategyEnableMap 获取策略开启总数
 func (s *StrategyCountMap) GetStrategyEnableMap(strategyGroupIds uint32) uint64 {
 	if types.IsNil(s) {
 		return 0

@@ -292,7 +292,7 @@ message ListStrategyRequest {
   }];
   // 状态查询
   Status status = 3;
-  DatasourceType datasourceType = 4 ;
+  DatasourceType datasourceType = 4;
 }
 message ListStrategyReply {
   // 分页信息
