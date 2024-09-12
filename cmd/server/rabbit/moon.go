@@ -2,6 +2,7 @@ package rabbit
 
 import (
 	"github.com/aide-family/moon/pkg/helper/hello"
+	"github.com/aide-family/moon/pkg/util/codec"
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -40,7 +41,9 @@ func newApp(c *rabbitconf.Bootstrap, srv *server.Server, logger log.Logger) *kra
 }
 
 // Run 启动服务
-func Run(flagconf string) {
+func Run(flagconf, configType string) {
+	// 注册配置文件类型
+	codec.RegisterCodec(configType)
 	c := config.New(config.WithSource(file.NewSource(flagconf)))
 	defer c.Close()
 

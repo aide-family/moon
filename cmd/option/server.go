@@ -12,6 +12,8 @@ import (
 var (
 	// flagconf is the config flag.
 	flagconf string
+	// configType is the config file type.
+	configType string
 	// name is the name of the service.
 	name string
 )
@@ -33,17 +35,18 @@ var serverCmd = &cobra.Command{
 		case serviceDemoName:
 			demo.Run(flagconf)
 		case serviceRabbitName:
-			rabbit.Run(flagconf)
+			rabbit.Run(flagconf, configType)
 		case serviceHouYiName:
-			houyi.Run(flagconf)
+			houyi.Run(flagconf, configType)
 		default:
-			palace.Run(flagconf)
+			palace.Run(flagconf, configType)
 		}
 	},
 }
 
 func init() {
 	// conf参数
-	serverCmd.Flags().StringVarP(&flagconf, "conf", "c", "./configs", "config path, eg: -conf config.yaml")
+	serverCmd.Flags().StringVarP(&flagconf, "conf", "c", "./configs", "config path, eg: -conf ./configs")
 	serverCmd.Flags().StringVarP(&name, "name", "n", servicePalaceName, "name of the service")
+	serverCmd.Flags().StringVarP(&configType, "config_ext", "ct", "yaml", "config file ext name, eg: -config_ext yaml")
 }

@@ -14,16 +14,20 @@ var (
 	// flagconf is the config flag.
 	flagconf string
 
+	// configType is the config file type.
+	configType string
+
 	// Version is the version of the compiled software.
 	Version string
 )
 
 func init() {
-	flag.StringVar(&flagconf, "c", "../configs", "config path, eg: -conf config.yaml")
+	flag.StringVar(&flagconf, "c", "../configs", "config path, eg: -c ./configs")
+	flag.StringVar(&configType, "config_ext", "yaml", "config file ext name, eg: -config_ext yaml")
 }
 
 func main() {
 	flag.Parse()
 	env.SetVersion(Version)
-	rabbit.Run(flagconf)
+	rabbit.Run(flagconf, configType)
 }
