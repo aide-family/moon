@@ -1,0 +1,101 @@
+# 环境配置
+env = "dev" # dev、test、prod、local
+
+# 服务器配置
+[server]
+name = "moon_palace"
+
+# 元数据
+[server.metadata]
+description = "palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等"
+background = "寓意为月宫，表示moon系列的统一管理平台"
+
+# HTTP服务配置
+[server.http]
+addr = "0.0.0.0:8000"
+timeout = "50s"
+
+# gRPC服务配置
+[server.grpc]
+addr = "0.0.0.0:9000"
+timeout = "50s"
+
+# JWT配置
+[server.jwt]
+sign_key = "moon-sign_key"
+issuer = "moon-palace"
+white_list = [
+    "/api.admin.authorization.Authorization/Login",
+    "/api.admin.authorization.Authorization/Captcha",
+    "/api.admin.authorization.Authorization/CreatePassword",
+    "/api.Health/Check",
+    "/api.Alert/Hook"
+]
+rbac_white_list = [
+    "/api.admin.authorization.Authorization/Logout",
+    "/api.admin.team.Team/MyTeam",
+    "/api.admin.authorization.Authorization/RefreshToken"
+]
+black_list = []
+
+# 数据配置
+[data]
+# 数据库配置
+[data.database]
+driver = "mysql"
+debug = false
+dsn = "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 业务数据库配置
+[data.bizDatabase]
+driver = "mysql"
+debug = false
+dsn = "root:12345678@tcp(localhost:3306)/"
+
+# 告警数据库配置
+[data.alarmDatabase]
+driver = "mysql"
+debug = false
+dsn = "root:12345678@tcp(localhost:3306)/"
+
+# 缓存配置
+[data.cache.redis]
+network = "tcp"
+addr = "localhost:6379"
+db = 0
+password = ""
+read_timeout = "0.2s"
+write_timeout = "0.2s"
+dial_timeout = "0.2s"
+
+[data.cache.nutsDB]
+path = "./tmp/nutsdb"
+bucket = "test"
+
+# 服务发现配置
+[discovery]
+type = "etcd"
+[discovery.etcd]
+endpoints = [
+    "localhost:20000",
+    "localhost:20002",
+    "localhost:20004"
+]
+username = ""
+password = ""
+timeout = "50s"
+
+# 微服务配置
+[micro_server.rabbit_server]
+network = "rpc"
+nodeVersion = ""
+endpoint = "discovery:///moon_rabbit"
+timeout = "50s"
+secret = ""
+
+[micro_server.hou_yi_server]
+network = "rpc"
+nodeVersion = ""
+endpoint = "discovery:///moon_houyi"
+timeout = "50s"
+secret = ""

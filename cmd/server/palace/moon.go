@@ -1,14 +1,14 @@
 package palace
 
 import (
+	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/cmd/server/palace/internal/server"
+	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/hello"
 	"github.com/aide-family/moon/pkg/util/conn"
 	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
 
-	conf "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-family/moon/cmd/server/palace/internal/server"
-	"github.com/aide-family/moon/pkg/env"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
