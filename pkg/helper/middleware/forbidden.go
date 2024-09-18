@@ -18,11 +18,11 @@ func Forbidden(operations ...string) middleware.Middleware {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			operation, ok := transport.FromServerContext(ctx)
 			if !ok {
-				return nil, merr.ErrorSystemErr("get operation failed")
+				return nil, merr.ErrorNotification("get operation failed")
 			}
 			operator := operation.Operation()
 			if _, ok := blackMap[operator]; ok {
-				return nil, merr.ErrorI18nOperationNotAllowedErr(ctx)
+				return nil, merr.ErrorI18nForbidden(ctx)
 			}
 
 			return handler(ctx, req)

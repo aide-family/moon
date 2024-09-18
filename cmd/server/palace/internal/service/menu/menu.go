@@ -4,7 +4,6 @@ import (
 	"context"
 
 	menuapi "github.com/aide-family/moon/api/admin/menu"
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -46,7 +45,7 @@ func (m *Service) UpdateMenu(ctx context.Context, req *menuapi.UpdateMenuRequest
 func (m *Service) DeleteMenu(ctx context.Context, req *menuapi.DeleteMenuRequest) (*menuapi.DeleteMenuReply, error) {
 	err := m.menuBiz.DeleteMenu(ctx, req.GetId())
 	if err != nil {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, err
 	}
 	return &menuapi.DeleteMenuReply{}, nil
 }
@@ -92,7 +91,7 @@ func (m *Service) BatchUpdateDictStatus(ctx context.Context, req *menuapi.BatchU
 	params := builder.NewParamsBuild().MenuModuleBuilder().WithBatchUpdateMenuStatusRequest(req).ToBo()
 	err := m.menuBiz.UpdateMenuStatus(ctx, params)
 	if err != nil {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, err
 	}
 	return &menuapi.BatchUpdateMenuStatusReply{}, nil
 }
@@ -101,7 +100,7 @@ func (m *Service) BatchUpdateDictStatus(ctx context.Context, req *menuapi.BatchU
 func (m *Service) BatchUpdateMenuType(ctx context.Context, req *menuapi.BatchUpdateMenuTypeRequest) (*menuapi.BatchUpdateMenuTypeReply, error) {
 	params := builder.NewParamsBuild().MenuModuleBuilder().WithUpdateMenuTypeParams(req).ToBo()
 	if err := m.menuBiz.UpdateMenuTypes(ctx, params); err != nil {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, err
 	}
 	return &menuapi.BatchUpdateMenuTypeReply{}, nil
 }

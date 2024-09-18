@@ -20,7 +20,7 @@ func Rbac(check CheckRbacFun) middleware.Middleware {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			operation, ok := transport.FromServerContext(ctx)
 			if !ok {
-				return nil, merr.ErrorSystemErr("get operation failed")
+				return nil, merr.ErrorNotification("get operation failed")
 			}
 			// 判断该用户在该资源是否有权限
 			permission, err := check(ctx, operation.Operation())
@@ -28,7 +28,7 @@ func Rbac(check CheckRbacFun) middleware.Middleware {
 				return nil, err
 			}
 			if !permission.GetHasPermission() {
-				return nil, merr.ErrorI18nNoPermissionToOperateErr(ctx)
+				return nil, merr.ErrorI18nForbidden(ctx)
 			}
 			ctx = WithTeamRoleContextKey(ctx, vobj.Role(permission.GetTeamMember().GetRole()))
 			return handler(ctx, req)

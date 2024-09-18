@@ -31,18 +31,22 @@ type (
 func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmNoticeGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroup, err := s.strategyRepo.CreateAlarmGroup(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmGroup, nil
 }
 
 // UpdateAlarmGroup 更新告警分组
 func (s *AlarmGroupBiz) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmNoticeGroupParams) error {
-	if err := s.strategyRepo.UpdateAlarmGroup(ctx, params); !types.IsNil(err) {
+	_, err := s.GetAlarmGroupDetail(ctx, params.ID)
+	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nAlarmGroupDataNotFoundErr(ctx)
+			return merr.ErrorI18nToastAlertGroupNotFound(ctx).WithCause(err)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	if err = s.strategyRepo.UpdateAlarmGroup(ctx, params); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -52,9 +56,9 @@ func (s *AlarmGroupBiz) GetAlarmGroupDetail(ctx context.Context, groupID uint32)
 	alarmGroup, err := s.strategyRepo.GetAlarmGroup(ctx, groupID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nAlarmGroupDataNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastAlertGroupNotFound(ctx).WithCause(err)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmGroup, nil
 }
@@ -62,7 +66,7 @@ func (s *AlarmGroupBiz) GetAlarmGroupDetail(ctx context.Context, groupID uint32)
 // DeleteAlarmGroup 删除告警分组
 func (s *AlarmGroupBiz) DeleteAlarmGroup(ctx context.Context, alarmID uint32) error {
 	if err := s.strategyRepo.DeleteAlarmGroup(ctx, alarmID); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -70,10 +74,7 @@ func (s *AlarmGroupBiz) DeleteAlarmGroup(ctx context.Context, alarmID uint32) er
 // UpdateStatus 更新告警分组状态
 func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmNoticeGroupStatusParams) error {
 	if err := s.strategyRepo.UpdateStatus(ctx, params); !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nAlarmGroupDataNotFoundErr(ctx)
-		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -82,7 +83,7 @@ func (s *AlarmGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarm
 func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroups, err := s.strategyRepo.AlarmGroupPage(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmGroups, nil
 }
@@ -91,7 +92,7 @@ func (s *AlarmGroupBiz) ListPage(ctx context.Context, params *bo.QueryAlarmNotic
 func (s *AlarmGroupBiz) MyAlarmGroups(ctx context.Context, params *bo.MyAlarmGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroups, err := s.strategyRepo.MyAlarmGroups(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmGroups, nil
 }

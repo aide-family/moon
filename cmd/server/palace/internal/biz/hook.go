@@ -31,7 +31,7 @@ type (
 func (s *AlarmHookBiz) CreateAlarmHook(ctx context.Context, params *bo.CreateAlarmHookParams) (*bizmodel.AlarmHook, error) {
 	alarmHook, err := s.alarmHookRepo.CreateAlarmHook(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmHook, nil
 }
@@ -40,9 +40,9 @@ func (s *AlarmHookBiz) CreateAlarmHook(ctx context.Context, params *bo.CreateAla
 func (s *AlarmHookBiz) UpdateAlarmHook(ctx context.Context, params *bo.UpdateAlarmHookParams) error {
 	if err := s.alarmHookRepo.UpdateAlarmHook(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nAlarmHookDataNotFoundErr(ctx)
+			return merr.ErrorI18nToastAlarmHookNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -51,9 +51,9 @@ func (s *AlarmHookBiz) UpdateAlarmHook(ctx context.Context, params *bo.UpdateAla
 func (s *AlarmHookBiz) DeleteAlarmHook(ctx context.Context, ID uint32) error {
 	if err := s.alarmHookRepo.DeleteAlarmHook(ctx, ID); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nAlarmHookDataNotFoundErr(ctx)
+			return merr.ErrorI18nToastAlarmHookNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -63,9 +63,9 @@ func (s *AlarmHookBiz) GetAlarmHook(ctx context.Context, ID uint32) (*bizmodel.A
 	alarmHook, err := s.alarmHookRepo.GetAlarmHook(ctx, ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nAlarmHookDataNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastAlarmHookNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmHook, nil
 }
@@ -74,7 +74,7 @@ func (s *AlarmHookBiz) GetAlarmHook(ctx context.Context, ID uint32) (*bizmodel.A
 func (s *AlarmHookBiz) ListPage(ctx context.Context, params *bo.QueryAlarmHookListParams) ([]*bizmodel.AlarmHook, error) {
 	alarmHooks, err := s.alarmHookRepo.ListAlarmHook(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmHooks, nil
 }
@@ -83,9 +83,9 @@ func (s *AlarmHookBiz) ListPage(ctx context.Context, params *bo.QueryAlarmHookLi
 func (s *AlarmHookBiz) UpdateStatus(ctx context.Context, params *bo.UpdateAlarmHookStatusParams) error {
 	if err := s.alarmHookRepo.UpdateAlarmHookStatus(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nAlarmHookDataNotFoundErr(ctx)
+			return merr.ErrorI18nToastAlarmHookNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }

@@ -3,7 +3,6 @@ package repoimpl
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -67,9 +66,6 @@ func (l *dictRepositoryImpl) Create(ctx context.Context, dict *bo.CreateDictPara
 	}
 	// system creation
 	dictModel := createDictParamsToModel(ctx, dict)
-	if types.IsNil(dictModel) {
-		return nil, merr.ErrorI18nDictCreateParamCannotEmpty(ctx)
-	}
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	if err := mainQuery.WithContext(ctx).SysDict.Create(dictModel); !types.IsNil(err) {
 		return nil, err
@@ -183,9 +179,6 @@ func (l *dictRepositoryImpl) createBizDictModel(ctx context.Context, dict *bo.Cr
 		return nil, err
 	}
 	dictBizModel := createBizDictParamsToModel(ctx, dict)
-	if types.IsNil(dictBizModel) {
-		return nil, merr.ErrorI18nDictCreateParamCannotEmpty(ctx)
-	}
 	if err := bizQuery.SysDict.WithContext(ctx).Create(dictBizModel); !types.IsNil(err) {
 		return nil, err
 	}

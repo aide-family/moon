@@ -48,5 +48,5 @@ func init() {
 	// conf参数
 	serverCmd.Flags().StringVarP(&flagconf, "conf", "c", "./configs", "config path, eg: -conf ./configs")
 	serverCmd.Flags().StringVarP(&name, "name", "n", servicePalaceName, "name of the service")
-	serverCmd.Flags().StringVarP(&configType, "config_ext", "ct", "yaml", "config file ext name, eg: -config_ext yaml")
+	serverCmd.Flags().StringVarP(&configType, "config_ext", "config_ext", "yaml", "config file ext name, eg: -config_ext yaml")
 }

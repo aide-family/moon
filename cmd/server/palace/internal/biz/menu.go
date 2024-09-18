@@ -35,7 +35,7 @@ type MenuBiz struct {
 func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	return b.teamMenuRepo.GetTeamMenuList(ctx, &bo.QueryTeamMenuListParams{TeamID: claims.GetTeam()})
 }
@@ -45,7 +45,7 @@ func (b *MenuBiz) GetMenu(ctx context.Context, menuID uint32) (*model.SysMenu, e
 	menuDetail, err := b.menuRepo.GetByID(ctx, menuID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nMenuNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastMenuNotFound(ctx)
 		}
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (b *MenuBiz) GetMenu(ctx context.Context, menuID uint32) (*model.SysMenu, e
 func (b *MenuBiz) BatchCreateMenu(ctx context.Context, params []*bo.CreateMenuParams) error {
 	err := b.menuRepo.BatchCreate(ctx, params)
 	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -66,9 +66,9 @@ func (b *MenuBiz) UpdateMenu(ctx context.Context, params *bo.UpdateMenuParams) e
 	_, err := b.menuRepo.GetByID(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nMenuNotFoundErr(ctx)
+			return merr.ErrorI18nToastMenuNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return b.menuRepo.UpdateByID(ctx, params)
 }
@@ -90,7 +90,7 @@ func (b *MenuBiz) ListMenuPage(ctx context.Context, params *bo.QueryMenuListPara
 		return nil, err
 	}
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return menuPage, nil
 }
@@ -100,9 +100,9 @@ func (b *MenuBiz) DeleteMenu(ctx context.Context, menuID uint32) error {
 	_, err := b.menuRepo.GetByID(ctx, menuID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nMenuNotFoundErr(ctx)
+			return merr.ErrorI18nToastMenuNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return b.menuRepo.DeleteByID(ctx, menuID)
 }
@@ -111,7 +111,7 @@ func (b *MenuBiz) DeleteMenu(ctx context.Context, menuID uint32) error {
 func (b *MenuBiz) MenuAllList(ctx context.Context) ([]*model.SysMenu, error) {
 	menus, err := b.menuRepo.ListAll(ctx)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return menus, nil
 }

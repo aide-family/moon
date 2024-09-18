@@ -29,7 +29,7 @@ type DictBiz struct {
 func (b *DictBiz) CreateDict(ctx context.Context, dictParam *bo.CreateDictParams) (imodel.IDict, error) {
 	dictDo, err := b.dictRepo.Create(ctx, dictParam)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return dictDo, nil
 }
@@ -46,7 +46,7 @@ func (b *DictBiz) UpdateDict(ctx context.Context, updateParam *bo.UpdateDictPara
 func (b *DictBiz) ListDict(ctx context.Context, listParam *bo.QueryDictListParams) ([]imodel.IDict, error) {
 	dictDos, err := b.dictRepo.FindByPage(ctx, listParam)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return dictDos, nil
 
@@ -57,9 +57,9 @@ func (b *DictBiz) GetDict(ctx context.Context, id uint32) (imodel.IDict, error) 
 	dictDetail, err := b.dictRepo.GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nDictNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastDictNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return dictDetail, nil
 }

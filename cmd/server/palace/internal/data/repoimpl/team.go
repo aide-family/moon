@@ -54,7 +54,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		}
 	}
 	if err == nil {
-		return nil, merr.ErrorI18nTeamNameExistErr(ctx)
+		return nil, merr.ErrorI18nAlertTeamNameExistErr(ctx)
 	}
 
 	err = mainQuery.Transaction(func(tx *query.Query) error {
@@ -208,7 +208,7 @@ func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeam
 		return err
 	}
 	if err == nil && teamInfo.ID != team.ID {
-		return merr.ErrorI18nTeamNameExistErr(ctx)
+		return merr.ErrorI18nAlertTeamNameExistErr(ctx)
 	}
 	_, err = mainQuery.WithContext(ctx).SysTeam.
 		Where(mainQuery.SysTeam.ID.Eq(team.ID)).

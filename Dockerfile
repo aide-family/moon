@@ -13,6 +13,7 @@ WORKDIR /app
 
 ARG CMD_PARAMS="palace"
 ENV CMD_PARAMS_ENV=${CMD_PARAMS}
+ENV CONFIG_TYPE="yaml"
 # 复制脚本到容器中
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --from=builder /src/bin/${CMD_PARAMS} /app/${CMD_PARAMS}

@@ -65,7 +65,7 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *dictapi.BatchU
 	updateParams := builder.NewParamsBuild().DictModuleBuilder().WithUpdateDictStatusParams(req).ToBo()
 	err := s.dictBiz.UpdateDictStatusByIds(ctx, updateParams)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return &dictapi.BatchUpdateDictStatusReply{}, nil
 }
@@ -73,7 +73,7 @@ func (s *Service) BatchUpdateDictStatus(ctx context.Context, req *dictapi.BatchU
 // DeleteDict 删除字典
 func (s *Service) DeleteDict(ctx context.Context, req *dictapi.DeleteDictRequest) (*dictapi.DeleteDictReply, error) {
 	if err := s.dictBiz.DeleteDictByID(ctx, req.GetId()); !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return &dictapi.DeleteDictReply{}, nil
 }

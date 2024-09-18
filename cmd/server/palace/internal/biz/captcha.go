@@ -30,7 +30,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 	id, base64s, err := captcha.CreateCode(ctx, params.Type, params.Theme, params.Size...)
 	if !types.IsNil(err) {
 		log.Warnw("fun", "captcha.CreateCode", "err", err)
-		return nil, merr.ErrorI18nGetCaptchaErr(ctx)
+		return nil, merr.ErrorI18nAlertCaptchaErr(ctx)
 	}
 	// 过期时间
 	duration := time.Minute * 1
@@ -45,7 +45,7 @@ func (l *CaptchaBiz) GenerateCaptcha(ctx context.Context, params *bo.GenerateCap
 	// 存储验证码信息到缓存
 	if err = l.captchaRepo.CreateCaptcha(ctx, &validateCaptchaItem, duration); !types.IsNil(err) {
 		log.Warnw("fun", "captchaRepo.CreateCaptcha", "err", err)
-		return nil, merr.ErrorI18nGetCaptchaErr(ctx)
+		return nil, merr.ErrorI18nAlertCaptchaErr(ctx)
 	}
 	return &bo.CaptchaItem{
 		ValidateCaptchaItem: validateCaptchaItem,
@@ -59,14 +59,14 @@ func (l *CaptchaBiz) VerifyCaptcha(ctx context.Context, params *bo.ValidateCaptc
 	validateCaptchaItem, err := l.captchaRepo.GetCaptchaByID(ctx, params.ID)
 	if !types.IsNil(err) {
 		log.Warnw("fun", "captchaRepo.GetCaptchaByID", "err", err)
-		return merr.ErrorI18nCaptchaInvalidErr(ctx)
+		return merr.ErrorI18nAlertCaptchaErr(ctx)
 	}
 	// 验证码是否过期
 	if time.Now().Unix() > validateCaptchaItem.ExpireAt {
-		return merr.ErrorI18nCaptchaExpiredErr(ctx)
+		return merr.ErrorI18nAlertCaptchaExpire(ctx)
 	}
 	if validateCaptchaItem.Value != params.Value {
-		return merr.ErrorI18nCaptchaErr(ctx)
+		return merr.ErrorI18nAlertCaptchaErr(ctx)
 	}
 	return nil
 }

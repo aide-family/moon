@@ -58,12 +58,12 @@ func NewGormDB(c GormDBConfig, logger ...log.Logger) (*gorm.DB, error) {
 		}
 		dialector = sqlite.Open(dsn)
 	default:
-		return nil, merr.ErrorDependencyErr("invalid driver: %s", drive)
+		return nil, merr.ErrorNotification("invalid driver: %s", drive)
 	}
 
 	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
-		return nil, merr.ErrorDbConnectErr("connect db error: %s", err)
+		return nil, merr.ErrorNotification("connect db error: %s", err)
 	}
 
 	if drive == "sqlite" {
@@ -81,7 +81,7 @@ func NewGormDB(c GormDBConfig, logger ...log.Logger) (*gorm.DB, error) {
 // checkDBFileExists .
 func checkDBFileExists(filename string) error {
 	if filename == "" {
-		return merr.ErrorDependencyErr("db file is empty")
+		return merr.ErrorNotification("db file is empty")
 	}
 	file, err := os.Stat(filename)
 	if err != nil {
@@ -101,7 +101,7 @@ func checkDBFileExists(filename string) error {
 		}
 	}
 	if file.IsDir() {
-		return merr.ErrorDependencyErr("db file is dir")
+		return merr.ErrorNotification("db file is dir")
 	}
 	return err
 }

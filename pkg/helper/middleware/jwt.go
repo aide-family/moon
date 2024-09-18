@@ -193,7 +193,7 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 				return nil, err
 			}
 			if !checked.GetIsLogin() {
-				return nil, merr.ErrorI18nUnLoginErr(ctx)
+				return nil, merr.ErrorI18nUnauthorized(ctx)
 			}
 			ctx = WithUserRoleContextKey(ctx, vobj.Role(checked.GetUser().GetRole()))
 			return handler(ctx, req)

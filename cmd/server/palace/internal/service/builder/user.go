@@ -168,7 +168,7 @@ func (u *userModuleBuilder) DoNoticeUserBuilder() INoticeUserBuilder {
 func (u *updateUserBaseInfoRequestBuilder) ToBo() *bo.UpdateUserBaseParams {
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 	return &bo.UpdateUserBaseParams{
 		ID:       claims.GetUser(),
@@ -188,7 +188,7 @@ func (u *updateUserAvatarRequestBuilder) ToBo() *bo.UpdateUserAvatarRequest {
 	}
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 
 	return &bo.UpdateUserAvatarRequest{
@@ -207,7 +207,7 @@ func (u *updateUserEmailRequestBuilder) ToBo() *bo.UpdateUserEmailRequest {
 	}
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 	return &bo.UpdateUserEmailRequest{
 		UserID: claims.GetUser(),
@@ -226,7 +226,7 @@ func (u *updateUserPhoneRequestBuilder) ToBo() *bo.UpdateUserPhoneRequest {
 
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 	return &bo.UpdateUserPhoneRequest{
 		UserID: claims.GetUser(),
@@ -241,7 +241,7 @@ func (u *userModuleBuilder) WithUpdateUserPhoneRequest(request *userapi.UpdateUs
 func (r *resetUserPasswordBySelfRequestBuilder) WithUserInfo(f func(ctx context.Context, id uint32) (*model.SysUser, error)) (IResetUserPasswordBySelfRequestBuilder, error) {
 	claims, ok := middleware.ParseJwtClaims(r.ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(r.ctx)
+		return nil, merr.ErrorI18nUnauthorized(r.ctx)
 	}
 	// 查询用户详情
 	userDo, err := f(r.ctx, claims.GetUser())
@@ -252,12 +252,12 @@ func (r *resetUserPasswordBySelfRequestBuilder) WithUserInfo(f func(ctx context.
 	oldPass := userDo.Password
 	// 对比旧密码正确
 	if oldPass != r.GetOldPassword() {
-		return nil, merr.ErrorI18nPasswordErr(r.ctx)
+		return nil, merr.ErrorI18nAlertPasswordErr(r.ctx)
 	}
 
 	// 对比两次密码相同, 相同修改无意义
 	if newPass.String() == oldPass {
-		return nil, merr.ErrorI18nPasswordSameErr(r.ctx)
+		return nil, merr.ErrorI18nAlertPasswordSameErr(r.ctx)
 	}
 	return r, nil
 }
@@ -319,7 +319,7 @@ func (c *createUserRequestBuilder) ToBo() *bo.CreateUserParams {
 	pass := types.NewPassword(c.GetPassword())
 	claims, ok := middleware.ParseJwtClaims(c.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(c.ctx))
+		panic(merr.ErrorI18nUnauthorized(c.ctx))
 	}
 	return &bo.CreateUserParams{
 		Name:      c.GetName(),

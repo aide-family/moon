@@ -125,7 +125,7 @@ func (l *listRoleRequestBuilder) ToBo() *bo.ListTeamRoleParams {
 	}
 	claims, ok := middleware.ParseJwtClaims(l.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(l.ctx))
+		panic(merr.ErrorI18nUnauthorized(l.ctx))
 	}
 	return &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),
@@ -154,7 +154,7 @@ func (c *createRoleRequestBuilder) ToBo() *bo.CreateTeamRoleParams {
 
 	claims, ok := middleware.ParseJwtClaims(c.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(c.ctx))
+		panic(merr.ErrorI18nUnauthorized(c.ctx))
 	}
 
 	return &bo.CreateTeamRoleParams{

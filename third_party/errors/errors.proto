@@ -18,9 +18,16 @@ message Metadata {
   string value = 2;
 }
 
+message BizReason {
+  string reason = 1;
+  string message = 2;
+  repeated Metadata metadata = 3;
+}
+
 extend google.protobuf.EnumValueOptions {
   int32 code = 1109;
   string message = 1110;
   string id = 1111;
   repeated Metadata metadata = 1112;
+  repeated BizReason biz_reason = 1113;
 }

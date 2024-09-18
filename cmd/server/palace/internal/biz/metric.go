@@ -30,7 +30,7 @@ type MetricBiz struct {
 // UpdateMetricByID 通过ID修改指标信息
 func (b *MetricBiz) UpdateMetricByID(ctx context.Context, params *bo.UpdateMetricParams) error {
 	if err := b.metricRepository.Update(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -44,9 +44,9 @@ func (b *MetricBiz) GetMetricByID(ctx context.Context, params *bo.GetMetricParam
 	}
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nMetricNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastMetricNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return
 }
@@ -55,7 +55,7 @@ func (b *MetricBiz) GetMetricByID(ctx context.Context, params *bo.GetMetricParam
 func (b *MetricBiz) ListMetric(ctx context.Context, params *bo.QueryMetricListParams) ([]*bizmodel.DatasourceMetric, error) {
 	list, err := b.metricRepository.List(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -64,7 +64,7 @@ func (b *MetricBiz) ListMetric(ctx context.Context, params *bo.QueryMetricListPa
 func (b *MetricBiz) SelectMetric(ctx context.Context, params *bo.QueryMetricListParams) ([]*bo.SelectOptionBo, error) {
 	list, err := b.metricRepository.Select(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return types.SliceTo(list, func(item *bizmodel.DatasourceMetric) *bo.SelectOptionBo {
 		return bo.NewDatasourceMetricOptionBuild(item).ToSelectOption()
@@ -74,7 +74,7 @@ func (b *MetricBiz) SelectMetric(ctx context.Context, params *bo.QueryMetricList
 // DeleteMetricByID 通过ID删除指标信息
 func (b *MetricBiz) DeleteMetricByID(ctx context.Context, id uint32) error {
 	if err := b.metricRepository.Delete(ctx, id); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -83,7 +83,7 @@ func (b *MetricBiz) DeleteMetricByID(ctx context.Context, id uint32) error {
 func (b *MetricBiz) GetMetricLabelCount(ctx context.Context, metricID uint32) (uint32, error) {
 	count, err := b.metricRepository.MetricLabelCount(ctx, metricID)
 	if !types.IsNil(err) {
-		return 0, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return 0, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return count, nil
 }
@@ -99,7 +99,7 @@ func (b *MetricBiz) CreateMetric(ctx context.Context, params *bo.CreateMetricPar
 	}
 
 	if err := b.metricRepository.CreateMetrics(ctx, params.TeamID, params.ToModel()); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }

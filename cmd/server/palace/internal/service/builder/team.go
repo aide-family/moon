@@ -197,7 +197,7 @@ func (t *transferTeamLeaderRequestBuilder) ToBo() *bo.TransferTeamLeaderParams {
 
 	claims, ok := middleware.ParseJwtClaims(t.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(t.ctx))
+		panic(merr.ErrorI18nUnauthorized(t.ctx))
 	}
 
 	return &bo.TransferTeamLeaderParams{
@@ -294,7 +294,7 @@ func (l *listTeamRequestBuilder) ToBo() *bo.QueryTeamListParams {
 
 	claims, ok := middleware.ParseJwtClaims(l.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(l.ctx))
+		panic(merr.ErrorI18nUnauthorized(l.ctx))
 	}
 
 	return &bo.QueryTeamListParams{

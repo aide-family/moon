@@ -147,7 +147,7 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 		return sb.String()
 	}); has {
-		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
+		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild().StrategyModuleBuilder().WithCreateStrategyRequest(req).ToBo()
 	if _, err := s.strategyBiz.CreateStrategy(ctx, param); err != nil {
@@ -164,7 +164,7 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 		return sb.String()
 	}); has {
-		return nil, merr.ErrorI18nStrategyLevelRepeatErr(ctx)
+		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateStrategyRequest(req).ToBo()
 	if err := s.strategyBiz.UpdateByID(ctx, param); !types.IsNil(err) {

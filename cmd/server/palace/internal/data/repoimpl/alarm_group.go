@@ -182,7 +182,7 @@ func (a *alarmGroupRepositoryImpl) MyAlarmGroups(ctx context.Context, params *bo
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	memberID := claims.GetMember()
 

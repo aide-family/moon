@@ -131,7 +131,7 @@ func (u *unSubscriberRequestBuilder) ToBo() *bo.UnSubscriberStrategyParams {
 
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 
 	return &bo.UnSubscriberStrategyParams{
@@ -146,7 +146,7 @@ func (s *subscriberStrategyRequestBuilder) ToBo() *bo.SubscriberStrategyParams {
 	}
 	claims, ok := middleware.ParseJwtClaims(s.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(s.ctx))
+		panic(merr.ErrorI18nUnauthorized(s.ctx))
 	}
 	return &bo.SubscriberStrategyParams{
 		StrategyID: s.GetStrategyId(),
@@ -162,7 +162,7 @@ func (u *userSubscriberListRequestBuilder) ToBo() *bo.QueryUserSubscriberParams 
 
 	claims, ok := middleware.ParseJwtClaims(u.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(u.ctx))
+		panic(merr.ErrorI18nUnauthorized(u.ctx))
 	}
 	return &bo.QueryUserSubscriberParams{
 		UserID:     claims.GetUser(),

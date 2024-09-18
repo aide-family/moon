@@ -120,7 +120,7 @@ func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	in := &metadata.SyncMetadataV2Request{
 		Endpoint:     datasourceInfo.Endpoint,

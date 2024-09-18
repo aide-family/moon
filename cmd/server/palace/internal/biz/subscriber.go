@@ -28,7 +28,7 @@ type (
 func (s *SubscriberBiz) UserSubscriptionStrategy(ctx context.Context, params *bo.SubscriberStrategyParams) error {
 	err := s.subscriberRepo.UserSubscriberStrategy(ctx, params)
 	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -37,7 +37,7 @@ func (s *SubscriberBiz) UserSubscriptionStrategy(ctx context.Context, params *bo
 func (s *SubscriberBiz) UnSubscriptionStrategy(ctx context.Context, params *bo.UnSubscriberStrategyParams) error {
 	err := s.subscriberRepo.UserUnSubscriberStrategy(ctx, params)
 	if !types.IsNil(err) {
-		return merr.ErrorI18nUserNotSubscribedErr(ctx)
+		return merr.ErrorI18nToastUserNotSubscribe(ctx)
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func (s *SubscriberBiz) UnSubscriptionStrategy(ctx context.Context, params *bo.U
 func (s *SubscriberBiz) UserSubscriptionStrategyList(ctx context.Context, params *bo.QueryUserSubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	strategyList, err := s.subscriberRepo.UserSubscriberStrategyList(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategyList, nil
 }
@@ -55,7 +55,7 @@ func (s *SubscriberBiz) UserSubscriptionStrategyList(ctx context.Context, params
 func (s *SubscriberBiz) StrategySubscribersList(ctx context.Context, params *bo.QueryStrategySubscriberParams) ([]*bizmodel.StrategySubscriber, error) {
 	subscriberList, err := s.subscriberRepo.StrategySubscriberList(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return subscriberList, nil
 }

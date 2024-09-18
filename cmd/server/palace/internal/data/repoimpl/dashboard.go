@@ -109,9 +109,9 @@ func (d *dashboardRepositoryImpl) GetDashboard(ctx context.Context, id uint32) (
 	detail, err := bizQuery.Dashboard.WithContext(ctx).Where(bizQuery.Dashboard.ID.Eq(id)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nDashboardDataNotFoundErr(ctx).WithCause(err)
+			return nil, merr.ErrorI18nToastDashboardNotFound(ctx).WithCause(err)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return detail, nil
 }

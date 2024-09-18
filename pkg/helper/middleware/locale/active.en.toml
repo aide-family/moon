@@ -7,6 +7,14 @@ description = "CaptchaReq_theme_type"
 one = "it must be light or dark"
 other = "it must be light or dark"
 
+[CAPTCHA_INVALID_ERR]
+other = "captcha is invalid"
+
+[CAPTCHA_ERR]
+description = "CAPTCHA_ERR"
+other = "captcha is error"
+one = "captcha is error"
+
 [DATASOURCE_NOT_FOUND_ERR]
 description = "DATASOURCE_NOT_FOUND_ERR"
 other = "data source does not exist"

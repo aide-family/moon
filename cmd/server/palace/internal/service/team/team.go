@@ -81,7 +81,7 @@ func (s *Service) UpdateTeamStatus(ctx context.Context, req *teamapi.UpdateTeamS
 func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamapi.MyTeamReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	teamList, err := s.teamBiz.GetUserTeamList(ctx, claims.GetUser())
 	if !types.IsNil(err) {

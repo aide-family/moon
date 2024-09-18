@@ -77,7 +77,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 	sysTeamRoleModel, err := l.GetTeamRole(ctx, teamRole.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nTeamRoleNotFoundErr(ctx)
+			return merr.ErrorI18nToastRoleNotFound(ctx)
 		}
 		return err
 	}
@@ -130,7 +130,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
 	if !types.IsNil(err) {
@@ -152,7 +152,7 @@ func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) 
 func (l *teamRoleRepositoryImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
 	if !types.IsNil(err) {
@@ -198,7 +198,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
 	if !types.IsNil(err) {

@@ -62,7 +62,7 @@ func RecoveryHandle(ctx context.Context, req, err interface{}) error {
 	if ok {
 		return myErr
 	}
-	return merr.ErrorI18nSystemErr(ctx).WithMetadata(map[string]string{
+	return merr.ErrorI18nNotificationSystemError(ctx).WithMetadata(map[string]string{
 		"error":  fmt.Sprintf("%v", err),
 		"params": fmt.Sprintf("%v", req),
 	})

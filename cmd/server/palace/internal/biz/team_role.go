@@ -30,7 +30,7 @@ type TeamRoleBiz struct {
 func (b *TeamRoleBiz) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
 	detail, err := b.teamRoleRepo.CreateTeamRole(ctx, teamRole)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return detail, nil
 }
@@ -38,7 +38,7 @@ func (b *TeamRoleBiz) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTea
 // UpdateTeamRole 更新团队角色
 func (b *TeamRoleBiz) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
 	if err := b.teamRoleRepo.UpdateTeamRole(ctx, teamRole); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func (b *TeamRoleBiz) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTea
 // DeleteTeamRole 删除团队角色
 func (b *TeamRoleBiz) DeleteTeamRole(ctx context.Context, id uint32) error {
 	if err := b.teamRoleRepo.DeleteTeamRole(ctx, id); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -56,9 +56,9 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.Sys
 	role, err := b.teamRoleRepo.GetTeamRole(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nTeamRoleNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastRoleNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return role, nil
 }
@@ -67,7 +67,7 @@ func (b *TeamRoleBiz) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.Sys
 func (b *TeamRoleBiz) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleParams) ([]*bizmodel.SysTeamRole, error) {
 	list, err := b.teamRoleRepo.ListTeamRole(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -75,7 +75,7 @@ func (b *TeamRoleBiz) ListTeamRole(ctx context.Context, params *bo.ListTeamRoleP
 // UpdateTeamRoleStatus 更新团队角色状态
 func (b *TeamRoleBiz) UpdateTeamRoleStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	if err := b.teamRoleRepo.UpdateTeamRoleStatus(ctx, status, ids...); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }

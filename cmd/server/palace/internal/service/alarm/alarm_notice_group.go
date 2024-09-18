@@ -33,7 +33,7 @@ func (s *GroupService) CreateAlarmGroup(ctx context.Context, req *alarmyapi.Crea
 		sb.WriteString(strconv.FormatInt(int64(request.GetMemberId()), 10))
 		return sb.String()
 	}); has {
-		return nil, merr.ErrorI18nAlarmNoticeRepeatErr(ctx)
+		return nil, merr.ErrorI18nAlertAlertObjectDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild().
 		WithContext(ctx).
@@ -86,7 +86,7 @@ func (s *GroupService) UpdateAlarmGroup(ctx context.Context, req *alarmyapi.Upda
 		sb.WriteString(strconv.FormatInt(int64(request.GetMemberId()), 10))
 		return sb.String()
 	}); has {
-		return nil, merr.ErrorI18nAlarmNoticeRepeatErr(ctx)
+		return nil, merr.ErrorI18nAlertAlertObjectDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().WithUpdateAlarmGroupRequest(req).ToBo()
 	err := s.alarmGroupBiz.UpdateAlarmGroup(ctx, param)

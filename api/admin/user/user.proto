@@ -271,12 +271,12 @@ message ResetUserPasswordReply {}
 
 message ResetUserPasswordBySelfRequest {
   // 旧密码
-  string old_password = 1 [(buf.validate.field).cel = {
+  string oldPassword = 1 [(buf.validate.field).cel = {
     message: "旧密码不允许为空",
     expression: "this.size() != 0"
   }];
   // 新密码
-  string new_password = 2 [(buf.validate.field).cel = {
+  string newPassword = 2 [(buf.validate.field).cel = {
     message: "新密码不允许为空",
     expression: "this.size() != 0"
   }];

@@ -42,7 +42,7 @@ type (
 func (s *StrategyGroupBiz) CreateStrategyGroup(ctx context.Context, params *bo.CreateStrategyGroupParams) (*bizmodel.StrategyGroup, error) {
 	strategyGroup, err := s.strategyRepo.CreateStrategyGroup(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategyGroup, nil
 }
@@ -51,9 +51,9 @@ func (s *StrategyGroupBiz) CreateStrategyGroup(ctx context.Context, params *bo.C
 func (s *StrategyGroupBiz) UpdateStrategyGroup(ctx context.Context, params *bo.UpdateStrategyGroupParams) error {
 	if err := s.strategyRepo.UpdateStrategyGroup(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyGroupNotFoundErr(ctx)
+			return merr.ErrorI18nToastStrategyGroupNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -63,9 +63,9 @@ func (s *StrategyGroupBiz) GetStrategyGroupDetail(ctx context.Context, groupID u
 	strategyGroup, err := s.strategyRepo.GetStrategyGroup(ctx, groupID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nStrategyGroupNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastStrategyGroupNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategyGroup, nil
 }
@@ -73,7 +73,7 @@ func (s *StrategyGroupBiz) GetStrategyGroupDetail(ctx context.Context, groupID u
 // DeleteStrategyGroup 删除策略分组
 func (s *StrategyGroupBiz) DeleteStrategyGroup(ctx context.Context, params *bo.DelStrategyGroupParams) error {
 	if err := s.strategyRepo.DeleteStrategyGroup(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -82,9 +82,9 @@ func (s *StrategyGroupBiz) DeleteStrategyGroup(ctx context.Context, params *bo.D
 func (s *StrategyGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyGroupStatusParams) error {
 	if err := s.strategyRepo.UpdateStatus(ctx, params); !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyGroupNotFoundErr(ctx)
+			return merr.ErrorI18nToastStrategyGroupNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (s *StrategyGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateSt
 func (s *StrategyGroupBiz) ListPage(ctx context.Context, params *bo.QueryStrategyGroupListParams) ([]*bizmodel.StrategyGroup, error) {
 	strategyGroups, err := s.strategyRepo.StrategyGroupPage(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategyGroups, err
 }

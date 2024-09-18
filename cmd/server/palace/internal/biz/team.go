@@ -34,10 +34,10 @@ func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (
 	}
 	teamDo, err := t.teamRepo.CreateTeam(ctx, params)
 	if !types.IsNil(err) {
-		if merr.IsTeamNameExistErr(err) {
+		if merr.IsAlertTeamNameExistErr(err) {
 			return nil, err
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return teamDo, nil
 }
@@ -46,7 +46,7 @@ func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (
 func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
 	// 不是管理员不允许修改
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 
 	return t.teamRepo.UpdateTeam(ctx, team)
@@ -55,14 +55,14 @@ func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) err
 // GetTeam 获取团队信息
 func (t *TeamBiz) GetTeam(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
 	if teamID == 0 {
-		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
+		return nil, merr.ErrorI18nToastTeamNotFound(ctx)
 	}
 	teamList, err := t.ListTeam(ctx, &bo.QueryTeamListParams{IDs: []uint32{teamID}})
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if len(teamList) == 0 {
-		return nil, merr.ErrorI18nTeamNotFoundErr(ctx)
+		return nil, merr.ErrorI18nToastTeamNotFound(ctx)
 	}
 	return teamList[0], nil
 }
@@ -71,7 +71,7 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamID uint32) (*model.SysTeam, e
 func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	// 不是管理员不允许修改
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
@@ -79,7 +79,7 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 	}
 	list, err := t.teamRepo.GetTeamList(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -87,10 +87,10 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 // UpdateTeamStatus 更新团队状态
 func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	if err := t.teamRepo.UpdateTeamStatus(ctx, status, ids...); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -99,7 +99,7 @@ func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids 
 func (t *TeamBiz) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
 	list, err := t.teamRepo.GetUserTeamList(ctx, userID)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -107,10 +107,10 @@ func (t *TeamBiz) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.
 // AddTeamMember 添加团队成员
 func (t *TeamBiz) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	if err := t.teamRepo.AddTeamMember(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -122,7 +122,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 查询团队管理员
 	teamMemberList, err := t.teamRepo.ListTeamMember(ctx, &bo.ListTeamMemberParams{
@@ -130,7 +130,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		MemberIDs: params.MemberIds,
 	})
 	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if len(teamMemberList) == 0 {
 		return nil
@@ -139,28 +139,28 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	teamInfo, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nTeamNotFoundErr(ctx)
+			return merr.ErrorI18nToastTeamNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	for _, teamMember := range teamMemberList {
 		role := teamMember.Role
 		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
-			return merr.ErrorI18nAdminUserDeleteErr(ctx)
+			return merr.ErrorI18nToastUserNotAllowRemoveAdmin(ctx)
 		}
 		if teamMember.UserID == claims.GetUser() {
-			return merr.ErrorI18nDeleteSelfErr(ctx)
+			return merr.ErrorI18nToastUserNotAllowRemoveSelf(ctx)
 		}
 	}
 
 	// 判断移除的人员中是否包含当前用户和管理员
 	if err = t.teamRepo.RemoveTeamMember(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -169,19 +169,19 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 不能设置自己
 	for _, memberID := range params.MemberIDs {
 		if memberID == claims.GetUser() {
-			return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
+			return merr.ErrorI18nToastUserNotAllowOperateAdmin(ctx)
 		}
 	}
 	if err := t.teamRepo.SetMemberAdmin(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -189,10 +189,10 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 // SetMemberRole 设置团队成员角色
 func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nNoPermissionErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	if err := t.teamRepo.SetMemberRole(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -201,7 +201,7 @@ func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRolePar
 func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberParams) ([]*bizmodel.SysTeamMember, error) {
 	list, err := t.teamRepo.ListTeamMember(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -212,18 +212,18 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 	team, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nTeamNotFoundErr(ctx)
+			return merr.ErrorI18nToastTeamNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if team.LeaderID != params.OldLeaderID {
-		return merr.ErrorI18nTeamLeaderErr(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	if team.LeaderID == params.LeaderID {
-		return merr.ErrorI18nTeamLeaderRepeatErr(ctx)
+		return nil
 	}
 	if err = t.teamRepo.TransferTeamLeader(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }

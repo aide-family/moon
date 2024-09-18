@@ -62,11 +62,11 @@ func ValidateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 		}
 		var validationError *protovalidate.ValidationError
 		if !errors.As(err, &validationError) {
-			return merr.ErrorI18nParamsValidateErr(ctx).WithCause(err)
+			return merr.ErrorI18nAlert(ctx).WithCause(err)
 		}
 
 		if types.IsNil(validationError) || len(validationError.Violations) == 0 {
-			return merr.ErrorI18nParamsValidateErr(ctx)
+			return merr.ErrorI18nAlert(ctx)
 		}
 
 		errMap := make(map[string]string)
@@ -86,6 +86,6 @@ func ValidateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			errMap[field] = getMsg(msg)
 		}
 
-		return merr.ErrorI18nParamsErr(ctx).WithMetadata(errMap)
+		return merr.ErrorI18nAlert(ctx).WithMetadata(errMap)
 	}
 }

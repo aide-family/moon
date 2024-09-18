@@ -31,7 +31,7 @@ type realtimeAlarmRepositoryImpl struct {
 func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	bizDB, err := data.GetAlarmGormDB(claims.GetTeam())
 	if !types.IsNil(err) {
@@ -55,9 +55,9 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nAlarmDataNotFoundErr(ctx).WithCause(err)
+			return nil, merr.ErrorI18nToastRealtimeAlarmNotFound(ctx).WithCause(err)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return detail, nil
 }

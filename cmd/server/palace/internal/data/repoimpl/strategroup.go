@@ -12,7 +12,6 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -235,7 +234,7 @@ func (s *strategyGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *
 func createStrategyGroupParamsToModel(ctx context.Context, params *bo.CreateStrategyGroupParams) *bizmodel.StrategyGroup {
 	strategyGroup := &bizmodel.StrategyGroup{
 		Name:   params.Name,
-		Status: vobj.Status(params.Status),
+		Status: params.Status,
 		Remark: params.Remark,
 		Categories: types.SliceToWithFilter(params.CategoriesIds, func(id uint32) (*bizmodel.SysDict, bool) {
 			if id <= 0 {

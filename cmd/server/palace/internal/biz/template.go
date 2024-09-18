@@ -32,13 +32,13 @@ func (b *TemplateBiz) CreateTemplateStrategy(ctx context.Context, templateStrate
 // UpdateTemplateStrategy 更新模板策略
 func (b *TemplateBiz) UpdateTemplateStrategy(ctx context.Context, templateStrategy *bo.UpdateTemplateStrategyParams) error {
 	if types.IsNil(templateStrategy.Data) {
-		return merr.ErrorI18nSystemErr(ctx)
+		return merr.ErrorI18nNotificationSystemError(ctx)
 	}
 	// 查询策略详情
 	_, err := b.templateRepository.GetTemplateStrategy(ctx, templateStrategy.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyTemplateNotFoundErr(ctx)
+			return merr.ErrorI18nToastTemplateStrategyNotFound(ctx)
 		}
 		return err
 	}
@@ -51,7 +51,7 @@ func (b *TemplateBiz) DeleteTemplateStrategy(ctx context.Context, id uint32) err
 	_, err := b.templateRepository.GetTemplateStrategy(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyTemplateNotFoundErr(ctx)
+			return merr.ErrorI18nToastTemplateStrategyNotFound(ctx)
 		}
 		return err
 	}

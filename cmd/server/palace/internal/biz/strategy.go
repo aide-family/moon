@@ -33,9 +33,9 @@ func (b *StrategyBiz) GetStrategy(ctx context.Context, strategyID uint32) (*bizm
 	strategy, err := b.strategyRepo.GetByID(ctx, strategyID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nStrategyNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastStrategyNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategy, nil
 }
@@ -44,7 +44,7 @@ func (b *StrategyBiz) GetStrategy(ctx context.Context, strategyID uint32) (*bizm
 func (b *StrategyBiz) CreateStrategy(ctx context.Context, param *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
 	_, err := b.strategyRepo.CreateStrategy(ctx, param)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil, nil
 }
@@ -54,9 +54,9 @@ func (b *StrategyBiz) UpdateByID(ctx context.Context, param *bo.UpdateStrategyPa
 	err := b.strategyRepo.UpdateByID(ctx, param)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyNotFoundErr(ctx)
+			return merr.ErrorI18nToastStrategyNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func (b *StrategyBiz) UpdateStatus(ctx context.Context, param *bo.UpdateStrategy
 	}
 	err := b.strategyRepo.UpdateStatus(ctx, param)
 	if !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -81,9 +81,9 @@ func (b *StrategyBiz) DeleteByID(ctx context.Context, strategyID uint32) error {
 	err := b.strategyRepo.DeleteByID(ctx, strategyID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nStrategyNotFoundErr(ctx)
+			return merr.ErrorI18nToastStrategyNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func (b *StrategyBiz) DeleteByID(ctx context.Context, strategyID uint32) error {
 func (b *StrategyBiz) StrategyPage(ctx context.Context, param *bo.QueryStrategyListParams) ([]*bizmodel.Strategy, error) {
 	strategies, err := b.strategyRepo.FindByPage(ctx, param)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategies, nil
 }
@@ -102,9 +102,9 @@ func (b *StrategyBiz) CopyStrategy(ctx context.Context, strategyID uint32) (*biz
 	strategy, err := b.strategyRepo.CopyStrategy(ctx, strategyID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return strategy, merr.ErrorI18nStrategyNotFoundErr(ctx)
+			return strategy, merr.ErrorI18nToastStrategyNotFound(ctx)
 		}
-		return strategy, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return strategy, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return strategy, nil
 }
@@ -127,7 +127,7 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 	}
 	for _, strategy := range strategies {
 		if strategy.Group.Status.IsDisable() {
-			return merr.ErrorI18nStrategyNotAllowedErr(ctx, strategy.Name, strategy.Group.Name)
+			return merr.ErrorI18nAlertStrategyGroupNotEnable(ctx, strategy.Name, strategy.Group.Name)
 		}
 	}
 	return nil

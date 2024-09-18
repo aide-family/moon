@@ -687,7 +687,7 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 
 	claims, ok := middleware.ParseJwtClaims(c.ctx)
 	if !ok {
-		panic(merr.ErrorI18nUnLoginErr(c.ctx))
+		panic(merr.ErrorI18nUnauthorized(c.ctx))
 	}
 
 	return &bo.CreateStrategyParams{

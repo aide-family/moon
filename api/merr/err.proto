@@ -8,386 +8,298 @@ option go_package = "github.com/aide-family/moon/api/merr;merr";
 option java_multiple_files = true;
 option java_package = "api.merr";
 
+/**
+  400 Bad Request：请求无效或无法被服务器理解。这可能是由于请求语法错误、大小超出限制、格式错误或其他原因。
+  401 Unauthorized：请求要求用户的身份认证。该状态码通常用于需要登录才能访问资源的情况。
+  403 Forbidden：服务器理解请求客户端的请求，但是拒绝执行此请求。这可能是由于没有权限访问请求的资源。
+  404 Not Found：请求的资源不存在。服务器找不到给定的资源。
+  405 Method Not Allowed：请求的方法（如 GET、POST 等）对于请求的资源是不允许的。例如，一个只允许 GET 请求的资源收到了 POST 请求。
+  406 Not Acceptable：请求的资源无法按照客户端可接受的形式返回。例如，客户端请求 JSON 格式的数据，而服务器只能提供 XML。
+  408 Request Timeout：请求超时。服务器等待客户端发送请求的时间过长。
+  409 Conflict：请求不能被完成因为请求与当前系统状态冲突。例如，两个用户同时试图修改同一个资源。
+  410 Gone：请求的资源在服务器上已经不再可用，并且没有任何已知的转发地址。
+  411 Length Required：服务器要求在请求头中给出 Content-Length。
+  413 Payload Too Large：请求实体太大。服务器不愿意接收请求，因为它太大。
+  414 URI Too Long：请求的 URL 太长。URL 超过了服务器愿意解释的长度。
+  415 Unsupported Media Type：请求的媒体类型（MIME 类型）不受服务器支持。
+  416 Range Not Satisfiable：请求的范围无法满足。例如，客户端请求了资源的一部分，但服务器无法提供这部分内容。
+  417 Expectation Failed：服务器无法满足请求中的 Expect 选项。
+  418 I'm a teapot：这是一个幽默的状态码，通常用于拒绝煮咖啡的请求（参见“BREW”协议）。
+  422 Unprocessable Entity：请求格式正确，但由于含有语义错误，无法响应。通常用于 WebDAV。
+  429 Too Many Requests：用户已经发送了太多的请求，在规定时间内。
+  451 Unavailable For Legal Reasons：请求的内容由于法律原因不可用。例如，由于版权法或诽谤法，资源被阻止。
+ */
+
+// 错误类型
 enum ErrorReason {
   option (errors.default_code) = 403;
 
   // 用于表单验证错误
-  ALERT = 0 [(errors.code) = 405];
-
-  // 用于弹窗验证错误
-  MODAL = 1 [(errors.code) = 405];
-
-  // 用于toast验证错误
-  TOAST = 2 [(errors.code) = 405];
-
-  // 用于通知验证错误
-  NOTIFICATION = 3 [(errors.code) = 405];
-
-  // 用于重定向验证错误, 跳转到指定页面
-  REDIRECT = 4 [
-    (errors.code) = 405,
-    (errors.message) = "请登录",
-    (errors.id) = "REDIRECT",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 管理员不能删除
-  ADMIN_USER_DELETE_ERR = 5 [
-    (errors.code) = 405,
-    (errors.message) = "管理员不能删除",
-    (errors.id) = "ADMIN_USER_DELETE_ERR"
-  ];
-
-  // 数据源不存在
-  DATASOURCE_NOT_FOUND_ERR = 6 [
-    (errors.code) = 405,
-    (errors.message) = "数据源不存在",
-    (errors.id) = "DATASOURCE_NOT_FOUND_ERR"
-  ];
-
-  // 不能删除自己
-  DELETE_SELF_ERR = 7 [
-    (errors.code) = 405,
-    (errors.message) = "不能删除自己",
-    (errors.id) = "DELETE_SELF_ERR"
-  ];
-
-  // 获取锁失败
-  LOCK_FAILED_ERR = 8 [
-    (errors.code) = 405,
-    (errors.message) = "获取锁失败",
-    (errors.id) = "LOCK_FAILED_ERR"
-  ];
-
-  // NoPermissionErr 您没有权限操作
-  NO_PERMISSION_ERR = 9 [
-    (errors.code) = 405,
-    (errors.message) = "您没有权限操作",
-    (errors.id) = "NO_PERMISSION_ERR",
-    (errors.metadata) = {key: "rbac", value: "false"}
-  ];
-
-  // 参数错误
-  PARAMS_ERR = 10 [
-    (errors.code) = 405,
+  ALERT = 0 [
+    (errors.code) = 400,
     (errors.message) = "参数错误",
-    (errors.id) = "PARAMS_ERR"
+    (errors.id) = "ALERT",
+    (errors.biz_reason) = {
+      reason: "PASSWORD_ERR"
+      message: "密码错误",
+      metadata: {key: "password", value: "PASSWORD_ERR"}
+    },
+    (errors.biz_reason) = {
+      reason: "PASSWORD_SAME_ERR"
+      message: "新旧密码不能相同",
+      metadata: {key: "newPassword", value: "PASSWORD_SAME_ERR"}
+    },
+    (errors.biz_reason) = {
+      reason: "TEAM_NAME_EXIST_ERR"
+      message: "团队名称已存在",
+      metadata: {key: "name", value: "TEAM_NAME_EXIST_ERR"}
+    },
+    (errors.biz_reason) = {
+      // 验证码错误
+      reason: "CAPTCHA_ERR"
+      message: "验证码错误",
+      metadata: {key: "captcha", value: "CAPTCHA_ERR"}
+    },
+    (errors.biz_reason) = {
+      // 验证码过期
+      reason: "CAPTCHA_EXPIRE"
+      message: "验证码已过期",
+      metadata: {key: "captcha", value: "CAPTCHA_EXPIRE"}
+    },
+    // 策略组未启用
+    (errors.biz_reason) = {
+      reason: "STRATEGY_GROUP_NOT_ENABLE"
+      message: "策略组[%s]未启用, 不允许开启策略[%s]",
+      metadata: {key: "strategyGroup", value: "STRATEGY_GROUP_NOT_ENABLE"}
+    },
+    // 告警对象重复
+    (errors.biz_reason) = {
+      reason: "ALERT_OBJECT_DUPLICATE"
+      message: "告警对象重复",
+      metadata: {key: "alertObject", value: "ALERT_OBJECT_DUPLICATE"}
+    },
+    // 策略告警等级重复
+    (errors.biz_reason) = {
+      reason: "ALERT_LEVEL_DUPLICATE"
+      message: "策略告警等级重复",
+      metadata: {key: "alertLevel", value: "ALERT_LEVEL_DUPLICATE"}
+    }
   ];
 
-  // 密码错误
-  PASSWORD_ERR = 11 [
+  // 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
+  MODAL = 1 [
     (errors.code) = 405,
-    (errors.message) = "密码错误",
-    (errors.id) = "PASSWORD_ERR"
+    (errors.message) = "请确认",
+    (errors.id) = "MODAL",
+    (errors.biz_reason) = {
+      reason: "CONFIRM_DELETE"
+      message: "确认删除",
+      metadata: {key: "confirm", value: "CONFIRM_DELETE"},
+      metadata: {key: "cancel", value: "CANCEL_DELETE"},
+      metadata: {key: "requestID", value: ""}
+    },
+    (errors.biz_reason) = {
+      reason: "CONFIRM_UPDATE"
+      message: "确认修改",
+      metadata: {key: "confirm", value: "CONFIRM_UPDATE"},
+      metadata: {key: "cancel", value: "CANCEL_UPDATE"},
+      metadata: {key: "requestID", value: ""}
+    }
   ];
 
-  // 新旧密码不能相同
-  PASSWORD_SAME_ERR = 12 [
-    (errors.code) = 405,
-    (errors.message) = "新旧密码不能相同",
-    (errors.id) = "PASSWORD_SAME_ERR"
-  ];
-
-  // 资源不存在
-  RESOURCE_NOT_FOUND_ERR = 13 [
-    (errors.code) = 405,
+  // 用于toast验证错误， 资源不存在或者已存在时候提示
+  TOAST = 2 [
+    (errors.code) = 404,
     (errors.message) = "资源不存在",
-    (errors.id) = "RESOURCE_NOT_FOUND_ERR"
+    (errors.id) = "TOAST",
+    (errors.biz_reason) = {
+      reason: "RESOURCE_NOT_FOUND"
+      message: "资源不存在",
+    },
+    (errors.biz_reason) = {
+      reason: "RESOURCE_EXIST"
+      message: "资源已存在",
+    },
+    (errors.biz_reason) = {
+      reason: "USER_NOT_FOUND"
+      message: "用户不存在",
+    },
+    (errors.biz_reason) = {
+      reason: "USERNAME_EXIST"
+      message: "用户名已存在",
+    },
+    // 告警组不存在
+    (errors.biz_reason) = {
+      reason: "ALERT_GROUP_NOT_FOUND"
+      message: "告警组不存在",
+    },
+    // 数据源同步中
+    (errors.biz_reason) = {
+      reason: "DATASOURCE_SYNCING"
+      message: "数据源同步中",
+    },
+    // 用户未订阅此策略
+    (errors.biz_reason) = {
+      reason: "USER_NOT_SUBSCRIBE"
+      message: "用户未订阅此策略",
+    },
+    // 团队不存在
+    (errors.biz_reason) = {
+      reason: "TEAM_NOT_FOUND"
+      message: "团队不存在",
+    },
+    // 不允许移除自己
+    (errors.biz_reason) = {
+      reason: "USER_NOT_ALLOW_REMOVE_SELF"
+      message: "不允许移除自己",
+    },
+    // 不允许移除团队管理员
+    (errors.biz_reason) = {
+      reason: "USER_NOT_ALLOW_REMOVE_ADMIN"
+      message: "不允许移除团队管理员",
+    },
+    // 不允许操作自己的管理员身份
+    (errors.biz_reason) = {
+      reason: "USER_NOT_ALLOW_OPERATE_ADMIN"
+      message: "不允许操作自己的管理员身份",
+    },
+    // 角色不存在
+    (errors.biz_reason) = {
+      reason: "ROLE_NOT_FOUND"
+      message: "角色不存在",
+    },
+    // 策略模板不存在
+    (errors.biz_reason) = {
+      reason: "TEMPLATE_STRATEGY_NOT_FOUND"
+      message: "策略模板不存在",
+    },
+    // 用户不存在
+    (errors.biz_reason) = {
+      reason: "USER_NOT_EXIST"
+      message: "用户不存在",
+    },
+    // 图表大盘不存在
+    (errors.biz_reason) = {
+      reason: "DASHBOARD_NOT_FOUND"
+      message: "图表大盘不存在",
+    },
+    // 实时告警不存在
+    (errors.biz_reason) = {
+      reason: "REALTIME_ALARM_NOT_FOUND"
+      message: "实时告警不存在",
+    },
+    // 数据源不存在
+    (errors.biz_reason) = {
+      reason: "DATA_SOURCE_NOT_FOUND"
+      message: "数据源不存在",
+      metadata: {key: "dataSource", value: "DATA_SOURCE_NOT_FOUND"}
+    },
+    // 字典不存在
+    (errors.biz_reason) = {
+      reason: "DICT_NOT_FOUND"
+      message: "字典不存在",
+      metadata: {key: "dict", value: "DICT_NOT_FOUND"}
+    },
+    // 告警hook不存在
+    (errors.biz_reason) = {
+      reason: "ALARM_HOOK_NOT_FOUND"
+      message: "告警hook不存在",
+      metadata: {key: "alertHook", value: "ALERT_HOOK_NOT_FOUND"}
+    },
+    // 菜单不存在
+    (errors.biz_reason) = {
+      reason: "MENU_NOT_FOUND"
+      message: "菜单不存在",
+      metadata: {key: "menu", value: "MENU_NOT_FOUND"}
+    },
+    // 指标不存在
+    (errors.biz_reason) = {
+      reason: "METRIC_NOT_FOUND"
+      message: "指标不存在",
+      metadata: {key: "metric", value: "METRIC_NOT_FOUND"}
+    },
+    // API不存在
+    (errors.biz_reason) = {
+      reason: "API_NOT_FOUND"
+      message: "API不存在",
+      metadata: {key: "api", value: "API_NOT_FOUND"}
+    },
+    // 告警策略不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_NOT_FOUND"
+      message: "告警策略不存在",
+      metadata: {key: "alertStrategy", value: "ALERT_STRATEGY_NOT_FOUND"}
+    },
+    // 策略组不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_GROUP_NOT_FOUND"
+      message: "策略组不存在",
+      metadata: {key: "strategyGroup", value: "STRATEGY_GROUP_NOT_FOUND"}
+    }
   ];
 
-  // 请稍后重试
-  RETRY_LATER_ERR = 14 [
-    (errors.code) = 405,
-    (errors.message) = "请稍后重试",
-    (errors.id) = "RETRY_LATER_ERR"
-  ];
-
-  // 系统错误
-  SYSTEM_ERR = 15 [
+  // 用于通知验证错误， 系统级别错误
+  NOTIFICATION = 3 [
     (errors.code) = 500,
-    (errors.message) = "系统错误",
-    (errors.id) = "SYSTEM_ERR"
+    (errors.message) = "系统未知错误",
+    (errors.id) = "NOTIFICATION",
+    (errors.biz_reason) = {
+      reason: "SYSTEM_ERROR"
+      message: "系统未知错误",
+    }
   ];
 
-  // 团队负责人不能删除
-  TEAM_LEADER_ERR = 16 [
-    (errors.code) = 405,
-    (errors.message) = "团队负责人不能删除",
-    (errors.id) = "TEAM_LEADER_ERR"
+  // 用于重定向验证错误, 跳转到指定页面， 认证级别提示
+  UNAUTHORIZED = 4 [
+    (errors.code) = 401,
+    (errors.message) = "请先登录",
+    (errors.id) = "UNAUTHORIZED",
+    (errors.metadata) = {key: "redirect", value: "/login"},
+    (errors.biz_reason) = {
+      reason: "JWT_EXPIRE",
+      message: "登录已过期",
+    },
+    (errors.biz_reason) = {
+      reason: "JWT_OTHER_LOGIN",
+      message: "账号已在其他地方登录",
+    },
+    (errors.biz_reason) = {
+      reason: "JWT_BAN",
+      message: "认证信息已登出，请重新登录",
+    },
+    (errors.biz_reason) = {
+      // 账号不存在
+      reason: "USER_NOT_FOUND"
+      message: "账号不存在",
+    },
+    (errors.biz_reason) = {
+      // 您已被禁止使用该系统，请联系官方解除
+      reason: "USER_BAN"
+      message: "您已被禁止使用该系统，请联系官方解除",
+    }
   ];
 
-  // 你已经是团队负责人了
-  TEAM_LEADER_REPEAT_ERR = 17 [
-    (errors.code) = 405,
-    (errors.message) = "你已经是团队负责人了",
-    (errors.id) = "TEAM_LEADER_REPEAT_ERR"
+  // 权限不足时候提示, toast提示 权限级别提示
+  FORBIDDEN = 5 [
+    (errors.code) = 403,
+    (errors.message) = "您没有操作权限, 请联系管理员开通该权限",
+    (errors.id) = "FORBIDDEN",
+    (errors.biz_reason) = {
+      // 用户已不属于该团队
+      reason: "USER_NOT_IN_TEAM"
+      message: "您已不属于该团队",
+    },
+    (errors.biz_reason) = {
+      // 您已被该团队禁用操作，请联系管理员
+      reason: "MEMBER_DISABLED"
+      message: "您已被该团队禁用操作，请联系管理员",
+    }
   ];
 
-  // 团队名称已存在
-  TEAM_NAME_EXIST_ERR = 18 [
-    (errors.code) = 405,
-    (errors.message) = "团队名称已存在",
-    (errors.id) = "TEAM_NAME_EXIST_ERR",
-    (errors.metadata) = {key: "name", value: "TEAM_NAME_EXIST_ERR"}
-  ];
-
-  // 团队不存在
-  TEAM_NOT_FOUND_ERR = 19 [
-    (errors.code) = 405,
-    (errors.message) = "团队不存在",
-    (errors.id) = "TEAM_NOT_FOUND_ERR"
-  ];
-
-  // 团队角色不存在
-  TEAM_ROLE_NOT_FOUND_ERR = 20 [
-    (errors.code) = 405,
-    (errors.message) = "团队角色不存在",
-    (errors.id) = "TEAM_ROLE_NOT_FOUND_ERR"
-  ];
-
-  // 未登录
-  UN_LOGIN_ERR = 21 [
-    (errors.code) = 405,
-    (errors.message) = "未登录",
-    (errors.id) = "UN_LOGIN_ERR",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 用户不存在
-  USER_NOT_FOUND_ERR = 22 [
-    (errors.code) = 405,
-    (errors.message) = "用户不存在",
-    (errors.id) = "USER_NOT_FOUND_ERR",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 你已经被限制使用此平台
-  USER_LIMIT_ERR = 23 [
-    (errors.code) = 405,
-    (errors.message) = "你已经被限制使用此平台",
-    (errors.id) = "USER_LIMIT_ERR",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 你已经不在该团队中
-  USER_NOT_IN_TEAM_ERR = 24 [
-    (errors.code) = 405,
-    (errors.message) = "你已经不在该团队中",
-    (errors.id) = "USER_NOT_IN_TEAM_ERR",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 你已经被该团队禁用
-  USER_TEAM_DISABLED_ERR = 25 [
-    (errors.code) = 405,
-    (errors.message) = "你已经被该团队禁用",
-    (errors.id) = "USER_TEAM_DISABLED_ERR",
-    (errors.metadata) = {key: "redirect", value: "/login"}
-  ];
-
-  // 获取验证码失败
-  GET_CAPTCHA_ERR = 26 [
-    (errors.code) = 405,
-    (errors.message) = "获取验证码失败",
-    (errors.id) = "GET_CAPTCHA_ERR"
-  ];
-
-  // 验证码已失效
-  CAPTCHA_EXPIRED_ERR = 27 [
-    (errors.code) = 405,
-    (errors.message) = "验证码已过期",
-    (errors.id) = "CAPTCHA_EXPIRED_ERR",
-    (errors.metadata) = {key: "code", value: "CAPTCHA_EXPIRED_ERR"}
-  ];
-
-  // 验证码错误
-  CAPTCHA_ERR = 28 [
-    (errors.code) = 405,
-    (errors.message) = "验证码错误",
-    (errors.id) = "CAPTCHA_ERR",
-    (errors.metadata) = {key: "code", value: "CAPTCHA_ERR"}
-  ];
-
-  // 验证码无效
-  CAPTCHA_INVALID_ERR = 29 [
-    (errors.code) = 405,
-    (errors.message) = "验证码无效",
-    (errors.id) = "CAPTCHA_INVALID_ERR",
-    (errors.metadata) = {key: "code", value: "CAPTCHA_INVALID_ERR"}
-  ];
-
-  // metric指标不存在
-  METRIC_NOT_FOUND_ERR = 30 [
-    (errors.code) = 405,
-    (errors.message) = "指标不存在",
-    (errors.id) = "METRIC_NOT_FOUND_ERR"
-  ];
-
-  // 依赖错误
-  DEPENDENCY_ERR = 31 [
-    (errors.code) = 405,
-    (errors.message) = "依赖错误",
-    (errors.id) = "DEPENDENCY_ERR"
-  ];
-
-  // 数据库连接失败
-  DB_CONNECT_ERR = 32 [
-    (errors.code) = 405,
-    (errors.message) = "数据库连接失败",
-    (errors.id) = "DB_CONNECT_ERR"
-  ];
-
-  // 不支持的数据源类型
-  UNSUPPORTED_DATASOURCE_TYPE_ERR = 33 [
-    (errors.code) = 405,
-    (errors.message) = "不支持的数据源类型",
-    (errors.id) = "UNSUPPORTED_DATASOURCE_TYPE_ERR"
-  ];
-
-  // 请联系管理员分配权限
-  NO_PERMISSION_TO_OPERATE_ERR = 34 [
-    (errors.code) = 405,
-    (errors.message) = "请联系管理员分配权限",
-    (errors.id) = "NO_PERMISSION_TO_OPERATE_ERR"
-  ];
-
-  // 参数校验失败
-  PARAMS_VALIDATE_ERR = 35 [
-    (errors.code) = 405,
-    (errors.message) = "参数校验失败",
-    (errors.id) = "PARAMS_VALIDATE_ERR"
-  ];
-
-  // 请创建您的团队
-  NO_TEAM_ERR = 36 [
-    (errors.code) = 405,
-    (errors.message) = "请创建或选择您的团队",
-    (errors.id) = "NO_TEAM_ERR"
-  ];
-
-  // 策略模板不存在
-  STRATEGY_TEMPLATE_NOT_FOUND_ERR = 37 [
-    (errors.code) = 405,
-    (errors.message) = "策略模板不存在",
-    (errors.id) = "STRATEGY_TEMPLATE_NOT_FOUND_ERR"
-  ];
-
-  // 告警等级不存在
-  ALARM_LEVEL_NOT_FOUND_ERR = 38 [
-    (errors.code) = 405,
-    (errors.message) = "告警等级不存在",
-    (errors.id) = "ALARM_LEVEL_NOT_FOUND_ERR"
-  ];
-
-  // 字典不存在
-  DICT_NOT_FOUND_ERR = 39 [
-    (errors.code) = 405,
-    (errors.message) = "字典不存在!",
-    (errors.id) = "DICT_NOT_FOUND_ERR"
-  ];
-
-  // 菜单不存在
-  MENU_NOT_FOUND_ERR = 40 [
-    (errors.code) = 405,
-    (errors.message) = "菜单不存在!",
-    (errors.id) = "MENU_NOT_FOUND_ERR"
-  ];
-
-  // 策略不存在
-  STRATEGY_NOT_FOUND_ERR = 41 [
-    (errors.code) = 405,
-    (errors.message) = "策略不存在!",
-    (errors.id) = "STRATEGY_NOT_FOUND_ERR"
-  ];
-
-  // 策略等级不允许重复
-  STRATEGY_LEVEL_REPEAT_ERR = 42 [
-    (errors.code) = 405,
-    (errors.message) = "策略等级不允许重复!",
-    (errors.id) = "STRATEGY_LEVEL_REPEAT_ERR"
-  ];
-
-  // 策略不存在
-  STRATEGY_GROUP_NOT_FOUND_ERR = 43 [
-    (errors.code) = 405,
-    (errors.message) = "策略分组不存在!",
-    (errors.id) = "STRATEGY_GROUP_NOT_FOUND_ERR"
-  ];
-
-  REQUEST_SOURCE_PARSING_ERROR = 44 [
-    (errors.code) = 405,
-    (errors.message) = "请求类型解析错误!",
-    (errors.id) = "REQUEST_SOURCE_PARSING_ERROR"
-  ];
-
-
-  // 字典名称已经存在
-  DICT_NAME_ALREADY_EXISTS_ERR = 45 [
-    (errors.code) = 405,
-    (errors.message) = "字典名称已经存在!",
-    (errors.id) = "DICT_NOT_FOUND_ERR"
-  ];
-
-  // 创建字典参数不能为空
-  DICT_CREATE_PARAM_CANNOT_EMPTY = 46[
-    (errors.code) = 405,
-    (errors.message) = "创建字典参数不能为空!",
-    (errors.id) = "DICT_CREATE_PARAM_CANNOT_EMPTY"
-  ];
-
-  // 操作不允许
-  OPERATION_NOT_ALLOWED_ERR = 47 [
-    (errors.code) = 405,
-    (errors.message) = "操作不允许!",
-    (errors.id) = "OPERATION_NOT_ALLOWED_ERR"
-  ];
-
-  // 告警数据不存在
-  ALARM_DATA_NOT_FOUND_ERR = 48 [
-    (errors.code) = 405,
-    (errors.message) = "告警数据不存在!",
-    (errors.id) = "ALARM_DATA_NOT_FOUND_ERR"
-  ];
-
-  // 仪表盘数据不存在
-  DASHBOARD_DATA_NOT_FOUND_ERR = 49 [
-    (errors.code) = 405,
-    (errors.message) = "仪表盘数据不存在!",
-    (errors.id) = "DASHBOARD_DATA_NOT_FOUND_ERR"
-  ];
-
-  // 告警分组数据不存在
-  ALARM_GROUP_DATA_NOT_FOUND_ERR = 50 [
-    (errors.code) = 405,
-    (errors.message) = "告警分组数据不存在!",
-    (errors.id) = "ALARM_GROUP_DATA_NOT_FOUND_ERR"
-  ];
-
-  // 告警通知人不允许重复
-  ALARM_NOTICE_REPEAT_ERR = 51 [
-    (errors.code) = 405,
-    (errors.message) = "告警通知人不允许重复!",
-    (errors.id) = "ALARM_NOTICE_REPEAT_ERR"
-  ];
-
-  // 用户未订阅策略
-  USER_NOT_SUBSCRIBED_ERR = 52 [
-    (errors.code) = 405,
-    (errors.message) = "用户没有订阅策略!",
-    (errors.id) = "USER_NOT_SUBSCRIBED_ERR"
-  ];
-
-  // 告警hook数据不存在
-  ALARM_HOOK_DATA_NOT_FOUND_ERR = 53 [
-    (errors.code) = 405,
-    (errors.message) = "告警hook不存在!",
-    (errors.id) = "ALARM_HOOK_DATA_NOT_FOUND_ERR"
-  ];
-
-  // 策略不允许开启
-  STRATEGY_NOT_ALLOWED_ERR = 54 [
-    (errors.code) = 405,
-    (errors.message) = "策略：[%s] 不允许打开!，请打开策略分组：[%s]",
-    (errors.id) = "STRATEGY_NOT_ALLOWED_ERR"
+  // 触发频率限制
+  TOO_MANY_REQUESTS = 6 [
+    (errors.code) = 429,
+    (errors.message) = "请求太频繁，请稍后再试",
+    (errors.id) = "TOO_MANY_REQUESTS"
   ];
 }

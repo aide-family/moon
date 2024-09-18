@@ -28,7 +28,7 @@ func NewAlarmPageSelfService(alarmPageBiz *biz.AlarmPageBiz) *AlarmPageSelfServi
 func (s *AlarmPageSelfService) UpdateAlarmPage(ctx context.Context, req *pb.UpdateAlarmPageRequest) (*pb.UpdateAlarmPageReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	if err := s.alarmPageBiz.UpdateAlarmPage(ctx, claims.GetUser(), req.GetAlarmPageIds()); err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (s *AlarmPageSelfService) UpdateAlarmPage(ctx context.Context, req *pb.Upda
 func (s *AlarmPageSelfService) ListAlarmPage(ctx context.Context, _ *pb.ListAlarmPageRequest) (*pb.ListAlarmPageReply, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return nil, merr.ErrorI18nUnLoginErr(ctx)
+		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
 	alarmPageList, err := s.alarmPageBiz.ListAlarmPage(ctx, claims.GetUser())
 	if err != nil {

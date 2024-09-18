@@ -8,6 +8,9 @@ description = "CaptchaReq_theme_type"
 one = "必须为light或者dark"
 other = "必须为light或者dark"
 
+[CAPTCHA_INVALID_ERR]
+other = "验证码无效"
+
 [ADMIN_USER_DELETE_ERR]
 description = "ADMIN_USER_DELETE_ERR"
 hash = "sha1-cd7c3e7dfc2570995ee0127db7479000369366ca"

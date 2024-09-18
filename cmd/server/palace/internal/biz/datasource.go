@@ -47,7 +47,7 @@ type DatasourceBiz struct {
 func (b *DatasourceBiz) CreateDatasource(ctx context.Context, datasource *bo.CreateDatasourceParams) (*bizmodel.Datasource, error) {
 	datasourceDo, err := b.datasourceRepository.CreateDatasource(ctx, datasource)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return datasourceDo, err
 }
@@ -55,7 +55,7 @@ func (b *DatasourceBiz) CreateDatasource(ctx context.Context, datasource *bo.Cre
 // UpdateDatasourceBaseInfo 更新数据源
 func (b *DatasourceBiz) UpdateDatasourceBaseInfo(ctx context.Context, datasource *bo.UpdateDatasourceBaseInfoParams) error {
 	if err := b.datasourceRepository.UpdateDatasourceBaseInfo(ctx, datasource); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -63,7 +63,7 @@ func (b *DatasourceBiz) UpdateDatasourceBaseInfo(ctx context.Context, datasource
 // UpdateDatasourceConfig 更新数据源配置
 func (b *DatasourceBiz) UpdateDatasourceConfig(ctx context.Context, datasource *bo.UpdateDatasourceConfigParams) error {
 	if err := b.datasourceRepository.UpdateDatasourceConfig(ctx, datasource); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (b *DatasourceBiz) UpdateDatasourceConfig(ctx context.Context, datasource *
 func (b *DatasourceBiz) ListDatasource(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bizmodel.Datasource, error) {
 	list, err := b.datasourceRepository.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return list, nil
 }
@@ -80,7 +80,7 @@ func (b *DatasourceBiz) ListDatasource(ctx context.Context, params *bo.QueryData
 // DeleteDatasource 删除数据源
 func (b *DatasourceBiz) DeleteDatasource(ctx context.Context, id uint32) error {
 	if err := b.datasourceRepository.DeleteDatasourceByID(ctx, id); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -90,9 +90,9 @@ func (b *DatasourceBiz) GetDatasource(ctx context.Context, id uint32) (*bizmodel
 	detail, err := b.datasourceRepository.GetDatasource(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nDatasourceNotFoundErr(ctx)
+			return nil, merr.ErrorI18nToastDataSourceNotFound(ctx)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return detail, nil
 }
@@ -101,7 +101,7 @@ func (b *DatasourceBiz) GetDatasource(ctx context.Context, id uint32) (*bizmodel
 func (b *DatasourceBiz) GetDatasourceSelect(ctx context.Context, params *bo.QueryDatasourceListParams) ([]*bo.SelectOptionBo, error) {
 	list, err := b.datasourceRepository.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return types.SliceTo(list, func(item *bizmodel.Datasource) *bo.SelectOptionBo {
 		return bo.NewDatasourceOptionBuild(item).ToSelectOption()
@@ -112,7 +112,7 @@ func (b *DatasourceBiz) GetDatasourceSelect(ctx context.Context, params *bo.Quer
 func (b *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	// TODO 需要校验数据源是否被使用， 是否有权限
 	if err := b.datasourceRepository.UpdateDatasourceStatus(ctx, status, ids...); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -124,16 +124,11 @@ func syncDatasourceMetaKey(datasourceID uint32) string {
 // SyncDatasourceMeta 同步数据源元数据
 func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
-		if errors.Is(err, merr.ErrorI18nLockFailedErr(ctx)) {
-			return merr.ErrorI18nRetryLaterErr(ctx).WithMetadata(map[string]string{
-				"retry": merr.GetI18nMessage(ctx, "DATASOURCE_SYNCING"),
-			})
-		}
-		return err
+		return merr.ErrorI18nToastDatasourceSyncing(ctx)
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	go func() {
 		defer after.RecoverX()
@@ -157,28 +152,23 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 // SyncDatasourceMetaV2 同步数据源元数据
 func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) error {
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
-		if errors.Is(err, merr.ErrorI18nLockFailedErr(ctx)) {
-			return merr.ErrorI18nRetryLaterErr(ctx).WithMetadata(map[string]string{
-				"retry": merr.GetI18nMessage(ctx, "DATASOURCE_SYNCING"),
-			})
-		}
-		return err
+		return merr.ErrorI18nToastDatasourceSyncing(ctx).WithCause(err)
 	}
 
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
-		return merr.ErrorI18nUnLoginErr(ctx)
+		return merr.ErrorI18nUnauthorized(ctx)
 	}
 	// 获取数据源详情
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, claims.GetTeam())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nDatasourceNotFoundErr(ctx)
+			return merr.ErrorI18nToastDataSourceNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if err := b.datasourceMetricMicroRepository.InitiateSyncRequest(ctx, datasourceDetail); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
@@ -190,7 +180,7 @@ func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryPar
 		datasourceDetail, err := b.datasourceRepository.GetDatasource(ctx, params.DatasourceID)
 		if !types.IsNil(err) {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, merr.ErrorI18nDatasourceNotFoundErr(ctx)
+				return nil, merr.ErrorI18nToastDataSourceNotFound(ctx)
 			}
 			return nil, err
 		}
@@ -205,9 +195,9 @@ func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamID uint3
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nDatasourceNotFoundErr(ctx)
+			return merr.ErrorI18nToastDataSourceNotFound(ctx)
 		}
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	// 获取元数据
 	metadata, err := b.datasourceMetricMicroRepository.GetMetadata(ctx, datasourceDetail)
@@ -216,7 +206,7 @@ func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamID uint3
 	}
 	// 创建元数据
 	if err = b.datasourceMetricRepository.CreateMetricsNoAuth(ctx, teamID, metadata...); !types.IsNil(err) {
-		return merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
