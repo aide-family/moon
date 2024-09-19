@@ -2,7 +2,8 @@ package repoimpl
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -74,9 +75,8 @@ func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]
 }
 
 func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
-	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
-	strategy.Labels.Append(vobj.LevelID, fmt.Sprintf("%d", strategy.LevelID))
-	strategy.Labels.Append(vobj.TeamID, fmt.Sprintf("%d", strategy.TeamID))
+	strategy.Labels.Append(vobj.StrategyID, strconv.FormatInt(int64(strategy.ID), 10))
+	strategy.Labels.Append(vobj.LevelID, strconv.FormatInt(int64(strategy.LevelID), 10))
 
 	alarmInfo := bo.Alarm{
 		Receiver:          "",
