@@ -11,9 +11,6 @@ const tableNameRealtimeAlarm = "realtime_alarm"
 // RealtimeAlarm mapped from table <RealtimeAlarm>
 type RealtimeAlarm struct {
 	model.EasyModel
-	// 发生这条告警的具体策略信息
-	StrategyID uint32 `gorm:"column:strategy_id;type:int unsigned;not null;uniqueIndex:idx__ar__strategy_id,priority:1;comment:策略ID"`
-	LevelID    uint32 `gorm:"column:level_id;type:int unsigned;not null;uniqueIndex:idx__ar__level_id,priority:1;comment:告警等级ID"`
 	// 告警状态: 1告警;2恢复
 	Status vobj.AlertStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// 告警时间
@@ -28,10 +25,10 @@ type RealtimeAlarm struct {
 	Description string `gorm:"column:description;type:text;not null;comment:告警明细"`
 	// 触发告警表达式
 	Expr string `gorm:"column:expr;type:text;not null;comment:告警表达式"`
-	// 数据源
-	DatasourceID uint32 `gorm:"column:datasource_id;type:int unsigned;not null;comment:数据源ID"`
 	// 指纹
 	Fingerprint string `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex"`
+	// 实时告警详情
+	RealtimeDetails RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
 }
 
 // String json string

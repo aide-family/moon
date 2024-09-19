@@ -510,22 +510,23 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 		return nil
 	}
 
-	return &adminapi.RealtimeAlarmItem{
-		Id:           alarm.ID,
-		StartsAt:     types.NewTimeByUnix(alarm.StartsAt).String(),
-		EndsAt:       types.NewTimeByUnix(alarm.EndsAt).String(),
-		Status:       api.AlertStatus(alarm.Status),
-		Level:        nil, // TODO 待实现
-		LevelID:      0,
-		StrategyID:   alarm.LevelID,
-		Strategy:     nil, // TODO 待实现
-		Summary:      alarm.Summary,
-		Description:  alarm.Description,
-		Expr:         alarm.Expr,
-		DatasourceID: alarm.DatasourceID,
-		Datasource:   nil, // TODO 待实现
-		Fingerprint:  alarm.Fingerprint,
+	resItem := &adminapi.RealtimeAlarmItem{
+		Id:          alarm.ID,
+		StartsAt:    types.NewTimeByUnix(alarm.StartsAt).String(),
+		EndsAt:      types.NewTimeByUnix(alarm.EndsAt).String(),
+		Status:      api.AlertStatus(alarm.Status),
+		Summary:     alarm.Summary,
+		Description: alarm.Description,
+		Expr:        alarm.Expr,
+		Fingerprint: alarm.Fingerprint,
 	}
+
+	if !types.IsNil(alarm.RealtimeDetails) {
+		resItem.Datasource = alarm.RealtimeDetails.Datasource
+		resItem.Strategy = alarm.RealtimeDetails.Strategy
+		resItem.Level = alarm.RealtimeDetails.Level
+	}
+	return resItem
 }
 
 func (d *doRealtimeAlarmBuilder) ToAPIs(alarms []*alarmmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem {
