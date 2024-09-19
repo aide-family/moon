@@ -45,9 +45,10 @@ type (
 		*historyapi.ListHistoryRequest
 	}
 
+	// IDoAlarmHistoryBuilder do alarm history builder
 	IDoAlarmHistoryBuilder interface {
-		ToApi(*alarmmodel.AlarmHistory) *admin.AlarmHistoryItem
-		ToApis([]*alarmmodel.AlarmHistory) []*admin.AlarmHistoryItem
+		ToAPI(*alarmmodel.AlarmHistory) *admin.AlarmHistoryItem
+		ToAPIs([]*alarmmodel.AlarmHistory) []*admin.AlarmHistoryItem
 	}
 
 	doAlarmHistoryBuilder struct {
@@ -55,25 +56,36 @@ type (
 	}
 )
 
-func (a *doAlarmHistoryBuilder) ToApi(history *alarmmodel.AlarmHistory) *admin.AlarmHistoryItem {
+func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.AlarmHistoryItem {
 	if types.IsNil(a) || types.IsNil(history) {
 		return nil
 	}
-	return &admin.AlarmHistoryItem{
-		Id:           history.ID,
-		InstanceName: history.InstanceName,
-		AlertStatus:  api.AlertStatus(history.AlertStatus),
-		Expr:         history.Expr,
-		Fingerprint:  history.Fingerprint,
+
+	resItem := &admin.AlarmHistoryItem{
+		Id:          history.ID,
+		RawInfo:     history.RawInfo,
+		AlertStatus: api.AlertStatus(history.AlertStatus),
+		Expr:        history.Expr,
+		Fingerprint: history.Fingerprint,
+		StartsAt:    history.StartAt.GetDuration(),
+		EndsAt:      history.EndAt.GetDuration(),
 	}
+
+	if !types.IsNil(history.HistoryDetails) {
+		resItem.Strategy = history.HistoryDetails.Strategy
+		resItem.Datasource = history.HistoryDetails.Datasource
+		resItem.Level = history.HistoryDetails.Level
+	}
+
+	return resItem
 }
 
-func (a *doAlarmHistoryBuilder) ToApis(histories []*alarmmodel.AlarmHistory) []*admin.AlarmHistoryItem {
+func (a *doAlarmHistoryBuilder) ToAPIs(histories []*alarmmodel.AlarmHistory) []*admin.AlarmHistoryItem {
 	if types.IsNil(a) || types.IsNil(histories) {
 		return nil
 	}
 	return types.SliceTo(histories, func(history *alarmmodel.AlarmHistory) *admin.AlarmHistoryItem {
-		return a.ToApi(history)
+		return a.ToAPI(history)
 	})
 }
 

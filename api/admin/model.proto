@@ -517,25 +517,19 @@ message RealtimeAlarmItem {
   // 告警状态
   AlertStatus status = 4;
   // 告警级别
-  SelectItem level = 5;
-  // 告警级别ID
-  uint32 levelID = 6;
-  // 告警策略ID
-  uint32 strategyID = 7;
+  string level = 5;
   // 告警策略
-  StrategyItem strategy = 8;
+  string strategy = 6;
   // 告警摘要
-  string summary = 9;
+  string summary = 7;
   // 告警详情
-  string description = 10;
+  string description = 8;
   // 触发告警表达式
-  string expr = 11;
-  // 数据源ID
-  uint32 datasourceID = 12;
+  string expr = 9;
   // 数据源
-  DatasourceItem datasource = 13;
+  string datasource = 10;
   // 指纹
-  string fingerprint = 14;
+  string fingerprint = 11;
 }
 
 // 我的告警页面明细
@@ -637,27 +631,29 @@ message AlarmHookItem {
 }
 
 // 告警历史
-message AlarmHistory{
+message AlarmHistoryItem{
   // ID
   uint32 id = 1;
   // 告警开始时间
-  string startsAt = 2;
+  google.protobuf.Duration  startsAt = 2;
   // 告警结束时间
-  string endsAt = 3;
+  google.protobuf.Duration  endsAt = 3;
   // 告警状态
-  AlertStatus status = 4;
+  AlertStatus alertStatus = 4;
   // 告警级别
-  SelectItem level = 5;
+  string level = 5;
   // 告警策略
-  StrategyItem strategy = 7;
+  string strategy = 7;
   // 告警详情
   string description = 8;
   // 触发告警表达式
   string expr = 9;
   // 数据源
-  DatasourceItem datasource = 10;
+  string datasource = 10;
   // 指纹
   string fingerprint = 11;
+  // 原始json
+  string rawInfo = 12;
 }
 
 message NoticeUserMessage {

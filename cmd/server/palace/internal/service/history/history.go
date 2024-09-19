@@ -35,7 +35,7 @@ func (s *Service) GetHistory(ctx context.Context, req *historyapi.GetHistoryRequ
 			WithContext(ctx).
 			AlarmHistoryModuleBuilder().
 			DoAlarmHistoryItemBuilder().
-			ToApi(history),
+			ToAPI(history),
 	}, nil
 }
 func (s *Service) ListHistory(ctx context.Context, req *historyapi.ListHistoryRequest) (*historyapi.ListHistoryReply, error) {
@@ -51,6 +51,6 @@ func (s *Service) ListHistory(ctx context.Context, req *historyapi.ListHistoryRe
 		List: builder.NewParamsBuild().
 			AlarmHistoryModuleBuilder().
 			DoAlarmHistoryItemBuilder().
-			ToApis(histories),
+			ToAPIs(histories),
 	}, nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +35,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistory(ctx context.Context, param 
 	if err != nil {
 		return nil, err
 	}
-	alarmHistory, err := alarmQuery.AlarmHistory.WithContext(ctx).Where(alarmQuery.AlarmHistory.ID.Eq(param.ID)).First()
+	alarmHistory, err := alarmQuery.AlarmHistory.WithContext(ctx).Preload(field.Associations).Where(alarmQuery.AlarmHistory.ID.Eq(param.ID)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nAlarmHistoryDataNotFoundErr(ctx).WithCause(err)

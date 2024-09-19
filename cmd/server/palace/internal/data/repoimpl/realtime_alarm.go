@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 )
 
@@ -52,7 +53,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	if params.RealtimeAlarmID != 0 {
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.Eq(params.RealtimeAlarmID))
 	}
-	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...).First()
+	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Preload(field.Associations).Where(wheres...).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nToastRealtimeAlarmNotFound(ctx).WithCause(err)
