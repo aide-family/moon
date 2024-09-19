@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"github.com/aide-family/moon/cmd/vobj"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -12,7 +13,8 @@ import (
 )
 
 // Run gen gorm gen model code
-func Run(datasource string, drive, outputPath string, isBiz bool) {
+func Run(datasource string, drive string, modelCode int) {
+	outputPath := vobj.GetModelPath(vobj.ModelType(modelCode))
 	if drive == "" || outputPath == "" {
 		log.Warnw("err", "参数错误", "datasource", datasource, "drive", drive, "outputPath", outputPath)
 		return
@@ -44,11 +46,17 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 		g.UseDB(gormDB) // reuse your gorm db
 	}
 
-	if isBiz {
-		g.ApplyBasic(bizmodel.Models()...)
-		g.ApplyBasic(alarmmodel.AlarmModels()...)
-	} else {
+	modelType2 := vobj.ModelType(modelCode)
+	if modelType2.IsModelcode() {
 		g.ApplyBasic(model.Models()...)
+	}
+
+	if modelType2.IsBizmodelcode() {
+		g.ApplyBasic(bizmodel.Models()...)
+	}
+
+	if modelType2.IsAlarmmodelbizcode() {
+		g.ApplyBasic(alarmmodel.AlarmModels()...)
 	}
 
 	// Generate the code

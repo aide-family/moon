@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -28,7 +28,7 @@ type realtimeAlarmRepositoryImpl struct {
 }
 
 // getBizQuery 获取告警业务数据库
-func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
+func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
 	if !ok {
 		return nil, merr.ErrorI18nUnauthorized(ctx)
@@ -37,7 +37,7 @@ func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, er
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizquery.Use(bizDB), nil
+	return alarmquery.Use(bizDB), nil
 }
 
 func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*alarmmodel.RealtimeAlarm, error) {
@@ -90,7 +90,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	// TODO 获取指定告警页面告警数据
 	// TODO 获取指定人员告警数据
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IRealtimeAlarmDo](realtimeAlarmQuery, params.Pagination); err != nil {
+	if err := types.WithPageQuery[alarmquery.IRealtimeAlarmDo](realtimeAlarmQuery, params.Pagination); err != nil {
 		return nil, err
 	}
 	return realtimeAlarmQuery.Find()
