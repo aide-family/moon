@@ -7,9 +7,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
@@ -39,7 +39,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistory(ctx context.Context, param 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nAlarmHistoryDataNotFoundErr(ctx).WithCause(err)
 		}
-		return nil, merr.ErrorI18nSystemErr(ctx).WithCause(err)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return alarmHistory, nil
 }
@@ -56,7 +56,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	}
 
 	if !param.AlertStatus.IsUnknown() {
-		wheres = append(wheres, alarmQuery.AlarmHistory.Status.Like(param.AlertStatus.GetValue()))
+		wheres = append(wheres, alarmQuery.AlarmHistory.AlertStatus.Like(param.AlertStatus.GetValue()))
 	}
 
 	if !types.TextIsNull(param.Keyword) {
@@ -65,7 +65,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	}
 
 	bizWrapper = bizWrapper.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IAlarmHistoryDo](bizWrapper, param.Page); err != nil {
+	if err := types.WithPageQuery[alarmquery.IAlarmHistoryDo](bizWrapper, param.Page); err != nil {
 		return nil, err
 	}
 	return bizWrapper.Order(alarmQuery.AlarmHistory.ID.Desc()).Find()

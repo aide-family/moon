@@ -5,5 +5,7 @@ func AlarmModels() []any {
 	return []any{
 		&RealtimeAlarm{},
 		&AlarmHistory{},
+		&HistoryFields{},
+		&RealtimeFields{},
 	}
 }
