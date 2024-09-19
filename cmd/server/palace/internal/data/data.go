@@ -129,7 +129,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
-		mainDB, err := conn.NewGormDB(mainConf)
+		mainDB, err := conn.NewGormDB(mainConf, log.GetLogger())
 		if !types.IsNil(err) {
 			cleanup()
 			return nil, nil, err
@@ -212,7 +212,7 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 		Dsn:    dsn,
 		Debug:  d.bizDatabaseConf.GetDebug(),
 	}
-	bizDB, err := conn.NewGormDB(bizDbConf)
+	bizDB, err := conn.NewGormDB(bizDbConf, log.GetLogger())
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 		Dsn:    dsn,
 		Debug:  d.alarmDatabaseConf.GetDebug(),
 	}
-	bizDB, err := conn.NewGormDB(alarmDbConf)
+	bizDB, err := conn.NewGormDB(alarmDbConf, log.GetLogger())
 	if !types.IsNil(err) {
 		return nil, err
 	}

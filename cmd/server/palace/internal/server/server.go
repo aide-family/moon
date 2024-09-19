@@ -30,6 +30,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
+	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -141,6 +143,20 @@ func RegisterService(
 	customAPI := httpSrv.Route("/v1/admin")
 	customAPI.GET("/proxy", datasourceService.ProxyQuery)
 	customAPI.POST("/proxy", datasourceService.ProxyQuery)
+
+	// 是否启动链路追踪
+	if !types.IsNil(c.GetTracer()) {
+		var err error
+		tracerConf := c.GetTracer()
+		switch tracerConf.GetType() {
+		// TODO other tracer
+		default:
+			err = conn.InitJaegerTracer("moon.palace", tracerConf.GetJaeger().GetEndpoint())
+		}
+		if !types.IsNil(err) {
+			panic(err)
+		}
+	}
 
 	return &Server{
 		rpcSrv:        rpcSrv,

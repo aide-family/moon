@@ -46,7 +46,7 @@ func (l *GormLogger) Error(ctx context.Context, s string, i ...interface{}) {
 // Trace log trace
 func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	if l.level >= logger.Info {
-		ctx, span := otel.Tracer("gorm").Start(ctx, "mysql.gorm.trace")
+		ctx, span := otel.Tracer("gorm").Start(ctx, "gorm.trace")
 		defer span.End()
 
 		elapsed := time.Since(begin)
@@ -60,7 +60,7 @@ func (l *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 		)
 
 		if err != nil {
-			_ = log.WithContext(ctx, l.logger).Log(log.LevelError, "sql", sql, "elapsed", elapsed, "err", elapsed)
+			_ = log.WithContext(ctx, l.logger).Log(log.LevelError, "sql", sql, "elapsed", elapsed, "err", err)
 		} else {
 			_ = log.WithContext(ctx, l.logger).Log(log.LevelInfo, "sql", sql, "elapsed", elapsed, "rows", rows)
 		}

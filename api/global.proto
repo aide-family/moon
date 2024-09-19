@@ -166,3 +166,10 @@ message Server {
   string nodeVersion = 5;
 }
 
+message Tracer {
+  message Jaeger {
+    string endpoint = 1;
+  }
+  Jaeger jaeger = 1;
+  string type = 2;
+}

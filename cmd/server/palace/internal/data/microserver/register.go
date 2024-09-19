@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
@@ -42,6 +43,7 @@ func newRPCConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 			jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
 				return []byte(microServerConf.GetSecret()), nil
 			}),
+			tracing.Client(),
 		),
 		kgrpc.WithEndpoint(endpoint),
 		kgrpc.WithTimeout(timeout),
@@ -86,6 +88,7 @@ func newHTTPConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 			jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
 				return []byte(microServerConf.GetSecret()), nil
 			}),
+			tracing.Client(),
 		),
 		http.WithTimeout(timeout),
 	}
