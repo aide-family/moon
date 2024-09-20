@@ -44,5 +44,6 @@ func (a *StrategyBuilder) ToBo() *bo.Strategy {
 		Step:      strategyInfo.GetStep(),
 		Condition: vobj.Condition(strategyInfo.GetCondition()),
 		Threshold: strategyInfo.GetThreshold(),
+		TeamID:    strategyInfo.GetTeamID(),
 	}
 }

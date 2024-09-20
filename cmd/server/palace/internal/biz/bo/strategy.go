@@ -222,6 +222,8 @@ type (
 		Condition vobj.Condition `json:"condition,omitempty"`
 		// 阈值
 		Threshold float64 `json:"threshold,omitempty"`
+		// 团队ID
+		TeamID uint32 `json:"teamID,omitempty"`
 	}
 
 	// Datasource 数据源明细

@@ -73,6 +73,12 @@ message Strategy {
     expression: 'this > 0'
     message: "策略等级必须大于0"
   }];
+  // 团队ID
+  uint32 teamID = 17 [(buf.validate.field).cel = {
+    id: "Strategy_team"
+    expression: 'this > 0'
+    message: "团队ID必须大于0"
+  }];
 }
 
 // 类型元数据，每个对象都应该包含这个字段

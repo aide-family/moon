@@ -76,6 +76,7 @@ func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]
 func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
 	strategy.Labels.Append(vobj.LevelID, fmt.Sprintf("%d", strategy.LevelID))
+	strategy.Labels.Append(vobj.TeamID, fmt.Sprintf("%d", strategy.TeamID))
 
 	alarmInfo := bo.Alarm{
 		Receiver:          "",

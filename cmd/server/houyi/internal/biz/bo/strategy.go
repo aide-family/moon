@@ -46,6 +46,8 @@ type (
 		Condition vobj.Condition `json:"condition,omitempty"`
 		// 阈值
 		Threshold float64 `json:"threshold,omitempty"`
+		// 团队ID
+		TeamID uint32 `json:"teamId,omitempty"`
 	}
 
 	// Datasource 数据源明细
@@ -71,7 +73,7 @@ func (s *Strategy) Index() string {
 	if types.IsNil(s) {
 		return "houyi:strategy:0"
 	}
-	return fmt.Sprintf("houyi:strategy:%d", s.ID)
+	return fmt.Sprintf("houyi:strategy:%d:%d:%d", s.TeamID, s.ID, s.LevelID)
 }
 
 // Message 策略转消息

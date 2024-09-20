@@ -258,6 +258,10 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	if types.IsNil(strategy) || types.IsNil(d) {
 		return nil
 	}
+	claims, ok := middleware.ParseJwtClaims(d.ctx)
+	if !ok {
+		panic(merr.ErrorI18nUnauthorized(d.ctx))
+	}
 
 	return types.SliceTo(strategy.Levels, func(level *bizmodel.StrategyLevel) *bo.Strategy {
 		return &bo.Strategy{
@@ -277,6 +281,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Step:                       strategy.Step,
 			Condition:                  level.Condition,
 			Threshold:                  level.Threshold,
+			TeamID:                     claims.GetTeam(),
 		}
 	})
 }
@@ -303,6 +308,7 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.Strategy {
 		Condition:                  api.Condition(strategyItem.Condition),
 		Threshold:                  strategyItem.Threshold,
 		LevelID:                    strategyItem.LevelID,
+		TeamID:                     strategyItem.TeamID,
 	}
 }
 

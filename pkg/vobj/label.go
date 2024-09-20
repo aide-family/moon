@@ -18,6 +18,8 @@ const (
 	StrategyID = "moon__strategy_id"
 	// LevelID 策略级别id
 	LevelID = "moon__level_id"
+	// TeamID 团队id
+	TeamID = "moon__team_id"
 )
 
 var _ sql.Scanner = (*Labels)(nil)
