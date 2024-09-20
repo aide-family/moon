@@ -158,3 +158,12 @@ func (s *Service) TransferTeamLeader(ctx context.Context, req *teamapi.TransferT
 	}
 	return &teamapi.TransferTeamLeaderReply{}, nil
 }
+
+// SetTeamMailConfig 设置团队邮件配置
+func (s *Service) SetTeamMailConfig(ctx context.Context, req *teamapi.SetTeamMailConfigRequest) (*teamapi.SetTeamMailConfigReply, error) {
+	params := builder.NewParamsBuild().TeamModuleBuilder().WithSetTeamMailConfigRequest(req).ToBo()
+	if err := s.teamBiz.SetTeamMailConfig(ctx, params); !types.IsNil(err) {
+		return nil, err
+	}
+	return &teamapi.SetTeamMailConfigReply{}, nil
+}

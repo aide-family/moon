@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen/field"
 
 	"github.com/go-kratos/kratos/v2/errors"
@@ -33,6 +34,30 @@ func NewTeamRepository(data *data.Data, cache runtimecache.RuntimeCache) reposit
 type teamRepositoryImpl struct {
 	data  *data.Data
 	cache runtimecache.RuntimeCache
+}
+
+func (l *teamRepositoryImpl) GetTeamMailConfig(ctx context.Context, teamID uint32) (*model.SysTeamEmail, error) {
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
+}
+
+func (l *teamRepositoryImpl) CreateTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	return mainQuery.WithContext(ctx).SysTeamEmail.Create(params.ToModel())
+}
+
+func (l *teamRepositoryImpl) UpdateTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	rows, err := mainQuery.WithContext(ctx).SysTeamEmail.
+		Where(mainQuery.SysTeamEmail.TeamID.Eq(params.TeamID)).
+		Updates(params.ToModel())
+	if !types.IsNil(err) {
+		return err
+	}
+	if rows.RowsAffected == 0 {
+		log.Warnw("UpdateTeamMailConfig.RowsAffected", "rows", rows)
+	}
+	return nil
 }
 
 func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeamParams) (*model.SysTeam, error) {

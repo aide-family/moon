@@ -58,13 +58,13 @@ enum ErrorReason {
       // 验证码错误
       reason: "CAPTCHA_ERR"
       message: "验证码错误",
-      metadata: {key: "captcha", value: "CAPTCHA_ERR"}
+      metadata: {key: "code", value: "CAPTCHA_ERR"}
     },
     (errors.biz_reason) = {
       // 验证码过期
       reason: "CAPTCHA_EXPIRE"
       message: "验证码已过期",
-      metadata: {key: "captcha", value: "CAPTCHA_EXPIRE"}
+      metadata: {key: "code", value: "CAPTCHA_EXPIRE"}
     },
     // 策略组未启用
     (errors.biz_reason) = {
@@ -241,11 +241,11 @@ enum ErrorReason {
   // 用于通知验证错误， 系统级别错误
   NOTIFICATION = 3 [
     (errors.code) = 500,
-    (errors.message) = "系统未知错误",
+    (errors.message) = "服务器可能遇到了意外，非常抱歉！",
     (errors.id) = "NOTIFICATION",
     (errors.biz_reason) = {
       reason: "SYSTEM_ERROR"
-      message: "系统未知错误",
+      message: "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......",
     }
   ];
 

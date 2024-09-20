@@ -49,4 +49,13 @@ type Team interface {
 
 	// TransferTeamLeader 移交团队
 	TransferTeamLeader(context.Context, *bo.TransferTeamLeaderParams) error
+
+	// GetTeamMailConfig 获取团队邮件配置
+	GetTeamMailConfig(context.Context, uint32) (*model.SysTeamEmail, error)
+
+	// CreateTeamMailConfig 创建团队邮件配置
+	CreateTeamMailConfig(context.Context, *bo.SetTeamMailConfigParams) error
+
+	// UpdateTeamMailConfig 更新团队邮件配置
+	UpdateTeamMailConfig(context.Context, *bo.SetTeamMailConfigParams) error
 }

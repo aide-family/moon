@@ -227,3 +227,20 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 	}
 	return nil
 }
+
+// SetTeamMailConfig 设置团队邮件配置
+func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+		return merr.ErrorI18nForbidden(ctx)
+	}
+	// 查询团队邮件配置
+	_, err := t.teamRepo.GetTeamMailConfig(ctx, params.TeamID)
+	if !types.IsNil(err) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		}
+		// 配置不存在，创建新配置
+		return t.teamRepo.CreateTeamMailConfig(ctx, params)
+	}
+	return t.teamRepo.UpdateTeamMailConfig(ctx, params)
+}

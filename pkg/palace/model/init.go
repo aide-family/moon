@@ -6,6 +6,7 @@ func Models() []any {
 		&SysAPI{},
 		&SysMenu{},
 		&SysTeam{},
+		&SysTeamEmail{},
 		&SysUser{},
 		&SysDict{},
 		&StrategyTemplate{},

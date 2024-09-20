@@ -36,13 +36,13 @@ message PaginationReply {
 // 邮件发送配置
 message EmailConfig {
   // 用户
-  string user = 1;
+  string user = 1 [(buf.validate.field).required = true];
   // 发送的邮箱密码
-  string pass = 2;
+  string pass = 2 [(buf.validate.field).required = true];
   // 发送的邮箱服务器
-  string host = 3;
+  string host = 3 [(buf.validate.field).required = true];
   // 发送的邮箱端口
-  uint32 port = 4;
+  uint32 port = 4 [(buf.validate.field).required = true];
 }
 
 // 钉钉

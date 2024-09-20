@@ -113,6 +113,14 @@ service Team {
       body: "*"
     };
   }
+
+  // 设置团队邮件配置
+  rpc SetTeamMailConfig (SetTeamMailConfigRequest) returns (SetTeamMailConfigReply) {
+    option (google.api.http) = {
+      put: "/v1/team/{id}/mail/config"
+      body: "*"
+    };
+  }
 }
 
 message CreateTeamRequest {
@@ -256,3 +264,14 @@ message TransferTeamLeaderRequest {
   uint32 userId = 2 [(buf.validate.field).required = true];
 }
 message TransferTeamLeaderReply {}
+
+message SetTeamMailConfigRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+  // 邮件配置
+  EmailConfig config = 2 [(buf.validate.field).required = true];
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "备注长度在0-200个字符之间"
+    expression: 'this.size() <= 200'
+  }];
+}
+message SetTeamMailConfigReply {}

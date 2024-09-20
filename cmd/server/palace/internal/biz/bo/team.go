@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -122,4 +123,29 @@ type (
 		// 旧负责人ID
 		OldLeaderID uint32 `json:"oldLeaderID"`
 	}
+
+	// SetTeamMailConfigParams 设置团队邮件配置请求参数
+	SetTeamMailConfigParams struct {
+		TeamID   uint32 `json:"teamID"`
+		User     string `json:"user"`
+		Password string `json:"password"`
+		Host     string `json:"host"`
+		Port     uint32 `json:"port"`
+		Remark   string `json:"remark"`
+	}
 )
+
+// ToModel 转换为model
+func (t *SetTeamMailConfigParams) ToModel() *model.SysTeamEmail {
+	if !types.IsNil(t) {
+		return nil
+	}
+	return &model.SysTeamEmail{
+		TeamID: t.TeamID,
+		User:   t.User,
+		Pass:   t.Password,
+		Host:   t.Host,
+		Port:   t.Port,
+		Remark: t.Remark,
+	}
+}
