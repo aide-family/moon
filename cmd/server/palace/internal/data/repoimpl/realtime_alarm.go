@@ -76,9 +76,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue()))
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.EndsAt.Between(params.ResolvedAtStart, params.ResolvedAtEnd))
 	}
-	if len(params.AlarmLevels) > 0 {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.LevelID.In(params.AlarmLevels...))
-	}
+
 	if len(params.AlarmStatuses) > 0 {
 		statuses := types.SliceTo(params.AlarmStatuses, func(status vobj.AlertStatus) int {
 			return status.GetValue()

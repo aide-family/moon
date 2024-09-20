@@ -94,10 +94,9 @@ func (l *listAlarmHistoryRequestBuilder) ToBo() *bo.QueryAlarmHistoryListParams 
 		return nil
 	}
 	return &bo.QueryAlarmHistoryListParams{
-		Keyword:      l.GetKeyword(),
-		AlertStatus:  vobj.AlertStatus(l.AlarmStatuses),
-		Page:         types.NewPagination(l.GetPagination()),
-		InstanceName: l.GetInstanceName(),
+		Keyword:     l.GetKeyword(),
+		AlertStatus: vobj.AlertStatus(l.AlarmStatuses),
+		Page:        types.NewPagination(l.GetPagination()),
 	}
 }
 

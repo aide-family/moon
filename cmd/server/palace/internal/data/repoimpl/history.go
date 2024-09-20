@@ -52,17 +52,14 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	}
 	bizWrapper := alarmQuery.AlarmHistory.WithContext(ctx)
 	var wheres []gen.Condition
-	if !types.TextIsNull(param.InstanceName) {
-		wheres = append(wheres, alarmQuery.AlarmHistory.InstanceName.Like(param.InstanceName))
-	}
 
 	if !param.AlertStatus.IsUnknown() {
 		wheres = append(wheres, alarmQuery.AlarmHistory.AlertStatus.Like(param.AlertStatus.GetValue()))
 	}
 
 	if !types.TextIsNull(param.Keyword) {
-		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.InstanceName.Like(param.Keyword))
-		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.Info.Like(param.Keyword))
+		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.RawInfo.Like(param.Keyword))
+		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.Expr.Like(param.Keyword))
 	}
 
 	bizWrapper = bizWrapper.Where(wheres...)
