@@ -8,10 +8,9 @@ import (
 type (
 	// QueryAlarmHistoryListParams 查询告警历史列表请求参数
 	QueryAlarmHistoryListParams struct {
-		Keyword      string           `json:"keyword"`
-		Page         types.Pagination `json:"page"`
-		InstanceName string           `json:"instanceName"`
-		AlertStatus  vobj.AlertStatus `json:"alertStatus"`
+		Keyword     string           `json:"keyword"`
+		Page        types.Pagination `json:"page"`
+		AlertStatus vobj.AlertStatus `json:"alertStatus"`
 	}
 
 	// GetAlarmHistoryParams 获取告警告警历史参数

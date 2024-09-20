@@ -46,8 +46,6 @@ message ListHistoryRequest {
   }];
   // 告警状态
   AlertStatus alarmStatuses = 3;
-  // 告警名称
-  string instanceName = 4;
 }
 message ListHistoryReply {
   // 告警历史记录列表
