@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-family/moon/pkg/env"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 // HealthService 健康检查
@@ -25,8 +24,8 @@ func NewHealthService(houyiSrv *microserver.HouYiConn) *HealthService {
 
 // Check 检查
 func (s *HealthService) Check(ctx context.Context, req *api.CheckRequest) (*api.CheckReply, error) {
-	if _, err := s.houyiSrv.Health(ctx, req); err != nil {
-		log.Warnw("houyiSrv", err)
-	}
+	//if _, err := s.houyiSrv.Health(ctx, req); err != nil {
+	//	log.Warnw("houyiSrv", err)
+	//}
 	return &api.CheckReply{Healthy: true, Version: env.Version()}, nil
 }
