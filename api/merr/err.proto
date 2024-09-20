@@ -246,6 +246,11 @@ enum ErrorReason {
     (errors.biz_reason) = {
       reason: "SYSTEM_ERROR"
       message: "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......",
+    },
+    // 不支持的数据源类型
+    (errors.biz_reason) = {
+      reason: "UNSUPPORTED_DATA_SOURCE"
+      message: "不支持的数据源类型",
     }
   ];
 

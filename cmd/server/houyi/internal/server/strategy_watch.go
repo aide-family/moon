@@ -63,13 +63,13 @@ type StrategyWatch struct {
 // Start 启动策略任务执行器
 func (s *StrategyWatch) Start(_ context.Context) error {
 	if types.IsNil(s) || types.IsNil(s.cronInstance) {
-		return merr.ErrorSystemErr("strategy watch is nil")
+		return merr.ErrorNotification("strategy watch is nil")
 	}
 	if types.IsNil(s.data) {
-		return merr.ErrorSystemErr("data is nil")
+		return merr.ErrorNotification("data is nil")
 	}
 	if types.IsNil(s.data.GetStrategyQueue()) {
-		return merr.ErrorSystemErr("strategy queue is nil")
+		return merr.ErrorNotification("strategy queue is nil")
 	}
 	go func() {
 		defer after.RecoverX()

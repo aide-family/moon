@@ -89,7 +89,7 @@ func NewMetricDatasource(storageType vobj.StorageType, opts ...MetricDatasourceB
 			WithPrometheusBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	default:
-		return nil, merr.ErrorUnsupportedDatasourceTypeErr("unsupported data source type")
+		return nil, merr.ErrorNotificationUnsupportedDataSource("unsupported data source type")
 	}
 }
 
