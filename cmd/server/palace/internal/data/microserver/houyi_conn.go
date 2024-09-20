@@ -2,7 +2,9 @@ package microserver
 
 import (
 	"context"
+	"errors"
 
+	"github.com/aide-family/moon/api"
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	"github.com/aide-family/moon/api/merr"
@@ -18,8 +20,37 @@ import (
 // NewHouYiConn 创建一个HouYi rpc连接
 func NewHouYiConn(c *palaceconf.Bootstrap) (*HouYiConn, func(), error) {
 	microServer := c.GetMicroServer()
-	houYiServer := microServer.GetHouYiServer()
 	discoveryConf := c.GetDiscovery()
+	if !types.IsNil(microServer.GetHouYiServers()) && len(microServer.GetHouYiServers()) > 0 {
+		houYiConn := new(HouYiConn)
+		cleanupList := make([]func(), 0, len(microServer.GetHouYiServers()))
+		for _, houYiServer := range microServer.GetHouYiServers() {
+			houYiConnInstance, cleanup1, err1 := newHouYiConn(discoveryConf, houYiServer)
+			if !types.IsNil(err1) {
+				return nil, nil, err1
+			}
+			cleanupList = append(cleanupList, cleanup1)
+			houYiConn.houYiConns = append(houYiConn.houYiConns, houYiConnInstance)
+		}
+		cleanup := func() {
+			for _, cleanup1 := range cleanupList {
+				cleanup1()
+			}
+		}
+		return houYiConn, cleanup, nil
+	} else {
+		houYiConn, cleanup, err := newHouYiConn(discoveryConf, microServer.GetHouYiServer())
+		if !types.IsNil(err) {
+			return nil, nil, err
+		}
+		return &HouYiConn{
+			houYiConns: []*HouYiConn{houYiConn},
+		}, cleanup, nil
+	}
+}
+
+// newHouYiConn 创建一个HouYi rpc连接
+func newHouYiConn(discoveryConf *api.Discovery, houYiServer *api.Server) (*HouYiConn, func(), error) {
 	houYiConn := &HouYiConn{}
 	if types.IsNil(houYiServer) {
 		return nil, nil, merr.ErrorNotification("未配置MicroServer.HouYiServer")
@@ -78,76 +109,118 @@ type HouYiConn struct {
 	network vobj.Network
 	// http连接
 	httpClient *http.Client
+
+	// 多实例模式
+	houYiConns []*HouYiConn
+}
+
+func getConn(conns []*HouYiConn) *HouYiConn {
+	// TODO ...
+	return conns[0]
 }
 
 // Sync 同步数据
 func (l *HouYiConn) Sync(ctx context.Context, in *metadataapi.SyncMetadataRequest, opts ...Option) (*metadataapi.SyncMetadataReply, error) {
-	switch l.network {
+	// 轮询算法获取conn
+	conn := getConn(l.houYiConns)
+	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
 			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
-		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadata(ctx, in, httpOpts...)
+		return metadataapi.NewMetricHTTPClient(conn.httpClient).SyncMetadata(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
-		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadata(ctx, in, rpcOpts...)
+		return metadataapi.NewMetricClient(conn.rpcClient).SyncMetadata(ctx, in, rpcOpts...)
 	}
 }
 
 // SyncV2 同步数据
 func (l *HouYiConn) SyncV2(ctx context.Context, in *metadataapi.SyncMetadataV2Request, opts ...Option) (*metadataapi.SyncMetadataV2Reply, error) {
-	switch l.network {
+	// 轮询算法获取conn
+	conn := getConn(l.houYiConns)
+	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
 			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
-		return metadataapi.NewMetricHTTPClient(l.httpClient).SyncMetadataV2(ctx, in, httpOpts...)
+		return metadataapi.NewMetricHTTPClient(conn.httpClient).SyncMetadataV2(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
-		return metadataapi.NewMetricClient(l.rpcClient).SyncMetadataV2(ctx, in, rpcOpts...)
+		return metadataapi.NewMetricClient(conn.rpcClient).SyncMetadataV2(ctx, in, rpcOpts...)
 	}
 }
 
 // Query 查询数据
 func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opts ...Option) (*metadataapi.QueryReply, error) {
-	switch l.network {
+	conn := getConn(l.houYiConns)
+	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
 		for _, opt := range opts {
 			httpOpts = append(httpOpts, opt.HTTPOpts...)
 		}
-		return metadataapi.NewMetricHTTPClient(l.httpClient).Query(ctx, in, httpOpts...)
+		return metadataapi.NewMetricHTTPClient(conn.httpClient).Query(ctx, in, httpOpts...)
 	default:
 		rpcOpts := make([]grpc.CallOption, 0)
 		for _, opt := range opts {
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
-		return metadataapi.NewMetricClient(l.rpcClient).Query(ctx, in, rpcOpts...)
+		return metadataapi.NewMetricClient(conn.rpcClient).Query(ctx, in, rpcOpts...)
 	}
 }
 
 // PushStrategy 推送策略
 func (l *HouYiConn) PushStrategy(ctx context.Context, in *strategyapi.PushStrategyRequest, opts ...Option) (*strategyapi.PushStrategyReply, error) {
-	switch l.network {
-	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
-		httpOpts := make([]http.CallOption, 0)
-		for _, opt := range opts {
-			httpOpts = append(httpOpts, opt.HTTPOpts...)
+	errs := make([]error, 0, len(l.houYiConns))
+	for _, conn := range l.houYiConns {
+		var err error
+		switch conn.network {
+		case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+			httpOpts := make([]http.CallOption, 0)
+			for _, opt := range opts {
+				httpOpts = append(httpOpts, opt.HTTPOpts...)
+			}
+			_, err = strategyapi.NewStrategyHTTPClient(conn.httpClient).PushStrategy(ctx, in, httpOpts...)
+		default:
+			rpcOpts := make([]grpc.CallOption, 0)
+			for _, opt := range opts {
+				rpcOpts = append(rpcOpts, opt.RPCOpts...)
+			}
+			_, err = strategyapi.NewStrategyClient(conn.rpcClient).PushStrategy(ctx, in, rpcOpts...)
 		}
-		return strategyapi.NewStrategyHTTPClient(l.httpClient).PushStrategy(ctx, in, httpOpts...)
-	default:
-		rpcOpts := make([]grpc.CallOption, 0)
-		for _, opt := range opts {
-			rpcOpts = append(rpcOpts, opt.RPCOpts...)
+		if !types.IsNil(err) {
+			errs = append(errs, err)
 		}
-		return strategyapi.NewStrategyClient(l.rpcClient).PushStrategy(ctx, in, rpcOpts...)
 	}
+	if len(errs) > 0 {
+		return nil, errors.Join(errs...)
+	}
+	return &strategyapi.PushStrategyReply{}, nil
+}
+
+// Health 健康检查
+func (l *HouYiConn) Health(ctx context.Context) (*api.CheckReply, error) {
+	errs := make([]error, 0, len(l.houYiConns))
+	for _, conn := range l.houYiConns {
+		var err error
+		switch conn.network {
+		case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+			_, err = api.NewHealthHTTPClient(conn.httpClient).Check(ctx, nil)
+		default:
+			_, err = api.NewHealthClient(conn.rpcClient).Check(ctx, nil)
+		}
+		if !types.IsNil(err) {
+			errs = append(errs, err)
+		}
+	}
+	return &api.CheckReply{}, errors.Join(errs...)
 }

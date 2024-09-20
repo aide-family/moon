@@ -91,6 +91,8 @@ message MicroServer {
   api.Server rabbit_server = 1;
   // 后羿代理服务
   api.Server hou_yi_server = 2;
+  // 后羿服务多实例配置（此配置优先级高于单实例配置）
+  repeated api.Server hou_yi_servers = 3;
 }
 
 message Watch {

@@ -33,11 +33,11 @@ server:
 data:
   database:
     driver: "mysql"
-    debug: true
+    debug: false
     dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
   bizDatabase:
     driver: "mysql"
-    debug: true
+    debug: false
     dsn: "root:12345678@tcp(localhost:3306)/"
   alarmDatabase:
     driver: "mysql"
@@ -80,6 +80,17 @@ micro_server:
     endpoint: "discovery:///moon_houyi"
     timeout: 50s
     secret: ""
+  hou_yi_servers:
+    - network: "rpc"
+      nodeVersion: ""
+      endpoint: "discovery:///moon_houyi_1"
+      timeout: 50s
+      secret: ""
+    - network: "rpc"
+      nodeVersion: ""
+      endpoint: "discovery:///moon_houyi_2"
+      timeout: 50s
+      secret: ""
 
 tracer:
   type: "jaeger"
