@@ -2,7 +2,6 @@ package microserver
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aide-family/moon/api"
 	metadataapi "github.com/aide-family/moon/api/houyi/metadata"
@@ -11,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -180,47 +180,47 @@ func (l *HouYiConn) Query(ctx context.Context, in *metadataapi.QueryRequest, opt
 
 // PushStrategy 推送策略
 func (l *HouYiConn) PushStrategy(ctx context.Context, in *strategyapi.PushStrategyRequest, opts ...Option) (*strategyapi.PushStrategyReply, error) {
-	errs := make([]error, 0, len(l.houYiConns))
-	for _, conn := range l.houYiConns {
-		var err error
-		switch conn.network {
-		case vobj.NetworkHTTP, vobj.NetworkHTTPS:
-			httpOpts := make([]http.CallOption, 0)
-			for _, opt := range opts {
-				httpOpts = append(httpOpts, opt.HTTPOpts...)
+	eg := new(errgroup.Group)
+	for _, connItem := range l.houYiConns {
+		conn := connItem
+		eg.Go(func() error {
+			var err error
+			switch conn.network {
+			case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+				httpOpts := make([]http.CallOption, 0)
+				for _, opt := range opts {
+					httpOpts = append(httpOpts, opt.HTTPOpts...)
+				}
+				_, err = strategyapi.NewStrategyHTTPClient(conn.httpClient).PushStrategy(ctx, in, httpOpts...)
+			default:
+				rpcOpts := make([]grpc.CallOption, 0)
+				for _, opt := range opts {
+					rpcOpts = append(rpcOpts, opt.RPCOpts...)
+				}
+				_, err = strategyapi.NewStrategyClient(conn.rpcClient).PushStrategy(ctx, in, rpcOpts...)
 			}
-			_, err = strategyapi.NewStrategyHTTPClient(conn.httpClient).PushStrategy(ctx, in, httpOpts...)
-		default:
-			rpcOpts := make([]grpc.CallOption, 0)
-			for _, opt := range opts {
-				rpcOpts = append(rpcOpts, opt.RPCOpts...)
-			}
-			_, err = strategyapi.NewStrategyClient(conn.rpcClient).PushStrategy(ctx, in, rpcOpts...)
-		}
-		if !types.IsNil(err) {
-			errs = append(errs, err)
-		}
+			return err
+		})
 	}
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
-	}
-	return &strategyapi.PushStrategyReply{}, nil
+
+	return &strategyapi.PushStrategyReply{}, eg.Wait()
 }
 
 // Health 健康检查
-func (l *HouYiConn) Health(ctx context.Context) (*api.CheckReply, error) {
-	errs := make([]error, 0, len(l.houYiConns))
-	for _, conn := range l.houYiConns {
-		var err error
-		switch conn.network {
-		case vobj.NetworkHTTP, vobj.NetworkHTTPS:
-			_, err = api.NewHealthHTTPClient(conn.httpClient).Check(ctx, nil)
-		default:
-			_, err = api.NewHealthClient(conn.rpcClient).Check(ctx, nil)
-		}
-		if !types.IsNil(err) {
-			errs = append(errs, err)
-		}
+func (l *HouYiConn) Health(ctx context.Context, req *api.CheckRequest) (*api.CheckReply, error) {
+	eg := new(errgroup.Group)
+	for _, connItem := range l.houYiConns {
+		conn := connItem
+		eg.Go(func() error {
+			var err error
+			switch conn.network {
+			case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+				_, err = api.NewHealthHTTPClient(conn.httpClient).Check(ctx, req)
+			default:
+				_, err = api.NewHealthClient(conn.rpcClient).Check(ctx, req)
+			}
+			return err
+		})
 	}
-	return &api.CheckReply{}, errors.Join(errs...)
+	return &api.CheckReply{}, eg.Wait()
 }
