@@ -36,7 +36,7 @@ func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz,
 
 // CreateStrategyGroup 创建策略组
 func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.CreateStrategyGroupRequest) (*strategyapi.CreateStrategyGroupReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithCreateStrategyGroupRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithCreateStrategyGroupRequest(req).ToBo()
 	if _, err := s.strategyGroupBiz.CreateStrategyGroup(ctx, params); err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (s *Service) CreateStrategyGroup(ctx context.Context, req *strategyapi.Crea
 
 // DeleteStrategyGroup 删除策略组
 func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.DeleteStrategyGroupRequest) (*strategyapi.DeleteStrategyGroupReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithDeleteStrategyGroupRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithDeleteStrategyGroupRequest(req).ToBo()
 	if err := s.strategyGroupBiz.DeleteStrategyGroup(ctx, params); err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (s *Service) DeleteStrategyGroup(ctx context.Context, req *strategyapi.Dele
 
 // ListStrategyGroup 策略组列表
 func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListStrategyGroupRequest) (*strategyapi.ListStrategyGroupReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithListStrategyGroupRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithListStrategyGroupRequest(req).ToBo()
 	listPage, err := s.strategyGroupBiz.ListPage(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -84,8 +84,8 @@ func (s *Service) ListStrategyGroup(ctx context.Context, req *strategyapi.ListSt
 		StrategyEnableMap: strategyEnableMap,
 	}
 	return &strategyapi.ListStrategyGroupReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().StrategyModuleBuilder().DoStrategyGroupBuilder().WithStrategyCountMap(countDetail).ToAPIs(listPage),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().WithStrategyCountMap(countDetail).ToAPIs(listPage),
 	}, nil
 }
 
@@ -117,13 +117,13 @@ func (s *Service) GetStrategyGroup(ctx context.Context, req *strategyapi.GetStra
 		StrategyEnableMap: strategyEnableMap,
 	}
 	return &strategyapi.GetStrategyGroupReply{
-		Detail: builder.NewParamsBuild().StrategyModuleBuilder().DoStrategyGroupBuilder().WithStrategyCountMap(countDetail).ToAPI(groupDetail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().WithStrategyCountMap(countDetail).ToAPI(groupDetail),
 	}, nil
 }
 
 // UpdateStrategyGroup 更新策略组
 func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.UpdateStrategyGroupRequest) (*strategyapi.UpdateStrategyGroupReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateStrategyGroupRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateStrategyGroupRequest(req).ToBo()
 	if err := s.strategyGroupBiz.UpdateStrategyGroup(ctx, params); err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (s *Service) UpdateStrategyGroup(ctx context.Context, req *strategyapi.Upda
 
 // UpdateStrategyGroupStatus 更新策略组状态
 func (s *Service) UpdateStrategyGroupStatus(ctx context.Context, req *strategyapi.UpdateStrategyGroupStatusRequest) (*strategyapi.UpdateStrategyGroupStatusReply, error) {
-	param := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateStrategyGroupStatusRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateStrategyGroupStatusRequest(req).ToBo()
 	if err := s.strategyGroupBiz.UpdateStatus(ctx, param); err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 	}); has {
 		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
-	param := builder.NewParamsBuild().StrategyModuleBuilder().WithCreateStrategyRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithCreateStrategyRequest(req).ToBo()
 	if _, err := s.strategyBiz.CreateStrategy(ctx, param); err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStr
 	}); has {
 		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
-	param := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateStrategyRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateStrategyRequest(req).ToBo()
 	if err := s.strategyBiz.UpdateByID(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}
@@ -188,26 +188,26 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 		return nil, err
 	}
 	return &strategyapi.GetStrategyReply{
-		Detail: builder.NewParamsBuild().StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy),
+		Detail: builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy),
 	}, nil
 }
 
 // ListStrategy 获取策略列表
 func (s *Service) ListStrategy(ctx context.Context, req *strategyapi.ListStrategyRequest) (*strategyapi.ListStrategyReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithListStrategyRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithListStrategyRequest(req).ToBo()
 	strategies, err := s.strategyBiz.StrategyPage(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 	return &strategyapi.ListStrategyReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().StrategyModuleBuilder().DoStrategyBuilder().ToAPIs(strategies),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPIs(strategies),
 	}, nil
 }
 
 // UpdateStrategyStatus 更新策略状态
 func (s *Service) UpdateStrategyStatus(ctx context.Context, req *strategyapi.UpdateStrategyStatusRequest) (*strategyapi.UpdateStrategyStatusReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateStrategyStatusRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateStrategyStatusRequest(req).ToBo()
 	err := s.strategyBiz.UpdateStatus(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err

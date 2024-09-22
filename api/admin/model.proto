@@ -306,13 +306,13 @@ message DictItem{
 
 message StrategyLevelItem {
   // 策略持续时间
-  google.protobuf.Duration duration = 3;
+  int64 duration = 3;
   // 持续次数
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5;
   // 执行频率
-  google.protobuf.Duration interval = 8;
+  int64 interval = 8;
   // 状态
   Status status = 9;
   // 数据主键
@@ -346,6 +346,8 @@ message StrategyItem {
   map<string, string> labels = 6;
   // 策略注解
   map<string, string> annotations = 7;
+  // 采样率
+  uint32 step = 8;
   // 数据源
   repeated DatasourceItem datasource = 9;
   // 策略ID

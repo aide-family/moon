@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
@@ -14,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategyModuleBuilder = (*strategyModuleBuilder)(nil)
@@ -294,13 +296,13 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.Strategy {
 	return &api.Strategy{
 		Alert:                      strategyItem.Alert,
 		Expr:                       strategyItem.Expr,
-		For:                        strategyItem.For.GetDuration(),
+		For:                        durationpb.New(time.Duration(strategyItem.For) * time.Second),
 		Count:                      strategyItem.Count,
 		SustainType:                api.SustainType(strategyItem.SustainType),
 		MultiDatasourceSustainType: api.MultiDatasourceSustainType(strategyItem.MultiDatasourceSustainType),
 		Labels:                     strategyItem.Labels.Map(),
 		Annotations:                strategyItem.Annotations,
-		Interval:                   strategyItem.Interval.GetDuration(),
+		Interval:                   durationpb.New(time.Duration(strategyItem.Interval) * time.Second),
 		Datasource:                 NewParamsBuild().WithContext(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToAPIs(strategyItem.Datasource),
 		Id:                         strategyItem.ID,
 		Status:                     api.Status(strategyItem.Status),
@@ -341,10 +343,10 @@ func (m *mutationStrategyLevelBuilder) ToBo(request *strategyapi.CreateStrategyL
 
 	return &bo.CreateStrategyLevel{
 		StrategyTemplateID: m.StrategyID,
-		Duration:           types.NewDuration(request.GetDuration()),
+		Duration:           request.GetDuration(),
 		Count:              request.Count,
 		SustainType:        vobj.Sustain(request.SustainType),
-		Interval:           types.NewDuration(request.GetInterval()),
+		Interval:           request.GetInterval(),
 		Condition:          vobj.Condition(request.Condition),
 		Threshold:          request.Threshold,
 		LevelID:            request.LevelId,
@@ -376,10 +378,10 @@ func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyLevel) *adminapi.
 	}
 
 	return &adminapi.StrategyLevelItem{
-		Duration:     level.Duration.GetDuration(),
+		Duration:     level.Duration,
 		Count:        level.Count,
 		SustainType:  api.SustainType(level.SustainType),
-		Interval:     level.Interval.GetDuration(),
+		Interval:     level.Interval,
 		Status:       api.Status(level.Status),
 		Id:           level.ID,
 		LevelId:      level.LevelID,
@@ -603,6 +605,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.Strateg
 		Levels:            NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(strategy.Levels),
 		Labels:            strategy.Labels.Map(),
 		Annotations:       strategy.Annotations,
+		Step:              strategy.Step,
 		Datasource:        NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPIs(strategy.Datasource),
 		Id:                strategy.ID,
 		Status:            api.Status(strategy.Status),

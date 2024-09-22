@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/api/merr"
@@ -62,8 +63,9 @@ func RecoveryHandle(ctx context.Context, req, err interface{}) error {
 	if ok {
 		return myErr
 	}
+	paramsBs, _ := json.Marshal(req)
 	return merr.ErrorI18nNotificationSystemError(ctx).WithMetadata(map[string]string{
 		"error":  fmt.Sprintf("%v", err),
-		"params": fmt.Sprintf("%v", req),
+		"params": string(paramsBs),
 	})
 }

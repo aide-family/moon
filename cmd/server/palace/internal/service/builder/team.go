@@ -359,6 +359,14 @@ func (c *createTeamRequestBuilder) ToBo() *bo.CreateTeamParams {
 		return nil
 	}
 
+	if c.GetLeaderId() <= 0 {
+		claims, ok := middleware.ParseJwtClaims(c.ctx)
+		if !ok {
+			panic(merr.ErrorI18nUnauthorized(c.ctx))
+		}
+		c.LeaderId = claims.GetUser()
+	}
+
 	return &bo.CreateTeamParams{
 		Name:     c.GetName(),
 		Remark:   c.GetRemark(),

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/palace/model"
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -17,13 +16,13 @@ type StrategyLevel struct {
 	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__level_id" json:"strategy_id"`
 	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 	// 持续时间
-	Duration *types.Duration `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
+	Duration int64 `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
 	// 持续次数
 	Count uint32 `gorm:"column:count;type:int unsigned;not null;comment:持续次数" json:"count"`
 	// 持续事件类型
 	SustainType vobj.Sustain `gorm:"column:sustain_type;type:int(11);not null;comment:持续类型" json:"sustain_type"`
 	// 执行频率
-	Interval *types.Duration `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval"`
+	Interval int64 `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval"`
 	// 条件
 	Condition vobj.Condition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition"`
 	// 阈值

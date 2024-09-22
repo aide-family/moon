@@ -68,7 +68,7 @@ func (s *Service) ListHook(ctx context.Context, req *hookapi.ListHookRequest) (*
 		return nil, err
 	}
 	return &hookapi.ListHookReply{
-		Hooks:      builder.NewParamsBuild().WithContext(ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(alarmHooks),
+		List:       builder.NewParamsBuild().WithContext(ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(alarmHooks),
 		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }

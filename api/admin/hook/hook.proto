@@ -128,12 +128,12 @@ message ListHookRequest {
   repeated HookApp hookApp = 5;
   // Name
   string name = 6 [(buf.validate.field).cel = {
-    message: "名称长度限制在1-20个字符",
-    expression: "this.size() >= 1 && this.size() <= 20"
+    message: "名称长度限制在0-20个字符",
+    expression: "this.size() <= 20"
   }];
 }
 message ListHookReply {
-  repeated AlarmHookItem hooks = 1;
+  repeated AlarmHookItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }

@@ -16,7 +16,7 @@ type AlarmNoticeGroup struct {
 	Status        vobj.Status          `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用" json:"status"`
 	Remark        string               `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`
 	NoticeMembers []*AlarmNoticeMember `gorm:"foreignKey:AlarmGroupID;comment:通知人信息中间表" json:"notice_members"`
-	AlarmHooks    []*AlarmHook         `gorm:"foreignKey:AlarmGroupID;comment:告警hook信息中间表" json:"alarm_hooks"`
+	AlarmHooks    []*AlarmHook         `gorm:"many2many:alarm_group_hook" json:"alarm_hooks"`
 }
 
 // UnmarshalBinary redis存储实现

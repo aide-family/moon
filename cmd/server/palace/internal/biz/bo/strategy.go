@@ -69,13 +69,13 @@ type (
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`
 		// 持续时间
-		Duration *types.Duration `json:"duration"`
+		Duration int64 `json:"duration"`
 		// 持续次数
 		Count uint32 `json:"count"`
 		// 持续事件类型
 		SustainType vobj.Sustain `json:"sustainType"`
 		// 执行频率
-		Interval *types.Duration `json:"interval"`
+		Interval int64 `json:"interval"`
 		// 条件
 		Condition vobj.Condition `json:"condition"`
 		// 阈值
@@ -199,7 +199,7 @@ type (
 		// 策略语句
 		Expr string `json:"expr,omitempty"`
 		// 策略持续时间
-		For *types.Duration `json:"for,omitempty"`
+		For int64 `json:"for,omitempty"`
 		// 持续次数
 		Count uint32 `json:"count,omitempty"`
 		// 持续的类型
@@ -211,7 +211,7 @@ type (
 		// 策略注解
 		Annotations vobj.Annotations `json:"annotations"`
 		// 执行频率
-		Interval *types.Duration `json:"interval,omitempty"`
+		Interval int64 `json:"interval,omitempty"`
 		// 数据源
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态

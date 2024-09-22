@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.admin.strategy;
 
 import "google/api/annotations.proto";
-import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "enum.proto";
@@ -317,13 +316,13 @@ message UpdateStrategyStatusReply {}
 
 message CreateStrategyLevelRequest{
   // 策略持续时间
-  google.protobuf.Duration duration = 1;
+  int64 duration = 1;
   // 持续次数
   uint32 count = 2;
   // 持续的类型
   SustainType sustainType = 3;
   // 执行频率
-  google.protobuf.Duration interval = 4;
+  int64 interval = 4;
   // 状态
   Status status = 5;
   // 告警等级ID
@@ -341,9 +340,6 @@ message CreateStrategyLevelRequest{
     expression: "this.unique()"
   }];
   repeated uint32 alarmGroupIds = 10 [(buf.validate.field).cel = {
-    message: "请选择告警组",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];
