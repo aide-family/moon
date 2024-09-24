@@ -21,8 +21,8 @@ type (
 
 	// IAlarmHistoryModuleBuilder alarm history module builder
 	IAlarmHistoryModuleBuilder interface {
-		WithGetAlarmHistoryRequest(request *historyapi.GetHistoryRequest) IGetAlarmHistoryRequestBuilder
-		WithListAlarmHistoryRequest(request *historyapi.ListHistoryRequest) IListAlarmHistoryRequestBuilder
+		WithGetAlarmHistoryRequest(*historyapi.GetHistoryRequest) IGetAlarmHistoryRequestBuilder
+		WithListAlarmHistoryRequest(*historyapi.ListHistoryRequest) IListAlarmHistoryRequestBuilder
 		DoAlarmHistoryItemBuilder() IDoAlarmHistoryBuilder
 	}
 
@@ -63,12 +63,11 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 
 	resItem := &admin.AlarmHistoryItem{
 		Id:          history.ID,
-		RawInfo:     history.RawInfo,
 		AlertStatus: api.AlertStatus(history.AlertStatus),
 		Expr:        history.Expr,
 		Fingerprint: history.Fingerprint,
-		StartsAt:    history.StartAt.GetDuration(),
-		EndsAt:      history.EndAt.GetDuration(),
+		StartsAt:    types.NewTimeByUnix(history.StartsAt).String(),
+		EndsAt:      types.NewTimeByUnix(history.EndsAt).String(),
 	}
 
 	if !types.IsNil(history.HistoryDetails) {
@@ -122,7 +121,6 @@ func (a *alarmHistoryModuleBuilder) WithGetAlarmHistoryRequest(request *historya
 		GetHistoryRequest: request,
 	}
 }
-
 func (a *alarmHistoryModuleBuilder) DoAlarmHistoryBuilder() IDoAlarmHistoryBuilder {
 	return &doAlarmHistoryBuilder{
 		ctx: a.ctx,

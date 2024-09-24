@@ -635,9 +635,9 @@ message AlarmHistoryItem{
   // ID
   uint32 id = 1;
   // 告警开始时间
-  google.protobuf.Duration  startsAt = 2;
+  string  startsAt = 2;
   // 告警结束时间
-  google.protobuf.Duration  endsAt = 3;
+  string  endsAt = 3;
   // 告警状态
   AlertStatus alertStatus = 4;
   // 告警级别

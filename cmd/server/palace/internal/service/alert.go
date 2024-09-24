@@ -6,6 +6,9 @@ import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/util/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -37,9 +40,22 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies []*bo.Strate
 }
 
 // Hook 告警hook
-func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+func (s *AlertService) Hook(_ context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+	param := builder.NewParamsBuild().
+		AlarmModuleBuilder().
+		WithCreateAlarmRawInfoRequest(req).
+		ToBo()
+	err := s.alertBiz.SaveAlertQueue(param)
+	if !types.IsNil(err) {
+		return nil, err
+	}
 	return &api.HookReply{
 		Msg:  "success",
 		Code: 200,
 	}, nil
+}
+
+// CreateAlarmInfo 创建告警信息
+func (s *AlertService) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHookRawParams) error {
+	return s.alertBiz.CreateAlarmInfo(ctx, params)
 }

@@ -17,8 +17,6 @@ type RealtimeAlarm struct {
 	StartsAt int64 `gorm:"column:starts_at;type:bigint;not null;comment:告警时间"`
 	// 恢复时间
 	EndsAt int64 `gorm:"column:ends_at;type:bigint;not null;comment:恢复时间"`
-	// 原始信息json
-	RawInfo string `gorm:"column:raw_info;type:text;not null;comment:原始信息json"`
 	// 告警摘要
 	Summary string `gorm:"column:summary;type:varchar(255);not null;comment:告警摘要"`
 	// 告警明细
@@ -27,8 +25,14 @@ type RealtimeAlarm struct {
 	Expr string `gorm:"column:expr;type:text;not null;comment:告警表达式"`
 	// 指纹
 	Fingerprint string `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex"`
+	// 标签
+	Labels *vobj.Labels `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
+	// 注解
+	Annotations *vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
+	// 告警原始数据ID
+	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 实时告警详情
-	RealtimeDetails RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
+	RealtimeDetails *RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
 }
 
 // String json string
@@ -50,4 +54,12 @@ func (c *RealtimeAlarm) MarshalBinary() (data []byte, err error) {
 // TableName RealtimeAlarm's table name
 func (*RealtimeAlarm) TableName() string {
 	return tableNameRealtimeAlarm
+}
+
+// GetRealtimeDetails 获取实时告警详情
+func (c *RealtimeAlarm) GetRealtimeDetails() *RealtimeDetails {
+	if types.IsNil(c) || types.IsNil(c.RealtimeDetails) {
+		return &RealtimeDetails{}
+	}
+	return c.RealtimeDetails
 }

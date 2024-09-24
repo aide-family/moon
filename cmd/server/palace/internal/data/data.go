@@ -42,6 +42,8 @@ type Data struct {
 	strategyQueue watch.Queue
 	// 告警队列
 	alertQueue watch.Queue
+	// 历史告警队列
+	historyQueue watch.Queue
 
 	// 通用邮件发送器
 	emailer email.Interface
@@ -346,4 +348,12 @@ func (d *Data) GetAlertQueue() watch.Queue {
 		log.Warn("alertQueue is nil")
 	}
 	return d.alertQueue
+}
+
+// GetAlartHistoryQueue 获取历史告警队列
+func (d *Data) GetAlartHistoryQueue() watch.Queue {
+	if types.IsNil(d.historyQueue) {
+		log.Warn("historyQueue is nil")
+	}
+	return d.historyQueue
 }
