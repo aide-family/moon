@@ -2,15 +2,14 @@ package repoimpl
 
 import (
 	"context"
-
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
-
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -29,6 +28,24 @@ type (
 		data *data.Data
 	}
 )
+
+func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, param *bo.CreateAlarmItemParams) error {
+	alarmQuery, err := getBizAlarmQuery(ctx, a.data)
+	if err != nil {
+		return err
+	}
+
+	historyModel, err := a.createAlarmHistoryToModel(ctx, param)
+	if err != nil {
+		return err
+	}
+
+	if err := alarmQuery.AlarmHistory.WithContext(ctx).Create(historyModel); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (a *alarmHistoryRepositoryImpl) GetAlarmHistory(ctx context.Context, param *bo.GetAlarmHistoryParams) (*alarmmodel.AlarmHistory, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, a.data)
@@ -58,7 +75,6 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	}
 
 	if !types.TextIsNull(param.Keyword) {
-		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.RawInfo.Like(param.Keyword))
 		bizWrapper = bizWrapper.Or(alarmQuery.AlarmHistory.Expr.Like(param.Keyword))
 	}
 
@@ -67,4 +83,40 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 		return nil, err
 	}
 	return bizWrapper.Order(alarmQuery.AlarmHistory.ID.Desc()).Find()
+}
+
+func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModel(ctx context.Context, param *bo.CreateAlarmItemParams) (*alarmmodel.AlarmHistory, error) {
+	strategyID := param.StrategyID
+	levelID := param.LevelID
+	bizQuery, err := getBizQuery(ctx, a.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	// 获取告警策略
+	strategy, err := bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(strategyID)).First()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	// 获取level
+	strategyLevel, err := bizQuery.StrategyLevel.WithContext(ctx).Preload(field.Associations).Where(bizQuery.StrategyLevel.ID.Eq(levelID)).First()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	history := &alarmmodel.AlarmHistory{
+		AlertStatus: vobj.ToAlertStatus(param.Status),
+		StartsAt:    param.StartsAt,
+		EndsAt:      param.EndsAt,
+		Expr:        strategy.Expr,
+		Fingerprint: param.Fingerprint,
+		Labels:      vobj.NewLabels(param.Labels),
+		Annotations: param.Annotations,
+		RawInfoID:   param.RawID,
+		HistoryDetails: &alarmmodel.HistoryDetails{
+			Strategy:   strategy.String(),
+			Level:      strategyLevel.String(),
+			Datasource: "",
+		},
+	}
+	return history, nil
 }

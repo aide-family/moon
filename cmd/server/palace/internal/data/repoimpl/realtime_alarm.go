@@ -40,6 +40,13 @@ func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, 
 	}
 	return alarmquery.Use(bizDB), nil
 }
+func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
+	queue := r.data.GetAlartHistoryQueue()
+	if err := queue.Push(param.Message()); err != nil {
+		return err
+	}
+	return nil
+}
 
 func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*alarmmodel.RealtimeAlarm, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
@@ -82,9 +89,6 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 			return status.GetValue()
 		})
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.In(statuses...))
-	}
-	if !types.TextIsNull(params.Keyword) {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.RawInfo.Like(params.Keyword))
 	}
 	// TODO 获取指定告警页面告警数据
 	// TODO 获取指定人员告警数据

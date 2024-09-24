@@ -13,20 +13,22 @@ const tableNameAlarmHistories = "alarm_histories"
 // AlarmHistory 告警历史
 type AlarmHistory struct {
 	model.EasyModel
-	// 原始信息json
-	RawInfo string `gorm:"column:raw_info;type:text;not null;comment:原始信息json"`
 	// 告警消息状态
 	AlertStatus vobj.AlertStatus `gorm:"column:status;type:varchar(16);not null;comment:告警消息状态"`
-	// 报警开始时间
-	StartAt *types.Duration `gorm:"column:start_at;type:bigint;not null;comment:报警开始时间"`
-	// 报警恢复时间
-	EndAt *types.Duration `gorm:"column:end_at;type:bigint;not null;comment:报警恢复时间"`
-	// 报警持续时间
-	Duration *types.Duration `gorm:"column:duration;type:bigint;not null;comment:持续时间时间戳, 没有恢复, 时间戳是0"`
+	// 告警时间
+	StartsAt int64 `gorm:"column:starts_at;type:bigint;not null;comment:告警时间"`
+	// 恢复时间
+	EndsAt int64 `gorm:"column:ends_at;type:bigint;not null;comment:恢复时间"`
 	// 告警表达式
 	Expr string `gorm:"column:expr;type:text;not null;comment:prom ql"`
 	// 指纹
 	Fingerprint string `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex"`
+	// 标签
+	Labels *vobj.Labels `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
+	// 注解
+	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
+	// 告警原始数据ID
+	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 附加信息
 	HistoryDetails *HistoryDetails `gorm:"foreignKey:AlarmHistoryID;comment:附加信息"`
 }
@@ -50,4 +52,12 @@ func (a *AlarmHistory) MarshalBinary() (data []byte, err error) {
 // TableName AlarmHistory's table name
 func (a *AlarmHistory) TableName() string {
 	return tableNameAlarmHistories
+}
+
+// GetHistoryDetails 获取附加信息
+func (a *AlarmHistory) GetHistoryDetails() *HistoryDetails {
+	if types.IsNil(a) || types.IsNil(a.HistoryDetails) {
+		return &HistoryDetails{}
+	}
+	return a.HistoryDetails
 }

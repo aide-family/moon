@@ -7,5 +7,6 @@ func AlarmModels() []any {
 		&AlarmHistory{},
 		&HistoryDetails{},
 		&RealtimeDetails{},
+		&AlarmRaw{},
 	}
 }

@@ -131,6 +131,24 @@ func (l *Labels) Scan(src any) (err error) {
 	return err
 }
 
+// GetStrategyID 获取策略id
+func (l *Labels) GetStrategyID() uint32 {
+	value, err := types.StrToUint32(l.Get(StrategyID))
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+// GetLevelID 获取等级id
+func (l *Labels) GetLevelID() uint32 {
+	value, err := types.StrToUint32(l.Get(LevelID))
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
 // GetDatasourceID 获取数据源id
 func (l *Labels) GetDatasourceID() uint32 {
 	id, _ := strconv.ParseUint(l.Get(DatasourceID), 10, 32)
