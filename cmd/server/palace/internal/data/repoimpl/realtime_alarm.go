@@ -28,6 +28,22 @@ type realtimeAlarmRepositoryImpl struct {
 	data *data.Data
 }
 
+func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmItemParams) error {
+	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
+	if err != nil {
+		return err
+	}
+	realTimeModel, err := r.createRealTimeAlarmToModel(ctx, param)
+	if err != nil {
+		return err
+	}
+
+	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).Create(realTimeModel); err != nil {
+		return err
+	}
+	return nil
+}
+
 // getBizQuery 获取告警业务数据库
 func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)
@@ -97,4 +113,38 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		return nil, err
 	}
 	return realtimeAlarmQuery.Find()
+}
+
+func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModel(ctx context.Context, param *bo.CreateAlarmItemParams) (*alarmmodel.RealtimeAlarm, error) {
+	strategyID := param.StrategyID
+	levelID := param.LevelID
+	bizQuery, err := getBizQuery(ctx, r.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	// 获取告警策略
+	strategy, err := bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(strategyID)).First()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	// 获取level
+	strategyLevel, err := bizQuery.StrategyLevel.WithContext(ctx).Preload(field.Associations).Where(bizQuery.StrategyLevel.ID.Eq(levelID)).First()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &alarmmodel.RealtimeAlarm{
+		Status:      vobj.ToAlertStatus(param.Status),
+		StartsAt:    param.StartsAt,
+		EndsAt:      param.EndsAt,
+		Expr:        strategy.Expr,
+		Fingerprint: param.Fingerprint,
+		Labels:      vobj.NewLabels(param.Labels),
+		Annotations: param.Annotations,
+		RawInfoID:   param.RawID,
+		RealtimeDetails: &alarmmodel.RealtimeDetails{
+			Strategy:   strategy.String(),
+			Level:      strategyLevel.String(),
+			Datasource: "",
+		},
+	}, nil
 }
