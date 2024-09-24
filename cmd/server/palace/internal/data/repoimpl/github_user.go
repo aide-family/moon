@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	_ "embed"
 	"time"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
@@ -53,7 +54,8 @@ func (g *githubUserRepositoryImpl) FirstOrCreate(ctx context.Context, user *auth
 		Role:     vobj.RoleUser,
 		Status:   vobj.StatusEnable,
 	}
-	sysUser.Email = "1058165620@qq.com"
+	// 调试用
+	//sysUser.Email = "1058165620@qq.com"
 	err = query.Use(g.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		// 创建系统用户
 		if err = query.Use(g.data.GetMainDB(ctx)).SysUser.Create(sysUser); !types.IsNil(err) {
@@ -81,18 +83,13 @@ func (g *githubUserRepositoryImpl) getSysUserByID(ctx context.Context, id uint32
 	return userQuery.WithContext(ctx).Where(userQuery.ID.Eq(id)).First()
 }
 
+//go:embed welcome.html
+var body string
+
 func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *model.SysUser, pass string) error {
 	if types.TextIsNull(user.Email) {
 		return nil
 	}
-	body := `
-	<div>
-	<h2>欢迎使用<a href="{{.RedirectURI}}">{{.APP}}</a></h2>
-	<p>{{.Remark}}</P>
-	<p>您的用户名是：{{.Username}}</p>
-	<p>您的密码是：{{.Password}}</p>
-	</div>
-	`
 	body = format.Formatter(body, map[string]string{
 		"Username":    user.Username,
 		"Password":    pass,
