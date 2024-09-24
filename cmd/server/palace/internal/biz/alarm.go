@@ -64,9 +64,14 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 	}
 	for _, alert := range params.Alerts {
 		alert.RawID = rawInfo.ID
+		// 保存告警历史
 		err := b.historyRepository.CreateAlarmHistory(ctx, alert)
 		if err != nil {
 			log.Error(ctx, "create alarm history error", err)
+		}
+		// 保存实时告警
+		if err := b.alarmRepository.CreateRealTimeAlarm(ctx, alert); err != nil {
+			return err
 		}
 	}
 	return nil
