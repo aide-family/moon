@@ -26,6 +26,7 @@ server:
       - /api.admin.authorization.Authorization/Logout
       - /api.admin.team.Team/MyTeam
       - /api.admin.authorization.Authorization/RefreshToken
+      - /api.admin.team.Team/CreateTeam
 
     # 黑名单接口， 用于禁用某些接口
     black_list:

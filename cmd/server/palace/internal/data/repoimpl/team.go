@@ -155,14 +155,13 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 		}, true
 	})
 
-	flag := true
 	// 添加管理员成员
 	adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*bizmodel.SysTeamMember, bool) {
 		if memberId <= 0 {
 			return nil, false
 		}
 		if memberId == sysTeamModel.LeaderID {
-			flag = false
+			return nil, false
 		}
 		return &bizmodel.SysTeamMember{
 			UserID: memberId,
@@ -171,14 +170,12 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 			Role:   vobj.RoleAdmin,
 		}, true
 	})
-	if flag {
-		adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
-			UserID: sysTeamModel.LeaderID,
-			TeamID: teamID,
-			Status: vobj.StatusEnable,
-			Role:   vobj.RoleAdmin,
-		})
-	}
+	adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
+		UserID: sysTeamModel.LeaderID,
+		TeamID: teamID,
+		Status: vobj.StatusEnable,
+		Role:   vobj.RoleSuperAdmin,
+	})
 	bizDB, bizDbErr := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(bizDbErr) {
 		return err

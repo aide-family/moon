@@ -63,10 +63,6 @@ func NewAuthorizationBiz(
 
 // CheckPermission 检查用户是否有该资源权限
 func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) (*bizmodel.SysTeamMember, error) {
-	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return nil, nil
-	}
-
 	// 检查用户是否被团队禁用
 	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
@@ -79,7 +75,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return nil, merr.ErrorI18nForbiddenMemberDisabled(ctx)
 	}
 
-	if middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() {
+	if teamMemberDo.Role.IsAdminOrSuperAdmin() {
 		return teamMemberDo, nil
 	}
 	// 查询用户角色
