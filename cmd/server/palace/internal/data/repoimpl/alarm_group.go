@@ -87,10 +87,10 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 				return err
 			}
 		} else {
-			// 清除告警hook信息
-			if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(params.ID)).Delete(); err != nil {
-				return err
-			}
+			// TODO 清除告警hook信息
+			//if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(params.ID)).Delete(); err != nil {
+			//	return err
+			//}
 		}
 
 		// 更新告警分组
@@ -115,10 +115,10 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 			return err
 		}
 
-		// 清除告警hook信息
-		if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(alarmID)).Delete(); err != nil {
-			return err
-		}
+		// TODO 清除告警hook信息
+		//if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(alarmID)).Delete(); err != nil {
+		//	return err
+		//}
 
 		if _, err = tx.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).Delete(); !types.IsNil(err) {
 			return err

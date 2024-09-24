@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
 	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
+	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
 
@@ -42,6 +43,9 @@ type Data struct {
 	// 告警队列
 	alertQueue watch.Queue
 
+	// 通用邮件发送器
+	emailer email.Interface
+
 	exit chan struct{}
 }
 
@@ -53,6 +57,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	alarmConf := c.GetData().GetAlarmDatabase()
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
+	emailConf := c.GetGlobalEmailConfig()
 	d := &Data{
 		bizDatabaseConf:   bizConf,
 		alarmDatabaseConf: alarmConf,
@@ -61,6 +66,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		enforcerMap:       new(sync.Map),
 		strategyQueue:     watch.NewDefaultQueue(100),
 		alertQueue:        watch.NewDefaultQueue(100),
+		emailer:           email.NewMockEmail(),
 		exit:              make(chan struct{}),
 	}
 	cleanup := func() {
@@ -73,6 +79,11 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		log.Debug("close data")
 		d.exit <- struct{}{}
 	})
+
+	if !types.IsNil(emailConf) {
+		emailer := email.New(emailConf)
+		d.emailer = emailer
+	}
 
 	if !types.IsNil(cacheConf) {
 		d.cacher = newCache(cacheConf)
@@ -185,6 +196,14 @@ func (d *Data) GetMainDB(ctx context.Context) *gorm.DB {
 // GetBizDB 获取业务库连接
 func (d *Data) GetBizDB(_ context.Context) *sql.DB {
 	return d.bizDB
+}
+
+// GetEmailer 获取邮件发送器
+func (d *Data) GetEmailer() email.Interface {
+	if types.IsNil(d.emailer) {
+		return email.NewMockEmail()
+	}
+	return d.emailer
 }
 
 // GenBizDatabaseName 生成业务库名称

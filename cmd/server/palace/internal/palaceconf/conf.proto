@@ -17,6 +17,10 @@ message Bootstrap {
   Watch watch = 6;
   // 链路追踪
   api.Tracer tracer = 7;
+  OAuth2 oauth2 = 8;
+  // 全局邮件配置
+  api.EmailConfig global_email_config = 9;
+  string redirect_uri = 10;
 }
 
 message Server {
@@ -110,4 +114,15 @@ message Watch {
   }
   Strategy strategy = 1;
   AlertEvent alertEvent = 2;
+}
+
+message OAuth2 {
+  message Github {
+    string client_id = 1;
+    string client_secret = 2;
+    string callback_uri = 3;
+    repeated string scopes = 5;
+  }
+
+  Github github = 1;
 }

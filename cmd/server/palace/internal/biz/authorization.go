@@ -2,15 +2,20 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/errors"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
@@ -20,20 +25,39 @@ type AuthorizationBiz struct {
 	teamRepo     repository.Team
 	cacheRepo    repository.Cache
 	teamRoleRepo repository.TeamRole
+	githubRepo   repository.GithubUser
+
+	oauthConf         *oauth2.Config
+	githubRedirectURL string
 }
 
 // NewAuthorizationBiz 创建授权业务
 func NewAuthorizationBiz(
+	bc *palaceconf.Bootstrap,
 	userRepo repository.User,
 	teamRepo repository.Team,
 	cacheRepo repository.Cache,
 	teamRoleRepo repository.TeamRole,
+	githubRepo repository.GithubUser,
 ) *AuthorizationBiz {
+	githubOAuthConf := bc.GetOauth2().GetGithub()
 	return &AuthorizationBiz{
 		userRepo:     userRepo,
 		teamRepo:     teamRepo,
 		cacheRepo:    cacheRepo,
 		teamRoleRepo: teamRoleRepo,
+		githubRepo:   githubRepo,
+		oauthConf: &oauth2.Config{
+			ClientID:     githubOAuthConf.GetClientId(),
+			ClientSecret: githubOAuthConf.GetClientSecret(),
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://github.com/login/oauth/authorize",
+				TokenURL: "https://github.com/login/oauth/access_token",
+			},
+			RedirectURL: githubOAuthConf.GetCallbackUri(),
+			Scopes:      githubOAuthConf.GetScopes(),
+		},
+		githubRedirectURL: bc.GetRedirectUri(),
 	}
 }
 
@@ -202,4 +226,50 @@ func checkPassword(ctx context.Context, user *model.SysUser, password string) er
 		return merr.ErrorI18nAlertPasswordErr(ctx).WithCause(err)
 	}
 	return nil
+}
+
+// OauthConf github配置
+func (b *AuthorizationBiz) OauthConf() *oauth2.Config {
+	return b.oauthConf
+}
+
+// GithubLogin github登录
+func (b *AuthorizationBiz) GithubLogin(ctx context.Context, code string) (string, error) {
+	token, err := b.oauthConf.Exchange(ctx, code)
+	if err != nil {
+		return "", err
+	}
+	// 使用token来获取用户信息
+	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+	userResp, err := client.Get("https://api.github.com/user")
+	if err != nil {
+		return "", err
+	}
+	body := userResp.Body
+	defer body.Close()
+	var userInfo auth.GithubLoginResponse
+	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
+		return "", err
+	}
+
+	fmt.Println(userInfo.String())
+
+	sysUserDo, err := b.githubRepo.FirstOrCreate(ctx, &userInfo)
+	if !types.IsNil(err) {
+		return "", err
+	}
+
+	// 生成token
+	base, err := b.getJwtBaseInfo(ctx, sysUserDo, 0)
+	if !types.IsNil(err) {
+		return "", err
+	}
+
+	jwtClaims := middleware.NewJwtClaims(base)
+	jwtToken, err := jwtClaims.GetToken()
+	if !types.IsNil(err) {
+		return "", err
+	}
+	redirect := fmt.Sprintf("%s%s", b.githubRedirectURL, jwtToken)
+	return redirect, nil
 }

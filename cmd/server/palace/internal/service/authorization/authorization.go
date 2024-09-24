@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"context"
+	nhttp "net/http"
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
@@ -11,6 +12,8 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	"golang.org/x/oauth2"
 )
 
 // Service 权限服务
@@ -160,4 +163,34 @@ func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckToken
 		IsLogin: true,
 		User:    builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
 	}, nil
+}
+
+// GithubLogin github登录
+func (s *Service) GithubLogin(ctx http.Context) error {
+	oauthConf := s.authorizationBiz.OauthConf()
+	// 重定向到指定地址
+	url := oauthConf.AuthCodeURL("state", oauth2.AccessTypeOnline)
+	req := ctx.Request()
+	resp := ctx.Response()
+	resp.Header().Set("Location", url)
+	resp.WriteHeader(nhttp.StatusTemporaryRedirect)
+	ctx.Reset(resp, req)
+	return nil
+}
+
+// GithubLoginCallback github登录回调
+func (s *Service) GithubLoginCallback(ctx http.Context) error {
+	code := ctx.Query().Get("code")
+	loginRedirect, err := s.authorizationBiz.GithubLogin(ctx, code)
+	if err != nil {
+		return err
+	}
+	// 重定向到指定地址
+	req := ctx.Request()
+	resp := ctx.Response()
+
+	resp.Header().Set("Location", loginRedirect)
+	resp.WriteHeader(nhttp.StatusTemporaryRedirect)
+	ctx.Reset(resp, req)
+	return nil
 }

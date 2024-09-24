@@ -93,7 +93,7 @@ func (a *alarmHookRepositoryImpl) ListAlarmHook(ctx context.Context, params *bo.
 		wheres = append(wheres, bizQuery.AlarmHook.Status.Eq(params.Status.GetValue()))
 	}
 
-	if !types.IsNil(params.Apps) {
+	if !types.IsNil(params.Apps) && len(params.Apps) > 0 {
 		apps := types.SliceTo(params.Apps, func(app vobj.HookAPP) int {
 			return app.GetValue()
 		})
@@ -102,7 +102,7 @@ func (a *alarmHookRepositoryImpl) ListAlarmHook(ctx context.Context, params *bo.
 	if err := types.WithPageQuery[bizquery.IAlarmHookDo](bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Order(bizQuery.AlarmHook.ID.Desc()).Find()
+	return bizWrapper.Where(wheres...).Order(bizQuery.AlarmHook.ID.Desc()).Find()
 }
 
 func (a *alarmHookRepositoryImpl) UpdateAlarmHookStatus(ctx context.Context, params *bo.UpdateAlarmHookStatusParams) error {

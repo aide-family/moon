@@ -143,6 +143,9 @@ func RegisterService(
 	customAPI := httpSrv.Route("/v1/admin")
 	customAPI.GET("/proxy", datasourceService.ProxyQuery)
 	customAPI.POST("/proxy", datasourceService.ProxyQuery)
+	auth := httpSrv.Route("/auth")
+	auth.GET("/github", authorizationService.GithubLogin)
+	auth.GET("/github/callback", authorizationService.GithubLoginCallback)
 
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {

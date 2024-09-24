@@ -40,7 +40,38 @@ type (
 		host string
 		port uint32
 	}
+
+	mockEmail struct {
+	}
 )
+
+func (m *mockEmail) Send() error {
+	return nil
+}
+
+func (m *mockEmail) SetTo(to ...string) Interface {
+	return m
+}
+
+func (m *mockEmail) SetSubject(subject string) Interface {
+	return m
+}
+
+func (m *mockEmail) SetBody(body string, contentType ...string) Interface {
+	return m
+}
+
+func (m *mockEmail) SetAttach(attach ...string) Interface {
+	return m
+}
+
+func (m *mockEmail) SetCc(cc ...string) Interface {
+	return m
+}
+
+func NewMockEmail() Interface {
+	return &mockEmail{}
+}
 
 // GetUser 获取用户
 func (c *config) GetUser() string {

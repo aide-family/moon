@@ -177,7 +177,7 @@ func (c *createHookRequestBuilder) ToBo() *bo.CreateAlarmHookParams {
 		URL:     c.GetUrl(),
 		Secret:  c.GetSecret(),
 		HookApp: vobj.HookAPP(c.GetHookApp()),
-		Status:  vobj.Status(c.GetStatus()),
+		Status:  vobj.StatusEnable,
 	}
 }
 

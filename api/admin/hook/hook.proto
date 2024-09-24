@@ -97,7 +97,7 @@ message UpdateHookRequest {
   // hook id
   uint32 id = 1;
   // 更新内容
-  CreateHookRequest update = 2;
+  CreateHookRequest update = 2 [(buf.validate.field).required = true];
 }
 message UpdateHookReply {}
 
