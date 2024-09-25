@@ -28,7 +28,7 @@ func NewTeamService(teamBiz *biz.TeamBiz) *Service {
 
 // CreateTeam 创建团队
 func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest) (*teamapi.CreateTeamReply, error) {
-	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithCreateTeamRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).WithContext(ctx).TeamModuleBuilder().WithCreateTeamRequest(req).ToBo()
 	_, err := s.teamBiz.CreateTeam(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -38,7 +38,7 @@ func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest
 
 // UpdateTeam 更新团队
 func (s *Service) UpdateTeam(ctx context.Context, req *teamapi.UpdateTeamRequest) (*teamapi.UpdateTeamReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithUpdateTeamRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithUpdateTeamRequest(req).ToBo()
 	if err := s.teamBiz.UpdateTeam(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -52,20 +52,20 @@ func (s *Service) GetTeam(ctx context.Context, req *teamapi.GetTeamRequest) (*te
 		return nil, err
 	}
 	return &teamapi.GetTeamReply{
-		Detail: builder.NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPI(teamInfo),
+		Detail: builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().DoTeamBuilder().ToAPI(teamInfo),
 	}, nil
 }
 
 // ListTeam 获取团队列表
 func (s *Service) ListTeam(ctx context.Context, req *teamapi.ListTeamRequest) (*teamapi.ListTeamReply, error) {
-	param := builder.NewParamsBuild().TeamModuleBuilder().WithListTeamRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithListTeamRequest(req).ToBo()
 	teamList, err := s.teamBiz.ListTeam(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.ListTeamReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
-		List:       builder.NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPIs(teamList),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().DoTeamBuilder().ToAPIs(teamList),
 	}, nil
 }
 
@@ -88,13 +88,13 @@ func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamap
 		return nil, err
 	}
 	return &teamapi.MyTeamReply{
-		List: builder.NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPIs(teamList),
+		List: builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().DoTeamBuilder().ToAPIs(teamList),
 	}, nil
 }
 
 // AddTeamMember 添加团队成员
 func (s *Service) AddTeamMember(ctx context.Context, req *teamapi.AddTeamMemberRequest) (*teamapi.AddTeamMemberReply, error) {
-	param := builder.NewParamsBuild().TeamModuleBuilder().WithAddTeamMemberRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithAddTeamMemberRequest(req).ToBo()
 	if err := s.teamBiz.AddTeamMember(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (s *Service) AddTeamMember(ctx context.Context, req *teamapi.AddTeamMemberR
 
 // RemoveTeamMember 移除团队成员
 func (s *Service) RemoveTeamMember(ctx context.Context, req *teamapi.RemoveTeamMemberRequest) (*teamapi.RemoveTeamMemberReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithRemoveTeamMemberRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithRemoveTeamMemberRequest(req).ToBo()
 	if err := s.teamBiz.RemoveTeamMember(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (s *Service) RemoveTeamMember(ctx context.Context, req *teamapi.RemoveTeamM
 
 // SetTeamAdmin 设置团队管理员
 func (s *Service) SetTeamAdmin(ctx context.Context, req *teamapi.SetTeamAdminRequest) (*teamapi.SetTeamAdminReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithSetTeamAdminRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithSetTeamAdminRequest(req).ToBo()
 	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (s *Service) SetTeamAdmin(ctx context.Context, req *teamapi.SetTeamAdminReq
 
 // RemoveTeamAdmin 移除团队管理员
 func (s *Service) RemoveTeamAdmin(ctx context.Context, req *teamapi.RemoveTeamAdminRequest) (*teamapi.RemoveTeamAdminReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithRemoveTeamAdminRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithRemoveTeamAdminRequest(req).ToBo()
 	if err := s.teamBiz.SetTeamAdmin(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (s *Service) RemoveTeamAdmin(ctx context.Context, req *teamapi.RemoveTeamAd
 
 // SetMemberRole 设置团队成员角色
 func (s *Service) SetMemberRole(ctx context.Context, req *teamapi.SetMemberRoleRequest) (*teamapi.SetMemberRoleReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithSetMemberRoleRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithSetMemberRoleRequest(req).ToBo()
 	if err := s.teamBiz.SetMemberRole(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -139,20 +139,20 @@ func (s *Service) SetMemberRole(ctx context.Context, req *teamapi.SetMemberRoleR
 
 // ListTeamMember 获取团队成员列表
 func (s *Service) ListTeamMember(ctx context.Context, req *teamapi.ListTeamMemberRequest) (*teamapi.ListTeamMemberReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithListTeamMemberRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithListTeamMemberRequest(req).ToBo()
 	memberList, err := s.teamBiz.ListTeamMember(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.ListTeamMemberReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPIs(memberList),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPIs(memberList),
 	}, nil
 }
 
 // TransferTeamLeader 转移团队负责人
 func (s *Service) TransferTeamLeader(ctx context.Context, req *teamapi.TransferTeamLeaderRequest) (*teamapi.TransferTeamLeaderReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithTransferTeamLeaderRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithTransferTeamLeaderRequest(req).ToBo()
 	if err := s.teamBiz.TransferTeamLeader(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (s *Service) TransferTeamLeader(ctx context.Context, req *teamapi.TransferT
 
 // SetTeamMailConfig 设置团队邮件配置
 func (s *Service) SetTeamMailConfig(ctx context.Context, req *teamapi.SetTeamMailConfigRequest) (*teamapi.SetTeamMailConfigReply, error) {
-	params := builder.NewParamsBuild().TeamModuleBuilder().WithSetTeamMailConfigRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithSetTeamMailConfigRequest(req).ToBo()
 	if err := s.teamBiz.SetTeamMailConfig(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}

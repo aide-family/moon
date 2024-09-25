@@ -26,6 +26,13 @@ type userRepositoryImpl struct {
 	data *data.Data
 }
 
+func (l *userRepositoryImpl) GetByEmail(ctx context.Context, email string) (*model.SysUser, error) {
+	if err := types.CheckEmail(email); err != nil {
+		return nil, err
+	}
+	return query.Use(l.data.GetMainDB(ctx)).SysUser.WithContext(ctx).Where(query.SysUser.Email.Eq(email)).First()
+}
+
 func (l *userRepositoryImpl) UpdateBaseByID(ctx context.Context, user *bo.UpdateUserBaseParams) error {
 	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
 	_, err := userQuery.WithContext(ctx).Where(userQuery.ID.Eq(user.ID)).UpdateSimple(

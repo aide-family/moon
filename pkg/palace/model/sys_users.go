@@ -11,11 +11,11 @@ const tableNameSysUser = "sys_users"
 // SysUser mapped from table <sys_users>
 type SysUser struct {
 	AllFieldModel
-	Username string      `gorm:"column:username;type:varchar(64);not null;uniqueIndex:idx__su__username,priority:1;comment:用户名" json:"username"` // 用户名
+	Username string      `gorm:"column:username;type:varchar(64);not null;index:idx__sys_user__username,priority:1;comment:用户名" json:"username"` // 用户名
 	Nickname string      `gorm:"column:nickname;type:varchar(64);not null;comment:昵称" json:"nickname"`                                           // 昵称
 	Password string      `gorm:"column:password;type:varchar(255);not null;comment:密码" json:"password"`                                          // 密码
-	Email    string      `gorm:"column:email;type:varchar(64);not null;comment:邮箱" json:"email"`                                                 // 邮箱
-	Phone    string      `gorm:"column:phone;type:varchar(64);not null;uniqueIndex:idx__su__phone,priority:1;comment:手机号" json:"phone"`          // 手机号
+	Email    string      `gorm:"column:email;type:varchar(64);not null;comment:邮箱;uniqueIndex:uk__sys_user__email,priority:1;" json:"email"`     // 邮箱
+	Phone    string      `gorm:"column:phone;type:varchar(64);not null;index:idx__sys_user__phone,priority:1;comment:手机号" json:"phone"`          // 手机号
 	Remark   string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
 	Avatar   string      `gorm:"column:avatar;type:varchar(255);not null;comment:头像" json:"avatar"`                                              // 头像
 	Salt     string      `gorm:"column:salt;type:varchar(16);not null;comment:盐" json:"salt"`                                                    // 盐

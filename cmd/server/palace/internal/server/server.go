@@ -32,6 +32,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -144,8 +145,10 @@ func RegisterService(
 	customAPI.GET("/proxy", datasourceService.ProxyQuery)
 	customAPI.POST("/proxy", datasourceService.ProxyQuery)
 	auth := httpSrv.Route("/auth")
-	auth.GET("/github", authorizationService.GithubLogin)
-	auth.GET("/github/callback", authorizationService.GithubLoginCallback)
+	auth.GET("/github", authorizationService.OAuthLogin(vobj.OAuthAPPGithub))
+	auth.GET("/github/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGithub))
+	auth.GET("/gitee", authorizationService.OAuthLogin(vobj.OAuthAPPGitee))
+	auth.GET("/gitee/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGitee))
 
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {

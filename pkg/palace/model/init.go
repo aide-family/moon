@@ -12,6 +12,6 @@ func Models() []any {
 		&StrategyTemplate{},
 		&StrategyLevelTemplate{},
 		&StrategyTemplateCategories{},
-		&SysGithubUser{},
+		&SysOAuthUser{},
 	}
 }

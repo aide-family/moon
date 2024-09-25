@@ -2,35 +2,38 @@ package model
 
 import (
 	"encoding/json"
+
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const tableNameSysGithubUser = "sys_github_users"
+const tableNameSysOAuthUser = "sys_oauth_users"
 
-// SysGithubUser mapped from table <sys_github_users>
-type SysGithubUser struct {
+// SysOAuthUser mapped from table <sys_oauth_users>
+type SysOAuthUser struct {
 	AllFieldModel
-	GithubUserID uint32 `gorm:"column:github_user_id;type:int unsigned;index" json:"github_user_id"`
-	SysUserID    uint32 `gorm:"column:sys_user_id;type:int unsigned;not null;comment:关联用户id" json:"sys_user_id"`
-	Row          string `gorm:"column:row;type:text;comment:github用户信息" json:"row"`
+	OAuthID   uint32        `gorm:"column:oauth_id;type:int unsigned;index:uk__oauth_id__sys_user_id__app,unique" json:"oauth_id"`
+	SysUserID uint32        `gorm:"column:sys_user_id;type:int unsigned;not null;comment:关联用户id;index:uk__oauth_id__sys_user_id__app,unique" json:"sys_user_id"`
+	Row       string        `gorm:"column:row;type:text;comment:github用户信息" json:"row"`
+	APP       vobj.OAuthAPP `gorm:"column:app;type:tinyint;not null;comment:oauth应用;index:uk__oauth_id__sys_user_id__app,unique" json:"app"`
 }
 
 // String json string
-func (c *SysGithubUser) String() string {
+func (c *SysOAuthUser) String() string {
 	bs, _ := json.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis缓存实现
-func (c *SysGithubUser) UnmarshalBinary(data []byte) error {
+func (c *SysOAuthUser) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
 // MarshalBinary redis缓存实现
-func (c *SysGithubUser) MarshalBinary() (data []byte, err error) {
+func (c *SysOAuthUser) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
 // TableName SysUser's table name
-func (*SysGithubUser) TableName() string {
-	return tableNameSysGithubUser
+func (*SysOAuthUser) TableName() string {
+	return tableNameSysOAuthUser
 }

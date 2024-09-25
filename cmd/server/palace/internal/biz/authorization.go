@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -25,10 +26,11 @@ type AuthorizationBiz struct {
 	teamRepo     repository.Team
 	cacheRepo    repository.Cache
 	teamRoleRepo repository.TeamRole
-	githubRepo   repository.GithubUser
+	oAuthRepo    repository.OAuth
 
-	oauthConf         *oauth2.Config
-	githubRedirectURL string
+	githubOAuthConf *oauth2.Config
+	giteeOAuthConf  *oauth2.Config
+	redirectURL     string
 }
 
 // NewAuthorizationBiz 创建授权业务
@@ -38,16 +40,17 @@ func NewAuthorizationBiz(
 	teamRepo repository.Team,
 	cacheRepo repository.Cache,
 	teamRoleRepo repository.TeamRole,
-	githubRepo repository.GithubUser,
+	oAuthRepo repository.OAuth,
 ) *AuthorizationBiz {
 	githubOAuthConf := bc.GetOauth2().GetGithub()
+	giteeOAuthConf := bc.GetOauth2().GetGitee()
 	return &AuthorizationBiz{
 		userRepo:     userRepo,
 		teamRepo:     teamRepo,
 		cacheRepo:    cacheRepo,
 		teamRoleRepo: teamRoleRepo,
-		githubRepo:   githubRepo,
-		oauthConf: &oauth2.Config{
+		oAuthRepo:    oAuthRepo,
+		githubOAuthConf: &oauth2.Config{
 			ClientID:     githubOAuthConf.GetClientId(),
 			ClientSecret: githubOAuthConf.GetClientSecret(),
 			Endpoint: oauth2.Endpoint{
@@ -57,7 +60,17 @@ func NewAuthorizationBiz(
 			RedirectURL: githubOAuthConf.GetCallbackUri(),
 			Scopes:      githubOAuthConf.GetScopes(),
 		},
-		githubRedirectURL: bc.GetRedirectUri(),
+		giteeOAuthConf: &oauth2.Config{
+			ClientID:     giteeOAuthConf.GetClientId(),
+			ClientSecret: giteeOAuthConf.GetClientSecret(),
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://gitee.com/oauth/authorize",
+				TokenURL: "https://gitee.com/oauth/token",
+			},
+			RedirectURL: giteeOAuthConf.GetCallbackUri(),
+			Scopes:      giteeOAuthConf.GetScopes(),
+		},
+		redirectURL: bc.GetRedirectUri(),
 	}
 }
 
@@ -157,7 +170,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 // Login 登录
 func (b *AuthorizationBiz) Login(ctx context.Context, req *bo.LoginParams) (*bo.LoginReply, error) {
 	// 检查用户是否存在
-	userDo, err := b.userRepo.GetByUsername(ctx, req.Username)
+	userDo, err := b.userRepo.GetByEmail(ctx, req.Username)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// 统一包装成密码错误
@@ -224,14 +237,33 @@ func checkPassword(ctx context.Context, user *model.SysUser, password string) er
 	return nil
 }
 
-// OauthConf github配置
-func (b *AuthorizationBiz) OauthConf() *oauth2.Config {
-	return b.oauthConf
+// GetOAuthConf 获取oauth配置
+func (b *AuthorizationBiz) GetOAuthConf(provider vobj.OAuthAPP) *oauth2.Config {
+	switch provider {
+	case vobj.OAuthAPPGithub:
+		return b.githubOAuthConf
+	case vobj.OAuthAPPGitee:
+		return b.giteeOAuthConf
+	default:
+		return nil
+	}
 }
 
-// GithubLogin github登录
-func (b *AuthorizationBiz) GithubLogin(ctx context.Context, code string) (string, error) {
-	token, err := b.oauthConf.Exchange(ctx, code)
+// OAuthLogin oauth登录
+func (b *AuthorizationBiz) OAuthLogin(ctx context.Context, provider vobj.OAuthAPP, code string) (string, error) {
+	switch provider {
+	case vobj.OAuthAPPGithub:
+		return b.githubLogin(ctx, code)
+	case vobj.OAuthAPPGitee:
+		return b.giteeLogin(ctx, code)
+	default:
+		return "", merr.ErrorI18nNotificationSystemError(ctx)
+	}
+}
+
+// githubLogin github登录
+func (b *AuthorizationBiz) githubLogin(ctx context.Context, code string) (string, error) {
+	token, err := b.githubOAuthConf.Exchange(ctx, code)
 	if err != nil {
 		return "", err
 	}
@@ -243,14 +275,48 @@ func (b *AuthorizationBiz) GithubLogin(ctx context.Context, code string) (string
 	}
 	body := userResp.Body
 	defer body.Close()
-	var userInfo auth.GithubLoginResponse
+	var userInfo auth.GithubUser
 	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
 		return "", err
 	}
 
-	fmt.Println(userInfo.String())
+	//fmt.Println(userInfo.String())
+	return b.oauthLogin(ctx, &userInfo)
+}
 
-	sysUserDo, err := b.githubRepo.FirstOrCreate(ctx, &userInfo)
+// giteeLogin gitee登录
+func (b *AuthorizationBiz) giteeLogin(ctx context.Context, code string) (string, error) {
+	opts := []oauth2.AuthCodeOption{
+		// https://gitee.com/oauth/token?grant_type=authorization_code&code={code}&client_id={client_id}&redirect_uri={redirect_uri}&client_secret={client_secret}
+		oauth2.SetAuthURLParam("grant_type", "authorization_code"),
+		oauth2.SetAuthURLParam("client_secret", b.giteeOAuthConf.ClientSecret),
+		oauth2.SetAuthURLParam("client_id", b.giteeOAuthConf.ClientID),
+		oauth2.SetAuthURLParam("redirect_uri", b.giteeOAuthConf.RedirectURL),
+		oauth2.SetAuthURLParam("code", code),
+	}
+	token, err := b.giteeOAuthConf.Exchange(context.Background(), code, opts...)
+	if err != nil {
+		return "", err
+	}
+	// 使用token来获取用户信息
+	client := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(token))
+
+	resp, err := client.Get("https://gitee.com/api/v5/user")
+	if err != nil {
+		return "", err
+	}
+	body := resp.Body
+	defer body.Close()
+	var userInfo auth.GiteeUser
+	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
+		return "", err
+	}
+
+	return b.oauthLogin(ctx, &userInfo)
+}
+
+func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthUser) (string, error) {
+	sysUserDo, err := b.oAuthRepo.OAuthUserFirstOrCreate(ctx, userInfo)
 	if !types.IsNil(err) {
 		return "", err
 	}
@@ -266,6 +332,6 @@ func (b *AuthorizationBiz) GithubLogin(ctx context.Context, code string) (string
 	if !types.IsNil(err) {
 		return "", err
 	}
-	redirect := fmt.Sprintf("%s%s", b.githubRedirectURL, jwtToken)
+	redirect := fmt.Sprintf("%s%s", b.redirectURL, jwtToken)
 	return redirect, nil
 }

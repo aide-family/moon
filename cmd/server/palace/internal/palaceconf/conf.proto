@@ -117,12 +117,13 @@ message Watch {
 }
 
 message OAuth2 {
-  message Github {
+  message Config {
     string client_id = 1;
     string client_secret = 2;
     string callback_uri = 3;
     repeated string scopes = 5;
   }
 
-  Github github = 1;
+  Config github = 1;
+  Config gitee = 2;
 }

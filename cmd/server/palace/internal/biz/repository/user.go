@@ -24,6 +24,9 @@ type (
 		// GetByUsername get user by username
 		GetByUsername(ctx context.Context, username string) (*model.SysUser, error)
 
+		// GetByEmail get user by email
+		GetByEmail(ctx context.Context, email string) (*model.SysUser, error)
+
 		// UpdateByID update user by id
 		UpdateByID(ctx context.Context, user *bo.UpdateUserParams) error
 

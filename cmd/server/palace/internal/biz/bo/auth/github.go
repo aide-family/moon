@@ -2,9 +2,13 @@ package auth
 
 import (
 	"encoding/json"
+
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
-type GithubLoginResponse struct {
+var _ IOAuthUser = (*GithubUser)(nil)
+
+type GithubUser struct {
 	AvatarUrl         string `json:"avatar_url"`
 	Bio               string `json:"bio"`
 	Blog              string `json:"blog"`
@@ -40,8 +44,36 @@ type GithubLoginResponse struct {
 	Url               string `json:"url"`
 }
 
+func (g *GithubUser) GetNickname() string {
+	return g.Name
+}
+
+func (g *GithubUser) GetOAuthID() uint32 {
+	return g.Id
+}
+
+func (g *GithubUser) GetEmail() string {
+	return g.Email
+}
+
+func (g *GithubUser) GetRemark() string {
+	return g.Bio
+}
+
+func (g *GithubUser) GetUsername() string {
+	return g.Login
+}
+
+func (g *GithubUser) GetAvatar() string {
+	return g.AvatarUrl
+}
+
+func (g *GithubUser) GetAPP() vobj.OAuthAPP {
+	return vobj.OAuthAPPGithub
+}
+
 // String implement fmt.Stringer
-func (g *GithubLoginResponse) String() string {
+func (g *GithubUser) String() string {
 	bs, _ := json.Marshal(g)
 	return string(bs)
 }

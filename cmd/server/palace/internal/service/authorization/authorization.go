@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
 )
@@ -165,32 +166,36 @@ func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckToken
 	}, nil
 }
 
-// GithubLogin github登录
-func (s *Service) GithubLogin(ctx http.Context) error {
-	oauthConf := s.authorizationBiz.OauthConf()
-	// 重定向到指定地址
-	url := oauthConf.AuthCodeURL("state", oauth2.AccessTypeOnline)
-	req := ctx.Request()
-	resp := ctx.Response()
-	resp.Header().Set("Location", url)
-	resp.WriteHeader(nhttp.StatusTemporaryRedirect)
-	ctx.Reset(resp, req)
-	return nil
+// OAuthLogin oauth登录
+func (s *Service) OAuthLogin(app vobj.OAuthAPP) http.HandlerFunc {
+	return func(ctx http.Context) error {
+		oauthConf := s.authorizationBiz.GetOAuthConf(app)
+		// 重定向到指定地址
+		url := oauthConf.AuthCodeURL("state", oauth2.AccessTypeOnline)
+		req := ctx.Request()
+		resp := ctx.Response()
+		resp.Header().Set("Location", url)
+		resp.WriteHeader(nhttp.StatusTemporaryRedirect)
+		ctx.Reset(resp, req)
+		return nil
+	}
 }
 
-// GithubLoginCallback github登录回调
-func (s *Service) GithubLoginCallback(ctx http.Context) error {
-	code := ctx.Query().Get("code")
-	loginRedirect, err := s.authorizationBiz.GithubLogin(ctx, code)
-	if err != nil {
-		return err
-	}
-	// 重定向到指定地址
-	req := ctx.Request()
-	resp := ctx.Response()
+// OAuthLoginCallback oauth登录回调
+func (s *Service) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
+	return func(ctx http.Context) error {
+		code := ctx.Query().Get("code")
+		loginRedirect, err := s.authorizationBiz.OAuthLogin(ctx, app, code)
+		if err != nil {
+			return err
+		}
+		// 重定向到指定地址
+		req := ctx.Request()
+		resp := ctx.Response()
 
-	resp.Header().Set("Location", loginRedirect)
-	resp.WriteHeader(nhttp.StatusTemporaryRedirect)
-	ctx.Reset(resp, req)
-	return nil
+		resp.Header().Set("Location", loginRedirect)
+		resp.WriteHeader(nhttp.StatusTemporaryRedirect)
+		ctx.Reset(resp, req)
+		return nil
+	}
 }
