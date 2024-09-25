@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package api.admin.invite;
+
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/invite;invite";
+option java_multiple_files = true;
+option java_package = ".api.admin.invite";
+
+service Invite {
+  // 邀请User加入团队
+  rpc InviteUser (InviteUserRequest) returns (InviteUserReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/user"
+      body: "*"
+    };
+  };
+  // 更新邀请状态
+  rpc UpdateInviteStatus (UpdateInviteStatusRequest) returns (UpdateInviteStatusReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/status"
+      body: "*"
+    };
+  };
+  // 删除邀请
+  rpc DeleteInvite (DeleteInviteRequest) returns (DeleteInviteReply){
+    option (google.api.http) = {
+      delete: "/v1/admin/invite/delete"
+    };
+  };
+  // 获取邀请详情
+  rpc GetInvite (GetInviteRequest) returns (GetInviteReply){
+    option (google.api.http) = {
+      get: "/v1/admin/invite/detail/{id}"
+    };
+  };
+  // 获取邀请列表
+  rpc ListInvite (ListInviteRequest) returns (ListInviteReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/list"
+      body: "*"
+    };
+  };
+}
+
+message InviteUserRequest {
+  uint32  roleId = 1 [(buf.validate.field).cel = {
+    message: "请选择邀请用户的角色",
+    expression: "this > 0"
+  }];
+  // 邮箱或手机号
+  string inviteCode = 2 [(buf.validate.field).cel = {
+    message: "请输入邮箱或手机号",
+    expression: "this.size() != 0"
+  }];
+}
+message InviteUserReply {}
+
+message UpdateInviteStatusRequest {
+  InviteType type = 1 [(buf.validate.field).cel = {
+    message: "请选择状态",
+    expression: "this > 0"
+  }];
+  uint32  id = 2 [(buf.validate.field).cel = {
+    message: "请输入邀请ID",
+    expression: "this > 0"
+  }];
+}
+message UpdateInviteStatusReply {}
+
+message DeleteInviteRequest {}
+message DeleteInviteReply {}
+
+message GetInviteRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "请输入邀请ID",
+    expression: "this > 0"
+  }];
+}
+
+message GetInviteReply {
+  InviteItem detail = 1;
+}
+
+message ListInviteRequest {
+  string keyword = 1;
+  PaginationReq pagination = 2;
+  InviteType type = 3;
+}
+message ListInviteReply {
+  PaginationReply pagination = 1;
+  repeated InviteItem list = 2;
+}

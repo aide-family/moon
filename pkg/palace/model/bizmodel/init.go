@@ -31,6 +31,7 @@ func Models() []any {
 		&AlarmHook{},
 		&StrategyLabelNotice{},
 		&StrategySubscriber{},
+		&SysTeamInvite{},
 	}
 }
 
