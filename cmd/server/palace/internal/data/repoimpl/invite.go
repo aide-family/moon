@@ -2,18 +2,22 @@ package repoimpl
 
 import (
 	"context"
+
+	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"gorm.io/gen"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+
+	"gorm.io/gen"
 )
 
 func NewInviteRepository(data *data.Data) repository.TeamInvite {
-
 	return &InviteRepositoryImpl{
 		data: data,
 	}
@@ -33,8 +37,8 @@ func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context,
 	var wheres []gen.Condition
 	wheres = append(wheres, bizQuery.SysTeamInvite.UserID.Eq(params.UserID))
 	// 已加入或邀请中状态
-	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.GetInviteTypeJoined().GetValue()))
-	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.GetInviteTypeUnderReview().GetValue()))
+	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.InviteTypeJoined.GetValue()))
+	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.InviteTypeUnderReview.GetValue()))
 	wheres = append(wheres, bizQuery.SysTeamInvite.TeamID.Eq(params.TeamID))
 	return bizQuery.SysTeamInvite.
 		WithContext(ctx).
@@ -46,11 +50,34 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 	if !types.IsNil(err) {
 		return err
 	}
-	err = bizQuery.SysTeamInvite.WithContext(ctx).Create(createInviteToModel(ctx, params))
-	if !types.IsNil(err) {
-		return err
+	teamInvite, _ := bizQuery.SysTeamInvite.WithContext(ctx).
+		Where(bizQuery.SysTeamInvite.UserID.Eq(params.UserID),
+			bizQuery.SysTeamInvite.TeamID.Eq(params.TeamID)).First()
+
+	if !types.IsNil(teamInvite) {
+		teamInvite.TeamRoles = types.SliceTo(params.TeamRoleIds, func(roleID uint32) *bizmodel.SysTeamRole {
+			return &bizmodel.SysTeamRole{
+				AllFieldModel: model.AllFieldModel{ID: roleID},
+				TeamID:        params.TeamID,
+			}
+		})
+		teamInvite.InviteType = vobj.InviteTypeUnderReview
+		_, err = bizQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite)
+	} else {
+		teamInvite = &bizmodel.SysTeamInvite{
+			TeamID:     params.TeamID,
+			UserID:     params.UserID,
+			InviteType: vobj.InviteTypeUnderReview,
+			TeamRoles: types.SliceTo(params.TeamRoleIds, func(roleID uint32) *bizmodel.SysTeamRole {
+				return &bizmodel.SysTeamRole{
+					AllFieldModel: model.AllFieldModel{ID: roleID},
+					TeamID:        params.TeamID,
+				}
+			}),
+		}
+		err = bizQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite)
 	}
-	return nil
+	return err
 }
 
 func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error {
@@ -61,21 +88,44 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 	if _, err = bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.ID.Eq(params.InviteID)).Update(bizQuery.SysTeamInvite.InviteType, params.InviteType.GetValue()); err != nil {
 		return err
 	}
+
+	// 如果邀请类型是加入团队，则创建团队成员信息
+	if params.InviteType.IsJoined() {
+		teamInvite, err := bizQuery.SysTeamInvite.Where(bizQuery.SysTeamInvite.ID.Eq(params.InviteID)).First()
+		if !types.IsNil(err) {
+			return err
+		}
+		err = i.createTeamMemberInfo(ctx, teamInvite)
+		if !types.IsNil(err) {
+			return err
+		}
+	}
 	return nil
 }
 
-func (i *InviteRepositoryImpl) InviteList(ctx context.Context, params *bo.QueryInviteListParams) {
-	//TODO implement me
-	panic("implement me")
+func (i *InviteRepositoryImpl) InviteList(ctx context.Context) ([]*bizmodel.SysTeamInvite, error) {
+	bizQuery, err := getBizQuery(ctx, i.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnauthorized(ctx)
+	}
+
+	return bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.UserID.Eq(claims.UserID)).Find()
 }
 
-func createInviteToModel(ctx context.Context, params *bo.InviteUserParams) *bizmodel.SysTeamInvite {
-	invite := &bizmodel.SysTeamInvite{
-		TeamID:        params.TeamID,
-		UserID:        params.UserID,
-		SysTeamRoleID: params.TeamRoleID,
-		InviteType:    vobj.GetInviteTypeJoined(), // 邀请中
+func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite *bizmodel.SysTeamInvite) error {
+	bizQuery, err := getBizQuery(ctx, i.data)
+	if !types.IsNil(err) {
+		return err
 	}
-	invite.WithContext(ctx)
-	return invite
+	teamMember := &bizmodel.SysTeamMember{
+		UserID:    invite.UserID,
+		TeamID:    invite.TeamID,
+		Status:    vobj.StatusEnable,
+		TeamRoles: invite.TeamRoles,
+	}
+	return bizQuery.SysTeamMember.WithContext(ctx).Create(teamMember)
 }

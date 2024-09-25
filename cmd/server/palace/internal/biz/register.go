@@ -25,5 +25,6 @@ var ProviderSetBiz = wire.NewSet(
 	NewAlarmPageBiz,
 	NewSubscriptionStrategyBiz,
 	NewAlarmHookBiz,
+	NewInviteBiz,
 	NewUserMessageBiz,
 )
