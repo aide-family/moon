@@ -141,9 +141,10 @@ func RegisterService(
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	// custom api
-	customAPI := httpSrv.Route("/v1/admin")
-	customAPI.GET("/proxy", datasourceService.ProxyQuery)
-	customAPI.POST("/proxy", datasourceService.ProxyQuery)
+	proxy := httpSrv.Route("/v1")
+	proxy.GET("/proxy", datasourceService.ProxyQuery)
+	proxy.POST("/proxy", datasourceService.ProxyQuery)
+
 	auth := httpSrv.Route("/auth")
 	auth.GET("/github", authorizationService.OAuthLogin(vobj.OAuthAPPGithub))
 	auth.GET("/github/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGithub))

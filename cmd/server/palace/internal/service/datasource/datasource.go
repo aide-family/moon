@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	nethttp "net/http"
-	"net/url"
 
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
@@ -148,18 +147,11 @@ func (s *Service) ProxyQuery(ctx http.Context) error {
 		to = datasourceDetail.Endpoint
 	}
 
-	parsedURL, err := url.Parse(to)
-	if err != nil {
-		return err
-	}
-
 	req := ctx.Request()
 	method := req.Method
 	body := req.Body
-	parsedURL.RawQuery = req.URL.Query().Encode()
-	log.Debugw("method", method, "url", parsedURL.String())
 	// 转发请求
-	proxyReq, err := nethttp.NewRequestWithContext(ctx, method, parsedURL.String(), body)
+	proxyReq, err := nethttp.NewRequestWithContext(ctx, method, to, body)
 	if err != nil {
 		return err
 	}
