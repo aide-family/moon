@@ -241,6 +241,12 @@ enum ErrorReason {
       reason: "STRATEGY_GROUP_NOT_FOUND"
       message: "策略组不存在",
       metadata: {key: "strategyGroup", value: "STRATEGY_GROUP_NOT_FOUND"}
+    },
+    // 邀请记录已存在
+    (errors.biz_reason) = {
+      reason: "TEAM_INVITE_ALREADY_EXISTS"
+      message: "%s,邀请记录已存在",
+      metadata: {key: "teamInvite", value: "TEAM_INVITE_ALREADY_EXISTS"}
     }
   ];
 

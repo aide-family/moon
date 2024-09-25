@@ -635,3 +635,10 @@ message AlarmHookItem {
   // url
   string  url = 10;
 }
+
+// invite item
+message InviteItem{
+  TeamRole role = 1;
+  TeamItem team = 2;
+  uint32 inviteId = 3;
+}

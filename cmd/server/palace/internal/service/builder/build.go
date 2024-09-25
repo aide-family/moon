@@ -48,9 +48,13 @@ type (
 		RoleModuleBuilder() IRoleModuleBuilder
 
 		TeamModuleBuilder() ITeamModuleBuilder
+		InviteModuleBuilder() InviteModuleBuilder
 	}
 )
 
+func (p *paramsBuilder) InviteModuleBuilder() InviteModuleBuilder {
+	return &inviteModuleBuilder{ctx: p.ctx}
+}
 func (p *paramsBuilder) TeamModuleBuilder() ITeamModuleBuilder {
 	return &teamModuleBuilder{ctx: p.ctx}
 }
