@@ -23,7 +23,7 @@ type (
 	// QueryResponse 查询到的响应
 	QueryResponse struct {
 		// 标签集合
-		Labels *vobj.Labels `json:"labels"`
+		Labels map[string]string `json:"labels"`
 		// 值
 		Value  *QueryValue   `json:"value"`
 		Values []*QueryValue `json:"values"`
@@ -87,6 +87,12 @@ func NewMetricDatasource(storageType vobj.StorageType, opts ...MetricDatasourceB
 			WithPrometheusEndpoint(d.endpoint),
 			WithPrometheusStep(d.step),
 			WithPrometheusBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
+		), nil
+	case vobj.StorageTypeVictoriametrics:
+		return NewVictoriametricsDatasource(
+			WithVictoriametricsEndpoint(d.endpoint),
+			WithVictoriametricsStep(d.step),
+			WithVictoriametricsBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	default:
 		return nil, merr.ErrorNotificationUnsupportedDataSource("unsupported data source type")

@@ -20,7 +20,7 @@ type (
 	// Point 数据点
 	Point struct {
 		// 标签集合
-		Labels *vobj.Labels `json:"labels"`
+		Labels map[string]string `json:"labels"`
 		// 值
 		Values []*Value `json:"value"`
 	}
@@ -54,7 +54,7 @@ type mockDatasource struct {
 
 func (m *mockDatasource) Eval(_ context.Context, _ string, _ *types.Duration) (map[watch.Indexer]*Point, error) {
 	res := make(map[watch.Indexer]*Point)
-	labels := vobj.NewLabels(map[string]string{"env": "mock"})
+	labels := map[string]string{"env": "mock"}
 	values := make([]*Value, 0, 100)
 	for i := 0; i < 100; i++ {
 		values = append(values, &Value{
@@ -62,7 +62,8 @@ func (m *mockDatasource) Eval(_ context.Context, _ string, _ *types.Duration) (m
 			Timestamp: time.Now().Unix(),
 		})
 	}
-	res[labels] = &Point{
+	vobjLabels := vobj.NewLabels(labels)
+	res[vobjLabels] = &Point{
 		Labels: labels,
 		Values: values,
 	}

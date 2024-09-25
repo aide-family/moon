@@ -18,108 +18,55 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	// prometheusAPIV1Query 查询接口
-	prometheusAPIV1Query = "/api/v1/query"
-	// prometheusAPIV1QueryRange 查询接口
-	prometheusAPIV1QueryRange = "/api/v1/query_range"
-	// prometheusAPIV1Metadata 元数据查询接口
-	prometheusAPIV1Metadata = "/api/v1/metadata"
-	// prometheusAPIV1Series /api/v1/series
-	prometheusAPIV1Series = "/api/v1/series"
-)
+var _ MetricDatasource = (*victoriametricsDatasource)(nil)
 
-// NewPrometheusDatasource 创建 prometheus 数据源
-func NewPrometheusDatasource(opts ...PrometheusOption) MetricDatasource {
-	p := &prometheusDatasource{
-		prometheusAPIV1Query:      prometheusAPIV1Query,
-		prometheusAPIV1QueryRange: prometheusAPIV1QueryRange,
-		prometheusAPIV1Metadata:   prometheusAPIV1Metadata,
-		prometheusAPIV1Series:     prometheusAPIV1Series,
+// NewVictoriametricsDatasource creates a new victoriametrics datasource.
+func NewVictoriametricsDatasource(opts ...VictoriametricsDatasourceOption) MetricDatasource {
+	v := &victoriametricsDatasource{
+		step:          14,
+		queryAPI:      victoriametricsQueryAPI,
+		queryRangeAPI: victoriametricsQueryRangeAPI,
+		metadataAPI:   victoriametricsMetadataAPI,
+		seriesAPI:     victoriametricsSeriesAPI,
 	}
-	for _, o := range opts {
-		o(p)
+	for _, opt := range opts {
+		opt(v)
 	}
-	return p
+	return v
 }
 
 type (
-	prometheusDatasource struct {
-		// prom ql 查询接口
-		prometheusAPIV1Query string
-		// prom ql 查询接口
-		prometheusAPIV1QueryRange string
-		// prom 元数据查询接口
-		prometheusAPIV1Metadata string
-		// prom series 查询接口
-		prometheusAPIV1Series string
+	VictoriametricsDatasourceOption func(*victoriametricsDatasource)
 
+	victoriametricsDatasource struct {
 		// basicAuth 数据源基础认证
 		basicAuth *BasicAuth
 
 		// endpoint 数据源地址
 		endpoint string
-		// 查询步长
+		// step 默认步长
 		step uint32
+
+		queryAPI      string
+		queryRangeAPI string
+		seriesAPI     string
+		metadataAPI   string
 	}
 
-	// PrometheusOption 数据源配置
-	PrometheusOption func(p *prometheusDatasource)
-
-	// 响应参数处理
-
-	// PromQueryResult 查询响应数据
-	PromQueryResult struct {
-		Metric map[string]string `json:"metric"`
-		Value  [2]any            `json:"value"`
-		Values [][2]any          `json:"values"`
-	}
-
-	// PromQueryData 查询数据
-	PromQueryData struct {
-		ResultType string             `json:"resultType"`
-		Result     []*PromQueryResult `json:"result"`
-	}
-
-	// PromQueryResponse 查询响应
-	// {"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"node_cpu_seconds_total","cpu":"0","instance":"10.0.0.1:9100","job":"node-exporter","mode":"idle"},"value":[1629874800.0,"0.01"]},{"metric":{"__name__":"node_cpu_seconds_total","cpu":"0","instance":"10.0.0.2:9100","job":"node-exporter","mode":"idle"},"value":[1629874800.0,"0.01"]}]}}
-	PromQueryResponse struct {
-		Status    string         `json:"status"`
-		Data      *PromQueryData `json:"data"`
-		ErrorType string         `json:"errorType"`
-		Error     string         `json:"error"`
-	}
-
-	// PromMetricInfo 元数据信息
-	PromMetricInfo struct {
-		Type string `json:"type"`
-		Help string `json:"help"`
-		Unit string `json:"unit"`
-	}
-
-	// PromMetadataResponse 元数据响应
-	PromMetadataResponse struct {
-		Status string                      `json:"status"`
-		Data   map[string][]PromMetricInfo `json:"data"`
-	}
-
-	// PromMetricSeriesResponse 元数据响应
-	PromMetricSeriesResponse struct {
-		Status    string              `json:"status"`
-		Data      []map[string]string `json:"data"`
-		Error     string              `json:"error"`
-		ErrorType string              `json:"errorType"`
+	VictoriametricsMetadataResponse struct {
+		Status string   `json:"status"`
+		Data   []string `json:"data"`
 	}
 )
 
-func (p *prometheusDatasource) Step() uint32 {
-	if p.step == 0 {
-		return 14
-	}
-	return p.step
-}
+const (
+	victoriametricsQueryAPI      = "/api/v1/query"
+	victoriametricsQueryRangeAPI = "/api/v1/query_range"
+	victoriametricsSeriesAPI     = "/api/v1/series"
+	victoriametricsMetadataAPI   = "/api/v1/label/__name__/values"
+)
 
-func (p *prometheusDatasource) Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
+func (p *victoriametricsDatasource) Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
 	endAt := time.Now()
 	startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
 	queryRange, err := p.QueryRange(ctx, expr, startAt.Unix(), endAt.Unix(), p.Step())
@@ -145,7 +92,70 @@ func (p *prometheusDatasource) Eval(ctx context.Context, expr string, duration *
 	return responseMap, nil
 }
 
-func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
+func (p *victoriametricsDatasource) Step() uint32 {
+	if p.step == 0 {
+		return 14
+	}
+	return p.step
+}
+
+func (p *victoriametricsDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {
+	params := httpx.ParseQuery(map[string]any{
+		"query": expr,
+		"time":  duration,
+	})
+
+	hx := httpx.NewHTTPX()
+	hx.SetHeader(map[string]string{
+		"Accept":          "*/*",
+		"Accept-Language": "zh-CN,zh;q=0.9",
+	})
+	if p.basicAuth != nil {
+		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
+	}
+	api, err := url.JoinPath(p.endpoint, p.queryAPI)
+	if err != nil {
+		return nil, err
+	}
+	getResponse, err := hx.GETWithContext(ctx, fmt.Sprintf("%s?%s", api, params))
+	if err != nil {
+		return nil, err
+	}
+	defer getResponse.Body.Close()
+	var allResp PromQueryResponse
+	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+		return nil, err
+	}
+
+	data := allResp.Data
+	if types.IsNil(data) {
+		return nil, fmt.Errorf("query result is nil")
+	}
+	result := make([]*QueryResponse, 0, len(data.Result))
+	for _, queryResult := range data.Result {
+		value := queryResult.Value
+		ts, tsAssertOk := strconv.ParseFloat(fmt.Sprintf("%v", value[0]), 64)
+		if tsAssertOk != nil {
+			continue
+		}
+		metricValue, parseErr := strconv.ParseFloat(fmt.Sprintf("%v", value[1]), 64)
+		if parseErr != nil {
+			continue
+		}
+		result = append(result, &QueryResponse{
+			Labels: queryResult.Metric,
+			Value: &QueryValue{
+				Value:     metricValue,
+				Timestamp: int64(ts),
+			},
+			ResultType: data.ResultType,
+		})
+	}
+
+	return result, nil
+}
+
+func (p *victoriametricsDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
 	st := step
 	if step == 0 {
 		st = p.step
@@ -165,7 +175,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 	if p.basicAuth != nil {
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
-	api, err := url.JoinPath(p.endpoint, p.prometheusAPIV1QueryRange)
+	api, err := url.JoinPath(p.endpoint, p.queryRangeAPI)
 	if err != nil {
 		return nil, err
 	}
@@ -206,63 +216,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 	return result, nil
 }
 
-func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {
-	params := httpx.ParseQuery(map[string]any{
-		"query": expr,
-		"time":  duration,
-	})
-
-	hx := httpx.NewHTTPX()
-	hx.SetHeader(map[string]string{
-		"Accept":          "*/*",
-		"Accept-Language": "zh-CN,zh;q=0.9",
-	})
-	if p.basicAuth != nil {
-		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
-	}
-	api, err := url.JoinPath(p.endpoint, p.prometheusAPIV1Query)
-	if err != nil {
-		return nil, err
-	}
-	getResponse, err := hx.GETWithContext(ctx, fmt.Sprintf("%s?%s", api, params))
-	if err != nil {
-		return nil, err
-	}
-	defer getResponse.Body.Close()
-	var allResp PromQueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
-		return nil, err
-	}
-
-	data := allResp.Data
-	if types.IsNil(data) {
-		return nil, fmt.Errorf("query result is nil")
-	}
-	result := make([]*QueryResponse, 0, len(data.Result))
-	for _, v := range data.Result {
-		value := v.Value
-		ts, tsAssertOk := strconv.ParseFloat(fmt.Sprintf("%v", value[0]), 64)
-		if tsAssertOk != nil {
-			continue
-		}
-		metricValue, parseErr := strconv.ParseFloat(fmt.Sprintf("%v", value[1]), 64)
-		if parseErr != nil {
-			continue
-		}
-		result = append(result, &QueryResponse{
-			Labels: v.Metric,
-			Value: &QueryValue{
-				Value:     metricValue,
-				Timestamp: int64(ts),
-			},
-			ResultType: data.ResultType,
-		})
-	}
-
-	return result, nil
-}
-
-func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) {
+func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, error) {
 	now := time.Now()
 	// 获取元数据
 	metadataInfo, err := p.metadata(ctx)
@@ -326,7 +280,7 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 }
 
 // metadata 获取原始数据
-func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromMetricInfo, error) {
+func (p *victoriametricsDatasource) metadata(ctx context.Context) (map[string][]PromMetricInfo, error) {
 	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
@@ -335,7 +289,7 @@ func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromM
 	if p.basicAuth != nil {
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
-	api, err := url.JoinPath(p.endpoint, p.prometheusAPIV1Metadata)
+	api, err := url.JoinPath(p.endpoint, p.metadataAPI)
 	if err != nil {
 		return nil, err
 	}
@@ -344,15 +298,19 @@ func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromM
 		return nil, err
 	}
 	defer getResponse.Body.Close()
-	var allResp PromMetadataResponse
+	var allResp VictoriametricsMetadataResponse
 	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
-	return allResp.Data, nil
+	metadataResp := make(map[string][]PromMetricInfo, len(allResp.Data))
+	for _, datum := range allResp.Data {
+		metadataResp[datum] = []PromMetricInfo{{}}
+	}
+	return metadataResp, nil
 }
 
 // series 查询时间序列 map[metricName][labelName][]labelValue
-func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNames ...string) (map[string]map[string][]string, error) {
+func (p *victoriametricsDatasource) series(ctx context.Context, t time.Time, metricNames ...string) (map[string]map[string][]string, error) {
 	now := t
 	// 获取此格式时间2024-04-21T17:58:55.061Z
 	start := now.Add(-time.Hour * 24).Format("2006-01-02T15:04:05.000Z")
@@ -378,7 +336,7 @@ func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 		hx = hx.SetBasicAuth(p.basicAuth.Username, p.basicAuth.Password)
 	}
 
-	api, err := url.JoinPath(p.endpoint, p.prometheusAPIV1Series)
+	api, err := url.JoinPath(p.endpoint, p.seriesAPI)
 	if err != nil {
 		return nil, err
 	}
@@ -416,16 +374,16 @@ func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 	return res, nil
 }
 
-// WithPrometheusEndpoint 设置数据源地址
-func WithPrometheusEndpoint(endpoint string) PrometheusOption {
-	return func(p *prometheusDatasource) {
+// WithVictoriametricsEndpoint 设置数据源地址
+func WithVictoriametricsEndpoint(endpoint string) VictoriametricsDatasourceOption {
+	return func(p *victoriametricsDatasource) {
 		p.endpoint = endpoint
 	}
 }
 
-// WithPrometheusStep 设置步长
-func WithPrometheusStep(step uint32) PrometheusOption {
-	return func(p *prometheusDatasource) {
+// WithVictoriametricsStep 设置步长
+func WithVictoriametricsStep(step uint32) VictoriametricsDatasourceOption {
+	return func(p *victoriametricsDatasource) {
 		if step <= 0 {
 			p.step = 10
 			return
@@ -434,9 +392,9 @@ func WithPrometheusStep(step uint32) PrometheusOption {
 	}
 }
 
-// WithPrometheusBasicAuth 设置数据源配置
-func WithPrometheusBasicAuth(username, password string) PrometheusOption {
-	return func(p *prometheusDatasource) {
+// WithVictoriametricsBasicAuth 设置数据源配置
+func WithVictoriametricsBasicAuth(username, password string) VictoriametricsDatasourceOption {
+	return func(p *victoriametricsDatasource) {
 		if types.TextIsNull(username) || types.TextIsNull(password) {
 			return
 		}

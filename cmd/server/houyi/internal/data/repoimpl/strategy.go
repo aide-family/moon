@@ -156,8 +156,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			}
 			alert := &bo.Alert{
 				Status:       vobj.AlertStatusFiring,
-				Labels:       point.Labels.AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
-				Annotations:  annotations,                                          // 填充
+				Labels:       vobj.NewLabels(point.Labels).AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
+				Annotations:  annotations,                                                          // 填充
 				StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
 				EndsAt:       nil,
 				GeneratorURL: "", // TODO 生成事件图表链接
