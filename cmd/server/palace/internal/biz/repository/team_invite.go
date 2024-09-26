@@ -16,4 +16,8 @@ type TeamInvite interface {
 	InviteList(ctx context.Context) ([]*bizmodel.SysTeamInvite, error)
 	// GetInviteUserByUserIdAndType 获取邀请用户信息
 	GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*bizmodel.SysTeamInvite, error)
+	// GetInviteDetail 获取邀请详情
+	GetInviteDetail(ctx context.Context, inviteId uint32) (*bizmodel.SysTeamInvite, error)
+	// DeleteInvite 删除邀请
+	DeleteInvite(ctx context.Context, inviteId uint32) error
 }
