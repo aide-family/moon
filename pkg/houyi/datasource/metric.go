@@ -55,8 +55,7 @@ type (
 
 	// MetricDatasource 数据源完整接口定义
 	MetricDatasource interface {
-		Datasource
-
+		Step() uint32
 		// Query 查询数据
 		Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error)
 		// QueryRange 查询数据
@@ -121,4 +120,28 @@ func WithMetricBasicAuth(username, password string) MetricDatasourceBuildOption 
 			Password: password,
 		}
 	}
+}
+
+type mockMetricDatasource struct {
+}
+
+func (m *mockMetricDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {
+	return nil, nil
+}
+
+func (m *mockMetricDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
+	return nil, nil
+}
+
+func (m *mockMetricDatasource) Metadata(ctx context.Context) (*Metadata, error) {
+	return new(Metadata), nil
+}
+
+func (m *mockMetricDatasource) Step() uint32 {
+	return 10
+}
+
+// NewMockMetricDatasource 创建一个mock metric数据源
+func NewMockMetricDatasource() MetricDatasource {
+	return &mockMetricDatasource{}
 }

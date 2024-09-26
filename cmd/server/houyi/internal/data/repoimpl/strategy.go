@@ -45,9 +45,9 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strate
 	return nil
 }
 
-func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]datasource.Datasource, error) {
+func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]datasource.MetricDatasource, error) {
 	datasourceList := strategy.Datasource
-	datasourceCliList := make([]datasource.Datasource, 0, len(datasourceList))
+	datasourceCliList := make([]datasource.MetricDatasource, 0, len(datasourceList))
 	category := datasourceList[0].Category
 	for _, datasourceItem := range datasourceList {
 		if datasourceItem.Category != category {
@@ -60,7 +60,7 @@ func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]
 			Config:      datasourceItem.Config,
 			Endpoint:    datasourceItem.Endpoint,
 		}
-		newDatasource, err := datasource.NewDatasource(cfg)
+		newDatasource, err := datasource.NewDatasource(cfg).Metric()
 		if err != nil {
 			log.Warnw("method", "NewDatasource", "error", err)
 			continue
@@ -121,54 +121,48 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	if err != nil {
 		return nil, err
 	}
-
-	for _, cli := range datasourceCliList {
-		evalPoints, err := cli.Eval(ctx, strategy.Expr, strategy.For)
-		if err != nil {
-			log.Warnw("method", "Eval", "error", err)
-			continue
-		}
-		if len(evalPoints) == 0 {
-			// 生成恢复事件（如果有存在的告警），并补充当前时间为告警恢复事件
-			continue
-		}
-
-		for index, point := range evalPoints {
-			labels, ok := index.(*vobj.Labels)
-			if !ok {
-				continue
-			}
-			if !isCompletelyMeet(point.Values, strategy) {
-				continue
-			}
-			valLength := len(point.Values)
-			endPointValue := point.Values[valLength-1]
-
-			formatValue := map[string]any{
-				"value":  endPointValue.Value,
-				"time":   endPointValue.Timestamp,
-				"labels": labels.Map(),
-			}
-			annotations := make(vobj.Annotations, len(strategy.Annotations))
-
-			for key, annotation := range strategy.Annotations {
-				annotations[key] = format.Formatter(annotation, formatValue)
-			}
-			alert := &bo.Alert{
-				Status:       vobj.AlertStatusFiring,
-				Labels:       vobj.NewLabels(point.Labels).AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
-				Annotations:  annotations,                                                          // 填充
-				StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
-				EndsAt:       nil,
-				GeneratorURL: "", // TODO 生成事件图表链接
-				Fingerprint:  "", // TODO 指纹生成逻辑
-				Value:        endPointValue.Value,
-			}
-			alert = s.getFiringAlert(ctx, alert)
-			alerts = append(alerts, alert)
-			alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
-		}
+	evalPoints, err := datasource.MetricEval(datasourceCliList...)(ctx, strategy.Expr, strategy.For)
+	if err != nil {
+		log.Warnw("method", "Eval", "error", err)
+		return nil, err
 	}
+
+	for index, point := range evalPoints {
+		labels, ok := index.(*vobj.Labels)
+		if !ok {
+			continue
+		}
+		if !isCompletelyMeet(point.Values, strategy) {
+			continue
+		}
+		valLength := len(point.Values)
+		endPointValue := point.Values[valLength-1]
+
+		formatValue := map[string]any{
+			"value":  endPointValue.Value,
+			"time":   endPointValue.Timestamp,
+			"labels": labels.Map(),
+		}
+		annotations := make(vobj.Annotations, len(strategy.Annotations))
+
+		for key, annotation := range strategy.Annotations {
+			annotations[key] = format.Formatter(annotation, formatValue)
+		}
+		alert := &bo.Alert{
+			Status:       vobj.AlertStatusFiring,
+			Labels:       vobj.NewLabels(point.Labels).AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
+			Annotations:  annotations,                                                          // 填充
+			StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
+			EndsAt:       nil,
+			GeneratorURL: "", // TODO 生成事件图表链接
+			Fingerprint:  "", // TODO 指纹生成逻辑
+			Value:        endPointValue.Value,
+		}
+		alert = s.getFiringAlert(ctx, alert)
+		alerts = append(alerts, alert)
+		alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
+	}
+
 	alertIndexList := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
 		return alert.Index(), alert.Status.IsFiring()
 	})

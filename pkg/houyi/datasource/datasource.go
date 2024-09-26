@@ -5,9 +5,12 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type (
@@ -26,55 +29,80 @@ type (
 	}
 )
 
+var _ Datasource = (*datasource)(nil)
+
 // Datasource 数据源通用接口
 type Datasource interface {
-	Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error)
-	Step() uint32
+	Metric() (MetricDatasource, error)
+}
+
+type datasource struct {
+	config *api.Datasource
+}
+
+func (d *datasource) Metric() (MetricDatasource, error) {
+	if types.IsNil(d) || types.IsNil(d.config) {
+		return nil, merr.ErrorNotificationSystemError("datasource is nil")
+	}
+
+	dataType := vobj.DatasourceType(d.config.GetCategory())
+	if !dataType.IsMetrics() {
+		return nil, merr.ErrorNotificationSystemError("not a metric datasource: %s", dataType)
+	}
+	opts := []MetricDatasourceBuildOption{
+		WithMetricStep(10),
+		WithMetricEndpoint(d.config.GetEndpoint()),
+		WithMetricBasicAuth(d.config.GetConfig()["username"], d.config.GetConfig()["password"]),
+	}
+	return NewMetricDatasource(vobj.StorageType(d.config.GetStorageType()), opts...)
 }
 
 // NewDatasource 根据配置创建对应的数据源
-func NewDatasource(config *api.Datasource) (Datasource, error) {
-	// 根据配置创建对应的数据源
-	category := vobj.DatasourceType(config.GetCategory())
-	switch category {
-	case vobj.DatasourceTypeMetrics:
-		opts := []MetricDatasourceBuildOption{
-			WithMetricStep(10),
-			WithMetricEndpoint(config.GetEndpoint()),
-			WithMetricBasicAuth(config.GetConfig()["username"], config.GetConfig()["password"]),
+func NewDatasource(config *api.Datasource) Datasource {
+	return &datasource{config: config}
+}
+
+type EvalFunc func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error)
+
+func MetricEval(items ...MetricDatasource) EvalFunc {
+	return func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
+		evalRes := make(map[watch.Indexer]*Point)
+		for _, item := range items {
+			list, err := metricEval(ctx, item, expr, duration)
+			if err != nil {
+				log.Warnw("eval", err)
+				continue
+			}
+			for k, v := range list {
+				evalRes[k] = v
+			}
 		}
-		return NewMetricDatasource(vobj.StorageType(config.GetStorageType()), opts...)
-	default:
-		return NewMockDatasource(), nil
+		return evalRes, nil
 	}
 }
 
-type mockDatasource struct {
-}
-
-func (m *mockDatasource) Eval(_ context.Context, _ string, _ *types.Duration) (map[watch.Indexer]*Point, error) {
-	res := make(map[watch.Indexer]*Point)
-	labels := map[string]string{"env": "mock"}
-	values := make([]*Value, 0, 100)
-	for i := 0; i < 100; i++ {
-		values = append(values, &Value{
-			Value:     float64(i + 1),
-			Timestamp: time.Now().Unix(),
-		})
+func metricEval(ctx context.Context, d MetricDatasource, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
+	endAt := time.Now()
+	startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
+	queryRange, err := d.QueryRange(ctx, expr, startAt.Unix(), endAt.Unix(), d.Step())
+	if err != nil {
+		return nil, err
 	}
-	vobjLabels := vobj.NewLabels(labels)
-	res[vobjLabels] = &Point{
-		Labels: labels,
-		Values: values,
+	var responseMap = make(map[watch.Indexer]*Point)
+	for _, response := range queryRange {
+		labels := response.Labels
+		values := make([]*Value, 0, len(response.Values))
+		for _, v := range response.Values {
+			values = append(values, &Value{
+				Value:     v.Value,
+				Timestamp: v.Timestamp,
+			})
+		}
+		vobjLabels := vobj.NewLabels(labels)
+		responseMap[vobjLabels] = &Point{
+			Values: values,
+			Labels: labels,
+		}
 	}
-	return res, nil
-}
-
-func (m *mockDatasource) Step() uint32 {
-	return 10
-}
-
-// NewMockDatasource 创建一个mock数据源
-func NewMockDatasource() Datasource {
-	return &mockDatasource{}
+	return responseMap, nil
 }

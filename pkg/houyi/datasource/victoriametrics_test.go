@@ -26,7 +26,7 @@ func TestNewVictoriametricsDatasource(t *testing.T) {
 	bs, _ := json.Marshal(queryRange)
 	t.Log(string(bs))
 
-	eval, err := vmData.Eval(context.Background(), "up", durationT)
+	eval, err := datasource.MetricEval(vmData)(context.Background(), "up", durationT)
 	if err != nil {
 		t.Fatal(err)
 	}

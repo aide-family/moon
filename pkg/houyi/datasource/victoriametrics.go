@@ -12,8 +12,6 @@ import (
 
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
-	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -65,32 +63,6 @@ const (
 	victoriametricsSeriesAPI     = "/api/v1/series"
 	victoriametricsMetadataAPI   = "/api/v1/label/__name__/values"
 )
-
-func (p *victoriametricsDatasource) Eval(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
-	endAt := time.Now()
-	startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
-	queryRange, err := p.QueryRange(ctx, expr, startAt.Unix(), endAt.Unix(), p.Step())
-	if err != nil {
-		return nil, err
-	}
-	var responseMap = make(map[watch.Indexer]*Point)
-	for _, response := range queryRange {
-		labels := response.Labels
-		values := make([]*Value, 0, len(response.Values))
-		for _, v := range response.Values {
-			values = append(values, &Value{
-				Value:     v.Value,
-				Timestamp: v.Timestamp,
-			})
-		}
-		vobjLabels := vobj.NewLabels(labels)
-		responseMap[vobjLabels] = &Point{
-			Values: values,
-			Labels: labels,
-		}
-	}
-	return responseMap, nil
-}
 
 func (p *victoriametricsDatasource) Step() uint32 {
 	if p.step == 0 {
