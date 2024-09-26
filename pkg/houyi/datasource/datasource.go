@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
-
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -67,8 +66,10 @@ type EvalFunc func(ctx context.Context, expr string, duration *types.Duration) (
 func MetricEval(items ...MetricDatasource) EvalFunc {
 	return func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
 		evalRes := make(map[watch.Indexer]*Point)
+		endAt := time.Now()
+		startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
 		for _, item := range items {
-			list, err := metricEval(ctx, item, expr, duration)
+			list, err := metricEval(ctx, item, expr, startAt.Unix(), endAt.Unix())
 			if err != nil {
 				log.Warnw("eval", err)
 				continue
@@ -81,10 +82,8 @@ func MetricEval(items ...MetricDatasource) EvalFunc {
 	}
 }
 
-func metricEval(ctx context.Context, d MetricDatasource, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
-	endAt := time.Now()
-	startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
-	queryRange, err := d.QueryRange(ctx, expr, startAt.Unix(), endAt.Unix(), d.Step())
+func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, endAt int64) (map[watch.Indexer]*Point, error) {
+	queryRange, err := d.QueryRange(ctx, expr, startAt, endAt, d.Step())
 	if err != nil {
 		return nil, err
 	}
