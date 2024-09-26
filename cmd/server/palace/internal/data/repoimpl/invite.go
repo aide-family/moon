@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func NewInviteRepository(data *data.Data) repository.TeamInvite {
@@ -43,7 +44,7 @@ func (i *InviteRepositoryImpl) GetInviteDetail(ctx context.Context, inviteId uin
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.ID.Eq(inviteId)).First()
+	return bizQuery.SysTeamInvite.WithContext(ctx).Preload(field.Associations).Where(bizQuery.SysTeamInvite.ID.Eq(inviteId)).First()
 }
 
 func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*bizmodel.SysTeamInvite, error) {
@@ -53,13 +54,8 @@ func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context,
 	}
 	var wheres []gen.Condition
 	wheres = append(wheres, bizQuery.SysTeamInvite.UserID.Eq(params.UserID))
-	// 已加入或邀请中状态
-	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.InviteTypeJoined.GetValue()))
-	wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(vobj.InviteTypeUnderReview.GetValue()))
 	wheres = append(wheres, bizQuery.SysTeamInvite.TeamID.Eq(params.TeamID))
-	return bizQuery.SysTeamInvite.
-		WithContext(ctx).
-		Where(wheres...).First()
+	return bizQuery.SysTeamInvite.WithContext(ctx).Where(wheres...).First()
 }
 
 func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.InviteUserParams) error {
@@ -108,7 +104,7 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 
 	// 如果邀请类型是加入团队，则创建团队成员信息
 	if params.InviteType.IsJoined() {
-		teamInvite, err := bizQuery.SysTeamInvite.Where(bizQuery.SysTeamInvite.ID.Eq(params.InviteID)).First()
+		teamInvite, err := i.GetInviteDetail(ctx, params.InviteID)
 		if !types.IsNil(err) {
 			return err
 		}
