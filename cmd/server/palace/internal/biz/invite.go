@@ -49,7 +49,7 @@ func (i *InviteBiz) InviteUser(ctx context.Context, params *bo.InviteUserParams)
 	params.UserID = user.ID
 	params.TeamID = claims.TeamID
 	// 校验邀请记录是否存在
-	if !types.IsNil(i.checkInviteDataExists(ctx, params)) {
+	if err = i.checkInviteDataExists(ctx, params); !types.IsNil(err) {
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (i *InviteBiz) DeleteInvite(ctx context.Context, inviteID uint32) error {
 
 func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.InviteUserParams) error {
 	teamInvite, _ := i.inviteRepo.GetInviteUserByUserIdAndType(ctx, params)
-	if !types.IsNil(teamInvite) {
+	if !types.IsNil(teamInvite) && !teamInvite.InviteType.IsRejected() {
 		return merr.ErrorI18nToastTeamInviteAlreadyExists(ctx, params.InviteCode)
 	}
 	return nil
