@@ -113,5 +113,10 @@ func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.Invite
 	if !types.IsNil(teamInvite) && !teamInvite.InviteType.IsRejected() {
 		return merr.ErrorI18nToastTeamInviteAlreadyExists(ctx, params.InviteCode)
 	}
+	// 检查用户是否已经加入团队
+	teamMember, _ := i.teamRepo.GetUserTeamByID(ctx, params.UserID, params.TeamID)
+	if !types.IsNil(teamMember) {
+		return merr.ErrorI18nToastTeamInviteAlreadyExists(ctx, params.InviteCode)
+	}
 	return nil
 }
