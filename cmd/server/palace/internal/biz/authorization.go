@@ -320,6 +320,14 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 	if !types.IsNil(err) {
 		return "", err
 	}
+	if types.CheckEmail(sysUserDo.Email) != nil {
+		authUserDo, err := b.oAuthRepo.GetSysUserByOAuthID(ctx, userInfo.GetOAuthID(), userInfo.GetAPP())
+		if err != nil {
+			return "", err
+		}
+		redirect := fmt.Sprintf("%s?oauth_id=%d/#/oauth/register/email", b.redirectURL, authUserDo.ID)
+		return redirect, nil
+	}
 
 	// 生成token
 	base, err := b.getJwtBaseInfo(ctx, sysUserDo, 0)
@@ -332,6 +340,36 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 	if !types.IsNil(err) {
 		return "", err
 	}
-	redirect := fmt.Sprintf("%s%s", b.redirectURL, jwtToken)
+	redirect := fmt.Sprintf("%s?token=%s", b.redirectURL, jwtToken)
 	return redirect, nil
+}
+
+func (b *AuthorizationBiz) OauthLogin(ctx context.Context, oauthParams *auth.OauthLoginParams) (*bo.RefreshTokenReply, error) {
+	if err := b.oAuthRepo.CheckVerifyEmailCode(ctx, oauthParams.Email, oauthParams.Code); err != nil {
+		return nil, err
+	}
+
+	sysUserDo, err := b.oAuthRepo.SetEmail(ctx, oauthParams.OAuthID, oauthParams.Email)
+	if err != nil {
+		return nil, err
+	}
+	// 生成token
+	base, err := b.getJwtBaseInfo(ctx, sysUserDo, 0)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	jwtClaims := middleware.NewJwtClaims(base)
+	return &bo.RefreshTokenReply{
+		User:      sysUserDo,
+		JwtClaims: jwtClaims,
+	}, nil
+}
+
+// OAuthLoginVerifyEmail 验证邮箱
+func (b *AuthorizationBiz) OAuthLoginVerifyEmail(ctx context.Context, e string) error {
+	if err := types.CheckEmail(e); err != nil {
+		return err
+	}
+	return b.oAuthRepo.SendVerifyEmail(ctx, e)
 }

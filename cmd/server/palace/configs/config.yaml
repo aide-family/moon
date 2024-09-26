@@ -20,6 +20,8 @@ server:
       - /api.admin.authorization.Authorization/CreatePassword
       - /api.Health/Check
       - /api.Alert/Hook
+      - /api.admin.authorization.Authorization/VerifyEmail
+      - /api.admin.authorization.Authorization/SetEmailWithLogin
 
     # 角色权限白名单, 包含white_list， 因为不需要登录的接口自然也不需要RBAC
     rbac_white_list:

@@ -2,18 +2,19 @@ package authorization
 
 import (
 	"context"
+	_ "embed"
 	nhttp "net/http"
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
 )
@@ -199,4 +200,40 @@ func (s *Service) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 		ctx.Reset(resp, req)
 		return nil
 	}
+}
+
+// SetEmailWithLogin 设置邮箱并登录
+func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.SetEmailWithLoginRequest) (*authorizationapi.SetEmailWithLoginReply, error) {
+	// TODO 验证临时密码
+	params := &auth.OauthLoginParams{
+		Code:    req.GetCode(),
+		Email:   req.GetEmail(),
+		OAuthID: req.GetOauthID(),
+	}
+	loginReply, err := s.authorizationBiz.OauthLogin(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	token, err := loginReply.JwtClaims.GetToken()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &authorizationapi.SetEmailWithLoginReply{
+		User:  builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
+		Token: token,
+	}, nil
+}
+
+// VerifyEmail 验证邮箱
+func (s *Service) VerifyEmail(ctx context.Context, req *authorizationapi.VerifyEmailRequest) (*authorizationapi.VerifyEmailReply, error) {
+	// TODO 验证临时密码
+	captchaInfo := req.GetCaptcha()
+	// 校验验证码
+	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{ID: captchaInfo.GetId(), Value: captchaInfo.GetCode()}); !types.IsNil(err) {
+		return nil, err
+	}
+	if err := s.authorizationBiz.OAuthLoginVerifyEmail(ctx, req.GetEmail()); !types.IsNil(err) {
+		return nil, err
+	}
+	return &authorizationapi.VerifyEmailReply{}, nil
 }

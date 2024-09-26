@@ -83,6 +83,12 @@ enum ErrorReason {
       reason: "ALERT_LEVEL_DUPLICATE"
       message: "策略告警等级重复",
       metadata: {key: "alertLevel", value: "ALERT_LEVEL_DUPLICATE"}
+    },
+    // 邮箱验证码错误
+    (errors.biz_reason) = {
+      reason: "EMAIL_CAPTCHA_ERR"
+      message: "邮箱验证码错误",
+      metadata: {key: "code", value: "EMAIL_CAPTCHA_ERR"}
     }
   ];
 

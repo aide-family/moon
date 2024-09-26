@@ -45,6 +45,22 @@ service Authorization {
     };
   }
 
+  // 设置账号邮箱
+  rpc SetEmailWithLogin (SetEmailWithLoginRequest) returns (SetEmailWithLoginReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/set_email"
+      body: "*"
+    };
+  }
+
+  // 验证邮箱
+  rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/verify_email"
+      body: "*"
+    };
+  }
+
   // 校验用户在当前资源下是否有权限
   rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
 
@@ -150,3 +166,38 @@ message CheckTokenReply {
   bool isLogin = 1;
   UserItem user = 2;
 }
+
+message SetEmailWithLoginRequest {
+  uint32 oauthID = 1 [(buf.validate.field).cel = {
+    message: "必须选择第三方登录",
+    expression: "this > 0"
+  }];
+  string email = 2 [(buf.validate.field).cel = {
+    message: "必须输入邮箱",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须为有效的电子邮件地址",
+    expression: "this.isEmail()"
+  }];
+  string code = 3 [(buf.validate.field).cel = {
+    message: "必须输入验证码",
+    expression: "this.size() > 0"
+  }];
+}
+message SetEmailWithLoginReply {
+  UserItem user = 1;
+  string token = 2;
+}
+
+message VerifyEmailRequest {
+  string email = 1 [(buf.validate.field).cel = {
+    message: "必须输入邮箱",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须为有效的电子邮件地址",
+    expression: "this.isEmail()"
+  }];
+  // 图形验证码
+  AuthCaptcha captcha = 2 [(buf.validate.field).required = true];
+}
+message VerifyEmailReply {}

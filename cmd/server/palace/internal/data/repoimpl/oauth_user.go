@@ -3,8 +3,11 @@ package repoimpl
 import (
 	"context"
 	_ "embed"
+	"fmt"
+	"strings"
 	"time"
 
+	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -51,6 +54,61 @@ func genPassword() (string, types.Password) {
 	return randPass, password
 }
 
+func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u uint32, app vobj.OAuthAPP) (*model.SysOAuthUser, error) {
+	userQuery := query.Use(g.data.GetMainDB(ctx))
+	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(
+		userQuery.SysOAuthUser.OAuthID.Eq(u),
+		userQuery.SysOAuthUser.APP.Eq(app.GetValue()),
+	).First()
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nToastUserNotFound(ctx)
+	}
+	return oauthUser, nil
+}
+
+func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s string) (sysUser *model.SysUser, err error) {
+	userQuery := query.Use(g.data.GetMainDB(ctx))
+	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(u)).First()
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nToastUserNotFound(ctx)
+	}
+
+	// 查询此邮箱有没有被绑定， 如果被绑定， 则直接关联该平台
+	if sysUser, err = g.getSysUserByEmail(ctx, s); types.IsNil(err) {
+		if _, err = userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(u)).UpdateSimple(userQuery.SysOAuthUser.SysUserID.Value(sysUser.ID)); err != nil {
+			return nil, err
+		}
+		return sysUser, nil
+	}
+
+	if !types.IsNil(err) && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, merr.ErrorI18nToastUserNotFound(ctx)
+	}
+
+	iuser, err := auth.NewOAuthRowData(oauthUser.APP, oauthUser.Row)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	randPass, password := genPassword()
+	sysUser = buildSysUserModel(iuser, password)
+
+	err = userQuery.Transaction(func(tx *query.Query) error {
+		if err = tx.SysUser.WithContext(ctx).Create(sysUser); err != nil {
+			return err
+		}
+		_, err = tx.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(oauthUser.ID)).
+			UpdateSimple(userQuery.SysOAuthUser.SysUserID.Value(sysUser.ID))
+		return err
+	})
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	_ = g.sendUserPassword(ctx, sysUser, randPass)
+
+	return sysUser, nil
+}
+
 func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, user auth.IOAuthUser) (sysUser *model.SysUser, err error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx)).SysOAuthUser
 	first, err := userQuery.WithContext(ctx).Where(userQuery.OAuthID.Eq(user.GetOAuthID()), userQuery.APP.Eq(user.GetAPP().GetValue())).First()
@@ -58,10 +116,6 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 		return g.getSysUserByID(ctx, first.SysUserID)
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	}
-
-	if err = types.CheckEmail(user.GetEmail()); err != nil {
 		return nil, err
 	}
 
@@ -83,17 +137,20 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 	// 调试用
 	//sysUser.Email = "1058165620@qq.com"
 	err = query.Use(g.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		// 创建系统用户
-		if err = query.Use(g.data.GetMainDB(ctx)).SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser); !types.IsNil(err) {
-			return err
+		if err := types.CheckEmail(user.GetEmail()); types.IsNil(err) {
+			// 创建系统用户
+			if err = tx.SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser); !types.IsNil(err) {
+				return err
+			}
 		}
+
 		sysOAuthUser := &model.SysOAuthUser{
 			OAuthID:   user.GetOAuthID(),
 			SysUserID: sysUser.ID,
 			Row:       user.String(),
 			APP:       user.GetAPP(),
 		}
-		if err = userQuery.WithContext(ctx).Create(sysOAuthUser); !types.IsNil(err) {
+		if err = tx.SysOAuthUser.WithContext(ctx).Create(sysOAuthUser); !types.IsNil(err) {
 			return err
 		}
 		return nil
@@ -123,7 +180,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 	}
 
 	body = format.Formatter(body, map[string]string{
-		"Username":    user.Username,
+		"Username":    user.Email,
 		"Password":    pass,
 		"RedirectURI": g.bc.GetRedirectUri(),
 		"APP":         g.bc.GetServer().GetName(),
@@ -131,4 +188,41 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 	})
 	// 发送用户密码到用户邮箱
 	return g.data.GetEmailer().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(user.Email).SetBody(body, "text/html").Send()
+}
+
+//go:embed verify_email.html
+var verifyEmailHtml string
+
+// SendVerifyEmail 发送验证邮件
+func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email string) error {
+	if err := types.CheckEmail(email); err != nil {
+		return err
+	}
+	// 生成验证码
+	code := strings.ToUpper(cipher.MD5(time.Now().String())[:6])
+	// 缓存验证码
+	if err := g.data.GetCacher().Set(ctx, fmt.Sprintf("email_verify_code:%s", email), code, 5*time.Minute); err != nil {
+		return err
+	}
+	// 发送验证码到用户邮箱
+	emailBody := format.Formatter(verifyEmailHtml, map[string]string{
+		"Email":       email,
+		"Code":        code,
+		"RedirectURI": g.bc.GetRedirectUri(),
+		"APP":         g.bc.GetServer().GetName(),
+		"Remark":      g.bc.GetServer().GetMetadata()["description"],
+	})
+	return g.data.GetEmailer().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
+}
+
+// CheckVerifyEmailCode 检查验证码
+func (g *githubUserRepositoryImpl) CheckVerifyEmailCode(ctx context.Context, email, code string) error {
+	if err := types.CheckEmail(email); err != nil {
+		return err
+	}
+	// 验证码是否正确
+	if v, err := g.data.GetCacher().Get(ctx, fmt.Sprintf("email_verify_code:%s", email)); err != nil || v != code {
+		return merr.ErrorI18nAlertEmailCaptchaErr(ctx)
+	}
+	return nil
 }
