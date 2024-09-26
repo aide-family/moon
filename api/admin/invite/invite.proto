@@ -77,7 +77,12 @@ message UpdateInviteStatusRequest {
 }
 message UpdateInviteStatusReply {}
 
-message DeleteInviteRequest {}
+message DeleteInviteRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "请输入ID",
+    expression: "this > 0"
+  }];
+}
 message DeleteInviteReply {}
 
 message GetInviteRequest {

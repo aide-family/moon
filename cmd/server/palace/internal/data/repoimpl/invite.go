@@ -29,6 +29,23 @@ type (
 	}
 )
 
+func (i *InviteRepositoryImpl) DeleteInvite(ctx context.Context, inviteId uint32) error {
+	bizQuery, err := getBizQuery(ctx, i.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	_, err = bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.ID.Eq(inviteId)).Delete()
+	return err
+}
+
+func (i *InviteRepositoryImpl) GetInviteDetail(ctx context.Context, inviteId uint32) (*bizmodel.SysTeamInvite, error) {
+	bizQuery, err := getBizQuery(ctx, i.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.ID.Eq(inviteId)).First()
+}
+
 func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*bizmodel.SysTeamInvite, error) {
 	bizQuery, err := getBizQuery(ctx, i.data)
 	if !types.IsNil(err) {

@@ -638,7 +638,8 @@ message AlarmHookItem {
 
 // invite item
 message InviteItem{
-  TeamRole role = 1;
+ repeated TeamRole roles = 1;
   TeamItem team = 2;
-  uint32 inviteId = 3;
+  uint32 id = 3;
+  InviteType inviteType = 4;
 }
