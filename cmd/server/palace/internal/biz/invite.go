@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NewInviteBiz 创建InviteBiz
 func NewInviteBiz(inviteRepo repository.TeamInvite, userRepo repository.User, teamRepo repository.Team) *InviteBiz {
 	return &InviteBiz{
 		inviteRepo: inviteRepo,
@@ -69,22 +70,13 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 	return nil
 }
 
-// InviteList 邀请列表
-func (i *InviteBiz) InviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error) {
-	inviteList, err := i.inviteRepo.InviteList(ctx)
+// UserInviteList 当前用户邀请列表
+func (i *InviteBiz) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error) {
+	inviteList, err := i.inviteRepo.UserInviteList(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return inviteList, nil
-}
-
-// GetTeamInfo 获取团队信息
-func (i *InviteBiz) GetTeamInfo(ctx context.Context, teamID uint32) (*model.SysTeam, error) {
-	teamInfo, err := i.teamRepo.GetTeamDetail(ctx, teamID)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return teamInfo, nil
 }
 
 // TeamInviteDetail 团队邀请记录详情
@@ -119,4 +111,22 @@ func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.Invite
 		return merr.ErrorI18nToastTeamInviteAlreadyExists(ctx, params.InviteCode)
 	}
 	return nil
+}
+
+// GetTeamMapByIds 根据ID获取团队信息
+func (i *InviteBiz) GetTeamMapByIds(ctx context.Context, teamIds []uint32) map[uint32]*model.SysTeam {
+	teamMap := make(map[uint32]*model.SysTeam)
+
+	param := &bo.QueryTeamListParams{
+		IDs: teamIds,
+	}
+
+	teamList, err := i.teamRepo.GetTeamList(ctx, param)
+	if err != nil {
+		return teamMap
+	}
+	for _, team := range teamList {
+		teamMap[team.ID] = team
+	}
+	return teamMap
 }

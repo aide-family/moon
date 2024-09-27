@@ -116,7 +116,7 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 	return nil
 }
 
-func (i *InviteRepositoryImpl) InviteList(ctx context.Context) ([]*bizmodel.SysTeamInvite, error) {
+func (i *InviteRepositoryImpl) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error) {
 	bizQuery, err := getBizQuery(ctx, i.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -125,8 +125,16 @@ func (i *InviteRepositoryImpl) InviteList(ctx context.Context) ([]*bizmodel.SysT
 	if !ok {
 		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
+	var wheres []gen.Condition
 
-	return bizQuery.SysTeamInvite.WithContext(ctx).Where(bizQuery.SysTeamInvite.UserID.Eq(claims.UserID)).Find()
+	wheres = append(wheres, bizQuery.SysTeamInvite.UserID.Eq(claims.UserID))
+
+	if !params.InviteType.IsUnknown() {
+		wheres = append(wheres, bizQuery.SysTeamInvite.InviteType.Eq(params.InviteType.GetValue()))
+	}
+
+	queryWrapper := bizQuery.SysTeamInvite.WithContext(ctx).Preload(field.Associations).Where(wheres...)
+	return queryWrapper.Order(bizQuery.SysTeamInvite.ID.Desc()).Find()
 }
 
 func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite *bizmodel.SysTeamInvite) error {

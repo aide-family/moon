@@ -12,8 +12,8 @@ type TeamInvite interface {
 	InviteUser(ctx context.Context, params *bo.InviteUserParams) error
 	// UpdateInviteStatus 更新邀请状态
 	UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error
-	// InviteList 受邀请列表
-	InviteList(ctx context.Context) ([]*bizmodel.SysTeamInvite, error)
+	// UserInviteList 受邀请列表
+	UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error)
 	// GetInviteUserByUserIdAndType 获取邀请用户信息
 	GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*bizmodel.SysTeamInvite, error)
 	// GetInviteDetail 获取邀请详情

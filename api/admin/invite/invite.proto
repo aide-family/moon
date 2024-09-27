@@ -40,8 +40,8 @@ service Invite {
       get: "/v1/admin/invite/detail/{id}"
     };
   };
-  // 获取邀请列表
-  rpc ListInvite (ListInviteRequest) returns (ListInviteReply){
+  // 获取当前用户邀请列表
+  rpc UserInviteList (ListUserInviteRequest) returns (ListUserInviteReply){
     option (google.api.http) = {
       post: "/v1/admin/invite/list"
       body: "*"
@@ -96,12 +96,12 @@ message GetInviteReply {
   InviteItem detail = 1;
 }
 
-message ListInviteRequest {
+message ListUserInviteRequest {
   string keyword = 1;
   PaginationReq pagination = 2;
   InviteType type = 3;
 }
-message ListInviteReply {
+message ListUserInviteReply {
   PaginationReply pagination = 1;
   repeated InviteItem list = 2;
 }
