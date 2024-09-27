@@ -29,13 +29,4 @@ type (
 		Keyword    string          `json:"keyword"`
 		InviteType vobj.InviteType `json:"inviteType"`
 	}
-
-	QueryInviteParams struct {
-		// 团队ID
-		TeamID uint32 `json:"teamID"`
-		// 邀请userID
-		UserID uint32 `json:"userID"`
-		// 状态
-		InviteType vobj.InviteType `json:"inviteType"`
-	}
 )
