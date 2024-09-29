@@ -36,6 +36,10 @@ type (
 		IncMax(ctx context.Context, key string, max int64, expiration time.Duration) (bool, error)
 		// DecMin 减少缓存值，如果小于min则返回min
 		DecMin(ctx context.Context, key string, min int64, expiration time.Duration) (bool, error)
+		// GetInt64 获取缓存
+		GetInt64(ctx context.Context, key string) (int64, error)
+		// SetInt64 设置缓存
+		SetInt64(ctx context.Context, key string, value int64, expiration time.Duration) error
 	}
 
 	// IBoolCacher 布尔缓存

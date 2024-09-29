@@ -13,9 +13,9 @@ import (
 var _ ICacher = (*defaultCache)(nil)
 
 // NewFreeCache 创建一个默认的缓存
-func NewFreeCache(size int) ICacher {
+func NewFreeCache(cli *freecache.Cache) ICacher {
 	return &defaultCache{
-		cli: freecache.NewCache(size),
+		cli: cli,
 	}
 }
 
@@ -24,6 +24,14 @@ type (
 		cli *freecache.Cache
 	}
 )
+
+func (d *defaultCache) GetInt64(ctx context.Context, key string) (int64, error) {
+	return d.getInt64(ctx, key)
+}
+
+func (d *defaultCache) SetInt64(ctx context.Context, key string, value int64, expiration time.Duration) error {
+	return d.cli.Set([]byte(key), []byte(strconv.FormatInt(value, 10)), int(expiration.Seconds()))
+}
 
 func (d *defaultCache) GetFloat64(ctx context.Context, key string) (float64, error) {
 	return d.getFloat64(ctx, key)
