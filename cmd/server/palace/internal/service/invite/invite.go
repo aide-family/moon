@@ -5,8 +5,9 @@ import (
 
 	pb "github.com/aide-family/moon/api/admin/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -53,8 +54,14 @@ func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.
 		return nil, err
 	}
 	teamMap := s.inviteBiz.GetTeamMapByIds(ctx, []uint32{detail.TeamID})
+	roles := s.inviteBiz.GetTeamRoles(ctx, detail.TeamID, detail.GetRolesIds())
+
+	teamInfo := &bo.InviteTeamInfoParams{
+		TeamMap:   teamMap,
+		TeamRoles: roles,
+	}
 	return &pb.GetInviteReply{
-		Detail: builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamMap).ToAPI(detail),
+		Detail: builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
 	}, nil
 }
 func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequest) (*pb.ListUserInviteReply, error) {
@@ -65,13 +72,17 @@ func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequ
 		return nil, err
 	}
 
-	teamIds := types.SliceTo(list, func(item *bizmodel.SysTeamInvite) uint32 {
+	teamIds := types.SliceTo(list, func(item *model.SysTeamInvite) uint32 {
 		return item.TeamID
 	})
 	teamMap := s.inviteBiz.GetTeamMapByIds(ctx, teamIds)
 
+	teamInfo := &bo.InviteTeamInfoParams{
+		TeamMap: teamMap,
+	}
+
 	return &pb.ListUserInviteReply{
-		List:       builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamMap).ToAPIs(list),
+		List:       builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPIs(list),
 		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }
