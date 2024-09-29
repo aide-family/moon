@@ -53,8 +53,12 @@ message Data {
       string path = 1;
       string bucket = 2;
     }
+    message Free {
+      uint32 size = 1;
+    }
     Redis redis = 1;
     NutsDB nutsDB = 2;
+    Free free = 3;
   }
   // 缓存，支持多缓存方式
   Cache cache = 3;

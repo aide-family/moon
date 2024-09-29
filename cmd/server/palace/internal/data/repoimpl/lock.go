@@ -19,8 +19,12 @@ type lockRepositoryImpl struct {
 }
 
 func (l *lockRepositoryImpl) Lock(ctx context.Context, key string, expire time.Duration) error {
+	exist, err := l.data.GetCacher().Exist(ctx, key)
+	if err != nil {
+		return err
+	}
 	// 判断是否存在
-	if l.data.GetCacher().Exist(ctx, key) {
+	if exist {
 		return merr.ErrorI18nToastDatasourceSyncing(ctx)
 	}
 	return l.data.GetCacher().Set(ctx, key, key, expire)

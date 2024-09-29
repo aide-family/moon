@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -17,7 +17,7 @@ func NewDefaultStorage() Storage {
 }
 
 // NewCacheStorage 定义缓存存储器
-func NewCacheStorage(cacher conn.Cache) Storage {
+func NewCacheStorage(cacher cache.ICacher) Storage {
 	return &cacheStorage{
 		cacher: cacher,
 	}
@@ -64,7 +64,7 @@ type (
 
 	// cacheStorage 缓存存储器
 	cacheStorage struct {
-		cacher conn.Cache
+		cacher cache.ICacher
 	}
 
 	// CacheStorageMsg 缓存存储器消息

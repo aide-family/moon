@@ -75,8 +75,12 @@ message Data {
       string path = 1;
       string bucket = 2;
     }
+    message Free {
+      uint32 size = 1;
+    }
     Redis redis = 1;
     NutsDB nutsDB = 2;
+    Free free = 3;
   }
 
   // 主库, 用于维护系统配置、用户等

@@ -3,7 +3,7 @@ package repoimpl
 import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 // NewCacheRepo 实例化缓存仓库
@@ -16,6 +16,6 @@ type cacheRepoImpl struct {
 }
 
 // Cacher 获取缓存仓库
-func (l *cacheRepoImpl) Cacher() conn.Cache {
+func (l *cacheRepoImpl) Cacher() cache.ICacher {
 	return l.data.GetCacher()
 }

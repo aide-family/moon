@@ -7,7 +7,7 @@ import (
 
 	"github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -133,7 +133,7 @@ func (l *JwtClaims) GetToken() (string, error) {
 }
 
 // Logout 缓存token hash
-func (l *JwtClaims) Logout(ctx context.Context, cache conn.Cache) error {
+func (l *JwtClaims) Logout(ctx context.Context, cache cache.ICacher) error {
 	token, err := l.GetToken()
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func (l *JwtClaims) Logout(ctx context.Context, cache conn.Cache) error {
 }
 
 // IsLogout 是否已经登出
-func (l *JwtClaims) IsLogout(ctx context.Context, cache conn.Cache) bool {
+func (l *JwtClaims) IsLogout(ctx context.Context, cache cache.ICacher) bool {
 	return isLogout(ctx, cache, l)
 }
 
@@ -201,13 +201,14 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 }
 
 // isLogout 是否已经登出
-func isLogout(ctx context.Context, cache conn.Cache, jwtClaims *JwtClaims) bool {
+func isLogout(ctx context.Context, cache cache.ICacher, jwtClaims *JwtClaims) bool {
 	// 判断是否过期
 	token, err := jwtClaims.GetToken()
 	if err != nil {
 		return true
 	}
-	return cache.Exist(ctx, types.MD5(token))
+	exist, err := cache.Exist(ctx, types.MD5(token))
+	return !exist || types.IsNil(err)
 }
 
 // IsExpire 是否过期

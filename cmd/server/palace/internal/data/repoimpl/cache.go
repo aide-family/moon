@@ -3,7 +3,7 @@ package repoimpl
 import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 // NewCacheRepository 创建缓存操作
@@ -16,6 +16,6 @@ type cacheRepositoryImpl struct {
 }
 
 // Cacher 获取缓存实例
-func (l *cacheRepositoryImpl) Cacher() conn.Cache {
+func (l *cacheRepositoryImpl) Cacher() cache.ICacher {
 	return l.data.GetCacher()
 }

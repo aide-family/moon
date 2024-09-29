@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -78,7 +78,7 @@ func (l *Config) Bytes() []byte {
 }
 
 // Set 设置接收人
-func (l *Config) Set(ctx context.Context, cache conn.Cache, params *bo.CacheConfigParams) error {
+func (l *Config) Set(ctx context.Context, cache cache.ICacher, params *bo.CacheConfigParams) error {
 	for k, v := range params.Receivers {
 		l.Receivers[k] = v
 	}
