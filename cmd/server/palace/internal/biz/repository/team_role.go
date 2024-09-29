@@ -33,4 +33,7 @@ type TeamRole interface {
 
 	// CheckRbac 检查用户是否有权限
 	CheckRbac(context.Context, uint32, []uint32, string) (bool, error)
+
+	// GetBizTeamRolesByIds 获取团队角色列表
+	GetBizTeamRolesByIds(ctx context.Context, teamID uint32, roleIds []uint32) ([]*bizmodel.SysTeamRole, error)
 }

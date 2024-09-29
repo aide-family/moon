@@ -13,5 +13,6 @@ func Models() []any {
 		&StrategyLevelTemplate{},
 		&StrategyTemplateCategories{},
 		&SysOAuthUser{},
+		&SysTeamInvite{},
 	}
 }

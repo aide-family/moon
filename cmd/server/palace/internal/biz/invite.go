@@ -16,11 +16,12 @@ import (
 )
 
 // NewInviteBiz 创建InviteBiz
-func NewInviteBiz(inviteRepo repository.TeamInvite, userRepo repository.User, teamRepo repository.Team) *InviteBiz {
+func NewInviteBiz(inviteRepo repository.TeamInvite, userRepo repository.User, teamRepo repository.Team, teamRole repository.TeamRole) *InviteBiz {
 	return &InviteBiz{
 		inviteRepo: inviteRepo,
 		userRepo:   userRepo,
 		teamRepo:   teamRepo,
+		teamRole:   teamRole,
 	}
 }
 
@@ -29,6 +30,7 @@ type (
 		inviteRepo repository.TeamInvite
 		userRepo   repository.User
 		teamRepo   repository.Team
+		teamRole   repository.TeamRole
 	}
 )
 
@@ -71,7 +73,7 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 }
 
 // UserInviteList 当前用户邀请列表
-func (i *InviteBiz) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error) {
+func (i *InviteBiz) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*model.SysTeamInvite, error) {
 	inviteList, err := i.inviteRepo.UserInviteList(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -80,7 +82,7 @@ func (i *InviteBiz) UserInviteList(ctx context.Context, params *bo.QueryInviteLi
 }
 
 // TeamInviteDetail 团队邀请记录详情
-func (i *InviteBiz) TeamInviteDetail(ctx context.Context, inviteID uint32) (*bizmodel.SysTeamInvite, error) {
+func (i *InviteBiz) TeamInviteDetail(ctx context.Context, inviteID uint32) (*model.SysTeamInvite, error) {
 	detail, err := i.inviteRepo.GetInviteDetail(ctx, inviteID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -117,11 +119,7 @@ func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.Invite
 func (i *InviteBiz) GetTeamMapByIds(ctx context.Context, teamIds []uint32) map[uint32]*model.SysTeam {
 	teamMap := make(map[uint32]*model.SysTeam)
 
-	param := &bo.QueryTeamListParams{
-		IDs: teamIds,
-	}
-
-	teamList, err := i.teamRepo.GetTeamList(ctx, param)
+	teamList, err := i.teamRepo.GetTeamList(ctx, &bo.QueryTeamListParams{IDs: teamIds})
 	if err != nil {
 		return teamMap
 	}
@@ -129,4 +127,12 @@ func (i *InviteBiz) GetTeamMapByIds(ctx context.Context, teamIds []uint32) map[u
 		teamMap[team.ID] = team
 	}
 	return teamMap
+}
+
+func (i *InviteBiz) GetTeamRoles(ctx context.Context, teamID uint32, roleIds []uint32) []*bizmodel.SysTeamRole {
+	teamRoles, err := i.teamRole.GetBizTeamRolesByIds(ctx, teamID, roleIds)
+	if !types.IsNil(err) {
+		return nil
+	}
+	return teamRoles
 }
