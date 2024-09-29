@@ -74,7 +74,7 @@ func (d *Ding) Send(ctx context.Context, content []byte) error {
 		return err
 	}
 	var dingResp dingTalkHookResp
-	if err = json.Unmarshal(resBytes, &dingResp); err != nil {
+	if err = types.Unmarshal(resBytes, &dingResp); err != nil {
 		return err
 	}
 	if dingResp.ErrCode != 0 {

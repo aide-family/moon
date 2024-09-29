@@ -21,7 +21,7 @@ func (SimpleMetaFactory) Interpret(data []byte) (*string, error) {
 		// +optional
 		Kind string `json:"kind,omitempty"`
 	}{}
-	if err := json.Unmarshal(data, &findKind); err != nil {
+	if err := types.Unmarshal(data, &findKind); err != nil {
 		return nil, fmt.Errorf("couldn't get kind; json parse error: %v", err)
 	}
 	return (*string)(&findKind.Kind), nil

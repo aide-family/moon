@@ -2,9 +2,10 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
@@ -66,7 +67,7 @@ func extractArgs(req any) string {
 	if stringer, ok := req.(fmt.Stringer); ok {
 		return stringer.String()
 	}
-	bytes, err := json.Marshal(req)
+	bytes, err := types.Marshal(req)
 	if err != nil {
 		return fmt.Sprintf("%+v", req)
 	}

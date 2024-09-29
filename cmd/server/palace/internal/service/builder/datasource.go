@@ -2,7 +2,6 @@ package builder
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
@@ -85,7 +84,7 @@ func (d *doDatasourceBuilder) ToBo(datasource *bizmodel.Datasource) *bo.Datasour
 	}
 
 	config := make(map[string]string)
-	_ = json.Unmarshal([]byte(datasource.Config), &config)
+	_ = types.Unmarshal([]byte(datasource.Config), &config)
 	return &bo.Datasource{
 		Category:    datasource.Category,
 		StorageType: datasource.StorageType,
@@ -151,10 +150,12 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 	}
 
 	return &bo.UpdateDatasourceBaseInfoParams{
-		ID:     u.GetId(),
-		Name:   u.GetName(),
-		Status: vobj.Status(u.GetStatus()),
-		Remark: u.GetRemark(),
+		ID:             u.GetId(),
+		Name:           u.GetName(),
+		Status:         vobj.Status(u.GetStatus()),
+		Remark:         u.GetRemark(),
+		StorageType:    vobj.StorageType(u.GetStorageType()),
+		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
 	}
 }
 
@@ -180,7 +181,7 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.D
 	}
 
 	config := make(map[string]string)
-	_ = json.Unmarshal([]byte(datasource.Config), &config)
+	_ = types.Unmarshal([]byte(datasource.Config), &config)
 	return &adminapi.DatasourceItem{
 		Id:             datasource.ID,
 		Name:           datasource.Name,

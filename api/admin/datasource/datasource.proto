@@ -130,6 +130,10 @@ message UpdateDatasourceRequest {
     message: "描述长度在255 个字符以内",
     expression: 'this.size() <= 255'
   }];
+  // 数据源类型
+  DatasourceType datasourceType = 5 [(buf.validate.field).enum = {not_in: [0]}];
+  // 存储器类型
+  StorageType storageType = 6[(buf.validate.field).enum = {not_in: [0]}];
 }
 message UpdateDatasourceReply {}
 
@@ -142,7 +146,7 @@ message GetDatasourceRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message GetDatasourceReply {
-  DatasourceItem data = 1;
+  DatasourceItem detail = 1;
 }
 
 message ListDatasourceRequest {

@@ -5,13 +5,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/api"
@@ -66,7 +66,7 @@ func (l *dingTalk) Send(ctx context.Context, msg notify.Msg) error {
 	}
 	log.Debugw("notify", string(resBytes), "req", msgStr)
 	var dingResp dingTalkHookResp
-	if err = json.Unmarshal(resBytes, &dingResp); err != nil {
+	if err = types.Unmarshal(resBytes, &dingResp); err != nil {
 		return err
 	}
 	if dingResp.ErrCode != 0 {

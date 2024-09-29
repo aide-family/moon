@@ -66,7 +66,7 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 		return nil, err
 	}
 	return &datasourceapi.GetDatasourceReply{
-		Data: builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasourceDetail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasourceDetail),
 	}, nil
 }
 

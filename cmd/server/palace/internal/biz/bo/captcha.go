@@ -2,9 +2,9 @@ package bo
 
 import (
 	"encoding"
-	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/util/captcha"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // redis缓存实现
@@ -19,12 +19,12 @@ type ValidateCaptchaItem struct {
 
 // UnmarshalBinary 实现encoding.UnmarshalBinary
 func (l *ValidateCaptchaItem) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, l)
+	return types.Unmarshal(data, l)
 }
 
 // MarshalBinary 实现encoding.MarshalBinary
 func (l *ValidateCaptchaItem) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(l)
+	return types.Marshal(l)
 }
 
 // GenerateCaptchaParams 生成验证码参数

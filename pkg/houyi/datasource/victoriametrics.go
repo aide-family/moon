@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -95,7 +94,7 @@ func (p *victoriametricsDatasource) Query(ctx context.Context, expr string, dura
 	}
 	defer getResponse.Body.Close()
 	var allResp PromQueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 
@@ -157,7 +156,7 @@ func (p *victoriametricsDatasource) QueryRange(ctx context.Context, expr string,
 	}
 	defer getResponse.Body.Close()
 	var allResp PromQueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 	data := allResp.Data
@@ -271,7 +270,7 @@ func (p *victoriametricsDatasource) metadata(ctx context.Context) (map[string][]
 	}
 	defer getResponse.Body.Close()
 	var allResp VictoriametricsMetadataResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 	metadataResp := make(map[string][]PromMetricInfo, len(allResp.Data))
@@ -319,7 +318,7 @@ func (p *victoriametricsDatasource) series(ctx context.Context, t time.Time, met
 	}
 	defer getResponse.Body.Close()
 	var allResp PromMetricSeriesResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 

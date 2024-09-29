@@ -59,7 +59,7 @@ func newRPCConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 	}
 
 	if !types.IsNil(discovery) {
-		dis, err := conn.NewDiscovery(discovery)
+		dis, err := conn.NewDiscovery(discovery, conn.WithDiscoveryConfigEtcd(discovery.GetEtcd()))
 		if !types.IsNil(err) {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func newHTTPConn(microServerConf *api.Server, discovery *api.Discovery) (*http.C
 	}
 
 	if !types.IsNil(discovery) {
-		dis, err := conn.NewDiscovery(discovery)
+		dis, err := conn.NewDiscovery(discovery, conn.WithDiscoveryConfigEtcd(discovery.GetEtcd()))
 		if !types.IsNil(err) {
 			return nil, err
 		}

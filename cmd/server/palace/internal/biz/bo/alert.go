@@ -1,9 +1,6 @@
 package bo
 
 import (
-	"encoding/json"
-
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -86,7 +83,7 @@ func (a *Alarm) String() string {
 		Version:           a.Version,
 		GroupKey:          a.GroupKey,
 	}
-	bs, _ := json.Marshal(alarm)
+	bs, _ := types.Marshal(alarm)
 	return string(bs)
 }
 
@@ -101,18 +98,18 @@ func (a *Alert) String() string {
 		Fingerprint:  a.Fingerprint,
 		Value:        a.Value,
 	}
-	bs, _ := json.Marshal(alert)
+	bs, _ := types.Marshal(alert)
 	return string(bs)
 }
 
 // Index gen alert index
 func (a *Alert) Index() string {
-	return "houyi:alert:" + cipher.MD5(a.Labels.String())
+	return "houyi:alert:" + types.MD5(a.Labels.String())
 }
 
 // Index gen alarm index
 func (a *Alarm) Index() string {
-	return "houyi:alarm:" + cipher.MD5(a.GroupLabels.String())
+	return "houyi:alarm:" + types.MD5(a.GroupLabels.String())
 }
 
 // Message gen alarm message

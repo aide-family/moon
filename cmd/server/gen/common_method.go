@@ -3,8 +3,8 @@ package gen
 import (
 	"context"
 	"encoding"
-	"encoding/json"
 
+	"github.com/aide-family/moon/pkg/util/types"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
@@ -19,17 +19,17 @@ type CommonMethod struct {
 
 // UnmarshalBinary json unmarshal
 func (c *CommonMethod) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary json marshal
 func (c *CommonMethod) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // String json string
 func (c *CommonMethod) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 

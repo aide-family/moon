@@ -1,8 +1,7 @@
 package auth
 
 import (
-	"encoding/json"
-
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -70,6 +69,6 @@ func (g *GiteeUser) GetAPP() vobj.OAuthAPP {
 
 // String implements fmt.Stringer interface
 func (g *GiteeUser) String() string {
-	bs, _ := json.Marshal(g)
+	bs, _ := types.Marshal(g)
 	return string(bs)
 }

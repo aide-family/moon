@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
@@ -28,7 +27,7 @@ type MsgBiz struct {
 // SendMsg 发送消息
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	var msgMap notify.Msg
-	if err := json.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
+	if err := types.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
 		return err
 	}
 

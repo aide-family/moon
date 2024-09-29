@@ -1,8 +1,7 @@
 package model
 
 import (
-	"encoding/json"
-
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -26,18 +25,18 @@ type SysUser struct {
 
 // String json string
 func (c *SysUser) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis缓存实现
 func (c *SysUser) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis缓存实现
 func (c *SysUser) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName SysUser's table name

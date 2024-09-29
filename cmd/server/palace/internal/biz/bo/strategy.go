@@ -1,7 +1,6 @@
 package bo
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/pkg/util/types"
@@ -240,7 +239,7 @@ type (
 )
 
 func (s *Strategy) String() string {
-	bs, _ := json.Marshal(s)
+	bs, _ := types.Marshal(s)
 	return string(bs)
 }
 

@@ -1,7 +1,7 @@
 package bizmodel
 
 import (
-	"encoding/json"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 const tableNameStrategyGroupCategories = "strategy_group_categories"
@@ -14,12 +14,12 @@ type StrategyGroupCategories struct {
 
 // UnmarshalBinary redis存储实现
 func (c *StrategyGroupCategories) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
 func (c *StrategyGroupCategories) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName StrategyGroupCategories 's table name

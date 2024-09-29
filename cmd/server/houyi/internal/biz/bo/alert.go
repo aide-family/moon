@@ -1,9 +1,6 @@
 package bo
 
 import (
-	"encoding/json"
-
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -66,7 +63,7 @@ type (
 // NewAlertWithAlertStrInfo create alert from alert string
 func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
 	var a alertInfo
-	if err := json.Unmarshal([]byte(info), &a); err != nil {
+	if err := types.Unmarshal([]byte(info), &a); err != nil {
 		return nil, err
 	}
 	return &Alert{
@@ -104,7 +101,7 @@ func (a *Alarm) String() string {
 		Version:           a.Version,
 		GroupKey:          a.GroupKey,
 	}
-	bs, _ := json.Marshal(alarm)
+	bs, _ := types.Marshal(alarm)
 	return string(bs)
 }
 
@@ -113,7 +110,7 @@ func (a *Alert) GetFingerprint() string {
 	fingerprint := a.Fingerprint
 	if types.TextIsNull(fingerprint) {
 		// 唯一索引+告警时间生成唯一告警指纹
-		fingerprint = cipher.MD5(a.Index() + a.StartsAt.String())
+		fingerprint = types.MD5(a.Index() + a.StartsAt.String())
 	}
 	return fingerprint
 }
@@ -135,18 +132,18 @@ func (a *Alert) String() string {
 		Fingerprint:  a.Fingerprint,
 		Value:        a.Value,
 	}
-	bs, _ := json.Marshal(alert)
+	bs, _ := types.Marshal(alert)
 	return string(bs)
 }
 
 // Index gen alert index
 func (a *Alert) Index() string {
-	return "houyi:alert:" + cipher.MD5(a.Labels.String())
+	return "houyi:alert:" + types.MD5(a.Labels.String())
 }
 
 // Index gen alarm index
 func (a *Alarm) Index() string {
-	return "houyi:alarm:" + cipher.MD5(a.GroupLabels.String())
+	return "houyi:alarm:" + types.MD5(a.GroupLabels.String())
 }
 
 // Message gen alarm message

@@ -2,7 +2,6 @@ package datasource_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ func TestNewVictoriametricsDatasource(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bs, _ := json.Marshal(queryRange)
+	bs, _ := types.Marshal(queryRange)
 	t.Log(string(bs))
 
 	eval, err := datasource.MetricEval(vmData)(context.Background(), "up", durationT)
@@ -32,7 +31,7 @@ func TestNewVictoriametricsDatasource(t *testing.T) {
 	}
 	for indexer, point := range eval {
 		t.Log("idnex", indexer)
-		pointBs, _ := json.Marshal(point)
+		pointBs, _ := types.Marshal(point)
 		t.Log("point", string(pointBs))
 	}
 }

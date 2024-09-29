@@ -5,9 +5,10 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
+
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 // ReplaceString 替换字符串中的$为.
@@ -61,11 +62,11 @@ func Formatter(format string, data any) (s string) {
 func FormatterWithErr(format string, data any) (s string, err error) {
 	formatStr := format
 	if formatStr == "" {
-		return "", merr.ErrorAlert("请输入模板信息")
+		return "", errors.New(400, "PARAMS_ERR", "请输入模板信息")
 	}
 
 	if types.IsNil(data) {
-		return "", merr.ErrorAlert("模板数据为空，请检查你的查询语句")
+		return "", errors.New(400, "PARAMS_ERR", "模板数据为空，请检查你的查询语句")
 	}
 
 	defer after.RecoverX()

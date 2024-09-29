@@ -47,7 +47,9 @@ type (
 		// 状态
 		Status vobj.Status `json:"status"`
 		// 描述
-		Remark string `json:"remark"`
+		Remark         string              `json:"remark"`
+		StorageType    vobj.StorageType    `json:"storageType"`
+		DatasourceType vobj.DatasourceType `json:"datasourceType"`
 	}
 
 	// UpdateDatasourceConfigParams 更新数据源配置请求参数

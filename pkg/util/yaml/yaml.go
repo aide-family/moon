@@ -8,7 +8,7 @@ import (
 )
 
 // IsJSONBuffer scans the provided buffer, looking
-// for an open brace indicating this is JSON.
+// for an open brace indicating this is types.
 func IsJSONBuffer(buf []byte) bool {
 	return hasJSONPrefix(buf)
 }
@@ -32,7 +32,7 @@ func hasPrefix(buf []byte, prefix []byte) bool {
 func JSONToYAML(j []byte) ([]byte, error) {
 	// Convert the JSON to an object.
 	var jsonObj interface{}
-	// We are using yaml.Unmarshal here (instead of json.Unmarshal) because the
+	// We are using yaml.Unmarshal here (instead of types.Unmarshal) because the
 	// Go JSON library doesn't try to pick the right number type (int, float,
 	// etc.) when unmarshalling to interface{}, it just picks float64
 	// universally. go-yaml does go through the effort of picking the right

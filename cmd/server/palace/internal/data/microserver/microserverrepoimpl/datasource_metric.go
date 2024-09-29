@@ -2,7 +2,6 @@ package microserverrepoimpl
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/houyi/metadata"
@@ -30,7 +29,7 @@ type datasourceMetricRepositoryImpl struct {
 func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.MetricQueryData, error) {
 	configMap := make(map[string]string)
 	if !types.TextIsNull(req.Config) {
-		if err := json.Unmarshal([]byte(req.Config), &configMap); !types.IsNil(err) {
+		if err := types.Unmarshal([]byte(req.Config), &configMap); !types.IsNil(err) {
 			return nil, err
 		}
 	}
@@ -73,7 +72,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 // GetMetadata 获取数据源指标元数据
 func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error) {
 	configMap := make(map[string]string)
-	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
+	if err := types.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
 		return nil, err
 	}
 	in := &metadata.SyncMetadataRequest{
@@ -115,7 +114,7 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 // InitiateSyncRequest 发起同步请求
 func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error {
 	configMap := make(map[string]string)
-	if err := json.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
+	if err := types.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
 		return err
 	}
 	claims, ok := middleware.ParseJwtClaims(ctx)

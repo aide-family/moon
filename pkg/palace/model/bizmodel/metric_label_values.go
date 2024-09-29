@@ -1,9 +1,8 @@
 package bizmodel
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"gorm.io/plugin/soft_delete"
 )
@@ -20,18 +19,18 @@ type MetricLabelValue struct {
 
 // String json string
 func (c *MetricLabelValue) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
 func (c *MetricLabelValue) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
 func (c *MetricLabelValue) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName MetricLabelValue's table name

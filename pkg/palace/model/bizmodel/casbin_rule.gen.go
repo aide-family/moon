@@ -1,7 +1,7 @@
 package bizmodel
 
 import (
-	"encoding/json"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 const tableNameCasbinRule = "casbin_rule"
@@ -20,7 +20,7 @@ type CasbinRule struct {
 
 // String json string
 func (c *CasbinRule) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 

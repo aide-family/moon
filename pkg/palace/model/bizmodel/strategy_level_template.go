@@ -1,8 +1,6 @@
 package bizmodel
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -39,18 +37,18 @@ type StrategyLevelTemplate struct {
 
 // String json string
 func (c *StrategyLevelTemplate) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis 存储实现
 func (c *StrategyLevelTemplate) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis 存储实现
 func (c *StrategyLevelTemplate) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName StrategyLevelTemplate's table name

@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -208,8 +207,8 @@ func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.A
 		log.Warnw("method", "storage.get", "error", err)
 	} else {
 		var firingAlert bo.Alert
-		if err := json.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
-			log.Warnw("method", "json.Unmarshal", "error", err)
+		if err := types.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
+			log.Warnw("method", "types.Unmarshal", "error", err)
 		} else {
 			alert.StartsAt = firingAlert.StartsAt
 		}

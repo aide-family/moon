@@ -1,9 +1,8 @@
 package bizmodel
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 const tableNameSysTeamRoleAPI = "sys_team_role_apis"
@@ -17,7 +16,7 @@ type SysTeamRoleAPI struct {
 
 // String json string
 func (c *SysTeamRoleAPI) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 

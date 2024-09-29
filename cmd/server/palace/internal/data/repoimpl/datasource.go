@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -45,7 +44,7 @@ func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasou
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	config, _ := json.Marshal(datasource.Config)
+	config, _ := types.Marshal(datasource.Config)
 
 	datasourceModel := &bizmodel.Datasource{
 		Name:        datasource.Name,
@@ -124,6 +123,8 @@ func (l *datasourceRepositoryImpl) UpdateDatasourceBaseInfo(ctx context.Context,
 		bizQuery.Datasource.Name.Value(datasource.Name),
 		bizQuery.Datasource.Status.Value(datasource.Status.GetValue()),
 		bizQuery.Datasource.Remark.Value(datasource.Remark),
+		bizQuery.Datasource.StorageType.Value(datasource.StorageType.GetValue()),
+		bizQuery.Datasource.Category.Value(datasource.DatasourceType.GetValue()),
 	)
 	return err
 }

@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/api/merr"
@@ -10,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -276,7 +276,7 @@ func (b *AuthorizationBiz) githubLogin(ctx context.Context, code string) (string
 	body := userResp.Body
 	defer body.Close()
 	var userInfo auth.GithubUser
-	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
+	if err := types.NewDecoder(body).Decode(&userInfo); err != nil {
 		return "", err
 	}
 
@@ -308,7 +308,7 @@ func (b *AuthorizationBiz) giteeLogin(ctx context.Context, code string) (string,
 	body := resp.Body
 	defer body.Close()
 	var userInfo auth.GiteeUser
-	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
+	if err := types.NewDecoder(body).Decode(&userInfo); err != nil {
 		return "", err
 	}
 
@@ -320,7 +320,7 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 	if !types.IsNil(err) {
 		return "", err
 	}
-	if types.CheckEmail(sysUserDo.Email) != nil {
+	if helper.CheckEmail(sysUserDo.Email) != nil {
 		authUserDo, err := b.oAuthRepo.GetSysUserByOAuthID(ctx, userInfo.GetOAuthID(), userInfo.GetAPP())
 		if err != nil {
 			return "", err
@@ -368,7 +368,7 @@ func (b *AuthorizationBiz) OauthLogin(ctx context.Context, oauthParams *auth.Oau
 
 // OAuthLoginVerifyEmail 验证邮箱
 func (b *AuthorizationBiz) OAuthLoginVerifyEmail(ctx context.Context, e string) error {
-	if err := types.CheckEmail(e); err != nil {
+	if err := helper.CheckEmail(e); err != nil {
 		return err
 	}
 	return b.oAuthRepo.SendVerifyEmail(ctx, e)

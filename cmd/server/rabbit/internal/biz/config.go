@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
@@ -74,7 +73,7 @@ func (l *Config) Bytes() []byte {
 	l.Lock()
 	defer l.Unlock()
 
-	data, _ := json.Marshal(l)
+	data, _ := types.Marshal(l)
 	return data
 }
 
@@ -111,7 +110,7 @@ func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
 	}
 	getJSONStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
 	if !types.TextIsNull(getJSONStr) {
-		if err := json.Unmarshal([]byte(getJSONStr), &params); !types.IsNil(err) {
+		if err := types.Unmarshal([]byte(getJSONStr), &params); !types.IsNil(err) {
 			return err
 		}
 	}

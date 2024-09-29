@@ -2,11 +2,11 @@ package hook
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/api"
@@ -55,7 +55,7 @@ func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
 	}
 	log.Debugw("notify", string(resBytes))
 	var resp wechatHookResp
-	if err = json.Unmarshal(resBytes, &resp); err != nil {
+	if err = types.Unmarshal(resBytes, &resp); err != nil {
 		return err
 	}
 	if resp.ErrCode != 0 {

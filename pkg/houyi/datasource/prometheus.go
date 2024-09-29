@@ -2,7 +2,6 @@ package datasource
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -147,7 +146,7 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 	}
 	defer getResponse.Body.Close()
 	var allResp PromQueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 	data := allResp.Data
@@ -202,7 +201,7 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 	}
 	defer getResponse.Body.Close()
 	var allResp PromQueryResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 
@@ -317,7 +316,7 @@ func (p *prometheusDatasource) metadata(ctx context.Context) (map[string][]PromM
 	}
 	defer getResponse.Body.Close()
 	var allResp PromMetadataResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 	return allResp.Data, nil
@@ -361,7 +360,7 @@ func (p *prometheusDatasource) series(ctx context.Context, t time.Time, metricNa
 	}
 	defer getResponse.Body.Close()
 	var allResp PromMetricSeriesResponse
-	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
+	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
 

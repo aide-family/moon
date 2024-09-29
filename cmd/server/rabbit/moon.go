@@ -29,7 +29,7 @@ func newApp(c *rabbitconf.Bootstrap, srv *server.Server, logger log.Logger) *kra
 	}
 	registerConf := c.GetDiscovery()
 	if !types.IsNil(registerConf) {
-		register, err := conn.NewRegister(c.GetDiscovery())
+		register, err := conn.NewRegister(c.GetDiscovery(), conn.WithDiscoveryConfigEtcd(c.GetDiscovery().GetEtcd()))
 		if !types.IsNil(err) {
 			log.Warnw("register error", err)
 			panic(err)

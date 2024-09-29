@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/cipher"
+	"github.com/aide-family/moon/pkg/util/random"
 	"google.golang.org/grpc/status"
 )
 
@@ -25,7 +25,7 @@ func NewPassword(values ...string) Password {
 		salt = values[1]
 	default:
 		salt = GenerateSalt()
-		value = cipher.GenerateRandomString(8, 0)
+		value = random.GenerateRandomString(8, 0)
 	}
 	return &password{
 		salt:  salt,
@@ -69,18 +69,18 @@ func (p *password) GetEncryptValue() (string, error) {
 
 // GeneratePassword 生成密码
 func GeneratePassword(password, salt string) (string, error) {
-	newPass := cipher.MD5(password + salt)
+	newPass := MD5(password + salt)
 	return newPass, nil
 }
 
 // GenerateSalt 生成盐
 func GenerateSalt() string {
-	return cipher.MD5(strconv.FormatInt(time.Now().Unix(), 10))[0:16]
+	return MD5(strconv.FormatInt(time.Now().Unix(), 10))[0:16]
 }
 
 // ValidatePassword 校验密码
 func ValidatePassword(password, checkPass, salt string) (err error) {
-	if password == cipher.MD5(checkPass+salt) {
+	if password == MD5(checkPass+salt) {
 		return nil
 	}
 	return ErrValidatePassword

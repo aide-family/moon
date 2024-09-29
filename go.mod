@@ -8,6 +8,7 @@ require (
 	github.com/bufbuild/protovalidate-go v0.6.2
 	github.com/casbin/casbin/v2 v2.89.0
 	github.com/casbin/gorm-adapter/v3 v3.24.0
+	github.com/coocood/freecache v1.2.4
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240516020449-fbac5fa25e7a
 	github.com/go-kratos/kratos/v2 v2.7.3
 	github.com/go-logr/logr v1.4.1

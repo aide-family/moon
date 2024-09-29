@@ -2,7 +2,6 @@ package microserverrepoimpl
 
 import (
 	"context"
-	"encoding/json"
 
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -24,7 +23,7 @@ type msgRepositoryImpl struct {
 
 // Send 发送消息
 func (m *msgRepositoryImpl) Send(ctx context.Context, msg *bo.Message) error {
-	dataBytes, _ := json.Marshal(msg.Data)
+	dataBytes, _ := types.Marshal(msg.Data)
 	sendMsg, err := m.cli.SendMsg(ctx, &hookapi.SendMsgRequest{
 		JsonData: string(dataBytes),
 		Route:    "test",

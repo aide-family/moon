@@ -2,7 +2,6 @@ package watch
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -83,7 +82,7 @@ func (c CacheStorageMsg) Index() string {
 
 // Unmarshal 反序列化
 func (c CacheStorageMsg) Unmarshal(v any) error {
-	return json.Unmarshal([]byte(c), v)
+	return types.Unmarshal([]byte(c), v)
 }
 
 func (c *cacheStorage) Get(index Indexer) *Message {

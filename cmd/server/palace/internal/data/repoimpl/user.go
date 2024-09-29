@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -27,7 +28,7 @@ type userRepositoryImpl struct {
 }
 
 func (l *userRepositoryImpl) GetByEmail(ctx context.Context, email string) (*model.SysUser, error) {
-	if err := types.CheckEmail(email); err != nil {
+	if err := helper.CheckEmail(email); err != nil {
 		return nil, err
 	}
 	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser

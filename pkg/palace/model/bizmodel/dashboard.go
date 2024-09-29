@@ -1,9 +1,8 @@
 package bizmodel
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -24,18 +23,18 @@ type Dashboard struct {
 
 // String json string
 func (c *Dashboard) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
 func (c *Dashboard) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
 func (c *Dashboard) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName Dashboard's table name

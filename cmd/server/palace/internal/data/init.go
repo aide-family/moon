@@ -4,7 +4,6 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -199,7 +198,7 @@ func initMainDatabase(d *Data) error {
 		return err
 	}
 
-	pass := types.NewPassword(cipher.MD5("123456" + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
+	pass := types.NewPassword(types.MD5("123456" + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
 	// 如果没有默认用户，则创建一个默认用户
 	user := &model.SysUser{
 		AllFieldModel: model.AllFieldModel{ID: 1},

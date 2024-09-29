@@ -12,7 +12,7 @@ type JsonProvider struct {
 
 // Provider provider json
 func (d *JsonProvider) Provider(in []byte, out any) error {
-	return json.Unmarshal(in, out)
+	return types.Unmarshal(in, out)
 }
 
 // YamlProvider yaml

@@ -12,9 +12,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -49,8 +49,8 @@ func buildSysUserModel(u auth.IOAuthUser, pass types.Password) *model.SysUser {
 }
 
 func genPassword() (string, types.Password) {
-	randPass := cipher.MD5(time.Now().String())[:8]
-	password := types.NewPassword(cipher.MD5(randPass + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
+	randPass := types.MD5(time.Now().String())[:8]
+	password := types.NewPassword(types.MD5(randPass + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
 	return randPass, password
 }
 
@@ -137,7 +137,7 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 	// 调试用
 	//sysUser.Email = "1058165620@qq.com"
 	err = query.Use(g.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
-		if err := types.CheckEmail(user.GetEmail()); types.IsNil(err) {
+		if err := helper.CheckEmail(user.GetEmail()); types.IsNil(err) {
 			// 创建系统用户
 			if err = tx.SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser); !types.IsNil(err) {
 				return err
@@ -175,7 +175,7 @@ func (g *githubUserRepositoryImpl) getSysUserByEmail(ctx context.Context, email 
 var body string
 
 func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *model.SysUser, pass string) error {
-	if err := types.CheckEmail(user.Email); err != nil {
+	if err := helper.CheckEmail(user.Email); err != nil {
 		return err
 	}
 
@@ -195,11 +195,11 @@ var verifyEmailHtml string
 
 // SendVerifyEmail 发送验证邮件
 func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email string) error {
-	if err := types.CheckEmail(email); err != nil {
+	if err := helper.CheckEmail(email); err != nil {
 		return err
 	}
 	// 生成验证码
-	code := strings.ToUpper(cipher.MD5(time.Now().String())[:6])
+	code := strings.ToUpper(types.MD5(time.Now().String())[:6])
 	// 缓存验证码
 	if err := g.data.GetCacher().Set(ctx, fmt.Sprintf("email_verify_code:%s", email), code, 5*time.Minute); err != nil {
 		return err
@@ -217,7 +217,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 
 // CheckVerifyEmailCode 检查验证码
 func (g *githubUserRepositoryImpl) CheckVerifyEmailCode(ctx context.Context, email, code string) error {
-	if err := types.CheckEmail(email); err != nil {
+	if err := helper.CheckEmail(email); err != nil {
 		return err
 	}
 	// 验证码是否正确

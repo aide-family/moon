@@ -2,16 +2,15 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/api/merr"
-	"github.com/aide-family/moon/pkg/util/cipher"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
@@ -139,8 +138,8 @@ func (l *JwtClaims) Logout(ctx context.Context, cache conn.Cache) error {
 	if err != nil {
 		return err
 	}
-	bs, _ := json.Marshal(l)
-	return cache.Set(ctx, cipher.MD5(token), string(bs), expire)
+	bs, _ := types.Marshal(l)
+	return cache.Set(ctx, types.MD5(token), string(bs), expire)
 }
 
 // IsLogout 是否已经登出
@@ -208,7 +207,7 @@ func isLogout(ctx context.Context, cache conn.Cache, jwtClaims *JwtClaims) bool 
 	if err != nil {
 		return true
 	}
-	return cache.Exist(ctx, cipher.MD5(token))
+	return cache.Exist(ctx, types.MD5(token))
 }
 
 // IsExpire 是否过期

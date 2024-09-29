@@ -3,7 +3,6 @@ package vobj
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"sort"
 	"strings"
@@ -84,7 +83,7 @@ func (l JSON) String() string {
 	if types.IsNil(l) {
 		return "{}"
 	}
-	bs, _ := json.Marshal(l)
+	bs, _ := types.Marshal(l)
 	return string(bs)
 }
 
@@ -93,7 +92,7 @@ func (l SlicesJSON[T]) String() string {
 	if types.IsNil(l) {
 		return "{}"
 	}
-	bs, _ := json.Marshal(l)
+	bs, _ := types.Marshal(l)
 	return string(bs)
 }
 
@@ -148,16 +147,16 @@ func (l *Labels) Index() string {
 
 // Value 实现 driver.Valuer 接口
 func (l Labels) Value() (driver.Value, error) {
-	return json.Marshal(l.label)
+	return types.Marshal(l.label)
 }
 
 // Scan 实现 sql.Scanner 接口
 func (l *Labels) Scan(src any) (err error) {
 	switch src.(type) {
 	case []byte:
-		err = json.Unmarshal(src.([]byte), &l.label)
+		err = types.Unmarshal(src.([]byte), &l.label)
 	case string:
-		err = json.Unmarshal([]byte(src.(string)), &l.label)
+		err = types.Unmarshal([]byte(src.(string)), &l.label)
 	default:
 		err = ErrUnsupportedType
 	}

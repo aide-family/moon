@@ -1,8 +1,7 @@
 package model
 
 import (
-	"encoding/json"
-
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -22,18 +21,18 @@ type SysTeamEmail struct {
 
 // String json string
 func (c *SysTeamEmail) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
 func (c *SysTeamEmail) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
 func (c *SysTeamEmail) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName SysTeamEmail's table name

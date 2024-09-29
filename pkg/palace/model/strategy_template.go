@@ -1,8 +1,7 @@
 package model
 
 import (
-	"encoding/json"
-
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -25,18 +24,18 @@ type StrategyTemplate struct {
 
 // String json string
 func (c *StrategyTemplate) String() string {
-	bs, _ := json.Marshal(c)
+	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary 实现 encoding.BinaryUnmarshaler 接口
 func (c *StrategyTemplate) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, c)
+	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary 实现 encoding.MarshalBinary 接口
 func (c *StrategyTemplate) MarshalBinary() (data []byte, err error) {
-	return json.Marshal(c)
+	return types.Marshal(c)
 }
 
 // TableName StrategyTemplate's table name

@@ -1,19 +1,10 @@
-package cipher
+package random
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"math/rand"
 	"strings"
 	"time"
 )
-
-// MD5 returns the MD5 checksum of the data.
-func MD5(str string) string {
-	h := md5.New()
-	h.Write([]byte(str))
-	return hex.EncodeToString(h.Sum(nil))
-}
 
 // GenerateRandomString 生成随机字符串, 分别指定字母和数字的长度
 func GenerateRandomString(letterLength, numberLength int) string {

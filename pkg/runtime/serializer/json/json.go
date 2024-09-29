@@ -90,12 +90,12 @@ func (s *Serializer) Encode(obj runtime.Object, w io.Writer) error {
 }
 
 func (s *Serializer) doEncode(obj runtime.Object, w io.Writer) error {
-	encoder := json.NewEncoder(w)
+	encoder := types.NewEncoder(w)
 	return encoder.Encode(obj)
 }
 
 func (s *Serializer) unmarshal(into runtime.Object, data, originalData []byte) error {
-	return json.Unmarshal(data, into)
+	return types.Unmarshal(data, into)
 
 }
 

@@ -5,13 +5,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/api"
@@ -50,14 +50,14 @@ func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 		msgStr = temp
 	}
 	msgStr = format.Formatter(msgStr, msg)
-	if err := json.Unmarshal([]byte(msgStr), &notifyMsg); err != nil {
+	if err := types.Unmarshal([]byte(msgStr), &notifyMsg); err != nil {
 		return err
 	}
 
 	timeNow := time.Now()
 	notifyMsg["timestamp"] = strconv.FormatInt(timeNow.Unix(), 10)
 	notifyMsg["sign"] = genSign(l.GetSecret(), timeNow.Unix())
-	notifyMsgBytes, _ := json.Marshal(notifyMsg)
+	notifyMsgBytes, _ := types.Marshal(notifyMsg)
 	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), notifyMsgBytes)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 	}
 	log.Debugw("notify", string(resBytes))
 	var resp feiShuHookResp
-	if err = json.Unmarshal(resBytes, &resp); err != nil {
+	if err = types.Unmarshal(resBytes, &resp); err != nil {
 		return err
 	}
 	if resp.Code != 0 {

@@ -3,7 +3,8 @@ package vobj
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
+
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 var _ sql.Scanner = (*Annotations)(nil)
@@ -14,16 +15,16 @@ type Annotations map[string]string
 
 // Value implements the driver.Valuer interface.
 func (l Annotations) Value() (driver.Value, error) {
-	return json.Marshal(l)
+	return types.Marshal(l)
 }
 
 // Scan implements the sql.Scanner interface.
 func (l *Annotations) Scan(src any) error {
 	switch src.(type) {
 	case []byte:
-		return json.Unmarshal(src.([]byte), l)
+		return types.Unmarshal(src.([]byte), l)
 	case string:
-		return json.Unmarshal([]byte(src.(string)), l)
+		return types.Unmarshal([]byte(src.(string)), l)
 	default:
 		return ErrUnsupportedType
 	}
