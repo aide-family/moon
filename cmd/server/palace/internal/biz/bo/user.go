@@ -92,6 +92,21 @@ type (
 	UserSelectOptionBuild struct {
 		*model.SysUser
 	}
+
+	NoticeUserMessage struct {
+		ID        uint32
+		Category  vobj.UserMessageType
+		Content   string
+		Timestamp int64
+		UserID    uint32
+		Biz       vobj.BizType
+		BizID     uint32
+	}
+
+	QueryUserMessageListParams struct {
+		Keyword string
+		Page    types.Pagination
+	}
 )
 
 // NewUserSelectOptionBuild 创建选择项构建器

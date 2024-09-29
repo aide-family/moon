@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package api.admin.user;
+
+import "google/api/annotations.proto";
+import "admin/model.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/user;user";
+option java_multiple_files = true;
+option java_package = "api.admin.user";
+
+service Message {
+	// 删除消息， 用于清除所有通知
+	rpc DeleteMessages (DeleteMessagesRequest) returns (DeleteMessagesReply) {
+		option (google.api.http) = {
+			delete: "/v1/user/messages"
+		};
+	}
+	// 获取消息列表， 用于获取我的未读消息
+	rpc ListMessage (ListMessageRequest) returns (ListMessageReply) {
+		option (google.api.http) = {
+			post: "/v1/user/messages"
+			body: "*"
+		};
+	}
+}
+
+message DeleteMessagesRequest {
+	repeated uint32 ids = 1;
+	bool all = 2;
+}
+message DeleteMessagesReply{}
+
+message ListMessageRequest {
+	string keyword = 1;
+	PaginationReq pagination = 2;
+}
+message ListMessageReply {
+	repeated NoticeUserMessage list = 1;
+	PaginationReply pagination = 2;
+}

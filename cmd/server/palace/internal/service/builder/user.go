@@ -34,6 +34,7 @@ type (
 		WithUpdateUserBaseInfoRequest(*userapi.UpdateUserBaseInfoRequest) IUpdateUserBaseInfoRequestBuilder
 		DoUserBuilder() IDoUserBuilder
 		DoNoticeUserBuilder() INoticeUserBuilder
+		NoticeUserMessageBuilder() INoticeUserMessageBuilder
 	}
 
 	ICreateUserRequestBuilder interface {
@@ -138,7 +139,71 @@ type (
 	doNoticeUserBuilder struct {
 		ctx context.Context
 	}
+
+	INoticeUserMessageBuilder interface {
+		ToAPI(*model.SysUserMessage) *adminapi.NoticeUserMessage
+		ToAPIs([]*model.SysUserMessage) []*adminapi.NoticeUserMessage
+		ToDo(*bo.NoticeUserMessage) *model.SysUserMessage
+		ToDos([]*bo.NoticeUserMessage) []*model.SysUserMessage
+	}
+
+	noticeUserMessageBuilder struct {
+		ctx context.Context
+	}
 )
+
+func (n *noticeUserMessageBuilder) ToAPI(message *model.SysUserMessage) *adminapi.NoticeUserMessage {
+	if types.IsNil(message) {
+		return nil
+	}
+
+	return &adminapi.NoticeUserMessage{
+		Id:        message.ID,
+		Category:  message.Category.String(),
+		Content:   message.Content,
+		Timestamp: message.CreatedAt.Unix(),
+		Biz:       message.Biz.String(),
+		BizID:     message.BizID,
+	}
+}
+
+func (n *noticeUserMessageBuilder) ToAPIs(messages []*model.SysUserMessage) []*adminapi.NoticeUserMessage {
+	if types.IsNil(messages) {
+		return nil
+	}
+
+	return types.SliceTo(messages, func(message *model.SysUserMessage) *adminapi.NoticeUserMessage {
+		return n.ToAPI(message)
+	})
+}
+
+func (n *noticeUserMessageBuilder) ToDo(message *bo.NoticeUserMessage) *model.SysUserMessage {
+	if types.IsNil(message) {
+		return nil
+	}
+
+	return &model.SysUserMessage{
+		AllFieldModel: model.AllFieldModel{ID: message.ID},
+		Content:       message.Content,
+		Category:      message.Category,
+		UserID:        message.UserID,
+		Biz:           message.Biz,
+		BizID:         message.BizID,
+	}
+}
+
+func (n *noticeUserMessageBuilder) ToDos(messages []*bo.NoticeUserMessage) []*model.SysUserMessage {
+	if types.IsNil(messages) {
+		return nil
+	}
+	return types.SliceTo(messages, func(message *bo.NoticeUserMessage) *model.SysUserMessage {
+		return n.ToDo(message)
+	})
+}
+
+func (u *userModuleBuilder) NoticeUserMessageBuilder() INoticeUserMessageBuilder {
+	return &noticeUserMessageBuilder{ctx: u.ctx}
+}
 
 func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeMember) *adminapi.NoticeItem {
 	if types.IsNil(user) {

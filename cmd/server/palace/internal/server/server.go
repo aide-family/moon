@@ -94,6 +94,7 @@ func RegisterService(
 	alarmGroupService *alarm.GroupService,
 	subscriberService *subscriber.Service,
 	hookService *hook.Service,
+	messageService *user.MessageService,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -116,6 +117,7 @@ func RegisterService(
 	subscriberapi.RegisterSubscriberServer(rpcSrv, subscriberService)
 	hookapi.RegisterHookServer(rpcSrv, hookService)
 	api.RegisterAlertServer(rpcSrv, alertService)
+	userapi.RegisterMessageServer(rpcSrv, messageService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -138,6 +140,7 @@ func RegisterService(
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
+	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
 
 	// custom api
 	proxy := httpSrv.Route("/v1")

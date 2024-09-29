@@ -22,6 +22,7 @@ var ProviderSetService = wire.NewSet(
 	NewGreeterService,
 	NewHealthService,
 	user.NewUserService,
+	user.NewMessageService,
 	authorization.NewAuthorizationService,
 	resource.NewResourceService,
 	menu.NewMenuService,

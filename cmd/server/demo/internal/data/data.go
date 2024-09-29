@@ -5,10 +5,10 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
-	"github.com/aide-family/moon/pkg/util/conn/cacher/nutsdbcacher"
-	"github.com/aide-family/moon/pkg/util/conn/cacher/rediscacher"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/coocood/freecache"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -23,7 +23,7 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 type Data struct {
 	mainDB   *gorm.DB
 	bizDB    *gorm.DB
-	cacher   conn.Cache
+	cacher   cache.ICacher
 	enforcer *casbin.SyncedEnforcer
 }
 
@@ -96,7 +96,7 @@ func (d *Data) GetBizDB(ctx context.Context) *gorm.DB {
 }
 
 // GetCacher 获取缓存
-func (d *Data) GetCacher() conn.Cache {
+func (d *Data) GetCacher() cache.ICacher {
 	if types.IsNil(d.cacher) {
 		log.Warn("cache is nil")
 	}
@@ -109,7 +109,7 @@ func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *democonf.Data_Cache) conn.Cache {
+func newCache(c *democonf.Data_Cache) cache.ICacher {
 	if types.IsNil(c) {
 		return nil
 	}
@@ -120,16 +120,17 @@ func newCache(c *democonf.Data_Cache) conn.Cache {
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
-		return rediscacher.NewRedisCacher(cli)
+		return cache.NewRedisCacher(cli)
 	}
 
 	if !types.IsNil(c.GetNutsDB()) {
 		log.Debugw("cache init", "nutsdb")
-		cli, err := nutsdbcacher.NewNutsDbCacher(c.GetNutsDB())
+		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
-		return cli
+		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
 	}
-	return nil
+
+	return cache.NewFreeCache(freecache.NewCache(10 * 1024 * 1024))
 }

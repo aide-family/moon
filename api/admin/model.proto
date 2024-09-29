@@ -635,3 +635,14 @@ message AlarmHookItem {
   // url
   string  url = 10;
 }
+
+message NoticeUserMessage {
+  uint32 id = 1;
+  // 消息类型 'info' | 'success' | 'warning' | 'error'
+  string category = 2;
+  string content = 3;
+  int64 timestamp = 4;
+  // 业务类型 'invitation' | 'notice'
+  string biz = 5;
+  uint32 bizID = 6;
+}

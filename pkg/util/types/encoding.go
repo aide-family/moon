@@ -38,7 +38,6 @@ func SetDefaultUnmarshalFn(fn func(data []byte, v any) error) {
 }
 
 type (
-
 	// Decoder is a generic decoder that can be used to decode values.
 	Decoder struct {
 		unmarshalFn func(data []byte, v any) error

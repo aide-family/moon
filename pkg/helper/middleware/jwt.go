@@ -201,14 +201,14 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 }
 
 // isLogout 是否已经登出
-func isLogout(ctx context.Context, cache cache.ICacher, jwtClaims *JwtClaims) bool {
+func isLogout(ctx context.Context, cache cache.ISimpleCacher, jwtClaims *JwtClaims) bool {
 	// 判断是否过期
 	token, err := jwtClaims.GetToken()
 	if err != nil {
 		return true
 	}
 	exist, err := cache.Exist(ctx, types.MD5(token))
-	return !exist || types.IsNil(err)
+	return exist && types.IsNil(err)
 }
 
 // IsExpire 是否过期
