@@ -106,14 +106,18 @@ type (
 		GeneratorURL string `json:"generatorURL"`
 		// 指纹
 		Fingerprint string `json:"fingerprint"`
-		// 策略ID
-		StrategyID uint32 `json:"strategyID"`
-		// levelID
-		LevelID uint32 `json:"levelID"`
-		// rawID
-		RawID uint32 `json:"rawID"`
 		// 数据源ID
 		DatasourceID uint32 `json:"datasourceID"`
+	}
+
+	// CreateAlarmInfoParams 创建告警信息参数
+	CreateAlarmInfoParams struct {
+		// 告警原始表id
+		RawInfoID  uint32                   `json:"rawId"`
+		TeamID     uint32                   `json:"teamId"`
+		Alerts     []*CreateAlarmItemParams `json:"alerts"`
+		StrategyID uint32                   `json:"strategyId"`
+		LevelID    uint32                   `json:"levelId"`
 	}
 
 	// CreateAlarmHookRawParams 告警hook原始信息
@@ -129,6 +133,9 @@ type (
 		TruncatedAlerts   int32                    `json:"truncatedAlerts"`
 		Fingerprint       string                   `json:"fingerprint"`
 		Alerts            []*CreateAlarmItemParams `json:"alerts"`
+		TeamID            uint32                   `json:"teamId"`
+		StrategyID        uint32                   `json:"strategyId"`
+		LevelID           uint32                   `json:"levelId"`
 	}
 )
 

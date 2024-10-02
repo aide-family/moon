@@ -22,6 +22,7 @@ type (
 		Version           string           `json:"version"`
 		GroupKey          string           `json:"groupKey"`
 		TruncatedAlerts   int32            `json:"truncatedAlerts"`
+		TeamID            uint32           `json:"teamId"`
 	}
 
 	alarmInfo struct {

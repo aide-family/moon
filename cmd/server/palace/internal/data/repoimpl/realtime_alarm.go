@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -28,17 +27,17 @@ type realtimeAlarmRepositoryImpl struct {
 	data *data.Data
 }
 
-func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmItemParams) error {
-	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
+func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error {
+	alarmQuery, err := getTeamBizAlarmQuery(param.TeamID, r.data)
 	if err != nil {
 		return err
 	}
-	realTimeModel, err := r.createRealTimeAlarmToModel(ctx, param)
+	realTimes, err := r.createRealTimeAlarmToModels(ctx, param)
 	if err != nil {
 		return err
 	}
 
-	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).Create(realTimeModel); err != nil {
+	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).CreateInBatches(realTimes, 100); err != nil {
 		return err
 	}
 	return nil
@@ -56,6 +55,16 @@ func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, 
 	}
 	return alarmquery.Use(bizDB), nil
 }
+
+// getTeamBizAlarmQuery 获取告警业务数据库
+func getTeamBizAlarmQuery(teamID uint32, data *data.Data) (*alarmquery.Query, error) {
+	bizDB, err := data.GetAlarmGormDB(teamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return alarmquery.Use(bizDB), nil
+}
+
 func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
 	queue := r.data.GetAlartHistoryQueue()
 	if err := queue.Push(param.Message()); err != nil {
@@ -115,10 +124,11 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	return realtimeAlarmQuery.Find()
 }
 
-func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModel(ctx context.Context, param *bo.CreateAlarmItemParams) (*alarmmodel.RealtimeAlarm, error) {
+func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(ctx context.Context, param *bo.CreateAlarmInfoParams) ([]*alarmmodel.RealtimeAlarm, error) {
 	strategyID := param.StrategyID
 	levelID := param.LevelID
-	bizQuery, err := getBizQuery(ctx, r.data)
+	teamID := param.TeamID
+	bizQuery, err := getTeamIdBizQuery(r.data, teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -132,19 +142,23 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModel(ctx context.Con
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &alarmmodel.RealtimeAlarm{
-		Status:      vobj.ToAlertStatus(param.Status),
-		StartsAt:    param.StartsAt,
-		EndsAt:      param.EndsAt,
-		Expr:        strategy.Expr,
-		Fingerprint: param.Fingerprint,
-		Labels:      vobj.NewLabels(param.Labels),
-		Annotations: param.Annotations,
-		RawInfoID:   param.RawID,
-		RealtimeDetails: &alarmmodel.RealtimeDetails{
-			Strategy:   strategy.String(),
-			Level:      strategyLevel.String(),
-			Datasource: "",
-		},
-	}, nil
+
+	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.RealtimeAlarm {
+		return &alarmmodel.RealtimeAlarm{
+			Status:      vobj.ToAlertStatus(alarmParam.Status),
+			StartsAt:    alarmParam.StartsAt,
+			EndsAt:      alarmParam.EndsAt,
+			Expr:        strategy.Expr,
+			Fingerprint: alarmParam.Fingerprint,
+			Labels:      vobj.NewLabels(alarmParam.Labels),
+			Annotations: alarmParam.Annotations,
+			RawInfoID:   param.RawInfoID,
+			RealtimeDetails: &alarmmodel.RealtimeDetails{
+				Strategy:   strategy.String(),
+				Level:      strategyLevel.String(),
+				Datasource: "",
+			},
+		}
+	})
+	return alarms, nil
 }

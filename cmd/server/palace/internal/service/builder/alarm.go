@@ -66,10 +66,11 @@ func (a *createAlarmRequestBuilder) ToBo() *bo.CreateAlarmHookRawParams {
 				EndsAt:       endsAt,
 				GeneratorURL: item.GetGeneratorURL(),
 				Fingerprint:  item.GetFingerprint(),
-				StrategyID:   vobj.NewLabels(a.GetCommonLabels()).GetStrategyID(),
-				LevelID:      vobj.NewLabels(a.GetGroupLabels()).GetLevelID(),
 			}
 		}),
+		TeamID:     a.TeamId,
+		StrategyID: vobj.NewLabels(a.GetCommonLabels()).GetStrategyID(),
+		LevelID:    vobj.NewLabels(a.GetGroupLabels()).GetLevelID(),
 	}
 }
 

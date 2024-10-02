@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -29,18 +30,18 @@ type (
 	}
 )
 
-func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, param *bo.CreateAlarmItemParams) error {
-	alarmQuery, err := getBizAlarmQuery(ctx, a.data)
+func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, param *bo.CreateAlarmInfoParams) error {
+	teamID := param.TeamID
+	alarmQuery, err := getTeamBizAlarmQuery(teamID, a.data)
+	if err != nil {
+		return err
+	}
+	historyList, err := a.createAlarmHistoryToModels(ctx, param)
 	if err != nil {
 		return err
 	}
 
-	historyModel, err := a.createAlarmHistoryToModel(ctx, param)
-	if err != nil {
-		return err
-	}
-
-	if err := alarmQuery.AlarmHistory.WithContext(ctx).Create(historyModel); err != nil {
+	if err := alarmQuery.AlarmHistory.WithContext(ctx).CreateInBatches(historyList, 100); err != nil {
 		return err
 	}
 
@@ -85,10 +86,14 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	return bizWrapper.Order(alarmQuery.AlarmHistory.ID.Desc()).Find()
 }
 
-func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModel(ctx context.Context, param *bo.CreateAlarmItemParams) (*alarmmodel.AlarmHistory, error) {
+func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(ctx context.Context, param *bo.CreateAlarmInfoParams) ([]*alarmmodel.AlarmHistory, error) {
 	strategyID := param.StrategyID
 	levelID := param.LevelID
-	bizQuery, err := getBizQuery(ctx, a.data)
+	teamID := param.TeamID
+	bizQuery, err := getTeamIdBizQuery(a.data, teamID)
+	if err != nil {
+		return nil, err
+	}
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -103,20 +108,22 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModel(ctx context.Conte
 		return nil, err
 	}
 
-	history := &alarmmodel.AlarmHistory{
-		AlertStatus: vobj.ToAlertStatus(param.Status),
-		StartsAt:    param.StartsAt,
-		EndsAt:      param.EndsAt,
-		Expr:        strategy.Expr,
-		Fingerprint: param.Fingerprint,
-		Labels:      vobj.NewLabels(param.Labels),
-		Annotations: param.Annotations,
-		RawInfoID:   param.RawID,
-		HistoryDetails: &alarmmodel.HistoryDetails{
-			Strategy:   strategy.String(),
-			Level:      strategyLevel.String(),
-			Datasource: "",
-		},
-	}
-	return history, nil
+	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.AlarmHistory {
+		return &alarmmodel.AlarmHistory{
+			AlertStatus: vobj.ToAlertStatus(alarmParam.Status),
+			StartsAt:    alarmParam.StartsAt,
+			EndsAt:      alarmParam.EndsAt,
+			Expr:        strategy.Expr,
+			Fingerprint: alarmParam.Fingerprint,
+			Labels:      vobj.NewLabels(alarmParam.Labels),
+			Annotations: alarmParam.Annotations,
+			RawInfoID:   param.RawInfoID,
+			HistoryDetails: &alarmmodel.HistoryDetails{
+				Strategy:   strategy.String(),
+				Level:      strategyLevel.String(),
+				Datasource: "",
+			},
+		}
+	})
+	return historyList, nil
 }
