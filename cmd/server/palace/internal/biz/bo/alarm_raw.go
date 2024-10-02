@@ -6,5 +6,6 @@ type (
 	CreateAlarmRawParams struct {
 		Fingerprint string `json:"fingerprint"`
 		RawInfo     string `json:"rawInfo"`
+		TeamID      uint32 `json:"teamId"`
 	}
 )

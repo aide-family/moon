@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -89,6 +88,7 @@ func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 		Version:           env.Version(),
 		GroupKey:          "",
 		TruncatedAlerts:   0,
+		TeamID:            strategy.TeamID,
 	}
 	return &alarmInfo
 }

@@ -22,15 +22,15 @@ type alarmRawRepositoryImpl struct {
 }
 
 func (r *alarmRawRepositoryImpl) CreateAlarmRaw(ctx context.Context, param *bo.CreateAlarmRawParams) (*alarmmodel.AlarmRaw, error) {
-	bizQuery, err := getBizAlarmQuery(ctx, r.data)
-	if !types.IsNil(err) {
+	alarmQuery, err := getTeamBizAlarmQuery(param.TeamID, r.data)
+	if err != nil {
 		return nil, err
 	}
 	alarmRaw := &alarmmodel.AlarmRaw{
 		RawInfo:     param.RawInfo,
 		Fingerprint: param.Fingerprint,
 	}
-	err = bizQuery.AlarmRaw.WithContext(ctx).Create(alarmRaw)
+	err = alarmQuery.AlarmRaw.WithContext(ctx).Create(alarmRaw)
 	if !types.IsNil(err) {
 		return nil, err
 	}

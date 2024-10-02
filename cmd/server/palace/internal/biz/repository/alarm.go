@@ -17,5 +17,5 @@ type Alarm interface {
 	// SaveAlertQueue 保存告警队列
 	SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error
 	// CreateRealTimeAlarm 创建实时告警
-	CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmItemParams) error
+	CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error
 }

@@ -15,6 +15,6 @@ type (
 		// GetAlarmHistories 获取告警历史列表
 		GetAlarmHistories(ctx context.Context, param *bo.QueryAlarmHistoryListParams) ([]*alarmmodel.AlarmHistory, error)
 		// CreateAlarmHistory 创建告警历史
-		CreateAlarmHistory(ctx context.Context, param *bo.CreateAlarmItemParams) error
+		CreateAlarmHistory(ctx context.Context, param *bo.CreateAlarmInfoParams) error
 	}
 )

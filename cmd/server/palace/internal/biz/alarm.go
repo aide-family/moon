@@ -8,8 +8,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/util/types"
-
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 // NewAlarmBiz 创建告警相关业务逻辑
@@ -53,6 +51,7 @@ func (b *AlarmBiz) CreateAlarmRawInfo(ctx context.Context, param *bo.CreateAlarm
 	alarmRaw := &bo.CreateAlarmRawParams{
 		RawInfo:     string(alarmRawJson),
 		Fingerprint: param.Fingerprint,
+		TeamID:      param.TeamID,
 	}
 	return b.alarmRawRepository.CreateAlarmRaw(ctx, alarmRaw)
 }
@@ -62,17 +61,27 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 	if !types.IsNil(err) {
 		return err
 	}
-	for _, alert := range params.Alerts {
-		alert.RawID = rawInfo.ID
-		// 保存告警历史
-		err := b.historyRepository.CreateAlarmHistory(ctx, alert)
-		if err != nil {
-			log.Error(ctx, "create alarm history error", err)
-		}
-		// 保存实时告警
-		if err := b.alarmRepository.CreateRealTimeAlarm(ctx, alert); err != nil {
-			return err
-		}
+
+	saveParam := &bo.CreateAlarmInfoParams{
+		RawInfoID:  rawInfo.ID,
+		TeamID:     params.TeamID,
+		StrategyID: params.StrategyID,
+		LevelID:    params.LevelID,
+		Alerts:     params.Alerts,
+	}
+	return b.SaveAlarmInfoDB(ctx, saveParam)
+}
+
+// SaveAlarmInfoDB 保存告警信息db(告警历史、实时告警)
+func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmInfoParams) error {
+	// 保存告警历史
+	if err := b.historyRepository.CreateAlarmHistory(ctx, params); !types.IsNil(err) {
+		return err
+	}
+
+	// 保存实时告警
+	if err := b.alarmRepository.CreateRealTimeAlarm(ctx, params); !types.IsNil(err) {
+		return err
 	}
 	return nil
 }
