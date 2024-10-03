@@ -74,6 +74,8 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 
 // SaveAlarmInfoDB 保存告警信息db(告警历史、实时告警)
 func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmInfoParams) error {
+	// 获取数据源信息
+
 	// 保存告警历史
 	if err := b.historyRepository.CreateAlarmHistory(ctx, params); !types.IsNil(err) {
 		return err
