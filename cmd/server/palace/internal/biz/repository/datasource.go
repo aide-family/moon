@@ -33,4 +33,6 @@ type Datasource interface {
 
 	// DeleteDatasourceByID 删除数据源
 	DeleteDatasourceByID(context.Context, uint32) error
+	// GetTeamDatasource 获取团队数据源
+	GetTeamDatasource(ctx context.Context, teamID uint32, ids []uint32) ([]*bizmodel.Datasource, error)
 }

@@ -12,9 +12,9 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"gorm.io/gen/field"
 
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 // NewDatasourceRepository 创建数据源
@@ -158,4 +158,12 @@ func (l *datasourceRepositoryImpl) DeleteDatasourceByID(ctx context.Context, id 
 	}
 	_, err = bizQuery.Datasource.WithContext(ctx).Where(bizQuery.Datasource.ID.Eq(id)).Delete()
 	return err
+}
+
+func (l *datasourceRepositoryImpl) GetTeamDatasource(ctx context.Context, teamID uint32, ids []uint32) ([]*bizmodel.Datasource, error) {
+	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.Datasource.WithContext(ctx).Where(bizQuery.Datasource.ID.In(ids...)).Find()
 }
