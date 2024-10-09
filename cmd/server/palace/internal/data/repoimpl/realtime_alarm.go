@@ -2,11 +2,11 @@ package repoimpl
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -32,7 +32,7 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 	if err != nil {
 		return err
 	}
-	realTimes, err := r.createRealTimeAlarmToModels(ctx, param)
+	realTimes, err := r.createRealTimeAlarmToModels(param)
 	if err != nil {
 		return err
 	}
@@ -41,28 +41,6 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 		return err
 	}
 	return nil
-}
-
-// getBizQuery 获取告警业务数据库
-func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := data.GetAlarmGormDB(claims.GetTeam())
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return alarmquery.Use(bizDB), nil
-}
-
-// getTeamBizAlarmQuery 获取告警业务数据库
-func getTeamBizAlarmQuery(teamID uint32, data *data.Data) (*alarmquery.Query, error) {
-	bizDB, err := data.GetAlarmGormDB(teamID)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return alarmquery.Use(bizDB), nil
 }
 
 func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
@@ -124,24 +102,9 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	return realtimeAlarmQuery.Find()
 }
 
-func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(ctx context.Context, param *bo.CreateAlarmInfoParams) ([]*alarmmodel.RealtimeAlarm, error) {
-	strategyID := param.StrategyID
-	levelID := param.LevelID
-	teamID := param.TeamID
-	bizQuery, err := getTeamIdBizQuery(r.data, teamID)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	// 获取告警策略
-	strategy, err := bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(strategyID)).First()
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	// 获取level
-	strategyLevel, err := bizQuery.StrategyLevel.WithContext(ctx).Preload(field.Associations).Where(bizQuery.StrategyLevel.ID.Eq(levelID)).First()
-	if !types.IsNil(err) {
-		return nil, err
-	}
+func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) ([]*alarmmodel.RealtimeAlarm, error) {
+	strategy := param.Strategy
+	strategyLevel := param.Level
 
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.RealtimeAlarm {
 		return &alarmmodel.RealtimeAlarm{
@@ -156,7 +119,7 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(ctx context.Co
 			RealtimeDetails: &alarmmodel.RealtimeDetails{
 				Strategy:   strategy.String(),
 				Level:      strategyLevel.String(),
-				Datasource: "",
+				Datasource: param.GetDatasourceMap(alarmParam.DatasourceID),
 			},
 		}
 	})

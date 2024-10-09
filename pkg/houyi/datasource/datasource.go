@@ -54,7 +54,7 @@ func (d *datasource) Metric() (MetricDatasource, error) {
 		WithMetricStep(10),
 		WithMetricEndpoint(d.config.GetEndpoint()),
 		WithMetricBasicAuth(d.config.GetConfig()["username"], d.config.GetConfig()["password"]),
-		WithDatasourceId(d.config.GetDatasourceId()),
+		WithMetricID(d.config.GetId()),
 	}
 	return NewMetricDatasource(vobj.StorageType(d.config.GetStorageType()), opts...)
 }

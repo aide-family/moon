@@ -3,6 +3,7 @@ package bo
 import (
 	"encoding/json"
 
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -113,11 +114,12 @@ type (
 	// CreateAlarmInfoParams 创建告警信息参数
 	CreateAlarmInfoParams struct {
 		// 告警原始表id
-		RawInfoID  uint32                   `json:"rawId"`
-		TeamID     uint32                   `json:"teamId"`
-		Alerts     []*CreateAlarmItemParams `json:"alerts"`
-		StrategyID uint32                   `json:"strategyId"`
-		LevelID    uint32                   `json:"levelId"`
+		RawInfoID     uint32                          `json:"rawId"`
+		TeamID        uint32                          `json:"teamId"`
+		Alerts        []*CreateAlarmItemParams        `json:"alerts"`
+		Strategy      *bizmodel.Strategy              `json:"strategy"`
+		Level         *bizmodel.StrategyLevel         `json:"level"`
+		DatasourceMap map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
 	}
 
 	// CreateAlarmHookRawParams 告警hook原始信息
@@ -156,4 +158,14 @@ func (a *CreateAlarmHookRawParams) Index() string {
 
 func (a *CreateAlarmHookRawParams) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlert)
+}
+
+func (a *CreateAlarmInfoParams) GetDatasourceMap(datasourceID uint32) string {
+	if types.IsNil(a) || types.IsNil(a.DatasourceMap) {
+		return ""
+	}
+	if v, ok := a.DatasourceMap[datasourceID]; ok {
+		return v.String()
+	}
+	return ""
 }

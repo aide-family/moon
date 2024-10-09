@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -36,7 +37,7 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 	if err != nil {
 		return err
 	}
-	historyList, err := a.createAlarmHistoryToModels(ctx, param)
+	historyList, err := a.createAlarmHistoryToModels(param)
 	if err != nil {
 		return err
 	}
@@ -86,28 +87,9 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	return bizWrapper.Order(alarmQuery.AlarmHistory.ID.Desc()).Find()
 }
 
-func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(ctx context.Context, param *bo.CreateAlarmInfoParams) ([]*alarmmodel.AlarmHistory, error) {
-	strategyID := param.StrategyID
-	levelID := param.LevelID
-	teamID := param.TeamID
-	bizQuery, err := getTeamIdBizQuery(a.data, teamID)
-	if err != nil {
-		return nil, err
-	}
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	// 获取告警策略
-	strategy, err := bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(strategyID)).First()
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	// 获取level
-	strategyLevel, err := bizQuery.StrategyLevel.WithContext(ctx).Preload(field.Associations).Where(bizQuery.StrategyLevel.ID.Eq(levelID)).First()
-	if !types.IsNil(err) {
-		return nil, err
-	}
-
+func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) ([]*alarmmodel.AlarmHistory, error) {
+	strategy := param.Strategy
+	strategyLevel := param.Level
 	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.AlarmHistory {
 		return &alarmmodel.AlarmHistory{
 			AlertStatus: vobj.ToAlertStatus(alarmParam.Status),
@@ -121,7 +103,7 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(ctx context.Cont
 			HistoryDetails: &alarmmodel.HistoryDetails{
 				Strategy:   strategy.String(),
 				Level:      strategyLevel.String(),
-				Datasource: "",
+				Datasource: param.GetDatasourceMap(alarmParam.DatasourceID),
 			},
 		}
 	})

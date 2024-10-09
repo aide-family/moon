@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -46,6 +47,28 @@ func getBizQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) 
 		return nil, err
 	}
 	return bizquery.Use(bizDB), nil
+}
+
+// getBizQuery 获取告警业务数据库
+func getBizAlarmQuery(ctx context.Context, data *data.Data) (*alarmquery.Query, error) {
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return nil, merr.ErrorI18nUnauthorized(ctx)
+	}
+	bizDB, err := data.GetAlarmGormDB(claims.GetTeam())
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return alarmquery.Use(bizDB), nil
+}
+
+// getTeamBizAlarmQuery 获取告警业务数据库
+func getTeamBizAlarmQuery(teamID uint32, data *data.Data) (*alarmquery.Query, error) {
+	bizDB, err := data.GetAlarmGormDB(teamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return alarmquery.Use(bizDB), nil
 }
 
 func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasource *bo.CreateDatasourceParams) (*bizmodel.Datasource, error) {

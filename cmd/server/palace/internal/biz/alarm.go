@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -48,12 +49,13 @@ func (b *AlarmBiz) CreateAlarmRawInfo(ctx context.Context, param *bo.CreateAlarm
 		return nil, err
 	}
 
-	alarmRaw := &bo.CreateAlarmRawParams{
-		RawInfo:     string(alarmRawJson),
-		Fingerprint: param.Fingerprint,
-		TeamID:      param.TeamID,
-	}
-	return b.alarmRawRepository.CreateAlarmRaw(ctx, alarmRaw)
+	return b.alarmRawRepository.CreateAlarmRaw(
+		ctx,
+		&bo.CreateAlarmRawParams{
+			RawInfo:     string(alarmRawJson),
+			Fingerprint: param.Fingerprint,
+			TeamID:      param.TeamID,
+		})
 }
 
 func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHookRawParams) error {
@@ -62,19 +64,43 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 		return err
 	}
 
-	saveParam := &bo.CreateAlarmInfoParams{
-		RawInfoID:  rawInfo.ID,
-		TeamID:     params.TeamID,
-		StrategyID: params.StrategyID,
-		LevelID:    params.LevelID,
-		Alerts:     params.Alerts,
+	// 查询策略
+	strategy, err := b.alarmRawRepository.GetTeamStrategy(ctx, &bo.GetTeamStrategyParams{TeamID: params.TeamID, StrategyID: params.StrategyID})
+	if !types.IsNil(err) {
+		return err
 	}
-	return b.SaveAlarmInfoDB(ctx, saveParam)
+
+	// 查询策略等级
+	level, err := b.alarmRawRepository.GetStrategyLevel(ctx, &bo.GetTeamStrategyLevelParams{TeamID: params.TeamID, LevelID: params.LevelID})
+	if !types.IsNil(err) {
+		return err
+	}
+
+	// 查询告警列表数据源
+	datasourceIds := types.SliceTo(params.Alerts, func(item *bo.CreateAlarmItemParams) uint32 {
+		return item.DatasourceID
+	})
+
+	datasourceList, err := b.alarmRawRepository.ListDatasource(ctx, &bo.GetTeamDatasourceParams{DatasourceIds: datasourceIds, TeamID: params.TeamID})
+	if !types.IsNil(err) {
+		return err
+	}
+
+	datasourceMap := types.ToMap(datasourceList, func(datasource *bizmodel.Datasource) uint32 { return datasource.ID })
+
+	return b.SaveAlarmInfoDB(ctx,
+		&bo.CreateAlarmInfoParams{
+			RawInfoID:     rawInfo.ID,
+			TeamID:        params.TeamID,
+			Strategy:      strategy,
+			Level:         level,
+			Alerts:        params.Alerts,
+			DatasourceMap: datasourceMap,
+		})
 }
 
 // SaveAlarmInfoDB 保存告警信息db(告警历史、实时告警)
 func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmInfoParams) error {
-	// 获取数据源信息
 
 	// 保存告警历史
 	if err := b.historyRepository.CreateAlarmHistory(ctx, params); !types.IsNil(err) {
