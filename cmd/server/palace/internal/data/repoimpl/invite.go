@@ -75,9 +75,7 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 			}
 		})
 		teamInvite.InviteType = vobj.InviteTypeUnderReview
-		if _, err = bizQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite); !types.IsNil(err) {
-			return err
-		}
+		_, err = bizQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite)
 	} else {
 		teamInvite = &bizmodel.SysTeamInvite{
 			TeamID:     params.TeamID,
@@ -90,11 +88,9 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 				}
 			}),
 		}
-		if err = bizQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite); !types.IsNil(err) {
-			return err
-		}
+		err = bizQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite)
 	}
-	return nil
+	return err
 }
 
 func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error {
@@ -112,8 +108,8 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 		if !types.IsNil(err) {
 			return err
 		}
-
-		if err = i.createTeamMemberInfo(ctx, teamInvite); !types.IsNil(err) {
+		err = i.createTeamMemberInfo(ctx, teamInvite)
+		if !types.IsNil(err) {
 			return err
 		}
 	}
