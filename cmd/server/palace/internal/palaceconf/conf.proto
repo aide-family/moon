@@ -78,6 +78,7 @@ message Data {
     message Free {
       uint32 size = 1;
     }
+    // 优先级依次是 redis > nuts-db > free
     Redis redis = 1;
     NutsDB nutsDB = 2;
     Free free = 3;

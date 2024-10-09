@@ -27,7 +27,7 @@ func init() {
 
 func showLog() {
 	if logFlag {
-		log.Warn("TODO 增加日志获取逻辑")
-		log.Infow("v1", "v2", "v3", "v4")
+		log.Info("TODO 增加日志获取逻辑")
+		// TODO 增加更新日志
 	}
 }

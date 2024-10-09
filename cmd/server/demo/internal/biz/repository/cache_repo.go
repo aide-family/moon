@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 // CacheRepo cache repo
 type CacheRepo interface {
-	Cacher() conn.Cache
+	Cacher() cache.ICacher
 }
