@@ -245,7 +245,7 @@ enum ErrorReason {
     // 邀请记录已存在
     (errors.biz_reason) = {
       reason: "TEAM_INVITE_ALREADY_EXISTS"
-      message: "%s,邀请记录已存在,或者已经加入团队!",
+      message: "%s,邀请记录已存在",
       metadata: {key: "teamInvite", value: "TEAM_INVITE_ALREADY_EXISTS"}
     },
     // 邀请记录不存在
