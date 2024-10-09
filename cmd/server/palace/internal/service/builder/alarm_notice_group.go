@@ -108,7 +108,7 @@ type (
 		APICreateStrategyLabelNoticeRequest() ICreateStrategyLabelNoticeRequestBuilder
 		DoAlarmNoticeGroupItemBuilder() IDoAlarmNoticeGroupItemBuilder
 		DoLabelNoticeBuilder() IDoLabelNoticeBuilder
-		WithAPIMyAlarmGroupListRequest(*alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder
+		WithMyAlarmGroupListRequest(*alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder
 	}
 )
 
@@ -298,7 +298,7 @@ func (a *alarmNoticeGroupModuleBuilder) WithUpdateAlarmGroupStatusRequest(reques
 	return &updateAlarmGroupStatusRequestBuilder{ctx: a.ctx, UpdateAlarmGroupStatusRequest: request}
 }
 
-func (a *alarmNoticeGroupModuleBuilder) WithAPIMyAlarmGroupListRequest(request *alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder {
+func (a *alarmNoticeGroupModuleBuilder) WithMyAlarmGroupListRequest(request *alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder {
 	return &myAlarmGroupListParamsBuilder{ctx: a.ctx, MyAlarmGroupRequest: request}
 }
 

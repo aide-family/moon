@@ -325,4 +325,11 @@ enum ErrorReason {
     (errors.message) = "请求太频繁，请稍后再试",
     (errors.id) = "TOO_MANY_REQUESTS"
   ];
+
+  // 告警历史数据不存在
+  ALARM_HISTORY_DATA_NOT_FOUND_ERR = 55 [
+    (errors.code) = 405,
+    (errors.message) = "告警历史数据不存在!",
+    (errors.id) = "ALARM_HISTORY_DATA_NOT_FOUND_ERR"
+  ];
 }

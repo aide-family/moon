@@ -7,14 +7,14 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 )
 
@@ -27,20 +27,31 @@ type realtimeAlarmRepositoryImpl struct {
 	data *data.Data
 }
 
-// getBizQuery 获取告警业务数据库
-func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
+func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error {
+	alarmQuery, err := getTeamBizAlarmQuery(param.TeamID, r.data)
+	if err != nil {
+		return err
 	}
-	bizDB, err := data.GetAlarmGormDB(claims.GetTeam())
-	if !types.IsNil(err) {
-		return nil, err
+	realTimes, err := r.createRealTimeAlarmToModels(param)
+	if err != nil {
+		return err
 	}
-	return bizquery.Use(bizDB), nil
+
+	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).CreateInBatches(realTimes, 100); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*bizmodel.RealtimeAlarm, error) {
+func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
+	queue := r.data.GetAlartHistoryQueue()
+	if err := queue.Push(param.Message()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeAlarmParams) (*alarmmodel.RealtimeAlarm, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
 	if err != nil {
 		return nil, err
@@ -52,7 +63,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	if params.RealtimeAlarmID != 0 {
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.Eq(params.RealtimeAlarmID))
 	}
-	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...).First()
+	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Preload(field.Associations).Where(wheres...).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nToastRealtimeAlarmNotFound(ctx).WithCause(err)
@@ -62,7 +73,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	return detail, nil
 }
 
-func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*bizmodel.RealtimeAlarm, error) {
+func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*alarmmodel.RealtimeAlarm, error) {
 	alarmQuery, err := getBizAlarmQuery(ctx, r.data)
 	if err != nil {
 		return nil, err
@@ -75,23 +86,42 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue()))
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.EndsAt.Between(params.ResolvedAtStart, params.ResolvedAtEnd))
 	}
-	if len(params.AlarmLevels) > 0 {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.LevelID.In(params.AlarmLevels...))
-	}
+
 	if len(params.AlarmStatuses) > 0 {
 		statuses := types.SliceTo(params.AlarmStatuses, func(status vobj.AlertStatus) int {
 			return status.GetValue()
 		})
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.In(statuses...))
 	}
-	if !types.TextIsNull(params.Keyword) {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.RawInfo.Like(params.Keyword))
-	}
 	// TODO 获取指定告警页面告警数据
 	// TODO 获取指定人员告警数据
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IRealtimeAlarmDo](realtimeAlarmQuery, params.Pagination); err != nil {
+	if err := types.WithPageQuery[alarmquery.IRealtimeAlarmDo](realtimeAlarmQuery, params.Pagination); err != nil {
 		return nil, err
 	}
 	return realtimeAlarmQuery.Find()
+}
+
+func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) ([]*alarmmodel.RealtimeAlarm, error) {
+	strategy := param.Strategy
+	strategyLevel := param.Level
+
+	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.RealtimeAlarm {
+		return &alarmmodel.RealtimeAlarm{
+			Status:      vobj.ToAlertStatus(alarmParam.Status),
+			StartsAt:    alarmParam.StartsAt,
+			EndsAt:      alarmParam.EndsAt,
+			Expr:        strategy.Expr,
+			Fingerprint: alarmParam.Fingerprint,
+			Labels:      vobj.NewLabels(alarmParam.Labels),
+			Annotations: alarmParam.Annotations,
+			RawInfoID:   param.RawInfoID,
+			RealtimeDetails: &alarmmodel.RealtimeDetails{
+				Strategy:   strategy.String(),
+				Level:      strategyLevel.String(),
+				Datasource: param.GetDatasourceMap(alarmParam.DatasourceID),
+			},
+		}
+	})
+	return alarms, nil
 }

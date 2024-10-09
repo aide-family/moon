@@ -1,8 +1,12 @@
 package bo
 
 import (
+	"encoding/json"
+
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 )
 
 type (
@@ -86,4 +90,82 @@ type (
 		// 我的告警
 		MyAlarm bool
 	}
+
+	// CreateAlarmItemParams 创建告警项请求参数
+	CreateAlarmItemParams struct {
+		// 告警状态, firing, resolved
+		Status string `json:"status"`
+		// 标签
+		Labels map[string]string `json:"labels"`
+		// 注解
+		Annotations map[string]string `json:"annotations"`
+		// 开始时间
+		StartsAt int64 `json:"startsAt"`
+		// 结束时间, 空表示未结束
+		EndsAt int64 `json:"endsAt"`
+		// 告警生成链接
+		GeneratorURL string `json:"generatorURL"`
+		// 指纹
+		Fingerprint string `json:"fingerprint"`
+		// 数据源ID
+		DatasourceID uint32 `json:"datasourceID"`
+	}
+
+	// CreateAlarmInfoParams 创建告警信息参数
+	CreateAlarmInfoParams struct {
+		// 告警原始表id
+		RawInfoID     uint32                          `json:"rawId"`
+		TeamID        uint32                          `json:"teamId"`
+		Alerts        []*CreateAlarmItemParams        `json:"alerts"`
+		Strategy      *bizmodel.Strategy              `json:"strategy"`
+		Level         *bizmodel.StrategyLevel         `json:"level"`
+		DatasourceMap map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
+	}
+
+	// CreateAlarmHookRawParams 告警hook原始信息
+	CreateAlarmHookRawParams struct {
+		Receiver          string                   `json:"receiver"`
+		Status            string                   `json:"status"`
+		GroupLabels       *vobj.Labels             `json:"groupLabels"`
+		CommonLabels      *vobj.Labels             `json:"commonLabels"`
+		CommonAnnotations map[string]string        `json:"commonAnnotations"`
+		ExternalURL       string                   `json:"externalURL"`
+		Version           string                   `json:"version"`
+		GroupKey          string                   `json:"groupKey"`
+		TruncatedAlerts   int32                    `json:"truncatedAlerts"`
+		Fingerprint       string                   `json:"fingerprint"`
+		Alerts            []*CreateAlarmItemParams `json:"alerts"`
+		TeamID            uint32                   `json:"teamId"`
+		StrategyID        uint32                   `json:"strategyId"`
+		LevelID           uint32                   `json:"levelId"`
+	}
 )
+
+func (a *CreateAlarmHookRawParams) String() string {
+	if types.IsNil(a) {
+		return ""
+	}
+	bs, err := json.Marshal(a)
+	if err != nil {
+		return ""
+	}
+	return string(bs)
+}
+
+func (a *CreateAlarmHookRawParams) Index() string {
+	return "palace:alert:hook:" + a.Fingerprint
+}
+
+func (a *CreateAlarmHookRawParams) Message() *watch.Message {
+	return watch.NewMessage(a, vobj.TopicAlert)
+}
+
+func (a *CreateAlarmInfoParams) GetDatasourceMap(datasourceID uint32) string {
+	if types.IsNil(a) || types.IsNil(a.DatasourceMap) {
+		return ""
+	}
+	if v, ok := a.DatasourceMap[datasourceID]; ok {
+		return v.String()
+	}
+	return ""
+}

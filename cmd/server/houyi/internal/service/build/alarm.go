@@ -37,6 +37,7 @@ func (a *AlarmBuilder) ToAPI() *api.AlarmItem {
 		Version:           alarm.Version,
 		GroupKey:          alarm.GroupKey,
 		TruncatedAlerts:   alarm.TruncatedAlerts,
+		TeamId:            a.TeamID,
 	}
 }
 

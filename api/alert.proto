@@ -46,6 +46,10 @@ message AlarmItem {
   string groupKey = 9;
   // 截断告警数
   int32 truncatedAlerts = 10;
+  // 指纹
+  string fingerprint = 11;
+  // 团队ID
+  uint32 teamId = 12;
 }
 
 // 告警明细

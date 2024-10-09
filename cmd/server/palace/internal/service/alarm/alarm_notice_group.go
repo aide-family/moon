@@ -123,7 +123,7 @@ func (s *GroupService) MyAlarmGroupList(ctx context.Context, req *alarmyapi.MyAl
 	param := builder.NewParamsBuild().
 		WithContext(ctx).
 		AlarmNoticeGroupModuleBuilder().
-		WithAPIMyAlarmGroupListRequest(req).
+		WithMyAlarmGroupListRequest(req).
 		ToBo()
 
 	myAlarmGroup, err := s.alarmGroupBiz.MyAlarmGroups(ctx, param)

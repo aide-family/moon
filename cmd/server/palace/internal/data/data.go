@@ -42,6 +42,8 @@ type Data struct {
 	strategyQueue watch.Queue
 	// 告警队列
 	alertQueue watch.Queue
+	// 历史告警队列
+	historyQueue watch.Queue
 
 	// 通用邮件发送器
 	emailer email.Interface
@@ -211,6 +213,11 @@ func GenBizDatabaseName(teamID uint32) string {
 	return fmt.Sprintf("team_%d", teamID)
 }
 
+// GenAlarmBizDatabaseName 生成告警库名称
+func GenAlarmBizDatabaseName(teamID uint32) string {
+	return fmt.Sprintf("team_alarm_%d", teamID)
+}
+
 // GetBizGormDB 获取业务库连接
 func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	if teamID == 0 {
@@ -260,7 +267,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 
-	dsn := d.alarmDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := d.alarmDatabaseConf.GetDsn() + GenAlarmBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
 	alarmDbConf := &palaceconf.Data_Database{
 		Driver: d.alarmDatabaseConf.GetDriver(),
 		Dsn:    dsn,
@@ -341,4 +348,12 @@ func (d *Data) GetAlertQueue() watch.Queue {
 		log.Warn("alertQueue is nil")
 	}
 	return d.alertQueue
+}
+
+// GetAlartHistoryQueue 获取历史告警队列
+func (d *Data) GetAlartHistoryQueue() watch.Queue {
+	if types.IsNil(d.historyQueue) {
+		log.Warn("historyQueue is nil")
+	}
+	return d.historyQueue
 }

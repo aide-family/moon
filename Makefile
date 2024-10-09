@@ -95,8 +95,10 @@ wire:
 model:
 	rm -rf pkg/palace/model/query
 	rm -rf pkg/palace/model/bizmodel/bizquery
+	rm -rf pkg/palace/model/alarmmodel/alarmquery
 	go run cmd/server/gen/gen/cmd.go
-	go run cmd/server/gen/gen/cmd.go -b
+	go run cmd/server/gen/gen/cmd.go -m 2
+	go run cmd/server/gen/gen/cmd.go -m 3
 
 .PHONY: all
 # generate all

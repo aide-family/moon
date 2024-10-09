@@ -17,7 +17,7 @@ import (
 	"gorm.io/gen/field"
 )
 
-// NewAlarmGroupRepository 创建策略分组仓库
+// NewAlarmGroupRepository 创建告警分组仓库
 func NewAlarmGroupRepository(data *data.Data) repository.AlarmGroup {
 	return &alarmGroupRepositoryImpl{
 		data: data,
@@ -115,7 +115,7 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 			return err
 		}
 
-		// TODO 清除告警hook信息
+		// 清除告警hook信息
 		//if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(alarmID)).Delete(); err != nil {
 		//	return err
 		//}

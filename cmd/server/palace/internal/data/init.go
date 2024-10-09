@@ -2,6 +2,7 @@ package data
 
 import (
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -239,7 +240,7 @@ func syncBizDatabase(d *Data) error {
 		if err != nil {
 			return err
 		}
-		if err = alarmDB.AutoMigrate(bizmodel.AlarmModels()...); err != nil {
+		if err = alarmDB.AutoMigrate(alarmmodel.AlarmModels()...); err != nil {
 			return err
 		}
 	}
