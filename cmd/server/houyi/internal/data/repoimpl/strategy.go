@@ -58,6 +58,7 @@ func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]
 			StorageType: api.StorageType(datasourceItem.StorageType),
 			Config:      datasourceItem.Config,
 			Endpoint:    datasourceItem.Endpoint,
+			Id:          datasourceItem.ID,
 		}
 		newDatasource, err := datasource.NewDatasource(cfg).Metric()
 		if err != nil {

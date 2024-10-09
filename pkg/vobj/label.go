@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/aide-family/moon/pkg/util/types"
@@ -14,11 +15,15 @@ import (
 
 const (
 	// StrategyID 策略id
-	StrategyID = "moon__strategy_id"
+	StrategyID = "__moon__strategy_id__"
 	// LevelID 策略级别id
-	LevelID = "moon__level_id"
+	LevelID = "__moon__level_id__"
 	// TeamID 团队id
-	TeamID = "moon__team_id"
+	TeamID = "__moon__team_id__"
+	// DatasourceID 数据源id
+	DatasourceID = "__moon__datasource_id__"
+	// DatasourceURL 数据源url
+	DatasourceURL = "__moon__datasource_url__"
 )
 
 var _ sql.Scanner = (*Labels)(nil)
@@ -161,4 +166,33 @@ func (l *Labels) Scan(src any) (err error) {
 		err = ErrUnsupportedType
 	}
 	return err
+}
+
+// GetDatasourceID 获取数据源id
+func (l *Labels) GetDatasourceID() uint32 {
+	id, _ := strconv.ParseUint(l.Get(DatasourceID), 10, 32)
+	return uint32(id)
+}
+
+// GetDatasourceURL 获取数据源url
+func (l *Labels) GetDatasourceURL() string {
+	return l.Get(DatasourceURL)
+}
+
+// GetTeamID 获取团队id
+func (l *Labels) GetTeamID() uint32 {
+	id, _ := strconv.ParseUint(l.Get(TeamID), 10, 32)
+	return uint32(id)
+}
+
+// GetStrategyID 获取策略id
+func (l *Labels) GetStrategyID() uint32 {
+	id, _ := strconv.ParseUint(l.Get(StrategyID), 10, 32)
+	return uint32(id)
+}
+
+// GetLevelID 获取策略级别id
+func (l *Labels) GetLevelID() uint32 {
+	id, _ := strconv.ParseUint(l.Get(LevelID), 10, 32)
+	return uint32(id)
 }

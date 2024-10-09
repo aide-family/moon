@@ -62,10 +62,19 @@ type (
 		QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error)
 		// Metadata 查询元数据
 		Metadata(ctx context.Context) (*Metadata, error)
+		// GetBasicInfo 获取数据源信息
+		GetBasicInfo() *BasicInfo
+	}
+
+	BasicInfo struct {
+		Endpoint  string     `json:"endpoint"`
+		ID        uint32     `json:"id"`
+		BasicAuth *BasicAuth `json:"basic_auth"`
 	}
 
 	datasourceBuild struct {
 		endpoint  string
+		id        uint32
 		step      uint32
 		basicAuth *BasicAuth
 	}
@@ -122,7 +131,18 @@ func WithMetricBasicAuth(username, password string) MetricDatasourceBuildOption 
 	}
 }
 
+// WithMetricID 设置数据源ID
+func WithMetricID(id uint32) MetricDatasourceBuildOption {
+	return func(p *datasourceBuild) {
+		p.id = id
+	}
+}
+
 type mockMetricDatasource struct {
+}
+
+func (m *mockMetricDatasource) GetBasicInfo() *BasicInfo {
+	return new(BasicInfo)
 }
 
 func (m *mockMetricDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {

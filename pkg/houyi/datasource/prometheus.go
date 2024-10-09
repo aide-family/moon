@@ -58,6 +58,8 @@ type (
 		endpoint string
 		// 查询步长
 		step uint32
+
+		id uint32
 	}
 
 	// PrometheusOption 数据源配置
@@ -108,6 +110,14 @@ type (
 		ErrorType string              `json:"errorType"`
 	}
 )
+
+func (p *prometheusDatasource) GetBasicInfo() *BasicInfo {
+	return &BasicInfo{
+		Endpoint:  p.endpoint,
+		BasicAuth: p.basicAuth,
+		ID:        p.id,
+	}
+}
 
 func (p *prometheusDatasource) Step() uint32 {
 	if p.step == 0 {

@@ -44,6 +44,8 @@ type (
 		// step 默认步长
 		step uint32
 
+		id uint32
+
 		queryAPI      string
 		queryRangeAPI string
 		seriesAPI     string
@@ -55,6 +57,14 @@ type (
 		Data   []string `json:"data"`
 	}
 )
+
+func (p *victoriametricsDatasource) GetBasicInfo() *BasicInfo {
+	return &BasicInfo{
+		Endpoint:  p.endpoint,
+		BasicAuth: p.basicAuth,
+		ID:        p.id,
+	}
+}
 
 const (
 	victoriametricsQueryAPI      = "/api/v1/query"

@@ -235,6 +235,8 @@ type (
 		Config map[string]string `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
+		// 数据源ID
+		ID uint32 `json:"id,omitempty"`
 	}
 )
 

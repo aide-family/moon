@@ -90,6 +90,7 @@ func (d *doDatasourceBuilder) ToBo(datasource *bizmodel.Datasource) *bo.Datasour
 		StorageType: datasource.StorageType,
 		Config:      config,
 		Endpoint:    datasource.Endpoint,
+		ID:          datasource.ID,
 	}
 }
 
@@ -113,6 +114,7 @@ func (b *boDatasourceBuilder) ToAPI(datasource *bo.Datasource) *api.Datasource {
 		StorageType: api.StorageType(datasource.StorageType),
 		Config:      datasource.Config,
 		Endpoint:    datasource.Endpoint,
+		Id:          datasource.ID,
 	}
 }
 

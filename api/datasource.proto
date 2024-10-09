@@ -18,4 +18,6 @@ message Datasource {
   map<string, string> config = 3;
   // 数据源地址
   string endpoint = 4;
+  // 数据源ID
+  uint32 id = 5;
 }

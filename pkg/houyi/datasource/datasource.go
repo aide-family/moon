@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/aide-family/moon/api"
@@ -49,6 +50,7 @@ func (d *datasource) Metric() (MetricDatasource, error) {
 		return nil, merr.ErrorNotificationSystemError("not a metric datasource: %s", dataType)
 	}
 	opts := []MetricDatasourceBuildOption{
+		WithMetricID(d.config.GetId()),
 		WithMetricStep(10),
 		WithMetricEndpoint(d.config.GetEndpoint()),
 		WithMetricBasicAuth(d.config.GetConfig()["username"], d.config.GetConfig()["password"]),
@@ -87,6 +89,7 @@ func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, e
 	if err != nil {
 		return nil, err
 	}
+	basicInfo := d.GetBasicInfo()
 	var responseMap = make(map[watch.Indexer]*Point)
 	for _, response := range queryRange {
 		labels := response.Labels
@@ -97,6 +100,8 @@ func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, e
 				Timestamp: v.Timestamp,
 			})
 		}
+		labels[vobj.DatasourceID] = strconv.Itoa(int(basicInfo.ID))
+		labels[vobj.DatasourceURL] = basicInfo.Endpoint
 		vobjLabels := vobj.NewLabels(labels)
 		responseMap[vobjLabels] = &Point{
 			Values: values,

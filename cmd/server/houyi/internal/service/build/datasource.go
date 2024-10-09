@@ -30,5 +30,6 @@ func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
 		StorageType: vobj.StorageType(b.GetStorageType()),
 		Config:      b.GetConfig(),
 		Endpoint:    b.GetEndpoint(),
+		ID:          b.GetId(),
 	}
 }
