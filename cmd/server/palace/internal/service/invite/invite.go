@@ -6,7 +6,6 @@ import (
 	pb "github.com/aide-family/moon/api/admin/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -52,26 +51,26 @@ func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	teamMap := s.inviteBiz.GetTeamMapByIds(ctx, []uint32{detail.TeamID})
+	teamInfo, err := s.inviteBiz.GetTeamInfo(ctx, detail.TeamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	inviteItem := builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder().ToAPI(detail)
+	// 设置团队信息
+	inviteItem.Team = builder.NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPI(teamInfo)
 	return &pb.GetInviteReply{
-		Detail: builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamMap).ToAPI(detail),
+		Detail: inviteItem,
 	}, nil
 }
-func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequest) (*pb.ListUserInviteReply, error) {
+func (s *Service) ListInvite(ctx context.Context, req *pb.ListInviteRequest) (*pb.ListInviteReply, error) {
 	param := builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().WithListInviteUserRequest(req).ToBo()
-	list, err := s.inviteBiz.UserInviteList(ctx, param)
-
+	list, err := s.inviteBiz.InviteList(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 
-	teamIds := types.SliceTo(list, func(item *bizmodel.SysTeamInvite) uint32 {
-		return item.TeamID
-	})
-	teamMap := s.inviteBiz.GetTeamMapByIds(ctx, teamIds)
-
-	return &pb.ListUserInviteReply{
-		List:       builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamMap).ToAPIs(list),
+	return &pb.ListInviteReply{
+		List:       builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder().ToAPIs(list),
 		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }

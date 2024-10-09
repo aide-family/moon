@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/api/admin"
 	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -19,8 +18,8 @@ type (
 	InviteModuleBuilder interface {
 		WithInviteUserRequest(*inviteapi.InviteUserRequest) ICreateInviteUserRequestBuilder
 		WithUpdateInviteStatusRequest(*inviteapi.UpdateInviteStatusRequest) IUpdateInviteStatusRequestBuilder
-		WithListInviteUserRequest(*inviteapi.ListUserInviteRequest) IListInviteUserRequestBuilder
-		DoInviteBuilder(map[uint32]*model.SysTeam) IDoInviteBuilder
+		WithListInviteUserRequest(*inviteapi.ListInviteRequest) IListInviteUserRequestBuilder
+		DoInviteBuilder() IDoInviteBuilder
 	}
 	inviteModuleBuilder struct {
 		ctx context.Context
@@ -49,7 +48,7 @@ type (
 
 	listInviteUserRequestBuilder struct {
 		ctx context.Context
-		*inviteapi.ListUserInviteRequest
+		*inviteapi.ListInviteRequest
 	}
 
 	IDoInviteBuilder interface {
@@ -58,8 +57,7 @@ type (
 	}
 
 	doInviteBuilder struct {
-		ctx     context.Context
-		TeamMap map[uint32]*model.SysTeam
+		ctx context.Context
 	}
 )
 
@@ -67,8 +65,7 @@ func (d *doInviteBuilder) ToAPI(invite *bizmodel.SysTeamInvite) *admin.InviteIte
 	if types.IsNil(d) || types.IsNil(invite) {
 		return nil
 	}
-
-	resItem := &admin.InviteItem{
+	return &admin.InviteItem{
 		Id:         invite.ID,
 		InviteType: api.InviteType(invite.InviteType),
 		Roles: NewParamsBuild().
@@ -76,12 +73,6 @@ func (d *doInviteBuilder) ToAPI(invite *bizmodel.SysTeamInvite) *admin.InviteIte
 			DoRoleBuilder().
 			ToAPIs(invite.TeamRoles),
 	}
-	teamMap := d.TeamMap
-	if !types.IsNil(teamMap) {
-		team := teamMap[invite.TeamID]
-		resItem.Team = NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPI(team)
-	}
-	return resItem
 }
 
 func (d *doInviteBuilder) ToAPIs(invites []*bizmodel.SysTeamInvite) []*admin.InviteItem {
@@ -93,15 +84,14 @@ func (d *doInviteBuilder) ToAPIs(invites []*bizmodel.SysTeamInvite) []*admin.Inv
 	})
 }
 
-func (i *inviteModuleBuilder) DoInviteBuilder(teamMap map[uint32]*model.SysTeam) IDoInviteBuilder {
+func (i *inviteModuleBuilder) DoInviteBuilder() IDoInviteBuilder {
 	return &doInviteBuilder{
-		ctx:     i.ctx,
-		TeamMap: teamMap,
+		ctx: i.ctx,
 	}
 }
 
 func (i *listInviteUserRequestBuilder) ToBo() *bo.QueryInviteListParams {
-	if types.IsNil(i) || types.IsNil(i.ListUserInviteRequest) {
+	if types.IsNil(i) || types.IsNil(i.ListInviteRequest) {
 		return nil
 	}
 	return &bo.QueryInviteListParams{
@@ -145,9 +135,9 @@ func (i *inviteModuleBuilder) WithUpdateInviteStatusRequest(request *inviteapi.U
 	}
 }
 
-func (i *inviteModuleBuilder) WithListInviteUserRequest(request *inviteapi.ListUserInviteRequest) IListInviteUserRequestBuilder {
+func (i *inviteModuleBuilder) WithListInviteUserRequest(request *inviteapi.ListInviteRequest) IListInviteUserRequestBuilder {
 	return &listInviteUserRequestBuilder{
-		ctx:                   i.ctx,
-		ListUserInviteRequest: request,
+		ctx:               i.ctx,
+		ListInviteRequest: request,
 	}
 }
