@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"sync"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -15,8 +16,14 @@ import (
 	"gorm.io/gorm"
 )
 
+var RuntimeCache repository.Cache
+var runtimeCacheOnce = sync.Once{}
+
 // NewTeamBiz 创建团队业务
-func NewTeamBiz(teamRepo repository.Team) *TeamBiz {
+func NewTeamBiz(teamRepo repository.Team, cacheRepo repository.Cache) *TeamBiz {
+	runtimeCacheOnce.Do(func() {
+		RuntimeCache = cacheRepo
+	})
 	return &TeamBiz{
 		teamRepo: teamRepo,
 	}

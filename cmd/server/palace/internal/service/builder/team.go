@@ -136,7 +136,7 @@ type (
 	}
 
 	IDoTeamBuilder interface {
-		ToAPI(*model.SysTeam) *adminapi.TeamItem
+		ToAPI(*model.SysTeam, ...map[uint32]*adminapi.UserItem) *adminapi.TeamItem
 		ToAPIs([]*model.SysTeam) []*adminapi.TeamItem
 		ToSelect(*model.SysTeam) *adminapi.SelectItem
 		ToSelects([]*model.SysTeam) []*adminapi.SelectItem
@@ -169,9 +169,14 @@ func (t *teamModuleBuilder) WithSetTeamMailConfigRequest(request *teamapi.SetTea
 	return &setTeamMailConfigRequestBuilder{ctx: t.ctx, SetTeamMailConfigRequest: request}
 }
 
-func (d *doTeamBuilder) ToAPI(team *model.SysTeam) *adminapi.TeamItem {
+func (d *doTeamBuilder) ToAPI(team *model.SysTeam, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.TeamItem {
 	if types.IsNil(d) || types.IsNil(team) {
 		return nil
+	}
+	userMap := getUsers(d.ctx, userMaps, append(team.Admins, team.LeaderID, team.CreatorID)...)
+	admins := make([]*adminapi.UserItem, 0, len(team.Admins))
+	for _, adminID := range team.Admins {
+		admins = append(admins, userMap[adminID])
 	}
 
 	return &adminapi.TeamItem{
@@ -181,10 +186,10 @@ func (d *doTeamBuilder) ToAPI(team *model.SysTeam) *adminapi.TeamItem {
 		Remark:    team.Remark,
 		CreatedAt: team.CreatedAt.String(),
 		UpdatedAt: team.UpdatedAt.String(),
-		Leader:    nil, // TODO user
-		Creator:   nil, // TODO user
+		Leader:    userMap[team.LeaderID],
+		Creator:   userMap[team.CreatorID],
 		Logo:      team.Logo,
-		Admin:     nil, // TODO user
+		Admins:    admins,
 	}
 }
 
@@ -192,9 +197,10 @@ func (d *doTeamBuilder) ToAPIs(teams []*model.SysTeam) []*adminapi.TeamItem {
 	if types.IsNil(d) || types.IsNil(teams) {
 		return nil
 	}
-
+	ids := types.SliceTo(teams, func(item *model.SysTeam) uint32 { return item.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(teams, func(item *model.SysTeam) *adminapi.TeamItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 

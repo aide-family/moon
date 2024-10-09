@@ -29,7 +29,7 @@ type (
 	}
 
 	IDoDatasourceBuilder interface {
-		ToAPI(*bizmodel.Datasource) *adminapi.DatasourceItem
+		ToAPI(*bizmodel.Datasource, ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem
 		ToAPIs([]*bizmodel.Datasource) []*adminapi.DatasourceItem
 		ToBo(*bizmodel.Datasource) *bo.Datasource
 		ToBos([]*bizmodel.Datasource) []*bo.Datasource
@@ -177,10 +177,12 @@ func (c *createDatasourceRequestBuilder) ToBo() *bo.CreateDatasourceParams {
 	}
 }
 
-func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.DatasourceItem {
+func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem {
 	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
+
+	userMap := getUsers(d.ctx, userMaps, datasource.CreatorID)
 
 	config := make(map[string]string)
 	_ = types.Unmarshal([]byte(datasource.Config), &config)
@@ -195,7 +197,7 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.D
 		Config:         config,
 		Remark:         datasource.Remark,
 		StorageType:    api.StorageType(datasource.StorageType),
-		Creator:        nil, // TODO impl
+		Creator:        userMap[datasource.CreatorID],
 	}
 }
 
@@ -204,8 +206,12 @@ func (d *doDatasourceBuilder) ToAPIs(datasources []*bizmodel.Datasource) []*admi
 		return nil
 	}
 
+	ids := types.SliceTo(datasources, func(item *bizmodel.Datasource) uint32 {
+		return item.CreatorID
+	})
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 

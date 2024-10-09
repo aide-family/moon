@@ -29,8 +29,8 @@ func (p *paginationModuleBuilder) ToAPI(pagination types.Pagination) *api.Pagina
 		return nil
 	}
 	return &api.PaginationReply{
-		PageNum:  int32(pagination.GetPageNum()),
-		PageSize: int32(pagination.GetPageSize()),
-		Total:    int64(pagination.GetTotal()),
+		PageNum:  pagination.GetPageNum(),
+		PageSize: pagination.GetPageSize(),
+		Total:    pagination.GetTotal(),
 	}
 }

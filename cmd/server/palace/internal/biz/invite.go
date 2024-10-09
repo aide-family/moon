@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -117,7 +118,7 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 			Biz:      types.Ternary(params.InviteType.IsJoined(), vobj.BizTypeInvitationAccepted, vobj.BizTypeInvitationRejected),
 			BizID:    teamInvite.ID,
 		})
-	}, retry.RetryTimes(3))
+	}, retry.RetryTimes(3), retry.RetryWithLinearBackoff(1*time.Second))
 }
 
 // UserInviteList 当前用户邀请列表

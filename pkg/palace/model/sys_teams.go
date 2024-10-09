@@ -16,6 +16,8 @@ type SysTeam struct {
 	Logo     string      `gorm:"column:logo;type:varchar(255);not null;comment:团队logo" json:"logo"`                                              // 团队logo
 	LeaderID uint32      `gorm:"column:leader_id;type:int unsigned;not null;index:sys_teams__sys_users,priority:1;comment:负责人" json:"leader_id"` // 负责人
 	UUID     string      `gorm:"column:uuid;type:varchar(64);not null" json:"uuid"`
+
+	Admins []uint32 `gorm:"-" json:"admins"`
 }
 
 // String json string

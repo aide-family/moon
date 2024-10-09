@@ -172,7 +172,7 @@ type (
 
 	IDoStrategyGroupBuilder interface {
 		WithStrategyCountMap(*bo.StrategyCountMap) IDoStrategyGroupBuilder
-		ToAPI(*bizmodel.StrategyGroup) *adminapi.StrategyGroupItem
+		ToAPI(*bizmodel.StrategyGroup, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyGroupItem
 		ToAPIs([]*bizmodel.StrategyGroup) []*adminapi.StrategyGroupItem
 		ToSelect(*bizmodel.StrategyGroup) *adminapi.SelectItem
 		ToSelects([]*bizmodel.StrategyGroup) []*adminapi.SelectItem
@@ -184,7 +184,7 @@ type (
 	}
 
 	IDoStrategyBuilder interface {
-		ToAPI(*bizmodel.Strategy) *adminapi.StrategyItem
+		ToAPI(*bizmodel.Strategy, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyItem
 		ToAPIs([]*bizmodel.Strategy) []*adminapi.StrategyItem
 		ToSelect(*bizmodel.Strategy) *adminapi.SelectItem
 		ToSelects([]*bizmodel.Strategy) []*adminapi.SelectItem
@@ -196,7 +196,7 @@ type (
 	}
 
 	IDoTemplateStrategyBuilder interface {
-		ToAPI(*model.StrategyTemplate) *adminapi.StrategyTemplateItem
+		ToAPI(*model.StrategyTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyTemplateItem
 		ToAPIs([]*model.StrategyTemplate) []*adminapi.StrategyTemplateItem
 		ToSelect(*model.StrategyTemplate) *adminapi.SelectItem
 		ToSelects([]*model.StrategyTemplate) []*adminapi.SelectItem
@@ -207,7 +207,7 @@ type (
 	}
 
 	IDoStrategyLevelTemplateBuilder interface {
-		ToAPI(*model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem
+		ToAPI(*model.StrategyLevelTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelTemplateItem
 		ToAPIs([]*model.StrategyLevelTemplate) []*adminapi.StrategyLevelTemplateItem
 	}
 
@@ -238,7 +238,7 @@ type (
 	}
 
 	IDoStrategyLevelBuilder interface {
-		ToAPI(*bizmodel.StrategyLevel) *adminapi.StrategyLevelItem
+		ToAPI(*bizmodel.StrategyLevel, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelItem
 		ToAPIs([]*bizmodel.StrategyLevel) []*adminapi.StrategyLevelItem
 	}
 
@@ -372,11 +372,12 @@ func (s *strategyModuleBuilder) APIMutationStrategyLevelItems() IMutationStrateg
 	return &mutationStrategyLevelBuilder{ctx: s.ctx}
 }
 
-func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyLevel) *adminapi.StrategyLevelItem {
+func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyLevel, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelItem {
 	if types.IsNil(d) || types.IsNil(level) {
 		return nil
 	}
 
+	userMap := getUsers(d.ctx, userMaps, level.CreatorID)
 	return &adminapi.StrategyLevelItem{
 		Duration:     level.Duration,
 		Count:        level.Count,
@@ -392,6 +393,7 @@ func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyLevel) *adminapi.
 		Condition:    api.Condition(level.Condition),
 		AlarmGroups:  NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
 		LabelNotices: NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoLabelNoticeBuilder().ToAPIs(level.LabelNotices),
+		Creator:      userMap[level.CreatorID],
 	}
 }
 
@@ -400,8 +402,10 @@ func (d *doStrategyLevelBuilder) ToAPIs(levels []*bizmodel.StrategyLevel) []*adm
 		return nil
 	}
 
+	ids := types.SliceTo(levels, func(level *bizmodel.StrategyLevel) uint32 { return level.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(levels, func(level *bizmodel.StrategyLevel) *adminapi.StrategyLevelItem {
-		return d.ToAPI(level)
+		return d.ToAPI(level, userMap)
 	})
 }
 
@@ -447,10 +451,12 @@ func (s *strategyModuleBuilder) APIMutationStrategyLevelTemplateItems() IMutatio
 	return &mutationStrategyLevelTemplateBuilder{ctx: s.ctx}
 }
 
-func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem {
+func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemplate, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelTemplateItem {
 	if types.IsNil(d) || types.IsNil(template) {
 		return nil
 	}
+
+	userMap := getUsers(d.ctx, userMaps, template.CreatorID)
 
 	return &adminapi.StrategyLevelTemplateItem{
 		Id:          template.ID,
@@ -463,6 +469,7 @@ func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemp
 		Threshold:   template.Threshold,
 		Condition:   api.Condition(template.Condition),
 		StrategyId:  template.StrategyTemplateID,
+		Creator:     userMap[template.CreatorID],
 	}
 }
 
@@ -471,8 +478,10 @@ func (d *doStrategyLevelTemplateBuilder) ToAPIs(templates []*model.StrategyLevel
 		return nil
 	}
 
+	ids := types.SliceTo(templates, func(item *model.StrategyLevelTemplate) uint32 { return item.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(templates, func(item *model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 
@@ -480,11 +489,12 @@ func (s *strategyModuleBuilder) DoStrategyLevelTemplateBuilder() IDoStrategyLeve
 	return &doStrategyLevelTemplateBuilder{ctx: s.ctx}
 }
 
-func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate) *adminapi.StrategyTemplateItem {
+func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyTemplateItem {
 	if types.IsNil(d) || types.IsNil(template) {
 		return nil
 	}
 
+	userMap := getUsers(d.ctx, userMaps, template.CreatorID)
 	return &adminapi.StrategyTemplateItem{
 		Id:          template.ID,
 		Alert:       template.Alert,
@@ -496,7 +506,7 @@ func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate) *adm
 		CreatedAt:   template.CreatedAt.String(),
 		UpdatedAt:   template.UpdatedAt.String(),
 		Remark:      template.Remark,
-		Creator:     nil, // TODO 创建人绑定
+		Creator:     userMap[template.CreatorID],
 		Categories:  NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(template.Categories, func(item *model.SysDict) imodel.IDict { return item })),
 	}
 }
@@ -506,8 +516,10 @@ func (d *doTemplateStrategyBuilder) ToAPIs(templates []*model.StrategyTemplate) 
 		return nil
 	}
 
+	ids := types.SliceTo(templates, func(item *model.StrategyTemplate) uint32 { return item.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(templates, func(item *model.StrategyTemplate) *adminapi.StrategyTemplateItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 
@@ -594,11 +606,12 @@ func (c *createTemplateStrategyRequestBuilder) ToBo() *bo.CreateTemplateStrategy
 	}
 }
 
-func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.StrategyItem {
+func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyItem {
 	if types.IsNil(d) || types.IsNil(strategy) {
 		return nil
 	}
 
+	userMap := getUsers(d.ctx, userMaps, strategy.CreatorID)
 	return &adminapi.StrategyItem{
 		Name:              strategy.Name,
 		Expr:              strategy.Expr,
@@ -618,6 +631,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.Strateg
 		TemplateSource:    api.TemplateSourceType(strategy.TemplateSource),
 		Categories:        NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(strategy.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		AlarmNoticeGroups: NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(strategy.AlarmNoticeGroups),
+		Creator:           userMap[strategy.CreatorID],
 	}
 }
 
@@ -626,8 +640,10 @@ func (d *doStrategyBuilder) ToAPIs(strategies []*bizmodel.Strategy) []*adminapi.
 		return nil
 	}
 
+	ids := types.SliceTo(strategies, func(item *bizmodel.Strategy) uint32 { return item.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(strategies, func(item *bizmodel.Strategy) *adminapi.StrategyItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 
@@ -725,10 +741,11 @@ func (d *doStrategyGroupBuilder) WithStrategyCountMap(countMap *bo.StrategyCount
 	return d
 }
 
-func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup) *adminapi.StrategyGroupItem {
+func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyGroupItem {
 	if types.IsNil(d) || types.IsNil(group) {
 		return nil
 	}
+	userMap := getUsers(d.ctx, userMaps, group.CreatorID)
 	strategyCount := d.strategyCountMap
 	return &adminapi.StrategyGroupItem{
 		Id:                  group.ID,
@@ -737,7 +754,7 @@ func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup) *adminapi.
 		CreatedAt:           group.CreatedAt.String(),
 		UpdatedAt:           group.UpdatedAt.String(),
 		Remark:              group.Remark,
-		Creator:             "", // TODO 获取系统成员信息
+		Creator:             userMap[group.CreatorID],
 		CreatorId:           group.CreatorID,
 		Strategies:          NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPIs(group.Strategies),
 		StrategyCount:       strategyCount.GetStrategyCountMap(group.ID),
@@ -751,8 +768,10 @@ func (d *doStrategyGroupBuilder) ToAPIs(groups []*bizmodel.StrategyGroup) []*adm
 		return nil
 	}
 
+	ids := types.SliceTo(groups, func(item *bizmodel.StrategyGroup) uint32 { return item.CreatorID })
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(groups, func(item *bizmodel.StrategyGroup) *adminapi.StrategyGroupItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 

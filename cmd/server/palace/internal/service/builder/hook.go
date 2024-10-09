@@ -64,7 +64,7 @@ type (
 	}
 
 	IDoHookBuilder interface {
-		ToAPI(*bizmodel.AlarmHook) *adminapi.AlarmHookItem
+		ToAPI(*bizmodel.AlarmHook, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmHookItem
 		ToAPIs([]*bizmodel.AlarmHook) []*adminapi.AlarmHookItem
 		ToSelect(*bizmodel.AlarmHook) *adminapi.SelectItem
 		ToSelects([]*bizmodel.AlarmHook) []*adminapi.SelectItem
@@ -75,10 +75,12 @@ type (
 	}
 )
 
-func (d *doHookBuilder) ToAPI(hook *bizmodel.AlarmHook) *adminapi.AlarmHookItem {
+func (d *doHookBuilder) ToAPI(hook *bizmodel.AlarmHook, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.AlarmHookItem {
 	if types.IsNil(d) || types.IsNil(hook) {
 		return nil
 	}
+
+	userMap := getUsers(d.ctx, userMaps, hook.CreatorID)
 
 	return &adminapi.AlarmHookItem{
 		Id:        hook.ID,
@@ -87,7 +89,7 @@ func (d *doHookBuilder) ToAPI(hook *bizmodel.AlarmHook) *adminapi.AlarmHookItem 
 		CreatedAt: hook.CreatedAt.String(),
 		UpdatedAt: hook.UpdatedAt.String(),
 		Remark:    hook.Remark,
-		Creator:   "", // TODO create
+		Creator:   userMap[hook.CreatorID],
 		HookApp:   api.HookApp(hook.APP),
 		Secret:    hook.Secret,
 		Url:       hook.URL,
@@ -98,9 +100,13 @@ func (d *doHookBuilder) ToAPIs(hooks []*bizmodel.AlarmHook) []*adminapi.AlarmHoo
 	if types.IsNil(d) || types.IsNil(hooks) {
 		return nil
 	}
+	ids := types.SliceTo(hooks, func(hook *bizmodel.AlarmHook) uint32 {
+		return hook.CreatorID
+	})
+	userMap := getUsers(d.ctx, nil, ids...)
 
 	return types.SliceTo(hooks, func(hook *bizmodel.AlarmHook) *adminapi.AlarmHookItem {
-		return d.ToAPI(hook)
+		return d.ToAPI(hook, userMap)
 	})
 }
 

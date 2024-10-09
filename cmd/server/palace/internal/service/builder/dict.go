@@ -65,7 +65,7 @@ type (
 	}
 
 	IDoDictBuilder interface {
-		ToAPI(imodel.IDict) *adminapi.DictItem
+		ToAPI(imodel.IDict, ...map[uint32]*adminapi.UserItem) *adminapi.DictItem
 		ToAPIs([]imodel.IDict) []*adminapi.DictItem
 		ToSelect(imodel.IDict) *adminapi.SelectItem
 		ToSelects([]imodel.IDict) []*adminapi.SelectItem
@@ -76,11 +76,11 @@ type (
 	}
 )
 
-func (d *doDictBuilder) ToAPI(dict imodel.IDict) *adminapi.DictItem {
+func (d *doDictBuilder) ToAPI(dict imodel.IDict, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.DictItem {
 	if types.IsNil(d) || types.IsNil(dict) {
 		return nil
 	}
-
+	userMap := getUsers(d.ctx, userMaps, dict.GetCreatorID())
 	return &adminapi.DictItem{
 		Id:           dict.GetID(),
 		Name:         dict.GetName(),
@@ -95,6 +95,7 @@ func (d *doDictBuilder) ToAPI(dict imodel.IDict) *adminapi.DictItem {
 		Remark:       dict.GetRemark(),
 		CreatedAt:    dict.GetCreatedAt().String(),
 		UpdatedAt:    dict.GetUpdatedAt().String(),
+		Creator:      userMap[dict.GetCreatorID()],
 	}
 }
 
@@ -102,9 +103,12 @@ func (d *doDictBuilder) ToAPIs(dicts []imodel.IDict) []*adminapi.DictItem {
 	if types.IsNil(d) || types.IsNil(dicts) {
 		return nil
 	}
-
+	ids := types.SliceTo(dicts, func(item imodel.IDict) uint32 {
+		return item.GetCreatorID()
+	})
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(dicts, func(item imodel.IDict) *adminapi.DictItem {
-		return d.ToAPI(item)
+		return d.ToAPI(item, userMap)
 	})
 }
 

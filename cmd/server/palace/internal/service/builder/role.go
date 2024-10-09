@@ -56,7 +56,7 @@ type (
 	}
 
 	IDoRoleBuilder interface {
-		ToAPI(*bizmodel.SysTeamRole) *adminapi.TeamRole
+		ToAPI(*bizmodel.SysTeamRole, ...map[uint32]*adminapi.UserItem) *adminapi.TeamRole
 		ToAPIs([]*bizmodel.SysTeamRole) []*adminapi.TeamRole
 		ToSelect(*bizmodel.SysTeamRole) *adminapi.SelectItem
 		ToSelects([]*bizmodel.SysTeamRole) []*adminapi.SelectItem
@@ -67,11 +67,12 @@ type (
 	}
 )
 
-func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole) *adminapi.TeamRole {
+func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.TeamRole {
 	if types.IsNil(d) || types.IsNil(role) {
 		return nil
 	}
 
+	userMap := getUsers(d.ctx, userMaps, role.CreatorID)
 	return &adminapi.TeamRole{
 		Id:        role.ID,
 		Name:      role.Name,
@@ -80,6 +81,7 @@ func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole) *adminapi.TeamRole {
 		UpdatedAt: role.UpdatedAt.String(),
 		Status:    api.Status(role.Status),
 		Resources: nil, // TODO 关联资源
+		Creator:   userMap[role.CreatorID],
 	}
 }
 
@@ -88,8 +90,12 @@ func (d *doRoleBuilder) ToAPIs(roles []*bizmodel.SysTeamRole) []*adminapi.TeamRo
 		return nil
 	}
 
+	ids := types.SliceTo(roles, func(role *bizmodel.SysTeamRole) uint32 {
+		return role.CreatorID
+	})
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(roles, func(role *bizmodel.SysTeamRole) *adminapi.TeamRole {
-		return d.ToAPI(role)
+		return d.ToAPI(role, userMap)
 	})
 }
 

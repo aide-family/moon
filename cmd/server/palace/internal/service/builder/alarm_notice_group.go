@@ -7,6 +7,7 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	alarmapi "github.com/aide-family/moon/api/admin/alarm"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -62,7 +63,7 @@ type (
 
 	// IDoAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
 	IDoAlarmNoticeGroupItemBuilder interface {
-		ToAPI(*bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem
+		ToAPI(*bizmodel.AlarmNoticeGroup, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem
 		ToAPIs([]*bizmodel.AlarmNoticeGroup) []*adminapi.AlarmNoticeGroupItem
 		ToSelect(*bizmodel.AlarmNoticeGroup) *adminapi.SelectItem
 		ToSelects([]*bizmodel.AlarmNoticeGroup) []*adminapi.SelectItem
@@ -200,11 +201,36 @@ func (d *doAlarmNoticeGroupItemBuilder) ToSelects(groups []*bizmodel.AlarmNotice
 	})
 }
 
-func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
+func getUsers(ctx context.Context, userMaps []map[uint32]*adminapi.UserItem, userIDs ...uint32) map[uint32]*adminapi.UserItem {
+	userMap := make(map[uint32]*adminapi.UserItem)
+	userDoBuilder := NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder()
+	noExistIds := make([]uint32, 0, len(userIDs))
+	if len(userMaps) > 0 && len(userMaps[0]) > 0 {
+		userMap = userMaps[0]
+		for _, userID := range userIDs {
+			if _, ok := userMap[userID]; !ok {
+				noExistIds = append(noExistIds, userID)
+			}
+		}
+	} else {
+		noExistIds = userIDs
+	}
+	if biz.RuntimeCache != nil && len(noExistIds) > 0 {
+		userList := biz.RuntimeCache.GetUsers(ctx, noExistIds)
+		for _, user := range userList {
+			userMap[user.ID] = userDoBuilder.ToAPI(user)
+		}
+	}
+
+	return userMap
+}
+
+func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem {
 	if types.IsNil(group) || types.IsNil(d) {
 		return nil
 	}
 
+	userMap := getUsers(d.ctx, userMaps, group.CreatorID)
 	return &adminapi.AlarmNoticeGroupItem{
 		Id:          group.ID,
 		Name:        group.Name,
@@ -212,7 +238,7 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) 
 		CreatedAt:   group.CreatedAt.String(),
 		UpdatedAt:   group.UpdatedAt.String(),
 		Remark:      group.Remark,
-		Creator:     "", // TODO impl
+		Creator:     userMap[group.CreatorID], // TODO impl
 		CreatorId:   group.CreatorID,
 		NoticeUsers: NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
 		Hooks:       NewParamsBuild().WithContext(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
@@ -223,9 +249,12 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPIs(groups []*bizmodel.AlarmNoticeGro
 	if types.IsNil(groups) || types.IsNil(d) {
 		return nil
 	}
-
+	ids := types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
+		return group.CreatorID
+	})
+	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
-		return d.ToAPI(group)
+		return d.ToAPI(group, userMap)
 	})
 }
 

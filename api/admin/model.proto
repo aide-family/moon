@@ -194,7 +194,7 @@ message TeamItem {
   // 团队LOGO
   string logo = 9;
   // 管理员（不包含创建者， 因为创建者不一定是管理员，但是包含负责人）
-  repeated TeamMemberItem admin = 10;
+  repeated UserItem admins = 10;
 }
 
 // 团队角色模块
@@ -213,6 +213,8 @@ message TeamRole {
   Status status = 6;
   // 资源列表
   repeated ResourceItem resources = 7;
+  // 创建人
+  UserItem creator = 8;
 }
 
 // 数据源模块
@@ -302,6 +304,8 @@ message DictItem{
   string createdAt = 12;
   // 更新时间
   string updatedAt = 13;
+  // 创建人
+  UserItem creator = 14;
 }
 
 message StrategyLevelItem {
@@ -333,6 +337,8 @@ message StrategyLevelItem {
   repeated AlarmNoticeGroupItem alarmGroups = 25;
   // label匹配的告警通知组
   repeated LabelNoticeItem labelNotices = 26;
+  // 创建人
+  UserItem creator = 17;
 }
 
 message StrategyItem {
@@ -372,6 +378,8 @@ message StrategyItem {
   repeated DictItem categories = 24;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmNoticeGroups = 25;
+  // 创建人
+  UserItem creator = 17;
 }
 
 message StrategyGroupItem {
@@ -388,7 +396,7 @@ message StrategyGroupItem {
   // 策略组说明信息
   string remark = 6;
   // 策略组创建人
-  string creator = 7;
+  UserItem creator = 7;
   // 创建者ID
   uint32 creatorId = 8;
   // 策略列表
@@ -422,6 +430,8 @@ message StrategyLevelTemplateItem {
   Condition condition = 13;
   // 所属策略
   uint32 strategyId = 14;
+  // 创建人
+  UserItem creator = 15;
 }
 
 message StrategyTemplateItem {
@@ -575,7 +585,7 @@ message AlarmNoticeGroupItem {
   // 告警组说明信息
   string remark = 6;
   // 告警组创建人
-  string creator = 7;
+  UserItem creator = 7;
   // 创建者ID
   uint32 creatorId = 8;
   // 通知人列表
@@ -627,7 +637,7 @@ message AlarmHookItem {
   // hook说明信息
   string remark = 6;
   // hook创建人
-  string creator = 7;
+  UserItem creator = 7;
   // hook应用类型
   HookApp hookApp = 8;
   // secret
