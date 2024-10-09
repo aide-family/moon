@@ -1,13 +1,7 @@
 package types
 
 import (
-	"database/sql"
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"sort"
-	"strings"
 )
 
 // SliceTo 将slice转换为指定类型
@@ -193,56 +187,4 @@ func SlicesHasDuplicates[T any, R comparable](arr []T, keyFunc func(T) R) bool {
 		keys[key] = struct{}{}
 	}
 	return false
-}
-
-var _ sql.Scanner = (*Slice[int32])(nil)
-var _ driver.Valuer = (*Slice[int32])(nil)
-
-type (
-	Slice[T comparable] []T
-)
-
-// Value 实现 driver.Valuer 接口
-func (s Slice[T]) Value() (driver.Value, error) {
-	if s == nil {
-		return "[]", nil
-	}
-	var builder strings.Builder
-	builder.WriteString("[")
-	for i, v := range s {
-		if i > 0 {
-			builder.WriteString(",")
-		}
-
-		builder.WriteString(fmt.Sprintf("%v", v))
-	}
-
-	builder.WriteString("]")
-	return builder.String(), nil
-}
-
-// Scan 实现 sql.Scanner 接口
-func (s *Slice[T]) Scan(src any) (err error) {
-	if src == nil {
-		return nil
-	}
-	bytes, ok := src.([]byte)
-	if !ok {
-		return errors.New("failed to scan Slice")
-	}
-	return json.Unmarshal(bytes, s)
-}
-
-// ToSlice 转换为slice
-func (s Slice[T]) ToSlice() []T {
-	return s
-}
-
-// NewUint32SlicePointer 创建 *Slice[uint32]
-func NewUint32SlicePointer(uint32Slice []uint32) *Slice[uint32] {
-	if IsNil(uint32Slice) {
-		return nil
-	}
-	slice := uint32Slice
-	return (*Slice[uint32])(&slice)
 }

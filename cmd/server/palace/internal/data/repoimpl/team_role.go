@@ -267,11 +267,3 @@ func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamID uint32, rol
 	}
 	return false, nil
 }
-
-func (l *teamRoleRepositoryImpl) GetBizTeamRolesByIds(ctx context.Context, teamID uint32, roleIds []uint32) ([]*bizmodel.SysTeamRole, error) {
-	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
-	if err != nil {
-		return nil, err
-	}
-	return bizQuery.SysTeamRole.WithContext(ctx).Where(bizQuery.SysTeamRole.ID.In(roleIds...)).Find()
-}

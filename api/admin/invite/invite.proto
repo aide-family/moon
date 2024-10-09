@@ -97,8 +97,9 @@ message GetInviteReply {
 }
 
 message ListUserInviteRequest {
-  PaginationReq pagination = 1;
-  InviteType type = 2;
+  string keyword = 1;
+  PaginationReq pagination = 2;
+  InviteType type = 3;
 }
 message ListUserInviteReply {
   PaginationReply pagination = 1;

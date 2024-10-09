@@ -26,15 +26,6 @@ type datasourceRepositoryImpl struct {
 	data *data.Data
 }
 
-// getTeamIdBizQuery 获取团队数据库
-func getTeamIdBizQuery(data *data.Data, teamID uint32) (*bizquery.Query, error) {
-	bizDB, err := data.GetBizGormDB(teamID)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return bizquery.Use(bizDB), nil
-}
-
 // getBizQuery 获取业务数据库
 func getBizQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
 	claims, ok := middleware.ParseJwtClaims(ctx)

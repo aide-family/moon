@@ -8,6 +8,7 @@ import (
 	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -19,7 +20,7 @@ type (
 		WithInviteUserRequest(*inviteapi.InviteUserRequest) ICreateInviteUserRequestBuilder
 		WithUpdateInviteStatusRequest(*inviteapi.UpdateInviteStatusRequest) IUpdateInviteStatusRequestBuilder
 		WithListInviteUserRequest(*inviteapi.ListUserInviteRequest) IListInviteUserRequestBuilder
-		DoInviteBuilder(*bo.InviteTeamInfoParams) IDoInviteBuilder
+		DoInviteBuilder(map[uint32]*model.SysTeam) IDoInviteBuilder
 	}
 	inviteModuleBuilder struct {
 		ctx context.Context
@@ -52,17 +53,17 @@ type (
 	}
 
 	IDoInviteBuilder interface {
-		ToAPI(*model.SysTeamInvite) *admin.InviteItem
-		ToAPIs([]*model.SysTeamInvite) []*admin.InviteItem
+		ToAPI(*bizmodel.SysTeamInvite) *admin.InviteItem
+		ToAPIs([]*bizmodel.SysTeamInvite) []*admin.InviteItem
 	}
 
 	doInviteBuilder struct {
-		ctx      context.Context
-		TeamInfo *bo.InviteTeamInfoParams
+		ctx     context.Context
+		TeamMap map[uint32]*model.SysTeam
 	}
 )
 
-func (d *doInviteBuilder) ToAPI(invite *model.SysTeamInvite) *admin.InviteItem {
+func (d *doInviteBuilder) ToAPI(invite *bizmodel.SysTeamInvite) *admin.InviteItem {
 	if types.IsNil(d) || types.IsNil(invite) {
 		return nil
 	}
@@ -70,32 +71,32 @@ func (d *doInviteBuilder) ToAPI(invite *model.SysTeamInvite) *admin.InviteItem {
 	resItem := &admin.InviteItem{
 		Id:         invite.ID,
 		InviteType: api.InviteType(invite.InviteType),
+		Roles: NewParamsBuild().
+			RoleModuleBuilder().
+			DoRoleBuilder().
+			ToAPIs(invite.TeamRoles),
 	}
-	teamInfo := d.TeamInfo
-	if !types.IsNil(teamInfo) && !types.IsNil(teamInfo.TeamMap) {
-		team := teamInfo.TeamMap[invite.TeamID]
+	teamMap := d.TeamMap
+	if !types.IsNil(teamMap) {
+		team := teamMap[invite.TeamID]
 		resItem.Team = NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPI(team)
-	}
-
-	if !types.IsNil(teamInfo) && !types.IsNil(teamInfo.TeamRoles) {
-		resItem.Roles = NewParamsBuild().RoleModuleBuilder().DoRoleBuilder().ToAPIs(teamInfo.TeamRoles)
 	}
 	return resItem
 }
 
-func (d *doInviteBuilder) ToAPIs(invites []*model.SysTeamInvite) []*admin.InviteItem {
+func (d *doInviteBuilder) ToAPIs(invites []*bizmodel.SysTeamInvite) []*admin.InviteItem {
 	if types.IsNil(d) || types.IsNil(invites) {
 		return nil
 	}
-	return types.SliceTo(invites, func(invite *model.SysTeamInvite) *admin.InviteItem {
+	return types.SliceTo(invites, func(invite *bizmodel.SysTeamInvite) *admin.InviteItem {
 		return d.ToAPI(invite)
 	})
 }
 
-func (i *inviteModuleBuilder) DoInviteBuilder(teamInfo *bo.InviteTeamInfoParams) IDoInviteBuilder {
+func (i *inviteModuleBuilder) DoInviteBuilder(teamMap map[uint32]*model.SysTeam) IDoInviteBuilder {
 	return &doInviteBuilder{
-		ctx:      i.ctx,
-		TeamInfo: teamInfo,
+		ctx:     i.ctx,
+		TeamMap: teamMap,
 	}
 }
 
@@ -105,6 +106,7 @@ func (i *listInviteUserRequestBuilder) ToBo() *bo.QueryInviteListParams {
 	}
 	return &bo.QueryInviteListParams{
 		InviteType: vobj.InviteType(i.GetType()),
+		Keyword:    i.GetKeyword(),
 		Page:       types.NewPagination(i.GetPagination()),
 	}
 }
@@ -124,7 +126,7 @@ func (i *createInviteUserRequestBuilder) ToBo() *bo.InviteUserParams {
 		return nil
 	}
 	return &bo.InviteUserParams{
-		TeamRoleIds: types.NewUint32SlicePointer(i.GetRoleId()),
+		TeamRoleIds: i.GetRoleId(),
 		InviteCode:  i.GetInviteCode(),
 	}
 }
