@@ -7,7 +7,6 @@ import (
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
 	hookapi "github.com/aide-family/moon/api/admin/hook"
-	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
@@ -24,7 +23,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
@@ -96,7 +94,6 @@ func RegisterService(
 	alarmGroupService *alarm.GroupService,
 	subscriberService *subscriber.Service,
 	hookService *hook.Service,
-	inviteService *invite.Service,
 	messageService *user.MessageService,
 ) *Server {
 	// 注册GRPC服务
@@ -121,7 +118,6 @@ func RegisterService(
 	hookapi.RegisterHookServer(rpcSrv, hookService)
 	api.RegisterAlertServer(rpcSrv, alertService)
 	userapi.RegisterMessageServer(rpcSrv, messageService)
-	inviteapi.RegisterInviteServer(rpcSrv, inviteService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -144,7 +140,6 @@ func RegisterService(
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
-	inviteapi.RegisterInviteHTTPServer(httpSrv, inviteService)
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
 
 	// custom api

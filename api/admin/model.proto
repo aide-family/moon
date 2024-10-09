@@ -649,8 +649,7 @@ message NoticeUserMessage {
 
 // invite item
 message InviteItem{
- repeated TeamRole roles = 1;
+  TeamRole role = 1;
   TeamItem team = 2;
-  uint32 id = 3;
-  InviteType inviteType = 4;
+  uint32 inviteId = 3;
 }

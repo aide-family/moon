@@ -3,7 +3,6 @@ package builder
 import (
 	"context"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
 	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -53,7 +52,7 @@ type (
 
 	IDoInviteBuilder interface {
 		ToAPI(*bizmodel.SysTeamInvite) *admin.InviteItem
-		ToAPIs([]*bizmodel.SysTeamInvite) []*admin.InviteItem
+		ToAPIs([]*bizmodel.SysTeamInvite) *admin.InviteItem
 	}
 
 	doInviteBuilder struct {
@@ -62,26 +61,13 @@ type (
 )
 
 func (d *doInviteBuilder) ToAPI(invite *bizmodel.SysTeamInvite) *admin.InviteItem {
-	if types.IsNil(d) || types.IsNil(invite) {
-		return nil
-	}
-	return &admin.InviteItem{
-		Id:         invite.ID,
-		InviteType: api.InviteType(invite.InviteType),
-		Roles: NewParamsBuild().
-			RoleModuleBuilder().
-			DoRoleBuilder().
-			ToAPIs(invite.TeamRoles),
-	}
+	//TODO implement me
+	panic("implement me")
 }
 
-func (d *doInviteBuilder) ToAPIs(invites []*bizmodel.SysTeamInvite) []*admin.InviteItem {
-	if types.IsNil(d) || types.IsNil(invites) {
-		return nil
-	}
-	return types.SliceTo(invites, func(invite *bizmodel.SysTeamInvite) *admin.InviteItem {
-		return d.ToAPI(invite)
-	})
+func (d *doInviteBuilder) ToAPIs(invites []*bizmodel.SysTeamInvite) *admin.InviteItem {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (i *inviteModuleBuilder) DoInviteBuilder() IDoInviteBuilder {
