@@ -29,3 +29,14 @@ func (l *Annotations) Scan(src any) error {
 		return ErrUnsupportedType
 	}
 }
+
+// MarshalJSON 实现 json.Marshaler 接口
+func (l *Annotations) MarshalJSON() ([]byte, error) {
+	// 返回字符串形式的时间
+	return []byte(l.String()), nil
+}
+
+func (l *Annotations) String() string {
+	bs, _ := types.Marshal(l)
+	return string(bs)
+}

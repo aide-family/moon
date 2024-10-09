@@ -37,18 +37,15 @@ type Labels struct {
 	label map[string]string
 }
 
-// LabelsJSON map类型json
-type LabelsJSON map[string]string
-
-// JSON map类型json
-type JSON map[string]any
-
-// SlicesJSON 切片类型json
-type SlicesJSON[T any] []T
-
 // NewLabels 基于map创建Labels
 func NewLabels(labels map[string]string) *Labels {
 	return &Labels{label: labels}
+}
+
+// MarshalJSON 实现 json.Marshaler 接口
+func (l *Labels) MarshalJSON() ([]byte, error) {
+	// 返回字符串形式的时间
+	return []byte(l.String()), nil
 }
 
 // String 转json字符串
@@ -65,40 +62,6 @@ func (l *Labels) String() string {
 	}
 	str := strings.TrimRight(bs.String(), ",")
 	return str + "}"
-}
-
-// LabelsJSON 转json字符串
-func (l LabelsJSON) String() string {
-	if types.IsNil(l) {
-		return "{}"
-	}
-	bs := strings.Builder{}
-	bs.WriteString(`{`)
-	labelKeys := maps.Keys(l)
-	sort.Strings(labelKeys)
-	for _, k := range labelKeys {
-		bs.WriteString(`"` + k + `":"` + l[k] + `",`)
-	}
-	str := strings.TrimRight(bs.String(), ",")
-	return str + "}"
-}
-
-// JSON 转json字符串
-func (l JSON) String() string {
-	if types.IsNil(l) {
-		return "{}"
-	}
-	bs, _ := types.Marshal(l)
-	return string(bs)
-}
-
-// SlicesJSON 转json字符串
-func (l SlicesJSON[T]) String() string {
-	if types.IsNil(l) {
-		return "{}"
-	}
-	bs, _ := types.Marshal(l)
-	return string(bs)
 }
 
 // Map 转map

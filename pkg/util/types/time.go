@@ -13,6 +13,12 @@ import (
 // Time 包装后的时间类型
 type Time time.Time
 
+// MarshalJSON 实现 json.Marshaler 接口
+func (t Time) MarshalJSON() ([]byte, error) {
+	// 返回字符串形式的时间
+	return []byte(`"` + t.String() + `"`), nil
+}
+
 // String implements Stringer interface
 func (t *Time) String() string {
 	if t == nil {
@@ -90,6 +96,15 @@ func NewDuration(dur *durationpb.Duration) *Duration {
 // Duration 包装后的时间类型
 type Duration struct {
 	Duration *durationpb.Duration
+}
+
+func (d *Duration) String() string {
+	return d.GetDuration().String()
+}
+
+func (d *Duration) MarshalJSON() ([]byte, error) {
+	// 返回字符串形式的时间
+	return []byte(`"` + d.String() + `"`), nil
 }
 
 // CronTime 定义一个时间间隔，单位为秒

@@ -104,9 +104,9 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 		// 策略告警unix时间戳
 		"eventAt": timeNow.Unix(),
 		// 策略告警标签
-		"labels": vobj.LabelsJSON(req.GetLabels()),
+		"labels": vobj.NewLabels(req.GetLabels()),
 		// 策略明细
-		"strategy": vobj.JSON(map[string]any{
+		"strategy": map[string]any{
 			// 策略名称
 			"alert": req.GetAlert(),
 			// 策略等级
@@ -123,9 +123,9 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 			"condition": vobj.Condition(req.GetCondition()).String(),
 			// 告警阈值
 			"threshold": req.GetThreshold(),
-		}),
+		},
 	}
-	labels := vobj.LabelsJSON(req.GetLabels())
+	labels := vobj.NewLabels(req.GetLabels())
 	queryParams := &bo.DatasourceQueryParams{
 		DatasourceID: req.GetDatasourceId(), // TODO 增加数据源支持
 		Query:        req.GetExpr(),
@@ -149,7 +149,8 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 			if types.IsNil(datum) {
 				continue
 			}
-			labels = types.MapsMerge(labels, datum.Labels)
+			labelsTmp := types.MapsMerge(labels.Map(), datum.Labels)
+			labels = vobj.NewLabels(labelsTmp)
 		}
 		data["labels"] = labels
 		data["value"] = queryData[0].Value.Value
@@ -164,8 +165,8 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 	if err != nil {
 		errorString = err.Error()
 	}
-	labelsString := make([]string, 0, len(labels))
-	for k := range labels {
+	labelsString := make([]string, 0, len(labels.Map()))
+	for k := range labels.Map() {
 		labelsString = append(labelsString, k)
 	}
 	return &strategyapi.ValidateAnnotationsTemplateReply{
