@@ -102,8 +102,8 @@ func (i *createInviteUserRequestBuilder) ToBo() *bo.InviteUserParams {
 		return nil
 	}
 	return &bo.InviteUserParams{
-		TeamRoleIds: i.GetRoleId(),
-		InviteCode:  i.GetInviteCode(),
+		TeamRoleID: i.GetRoleId(),
+		InviteCode: i.GetInviteCode(),
 	}
 }
 

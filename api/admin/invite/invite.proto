@@ -50,12 +50,9 @@ service Invite {
 }
 
 message InviteUserRequest {
-  repeated uint32  roleId = 1 [(buf.validate.field).cel = {
+  uint32  roleId = 1 [(buf.validate.field).cel = {
     message: "请选择邀请用户的角色",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
-    expression: "this.unique()"
+    expression: "this > 0"
   }];
   // 邮箱或手机号
   string inviteCode = 2 [(buf.validate.field).cel = {

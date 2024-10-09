@@ -1,53 +1,33 @@
-package invite
+package service
 
 import (
 	"context"
 
 	pb "github.com/aide-family/moon/api/admin/invite"
-	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
-	"github.com/aide-family/moon/pkg/util/types"
 )
 
-// Service invite service
-type Service struct {
+// InviteService invite service
+type InviteService struct {
 	pb.UnimplementedInviteServer
-
-	inviteBiz *biz.InviteBiz
 }
 
 // NewInviteService new a InviteService
-func NewInviteService() *Service {
-	return &Service{}
+func NewInviteService() *InviteService {
+	return &InviteService{}
 }
 
-func (s *Service) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*pb.InviteUserReply, error) {
-	param := builder.NewParamsBuild().InviteModuleBuilder().WithInviteUserRequest(req).ToBo()
-	err := s.inviteBiz.InviteUser(ctx, param)
-	if !types.IsNil(err) {
-		return nil, err
-	}
+func (s *InviteService) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*pb.InviteUserReply, error) {
 	return &pb.InviteUserReply{}, nil
 }
-func (s *Service) UpdateInviteStatus(ctx context.Context, req *pb.UpdateInviteStatusRequest) (*pb.UpdateInviteStatusReply, error) {
-	param := builder.NewParamsBuild().InviteModuleBuilder().WithUpdateInviteStatusRequest(req).ToBo()
-	err := s.inviteBiz.UpdateInviteStatus(ctx, param)
-	if !types.IsNil(err) {
-		return nil, err
-	}
+func (s *InviteService) UpdateInviteStatus(ctx context.Context, req *pb.UpdateInviteStatusRequest) (*pb.UpdateInviteStatusReply, error) {
 	return &pb.UpdateInviteStatusReply{}, nil
 }
-func (s *Service) DeleteInvite(ctx context.Context, req *pb.DeleteInviteRequest) (*pb.DeleteInviteReply, error) {
+func (s *InviteService) DeleteInvite(ctx context.Context, req *pb.DeleteInviteRequest) (*pb.DeleteInviteReply, error) {
 	return &pb.DeleteInviteReply{}, nil
 }
-func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.GetInviteReply, error) {
+func (s *InviteService) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.GetInviteReply, error) {
 	return &pb.GetInviteReply{}, nil
 }
-func (s *Service) ListInvite(ctx context.Context, req *pb.ListInviteRequest) (*pb.ListInviteReply, error) {
-	param := builder.NewParamsBuild().InviteModuleBuilder().WithListInviteUserRequest(req).ToBo()
-	_, err := s.inviteBiz.InviteList(ctx, param)
-	if !types.IsNil(err) {
-		return nil, err
-	}
+func (s *InviteService) ListInvite(ctx context.Context, req *pb.ListInviteRequest) (*pb.ListInviteReply, error) {
 	return &pb.ListInviteReply{}, nil
 }

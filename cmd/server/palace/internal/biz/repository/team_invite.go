@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
 type TeamInvite interface {
@@ -13,7 +13,7 @@ type TeamInvite interface {
 	// UpdateInviteStatus 更新邀请状态
 	UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error
 	// InviteList 受邀请列表
-	InviteList(ctx context.Context) ([]*bizmodel.SysTeamInvite, error)
+	InviteList(ctx context.Context, params *bo.QueryInviteListParams)
 	// GetInviteUserByUserIdAndType 获取邀请用户信息
 	GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*bizmodel.SysTeamInvite, error)
 }

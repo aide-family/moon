@@ -10,7 +10,7 @@ type (
 		// 邀请userID
 		UserID uint32 `json:"userID"`
 		// 邀请人角色
-		TeamRoleIds []uint32 `json:"sysTeamRoleIds"`
+		TeamRoleID uint32 `json:"sysTeamRoleID"`
 		// 邀请人(手机或邮箱)
 		InviteCode string `json:"inviteCode"`
 		// 团队id

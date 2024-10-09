@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
 	hookservice "github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
@@ -41,5 +40,4 @@ var ProviderSetService = wire.NewSet(
 	subscriber.NewSubscriberService,
 	hookservice.NewHookService,
 	NewAlertService,
-	invite.NewInviteService,
 )

@@ -2,12 +2,10 @@ package biz
 
 import (
 	"context"
-
 	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/errors"
@@ -57,19 +55,8 @@ func (i *InviteBiz) InviteUser(ctx context.Context, params *bo.InviteUserParams)
 	return nil
 }
 func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error {
-	err := i.inviteRepo.UpdateInviteStatus(ctx, params)
-	if !types.IsNil(err) {
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
-}
 
-func (i *InviteBiz) InviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*bizmodel.SysTeamInvite, error) {
-	inviteList, err := i.inviteRepo.InviteList(ctx)
-	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return inviteList, nil
+	return nil
 }
 
 func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.InviteUserParams) error {
