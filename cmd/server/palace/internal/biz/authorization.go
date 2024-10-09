@@ -231,7 +231,7 @@ func (b *AuthorizationBiz) Logout(ctx context.Context, params *bo.LogoutParams) 
 
 // 检查用户密码是否正确
 func checkPassword(ctx context.Context, user *model.SysUser, password string) error {
-	if err := types.ValidatePassword(user.Password, password, user.Salt); err != nil {
+	if err := types.NewPassword(user.Password, user.Salt).Validate(password); err != nil {
 		return merr.ErrorI18nAlertPasswordErr(ctx).WithCause(err)
 	}
 	return nil

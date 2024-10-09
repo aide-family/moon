@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/random"
+
 	"google.golang.org/grpc/status"
 )
 
@@ -18,14 +19,14 @@ func NewPassword(values ...string) Password {
 	var value, salt string
 	switch len(values) {
 	case 1:
-		value = values[0]
-		salt = GenerateSalt()
+		salt = generateSalt()
+		value = generatePassword(values[0], salt)
 	case 2:
 		value = values[0]
 		salt = values[1]
 	default:
-		salt = GenerateSalt()
-		value = random.GenerateRandomString(8, 0)
+		salt = generateSalt()
+		value = generatePassword(random.GenerateRandomString(8, 0), salt)
 	}
 	return &password{
 		salt:  salt,
@@ -36,15 +37,19 @@ func NewPassword(values ...string) Password {
 type (
 	// Password 密码
 	Password interface {
-		GetEncryptValue() (string, error)
 		GetValue() string
 		GetSalt() string
 		fmt.Stringer
+		Validate(checkPass string) error
 	}
 	password struct {
 		value, salt string
 	}
 )
+
+func (p *password) Validate(checkPass string) error {
+	return validatePassword(p.value, checkPass, p.salt)
+}
 
 // GetSalt 获取盐
 func (p *password) GetSalt() string {
@@ -53,8 +58,7 @@ func (p *password) GetSalt() string {
 
 // String 获取加密值
 func (p *password) String() string {
-	v, _ := p.GetEncryptValue()
-	return v
+	return p.value
 }
 
 // GetValue 获取密码值
@@ -62,24 +66,18 @@ func (p *password) GetValue() string {
 	return p.value
 }
 
-// GetEncryptValue 获取加密值
-func (p *password) GetEncryptValue() (string, error) {
-	return GeneratePassword(p.value, p.salt)
-}
-
 // GeneratePassword 生成密码
-func GeneratePassword(password, salt string) (string, error) {
+func generatePassword(password, salt string) string {
 	newPass := MD5(password + salt)
-	return newPass, nil
+	return newPass
 }
 
 // GenerateSalt 生成盐
-func GenerateSalt() string {
+func generateSalt() string {
 	return MD5(strconv.FormatInt(time.Now().Unix(), 10))[0:16]
 }
 
-// ValidatePassword 校验密码
-func ValidatePassword(password, checkPass, salt string) (err error) {
+func validatePassword(password, checkPass, salt string) (err error) {
 	if password == MD5(checkPass+salt) {
 		return nil
 	}
