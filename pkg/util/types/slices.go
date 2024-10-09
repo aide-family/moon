@@ -3,11 +3,8 @@ package types
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"sort"
-	"strings"
 )
 
 // SliceTo 将slice转换为指定类型
@@ -205,20 +202,9 @@ type (
 // Value 实现 driver.Valuer 接口
 func (s Slice[T]) Value() (driver.Value, error) {
 	if s == nil {
-		return "[]", nil
+		return []byte("[]"), nil
 	}
-	var builder strings.Builder
-	builder.WriteString("[")
-	for i, v := range s {
-		if i > 0 {
-			builder.WriteString(",")
-		}
-
-		builder.WriteString(fmt.Sprintf("%v", v))
-	}
-
-	builder.WriteString("]")
-	return builder.String(), nil
+	return Marshal(s)
 }
 
 // Scan 实现 sql.Scanner 接口
@@ -230,7 +216,7 @@ func (s *Slice[T]) Scan(src any) (err error) {
 	if !ok {
 		return errors.New("failed to scan Slice")
 	}
-	return json.Unmarshal(bytes, s)
+	return Unmarshal(bytes, s)
 }
 
 // ToSlice 转换为slice

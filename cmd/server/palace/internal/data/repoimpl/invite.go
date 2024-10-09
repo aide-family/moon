@@ -49,9 +49,9 @@ func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context,
 	return mainQuery.SysTeamInvite.WithContext(ctx).Where(wheres...).First()
 }
 
-func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.InviteUserParams) error {
+func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.InviteUserParams) (teamInvite *model.SysTeamInvite, err error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
-	teamInvite, _ := mainQuery.SysTeamInvite.WithContext(ctx).
+	teamInvite, _ = mainQuery.SysTeamInvite.WithContext(ctx).
 		Where(mainQuery.SysTeamInvite.UserID.Eq(params.UserID),
 			mainQuery.SysTeamInvite.TeamID.Eq(params.TeamID)).First()
 
@@ -59,7 +59,7 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 		teamInvite.RolesIds = params.TeamRoleIds
 		teamInvite.InviteType = vobj.InviteTypeUnderReview
 		if _, err := mainQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite); !types.IsNil(err) {
-			return err
+			return nil, err
 		}
 	} else {
 		teamInvite = &model.SysTeamInvite{
@@ -69,10 +69,10 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 			RolesIds:   params.TeamRoleIds,
 		}
 		if err := mainQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite); !types.IsNil(err) {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return
 }
 
 func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error {

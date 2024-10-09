@@ -11,4 +11,10 @@ const (
 
 	// BizTypeInvitation 邀请
 	BizTypeInvitation // invitation
+
+	// BizTypeInvitationRejected 邀请被拒绝
+	BizTypeInvitationRejected // invitation_rejected
+
+	// BizTypeInvitationAccepted 邀请被接受
+	BizTypeInvitationAccepted // invitation_accepted
 )

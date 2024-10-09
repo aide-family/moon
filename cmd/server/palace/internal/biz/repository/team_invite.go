@@ -9,7 +9,7 @@ import (
 
 type TeamInvite interface {
 	// InviteUser 邀请用户加入团队
-	InviteUser(ctx context.Context, params *bo.InviteUserParams) error
+	InviteUser(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error)
 	// UpdateInviteStatus 更新邀请状态
 	UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error
 	// UserInviteList 受邀请列表
