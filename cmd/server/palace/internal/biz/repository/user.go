@@ -50,7 +50,5 @@ type (
 
 		// FindByIds find user by ids
 		FindByIds(ctx context.Context, ids ...uint32) ([]*model.SysUser, error)
-		// GetUserByEmailOrPhone get user by email or phone
-		GetUserByEmailOrPhone(ctx context.Context, emailOrPhone string) (*model.SysUser, error)
 	}
 )

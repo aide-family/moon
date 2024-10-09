@@ -646,10 +646,3 @@ message NoticeUserMessage {
   string biz = 5;
   uint32 bizID = 6;
 }
-
-// invite item
-message InviteItem{
-  TeamRole role = 1;
-  TeamItem team = 2;
-  uint32 inviteId = 3;
-}
