@@ -6,10 +6,10 @@ server:
     description: 是moon监控系列的告警组件，可以独立部署，接受prom类型规则，也可以接受alertmanager类型组件的告警推送
     background: 寓意为天神后羿，专门用于监控规则告警事件
 http:
-  addr: 0.0.0.0:8000
+  addr: 0.0.0.0:8001
   timeout: 50s
 grpc:
-  addr: 0.0.0.0:9000
+  addr: 0.0.0.0:9001
   timeout: 50s
 
 cache:
@@ -36,26 +36,28 @@ watch:
     timeout: 10s
     interval: 10s
 
-discovery:
-  driver: "etcd"
-  etcd:
-    endpoints:
-      - localhost:20000
-      - localhost:20002
-      - localhost:20004
-    username: ""
-    password: ""
-    timeout: 50s
+#discovery:
+#  driver: "etcd"
+#  etcd:
+#    endpoints:
+#      - localhost:20000
+#      - localhost:20002
+#      - localhost:20004
+#    username: ""
+#    password: ""
+#    timeout: 50s
 
 rabbit_server:
   network: "rpc"
   nodeVersion: ""
+#  endpoint: "discovery:///moon_rabbit"
   endpoint: "discovery:///moon_rabbit"
   timeout: 50s
   secret: ""
 palace_server:
   network: "rpc"
   nodeVersion: ""
-  endpoint: "discovery:///moon_palace"
+#  endpoint: "discovery:///moon_palace"
+  endpoint: "127.0.0.1:9000"
   timeout: 50s
   secret: ""

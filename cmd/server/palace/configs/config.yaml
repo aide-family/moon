@@ -55,16 +55,16 @@ tracer:
   jaeger:
     endpoint: "http://localhost:14268/api/traces"
 
-discovery:
-  driver: "etcd"
-  etcd:
-    endpoints:
-      - localhost:20000
-      - localhost:20002
-      - localhost:20004
-    username: ""
-    password: ""
-    timeout: 50s
+#discovery:
+#  driver: "etcd"
+#  etcd:
+#    endpoints:
+#      - localhost:20000
+#      - localhost:20002
+#      - localhost:20004
+#    username: ""
+#    password: ""
+#    timeout: 50s
 
 micro_server:
   rabbit_server:
@@ -76,20 +76,21 @@ micro_server:
   hou_yi_server:
     network: "rpc"
     nodeVersion: ""
-    endpoint: "discovery:///moon_houyi"
+#    endpoint: "discovery:///moon_houyi"
+    endpoint: "127.0.0.1:9001"
     timeout: 50s
     secret: ""
-  hou_yi_servers:
-    - network: "rpc"
-      nodeVersion: ""
-      endpoint: "discovery:///moon_houyi_1"
-      timeout: 50s
-      secret: ""
-    - network: "rpc"
-      nodeVersion: ""
-      endpoint: "discovery:///moon_houyi_2"
-      timeout: 50s
-      secret: ""
+#  hou_yi_servers:
+#    - network: "rpc"
+#      nodeVersion: ""
+#      endpoint: "discovery:///moon_houyi_1"
+#      timeout: 50s
+#      secret: ""
+#    - network: "rpc"
+#      nodeVersion: ""
+#      endpoint: "discovery:///moon_houyi_2"
+#      timeout: 50s
+#      secret: ""
 
 database:
   driver: "mysql"

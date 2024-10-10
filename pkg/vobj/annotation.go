@@ -3,8 +3,11 @@ package vobj
 import (
 	"database/sql"
 	"database/sql/driver"
+	"sort"
+	"strings"
 
 	"github.com/aide-family/moon/pkg/util/types"
+	"golang.org/x/exp/maps"
 )
 
 var _ sql.Scanner = (*Annotations)(nil)
@@ -37,6 +40,16 @@ func (l *Annotations) MarshalJSON() ([]byte, error) {
 }
 
 func (l *Annotations) String() string {
-	bs, _ := types.Marshal(l)
-	return string(bs)
+	if types.IsNil(l) || l == nil {
+		return "{}"
+	}
+	bs := strings.Builder{}
+	bs.WriteString(`{`)
+	labelKeys := maps.Keys(*l)
+	sort.Strings(labelKeys)
+	for _, k := range labelKeys {
+		bs.WriteString(`"` + k + `":"` + map[string]string(*l)[k] + `",`)
+	}
+	str := strings.TrimRight(bs.String(), ",")
+	return str + "}"
 }
