@@ -71,6 +71,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		strategyQueue:           watch.NewDefaultQueue(100),
 		alertQueue:              watch.NewDefaultQueue(100),
 		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
+		alertConsumerStorage:    watch.NewDefaultStorage(),
 		emailer:                 email.NewMockEmail(),
 		exit:                    make(chan struct{}),
 	}
@@ -356,7 +357,7 @@ func (d *Data) GetAlertQueue() watch.Queue {
 // GetAlertPersistenceDBQueue 获取持久化队列
 func (d *Data) GetAlertPersistenceDBQueue() watch.Queue {
 	if types.IsNil(d.alertPersistenceDBQueue) {
-		log.Warn("historyQueue is nil")
+		log.Warn("persistence queue is nil")
 	}
 	return d.alertPersistenceDBQueue
 }

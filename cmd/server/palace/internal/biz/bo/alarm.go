@@ -157,7 +157,7 @@ func (a *CreateAlarmHookRawParams) Index() string {
 }
 
 func (a *CreateAlarmHookRawParams) Message() *watch.Message {
-	return watch.NewMessage(a, vobj.TopicAlert)
+	return watch.NewMessage(a, vobj.TopicAlarm)
 }
 
 func (a *CreateAlarmInfoParams) GetDatasourceMap(datasourceID uint32) string {
