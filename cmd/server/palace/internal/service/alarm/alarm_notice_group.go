@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	alarmyapi "github.com/aide-family/moon/api/admin/alarm"
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 

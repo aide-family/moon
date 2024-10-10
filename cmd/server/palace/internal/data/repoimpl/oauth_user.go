@@ -7,21 +7,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/helper"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"gorm.io/gorm/clause"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func NewGithubUserRepository(bc *palaceconf.Bootstrap, data *data.Data) repository.OAuth {
@@ -182,7 +182,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 	body = format.Formatter(body, map[string]string{
 		"Username":    user.Email,
 		"Password":    pass,
-		"RedirectURI": g.bc.GetRedirectUri(),
+		"RedirectURI": g.bc.GetOauth2().GetRedirectUri(),
 		"APP":         g.bc.GetServer().GetName(),
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})
@@ -208,7 +208,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 	emailBody := format.Formatter(verifyEmailHtml, map[string]string{
 		"Email":       email,
 		"Code":        code,
-		"RedirectURI": g.bc.GetRedirectUri(),
+		"RedirectURI": g.bc.GetOauth2().GetRedirectUri(),
 		"APP":         g.bc.GetServer().GetName(),
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})

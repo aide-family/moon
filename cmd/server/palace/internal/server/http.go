@@ -19,18 +19,17 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service) *http.Server {
-	c := bc.GetServer()
+	httpConf := bc.GetHttp()
+	apiLimitConf := bc.GetApiLimit()
 
-	apiWhiteList := bc.GetServer().GetJwt().GetWhiteList()
-	blackList := bc.GetServer().GetJwt().GetBlackList()
-	rbacAPIWhiteList := append(apiWhiteList, bc.GetServer().GetJwt().GetRbacWhiteList()...)
+	rbacAPIWhiteList := append(apiLimitConf.GetAllowList(), apiLimitConf.GetTrustedList()...)
 	// 验证是否登录
 	authMiddleware := middleware.Server(
 		middleware.JwtServer(),
 		middleware.JwtLoginMiddleware(func(ctx context.Context) (*authorizationapi.CheckTokenReply, error) {
 			return authService.CheckToken(ctx, &authorizationapi.CheckTokenRequest{})
 		}),
-	).Match(middleware.NewWhiteListMatcher(apiWhiteList)).Build()
+	).Match(middleware.NewWhiteListMatcher(apiLimitConf.GetAllowList())).Build()
 
 	// 验证是否有数据权限
 	rbacMiddleware := middleware.Server(middleware.Rbac(func(ctx context.Context, operation string) (*authorizationapi.CheckPermissionReply, error) {
@@ -46,21 +45,21 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.I18N(),
-			middleware.Forbidden(blackList...),
+			middleware.Forbidden(apiLimitConf.GetDenyList()...),
 			authMiddleware,
 			rbacMiddleware,
 			middleware.Validate(protovalidate.WithFailFast(false)),
 			middleware.SourceType(),
 		),
 	}
-	if c.Http.Network != "" {
-		opts = append(opts, http.Network(c.Http.Network))
+	if httpConf.GetNetwork() != "" {
+		opts = append(opts, http.Network(httpConf.GetNetwork()))
 	}
-	if c.Http.Addr != "" {
-		opts = append(opts, http.Address(c.Http.Addr))
+	if httpConf.GetAddr() != "" {
+		opts = append(opts, http.Address(httpConf.GetAddr()))
 	}
-	if c.Http.Timeout != nil {
-		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
+	if httpConf.GetTimeout() != nil {
+		opts = append(opts, http.Timeout(httpConf.GetTimeout().AsDuration()))
 	}
 	srv := http.NewServer(opts...)
 

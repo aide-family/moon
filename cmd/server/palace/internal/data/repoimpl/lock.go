@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // NewLockRepository 创建全局锁

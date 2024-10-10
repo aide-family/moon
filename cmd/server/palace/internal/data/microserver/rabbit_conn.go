@@ -3,10 +3,10 @@ package microserver
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/merr"
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	pushapi "github.com/aide-family/moon/api/rabbit/push"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 

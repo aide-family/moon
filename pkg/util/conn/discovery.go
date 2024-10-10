@@ -3,7 +3,7 @@ package conn
 import (
 	"strings"
 
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"google.golang.org/protobuf/types/known/durationpb"
 
@@ -23,7 +23,7 @@ type (
 
 	// IDiscoveryConfig 服务发现配置
 	IDiscoveryConfig interface {
-		GetType() string
+		GetDriver() string
 	}
 
 	discoveryConfig struct {
@@ -41,7 +41,7 @@ func NewDiscovery(c IDiscoveryConfig, opts ...DiscoveryConfigBuilderOptions) (re
 		return nil, merr.ErrorNotification("discovery config is nil")
 	}
 	cfg := &discoveryConfig{
-		Type: c.GetType(),
+		Type: c.GetDriver(),
 	}
 	for _, opt := range opts {
 		opt(cfg)
@@ -71,7 +71,7 @@ func NewRegister(c IDiscoveryConfig, opts ...DiscoveryConfigBuilderOptions) (reg
 		return nil, merr.ErrorNotification("registry config is nil")
 	}
 	cfg := &discoveryConfig{
-		Type: c.GetType(),
+		Type: c.GetDriver(),
 	}
 	for _, opt := range opts {
 		opt(cfg)

@@ -13,9 +13,11 @@ ifeq ($(GOHOSTOS), windows)
 	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
 	INTERNAL_PROTO_FILES=$(shell $(Git_Bash) -c "find cmd -name *.proto")
 	API_PROTO_FILES=$(shell $(Git_Bash) -c "find api -name *.proto")
+	ERROR_PROTO_FILES=$(shell $(Git_Bash) -c "find pkg -name *.proto")
 else
 	INTERNAL_PROTO_FILES=$(shell find cmd -name *.proto)
 	API_PROTO_FILES=$(shell find api -name *.proto)
+	ERROR_PROTO_FILES=$(shell find pkg -name *.proto)
 endif
 
 .PHONY: init
@@ -43,6 +45,9 @@ format:
 .PHONY: config
 # generate internal config
 config:
+	protoc --proto_path=./third_party \
+    		   --proto_path=./pkg \
+     	       --go_out=paths=source_relative:./pkg $(ERROR_PROTO_FILES)
 	@for app in $(APPS); do \
   		if [ "$$app" = "gen" ] || [ "$$app" = "stringer" ]; then \
 			continue; \
@@ -54,7 +59,6 @@ config:
 .PHONY: api
 # generate api proto
 api:
-	go install github.com/aide-cloud/protoc-gen-go-errors@latest
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \
@@ -63,6 +67,15 @@ api:
  	       --go-errors_out=paths=source_relative:./api \
 	       --openapi_out=fq_schema_naming=true,default_response=false:./third_party/swagger_ui \
 	       $(API_PROTO_FILES)
+
+.PHONY: error
+# generate api proto
+error:
+	go install github.com/aide-cloud/protoc-gen-go-errors@latest
+	protoc --proto_path=./third_party \
+		   --proto_path=./pkg \
+ 	       --go_out=paths=source_relative:./pkg \
+		   --go-errors_out=paths=source_relative:./pkg $(ERROR_PROTO_FILES)
 
 .PHONY: build
 # build
@@ -100,7 +113,7 @@ model:
 
 .PHONY: all
 # generate all
-all: api config stringer model wire
+all: error api config stringer model wire
 	go mod tidy
 
 .PHONY: clean

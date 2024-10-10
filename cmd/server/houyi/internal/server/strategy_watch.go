@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 

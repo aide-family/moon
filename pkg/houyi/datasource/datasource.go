@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api"
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 

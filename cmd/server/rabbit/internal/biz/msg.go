@@ -3,9 +3,9 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"

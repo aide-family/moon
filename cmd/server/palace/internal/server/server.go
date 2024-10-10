@@ -162,7 +162,7 @@ func RegisterService(
 	if !types.IsNil(c.GetTracer()) {
 		var err error
 		tracerConf := c.GetTracer()
-		switch tracerConf.GetType() {
+		switch tracerConf.GetDriver() {
 		// TODO other tracer
 		default:
 			err = conn.InitJaegerTracer("moon.palace", tracerConf.GetJaeger().GetEndpoint())

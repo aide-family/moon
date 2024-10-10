@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api/admin/authorization"
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/middleware"

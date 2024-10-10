@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
 

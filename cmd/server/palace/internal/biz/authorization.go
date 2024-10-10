@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/errors"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -70,7 +71,7 @@ func NewAuthorizationBiz(
 			RedirectURL: giteeOAuthConf.GetCallbackUri(),
 			Scopes:      giteeOAuthConf.GetScopes(),
 		},
-		redirectURL: bc.GetRedirectUri(),
+		redirectURL: bc.GetOauth2().GetRedirectUri(),
 	}
 }
 

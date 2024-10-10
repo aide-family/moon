@@ -38,4 +38,4 @@ bin/
 *.swp
 tmp
 wire_gen.go
-*.*.go
+api/*.*.go

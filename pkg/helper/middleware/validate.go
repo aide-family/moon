@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/bufbuild/protovalidate-go"

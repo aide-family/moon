@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-kratos/kratos/v2/log"

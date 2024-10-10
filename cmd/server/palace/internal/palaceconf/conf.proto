@@ -3,105 +3,41 @@ syntax = "proto3";
 package moon.cmd.server.palace.internal.palaceconf;
 
 import "google/protobuf/duration.proto";
-import "global.proto";
+import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/cmd/server/palace/internal/palaceconf;palaceconf";
 
 message Bootstrap {
-  Server server = 1;
-  Data data = 2;
-  string env = 3;
-  MicroServer micro_server = 4;
-  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
-  api.Discovery discovery = 5;
-  Watch watch = 6;
-  // 链路追踪
-  api.Tracer tracer = 7;
-  OAuth2 oauth2 = 8;
-  // 全局邮件配置
-  api.EmailConfig global_email_config = 9;
-  string redirect_uri = 10;
-}
-
-message Server {
-  message HTTP {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
-  message GRPC {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
-
-  message JWT {
-    string sign_key = 1;
-    string issuer = 2;
-    google.protobuf.Duration expire = 4;
-    // 免登录白名单
-    repeated string white_list = 6;
-    // 免rbac白名单
-    repeated string rbac_white_list = 7;
-    // 黑名单
-    repeated string black_list = 8;
-  }
-
-  HTTP http = 1;
-  GRPC grpc = 2;
-  string name = 3;
-  map<string, string> metadata = 4;
-  JWT jwt = 5;
-}
-
-message Data {
-  message Database {
-    string driver = 1;
-    string dsn = 2;
-    bool debug = 3;
-  }
-
-  message Cache {
-    message Redis {
-      string network = 1;
-      string addr = 2;
-      google.protobuf.Duration read_timeout = 3;
-      google.protobuf.Duration write_timeout = 4;
-      string password = 5;
-      uint32 db = 6;
-      google.protobuf.Duration dial_timeout = 7;
-    }
-    message NutsDB {
-      string path = 1;
-      string bucket = 2;
-    }
-    message Free {
-      uint32 size = 1;
-    }
-    // 优先级依次是 redis > nuts-db > free
-    Redis redis = 1;
-    NutsDB nutsDB = 2;
-    Free free = 3;
-  }
-
+  pkg.conf.Server server = 1;
+  pkg.conf.HTTPServer http = 2;
+  pkg.conf.GRPCServer grpc = 3;
+  pkg.conf.JWT jwt = 4;
+  pkg.conf.APILimit api_limit = 5;
+  pkg.conf.Cache cache = 6;
+  pkg.conf.Tracer tracer = 7;
+  pkg.conf.Discovery discovery = 8;
+  MicroServer micro_server = 9;
+  Watch watch = 10;
+  OAuth2 oauth2 = 11;
+  pkg.conf.EmailConfig email_config = 12;
   // 主库, 用于维护系统配置、用户等
-  Database database = 1;
+  pkg.conf.Database database = 13;
   // 业务数据库，多租户场景下的业务数据， 业务数据采用分表存储
-  Database bizDatabase = 2;
+  pkg.conf.Database bizDatabase = 14;
   // 告警历史存储位置
-  Database alarmDatabase = 3;
-  // 缓存，支持多缓存方式
-  Cache cache = 4;
+  pkg.conf.Database alarmDatabase = 15;
+  // 环境标识
+  string env = 16;
 }
 
 // 微服务配置
 message MicroServer {
   // 月兔消息服务
-  api.Server rabbit_server = 1;
+  pkg.conf.MicroServer rabbit_server = 1;
   // 后羿代理服务
-  api.Server hou_yi_server = 2;
+  pkg.conf.MicroServer hou_yi_server = 2;
   // 后羿服务多实例配置（此配置优先级高于单实例配置）
-  repeated api.Server hou_yi_servers = 3;
+  repeated pkg.conf.MicroServer hou_yi_servers = 3;
 }
 
 message Watch {
@@ -128,7 +64,7 @@ message OAuth2 {
     string callback_uri = 3;
     repeated string scopes = 5;
   }
-
-  Config github = 1;
-  Config gitee = 2;
+  string redirect_uri = 1;
+  Config github = 2;
+  Config gitee = 3;
 }

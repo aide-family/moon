@@ -3,7 +3,7 @@ package datasource
 import (
 	"context"
 
-	"github.com/aide-family/moon/api/merr"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 

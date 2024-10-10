@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aide-family/moon/api/merr"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
@@ -27,8 +28,8 @@ var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	bizDatabaseConf   *palaceconf.Data_Database
-	alarmDatabaseConf *palaceconf.Data_Database
+	bizDatabaseConf   *conf.Database
+	alarmDatabaseConf *conf.Database
 
 	mainDB       *gorm.DB
 	alarmDB      *sql.DB
@@ -53,11 +54,11 @@ var closeFuncList []func()
 
 // NewData .
 func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
-	mainConf := c.GetData().GetDatabase()
-	alarmConf := c.GetData().GetAlarmDatabase()
-	bizConf := c.GetData().GetBizDatabase()
-	cacheConf := c.GetData().GetCache()
-	emailConf := c.GetGlobalEmailConfig()
+	mainConf := c.GetDatabase()
+	alarmConf := c.GetAlarmDatabase()
+	bizConf := c.GetBizDatabase()
+	cacheConf := c.GetCache()
+	emailConf := c.GetEmailConfig()
 	d := &Data{
 		bizDatabaseConf:   bizConf,
 		alarmDatabaseConf: alarmConf,
@@ -226,7 +227,7 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	}
 
 	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
-	bizDbConf := &palaceconf.Data_Database{
+	bizDbConf := &conf.Database{
 		Driver: d.bizDatabaseConf.GetDriver(),
 		Dsn:    dsn,
 		Debug:  d.bizDatabaseConf.GetDebug(),
@@ -261,7 +262,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 	}
 
 	dsn := d.alarmDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
-	alarmDbConf := &palaceconf.Data_Database{
+	alarmDbConf := &conf.Database{
 		Driver: d.alarmDatabaseConf.GetDriver(),
 		Dsn:    dsn,
 		Debug:  d.alarmDatabaseConf.GetDebug(),
@@ -300,31 +301,31 @@ func (d *Data) GetCasbin(teamID uint32) *casbin.SyncedEnforcer {
 }
 
 // newCache new cache
-func newCache(c *palaceconf.Data_Cache) cache.ICacher {
+func newCache(c *conf.Cache) cache.ICacher {
 	if types.IsNil(c) {
 		return nil
 	}
 
-	if !types.IsNil(c.GetRedis()) {
+	switch c.GetDriver() {
+	case "redis", "REDIS":
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	}
-
-	if !types.IsNil(c.GetNutsDB()) {
+	case "nutsdb", "NUTSDB", "nust", "NUTS":
 		log.Debugw("cache init", "nutsdb")
 		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
+	default:
+		log.Debugw("cache init", "free")
+		size := int(c.GetFree().GetSize())
+		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 	}
-
-	size := int(c.GetFree().GetSize())
-	return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 }
 
 // GetStrategyQueue 获取策略队列

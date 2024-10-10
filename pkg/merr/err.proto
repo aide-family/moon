@@ -1,34 +1,34 @@
 syntax = "proto3";
 
-package api.merr;
+package pkg.merr;
 
 import "errors/errors.proto";
 
-option go_package = "github.com/aide-family/moon/api/merr;merr";
+option go_package = "github.com/aide-family/moon/pkg/merr;merr";
 option java_multiple_files = true;
-option java_package = "api.merr";
+option java_package = "pkg.merr";
 
 /**
-  400 Bad Request：请求无效或无法被服务器理解。这可能是由于请求语法错误、大小超出限制、格式错误或其他原因。
-  401 Unauthorized：请求要求用户的身份认证。该状态码通常用于需要登录才能访问资源的情况。
-  403 Forbidden：服务器理解请求客户端的请求，但是拒绝执行此请求。这可能是由于没有权限访问请求的资源。
-  404 Not Found：请求的资源不存在。服务器找不到给定的资源。
-  405 Method Not Allowed：请求的方法（如 GET、POST 等）对于请求的资源是不允许的。例如，一个只允许 GET 请求的资源收到了 POST 请求。
-  406 Not Acceptable：请求的资源无法按照客户端可接受的形式返回。例如，客户端请求 JSON 格式的数据，而服务器只能提供 XML。
-  408 Request Timeout：请求超时。服务器等待客户端发送请求的时间过长。
-  409 Conflict：请求不能被完成因为请求与当前系统状态冲突。例如，两个用户同时试图修改同一个资源。
-  410 Gone：请求的资源在服务器上已经不再可用，并且没有任何已知的转发地址。
-  411 Length Required：服务器要求在请求头中给出 Content-Length。
-  413 Payload Too Large：请求实体太大。服务器不愿意接收请求，因为它太大。
-  414 URI Too Long：请求的 URL 太长。URL 超过了服务器愿意解释的长度。
-  415 Unsupported Media Type：请求的媒体类型（MIME 类型）不受服务器支持。
-  416 Range Not Satisfiable：请求的范围无法满足。例如，客户端请求了资源的一部分，但服务器无法提供这部分内容。
-  417 Expectation Failed：服务器无法满足请求中的 Expect 选项。
-  418 I'm a teapot：这是一个幽默的状态码，通常用于拒绝煮咖啡的请求（参见“BREW”协议）。
-  422 Unprocessable Entity：请求格式正确，但由于含有语义错误，无法响应。通常用于 WebDAV。
-  429 Too Many Requests：用户已经发送了太多的请求，在规定时间内。
-  451 Unavailable For Legal Reasons：请求的内容由于法律原因不可用。例如，由于版权法或诽谤法，资源被阻止。
- */
+400 Bad Request：请求无效或无法被服务器理解。这可能是由于请求语法错误、大小超出限制、格式错误或其他原因。
+401 Unauthorized：请求要求用户的身份认证。该状态码通常用于需要登录才能访问资源的情况。
+403 Forbidden：服务器理解请求客户端的请求，但是拒绝执行此请求。这可能是由于没有权限访问请求的资源。
+404 Not Found：请求的资源不存在。服务器找不到给定的资源。
+405 Method Not Allowed：请求的方法（如 GET、POST 等）对于请求的资源是不允许的。例如，一个只允许 GET 请求的资源收到了 POST 请求。
+406 Not Acceptable：请求的资源无法按照客户端可接受的形式返回。例如，客户端请求 JSON 格式的数据，而服务器只能提供 XML。
+408 Request Timeout：请求超时。服务器等待客户端发送请求的时间过长。
+409 Conflict：请求不能被完成因为请求与当前系统状态冲突。例如，两个用户同时试图修改同一个资源。
+410 Gone：请求的资源在服务器上已经不再可用，并且没有任何已知的转发地址。
+411 Length Required：服务器要求在请求头中给出 Content-Length。
+413 Payload Too Large：请求实体太大。服务器不愿意接收请求，因为它太大。
+414 URI Too Long：请求的 URL 太长。URL 超过了服务器愿意解释的长度。
+415 Unsupported Media Type：请求的媒体类型（MIME 类型）不受服务器支持。
+416 Range Not Satisfiable：请求的范围无法满足。例如，客户端请求了资源的一部分，但服务器无法提供这部分内容。
+417 Expectation Failed：服务器无法满足请求中的 Expect 选项。
+418 I'm a teapot：这是一个幽默的状态码，通常用于拒绝煮咖啡的请求（参见“BREW”协议）。
+422 Unprocessable Entity：请求格式正确，但由于含有语义错误，无法响应。通常用于 WebDAV。
+429 Too Many Requests：用户已经发送了太多的请求，在规定时间内。
+451 Unavailable For Legal Reasons：请求的内容由于法律原因不可用。例如，由于版权法或诽谤法，资源被阻止。
+*/
 
 // 错误类型
 enum ErrorReason {

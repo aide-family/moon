@@ -13,7 +13,7 @@ import (
 
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
-	c := bc.GetServer()
+	c := bc.GetGrpc()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
@@ -22,14 +22,14 @@ func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
 			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
-	if c.Grpc.Network != "" {
-		opts = append(opts, grpc.Network(c.Grpc.Network))
+	if c.GetNetwork() != "" {
+		opts = append(opts, grpc.Network(c.GetNetwork()))
 	}
-	if c.Grpc.Addr != "" {
-		opts = append(opts, grpc.Address(c.Grpc.Addr))
+	if c.GetAddr() != "" {
+		opts = append(opts, grpc.Address(c.GetAddr()))
 	}
-	if c.Grpc.Timeout != nil {
-		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
+	if c.GetTimeout() != nil {
+		opts = append(opts, grpc.Timeout(c.GetTimeout().AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
 
