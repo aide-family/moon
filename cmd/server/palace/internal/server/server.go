@@ -37,6 +37,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -48,10 +49,10 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 
 // Server 服务
 type Server struct {
-	rpcSrv        *grpc.Server
-	httpSrv       *http.Server
-	strategyWatch *StrategyWatch
-	alertWatch    *AlertWatch
+	rpcSrv             *grpc.Server
+	httpSrv            *http.Server
+	strategyWatch      *StrategyWatch
+	alertConsumerWatch *watch.Watcher
 }
 
 // GetRPCServer 获取rpc server
@@ -179,9 +180,9 @@ func RegisterService(
 	}
 
 	return &Server{
-		rpcSrv:        rpcSrv,
-		httpSrv:       httpSrv,
-		strategyWatch: newStrategyWatch(c, data, alertService),
-		alertWatch:    newAlertWatch(c, data, alertService),
+		rpcSrv:             rpcSrv,
+		httpSrv:            httpSrv,
+		strategyWatch:      newStrategyWatch(c, data, alertService),
+		alertConsumerWatch: newAlertConsumer(c, data, alertService),
 	}
 }

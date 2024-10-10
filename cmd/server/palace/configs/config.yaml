@@ -99,3 +99,11 @@ tracer:
   type: "jaeger"
   jaeger:
     endpoint: "http://localhost:14268/api/traces"
+
+watch:
+  strategy:
+    timeout: 10s
+    interval: "@every 10s"
+  alertEvent:
+    timeout: 10s
+    interval: 10s

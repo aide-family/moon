@@ -42,8 +42,10 @@ type Data struct {
 	strategyQueue watch.Queue
 	// 告警队列
 	alertQueue watch.Queue
-	// 历史告警队列
-	historyQueue watch.Queue
+	// 持久化队列
+	alertPersistenceDBQueue watch.Queue
+	// 告警持久化存储
+	alertConsumerStorage watch.Storage
 
 	// 通用邮件发送器
 	emailer email.Interface
@@ -61,15 +63,16 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	cacheConf := c.GetData().GetCache()
 	emailConf := c.GetGlobalEmailConfig()
 	d := &Data{
-		bizDatabaseConf:   bizConf,
-		alarmDatabaseConf: alarmConf,
-		teamBizDBMap:      new(sync.Map),
-		alarmDBMap:        new(sync.Map),
-		enforcerMap:       new(sync.Map),
-		strategyQueue:     watch.NewDefaultQueue(100),
-		alertQueue:        watch.NewDefaultQueue(100),
-		emailer:           email.NewMockEmail(),
-		exit:              make(chan struct{}),
+		bizDatabaseConf:         bizConf,
+		alarmDatabaseConf:       alarmConf,
+		teamBizDBMap:            new(sync.Map),
+		alarmDBMap:              new(sync.Map),
+		enforcerMap:             new(sync.Map),
+		strategyQueue:           watch.NewDefaultQueue(100),
+		alertQueue:              watch.NewDefaultQueue(100),
+		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
+		emailer:                 email.NewMockEmail(),
+		exit:                    make(chan struct{}),
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -350,10 +353,18 @@ func (d *Data) GetAlertQueue() watch.Queue {
 	return d.alertQueue
 }
 
-// GetAlartHistoryQueue 获取历史告警队列
-func (d *Data) GetAlartHistoryQueue() watch.Queue {
-	if types.IsNil(d.historyQueue) {
+// GetAlertPersistenceDBQueue 获取持久化队列
+func (d *Data) GetAlertPersistenceDBQueue() watch.Queue {
+	if types.IsNil(d.alertPersistenceDBQueue) {
 		log.Warn("historyQueue is nil")
 	}
-	return d.historyQueue
+	return d.alertPersistenceDBQueue
+}
+
+// GetAlertConsumerStorage 获取告警持久化存储
+func (d *Data) GetAlertConsumerStorage() watch.Storage {
+	if types.IsNil(d.alertConsumerStorage) {
+		log.Warn("alertConsumerStorage is nil")
+	}
+	return d.alertConsumerStorage
 }

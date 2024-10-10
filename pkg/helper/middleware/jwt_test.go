@@ -7,7 +7,7 @@ import (
 func TestNewJwtClaims(t *testing.T) {
 	token, err := NewJwtClaims(&JwtBaseInfo{
 		UserID:   1,
-		TeamID:   5,
+		TeamID:   1,
 		MemberID: 1,
 	}).GetToken()
 	if err != nil {

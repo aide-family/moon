@@ -44,7 +44,7 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 }
 
 func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
-	queue := r.data.GetAlartHistoryQueue()
+	queue := r.data.GetAlertPersistenceDBQueue()
 	if err := queue.Push(param.Message()); err != nil {
 		return err
 	}
