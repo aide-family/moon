@@ -154,6 +154,9 @@ func (d *defaultCache) DecMin(ctx context.Context, key string, min int64, expira
 }
 
 func (d *defaultCache) Close() error {
+	if d.cli == nil {
+		return nil
+	}
 	d.cli.Clear()
 	d.cli = nil
 	return nil

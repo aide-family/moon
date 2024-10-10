@@ -17,8 +17,7 @@ import (
 
 // NewPalaceConn 创建一个palace rpc连接
 func NewPalaceConn(c *houyiconf.Bootstrap) (*PalaceConn, func(), error) {
-	microServer := c.GetMicroServer()
-	palaceServer := microServer.GetPalaceServer()
+	palaceServer := c.GetPalaceServer()
 	discoveryConf := c.GetDiscovery()
 	palaceConn := &PalaceConn{}
 	if types.IsNil(palaceServer) {

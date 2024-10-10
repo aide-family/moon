@@ -16,8 +16,6 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
-	c := bc.GetServer()
-
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
@@ -26,7 +24,7 @@ func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
 			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
-	httpConf := c.GetHttp()
+	httpConf := bc.GetHttp()
 	if !types.IsNil(httpConf) {
 		if httpConf.GetNetwork() != "" {
 			opts = append(opts, http.Network(httpConf.GetNetwork()))

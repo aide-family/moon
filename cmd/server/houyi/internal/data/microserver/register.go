@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -28,7 +28,7 @@ var ProviderSetRPCConn = wire.NewSet(
 	NewPalaceConn,
 )
 
-func newRPCConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.ClientConn, error) {
+func newRPCConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*grpc.ClientConn, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()
 	// 由于 gRPC 框架的限制，只能使用全局 balancer name 的方式来注入 selector
@@ -74,7 +74,7 @@ func newRPCConn(microServerConf *api.Server, discovery *api.Discovery) (*grpc.Cl
 	return grpcConn, nil
 }
 
-func newHTTPConn(microServerConf *api.Server, discovery *api.Discovery) (*http.Client, error) {
+func newHTTPConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*http.Client, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()
 	opts := []http.ClientOption{

@@ -3,73 +3,23 @@ syntax = "proto3";
 package moon.cmd.server.houyi.internal.houyiconf;
 
 import "google/protobuf/duration.proto";
-import "global.proto";
+import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf;houyiconf";
 
 message Bootstrap {
-  Server server = 1;
-  Data data = 2;
-  string env = 3;
-  Watch watch = 4;
-  MicroServer micro_server = 5;
+  pkg.conf.Server server = 1;
+  string env = 2;
+  Watch watch = 3;
+  // 月兔消息服务
+  pkg.conf.MicroServer rabbit_server = 4;
+  // 月宫代理服务
+  pkg.conf.MicroServer palace_server = 5;
   // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
-  api.Discovery discovery = 6;
-}
-
-message Server {
-  message HTTP {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
-  message GRPC {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration timeout = 3;
-  }
-
-  message JWT {
-    string sign_key = 1;
-    string issuer = 2;
-    google.protobuf.Duration expire = 4;
-    // 免登录白名单
-    repeated string white_list = 6;
-    // 免rbac白名单
-    repeated string rbac_white_list = 7;
-  }
-
-  HTTP http = 1;
-  GRPC grpc = 2;
-  string name = 3;
-  map<string, string> metadata = 4;
-  JWT jwt = 5;
-}
-
-message Data {
-  message Cache {
-    message Redis {
-      string network = 1;
-      string addr = 2;
-      google.protobuf.Duration read_timeout = 3;
-      google.protobuf.Duration write_timeout = 4;
-      string password = 5;
-      uint32 db = 6;
-      google.protobuf.Duration dial_timeout = 7;
-    }
-    message NutsDB {
-      string path = 1;
-      string bucket = 2;
-    }
-    message Free {
-      uint32 size = 1;
-    }
-    Redis redis = 1;
-    NutsDB nutsDB = 2;
-    Free free = 3;
-  }
-  // 缓存，支持多缓存方式
-  Cache cache = 1;
+  pkg.conf.Discovery discovery = 6;
+  pkg.conf.HTTPServer http = 7;
+  pkg.conf.GRPCServer grpc = 8;
+  pkg.conf.Cache cache = 9;
 }
 
 message Watch {
@@ -87,12 +37,4 @@ message Watch {
   }
   Strategy strategy = 1;
   AlertEvent alertEvent = 2;
-}
-
-// 微服务配置
-message MicroServer {
-  // 月兔消息服务
-  api.Server rabbit_server = 1;
-  // 月宫代理服务
-  api.Server palace_server = 2;
 }

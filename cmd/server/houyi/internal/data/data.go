@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -37,15 +38,13 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 		alertStorage:  watch.NewDefaultStorage(),
 	}
 
-	cacheConf := c.GetData().GetCache()
-	if !types.IsNil(cacheConf) {
-		d.cacher = newCache(cacheConf)
-		d.alertStorage = watch.NewCacheStorage(d.cacher)
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close alert storage", d.alertStorage.Close())
-			log.Debugw("close cache", d.cacher.Close())
-		})
-	}
+	cacheConf := c.GetCache()
+	d.cacher = newCache(cacheConf)
+	d.alertStorage = watch.NewCacheStorage(d.cacher)
+	closeFuncList = append(closeFuncList, func() {
+		log.Debugw("close alert storage", d.alertStorage.Close())
+		log.Debugw("close cache", d.cacher.Close())
+	})
 
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -89,29 +88,25 @@ func (d *Data) GetAlertStorage() watch.Storage {
 }
 
 // newCache new cache
-func newCache(c *houyiconf.Data_Cache) cache.ICacher {
-	if types.IsNil(c) {
-		return nil
-	}
-
-	if !types.IsNil(c.GetRedis()) {
+func newCache(c *conf.Cache) cache.ICacher {
+	switch c.GetDriver() {
+	case "redis", "REDIS":
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	}
-
-	if !types.IsNil(c.GetNutsDB()) {
+	case "nutsdb", "NUTSDB", "nust", "NUTS":
 		log.Debugw("cache init", "nutsdb")
 		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
+	default:
+		log.Debugw("cache init", "free")
+		size := int(c.GetFree().GetSize())
+		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 	}
-
-	size := int(c.GetFree().GetSize())
-	return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 }

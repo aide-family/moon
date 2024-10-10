@@ -26,6 +26,9 @@ type (
 )
 
 func (n *nutsDBCacher) Close() error {
+	if n == nil {
+		return nil
+	}
 	return n.client.Close()
 }
 

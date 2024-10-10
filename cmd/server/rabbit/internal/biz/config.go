@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -27,7 +27,7 @@ func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repo.CacheRepo) *ConfigBiz 
 func GetConfigData() *Config {
 	if types.IsNil(configData) {
 		configData = &Config{
-			Receivers: make(map[string]*api.Receiver),
+			Receivers: make(map[string]*conf.Receiver),
 			Templates: make(map[string]string),
 		}
 	}
@@ -35,14 +35,14 @@ func GetConfigData() *Config {
 }
 
 var configData = &Config{
-	Receivers: make(map[string]*api.Receiver),
+	Receivers: make(map[string]*conf.Receiver),
 	Templates: make(map[string]string),
 }
 
 // GetReceivers 获取接收人
-func (l *Config) GetReceivers() map[string]*api.Receiver {
+func (l *Config) GetReceivers() map[string]*conf.Receiver {
 	if types.IsNil(l) {
-		return map[string]*api.Receiver{}
+		return map[string]*conf.Receiver{}
 	}
 	return GetConfigData().Receivers
 }
@@ -63,7 +63,7 @@ type ConfigBiz struct {
 
 // Config 配置数据
 type Config struct {
-	Receivers map[string]*api.Receiver
+	Receivers map[string]*conf.Receiver
 	Templates map[string]string
 	sync.RWMutex
 }
@@ -105,7 +105,7 @@ func (b *ConfigBiz) CacheConfig(ctx context.Context, params *bo.CacheConfigParam
 func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
 	defer log.Debug("加载配置完成")
 	params := &bo.CacheConfigParams{
-		Receivers: make(map[string]*api.Receiver),
+		Receivers: make(map[string]*conf.Receiver),
 		Templates: make(map[string]string),
 	}
 	getJSONStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)

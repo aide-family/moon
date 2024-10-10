@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -27,17 +27,10 @@ var closeFuncList []func()
 // NewData .
 func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{}
-	cacheConf := c.GetData().GetCache()
-	if !types.IsNil(cacheConf) {
-		cacheInstance := newCache(cacheConf)
-		if types.IsNil(cacheInstance) {
-			return nil, func() {}, merr.ErrorNotification("缓存实例化失败")
-		}
-		d.cacher = cacheInstance
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close cache", d.cacher.Close())
-		})
-	}
+	d.cacher = newCache(c.GetCache())
+	closeFuncList = append(closeFuncList, func() {
+		log.Debugw("close cache", d.cacher.Close())
+	})
 
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -51,35 +44,31 @@ func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 // GetCacher 获取缓存
 func (d *Data) GetCacher() cache.ICacher {
 	if types.IsNil(d.cacher) {
-		log.Warn("cache is nil")
+		panic("cache is nil")
 	}
 	return d.cacher
 }
 
 // newCache new cache
-func newCache(c *rabbitconf.Data_Cache) cache.ICacher {
-	if types.IsNil(c) {
-		return nil
-	}
-
-	if !types.IsNil(c.GetRedis()) {
+func newCache(c *conf.Cache) cache.ICacher {
+	switch c.GetDriver() {
+	case "redis", "REDIS":
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	}
-
-	if !types.IsNil(c.GetNutsDB()) {
+	case "nutsdb", "NUTSDB", "nust", "NUTS":
 		log.Debugw("cache init", "nutsdb")
 		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {
 			log.Warnw("nutsdb init error", err)
 		}
 		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
+	default:
+		log.Debugw("cache init", "free")
+		size := int(c.GetFree().GetSize())
+		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 	}
-
-	size := int(c.GetFree().GetSize())
-	return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 }

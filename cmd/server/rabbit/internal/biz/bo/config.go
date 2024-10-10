@@ -1,12 +1,12 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/conf"
 )
 
 // CacheConfigParams 缓存配置参数
 type CacheConfigParams struct {
-	Receivers map[string]*api.Receiver
+	Receivers map[string]*conf.Receiver
 	Templates map[string]string
 }
 

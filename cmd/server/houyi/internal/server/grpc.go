@@ -13,7 +13,6 @@ import (
 
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *houyiconf.Bootstrap) *grpc.Server {
-	c := bc.GetServer()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
@@ -21,7 +20,7 @@ func NewGRPCServer(bc *houyiconf.Bootstrap) *grpc.Server {
 			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
-	grpcConf := c.GetGrpc()
+	grpcConf := bc.GetGrpc()
 	if !types.IsNil(grpcConf) {
 		if grpcConf.GetNetwork() != "" {
 			opts = append(opts, grpc.Network(grpcConf.GetNetwork()))

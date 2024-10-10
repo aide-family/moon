@@ -86,12 +86,10 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		d.emailer = emailer
 	}
 
-	if !types.IsNil(cacheConf) {
-		d.cacher = newCache(cacheConf)
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close cache", d.cacher.Close())
-		})
-	}
+	d.cacher = newCache(cacheConf)
+	closeFuncList = append(closeFuncList, func() {
+		log.Debugw("close cache", d.cacher.Close())
+	})
 
 	if !types.IsNil(alarmConf) && !types.TextIsNull(alarmConf.GetDsn()) {
 		// 打开数据库连接
@@ -302,10 +300,6 @@ func (d *Data) GetCasbin(teamID uint32) *casbin.SyncedEnforcer {
 
 // newCache new cache
 func newCache(c *conf.Cache) cache.ICacher {
-	if types.IsNil(c) {
-		return nil
-	}
-
 	switch c.GetDriver() {
 	case "redis", "REDIS":
 		log.Debugw("cache init", "redis")

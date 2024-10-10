@@ -29,6 +29,9 @@ func (r *redisCacher) SetInt64(ctx context.Context, key string, value int64, exp
 }
 
 func (r *redisCacher) Close() error {
+	if r == nil {
+		return nil
+	}
 	return r.client.Close()
 }
 

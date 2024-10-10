@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
@@ -17,14 +17,14 @@ import (
 var _ Notify = (*wechat)(nil)
 
 // NewWechat 创建企业微信通知
-func NewWechat(receiverHookWechatWork *api.ReceiverHookWechatWork) Notify {
+func NewWechat(receiverHookWechatWork *conf.ReceiverHookWechatWork) Notify {
 	return &wechat{
 		ReceiverHookWechatWork: receiverHookWechatWork,
 	}
 }
 
 type wechat struct {
-	*api.ReceiverHookWechatWork
+	*conf.ReceiverHookWechatWork
 }
 
 type wechatHookResp struct {

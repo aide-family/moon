@@ -3,18 +3,18 @@ package email
 import (
 	"context"
 
-	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/format"
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/pkg/notify"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ notify.Notify = (*e)(nil)
 
 // New a notify service with options.
-func New(cfg email.Config, to *api.ReceiverEmail) notify.Notify {
+func New(cfg email.Config, to *conf.ReceiverEmail) notify.Notify {
 	cli := email.New(cfg)
 	cli.SetAttach(to.GetAttachUrl()...).
 		SetTo(to.GetTo()).
@@ -30,7 +30,7 @@ func New(cfg email.Config, to *api.ReceiverEmail) notify.Notify {
 
 type e struct {
 	email.Config
-	to  *api.ReceiverEmail
+	to  *conf.ReceiverEmail
 	cli email.Interface
 }
 

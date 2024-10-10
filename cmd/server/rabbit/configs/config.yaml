@@ -5,14 +5,16 @@ server:
   metadata:
     description: 是moon监控系列的消息组件，可以独立部署，接受任意的hook消息，并支持邮件、钉钉、企业微信、飞书等告警
     background: 寓意为月宫中的玉兔，专门用于消息通知
-  http:
-    addr: 0.0.0.0:8001
-    timeout: 2s
-  grpc:
-    addr: 0.0.0.0:9001
-    timeout: 2s
+
+http:
+  addr: 0.0.0.0:8001
+  timeout: 2s
+grpc:
+  addr: 0.0.0.0:9001
+  timeout: 2s
 data:
   cache:
+    driver: "free"
 #    redis:
 #      network: "tcp"
 #      addr: 127.0.0.1:6379
@@ -24,6 +26,8 @@ data:
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
+    free:
+      size: 10485760
 
 templates:
   email: |
@@ -67,7 +71,7 @@ receivers:
 #          template: "dingTalk"
 
 discovery:
-  type: "etcd"
+  driver: "etcd"
   etcd:
     endpoints:
       - 127.0.0.1:20000

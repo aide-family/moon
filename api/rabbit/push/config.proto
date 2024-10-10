@@ -3,7 +3,7 @@ syntax = "proto3";
 package api.rabbit.push;
 
 import "google/api/annotations.proto";
-import "global.proto";
+import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/api/rabbit/push;push";
 option java_multiple_files = true;
@@ -20,7 +20,7 @@ service Config {
 
 message NotifyObjectRequest {
   // 根据路由匹配具体的发送对象
-  map<string, Receiver> receivers = 4;
+  map<string, pkg.conf.Receiver> receivers = 4;
   map<string, string> templates = 5;
 }
 message NotifyObjectReply {

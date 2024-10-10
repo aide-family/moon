@@ -7,6 +7,7 @@ import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "enum.proto";
 import "global.proto";
+import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/api/admin/team;team";
 option java_multiple_files = true;
@@ -268,7 +269,7 @@ message TransferTeamLeaderReply {}
 message SetTeamMailConfigRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
   // 邮件配置
-  EmailConfig config = 2 [(buf.validate.field).required = true];
+  pkg.conf.EmailConfig config = 2 [(buf.validate.field).required = true];
   string remark = 3 [(buf.validate.field).cel = {
     message: "备注长度在0-200个字符之间"
     expression: 'this.size() <= 200'

@@ -5,37 +5,28 @@ server:
   metadata:
     description: 是moon监控系列的告警组件，可以独立部署，接受prom类型规则，也可以接受alertmanager类型组件的告警推送
     background: 寓意为天神后羿，专门用于监控规则告警事件
-  http:
-    addr: 0.0.0.0:8000
-    timeout: 50s
-  grpc:
-    addr: 0.0.0.0:9000
-    timeout: 50s
-  jwt:
-    sign_key: "moon-sign_key"
-    issuer: "moon监控系统"
-    white_list:
-      - /api.admin.authorization.Authorization/Login
-      - /api.admin.authorization.Authorization/Captcha
-      - /api.admin.authorization.Authorization/CreatePassword
-    rbac_white_list:
-      - /api.admin.authorization.Authorization/Login
-      - /api.admin.authorization.Authorization/Captcha
-      - /api.admin.authorization.Authorization/CreatePassword
+http:
+  addr: 0.0.0.0:8000
+  timeout: 50s
+grpc:
+  addr: 0.0.0.0:9000
+  timeout: 50s
 
-data:
- cache:
-    redis:
-      network: "tcp"
-      addr: 192.168.7.76:6379
-      db: 0
-      password: ""
-      read_timeout: 0.2s
-      write_timeout: 0.2s
-      dial_timeout: 0.2s
-    nutsDB:
-      path: ./tmp/nutsdb
-      bucket: test
+cache:
+  driver: "free"
+  redis:
+    network: "tcp"
+    addr: 192.168.7.76:6379
+    db: 0
+    password: ""
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+    dial_timeout: 0.2s
+  nutsDB:
+    path: ./tmp/nutsdb
+    bucket: test
+  free:
+    size: 10485760
 
 watch:
   strategy:
@@ -46,7 +37,7 @@ watch:
     interval: 10s
 
 discovery:
-  type: "etcd"
+  driver: "etcd"
   etcd:
     endpoints:
       - localhost:20000
@@ -56,16 +47,15 @@ discovery:
     password: ""
     timeout: 50s
 
-micro_server:
-  rabbit_server:
-    network: "rpc"
-    nodeVersion: ""
-    endpoint: "discovery:///moon_rabbit"
-    timeout: 50s
-    secret: ""
-  palace_server:
-    network: "rpc"
-    nodeVersion: ""
-    endpoint: "discovery:///moon_palace"
-    timeout: 50s
-    secret: ""
+rabbit_server:
+  network: "rpc"
+  nodeVersion: ""
+  endpoint: "discovery:///moon_rabbit"
+  timeout: 50s
+  secret: ""
+palace_server:
+  network: "rpc"
+  nodeVersion: ""
+  endpoint: "discovery:///moon_palace"
+  timeout: 50s
+  secret: ""

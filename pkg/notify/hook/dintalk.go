@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
@@ -22,14 +22,14 @@ import (
 var _ Notify = (*dingTalk)(nil)
 
 // NewDingTalk 创建钉钉通知
-func NewDingTalk(receiverHookDingTalk *api.ReceiverHookDingTalk) Notify {
+func NewDingTalk(receiverHookDingTalk *conf.ReceiverHookDingTalk) Notify {
 	return &dingTalk{
 		ReceiverHookDingTalk: receiverHookDingTalk,
 	}
 }
 
 type dingTalk struct {
-	*api.ReceiverHookDingTalk
+	*conf.ReceiverHookDingTalk
 }
 
 type dingTalkHookResp struct {

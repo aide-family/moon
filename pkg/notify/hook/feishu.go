@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
@@ -22,14 +22,14 @@ import (
 var _ Notify = (*feiShu)(nil)
 
 // NewFeiShu 创建飞书通知
-func NewFeiShu(receiverHookFeiShu *api.ReceiverHookFeiShu) Notify {
+func NewFeiShu(receiverHookFeiShu *conf.ReceiverHookFeiShu) Notify {
 	return &feiShu{
 		ReceiverHookFeiShu: receiverHookFeiShu,
 	}
 }
 
 type feiShu struct {
-	*api.ReceiverHookFeiShu
+	*conf.ReceiverHookFeiShu
 }
 
 type feiShuHookResp struct {

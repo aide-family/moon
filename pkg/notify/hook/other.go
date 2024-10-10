@@ -4,10 +4,10 @@ import (
 	"context"
 	"io"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
@@ -15,14 +15,14 @@ import (
 var _ Notify = (*other)(nil)
 
 // NewOther 创建企业微信通知
-func NewOther(receiverHookWechatWork *api.ReceiverHookOther) Notify {
+func NewOther(receiverHookWechatWork *conf.ReceiverHookOther) Notify {
 	return &other{
 		ReceiverHookOther: receiverHookWechatWork,
 	}
 }
 
 type other struct {
-	*api.ReceiverHookOther
+	*conf.ReceiverHookOther
 }
 
 func (l *other) Send(ctx context.Context, msg notify.Msg) error {
