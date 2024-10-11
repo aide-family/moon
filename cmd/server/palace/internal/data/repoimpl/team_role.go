@@ -55,15 +55,19 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 			return err
 		}
 		roleIDStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
-		return tx.CasbinRule.WithContext(ctx).
-			Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
-				return &bizmodel.CasbinRule{
-					Ptype: "p",
-					V0:    roleIDStr,
-					V1:    apiItem.Path,
-					V2:    "http",
-				}
-			})...)
+		_, err = l.data.GetCasbin(teamRole.TeamID).AddPolicies(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) []string {
+			return []string{roleIDStr, apiItem.Path, "http"}
+		}))
+		return err
+		//return tx.CasbinRule.WithContext(ctx).
+		//	Create(types.SliceTo(apis, func(apiItem *bizmodel.SysTeamAPI) *bizmodel.CasbinRule {
+		//		return &bizmodel.CasbinRule{
+		//			Ptype: "p",
+		//			V0:    roleIDStr,
+		//			V1:    apiItem.Path,
+		//			V2:    "http",
+		//		}
+		//	})...)
 	})
 	if !types.IsNil(err) {
 		return nil, err
@@ -257,14 +261,18 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamID uint32, roleIDs []uint32, path string) (bool, error) {
 	enforce := l.data.GetCasbin(teamID)
 	_ = enforce.LoadPolicy()
+	enforceParams := make([][]any, 0, len(roleIDs))
 	for _, roleID := range roleIDs {
 		roleStr := strconv.FormatUint(uint64(roleID), 10)
-		has, err := enforce.Enforce(roleStr, path, "http")
-		if !types.IsNil(err) {
-			log.Errorw("check rbac error", "roleId", roleID, "path", path, "err", err)
-			return false, err
-		}
-		if has {
+		enforceParams = append(enforceParams, []any{roleStr, path, "http"})
+	}
+	has, err := enforce.BatchEnforce(enforceParams)
+	if !types.IsNil(err) {
+		log.Errorw("check rbac error", "", "path", path, "err", err)
+		return false, err
+	}
+	for _, ok := range has {
+		if ok {
 			return true, nil
 		}
 	}

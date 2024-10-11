@@ -96,6 +96,15 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 	if !types.IsNil(err) {
 		return merr.ErrorI18nToastTeamInviteNotFound(ctx)
 	}
+	// 获取邀请人
+	claims, ok := middleware.ParseJwtClaims(ctx)
+	if !ok {
+		return merr.ErrorI18nUnauthorized(ctx)
+	}
+	if claims.GetUser() != teamInvite.UserID {
+		return merr.ErrorI18nToastTeamInviteNotFound(ctx)
+	}
+
 	if err := i.inviteRepo.UpdateInviteStatus(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -103,11 +112,6 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 	inviter, err := i.userRepo.GetByID(ctx, teamInvite.UserID)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	// 获取邀请人
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
 	}
 
 	return retry.Retry(func() error {
