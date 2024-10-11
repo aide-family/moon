@@ -46,8 +46,6 @@ type Data struct {
 
 	// 通用邮件发送器
 	emailer email.Interface
-
-	exit chan struct{}
 }
 
 var closeFuncList []func()
@@ -68,7 +66,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		strategyQueue:     watch.NewDefaultQueue(100),
 		alertQueue:        watch.NewDefaultQueue(100),
 		emailer:           email.NewMockEmail(),
-		exit:              make(chan struct{}),
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -78,7 +75,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 	closeFuncList = append(closeFuncList, func() {
 		log.Debug("close data")
-		d.exit <- struct{}{}
 	})
 
 	if !types.IsNil(emailConf) {
@@ -108,7 +104,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 					return true
 				}
 				dbTmp, _ := alarmDB.DB()
-				log.Debugw("close alarm orm db", dbTmp.Close())
+				log.Debugw("close alarm orm db", key, "err", dbTmp.Close())
 				return ok
 			})
 		})
@@ -132,7 +128,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 					return true
 				}
 				dbTmp, _ := teamBizDB.DB()
-				log.Debugw("close biz orm db", dbTmp.Close())
+				log.Debugw("close biz orm db", key, "err", dbTmp.Close())
 				return ok
 			})
 		})
@@ -166,11 +162,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	return d, cleanup, nil
-}
-
-// Exit 推出data
-func (d *Data) Exit() <-chan struct{} {
-	return d.exit
 }
 
 // initMainDatabase 初始化数据库
