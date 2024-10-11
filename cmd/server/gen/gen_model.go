@@ -1,7 +1,9 @@
 package gen
 
 import (
+	"github.com/aide-family/moon/cmd/vobj"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -11,7 +13,8 @@ import (
 )
 
 // Run gen gorm gen model code
-func Run(datasource string, drive, outputPath string, isBiz bool) {
+func Run(datasource string, drive string, modelCode string) {
+	outputPath := vobj.GetModelPath(modelCode)
 	if drive == "" || outputPath == "" {
 		log.Warnw("err", "参数错误", "datasource", datasource, "drive", drive, "outputPath", outputPath)
 		return
@@ -43,11 +46,16 @@ func Run(datasource string, drive, outputPath string, isBiz bool) {
 		g.UseDB(gormDB) // reuse your gorm db
 	}
 
-	if isBiz {
-		g.ApplyBasic(bizmodel.Models()...)
-		g.ApplyBasic(bizmodel.AlarmModels()...)
-	} else {
+	if modelCode == vobj.MainCode {
 		g.ApplyBasic(model.Models()...)
+	}
+
+	if modelCode == vobj.BizModelCode {
+		g.ApplyBasic(bizmodel.Models()...)
+	}
+
+	if modelCode == vobj.AlarmModelBizCode {
+		g.ApplyBasic(alarmmodel.AlarmModels()...)
 	}
 
 	// Generate the code

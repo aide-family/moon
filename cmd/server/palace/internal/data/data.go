@@ -44,7 +44,10 @@ type Data struct {
 	strategyQueue watch.Queue
 	// 告警队列
 	alertQueue watch.Queue
-
+	// 持久化队列
+	alertPersistenceDBQueue watch.Queue
+	// 告警持久化存储
+	alertConsumerStorage watch.Storage
 	// 通用邮件发送器
 	emailer email.Interface
 }
@@ -59,14 +62,16 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	cacheConf := c.GetCache()
 	emailConf := c.GetEmailConfig()
 	d := &Data{
-		bizDatabaseConf:   bizConf,
-		alarmDatabaseConf: alarmConf,
-		teamBizDBMap:      new(sync.Map),
-		alarmDBMap:        new(sync.Map),
-		enforcerMap:       new(sync.Map),
-		strategyQueue:     watch.NewDefaultQueue(100),
-		alertQueue:        watch.NewDefaultQueue(100),
-		emailer:           email.NewMockEmail(),
+		bizDatabaseConf:         bizConf,
+		alarmDatabaseConf:       alarmConf,
+		teamBizDBMap:            new(sync.Map),
+		alarmDBMap:              new(sync.Map),
+		enforcerMap:             new(sync.Map),
+		strategyQueue:           watch.NewDefaultQueue(100),
+		alertQueue:              watch.NewDefaultQueue(100),
+		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
+		alertConsumerStorage:    watch.NewDefaultStorage(),
+		emailer:                 email.NewMockEmail(),
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -215,6 +220,11 @@ func GenBizDatabaseName(teamID uint32) string {
 	return fmt.Sprintf("db_team_%d", teamID)
 }
 
+// GenAlarmDatabaseName 生成业务库名称
+func GenAlarmDatabaseName(teamID uint32) string {
+	return fmt.Sprintf("db_team_alarm_%d", teamID)
+}
+
 // GetBizGormDB 获取业务库连接
 func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	if teamID == 0 {
@@ -270,7 +280,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 
-	dsn := d.alarmDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := d.alarmDatabaseConf.GetDsn() + GenAlarmDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
 	alarmDbConf := &conf.Database{
 		Driver: d.alarmDatabaseConf.GetDriver(),
 		Dsn:    dsn,
@@ -359,4 +369,20 @@ func (d *Data) GetAlertQueue() watch.Queue {
 		log.Warn("alertQueue is nil")
 	}
 	return d.alertQueue
+}
+
+// GetAlertPersistenceDBQueue 获取持久化队列
+func (d *Data) GetAlertPersistenceDBQueue() watch.Queue {
+	if types.IsNil(d.alertPersistenceDBQueue) {
+		log.Warn("persistence queue is nil")
+	}
+	return d.alertPersistenceDBQueue
+}
+
+// GetAlertConsumerStorage 获取告警持久化存储
+func (d *Data) GetAlertConsumerStorage() watch.Storage {
+	if types.IsNil(d.alertConsumerStorage) {
+		log.Warn("alertConsumerStorage is nil")
+	}
+	return d.alertConsumerStorage
 }

@@ -8,6 +8,7 @@ import (
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -85,8 +86,8 @@ type (
 	}
 
 	IDoRealtimeAlarmBuilder interface {
-		ToAPI(*bizmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem
-		ToAPIs([]*bizmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem
+		ToAPI(*alarmmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem
+		ToAPIs([]*alarmmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem
 	}
 
 	doRealtimeAlarmBuilder struct {
@@ -483,14 +484,14 @@ func (d *doAlarmPageSelfBuilder) ToAPI(self *bizmodel.AlarmPageSelf) *adminapi.S
 	alarmPageInfo := self.AlarmPage
 	return &adminapi.SelfAlarmPageItem{
 		Id:           self.ID,
-		Name:         alarmPageInfo.Name,
-		ColorType:    alarmPageInfo.ColorType,
-		CssClass:     alarmPageInfo.CSSClass,
-		Value:        alarmPageInfo.Value,
-		Icon:         alarmPageInfo.Icon,
-		ImageUrl:     alarmPageInfo.ImageURL,
-		LanguageCode: alarmPageInfo.LanguageCode.String(),
-		Remark:       alarmPageInfo.Remark,
+		Name:         alarmPageInfo.GetName(),
+		ColorType:    alarmPageInfo.GetColorType(),
+		CssClass:     alarmPageInfo.GetCSSClass(),
+		Value:        alarmPageInfo.GetValue(),
+		Icon:         alarmPageInfo.GetIcon(),
+		ImageUrl:     alarmPageInfo.GetImageURL(),
+		LanguageCode: alarmPageInfo.GetLanguageCode().String(),
+		Remark:       alarmPageInfo.GetRemark(),
 	}
 }
 
@@ -504,35 +505,36 @@ func (d *doAlarmPageSelfBuilder) ToAPIs(selves []*bizmodel.AlarmPageSelf) []*adm
 	})
 }
 
-func (d *doRealtimeAlarmBuilder) ToAPI(alarm *bizmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem {
+func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem {
 	if types.IsNil(d) || types.IsNil(alarm) {
 		return nil
 	}
 
-	return &adminapi.RealtimeAlarmItem{
-		Id:           alarm.ID,
-		StartsAt:     types.NewTimeByUnix(alarm.StartsAt).String(),
-		EndsAt:       types.NewTimeByUnix(alarm.EndsAt).String(),
-		Status:       api.AlertStatus(alarm.Status),
-		Level:        nil, // TODO 待实现
-		LevelID:      0,
-		StrategyID:   alarm.LevelID,
-		Strategy:     nil, // TODO 待实现
-		Summary:      alarm.Summary,
-		Description:  alarm.Description,
-		Expr:         alarm.Expr,
-		DatasourceID: alarm.DatasourceID,
-		Datasource:   nil, // TODO 待实现
-		Fingerprint:  alarm.Fingerprint,
+	resItem := &adminapi.RealtimeAlarmItem{
+		Id:          alarm.ID,
+		StartsAt:    types.NewTimeByUnix(alarm.StartsAt).String(),
+		EndsAt:      types.NewTimeByUnix(alarm.EndsAt).String(),
+		Status:      api.AlertStatus(alarm.Status),
+		Summary:     alarm.Summary,
+		Description: alarm.Description,
+		Expr:        alarm.Expr,
+		Fingerprint: alarm.Fingerprint,
 	}
+
+	if !types.IsNil(alarm.RealtimeDetails) {
+		resItem.Datasource = alarm.RealtimeDetails.Datasource
+		resItem.Strategy = alarm.RealtimeDetails.Strategy
+		resItem.Level = alarm.RealtimeDetails.Level
+	}
+	return resItem
 }
 
-func (d *doRealtimeAlarmBuilder) ToAPIs(alarms []*bizmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem {
+func (d *doRealtimeAlarmBuilder) ToAPIs(alarms []*alarmmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem {
 	if types.IsNil(d) || types.IsNil(alarms) {
 		return nil
 	}
 
-	return types.SliceTo(alarms, func(alarm *bizmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem {
+	return types.SliceTo(alarms, func(alarm *alarmmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem {
 		return d.ToAPI(alarm)
 	})
 }
