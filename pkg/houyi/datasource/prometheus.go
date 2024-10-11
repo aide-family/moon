@@ -11,8 +11,10 @@ import (
 
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -159,7 +161,13 @@ func (p *prometheusDatasource) QueryRange(ctx context.Context, expr string, star
 	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
+	if allResp.Error != "" {
+		return nil, status.Errorf(400, "query error: %s", allResp.Error)
+	}
 	data := allResp.Data
+	if types.IsNil(data) {
+		return []*QueryResponse(nil), nil
+	}
 	result := make([]*QueryResponse, 0, len(data.Result))
 	for _, v := range data.Result {
 		values := make([]*QueryValue, 0, len(v.Values))
@@ -215,9 +223,12 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 		return nil, err
 	}
 
+	if allResp.Error != "" {
+		return nil, status.Errorf(400, "query error: %s", allResp.Error)
+	}
 	data := allResp.Data
 	if types.IsNil(data) {
-		return nil, fmt.Errorf("query result is nil")
+		return []*QueryResponse(nil), nil
 	}
 	result := make([]*QueryResponse, 0, len(data.Result))
 	for _, v := range data.Result {
@@ -425,5 +436,12 @@ func WithPrometheusBasicAuth(username, password string) PrometheusOption {
 			Username: username,
 			Password: password,
 		}
+	}
+}
+
+// WithPrometheusID 设置数据源ID
+func WithPrometheusID(id uint32) PrometheusOption {
+	return func(p *prometheusDatasource) {
+		p.id = id
 	}
 }

@@ -11,8 +11,10 @@ import (
 
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/status"
 )
 
 var _ MetricDatasource = (*victoriametricsDatasource)(nil)
@@ -108,9 +110,12 @@ func (p *victoriametricsDatasource) Query(ctx context.Context, expr string, dura
 		return nil, err
 	}
 
+	if allResp.Error != "" {
+		return nil, status.Errorf(400, "query error: %s", allResp.Error)
+	}
 	data := allResp.Data
 	if types.IsNil(data) {
-		return nil, fmt.Errorf("query result is nil")
+		return []*QueryResponse(nil), nil
 	}
 	result := make([]*QueryResponse, 0, len(data.Result))
 	for _, queryResult := range data.Result {
@@ -169,7 +174,13 @@ func (p *victoriametricsDatasource) QueryRange(ctx context.Context, expr string,
 	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
+	if allResp.Error != "" {
+		return nil, status.Errorf(400, "query error: %s", allResp.Error)
+	}
 	data := allResp.Data
+	if types.IsNil(data) {
+		return []*QueryResponse(nil), nil
+	}
 	result := make([]*QueryResponse, 0, len(data.Result))
 	for _, v := range data.Result {
 		values := make([]*QueryValue, 0, len(v.Values))
@@ -383,5 +394,12 @@ func WithVictoriametricsBasicAuth(username, password string) VictoriametricsData
 			Username: username,
 			Password: password,
 		}
+	}
+}
+
+// WithVictoriametricsID 设置数据源ID
+func WithVictoriametricsID(id uint32) VictoriametricsDatasourceOption {
+	return func(p *victoriametricsDatasource) {
+		p.id = id
 	}
 }

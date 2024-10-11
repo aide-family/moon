@@ -106,11 +106,32 @@ bizDatabase:
 #  dsn: "root:12345678@tcp(localhost:3306)/"
   driver: "sqlite"
   debug: false
-  dsn: "biz.db"
 alarmDatabase:
 #  driver: "mysql"
 #  debug: false
 #  dsn: "root:12345678@tcp(localhost:3306)/"
   driver: "sqlite"
   debug: false
-  dsn: "alarm.db"
+
+#oauth2:
+#  redirect_uri: "http://127.0.0.1:5173/"
+#  github:
+#    client_id: ""
+#    client_secret: ""
+#    callback_uri: "http://localhost:8000/auth/github/callback"
+#    scopes:
+#      - "user"
+#      - "email"
+#  gitee:
+#    client_id: ""
+#    client_secret: ""
+#    callback_uri: "http://localhost:8000/auth/gitee/callback"
+#    scopes:
+#      - "user_info"
+#      - "emails"
+#
+#email_config:
+#  host: smtp.163.com
+#  port: 25
+#  user:
+#  pass:

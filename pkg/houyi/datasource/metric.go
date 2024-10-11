@@ -94,12 +94,14 @@ func NewMetricDatasource(storageType vobj.StorageType, opts ...MetricDatasourceB
 		return NewPrometheusDatasource(
 			WithPrometheusEndpoint(d.endpoint),
 			WithPrometheusStep(d.step),
+			WithPrometheusID(d.id),
 			WithPrometheusBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	case vobj.StorageTypeVictoriametrics:
 		return NewVictoriametricsDatasource(
 			WithVictoriametricsEndpoint(d.endpoint),
 			WithVictoriametricsStep(d.step),
+			WithVictoriametricsID(d.id),
 			WithVictoriametricsBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	default:

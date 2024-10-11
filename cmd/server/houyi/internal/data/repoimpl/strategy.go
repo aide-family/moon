@@ -207,9 +207,9 @@ func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.A
 	if err != nil {
 		log.Warnw("method", "storage.get", "error", err)
 	} else {
-		var firingAlert bo.Alert
-		if err := types.Unmarshal([]byte(resolvedAlertStr), &firingAlert); err != nil {
-			log.Warnw("method", "types.Unmarshal", "error", err)
+		firingAlert, err := bo.NewAlertWithAlertStrInfo(resolvedAlertStr)
+		if err != nil {
+			log.Warnw("method", "bo.NewAlertWithAlertStrInfo", "error", err)
 		} else {
 			alert.StartsAt = firingAlert.StartsAt
 		}
