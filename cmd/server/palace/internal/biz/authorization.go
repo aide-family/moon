@@ -27,6 +27,7 @@ type AuthorizationBiz struct {
 	teamRepo     repository.Team
 	cacheRepo    repository.Cache
 	teamRoleRepo repository.TeamRole
+	resourceRepo repository.Resource
 	oAuthRepo    repository.OAuth
 
 	githubOAuthConf *oauth2.Config
@@ -41,6 +42,7 @@ func NewAuthorizationBiz(
 	teamRepo repository.Team,
 	cacheRepo repository.Cache,
 	teamRoleRepo repository.TeamRole,
+	resourceRepo repository.Resource,
 	oAuthRepo repository.OAuth,
 ) *AuthorizationBiz {
 	githubOAuthConf := bc.GetOauth2().GetGithub()
@@ -50,6 +52,7 @@ func NewAuthorizationBiz(
 		teamRepo:     teamRepo,
 		cacheRepo:    cacheRepo,
 		teamRoleRepo: teamRoleRepo,
+		resourceRepo: resourceRepo,
 		oAuthRepo:    oAuthRepo,
 		githubOAuthConf: &oauth2.Config{
 			ClientID:     githubOAuthConf.GetClientId(),
@@ -100,8 +103,8 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	if len(memberRoles) == 0 {
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
-	memberRoleIds := types.SliceTo(memberRoles, func(role *bizmodel.SysTeamRole) uint32 {
-		return role.ID
+	memberRoleIds := types.SliceToWithFilter(memberRoles, func(role *bizmodel.SysTeamRole) (uint32, bool) {
+		return role.ID, role.Status.IsEnable()
 	})
 	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
 	if !types.IsNil(err) {
@@ -111,6 +114,10 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return nil, merr.ErrorI18nForbidden(ctx).WithMetadata(map[string]string{
 			"operation": req.Operation,
 		})
+	}
+	// 查询接口是否停用
+	if err := b.resourceRepo.CheckPath(ctx, req.Operation); err != nil {
+		return nil, err
 	}
 
 	return teamMemberDo, nil

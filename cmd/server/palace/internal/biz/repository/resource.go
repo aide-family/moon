@@ -13,6 +13,9 @@ type Resource interface {
 	// GetByID get resource by id
 	GetByID(context.Context, uint32) (*model.SysAPI, error)
 
+	// CheckPath check resource path
+	CheckPath(context.Context, string) error
+
 	// FindByPage find resource by page
 	FindByPage(context.Context, *bo.QueryResourceListParams) ([]*model.SysAPI, error)
 
