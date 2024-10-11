@@ -40,6 +40,7 @@ type (
 
 // CreateStrategyGroup 创建策略分组
 func (s *StrategyGroupBiz) CreateStrategyGroup(ctx context.Context, params *bo.CreateStrategyGroupParams) (*bizmodel.StrategyGroup, error) {
+	// 查询策略分组是否已经存在
 	strategyGroup, err := s.strategyRepo.CreateStrategyGroup(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)

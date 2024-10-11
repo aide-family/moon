@@ -136,6 +136,7 @@ func (l *listRoleRequestBuilder) ToBo() *bo.ListTeamRoleParams {
 	return &bo.ListTeamRoleParams{
 		TeamID:  claims.GetTeam(),
 		Keyword: l.GetKeyword(),
+		Page:    types.NewPagination(l.GetPagination()),
 	}
 }
 

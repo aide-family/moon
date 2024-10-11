@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
@@ -17,14 +16,16 @@ import (
 )
 
 // NewUserRepository 创建用户仓库
-func NewUserRepository(data *data.Data) repository.User {
+func NewUserRepository(data *data.Data, cacheRepo repository.Cache) repository.User {
 	return &userRepositoryImpl{
-		data: data,
+		data:      data,
+		cacheRepo: cacheRepo,
 	}
 }
 
 type userRepositoryImpl struct {
-	data *data.Data
+	data      *data.Data
+	cacheRepo repository.Cache
 }
 
 func (l *userRepositoryImpl) GetUserByEmailOrPhone(ctx context.Context, emailOrPhone string) (*model.SysUser, error) {
@@ -91,7 +92,7 @@ func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserPara
 	if err := userQuery.WithContext(ctx).Create(userModel); !types.IsNil(err) {
 		return nil, err
 	}
-	runtimecache.GetRuntimeCache().AppendUser(ctx, userModel)
+	l.cacheRepo.AppendUser(ctx, userModel)
 	return userModel, nil
 }
 

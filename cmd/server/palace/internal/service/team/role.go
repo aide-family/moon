@@ -69,8 +69,10 @@ func (s *RoleService) ListRole(ctx context.Context, req *teamapi.ListRoleRequest
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	build := builder.NewParamsBuild().WithContext(ctx)
 	return &teamapi.ListRoleReply{
-		List: builder.NewParamsBuild().RoleModuleBuilder().DoRoleBuilder().ToAPIs(teamRoles),
+		List:       build.RoleModuleBuilder().DoRoleBuilder().ToAPIs(teamRoles),
+		Pagination: build.PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
 
@@ -89,7 +91,9 @@ func (s *RoleService) GetRoleSelectList(ctx context.Context, req *teamapi.ListRo
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	build := builder.NewParamsBuild().WithContext(ctx)
 	return &teamapi.GetRoleSelectListReply{
-		List: builder.NewParamsBuild().WithContext(ctx).RoleModuleBuilder().DoRoleBuilder().ToSelects(teamRoles),
+		List:       build.RoleModuleBuilder().DoRoleBuilder().ToSelects(teamRoles),
+		Pagination: build.PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }

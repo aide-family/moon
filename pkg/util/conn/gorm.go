@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/moon/pkg/merr"
 	slog "github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
@@ -26,6 +27,9 @@ type GormDBConfig interface {
 
 // GetDB 获取数据库连接
 func GetDB(ctx context.Context) (*gorm.DB, bool) {
+	if types.IsNil(ctx) {
+		return nil, false
+	}
 	if v, ok := ctx.Value(gormContextTxKey{}).(*gorm.DB); ok {
 		return v, true
 	}

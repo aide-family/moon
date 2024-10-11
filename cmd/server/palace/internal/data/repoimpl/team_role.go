@@ -174,7 +174,10 @@ func (l *teamRoleRepositoryImpl) ListTeamRole(ctx context.Context, params *bo.Li
 	if !types.TextIsNull(params.Keyword) {
 		teamRoleQuery = teamRoleQuery.Where(bizQuery.SysTeamRole.Name.Like(params.Keyword))
 	}
-	return teamRoleQuery.Find()
+	if err := types.WithPageQuery[bizquery.ISysTeamRoleDo](teamRoleQuery, params.Page); err != nil {
+		return nil, err
+	}
+	return teamRoleQuery.Order(bizQuery.SysTeamRole.ID.Desc()).Find()
 }
 
 func (l *teamRoleRepositoryImpl) GetTeamRoleByUserID(ctx context.Context, userID, teamID uint32) ([]*bizmodel.SysTeamRole, error) {

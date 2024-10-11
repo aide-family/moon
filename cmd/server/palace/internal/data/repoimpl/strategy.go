@@ -116,7 +116,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 		}
 
 		// 移除策略等级中间表
-		if err = tx.Strategy.Levels.WithContext(ctx).Model(strategy).Clear(); !types.IsNil(err) {
+		if _, err = tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(strategyID)).Delete(); !types.IsNil(err) {
 			return err
 		}
 
@@ -319,24 +319,16 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, strategyID, "copy")
 	strategy.ID = 0
 	strategy.Status = vobj.StatusDisable
-	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := tx.Strategy.WithContext(ctx).Create(strategy); !types.IsNil(err) {
-			return err
-		}
-		copyLevels := make([]*bizmodel.StrategyLevel, 0, len(strategy.Levels))
-		for _, level := range strategy.Levels {
-			level.StrategyID = strategy.ID
-			level.ID = 0
-			copyLevels = append(copyLevels, level)
-		}
-		if err := tx.StrategyLevel.WithContext(ctx).Create(copyLevels...); !types.IsNil(err) {
-			return err
-		}
-		return nil
-	})
-	if !types.IsNil(err) {
+	copyLevels := make([]*bizmodel.StrategyLevel, 0, len(strategy.Levels))
+	for _, level := range strategy.Levels {
+		level.ID = 0
+		copyLevels = append(copyLevels, level)
+	}
+	strategy.Levels = copyLevels
+	if err := strategyWrapper.WithContext(ctx).Create(strategy); !types.IsNil(err) {
 		return nil, err
 	}
+
 	s.syncStrategiesByIds(ctx, strategy.ID)
 	return strategy, nil
 }

@@ -40,9 +40,15 @@ func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 		wheres = append(wheres, apiQuery.Or(mainQuery.SysAPI.Name.Like(params.Keyword), mainQuery.SysAPI.Path.Like(params.Keyword)))
 	}
 	apiQuery = apiQuery.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
-		return nil, err
+	if !params.Status.IsUnknown() {
+		apiQuery = apiQuery.Where(mainQuery.SysAPI.Status.Eq(params.Status.GetValue()))
 	}
+	if !params.IsAll {
+		if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
+			return nil, err
+		}
+	}
+
 	return apiQuery.Order(mainQuery.SysAPI.ID.Desc()).Find()
 }
 
@@ -59,8 +65,14 @@ func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *b
 	if !types.TextIsNull(params.Keyword) {
 		apiQuery = apiQuery.Or(mainQuery.SysAPI.Name.Like(params.Keyword), mainQuery.SysAPI.Path.Like(params.Keyword))
 	}
-	if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
-		return nil, err
+	if !params.Status.IsUnknown() {
+		apiQuery = apiQuery.Where(mainQuery.SysAPI.Status.Eq(params.Status.GetValue()))
 	}
+	if !params.IsAll {
+		if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
+			return nil, err
+		}
+	}
+
 	return apiQuery.Select(mainQuery.SysAPI.ID, query.SysAPI.Name, mainQuery.SysAPI.Status, mainQuery.SysAPI.DeletedAt).Order(mainQuery.SysAPI.ID.Desc()).Find()
 }

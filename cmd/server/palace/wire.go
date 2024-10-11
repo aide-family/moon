@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver/microserverrepoimpl"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/repoimpl"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
@@ -30,7 +29,6 @@ func wireApp(*palaceconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		service.ProviderSetService,
 		microserverrepoimpl.ProviderSetRPCRepoImpl,
 		microserver.ProviderSetRPCConn,
-		runtimecache.ProviderSetRuntimeCache,
 		newApp,
 	))
 }

@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "admin/model.proto";
 import "enum.proto";
+import "global.proto";
 
 option go_package = "github.com/aide-family/moon/api/admin/team;team";
 option java_multiple_files = true;
@@ -83,8 +84,6 @@ message CreateRoleRequest {
   }];
   // 角色权限(对应api id 列表)
   repeated uint32 permissions = 3;
-  // 所属团队
-  uint32 team_id = 4 [(buf.validate.field).required = true];
 }
 message CreateRoleReply {}
 
@@ -113,9 +112,11 @@ message ListRoleRequest {
     message: "关键字长度必须在0到20个字符之间",
     expression: "this.size() <= 20"
   }];
+  PaginationReq pagination = 2 [(buf.validate.field).required = true];
 }
 message ListRoleReply {
   repeated TeamRole list = 1;
+  PaginationReply pagination = 2;
 }
 
 message UpdateRoleStatusRequest {
@@ -126,4 +127,5 @@ message UpdateRoleStatusReply {}
 
 message GetRoleSelectListReply {
   repeated SelectItem list = 1;
+  PaginationReply pagination = 2;
 }

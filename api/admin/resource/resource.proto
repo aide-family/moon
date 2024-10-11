@@ -51,12 +51,16 @@ message GetResourceReply {
 }
 
 message ListResourceRequest {
-  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  PaginationReq pagination = 1;
   string keyword = 2 [(buf.validate.field).cel = {
     id: "keyword",
     message: "关键字查询限制在20字以内",
     expression: "this.size() <= 20"
   }];
+  // 根据状态查询
+  Status status = 3;
+  // 是否查询全部数据
+  bool isAll = 4;
 }
 message ListResourceReply {
   PaginationReply pagination = 1;

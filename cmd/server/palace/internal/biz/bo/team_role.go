@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
@@ -31,7 +32,8 @@ type (
 
 	// ListTeamRoleParams 获取团队角色列表
 	ListTeamRoleParams struct {
-		TeamID  uint32 `json:"teamID"`
-		Keyword string `json:"keyword"`
+		TeamID  uint32           `json:"teamID"`
+		Keyword string           `json:"keyword"`
+		Page    types.Pagination `json:"page"`
 	}
 )

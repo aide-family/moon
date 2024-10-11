@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/runtimecache"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -24,16 +23,16 @@ import (
 )
 
 // NewTeamRepository 创建团队仓库
-func NewTeamRepository(data *data.Data, cache runtimecache.RuntimeCache) repository.Team {
+func NewTeamRepository(data *data.Data, cacheRepo repository.Cache) repository.Team {
 	return &teamRepositoryImpl{
-		data:  data,
-		cache: cache,
+		data:      data,
+		cacheRepo: cacheRepo,
 	}
 }
 
 type teamRepositoryImpl struct {
-	data  *data.Data
-	cache runtimecache.RuntimeCache
+	data      *data.Data
+	cacheRepo repository.Cache
 }
 
 func (l *teamRepositoryImpl) GetTeamMailConfig(ctx context.Context, teamID uint32) (*model.SysTeamEmail, error) {
@@ -93,7 +92,7 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	runtimecache.GetRuntimeCache().AppendUserTeamList(ctx, team.LeaderID, []*model.SysTeam{sysTeamModel})
+	l.cacheRepo.AppendTeam(ctx, sysTeamModel)
 	return sysTeamModel, nil
 }
 
@@ -274,7 +273,7 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 	if params.UserID > 0 {
 		queryTeamIds = true
 		// 缓存用户的全部团队ID， 然后取出来使用
-		teamList := runtimecache.GetRuntimeCache().GetUserTeamList(ctx, params.UserID)
+		teamList := l.cacheRepo.GetUserTeamList(ctx, params.UserID)
 		teamIds = append(teamIds, types.SliceTo(teamList, func(team *model.SysTeam) uint32 { return team.ID })...)
 	}
 	if len(params.IDs) > 0 {
@@ -301,7 +300,7 @@ func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.S
 
 func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
 	// 从全局缓存读取数据
-	return l.cache.GetUserTeamList(ctx, userID), nil
+	return l.cacheRepo.GetUserTeamList(ctx, userID), nil
 }
 
 func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
@@ -339,7 +338,10 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 	if !types.IsNil(err) {
 		return err
 	}
-	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	for _, member := range members {
+		l.cacheRepo.SyncUserTeamList(ctx, member.UserID)
+	}
+
 	return nil
 }
 
@@ -368,7 +370,9 @@ func (l *teamRepositoryImpl) RemoveTeamMember(ctx context.Context, params *bo.Re
 	if !types.IsNil(err) {
 		return err
 	}
-	runtimecache.GetRuntimeCache().RemoveTeamAdminList(ctx, params.ID, params.MemberIds)
+	for _, member := range params.MemberIds {
+		l.cacheRepo.SyncUserTeamList(ctx, member)
+	}
 	return nil
 }
 
@@ -397,7 +401,9 @@ func (l *teamRepositoryImpl) SetMemberAdmin(ctx context.Context, params *bo.SetM
 	if !types.IsNil(err) {
 		return err
 	}
-	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	for _, member := range members {
+		l.cacheRepo.SyncUserTeamList(ctx, member.UserID)
+	}
 	return nil
 }
 
@@ -503,7 +509,9 @@ func (l *teamRepositoryImpl) TransferTeamLeader(ctx context.Context, params *bo.
 	if !types.IsNil(err) {
 		return err
 	}
-	runtimecache.GetRuntimeCache().AppendTeamAdminList(ctx, params.ID, members)
+	for _, member := range members {
+		l.cacheRepo.SyncUserTeamList(ctx, member.UserID)
+	}
 	return nil
 }
 

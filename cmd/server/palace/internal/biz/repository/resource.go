@@ -10,7 +10,7 @@ import (
 
 // Resource 资源管理接口
 type Resource interface {
-	// GetById get resource by id
+	// GetByID get resource by id
 	GetByID(context.Context, uint32) (*model.SysAPI, error)
 
 	// FindByPage find resource by page

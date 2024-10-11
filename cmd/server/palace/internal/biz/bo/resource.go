@@ -3,13 +3,16 @@ package bo
 import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type (
 	// QueryResourceListParams 查询资源列表请求参数
 	QueryResourceListParams struct {
-		Keyword string `json:"keyword"`
-		Page    types.Pagination
+		Keyword string           `json:"keyword"`
+		Page    types.Pagination `json:"page"`
+		IsAll   bool             `json:"isAll"`
+		Status  vobj.Status      `json:"status"`
 	}
 
 	// ResourceSelectOptionBuild 资源选项构建器
