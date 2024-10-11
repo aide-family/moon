@@ -6,6 +6,7 @@ import (
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
+	historyapi "github.com/aide-family/moon/api/admin/history"
 	hookapi "github.com/aide-family/moon/api/admin/hook"
 	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
@@ -23,6 +24,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/history"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
@@ -35,6 +37,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -46,9 +49,10 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 
 // Server 服务
 type Server struct {
-	rpcSrv        *grpc.Server
-	httpSrv       *http.Server
-	strategyWatch *StrategyWatch
+	rpcSrv             *grpc.Server
+	httpSrv            *http.Server
+	strategyWatch      *StrategyWatch
+	alertConsumerWatch *watch.Watcher
 }
 
 // GetRPCServer 获取rpc server
@@ -67,6 +71,7 @@ func (s *Server) GetServers() []transport.Server {
 		s.rpcSrv,
 		s.httpSrv,
 		s.strategyWatch,
+		s.alertConsumerWatch,
 	}
 }
 
@@ -99,6 +104,7 @@ func RegisterService(
 	hookService *hook.Service,
 	inviteService *invite.Service,
 	messageService *user.MessageService,
+	historyService *history.Service,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -123,6 +129,7 @@ func RegisterService(
 	api.RegisterAlertServer(rpcSrv, alertService)
 	userapi.RegisterMessageServer(rpcSrv, messageService)
 	inviteapi.RegisterInviteServer(rpcSrv, inviteService)
+	historyapi.RegisterHistoryServer(rpcSrv, historyService)
 	api.RegisterServerServer(rpcSrv, serverService)
 
 	// 注册HTTP服务
@@ -149,6 +156,7 @@ func RegisterService(
 	inviteapi.RegisterInviteHTTPServer(httpSrv, inviteService)
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
 	api.RegisterServerHTTPServer(httpSrv, serverService)
+	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
 
 	// custom api
 	proxy := httpSrv.Route("/v1")
@@ -176,8 +184,9 @@ func RegisterService(
 	}
 
 	return &Server{
-		rpcSrv:        rpcSrv,
-		httpSrv:       httpSrv,
-		strategyWatch: newStrategyWatch(c, data, alertService),
+		rpcSrv:             rpcSrv,
+		httpSrv:            httpSrv,
+		strategyWatch:      newStrategyWatch(c, data, alertService),
+		alertConsumerWatch: newAlertConsumer(c, data, alertService),
 	}
 }

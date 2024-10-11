@@ -1,8 +1,13 @@
 package bo
 
 import (
+	"encoding/json"
+
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 )
 
 type (
@@ -70,11 +75,11 @@ type (
 		// 分页参数
 		Pagination types.Pagination
 		// 告警时间范围
-		EventAtStart int64
-		EventAtEnd   int64
+		EventAtStart string
+		EventAtEnd   string
 		// 告警恢复时间
-		ResolvedAtStart int64
-		ResolvedAtEnd   int64
+		ResolvedAtStart string
+		ResolvedAtEnd   string
 		// 告警级别
 		AlarmLevels []uint32
 		// 告警状态
@@ -86,4 +91,124 @@ type (
 		// 我的告警
 		MyAlarm bool
 	}
+
+	// AlertItemRawParams 告警原始数据
+	AlertItemRawParams struct {
+		// 告警状态, firing, resolved
+		Status string `json:"status"`
+		// 标签
+		Labels map[string]string `json:"labels"`
+		// 注解
+		Annotations vobj.Annotations `json:"annotations"`
+		// 开始时间
+		StartsAt string `json:"startsAt"`
+		// 结束时间, 空表示未结束
+		EndsAt string `json:"endsAt"`
+		// 告警生成链接
+		GeneratorURL string `json:"generatorURL"`
+		// 指纹
+		Fingerprint string `json:"fingerprint"`
+	}
+
+	// CreateAlarmItemParams 创建告警项请求参数
+	CreateAlarmItemParams struct {
+		// 告警状态, firing, resolved
+		Status string `json:"status"`
+		// 标签
+		Labels map[string]string `json:"labels"`
+		// 注解
+		Annotations map[string]string `json:"annotations"`
+		// 开始时间
+		StartsAt int64 `json:"startsAt"`
+		// 结束时间, 空表示未结束
+		EndsAt int64 `json:"endsAt"`
+		// 告警生成链接
+		GeneratorURL string `json:"generatorURL"`
+		// 指纹
+		Fingerprint string `json:"fingerprint"`
+		// 数据源ID
+		DatasourceID uint32 `json:"datasourceId"`
+		// 告警原始表id
+		RawInfoID uint32 `json:"rawId"`
+	}
+
+	// CreateAlarmInfoParams 创建告警信息参数
+	CreateAlarmInfoParams struct {
+		TeamID        uint32                          `json:"teamId"`
+		Alerts        []*AlertItemRawParams           `json:"alerts"`
+		Strategy      *bizmodel.Strategy              `json:"strategy"`
+		Level         *bizmodel.StrategyLevel         `json:"level"`
+		DatasourceMap map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
+		RawInfoMap    map[string]*alarmmodel.AlarmRaw `json:"rawIdMap"`
+	}
+
+	// CreateAlarmHookRawParams 告警hook原始信息
+	CreateAlarmHookRawParams struct {
+		Receiver          string                `json:"receiver"`
+		Status            string                `json:"status"`
+		GroupLabels       *vobj.Labels          `json:"groupLabels"`
+		CommonLabels      *vobj.Labels          `json:"commonLabels"`
+		CommonAnnotations map[string]string     `json:"commonAnnotations"`
+		ExternalURL       string                `json:"externalURL"`
+		Version           string                `json:"version"`
+		GroupKey          string                `json:"groupKey"`
+		TruncatedAlerts   int32                 `json:"truncatedAlerts"`
+		Alerts            []*AlertItemRawParams `json:"alerts"`
+		TeamID            uint32                `json:"teamId"`
+		StrategyID        uint32                `json:"strategyId"`
+		LevelID           uint32                `json:"levelId"`
+	}
 )
+
+func (a *CreateAlarmHookRawParams) String() string {
+	if types.IsNil(a) {
+		return ""
+	}
+	bs, err := json.Marshal(a)
+	if err != nil {
+		return ""
+	}
+	return string(bs)
+}
+
+func (a *CreateAlarmHookRawParams) Index() string {
+	return "palace:alert:hook:" + types.MD5(a.GroupLabels.String())
+}
+
+func (a *CreateAlarmHookRawParams) Message() *watch.Message {
+	return watch.NewMessage(a, vobj.TopicAlarm)
+}
+
+// GetDatasourceMap 获取数据源
+func (a *CreateAlarmInfoParams) GetDatasourceMap(datasourceID uint32) string {
+	if types.IsNil(a) || types.IsNil(a.DatasourceMap) {
+		return ""
+	}
+	if v, ok := a.DatasourceMap[datasourceID]; ok {
+		return v.String()
+	}
+	return ""
+}
+
+// GetRawInfoId 获取原始信息id
+func (a *CreateAlarmInfoParams) GetRawInfoId(fingerprint string) uint32 {
+	if types.IsNil(a) || types.IsNil(a.RawInfoMap) {
+		return 0
+	}
+	if v, ok := a.RawInfoMap[fingerprint]; ok {
+		return v.ID
+	}
+	return 0
+}
+
+// GetAlertItemString 获取原始告警字符串
+func (a *AlertItemRawParams) GetAlertItemString() string {
+	if types.IsNil(a) {
+		return ""
+	}
+	bs, err := json.Marshal(a)
+	if err != nil {
+		return ""
+	}
+	return string(bs)
+}

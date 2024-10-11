@@ -1,4 +1,4 @@
-package bizmodel
+package alarmmodel
 
 import (
 	"github.com/aide-family/moon/pkg/palace/model"
@@ -11,27 +11,28 @@ const tableNameRealtimeAlarm = "realtime_alarm"
 // RealtimeAlarm mapped from table <RealtimeAlarm>
 type RealtimeAlarm struct {
 	model.EasyModel
-	// 发生这条告警的具体策略信息
-	StrategyID uint32 `gorm:"column:strategy_id;type:int unsigned;not null;uniqueIndex:idx__ar__strategy_id,priority:1;comment:策略ID"`
-	LevelID    uint32 `gorm:"column:level_id;type:int unsigned;not null;uniqueIndex:idx__ar__level_id,priority:1;comment:告警等级ID"`
 	// 告警状态: 1告警;2恢复
 	Status vobj.AlertStatus `gorm:"column:status;type:tinyint;not null;default:1;comment:告警状态: 1告警;2恢复"`
 	// 告警时间
-	StartsAt int64 `gorm:"column:starts_at;type:bigint;not null;comment:告警时间"`
+	StartsAt string `gorm:"column:starts_at;type:varchar(100);not null;comment:告警时间"`
 	// 恢复时间
-	EndsAt int64 `gorm:"column:ends_at;type:bigint;not null;comment:恢复时间"`
-	// 原始信息json
-	RawInfo string `gorm:"column:raw_info;type:text;not null;comment:原始信息json"`
+	EndsAt string `gorm:"column:ends_at;type:varchar(100);not null;comment:恢复时间"`
 	// 告警摘要
 	Summary string `gorm:"column:summary;type:varchar(255);not null;comment:告警摘要"`
 	// 告警明细
 	Description string `gorm:"column:description;type:text;not null;comment:告警明细"`
 	// 触发告警表达式
 	Expr string `gorm:"column:expr;type:text;not null;comment:告警表达式"`
-	// 数据源
-	DatasourceID uint32 `gorm:"column:datasource_id;type:int unsigned;not null;comment:数据源ID"`
 	// 指纹
 	Fingerprint string `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex"`
+	// 标签
+	Labels *vobj.Labels `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
+	// 注解
+	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
+	// 告警原始数据ID
+	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__notice__raw_info_id,priority:1" json:"rawInfoId"`
+	// 实时告警详情
+	RealtimeDetails *RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
 }
 
 // String json string
@@ -53,4 +54,12 @@ func (c *RealtimeAlarm) MarshalBinary() (data []byte, err error) {
 // TableName RealtimeAlarm's table name
 func (*RealtimeAlarm) TableName() string {
 	return tableNameRealtimeAlarm
+}
+
+// GetRealtimeDetails 获取实时告警详情
+func (c *RealtimeAlarm) GetRealtimeDetails() *RealtimeDetails {
+	if types.IsNil(c) || types.IsNil(c.RealtimeDetails) {
+		return &RealtimeDetails{}
+	}
+	return c.RealtimeDetails
 }
