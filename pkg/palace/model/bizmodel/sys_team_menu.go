@@ -11,9 +11,9 @@ const tableNameSysMenu = "sys_team_menus"
 // SysTeamMenu mapped from table <sys_menus>
 type SysTeamMenu struct {
 	model.AllFieldModel
-	Name     string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:菜单名称" json:"name"`
-	EnName   string      `gorm:"column:en_name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:菜单英文名称" json:"en_name"`
-	Path     string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径" json:"path"`
+	Name     string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__team_menu__name,priority:1;comment:菜单名称" json:"name"`
+	EnName   string      `gorm:"column:en_name;type:varchar(64);not null;uniqueIndex:idx__team_menu__name,priority:1;comment:菜单英文名称" json:"en_name"`
+	Path     string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__team_menu__path,priority:1;comment:api路径" json:"path"`
 	Status   vobj.Status `gorm:"column:status;type:tinyint;not null;comment:状态" json:"status"`
 	Icon     string      `gorm:"column:icon;type:varchar(255);not null;comment:图标" json:"icon"`
 	ParentID uint32      `gorm:"column:parent_id;type:int unsigned;not null;default:0;comment:父级ID" json:"parent_id"`

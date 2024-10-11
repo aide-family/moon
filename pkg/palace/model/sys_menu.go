@@ -10,9 +10,9 @@ const tableNameSysMenu = "sys_menus"
 // SysMenu mapped from table <sys_menus>
 type SysMenu struct {
 	AllFieldModel
-	Name       string        `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:菜单名称" json:"name"`
-	EnName     string        `gorm:"column:en_name;type:varchar(64);not null;uniqueIndex:idx__sa__name,priority:1;comment:菜单英文名称" json:"en_name"`
-	Path       string        `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__sa__path,priority:1;comment:api路径" json:"path"`
+	Name       string        `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__menu__name,priority:1;comment:菜单名称" json:"name"`
+	EnName     string        `gorm:"column:en_name;type:varchar(64);not null;uniqueIndex:idx__menu__name,priority:1;comment:菜单英文名称" json:"en_name"`
+	Path       string        `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__menu__path,priority:1;comment:api路径" json:"path"`
 	Status     vobj.Status   `gorm:"column:status;type:tinyint;not null;comment:状态" json:"status"`
 	Type       vobj.MenuType `gorm:"column:status;type:tinyint;not null;comment:菜单类型" json:"type"`
 	Icon       string        `gorm:"column:icon;type:varchar(255);not null;comment:图标" json:"icon"`

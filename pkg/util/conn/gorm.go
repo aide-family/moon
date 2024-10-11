@@ -57,9 +57,9 @@ func NewGormDB(c GormDBConfig, logger ...log.Logger) (*gorm.DB, error) {
 		dialector = mysql.Open(dsn)
 	case "sqlite":
 		// 判断文件是否存在，不存在则创建
-		if err := checkDBFileExists(dsn); err != nil {
-			return nil, err
-		}
+		//if err := checkDBFileExists(dsn); err != nil {
+		//	return nil, err
+		//}
 		dialector = sqlite.Open(dsn)
 	default:
 		return nil, merr.ErrorNotification("invalid driver: %s", drive)

@@ -93,14 +93,17 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 		return nil, err
 	}
 	l.cacheRepo.AppendTeam(ctx, sysTeamModel)
+	l.cacheRepo.SyncUserTeamList(ctx, sysTeamModel.LeaderID)
+	for _, memberID := range team.Admins {
+		l.cacheRepo.SyncUserTeamList(ctx, memberID)
+	}
 	return sysTeamModel, nil
 }
 
 func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, team *bo.CreateTeamParams) (err error) {
 	teamID := sysTeamModel.ID
 	// 创建团队数据库
-	_, err = l.data.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + data.GenBizDatabaseName(teamID) + "`")
-	if !types.IsNil(err) {
+	if err = l.data.CreateBizDatabase(teamID); !types.IsNil(err) {
 		return err
 	}
 
@@ -300,6 +303,11 @@ func (l *teamRepositoryImpl) UpdateTeamStatus(ctx context.Context, status vobj.S
 
 func (l *teamRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.SysTeam, error) {
 	// 从全局缓存读取数据
+	list := l.cacheRepo.GetUserTeamList(ctx, userID)
+	if len(list) > 0 {
+		return list, nil
+	}
+	l.cacheRepo.SyncUserTeamList(ctx, userID)
 	return l.cacheRepo.GetUserTeamList(ctx, userID), nil
 }
 

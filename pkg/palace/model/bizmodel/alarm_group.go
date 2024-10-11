@@ -11,7 +11,7 @@ const tableNameAlarmNoticeGroup = "alarm_notice_group"
 // AlarmNoticeGroup 告警通知组
 type AlarmNoticeGroup struct {
 	model.AllFieldModel
-	Name          string               `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:告警组名称" json:"name"`
+	Name          string               `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__alarm_notice_group__name,priority:1;comment:告警组名称" json:"name"`
 	Status        vobj.Status          `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用" json:"status"`
 	Remark        string               `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`
 	NoticeMembers []*AlarmNoticeMember `gorm:"foreignKey:AlarmGroupID;comment:通知人信息中间表" json:"notice_members"`

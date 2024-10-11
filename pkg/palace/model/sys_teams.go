@@ -10,7 +10,7 @@ const tableNameSysTeam = "sys_teams"
 // SysTeam mapped from table <sys_teams>
 type SysTeam struct {
 	AllFieldModel
-	Name     string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__name,priority:1;comment:团队空间名" json:"name"`               // 团队空间名
+	Name     string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__team__name,priority:1;comment:团队空间名" json:"name"`         // 团队空间名
 	Status   vobj.Status `gorm:"column:status;type:int;not null;comment:状态" json:"status"`                                                       // 状态
 	Remark   string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                              // 备注
 	Logo     string      `gorm:"column:logo;type:varchar(255);not null;comment:团队logo" json:"logo"`                                              // 团队logo

@@ -40,14 +40,7 @@ func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (
 	if types.IsNil(params) {
 		return nil, merr.ErrorNotification("参数为空")
 	}
-	teamDo, err := t.teamRepo.CreateTeam(ctx, params)
-	if !types.IsNil(err) {
-		if merr.IsAlertTeamNameExistErr(err) {
-			return nil, err
-		}
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return teamDo, nil
+	return t.teamRepo.CreateTeam(ctx, params)
 }
 
 // UpdateTeam 更新团队

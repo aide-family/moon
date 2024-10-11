@@ -11,7 +11,7 @@ const tableNameStrategyGroup = "strategy_group"
 // StrategyGroup 告警规则组
 type StrategyGroup struct {
 	model.AllFieldModel
-	Name       string      `gorm:"column:name;type:varchar(64);not null;index:idx__name,priority:1;comment:规则组名称"`
+	Name       string      `gorm:"column:name;type:varchar(64);not null;index:idx__strategy_group__name,priority:1;comment:规则组名称"`
 	Status     vobj.Status `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用"`
 	Remark     string      `gorm:"column:remark;type:varchar(255);not null;comment:描述信息"`
 	Strategies []*Strategy `gorm:"foreignKey:GroupID"`

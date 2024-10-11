@@ -24,13 +24,13 @@ type BaseModel struct {
 
 // AllFieldModel gorm包含所有字段的模型
 type AllFieldModel struct {
-	ID uint32 `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	BaseModel
 }
 
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
-	ID        uint32                `gorm:"column:id;type:int unsigned;primaryKey;autoIncrement:true" json:"id"`
+	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
 	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`

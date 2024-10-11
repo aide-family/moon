@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
@@ -87,7 +88,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		log.Debugw("close cache", d.cacher.Close())
 	})
 
-	if !types.IsNil(alarmConf) && !types.TextIsNull(alarmConf.GetDsn()) {
+	if !types.IsNil(alarmConf) && !types.TextIsNull(alarmConf.GetDsn()) && alarmConf.GetDriver() != "sqlite" {
 		// 打开数据库连接
 		db, err := sql.Open(alarmConf.GetDriver(), bizConf.GetDsn())
 		if !types.IsNil(err) {
@@ -110,7 +111,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		})
 	}
 
-	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {
+	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) && bizConf.GetDriver() != "sqlite" {
 		// 打开数据库连接
 		db, err := sql.Open(bizConf.GetDriver(), bizConf.GetDsn())
 		if !types.IsNil(err) {
@@ -188,6 +189,19 @@ func (d *Data) GetBizDB(_ context.Context) *sql.DB {
 	return d.bizDB
 }
 
+// CreateBizDatabase 创建业务库
+func (d *Data) CreateBizDatabase(teamID uint32) error {
+	switch d.bizDatabaseConf.GetDriver() {
+	case "mysql":
+		ctx := context.Background()
+		_, err := d.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + GenBizDatabaseName(teamID) + "`")
+		return err
+	default:
+		_, err := d.GetBizGormDB(teamID)
+		return err
+	}
+}
+
 // GetEmailer 获取邮件发送器
 func (d *Data) GetEmailer() email.Interface {
 	if types.IsNil(d.emailer) {
@@ -204,7 +218,9 @@ func GenBizDatabaseName(teamID uint32) string {
 // GetBizGormDB 获取业务库连接
 func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	if teamID == 0 {
-		return nil, merr.ErrorI18nToastTeamNotFound(context.Background())
+		return nil, merr.ErrorI18nToastTeamNotFound(context.Background()).WithMetadata(map[string]string{
+			"teamID": strconv.FormatUint(uint64(teamID), 10),
+		})
 	}
 	dbValue, exist := d.teamBizDBMap.Load(teamID)
 	if exist {
@@ -214,8 +230,12 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 		}
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
+	dsn := "biz_database_" + GenBizDatabaseName(teamID) + ".db"
+	switch d.bizDatabaseConf.GetDriver() {
+	case "mysql":
+		dsn = d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
+	}
 
-	dsn := d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
 	bizDbConf := &conf.Database{
 		Driver: d.bizDatabaseConf.GetDriver(),
 		Dsn:    dsn,

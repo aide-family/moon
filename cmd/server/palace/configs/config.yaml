@@ -50,10 +50,10 @@ cache:
   free:
     size: 10485760
 
-tracer:
-  driver: "jaeger"
-  jaeger:
-    endpoint: "http://localhost:14268/api/traces"
+#tracer:
+#  driver: "jaeger"
+#  jaeger:
+#    endpoint: "http://localhost:14268/api/traces"
 
 #discovery:
 #  driver: "etcd"
@@ -70,7 +70,8 @@ micro_server:
   rabbit_server:
     network: "rpc"
     nodeVersion: ""
-    endpoint: "discovery:///moon_rabbit"
+#    endpoint: "discovery:///moon_rabbit"
+    endpoint: "127.0.0.1:9002"
     timeout: 50s
     secret: ""
   hou_yi_server:
@@ -93,14 +94,23 @@ micro_server:
 #      secret: ""
 
 database:
-  driver: "mysql"
-  debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+#  driver: "mysql"
+#  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+  driver: "sqlite"
+  debug: true
+  dsn: "main.db"
 bizDatabase:
-  driver: "mysql"
+#  driver: "mysql"
+#  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: "sqlite"
   debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/"
+  dsn: "biz.db"
 alarmDatabase:
-  driver: "mysql"
+#  driver: "mysql"
+#  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: "sqlite"
   debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/"
+  dsn: "alarm.db"

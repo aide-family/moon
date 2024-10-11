@@ -39,3 +39,4 @@ bin/
 tmp
 wire_gen.go
 api/*.*.go
+*.db*
