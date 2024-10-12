@@ -105,7 +105,7 @@ bizDatabase:
 #  debug: false
 #  dsn: "root:12345678@tcp(localhost:3306)/"
   driver: "sqlite"
-  debug: false
+  debug: true
 alarmDatabase:
 #  driver: "mysql"
 #  debug: false

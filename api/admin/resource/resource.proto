@@ -45,6 +45,7 @@ service Resource {
 
 message GetResourceRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
+  bool isMain = 2;
 }
 message GetResourceReply {
   ResourceItem detail = 1;
@@ -61,6 +62,7 @@ message ListResourceRequest {
   Status status = 3;
   // 是否查询全部数据
   bool isAll = 4;
+  bool isMain = 5;
 }
 message ListResourceReply {
   PaginationReply pagination = 1;
@@ -80,6 +82,7 @@ message BatchUpdateResourceStatusRequest {
     expression: "(this in [1, 2])",
     message: "状态值必须在[启用(1), 禁用(2)]之间",
   }];
+  bool isMain = 3;
 }
 message BatchUpdateResourceStatusReply {}
 

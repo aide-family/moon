@@ -4,11 +4,14 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 )
+
+var _ imodel.IBaseModel = (*BaseModel)(nil)
 
 // BaseModel gorm基础模型
 type BaseModel struct {
@@ -22,11 +25,53 @@ type BaseModel struct {
 	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
 }
 
+func (u *BaseModel) GetCreatedAt() *types.Time {
+	if types.IsNil(u.CreatedAt) {
+		return &types.Time{}
+	}
+	return &u.CreatedAt
+}
+
+func (u *BaseModel) GetUpdatedAt() *types.Time {
+	if types.IsNil(u.UpdatedAt) {
+		return &types.Time{}
+	}
+
+	return &u.UpdatedAt
+}
+
+func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
+	if types.IsNil(u.DeletedAt) {
+		return 0
+	}
+
+	return u.DeletedAt
+}
+
+func (u *BaseModel) GetCreatorID() uint32 {
+	if types.IsNil(u.CreatorID) {
+		return 0
+	}
+
+	return u.CreatorID
+}
+
+var _ imodel.IAllFieldModel = (*AllFieldModel)(nil)
+
 // AllFieldModel gorm包含所有字段的模型
 type AllFieldModel struct {
 	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	BaseModel
 }
+
+func (a *AllFieldModel) GetID() uint32 {
+	if types.IsNil(a.ID) {
+		return 0
+	}
+	return a.ID
+}
+
+var _ imodel.IEasyModel = (*EasyModel)(nil)
 
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
@@ -34,6 +79,38 @@ type EasyModel struct {
 	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
 	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
+}
+
+func (e *EasyModel) GetID() uint32 {
+	if types.IsNil(e.ID) {
+		return 0
+	}
+
+	return e.ID
+}
+
+func (e *EasyModel) GetCreatedAt() *types.Time {
+	if types.IsNil(e.CreatedAt) {
+		return &types.Time{}
+	}
+
+	return &e.CreatedAt
+}
+
+func (e *EasyModel) GetUpdatedAt() *types.Time {
+	if types.IsNil(e.UpdatedAt) {
+		return &types.Time{}
+	}
+
+	return &e.UpdatedAt
+}
+
+func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
+	if types.IsNil(e.DeletedAt) {
+		return 0
+	}
+
+	return e.DeletedAt
 }
 
 // WithContext 获取上下文

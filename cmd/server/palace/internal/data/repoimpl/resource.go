@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/palace/imodel"
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gorm"
@@ -11,7 +13,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -61,12 +62,12 @@ func (l *resourceRepositoryImpl) CheckPath(ctx context.Context, s string) error 
 	return nil
 }
 
-func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysAPI, error) {
+func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	return mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.ID.Eq(id)).First()
 }
 
-func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
+func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	apiQuery := mainQuery.SysAPI.WithContext(ctx)
 
@@ -85,7 +86,11 @@ func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 		}
 	}
 
-	return apiQuery.Order(mainQuery.SysAPI.ID.Desc()).Find()
+	list, err := apiQuery.Order(mainQuery.SysAPI.ID.Desc()).Find()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return types.SliceTo(list, func(api *model.SysAPI) imodel.IResource { return api }), nil
 }
 
 func (l *resourceRepositoryImpl) UpdateStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
@@ -94,7 +99,7 @@ func (l *resourceRepositoryImpl) UpdateStatus(ctx context.Context, status vobj.S
 	return err
 }
 
-func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]*model.SysAPI, error) {
+func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	apiQuery := mainQuery.SysAPI.WithContext(ctx)
 
@@ -110,5 +115,9 @@ func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *b
 		}
 	}
 
-	return apiQuery.Select(mainQuery.SysAPI.ID, query.SysAPI.Name, mainQuery.SysAPI.Status, mainQuery.SysAPI.DeletedAt).Order(mainQuery.SysAPI.ID.Desc()).Find()
+	list, err := apiQuery.Select(mainQuery.SysAPI.ID, query.SysAPI.Name, mainQuery.SysAPI.Status, mainQuery.SysAPI.DeletedAt).Order(mainQuery.SysAPI.ID.Desc()).Find()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return types.SliceTo(list, func(api *model.SysAPI) imodel.IResource { return api }), nil
 }

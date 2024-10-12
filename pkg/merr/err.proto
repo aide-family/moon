@@ -253,6 +253,11 @@ enum ErrorReason {
       reason: "TEAM_INVITE_NOT_FOUND"
       message: "邀请记录不存在",
       metadata: {key: "teamInvite", value: "TEAM_INVITE_NOT_FOUND"}
+    },
+    // 角色存在关联关系
+    (errors.biz_reason) = {
+      reason: "ROLE_HAS_RELATION"
+      message: "角色存在关联关系",
     }
   ];
 

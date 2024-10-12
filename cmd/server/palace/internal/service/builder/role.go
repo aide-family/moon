@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -80,8 +81,12 @@ func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole, userMaps ...map[uint32
 		CreatedAt: role.CreatedAt.String(),
 		UpdatedAt: role.UpdatedAt.String(),
 		Status:    api.Status(role.Status),
-		Resources: nil, // TODO 关联资源
-		Creator:   userMap[role.CreatorID],
+		Resources: NewParamsBuild().WithContext(d.ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPIs(
+			types.SliceTo(role.Apis, func(api *bizmodel.SysTeamAPI) imodel.IResource {
+				return api
+			}),
+		),
+		Creator: userMap[role.CreatorID],
 	}
 }
 
@@ -159,13 +164,7 @@ func (c *createRoleRequestBuilder) ToBo() *bo.CreateTeamRoleParams {
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(c.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(c.ctx))
-	}
-
 	return &bo.CreateTeamRoleParams{
-		TeamID:      claims.GetTeam(),
 		Name:        c.GetName(),
 		Remark:      c.GetRemark(),
 		Status:      vobj.StatusEnable,

@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -17,7 +17,7 @@ type (
 
 	// ResourceSelectOptionBuild 资源选项构建器
 	ResourceSelectOptionBuild struct {
-		*model.SysAPI
+		imodel.IResource
 	}
 
 	// QueryTeamMenuListParams 查询团队菜单列表请求参数
@@ -27,20 +27,20 @@ type (
 )
 
 // NewResourceSelectOptionBuild 构建资源选项构建器
-func NewResourceSelectOptionBuild(resource *model.SysAPI) *ResourceSelectOptionBuild {
+func NewResourceSelectOptionBuild(resource imodel.IResource) *ResourceSelectOptionBuild {
 	return &ResourceSelectOptionBuild{
-		SysAPI: resource,
+		IResource: resource,
 	}
 }
 
 // ToSelectOption 转换为选项
 func (b *ResourceSelectOptionBuild) ToSelectOption() *SelectOptionBo {
-	if types.IsNil(b) || types.IsNil(b.SysAPI) {
+	if types.IsNil(b) || types.IsNil(b.IResource) {
 		return nil
 	}
 	return &SelectOptionBo{
-		Value:    b.ID,
-		Label:    b.Name,
-		Disabled: !b.Status.IsEnable(),
+		Value:    b.GetID(),
+		Label:    b.GetName(),
+		Disabled: !b.GetStatus().IsEnable(),
 	}
 }

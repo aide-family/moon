@@ -8,7 +8,6 @@ import (
 type (
 	// CreateTeamRoleParams 创建团队角色
 	CreateTeamRoleParams struct {
-		TeamID uint32 `json:"teamID"`
 		// 角色名称
 		Name string `json:"name"`
 		// 角色描述

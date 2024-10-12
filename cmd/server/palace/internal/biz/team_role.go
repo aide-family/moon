@@ -45,6 +45,18 @@ func (b *TeamRoleBiz) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTea
 
 // DeleteTeamRole 删除团队角色
 func (b *TeamRoleBiz) DeleteTeamRole(ctx context.Context, id uint32) error {
+	// 查询角色， 如果存在关联关系， 不允许删除
+	teamRoleDo, err := b.teamRoleRepo.GetTeamRole(ctx, id)
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return merr.ErrorI18nToastRoleNotFound(ctx)
+		}
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	if len(teamRoleDo.Apis)+len(teamRoleDo.Members) > 0 {
+		return merr.ErrorI18nToastRoleHasRelation(ctx)
+	}
+
 	if err := b.teamRoleRepo.DeleteTeamRole(ctx, id); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}

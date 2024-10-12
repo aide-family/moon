@@ -1,6 +1,6 @@
 package vobj
 
-// ModuleType 数据状态
+// ModuleType 模块类型
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=ModuleType -linecomment
 type ModuleType int

@@ -212,7 +212,7 @@ func (d *Data) GetEmailer() email.Interface {
 
 // GenBizDatabaseName 生成业务库名称
 func GenBizDatabaseName(teamID uint32) string {
-	return fmt.Sprintf("team_%d", teamID)
+	return fmt.Sprintf("db_team_%d", teamID)
 }
 
 // GetBizGormDB 获取业务库连接
@@ -230,7 +230,7 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 		}
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
-	dsn := "biz_database_" + GenBizDatabaseName(teamID) + ".db"
+	dsn := GenBizDatabaseName(teamID)
 	switch d.bizDatabaseConf.GetDriver() {
 	case "mysql":
 		dsn = d.bizDatabaseConf.GetDsn() + GenBizDatabaseName(teamID) + "?charset=utf8mb4&parseTime=True&loc=Local"
@@ -293,8 +293,20 @@ func (d *Data) GetCacher() cache.ICacher {
 	return d.cacher
 }
 
+func (d *Data) GetCasbinByTx(tx *gorm.DB) *casbin.SyncedEnforcer {
+	enforcer, err := rbac.InitCasbinModel(tx)
+	if !types.IsNil(err) {
+		log.Errorw("casbin init error", err)
+		panic(err)
+	}
+	return enforcer
+}
+
 // GetCasbin 获取casbin
-func (d *Data) GetCasbin(teamID uint32) *casbin.SyncedEnforcer {
+func (d *Data) GetCasbin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
+	if len(tx) > 0 {
+		return d.GetCasbinByTx(tx[0])
+	}
 	enforceVal, exist := d.enforcerMap.Load(teamID)
 	if !exist {
 		_, err := d.GetBizGormDB(teamID)

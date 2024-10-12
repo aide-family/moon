@@ -2388,6 +2388,63 @@ func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) 
 	})
 }
 
+const ErrorToastRoleHasRelationID = "TOAST__ROLE_HAS_RELATION"
+
+// IsToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ROLE_HAS_RELATION
+//	角色存在关联关系
+func IsToastRoleHasRelation(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorToastRoleHasRelationID && e.Code == 404
+}
+
+// ErrorToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ROLE_HAS_RELATION
+//	角色存在关联关系
+func ErrorToastRoleHasRelation(format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastRoleHasRelationID, fmt.Sprintf(format, args...))
+}
+
+// ErrorToastRoleHasRelationWithContext 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ROLE_HAS_RELATION
+//	角色存在关联关系
+//	带上下文，支持国际化输出元数据
+func ErrorToastRoleHasRelationWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastRoleHasRelationID, fmt.Sprintf(format, args...))
+}
+
+// ErrorI18nToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
+//  ROLE_HAS_RELATION
+//  角色存在关联关系
+//  支持国际化输出
+func ErrorI18nToastRoleHasRelation(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "角色存在关联关系"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(404, ErrorToastRoleHasRelationID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorToastRoleHasRelationID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(404, ErrorToastRoleHasRelationID, msg).WithCause(err1)
+		} else {
+			err = errors.New(404, ErrorToastRoleHasRelationID, localize)
+		}
+	}
+
+	return err
+}
+
 const ErrorNotificationID = "NOTIFICATION"
 
 // IsNotification 用于通知验证错误， 系统级别错误

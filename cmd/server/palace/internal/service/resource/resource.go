@@ -26,7 +26,7 @@ func NewResourceService(resourceBiz *biz.ResourceBiz) *Service {
 
 // GetResource 获取资源
 func (s *Service) GetResource(ctx context.Context, req *resourceapi.GetResourceRequest) (*resourceapi.GetResourceReply, error) {
-	resourceDo, err := s.resourceBiz.GetResource(ctx, req.GetId())
+	resourceDo, err := s.resourceBiz.GetResource(ctx, req.GetId(), req.GetIsMain())
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *Service) GetResource(ctx context.Context, req *resourceapi.GetResourceR
 // ListResource 获取资源列表
 func (s *Service) ListResource(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.ListResourceReply, error) {
 	queryParams := builder.NewParamsBuild().ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
-	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
+	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams, req.GetIsMain())
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *Service) ListResource(ctx context.Context, req *resourceapi.ListResourc
 
 // BatchUpdateResourceStatus 批量更新资源状态
 func (s *Service) BatchUpdateResourceStatus(ctx context.Context, req *resourceapi.BatchUpdateResourceStatusRequest) (*resourceapi.BatchUpdateResourceStatusReply, error) {
-	if err := s.resourceBiz.UpdateResourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetIds()...); !types.IsNil(err) {
+	if err := s.resourceBiz.UpdateResourceStatus(ctx, vobj.Status(req.GetStatus()), req.GetIsMain(), req.GetIds()...); !types.IsNil(err) {
 		return nil, err
 	}
 	return &resourceapi.BatchUpdateResourceStatusReply{}, nil
@@ -59,7 +59,7 @@ func (s *Service) BatchUpdateResourceStatus(ctx context.Context, req *resourceap
 // GetResourceSelectList 获取资源下拉列表
 func (s *Service) GetResourceSelectList(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.GetResourceSelectListReply, error) {
 	queryParams := builder.NewParamsBuild().ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
-	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
+	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams, req.GetIsMain())
 	if !types.IsNil(err) {
 		return nil, err
 	}

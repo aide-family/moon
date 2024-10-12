@@ -11,6 +11,7 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewTeamRepository,
 	NewCacheRepository,
 	NewResourceRepository,
+	NewTeamResourceRepository,
 	NewTeamRoleRepository,
 	NewTeamMenuRepository,
 	NewMenuRepository,

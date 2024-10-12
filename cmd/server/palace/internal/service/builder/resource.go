@@ -7,7 +7,7 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -34,10 +34,10 @@ type (
 	}
 
 	IDoResourceBuilder interface {
-		ToAPI(*model.SysAPI) *adminapi.ResourceItem
-		ToAPIs([]*model.SysAPI) []*adminapi.ResourceItem
-		ToSelect(*model.SysAPI) *adminapi.SelectItem
-		ToSelects([]*model.SysAPI) []*adminapi.SelectItem
+		ToAPI(imodel.IResource) *adminapi.ResourceItem
+		ToAPIs([]imodel.IResource) []*adminapi.ResourceItem
+		ToSelect(imodel.IResource) *adminapi.SelectItem
+		ToSelects([]imodel.IResource) []*adminapi.SelectItem
 	}
 
 	doResourceBuilder struct {
@@ -45,56 +45,56 @@ type (
 	}
 )
 
-func (d *doResourceBuilder) ToAPI(sysAPI *model.SysAPI) *adminapi.ResourceItem {
+func (d *doResourceBuilder) ToAPI(sysAPI imodel.IResource) *adminapi.ResourceItem {
 	if types.IsNil(d) || types.IsNil(sysAPI) {
 		return nil
 	}
 
 	return &adminapi.ResourceItem{
-		Id:        sysAPI.ID,
-		Name:      sysAPI.Name,
-		Path:      sysAPI.Path,
-		Status:    api.Status(sysAPI.Status),
-		Remark:    sysAPI.Remark,
-		CreatedAt: sysAPI.CreatedAt.String(),
-		UpdatedAt: sysAPI.UpdatedAt.String(),
-		Module:    api.ModuleType(sysAPI.Module),
-		Domain:    api.DomainType(sysAPI.Domain),
+		Id:        sysAPI.GetID(),
+		Name:      sysAPI.GetName(),
+		Path:      sysAPI.GetPath(),
+		Status:    api.Status(sysAPI.GetStatus()),
+		Remark:    sysAPI.GetRemark(),
+		CreatedAt: sysAPI.GetCreatedAt().String(),
+		UpdatedAt: sysAPI.GetUpdatedAt().String(),
+		Module:    api.ModuleType(sysAPI.GetModule()),
+		Domain:    api.DomainType(sysAPI.GetDomain()),
 	}
 }
 
-func (d *doResourceBuilder) ToAPIs(apis []*model.SysAPI) []*adminapi.ResourceItem {
+func (d *doResourceBuilder) ToAPIs(apis []imodel.IResource) []*adminapi.ResourceItem {
 	if types.IsNil(d) || types.IsNil(apis) {
 		return nil
 	}
 
-	return types.SliceTo(apis, func(api *model.SysAPI) *adminapi.ResourceItem {
+	return types.SliceTo(apis, func(api imodel.IResource) *adminapi.ResourceItem {
 		return d.ToAPI(api)
 	})
 }
 
-func (d *doResourceBuilder) ToSelect(sysAPI *model.SysAPI) *adminapi.SelectItem {
+func (d *doResourceBuilder) ToSelect(sysAPI imodel.IResource) *adminapi.SelectItem {
 	if types.IsNil(d) || types.IsNil(sysAPI) {
 		return nil
 	}
 
 	return &adminapi.SelectItem{
-		Value:    sysAPI.ID,
-		Label:    sysAPI.Name,
+		Value:    sysAPI.GetID(),
+		Label:    sysAPI.GetName(),
 		Children: nil,
-		Disabled: sysAPI.DeletedAt > 0 || !sysAPI.Status.IsEnable(),
+		Disabled: sysAPI.GetDeletedAt() > 0 || !sysAPI.GetStatus().IsEnable(),
 		Extend: &adminapi.SelectExtend{
-			Remark: sysAPI.Remark,
+			Remark: sysAPI.GetRemark(),
 		},
 	}
 }
 
-func (d *doResourceBuilder) ToSelects(apis []*model.SysAPI) []*adminapi.SelectItem {
+func (d *doResourceBuilder) ToSelects(apis []imodel.IResource) []*adminapi.SelectItem {
 	if types.IsNil(d) || types.IsNil(apis) {
 		return nil
 	}
 
-	return types.SliceTo(apis, func(api *model.SysAPI) *adminapi.SelectItem {
+	return types.SliceTo(apis, func(api imodel.IResource) *adminapi.SelectItem {
 		return d.ToSelect(api)
 	})
 }

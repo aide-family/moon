@@ -11,11 +11,11 @@ const tableNameSysTeamRole = "sys_team_roles"
 // SysTeamRole mapped from table <sys_team_roles>
 type SysTeamRole struct {
 	model.AllFieldModel
-	TeamID uint32        `gorm:"column:team_id;type:int unsigned;not null;comment:团队ID" json:"team_id"` // 团队ID
-	Name   string        `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`        // 角色名称
-	Status vobj.Status   `gorm:"column:status;type:int;not null;comment:状态" json:"status"`              // 状态
-	Remark string        `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`     // 备注
-	Apis   []*SysTeamAPI `gorm:"many2many:sys_team_role_apis" json:"apis"`
+	Name    string           `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`    // 角色名称
+	Status  vobj.Status      `gorm:"column:status;type:int;not null;comment:状态" json:"status"`          // 状态
+	Remark  string           `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"` // 备注
+	Apis    []*SysTeamAPI    `gorm:"many2many:sys_team_role_apis" json:"apis"`
+	Members []*SysTeamMember `gorm:"many2many:sys_team_member_roles" json:"members"`
 }
 
 // String json string
