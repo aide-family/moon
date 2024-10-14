@@ -24,7 +24,7 @@ func NewDashboardService(dashboardBiz *biz.DashboardBiz) *DashboardService {
 
 // CreateDashboard 创建监控大盘
 func (s *DashboardService) CreateDashboard(ctx context.Context, req *realtimeapi.CreateDashboardRequest) (*realtimeapi.CreateDashboardReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithCreateDashboardRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithCreateDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.CreateDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, req *realtimeapi
 
 // UpdateDashboard 更新监控大盘
 func (s *DashboardService) UpdateDashboard(ctx context.Context, req *realtimeapi.UpdateDashboardRequest) (*realtimeapi.UpdateDashboardReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithUpdateDashboardRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithUpdateDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.UpdateDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (s *DashboardService) UpdateDashboard(ctx context.Context, req *realtimeapi
 
 // DeleteDashboard 删除监控大盘
 func (s *DashboardService) DeleteDashboard(ctx context.Context, req *realtimeapi.DeleteDashboardRequest) (*realtimeapi.DeleteDashboardReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithDeleteDashboardRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithDeleteDashboardRequest(req).ToBo()
 	if err := s.dashboardBiz.DeleteDashboard(ctx, params); err != nil {
 		return nil, err
 	}
@@ -56,21 +56,21 @@ func (s *DashboardService) GetDashboard(ctx context.Context, req *realtimeapi.Ge
 		return nil, err
 	}
 	return &realtimeapi.GetDashboardReply{
-		Detail: builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPI(detail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPI(detail),
 	}, nil
 }
 
 // ListDashboard 获取监控大盘列表
 func (s *DashboardService) ListDashboard(ctx context.Context, req *realtimeapi.ListDashboardRequest) (*realtimeapi.ListDashboardReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithListDashboardRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithListDashboardRequest(req).ToBo()
 	list, err := s.dashboardBiz.ListDashboard(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	return &realtimeapi.ListDashboardReply{
-		List:       builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPIs(list),
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
 

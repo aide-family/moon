@@ -34,7 +34,7 @@ func NewTemplateService(templateBiz *biz.TemplateBiz, datasourceBiz *biz.Datasou
 
 // CreateTemplateStrategy 创建模板策略
 func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strategyapi.CreateTemplateStrategyRequest) (*strategyapi.CreateTemplateStrategyReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithCreateTemplateStrategyRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithCreateTemplateStrategyRequest(req).ToBo()
 	if err := s.templateBiz.CreateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *TemplateService) CreateTemplateStrategy(ctx context.Context, req *strat
 
 // UpdateTemplateStrategy 更新模板策略
 func (s *TemplateService) UpdateTemplateStrategy(ctx context.Context, req *strategyapi.UpdateTemplateStrategyRequest) (*strategyapi.UpdateTemplateStrategyReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateTemplateStrategyRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateTemplateStrategyRequest(req).ToBo()
 	if err := s.templateBiz.UpdateTemplateStrategy(ctx, params); err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (s *TemplateService) GetTemplateStrategy(ctx context.Context, req *strategy
 		return nil, err
 	}
 	return &strategyapi.GetTemplateStrategyReply{
-		Detail: builder.NewParamsBuild().StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPI(detail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPI(detail),
 	}, nil
 }
 
@@ -81,14 +81,14 @@ func (s *TemplateService) ListTemplateStrategy(ctx context.Context, req *strateg
 		return nil, err
 	}
 	return &strategyapi.ListTemplateStrategyReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoTemplateStrategyBuilder().ToAPIs(list),
 	}, nil
 }
 
 // UpdateTemplateStrategyStatus 更新模板策略状态
 func (s *TemplateService) UpdateTemplateStrategyStatus(ctx context.Context, req *strategyapi.UpdateTemplateStrategyStatusRequest) (*strategyapi.UpdateTemplateStrategyStatusReply, error) {
-	params := builder.NewParamsBuild().StrategyModuleBuilder().WithUpdateTemplateStrategyStatusRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().WithUpdateTemplateStrategyStatusRequest(req).ToBo()
 	if err := s.templateBiz.UpdateTemplateStrategyStatus(ctx, params); err != nil {
 		return nil, err
 	}

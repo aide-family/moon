@@ -61,7 +61,7 @@ func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.
 		TeamRoles: roles,
 	}
 	return &pb.GetInviteReply{
-		Detail: builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
 	}, nil
 }
 func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequest) (*pb.ListUserInviteReply, error) {
@@ -82,7 +82,7 @@ func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequ
 	}
 
 	return &pb.ListUserInviteReply{
-		List:       builder.NewParamsBuild().InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPIs(list),
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPIs(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }

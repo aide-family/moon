@@ -32,7 +32,7 @@ func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *Service {
 
 // CreateDatasource 创建数据源
 func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.CreateDatasourceRequest) (*datasourceapi.CreateDatasourceReply, error) {
-	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithCreateDatasourceRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().WithCreateDatasourceRequest(req).ToBo()
 	datasourceDetail, err := s.datasourceBiz.CreateDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *Service) CreateDatasource(ctx context.Context, req *datasourceapi.Creat
 
 // UpdateDatasource 更新数据源
 func (s *Service) UpdateDatasource(ctx context.Context, req *datasourceapi.UpdateDatasourceRequest) (*datasourceapi.UpdateDatasourceReply, error) {
-	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithUpdateDatasourceRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().WithUpdateDatasourceRequest(req).ToBo()
 	if err := s.datasourceBiz.UpdateDatasourceBaseInfo(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (s *Service) GetDatasource(ctx context.Context, req *datasourceapi.GetDatas
 
 // ListDatasource 获取数据源列表
 func (s *Service) ListDatasource(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.ListDatasourceReply, error) {
-	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
 	datasourceList, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -93,7 +93,7 @@ func (s *Service) UpdateDatasourceStatus(ctx context.Context, req *datasourceapi
 
 // GetDatasourceSelect 获取数据源下拉列表
 func (s *Service) GetDatasourceSelect(ctx context.Context, req *datasourceapi.ListDatasourceRequest) (*datasourceapi.GetDatasourceSelectReply, error) {
-	params := builder.NewParamsBuild().DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).DatasourceModuleBuilder().WithListDatasourceRequest(req).ToBo()
 	list, err := s.datasourceBiz.ListDatasource(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
@@ -124,7 +124,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 		return nil, err
 	}
 	return &datasourceapi.DatasourceQueryReply{
-		List: builder.NewParamsBuild().MetricDataModuleBuilder().BoMetricDataBuilder().ToAPIs(query),
+		List: builder.NewParamsBuild().WithContext(ctx).MetricDataModuleBuilder().BoMetricDataBuilder().ToAPIs(query),
 	}, nil
 }
 

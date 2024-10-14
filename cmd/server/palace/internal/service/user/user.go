@@ -35,7 +35,7 @@ func (s *Service) CreateUser(ctx context.Context, req *userapi.CreateUserRequest
 
 // UpdateUser 更新用户基础信息， 只允许管理员操作
 func (s *Service) UpdateUser(ctx context.Context, req *userapi.UpdateUserRequest) (*userapi.UpdateUserReply, error) {
-	updateParams := builder.NewParamsBuild().UserModuleBuilder().WithUpdateUserRequest(req).ToBo()
+	updateParams := builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().WithUpdateUserRequest(req).ToBo()
 	if err := s.userBiz.UpdateUser(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
@@ -57,26 +57,26 @@ func (s *Service) GetUser(ctx context.Context, req *userapi.GetUserRequest) (*us
 		return nil, err
 	}
 	return &userapi.GetUserReply{
-		Detail: builder.NewParamsBuild().UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
+		Detail: builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
 	}, nil
 }
 
 // ListUser 获取用户列表
 func (s *Service) ListUser(ctx context.Context, req *userapi.ListUserRequest) (*userapi.ListUserReply, error) {
-	queryParams := builder.NewParamsBuild().UserModuleBuilder().WithListUserRequest(req).ToBo()
+	queryParams := builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().WithListUserRequest(req).ToBo()
 	userDos, err := s.userBiz.ListUser(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &userapi.ListUserReply{
-		List:       builder.NewParamsBuild().UserModuleBuilder().DoUserBuilder().ToAPIs(userDos),
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPIs(userDos),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
 	}, nil
 }
 
 // BatchUpdateUserStatus 批量更新用户状态
 func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchUpdateUserStatusRequest) (*userapi.BatchUpdateUserStatusReply, error) {
-	params := builder.NewParamsBuild().UserModuleBuilder().WithBatchUpdateUserStatusRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().WithBatchUpdateUserStatusRequest(req).ToBo()
 	if err := s.userBiz.BatchUpdateUserStatus(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
@@ -105,14 +105,14 @@ func (s *Service) ResetUserPasswordBySelf(ctx context.Context, req *userapi.Rese
 
 // GetUserSelectList 获取用户下拉列表
 func (s *Service) GetUserSelectList(ctx context.Context, req *userapi.ListUserRequest) (*userapi.GetUserSelectListReply, error) {
-	params := builder.NewParamsBuild().UserModuleBuilder().WithListUserRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().WithListUserRequest(req).ToBo()
 	userSelectOptions, err := s.userBiz.ListUser(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &userapi.GetUserSelectListReply{
-		List:       builder.NewParamsBuild().UserModuleBuilder().DoUserBuilder().ToSelects(userSelectOptions),
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToSelects(userSelectOptions),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
 
@@ -147,7 +147,7 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *userapi.UpdateUserA
 
 // UpdateUserBaseInfo 更新用户基础信息
 func (s *Service) UpdateUserBaseInfo(ctx context.Context, req *userapi.UpdateUserBaseInfoRequest) (*userapi.UpdateUserBaseInfoReply, error) {
-	updateParams := builder.NewParamsBuild().UserModuleBuilder().WithUpdateUserBaseInfoRequest(req).ToBo()
+	updateParams := builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().WithUpdateUserBaseInfoRequest(req).ToBo()
 	if err := s.userBiz.UpdateUserBaseInfo(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}

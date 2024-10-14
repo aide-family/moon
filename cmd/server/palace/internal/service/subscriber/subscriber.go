@@ -31,7 +31,7 @@ func (s *Service) UserSubscriberStrategy(ctx context.Context, req *sbscriberapi.
 
 // UnSubscriber unsubscribe
 func (s *Service) UnSubscriber(ctx context.Context, req *sbscriberapi.UnSubscriberRequest) (*sbscriberapi.UnSubscriberReply, error) {
-	param := builder.NewParamsBuild().SubscriberModuleBuilder().WithUnSubscriberRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).SubscriberModuleBuilder().WithUnSubscriberRequest(req).ToBo()
 	if err := s.subscriberBiz.UnSubscriptionStrategy(ctx, param); !types.IsNil(err) {
 		return nil, err
 	}
@@ -40,27 +40,27 @@ func (s *Service) UnSubscriber(ctx context.Context, req *sbscriberapi.UnSubscrib
 
 // UserSubscriberList user subscriber list
 func (s *Service) UserSubscriberList(ctx context.Context, req *sbscriberapi.UserSubscriberListRequest) (*sbscriberapi.UserSubscriberListReply, error) {
-	param := builder.NewParamsBuild().SubscriberModuleBuilder().WithUserSubscriberListRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).SubscriberModuleBuilder().WithUserSubscriberListRequest(req).ToBo()
 	strategyList, err := s.subscriberBiz.UserSubscriptionStrategyList(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &sbscriberapi.UserSubscriberListReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
-		Strategies: builder.NewParamsBuild().SubscriberModuleBuilder().DoSubscriberBuilder().ToStrategies(strategyList),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		Strategies: builder.NewParamsBuild().WithContext(ctx).SubscriberModuleBuilder().DoSubscriberBuilder().ToStrategies(strategyList),
 	}, nil
 }
 
 // GetStrategySubscriber get strategy subscriber
 func (s *Service) GetStrategySubscriber(ctx context.Context, req *sbscriberapi.StrategySubscriberRequest) (*sbscriberapi.StrategySubscriberReply, error) {
-	param := builder.NewParamsBuild().SubscriberModuleBuilder().WithStrategySubscriberRequest(req).ToBo()
+	param := builder.NewParamsBuild().WithContext(ctx).SubscriberModuleBuilder().WithStrategySubscriberRequest(req).ToBo()
 	subscribersList, err := s.subscriberBiz.StrategySubscribersList(ctx, param)
 	if err != nil {
 		return nil, err
 	}
 
 	return &sbscriberapi.StrategySubscriberReply{
-		Pagination:  builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
-		Subscribers: builder.NewParamsBuild().SubscriberModuleBuilder().DoSubscriberBuilder().ToAPIs(subscribersList),
+		Pagination:  builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		Subscribers: builder.NewParamsBuild().WithContext(ctx).SubscriberModuleBuilder().DoSubscriberBuilder().ToAPIs(subscribersList),
 	}, nil
 }

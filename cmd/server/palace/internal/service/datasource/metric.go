@@ -28,7 +28,7 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 
 // UpdateMetric 更新指标
 func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.UpdateMetricRequest) (*datasourceapi.UpdateMetricReply, error) {
-	params := builder.NewParamsBuild().MetricModuleBuilder().WithUpdateMetricRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().WithUpdateMetricRequest(req).ToBo()
 	if err := s.metricBiz.UpdateMetricByID(ctx, params); err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s *MetricService) UpdateMetric(ctx context.Context, req *datasourceapi.Upd
 
 // GetMetric 获取指标
 func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMetricRequest) (*datasourceapi.GetMetricReply, error) {
-	params := builder.NewParamsBuild().MetricModuleBuilder().WithGetMetricRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().WithGetMetricRequest(req).ToBo()
 	detail, err := s.metricBiz.GetMetricByID(ctx, params)
 	if err != nil {
 		return nil, err
@@ -54,28 +54,28 @@ func (s *MetricService) GetMetric(ctx context.Context, req *datasourceapi.GetMet
 
 // ListMetric 获取指标列表
 func (s *MetricService) ListMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.ListMetricReply, error) {
-	params := builder.NewParamsBuild().MetricModuleBuilder().WithListMetricRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().WithListMetricRequest(req).ToBo()
 	list, err := s.metricBiz.ListMetric(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 	return &datasourceapi.ListMetricReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().MetricModuleBuilder().DoMetricBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().DoMetricBuilder().ToAPIs(list),
 	}, nil
 }
 
 // SelectMetric 获取指标下拉列表
 func (s *MetricService) SelectMetric(ctx context.Context, req *datasourceapi.ListMetricRequest) (*datasourceapi.SelectMetricReply, error) {
-	params := builder.NewParamsBuild().MetricModuleBuilder().WithListMetricRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().WithListMetricRequest(req).ToBo()
 	list, err := s.metricBiz.ListMetric(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	return &datasourceapi.SelectMetricReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
-		List:       builder.NewParamsBuild().MetricModuleBuilder().DoMetricBuilder().ToSelects(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+		List:       builder.NewParamsBuild().WithContext(ctx).MetricModuleBuilder().DoMetricBuilder().ToSelects(list),
 	}, nil
 }
 
