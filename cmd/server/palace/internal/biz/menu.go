@@ -33,11 +33,7 @@ type MenuBiz struct {
 
 // MenuList 菜单列表
 func (b *MenuBiz) MenuList(ctx context.Context) ([]*bizmodel.SysTeamMenu, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	return b.teamMenuRepo.GetTeamMenuList(ctx, &bo.QueryTeamMenuListParams{TeamID: claims.GetTeam()})
+	return b.teamMenuRepo.GetTeamMenuList(ctx, &bo.QueryTeamMenuListParams{TeamID: middleware.GetTeamID(ctx)})
 }
 
 // GetMenu 获取菜单详情

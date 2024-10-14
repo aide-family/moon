@@ -168,7 +168,7 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 		if !memberItem.Status.IsEnable() {
 			return nil, merr.ErrorI18nForbiddenMemberDisabled(ctx)
 		}
-		base.SetTeamInfo(memberItem.TeamID)
+		base.SetTeamInfo(teamID)
 		base.SetMember(memberItem.ID)
 	}
 

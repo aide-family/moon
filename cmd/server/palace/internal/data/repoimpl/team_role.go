@@ -31,11 +31,8 @@ type teamRoleRepositoryImpl struct {
 }
 
 func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *bo.CreateTeamRoleParams) (*bizmodel.SysTeamRole, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	teamID := middleware.GetTeamID(ctx)
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -71,14 +68,11 @@ func (l *teamRoleRepositoryImpl) CreateTeamRole(ctx context.Context, teamRole *b
 		return nil, err
 	}
 
-	return sysTeamRoleModel, l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
+	return sysTeamRoleModel, l.data.GetCasbin(teamID).LoadPolicy()
 }
 
 func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *bo.UpdateTeamRoleParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
+	teamID := middleware.GetTeamID(ctx)
 	// 查询角色
 	sysTeamRoleModel, err := l.GetTeamRole(ctx, teamRole.ID)
 	if !types.IsNil(err) {
@@ -87,7 +81,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 		}
 		return err
 	}
-	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return err
 	}
@@ -97,7 +91,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 		return err
 	}
 	roleIDStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
-	defer l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
+	defer l.data.GetCasbin(teamID).LoadPolicy()
 	return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		casbinEnforce := l.data.GetCasbinByTx(tx)
 		// 删除角色权限
@@ -130,15 +124,12 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 }
 
 func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	teamID := middleware.GetTeamID(ctx)
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return err
 	}
-	defer l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
+	defer l.data.GetCasbin(teamID).LoadPolicy()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		_, err = l.data.GetCasbinByTx(tx).DeletePermission(strconv.Itoa(int(id)))
 		if !types.IsNil(err) {
@@ -154,11 +145,8 @@ func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) 
 }
 
 func (l *teamRoleRepositoryImpl) GetTeamRole(ctx context.Context, id uint32) (*bizmodel.SysTeamRole, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	teamID := middleware.GetTeamID(ctx)
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -203,11 +191,8 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	if len(ids) == 0 {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := l.data.GetBizGormDB(claims.GetTeam())
+	teamID := middleware.GetTeamID(ctx)
+	bizDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return err
 	}
@@ -252,7 +237,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 			}
 		}
 
-		return l.data.GetCasbin(claims.GetTeam()).LoadPolicy()
+		return l.data.GetCasbin(teamID).LoadPolicy()
 	})
 }
 

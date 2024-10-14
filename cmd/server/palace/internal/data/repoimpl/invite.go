@@ -7,12 +7,13 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 
 	"gorm.io/gen"
 )
@@ -51,26 +52,29 @@ func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context,
 
 func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.InviteUserParams) (teamInvite *model.SysTeamInvite, err error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
-	teamInvite, _ = mainQuery.SysTeamInvite.WithContext(ctx).
+	teamInvite, err = mainQuery.SysTeamInvite.WithContext(ctx).
 		Where(mainQuery.SysTeamInvite.UserID.Eq(params.UserID),
 			mainQuery.SysTeamInvite.TeamID.Eq(params.TeamID)).First()
-
+	if !types.IsNil(err) && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
 	if !types.IsNil(teamInvite) {
 		teamInvite.RolesIds = params.TeamRoleIds
 		teamInvite.InviteType = vobj.InviteTypeUnderReview
-		if _, err := mainQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite); !types.IsNil(err) {
+		if _, err = mainQuery.WithContext(ctx).SysTeamInvite.Updates(teamInvite); !types.IsNil(err) {
 			return nil, err
 		}
-	} else {
-		teamInvite = &model.SysTeamInvite{
-			TeamID:     params.TeamID,
-			UserID:     params.UserID,
-			InviteType: vobj.InviteTypeUnderReview,
-			RolesIds:   params.TeamRoleIds,
-		}
-		if err := mainQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite); !types.IsNil(err) {
-			return nil, err
-		}
+		return teamInvite, nil
+	}
+	teamInvite = &model.SysTeamInvite{
+		TeamID:     params.TeamID,
+		UserID:     params.UserID,
+		InviteType: vobj.InviteTypeUnderReview,
+		RolesIds:   params.TeamRoleIds,
+		Role:       params.Role,
+	}
+	if err = mainQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite); !types.IsNil(err) {
+		return nil, err
 	}
 	return
 }
@@ -98,13 +102,9 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 
 func (i *InviteRepositoryImpl) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*model.SysTeamInvite, error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
 	var wheres []gen.Condition
 
-	wheres = append(wheres, mainQuery.SysTeamInvite.UserID.Eq(claims.UserID))
+	wheres = append(wheres, mainQuery.SysTeamInvite.UserID.Eq(middleware.GetUserID(ctx)))
 
 	if !params.InviteType.IsUnknown() {
 		wheres = append(wheres, mainQuery.SysTeamInvite.InviteType.Eq(params.InviteType.GetValue()))
@@ -121,7 +121,7 @@ func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite 
 	}
 	teamMember := &bizmodel.SysTeamMember{
 		UserID: invite.UserID,
-		TeamID: invite.TeamID,
+		Role:   invite.Role,
 		Status: vobj.StatusEnable,
 		TeamRoles: types.SliceTo(invite.RolesIds.ToSlice(), func(roleID uint32) *bizmodel.SysTeamRole {
 			return &bizmodel.SysTeamRole{

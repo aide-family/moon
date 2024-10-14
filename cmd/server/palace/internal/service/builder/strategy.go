@@ -9,7 +9,6 @@ import (
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -261,10 +260,6 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	if types.IsNil(strategy) || types.IsNil(d) {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(d.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(d.ctx))
-	}
 
 	return types.SliceTo(strategy.Levels, func(level *bizmodel.StrategyLevel) *bo.Strategy {
 		return &bo.Strategy{
@@ -284,7 +279,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Step:                       strategy.Step,
 			Condition:                  level.Condition,
 			Threshold:                  level.Threshold,
-			TeamID:                     claims.GetTeam(),
+			TeamID:                     middleware.GetTeamID(d.ctx),
 		}
 	})
 }
@@ -711,11 +706,6 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(c.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(c.ctx))
-	}
-
 	return &bo.CreateStrategyParams{
 		GroupID:        c.GetGroupId(),
 		TemplateID:     c.GetTemplateId(),
@@ -725,7 +715,7 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		DatasourceIDs:  c.GetDatasourceIds(),
 		TemplateSource: vobj.StrategyTemplateSource(c.GetSourceType()),
 		Name:           c.GetName(),
-		TeamID:         claims.TeamID,
+		TeamID:         middleware.GetTeamID(c.ctx),
 		Levels:         NewParamsBuild().WithContext(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToBos(c.GetStrategyLevel()),
 		Labels:         vobj.NewLabels(c.GetLabels()),
 		Annotations:    c.GetAnnotations(),

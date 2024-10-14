@@ -14,6 +14,7 @@ type SysTeamInvite struct {
 	TeamID     uint32               `gorm:"column:team_id;type:int unsigned;not null;uniqueIndex:idx__user_id__team__id__type,priority:2;comment:团队ID" json:"team_id"`   // 团队ID
 	InviteType vobj.InviteType      `gorm:"column:invite_type;type:int;not null;comment:邀请类型;uniqueIndex:idx__user_id__team__id__type,priority:2;" json:"invite_type"`   // 状态
 	RolesIds   *types.Slice[uint32] `gorm:"column:roles_ids;type:varchar(255);not null;comment:团队角色id数组" json:"roles_ids"`
+	Role       vobj.Role            `gorm:"column:role;type:int;not null;comment:角色" json:"role"`
 }
 
 // String json string

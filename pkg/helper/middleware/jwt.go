@@ -148,8 +148,11 @@ func (l *JwtClaims) IsLogout(ctx context.Context, cache cache.ICacher) bool {
 }
 
 type (
-	userRoleContextKey struct{}
-	teamRoleContextKey struct{}
+	userRoleContextKey     struct{}
+	teamRoleContextKey     struct{}
+	userIDContextKey       struct{}
+	teamIDContextKey       struct{}
+	teamMemberIDContextKey struct{}
 )
 
 // WithUserRoleContextKey with user role context key
@@ -160,6 +163,48 @@ func WithUserRoleContextKey(ctx context.Context, role vobj.Role) context.Context
 // WithTeamRoleContextKey with team role context key
 func WithTeamRoleContextKey(ctx context.Context, role vobj.Role) context.Context {
 	return context.WithValue(ctx, teamRoleContextKey{}, role)
+}
+
+// WithUserIDContextKey with user id context key
+func WithUserIDContextKey(ctx context.Context, id uint32) context.Context {
+	return context.WithValue(ctx, userIDContextKey{}, id)
+}
+
+// WithTeamIDContextKey with team id context key
+func WithTeamIDContextKey(ctx context.Context, id uint32) context.Context {
+	return context.WithValue(ctx, teamIDContextKey{}, id)
+}
+
+// WithTeamMemberIDContextKey with team member id context key
+func WithTeamMemberIDContextKey(ctx context.Context, id uint32) context.Context {
+	return context.WithValue(ctx, teamMemberIDContextKey{}, id)
+}
+
+// GetUserID get user id
+func GetUserID(ctx context.Context) uint32 {
+	id, ok := ctx.Value(userIDContextKey{}).(uint32)
+	if !ok {
+		return 0
+	}
+	return id
+}
+
+// GetTeamID get team id
+func GetTeamID(ctx context.Context) uint32 {
+	id, ok := ctx.Value(teamIDContextKey{}).(uint32)
+	if !ok {
+		return 0
+	}
+	return id
+}
+
+// GetTeamMemberID get team member id
+func GetTeamMemberID(ctx context.Context) uint32 {
+	id, ok := ctx.Value(teamMemberIDContextKey{}).(uint32)
+	if !ok {
+		return 0
+	}
+	return id
 }
 
 // GetUserRole get user role
@@ -194,7 +239,14 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 			if !checked.GetIsLogin() {
 				return nil, merr.ErrorI18nUnauthorized(ctx)
 			}
+			claims, ok := ParseJwtClaims(ctx)
+			if !ok {
+				return nil, merr.ErrorI18nUnauthorized(ctx)
+			}
 			ctx = WithUserRoleContextKey(ctx, vobj.Role(checked.GetUser().GetRole()))
+			ctx = WithUserIDContextKey(ctx, checked.GetUser().GetId())
+			ctx = WithTeamIDContextKey(ctx, claims.GetTeam())
+			ctx = WithTeamMemberIDContextKey(ctx, claims.GetMember())
 			return handler(ctx, req)
 		}
 	}

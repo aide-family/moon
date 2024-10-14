@@ -8,7 +8,6 @@ import (
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -25,7 +24,6 @@ type (
 		WithCreateTeamRequest(*teamapi.CreateTeamRequest) ICreateTeamRequestBuilder
 		WithUpdateTeamRequest(*teamapi.UpdateTeamRequest) IUpdateTeamRequestBuilder
 		WithListTeamRequest(*teamapi.ListTeamRequest) IListTeamRequestBuilder
-		WithAddTeamMemberRequest(*teamapi.AddTeamMemberRequest) IAddTeamMemberRequestBuilder
 		WithRemoveTeamMemberRequest(*teamapi.RemoveTeamMemberRequest) IRemoveTeamMemberRequestBuilder
 		WithSetTeamAdminRequest(*teamapi.SetTeamAdminRequest) ISetTeamAdminRequestBuilder
 		WithRemoveTeamAdminRequest(*teamapi.RemoveTeamAdminRequest) IRemoveTeamAdminRequestBuilder
@@ -65,11 +63,6 @@ type (
 
 	IAddTeamMemberRequestBuilder interface {
 		ToBo() *bo.AddTeamMemberParams
-	}
-
-	addTeamMemberRequestBuilder struct {
-		ctx context.Context
-		*teamapi.AddTeamMemberRequest
 	}
 
 	IRemoveTeamMemberRequestBuilder interface {
@@ -153,7 +146,6 @@ func (s *setTeamMailConfigRequestBuilder) ToBo() *bo.SetTeamMailConfigParams {
 	}
 	config := s.GetConfig()
 	return &bo.SetTeamMailConfigParams{
-		TeamID:   s.GetId(),
 		User:     config.GetUser(),
 		Password: config.GetPass(),
 		Host:     config.GetHost(),
@@ -233,15 +225,9 @@ func (t *transferTeamLeaderRequestBuilder) ToBo() *bo.TransferTeamLeaderParams {
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(t.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(t.ctx))
-	}
-
 	return &bo.TransferTeamLeaderParams{
-		ID:          t.GetId(),
-		LeaderID:    t.GetUserId(),
-		OldLeaderID: claims.GetUser(),
+		LeaderID:    t.GetMemberID(),
+		OldLeaderID: middleware.GetUserID(t.ctx),
 	}
 }
 
@@ -252,7 +238,6 @@ func (l *listTeamMemberRequestBuilder) ToBo() *bo.ListTeamMemberParams {
 
 	return &bo.ListTeamMemberParams{
 		Page:      types.NewPagination(l.GetPagination()),
-		ID:        l.GetId(),
 		Keyword:   l.GetKeyword(),
 		Role:      vobj.Role(l.GetRole()),
 		Gender:    vobj.Gender(l.GetGender()),
@@ -267,8 +252,7 @@ func (s *setMemberRoleRequestBuilder) ToBo() *bo.SetMemberRoleParams {
 	}
 
 	return &bo.SetMemberRoleParams{
-		ID:       s.GetId(),
-		MemberID: s.GetUserId(),
+		MemberID: s.GetMemberID(),
 		RoleIDs:  s.GetRoles(),
 	}
 }
@@ -279,8 +263,7 @@ func (r *removeTeamAdminRequestBuilder) ToBo() *bo.SetMemberAdminParams {
 	}
 
 	return &bo.SetMemberAdminParams{
-		ID:        r.GetId(),
-		MemberIDs: r.GetUserIds(),
+		MemberIDs: r.GetMemberIds(),
 		Role:      vobj.RoleUser,
 	}
 }
@@ -291,8 +274,7 @@ func (s *setTeamAdminRequestBuilder) ToBo() *bo.SetMemberAdminParams {
 	}
 
 	return &bo.SetMemberAdminParams{
-		ID:        s.GetId(),
-		MemberIDs: s.GetUserIds(),
+		MemberIDs: s.GetMemberIds(),
 		Role:      vobj.RoleAdmin,
 	}
 }
@@ -303,25 +285,7 @@ func (r *removeTeamMemberRequestBuilder) ToBo() *bo.RemoveTeamMemberParams {
 	}
 
 	return &bo.RemoveTeamMemberParams{
-		ID:        r.GetId(),
-		MemberIds: []uint32{r.GetUserId()},
-	}
-}
-
-func (a *addTeamMemberRequestBuilder) ToBo() *bo.AddTeamMemberParams {
-	if types.IsNil(a) || types.IsNil(a.AddTeamMemberRequest) {
-		return nil
-	}
-
-	return &bo.AddTeamMemberParams{
-		ID: a.GetId(),
-		Members: types.SliceTo(a.GetMembers(), func(item *teamapi.AddTeamMemberRequest_MemberItem) *bo.AddTeamMemberItem {
-			return &bo.AddTeamMemberItem{
-				UserID:  item.GetUserId(),
-				Role:    vobj.Role(item.GetRole()),
-				RoleIDs: item.GetRoles(),
-			}
-		}),
+		MemberIds: []uint32{r.GetMemberID()},
 	}
 }
 
@@ -330,18 +294,13 @@ func (l *listTeamRequestBuilder) ToBo() *bo.QueryTeamListParams {
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(l.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(l.ctx))
-	}
-
 	return &bo.QueryTeamListParams{
 		Page:      types.NewPagination(l.GetPagination()),
 		Keyword:   l.GetKeyword(),
 		Status:    vobj.Status(l.GetStatus()),
 		CreatorID: l.GetCreatorId(),
 		LeaderID:  l.GetLeaderId(),
-		UserID:    claims.GetUser(),
+		UserID:    middleware.GetUserID(l.ctx),
 		IDs:       l.GetIds(),
 	}
 }
@@ -366,11 +325,7 @@ func (c *createTeamRequestBuilder) ToBo() *bo.CreateTeamParams {
 	}
 
 	if c.GetLeaderId() <= 0 {
-		claims, ok := middleware.ParseJwtClaims(c.ctx)
-		if !ok {
-			panic(merr.ErrorI18nUnauthorized(c.ctx))
-		}
-		c.LeaderId = claims.GetUser()
+		c.LeaderId = middleware.GetUserID(c.ctx)
 	}
 
 	return &bo.CreateTeamParams{
@@ -393,10 +348,6 @@ func (t *teamModuleBuilder) WithUpdateTeamRequest(request *teamapi.UpdateTeamReq
 
 func (t *teamModuleBuilder) WithListTeamRequest(request *teamapi.ListTeamRequest) IListTeamRequestBuilder {
 	return &listTeamRequestBuilder{ctx: t.ctx, ListTeamRequest: request}
-}
-
-func (t *teamModuleBuilder) WithAddTeamMemberRequest(request *teamapi.AddTeamMemberRequest) IAddTeamMemberRequestBuilder {
-	return &addTeamMemberRequestBuilder{ctx: t.ctx, AddTeamMemberRequest: request}
 }
 
 func (t *teamModuleBuilder) WithRemoveTeamMemberRequest(request *teamapi.RemoveTeamMemberRequest) IRemoveTeamMemberRequestBuilder {

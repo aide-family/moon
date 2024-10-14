@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -79,26 +78,13 @@ func (s *Service) UpdateTeamStatus(ctx context.Context, req *teamapi.UpdateTeamS
 
 // MyTeam 获取当前用户团队列表
 func (s *Service) MyTeam(ctx context.Context, _ *teamapi.MyTeamRequest) (*teamapi.MyTeamReply, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	teamList, err := s.teamBiz.GetUserTeamList(ctx, claims.GetUser())
+	teamList, err := s.teamBiz.GetUserTeamList(ctx, middleware.GetUserID(ctx))
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &teamapi.MyTeamReply{
 		List: builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().DoTeamBuilder().ToAPIs(teamList),
 	}, nil
-}
-
-// AddTeamMember 添加团队成员
-func (s *Service) AddTeamMember(ctx context.Context, req *teamapi.AddTeamMemberRequest) (*teamapi.AddTeamMemberReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().WithAddTeamMemberRequest(req).ToBo()
-	if err := s.teamBiz.AddTeamMember(ctx, param); !types.IsNil(err) {
-		return nil, err
-	}
-	return &teamapi.AddTeamMemberReply{}, nil
 }
 
 // RemoveTeamMember 移除团队成员
@@ -166,4 +152,23 @@ func (s *Service) SetTeamMailConfig(ctx context.Context, req *teamapi.SetTeamMai
 		return nil, err
 	}
 	return &teamapi.SetTeamMailConfigReply{}, nil
+}
+
+// UpdateTeamMemberStatus 更新团队成员状态
+func (s *Service) UpdateTeamMemberStatus(ctx context.Context, req *teamapi.UpdateTeamMemberStatusRequest) (*teamapi.UpdateTeamMemberStatusReply, error) {
+	if err := s.teamBiz.UpdateTeamMemberStatus(ctx, vobj.Status(req.GetStatus()), req.GetMemberIds()...); !types.IsNil(err) {
+		return nil, err
+	}
+	return &teamapi.UpdateTeamMemberStatusReply{}, nil
+}
+
+// GetTeamMemberDetail 获取团队成员详情
+func (s *Service) GetTeamMemberDetail(ctx context.Context, req *teamapi.GetTeamMemberDetailRequest) (*teamapi.GetTeamMemberDetailReply, error) {
+	member, err := s.teamBiz.GetTeamMemberDetail(ctx, req.GetId())
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &teamapi.GetTeamMemberDetailReply{
+		Detail: builder.NewParamsBuild().WithContext(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(member),
+	}, nil
 }

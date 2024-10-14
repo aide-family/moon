@@ -70,13 +70,9 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamID uint32) (*model.SysTeam, e
 
 // ListTeam 获取团队列表
 func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
 	// 不是管理员不允许修改
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		params.UserID = claims.GetUser()
+		params.UserID = middleware.GetUserID(ctx)
 	}
 	list, err := t.teamRepo.GetTeamList(ctx, params)
 	if !types.IsNil(err) {
@@ -127,7 +123,6 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	}
 	// 查询团队管理员
 	teamMemberList, err := t.teamRepo.ListTeamMember(ctx, &bo.ListTeamMemberParams{
-		ID:        params.ID,
 		MemberIDs: params.MemberIds,
 	})
 	if !types.IsNil(err) {
@@ -137,24 +132,20 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		return nil
 	}
 	// 查询团队信息
-	teamInfo, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
+	teamInfo, err := t.teamRepo.GetTeamDetail(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nToastTeamNotFound(ctx)
 		}
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
-
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
+	opUserID := middleware.GetUserID(ctx)
 	for _, teamMember := range teamMemberList {
 		role := teamMember.Role
 		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
 			return merr.ErrorI18nToastUserNotAllowRemoveAdmin(ctx)
 		}
-		if teamMember.UserID == claims.GetUser() {
+		if teamMember.UserID == opUserID {
 			return merr.ErrorI18nToastUserNotAllowRemoveSelf(ctx)
 		}
 	}
@@ -168,16 +159,13 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 
 // SetTeamAdmin 设置团队管理员
 func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nForbidden(ctx)
 	}
+	opUserID := middleware.GetUserID(ctx)
 	// 不能设置自己
 	for _, memberID := range params.MemberIDs {
-		if memberID == claims.GetUser() {
+		if memberID == opUserID {
 			return merr.ErrorI18nToastUserNotAllowOperateAdmin(ctx)
 		}
 	}
@@ -210,7 +198,7 @@ func (t *TeamBiz) ListTeamMember(ctx context.Context, params *bo.ListTeamMemberP
 // TransferTeamLeader 移交团队领导
 func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTeamLeaderParams) error {
 	// 获取团队信息
-	team, err := t.teamRepo.GetTeamDetail(ctx, params.ID)
+	team, err := t.teamRepo.GetTeamDetail(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nToastTeamNotFound(ctx)
@@ -235,7 +223,7 @@ func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailC
 		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 查询团队邮件配置
-	_, err := t.teamRepo.GetTeamMailConfig(ctx, params.TeamID)
+	_, err := t.teamRepo.GetTeamMailConfig(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -244,4 +232,24 @@ func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailC
 		return t.teamRepo.CreateTeamMailConfig(ctx, params)
 	}
 	return t.teamRepo.UpdateTeamMailConfig(ctx, params)
+}
+
+// UpdateTeamMemberStatus 更新团队成员状态
+func (t *TeamBiz) UpdateTeamMemberStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
+	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+		return merr.ErrorI18nForbidden(ctx)
+	}
+	if err := t.teamRepo.UpdateTeamMemberStatus(ctx, status, ids...); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return nil
+}
+
+// GetTeamMemberDetail 获取团队成员详情
+func (t *TeamBiz) GetTeamMemberDetail(ctx context.Context, memberID uint32) (*bizmodel.SysTeamMember, error) {
+	member, err := t.teamRepo.GetUserTeamByID(ctx, middleware.GetUserID(ctx), memberID)
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return member, nil
 }

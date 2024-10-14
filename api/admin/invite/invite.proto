@@ -50,7 +50,7 @@ service Invite {
 }
 
 message InviteUserRequest {
-  repeated uint32  roleId = 1 [(buf.validate.field).cel = {
+  repeated uint32  roleIds = 1 [(buf.validate.field).cel = {
     message: "请选择邀请用户的角色",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
@@ -62,6 +62,8 @@ message InviteUserRequest {
     message: "请输入邮箱或手机号",
     expression: "this.size() != 0"
   }];
+  // 固定角色
+  Role role = 3;
 }
 message InviteUserReply {}
 

@@ -29,11 +29,7 @@ type realtimeAlarmRepositoryImpl struct {
 
 // getBizQuery 获取告警业务数据库
 func getBizAlarmQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := data.GetAlarmGormDB(claims.GetTeam())
+	bizDB, err := data.GetAlarmGormDB(middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		return nil, err
 	}

@@ -15,8 +15,10 @@ type (
 		TeamRoleIds *types.Slice[uint32] `json:"teamRoleIds"`
 		// 邀请人(手机或邮箱)
 		InviteCode string `json:"inviteCode"`
-		// 团队id
+		// 团队ID
 		TeamID uint32 `json:"teamID"`
+		// 固定角色
+		Role vobj.Role `json:"role"`
 	}
 
 	UpdateInviteStatusParams struct {

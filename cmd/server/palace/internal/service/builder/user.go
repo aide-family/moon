@@ -231,12 +231,8 @@ func (u *userModuleBuilder) DoNoticeUserBuilder() INoticeUserBuilder {
 }
 
 func (u *updateUserBaseInfoRequestBuilder) ToBo() *bo.UpdateUserBaseParams {
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
 	return &bo.UpdateUserBaseParams{
-		ID:       claims.GetUser(),
+		ID:       middleware.GetUserID(u.ctx),
 		Gender:   vobj.Gender(u.GetGender()),
 		Remark:   u.GetRemark(),
 		Nickname: u.GetNickname(),
@@ -251,13 +247,9 @@ func (u *updateUserAvatarRequestBuilder) ToBo() *bo.UpdateUserAvatarRequest {
 	if types.IsNil(u) || types.IsNil(u.UpdateUserAvatarRequest) {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
 
 	return &bo.UpdateUserAvatarRequest{
-		UserID: claims.GetUser(),
+		UserID: middleware.GetUserID(u.ctx),
 		Avatar: u.GetAvatar(),
 	}
 }
@@ -270,12 +262,9 @@ func (u *updateUserEmailRequestBuilder) ToBo() *bo.UpdateUserEmailRequest {
 	if types.IsNil(u) || types.IsNil(u.UpdateUserEmailRequest) {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
+
 	return &bo.UpdateUserEmailRequest{
-		UserID: claims.GetUser(),
+		UserID: middleware.GetUserID(u.ctx),
 		Email:  u.GetEmail(),
 	}
 }
@@ -288,13 +277,8 @@ func (u *updateUserPhoneRequestBuilder) ToBo() *bo.UpdateUserPhoneRequest {
 	if types.IsNil(u) || types.IsNil(u.UpdateUserPhoneRequest) {
 		return nil
 	}
-
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
 	return &bo.UpdateUserPhoneRequest{
-		UserID: claims.GetUser(),
+		UserID: middleware.GetUserID(u.ctx),
 		Phone:  u.GetPhone(),
 	}
 }
@@ -304,12 +288,8 @@ func (u *userModuleBuilder) WithUpdateUserPhoneRequest(request *userapi.UpdateUs
 }
 
 func (r *resetUserPasswordBySelfRequestBuilder) WithUserInfo(f func(ctx context.Context, id uint32) (*model.SysUser, error)) (IResetUserPasswordBySelfRequestBuilder, error) {
-	claims, ok := middleware.ParseJwtClaims(r.ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(r.ctx)
-	}
 	// 查询用户详情
-	userDo, err := f(r.ctx, claims.GetUser())
+	userDo, err := f(r.ctx, middleware.GetUserID(r.ctx))
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -382,10 +362,6 @@ func (c *createUserRequestBuilder) ToBo() *bo.CreateUserParams {
 		return nil
 	}
 	pass := types.NewPassword(c.GetPassword())
-	claims, ok := middleware.ParseJwtClaims(c.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(c.ctx))
-	}
 	return &bo.CreateUserParams{
 		Name:      c.GetName(),
 		Password:  pass,
@@ -394,7 +370,7 @@ func (c *createUserRequestBuilder) ToBo() *bo.CreateUserParams {
 		Nickname:  c.GetNickname(),
 		Remark:    c.GetRemark(),
 		Avatar:    c.GetAvatar(),
-		CreatorID: claims.GetUser(),
+		CreatorID: middleware.GetUserID(c.ctx),
 		Status:    vobj.Status(c.GetStatus()),
 		Gender:    vobj.Gender(c.GetGender()),
 		Role:      vobj.Role(c.GetRole()),

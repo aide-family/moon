@@ -127,7 +127,7 @@ func (l *cacheRepositoryImpl) SyncUserTeamList(ctx context.Context, userID uint3
 		}
 		userTeamQuery := bizQuery.SysTeamMember
 		_, err = userTeamQuery.WithContext(ctx).
-			Where(userTeamQuery.TeamID.Eq(teamItem.ID), userTeamQuery.UserID.Eq(userID)).First()
+			Where(userTeamQuery.UserID.Eq(userID)).First()
 		if err != nil {
 			continue
 		}

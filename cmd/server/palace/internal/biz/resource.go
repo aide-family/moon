@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -28,16 +29,16 @@ type ResourceBiz struct {
 	teamResourceRepo repository.TeamResource
 }
 
-func (b *ResourceBiz) getResourceRepo(isMain bool) repository.Resource {
-	if isMain {
+func (b *ResourceBiz) getResourceRepo(ctx context.Context) repository.Resource {
+	if middleware.GetSourceType(ctx).IsSystem() {
 		return b.resourceRepo
 	}
 	return b.teamResourceRepo
 }
 
 // GetResource 获取资源详情
-func (b *ResourceBiz) GetResource(ctx context.Context, id uint32, isMain bool) (imodel.IResource, error) {
-	resource, err := b.getResourceRepo(isMain).GetByID(ctx, id)
+func (b *ResourceBiz) GetResource(ctx context.Context, id uint32) (imodel.IResource, error) {
+	resource, err := b.getResourceRepo(ctx).GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nToastApiNotFound(ctx)
@@ -48,8 +49,8 @@ func (b *ResourceBiz) GetResource(ctx context.Context, id uint32, isMain bool) (
 }
 
 // ListResource 获取资源列表
-func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResourceListParams, isMain bool) ([]imodel.IResource, error) {
-	resourceDos, err := b.getResourceRepo(isMain).FindByPage(ctx, params)
+func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
+	resourceDos, err := b.getResourceRepo(ctx).FindByPage(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -57,16 +58,16 @@ func (b *ResourceBiz) ListResource(ctx context.Context, params *bo.QueryResource
 }
 
 // UpdateResourceStatus 更新资源状态
-func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, isMain bool, ids ...uint32) error {
-	if err := b.getResourceRepo(isMain).UpdateStatus(ctx, status, ids...); !types.IsNil(err) {
+func (b *ResourceBiz) UpdateResourceStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
+	if err := b.getResourceRepo(ctx).UpdateStatus(ctx, status, ids...); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
 }
 
 // GetResourceSelectList 获取资源下拉列表
-func (b *ResourceBiz) GetResourceSelectList(ctx context.Context, params *bo.QueryResourceListParams, isMain bool) ([]*bo.SelectOptionBo, error) {
-	resourceDos, err := b.getResourceRepo(isMain).FindSelectByPage(ctx, params)
+func (b *ResourceBiz) GetResourceSelectList(ctx context.Context, params *bo.QueryResourceListParams) ([]*bo.SelectOptionBo, error) {
+	resourceDos, err := b.getResourceRepo(ctx).FindSelectByPage(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}

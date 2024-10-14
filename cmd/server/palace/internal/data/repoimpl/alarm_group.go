@@ -7,11 +7,11 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
+	"gorm.io/gorm"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -56,24 +56,25 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 }
 
 func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmNoticeGroupParams) error {
-	bizQuery, err := getBizQuery(ctx, a.data)
+	bizDB, err := a.data.GetBizGormDB(middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		return err
 	}
 	noticeMembers := createAlarmNoticeUsersToModel(ctx, params.UpdateParam.NoticeMembers, params.ID)
-	return bizQuery.Transaction(func(tx *bizquery.Query) error {
+	return bizDB.Transaction(func(tx *gorm.DB) error {
+		bizQueryTx := bizquery.Use(tx)
 		//告警组关联通知人中间表操作
 		groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 		noticeParams := params.UpdateParam.NoticeMembers
 		// 告警通知人与hook参数为空则清空
 		if !types.IsNil(noticeParams) && len(noticeParams) > 0 {
 			// 替换通知人员关联信息
-			if err := tx.AlarmNoticeGroup.NoticeMembers.Model(groupModel).Replace(noticeMembers...); err != nil {
+			if err := bizQueryTx.AlarmNoticeGroup.NoticeMembers.Model(groupModel).Replace(noticeMembers...); err != nil {
 				return err
 			}
 		} else {
 			// 清除通知人员关联信息
-			if _, err := tx.AlarmNoticeMember.WithContext(ctx).Where(tx.AlarmNoticeMember.AlarmGroupID.Eq(params.ID)).Delete(); err != nil {
+			if _, err := bizQueryTx.AlarmNoticeMember.WithContext(ctx).Where(bizQueryTx.AlarmNoticeMember.AlarmGroupID.Eq(params.ID)).Delete(); err != nil {
 				return err
 			}
 		}
@@ -83,20 +84,20 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 			hookModels := types.SliceTo(params.UpdateParam.HookIds, func(hookID uint32) *bizmodel.AlarmHook {
 				return &bizmodel.AlarmHook{AllFieldModel: model.AllFieldModel{ID: hookID}}
 			})
-			if err := tx.AlarmNoticeGroup.AlarmHooks.Model(groupModel).Replace(hookModels...); err != nil {
+			if err := bizQueryTx.AlarmNoticeGroup.AlarmHooks.Model(groupModel).Replace(hookModels...); err != nil {
 				return err
 			}
 		} else {
 			// TODO 清除告警hook信息
-			//if _, err := tx.AlarmHook.WithContext(ctx).Where(tx.AlarmHook.AlarmGroupID.Eq(params.ID)).Delete(); err != nil {
-			//	return err
-			//}
+			if err := bizQueryTx.AlarmNoticeGroup.AlarmHooks.Model(groupModel).Clear(); err != nil {
+				return err
+			}
 		}
 
 		// 更新告警分组
-		if _, err = tx.AlarmNoticeGroup.WithContext(ctx).Where(tx.AlarmNoticeGroup.ID.Eq(params.ID)).UpdateSimple(
-			tx.AlarmNoticeGroup.Name.Value(params.UpdateParam.Name),
-			tx.AlarmNoticeGroup.Remark.Value(params.UpdateParam.Remark),
+		if _, err = bizQueryTx.AlarmNoticeGroup.WithContext(ctx).Where(bizQueryTx.AlarmNoticeGroup.ID.Eq(params.ID)).UpdateSimple(
+			bizQueryTx.AlarmNoticeGroup.Name.Value(params.UpdateParam.Name),
+			bizQueryTx.AlarmNoticeGroup.Remark.Value(params.UpdateParam.Remark),
 		); !types.IsNil(err) {
 			return err
 		}
@@ -180,11 +181,8 @@ func (a *alarmGroupRepositoryImpl) MyAlarmGroups(ctx context.Context, params *bo
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	memberID := claims.GetMember()
+
+	memberID := middleware.GetTeamMemberID(ctx)
 
 	// 查询当前账号告警通知
 	alarmNotices, err := bizQuery.AlarmNoticeMember.WithContext(ctx).Where(bizQuery.AlarmNoticeMember.MemberID.In(memberID)).Find()

@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -25,13 +24,9 @@ type userMessageRepositoryImpl struct {
 }
 
 func (u *userMessageRepositoryImpl) DeleteAll(ctx context.Context) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	_, err := mainQuery.WithContext(ctx).SysUserMessage.Where(
-		mainQuery.SysUserMessage.UserID.Eq(claims.GetUser()),
+		mainQuery.SysUserMessage.UserID.Eq(middleware.GetUserID(ctx)),
 	).Delete()
 	return err
 }
@@ -42,14 +37,10 @@ func (u *userMessageRepositoryImpl) Create(ctx context.Context, message *model.S
 }
 
 func (u *userMessageRepositoryImpl) Delete(ctx context.Context, uint32s []uint32) error {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	_, err := mainQuery.WithContext(ctx).SysUserMessage.Where(
 		mainQuery.SysUserMessage.ID.In(uint32s...),
-		mainQuery.SysUserMessage.UserID.Eq(claims.GetUser()),
+		mainQuery.SysUserMessage.UserID.Eq(middleware.GetUserID(ctx)),
 	).Delete()
 	return err
 }

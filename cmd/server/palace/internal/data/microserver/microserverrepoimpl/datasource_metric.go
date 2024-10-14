@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -117,16 +116,13 @@ func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context
 	if err := types.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
 		return err
 	}
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
+
 	in := &metadata.SyncMetadataV2Request{
 		Endpoint:     datasourceInfo.Endpoint,
 		Config:       configMap,
 		StorageType:  api.StorageType(datasourceInfo.StorageType),
 		DatasourceId: datasourceInfo.ID,
-		TeamId:       claims.GetTeam(),
+		TeamId:       middleware.GetTeamID(ctx),
 	}
 	_, err := l.cli.SyncV2(ctx, in)
 	return err

@@ -1,15 +1,12 @@
 package imodel
 
 import (
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"gorm.io/plugin/soft_delete"
 )
 
 // IDict 系统字典通用接口
 type IDict interface {
-	// GetID 字典ID
-	GetID() uint32
+	IAllFieldModel
 	// GetName 字典名称
 	GetName() string
 	// GetValue 字典键值
@@ -30,12 +27,4 @@ type IDict interface {
 	GetLanguageCode() vobj.Language
 	// GetRemark 字典备注
 	GetRemark() string
-	// GetCreatedAt 创建时间
-	GetCreatedAt() *types.Time
-	// GetUpdatedAt 更新时间
-	GetUpdatedAt() *types.Time
-	// GetCreatorID 创建者ID
-	GetCreatorID() uint32
-	// GetDeletedAt 软删除时间戳
-	GetDeletedAt() soft_delete.DeletedAt
 }

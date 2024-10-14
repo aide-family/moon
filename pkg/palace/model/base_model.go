@@ -124,11 +124,8 @@ func (u *BaseModel) BeforeCreate(_ *gorm.DB) (err error) {
 	if u.ctx == nil {
 		return
 	}
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		return
-	}
-	u.CreatorID = claims.GetUser()
+
+	u.CreatorID = middleware.GetUserID(u.GetContext())
 	return
 }
 

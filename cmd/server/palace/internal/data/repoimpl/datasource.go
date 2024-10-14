@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -37,11 +36,7 @@ func getTeamIdBizQuery(data *data.Data, teamID uint32) (*bizquery.Query, error) 
 
 // getBizQuery 获取业务数据库
 func getBizQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return nil, merr.ErrorI18nUnauthorized(ctx)
-	}
-	bizDB, err := data.GetBizGormDB(claims.GetTeam())
+	bizDB, err := data.GetBizGormDB(middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		return nil, err
 	}

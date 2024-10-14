@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -45,7 +46,7 @@ func (d *doTeamMemberBuilder) ToAPI(member *bizmodel.SysTeamMember) *adminapi.Te
 		Status:    api.Status(member.Status),
 		CreatedAt: member.CreatedAt.String(),
 		UpdatedAt: member.UpdatedAt.String(),
-		User:      nil, // TODO user
+		User:      NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoUserBuilder().ToAPI(biz.RuntimeCache.GetUser(d.ctx, member.UserID)),
 	}
 }
 

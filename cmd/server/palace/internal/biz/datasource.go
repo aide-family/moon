@@ -126,10 +126,6 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
 		return merr.ErrorI18nToastDatasourceSyncing(ctx)
 	}
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 	go func() {
 		defer after.RecoverX()
 		defer func() {
@@ -138,7 +134,7 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 			}
 		}()
 
-		if err := b.syncDatasourceMeta(context.Background(), id, claims.GetTeam()); err != nil {
+		if err := b.syncDatasourceMeta(context.Background(), id, middleware.GetTeamID(ctx)); err != nil {
 			log.Debugw("sync", "datasource meta", "id", id)
 			log.Errorw("sync err", err)
 			b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
@@ -155,12 +151,8 @@ func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) err
 		return merr.ErrorI18nToastDatasourceSyncing(ctx).WithCause(err)
 	}
 
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 	// 获取数据源详情
-	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, claims.GetTeam())
+	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nToastDataSourceNotFound(ctx)

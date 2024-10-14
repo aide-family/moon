@@ -8,7 +8,6 @@ import (
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -134,12 +133,9 @@ func (l *listRoleRequestBuilder) ToBo() *bo.ListTeamRoleParams {
 	if types.IsNil(l) || types.IsNil(l.ListRoleRequest) {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(l.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(l.ctx))
-	}
+
 	return &bo.ListTeamRoleParams{
-		TeamID:  claims.GetTeam(),
+		TeamID:  middleware.GetTeamID(l.ctx),
 		Keyword: l.GetKeyword(),
 		Page:    types.NewPagination(l.GetPagination()),
 	}

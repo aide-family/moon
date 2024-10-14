@@ -58,4 +58,7 @@ type Team interface {
 
 	// UpdateTeamMailConfig 更新团队邮件配置
 	UpdateTeamMailConfig(context.Context, *bo.SetTeamMailConfigParams) error
+
+	// UpdateTeamMemberStatus 更新团队成员状态
+	UpdateTeamMemberStatus(context.Context, vobj.Status, ...uint32) error
 }

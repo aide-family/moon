@@ -55,21 +55,16 @@ func (i *InviteBiz) InviteUser(ctx context.Context, params *bo.InviteUserParams)
 		}
 		return err
 	}
-	// 获取团队id
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
 
 	params.UserID = user.ID
-	params.TeamID = claims.TeamID
+	params.TeamID = middleware.GetTeamID(ctx)
 	// 校验邀请记录是否存在
 	if err = i.checkInviteDataExists(ctx, params); !types.IsNil(err) {
 		return err
 	}
 
 	// 获取邀请人信息
-	opUser, err := i.userRepo.GetByID(ctx, claims.GetUser())
+	opUser, err := i.userRepo.GetByID(ctx, middleware.GetUserID(ctx))
 	if err != nil {
 		return err
 	}
@@ -96,12 +91,8 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 	if !types.IsNil(err) {
 		return merr.ErrorI18nToastTeamInviteNotFound(ctx)
 	}
-	// 获取邀请人
-	claims, ok := middleware.ParseJwtClaims(ctx)
-	if !ok {
-		return merr.ErrorI18nUnauthorized(ctx)
-	}
-	if claims.GetUser() != teamInvite.UserID {
+	opUserID := middleware.GetUserID(ctx)
+	if opUserID != teamInvite.UserID {
 		return merr.ErrorI18nToastTeamInviteNotFound(ctx)
 	}
 
@@ -118,7 +109,7 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 		return i.userMessageRepo.Create(ctx, &model.SysUserMessage{
 			Content:  fmt.Sprintf("%s %s您的邀请，点击查看", inviter.Username, types.Ternary(params.InviteType.IsJoined(), "已同意", "已拒绝")),
 			Category: vobj.UserMessageTypeInfo,
-			UserID:   claims.GetUser(),
+			UserID:   teamInvite.CreatorID,
 			Biz:      types.Ternary(params.InviteType.IsJoined(), vobj.BizTypeInvitationAccepted, vobj.BizTypeInvitationRejected),
 			BizID:    teamInvite.ID,
 		})

@@ -1,6 +1,9 @@
 package bo
 
 import (
+	"context"
+
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -64,24 +67,18 @@ type (
 
 	// AddTeamMemberParams 添加团队成员请求参数
 	AddTeamMemberParams struct {
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 成员列表
 		Members []*AddTeamMemberItem `json:"members"`
 	}
 
 	// RemoveTeamMemberParams 移除团队成员请求参数
 	RemoveTeamMemberParams struct {
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 成员列表
 		MemberIds []uint32 `json:"memberIds"`
 	}
 
 	// SetMemberAdminParams 设置团队成员角色请求参数
 	SetMemberAdminParams struct {
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 成员列表
 		MemberIDs []uint32 `json:"memberIds"`
 		// 是否为管理员
@@ -90,8 +87,6 @@ type (
 
 	// SetMemberRoleParams 设置团队成员角色请求参数
 	SetMemberRoleParams struct {
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 成员列表
 		MemberID uint32   `json:"memberID"`
 		RoleIDs  []uint32 `json:"roleIds"`
@@ -100,8 +95,6 @@ type (
 	// ListTeamMemberParams 查询团队
 	ListTeamMemberParams struct {
 		Page types.Pagination
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 模糊查询
 		Keyword string `json:"keyword"`
 		// 是否为管理员
@@ -116,8 +109,6 @@ type (
 
 	// TransferTeamLeaderParams 转移团队负责人请求参数
 	TransferTeamLeaderParams struct {
-		// 团队ID
-		ID uint32 `json:"id"`
 		// 新负责人ID
 		LeaderID uint32 `json:"leaderID"`
 		// 旧负责人ID
@@ -126,7 +117,6 @@ type (
 
 	// SetTeamMailConfigParams 设置团队邮件配置请求参数
 	SetTeamMailConfigParams struct {
-		TeamID   uint32 `json:"teamID"`
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Host     string `json:"host"`
@@ -136,12 +126,12 @@ type (
 )
 
 // ToModel 转换为model
-func (t *SetTeamMailConfigParams) ToModel() *model.SysTeamEmail {
+func (t *SetTeamMailConfigParams) ToModel(ctx context.Context) *model.SysTeamEmail {
 	if !types.IsNil(t) {
 		return nil
 	}
 	return &model.SysTeamEmail{
-		TeamID: t.TeamID,
+		TeamID: middleware.GetTeamID(ctx),
 		User:   t.User,
 		Pass:   t.Password,
 		Host:   t.Host,

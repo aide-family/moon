@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -14,20 +15,29 @@ import (
 )
 
 // NewDictBiz 创建字典业务
-func NewDictBiz(dictRepo repository.Dict) *DictBiz {
+func NewDictBiz(dictRepo repository.Dict, teamDictRepo repository.TeamDict) *DictBiz {
 	return &DictBiz{
-		dictRepo: dictRepo,
+		dictRepo:     dictRepo,
+		teamDictRepo: teamDictRepo,
 	}
 }
 
 // DictBiz 字典业务
 type DictBiz struct {
-	dictRepo repository.Dict
+	dictRepo     repository.Dict
+	teamDictRepo repository.TeamDict
+}
+
+func (b *DictBiz) getDictRepo(ctx context.Context) repository.Dict {
+	if middleware.GetSourceType(ctx).IsSystem() {
+		return b.dictRepo
+	}
+	return b.teamDictRepo
 }
 
 // CreateDict 创建字典
 func (b *DictBiz) CreateDict(ctx context.Context, dictParam *bo.CreateDictParams) (imodel.IDict, error) {
-	dictDo, err := b.dictRepo.Create(ctx, dictParam)
+	dictDo, err := b.getDictRepo(ctx).Create(ctx, dictParam)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -36,7 +46,7 @@ func (b *DictBiz) CreateDict(ctx context.Context, dictParam *bo.CreateDictParams
 
 // UpdateDict 更新字典
 func (b *DictBiz) UpdateDict(ctx context.Context, updateParam *bo.UpdateDictParams) error {
-	if err := b.dictRepo.UpdateByID(ctx, updateParam); !types.IsNil(err) {
+	if err := b.getDictRepo(ctx).UpdateByID(ctx, updateParam); !types.IsNil(err) {
 		return err
 	}
 	return nil
@@ -44,7 +54,7 @@ func (b *DictBiz) UpdateDict(ctx context.Context, updateParam *bo.UpdateDictPara
 
 // ListDict 列表字典
 func (b *DictBiz) ListDict(ctx context.Context, listParam *bo.QueryDictListParams) ([]imodel.IDict, error) {
-	dictDos, err := b.dictRepo.FindByPage(ctx, listParam)
+	dictDos, err := b.getDictRepo(ctx).FindByPage(ctx, listParam)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -54,7 +64,7 @@ func (b *DictBiz) ListDict(ctx context.Context, listParam *bo.QueryDictListParam
 
 // GetDict 获取字典
 func (b *DictBiz) GetDict(ctx context.Context, id uint32) (imodel.IDict, error) {
-	dictDetail, err := b.dictRepo.GetByID(ctx, id)
+	dictDetail, err := b.getDictRepo(ctx).GetByID(ctx, id)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nToastDictNotFound(ctx)
@@ -66,10 +76,10 @@ func (b *DictBiz) GetDict(ctx context.Context, id uint32) (imodel.IDict, error) 
 
 // UpdateDictStatusByIds 更新字典状态
 func (b *DictBiz) UpdateDictStatusByIds(ctx context.Context, updateParams *bo.UpdateDictStatusParams) error {
-	return b.dictRepo.UpdateStatusByIds(ctx, updateParams)
+	return b.getDictRepo(ctx).UpdateStatusByIds(ctx, updateParams)
 }
 
 // DeleteDictByID 删除字典
 func (b *DictBiz) DeleteDictByID(ctx context.Context, id uint32) error {
-	return b.dictRepo.DeleteByID(ctx, id)
+	return b.getDictRepo(ctx).DeleteByID(ctx, id)
 }

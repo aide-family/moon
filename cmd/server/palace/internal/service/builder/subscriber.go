@@ -8,7 +8,6 @@ import (
 	sbscriberapi "github.com/aide-family/moon/api/admin/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -129,14 +128,9 @@ func (u *unSubscriberRequestBuilder) ToBo() *bo.UnSubscriberStrategyParams {
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
-
 	return &bo.UnSubscriberStrategyParams{
 		StrategyID: u.GetStrategyId(),
-		UserID:     claims.GetUser(),
+		UserID:     middleware.GetUserID(u.ctx),
 	}
 }
 
@@ -144,14 +138,11 @@ func (s *subscriberStrategyRequestBuilder) ToBo() *bo.SubscriberStrategyParams {
 	if types.IsNil(s) || types.IsNil(s.SubscriberStrategyRequest) {
 		return nil
 	}
-	claims, ok := middleware.ParseJwtClaims(s.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(s.ctx))
-	}
+
 	return &bo.SubscriberStrategyParams{
 		StrategyID: s.GetStrategyId(),
 		NotifyType: vobj.NotifyType(s.GetNotifyType()),
-		UserID:     claims.GetUser(),
+		UserID:     middleware.GetUserID(s.ctx),
 	}
 }
 
@@ -160,12 +151,8 @@ func (u *userSubscriberListRequestBuilder) ToBo() *bo.QueryUserSubscriberParams 
 		return nil
 	}
 
-	claims, ok := middleware.ParseJwtClaims(u.ctx)
-	if !ok {
-		panic(merr.ErrorI18nUnauthorized(u.ctx))
-	}
 	return &bo.QueryUserSubscriberParams{
-		UserID:     claims.GetUser(),
+		UserID:     middleware.GetUserID(u.ctx),
 		NotifyType: vobj.NotifyType(u.GetNotifyType()),
 		Page:       types.NewPagination(u.GetPagination()),
 	}
