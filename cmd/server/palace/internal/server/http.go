@@ -20,24 +20,17 @@ import (
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service) *http.Server {
 	httpConf := bc.GetHttp()
-	apiLimitConf := bc.GetApiLimit()
-
-	rbacAPIWhiteList := append(apiLimitConf.GetAllowList(), apiLimitConf.GetTrustedList()...)
+	allowAPIList := bc.GetJwt().GetAllowList()
 	// 验证是否登录
 	authMiddleware := middleware.Server(
 		middleware.JwtServer(),
 		middleware.JwtLoginMiddleware(func(ctx context.Context) (*authorizationapi.CheckTokenReply, error) {
 			return authService.CheckToken(ctx, &authorizationapi.CheckTokenRequest{})
 		}),
-	).Match(middleware.NewWhiteListMatcher(apiLimitConf.GetAllowList())).Build()
-
-	// 验证是否有数据权限
-	rbacMiddleware := middleware.Server(middleware.Rbac(func(ctx context.Context, operation string) error {
-		_, err := authService.CheckPermission(ctx, &authorizationapi.CheckPermissionRequest{
-			Operation: operation,
-		})
-		return err
-	})).Match(middleware.NewWhiteListMatcher(rbacAPIWhiteList)).Build()
+		middleware.Rbac(func(ctx context.Context, operation string) (*authorizationapi.CheckPermissionReply, error) {
+			return authService.CheckPermission(ctx, &authorizationapi.CheckPermissionRequest{Operation: operation})
+		}),
+	).Match(middleware.NewWhiteListMatcher(allowAPIList)).Build()
 
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
@@ -46,11 +39,9 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.I18N(),
-			middleware.Forbidden(apiLimitConf.GetDenyList()...),
-			authMiddleware,
-			rbacMiddleware,
-			middleware.Validate(protovalidate.WithFailFast(false)),
 			middleware.SourceType(),
+			authMiddleware,
+			middleware.Validate(protovalidate.WithFailFast(false)),
 		),
 	}
 	if httpConf.GetNetwork() != "" {

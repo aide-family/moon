@@ -18,7 +18,6 @@ jwt:
   issuer: "moon-palace"
   expire: 3600s
 
-api_limit:
   allow_list:
     - /api.admin.authorization.Authorization/Login
     - /api.admin.authorization.Authorization/Captcha
@@ -27,12 +26,6 @@ api_limit:
     - /api.Alert/Hook
     - /api.admin.authorization.Authorization/VerifyEmail
     - /api.admin.authorization.Authorization/SetEmailWithLogin
-  deny_list:
-  trusted_list:
-    - /api.admin.authorization.Authorization/Logout
-    - /api.admin.team.Team/MyTeam
-    - /api.admin.authorization.Authorization/RefreshToken
-    - /api.admin.team.Team/CreateTeam
 
 cache:
   driver: "free"

@@ -43,23 +43,7 @@ func (l *resourceRepositoryImpl) CheckPath(ctx context.Context, s string) (imode
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
-	// 2. 检查业务库API是否存在且开启
-	bizQuery, err := getBizQuery(ctx, l.data)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-
-	bizApiDo, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.Path.Eq(s)).First()
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nForbidden(ctx)
-		}
-		return nil, err
-	}
-	if !bizApiDo.Status.IsEnable() {
-		return nil, merr.ErrorI18nForbidden(ctx)
-	}
-	return bizApiDo, nil
+	return mainApiDo, nil
 }
 
 func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IResource, error) {

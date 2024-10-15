@@ -6,8 +6,8 @@ package vobj
 type Allow int
 
 const (
-	// AllowNone 禁止
-	AllowNone Allow = iota + 1
+	// AllowBan 禁止
+	AllowBan Allow = iota + 1
 
 	// AllowSystem 系统控制
 	AllowSystem // 系统控制
@@ -20,4 +20,7 @@ const (
 
 	// AllowRBAC RBAC控制
 	AllowRBAC // RBAC控制
+
+	// AllowNone 无控制
+	AllowNone
 )

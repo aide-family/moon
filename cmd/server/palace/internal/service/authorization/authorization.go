@@ -138,9 +138,6 @@ func (s *Service) CheckPermission(ctx context.Context, req *authorizationapi.Che
 	if !ok {
 		return nil, merr.ErrorI18nUnauthorized(ctx)
 	}
-	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
-	}
 	err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
 		Operation: req.GetOperation(),

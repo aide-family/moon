@@ -44,6 +44,10 @@ func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) (i
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
+	if !(mainApiDo.Allow.IsRbac() || mainApiDo.Allow.IsTeam()) {
+		return mainApiDo, nil
+	}
+
 	// 2. 检查业务库API是否存在且开启
 	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {

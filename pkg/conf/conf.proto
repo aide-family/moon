@@ -42,16 +42,8 @@ message JWT {
   string issuer = 2;
   // 有效期
   google.protobuf.Duration expire = 4;
-}
-
-// api限流配置
-message APILimit {
   // 被允许的请求
-  repeated string allow_list = 1;
-  // 被拒绝的请求
-  repeated string deny_list = 2;
-  // 信任的请求（不需要rbac）
-  repeated string trusted_list = 3;
+  repeated string allow_list = 5;
 }
 
 // 数据库配置

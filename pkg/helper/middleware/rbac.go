@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 
+	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/pkg/merr"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -10,7 +11,7 @@ import (
 )
 
 // CheckRbacFun 权限校验函数
-type CheckRbacFun func(ctx context.Context, operation string) error
+type CheckRbacFun func(ctx context.Context, operation string) (*authorizationapi.CheckPermissionReply, error)
 
 // Rbac 权限校验中间件
 func Rbac(check CheckRbacFun) middleware.Middleware {
@@ -21,7 +22,7 @@ func Rbac(check CheckRbacFun) middleware.Middleware {
 				return nil, merr.ErrorNotification("get operation failed")
 			}
 			// 判断该用户在该资源是否有权限
-			if err = check(ctx, operation.Operation()); err != nil {
+			if _, err = check(ctx, operation.Operation()); err != nil {
 				return nil, err
 			}
 			return handler(ctx, req)

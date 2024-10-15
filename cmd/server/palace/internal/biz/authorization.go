@@ -100,12 +100,12 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	}
 
 	// 接口已经封禁
-	if resourceDo.GetAllow().IsNone() {
+	if resourceDo.GetAllow().IsBan() {
 		return merr.ErrorI18nForbidden(ctx)
 	}
 
 	// 属于用户自己的权限
-	if resourceDo.GetAllow().IsUser() {
+	if resourceDo.GetAllow().IsUser() || resourceDo.GetAllow().IsNone() {
 		return nil
 	}
 

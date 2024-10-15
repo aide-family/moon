@@ -12,7 +12,6 @@ message Bootstrap {
   pkg.conf.HTTPServer http = 2;
   pkg.conf.GRPCServer grpc = 3;
   pkg.conf.JWT jwt = 4;
-  pkg.conf.APILimit api_limit = 5;
   pkg.conf.Cache cache = 6;
   pkg.conf.Tracer tracer = 7;
   pkg.conf.Discovery discovery = 8;
