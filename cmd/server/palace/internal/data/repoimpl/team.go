@@ -446,7 +446,7 @@ func (l *teamRepositoryImpl) ListTeamMember(ctx context.Context, params *bo.List
 	}
 
 	q := bizQuery.WithContext(ctx).SysTeamMember.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.ISysTeamMemberDo](q, params.Page); err != nil {
+	if q, err = types.WithPageQuery(q, params.Page); err != nil {
 		return nil, err
 	}
 	return q.Order(bizQuery.SysTeamMember.Role.Desc(), bizQuery.SysTeamMember.ID.Asc()).Find()

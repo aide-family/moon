@@ -60,12 +60,14 @@ func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	if !types.TextIsNull(params.Keyword) {
 		wheres = append(wheres, apiQuery.Or(mainQuery.SysAPI.Name.Like(params.Keyword), mainQuery.SysAPI.Path.Like(params.Keyword)))
 	}
-	apiQuery = apiQuery.Where(wheres...)
+
 	if !params.Status.IsUnknown() {
 		apiQuery = apiQuery.Where(mainQuery.SysAPI.Status.Eq(params.Status.GetValue()))
 	}
+	apiQuery = apiQuery.Where(wheres...)
+	var err error
 	if !params.IsAll {
-		if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
+		if apiQuery, err = types.WithPageQuery(apiQuery, params.Page); err != nil {
 			return nil, err
 		}
 	}
@@ -93,8 +95,9 @@ func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *b
 	if !params.Status.IsUnknown() {
 		apiQuery = apiQuery.Where(mainQuery.SysAPI.Status.Eq(params.Status.GetValue()))
 	}
+	var err error
 	if !params.IsAll {
-		if err := types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
+		if apiQuery, err = types.WithPageQuery[query.ISysAPIDo](apiQuery, params.Page); err != nil {
 			return nil, err
 		}
 	}

@@ -140,7 +140,7 @@ func (m *metricRepositoryImpl) List(ctx context.Context, params *bo.QueryMetricL
 		wheres = append(wheres, bizQuery.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
 	}
 	metricQuery = metricQuery.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](metricQuery, params.Page); err != nil {
+	if metricQuery, err = types.WithPageQuery(metricQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return metricQuery.Order(bizQuery.DatasourceMetric.ID.Desc()).Find()
@@ -163,7 +163,8 @@ func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetri
 	if !params.MetricType.IsUnknown() {
 		wheres = append(wheres, bizQuery.DatasourceMetric.Category.Eq(params.MetricType.GetValue()))
 	}
-	if err := types.WithPageQuery[bizquery.IDatasourceMetricDo](metricQuery, params.Page); err != nil {
+	metricQuery = metricQuery.Where(wheres...)
+	if metricQuery, err = types.WithPageQuery(metricQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return metricQuery.Find()

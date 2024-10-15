@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gorm"
@@ -87,12 +86,15 @@ func (l *teamResourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.
 	if !types.TextIsNull(params.Keyword) {
 		wheres = append(wheres, apiQuery.Or(mainQuery.SysTeamAPI.Name.Like(params.Keyword), mainQuery.SysTeamAPI.Path.Like(params.Keyword)))
 	}
-	apiQuery = apiQuery.Where(wheres...)
+
 	if !params.Status.IsUnknown() {
-		apiQuery = apiQuery.Where(mainQuery.SysTeamAPI.Status.Eq(params.Status.GetValue()))
+		wheres = append(wheres, mainQuery.SysTeamAPI.Status.Eq(params.Status.GetValue()))
 	}
+
+	apiQuery = apiQuery.Where(wheres...)
 	if !params.IsAll {
-		if err := types.WithPageQuery[bizquery.ISysTeamAPIDo](apiQuery, params.Page); err != nil {
+		apiQuery, err = types.WithPageQuery(apiQuery, params.Page)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -127,7 +129,7 @@ func (l *teamResourceRepositoryImpl) FindSelectByPage(ctx context.Context, param
 		apiQuery = apiQuery.Where(mainQuery.SysTeamAPI.Status.Eq(params.Status.GetValue()))
 	}
 	if !params.IsAll {
-		if err := types.WithPageQuery[bizquery.ISysTeamAPIDo](apiQuery, params.Page); err != nil {
+		if apiQuery, err = types.WithPageQuery(apiQuery, params.Page); err != nil {
 			return nil, err
 		}
 	}

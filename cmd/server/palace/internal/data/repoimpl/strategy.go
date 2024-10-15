@@ -299,7 +299,7 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 
 	strategyWrapper = strategyWrapper.Where(wheres...).Preload(field.Associations)
 
-	if err := types.WithPageQuery[bizquery.IStrategyDo](strategyWrapper, params.Page); err != nil {
+	if strategyWrapper, err = types.WithPageQuery(strategyWrapper, params.Page); err != nil {
 		return nil, err
 	}
 

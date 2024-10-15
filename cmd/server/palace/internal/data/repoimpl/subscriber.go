@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"gorm.io/gen"
@@ -62,7 +61,7 @@ func (s *subscriberStrategyRepository) UserSubscriberStrategyList(ctx context.Co
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
 
-	if err = types.WithPageQuery[bizquery.IStrategySubscriberDo](bizWrapper, params.Page); err != nil {
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return bizWrapper.Order(bizQuery.StrategySubscriber.ID.Desc()).Find()
@@ -82,7 +81,7 @@ func (s *subscriberStrategyRepository) StrategySubscriberList(ctx context.Contex
 	wheres = append(wheres, bizQuery.StrategySubscriber.StrategyID.Eq(params.StrategyID))
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
-	if err = types.WithPageQuery[bizquery.IStrategySubscriberDo](bizWrapper, params.Page); err != nil {
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return bizWrapper.Order(bizQuery.StrategySubscriber.ID.Desc()).Find()

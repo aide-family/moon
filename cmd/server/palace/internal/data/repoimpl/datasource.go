@@ -103,7 +103,7 @@ func (l *datasourceRepositoryImpl) ListDatasource(ctx context.Context, params *b
 		wheres = append(wheres, bizQuery.Datasource.Status.Eq(params.Status.GetValue()))
 	}
 	datasourcePreloadOp = datasourcePreloadOp.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IDatasourceDo](datasourcePreloadOp, params.Page); err != nil {
+	if datasourcePreloadOp, err = types.WithPageQuery(datasourcePreloadOp, params.Page); err != nil {
 		return nil, err
 	}
 	return datasourcePreloadOp.Order(bizQuery.Datasource.ID.Desc()).Find()

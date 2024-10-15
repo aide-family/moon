@@ -157,8 +157,8 @@ func (l *templateRepositoryImpl) ListTemplateStrategy(ctx context.Context, param
 	}
 
 	strategyWrapper = strategyWrapper.Where(wheres...).Preload(field.Associations)
-
-	if err := types.WithPageQuery[query.IStrategyTemplateDo](strategyWrapper, params.Page); err != nil {
+	var err error
+	if strategyWrapper, err = types.WithPageQuery(strategyWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return strategyWrapper.Order(queryInstance.StrategyTemplate.ID.Desc()).Find()

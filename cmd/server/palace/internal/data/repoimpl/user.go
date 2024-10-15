@@ -143,7 +143,8 @@ func (l *userRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryUse
 	}
 
 	userCtxQuery = userCtxQuery.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysUserDo](userCtxQuery, params.Page); err != nil {
+	var err error
+	if userCtxQuery, err = types.WithPageQuery(userCtxQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return userCtxQuery.Order(userQuery.ID.Desc()).Find()

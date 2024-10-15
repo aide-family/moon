@@ -99,8 +99,9 @@ func (m *menuRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryMen
 			mainQuery.SysMenu.EnName.Like(params.Keyword),
 		)
 	}
+	var err error
 	queryWrapper = queryWrapper.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysMenuDo](queryWrapper, params.Page); err != nil {
+	if queryWrapper, err = types.WithPageQuery(queryWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return queryWrapper.Order(mainQuery.SysMenu.ID.Desc()).Find()

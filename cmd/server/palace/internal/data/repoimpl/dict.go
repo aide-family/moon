@@ -80,8 +80,9 @@ func (l *dictRepositoryImpl) listDictModel(ctx context.Context, params *bo.Query
 			dictQuery.Remark.Like(params.Keyword),
 		)
 	}
+	var err error
 	queryWrapper = queryWrapper.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysDictDo](queryWrapper, params.Page); err != nil {
+	if queryWrapper, err = types.WithPageQuery(queryWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	dbDictList, err := queryWrapper.Order(dictQuery.ID.Desc()).Find()

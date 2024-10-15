@@ -129,7 +129,7 @@ func (d *dashboardRepositoryImpl) ListDashboard(ctx context.Context, params *bo.
 		wheres = append(wheres, bizQuery.Dashboard.Status.Eq(params.Status.GetValue()))
 	}
 	dashboardQuery := bizQuery.Dashboard.WithContext(ctx).Where(wheres...)
-	if err = types.WithPageQuery[bizquery.IDashboardDo](dashboardQuery, params.Page); err != nil {
+	if dashboardQuery, err = types.WithPageQuery(dashboardQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return dashboardQuery.Find()

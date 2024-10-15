@@ -53,7 +53,8 @@ func (u *userMessageRepositoryImpl) List(ctx context.Context, params *bo.QueryUs
 		wheres = append(wheres, mainQuery.Content.Like(params.Keyword))
 	}
 	userCtxQuery = userCtxQuery.Where(wheres...)
-	if err := types.WithPageQuery[query.ISysUserMessageDo](userCtxQuery, params.Page); err != nil {
+	var err error
+	if userCtxQuery, err = types.WithPageQuery(userCtxQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return userCtxQuery.Order(mainQuery.ID.Desc()).Find()

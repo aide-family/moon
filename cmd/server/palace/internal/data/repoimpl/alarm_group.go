@@ -155,8 +155,7 @@ func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *b
 		bizWrapper = bizWrapper.Or(bizQuery.AlarmNoticeGroup.Remark.Like(params.Keyword))
 	}
 	bizWrapper = bizWrapper.Where(wheres...)
-
-	if err := types.WithPageQuery[bizquery.IAlarmNoticeGroupDo](bizWrapper, params.Page); err != nil {
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return bizWrapper.Order(bizQuery.AlarmNoticeGroup.ID.Desc()).Find()
@@ -211,7 +210,7 @@ func (a *alarmGroupRepositoryImpl) MyAlarmGroups(ctx context.Context, params *bo
 		bizWrapper = bizWrapper.Or(bizQuery.AlarmNoticeGroup.Remark.Like(params.Keyword))
 	}
 	bizWrapper = bizWrapper.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IAlarmNoticeGroupDo](bizWrapper, params.Page); err != nil {
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	return bizWrapper.Order(bizQuery.AlarmNoticeGroup.ID.Desc()).Find()

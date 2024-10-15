@@ -8,7 +8,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"gorm.io/gen/field"
 
@@ -91,7 +90,7 @@ func (l *teamDictRepositoryImpl) listBizDictModel(ctx context.Context, params *b
 
 	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
 
-	if err := types.WithPageQuery[bizquery.ISysDictDo](bizWrapper, params.Page); err != nil {
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
 	sysDictList, err := bizWrapper.Order(bizQuery.SysDict.ID.Desc()).Find()

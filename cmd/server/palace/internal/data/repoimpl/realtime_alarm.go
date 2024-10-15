@@ -86,7 +86,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	// TODO 获取指定告警页面告警数据
 	// TODO 获取指定人员告警数据
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
-	if err := types.WithPageQuery[bizquery.IRealtimeAlarmDo](realtimeAlarmQuery, params.Pagination); err != nil {
+	if realtimeAlarmQuery, err = types.WithPageQuery(realtimeAlarmQuery, params.Pagination); err != nil {
 		return nil, err
 	}
 	return realtimeAlarmQuery.Find()

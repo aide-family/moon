@@ -1,5 +1,11 @@
 package types
 
+import (
+	"reflect"
+
+	"gorm.io/gen"
+)
+
 var _ Pagination = (*page)(nil)
 
 type (
@@ -20,33 +26,47 @@ type (
 		GetTotal() int64
 		SetTotal(total int64)
 	}
+	Limiter[T any] interface {
+		Limit(limit int) T
+	}
 
 	// PageQuery 分页查询
 	PageQuery[T any] interface {
 		Limit(limit int) T
 		Offset(offset int) T
+		Where(conds ...gen.Condition) T
 		Count() (count int64, err error)
 	}
 )
 
 // WithPageQuery 分页查询
-func WithPageQuery[T any](q PageQuery[T], page Pagination) error {
+func WithPageQuery[T any, Q PageQuery[T]](q Q, page Pagination) (T, error) {
+	var res T
+	res = q.Where()
 	if IsNil(q) || IsNil(page) {
-		return nil
+		return res, nil
 	}
 	total, err := q.Count()
 	if !IsNil(err) {
-		return err
+		return res, err
 	}
+
 	page.SetTotal(total)
 	pageNum, pageSize := page.GetPageNum(), page.GetPageSize()
 	if pageNum <= 1 {
-		q.Limit(int(pageSize))
+		res = q.Limit(int(pageSize))
 	} else {
-		q.Offset(int((pageNum - 1) * pageSize))
-		q.Limit(int(pageSize))
+		res = q.Offset(int((pageNum - 1) * pageSize))
+		// 通过反射调用Limit方法
+		res = Limit(res, int(pageSize)).(T)
 	}
-	return nil
+	return res, nil
+}
+
+func Limit(t any, limit int) any {
+	// 通过反射调用Limit方法
+	call := reflect.ValueOf(t).MethodByName("Limit").Call([]reflect.Value{reflect.ValueOf(limit)})
+	return call[0].Interface()
 }
 
 // NewPage 创建一个分页器

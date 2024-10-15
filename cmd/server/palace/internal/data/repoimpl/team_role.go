@@ -166,7 +166,7 @@ func (l *teamRoleRepositoryImpl) ListTeamRole(ctx context.Context, params *bo.Li
 	if !types.TextIsNull(params.Keyword) {
 		teamRoleQuery = teamRoleQuery.Where(bizQuery.SysTeamRole.Name.Like(params.Keyword))
 	}
-	if err := types.WithPageQuery[bizquery.ISysTeamRoleDo](teamRoleQuery, params.Page); err != nil {
+	if teamRoleQuery, err = types.WithPageQuery(teamRoleQuery, params.Page); err != nil {
 		return nil, err
 	}
 	return teamRoleQuery.Order(bizQuery.SysTeamRole.ID.Desc()).Find()

@@ -7,7 +7,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -99,10 +98,11 @@ func (a *alarmHookRepositoryImpl) ListAlarmHook(ctx context.Context, params *bo.
 		})
 		wheres = append(wheres, bizQuery.AlarmHook.APP.In(apps...))
 	}
-	if err := types.WithPageQuery[bizquery.IAlarmHookDo](bizWrapper, params.Page); err != nil {
+	bizWrapper = bizWrapper.Where(wheres...)
+	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err
 	}
-	return bizWrapper.Where(wheres...).Order(bizQuery.AlarmHook.ID.Desc()).Find()
+	return bizWrapper.Order(bizQuery.AlarmHook.ID.Desc()).Find()
 }
 
 func (a *alarmHookRepositoryImpl) UpdateAlarmHookStatus(ctx context.Context, params *bo.UpdateAlarmHookStatusParams) error {

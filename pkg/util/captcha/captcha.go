@@ -29,7 +29,8 @@ const (
 type Theme string
 
 const (
-	_ Theme = "dark"
+	// DarkTheme dark
+	DarkTheme Theme = "dark"
 	// LightTheme light
 	LightTheme Theme = "light"
 )
