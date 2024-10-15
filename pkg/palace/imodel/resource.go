@@ -12,4 +12,5 @@ type IResource interface {
 	GetRemark() string
 	GetModule() int32
 	GetDomain() int32
+	GetAllow() vobj.Allow
 }

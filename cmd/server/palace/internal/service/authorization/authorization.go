@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
@@ -140,17 +141,14 @@ func (s *Service) CheckPermission(ctx context.Context, req *authorizationapi.Che
 	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
 	}
-	teamMemberDo, err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
+	err := s.authorizationBiz.CheckPermission(ctx, &bo.CheckPermissionParams{
 		JwtClaims: claims,
 		Operation: req.GetOperation(),
 	})
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &authorizationapi.CheckPermissionReply{
-		HasPermission: true,
-		TeamMember:    builder.NewParamsBuild().WithContext(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(teamMemberDo),
-	}, nil
+	return &authorizationapi.CheckPermissionReply{HasPermission: true}, nil
 }
 
 // CheckToken 检查token
@@ -210,8 +208,9 @@ func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.S
 		Code:    req.GetCode(),
 		Email:   req.GetEmail(),
 		OAuthID: req.GetOauthID(),
+		Token:   req.GetToken(),
 	}
-	loginReply, err := s.authorizationBiz.OauthLogin(ctx, params)
+	loginReply, err := s.authorizationBiz.OAuthLoginWithEmail(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -219,6 +218,7 @@ func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.S
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	log.Infow("token", token)
 	return &authorizationapi.SetEmailWithLoginReply{
 		User:  builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
 		Token: token,

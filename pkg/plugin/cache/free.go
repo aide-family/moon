@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ ICacher = (*defaultCache)(nil)
@@ -154,6 +155,7 @@ func (d *defaultCache) DecMin(ctx context.Context, key string, min int64, expira
 }
 
 func (d *defaultCache) Close() error {
+	log.Debugw("close free cache")
 	if d.cli == nil {
 		return nil
 	}
@@ -166,10 +168,13 @@ func (d *defaultCache) Delete(_ context.Context, key string) error {
 	return types.Ternary(d.cli.Del([]byte(key)), nil, errors.New(500, "FREE_CACHE_ERR", "cache delete error"))
 }
 
-func (d *defaultCache) Exist(_ context.Context, key string) (bool, error) {
-	_, err := d.cli.Get([]byte(key))
+func (d *defaultCache) Exist(ctx context.Context, key string) (bool, error) {
+	_, err := d.getString(ctx, key)
 	if err != nil {
-		return types.Ternary(!errors.Is(err, freecache.ErrNotFound), true, false), err
+		if errors.Is(err, freecache.ErrNotFound) {
+			return false, nil
+		}
+		return false, err
 	}
 	return true, nil
 }

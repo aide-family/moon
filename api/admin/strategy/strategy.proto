@@ -110,14 +110,13 @@ service Strategy {
     };
   }
 
-  // 根据策略id 生成策略
+  // 复制策略 根据策略id 生成策略
   rpc CopyStrategy (CopyStrategyRequest) returns (CopyStrategyReply) {
     option (google.api.http) = {
       post: "/v1/strategy/copy"
       body: "*"
     };
   }
-
 }
 
 message CreateStrategyGroupRequest {

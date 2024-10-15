@@ -91,6 +91,7 @@ func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s str
 	}
 	randPass, password := genPassword()
 	sysUser = buildSysUserModel(iuser, password)
+	sysUser.Email = s
 
 	err = userQuery.Transaction(func(tx *query.Query) error {
 		if err = tx.SysUser.WithContext(ctx).Create(sysUser); err != nil {
@@ -112,11 +113,12 @@ func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s str
 func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, user auth.IOAuthUser) (sysUser *model.SysUser, err error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx)).SysOAuthUser
 	first, err := userQuery.WithContext(ctx).Where(userQuery.OAuthID.Eq(user.GetOAuthID()), userQuery.APP.Eq(user.GetAPP().GetValue())).First()
-	if types.IsNil(err) {
-		return g.getSysUserByID(ctx, first.SysUserID)
-	}
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
+	if !types.IsNil(err) && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
+	}
+
+	if types.IsNil(err) && first.SysUserID > 0 {
+		return g.getSysUserByID(ctx, first.SysUserID)
 	}
 
 	// 根据邮箱查询系统用户
@@ -150,7 +152,7 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 			Row:       user.String(),
 			APP:       user.GetAPP(),
 		}
-		if err = tx.SysOAuthUser.WithContext(ctx).Create(sysOAuthUser); !types.IsNil(err) {
+		if err = tx.SysOAuthUser.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(sysOAuthUser); !types.IsNil(err) {
 			return err
 		}
 		return nil

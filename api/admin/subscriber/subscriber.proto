@@ -12,6 +12,7 @@ option go_package = "github.com/aide-family/moon/api/admin/subscriber;subscriber
 option java_multiple_files = true;
 option java_package = "api.admin.subscriber";
 
+// 策略订阅模块
 service Subscriber {
   // 当前用户订阅某个策略
   rpc UserSubscriberStrategy (SubscriberStrategyRequest) returns (SubscriberStrategyReply){

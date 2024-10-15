@@ -30,37 +30,37 @@ type teamResourceRepositoryImpl struct {
 	data *data.Data
 }
 
-func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) error {
+func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) (imodel.IResource, error) {
 	// 1. 检查主库API是否存在且开启
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	mainApiDo, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.Path.Eq(s)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nForbidden(ctx)
+			return nil, merr.ErrorI18nForbidden(ctx)
 		}
-		return err
+		return nil, err
 	}
 	if !mainApiDo.Status.IsEnable() {
-		return merr.ErrorI18nForbidden(ctx)
+		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
 	// 2. 检查业务库API是否存在且开启
 	bizQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
-		return err
+		return nil, err
 	}
 
 	bizApiDo, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.Path.Eq(s)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nForbidden(ctx)
+			return nil, merr.ErrorI18nForbidden(ctx)
 		}
-		return err
+		return nil, err
 	}
 	if !bizApiDo.Status.IsEnable() {
-		return merr.ErrorI18nForbidden(ctx)
+		return nil, merr.ErrorI18nForbidden(ctx)
 	}
-	return nil
+	return bizApiDo, nil
 }
 
 func (l *teamResourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IResource, error) {

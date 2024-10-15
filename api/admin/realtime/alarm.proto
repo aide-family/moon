@@ -12,6 +12,7 @@ option go_package = "github.com/aide-family/moon/api/admin/realtime;realtime";
 option java_multiple_files = true;
 option java_package = "api.admin.realtime";
 
+// 实时告警模块
 service Alarm {
   // 获取告警详情
   rpc GetAlarm (GetAlarmRequest) returns (GetAlarmReply) {

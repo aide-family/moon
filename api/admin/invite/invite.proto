@@ -13,6 +13,7 @@ option go_package = "github.com/aide-family/moon/api/admin/invite;invite";
 option java_multiple_files = true;
 option java_package = ".api.admin.invite";
 
+// 邀请模块
 service Invite {
   // 邀请User加入团队
   rpc InviteUser (InviteUserRequest) returns (InviteUserReply){

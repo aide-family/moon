@@ -28,11 +28,13 @@ func NewTeamService(teamBiz *biz.TeamBiz) *Service {
 // CreateTeam 创建团队
 func (s *Service) CreateTeam(ctx context.Context, req *teamapi.CreateTeamRequest) (*teamapi.CreateTeamReply, error) {
 	params := builder.NewParamsBuild().WithContext(ctx).WithContext(ctx).TeamModuleBuilder().WithCreateTeamRequest(req).ToBo()
-	_, err := s.teamBiz.CreateTeam(ctx, params)
+	teamDo, err := s.teamBiz.CreateTeam(ctx, params)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &teamapi.CreateTeamReply{}, nil
+	return &teamapi.CreateTeamReply{
+		Detail: builder.NewParamsBuild().WithContext(ctx).TeamModuleBuilder().DoTeamBuilder().ToAPI(teamDo),
+	}, nil
 }
 
 // UpdateTeam 更新团队

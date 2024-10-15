@@ -149,7 +149,6 @@ func (l *JwtClaims) IsLogout(ctx context.Context, cache cache.ICacher) bool {
 
 type (
 	userRoleContextKey     struct{}
-	teamRoleContextKey     struct{}
 	userIDContextKey       struct{}
 	teamIDContextKey       struct{}
 	teamMemberIDContextKey struct{}
@@ -158,11 +157,6 @@ type (
 // WithUserRoleContextKey with user role context key
 func WithUserRoleContextKey(ctx context.Context, role vobj.Role) context.Context {
 	return context.WithValue(ctx, userRoleContextKey{}, role)
-}
-
-// WithTeamRoleContextKey with team role context key
-func WithTeamRoleContextKey(ctx context.Context, role vobj.Role) context.Context {
-	return context.WithValue(ctx, teamRoleContextKey{}, role)
 }
 
 // WithUserIDContextKey with user id context key
@@ -210,15 +204,6 @@ func GetTeamMemberID(ctx context.Context) uint32 {
 // GetUserRole get user role
 func GetUserRole(ctx context.Context) vobj.Role {
 	role, ok := ctx.Value(userRoleContextKey{}).(vobj.Role)
-	if !ok {
-		return vobj.RoleUser
-	}
-	return role
-}
-
-// GetTeamRole get team role
-func GetTeamRole(ctx context.Context) vobj.Role {
-	role, ok := ctx.Value(teamRoleContextKey{}).(vobj.Role)
 	if !ok {
 		return vobj.RoleUser
 	}

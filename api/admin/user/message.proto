@@ -10,6 +10,7 @@ option go_package = "github.com/aide-family/moon/api/admin/user;user";
 option java_multiple_files = true;
 option java_package = "api.admin.user";
 
+// 用户个人消息模块
 service Message {
 	// 删除消息， 用于清除所有通知
 	rpc DeleteMessages (DeleteMessagesRequest) returns (DeleteMessagesReply) {

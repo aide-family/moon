@@ -113,10 +113,7 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 	if !types.IsNil(err) {
 		return err
 	}
-	sysMenus, err := mainQuery.WithContext(ctx).SysMenu.Find()
-	if !types.IsNil(err) {
-		return err
-	}
+
 	sysDict, err := mainQuery.WithContext(ctx).SysDict.Find()
 	if !types.IsNil(err) {
 		return err
@@ -129,17 +126,6 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 			Remark: apiItem.Remark,
 			Module: apiItem.Module,
 			Domain: apiItem.Domain,
-		}, true
-	})
-
-	teamMenus := types.SliceToWithFilter(sysMenus, func(menuItem *model.SysMenu) (*bizmodel.SysTeamMenu, bool) {
-		return &bizmodel.SysTeamMenu{
-			Name:     menuItem.Name,
-			Path:     menuItem.Path,
-			Status:   menuItem.Status,
-			Icon:     menuItem.Icon,
-			ParentID: menuItem.ParentID,
-			Level:    menuItem.Level,
 		}, true
 	})
 
@@ -203,12 +189,6 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 		if len(teamApis) > 0 {
 			// 迁移api数据到团队数据库
 			if err = bizQuery.SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
-				return err
-			}
-		}
-
-		if len(teamMenus) > 0 {
-			if err = bizQuery.SysTeamMenu.Create(teamMenus...); !types.IsNil(err) {
 				return err
 			}
 		}

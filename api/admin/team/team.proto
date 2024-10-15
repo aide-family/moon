@@ -154,7 +154,9 @@ message CreateTeamRequest {
   // 管理员
   repeated uint32 adminIds = 6;
 }
-message CreateTeamReply {}
+message CreateTeamReply {
+  TeamItem detail = 1;
+}
 
 // 只允许修改基础信息
 message UpdateTeamRequest {

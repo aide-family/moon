@@ -13,8 +13,10 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"golang.org/x/oauth2"
@@ -23,12 +25,13 @@ import (
 
 // AuthorizationBiz 授权业务
 type AuthorizationBiz struct {
-	userRepo     repository.User
-	teamRepo     repository.Team
-	cacheRepo    repository.Cache
-	teamRoleRepo repository.TeamRole
-	resourceRepo repository.Resource
-	oAuthRepo    repository.OAuth
+	userRepo         repository.User
+	teamRepo         repository.Team
+	cacheRepo        repository.Cache
+	teamRoleRepo     repository.TeamRole
+	resourceRepo     repository.Resource
+	teamResourceRepo repository.TeamResource
+	oAuthRepo        repository.OAuth
 
 	githubOAuthConf *oauth2.Config
 	giteeOAuthConf  *oauth2.Config
@@ -43,17 +46,19 @@ func NewAuthorizationBiz(
 	cacheRepo repository.Cache,
 	teamRoleRepo repository.TeamRole,
 	resourceRepo repository.Resource,
+	teamResourceRepo repository.TeamResource,
 	oAuthRepo repository.OAuth,
 ) *AuthorizationBiz {
 	githubOAuthConf := bc.GetOauth2().GetGithub()
 	giteeOAuthConf := bc.GetOauth2().GetGitee()
 	return &AuthorizationBiz{
-		userRepo:     userRepo,
-		teamRepo:     teamRepo,
-		cacheRepo:    cacheRepo,
-		teamRoleRepo: teamRoleRepo,
-		resourceRepo: resourceRepo,
-		oAuthRepo:    oAuthRepo,
+		userRepo:         userRepo,
+		teamRepo:         teamRepo,
+		cacheRepo:        cacheRepo,
+		teamRoleRepo:     teamRoleRepo,
+		resourceRepo:     resourceRepo,
+		teamResourceRepo: teamResourceRepo,
+		oAuthRepo:        oAuthRepo,
 		githubOAuthConf: &oauth2.Config{
 			ClientID:     githubOAuthConf.GetClientId(),
 			ClientSecret: githubOAuthConf.GetClientSecret(),
@@ -78,49 +83,76 @@ func NewAuthorizationBiz(
 	}
 }
 
+func (b *AuthorizationBiz) getResourceRepo(ctx context.Context) repository.Resource {
+	source := middleware.GetSourceType(ctx)
+	if source.IsSystem() {
+		return b.resourceRepo
+	}
+	return b.teamResourceRepo
+}
+
 // CheckPermission 检查用户是否有该资源权限
-func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) (*bizmodel.SysTeamMember, error) {
+func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
+	// 查询接口是否需要rbac
+	resourceDo, err := b.getResourceRepo(ctx).CheckPath(ctx, req.Operation)
+	if err != nil {
+		return err
+	}
+
+	// 接口已经封禁
+	if resourceDo.GetAllow().IsNone() {
+		return merr.ErrorI18nForbidden(ctx)
+	}
+
+	// 属于用户自己的权限
+	if resourceDo.GetAllow().IsUser() {
+		return nil
+	}
+
+	// 属于系统权限 必须是系统管理员才可以访问
+	if resourceDo.GetAllow().IsSystem() && middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+		return nil
+	}
+
 	// 检查用户是否被团队禁用
 	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nForbiddenUserNotInTeam(ctx)
+			return merr.ErrorI18nForbiddenUserNotInTeam(ctx)
 		}
-		return nil, err
+		return err
 	}
 	if !teamMemberDo.Status.IsEnable() {
-		return nil, merr.ErrorI18nForbiddenMemberDisabled(ctx)
+		return merr.ErrorI18nForbiddenMemberDisabled(ctx)
 	}
 
+	// 属于团队权限 必须是团队管理员才可以访问
 	if teamMemberDo.Role.IsAdminOrSuperAdmin() {
-		return teamMemberDo, nil
+		return nil
 	}
+
 	// 查询用户角色
 	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if len(memberRoles) == 0 {
-		return nil, merr.ErrorI18nForbidden(ctx)
+		return merr.ErrorI18nForbidden(ctx)
 	}
 	memberRoleIds := types.SliceToWithFilter(memberRoles, func(role *bizmodel.SysTeamRole) (uint32, bool) {
 		return role.ID, role.Status.IsEnable()
 	})
 	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
 	if !types.IsNil(err) {
-		return nil, err
+		return err
 	}
 	if !rbac {
-		return nil, merr.ErrorI18nForbidden(ctx).WithMetadata(map[string]string{
+		return merr.ErrorI18nForbidden(ctx).WithMetadata(map[string]string{
 			"operation": req.Operation,
 		})
 	}
-	// 查询接口是否停用
-	if err := b.resourceRepo.CheckPath(ctx, req.Operation); err != nil {
-		return nil, err
-	}
 
-	return teamMemberDo, nil
+	return nil
 }
 
 // CheckToken 检查token
@@ -333,7 +365,14 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 		if err != nil {
 			return "", err
 		}
-		redirect := fmt.Sprintf("%s?oauth_id=%d/#/oauth/register/email", b.redirectURL, authUserDo.ID)
+		oauthParams := auth.OauthLoginParams{
+			OAuthID: authUserDo.ID,
+			Token:   types.MD5(random.GenerateRandomString(32, 32)),
+		}
+		if err := oauthParams.WaitVerifyToken(ctx, b.cacheRepo.Cacher()); err != nil {
+			return "", err
+		}
+		redirect := fmt.Sprintf("%s?oauth_id=%d&token=%s#/oauth/register/email", b.redirectURL, oauthParams.OAuthID, oauthParams.Token)
 		return redirect, nil
 	}
 
@@ -349,10 +388,16 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 		return "", err
 	}
 	redirect := fmt.Sprintf("%s?token=%s", b.redirectURL, jwtToken)
+	log.Infow("redirect", redirect)
 	return redirect, nil
 }
 
-func (b *AuthorizationBiz) OauthLogin(ctx context.Context, oauthParams *auth.OauthLoginParams) (*bo.RefreshTokenReply, error) {
+func (b *AuthorizationBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *auth.OauthLoginParams) (*bo.RefreshTokenReply, error) {
+	// 校验临时token
+	if err := oauthParams.VerifyToken(ctx, b.cacheRepo.Cacher()); err != nil {
+		return nil, err
+	}
+	// 校验验证码
 	if err := b.oAuthRepo.CheckVerifyEmailCode(ctx, oauthParams.Email, oauthParams.Code); err != nil {
 		return nil, err
 	}

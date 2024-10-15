@@ -20,6 +20,15 @@ type SysTeamAPI struct {
 	Remark string      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                           // 备注
 	Module int32       `gorm:"column:module;type:int;not null;comment:模块" json:"module"`                                                    // 模块
 	Domain int32       `gorm:"column:domain;type:int;not null;comment:领域" json:"domain"`                                                    // 领域
+	Allow  vobj.Allow  `gorm:"column:allow;type:tinyint;not null;comment:允许类型" json:"allow"`                                                // 放行规则
+}
+
+func (c *SysTeamAPI) GetAllow() vobj.Allow {
+	if c == nil {
+		return 0
+	}
+
+	return c.Allow
 }
 
 func (c *SysTeamAPI) GetName() string {

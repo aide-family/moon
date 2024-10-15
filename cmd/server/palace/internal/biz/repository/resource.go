@@ -14,7 +14,7 @@ type Resource interface {
 	GetByID(context.Context, uint32) (imodel.IResource, error)
 
 	// CheckPath check resource path
-	CheckPath(context.Context, string) error
+	CheckPath(context.Context, string) (imodel.IResource, error)
 
 	// FindByPage find resource by page
 	FindByPage(context.Context, *bo.QueryResourceListParams) ([]imodel.IResource, error)

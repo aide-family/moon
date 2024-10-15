@@ -45,11 +45,6 @@ func (t *TeamBiz) CreateTeam(ctx context.Context, params *bo.CreateTeamParams) (
 
 // UpdateTeam 更新团队
 func (t *TeamBiz) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
-	// 不是管理员不允许修改
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
-
 	return t.teamRepo.UpdateTeam(ctx, team)
 }
 
@@ -70,10 +65,6 @@ func (t *TeamBiz) GetTeam(ctx context.Context, teamID uint32) (*model.SysTeam, e
 
 // ListTeam 获取团队列表
 func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) ([]*model.SysTeam, error) {
-	// 不是管理员不允许修改
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		params.UserID = middleware.GetUserID(ctx)
-	}
 	list, err := t.teamRepo.GetTeamList(ctx, params)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -83,9 +74,6 @@ func (t *TeamBiz) ListTeam(ctx context.Context, params *bo.QueryTeamListParams) 
 
 // UpdateTeamStatus 更新团队状态
 func (t *TeamBiz) UpdateTeamStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	if err := t.teamRepo.UpdateTeamStatus(ctx, status, ids...); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -103,9 +91,6 @@ func (t *TeamBiz) GetUserTeamList(ctx context.Context, userID uint32) ([]*model.
 
 // AddTeamMember 添加团队成员
 func (t *TeamBiz) AddTeamMember(ctx context.Context, params *bo.AddTeamMemberParams) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	if err := t.teamRepo.AddTeamMember(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -118,9 +103,6 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 		return nil
 	}
 
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	// 查询团队管理员
 	teamMemberList, err := t.teamRepo.ListTeamMember(ctx, &bo.ListTeamMemberParams{
 		MemberIDs: params.MemberIds,
@@ -159,9 +141,6 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 
 // SetTeamAdmin 设置团队管理员
 func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminParams) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	opUserID := middleware.GetUserID(ctx)
 	// 不能设置自己
 	for _, memberID := range params.MemberIDs {
@@ -177,9 +156,6 @@ func (t *TeamBiz) SetTeamAdmin(ctx context.Context, params *bo.SetMemberAdminPar
 
 // SetMemberRole 设置团队成员角色
 func (t *TeamBiz) SetMemberRole(ctx context.Context, params *bo.SetMemberRoleParams) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	if err := t.teamRepo.SetMemberRole(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -219,9 +195,6 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 
 // SetTeamMailConfig 设置团队邮件配置
 func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	// 查询团队邮件配置
 	_, err := t.teamRepo.GetTeamMailConfig(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
@@ -236,9 +209,6 @@ func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailC
 
 // UpdateTeamMemberStatus 更新团队成员状态
 func (t *TeamBiz) UpdateTeamMemberStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
-	if !middleware.GetTeamRole(ctx).IsAdminOrSuperAdmin() && !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return merr.ErrorI18nForbidden(ctx)
-	}
 	if err := t.teamRepo.UpdateTeamMemberStatus(ctx, status, ids...); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}

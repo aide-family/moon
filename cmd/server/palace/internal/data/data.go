@@ -288,7 +288,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 // GetCacher 获取缓存
 func (d *Data) GetCacher() cache.ICacher {
 	if types.IsNil(d.cacher) {
-		log.Warn("cache is nil")
+		panic("cacher is nil")
 	}
 	return d.cacher
 }

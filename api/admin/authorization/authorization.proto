@@ -11,7 +11,7 @@ option go_package = "github.com/aide-family/moon/api/admin/authorization;authori
 option java_multiple_files = true;
 option java_package = "api.admin.authorization";
 
-// 系统权限控制
+// 认证模块
 service Authorization {
   // 登录
   rpc Login (LoginRequest) returns (LoginReply) {
@@ -158,7 +158,6 @@ message CheckPermissionRequest {
 }
 message CheckPermissionReply {
   bool hasPermission = 1;
-  TeamMemberItem teamMember = 2;
 }
 
 message CheckTokenRequest {}
@@ -181,6 +180,10 @@ message SetEmailWithLoginRequest {
   }];
   string code = 3 [(buf.validate.field).cel = {
     message: "必须输入验证码",
+    expression: "this.size() > 0"
+  }];
+  string token = 4 [(buf.validate.field).cel = {
+    message: "非法请求",
     expression: "this.size() > 0"
   }];
 }

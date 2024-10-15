@@ -48,7 +48,7 @@ cache:
     path: ./tmp/nutsdb
     bucket: test
   free:
-    size: 10485760
+    size: 0
 
 #tracer:
 #  driver: "jaeger"

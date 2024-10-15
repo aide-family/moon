@@ -32,10 +32,11 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 	).Match(middleware.NewWhiteListMatcher(apiLimitConf.GetAllowList())).Build()
 
 	// 验证是否有数据权限
-	rbacMiddleware := middleware.Server(middleware.Rbac(func(ctx context.Context, operation string) (*authorizationapi.CheckPermissionReply, error) {
-		return authService.CheckPermission(ctx, &authorizationapi.CheckPermissionRequest{
+	rbacMiddleware := middleware.Server(middleware.Rbac(func(ctx context.Context, operation string) error {
+		_, err := authService.CheckPermission(ctx, &authorizationapi.CheckPermissionRequest{
 			Operation: operation,
 		})
+		return err
 	})).Match(middleware.NewWhiteListMatcher(rbacAPIWhiteList)).Build()
 
 	var opts = []http.ServerOption{
