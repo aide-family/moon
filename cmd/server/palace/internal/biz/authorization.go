@@ -93,6 +93,11 @@ func (b *AuthorizationBiz) getResourceRepo(ctx context.Context) repository.Resou
 
 // CheckPermission 检查用户是否有该资源权限
 func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPermissionParams) error {
+	// 系统超级管理员， 直接跳过rbac
+	if middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+		return nil
+	}
+
 	// 查询接口是否需要rbac
 	resourceDo, err := b.getResourceRepo(ctx).CheckPath(ctx, req.Operation)
 	if err != nil {
@@ -110,8 +115,8 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	}
 
 	// 属于系统权限 必须是系统管理员才可以访问
-	if resourceDo.GetAllow().IsSystem() && middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
-		return nil
+	if resourceDo.GetAllow().IsSystem() {
+		return merr.ErrorI18nForbidden(ctx)
 	}
 
 	// 检查用户是否被团队禁用
@@ -129,6 +134,11 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	// 属于团队权限 必须是团队管理员才可以访问
 	if teamMemberDo.Role.IsAdminOrSuperAdmin() {
 		return nil
+	}
+
+	// 团队权限只能团队管理员访问
+	if resourceDo.GetAllow().IsTeam() {
+		return merr.ErrorI18nForbidden(ctx)
 	}
 
 	// 查询用户角色
