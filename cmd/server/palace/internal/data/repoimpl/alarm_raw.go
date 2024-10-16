@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen/field"
+	"gorm.io/gorm/clause"
 )
 
 // NewAlarmRawRepository 创建 AlarmRawRepository
@@ -61,7 +62,7 @@ func (r *alarmRawRepositoryImpl) CreateAlarmRaws(ctx context.Context, param []*b
 	alarmRawModels := types.SliceTo(param, func(item *bo.CreateAlarmRawParams) *alarmmodel.AlarmRaw {
 		return &alarmmodel.AlarmRaw{RawInfo: item.RawInfo, Fingerprint: item.Fingerprint}
 	})
-	err = alarmQuery.AlarmRaw.WithContext(ctx).CreateInBatches(alarmRawModels, len(alarmRawModels))
+	err = alarmQuery.AlarmRaw.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(alarmRawModels, len(alarmRawModels))
 	if err != nil {
 		log.Error("AlarmRaw CreateInBatches err: ", err.Error())
 		return nil, err

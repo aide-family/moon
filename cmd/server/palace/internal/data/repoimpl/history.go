@@ -15,6 +15,7 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // NewAlarmHistoryRepository 创建告警记录仓库
@@ -41,10 +42,9 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 		return err
 	}
 
-	if err := alarmQuery.AlarmHistory.WithContext(ctx).CreateInBatches(historyList, len(historyList)); err != nil {
+	if err := alarmQuery.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(historyList, len(historyList)); err != nil {
 		return err
 	}
-
 	return nil
 }
 

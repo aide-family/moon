@@ -6,6 +6,7 @@ import (
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	dictapi "github.com/aide-family/moon/api/admin/dict"
+	historyapi "github.com/aide-family/moon/api/admin/history"
 	hookapi "github.com/aide-family/moon/api/admin/hook"
 	inviteapi "github.com/aide-family/moon/api/admin/invite"
 	menuapi "github.com/aide-family/moon/api/admin/menu"
@@ -23,6 +24,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/history"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/menu"
@@ -101,6 +103,7 @@ func RegisterService(
 	hookService *hook.Service,
 	inviteService *invite.Service,
 	messageService *user.MessageService,
+	historyService *history.Service,
 ) *Server {
 	// 注册GRPC服务
 	v1.RegisterGreeterServer(rpcSrv, greeter)
@@ -125,6 +128,7 @@ func RegisterService(
 	api.RegisterAlertServer(rpcSrv, alertService)
 	userapi.RegisterMessageServer(rpcSrv, messageService)
 	inviteapi.RegisterInviteServer(rpcSrv, inviteService)
+	historyapi.RegisterHistoryServer(rpcSrv, historyService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -149,6 +153,7 @@ func RegisterService(
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
 	inviteapi.RegisterInviteHTTPServer(httpSrv, inviteService)
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
+	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
 
 	// custom api
 	proxy := httpSrv.Route("/v1")

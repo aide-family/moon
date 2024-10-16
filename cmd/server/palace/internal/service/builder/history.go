@@ -68,6 +68,8 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		Fingerprint: history.Fingerprint,
 		StartsAt:    types.NewTimeByUnix(history.StartsAt).String(),
 		EndsAt:      types.NewTimeByUnix(history.EndsAt).String(),
+		Annotations: history.Annotations,
+		Labels:      history.Labels.Map(),
 	}
 
 	if !types.IsNil(history.HistoryDetails) {

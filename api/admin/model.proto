@@ -664,6 +664,10 @@ message AlarmHistoryItem{
   string fingerprint = 11;
   // 原始json
   string rawInfo = 12;
+  // 策略标签
+  map<string, string> labels = 13;
+  // 策略注解
+  map<string, string> annotations = 14;
 }
 
 message NoticeUserMessage {

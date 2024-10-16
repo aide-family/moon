@@ -15,6 +15,7 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // NewRealtimeAlarmRepository 实例化告警业务数据库
@@ -36,7 +37,7 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 		return err
 	}
 
-	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).CreateInBatches(realTimes, len(realTimes)); err != nil {
+	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(realTimes, len(realTimes)); err != nil {
 		return err
 	}
 	return nil
