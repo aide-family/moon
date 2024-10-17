@@ -54,15 +54,13 @@ func (a *createAlarmRequestBuilder) ToBo() *bo.CreateAlarmHookRawParams {
 		Version:           a.GetVersion(),
 		GroupKey:          a.GetGroupKey(),
 		TruncatedAlerts:   a.GetTruncatedAlerts(),
-		Alerts: types.SliceTo(a.Alerts, func(item *api.AlertItem) *bo.CreateAlarmItemParams {
-			startsAt, _ := types.StrToInt64(item.StartsAt)
-			endsAt, _ := types.StrToInt64(item.EndsAt)
-			return &bo.CreateAlarmItemParams{
+		Alerts: types.SliceTo(a.Alerts, func(item *api.AlertItem) *bo.AlertItemRawParams {
+			return &bo.AlertItemRawParams{
 				Status:       item.GetStatus(),
 				Labels:       item.GetLabels(),
 				Annotations:  item.GetAnnotations(),
-				StartsAt:     startsAt,
-				EndsAt:       endsAt,
+				StartsAt:     item.GetStartsAt(),
+				EndsAt:       item.GetEndsAt(),
 				GeneratorURL: item.GetGeneratorURL(),
 				Fingerprint:  item.GetFingerprint(),
 			}

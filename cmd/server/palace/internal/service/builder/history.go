@@ -66,9 +66,9 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		AlertStatus: api.AlertStatus(history.AlertStatus),
 		Expr:        history.Expr,
 		Fingerprint: history.Fingerprint,
-		StartsAt:    types.NewTimeByUnix(history.StartsAt).String(),
-		EndsAt:      types.NewTimeByUnix(history.EndsAt).String(),
-		Annotations: history.Annotations,
+		StartsAt:    history.StartsAt,
+		EndsAt:      history.EndsAt,
+		Annotations: history.Annotations.Map(),
 		Labels:      history.Labels.Map(),
 	}
 

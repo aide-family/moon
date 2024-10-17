@@ -43,11 +43,11 @@ message ListAlarmRequest {
   // 分页
   PaginationReq pagination = 1 [(buf.validate.field).required = true];
   // 告警时间范围
-  int64 eventAtStart = 2;
-  int64 eventAtEnd = 3;
+  string eventAtStart = 2;
+  string eventAtEnd = 3;
   // 告警恢复时间
-  int64 recoverAtStart = 4;
-  int64 recoverAtEnd = 5;
+  string recoverAtStart = 4;
+  string recoverAtEnd = 5;
   // 告警级别
   repeated uint32 alarmLevels = 6;
   // 告警状态

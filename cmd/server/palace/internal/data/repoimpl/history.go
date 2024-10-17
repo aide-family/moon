@@ -89,20 +89,24 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) ([]*alarmmodel.AlarmHistory, error) {
 	strategy := param.Strategy
 	strategyLevel := param.Level
-	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.AlarmHistory {
+	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.AlarmHistory {
+		labels := vobj.NewLabels(alarmParam.Labels)
+		annotations := vobj.NewAnnotations(alarmParam.Annotations)
 		return &alarmmodel.AlarmHistory{
+			Summary:     annotations.GetSummary(),
+			Description: annotations.GetDescription(),
 			AlertStatus: vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:    alarmParam.StartsAt,
 			EndsAt:      alarmParam.EndsAt,
 			Expr:        strategy.Expr,
 			Fingerprint: alarmParam.Fingerprint,
-			Labels:      vobj.NewLabels(alarmParam.Labels),
-			Annotations: alarmParam.Annotations,
+			Labels:      labels,
+			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
 			HistoryDetails: &alarmmodel.HistoryDetails{
 				Strategy:   strategy.String(),
 				Level:      strategyLevel.String(),
-				Datasource: param.GetDatasourceMap(alarmParam.DatasourceID),
+				Datasource: param.GetDatasourceMap(labels.GetDatasourceID()),
 			},
 		}
 	})

@@ -512,8 +512,8 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 
 	resItem := &adminapi.RealtimeAlarmItem{
 		Id:          alarm.ID,
-		StartsAt:    types.NewTimeByUnix(alarm.StartsAt).String(),
-		EndsAt:      types.NewTimeByUnix(alarm.EndsAt).String(),
+		StartsAt:    alarm.StartsAt.String(),
+		EndsAt:      alarm.EndsAt.String(),
 		Status:      api.AlertStatus(alarm.Status),
 		Summary:     alarm.Summary,
 		Description: alarm.Description,

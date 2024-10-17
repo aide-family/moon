@@ -79,13 +79,13 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		return nil, err
 	}
 	var wheres []gen.Condition
-	if params.EventAtStart < params.EventAtEnd && params.EventAtStart > 0 {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.StartsAt.Between(params.EventAtStart, params.EventAtEnd))
-	}
-	if params.ResolvedAtStart < params.ResolvedAtEnd && params.ResolvedAtStart > 0 {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue()))
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.EndsAt.Between(params.ResolvedAtStart, params.ResolvedAtEnd))
-	}
+	//if params.EventAtStart < params.EventAtEnd && params.EventAtStart > 0 {
+	//	wheres = append(wheres, alarmQuery.RealtimeAlarm.StartsAt.Between(params.EventAtStart, params.EventAtEnd))
+	//}
+	//if params.ResolvedAtStart < params.ResolvedAtEnd && params.ResolvedAtStart > 0 {
+	//	wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue()))
+	//	wheres = append(wheres, alarmQuery.RealtimeAlarm.EndsAt.Between(params.ResolvedAtStart, params.ResolvedAtEnd))
+	//}
 
 	if len(params.AlarmStatuses) > 0 {
 		statuses := types.SliceTo(params.AlarmStatuses, func(status vobj.AlertStatus) int {
@@ -106,20 +106,24 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 	strategy := param.Strategy
 	strategyLevel := param.Level
 
-	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.CreateAlarmItemParams) *alarmmodel.RealtimeAlarm {
+	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
+		labels := vobj.NewLabels(alarmParam.Labels)
+		annotations := vobj.NewAnnotations(alarmParam.Annotations)
 		return &alarmmodel.RealtimeAlarm{
+			Summary:     annotations.GetSummary(),
+			Description: annotations.GetDescription(),
 			Status:      vobj.ToAlertStatus(alarmParam.Status),
-			StartsAt:    alarmParam.StartsAt,
-			EndsAt:      alarmParam.EndsAt,
+			//StartsAt:    alarmParam.StartsAt,
+			//EndsAt:      alarmParam.EndsAt,
 			Expr:        strategy.Expr,
 			Fingerprint: alarmParam.Fingerprint,
-			Labels:      vobj.NewLabels(alarmParam.Labels),
-			Annotations: alarmParam.Annotations,
+			Labels:      labels,
+			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
 			RealtimeDetails: &alarmmodel.RealtimeDetails{
 				Strategy:   strategy.String(),
 				Level:      strategyLevel.String(),
-				Datasource: param.GetDatasourceMap(alarmParam.DatasourceID),
+				Datasource: param.GetDatasourceMap(vobj.NewLabels(alarmParam.Labels).GetDatasourceID()),
 			},
 		}
 	})

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -43,9 +44,9 @@ func (b *AlarmBiz) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
 
 // CreateAlarmRawInfo 创建告警原始信息
 func (b *AlarmBiz) CreateAlarmRawInfo(ctx context.Context, param *bo.CreateAlarmHookRawParams) ([]*alarmmodel.AlarmRaw, error) {
-	rawParamList := types.SliceTo(param.Alerts, func(item *bo.CreateAlarmItemParams) *bo.CreateAlarmRawParams {
+	rawParamList := types.SliceTo(param.Alerts, func(item *bo.AlertItemRawParams) *bo.CreateAlarmRawParams {
 		return &bo.CreateAlarmRawParams{
-			RawInfo:     item.GetAlarmItemString(),
+			RawInfo:     item.GetAlertItemString(),
 			Fingerprint: item.Fingerprint,
 		}
 	})
@@ -75,8 +76,11 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 	}
 
 	// 查询告警列表数据源
-	datasourceIds := types.SliceTo(params.Alerts, func(item *bo.CreateAlarmItemParams) uint32 {
-		return item.DatasourceID
+	datasourceIds := types.SliceTo(params.Alerts, func(item *bo.AlertItemRawParams) uint32 {
+		if types.IsNil(item.Labels) {
+			return 0
+		}
+		return vobj.NewLabels(item.Labels).GetDatasourceID()
 	})
 
 	datasourceList, err := b.alarmRawRepository.ListDatasource(ctx, &bo.GetTeamDatasourceParams{DatasourceIds: datasourceIds, TeamID: params.TeamID})

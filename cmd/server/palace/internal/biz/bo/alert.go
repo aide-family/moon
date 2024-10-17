@@ -68,7 +68,7 @@ func (a *Alarm) String() string {
 			return &alertInfo{
 				Status:       alert.Status.String(),
 				Labels:       alert.Labels.Map(),
-				Annotations:  alert.Annotations,
+				Annotations:  alert.Annotations.Map(),
 				StartsAt:     alert.StartsAt.String(),
 				EndsAt:       alert.EndsAt.String(),
 				GeneratorURL: alert.GeneratorURL,
@@ -78,7 +78,7 @@ func (a *Alarm) String() string {
 		}),
 		GroupLabels:       a.GroupLabels.Map(),
 		CommonLabels:      a.CommonLabels.Map(),
-		CommonAnnotations: a.CommonAnnotations,
+		CommonAnnotations: a.CommonAnnotations.Map(),
 		ExternalURL:       a.ExternalURL,
 		Version:           a.Version,
 		GroupKey:          a.GroupKey,
@@ -91,7 +91,7 @@ func (a *Alert) String() string {
 	alert := alertInfo{
 		Status:       a.Status.String(),
 		Labels:       a.Labels.Map(),
-		Annotations:  a.Annotations,
+		Annotations:  a.Annotations.Map(),
 		StartsAt:     a.StartsAt.String(),
 		EndsAt:       a.EndsAt.String(),
 		GeneratorURL: a.GeneratorURL,

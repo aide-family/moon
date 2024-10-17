@@ -92,6 +92,24 @@ type (
 		MyAlarm bool
 	}
 
+	// AlertItemRawParams 告警原始数据
+	AlertItemRawParams struct {
+		// 告警状态, firing, resolved
+		Status string `json:"status"`
+		// 标签
+		Labels map[string]string `json:"labels"`
+		// 注解
+		Annotations map[string]string `json:"annotations"`
+		// 开始时间
+		StartsAt string `json:"startsAt"`
+		// 结束时间, 空表示未结束
+		EndsAt string `json:"endsAt"`
+		// 告警生成链接
+		GeneratorURL string `json:"generatorURL"`
+		// 指纹
+		Fingerprint string `json:"fingerprint"`
+	}
+
 	// CreateAlarmItemParams 创建告警项请求参数
 	CreateAlarmItemParams struct {
 		// 告警状态, firing, resolved
@@ -117,7 +135,7 @@ type (
 	// CreateAlarmInfoParams 创建告警信息参数
 	CreateAlarmInfoParams struct {
 		TeamID        uint32                          `json:"teamId"`
-		Alerts        []*CreateAlarmItemParams        `json:"alerts"`
+		Alerts        []*AlertItemRawParams           `json:"alerts"`
 		Strategy      *bizmodel.Strategy              `json:"strategy"`
 		Level         *bizmodel.StrategyLevel         `json:"level"`
 		DatasourceMap map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
@@ -126,19 +144,19 @@ type (
 
 	// CreateAlarmHookRawParams 告警hook原始信息
 	CreateAlarmHookRawParams struct {
-		Receiver          string                   `json:"receiver"`
-		Status            string                   `json:"status"`
-		GroupLabels       *vobj.Labels             `json:"groupLabels"`
-		CommonLabels      *vobj.Labels             `json:"commonLabels"`
-		CommonAnnotations map[string]string        `json:"commonAnnotations"`
-		ExternalURL       string                   `json:"externalURL"`
-		Version           string                   `json:"version"`
-		GroupKey          string                   `json:"groupKey"`
-		TruncatedAlerts   int32                    `json:"truncatedAlerts"`
-		Alerts            []*CreateAlarmItemParams `json:"alerts"`
-		TeamID            uint32                   `json:"teamId"`
-		StrategyID        uint32                   `json:"strategyId"`
-		LevelID           uint32                   `json:"levelId"`
+		Receiver          string                `json:"receiver"`
+		Status            string                `json:"status"`
+		GroupLabels       *vobj.Labels          `json:"groupLabels"`
+		CommonLabels      *vobj.Labels          `json:"commonLabels"`
+		CommonAnnotations map[string]string     `json:"commonAnnotations"`
+		ExternalURL       string                `json:"externalURL"`
+		Version           string                `json:"version"`
+		GroupKey          string                `json:"groupKey"`
+		TruncatedAlerts   int32                 `json:"truncatedAlerts"`
+		Alerts            []*AlertItemRawParams `json:"alerts"`
+		TeamID            uint32                `json:"teamId"`
+		StrategyID        uint32                `json:"strategyId"`
+		LevelID           uint32                `json:"levelId"`
 	}
 )
 
@@ -183,8 +201,8 @@ func (a *CreateAlarmInfoParams) GetRawInfoId(fingerprint string) uint32 {
 	return 0
 }
 
-// GetAlarmItemString 获取告警项字符串
-func (a *CreateAlarmItemParams) GetAlarmItemString() string {
+// GetAlertItemString 获取原始告警字符串
+func (a *AlertItemRawParams) GetAlertItemString() string {
 	if types.IsNil(a) {
 		return ""
 	}
