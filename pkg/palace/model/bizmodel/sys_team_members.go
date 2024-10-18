@@ -17,6 +17,14 @@ type SysTeamMember struct {
 	TeamRoles []*SysTeamRole `gorm:"many2many:sys_team_member_roles" json:"team_roles"`
 }
 
+// GetUserID get user id
+func (c *SysTeamMember) GetUserID() uint32 {
+	if c == nil {
+		return 0
+	}
+	return c.UserID
+}
+
 // String json string
 func (c *SysTeamMember) String() string {
 	bs, _ := types.Marshal(c)

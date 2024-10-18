@@ -13,10 +13,10 @@ grpc:
   timeout: 50s
 
 cache:
-  driver: "free"
+  driver: "redis"
   redis:
     network: "tcp"
-    addr: 192.168.7.76:6379
+    addr: localhost:6379
     db: 0
     password: ""
     read_timeout: 0.2s

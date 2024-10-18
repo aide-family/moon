@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -17,9 +18,11 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -99,6 +102,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 		return err
 	}
 	strategy := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: strategyID}}
+	defer s.syncStrategiesByIds(ctx, strategyID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 移除策略数据源中间表关联关系
 		if err = tx.Strategy.Datasource.Model(strategy).Clear(); err != nil {
@@ -123,12 +127,233 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(strategyID)).Delete(); !types.IsNil(err) {
 			return err
 		}
-		s.syncStrategiesByIds(ctx, strategyID)
 		return nil
 	})
 }
 
+// 校验策略名称是否存在
+func (s *strategyRepositoryImpl) checkStrategyName(ctx context.Context, name string, strategyGroupID, id uint32) error {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	strategyDo, err := bizQuery.Strategy.WithContext(ctx).
+		Where(bizQuery.Strategy.Name.Eq(name)).
+		Where(bizQuery.Strategy.GroupID.Eq(strategyGroupID)).
+		First()
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return nil
+	}
+
+	if (id > 0 && strategyDo.ID != id) || id == 0 {
+		return merr.ErrorI18nAlertStrategyNameDuplicate(ctx)
+	}
+
+	return nil
+}
+
+// 检验策略组是否存在
+func (s *strategyRepositoryImpl) checkStrategyGroup(ctx context.Context, groupIDs ...uint32) error {
+	if len(groupIDs) == 0 {
+		return nil
+	}
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 去重
+	groupIDs = types.SliceUnique(groupIDs)
+	// 校验告警组是否存在
+	count, err := bizQuery.StrategyGroup.WithContext(ctx).
+		Where(bizQuery.StrategyGroup.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.StrategyGroup.ID.In(groupIDs...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(groupIDs) {
+		return merr.ErrorI18nAlertStrategyGroupNotFound(ctx)
+	}
+	return nil
+}
+
+// 检验告警组是否存在
+func (s *strategyRepositoryImpl) checkAlarmGroup(ctx context.Context, groupIDs ...uint32) error {
+	if len(groupIDs) == 0 {
+		return nil
+	}
+	// 去重
+	groupIDs = types.SliceUnique(groupIDs)
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 校验告警组是否存在
+	count, err := bizQuery.AlarmNoticeGroup.WithContext(ctx).
+		Where(bizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.AlarmNoticeGroup.ID.In(groupIDs...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(groupIDs) {
+		return merr.ErrorI18nAlertAlertGroupNotFound(ctx)
+	}
+	return nil
+}
+
+// 检验告警等级是否存在
+func (s *strategyRepositoryImpl) checkAlarmLevel(ctx context.Context, levelIDs ...uint32) error {
+	if len(levelIDs) == 0 {
+		return nil
+	}
+	// 去重
+	levelIDs = types.SliceUnique(levelIDs)
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 校验告警组是否存在
+	count, err := bizQuery.SysDict.WithContext(ctx).
+		Where(bizQuery.SysDict.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.SysDict.DictType.Eq(vobj.DictTypeAlarmLevel.GetValue())).
+		Where(bizQuery.SysDict.ID.In(levelIDs...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(levelIDs) {
+		return merr.ErrorI18nAlertAlertLevelNotFound(ctx)
+	}
+	return nil
+}
+
+// 检验数据源是否存在
+func (s *strategyRepositoryImpl) checkDataSource(ctx context.Context, dataSourceIds ...uint32) error {
+	if len(dataSourceIds) == 0 {
+		return nil
+	}
+	// 去重
+	dataSourceIds = types.SliceUnique(dataSourceIds)
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 校验数据源是否存在
+	count, err := bizQuery.Datasource.WithContext(ctx).
+		Where(bizQuery.Datasource.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.Datasource.ID.In(dataSourceIds...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(dataSourceIds) {
+		return merr.ErrorI18nAlertDatasourceNotFound(ctx)
+	}
+	return nil
+}
+
+// 检验策略类型是否存在
+func (s *strategyRepositoryImpl) checkStrategyCategory(ctx context.Context, categoryIds ...uint32) error {
+	if len(categoryIds) == 0 {
+		return nil
+	}
+	// 去重
+	categoryIds = types.SliceUnique(categoryIds)
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 校验策略类型是否存在
+	count, err := bizQuery.SysDict.WithContext(ctx).
+		Where(bizQuery.SysDict.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.SysDict.DictType.Eq(vobj.DictTypeStrategyCategory.GetValue())).
+		Where(bizQuery.SysDict.ID.In(categoryIds...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(categoryIds) {
+		return merr.ErrorI18nAlertStrategyTypeNotExist(ctx)
+	}
+	return nil
+}
+
+// 校验策略模板是否存在
+func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, templateId uint32) error {
+	if templateId == 0 {
+		return nil
+	}
+	var err error
+	sourceType := middleware.GetSourceType(ctx)
+	if sourceType.IsTeam() {
+		// TODO 查询系统模板是否存在
+		mainQuery := query.Use(s.data.GetMainDB(ctx))
+		_, err = mainQuery.WithContext(ctx).StrategyTemplate.
+			Where(mainQuery.StrategyTemplate.Status.Eq(vobj.StatusEnable.GetValue())).
+			Where(mainQuery.StrategyTemplate.ID.Eq(templateId)).First()
+	} else {
+		// TODO 查询团队模板是否存在
+		bizQuery, errX := getBizQuery(ctx, s.data)
+		if !types.IsNil(errX) {
+			return errX
+		}
+		_, err = bizQuery.StrategyTemplate.WithContext(ctx).
+			Where(bizQuery.StrategyTemplate.Status.Eq(vobj.StatusEnable.GetValue())).
+			Where(bizQuery.StrategyTemplate.ID.Eq(templateId)).First()
+	}
+
+	if types.IsNil(err) {
+		return nil
+	}
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorI18nAlertStrategyTemplateNotFound(ctx)
+	}
+	return err
+}
+
+func (s *strategyRepositoryImpl) getAlarmGroupIds(params *bo.CreateStrategyParams) []uint32 {
+	alarmGroupIds := params.AlarmGroupIds
+	for _, level := range params.Levels {
+		alarmGroupIds = append(alarmGroupIds, level.AlarmGroupIds...)
+		for _, notice := range level.LabelNotices {
+			alarmGroupIds = append(alarmGroupIds, notice.AlarmGroupIds...)
+		}
+	}
+	return alarmGroupIds
+}
+
+func (s *strategyRepositoryImpl) getLevelIds(params *bo.CreateStrategyParams) []uint32 {
+	return types.SliceTo(params.Levels, func(level *bo.CreateStrategyLevel) uint32 { return level.LevelID })
+}
+
 func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
+	if err := s.checkStrategyName(ctx, params.Name, params.GroupID, 0); !types.IsNil(err) {
+		return nil, err
+	}
+	if err := s.checkStrategyGroup(ctx, params.GroupID); !types.IsNil(err) {
+		return nil, err
+	}
+
+	if err := s.checkAlarmGroup(ctx, s.getAlarmGroupIds(params)...); !types.IsNil(err) {
+		return nil, err
+	}
+
+	if err := s.checkAlarmLevel(ctx, s.getLevelIds(params)...); !types.IsNil(err) {
+		return nil, err
+	}
+
+	if err := s.checkDataSource(ctx, params.DatasourceIDs...); !types.IsNil(err) {
+		return nil, err
+	}
+
+	if err := s.checkStrategyCategory(ctx, params.CategoriesIds...); !types.IsNil(err) {
+		return nil, err
+	}
+
+	if err := s.checkStrategyTemplate(ctx, params.TemplateID); !types.IsNil(err) {
+		return nil, err
+	}
+
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -148,14 +373,42 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 }
 
 func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.UpdateStrategyParams) error {
+	updateParam := params.UpdateParam
+	if updateParam == nil {
+		panic("strategyRepo UpdateByID method params UpdateParam field is nil")
+	}
+	if err := s.checkStrategyName(ctx, updateParam.Name, updateParam.GroupID, params.ID); !types.IsNil(err) {
+		return err
+	}
+	if err := s.checkStrategyGroup(ctx, updateParam.GroupID); !types.IsNil(err) {
+		return err
+	}
+
+	if err := s.checkAlarmGroup(ctx, s.getAlarmGroupIds(updateParam)...); !types.IsNil(err) {
+		return err
+	}
+
+	if err := s.checkAlarmLevel(ctx, s.getLevelIds(updateParam)...); !types.IsNil(err) {
+		return err
+	}
+
+	if err := s.checkDataSource(ctx, updateParam.DatasourceIDs...); !types.IsNil(err) {
+		return err
+	}
+
+	if err := s.checkStrategyCategory(ctx, updateParam.CategoriesIds...); !types.IsNil(err) {
+		return err
+	}
+
+	if err := s.checkStrategyTemplate(ctx, updateParam.TemplateID); !types.IsNil(err) {
+		return err
+	}
+
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return err
 	}
-	updateParam := params.UpdateParam
-	if types.IsNil(updateParam) {
-		return merr.ErrorNotification("更新策略参数为空")
-	}
+
 	datasource := types.SliceToWithFilter(updateParam.DatasourceIDs, func(datasourceId uint32) (*bizmodel.Datasource, bool) {
 		if datasourceId <= 0 {
 			return nil, false
@@ -189,7 +442,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	})
 
 	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
-
+	defer s.syncStrategiesByIds(ctx, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// Datasource
 		if err = tx.Strategy.Datasource.
@@ -226,7 +479,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		); !types.IsNil(err) {
 			return err
 		}
-		s.syncStrategiesByIds(ctx, params.ID)
+
 		return nil
 	})
 }
@@ -336,15 +589,16 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 func createStrategyLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyLevel) []*bizmodel.StrategyLevel {
 	strategyLevel := types.SliceTo(params, func(item *bo.CreateStrategyLevel) *bizmodel.StrategyLevel {
 		templateLevel := &bizmodel.StrategyLevel{
-			StrategyID:  item.StrategyID,
-			Duration:    item.Duration,
-			Count:       item.Count,
-			SustainType: item.SustainType,
-			Interval:    item.Interval,
-			Condition:   item.Condition,
-			Threshold:   item.Threshold,
-			LevelID:     item.LevelID,
-			Status:      item.Status,
+			AllFieldModel: model.AllFieldModel{ID: item.ID},
+			StrategyID:    item.StrategyID,
+			Duration:      item.Duration,
+			Count:         item.Count,
+			SustainType:   item.SustainType,
+			Interval:      item.Interval,
+			Condition:     item.Condition,
+			Threshold:     item.Threshold,
+			LevelID:       item.LevelID,
+			Status:        item.Status,
 			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{

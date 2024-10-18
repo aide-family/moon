@@ -10,9 +10,9 @@ const tableNameSysUserMessage = "sys_user_messages"
 // SysUserMessage mapped from table <sys_user_messages>
 type SysUserMessage struct {
 	AllFieldModel
-	Content  string               `gorm:"column:name;type:varchar(255);not null;uniqueIndex:idx__user_msg__name,priority:1;comment:菜单名称" json:"name"`
+	Content  string               `gorm:"column:name;type:varchar(255);not null;comment:菜单名称" json:"name"`
 	Category vobj.UserMessageType `gorm:"column:category;type:tinyint;not null;comment:消息类型" json:"category"`
-	UserID   uint32               `gorm:"column:user_id;type:int unsigned;not null;comment:用户ID" json:"user_id"`
+	UserID   uint32               `gorm:"column:user_id;type:int unsigned;not null;comment:用户ID;index:idx__user_msg__user_id,priority:1;" json:"user_id"`
 	Biz      vobj.BizType         `gorm:"column:biz;type:tinyint;not null;comment:业务类型" json:"biz"`
 	BizID    uint32               `gorm:"column:biz_id;type:int unsigned;not null;comment:业务ID" json:"biz_id"`
 

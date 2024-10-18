@@ -47,3 +47,17 @@ func (s *MessageService) ListMessage(ctx context.Context, req *pb.ListMessageReq
 		Pagination: build.PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
+
+func (s *MessageService) ConfirmMessage(ctx context.Context, req *pb.ConfirmMessageRequest) (*pb.ConfirmMessageReply, error) {
+	if err := s.userMessageBiz.ConfirmUserMessage(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+	return &pb.ConfirmMessageReply{}, nil
+}
+
+func (s *MessageService) CancelMessage(ctx context.Context, req *pb.CancelMessageRequest) (*pb.CancelMessageReply, error) {
+	if err := s.userMessageBiz.CancelUserMessage(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+	return &pb.CancelMessageReply{}, nil
+}

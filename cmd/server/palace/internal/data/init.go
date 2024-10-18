@@ -1296,4 +1296,20 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowUser,
 	},
+	// 确认消息
+	{
+		Name:   "确认消息",
+		Path:   "/api.admin.user.Message/ConfirmMessage",
+		Remark: "确认消息， 用于确认消息",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowUser,
+	},
+	// 取消消息
+	{
+		Name:   "取消消息",
+		Path:   "/api.admin.user.Message/CancelMessage",
+		Remark: "取消消息， 用于取消消息",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowUser,
+	},
 }

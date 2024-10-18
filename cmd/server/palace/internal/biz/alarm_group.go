@@ -31,7 +31,7 @@ type (
 func (s *AlarmGroupBiz) CreateAlarmGroup(ctx context.Context, params *bo.CreateAlarmNoticeGroupParams) (*bizmodel.AlarmNoticeGroup, error) {
 	alarmGroup, err := s.strategyRepo.CreateAlarmGroup(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
 	return alarmGroup, nil
 }
@@ -46,7 +46,7 @@ func (s *AlarmGroupBiz) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateA
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	if err = s.strategyRepo.UpdateAlarmGroup(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return err
 	}
 	return nil
 }

@@ -12,22 +12,24 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
+	"gorm.io/gorm"
 )
 
 // NewInviteRepository 创建邀请仓库
-func NewInviteRepository(data *data.Data) repository.TeamInvite {
+func NewInviteRepository(data *data.Data, cacheRepo repository.Cache) repository.TeamInvite {
 	return &InviteRepositoryImpl{
-		data: data,
+		data:      data,
+		cacheRepo: cacheRepo,
 	}
 }
 
 type (
 	InviteRepositoryImpl struct {
-		data *data.Data
+		data      *data.Data
+		cacheRepo repository.Cache
 	}
 )
 
@@ -73,9 +75,11 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 		RolesIds:   params.TeamRoleIds,
 		Role:       params.Role,
 	}
+	teamInvite.WithContext(ctx)
 	if err = mainQuery.SysTeamInvite.WithContext(ctx).Create(teamInvite); !types.IsNil(err) {
 		return nil, err
 	}
+	i.cacheRepo.SyncUserTeamList(ctx, teamInvite.UserID)
 	return
 }
 

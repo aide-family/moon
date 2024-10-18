@@ -108,7 +108,7 @@ func (i *InviteBiz) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInv
 	return retry.Retry(func() error {
 		return i.userMessageRepo.Create(ctx, &model.SysUserMessage{
 			Content:  fmt.Sprintf("%s %s您的邀请，点击查看", inviter.Username, types.Ternary(params.InviteType.IsJoined(), "已同意", "已拒绝")),
-			Category: vobj.UserMessageTypeInfo,
+			Category: types.Ternary(params.InviteType.IsJoined(), vobj.UserMessageTypeSuccess, vobj.UserMessageTypeError),
 			UserID:   teamInvite.CreatorID,
 			Biz:      types.Ternary(params.InviteType.IsJoined(), vobj.BizTypeInvitationAccepted, vobj.BizTypeInvitationRejected),
 			BizID:    teamInvite.ID,

@@ -31,20 +31,14 @@ type (
 func (s *AlarmHookBiz) CreateAlarmHook(ctx context.Context, params *bo.CreateAlarmHookParams) (*bizmodel.AlarmHook, error) {
 	alarmHook, err := s.alarmHookRepo.CreateAlarmHook(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
 	return alarmHook, nil
 }
 
 // UpdateAlarmHook update alarm hook
 func (s *AlarmHookBiz) UpdateAlarmHook(ctx context.Context, params *bo.UpdateAlarmHookParams) error {
-	if err := s.alarmHookRepo.UpdateAlarmHook(ctx, params); !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nToastAlarmHookNotFound(ctx)
-		}
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
+	return s.alarmHookRepo.UpdateAlarmHook(ctx, params)
 }
 
 // DeleteAlarmHook delete alarm hook

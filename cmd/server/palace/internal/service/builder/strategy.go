@@ -275,11 +275,12 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Annotations:                strategy.Annotations,
 			Interval:                   level.Interval,
 			Datasource:                 NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
-			Status:                     strategy.Status,
-			Step:                       strategy.Step,
-			Condition:                  level.Condition,
-			Threshold:                  level.Threshold,
-			TeamID:                     middleware.GetTeamID(d.ctx),
+			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
+				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
+			Step:      strategy.Step,
+			Condition: level.Condition,
+			Threshold: level.Threshold,
+			TeamID:    middleware.GetTeamID(d.ctx),
 		}
 	})
 }
@@ -338,6 +339,7 @@ func (m *mutationStrategyLevelBuilder) ToBo(request *strategyapi.CreateStrategyL
 	}
 
 	return &bo.CreateStrategyLevel{
+		ID:                 request.GetId(),
 		StrategyTemplateID: m.StrategyID,
 		Duration:           request.GetDuration(),
 		Count:              request.Count,

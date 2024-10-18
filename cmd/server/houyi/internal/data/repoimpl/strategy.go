@@ -103,7 +103,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	if !strategy.Status.IsEnable() {
 		existAlerts := strings.Split(alertsStr, ",")
 		if len(existAlerts) == 0 {
-			return nil, merr.ErrorNotification("暂无告警")
+			return alarmInfo, nil
 		}
 		for _, existAlert := range existAlerts {
 			getResolvedAlert, err := s.getResolvedAlert(ctx, existAlert)
@@ -193,9 +193,11 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	}
 	if len(alertIndexList) > 0 {
 		// 缓存告警指纹， 用于完全消失时候的告警恢复
-		s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(alertIndexList, ","), 0)
+		if err := s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(alertIndexList, ","), 0); err != nil {
+			log.Warnw("method", "storage.put", "error", err)
+		}
 	} else {
-		s.data.GetCacher().Delete(ctx, strategy.Index())
+		//s.data.GetCacher().Delete(ctx, strategy.Index())
 	}
 	alarmInfo.Alerts = alerts
 	return alarmInfo, nil

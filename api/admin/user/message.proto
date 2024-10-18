@@ -15,13 +15,28 @@ service Message {
 	// 删除消息， 用于清除所有通知
 	rpc DeleteMessages (DeleteMessagesRequest) returns (DeleteMessagesReply) {
 		option (google.api.http) = {
-			delete: "/v1/user/messages"
+			post: "/v1/user/messages/read",
+			body: "*"
 		};
 	}
 	// 获取消息列表， 用于获取我的未读消息
 	rpc ListMessage (ListMessageRequest) returns (ListMessageReply) {
 		option (google.api.http) = {
 			post: "/v1/user/messages"
+			body: "*"
+		};
+	}
+	// 确认消息
+	rpc ConfirmMessage (ConfirmMessageRequest) returns (ConfirmMessageReply) {
+		option (google.api.http) = {
+			post: "/v1/user/messages/confirm"
+			body: "*"
+		};
+	}
+	// 取消消息
+	rpc CancelMessage (CancelMessageRequest) returns (CancelMessageReply) {
+		option (google.api.http) = {
+			post: "/v1/user/messages/cancel"
 			body: "*"
 		};
 	}
@@ -41,3 +56,15 @@ message ListMessageReply {
 	repeated NoticeUserMessage list = 1;
 	PaginationReply pagination = 2;
 }
+
+message ConfirmMessageRequest {
+	// 消息ID
+	uint32 id = 1;
+}
+message ConfirmMessageReply {}
+
+message CancelMessageRequest {
+	// 消息ID
+	uint32 id = 1;
+}
+message CancelMessageReply {}

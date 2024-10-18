@@ -65,6 +65,7 @@ type (
 
 	// CreateStrategyLevel 策略模板策略等级
 	CreateStrategyLevel struct {
+		ID uint32 `json:"id"`
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`
 		// 持续时间

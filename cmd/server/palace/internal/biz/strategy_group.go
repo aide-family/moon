@@ -8,9 +8,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
-
-	"github.com/go-kratos/kratos/v2/errors"
-	"gorm.io/gorm"
 )
 
 // NewStrategyGroupBiz 创建策略分组业务
@@ -43,51 +40,33 @@ func (s *StrategyGroupBiz) CreateStrategyGroup(ctx context.Context, params *bo.C
 	// 查询策略分组是否已经存在
 	strategyGroup, err := s.strategyRepo.CreateStrategyGroup(ctx, params)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
 	return strategyGroup, nil
 }
 
 // UpdateStrategyGroup 更新策略分组
 func (s *StrategyGroupBiz) UpdateStrategyGroup(ctx context.Context, params *bo.UpdateStrategyGroupParams) error {
-	if err := s.strategyRepo.UpdateStrategyGroup(ctx, params); !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nToastStrategyGroupNotFound(ctx)
-		}
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
+	return s.strategyRepo.UpdateStrategyGroup(ctx, params)
 }
 
 // GetStrategyGroupDetail 获取策略分组详情
 func (s *StrategyGroupBiz) GetStrategyGroupDetail(ctx context.Context, groupID uint32) (*bizmodel.StrategyGroup, error) {
 	strategyGroup, err := s.strategyRepo.GetStrategyGroup(ctx, groupID)
 	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nToastStrategyGroupNotFound(ctx)
-		}
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
 	return strategyGroup, nil
 }
 
 // DeleteStrategyGroup 删除策略分组
 func (s *StrategyGroupBiz) DeleteStrategyGroup(ctx context.Context, params *bo.DelStrategyGroupParams) error {
-	if err := s.strategyRepo.DeleteStrategyGroup(ctx, params); !types.IsNil(err) {
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
+	return s.strategyRepo.DeleteStrategyGroup(ctx, params)
 }
 
 // UpdateStatus 更新策略分组状态
 func (s *StrategyGroupBiz) UpdateStatus(ctx context.Context, params *bo.UpdateStrategyGroupStatusParams) error {
-	if err := s.strategyRepo.UpdateStatus(ctx, params); !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nToastStrategyGroupNotFound(ctx)
-		}
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
+	return s.strategyRepo.UpdateStatus(ctx, params)
 }
 
 // ListPage 分页查询策略分组

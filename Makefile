@@ -78,6 +78,15 @@ error:
  	       --go_out=paths=source_relative:./pkg \
 		   --go-errors_out=paths=source_relative:./pkg $(ERROR_PROTO_FILES)
 
+.PHONY: error
+# generate api proto
+errorx:
+	protoc --proto_path=./third_party \
+		   --proto_path=./pkg \
+ 	       --go_out=paths=source_relative:./pkg \
+		   --go-errors_out=paths=source_relative:./pkg $(ERROR_PROTO_FILES)
+
+
 .PHONY: build
 # build
 build: all

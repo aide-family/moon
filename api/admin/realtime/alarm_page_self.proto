@@ -31,7 +31,8 @@ service AlarmPageSelf {
 message UpdateAlarmPageRequest {
 	// 告警页面ID
 	repeated uint32 alarmPageIds = 1 [(buf.validate.field).cel = {
-		expression: "this > 0 && this.size() <= 10"
+		expression: "this.size() <= 10"
+		message: "告警页面最多选择10项"
 	}];
 }
 message UpdateAlarmPageReply {}

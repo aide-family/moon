@@ -6,9 +6,12 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 
 	"gorm.io/gen"
 )
@@ -26,17 +29,37 @@ type (
 	}
 )
 
+// 校验hook名称是否重复
+func (a *alarmHookRepositoryImpl) checkAlarmHookNameExist(ctx context.Context, name string, id uint32) error {
+	bizQuery, err := getBizQuery(ctx, a.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	hookDo, err := bizQuery.AlarmHook.WithContext(ctx).Where(bizQuery.AlarmHook.Name.Eq(name)).First()
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if (id > 0 && hookDo.ID != id) || id == 0 {
+		return merr.ErrorI18nAlertHookNameDuplicate(ctx)
+	}
+
+	return nil
+}
+
 func (a *alarmHookRepositoryImpl) CreateAlarmHook(ctx context.Context, params *bo.CreateAlarmHookParams) (*bizmodel.AlarmHook, error) {
+	if err := a.checkAlarmHookNameExist(ctx, params.Name, 0); !types.IsNil(err) {
+		return nil, err
+	}
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	hookModel := createAlarmHookParamsToModel(ctx, params)
-
-	err = bizQuery.AlarmHook.WithContext(ctx).Create(hookModel)
-
-	if !types.IsNil(err) {
+	if err = bizQuery.AlarmHook.WithContext(ctx).Create(hookModel); !types.IsNil(err) {
 		return nil, err
 	}
 
@@ -44,8 +67,23 @@ func (a *alarmHookRepositoryImpl) CreateAlarmHook(ctx context.Context, params *b
 }
 
 func (a *alarmHookRepositoryImpl) UpdateAlarmHook(ctx context.Context, params *bo.UpdateAlarmHookParams) error {
+	if params.UpdateParam == nil {
+		panic("UpdateAlarmHook method params UpdateParam field is nil")
+	}
+	if err := a.checkAlarmHookNameExist(ctx, params.UpdateParam.Name, params.ID); !types.IsNil(err) {
+		return err
+	}
+
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {
+		return err
+	}
+
+	_, err = bizQuery.AlarmHook.WithContext(ctx).Where(bizQuery.AlarmHook.ID.Eq(params.ID)).First()
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return merr.ErrorI18nToastAlarmHookNotFound(ctx)
+		}
 		return err
 	}
 

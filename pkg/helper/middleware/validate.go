@@ -78,12 +78,12 @@ func ValidateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			msg := v.GetMessage()
 			id := v.GetConstraintId()
 			if !types.TextIsNull(id) {
-				_msg := merr.GetI18nMessage(ctx, id)
+				_msg := merr.GetI18nMessage(ctx, id, msg)
 				if !types.TextIsNull(_msg) {
 					msg = _msg
 				}
 			}
-			errMap[field] = getMsg(msg)
+			errMap[field] += getMsg(msg) + "; "
 		}
 
 		return merr.ErrorI18nAlert(ctx).WithMetadata(errMap)

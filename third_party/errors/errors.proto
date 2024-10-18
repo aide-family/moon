@@ -16,6 +16,7 @@ extend google.protobuf.EnumOptions {
 message Metadata {
   string key = 1;
   string value = 2;
+  string defaultValue = 3;
 }
 
 message BizReason {

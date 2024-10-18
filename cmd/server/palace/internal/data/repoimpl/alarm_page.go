@@ -5,9 +5,12 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+
 	"gorm.io/gen/field"
 )
 
@@ -40,10 +43,14 @@ func (a *alarmPageRepositoryImpl) ReplaceAlarmPages(ctx context.Context, userID 
 	}
 	alarmPageList, err := bizQuery.SysDict.WithContext(ctx).
 		Where(bizQuery.SysDict.ID.In(alarmPageIDs...)).
+		Where(bizQuery.SysDict.DictType.Eq(vobj.DictTypeAlarmPage.GetValue())).
 		Preload(field.Associations).
 		Find()
 	if err != nil {
 		return err
+	}
+	if len(alarmPageList) != len(alarmPageIDs) {
+		return merr.ErrorI18nAlertSelectAlertPageErr(ctx)
 	}
 	oldAlarmPageSelfList, err := bizQuery.AlarmPageSelf.WithContext(ctx).
 		Where(bizQuery.AlarmPageSelf.UserID.Eq(userID)).

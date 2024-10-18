@@ -42,23 +42,16 @@ func (b *StrategyBiz) GetStrategy(ctx context.Context, strategyID uint32) (*bizm
 
 // CreateStrategy 创建策略
 func (b *StrategyBiz) CreateStrategy(ctx context.Context, param *bo.CreateStrategyParams) (*bizmodel.Strategy, error) {
-	_, err := b.strategyRepo.CreateStrategy(ctx, param)
+	strategyDo, err := b.strategyRepo.CreateStrategy(ctx, param)
 	if !types.IsNil(err) {
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
-	return nil, nil
+	return strategyDo, nil
 }
 
 // UpdateByID 更新策略
 func (b *StrategyBiz) UpdateByID(ctx context.Context, param *bo.UpdateStrategyParams) error {
-	err := b.strategyRepo.UpdateByID(ctx, param)
-	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nToastStrategyNotFound(ctx)
-		}
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
+	return b.strategyRepo.UpdateByID(ctx, param)
 }
 
 // UpdateStatus 更新策略状态

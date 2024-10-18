@@ -1,107 +1,271 @@
-[required]
-description = "required"
-one = "参数必须填写"
-other = "参数必须填写"
-
-[CaptchaReq_theme_type]
-description = "CaptchaReq_theme_type"
-one = "必须为light或者dark"
-other = "必须为light或者dark"
-
-[CAPTCHA_INVALID_ERR]
-other = "验证码无效"
-
-[ADMIN_USER_DELETE_ERR]
-description = "ADMIN_USER_DELETE_ERR"
-hash = "sha1-cd7c3e7dfc2570995ee0127db7479000369366ca"
-other = "管理员不能删除"
-
-[DATASOURCE_NOT_FOUND_ERR]
-description = "DATASOURCE_NOT_FOUND_ERR"
-hash = "sha1-cd60a85466499c1a12827aad6be51d544057d429"
-other = "数据源不存在"
-
-[DELETE_SELF_ERR]
-description = "DELETE_SELF_ERR"
-hash = "sha1-d8ce9125336770b6ce68ca574f246bd2acd3f317"
-other = "不能删除自己"
-
-[LOCK_FAILED_ERR]
-description = "LOCK_FAILED_ERR"
-hash = "sha1-58f41206f91afa321fc654e42584ad4404bbc37c"
-other = "获取锁失败"
-
-[NO_PERMISSION_ERR]
-description = "NO_PERMISSION_ERR"
-hash = "sha1-68a5a00d8ba7ff4ebc3814f238af4ad26eb7a394"
-other = "您没有权限操作"
-
-[PARAMS_ERR]
-description = "PARAMS_ERR"
-hash = "sha1-3f3f29981a1b1cc68e7122918745957dd85b7cb8"
+[ALERT]
+one = "参数错误"
 other = "参数错误"
 
-[PASSWORD_ERR]
-description = "PASSWORD_ERR"
-hash = "sha1-0bafedfcb872e9d21228c5d41ec458862e373575"
+[ALERT__ALERT_GROUP_NAME_DUPLICATE]
+one = "告警组名称重复"
+other = "告警组名称重复"
+
+[ALERT__ALERT_GROUP_NOT_FOUND]
+one = "告警组不存在"
+other = "告警组不存在"
+
+[ALERT__ALERT_LEVEL_DUPLICATE]
+one = "策略告警等级重复"
+other = "策略告警等级重复"
+
+[ALERT__ALERT_LEVEL_NOT_FOUND]
+one = "告警等级不存在"
+other = "告警等级不存在"
+
+[ALERT__ALERT_OBJECT_DUPLICATE]
+one = "告警对象重复"
+other = "告警对象重复"
+
+[ALERT__ALERT_PAGE_NOT_FOUND]
+one = "告警页面不存在"
+other = "告警页面不存在"
+
+[ALERT__CAPTCHA_ERR]
+one = "验证码错误"
+other = "验证码错误"
+
+[ALERT__CAPTCHA_EXPIRE]
+one = "验证码已过期"
+other = "验证码已过期"
+
+[ALERT__DATASOURCE_NOT_FOUND]
+one = "数据源不存在"
+other = "数据源不存在"
+
+[ALERT__EMAIL_CAPTCHA_ERR]
+one = "邮箱验证码错误"
+other = "邮箱验证码错误"
+
+[ALERT__HOOK_NAME_DUPLICATE]
+one = "hook名称重复"
+other = "hook名称重复"
+
+[ALERT__PASSWORD_ERR]
+one = "密码错误"
 other = "密码错误"
 
-[PASSWORD_SAME_ERR]
-description = "PASSWORD_SAME_ERR"
-hash = "sha1-55b9bee26161308592d521e4b9b5da61c3797855"
+[ALERT__PASSWORD_SAME_ERR]
+one = "新旧密码不能相同"
 other = "新旧密码不能相同"
 
-[RESOURCE_NOT_FOUND_ERR]
-description = "RESOURCE_NOT_FOUND_ERR"
-hash = "sha1-d7654b42a8f3897c42fede34d41f23dc34c23699"
-other = "资源不存在"
+[ALERT__SELECT_ALERT_PAGE_ERR]
+one = "选择告警页面错误，请重新选择"
+other = "选择告警页面错误，请重新选择"
 
-[RETRY_LATER_ERR]
-description = "RETRY_LATER_ERR"
-hash = "sha1-fadfe95640bd23da6850a244cc4894b4bd845d4f"
-other = "请稍后重试"
+[ALERT__STRATEGY_GROUP_NAME_DUPLICATE]
+one = "策略组名称重复"
+other = "策略组名称重复"
 
-[SYSTEM_ERR]
-description = "SYSTEM_ERR"
-hash = "sha1-0825ac86e4d72a3bdaa52c986293706c252c7c05"
-other = "系统错误"
+[ALERT__STRATEGY_GROUP_NOT_ENABLE]
+one = "策略组[%s]未启用, 不允许开启策略[%s]"
+other = "策略组[%s]未启用, 不允许开启策略[%s]"
 
-[TEAM_LEADER_ERR]
-description = "TEAM_LEADER_ERR"
-hash = "sha1-4fa535315fb50e7bb7b1dbee6a03bf43b8d83217"
-other = "团队负责人不能删除"
+[ALERT__STRATEGY_GROUP_NOT_FOUND]
+one = "策略组不存在"
+other = "策略组不存在"
 
-[TEAM_LEADER_REPEAT_ERR]
-description = "TEAM_LEADER_REPEAT_ERR"
-hash = "sha1-c396dd192b2e6f23db52b8f10d8160617c19e1ee"
-other = "你已经是团队负责人了"
+[ALERT__STRATEGY_GROUP_TYPE_NOT_EXIST]
+one = "策略组类型不存在"
+other = "策略组类型不存在"
 
-[TEAM_NAME_EXIST_ERR]
-description = "TEAM_NAME_EXIST_ERR"
-hash = "sha1-8afda7eb7b0dfc99c4e336bd5dd4a788902cbbc9"
+[ALERT__STRATEGY_NAME_DUPLICATE]
+one = "策略名称重复"
+other = "策略名称重复"
+
+[ALERT__STRATEGY_TEMPLATE_NOT_FOUND]
+one = "策略模板不存在"
+other = "策略模板不存在"
+
+[ALERT__STRATEGY_TYPE_NOT_EXIST]
+one = "策略类型不存在"
+other = "策略类型不存在"
+
+[ALERT__TEAM_NAME_EXIST_ERR]
+one = "团队名称已存在"
 other = "团队名称已存在"
 
-[TEAM_NOT_FOUND_ERR]
-description = "TEAM_NOT_FOUND_ERR"
-hash = "sha1-6586ed3c4edc70c8191593874accc482f63cbcf4"
+[FORBIDDEN]
+one = "您没有操作权限, 请联系管理员开通该权限"
+other = "您没有操作权限, 请联系管理员开通该权限"
+
+[FORBIDDEN__MEMBER_DISABLED]
+one = "您已被该团队禁用操作，请联系管理员"
+other = "您已被该团队禁用操作，请联系管理员"
+
+[FORBIDDEN__USER_NOT_IN_TEAM]
+one = "您已不属于该团队"
+other = "您已不属于该团队"
+
+[MODAL]
+one = "请确认"
+other = "请确认"
+
+[MODAL__CONFIRM_DELETE]
+one = "确认删除"
+other = "确认删除"
+
+[MODAL__CONFIRM_UPDATE]
+one = "确认修改"
+other = "确认修改"
+
+[NOTIFICATION]
+one = "服务器可能遇到了意外，非常抱歉！"
+other = "服务器可能遇到了意外，非常抱歉！"
+
+[NOTIFICATION__SYSTEM_ERROR]
+one = "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......"
+other = "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......"
+
+[NOTIFICATION__UNSUPPORTED_DATA_SOURCE]
+one = "不支持的数据源类型"
+other = "不支持的数据源类型"
+
+[TOAST]
+one = "资源不存在"
+other = "资源不存在"
+
+[TOAST__ALARM_HOOK_NOT_FOUND]
+one = "告警hook不存在"
+other = "告警hook不存在"
+
+[TOAST__ALERT_GROUP_NOT_FOUND]
+one = "告警组不存在"
+other = "告警组不存在"
+
+[TOAST__API_NOT_FOUND]
+one = "API不存在"
+other = "API不存在"
+
+[TOAST__DASHBOARD_NOT_FOUND]
+one = "图表大盘不存在"
+other = "图表大盘不存在"
+
+[TOAST__DATASOURCE_SYNCING]
+one = "数据源同步中"
+other = "数据源同步中"
+
+[TOAST__DATA_SOURCE_NOT_FOUND]
+one = "数据源不存在"
+other = "数据源不存在"
+
+[TOAST__DICT_NOT_FOUND]
+one = "字典不存在"
+other = "字典不存在"
+
+[TOAST__MENU_NOT_FOUND]
+one = "菜单不存在"
+other = "菜单不存在"
+
+[TOAST__METRIC_NOT_FOUND]
+one = "指标不存在"
+other = "指标不存在"
+
+[TOAST__REALTIME_ALARM_NOT_FOUND]
+one = "实时告警不存在"
+other = "实时告警不存在"
+
+[TOAST__RESOURCE_EXIST]
+one = "资源已存在"
+other = "资源已存在"
+
+[TOAST__RESOURCE_NOT_FOUND]
+one = "资源不存在"
+other = "资源不存在"
+
+[TOAST__ROLE_HAS_RELATION]
+one = "角色存在关联关系"
+other = "角色存在关联关系"
+
+[TOAST__ROLE_NOT_FOUND]
+one = "角色不存在"
+other = "角色不存在"
+
+[TOAST__STRATEGY_GROUP_NOT_FOUND]
+one = "策略组不存在"
+other = "策略组不存在"
+
+[TOAST__STRATEGY_NOT_FOUND]
+one = "告警策略不存在"
+other = "告警策略不存在"
+
+[TOAST__TEAM_INVITE_ALREADY_EXISTS]
+one = "%s,邀请记录已存在,或者已经加入团队!"
+other = "%s,邀请记录已存在,或者已经加入团队!"
+
+[TOAST__TEAM_INVITE_NOT_FOUND]
+one = "邀请记录不存在"
+other = "邀请记录不存在"
+
+[TOAST__TEAM_MEMBER_NOT_FOUND]
+one = "团队成员不存在"
+other = "团队成员不存在"
+
+[TOAST__TEAM_NOT_FOUND]
+one = "团队不存在"
 other = "团队不存在"
 
-[TEAM_ROLE_NOT_FOUND_ERR]
-description = "TEAM_ROLE_NOT_FOUND_ERR"
-hash = "sha1-30677d714171b89b2a94f90d0d00ecfb8f3f9e6b"
-other = "团队角色不存在"
+[TOAST__TEMPLATE_STRATEGY_NOT_FOUND]
+one = "策略模板不存在"
+other = "策略模板不存在"
 
-[UN_LOGIN_ERR]
-description = "UN_LOGIN_ERR"
-hash = "sha1-92b4e4d4b119b06c2e7ec0dd2034e4473f07377a"
-other = "请先登录"
+[TOAST__USERNAME_EXIST]
+one = "用户名已存在"
+other = "用户名已存在"
 
-[USER_NOT_FOUND_ERR]
-description = "USER_NOT_FOUND_ERR"
-hash = "sha1-94b4f0f23d5bc8ea992cae167a0abb56574daf91"
+[TOAST__USER_NOT_ALLOW_OPERATE_ADMIN]
+one = "不允许操作自己的管理员身份"
+other = "不允许操作自己的管理员身份"
+
+[TOAST__USER_NOT_ALLOW_REMOVE_ADMIN]
+one = "不允许移除团队管理员"
+other = "不允许移除团队管理员"
+
+[TOAST__USER_NOT_ALLOW_REMOVE_SELF]
+one = "不允许移除自己"
+other = "不允许移除自己"
+
+[TOAST__USER_NOT_EXIST]
+one = "用户不存在"
 other = "用户不存在"
 
-[DATASOURCE_SYNCING]
-description = "DATASOURCE_SYNCING"
-one = "数据源同步中，请稍后重试"
-other = "数据源同步中，请稍后重试"
+[TOAST__USER_NOT_FOUND]
+one = "用户不存在"
+other = "用户不存在"
+
+[TOAST__USER_NOT_SUBSCRIBE]
+one = "用户未订阅此策略"
+other = "用户未订阅此策略"
+
+[TOO_MANY_REQUESTS]
+one = "请求太频繁，请稍后再试"
+other = "请求太频繁，请稍后再试"
+
+[UNAUTHORIZED]
+one = "请先登录"
+other = "请先登录"
+
+[UNAUTHORIZED__JWT_BAN]
+one = "认证信息已登出，请重新登录"
+other = "认证信息已登出，请重新登录"
+
+[UNAUTHORIZED__JWT_EXPIRE]
+one = "登录已过期"
+other = "登录已过期"
+
+[UNAUTHORIZED__JWT_OTHER_LOGIN]
+one = "账号已在其他地方登录"
+other = "账号已在其他地方登录"
+
+[UNAUTHORIZED__USER_BAN]
+one = "您已被禁止使用该系统，请联系官方解除"
+other = "您已被禁止使用该系统，请联系官方解除"
+
+[UNAUTHORIZED__USER_NOT_FOUND]
+one = "账号不存在"
+other = "账号不存在"

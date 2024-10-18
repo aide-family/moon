@@ -131,7 +131,7 @@ message CreateStrategyGroupRequest {
     message: "请选择策略分组类型",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "策略组类型重复",
     expression: "this.unique()"
   }];
 }
@@ -201,10 +201,10 @@ message CreateStrategyRequest {
   }];
   // 数据源id
   repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
-    message: "请选择数据源",
+    message: "请选择至少一个数据源",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "数据源重复",
     expression: "this.unique()"
   }];
   // 模板来源
@@ -224,9 +224,15 @@ message CreateStrategyRequest {
   map<string, string> labels = 10;
   // 策略注解
   map<string, string> annotations = 11 [(buf.validate.field).cel = {
-    expression: "uint(this.size()) >= 1 && uint(this.size()) <= 5"
-    message: "注解数量必须大于0且小于等于5"
+    expression: "uint(this.size()) >= 2 && uint(this.size()) <= 5"
+    message: "注解数量必须大于等于2且小于等于5",
     id: "CreateStrategyRequestAnnotations"
+  }, (buf.validate.field).cel = {
+    message: "注解必须包含summary"
+    expression: "has(this.summary)"
+  }, (buf.validate.field).cel = {
+    message: "注解必须包含description"
+    expression: "has(this.description)"
   }];
   // 策略表达式
   string expr = 12 [(buf.validate.field).cel = {
@@ -236,12 +242,12 @@ message CreateStrategyRequest {
   }];
   //策略类型
   repeated uint32 categoriesIds = 13 [(buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "策略类型重复",
     expression: "this.unique()"
   }];
   // 告警组
   repeated uint32 alarmGroupIds = 14 [(buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "告警组重复",
     expression: "this.unique()"
   }];
 }
@@ -335,15 +341,17 @@ message CreateStrategyLevelRequest{
     message: "请选择告警页面",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "告警页面重复",
     expression: "this.unique()"
   }];
   repeated uint32 alarmGroupIds = 10 [(buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "告警组重复",
     expression: "this.unique()"
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 15;
+  // ID
+  uint32 id = 16;
 }
 
 message CopyStrategyRequest {
@@ -368,7 +376,7 @@ message CreateStrategyLabelNoticeRequest {
     message: "请选择告警组",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+    message: "告警组重复",
     expression: "this.unique()"
   }];
 }

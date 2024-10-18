@@ -39,15 +39,27 @@ enum ErrorReason {
     (errors.code) = 400,
     (errors.message) = "参数错误",
     (errors.id) = "ALERT",
+    /** 定义proto里面的各种错误ID */
+    (errors.biz_reason) = {
+      reason: "CreateAlarmGroupRequest_Name_Len"
+      message: "用户名错误",
+      metadata: {key: "name", value: "ALERT__CreateAlarmGroupRequest_Name_Len", defaultValue: "告警组名称长度限制在1-20个字符"}
+    },
+    (errors.biz_reason) = {
+      reason: "CreateAlarmGroupRequest_Remark_Len"
+      message: "告警组说明长度限制在0-200个字符",
+      metadata: {key: "id", value: "ALERT__CreateAlarmGroupRequest_Remark_Len", defaultValue: "告警组说明长度限制在0-200个字符"}
+    },
+    /** ---- */
     (errors.biz_reason) = {
       reason: "PASSWORD_ERR"
       message: "密码错误",
-      metadata: {key: "password", value: "PASSWORD_ERR"}
+      metadata: {key: "password", value: "PASSWORD_ERR", defaultValue: "密码错误"}
     },
     (errors.biz_reason) = {
       reason: "PASSWORD_SAME_ERR"
       message: "新旧密码不能相同",
-      metadata: {key: "newPassword", value: "PASSWORD_SAME_ERR"}
+      metadata: {key: "newPassword", value: "PASSWORD_SAME_ERR", defaultValue: "新旧密码不能相同"}
     },
     (errors.biz_reason) = {
       reason: "TEAM_NAME_EXIST_ERR"
@@ -58,37 +70,108 @@ enum ErrorReason {
       // 验证码错误
       reason: "CAPTCHA_ERR"
       message: "验证码错误",
-      metadata: {key: "code", value: "CAPTCHA_ERR"}
+      metadata: {key: "code", value: "CAPTCHA_ERR", defaultValue: "验证码错误"}
     },
     (errors.biz_reason) = {
       // 验证码过期
       reason: "CAPTCHA_EXPIRE"
       message: "验证码已过期",
-      metadata: {key: "code", value: "CAPTCHA_EXPIRE"}
+      metadata: {key: "code", value: "CAPTCHA_EXPIRE", defaultValue: "验证码已过期"}
     },
     // 策略组未启用
     (errors.biz_reason) = {
       reason: "STRATEGY_GROUP_NOT_ENABLE"
       message: "策略组[%s]未启用, 不允许开启策略[%s]",
-      metadata: {key: "strategyGroup", value: "STRATEGY_GROUP_NOT_ENABLE"}
+      metadata: {key: "strategyGroup", value: "STRATEGY_GROUP_NOT_ENABLE", defaultValue: "策略组未启用,不允许开启策略"}
     },
     // 告警对象重复
     (errors.biz_reason) = {
       reason: "ALERT_OBJECT_DUPLICATE"
       message: "告警对象重复",
-      metadata: {key: "alertObject", value: "ALERT_OBJECT_DUPLICATE"}
+      metadata: {key: "alertObject", value: "ALERT_OBJECT_DUPLICATE", defaultValue: "告警对象重复"}
     },
     // 策略告警等级重复
     (errors.biz_reason) = {
       reason: "ALERT_LEVEL_DUPLICATE"
       message: "策略告警等级重复",
-      metadata: {key: "alertLevel", value: "ALERT_LEVEL_DUPLICATE"}
+      metadata: {key: "alertLevel", value: "ALERT_LEVEL_DUPLICATE", defaultValue: "策略告警等级重复"}
     },
     // 邮箱验证码错误
     (errors.biz_reason) = {
       reason: "EMAIL_CAPTCHA_ERR"
       message: "邮箱验证码错误",
       metadata: {key: "code", value: "EMAIL_CAPTCHA_ERR"}
+    },
+    // 选择告警页面错误，请重新选择
+    (errors.biz_reason) = {
+      reason: "SELECT_ALERT_PAGE_ERR"
+      message: "选择告警页面错误，请重新选择",
+    },
+    // hook名称重复
+    (errors.biz_reason) = {
+      reason: "HOOK_NAME_DUPLICATE"
+      message: "hook名称重复",
+      metadata: {key: "name", value: "HOOK_NAME_DUPLICATE", defaultValue: "hook名称重复"}
+    },
+    // 告警组名称重复
+    (errors.biz_reason) = {
+      reason: "ALERT_GROUP_NAME_DUPLICATE"
+      message: "告警组名称重复",
+      metadata: {key: "name", value: "ALERT_GROUP_NAME_DUPLICATE"}
+    },
+    // 策略组名称重复
+    (errors.biz_reason) = {
+      reason: "STRATEGY_GROUP_NAME_DUPLICATE"
+      message: "策略组名称重复",
+      metadata: {key: "name", value: "STRATEGY_GROUP_NAME_DUPLICATE"}
+    },
+    // 策略名称重复
+    (errors.biz_reason) = {
+      reason: "STRATEGY_NAME_DUPLICATE"
+      message: "策略名称重复",
+      metadata: {key: "name", value: "STRATEGY_NAME_DUPLICATE"}
+    },
+    // 策略组类型不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_GROUP_TYPE_NOT_EXIST"
+      message: "策略组类型不存在",
+      metadata: {key: "type", value: "STRATEGY_GROUP_TYPE_NOT_EXIST"}
+    },
+    // 策略类型不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_TYPE_NOT_EXIST"
+      message: "策略类型不存在",
+      metadata: {key: "type", value: "STRATEGY_TYPE_NOT_EXIST"}
+    },
+    // 告警组不存在
+    (errors.biz_reason) = {
+      reason: "ALERT_GROUP_NOT_FOUND"
+      message: "告警组不存在",
+    },
+    // 策略组不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_GROUP_NOT_FOUND"
+      message: "策略组不存在",
+    },
+    // 数据源不存在
+    (errors.biz_reason) = {
+      reason: "DATASOURCE_NOT_FOUND"
+      message: "数据源不存在",
+    },
+    // 告警页面不存在
+    (errors.biz_reason) = {
+      reason: "ALERT_PAGE_NOT_FOUND"
+      message: "告警页面不存在",
+    },
+    // 告警等级不存在
+    (errors.biz_reason) = {
+      reason: "ALERT_LEVEL_NOT_FOUND"
+      message: "告警等级不存在",
+    },
+    // 策略模板不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_TEMPLATE_NOT_FOUND"
+      message: "策略模板不存在",
     }
   ];
 
@@ -258,6 +341,16 @@ enum ErrorReason {
     (errors.biz_reason) = {
       reason: "ROLE_HAS_RELATION"
       message: "角色存在关联关系",
+    },
+    // 团队成员不存在
+    (errors.biz_reason) = {
+      reason: "TEAM_MEMBER_NOT_FOUND"
+      message: "团队成员不存在",
+    },
+    // 用户消息不存在
+    (errors.biz_reason) = {
+      reason: "USER_MESSAGE_NOT_FOUND"
+      message: "消息不存在",
     }
   ];
 

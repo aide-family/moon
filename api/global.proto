@@ -20,6 +20,11 @@ message PaginationReq {
     expression: "this > 0 && this < 1000",
     message: "分页每页数量必须大于0且小于1000"
   }];
+
+  option (buf.validate.message).cel = {
+    message: "最大翻页不能超过30000000",
+    expression: "(this.pageNum * this.pageSize) < 30000000"
+  };
 }
 
 // 分页返回

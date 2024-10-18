@@ -209,9 +209,8 @@ func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeMember) *adminapi.
 	if types.IsNil(user) {
 		return nil
 	}
-
 	return &adminapi.NoticeItem{
-		User:       nil, // TODO impl
+		Member:     NewParamsBuild().WithContext(d.ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(user.GetMember()),
 		NotifyType: api.NotifyType(user.AlarmNoticeType),
 	}
 }
@@ -220,7 +219,6 @@ func (d *doNoticeUserBuilder) ToAPIs(users []*bizmodel.AlarmNoticeMember) []*adm
 	if types.IsNil(users) {
 		return nil
 	}
-
 	return types.SliceTo(users, func(user *bizmodel.AlarmNoticeMember) *adminapi.NoticeItem {
 		return d.ToAPI(user)
 	})

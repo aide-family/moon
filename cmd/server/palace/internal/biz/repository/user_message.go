@@ -15,4 +15,6 @@ type UserMessage interface {
 	DeleteAll(context.Context) error
 
 	List(context.Context, *bo.QueryUserMessageListParams) ([]*model.SysUserMessage, error)
+
+	GetById(context.Context, uint32) (*model.SysUserMessage, error)
 }

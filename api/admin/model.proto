@@ -597,7 +597,7 @@ message AlarmNoticeGroupItem {
 // 通知人
 message NoticeItem {
   // 用户明细
-  UserItem user = 1;
+  TeamMemberItem member = 1;
   // 通知类型
   NotifyType notifyType = 2;
 }

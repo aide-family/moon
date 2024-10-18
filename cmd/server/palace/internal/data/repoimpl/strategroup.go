@@ -7,13 +7,18 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 )
 
 // NewStrategyGroupRepository 创建策略分组仓库
@@ -94,7 +99,52 @@ func (s *strategyCountRepositoryImpl) FindStrategyCount(ctx context.Context, par
 	return totals, nil
 }
 
+// 检查策略组名称是否存在
+func (s *strategyGroupRepositoryImpl) checkStrategyGroupName(ctx context.Context, name string, id uint32) error {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	strategyGroupDo, err := bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.Name.Eq(name)).First()
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if (id > 0 && strategyGroupDo.ID != id) || id == 0 {
+		return merr.ErrorI18nAlertStrategyGroupNameDuplicate(ctx)
+	}
+	return nil
+}
+
+// 检查策略类型是否存在
+func (s *strategyGroupRepositoryImpl) checkStrategyGroupCategories(ctx context.Context, categoriesIds []uint32) error {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return err
+	}
+
+	count, err := bizQuery.SysDict.WithContext(ctx).
+		Where(bizQuery.SysDict.Status.Eq(vobj.StatusEnable.GetValue())).
+		Where(bizQuery.SysDict.DictType.Eq(vobj.DictTypeStrategyGroupCategory.GetValue())).
+		Where(bizQuery.SysDict.ID.In(categoriesIds...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(count) != len(categoriesIds) {
+		return merr.ErrorI18nAlertStrategyGroupTypeNotExist(ctx)
+	}
+	return nil
+}
+
 func (s *strategyGroupRepositoryImpl) CreateStrategyGroup(ctx context.Context, params *bo.CreateStrategyGroupParams) (*bizmodel.StrategyGroup, error) {
+	if err := s.checkStrategyGroupName(ctx, params.Name, 0); !types.IsNil(err) {
+		return nil, err
+	}
+	if err := s.checkStrategyGroupCategories(ctx, params.CategoriesIds); !types.IsNil(err) {
+		return nil, err
+	}
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return nil, err
@@ -111,10 +161,23 @@ func (s *strategyGroupRepositoryImpl) CreateStrategyGroup(ctx context.Context, p
 }
 
 func (s *strategyGroupRepositoryImpl) UpdateStrategyGroup(ctx context.Context, params *bo.UpdateStrategyGroupParams) error {
+	if params.UpdateParam == nil {
+		panic("UpdateStrategyGroup method params UpdateParam field is nil")
+	}
+	if _, err := s.GetStrategyGroup(ctx, params.ID); !types.IsNil(err) {
+		return err
+	}
+	if err := s.checkStrategyGroupName(ctx, params.UpdateParam.Name, params.ID); !types.IsNil(err) {
+		return err
+	}
+	if err := s.checkStrategyGroupCategories(ctx, params.UpdateParam.CategoriesIds); !types.IsNil(err) {
+		return err
+	}
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
 		return err
 	}
+	defer s.syncStrategiesByGroupIds(ctx, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if !types.IsNil(params.UpdateParam.CategoriesIds) {
 			// 更新类型
@@ -138,7 +201,6 @@ func (s *strategyGroupRepositoryImpl) UpdateStrategyGroup(ctx context.Context, p
 		); !types.IsNil(err) {
 			return err
 		}
-		s.syncStrategiesByGroupIds(ctx, params.ID)
 		return nil
 	})
 }
@@ -149,16 +211,16 @@ func (s *strategyGroupRepositoryImpl) DeleteStrategyGroup(ctx context.Context, p
 		return err
 	}
 	groupModel := &bizmodel.StrategyGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+	defer s.syncStrategiesByGroupIds(ctx, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 清除策略类型中间表信息
 		if err := tx.StrategyGroup.Categories.Model(groupModel).Clear(); err != nil {
 			return err
 		}
 
-		if _, err = tx.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
+		if _, err = tx.StrategyGroup.WithContext(ctx).Where(tx.StrategyGroup.ID.Eq(params.ID)).Delete(); !types.IsNil(err) {
 			return err
 		}
-		s.syncStrategiesByGroupIds(ctx, params.ID)
 		return nil
 	})
 }
@@ -168,7 +230,14 @@ func (s *strategyGroupRepositoryImpl) GetStrategyGroup(ctx context.Context, grou
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(groupID)).Preload(field.Associations).First()
+	strategyGroupDo, err := bizQuery.StrategyGroup.WithContext(ctx).Where(bizQuery.StrategyGroup.ID.Eq(groupID)).Preload(field.Associations).First()
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorI18nToastStrategyGroupNotFound(ctx)
+		}
+		return nil, err
+	}
+	return strategyGroupDo, err
 }
 
 func (s *strategyGroupRepositoryImpl) StrategyGroupPage(ctx context.Context, params *bo.QueryStrategyGroupListParams) ([]*bizmodel.StrategyGroup, error) {

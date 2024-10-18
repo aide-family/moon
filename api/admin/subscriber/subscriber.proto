@@ -49,7 +49,13 @@ message SubscriberStrategyRequest {
   // 订阅策略Id
   uint32 strategyId = 1 [(buf.validate.field).required = true];
   // 通知类型
-  NotifyType notifyType = 2;
+  uint32 notifyType = 2 [(buf.validate.field).cel = {
+    message: "通知方式最多只能选择(邮件)、(短信)、(电话)",
+    expression: "this <= 7"
+  }, (buf.validate.field).cel = {
+    message: "至少选择一种通知方式",
+    expression: "this > 0"
+  }];
 }
 message SubscriberStrategyReply {}
 

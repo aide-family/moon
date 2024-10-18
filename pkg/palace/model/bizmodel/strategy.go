@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"gorm.io/plugin/soft_delete"
 )
 
 const tableNameStrategy = "strategies"
@@ -12,11 +13,12 @@ const tableNameStrategy = "strategies"
 type Strategy struct {
 	model.AllFieldModel
 	// 模板ID, 用于标记是否从模板创建而来
-	TemplateID uint32 `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"template_id"`
-	GroupID    uint32 `gorm:"column:group_id;type:int unsigned;not null;comment:策略规则组ID;" json:"group_id"`
+	TemplateID uint32                `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"template_id"`
+	GroupID    uint32                `gorm:"column:group_id;type:int unsigned;not null;comment:策略规则组ID;uniqueIndex:idx__strategy__group_id__name,priority:2" json:"group_id"`
+	DeletedAt  soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;uniqueIndex:idx__strategy__group_id__name,priority:3" json:"deleted_at"`
 	// 策略模板来源（系统、团队）
 	TemplateSource vobj.StrategyTemplateSource `gorm:"column:strategy_template_source;type:tinyint;not null;comment:策略模板来源（系统、团队）" json:"template_source"`
-	Name           string                      `gorm:"column:alert;type:varchar(64);not null;comment:策略名称" json:"name"`
+	Name           string                      `gorm:"column:alert;type:varchar(64);not null;comment:策略名称;uniqueIndex:idx__strategy__group_id__name,priority:1" json:"name"`
 	Expr           string                      `gorm:"column:expr;type:text;not null;comment:告警表达式" json:"expr"`
 	Labels         *vobj.Labels                `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
 	Annotations    vobj.Annotations            `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
