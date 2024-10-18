@@ -435,7 +435,7 @@ var resourceList = []*model.SysAPI{
 	// 更新元数据
 	{
 		Name:   "更新元数据",
-		Path:   "/api.admin.metric.Metric/UpdateMetric",
+		Path:   "/api.admin.datasource.Metric/UpdateMetric",
 		Remark: "更新元数据， 用于更新元数据",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
@@ -443,7 +443,7 @@ var resourceList = []*model.SysAPI{
 	// 获取元数据详情
 	{
 		Name:   "获取元数据详情",
-		Path:   "/api.admin.metric.Metric/GetMetric",
+		Path:   "/api.admin.datasource.Metric/GetMetric",
 		Remark: "获取元数据详情， 用于获取元数据详情",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
@@ -451,7 +451,7 @@ var resourceList = []*model.SysAPI{
 	// 获取元数据列表
 	{
 		Name:   "获取元数据列表",
-		Path:   "/api.admin.metric.Metric/ListMetric",
+		Path:   "/api.admin.datasource.Metric/ListMetric",
 		Remark: "获取元数据列表， 用于获取元数据列表",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
@@ -459,7 +459,7 @@ var resourceList = []*model.SysAPI{
 	// 获取元数据列表（下拉选择接口）
 	{
 		Name:   "获取元数据列表（下拉选择接口）",
-		Path:   "/api.admin.metric.Metric/SelectMetric",
+		Path:   "/api.admin.datasource.Metric/SelectMetric",
 		Remark: "获取元数据列表（下拉选择接口）， 用于获取元数据列表（下拉选择接口）",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
@@ -467,7 +467,7 @@ var resourceList = []*model.SysAPI{
 	// 删除指标
 	{
 		Name:   "删除指标",
-		Path:   "/api.admin.metric.Metric/DeleteMetric",
+		Path:   "/api.admin.datasource.Metric/DeleteMetric",
 		Remark: "删除指标， 用于删除指标",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,

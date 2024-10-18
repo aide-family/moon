@@ -100,7 +100,7 @@ func (l *SrvList) getSrvs() []*Srv {
 // checkSrvIsAlive 检查服务是否存活
 func (l *Srv) checkSrvIsAlive() (err error) {
 	// 判断服务注册时间是否大于10秒 （当前时间是否在10之后）
-	if !time.Now().Before(l.registerTime.Add(10 * time.Second)) {
+	if time.Now().Before(l.registerTime.Add(15 * time.Second)) {
 		return nil
 	}
 	return merr.ErrorNotificationSystemError("%s 服务不可用", l.srvInfo.GetName())

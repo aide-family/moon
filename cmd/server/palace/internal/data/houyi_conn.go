@@ -154,6 +154,20 @@ func (l *HouYiConn) PushStrategy(ctx context.Context, in *strategyapi.PushStrate
 
 // PushStrategy 推送策略
 func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi.PushStrategyRequest, opts ...microserver.Option) (*strategyapi.PushStrategyReply, error) {
+	teamIdMap := types.ToMap(conn.teamIds, func(t uint32) uint32 {
+		return t
+	})
+	list := make([]*api.Strategy, 0, len(in.Strategies))
+	for _, strategyItem := range in.Strategies {
+		if teamIdMap[strategyItem.TeamID] <= 0 {
+			continue
+		}
+		list = append(list, strategyItem)
+	}
+	if len(list) <= 0 {
+		return &strategyapi.PushStrategyReply{}, nil
+	}
+	in.Strategies = list
 	var err error
 	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:

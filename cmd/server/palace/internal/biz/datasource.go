@@ -146,10 +146,15 @@ func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error
 }
 
 // SyncDatasourceMetaV2 同步数据源元数据
-func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) error {
+func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) (err error) {
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
 		return merr.ErrorI18nToastDatasourceSyncing(ctx).WithCause(err)
 	}
+	defer func() {
+		if err != nil {
+			b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
+		}
+	}()
 
 	// 获取数据源详情
 	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, middleware.GetTeamID(ctx))

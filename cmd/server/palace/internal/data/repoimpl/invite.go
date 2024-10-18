@@ -133,5 +133,6 @@ func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite 
 			}
 		}),
 	}
+	defer i.cacheRepo.SyncUserTeamList(ctx, invite.UserID)
 	return bizQuery.SysTeamMember.WithContext(ctx).Create(teamMember)
 }
