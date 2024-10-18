@@ -709,10 +709,11 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 	}
 
 	return &bo.CreateStrategyParams{
-		GroupID:        c.GetGroupId(),
-		TemplateID:     c.GetTemplateId(),
-		Remark:         c.GetRemark(),
-		Status:         vobj.Status(c.GetStatus()),
+		GroupID:    c.GetGroupId(),
+		TemplateID: c.GetTemplateId(),
+		Remark:     c.GetRemark(),
+		//Status:         vobj.Status(c.GetStatus()),
+		Status:         vobj.StatusEnable,
 		Step:           c.GetStep(),
 		DatasourceIDs:  c.GetDatasourceIds(),
 		TemplateSource: vobj.StrategyTemplateSource(c.GetSourceType()),

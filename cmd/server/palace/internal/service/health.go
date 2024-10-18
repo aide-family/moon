@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/env"
 )
 
@@ -12,11 +12,11 @@ import (
 type HealthService struct {
 	api.UnimplementedHealthServer
 
-	houyiSrv *microserver.HouYiConn
+	houyiSrv *data.HouYiConn
 }
 
 // NewHealthService 创建健康检查服务
-func NewHealthService(houyiSrv *microserver.HouYiConn) *HealthService {
+func NewHealthService(houyiSrv *data.HouYiConn) *HealthService {
 	return &HealthService{
 		houyiSrv: houyiSrv,
 	}

@@ -1,4 +1,5 @@
 env: dev
+dependHouYi: true
 server:
   name: "Palace"
   metadata:
@@ -59,33 +60,6 @@ cache:
 #    password: ""
 #    timeout: 50s
 
-micro_server:
-  rabbit_server:
-    network: "rpc"
-    nodeVersion: ""
-#    endpoint: "discovery:///moon_rabbit"
-    endpoint: "127.0.0.1:9002"
-    timeout: 50s
-    secret: ""
-  hou_yi_server:
-    network: "rpc"
-    nodeVersion: ""
-#    endpoint: "discovery:///moon_houyi"
-    endpoint: "127.0.0.1:9001"
-    timeout: 50s
-    secret: ""
-#  hou_yi_servers:
-#    - network: "rpc"
-#      nodeVersion: ""
-#      endpoint: "discovery:///moon_houyi_1"
-#      timeout: 50s
-#      secret: ""
-#    - network: "rpc"
-#      nodeVersion: ""
-#      endpoint: "discovery:///moon_houyi_2"
-#      timeout: 50s
-#      secret: ""
-
 database:
   driver: "mysql"
   debug: true
@@ -95,7 +69,7 @@ database:
 #  dsn: "main.db"
 bizDatabase:
   driver: "mysql"
-  debug: false
+  debug: true
   dsn: "root:12345678@tcp(localhost:3306)/"
 #  driver: "sqlite"
 #  debug: true

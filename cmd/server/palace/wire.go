@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver/microserverrepoimpl"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data/repoimpl"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/server"
@@ -27,8 +26,8 @@ func wireApp(*palaceconf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		repoimpl.ProviderSetRepoImpl,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
-		microserverrepoimpl.ProviderSetRPCRepoImpl,
-		microserver.ProviderSetRPCConn,
+		microserver.ProviderSetRPCRepoImpl,
+		data.ProviderSetRPCConn,
 		newApp,
 	))
 }

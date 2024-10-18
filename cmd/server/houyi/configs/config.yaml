@@ -1,7 +1,14 @@
 env: dev # dev、test、prod、local
 
+dependPalace: true
+teams:
+  - 1
+  - 2
 server:
   name: moon_houyi
+  httpEndpoint: "127.0.0.1:8001"
+  grpcEndpoint: "127.0.0.1:9001"
+  network: "rpc"
   metadata:
     description: 是moon监控系列的告警组件，可以独立部署，接受prom类型规则，也可以接受alertmanager类型组件的告警推送
     background: 寓意为天神后羿，专门用于监控规则告警事件
@@ -47,13 +54,6 @@ watch:
 #    password: ""
 #    timeout: 50s
 
-rabbit_server:
-  network: "rpc"
-  nodeVersion: ""
-#  endpoint: "discovery:///moon_rabbit"
-  endpoint: "discovery:///moon_rabbit"
-  timeout: 50s
-  secret: ""
 palace_server:
   network: "rpc"
   nodeVersion: ""

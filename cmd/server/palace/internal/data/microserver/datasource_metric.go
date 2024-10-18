@@ -1,4 +1,4 @@
-package microserverrepoimpl
+package microserver
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/api/houyi/metadata"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
+	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -15,13 +15,13 @@ import (
 )
 
 // NewDatasourceMetricRepository 创建数据源指标操作
-func NewDatasourceMetricRepository(cli *microserver.HouYiConn) microrepository.DatasourceMetric {
+func NewDatasourceMetricRepository(cli *data.HouYiConn) microrepository.DatasourceMetric {
 	return &datasourceMetricRepositoryImpl{cli: cli}
 }
 
 // datasourceMetricRepositoryImpl 数据源指标操作实现
 type datasourceMetricRepositoryImpl struct {
-	cli *microserver.HouYiConn
+	cli *data.HouYiConn
 }
 
 // Query 查询数据源指标

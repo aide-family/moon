@@ -42,4 +42,5 @@ var ProviderSetService = wire.NewSet(
 	hookservice.NewHookService,
 	NewAlertService,
 	invite.NewInviteService,
+	NewServerService,
 )

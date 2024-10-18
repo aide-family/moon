@@ -7,6 +7,7 @@ import (
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/microserver"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -17,39 +18,36 @@ import (
 
 // NewPalaceConn 创建一个palace rpc连接
 func NewPalaceConn(c *houyiconf.Bootstrap) (*PalaceConn, func(), error) {
+	if !c.GetDependPalace() {
+		return nil, func() {}, nil
+	}
 	palaceServer := c.GetPalaceServer()
 	discoveryConf := c.GetDiscovery()
-	palaceConn := &PalaceConn{}
+
 	if types.IsNil(palaceServer) {
 		return nil, nil, merr.ErrorNotification("未配置MicroServer.PalaceServer")
 	}
-	switch palaceServer.GetNetwork() {
-	case "http", "HTTP":
-		httpConn, err := newHTTPConn(palaceServer, discoveryConf)
+	network := vobj.ToNetwork(palaceServer.GetNetwork())
+	palaceConn := &PalaceConn{
+		rpcClient:  nil,
+		network:    network,
+		httpClient: nil,
+	}
+	switch network {
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+		httpConn, err := microserver.NewHTTPConn(palaceServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接Palace http失败：", err)
 			return nil, nil, err
 		}
 		palaceConn.httpClient = httpConn
-		palaceConn.network = vobj.NetworkHTTP
-	case "https", "HTTPS":
-		httpConn, err := newHTTPConn(palaceServer, discoveryConf)
-		if !types.IsNil(err) {
-			log.Errorw("连接Palace http失败：", err)
-			return nil, nil, err
-		}
-		palaceConn.httpClient = httpConn
-		palaceConn.network = vobj.NetworkHTTPS
-	case "rpc", "RPC", "grpc", "GRPC":
-		grpcConn, err := newRPCConn(palaceServer, discoveryConf)
+	default:
+		grpcConn, err := microserver.NewRPCConn(palaceServer, discoveryConf)
 		if !types.IsNil(err) {
 			log.Errorw("连接Palace rpc失败：", err)
 			return nil, nil, err
 		}
 		palaceConn.rpcClient = grpcConn
-		palaceConn.network = vobj.NetworkRPC
-	default:
-		return nil, nil, merr.ErrorNotification("Palace Server暂不支持该网络类型：[%s]", palaceServer.GetNetwork())
 	}
 	// 退出时清理资源
 	cleanup := func() {
@@ -80,7 +78,7 @@ type PalaceConn struct {
 }
 
 // PushMetric 向palace推送指标数据
-func (l *PalaceConn) PushMetric(ctx context.Context, in *datasourceapi.SyncMetricRequest, opts ...Option) (*datasourceapi.SyncMetricReply, error) {
+func (l *PalaceConn) PushMetric(ctx context.Context, in *datasourceapi.SyncMetricRequest, opts ...microserver.Option) (*datasourceapi.SyncMetricReply, error) {
 	switch l.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
@@ -98,7 +96,7 @@ func (l *PalaceConn) PushMetric(ctx context.Context, in *datasourceapi.SyncMetri
 }
 
 // PushAlarm 向palace推送告警数据
-func (l *PalaceConn) PushAlarm(ctx context.Context, in *api.AlarmItem, opts ...Option) (*api.HookReply, error) {
+func (l *PalaceConn) PushAlarm(ctx context.Context, in *api.AlarmItem, opts ...microserver.Option) (*api.HookReply, error) {
 	switch l.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
@@ -112,5 +110,23 @@ func (l *PalaceConn) PushAlarm(ctx context.Context, in *api.AlarmItem, opts ...O
 			rpcOpts = append(rpcOpts, opt.RPCOpts...)
 		}
 		return api.NewAlertClient(l.rpcClient).Hook(ctx, in, rpcOpts...)
+	}
+}
+
+// Heartbeat 向palace发送心跳
+func (l *PalaceConn) Heartbeat(ctx context.Context, in *api.HeartbeatRequest, opts ...microserver.Option) (*api.HeartbeatReply, error) {
+	switch l.network {
+	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+		httpOpts := make([]http.CallOption, 0)
+		for _, opt := range opts {
+			httpOpts = append(httpOpts, opt.HTTPOpts...)
+		}
+		return api.NewServerHTTPClient(l.httpClient).Heartbeat(ctx, in, httpOpts...)
+	default:
+		rpcOpts := make([]grpc.CallOption, 0)
+		for _, opt := range opts {
+			rpcOpts = append(rpcOpts, opt.RPCOpts...)
+		}
+		return api.NewServerClient(l.rpcClient).Heartbeat(ctx, in, rpcOpts...)
 	}
 }

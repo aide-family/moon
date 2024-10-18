@@ -12,6 +12,13 @@ message Server {
   string name = 1;
   // 服务元数据
   map<string, string> metadata = 2;
+  // 服务http地址
+  string httpEndpoint = 3;
+  // grpc地址
+  string grpcEndpoint = 4;
+  // 网络类型
+  string network = 5;
+  optional string secret = 6;
 }
 
 // http服务配置
@@ -110,7 +117,9 @@ message MicroServer {
   // 网络类型， http, https, grpc
   string network = 4;
   // node版本
-  string node_version = 5;
+  string nodeVersion = 5;
+  // name 服务名
+  string name = 6;
 }
 
 // jaeger配置

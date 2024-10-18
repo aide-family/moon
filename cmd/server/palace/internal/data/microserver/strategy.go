@@ -1,4 +1,4 @@
-package microserverrepoimpl
+package microserver
 
 import (
 	"context"
@@ -7,20 +7,19 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/data/microserver"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 // NewStrategyRepository 创建策略仓库
-func NewStrategyRepository(data *data.Data, houyiClient *microserver.HouYiConn) microrepository.Strategy {
+func NewStrategyRepository(data *data.Data, houyiClient *data.HouYiConn) microrepository.Strategy {
 	return &strategyRepositoryImpl{data: data, houyiClient: houyiClient}
 }
 
 type strategyRepositoryImpl struct {
 	data *data.Data
 
-	houyiClient *microserver.HouYiConn
+	houyiClient *data.HouYiConn
 }
 
 func (s *strategyRepositoryImpl) Push(ctx context.Context, strategies []*bo.Strategy) error {

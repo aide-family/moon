@@ -15,7 +15,6 @@ message Bootstrap {
   pkg.conf.Cache cache = 6;
   pkg.conf.Tracer tracer = 7;
   pkg.conf.Discovery discovery = 8;
-  MicroServer micro_server = 9;
   Watch watch = 10;
   OAuth2 oauth2 = 11;
   pkg.conf.EmailConfig email_config = 12;
@@ -27,6 +26,10 @@ message Bootstrap {
   pkg.conf.Database alarmDatabase = 15;
   // 环境标识
   string env = 16;
+  // 是否依赖HouYi服务
+  bool dependHouYi = 17;
+  // 是否依赖Rabbit服务
+  bool dependRabbit = 18;
 }
 
 // 微服务配置

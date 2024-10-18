@@ -30,7 +30,7 @@ type StrategyLevel struct {
 	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级;index:idx__strategy_id__level_id" json:"level_id"`
 	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
 	// 状态
-	Status vobj.Status `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
+	Status vobj.Status `gorm:"column:status;type:int;not null;default:1;comment:策略状态" json:"status"`
 	// 告警页面
 	AlarmPage []*SysDict `gorm:"many2many:strategy_level_alarm_pages" json:"alarm_page"`
 	// 策略告警组

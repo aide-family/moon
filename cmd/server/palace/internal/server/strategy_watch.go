@@ -44,7 +44,7 @@ func newStrategyWatch(c *palaceconf.Bootstrap, data *data.Data, alertService *se
 		interval:     interval,
 		timeout:      timeout,
 		// 没有配置后裔服务着启动内置简易的告警功能
-		isStart: types.IsNil(c.GetMicroServer().GetHouYiServer()),
+		dependHouYi: c.GetDependHouYi(),
 	}
 }
 
@@ -61,7 +61,7 @@ type StrategyWatch struct {
 
 	alertService *service.AlertService
 
-	isStart bool
+	dependHouYi bool
 }
 
 // Start 启动策略任务执行器
@@ -106,11 +106,11 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 	defer log.Infof("[StrategyWatch] server stopped")
 	close(s.stopCh)
 	s.cronInstance.Stop()
-	return nil
+	return s.data.GetStrategyQueue().Close()
 }
 
 func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
-	if !s.isStart {
+	if s.dependHouYi {
 		// 推送到houyi服务去
 		return s.alertService.PushStrategy(context.Background(), []*bo.Strategy{strategyMsg})
 	}

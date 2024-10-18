@@ -75,6 +75,7 @@ func RegisterService(
 	c *palaceconf.Bootstrap,
 	data *data.Data,
 	alertService *service.AlertService,
+	serverService *service.ServerService,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	greeter *service.GreeterService,
@@ -122,6 +123,7 @@ func RegisterService(
 	api.RegisterAlertServer(rpcSrv, alertService)
 	userapi.RegisterMessageServer(rpcSrv, messageService)
 	inviteapi.RegisterInviteServer(rpcSrv, inviteService)
+	api.RegisterServerServer(rpcSrv, serverService)
 
 	// 注册HTTP服务
 	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
@@ -146,6 +148,7 @@ func RegisterService(
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
 	inviteapi.RegisterInviteHTTPServer(httpSrv, inviteService)
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
+	api.RegisterServerHTTPServer(httpSrv, serverService)
 
 	// custom api
 	proxy := httpSrv.Route("/v1")
