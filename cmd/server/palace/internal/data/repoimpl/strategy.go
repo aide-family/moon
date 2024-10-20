@@ -37,6 +37,24 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) GetTeamStrategyLevel(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bizmodel.StrategyLevel, error) {
+	bizQuery, err := getTeamIdBizQuery(s.data, params.TeamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	return bizQuery.StrategyLevel.WithContext(ctx).Preload(field.Associations).Where(bizQuery.StrategyLevel.ID.Eq(params.LevelID)).First()
+}
+
+func (s *strategyRepositoryImpl) GetTeamStrategy(ctx context.Context, params *bo.GetTeamStrategyParams) (*bizmodel.Strategy, error) {
+	bizQuery, err := getTeamIdBizQuery(s.data, params.TeamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	return bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(params.StrategyID)).First()
+}
+
 func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uint32) ([]*bizmodel.Strategy, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {

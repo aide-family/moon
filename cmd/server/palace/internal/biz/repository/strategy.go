@@ -35,4 +35,9 @@ type Strategy interface {
 
 	// Eval 策略评估
 	Eval(context.Context, *bo.Strategy) (*bo.Alarm, error)
+	// GetTeamStrategy 获取团队策略
+	GetTeamStrategy(ctx context.Context, params *bo.GetTeamStrategyParams) (*bizmodel.Strategy, error)
+
+	// GetTeamStrategyLevel 获取团队策略等级
+	GetTeamStrategyLevel(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bizmodel.StrategyLevel, error)
 }

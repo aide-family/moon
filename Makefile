@@ -116,10 +116,12 @@ wire:
 
 .PHONY: model
 model:
-	rm -rf pkg/palace/model/query
-	rm -rf pkg/palace/model/bizmodel/bizquery
-	go run cmd/server/gen/gen/cmd.go
-	go run cmd/server/gen/gen/cmd.go -b
+ 	rm -rf pkg/palace/model/query
+ 	rm -rf pkg/palace/model/bizmodel/bizquery
+ 	rm -rf pkg/palace/model/alarmmodel/alarmquery
+	go run cmd/server/gen/gen/cmd.go -m main
+	go run cmd/server/gen/gen/cmd.go -m biz
+	go run cmd/server/gen/gen/cmd.go -m alarm
 
 .PHONY: all
 # generate all

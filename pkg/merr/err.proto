@@ -277,6 +277,11 @@ enum ErrorReason {
       reason: "REALTIME_ALARM_NOT_FOUND"
       message: "实时告警不存在",
     },
+    // 历史告警不存在
+    (errors.biz_reason) = {
+      reason: "HISTORY_ALARM_NOT_FOUND"
+      message: "历史告警不存在",
+    },
     // 数据源不存在
     (errors.biz_reason) = {
       reason: "DATA_SOURCE_NOT_FOUND"

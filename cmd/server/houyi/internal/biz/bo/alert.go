@@ -34,6 +34,7 @@ type (
 		ExternalURL       string            `json:"externalURL"`
 		Version           string            `json:"version"`
 		GroupKey          string            `json:"groupKey"`
+		Fingerprint       string            `json:"fingerprint"`
 	}
 
 	// Alert alert detail info

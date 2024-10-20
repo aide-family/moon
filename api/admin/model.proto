@@ -527,25 +527,19 @@ message RealtimeAlarmItem {
   // 告警状态
   AlertStatus status = 4;
   // 告警级别
-  SelectItem level = 5;
-  // 告警级别ID
-  uint32 levelID = 6;
-  // 告警策略ID
-  uint32 strategyID = 7;
+  StrategyLevelItem level = 5;
   // 告警策略
-  StrategyItem strategy = 8;
+  StrategyItem  strategy = 6;
   // 告警摘要
-  string summary = 9;
+  string summary = 7;
   // 告警详情
-  string description = 10;
+  string description = 8;
   // 触发告警表达式
-  string expr = 11;
-  // 数据源ID
-  uint32 datasourceID = 12;
+  string expr = 9;
   // 数据源
-  DatasourceItem datasource = 13;
+  DatasourceItem datasource = 10;
   // 指纹
-  string fingerprint = 14;
+  string fingerprint = 11;
 }
 
 // 我的告警页面明细
@@ -646,6 +640,38 @@ message AlarmHookItem {
   string  url = 10;
 }
 
+// 告警历史
+message AlarmHistoryItem{
+  // ID
+  uint32 id = 1;
+  // 告警开始时间
+  string  startsAt = 2;
+  // 告警结束时间
+  string  endsAt = 3;
+  // 告警状态
+  AlertStatus alertStatus = 4;
+  // 告警级别
+  StrategyLevelItem level = 5;
+  // 告警策略
+  StrategyItem strategy = 7;
+  // 告警详情
+  string description = 8;
+  // 触发告警表达式
+  string expr = 9;
+  // 数据源
+  DatasourceItem datasource = 10;
+  // 指纹
+  string fingerprint = 11;
+  // 原始json
+  string rawInfo = 12;
+  // 策略标签
+  map<string, string> labels = 13;
+  // 策略注解
+  map<string, string> annotations = 14;
+  // 告警摘要
+  string summary = 15;
+}
+
 message NoticeUserMessage {
   uint32 id = 1;
   // 消息类型 'info' | 'success' | 'warning' | 'error'
@@ -659,7 +685,7 @@ message NoticeUserMessage {
 
 // invite item
 message InviteItem{
- repeated TeamRole roles = 1;
+  repeated TeamRole roles = 1;
   TeamItem team = 2;
   uint32 id = 3;
   InviteType inviteType = 4;
