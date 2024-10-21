@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repo"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
@@ -16,7 +16,7 @@ import (
 )
 
 // NewConfigBiz 创建配置业务
-func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repo.CacheRepo) *ConfigBiz {
+func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repository.CacheRepo) *ConfigBiz {
 	return &ConfigBiz{
 		cacheRepo: cacheRepo,
 		c:         c,
@@ -57,7 +57,7 @@ func (l *Config) GetTemplates() map[string]string {
 
 // ConfigBiz 配置业务
 type ConfigBiz struct {
-	cacheRepo repo.CacheRepo
+	cacheRepo repository.CacheRepo
 	c         *rabbitconf.Bootstrap
 }
 

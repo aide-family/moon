@@ -9,4 +9,5 @@ var ProviderSetService = wire.NewSet(
 	NewGreeterService,
 	NewConfigService,
 	NewHookService,
+	NewHealthService,
 )

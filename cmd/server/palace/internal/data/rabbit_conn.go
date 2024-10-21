@@ -130,17 +130,18 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 	// 存储心跳数据
 	srvKey := genSrvUniqueKey(req.GetServer())
 	_, ok := l.srvs.getSrv(srvKey)
-	if !ok {
-		return l.SrvRegister(srvKey, req.GetServer())
+	if ok {
+		return nil
 	}
-	return nil
+	return l.SrvRegister(srvKey, req.GetServer(), req.GetTeamIds())
 }
 
 // SrvRegister 服务注册
-func (l *RabbitConn) SrvRegister(key string, microServer *conf.MicroServer) error {
+func (l *RabbitConn) SrvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) error {
 	network := vobj.ToNetwork(microServer.GetNetwork())
 	srv := &Srv{
 		srvInfo:      microServer,
+		teamIds:      teamIds,
 		rpcClient:    nil,
 		network:      network,
 		httpClient:   nil,
@@ -163,5 +164,6 @@ func (l *RabbitConn) SrvRegister(key string, microServer *conf.MicroServer) erro
 		srv.rpcClient = grpcConn
 	}
 	l.srvs.appendSrv(key, srv)
+	log.Infow("服务注册成功", microServer.GetName(), "network", network.String(), "endpoint", microServer.GetEndpoint(), "timeout", microServer.GetTimeout())
 	return nil
 }

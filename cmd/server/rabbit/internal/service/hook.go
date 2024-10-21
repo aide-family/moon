@@ -29,10 +29,7 @@ func NewHookService(msgBiz *biz.MsgBiz) *HookService {
 
 // SendMsg 发送消息
 func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) (*hookapi.SendMsgReply, error) {
-	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{
-		Route: req.Route,
-		Data:  []byte(req.JsonData),
-	}); !types.IsNil(err) {
+	if err := s.msgBiz.SendMsg(ctx, &bo.SendMsgParams{Route: req.Route, Data: []byte(req.JsonData)}); !types.IsNil(err) {
 		return nil, err
 	}
 	return &hookapi.SendMsgReply{

@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -336,7 +335,7 @@ func (l *HouYiConn) SrvRegister(key string, microServer *conf.MicroServer, teamI
 	}
 
 	l.srvs.appendSrv(key, srv)
-	log.Infow("服务注册成功", key, "network", network.String(), "endpoint", microServer.GetEndpoint(), "timeout", microServer.GetTimeout(), "srv", fmt.Sprintf("%p", srv))
+	log.Infow("服务注册成功", microServer.GetName(), "network", network.String(), "endpoint", microServer.GetEndpoint(), "timeout", microServer.GetTimeout())
 
 	// 同步数据到 HouYi
 	return srv, nil

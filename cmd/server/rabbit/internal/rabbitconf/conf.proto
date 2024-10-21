@@ -19,6 +19,10 @@ message Bootstrap {
   pkg.conf.HTTPServer http = 8;
   pkg.conf.GRPCServer grpc = 9;
   pkg.conf.Cache cache = 10;
+  repeated uint32 teams = 11;
+  bool dependPalace = 12;
+  // 月宫代理服务
+  pkg.conf.MicroServer palace_server = 13;
 }
 
 

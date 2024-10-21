@@ -1,28 +1,33 @@
 env: dev # dev、test、prod、local
 
+dependPalace: true
 server:
   name: moon_rabbit
+  httpEndpoint: "127.0.0.1:8002"
+  grpcEndpoint: "127.0.0.1:9002"
+  network: "rpc"
+  secret: ""
   metadata:
     description: 是moon监控系列的消息组件，可以独立部署，接受任意的hook消息，并支持邮件、钉钉、企业微信、飞书等告警
     background: 寓意为月宫中的玉兔，专门用于消息通知
 
 http:
-  addr: 0.0.0.0:8001
+  addr: 0.0.0.0:8002
   timeout: 2s
 grpc:
-  addr: 0.0.0.0:9001
+  addr: 0.0.0.0:9002
   timeout: 2s
 data:
   cache:
     driver: "free"
-#    redis:
-#      network: "tcp"
-#      addr: 127.0.0.1:6379
-#      db: 0
-#      password: ""
-#      read_timeout: 0.2s
-#      write_timeout: 0.2s
-#      dial_timeout: 0.2s
+    redis:
+      network: "tcp"
+      addr: 127.0.0.1:6379
+      db: 0
+      password: ""
+      read_timeout: 0.2s
+      write_timeout: 0.2s
+      dial_timeout: 0.2s
     nutsDB:
       path: ./tmp/nutsdb
       bucket: test
@@ -70,13 +75,21 @@ receivers:
 #          content: ""
 #          template: "dingTalk"
 
-discovery:
-  driver: "etcd"
-  etcd:
-    endpoints:
-      - 127.0.0.1:20000
-      - 127.0.0.1:20002
-      - 127.0.0.1:20004
-    username: ""
-    password: ""
-    timeout: 10s
+#discovery:
+#  driver: "etcd"
+#  etcd:
+#    endpoints:
+#      - 127.0.0.1:20000
+#      - 127.0.0.1:20002
+#      - 127.0.0.1:20004
+#    username: ""
+#    password: ""
+#    timeout: 10s
+
+palace_server:
+  network: "rpc"
+  nodeVersion: ""
+  #  endpoint: "discovery:///moon_palace"
+  endpoint: "127.0.0.1:9000"
+  timeout: 50s
+  secret: ""
