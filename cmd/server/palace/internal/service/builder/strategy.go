@@ -261,8 +261,19 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 		return nil
 	}
 
+	receiverGroupIDs := types.SliceTo(strategy.AlarmNoticeGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })
 	return types.SliceTo(strategy.Levels, func(level *bizmodel.StrategyLevel) *bo.Strategy {
+		receiverGroupIDs = append(receiverGroupIDs, types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })...)
+		labelNotices := types.SliceTo(level.LabelNotices, func(notice *bizmodel.StrategyLabelNotice) *bo.LabelNotices {
+			return &bo.LabelNotices{
+				Key:              notice.Name,
+				Value:            notice.Value,
+				ReceiverGroupIDs: types.SliceTo(notice.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID }),
+			}
+		})
 		return &bo.Strategy{
+			ReceiverGroupIDs:           types.MergeSliceWithUnique(receiverGroupIDs),
+			LabelNotices:               labelNotices,
 			ID:                         strategy.ID,
 			LevelID:                    level.ID,
 			Alert:                      strategy.Name,
@@ -308,6 +319,14 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.Strategy {
 		Threshold:                  strategyItem.Threshold,
 		LevelID:                    strategyItem.LevelID,
 		TeamID:                     strategyItem.TeamID,
+		ReceiverGroupIDs:           strategyItem.ReceiverGroupIDs,
+		LabelNotices: types.SliceTo(strategyItem.LabelNotices, func(item *bo.LabelNotices) *api.LabelNotices {
+			return &api.LabelNotices{
+				Key:              item.Key,
+				Value:            item.Value,
+				ReceiverGroupIDs: item.ReceiverGroupIDs,
+			}
+		}),
 	}
 }
 

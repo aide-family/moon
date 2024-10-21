@@ -18,6 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/exp/maps"
 )
 
 // NewStrategyRepository 创建策略操作器
@@ -79,7 +80,7 @@ func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 	strategy.Labels.Append(vobj.TeamID, fmt.Sprintf("%d", strategy.TeamID))
 
 	alarmInfo := bo.Alarm{
-		Receiver:          "",
+		Receiver:          strings.Join(types.SliceTo(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("%d", id) }), ","),
 		Status:            vobj.AlertStatusFiring,
 		Alerts:            nil,
 		GroupLabels:       strategy.Labels,
@@ -128,11 +129,30 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		return nil, err
 	}
 
+	receiverGroupIDsMap := types.ToMap(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.TeamID, id) })
+	count := 0
 	for index, point := range evalPoints {
 		labels, ok := index.(*vobj.Labels)
 		if !ok {
 			continue
 		}
+
+		if count == 0 {
+			// 判断labels里面key值是否满足告警
+			for _, notice := range strategy.LabelNotices {
+				// 判断key是否存在
+				if !labels.Match(notice.Key, notice.Value) {
+					continue
+				}
+				// 加入到通知对象里面
+				for _, receiverGroupID := range notice.ReceiverGroupIDs {
+					receiverGroupIDStr := fmt.Sprintf("team_%d_%d", strategy.TeamID, receiverGroupID)
+					receiverGroupIDsMap[receiverGroupIDStr] = receiverGroupID
+				}
+			}
+		}
+		count++
+
 		if !isCompletelyMeet(point.Values, strategy) {
 			continue
 		}
@@ -168,6 +188,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	alertIndexList := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
 		return alert.Index(), alert.Status.IsFiring()
 	})
+	alarmInfo.Receiver = strings.Join(maps.Keys(receiverGroupIDsMap), ",")
 
 	if !types.TextIsNull(alertsStr) {
 		existAlerts := strings.Split(alertsStr, ",")

@@ -26,6 +26,14 @@ func (a *StrategyBuilder) ToBo() *bo.Strategy {
 	}
 	strategyInfo := a.Strategy
 	return &bo.Strategy{
+		ReceiverGroupIDs: strategyInfo.GetReceiverGroupIDs(),
+		LabelNotices: types.SliceTo(strategyInfo.LabelNotices, func(item *api.LabelNotices) *bo.LabelNotices {
+			return &bo.LabelNotices{
+				Key:              item.GetKey(),
+				Value:            item.GetValue(),
+				ReceiverGroupIDs: item.GetReceiverGroupIDs(),
+			}
+		}),
 		ID:                         strategyInfo.GetId(),
 		LevelID:                    strategyInfo.GetLevelID(),
 		Alert:                      strategyInfo.GetAlert(),

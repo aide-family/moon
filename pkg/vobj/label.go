@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -79,6 +80,27 @@ func (l *Labels) Get(key string) string {
 		return ""
 	}
 	return l.label[key]
+}
+
+// Has 判断是否存在
+func (l *Labels) Has(key string) bool {
+	if l == nil || l.label == nil {
+		return false
+	}
+	_, ok := l.label[key]
+	return ok
+}
+
+// Match 判断value是否满足正则字符串
+func (l *Labels) Match(key, reg string) bool {
+	if l == nil || l.label == nil || !l.Has(key) {
+		return false
+	}
+	matched, err := regexp.MatchString(reg, l.Get(key))
+	if err != nil {
+		return false
+	}
+	return matched
 }
 
 // Append 追加

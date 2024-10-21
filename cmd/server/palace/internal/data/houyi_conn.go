@@ -26,7 +26,6 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"gorm.io/gen/field"
 )
 
 // NewHouYiConn 创建一个HouYi rpc连接
@@ -284,7 +283,9 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 			// 关联查询等级等明细信息
 			strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
 				Where(bizQuery.Strategy.Status.Eq(vobj.StatusEnable.GetValue())).
-				Preload(field.Associations).
+				Preload(bizQuery.Strategy.AlarmNoticeGroups).
+				Preload(bizQuery.Strategy.Levels.AlarmGroups).
+				Preload(bizQuery.Strategy.Levels.LabelNotices.AlarmGroups).
 				Find()
 			if !types.IsNil(err) {
 				log.Errorw("查询策略失败：", err, "teamId", teamItem.ID)

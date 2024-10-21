@@ -188,8 +188,18 @@ func (s *StrategyCountMap) GetStrategyEnableMap(strategyGroupIds uint32) uint64 
 var _ watch.Indexer = (*Strategy)(nil)
 
 type (
+	LabelNotices struct {
+		Key   string `json:"key,omitempty"`
+		Value string `json:"value,omitempty"`
+		// 接收者 （告警组ID列表）
+		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
+	}
 	// Strategy 策略明细
 	Strategy struct {
+		// 接收者 （告警组ID列表）
+		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
+		// 自定义接收者匹配对象
+		LabelNotices []*LabelNotices `json:"labelNotices,omitempty"`
 		// 策略ID
 		ID uint32 `json:"id,omitempty"`
 		// 等级ID

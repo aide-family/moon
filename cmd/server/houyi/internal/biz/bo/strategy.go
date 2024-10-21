@@ -11,8 +11,20 @@ import (
 var _ watch.Indexer = (*Strategy)(nil)
 
 type (
+	LabelNotices struct {
+		// label key
+		Key string `json:"key,omitempty"`
+		// label value 支持正则
+		Value string `json:"value,omitempty"`
+		// 接收者 （告警组ID列表）
+		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
+	}
 	// Strategy 策略明细
 	Strategy struct {
+		// 接收者 （告警组ID列表）
+		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
+		// 自定义接收者匹配对象
+		LabelNotices []*LabelNotices `json:"labelNotices,omitempty"`
 		// 策略ID
 		ID uint32 `json:"id,omitempty"`
 		// 策略等级ID

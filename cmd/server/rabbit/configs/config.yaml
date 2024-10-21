@@ -34,6 +34,7 @@ data:
     free:
       size: 10485760
 
+# TODO 调整模板结构， 支持多租户
 templates:
   email: |
     <h1>{{.Title}}</h1>

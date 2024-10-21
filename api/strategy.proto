@@ -79,6 +79,15 @@ message Strategy {
     expression: 'this > 0'
     message: "团队ID必须大于0"
   }];
+  // 接收对象列表（告警组ID列表）
+  repeated uint32 receiverGroupIDs = 18;
+  repeated LabelNotices labelNotices = 19;
+}
+
+message LabelNotices {
+  string key = 1;
+  string value = 2;
+  repeated uint32 receiverGroupIDs = 3;
 }
 
 // 类型元数据，每个对象都应该包含这个字段

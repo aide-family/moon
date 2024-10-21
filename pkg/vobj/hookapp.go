@@ -21,3 +21,16 @@ const (
 	// HookAPPFeiShu 飞书
 	HookAPPFeiShu // 飞书
 )
+
+func (h HookAPP) EnUSString() string {
+	switch h {
+	case HookAPPDingTalk:
+		return "dingtalk"
+	case HookAPPWeChat:
+		return "wechat"
+	case HookAPPFeiShu:
+		return "feishu"
+	default:
+		return "other"
+	}
+}

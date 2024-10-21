@@ -78,6 +78,9 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 	strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
 		Where(bizQuery.Strategy.ID.In(strategyIds...)).
 		Preload(field.Associations).
+		Preload(bizQuery.Strategy.AlarmNoticeGroups).
+		Preload(bizQuery.Strategy.Levels.AlarmGroups).
+		Preload(bizQuery.Strategy.Levels.LabelNotices.AlarmGroups).
 		Find()
 	if !types.IsNil(err) {
 		log.Errorw("method", "syncStrategiesByIds", "err", err)
