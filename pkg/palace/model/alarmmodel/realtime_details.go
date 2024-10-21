@@ -13,7 +13,7 @@ const tableNameRealtimeDetails = "realtime_details"
 type RealtimeDetails struct {
 	model.EasyModel
 	// 相关策略
-	Strategy string `gorm:"column:strategy;type:varchar(2000);not null;comment:相关策略" json:"strategy"`
+	Strategy string `gorm:"column:strategy;type:text;not null;comment:相关策略" json:"strategy"`
 	// 策略等级
 	Level string `gorm:"column:level;type:text;not null;comment:策略等级" json:"level"`
 	// 数据源

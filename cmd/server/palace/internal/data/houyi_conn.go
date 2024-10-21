@@ -20,12 +20,13 @@ import (
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"gorm.io/gen"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 // NewHouYiConn 创建一个HouYi rpc连接
@@ -157,6 +158,10 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 	})
 	list := make([]*api.Strategy, 0, len(in.Strategies))
 	for _, strategyItem := range in.Strategies {
+		if len(teamIdMap) == 0 {
+			list = in.Strategies
+			break
+		}
 		if teamIdMap[strategyItem.TeamID] <= 0 {
 			continue
 		}
@@ -283,6 +288,7 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 			// 关联查询等级等明细信息
 			strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
 				Where(bizQuery.Strategy.Status.Eq(vobj.StatusEnable.GetValue())).
+				Preload(field.Associations).
 				Preload(bizQuery.Strategy.AlarmNoticeGroups).
 				Preload(bizQuery.Strategy.Levels.AlarmGroups).
 				Preload(bizQuery.Strategy.Levels.LabelNotices.AlarmGroups).
@@ -301,6 +307,9 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 			}
 			ch <- list
 			log.Infow("团队【"+teamItem.Name+"】策略", len(list), "teamId", teamItem.ID)
+		}
+		for len(ch) > 0 {
+			time.Sleep(time.Millisecond * 100)
 		}
 		close(ch)
 	}()
