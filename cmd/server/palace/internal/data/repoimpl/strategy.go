@@ -496,6 +496,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			tx.Strategy.Remark.Value(updateParam.Remark),
 			tx.Strategy.Expr.Value(updateParam.Expr),
 			tx.Strategy.Labels.Value(updateParam.Labels),
+			tx.Strategy.Annotations.Value(updateParam.Annotations),
 			tx.Strategy.GroupID.Value(updateParam.GroupID),
 		); !types.IsNil(err) {
 			return err
