@@ -34,8 +34,12 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 	}
 
 	realTimes := r.createRealTimeAlarmToModels(param)
-
-	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(realTimes, len(realTimes)); err != nil {
+	// 更新的字段
+	columns := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
+	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
+			DoUpdates: clause.AssignmentColumns(columns)}).
+		CreateInBatches(realTimes, len(realTimes)); err != nil {
 		return err
 	}
 	return nil

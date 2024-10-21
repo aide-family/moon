@@ -37,12 +37,13 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 	if err != nil {
 		return err
 	}
-	historyList, err := a.createAlarmHistoryToModels(param)
-	if err != nil {
-		return err
-	}
-
-	if err := alarmQuery.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(historyList, len(historyList)); err != nil {
+	historyList := a.createAlarmHistoryToModels(param)
+	// 更新的字段
+	columns := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
+	if err := alarmQuery.AlarmHistory.WithContext(ctx).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
+			DoUpdates: clause.AssignmentColumns(columns)}).
+		CreateInBatches(historyList, len(historyList)); err != nil {
 		return err
 	}
 	return nil
@@ -97,7 +98,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	return bizWrapper.Order(alarmQuery.AlarmHistory.ID.Desc()).Find()
 }
 
-func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) ([]*alarmmodel.AlarmHistory, error) {
+func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.AlarmHistory {
 	strategy := param.Strategy
 	strategyLevel := param.Level
 	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.AlarmHistory {
@@ -122,5 +123,5 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 			},
 		}
 	})
-	return historyList, nil
+	return historyList
 }

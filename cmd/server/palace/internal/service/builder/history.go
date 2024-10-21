@@ -111,7 +111,12 @@ func (l *listAlarmHistoryRequestBuilder) ToBo() *bo.QueryAlarmHistoryListParams 
 		AlertStatus: types.SliceTo(l.AlarmStatuses, func(status api.AlertStatus) vobj.AlertStatus {
 			return vobj.AlertStatus(status)
 		}),
-		Page: types.NewPagination(l.GetPagination()),
+		Page:            types.NewPagination(l.GetPagination()),
+		EventAtStart:    l.GetEventAtStart(),
+		EventAtEnd:      l.GetEventAtEnd(),
+		ResolvedAtStart: l.GetRecoverAtStart(),
+		ResolvedAtEnd:   l.GetRecoverAtEnd(),
+		AlarmPage:       l.GetAlarmPage(),
 	}
 }
 
