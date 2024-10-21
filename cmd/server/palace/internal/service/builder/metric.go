@@ -208,7 +208,7 @@ func (g *getMetricRequestBuilder) ToBo() *bo.GetMetricParams {
 
 	return &bo.GetMetricParams{
 		ID:           g.GetId(),
-		WithRelation: g.GetWithRelation(),
+		WithRelation: true,
 	}
 }
 

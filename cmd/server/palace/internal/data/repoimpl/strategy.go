@@ -378,7 +378,7 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 	}
 	strategyModel := createStrategyParamsToModel(ctx, params)
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := tx.Strategy.WithContext(ctx).Create(strategyModel); !types.IsNil(err) {
+		if err := tx.Strategy.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(strategyModel); !types.IsNil(err) {
 			return err
 		}
 		return nil

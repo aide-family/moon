@@ -58,6 +58,7 @@ func (m *metricRepositoryImpl) Get(ctx context.Context, id uint32) (*bizmodel.Da
 	return bizQuery.DatasourceMetric.
 		WithContext(ctx).
 		Where(bizQuery.DatasourceMetric.ID.Eq(id)).
+		Preload(field.Associations).
 		First()
 }
 

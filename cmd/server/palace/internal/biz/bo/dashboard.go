@@ -50,4 +50,10 @@ type (
 		Keyword string
 		Status  vobj.Status
 	}
+
+	// BatchUpdateDashboardStatusParams 批量更新仪表盘状态请求参数
+	BatchUpdateDashboardStatusParams struct {
+		IDs    []uint32
+		Status vobj.Status
+	}
 )

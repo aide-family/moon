@@ -23,4 +23,7 @@ type Dashboard interface {
 
 	// ListDashboard 获取仪表盘列表
 	ListDashboard(ctx context.Context, params *bo.ListDashboardParams) ([]*bizmodel.Dashboard, error)
+
+	// BatchUpdateDashboardStatus 批量更新仪表盘状态
+	BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error
 }

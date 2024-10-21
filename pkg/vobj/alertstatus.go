@@ -1,5 +1,9 @@
 package vobj
 
+import (
+	"strings"
+)
+
 // AlertStatus 告警数据状态
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=AlertStatus -linecomment
@@ -21,7 +25,7 @@ const (
 
 // ToAlertStatus convert
 func ToAlertStatus(s string) AlertStatus {
-	switch s {
+	switch strings.ToLower(s) {
 	case "firing":
 		return AlertStatusFiring
 	case "resolved":

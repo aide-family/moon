@@ -27,6 +27,20 @@ type dashboardRepositoryImpl struct {
 	data *data.Data
 }
 
+func (d *dashboardRepositoryImpl) BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error {
+	if len(params.IDs) == 0 {
+		return nil
+	}
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+	_, err = bizQuery.WithContext(ctx).
+		Dashboard.Where(bizQuery.Dashboard.ID.In(params.IDs...)).
+		Update(bizQuery.Dashboard.Status, params.Status)
+	return err
+}
+
 func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddDashboardParams) error {
 	dashboardModuleBuilder := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithBoAddDashboardParams(req)
 	dashboardModel := dashboardModuleBuilder.ToDo()

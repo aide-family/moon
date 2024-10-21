@@ -29,7 +29,7 @@ jwt:
     - /api.admin.authorization.Authorization/SetEmailWithLogin
 
 cache:
-  driver: "free"
+  driver: "redis"
   redis:
     network: "tcp"
     addr: localhost:6379

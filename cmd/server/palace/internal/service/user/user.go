@@ -6,6 +6,7 @@ import (
 	userapi "github.com/aide-family/moon/api/admin/user"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -152,4 +153,15 @@ func (s *Service) UpdateUserBaseInfo(ctx context.Context, req *userapi.UpdateUse
 		return nil, err
 	}
 	return &userapi.UpdateUserBaseInfoReply{}, nil
+}
+
+// GetUserSelfBasic 获取用户个人基础信息
+func (s *Service) GetUserSelfBasic(ctx context.Context, _ *userapi.GetUserSelfBasicRequest) (*userapi.GetUserSelfBasicReply, error) {
+	userDo, err := s.userBiz.GetUser(ctx, middleware.GetUserID(ctx))
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &userapi.GetUserSelfBasicReply{
+		Detail: builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
+	}, nil
 }

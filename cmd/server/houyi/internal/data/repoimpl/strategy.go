@@ -115,6 +115,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		}
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
+		s.data.GetCacher().Delete(ctx, strategy.Index())
 		return alarmInfo, nil
 	}
 	datasourceCliList, err := s.getDatasourceCliList(strategy)
@@ -138,6 +139,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		valLength := len(point.Values)
 		endPointValue := point.Values[valLength-1]
 
+		labels.AppendMap(alarmInfo.CommonLabels.Map()).AppendMap(point.Labels)
 		formatValue := map[string]any{
 			"value":  endPointValue.Value,
 			"time":   endPointValue.Timestamp,
@@ -150,8 +152,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		}
 		alert := &bo.Alert{
 			Status:       vobj.AlertStatusFiring,
-			Labels:       vobj.NewLabels(point.Labels).AppendMap(alarmInfo.CommonLabels.Map()), // 合并label
-			Annotations:  annotations,                                                          // 填充
+			Labels:       labels,      // 合并label
+			Annotations:  annotations, // 填充
 			StartsAt:     types.NewTimeByUnix(endPointValue.Timestamp),
 			EndsAt:       nil,
 			GeneratorURL: "", // TODO 生成事件图表链接
@@ -189,7 +191,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		// 删除缓存
 		s.data.GetCacher().Delete(ctx, strategy.Index())
 		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
-		return nil, merr.ErrorNotification("暂无告警")
+		return alarmInfo, nil
 	}
 	if len(alertIndexList) > 0 {
 		// 缓存告警指纹， 用于完全消失时候的告警恢复
@@ -197,7 +199,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			log.Warnw("method", "storage.put", "error", err)
 		}
 	} else {
-		//s.data.GetCacher().Delete(ctx, strategy.Index())
+		s.data.GetCacher().Delete(ctx, strategy.Index())
 	}
 	alarmInfo.Alerts = alerts
 	return alarmInfo, nil

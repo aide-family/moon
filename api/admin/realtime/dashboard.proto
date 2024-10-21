@@ -33,7 +33,7 @@ service Dashboard {
 	// 删除大盘
 	rpc DeleteDashboard (DeleteDashboardRequest) returns (DeleteDashboardReply) {
 		option (google.api.http) = {
-			delete: "/v1/admin/realtime/dashboard/delete"
+			delete: "/v1/admin/realtime/dashboard/delete/{id}"
 		};
 	}
 
@@ -56,6 +56,14 @@ service Dashboard {
 	rpc ListDashboardSelect (ListDashboardRequest) returns (ListDashboardSelectReply) {
 		option (google.api.http) = {
 			post: "/v1/admin/realtime/dashboard/list/select"
+			body: "*"
+		};
+	}
+
+	// 批量修改仪表板状态
+	rpc BatchUpdateDashboardStatus (BatchUpdateDashboardStatusRequest) returns (BatchUpdateDashboardStatusReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/batch/update/status"
 			body: "*"
 		};
 	}
@@ -153,3 +161,14 @@ message ListDashboardSelectReply {
 	// 分页
 	PaginationReply pagination = 2;
 }
+
+message BatchUpdateDashboardStatusRequest {
+	// 仪表板ID列表
+	repeated uint32 ids = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this.size() > 0'
+	}];
+	// 仪表板状态
+	Status status = 2;
+}
+message BatchUpdateDashboardStatusReply {}

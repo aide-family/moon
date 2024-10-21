@@ -15,7 +15,7 @@ type RealtimeDetails struct {
 	// 相关策略
 	Strategy string `gorm:"column:strategy;type:varchar(2000);not null;comment:相关策略" json:"strategy"`
 	// 策略等级
-	Level string `gorm:"column:level;type:varchar(2000);not null;comment:策略等级" json:"level"`
+	Level string `gorm:"column:level;type:text;not null;comment:策略等级" json:"level"`
 	// 数据源
 	Datasource string `gorm:"column:datasource;type:varchar(2000);not null;comment:数据源" json:"datasource"`
 	// 实时告警ID

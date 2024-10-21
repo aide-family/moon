@@ -44,3 +44,8 @@ func (b *DashboardBiz) GetDashboard(ctx context.Context, id uint32) (*bizmodel.D
 func (b *DashboardBiz) ListDashboard(ctx context.Context, params *bo.ListDashboardParams) ([]*bizmodel.Dashboard, error) {
 	return b.dashboardRepository.ListDashboard(ctx, params)
 }
+
+// BatchUpdateDashboardStatus 批量更新仪表盘状态
+func (b *DashboardBiz) BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error {
+	return b.dashboardRepository.BatchUpdateDashboardStatus(ctx, params)
+}

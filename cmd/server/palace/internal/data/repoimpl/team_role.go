@@ -214,6 +214,7 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	idStrList := types.SliceTo(ids, func(id uint32) string {
 		return strconv.FormatUint(uint64(id), 10)
 	})
+	defer l.data.GetCasbin(teamID).LoadPolicy()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		queryTx := bizquery.Use(tx)
 		if _, err = queryTx.SysTeamRole.WithContext(ctx).
@@ -230,14 +231,13 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 		} else {
 			// 禁用则删除权限
 			for _, roleStr := range idStrList {
-				_, err = l.data.GetCasbinByTx(tx).DeleteRole(roleStr)
+				_, err = l.data.GetCasbinByTx(tx).DeletePermission(roleStr)
 				if !types.IsNil(err) {
 					return err
 				}
 			}
 		}
-
-		return l.data.GetCasbin(teamID).LoadPolicy()
+		return nil
 	})
 }
 

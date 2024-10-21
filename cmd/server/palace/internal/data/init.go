@@ -719,6 +719,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 批量修改仪表板状态
+	{
+		Name:   "批量修改仪表板状态",
+		Path:   "/api.admin.realtime.Dashboard/BatchUpdateDashboardStatus",
+		Remark: "批量修改仪表板状态， 用于批量修改仪表板状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 	// 系统公共API资源管理模块
 	// 获取资源详情
 	{
@@ -1176,6 +1184,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowSystem,
 	},
+	// 获取个人信息
+	{
+		Name:   "获取个人信息",
+		Path:   "/api.admin.user.User/GetUserSelfBasic",
+		Remark: "获取用户个人信息",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowUser,
+	},
 	// 列表用户
 	{
 		Name:   "用户列表",
@@ -1312,5 +1328,22 @@ var resourceList = []*model.SysAPI{
 		Remark: "取消消息， 用于取消消息",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowUser,
+	},
+	// 告警历史模块
+	// 获取告警历史记录
+	{
+		Name:   "获取告警历史记录",
+		Path:   "/api.admin.history.History/GetHistory",
+		Remark: "获取告警历史记录， 用于获取告警历史记录",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取告警历史记录列表
+	{
+		Name:   "获取告警历史记录列表",
+		Path:   "/api.admin.history.History/ListHistory",
+		Remark: "获取告警历史记录列表， 用于获取告警历史记录列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
 	},
 }

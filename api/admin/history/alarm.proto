@@ -12,6 +12,7 @@ option go_package = "github.com/aide-family/moon/./api/admin/history;history";
 option java_multiple_files = true;
 option java_package = "api.admin.history";
 
+// 告警历史模块
 service History {
   // 获取告警历史记录
   rpc GetHistory (GetHistoryRequest) returns (GetHistoryReply){
@@ -19,6 +20,7 @@ service History {
       get: "/v1/admin/history/alarm/{id}"
     };
   };
+  // 获取告警历史记录列表
   rpc ListHistory (ListHistoryRequest) returns (ListHistoryReply){
     option (google.api.http) = {
       post: "/v1/admin/history/alarm/list"

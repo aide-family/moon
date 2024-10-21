@@ -18,7 +18,7 @@ type RealtimeAlarm struct {
 	// 恢复时间
 	EndsAt string `gorm:"column:ends_at;type:varchar(100);not null;comment:恢复时间"`
 	// 告警摘要
-	Summary string `gorm:"column:summary;type:varchar(255);not null;comment:告警摘要"`
+	Summary string `gorm:"column:summary;type:text;not null;comment:告警摘要"`
 	// 告警明细
 	Description string `gorm:"column:description;type:text;not null;comment:告警明细"`
 	// 触发告警表达式

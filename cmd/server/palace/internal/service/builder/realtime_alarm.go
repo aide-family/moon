@@ -32,6 +32,7 @@ type (
 		WithUpdateDashboardRequest(*realtimeapi.UpdateDashboardRequest) IUpdateDashboardRequestBuilder
 		WithDeleteDashboardRequest(*realtimeapi.DeleteDashboardRequest) IDeleteDashboardRequestBuilder
 		WithListDashboardRequest(*realtimeapi.ListDashboardRequest) IListDashboardRequestBuilder
+		WithBatchUpdateDashboardStatusRequest(*realtimeapi.BatchUpdateDashboardStatusRequest) IBatchUpdateDashboardStatusRequestBuilder
 		DoDashboardBuilder() IDoDashboardBuilder
 
 		BoChartBuilder() IBoChartBuilder
@@ -39,6 +40,15 @@ type (
 
 		WithBoAddDashboardParams(*bo.AddDashboardParams) IBoAddDashboardParamsBuilder
 		WithBoUpdateDashboardParams(*bo.UpdateDashboardParams) IBoUpdateDashboardParamsBuilder
+	}
+
+	IBatchUpdateDashboardStatusRequestBuilder interface {
+		ToBo() *bo.BatchUpdateDashboardStatusParams
+	}
+
+	batchUpdateDashboardStatusRequestBuilder struct {
+		*realtimeapi.BatchUpdateDashboardStatusRequest
+		ctx context.Context
 	}
 
 	IBoAddDashboardParamsBuilder interface {
@@ -170,6 +180,23 @@ type (
 		ctx context.Context
 	}
 )
+
+func (b *batchUpdateDashboardStatusRequestBuilder) ToBo() *bo.BatchUpdateDashboardStatusParams {
+	if types.IsNil(b) || types.IsNil(b.BatchUpdateDashboardStatusRequest) {
+		return nil
+	}
+	return &bo.BatchUpdateDashboardStatusParams{
+		IDs:    b.GetIds(),
+		Status: vobj.Status(b.GetStatus()),
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithBatchUpdateDashboardStatusRequest(request *realtimeapi.BatchUpdateDashboardStatusRequest) IBatchUpdateDashboardStatusRequestBuilder {
+	return &batchUpdateDashboardStatusRequestBuilder{
+		ctx:                               r.ctx,
+		BatchUpdateDashboardStatusRequest: request,
+	}
+}
 
 func (b *boUpdateDashboardParamsBuilder) ToDo() *bizmodel.Dashboard {
 	if types.IsNil(b) || types.IsNil(b.UpdateDashboardParams) {

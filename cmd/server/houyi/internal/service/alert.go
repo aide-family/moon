@@ -8,7 +8,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/service/build"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 // AlertService 告警服务
@@ -58,6 +57,6 @@ func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*
 
 // InnerAlarm 内部告警
 func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Alarm, error) {
-	log.Debugw("InnerAlarm", req)
+	//log.Debugw("InnerAlarm", req)
 	return s.strategyBiz.Eval(ctx, req)
 }

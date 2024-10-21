@@ -44,6 +44,13 @@ service User {
     };
   }
 
+  // 获取个人信息
+  rpc GetUserSelfBasic (GetUserSelfBasicRequest) returns (GetUserSelfBasicReply) {
+    option (google.api.http) = {
+      get: "/v1/user/self/basic"
+    };
+  }
+
   // 列表用户
   rpc ListUser (ListUserRequest) returns (ListUserReply) {
     option (google.api.http) = {
@@ -341,3 +348,8 @@ message UpdateUserBaseInfoRequest {
   }];
 }
 message UpdateUserBaseInfoReply {}
+
+message GetUserSelfBasicRequest {}
+message GetUserSelfBasicReply {
+  UserItem detail = 1;
+}

@@ -12,7 +12,7 @@ const tableNameStrategyLevel = "strategy_level"
 type StrategyLevel struct {
 	model.AllFieldModel
 	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;index:idx__strategy_id__level_id" json:"strategy_id"`
+	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__level_id" json:"strategy_id"`
 	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 	// 持续时间
 	Duration int64 `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
@@ -27,7 +27,7 @@ type StrategyLevel struct {
 	// 阈值
 	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold"`
 	// 告警等级
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级;index:idx__strategy_id__level_id" json:"level_id"`
+	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级;uniqueIndex:idx__strategy_id__level_id" json:"level_id"`
 	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
 	// 状态
 	Status vobj.Status `gorm:"column:status;type:int;not null;default:1;comment:策略状态" json:"status"`

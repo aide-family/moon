@@ -86,3 +86,12 @@ func (s *DashboardService) ListDashboardSelect(ctx context.Context, req *realtim
 		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
+
+// BatchUpdateDashboardStatus 批量更新监控大盘状态
+func (s *DashboardService) BatchUpdateDashboardStatus(ctx context.Context, req *realtimeapi.BatchUpdateDashboardStatusRequest) (*realtimeapi.BatchUpdateDashboardStatusReply, error) {
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithBatchUpdateDashboardStatusRequest(req).ToBo()
+	if err := s.dashboardBiz.BatchUpdateDashboardStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.BatchUpdateDashboardStatusReply{}, nil
+}

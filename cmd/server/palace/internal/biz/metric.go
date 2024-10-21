@@ -9,9 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 
-	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm"
 )
 
 // NewMetricBiz 创建指标业务
@@ -44,10 +42,7 @@ func (b *MetricBiz) GetMetricByID(ctx context.Context, params *bo.GetMetricParam
 		detail, err = b.metricRepository.Get(ctx, params.ID)
 	}
 	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nToastMetricNotFound(ctx)
-		}
-		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+		return nil, err
 	}
 	return
 }
