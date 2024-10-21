@@ -39,5 +39,5 @@ message UpdateAlarmPageReply {}
 
 message ListAlarmPageRequest {}
 message ListAlarmPageReply {
-	repeated SelfAlarmPageItem list = 1;
+	repeated DictItem list = 1;
 }

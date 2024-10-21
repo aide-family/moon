@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"sort"
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
@@ -105,8 +106,8 @@ type (
 	}
 
 	IDoAlarmPageSelfBuilder interface {
-		ToAPI(*bizmodel.AlarmPageSelf) *adminapi.SelfAlarmPageItem
-		ToAPIs([]*bizmodel.AlarmPageSelf) []*adminapi.SelfAlarmPageItem
+		ToAPI(*bizmodel.AlarmPageSelf) *adminapi.DictItem
+		ToAPIs([]*bizmodel.AlarmPageSelf) []*adminapi.DictItem
 	}
 
 	doAlarmPageSelfBuilder struct {
@@ -503,31 +504,24 @@ func (c *createDashboardRequestBuilder) ToBo() *bo.AddDashboardParams {
 	}
 }
 
-func (d *doAlarmPageSelfBuilder) ToAPI(self *bizmodel.AlarmPageSelf) *adminapi.SelfAlarmPageItem {
+func (d *doAlarmPageSelfBuilder) ToAPI(self *bizmodel.AlarmPageSelf) *adminapi.DictItem {
 	if types.IsNil(d) || types.IsNil(self) || types.IsNil(self.AlarmPage) {
 		return nil
 	}
 
 	alarmPageInfo := self.AlarmPage
-	return &adminapi.SelfAlarmPageItem{
-		Id:           self.ID,
-		Name:         alarmPageInfo.GetName(),
-		ColorType:    alarmPageInfo.GetColorType(),
-		CssClass:     alarmPageInfo.GetCSSClass(),
-		Value:        alarmPageInfo.GetValue(),
-		Icon:         alarmPageInfo.GetIcon(),
-		ImageUrl:     alarmPageInfo.GetImageURL(),
-		LanguageCode: alarmPageInfo.GetLanguageCode().String(),
-		Remark:       alarmPageInfo.GetRemark(),
-	}
+	return NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPI(alarmPageInfo)
 }
 
-func (d *doAlarmPageSelfBuilder) ToAPIs(selves []*bizmodel.AlarmPageSelf) []*adminapi.SelfAlarmPageItem {
+func (d *doAlarmPageSelfBuilder) ToAPIs(selves []*bizmodel.AlarmPageSelf) []*adminapi.DictItem {
 	if types.IsNil(d) || types.IsNil(selves) {
 		return nil
 	}
 
-	return types.SliceTo(selves, func(self *bizmodel.AlarmPageSelf) *adminapi.SelfAlarmPageItem {
+	sort.Slice(selves, func(i, j int) bool {
+		return selves[i].Sort < selves[j].Sort
+	})
+	return types.SliceTo(selves, func(self *bizmodel.AlarmPageSelf) *adminapi.DictItem {
 		return d.ToAPI(self)
 	})
 }
