@@ -6,6 +6,7 @@ type (
 	CreateAlarmRawParams struct {
 		Fingerprint string `json:"fingerprint"`
 		RawInfo     string `json:"rawInfo"`
+		Receiver    string `json:"receiver"`
 	}
 
 	// GetTeamStrategyParams 获取团队策略参数

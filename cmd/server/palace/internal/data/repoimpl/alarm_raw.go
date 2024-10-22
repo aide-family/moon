@@ -31,7 +31,11 @@ func (r *alarmRawRepositoryImpl) CreateAlarmRaws(ctx context.Context, param []*b
 	}
 
 	alarmRawModels := types.SliceTo(param, func(item *bo.CreateAlarmRawParams) *alarmmodel.AlarmRaw {
-		return &alarmmodel.AlarmRaw{RawInfo: item.RawInfo, Fingerprint: item.Fingerprint}
+		return &alarmmodel.AlarmRaw{
+			Receiver:    item.Receiver,
+			RawInfo:     item.RawInfo,
+			Fingerprint: item.Fingerprint,
+		}
 	})
 	err = alarmQuery.AlarmRaw.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(alarmRawModels, len(alarmRawModels))
 	if err != nil {

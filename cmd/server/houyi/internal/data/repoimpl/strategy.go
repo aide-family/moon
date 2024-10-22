@@ -80,7 +80,7 @@ func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
 	strategy.Labels.Append(vobj.TeamID, fmt.Sprintf("%d", strategy.TeamID))
 
 	alarmInfo := bo.Alarm{
-		Receiver:          strings.Join(types.SliceTo(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("%d", id) }), ","),
+		Receiver:          strings.Join(types.SliceTo(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.TeamID, id) }), ","),
 		Status:            vobj.AlertStatusFiring,
 		Alerts:            nil,
 		GroupLabels:       strategy.Labels,

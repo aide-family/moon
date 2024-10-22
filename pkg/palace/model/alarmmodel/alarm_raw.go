@@ -11,6 +11,8 @@ const tableNameAlarmRaws = "alarm_raws"
 // AlarmRaw 告警原始信息
 type AlarmRaw struct {
 	model.EasyModel
+	// 接收对象
+	Receiver string `gorm:"column:receiver;type:text;not null;comment:接收对象"`
 	// 原始信息json
 	RawInfo string `gorm:"column:raw_info;type:text;not null;comment:原始信息json"`
 	// 指纹

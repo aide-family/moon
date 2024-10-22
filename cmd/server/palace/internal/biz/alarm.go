@@ -50,8 +50,9 @@ func (b *AlarmBiz) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
 func (b *AlarmBiz) CreateAlarmRawInfo(ctx context.Context, param *bo.CreateAlarmHookRawParams) ([]*alarmmodel.AlarmRaw, error) {
 	rawParamList := types.SliceTo(param.Alerts, func(item *bo.AlertItemRawParams) *bo.CreateAlarmRawParams {
 		return &bo.CreateAlarmRawParams{
-			RawInfo:     item.GetAlertItemString(),
 			Fingerprint: item.Fingerprint,
+			RawInfo:     item.GetAlertItemString(),
+			Receiver:    param.Receiver,
 		}
 	})
 	return b.alarmRawRepository.CreateAlarmRaws(ctx, rawParamList, param.TeamID)
