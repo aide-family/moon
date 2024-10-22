@@ -121,3 +121,21 @@ log:
 #  port: 25
 #  user:
 #  pass:
+
+oss:
+  type: "minio"
+  limitSize:
+    yml:
+      max: 524228
+    yaml:
+      max: 524228
+#  local:
+#    path: "./data/moon_oss"
+#    url: http://127.0.0.1:8001
+#    downloadPre: "/file/download"
+  minio:
+    endpoint: 127.0.0.1:9000
+    accessKeyID: minio
+    accessKeySecret: minio123
+    bucketName: moon-oss
+    secure: false

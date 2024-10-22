@@ -24,6 +24,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/file"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/history"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
@@ -107,6 +108,7 @@ func RegisterService(
 	inviteService *invite.Service,
 	messageService *user.MessageService,
 	historyService *history.Service,
+	fileService *file.Service,
 	systemService *system.Service,
 ) *Server {
 	// 注册GRPC服务
@@ -173,6 +175,11 @@ func RegisterService(
 	auth.GET("/github/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGithub))
 	auth.GET("/gitee", authorizationService.OAuthLogin(vobj.OAuthAPPGitee))
 	auth.GET("/gitee/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGitee))
+
+	// fileRoute
+	fileRoute := httpSrv.Route("/file")
+	fileRoute.POST("/upload/file", fileService.UploadFile)
+	fileRoute.GET("/download/{filePath}", fileService.DownloadFile)
 
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {

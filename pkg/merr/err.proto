@@ -428,4 +428,31 @@ enum ErrorReason {
     (errors.message) = "请求太频繁，请稍后再试",
     (errors.id) = "TOO_MANY_REQUESTS"
   ];
+
+  // 文件相关
+  FILE_RELATED = 7[
+    (errors.code) = 430,
+    (errors.message) = "文件相关异常",
+    (errors.id) = "FILE_RELATED",
+    (errors.biz_reason) = {
+      // 文件内容不存在
+      reason: "FILE_CONTENT_DOES_NOT_EXIST"
+      message: "文件:[%s]内容不存在！",
+    },
+    (errors.biz_reason) = {
+      // 不支持该文件类型上传
+      reason: "FILE_NOT_SUPPORTED_UPLOAD"
+      message: "不支持该文件类型：%s上传",
+    },
+    (errors.biz_reason) = {
+      // 该类型文件大小超过最大限制
+      reason: "FILE_MAXIMUM_LIMIT"
+      message: "该类型[%s]文件大小超过最大限制!",
+    },
+    (errors.biz_reason) = {
+      // oss未打开
+      reason: "OSS_NOT_OPENED"
+      message: "oss未打开,不允许上传文件!",
+    }
+  ];
 }

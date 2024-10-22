@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/oss"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
 	"github.com/aide-family/moon/pkg/util/email"
@@ -40,6 +41,9 @@ type Data struct {
 	teamBizDBMap *sync.Map
 	alarmDBMap   *sync.Map
 
+	ossClient oss.OssClient
+	ossConf   *conf.Oss
+
 	// 策略队列
 	strategyQueue watch.Queue
 	// 告警队列
@@ -61,6 +65,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	bizConf := c.GetBizDatabase()
 	cacheConf := c.GetCache()
 	emailConf := c.GetEmailConfig()
+	ossConf := c.GetOss()
 	d := &Data{
 		bizDatabaseConf:         bizConf,
 		alarmDatabaseConf:       alarmConf,
@@ -72,6 +77,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
 		alertConsumerStorage:    watch.NewDefaultStorage(),
 		emailer:                 email.NewMockEmail(),
+		ossConf:                 ossConf,
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -89,6 +95,12 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	d.cacher = newCache(cacheConf)
+
+	// 是否开启oss
+	if ossConf.Open {
+		d.ossClient = newOssCli(ossConf)
+	}
+
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close cache", d.cacher.Close())
 	})
@@ -437,4 +449,57 @@ func (d *Data) GetAlertConsumerStorage() watch.Storage {
 		log.Warn("alertConsumerStorage is nil")
 	}
 	return d.alertConsumerStorage
+}
+
+func newOssCli(c *conf.Oss) oss.OssClient {
+	var client oss.OssClient
+	switch c.GetType() {
+	case "aliyun":
+		aliOSS, err := oss.NewAliOSS(c.GetAliOss())
+		if !types.IsNil(err) {
+			panic(err)
+		}
+		client = aliOSS
+	case "tencent":
+		tencentOss, err := oss.NewTencentOss(c.GetTencentOss())
+		if !types.IsNil(err) {
+			panic(err)
+		}
+		client = tencentOss
+	case "minio":
+		minIOClient, err := oss.NewMinIO(c.GetMinio())
+		if !types.IsNil(err) {
+			panic(err)
+		}
+		client = minIOClient
+	case "local":
+		client = oss.NewLocalStorage(c.GetLocal())
+	default:
+		client = oss.NewLocalStorage(c.GetLocal())
+	}
+	return client
+}
+
+// GetOssCli 获取oss客户端
+func (d *Data) GetOssCli() oss.OssClient {
+	if types.IsNil(d.ossClient) {
+		log.Warn("persistence ossClient is nil")
+	}
+	return d.ossClient
+}
+
+// GetFileLimitSize 获取文件大小限制配置
+func (d *Data) GetFileLimitSize() map[string]*conf.FileLimit {
+	if types.IsNil(d.ossConf) {
+		return map[string]*conf.FileLimit{}
+	}
+	return d.ossConf.GetLimitSize()
+}
+
+// OssIsOpen 是否开启oss
+func (d *Data) OssIsOpen() bool {
+	if types.IsNil(d.ossConf) {
+		return false
+	}
+	return d.ossConf.GetOpen()
 }
