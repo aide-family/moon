@@ -53,9 +53,13 @@ type (
 		AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder
 
 		AlarmModuleBuilder() IAlarmModuleBuilder
+		YamlModuleBuilder() IYamlModuleBuild
 	}
 )
 
+func (p *paramsBuilder) YamlModuleBuilder() IYamlModuleBuild {
+	return &yamlModuleBuild{ctx: p.ctx}
+}
 func (p *paramsBuilder) AlarmModuleBuilder() IAlarmModuleBuilder {
 	return &alarmModuleBuilder{ctx: p.ctx}
 }

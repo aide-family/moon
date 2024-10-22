@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api.admin.yaml;
+
+option go_package = "github.com/aide-family/moon//api/admin/yaml;yaml";
+option java_multiple_files = true;
+option java_package = ".api.admin.yaml";
+
+service Yaml {
+  // yaml文件转json
+  rpc YamlToJson (UploadYamlFileRequest) returns (UploadYamlFileReply);
+  // json文件转yaml
+  rpc JsonToYaml (UploadJsonRequest) returns (UploadJsonReply);
+}
+
+message UploadYamlFileRequest {
+  bytes file = 1;
+}
+message UploadYamlFileReply {
+  map<string, string> data = 1;
+}
+
+message UploadJsonRequest {
+  bytes file = 1;
+}
+message UploadJsonReply {
+  map<string, string> data = 1;
+}
