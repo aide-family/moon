@@ -216,9 +216,9 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 	if ok {
 		return nil
 	}
-	srv, err := l.SrvRegister(srvKey, req.GetServer(), req.GetTeamIds())
+	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())
 	if !types.IsNil(err) {
-		log.Errorw("method", "SrvRegister", "err", err)
+		log.Errorw("method", "srvRegister", "err", err)
 		return err
 	}
 
@@ -316,8 +316,8 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 	return ch, nil
 }
 
-// SrvRegister 服务注册
-func (l *HouYiConn) SrvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
+// srvRegister 服务注册
+func (l *HouYiConn) srvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
 	network := vobj.ToNetwork(microServer.GetNetwork())
 	srv := &Srv{
 		srvInfo:      microServer,

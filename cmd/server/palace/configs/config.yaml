@@ -63,14 +63,14 @@ cache:
 
 database:
   driver: "mysql"
-  debug: true
+  debug: false
   dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
 #  driver: "sqlite"
 #  debug: true
 #  dsn: "main.db"
 bizDatabase:
   driver: "mysql"
-  debug: true
+  debug: false
   dsn: "root:12345678@tcp(localhost:3306)/"
 #  driver: "sqlite"
 #  debug: true

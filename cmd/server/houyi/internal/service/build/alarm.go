@@ -66,5 +66,6 @@ func (a *AlertBuilder) ToAPI() *api.AlertItem {
 		EndsAt:       alert.EndsAt.String(),
 		GeneratorURL: alert.GetExternalURL(),
 		Fingerprint:  alert.GetFingerprint(),
+		Value:        alert.Value,
 	}
 }

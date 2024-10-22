@@ -40,19 +40,13 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies []*bo.Strate
 }
 
 // Hook 告警hook
-func (s *AlertService) Hook(_ context.Context, req *api.AlarmItem) (*api.HookReply, error) {
-	param := builder.NewParamsBuild().
-		AlarmModuleBuilder().
-		WithCreateAlarmRawInfoRequest(req).
-		ToBo()
+func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+	param := builder.NewParamsBuild().WithContext(ctx).AlarmModuleBuilder().WithCreateAlarmRawInfoRequest(req).ToBo()
 	err := s.alertBiz.SaveAlertQueue(param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &api.HookReply{
-		Msg:  "success",
-		Code: 200,
-	}, nil
+	return &api.HookReply{Msg: "success", Code: 200}, nil
 }
 
 // CreateAlarmInfo 创建告警信息

@@ -106,10 +106,12 @@ func NewHTTPConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (
 }
 
 var defaultGrpcConnectParam = grpc.ConnectParams{
-	Backoff: backoff.Config{
-		MaxDelay: 0,
-	},
+	Backoff:           backoff.DefaultConfig,
 	MinConnectTimeout: 3 * time.Second,
+}
+
+func init() {
+	defaultGrpcConnectParam.Backoff.MaxDelay = 0
 }
 
 // Option grpc/http option

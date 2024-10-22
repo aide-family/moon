@@ -66,4 +66,6 @@ message AlertItem {
   string generatorURL = 6;
   // 指纹
   string fingerprint = 7;
+  // value
+  double value = 8;
 }

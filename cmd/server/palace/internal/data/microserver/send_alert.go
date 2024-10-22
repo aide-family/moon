@@ -6,6 +6,7 @@ import (
 	"time"
 
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
@@ -13,42 +14,49 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-func NewSendAlertRepository(data *data.RabbitConn) microrepository.SendAlert {
-	return &sendAlertRepositoryImpl{rabbitConn: data}
+func NewSendAlertRepository(data *data.Data, rabbitConn *data.RabbitConn) microrepository.SendAlert {
+	return &sendAlertRepositoryImpl{rabbitConn: rabbitConn, data: data}
 }
 
 type sendAlertRepositoryImpl struct {
+	data       *data.Data
 	rabbitConn *data.RabbitConn
 }
 
-func (s *sendAlertRepositoryImpl) Send(_ context.Context, m map[string]*alarmmodel.AlarmRaw) error {
-	tasks := make(chan *hookapi.SendMsgRequest, 100)
+func (s *sendAlertRepositoryImpl) Send(_ context.Context, alerts []*bo.AlertItemRawParams, rowMap map[string]*alarmmodel.AlarmRaw) error {
 	go func() {
 		defer after.RecoverX()
-		for _, v := range m {
-			routes := strings.Split(v.Receiver, ",")
+		for _, v := range alerts {
+			row, ok := rowMap[v.Fingerprint]
+			if !ok {
+				continue
+			}
+			routes := strings.Split(row.Receiver, ",")
 			if len(routes) == 0 {
 				continue
 			}
 			for _, route := range routes {
-				tasks <- &hookapi.SendMsgRequest{JsonData: v.RawInfo, Route: route}
+				setOK, err := s.data.GetCacher().SetNX(context.Background(), v.Key(route), v.Fingerprint, 2*time.Hour)
+				if err != nil {
+					log.Warnf("set cache failed: %v", err)
+					continue
+				}
+				if !setOK {
+					continue
+				}
+				task := &hookapi.SendMsgRequest{JsonData: v.GetAlertItemString(), Route: route}
+				s.send(task)
+				time.Sleep(100 * time.Millisecond)
 			}
 		}
-		for len(tasks) > 0 {
-		}
-		close(tasks)
 	}()
-	select {
-	case task, ok := <-tasks:
-		if !ok {
-			break
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := s.rabbitConn.SendMsg(ctx, task); err != nil {
-			log.Warnf("send alert failed: %v", err)
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
 	return nil
+}
+
+func (s *sendAlertRepositoryImpl) send(task *hookapi.SendMsgRequest) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.rabbitConn.SendMsg(ctx, task); err != nil {
+		log.Warnf("send alert failed: %v", err)
+	}
 }

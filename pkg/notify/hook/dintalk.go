@@ -48,10 +48,10 @@ func (l *dingTalk) Send(ctx context.Context, msg notify.Msg) error {
 		"sign":      l.generateSignature(timestamp, l.GetSecret()),
 	})
 	reqURL := fmt.Sprintf("%s&%s", l.GetWebhook(), params)
-	temp := l.GetTemplate()
-	msgStr := l.GetContent()
-	if temp != "" {
-		msgStr = temp
+	msgStr := l.GetTemplate()
+	content := l.GetContent()
+	if content != "" {
+		msgStr = content
 	}
 	msgStr = format.Formatter(msgStr, msg)
 	response, err := httpx.NewHTTPX().POSTWithContext(ctx, reqURL, []byte(msgStr))

@@ -37,21 +37,53 @@ data:
 # TODO 调整模板结构， 支持多租户
 templates:
   email: |
-    <h1>{{.Title}}</h1>
-    <p>{{.Content}}</p>
-  dingTalk: |
+    <h1>监控告警</h1>
+    <p>{{ . }}</p>
+  dingtalk: |
     {
-      "at": {
-          "atUserIds":[
-              "014728255240768602"
-          ],
-          "isAtAll": {{.IsAtAll}}
-      },
-      "text": {
-          "content":"我就是我, {{.Content}}"
-      },
-      "msgtype":"text"
+       "msgtype": "markdown",
+       "markdown": {
+           "title":"Moon监控告警通知",
+           "text": "#### Moon监控告警通知\n\n >摘要：{{ .annotations.summary}}\n\n >内容：{{ .annotations.description }}\n\n >告警时间：{{ .startsAt }}\n"
+       }
     }
+  feishu: |
+    {
+        "msg_type": "post",
+        "content": {
+            "post": {
+                "zh_cn": {
+                    "title": "Moon监控告警通知",
+                    "content": [
+                        [{
+                            "tag": "text",
+                            "text": "摘要：{{ .annotations.summary}}"
+                        }],
+                        [{
+                            "tag": "text",
+                            "text": "内容：{{ .annotations.description }}"
+                        }],
+                        [{
+                            "tag": "text",
+                            "text": "告警时间：{{ .startsAt }}"
+                        }]
+                    ]
+                }
+            }
+        }
+    }
+
+  wechat: |
+    {
+        "msgtype": "markdown",
+        "markdown": {
+            "content": "Moon监控告警，请相关同事注意。\n
+             >摘要:<font color=\"comment\">{{ .annotations.summary}}</font>
+             >内容:<font color=\"comment\">{{ .annotations.description }}</font>
+             >告警时间:<font color=\"comment\">{{ .startsAt }}</font>"
+        }
+    }
+
 
 global_email_config:
   host: smtp.163.com

@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/conf"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
@@ -50,31 +49,6 @@ type RabbitConn struct {
 	discoveryConf *conf.Discovery
 }
 
-// checkSrvIsAlive 检查服务是否存活
-func (l *RabbitConn) checkSrvIsAlive(ctx context.Context, srv *Srv) (err error) {
-	defer func() {
-		// 如果有错误，则移除服务
-		if !types.IsNil(err) {
-			l.srvs.deleteSrv(genSrvUniqueKey(srv.srvInfo))
-		}
-	}()
-	// 判断服务注册时间是否大于10秒 （当前时间是否在10之后）
-	if !time.Now().Before(srv.registerTime.Add(10 * time.Second)) {
-		return nil
-	}
-	// 检测服务是否存活
-	switch srv.network {
-	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
-		_, err = api.NewHealthHTTPClient(srv.httpClient).Check(ctx, &api.CheckRequest{})
-	default:
-		_, err = api.NewHealthClient(srv.rpcClient).Check(ctx, &api.CheckRequest{})
-	}
-	if !types.IsNil(err) {
-		return merr.ErrorNotificationSystemError("Rabbit 服务不可用")
-	}
-	return
-}
-
 // NotifyObject 发送通道配置
 func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectRequest, opts ...microserver.Option) error {
 	eg := new(errgroup.Group)
@@ -88,10 +62,6 @@ func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectR
 }
 
 func (l *RabbitConn) notifyObject(ctx context.Context, srv *Srv, in *pushapi.NotifyObjectRequest, opts ...microserver.Option) error {
-	conn := srv
-	if err := l.checkSrvIsAlive(ctx, conn); !types.IsNil(err) {
-		return err
-	}
 	switch srv.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 		httpOpts := make([]http.CallOption, 0)
@@ -116,9 +86,6 @@ func (l *RabbitConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, op
 	for _, srv := range l.srvs.getSrvs() {
 		conn := srv
 		eg.Go(func() error {
-			if err := l.checkSrvIsAlive(ctx, conn); !types.IsNil(err) {
-				return err
-			}
 			switch conn.network {
 			case vobj.NetworkHTTP, vobj.NetworkHTTPS:
 				httpOpts := make([]http.CallOption, 0)
@@ -150,9 +117,9 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 	if ok {
 		return nil
 	}
-	srv, err := l.SrvRegister(srvKey, req.GetServer(), req.GetTeamIds())
+	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())
 	if !types.IsNil(err) {
-		log.Errorw("method", "SrvRegister", "err", err)
+		log.Errorw("method", "srvRegister", "err", err)
 		return err
 	}
 	go func() {
@@ -279,15 +246,13 @@ func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *c
 		},
 		Templates: nil,
 	}
-	bs, _ := types.Marshal(params)
-	fmt.Println(string(bs))
 	log.Infow("syncNoticeGroup", "开始推送通知对象")
 	// 推送策略
 	return l.notifyObject(ctx, srv, params)
 }
 
-// SrvRegister 服务注册
-func (l *RabbitConn) SrvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
+// srvRegister 服务注册
+func (l *RabbitConn) srvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
 	network := vobj.ToNetwork(microServer.GetNetwork())
 	srv := &Srv{
 		srvInfo:      microServer,

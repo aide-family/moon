@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/types"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -45,21 +46,6 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 
 	tempMap := b.c.GetTemplates()
 	emailReceives := receives.GetEmails()
-	for _, emailItem := range emailReceives {
-		if types.IsNil(emailItem) {
-			continue
-		}
-		tempKey := emailItem.GetTemplate()
-		if temp, ok := tempMap[tempKey]; ok {
-			emailItem.Template = temp
-		}
-
-		if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); !types.IsNil(err) {
-			log.Warnw("send email error", err, "receiver", emailItem)
-			continue
-		}
-	}
-
 	hookReceivers := receives.GetHooks()
 	hookList := make([]any, 0, len(hookReceivers)*4)
 	for _, hookItem := range hookReceivers {
@@ -87,16 +73,39 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			hookList = append(hookList, otherItem)
 		}
 	}
+
+	eg := new(errgroup.Group)
+	for _, emailItem := range emailReceives {
+		if types.IsNil(emailItem) {
+			continue
+		}
+		tempKey := emailItem.GetTemplate()
+		if temp, ok := tempMap[tempKey]; ok {
+			emailItem.Template = temp
+		}
+
+		eg.Go(func() error {
+			if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); !types.IsNil(err) {
+				log.Warnw("send email error", err, "receiver", emailItem)
+				return err
+			}
+			return nil
+		})
+	}
+
 	// 发送hook告警
 	for _, hookItem := range hookList {
 		newNotify, err := hook.NewNotify(hookItem)
 		if !types.IsNil(err) {
 			continue
 		}
-		if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
-			log.Warnw("send hook error", err, "receiver", hookItem)
-			continue
-		}
+		eg.Go(func() error {
+			if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
+				log.Warnw("send hook error", err, "receiver", hookItem)
+				return err
+			}
+			return nil
+		})
 	}
-	return nil
+	return eg.Wait()
 }

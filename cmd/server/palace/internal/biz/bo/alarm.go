@@ -108,29 +108,12 @@ type (
 		GeneratorURL string `json:"generatorURL"`
 		// 指纹
 		Fingerprint string `json:"fingerprint"`
+		// Value
+		Value float64 `json:"value"`
 	}
 
 	// CreateAlarmItemParams 创建告警项请求参数
-	CreateAlarmItemParams struct {
-		// 告警状态, firing, resolved
-		Status string `json:"status"`
-		// 标签
-		Labels map[string]string `json:"labels"`
-		// 注解
-		Annotations map[string]string `json:"annotations"`
-		// 开始时间
-		StartsAt int64 `json:"startsAt"`
-		// 结束时间, 空表示未结束
-		EndsAt int64 `json:"endsAt"`
-		// 告警生成链接
-		GeneratorURL string `json:"generatorURL"`
-		// 指纹
-		Fingerprint string `json:"fingerprint"`
-		// 数据源ID
-		DatasourceID uint32 `json:"datasourceId"`
-		// 告警原始表id
-		RawInfoID uint32 `json:"rawId"`
-	}
+	CreateAlarmItemParams AlertItemRawParams
 
 	// CreateAlarmInfoParams 创建告警信息参数
 	CreateAlarmInfoParams struct {
@@ -206,9 +189,14 @@ func (a *AlertItemRawParams) GetAlertItemString() string {
 	if types.IsNil(a) {
 		return ""
 	}
-	bs, err := json.Marshal(a)
+	bs, err := types.Marshal(a)
 	if err != nil {
 		return ""
 	}
 	return string(bs)
+}
+
+// Key redis key
+func (a *AlertItemRawParams) Key(route string) string {
+	return "palace:notice:" + route + ":" + a.Fingerprint + ":" + a.Status
 }

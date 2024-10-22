@@ -62,6 +62,6 @@ func (a *AlertAPIBuilder) ToBo() *bo.Alert {
 		EndsAt:       types.NewTimeByString(a.GetEndsAt()),
 		GeneratorURL: a.GetGeneratorURL(),
 		Fingerprint:  a.GetFingerprint(),
-		Value:        0,
+		Value:        a.GetValue(),
 	}
 }

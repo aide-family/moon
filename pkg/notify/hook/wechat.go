@@ -37,10 +37,10 @@ func (l *wechatHookResp) Error() string {
 }
 
 func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
-	temp := l.GetTemplate()
-	msgStr := l.GetContent()
-	if temp != "" {
-		msgStr = temp
+	msgStr := l.GetTemplate()
+	content := l.GetContent()
+	if content != "" {
+		msgStr = content
 	}
 	msgStr = format.Formatter(msgStr, msg)
 	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), []byte(msgStr))

@@ -127,7 +127,7 @@ func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmIn
 	}
 
 	// 发送告警
-	if err := b.sendAlert.Send(ctx, params.RawInfoMap); !types.IsNil(err) {
+	if err := b.sendAlert.Send(ctx, params.Alerts, params.RawInfoMap); !types.IsNil(err) {
 		return err
 	}
 	return nil

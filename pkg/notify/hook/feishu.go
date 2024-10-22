@@ -44,10 +44,10 @@ func (l *feiShuHookResp) Error() string {
 
 func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 	notifyMsg := make(notify.Msg)
-	temp := l.GetTemplate()
-	msgStr := l.GetContent()
-	if temp != "" {
-		msgStr = temp
+	msgStr := l.GetTemplate()
+	content := l.GetContent()
+	if content != "" {
+		msgStr = content
 	}
 	msgStr = format.Formatter(msgStr, msg)
 	if err := types.Unmarshal([]byte(msgStr), &notifyMsg); err != nil {
