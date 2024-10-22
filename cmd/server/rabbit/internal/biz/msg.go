@@ -50,31 +50,13 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	tempMap := b.c.GetTemplates()
 	emailReceives := receives.GetEmails()
 	hookReceivers := receives.GetHooks()
-	hookList := make([]any, 0, len(hookReceivers)*4)
+	hookList := make([]hook.Config, 0, len(hookReceivers)*4)
 	for _, hookItem := range hookReceivers {
 		if types.IsNil(hookItem) {
 			continue
 		}
-		if !types.IsNil(hookItem.GetDingtalk()) {
-			dingTalkItem := hookItem.GetDingtalk()
-			dingTalkItem.Template = tempMap[dingTalkItem.GetTemplate()]
-			hookList = append(hookList, dingTalkItem)
-		}
-		if !types.IsNil(hookItem.GetWechat()) {
-			wechatWorkItem := hookItem.GetWechat()
-			wechatWorkItem.Template = tempMap[wechatWorkItem.GetTemplate()]
-			hookList = append(hookList, wechatWorkItem)
-		}
-		if !types.IsNil(hookItem.GetFeishu()) {
-			feishuItem := hookItem.GetFeishu()
-			feishuItem.Template = tempMap[feishuItem.GetTemplate()]
-			hookList = append(hookList, feishuItem)
-		}
-		if !types.IsNil(hookItem.GetOther()) {
-			otherItem := hookItem.GetOther()
-			otherItem.Template = tempMap[otherItem.GetTemplate()]
-			hookList = append(hookList, otherItem)
-		}
+		hookItem.Template = tempMap[hookItem.GetTemplate()]
+		hookList = append(hookList, hookItem)
 	}
 
 	eg := new(errgroup.Group)
@@ -103,13 +85,17 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			continue
 		}
 		eg.Go(func() error {
-			ok, err := b.data.GetCacher().SetNX(ctx, msg.Key(newNotify.Type()), "ok", 1*time.Hour)
-			if err != nil {
-				return err
+			key := msg.Key(newNotify.Type())
+			if !types.TextIsNull(key) {
+				ok, err := b.data.GetCacher().SetNX(ctx, msg.Key(newNotify.Type()), "ok", 1*time.Hour)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return nil
+				}
 			}
-			if !ok {
-				return nil
-			}
+
 			if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
 				log.Warnw("send hook error", err, "receiver", hookItem)
 				return err

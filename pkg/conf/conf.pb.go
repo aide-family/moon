@@ -1087,292 +1087,6 @@ func (x *EmailConfig) GetPort() uint32 {
 	return 0
 }
 
-// 钉钉
-type ReceiverHookDingTalk struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// hook地址
-	Webhook string `protobuf:"bytes,1,opt,name=webhook,proto3" json:"webhook,omitempty"`
-	// 钉钉加签秘钥
-	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	// 钉钉消息json内容，支持模板， 优先级高于模板
-	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	// 模板
-	Template string `protobuf:"bytes,4,opt,name=template,proto3" json:"template,omitempty"`
-}
-
-func (x *ReceiverHookDingTalk) Reset() {
-	*x = ReceiverHookDingTalk{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[15]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ReceiverHookDingTalk) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ReceiverHookDingTalk) ProtoMessage() {}
-
-func (x *ReceiverHookDingTalk) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[15]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ReceiverHookDingTalk.ProtoReflect.Descriptor instead.
-func (*ReceiverHookDingTalk) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ReceiverHookDingTalk) GetWebhook() string {
-	if x != nil {
-		return x.Webhook
-	}
-	return ""
-}
-
-func (x *ReceiverHookDingTalk) GetSecret() string {
-	if x != nil {
-		return x.Secret
-	}
-	return ""
-}
-
-func (x *ReceiverHookDingTalk) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *ReceiverHookDingTalk) GetTemplate() string {
-	if x != nil {
-		return x.Template
-	}
-	return ""
-}
-
-// 飞书
-type ReceiverHookFeiShu struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// hook地址
-	Webhook string `protobuf:"bytes,1,opt,name=webhook,proto3" json:"webhook,omitempty"`
-	// 钉钉加签秘钥
-	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	// 钉钉消息json内容，支持模板， 优先级高于模板
-	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	// 模板
-	Template string `protobuf:"bytes,4,opt,name=template,proto3" json:"template,omitempty"`
-}
-
-func (x *ReceiverHookFeiShu) Reset() {
-	*x = ReceiverHookFeiShu{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[16]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ReceiverHookFeiShu) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ReceiverHookFeiShu) ProtoMessage() {}
-
-func (x *ReceiverHookFeiShu) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[16]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ReceiverHookFeiShu.ProtoReflect.Descriptor instead.
-func (*ReceiverHookFeiShu) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *ReceiverHookFeiShu) GetWebhook() string {
-	if x != nil {
-		return x.Webhook
-	}
-	return ""
-}
-
-func (x *ReceiverHookFeiShu) GetSecret() string {
-	if x != nil {
-		return x.Secret
-	}
-	return ""
-}
-
-func (x *ReceiverHookFeiShu) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *ReceiverHookFeiShu) GetTemplate() string {
-	if x != nil {
-		return x.Template
-	}
-	return ""
-}
-
-// 企业微信
-type ReceiverHookWechatWork struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// hook地址
-	Webhook string `protobuf:"bytes,1,opt,name=webhook,proto3" json:"webhook,omitempty"`
-	// 钉钉消息json内容，支持模板， 优先级高于模板
-	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	// 模板
-	Template string `protobuf:"bytes,3,opt,name=template,proto3" json:"template,omitempty"`
-}
-
-func (x *ReceiverHookWechatWork) Reset() {
-	*x = ReceiverHookWechatWork{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[17]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ReceiverHookWechatWork) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ReceiverHookWechatWork) ProtoMessage() {}
-
-func (x *ReceiverHookWechatWork) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[17]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ReceiverHookWechatWork.ProtoReflect.Descriptor instead.
-func (*ReceiverHookWechatWork) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *ReceiverHookWechatWork) GetWebhook() string {
-	if x != nil {
-		return x.Webhook
-	}
-	return ""
-}
-
-func (x *ReceiverHookWechatWork) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *ReceiverHookWechatWork) GetTemplate() string {
-	if x != nil {
-		return x.Template
-	}
-	return ""
-}
-
-// 其他
-type ReceiverHookOther struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// hook地址
-	Webhook string `protobuf:"bytes,1,opt,name=webhook,proto3" json:"webhook,omitempty"`
-	// 钉钉消息json内容，支持模板， 优先级高于模板
-	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	// 模板
-	Template string `protobuf:"bytes,3,opt,name=template,proto3" json:"template,omitempty"`
-}
-
-func (x *ReceiverHookOther) Reset() {
-	*x = ReceiverHookOther{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[18]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ReceiverHookOther) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ReceiverHookOther) ProtoMessage() {}
-
-func (x *ReceiverHookOther) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[18]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ReceiverHookOther.ProtoReflect.Descriptor instead.
-func (*ReceiverHookOther) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *ReceiverHookOther) GetWebhook() string {
-	if x != nil {
-		return x.Webhook
-	}
-	return ""
-}
-
-func (x *ReceiverHookOther) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *ReceiverHookOther) GetTemplate() string {
-	if x != nil {
-		return x.Template
-	}
-	return ""
-}
-
 // 邮件目标
 type ReceiverEmail struct {
 	state         protoimpl.MessageState
@@ -1398,7 +1112,7 @@ type ReceiverEmail struct {
 func (x *ReceiverEmail) Reset() {
 	*x = ReceiverEmail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[19]
+		mi := &file_conf_conf_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1411,7 +1125,7 @@ func (x *ReceiverEmail) String() string {
 func (*ReceiverEmail) ProtoMessage() {}
 
 func (x *ReceiverEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[19]
+	mi := &file_conf_conf_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1424,7 +1138,7 @@ func (x *ReceiverEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiverEmail.ProtoReflect.Descriptor instead.
 func (*ReceiverEmail) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{19}
+	return file_conf_conf_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ReceiverEmail) GetTo() string {
@@ -1486,7 +1200,7 @@ type ReceiverPhone struct {
 func (x *ReceiverPhone) Reset() {
 	*x = ReceiverPhone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[20]
+		mi := &file_conf_conf_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1499,7 +1213,7 @@ func (x *ReceiverPhone) String() string {
 func (*ReceiverPhone) ProtoMessage() {}
 
 func (x *ReceiverPhone) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[20]
+	mi := &file_conf_conf_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1512,7 +1226,7 @@ func (x *ReceiverPhone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiverPhone.ProtoReflect.Descriptor instead.
 func (*ReceiverPhone) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{20}
+	return file_conf_conf_proto_rawDescGZIP(), []int{16}
 }
 
 // hook目标
@@ -1521,20 +1235,21 @@ type ReceiverHook struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// 钉钉
-	Dingtalk *ReceiverHookDingTalk `protobuf:"bytes,1,opt,name=dingtalk,proto3" json:"dingtalk,omitempty"`
-	// 飞书
-	Feishu *ReceiverHookFeiShu `protobuf:"bytes,2,opt,name=feishu,proto3" json:"feishu,omitempty"`
-	// 企业微信
-	Wechat *ReceiverHookWechatWork `protobuf:"bytes,3,opt,name=wechat,proto3" json:"wechat,omitempty"`
-	// 其他
-	Other *ReceiverHookOther `protobuf:"bytes,4,opt,name=other,proto3" json:"other,omitempty"`
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// hook地址
+	Webhook string `protobuf:"bytes,2,opt,name=webhook,proto3" json:"webhook,omitempty"`
+	// 钉钉消息json内容，支持模板， 优先级高于模板
+	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	// 模板
+	Template string `protobuf:"bytes,4,opt,name=template,proto3" json:"template,omitempty"`
+	// 加签秘钥
+	Secret string `protobuf:"bytes,5,opt,name=secret,proto3" json:"secret,omitempty"`
 }
 
 func (x *ReceiverHook) Reset() {
 	*x = ReceiverHook{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[21]
+		mi := &file_conf_conf_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1547,7 +1262,7 @@ func (x *ReceiverHook) String() string {
 func (*ReceiverHook) ProtoMessage() {}
 
 func (x *ReceiverHook) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[21]
+	mi := &file_conf_conf_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1560,35 +1275,42 @@ func (x *ReceiverHook) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiverHook.ProtoReflect.Descriptor instead.
 func (*ReceiverHook) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{21}
+	return file_conf_conf_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *ReceiverHook) GetDingtalk() *ReceiverHookDingTalk {
+func (x *ReceiverHook) GetType() string {
 	if x != nil {
-		return x.Dingtalk
+		return x.Type
 	}
-	return nil
+	return ""
 }
 
-func (x *ReceiverHook) GetFeishu() *ReceiverHookFeiShu {
+func (x *ReceiverHook) GetWebhook() string {
 	if x != nil {
-		return x.Feishu
+		return x.Webhook
 	}
-	return nil
+	return ""
 }
 
-func (x *ReceiverHook) GetWechat() *ReceiverHookWechatWork {
+func (x *ReceiverHook) GetContent() string {
 	if x != nil {
-		return x.Wechat
+		return x.Content
 	}
-	return nil
+	return ""
 }
 
-func (x *ReceiverHook) GetOther() *ReceiverHookOther {
+func (x *ReceiverHook) GetTemplate() string {
 	if x != nil {
-		return x.Other
+		return x.Template
 	}
-	return nil
+	return ""
+}
+
+func (x *ReceiverHook) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
 }
 
 type Receiver struct {
@@ -1605,7 +1327,7 @@ type Receiver struct {
 func (x *Receiver) Reset() {
 	*x = Receiver{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[22]
+		mi := &file_conf_conf_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1618,7 +1340,7 @@ func (x *Receiver) String() string {
 func (*Receiver) ProtoMessage() {}
 
 func (x *Receiver) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[22]
+	mi := &file_conf_conf_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1631,7 +1353,7 @@ func (x *Receiver) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Receiver.ProtoReflect.Descriptor instead.
 func (*Receiver) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{22}
+	return file_conf_conf_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Receiver) GetHooks() []*ReceiverHook {
@@ -1672,7 +1394,7 @@ type ReceiverPhone_Call struct {
 func (x *ReceiverPhone_Call) Reset() {
 	*x = ReceiverPhone_Call{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[24]
+		mi := &file_conf_conf_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1685,7 +1407,7 @@ func (x *ReceiverPhone_Call) String() string {
 func (*ReceiverPhone_Call) ProtoMessage() {}
 
 func (x *ReceiverPhone_Call) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[24]
+	mi := &file_conf_conf_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1698,7 +1420,7 @@ func (x *ReceiverPhone_Call) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiverPhone_Call.ProtoReflect.Descriptor instead.
 func (*ReceiverPhone_Call) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{20, 0}
+	return file_conf_conf_proto_rawDescGZIP(), []int{16, 0}
 }
 
 // 短信
@@ -1711,7 +1433,7 @@ type ReceiverPhone_Sms struct {
 func (x *ReceiverPhone_Sms) Reset() {
 	*x = ReceiverPhone_Sms{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[25]
+		mi := &file_conf_conf_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1724,7 +1446,7 @@ func (x *ReceiverPhone_Sms) String() string {
 func (*ReceiverPhone_Sms) ProtoMessage() {}
 
 func (x *ReceiverPhone_Sms) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[25]
+	mi := &file_conf_conf_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1737,7 +1459,7 @@ func (x *ReceiverPhone_Sms) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiverPhone_Sms.ProtoReflect.Descriptor instead.
 func (*ReceiverPhone_Sms) Descriptor() ([]byte, []int) {
-	return file_conf_conf_proto_rawDescGZIP(), []int{20, 1}
+	return file_conf_conf_proto_rawDescGZIP(), []int{16, 1}
 }
 
 var File_conf_conf_proto protoreflect.FileDescriptor
@@ -1869,65 +1591,30 @@ var file_conf_conf_proto_rawDesc = []byte{
 	0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x04, 0x70, 0x61, 0x73, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f,
-	0x72, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x22, 0x7e,
-	0x0a, 0x14, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x44, 0x69,
-	0x6e, 0x67, 0x54, 0x61, 0x6c, 0x6b, 0x12, 0x18, 0x0a, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f,
-	0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b,
-	0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74,
-	0x65, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65,
-	0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x04,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x22, 0x7c,
-	0x0a, 0x12, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x46, 0x65,
-	0x69, 0x53, 0x68, 0x75, 0x12, 0x18, 0x0a, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x12, 0x16,
-	0x0a, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06,
-	0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
-	0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
-	0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x04, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x22, 0x68, 0x0a, 0x16,
-	0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x57, 0x65, 0x63, 0x68,
-	0x61, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x12, 0x18, 0x0a, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f,
-	0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b,
-	0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65,
-	0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x65,
-	0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x22, 0x63, 0x0a, 0x11, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76,
-	0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x4f, 0x74, 0x68, 0x65, 0x72, 0x12, 0x18, 0x0a, 0x07, 0x77,
-	0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x77, 0x65,
-	0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12,
-	0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x22, 0xbf, 0x01, 0x0a, 0x0d,
-	0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x12, 0x0e, 0x0a,
-	0x02, 0x74, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x74, 0x6f, 0x12, 0x18, 0x0a,
-	0x07, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
-	0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65,
-	0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
-	0x74, 0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x04, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x12, 0x0e, 0x0a,
-	0x02, 0x63, 0x63, 0x18, 0x05, 0x20, 0x03, 0x28, 0x09, 0x52, 0x02, 0x63, 0x63, 0x12, 0x1c, 0x0a,
-	0x09, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x55, 0x72, 0x6c, 0x18, 0x06, 0x20, 0x03, 0x28, 0x09,
-	0x52, 0x09, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x55, 0x72, 0x6c, 0x12, 0x20, 0x0a, 0x0b, 0x63,
-	0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0b, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x22, 0x1e, 0x0a,
-	0x0d, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x1a, 0x06,
-	0x0a, 0x04, 0x43, 0x61, 0x6c, 0x6c, 0x1a, 0x05, 0x0a, 0x03, 0x53, 0x6d, 0x73, 0x22, 0xed, 0x01,
-	0x0a, 0x0c, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x12, 0x3a,
-	0x0a, 0x08, 0x64, 0x69, 0x6e, 0x67, 0x74, 0x61, 0x6c, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x1e, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x65, 0x63, 0x65,
-	0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x44, 0x69, 0x6e, 0x67, 0x54, 0x61, 0x6c, 0x6b,
-	0x52, 0x08, 0x64, 0x69, 0x6e, 0x67, 0x74, 0x61, 0x6c, 0x6b, 0x12, 0x34, 0x0a, 0x06, 0x66, 0x65,
-	0x69, 0x73, 0x68, 0x75, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x70, 0x6b, 0x67,
-	0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f,
-	0x6f, 0x6b, 0x46, 0x65, 0x69, 0x53, 0x68, 0x75, 0x52, 0x06, 0x66, 0x65, 0x69, 0x73, 0x68, 0x75,
-	0x12, 0x38, 0x0a, 0x06, 0x77, 0x65, 0x63, 0x68, 0x61, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x20, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x65, 0x63, 0x65,
-	0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f, 0x6b, 0x57, 0x65, 0x63, 0x68, 0x61, 0x74, 0x57, 0x6f,
-	0x72, 0x6b, 0x52, 0x06, 0x77, 0x65, 0x63, 0x68, 0x61, 0x74, 0x12, 0x31, 0x0a, 0x05, 0x6f, 0x74,
-	0x68, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x70, 0x6b, 0x67, 0x2e,
-	0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f,
-	0x6b, 0x4f, 0x74, 0x68, 0x65, 0x72, 0x52, 0x05, 0x6f, 0x74, 0x68, 0x65, 0x72, 0x22, 0xd3, 0x01,
+	0x72, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x22, 0xbf,
+	0x01, 0x0a, 0x0d, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x45, 0x6d, 0x61, 0x69, 0x6c,
+	0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x74, 0x6f,
+	0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x07, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x6f,
+	0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x6f, 0x6e,
+	0x74, 0x65, 0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65,
+	0x12, 0x0e, 0x0a, 0x02, 0x63, 0x63, 0x18, 0x05, 0x20, 0x03, 0x28, 0x09, 0x52, 0x02, 0x63, 0x63,
+	0x12, 0x1c, 0x0a, 0x09, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x55, 0x72, 0x6c, 0x18, 0x06, 0x20,
+	0x03, 0x28, 0x09, 0x52, 0x09, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x55, 0x72, 0x6c, 0x12, 0x20,
+	0x0a, 0x0b, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65,
+	0x22, 0x1e, 0x0a, 0x0d, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x50, 0x68, 0x6f, 0x6e,
+	0x65, 0x1a, 0x06, 0x0a, 0x04, 0x43, 0x61, 0x6c, 0x6c, 0x1a, 0x05, 0x0a, 0x03, 0x53, 0x6d, 0x73,
+	0x22, 0x8a, 0x01, 0x0a, 0x0c, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f,
+	0x6b, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x77, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x12,
+	0x18, 0x0a, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x74, 0x65, 0x6d,
+	0x70, 0x6c, 0x61, 0x74, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x74, 0x65, 0x6d,
+	0x70, 0x6c, 0x61, 0x74, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x22, 0xd3, 0x01,
 	0x0a, 0x08, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x12, 0x2c, 0x0a, 0x05, 0x68, 0x6f,
 	0x6f, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x70, 0x6b, 0x67, 0x2e,
 	0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x72, 0x48, 0x6f, 0x6f,
@@ -1959,64 +1646,56 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_conf_conf_proto_goTypes = []any{
-	(*Server)(nil),                 // 0: pkg.conf.Server
-	(*HTTPServer)(nil),             // 1: pkg.conf.HTTPServer
-	(*GRPCServer)(nil),             // 2: pkg.conf.GRPCServer
-	(*JWT)(nil),                    // 3: pkg.conf.JWT
-	(*Database)(nil),               // 4: pkg.conf.Database
-	(*Redis)(nil),                  // 5: pkg.conf.Redis
-	(*NutsDB)(nil),                 // 6: pkg.conf.NutsDB
-	(*Free)(nil),                   // 7: pkg.conf.Free
-	(*Cache)(nil),                  // 8: pkg.conf.Cache
-	(*MicroServer)(nil),            // 9: pkg.conf.MicroServer
-	(*Jaeger)(nil),                 // 10: pkg.conf.Jaeger
-	(*Tracer)(nil),                 // 11: pkg.conf.Tracer
-	(*ETCD)(nil),                   // 12: pkg.conf.ETCD
-	(*Discovery)(nil),              // 13: pkg.conf.Discovery
-	(*EmailConfig)(nil),            // 14: pkg.conf.EmailConfig
-	(*ReceiverHookDingTalk)(nil),   // 15: pkg.conf.ReceiverHookDingTalk
-	(*ReceiverHookFeiShu)(nil),     // 16: pkg.conf.ReceiverHookFeiShu
-	(*ReceiverHookWechatWork)(nil), // 17: pkg.conf.ReceiverHookWechatWork
-	(*ReceiverHookOther)(nil),      // 18: pkg.conf.ReceiverHookOther
-	(*ReceiverEmail)(nil),          // 19: pkg.conf.ReceiverEmail
-	(*ReceiverPhone)(nil),          // 20: pkg.conf.ReceiverPhone
-	(*ReceiverHook)(nil),           // 21: pkg.conf.ReceiverHook
-	(*Receiver)(nil),               // 22: pkg.conf.Receiver
-	nil,                            // 23: pkg.conf.Server.MetadataEntry
-	(*ReceiverPhone_Call)(nil),     // 24: pkg.conf.ReceiverPhone.Call
-	(*ReceiverPhone_Sms)(nil),      // 25: pkg.conf.ReceiverPhone.Sms
-	(*durationpb.Duration)(nil),    // 26: google.protobuf.Duration
+	(*Server)(nil),              // 0: pkg.conf.Server
+	(*HTTPServer)(nil),          // 1: pkg.conf.HTTPServer
+	(*GRPCServer)(nil),          // 2: pkg.conf.GRPCServer
+	(*JWT)(nil),                 // 3: pkg.conf.JWT
+	(*Database)(nil),            // 4: pkg.conf.Database
+	(*Redis)(nil),               // 5: pkg.conf.Redis
+	(*NutsDB)(nil),              // 6: pkg.conf.NutsDB
+	(*Free)(nil),                // 7: pkg.conf.Free
+	(*Cache)(nil),               // 8: pkg.conf.Cache
+	(*MicroServer)(nil),         // 9: pkg.conf.MicroServer
+	(*Jaeger)(nil),              // 10: pkg.conf.Jaeger
+	(*Tracer)(nil),              // 11: pkg.conf.Tracer
+	(*ETCD)(nil),                // 12: pkg.conf.ETCD
+	(*Discovery)(nil),           // 13: pkg.conf.Discovery
+	(*EmailConfig)(nil),         // 14: pkg.conf.EmailConfig
+	(*ReceiverEmail)(nil),       // 15: pkg.conf.ReceiverEmail
+	(*ReceiverPhone)(nil),       // 16: pkg.conf.ReceiverPhone
+	(*ReceiverHook)(nil),        // 17: pkg.conf.ReceiverHook
+	(*Receiver)(nil),            // 18: pkg.conf.Receiver
+	nil,                         // 19: pkg.conf.Server.MetadataEntry
+	(*ReceiverPhone_Call)(nil),  // 20: pkg.conf.ReceiverPhone.Call
+	(*ReceiverPhone_Sms)(nil),   // 21: pkg.conf.ReceiverPhone.Sms
+	(*durationpb.Duration)(nil), // 22: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
-	23, // 0: pkg.conf.Server.metadata:type_name -> pkg.conf.Server.MetadataEntry
-	26, // 1: pkg.conf.HTTPServer.timeout:type_name -> google.protobuf.Duration
-	26, // 2: pkg.conf.GRPCServer.timeout:type_name -> google.protobuf.Duration
-	26, // 3: pkg.conf.JWT.expire:type_name -> google.protobuf.Duration
-	26, // 4: pkg.conf.Redis.read_timeout:type_name -> google.protobuf.Duration
-	26, // 5: pkg.conf.Redis.write_timeout:type_name -> google.protobuf.Duration
-	26, // 6: pkg.conf.Redis.dial_timeout:type_name -> google.protobuf.Duration
+	19, // 0: pkg.conf.Server.metadata:type_name -> pkg.conf.Server.MetadataEntry
+	22, // 1: pkg.conf.HTTPServer.timeout:type_name -> google.protobuf.Duration
+	22, // 2: pkg.conf.GRPCServer.timeout:type_name -> google.protobuf.Duration
+	22, // 3: pkg.conf.JWT.expire:type_name -> google.protobuf.Duration
+	22, // 4: pkg.conf.Redis.read_timeout:type_name -> google.protobuf.Duration
+	22, // 5: pkg.conf.Redis.write_timeout:type_name -> google.protobuf.Duration
+	22, // 6: pkg.conf.Redis.dial_timeout:type_name -> google.protobuf.Duration
 	5,  // 7: pkg.conf.Cache.redis:type_name -> pkg.conf.Redis
 	6,  // 8: pkg.conf.Cache.nutsDB:type_name -> pkg.conf.NutsDB
 	7,  // 9: pkg.conf.Cache.free:type_name -> pkg.conf.Free
-	26, // 10: pkg.conf.MicroServer.timeout:type_name -> google.protobuf.Duration
+	22, // 10: pkg.conf.MicroServer.timeout:type_name -> google.protobuf.Duration
 	10, // 11: pkg.conf.Tracer.jaeger:type_name -> pkg.conf.Jaeger
-	26, // 12: pkg.conf.ETCD.timeout:type_name -> google.protobuf.Duration
+	22, // 12: pkg.conf.ETCD.timeout:type_name -> google.protobuf.Duration
 	12, // 13: pkg.conf.Discovery.etcd:type_name -> pkg.conf.ETCD
-	15, // 14: pkg.conf.ReceiverHook.dingtalk:type_name -> pkg.conf.ReceiverHookDingTalk
-	16, // 15: pkg.conf.ReceiverHook.feishu:type_name -> pkg.conf.ReceiverHookFeiShu
-	17, // 16: pkg.conf.ReceiverHook.wechat:type_name -> pkg.conf.ReceiverHookWechatWork
-	18, // 17: pkg.conf.ReceiverHook.other:type_name -> pkg.conf.ReceiverHookOther
-	21, // 18: pkg.conf.Receiver.hooks:type_name -> pkg.conf.ReceiverHook
-	20, // 19: pkg.conf.Receiver.phones:type_name -> pkg.conf.ReceiverPhone
-	19, // 20: pkg.conf.Receiver.emails:type_name -> pkg.conf.ReceiverEmail
-	14, // 21: pkg.conf.Receiver.emailConfig:type_name -> pkg.conf.EmailConfig
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	17, // 14: pkg.conf.Receiver.hooks:type_name -> pkg.conf.ReceiverHook
+	16, // 15: pkg.conf.Receiver.phones:type_name -> pkg.conf.ReceiverPhone
+	15, // 16: pkg.conf.Receiver.emails:type_name -> pkg.conf.ReceiverEmail
+	14, // 17: pkg.conf.Receiver.emailConfig:type_name -> pkg.conf.EmailConfig
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -2206,54 +1885,6 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[15].Exporter = func(v any, i int) any {
-			switch v := v.(*ReceiverHookDingTalk); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_conf_conf_proto_msgTypes[16].Exporter = func(v any, i int) any {
-			switch v := v.(*ReceiverHookFeiShu); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_conf_conf_proto_msgTypes[17].Exporter = func(v any, i int) any {
-			switch v := v.(*ReceiverHookWechatWork); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_conf_conf_proto_msgTypes[18].Exporter = func(v any, i int) any {
-			switch v := v.(*ReceiverHookOther); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_conf_conf_proto_msgTypes[19].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverEmail); i {
 			case 0:
 				return &v.state
@@ -2265,7 +1896,7 @@ func file_conf_conf_proto_init() {
 				return nil
 			}
 		}
-		file_conf_conf_proto_msgTypes[20].Exporter = func(v any, i int) any {
+		file_conf_conf_proto_msgTypes[16].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverPhone); i {
 			case 0:
 				return &v.state
@@ -2277,7 +1908,7 @@ func file_conf_conf_proto_init() {
 				return nil
 			}
 		}
-		file_conf_conf_proto_msgTypes[21].Exporter = func(v any, i int) any {
+		file_conf_conf_proto_msgTypes[17].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverHook); i {
 			case 0:
 				return &v.state
@@ -2289,7 +1920,7 @@ func file_conf_conf_proto_init() {
 				return nil
 			}
 		}
-		file_conf_conf_proto_msgTypes[22].Exporter = func(v any, i int) any {
+		file_conf_conf_proto_msgTypes[18].Exporter = func(v any, i int) any {
 			switch v := v.(*Receiver); i {
 			case 0:
 				return &v.state
@@ -2301,7 +1932,7 @@ func file_conf_conf_proto_init() {
 				return nil
 			}
 		}
-		file_conf_conf_proto_msgTypes[24].Exporter = func(v any, i int) any {
+		file_conf_conf_proto_msgTypes[20].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverPhone_Call); i {
 			case 0:
 				return &v.state
@@ -2313,7 +1944,7 @@ func file_conf_conf_proto_init() {
 				return nil
 			}
 		}
-		file_conf_conf_proto_msgTypes[25].Exporter = func(v any, i int) any {
+		file_conf_conf_proto_msgTypes[21].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverPhone_Sms); i {
 			case 0:
 				return &v.state
@@ -2335,7 +1966,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_conf_conf_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

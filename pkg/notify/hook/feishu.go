@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -22,18 +21,18 @@ import (
 var _ Notify = (*feiShu)(nil)
 
 // NewFeiShu 创建飞书通知
-func NewFeiShu(receiverHookFeiShu *conf.ReceiverHookFeiShu) Notify {
+func NewFeiShu(config Config) Notify {
 	return &feiShu{
-		ReceiverHookFeiShu: receiverHookFeiShu,
+		c: config,
 	}
 }
 
 type feiShu struct {
-	*conf.ReceiverHookFeiShu
+	c Config
 }
 
 func (l *feiShu) Type() string {
-	return "feishu"
+	return l.c.GetType()
 }
 
 type feiShuHookResp struct {
@@ -48,8 +47,8 @@ func (l *feiShuHookResp) Error() string {
 
 func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 	notifyMsg := make(notify.Msg)
-	msgStr := l.GetTemplate()
-	content := l.GetContent()
+	msgStr := l.c.GetTemplate()
+	content := l.c.GetContent()
 	if content != "" {
 		msgStr = content
 	}
@@ -60,9 +59,9 @@ func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 
 	timeNow := time.Now()
 	notifyMsg["timestamp"] = strconv.FormatInt(timeNow.Unix(), 10)
-	notifyMsg["sign"] = genSign(l.GetSecret(), timeNow.Unix())
+	notifyMsg["sign"] = genSign(l.c.GetSecret(), timeNow.Unix())
 	notifyMsgBytes, _ := types.Marshal(notifyMsg)
-	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), notifyMsgBytes)
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.c.GetWebhook(), notifyMsgBytes)
 	if err != nil {
 		return err
 	}

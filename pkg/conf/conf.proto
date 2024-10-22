@@ -168,50 +168,6 @@ message EmailConfig {
   uint32 port = 4;
 }
 
-// 钉钉
-message ReceiverHookDingTalk {
-  // hook地址
-  string webhook = 1;
-  // 钉钉加签秘钥
-  string secret = 2;
-  // 钉钉消息json内容，支持模板， 优先级高于模板
-  string content = 3;
-  // 模板
-  string template = 4;
-}
-
-// 飞书
-message ReceiverHookFeiShu {
-  // hook地址
-  string webhook = 1;
-  // 钉钉加签秘钥
-  string secret = 2;
-  // 钉钉消息json内容，支持模板， 优先级高于模板
-  string content = 3;
-  // 模板
-  string template = 4;
-}
-
-// 企业微信
-message ReceiverHookWechatWork {
-  // hook地址
-  string webhook = 1;
-  // 钉钉消息json内容，支持模板， 优先级高于模板
-  string content = 2;
-  // 模板
-  string template = 3;
-}
-
-// 其他
-message ReceiverHookOther {
-  // hook地址
-  string webhook = 1;
-  // 钉钉消息json内容，支持模板， 优先级高于模板
-  string content = 2;
-  // 模板
-  string template = 3;
-}
-
 // 邮件目标
 message ReceiverEmail {
   // 发送给谁
@@ -240,14 +196,15 @@ message ReceiverPhone {
 
 // hook目标
 message ReceiverHook {
-  // 钉钉
-  ReceiverHookDingTalk dingtalk = 1;
-  // 飞书
-  ReceiverHookFeiShu feishu = 2;
-  // 企业微信
-  ReceiverHookWechatWork wechat = 3;
-  // 其他
-  ReceiverHookOther other = 4;
+  string type = 1;
+  // hook地址
+  string webhook = 2;
+  // 钉钉消息json内容，支持模板， 优先级高于模板
+  string content = 3;
+  // 模板
+  string template = 4;
+  // 加签秘钥
+  string secret = 5;
 }
 
 message Receiver {

@@ -40,49 +40,156 @@ templates:
     <h1>监控告警</h1>
     <p>{{ . }}</p>
   dingtalk: |
-    {
-       "msgtype": "markdown",
-       "markdown": {
-           "title":"Moon监控告警通知",
-           "text": "#### Moon监控告警通知\n\n >摘要：{{ .annotations.summary}}\n\n >内容：{{ .annotations.description }}\n\n >告警时间：{{ .startsAt }}\n"
-       }
-    }
-  feishu: |
-    {
-        "msg_type": "post",
-        "content": {
-            "post": {
-                "zh_cn": {
-                    "title": "Moon监控告警通知",
-                    "content": [
-                        [{
-                            "tag": "text",
-                            "text": "摘要：{{ .annotations.summary}}"
-                        }],
-                        [{
-                            "tag": "text",
-                            "text": "内容：{{ .annotations.description }}"
-                        }],
-                        [{
-                            "tag": "text",
-                            "text": "告警时间：{{ .startsAt }}"
-                        }]
-                    ]
-                }
-            }
-        }
-    }
-
-  wechat: |
+    {{- $status := .status -}}
+    {{- $labels := .labels -}}
+    {{- $annotations := .annotations -}}
+    
     {
         "msgtype": "markdown",
         "markdown": {
-            "content": "Moon监控告警，请相关同事注意。\n
-             >摘要:<font color=\"comment\">{{ .annotations.summary}}</font>
-             >内容:<font color=\"comment\">{{ .annotations.description }}</font>
-             >告警时间:<font color=\"comment\">{{ .startsAt }}</font>"
+          "title": "平台状态通知",
+          "text": "### {{if eq $status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\n\n  \n**时间**: `{{ .startsAt }}` 至 `{{ .endsAt }}`  \n\n<hr/>\n\n**摘要**:  \n`{{ $annotations.summary }}`  \n\n**描述**:  \n`{{ $annotations.description }}`  \n\n<hr/>\n\n**标签**:  \n- **数据源 ID**: {{ index $labels "__moon__datasource_id__" }}  \n- **数据源 URL**: [链接]({{ index $labels "__moon__datasource_url__" }})  \n- **级别 ID**: {{ index $labels "__moon__level_id__" }}  \n- **策略 ID**: {{ index $labels "__moon__strategy_id__" }}  \n- **团队 ID**: {{ index $labels "__moon__team_id__" }}  \n- **实例**: `{{ index $labels "instance" }}`  \n- **IP**: `{{ index $labels "ip" }}`  \n- **作业**: `{{ index $labels "job" }}`  \n\n<hr/>\n\n请根据以上信息进行后续处理！"
         }
     }
+
+  feishu: |
+    {
+        "msg_type": "interactive",
+        "card": {
+            "config": {
+                "wide_screen_mode": true
+            },
+            "header": {
+                "title": {
+                    "tag": "plain_text",
+                    "content": "{{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}"
+                },
+                "template": "{{if eq .status `resolved`}}green{{else}}red{{end}}"
+            },
+            "elements": [
+                {
+                    "tag": "div",
+                    "fields": [
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🔍 告警摘要**\n{{.annotations.summary}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🔍 告警描述**\n{{.annotations.description}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🕒 开始时间**\n{{.startsAt}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "{{if eq .status `resolved`}}**🕒 恢复时间**\n{{.endsAt}}{{end}}"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "tag": "hr"
+                },
+                {
+                  "tag": "div",
+                  "fields": [
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**❗ 状态**\n<font color=\"warning\">{{.status}}</font>"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🌐 数据源**\n[点击查看]({{.labels.__moon__datasource_url__}})"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**📛 告警名称**\n<font color=\"info\">{{.labels.__name__}}</font>"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🔗 策略 ID**\n{{.labels.__moon__strategy_id__}}"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🆔 团队 ID**\n{{.labels.__moon__team_id__}}"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**💻 IP 地址**\n{{.labels.ip}}"
+                      }
+                    }
+                  ]
+                },
+                {
+                    "tag": "hr"
+                },
+                {
+                    "tag": "action",
+                    "actions": [
+                        {
+                            "tag": "button",
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "📄 查看详情"
+                            },
+                            "url": "{{.labels.__moon__datasource_url__}}",
+                            "type": "primary"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+
+
+
+
+
+  wechat: |
+    {{- $status := .status -}}
+    {{- $labels := .labels -}}
+    {{- $annotations := .annotations -}}
+    
+    {
+        "msgtype": "markdown",
+        "markdown": {
+          "title": "平台状态通知",
+          "content": "### {{if eq $status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\n\n  \n**时间**: `{{ .startsAt }}` 至 `{{ .endsAt }}`  \n\n <hr/> \n\n**摘要**:  \n`{{ $annotations.summary }}`  \n\n**描述**:  \n`{{ $annotations.description }}`  \n\n<hr /> \n\n**标签**:  \n* **数据源 ID**: {{ index $labels "__moon__datasource_id__" }}  \n* **数据源 URL**: [链接]({{ index $labels "__moon__datasource_url__" }})  \n* **级别 ID**: {{ index $labels "__moon__level_id__" }}  \n* **策略 ID**: {{ index $labels "__moon__strategy_id__" }}  \n* **团队 ID**: {{ index $labels "__moon__team_id__" }}  \n* **实例**: `{{ index $labels "instance" }}`  \n* **IP**: `{{ index $labels "ip" }}`  \n* **作业**: `{{ index $labels "job" }}`  \n\n <hr/> \n\n请根据以上信息进行后续处理！"
+        }
+    }
+
+
 
 
 global_email_config:

@@ -201,28 +201,11 @@ func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *c
 			fmt.Sprintf("team_%d_%d", teamID, noticeGroupItem.ID): {
 				Hooks: types.SliceTo(noticeGroupItem.AlarmHooks, func(hook *bizmodel.AlarmHook) *conf.ReceiverHook {
 					return &conf.ReceiverHook{
-						Dingtalk: types.Ternary(hook.APP.IsDingtalk(), &conf.ReceiverHookDingTalk{
-							Webhook:  hook.URL,
-							Secret:   hook.Secret,
-							Content:  "",
-							Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
-						}, nil),
-						Feishu: types.Ternary(hook.APP.IsFeishu(), &conf.ReceiverHookFeiShu{
-							Webhook:  hook.URL,
-							Secret:   hook.Secret,
-							Content:  "",
-							Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
-						}, nil),
-						Wechat: types.Ternary(hook.APP.IsWechat(), &conf.ReceiverHookWechatWork{
-							Webhook:  hook.URL,
-							Content:  "",
-							Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
-						}, nil),
-						Other: types.Ternary(hook.APP.IsWebhook(), &conf.ReceiverHookOther{
-							Webhook:  hook.URL,
-							Content:  "",
-							Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
-						}, nil),
+						Type:     hook.APP.EnUSString(),
+						Webhook:  hook.URL,
+						Content:  "",
+						Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
+						Secret:   hook.Secret,
 					}
 				}),
 				Phones: nil,

@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -22,18 +21,18 @@ import (
 var _ Notify = (*dingTalk)(nil)
 
 // NewDingTalk 创建钉钉通知
-func NewDingTalk(receiverHookDingTalk *conf.ReceiverHookDingTalk) Notify {
+func NewDingTalk(receiverHookDingTalk Config) Notify {
 	return &dingTalk{
-		ReceiverHookDingTalk: receiverHookDingTalk,
+		c: receiverHookDingTalk,
 	}
 }
 
 type dingTalk struct {
-	*conf.ReceiverHookDingTalk
+	c Config
 }
 
 func (l *dingTalk) Type() string {
-	return "dingtalk"
+	return l.c.GetType()
 }
 
 type dingTalkHookResp struct {
@@ -49,11 +48,11 @@ func (l *dingTalk) Send(ctx context.Context, msg notify.Msg) error {
 	timestamp := time.Now().UnixMilli()
 	params := httpx.ParseQuery(map[string]any{
 		"timestamp": timestamp,
-		"sign":      l.generateSignature(timestamp, l.GetSecret()),
+		"sign":      l.generateSignature(timestamp, l.c.GetSecret()),
 	})
-	reqURL := fmt.Sprintf("%s&%s", l.GetWebhook(), params)
-	msgStr := l.GetTemplate()
-	content := l.GetContent()
+	reqURL := fmt.Sprintf("%s&%s", l.c.GetWebhook(), params)
+	msgStr := l.c.GetTemplate()
+	content := l.c.GetContent()
 	if content != "" {
 		msgStr = content
 	}

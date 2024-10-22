@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -17,18 +16,18 @@ import (
 var _ Notify = (*wechat)(nil)
 
 // NewWechat 创建企业微信通知
-func NewWechat(receiverHookWechatWork *conf.ReceiverHookWechatWork) Notify {
+func NewWechat(config Config) Notify {
 	return &wechat{
-		ReceiverHookWechatWork: receiverHookWechatWork,
+		c: config,
 	}
 }
 
 type wechat struct {
-	*conf.ReceiverHookWechatWork
+	c Config
 }
 
 func (l *wechat) Type() string {
-	return "wechat"
+	return l.c.GetType()
 }
 
 type wechatHookResp struct {
@@ -41,13 +40,13 @@ func (l *wechatHookResp) Error() string {
 }
 
 func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
-	msgStr := l.GetTemplate()
-	content := l.GetContent()
+	msgStr := l.c.GetTemplate()
+	content := l.c.GetContent()
 	if content != "" {
 		msgStr = content
 	}
 	msgStr = format.Formatter(msgStr, msg)
-	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), []byte(msgStr))
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.c.GetWebhook(), []byte(msgStr))
 	if err != nil {
 		return err
 	}

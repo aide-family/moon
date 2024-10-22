@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/go-kratos/kratos/v2/log"
 
@@ -15,28 +14,28 @@ import (
 var _ Notify = (*other)(nil)
 
 // NewOther 创建企业微信通知
-func NewOther(receiverHookWechatWork *conf.ReceiverHookOther) Notify {
+func NewOther(config Config) Notify {
 	return &other{
-		ReceiverHookOther: receiverHookWechatWork,
+		c: config,
 	}
 }
 
 type other struct {
-	*conf.ReceiverHookOther
+	c Config
 }
 
 func (l *other) Type() string {
-	return "other"
+	return l.c.GetType()
 }
 
 func (l *other) Send(ctx context.Context, msg notify.Msg) error {
-	msgStr := l.GetTemplate()
-	content := l.GetContent()
+	msgStr := l.c.GetTemplate()
+	content := l.c.GetContent()
 	if content != "" {
 		msgStr = content
 	}
 	msgStr = format.Formatter(msgStr, msg)
-	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.GetWebhook(), []byte(msgStr))
+	response, err := httpx.NewHTTPX().POSTWithContext(ctx, l.c.GetWebhook(), []byte(msgStr))
 	if err != nil {
 		return err
 	}
