@@ -24,25 +24,25 @@ func NewAlarmService(alarmBiz *biz.AlarmBiz) *AlarmService {
 
 // GetAlarm 获取实时告警数据
 func (s *AlarmService) GetAlarm(ctx context.Context, req *realtimeapi.GetAlarmRequest) (*realtimeapi.GetAlarmReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithGetAlarmRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithGetAlarmRequest(req).ToBo()
 	realtimeAlarmDetail, err := s.alarmBiz.GetRealTimeAlarm(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 	return &realtimeapi.GetAlarmReply{
-		Detail: builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoRealtimeAlarmBuilder().ToAPI(realtimeAlarmDetail),
+		Detail: builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoRealtimeAlarmBuilder().ToAPI(realtimeAlarmDetail),
 	}, nil
 }
 
 // ListAlarm 获取实时告警数据列表
 func (s *AlarmService) ListAlarm(ctx context.Context, req *realtimeapi.ListAlarmRequest) (*realtimeapi.ListAlarmReply, error) {
-	params := builder.NewParamsBuild().RealtimeAlarmModuleBuilder().WithListAlarmRequest(req).ToBo()
+	params := builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().WithListAlarmRequest(req).ToBo()
 	list, err := s.alarmBiz.ListRealTimeAlarms(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 	return &realtimeapi.ListAlarmReply{
-		List:       builder.NewParamsBuild().RealtimeAlarmModuleBuilder().DoRealtimeAlarmBuilder().ToAPIs(list),
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(params.Pagination),
+		List:       builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoRealtimeAlarmBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(params.Pagination),
 	}, nil
 }

@@ -546,15 +546,15 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 
 		datasource := &bizmodel.Datasource{}
 		_ = datasource.UnmarshalBinary([]byte(details.Datasource))
-		resItem.Datasource = NewParamsBuild().DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
+		resItem.Datasource = NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
 
 		strategy := &bizmodel.Strategy{}
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
-		resItem.Strategy = NewParamsBuild().StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
+		resItem.Strategy = NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
 		level := &bizmodel.StrategyLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.Level = NewParamsBuild().StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.Level = NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
 	}
 	return resItem
 }

@@ -10,4 +10,5 @@ var ProviderSetRPCRepoImpl = wire.NewSet(
 	NewMsgRepository,
 	NewStrategyRepository,
 	NewServerRegisterRepository,
+	NewSendAlertRepository,
 )

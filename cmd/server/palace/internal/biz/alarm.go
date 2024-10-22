@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -12,13 +13,21 @@ import (
 )
 
 // NewAlarmBiz 创建告警相关业务逻辑
-func NewAlarmBiz(alarmRepository repository.Alarm, alarmRawRepository repository.AlarmRaw, strategyRepository repository.Strategy, datasourceRepository repository.Datasource, historyRepository repository.HistoryRepository) *AlarmBiz {
+func NewAlarmBiz(
+	alarmRepository repository.Alarm,
+	alarmRawRepository repository.AlarmRaw,
+	strategyRepository repository.Strategy,
+	datasourceRepository repository.Datasource,
+	historyRepository repository.HistoryRepository,
+	sendAlert microrepository.SendAlert,
+) *AlarmBiz {
 	return &AlarmBiz{
 		alarmRepository:      alarmRepository,
 		alarmRawRepository:   alarmRawRepository,
 		historyRepository:    historyRepository,
 		strategyRepository:   strategyRepository,
 		datasourceRepository: datasourceRepository,
+		sendAlert:            sendAlert,
 	}
 }
 
@@ -29,6 +38,7 @@ type AlarmBiz struct {
 	historyRepository    repository.HistoryRepository
 	strategyRepository   repository.Strategy
 	datasourceRepository repository.Datasource
+	sendAlert            microrepository.SendAlert
 }
 
 // GetRealTimeAlarm 获取实时告警明细
@@ -106,7 +116,6 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 
 // SaveAlarmInfoDB 保存告警信息db(告警历史、实时告警)
 func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmInfoParams) error {
-
 	// 保存告警历史
 	if err := b.historyRepository.CreateAlarmHistory(ctx, params); !types.IsNil(err) {
 		return err
@@ -114,6 +123,11 @@ func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmIn
 
 	// 保存实时告警
 	if err := b.alarmRepository.CreateRealTimeAlarm(ctx, params); !types.IsNil(err) {
+		return err
+	}
+
+	// 发送告警
+	if err := b.sendAlert.Send(ctx, params.RawInfoMap); !types.IsNil(err) {
 		return err
 	}
 	return nil
