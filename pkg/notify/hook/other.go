@@ -25,6 +25,10 @@ type other struct {
 	*conf.ReceiverHookOther
 }
 
+func (l *other) Type() string {
+	return "other"
+}
+
 func (l *other) Send(ctx context.Context, msg notify.Msg) error {
 	msgStr := l.GetTemplate()
 	content := l.GetContent()

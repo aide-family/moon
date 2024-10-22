@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/conf"
@@ -15,7 +16,7 @@ import (
 )
 
 // ProviderSetData is data providers.
-var ProviderSetData = wire.NewSet(NewData, NewGreeterRepo)
+var ProviderSetData = wire.NewSet(NewData)
 
 // Data .
 type Data struct {
@@ -51,15 +52,15 @@ func (d *Data) GetCacher() cache.ICacher {
 
 // newCache new cache
 func newCache(c *conf.Cache) cache.ICacher {
-	switch c.GetDriver() {
-	case "redis", "REDIS":
+	switch strings.ToLower(c.GetDriver()) {
+	case "redis":
 		log.Debugw("cache init", "redis")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	case "nutsdb", "NUTSDB", "nust", "NUTS":
+	case "nutsdb":
 		log.Debugw("cache init", "nutsdb")
 		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {

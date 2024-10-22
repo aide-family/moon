@@ -2,27 +2,30 @@ package biz
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/data"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/types"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 )
 
 // NewMsgBiz 创建消息业务
-func NewMsgBiz(c *rabbitconf.Bootstrap) *MsgBiz {
-	return &MsgBiz{c: c}
+func NewMsgBiz(c *rabbitconf.Bootstrap, data *data.Data) *MsgBiz {
+	return &MsgBiz{c: c, data: data}
 }
 
 // MsgBiz 消息业务
 type MsgBiz struct {
-	c *rabbitconf.Bootstrap
+	c    *rabbitconf.Bootstrap
+	data *data.Data
 }
 
 // SendMsg 发送消息
@@ -52,18 +55,18 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		if types.IsNil(hookItem) {
 			continue
 		}
-		if !types.IsNil(hookItem.GetDingTalk()) {
-			dingTalkItem := hookItem.GetDingTalk()
+		if !types.IsNil(hookItem.GetDingtalk()) {
+			dingTalkItem := hookItem.GetDingtalk()
 			dingTalkItem.Template = tempMap[dingTalkItem.GetTemplate()]
 			hookList = append(hookList, dingTalkItem)
 		}
-		if !types.IsNil(hookItem.GetWechatWork()) {
-			wechatWorkItem := hookItem.GetWechatWork()
+		if !types.IsNil(hookItem.GetWechat()) {
+			wechatWorkItem := hookItem.GetWechat()
 			wechatWorkItem.Template = tempMap[wechatWorkItem.GetTemplate()]
 			hookList = append(hookList, wechatWorkItem)
 		}
-		if !types.IsNil(hookItem.GetFeiShu()) {
-			feishuItem := hookItem.GetFeiShu()
+		if !types.IsNil(hookItem.GetFeishu()) {
+			feishuItem := hookItem.GetFeishu()
 			feishuItem.Template = tempMap[feishuItem.GetTemplate()]
 			hookList = append(hookList, feishuItem)
 		}
@@ -100,6 +103,13 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			continue
 		}
 		eg.Go(func() error {
+			ok, err := b.data.GetCacher().SetNX(ctx, msg.Key(newNotify.Type()), "ok", 1*time.Hour)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return nil
+			}
 			if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
 				log.Warnw("send hook error", err, "receiver", hookItem)
 				return err

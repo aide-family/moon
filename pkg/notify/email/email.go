@@ -34,6 +34,10 @@ type e struct {
 	cli email.Interface
 }
 
+func (l *e) Type() string {
+	return "email"
+}
+
 func (l *e) Send(ctx context.Context, msg notify.Msg) error {
 	log.Debugw("send email", "email", l, "msg", msg)
 	body := l.to.GetContent()

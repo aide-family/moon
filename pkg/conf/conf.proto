@@ -241,11 +241,11 @@ message ReceiverPhone {
 // hook目标
 message ReceiverHook {
   // 钉钉
-  ReceiverHookDingTalk dingTalk = 1;
+  ReceiverHookDingTalk dingtalk = 1;
   // 飞书
-  ReceiverHookFeiShu feiShu = 2;
+  ReceiverHookFeiShu feishu = 2;
   // 企业微信
-  ReceiverHookWechatWork wechatWork = 3;
+  ReceiverHookWechatWork wechat = 3;
   // 其他
   ReceiverHookOther other = 4;
 }

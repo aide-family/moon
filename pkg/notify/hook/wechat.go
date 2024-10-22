@@ -27,6 +27,10 @@ type wechat struct {
 	*conf.ReceiverHookWechatWork
 }
 
+func (l *wechat) Type() string {
+	return "wechat"
+}
+
 type wechatHookResp struct {
 	ErrCode int    `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`

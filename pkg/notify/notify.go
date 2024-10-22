@@ -12,5 +12,7 @@ type (
 	Notify interface {
 		// Send sends a notification.
 		Send(ctx context.Context, msg Msg) error
+		// Type returns the type of the notification service.
+		Type() string
 	}
 )

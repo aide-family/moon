@@ -32,6 +32,10 @@ type dingTalk struct {
 	*conf.ReceiverHookDingTalk
 }
 
+func (l *dingTalk) Type() string {
+	return "dingtalk"
+}
+
 type dingTalkHookResp struct {
 	ErrCode int64  `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`

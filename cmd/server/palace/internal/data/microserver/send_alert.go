@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/util/after"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -36,7 +37,8 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alerts []*bo.AlertItem
 				continue
 			}
 			for _, route := range routes {
-				setOK, err := s.data.GetCacher().SetNX(context.Background(), v.Key(route), v.Fingerprint, 2*time.Hour)
+				key := v.Key(route)
+				setOK, err := s.data.GetCacher().SetNX(context.Background(), key, v.Fingerprint, 2*time.Hour)
 				if err != nil {
 					log.Warnf("set cache failed: %v", err)
 					continue
@@ -44,7 +46,11 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alerts []*bo.AlertItem
 				if !setOK {
 					continue
 				}
-				task := &hookapi.SendMsgRequest{JsonData: v.GetAlertItemString(), Route: route}
+				task := &hookapi.SendMsgRequest{
+					Json:      v.GetAlertItemString(),
+					Route:     route,
+					RequestID: types.MD5(key),
+				}
 				s.send(task)
 				time.Sleep(100 * time.Millisecond)
 			}

@@ -23,8 +23,8 @@ type msgRepositoryImpl struct {
 func (m *msgRepositoryImpl) Send(ctx context.Context, msg *bo.Message) error {
 	dataBytes, _ := types.Marshal(msg.Data)
 	err := m.cli.SendMsg(ctx, &hookapi.SendMsgRequest{
-		JsonData: string(dataBytes),
-		Route:    "test",
+		Json:  string(dataBytes),
+		Route: "test",
 	})
 	if !types.IsNil(err) {
 		return err

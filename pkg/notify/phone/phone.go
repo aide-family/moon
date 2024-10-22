@@ -18,6 +18,14 @@ type (
 	}
 )
 
+func (l *p) Type() string {
+	return "phone"
+}
+
+func New() Phone {
+	return &p{}
+}
+
 func (l *p) Send(ctx context.Context, msg notify.Msg) error {
 	log.Debugw("send phone", "phone", l, "msg", msg)
 	return nil

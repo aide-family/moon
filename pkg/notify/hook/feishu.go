@@ -32,6 +32,10 @@ type feiShu struct {
 	*conf.ReceiverHookFeiShu
 }
 
+func (l *feiShu) Type() string {
+	return "feishu"
+}
+
 type feiShuHookResp struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`

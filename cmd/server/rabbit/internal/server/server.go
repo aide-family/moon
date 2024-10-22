@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api"
-	v1 "github.com/aide-family/moon/api/helloworld/v1"
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	pushapi "github.com/aide-family/moon/api/rabbit/push"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
@@ -52,7 +51,6 @@ func RegisterService(
 	bc *rabbitconf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	greeterService *service.GreeterService,
 	configService *service.ConfigService,
 	hookService *service.HookService,
 	healthService *service.HealthService,
@@ -62,13 +60,11 @@ func RegisterService(
 		log.Errorw("加载配置失败", err)
 	}
 	// 注册GRPC服务
-	v1.RegisterGreeterServer(rpcSrv, greeterService)
 	pushapi.RegisterConfigServer(rpcSrv, configService)
 	hookapi.RegisterHookServer(rpcSrv, hookService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 
 	// 注册HTTP服务
-	v1.RegisterGreeterHTTPServer(httpSrv, greeterService)
 	pushapi.RegisterConfigHTTPServer(httpSrv, configService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 	r := httpSrv.Route("/")

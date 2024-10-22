@@ -63,8 +63,8 @@ type ConfigBiz struct {
 
 // Config 配置数据
 type Config struct {
-	Receivers map[string]*conf.Receiver
-	Templates map[string]string
+	Receivers map[string]*conf.Receiver `json:"receivers"`
+	Templates map[string]string         `json:"templates"`
 	sync.RWMutex
 }
 
