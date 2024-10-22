@@ -216,3 +216,45 @@ message Receiver {
 
   EmailConfig emailConfig = 4;
 }
+
+
+// oss相关
+
+// minio
+message Minio{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+  // 是否使用https
+  bool secure = 5;
+}
+
+// tencent oss
+message TencentOss{
+  string bucketURL = 1;
+  string secretID = 2;
+  string secretKey = 3;
+}
+
+
+// ali oss
+message AliOss{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+}
+
+// local
+message LocalStorage{
+  string  path = 1;
+}
+
+message OssConfig{
+  string type = 1;
+  Minio minio = 2;
+  TencentOss tencentOss = 3;
+  AliOss aliOss = 4;
+  LocalStorage local = 5;
+}

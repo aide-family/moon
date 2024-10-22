@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.1-20240508200655-46a4cf4ba109.1
 	github.com/BurntSushi/toml v1.4.0
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/bufbuild/protovalidate-go v0.6.2
 	github.com/casbin/casbin/v2 v2.89.0
 	github.com/casbin/gorm-adapter/v3 v3.24.0
@@ -14,10 +15,11 @@ require (
 	github.com/go-kratos/kratos/v2 v2.7.3
 	github.com/go-logr/logr v1.4.1
 	github.com/go-ping/ping v1.1.0
-	github.com/golang-jwt/jwt/v5 v5.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/gorilla/handlers v1.5.2
+	github.com/minio/minio-go/v7 v7.0.78
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/nutsdb/nutsdb v1.0.4
@@ -26,6 +28,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.55
 	go.etcd.io/etcd/client/v3 v3.5.13
 	go.opentelemetry.io/otel v1.17.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0

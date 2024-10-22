@@ -9,8 +9,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
-
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 func newAlertConsumer(c *palaceconf.Bootstrap, data *data.Data, alertService *service.AlertService) *watch.Watcher {
@@ -21,7 +19,6 @@ func newAlertConsumer(c *palaceconf.Bootstrap, data *data.Data, alertService *se
 		watch.WithWatcherHandler(watch.NewDefaultHandler(
 			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlarm, func(ctx context.Context, msg *watch.Message) error {
 				params := msg.GetData().(*bo.CreateAlarmHookRawParams)
-				log.Info("create alarm hook raw params")
 				return alertService.CreateAlarmInfo(ctx, params)
 			}),
 		)),
