@@ -2,8 +2,12 @@ package oss
 
 import (
 	"context"
+	"fmt"
 	"io"
 
+	"github.com/aide-family/moon/pkg/conf"
+
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -12,20 +16,43 @@ import (
 type MinIOClient struct {
 	client     *minio.Client
 	bucketName string
+	secure     bool
+	conf       *conf.Minio
 }
 
 // NewMinIO 创建MinIO客户端
-func NewMinIO(endpoint, accessKeyID, secretAccessKey, bucketName string, secure bool) (*MinIOClient, error) {
-	client, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: secure, // 根据需要启用 HTTPS
+func NewMinIO(minioConf *conf.Minio) (*MinIOClient, error) {
+	client, err := minio.New(minioConf.GetEndpoint(), &minio.Options{
+		Creds:  credentials.NewStaticV4(minioConf.GetAccessKeyID(), minioConf.GetAccessKeySecret(), ""),
+		Secure: minioConf.GetSecure(), // 根据需要启用 HTTPS
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// init minio bucket
+	bucketName := minioConf.BucketName
+	// 确保 Bucket 存在，否则创建
+	err = client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
+	if err != nil {
+		exists, err := client.BucketExists(context.Background(), bucketName)
+		if err == nil && exists {
+			log.Warn("Bucket  already exists :", bucketName)
+		} else {
+			log.Errorw(err)
+		}
+	}
+
+	// 设置 Bucket 为公共访问
+	err = setBucketPublic(client, bucketName)
+	if err != nil {
+		log.Warn("Error setting bucket public:", err)
+	}
+
 	return &MinIOClient{
 		client:     client,
 		bucketName: bucketName,
+		conf:       minioConf,
 	}, nil
 }
 
@@ -40,4 +67,33 @@ func (m *MinIOClient) DownloadFile(objectName string) (io.ReadCloser, error) {
 
 func (m *MinIOClient) DeleteFile(objectName string) error {
 	return m.client.RemoveObject(context.Background(), m.bucketName, objectName, minio.RemoveObjectOptions{})
+}
+
+// setBucketPublic 设置存储桶为公共访问
+func setBucketPublic(minioClient *minio.Client, bucketName string) error {
+	policy := `{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "AWS": ["*"]
+                },
+                "Action": ["s3:GetObject"],
+                "Resource": ["arn:aws:s3:::` + bucketName + `/*"]
+            }
+        ]
+    }`
+	// 设置存储桶的访问策略
+	return minioClient.SetBucketPolicy(context.Background(), bucketName, policy)
+}
+
+// getFileUrl 获取文件的URL
+func (m *MinIOClient) getFileUrl(objectName string) string {
+	secure := "http"
+	if m.secure {
+		secure = "https"
+	}
+	fileURL := fmt.Sprintf("%s://%s/%s/%s", secure, m.conf.GetEndpoint(), m.conf.GetBucketName(), objectName)
+	return fileURL
 }

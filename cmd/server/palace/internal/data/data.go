@@ -64,7 +64,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	bizConf := c.GetBizDatabase()
 	cacheConf := c.GetCache()
 	emailConf := c.GetEmailConfig()
-	ossConfig := c.GetOssConfig()
+	ossConf := c.GetOss()
 	d := &Data{
 		bizDatabaseConf:         bizConf,
 		alarmDatabaseConf:       alarmConf,
@@ -94,7 +94,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 
 	d.cacher = newCache(cacheConf)
 
-	d.ossClient = newOssCli(ossConfig)
+	d.ossClient = newOssCli(ossConf)
 
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close cache", d.cacher.Close())
@@ -418,7 +418,7 @@ func (d *Data) GetAlertConsumerStorage() watch.Storage {
 	return d.alertConsumerStorage
 }
 
-func newOssCli(c *conf.OssConfig) oss.OssClient {
+func newOssCli(c *conf.Oss) oss.OssClient {
 	var client oss.OssClient
 	switch c.GetType() {
 	case "aliyun":
@@ -441,13 +441,7 @@ func newOssCli(c *conf.OssConfig) oss.OssClient {
 		}
 		client = tencentOss
 	case "minio":
-		minIOClient, err := oss.NewMinIO(
-			c.GetMinio().GetEndpoint(),
-			c.GetMinio().GetAccessKeyID(),
-			c.GetMinio().GetAccessKeySecret(),
-			c.GetMinio().GetBucketName(),
-			c.GetMinio().GetSecure(),
-		)
+		minIOClient, err := oss.NewMinIO(c.GetMinio())
 		if err != nil {
 			return nil
 		}

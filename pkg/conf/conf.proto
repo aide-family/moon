@@ -249,9 +249,10 @@ message AliOss{
 // local
 message LocalStorage{
   string  path = 1;
+  string url = 2;
 }
 
-message OssConfig{
+message Oss{
   string type = 1;
   Minio minio = 2;
   TencentOss tencentOss = 3;
