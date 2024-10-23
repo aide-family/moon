@@ -84,6 +84,66 @@ message Strategy {
   repeated LabelNotices labelNotices = 19;
 }
 
+message DomainStrategyItem {
+  // 策略ID
+  uint32 strategyID = 1 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
+  // 策略等级ID
+  uint32 levelID = 2 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 团队ID
+  uint32 teamID = 3 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_teamID"
+    expression: 'this > 0'
+    message: "团队ID必须大于0"
+  }];
+  // 接收对象列表（告警组ID列表）
+  repeated uint32 receiverGroupIDs = 4;
+  // 策略状态
+  Status status = 5 [(buf.validate.field).enum.defined_only = true];
+  // 策略标签
+  map<string, string> labels = 6 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_labels"
+    expression: 'this.size() > 0'
+    message: "策略标签不允许为空"
+  }];
+  // 策略注解
+  map<string, string> annotations = 7 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_annotations"
+    expression: 'this.size() > 0'
+    message: "策略注解不允许为空"
+  }];
+  // 阈值
+  int64 threshold = 8 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_threshold"
+    expression: 'this >= 0'
+    message: "阈值必须大于等于0"
+  }];
+  // 域名
+  string domain = 9 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_domain"
+    expression: 'this.size() > 0'
+    message: "域名不允许为空"
+  }];
+  repeated LabelNotices labelNotices = 19;
+  // 策略名称
+  string alert = 20 [(buf.validate.field).cel = {
+    id: "Strategy_alert"
+    expression: 'this.size() > 0'
+    message: "策略名称不允许为空"
+  }];
+  // 超时时间
+  uint32 timeout = 21;
+  // 执行频率
+  google.protobuf.Duration interval = 22;
+}
+
 message LabelNotices {
   string key = 1;
   string value = 2;

@@ -81,7 +81,7 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 				if !ok || !msg.GetTopic().IsStrategy() {
 					continue
 				}
-				strategyMsg, ok := msg.GetData().(*bo.Strategy)
+				strategyMsg, ok := msg.GetData().(bo.IStrategy)
 				if !ok {
 					log.Warnf("strategy watch get data error: %v", msg.GetData())
 					continue
@@ -105,19 +105,19 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 	return nil
 }
 
-func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
+func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
 	// 删除策略任务
 	if _, exist := s.entryIDMap[strategyMsg.Index()]; exist {
 		log.Info("strategy watch remove job")
 		s.cronInstance.Remove(s.entryIDMap[strategyMsg.Index()])
 	}
-	if !strategyMsg.Status.IsEnable() {
+	if !strategyMsg.GetStatus().IsEnable() {
 		// 生成告警恢复事件（如果有告警发生过）
 		return s.alertResolve(strategyMsg)
 	}
 
 	// 重新加入
-	entryID, err := s.cronInstance.AddFunc(strategyMsg.Interval.CronTime(), func() {
+	entryID, err := s.cronInstance.AddFunc(strategyMsg.GetInterval().CronTime(), func() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
 		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)
@@ -141,7 +141,7 @@ func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
 	return nil
 }
 
-func (s *StrategyWatch) alertResolve(strategyMsg *bo.Strategy) error {
+func (s *StrategyWatch) alertResolve(strategyMsg bo.IStrategy) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 	innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)

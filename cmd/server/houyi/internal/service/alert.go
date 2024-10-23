@@ -56,7 +56,7 @@ func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*
 }
 
 // InnerAlarm 内部告警
-func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Alarm, error) {
+func (s *AlertService) InnerAlarm(ctx context.Context, req bo.IStrategy) (*bo.Alarm, error) {
 	//log.Debugw("InnerAlarm", req)
 	return s.strategyBiz.Eval(ctx, req)
 }

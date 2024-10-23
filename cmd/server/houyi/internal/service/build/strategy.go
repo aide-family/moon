@@ -55,3 +55,40 @@ func (a *StrategyBuilder) ToBo() *bo.Strategy {
 		TeamID:    strategyInfo.GetTeamID(),
 	}
 }
+
+type DomainStrategyBuilder struct {
+	*api.DomainStrategyItem
+}
+
+func NewDomainStrategyBuilder(strategyInfo *api.DomainStrategyItem) *DomainStrategyBuilder {
+	return &DomainStrategyBuilder{
+		DomainStrategyItem: strategyInfo,
+	}
+}
+
+func (a *DomainStrategyBuilder) ToBo() *bo.DomainStrategy {
+	if types.IsNil(a) || types.IsNil(a.DomainStrategyItem) {
+		return nil
+	}
+	return &bo.DomainStrategy{
+		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
+		LabelNotices: types.SliceTo(a.GetLabelNotices(), func(item *api.LabelNotices) *bo.LabelNotices {
+			return &bo.LabelNotices{
+				Key:              item.GetKey(),
+				Value:            item.GetValue(),
+				ReceiverGroupIDs: item.GetReceiverGroupIDs(),
+			}
+		}),
+		ID:          a.GetStrategyID(),
+		LevelID:     a.GetLevelID(),
+		TeamID:      a.GetTeamID(),
+		Status:      vobj.Status(a.GetStatus()),
+		Alert:       a.GetAlert(),
+		Threshold:   float64(a.GetThreshold()),
+		Labels:      vobj.NewLabels(a.GetLabels()),
+		Annotations: a.GetAnnotations(),
+		Domain:      a.GetDomain(),
+		Timeout:     types.Ternary(a.GetTimeout() > 0, a.GetTimeout(), 5),
+		Interval:    types.NewDuration(a.GetInterval()),
+	}
+}

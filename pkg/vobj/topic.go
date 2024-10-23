@@ -17,4 +17,7 @@ const (
 
 	// TopicAlarm 多条告警
 	TopicAlarm // 多条告警
+
+	// TopicDomainStrategy 域名策略
+	TopicDomainStrategy // 域名策略
 )

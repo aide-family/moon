@@ -6,13 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
-	"github.com/aide-family/moon/pkg/env"
-	"github.com/aide-family/moon/pkg/houyi/datasource"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -31,7 +27,7 @@ type strategyRepositoryImpl struct {
 }
 
 // Save 保存策略
-func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strategy) error {
+func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrategy) error {
 	queue := s.data.GetStrategyQueue()
 	go func() {
 		defer after.RecoverX()
@@ -45,117 +41,65 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []*bo.Strate
 	return nil
 }
 
-func (s *strategyRepositoryImpl) getDatasourceCliList(strategy *bo.Strategy) ([]datasource.MetricDatasource, error) {
-	datasourceList := strategy.Datasource
-	datasourceCliList := make([]datasource.MetricDatasource, 0, len(datasourceList))
-	category := datasourceList[0].Category
-	for _, datasourceItem := range datasourceList {
-		if datasourceItem.Category != category {
-			log.Warnw("method", "Eval", "error", "datasource category is not same")
-			continue
-		}
-		cfg := &api.Datasource{
-			Category:    api.DatasourceType(datasourceItem.Category),
-			StorageType: api.StorageType(datasourceItem.StorageType),
-			Config:      datasourceItem.Config,
-			Endpoint:    datasourceItem.Endpoint,
-			Id:          datasourceItem.ID,
-		}
-		newDatasource, err := datasource.NewDatasource(cfg).Metric()
-		if err != nil {
-			log.Warnw("method", "NewDatasource", "error", err)
-			continue
-		}
-		datasourceCliList = append(datasourceCliList, newDatasource)
-	}
-	if len(datasourceCliList) == 0 {
-		return nil, merr.ErrorNotification("datasource is empty")
-	}
-	return datasourceCliList, nil
-}
-
-func builderAlarmBaseInfo(strategy *bo.Strategy) *bo.Alarm {
-	strategy.Labels.Append(vobj.StrategyID, fmt.Sprintf("%d", strategy.ID))
-	strategy.Labels.Append(vobj.LevelID, fmt.Sprintf("%d", strategy.LevelID))
-	strategy.Labels.Append(vobj.TeamID, fmt.Sprintf("%d", strategy.TeamID))
-
-	alarmInfo := bo.Alarm{
-		Receiver:          strings.Join(types.SliceTo(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.TeamID, id) }), ","),
-		Status:            vobj.AlertStatusFiring,
-		Alerts:            nil,
-		GroupLabels:       strategy.Labels,
-		CommonLabels:      strategy.Labels,
-		CommonAnnotations: strategy.Annotations,
-		ExternalURL:       "",
-		Version:           env.Version(),
-		GroupKey:          "",
-		TruncatedAlerts:   0,
-	}
-	return &alarmInfo
-}
-
 // Eval 评估策略 告警/恢复
-func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
-	alarmInfo := builderAlarmBaseInfo(strategy)
+func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy) (*bo.Alarm, error) {
+	alarmInfo := strategy.BuilderAlarmBaseInfo()
 	var alerts []*bo.Alert
 	// 获取存在的告警标识列表
 	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
 	// 移除策略， 直接生成告警恢复事件
-	if !strategy.Status.IsEnable() {
+	if !strategy.GetStatus().IsEnable() {
 		existAlerts := strings.Split(alertsStr, ",")
 		if len(existAlerts) == 0 {
 			return alarmInfo, nil
 		}
 		for _, existAlert := range existAlerts {
-			getResolvedAlert, err := s.getResolvedAlert(ctx, existAlert)
+			resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
 			if err != nil {
 				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
 				continue
 			}
-			alerts = append(alerts, getResolvedAlert)
+			alerts = append(alerts, resolvedAlert)
 		}
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
 		s.data.GetCacher().Delete(ctx, strategy.Index())
 		return alarmInfo, nil
 	}
-	datasourceCliList, err := s.getDatasourceCliList(strategy)
-	if err != nil {
-		return nil, err
-	}
-	evalPoints, err := datasource.MetricEval(datasourceCliList...)(ctx, strategy.Expr, strategy.For)
+
+	evalPoints, err := strategy.Eval(ctx)
 	if err != nil {
 		log.Warnw("method", "Eval", "error", err)
 		return nil, err
 	}
 
-	receiverGroupIDsMap := types.ToMap(strategy.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.TeamID, id) })
+	receiverGroupIDsMap := types.ToMap(strategy.GetReceiverGroupIDs(), func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), id) })
 	count := 0
 	for index, point := range evalPoints {
 		labels, ok := index.(*vobj.Labels)
 		if !ok {
 			continue
 		}
+		if !strategy.IsCompletelyMeet(point.Values) {
+			continue
+		}
 
 		if count == 0 {
 			// 判断labels里面key值是否满足告警
-			for _, notice := range strategy.LabelNotices {
+			for _, notice := range strategy.GetLabelNotices() {
 				// 判断key是否存在
 				if !labels.Match(notice.Key, notice.Value) {
 					continue
 				}
 				// 加入到通知对象里面
 				for _, receiverGroupID := range notice.ReceiverGroupIDs {
-					receiverGroupIDStr := fmt.Sprintf("team_%d_%d", strategy.TeamID, receiverGroupID)
+					receiverGroupIDStr := fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), receiverGroupID)
 					receiverGroupIDsMap[receiverGroupIDStr] = receiverGroupID
 				}
 			}
 		}
 		count++
 
-		if !isCompletelyMeet(point.Values, strategy) {
-			continue
-		}
 		valLength := len(point.Values)
 		endPointValue := point.Values[valLength-1]
 
@@ -165,9 +109,9 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			"time":   endPointValue.Timestamp,
 			"labels": labels.Map(),
 		}
-		annotations := make(vobj.Annotations, len(strategy.Annotations))
+		annotations := make(vobj.Annotations, len(strategy.GetAnnotations()))
 
-		for key, annotation := range strategy.Annotations {
+		for key, annotation := range strategy.GetAnnotations() {
 			annotations[key] = format.Formatter(annotation, formatValue)
 		}
 		alert := &bo.Alert{
@@ -180,7 +124,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 			Fingerprint:  "", // TODO 指纹生成逻辑
 			Value:        endPointValue.Value,
 		}
-		alert = s.getFiringAlert(ctx, alert)
+		alert = getFiringAlert(ctx, s.data, alert)
 		alerts = append(alerts, alert)
 		alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
 	}
@@ -198,12 +142,12 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 		}
 		for _, existAlert := range existAlerts {
 			if _, ok := alertIndexListMap[existAlert]; !ok {
-				getResolvedAlert, err := s.getResolvedAlert(ctx, existAlert)
+				resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
 				if err != nil {
 					log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
 					continue
 				}
-				alerts = append(alerts, getResolvedAlert)
+				alerts = append(alerts, resolvedAlert)
 			}
 		}
 	}
@@ -226,9 +170,9 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy
 	return alarmInfo, nil
 }
 
-func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.Alert) *bo.Alert {
+func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Alert {
 	// 获取已存在的告警
-	resolvedAlertStr, err := s.data.GetCacher().Get(ctx, alert.Index())
+	resolvedAlertStr, err := d.GetCacher().Get(ctx, alert.Index())
 	if err != nil {
 		log.Warnw("method", "storage.get", "error", err)
 	} else {
@@ -241,7 +185,7 @@ func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.A
 	}
 
 	// 更新最新的告警数据值
-	if err := s.data.GetCacher().Set(ctx, alert.Index(), alert.String(), 0); err != nil {
+	if err := d.GetCacher().Set(ctx, alert.Index(), alert.String(), 0); err != nil {
 		log.Warnw("method", "storage.put", "error", err)
 		// TODO 存在争议， 不确定是否要把缓存失败的数据推出去
 		// 如果不推， 会导致告警丢失，如果推送，会导致此事件没有告警恢复
@@ -250,9 +194,9 @@ func (s *strategyRepositoryImpl) getFiringAlert(ctx context.Context, alert *bo.A
 	return alert
 }
 
-func (s *strategyRepositoryImpl) getResolvedAlert(ctx context.Context, uniqueKey string) (*bo.Alert, error) {
+func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.Alert, error) {
 	// 获取存在的告警信息
-	existAlertStr, err := s.data.GetCacher().Get(ctx, uniqueKey)
+	existAlertStr, err := d.GetCacher().Get(ctx, uniqueKey)
 	if err != nil {
 		log.Warnw("method", "storage.get", "error", err)
 		return nil, err
@@ -267,14 +211,8 @@ func (s *strategyRepositoryImpl) getResolvedAlert(ctx context.Context, uniqueKey
 	resolvedAlert.Status = vobj.AlertStatusResolved
 	resolvedAlert.EndsAt = types.NewTimeByUnix(time.Now().Unix())
 	// 删除缓存
-	s.data.GetCacher().Delete(ctx, uniqueKey)
+	d.GetCacher().Delete(ctx, uniqueKey)
 	return resolvedAlert, nil
-}
-
-func isCompletelyMeet(pointValues []*datasource.Value, strategy *bo.Strategy) bool {
-	values := types.SliceTo(pointValues, func(v *datasource.Value) float64 { return v.Value })
-	judge := strategy.SustainType.Judge(strategy.Condition, strategy.Count, strategy.Threshold)
-	return judge(values)
 }
 
 func findCommonKeys(maps ...*vobj.Labels) *vobj.Labels {

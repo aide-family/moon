@@ -20,11 +20,11 @@ type StrategyBiz struct {
 }
 
 // SaveStrategy 保存策略信息
-func (s *StrategyBiz) SaveStrategy(ctx context.Context, strategy []*bo.Strategy) error {
-	return s.strategyRepository.Save(ctx, strategy)
+func (s *StrategyBiz) SaveStrategy(ctx context.Context, strategies []bo.IStrategy) error {
+	return s.strategyRepository.Save(ctx, strategies)
 }
 
 // Eval 根据策略信息产生告警数据
-func (s *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
+func (s *StrategyBiz) Eval(ctx context.Context, strategy bo.IStrategy) (*bo.Alarm, error) {
 	return s.strategyRepository.Eval(ctx, strategy)
 }

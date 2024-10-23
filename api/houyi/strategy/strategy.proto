@@ -12,23 +12,25 @@ option java_package = "api.houyi.strategy";
 
 // 告警策略下发通道
 service Strategy {
-	rpc PushStrategy(PushStrategyRequest) returns (PushStrategyReply) {
-		option (google.api.http) = {
-			post: "/v1/strategy/push"
-			body: "*"
-		};
-	}
+  rpc PushStrategy(PushStrategyRequest) returns (PushStrategyReply) {
+    option (google.api.http) = {
+      post: "/v1/strategy/push"
+      body: "*"
+    };
+  }
 }
 
 message PushStrategyRequest {
-	repeated Strategy strategies = 1 [(buf.validate.field).cel = {
-		id: "PushStrategyRequest_strategies_gt0",
-		expression: "this.size() > 0"
-		message: "策略列表不能为空"
-	}, (buf.validate.field).cel = {
-		id: "PushStrategyRequest_strategies_lte10",
-		expression: "this.size() <= 10"
-		message: "策略列表不能超过10个"
-	}];
+  repeated Strategy strategies = 1 [(buf.validate.field).cel = {
+    id: "PushStrategyRequest_strategies_lte10",
+    expression: "this.size() <= 10"
+    message: "策略列表不能超过10个"
+  }];
+  // 域名监控策略
+  repeated DomainStrategyItem domainStrategies = 2 [(buf.validate.field).cel = {
+    id: "PushStrategyRequest_domain_strategies_lte10",
+    expression: "this.size() <= 10"
+    message: "域名策略列表不能超过10个"
+  }];
 }
 message PushStrategyReply {}

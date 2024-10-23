@@ -25,6 +25,12 @@ const (
 	DatasourceID = "__moon__datasource_id__"
 	// DatasourceURL 数据源url
 	DatasourceURL = "__moon__datasource_url__"
+	// Domain 域名
+	Domain = "__moon__domain__"
+	// DomainSubject 域名主题
+	DomainSubject = "__moon__domain_subject__"
+	// DomainExpiresOn 域名过期时间
+	DomainExpiresOn = "__moon__domain_expires_on__"
 )
 
 var _ sql.Scanner = (*Labels)(nil)
