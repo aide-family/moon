@@ -109,6 +109,10 @@ func (d *Duration) MarshalJSON() ([]byte, error) {
 
 // CronTime 定义一个时间间隔，单位为秒
 func (d *Duration) CronTime() string {
+	seconds := d.GetDuration().AsDuration().Seconds()
+	if seconds < 10 {
+		seconds = 10
+	}
 	return "@every " + strconv.Itoa(int(d.GetDuration().AsDuration().Seconds())) + "s"
 }
 

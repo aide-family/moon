@@ -90,5 +90,7 @@ func (a *DomainStrategyBuilder) ToBo() *bo.DomainStrategy {
 		Domain:      a.GetDomain(),
 		Timeout:     types.Ternary(a.GetTimeout() > 0, a.GetTimeout(), 5),
 		Interval:    types.NewDuration(a.GetInterval()),
+		Port:        a.GetPort(),
+		Type:        vobj.StrategyType(a.GetStrategyType()),
 	}
 }

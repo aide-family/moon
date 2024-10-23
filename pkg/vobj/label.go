@@ -31,6 +31,8 @@ const (
 	DomainSubject = "__moon__domain_subject__"
 	// DomainExpiresOn 域名过期时间
 	DomainExpiresOn = "__moon__domain_expires_on__"
+	// DomainPort 端口
+	DomainPort = "__moon__domain_port__"
 )
 
 var _ sql.Scanner = (*Labels)(nil)

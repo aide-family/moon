@@ -4,26 +4,34 @@ import (
 	"context"
 	"crypto/tls"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 )
 
-type CertInfo struct {
-	Domain    string `json:"domain"`
-	Subject   string `json:"subject"`
-	ExpiresOn string `json:"expires_on"`
-	DaysLeft  int    `json:"days_left"`
-}
-
-// DomainEval 函数，传递一个域名和超时时间，返回一个切片和错误信息
-func DomainEval(_ context.Context, domain string, timeout time.Duration) (map[watch.Indexer]*Point, error) {
+// DomainEval 函数用于获取域名的证书信息，并返回一个 map[Indexer]*Point 结构
+//
+//	其中 Indexer 是一个标签，用于标识一个数据点，Point 是一个数据点，包含标签和值。
+func DomainEval(_ context.Context, domain string, port uint32, timeout time.Duration) (map[watch.Indexer]*Point, error) {
 	now := time.Now()
+	points := make(map[watch.Indexer]*Point)
 	// 创建 TCP 连接
-	conn, err := net.DialTimeout("tcp", domain+":443", timeout*time.Second)
+	conn, err := net.DialTimeout("tcp", domain+":"+strconv.FormatUint(uint64(port), 10), timeout*time.Second)
 	if err != nil {
-		return nil, err
+		// 超时或者连接失败，返回空切片和错误信息
+		labels := vobj.NewLabels(map[string]string{vobj.Domain: domain, vobj.DomainPort: strconv.FormatUint(uint64(port), 10)})
+		points[vobj.NewLabels(map[string]string{vobj.Domain: domain})] = &Point{
+			Labels: labels.Map(),
+			Values: []*Value{
+				{
+					Value:     0,
+					Timestamp: now.Unix(),
+				},
+			},
+		}
+		return points, nil
 	}
 	// 函数执行完后关闭连接
 	defer conn.Close()
@@ -46,10 +54,10 @@ func DomainEval(_ context.Context, domain string, timeout time.Duration) (map[wa
 
 	// 获取证书信息，返回的是一个切片
 	certs := tlsConn.ConnectionState().PeerCertificates
-	points := make(map[watch.Indexer]*Point)
 	for _, cert := range certs {
 		labels := vobj.NewLabels(map[string]string{
 			vobj.Domain:          domain,
+			vobj.DomainPort:      strconv.FormatUint(uint64(port), 10),
 			vobj.DomainSubject:   cert.Subject.CommonName,
 			vobj.DomainExpiresOn: cert.NotAfter.Format("2006-01-02 15:04:05"),
 		})

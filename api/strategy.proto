@@ -142,6 +142,14 @@ message DomainStrategyItem {
   uint32 timeout = 21;
   // 执行频率
   google.protobuf.Duration interval = 22;
+  // 端口
+  uint32 port = 23 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_port"
+    expression: 'this > 0'
+    message: "端口必须大于0"
+  }];
+  // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
+  uint32 strategyType = 24 [(buf.validate.field).enum.defined_only = true];
 }
 
 message LabelNotices {

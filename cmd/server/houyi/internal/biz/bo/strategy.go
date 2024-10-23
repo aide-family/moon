@@ -128,6 +128,10 @@ type (
 		Timeout uint32 `json:"timeout,omitempty"`
 		// 执行频率
 		Interval *types.Duration `json:"interval,omitempty"`
+		// 端口
+		Port uint32 `json:"port,omitempty"`
+		// 类型
+		Type vobj.StrategyType `json:"type,omitempty"`
 	}
 )
 
@@ -261,7 +265,12 @@ func (s *DomainStrategy) IsCompletelyMeet(values []*datasource.Value) bool {
 		return false
 	}
 	for _, point := range values {
-		if point.Value <= s.Threshold {
+		// 域名证书检测、小于等于阈值都是满足条件的
+		if s.Type.IsDomaincertificate() && point.Value <= s.Threshold {
+			return true
+		}
+		// 端口检测、等于阈值才是满足条件的 1开启， 0关闭
+		if s.Type.IsDomainport() && point.Value == s.Threshold {
 			return true
 		}
 	}
@@ -274,6 +283,7 @@ func (s *DomainStrategy) BuilderAlarmBaseInfo() *Alarm {
 	s.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
 	s.Labels.Append(vobj.TeamID, strconv.FormatUint(uint64(s.TeamID), 10))
 	s.Labels.Append(vobj.Domain, s.Domain)
+	s.Labels.Append(vobj.DomainPort, strconv.FormatUint(uint64(s.Port), 10))
 
 	return &Alarm{
 		Receiver:          strings.Join(types.SliceTo(s.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", s.TeamID, id) }), ","),
@@ -291,7 +301,10 @@ func (s *DomainStrategy) BuilderAlarmBaseInfo() *Alarm {
 
 // Eval 策略评估
 func (s *DomainStrategy) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
-	return datasource.DomainEval(ctx, s.Domain, time.Duration(s.Timeout))
+	if s.Type.IsDomainport() {
+		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout))
+	}
+	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout))
 }
 
 func (s *DomainStrategy) GetTeamID() uint32 {
