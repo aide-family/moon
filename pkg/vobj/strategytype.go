@@ -1,6 +1,6 @@
 package vobj
 
-// StrategyType 业务类型
+// StrategyType 策略类型
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=StrategyType -linecomment
 type StrategyType int

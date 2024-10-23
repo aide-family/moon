@@ -256,7 +256,7 @@ func (s *DomainStrategy) Index() string {
 
 // Message 策略转消息
 func (s *DomainStrategy) Message() *watch.Message {
-	return watch.NewMessage(s, vobj.TopicDomainStrategy)
+	return watch.NewMessage(s, vobj.TopicStrategy)
 }
 
 // IsCompletelyMeet 判断策略是否完全满足条件

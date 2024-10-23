@@ -94,3 +94,39 @@ func (a *DomainStrategyBuilder) ToBo() *bo.DomainStrategy {
 		Type:        vobj.StrategyType(a.GetStrategyType()),
 	}
 }
+
+type HTTPStrategyBuilder struct {
+	*api.HttpStrategyItem
+}
+
+func NewHTTPStrategyBuilder(strategyInfo *api.HttpStrategyItem) *HTTPStrategyBuilder {
+	return &HTTPStrategyBuilder{
+		HttpStrategyItem: strategyInfo,
+	}
+}
+
+func (a *HTTPStrategyBuilder) ToBo() *bo.EndpointDurationStrategy {
+	if types.IsNil(a) || types.IsNil(a.HttpStrategyItem) {
+		return nil
+	}
+	return &bo.EndpointDurationStrategy{
+		Type:             vobj.StrategyType(a.GetStrategyType()),
+		Url:              a.GetUrl(),
+		Timeout:          a.GetTimeout(),
+		StatusCode:       a.GetStatusCodes(),
+		Headers:          a.GetHeaders(),
+		Body:             a.GetBody(),
+		Method:           vobj.ToHTTPMethod(a.GetMethod()),
+		Threshold:        float64(a.GetThreshold()),
+		Labels:           vobj.NewLabels(a.GetLabels()),
+		Annotations:      a.GetAnnotations(),
+		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
+		LabelNotices:     nil,
+		TeamID:           a.GetTeamID(),
+		Status:           vobj.Status(a.GetStatus()),
+		Alert:            a.GetAlert(),
+		Interval:         types.NewDuration(a.GetInterval()),
+		LevelID:          a.GetLevelID(),
+		ID:               a.GetStrategyID(),
+	}
+}

@@ -152,6 +152,75 @@ message DomainStrategyItem {
   uint32 strategyType = 24 [(buf.validate.field).enum.defined_only = true];
 }
 
+message HttpStrategyItem {
+  // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
+  uint32 strategyType = 1 [(buf.validate.field).enum.defined_only = true];
+  // URL
+  string url = 2 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_url"
+    expression: 'this.size() > 0'
+    message: "URL不允许为空"
+  }];
+  // 策略ID
+  uint32 strategyID = 3 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
+  // 策略等级ID
+  uint32 levelID = 4 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 团队ID
+  uint32 teamID = 5 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_teamID"
+    expression: 'this > 0'
+    message: "团队ID必须大于0"
+  }];
+  // 接收对象列表（告警组ID列表）
+  repeated uint32 receiverGroupIDs = 6;
+  // 策略状态
+  Status status = 7 [(buf.validate.field).enum.defined_only = true];
+  // 策略标签
+  map<string, string> labels = 8 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_labels"
+    expression: 'this.size() > 0'
+    message: "策略标签不允许为空"
+  }];
+  // 策略注解
+  map<string, string> annotations = 9 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_annotations"
+    expression: 'this.size() > 0'
+    message: "策略注解不允许为空"
+  }];
+  // 阈值
+  int64 threshold = 10 [(buf.validate.field).cel = {
+    id: "HttpStrategyItem_threshold"
+    expression: 'this >= 0'
+    message: "阈值必须大于等于0"
+  }];
+  // 超时时间
+  uint32 timeout = 11;
+  // 执行频率
+  google.protobuf.Duration interval = 12;
+  // 状态码
+  uint32 statusCodes = 13;
+  // 策略名称
+  string alert = 14 [(buf.validate.field).cel = {
+    id: "Strategy_alert"
+    expression: 'this.size() > 0'
+    message: "策略名称不允许为空"
+  }];
+  // 请求头
+  map<string, string> headers = 15;
+  // 请求体
+  string body = 16;
+  // 请求方式
+  string method = 17;
+}
+
 message LabelNotices {
   string key = 1;
   string value = 2;
