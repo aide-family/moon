@@ -32,7 +32,7 @@ type (
 		GetAnnotations() map[string]string
 		GetInterval() *types.Duration
 		Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error)
-		IsCompletelyMeet(values []*datasource.Value) bool
+		IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool)
 	}
 
 	LabelNotices struct {
@@ -234,10 +234,10 @@ func (s *Strategy) Message() *watch.Message {
 }
 
 // IsCompletelyMeet 判断策略是否完全满足条件
-func (s *Strategy) IsCompletelyMeet(values []*datasource.Value) bool {
+func (s *Strategy) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
 	points := types.SliceTo(values, func(v *datasource.Value) float64 { return v.Value })
 	judge := s.SustainType.Judge(s.Condition, s.Count, s.Threshold)
-	return judge(points)
+	return nil, judge(points)
 }
 
 // String 策略转字符串
@@ -260,21 +260,21 @@ func (s *DomainStrategy) Message() *watch.Message {
 }
 
 // IsCompletelyMeet 判断策略是否完全满足条件
-func (s *DomainStrategy) IsCompletelyMeet(values []*datasource.Value) bool {
+func (s *DomainStrategy) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
 	if !s.Status.IsEnable() {
-		return false
+		return nil, false
 	}
 	for _, point := range values {
 		// 域名证书检测、小于等于阈值都是满足条件的
 		if s.Type.IsDomaincertificate() && point.Value <= s.Threshold {
-			return true
+			return nil, true
 		}
 		// 端口检测、等于阈值才是满足条件的 1开启， 0关闭
 		if s.Type.IsDomainport() && point.Value == s.Threshold {
-			return true
+			return nil, true
 		}
 	}
-	return false
+	return nil, false
 }
 
 // BuilderAlarmBaseInfo 构建告警基础信息

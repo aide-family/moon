@@ -123,22 +123,26 @@ func (e *EndpointDurationStrategy) Eval(ctx context.Context) (map[watch.Indexer]
 	return datasource.EndpointDuration(ctx, e.Url, e.Method, e.Headers, e.Body, time.Duration(e.Timeout)), nil
 }
 
-func (e *EndpointDurationStrategy) IsCompletelyMeet(values []*datasource.Value) bool {
+func (e *EndpointDurationStrategy) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
 	if len(values) == 0 || !e.Status.IsEnable() {
-		return false
+		return nil, false
 	}
 	if len(values) != 2 {
-		return false
+		return nil, false
 	}
 
 	code := values[1].Value
 	duration := values[0].Value
+	extJson := map[string]any{
+		"code":     code,
+		"duration": duration,
+	}
 	if e.StatusCode != 0 && (float64(e.StatusCode) == code || code == 0) {
-		return true
+		return extJson, true
 	}
 	if e.Threshold != 0 && (duration >= e.Threshold || duration == 0) {
-		return true
+		return extJson, true
 	}
 
-	return false
+	return extJson, false
 }

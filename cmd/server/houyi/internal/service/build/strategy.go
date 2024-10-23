@@ -130,3 +130,41 @@ func (a *HTTPStrategyBuilder) ToBo() *bo.EndpointDurationStrategy {
 		ID:               a.GetStrategyID(),
 	}
 }
+
+type PingStrategyBuilder struct {
+	*api.PingStrategyItem
+}
+
+func NewPingStrategyBuilder(strategyInfo *api.PingStrategyItem) *PingStrategyBuilder {
+	return &PingStrategyBuilder{
+		PingStrategyItem: strategyInfo,
+	}
+}
+
+func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
+	if types.IsNil(a) || types.IsNil(a.PingStrategyItem) {
+		return nil
+	}
+
+	return &bo.StrategyPing{
+		Type:             vobj.StrategyType(a.GetStrategyType()),
+		StrategyID:       a.GetStrategyID(),
+		TeamID:           a.GetTeamID(),
+		Status:           vobj.Status(a.GetStatus()),
+		Alert:            a.GetAlert(),
+		Interval:         types.NewDuration(a.GetInterval()),
+		LevelID:          a.GetLevelID(),
+		Timeout:          a.GetTimeout(),
+		Labels:           vobj.NewLabels(a.GetLabels()),
+		Annotations:      a.GetAnnotations(),
+		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
+		Address:          a.GetAddress(),
+		TotalPackets:     float64(a.GetTotalCount()),
+		SuccessPackets:   float64(a.GetSuccessCount()),
+		LossRate:         a.GetLossRate(),
+		MinDelay:         float64(a.GetMinDelay()),
+		MaxDelay:         float64(a.GetMaxDelay()),
+		AvgDelay:         float64(a.GetAvgDelay()),
+		StdDevDelay:      float64(a.GetStdDev()),
+	}
+}

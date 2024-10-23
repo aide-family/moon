@@ -38,5 +38,11 @@ message PushStrategyRequest {
     expression: "this.size() <= 10"
     message: "HTTP策略列表不能超过10个"
   }];
+  // ping 策略
+  repeated PingStrategyItem pingStrategies = 4 [(buf.validate.field).cel = {
+    id: "PushStrategyRequest_ping_strategies_lte10",
+    expression: "this.size() <= 10"
+    message: "PING策略列表不能超过10个"
+  }];
 }
 message PushStrategyReply {}

@@ -74,31 +74,28 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 	}
 
 	receiverGroupIDsMap := types.ToMap(strategy.GetReceiverGroupIDs(), func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), id) })
-	count := 0
 	for index, point := range evalPoints {
 		labels, ok := index.(*vobj.Labels)
 		if !ok {
 			continue
 		}
-		if !strategy.IsCompletelyMeet(point.Values) {
+		extJson, ok := strategy.IsCompletelyMeet(point.Values)
+		if !ok {
 			continue
 		}
 
-		if count == 0 {
-			// 判断labels里面key值是否满足告警
-			for _, notice := range strategy.GetLabelNotices() {
-				// 判断key是否存在
-				if !labels.Match(notice.Key, notice.Value) {
-					continue
-				}
-				// 加入到通知对象里面
-				for _, receiverGroupID := range notice.ReceiverGroupIDs {
-					receiverGroupIDStr := fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), receiverGroupID)
-					receiverGroupIDsMap[receiverGroupIDStr] = receiverGroupID
-				}
+		// 判断labels里面key值是否满足告警
+		for _, notice := range strategy.GetLabelNotices() {
+			// 判断key是否存在
+			if !labels.Match(notice.Key, notice.Value) {
+				continue
+			}
+			// 加入到通知对象里面
+			for _, receiverGroupID := range notice.ReceiverGroupIDs {
+				receiverGroupIDStr := fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), receiverGroupID)
+				receiverGroupIDsMap[receiverGroupIDStr] = receiverGroupID
 			}
 		}
-		count++
 
 		valLength := len(point.Values)
 		endPointValue := point.Values[valLength-1]
@@ -108,6 +105,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 			"value":  endPointValue.Value,
 			"time":   endPointValue.Timestamp,
 			"labels": labels.Map(),
+			"ext":    extJson,
 		}
 		annotations := make(vobj.Annotations, len(strategy.GetAnnotations()))
 

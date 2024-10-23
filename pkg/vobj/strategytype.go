@@ -17,4 +17,7 @@ const (
 
 	// StrategyTypeDomainPort 域名端口策略
 	StrategyTypeDomainPort // domain_port
+
+	// StrategyTypePing 网络连通性策略
+	StrategyTypePing // ping
 )

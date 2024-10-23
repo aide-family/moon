@@ -27,7 +27,7 @@ func NewStrategyService(strategyBiz *biz.StrategyBiz) *StrategyService {
 
 // PushStrategy 推送策略
 func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.PushStrategyRequest) (*strategyapi.PushStrategyReply, error) {
-	strategies := make([]bo.IStrategy, 0, len(req.GetStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies()))
+	strategies := make([]bo.IStrategy, 0, len(req.GetStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies())+len(req.GetPingStrategies()))
 	if len(req.GetStrategies()) > 0 {
 		strategies = append(strategies, types.SliceTo(req.GetStrategies(), func(item *api.Strategy) bo.IStrategy {
 			return build.NewStrategyBuilder(item).ToBo()
@@ -41,6 +41,11 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 	if len(req.GetHttpStrategies()) > 0 {
 		strategies = append(strategies, types.SliceTo(req.GetHttpStrategies(), func(item *api.HttpStrategyItem) bo.IStrategy {
 			return build.NewHTTPStrategyBuilder(item).ToBo()
+		})...)
+	}
+	if len(req.GetPingStrategies()) > 0 {
+		strategies = append(strategies, types.SliceTo(req.GetPingStrategies(), func(item *api.PingStrategyItem) bo.IStrategy {
+			return build.NewPingStrategyBuilder(item).ToBo()
 		})...)
 	}
 	if len(strategies) == 0 {
