@@ -20,12 +20,12 @@ func NewStrategyBuilder(strategyInfo *api.Strategy) *StrategyBuilder {
 }
 
 // ToBo 转换为业务对象
-func (a *StrategyBuilder) ToBo() *bo.Strategy {
+func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 	if types.IsNil(a) || types.IsNil(a.Strategy) {
 		return nil
 	}
 	strategyInfo := a.Strategy
-	return &bo.Strategy{
+	return &bo.StrategyMetric{
 		ReceiverGroupIDs: strategyInfo.GetReceiverGroupIDs(),
 		LabelNotices: types.SliceTo(strategyInfo.LabelNotices, func(item *api.LabelNotices) *bo.LabelNotices {
 			return &bo.LabelNotices{
@@ -66,11 +66,11 @@ func NewDomainStrategyBuilder(strategyInfo *api.DomainStrategyItem) *DomainStrat
 	}
 }
 
-func (a *DomainStrategyBuilder) ToBo() *bo.DomainStrategy {
+func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	if types.IsNil(a) || types.IsNil(a.DomainStrategyItem) {
 		return nil
 	}
-	return &bo.DomainStrategy{
+	return &bo.StrategyDomain{
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		LabelNotices: types.SliceTo(a.GetLabelNotices(), func(item *api.LabelNotices) *bo.LabelNotices {
 			return &bo.LabelNotices{
@@ -105,11 +105,11 @@ func NewHTTPStrategyBuilder(strategyInfo *api.HttpStrategyItem) *HTTPStrategyBui
 	}
 }
 
-func (a *HTTPStrategyBuilder) ToBo() *bo.EndpointDurationStrategy {
+func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyEndpoint {
 	if types.IsNil(a) || types.IsNil(a.HttpStrategyItem) {
 		return nil
 	}
-	return &bo.EndpointDurationStrategy{
+	return &bo.StrategyEndpoint{
 		Type:             vobj.StrategyType(a.GetStrategyType()),
 		Url:              a.GetUrl(),
 		Timeout:          a.GetTimeout(),

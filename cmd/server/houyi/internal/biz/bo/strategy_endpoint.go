@@ -14,11 +14,11 @@ import (
 	"github.com/aide-family/moon/pkg/watch"
 )
 
-var _ IStrategy = (*EndpointDurationStrategy)(nil)
+var _ IStrategy = (*StrategyEndpoint)(nil)
 
 type (
-	// EndpointDurationStrategy 端点响应时间、状态码策略
-	EndpointDurationStrategy struct {
+	// StrategyEndpoint 端点响应时间、状态码策略
+	StrategyEndpoint struct {
 		// 类型
 		Type vobj.StrategyType `json:"type,omitempty"`
 		// url 地址
@@ -58,23 +58,23 @@ type (
 	}
 )
 
-func (e *EndpointDurationStrategy) String() string {
+func (e *StrategyEndpoint) String() string {
 	bs, _ := types.Marshal(e)
 	return string(bs)
 }
 
-func (e *EndpointDurationStrategy) Index() string {
+func (e *StrategyEndpoint) Index() string {
 	if types.IsNil(e) {
 		return "houyi:strategy:0:endpoint"
 	}
 	return fmt.Sprintf("houyi:strategy:%d:%d:%d:%s", e.TeamID, e.ID, e.LevelID, types.MD5(e.Url))
 }
 
-func (e *EndpointDurationStrategy) Message() *watch.Message {
+func (e *StrategyEndpoint) Message() *watch.Message {
 	return watch.NewMessage(e, vobj.TopicStrategy)
 }
 
-func (e *EndpointDurationStrategy) BuilderAlarmBaseInfo() *Alarm {
+func (e *StrategyEndpoint) BuilderAlarmBaseInfo() *Alarm {
 	e.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(e.ID), 10))
 	e.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(e.LevelID), 10))
 	e.Labels.Append(vobj.TeamID, strconv.FormatUint(uint64(e.TeamID), 10))
@@ -95,35 +95,38 @@ func (e *EndpointDurationStrategy) BuilderAlarmBaseInfo() *Alarm {
 	}
 }
 
-func (e *EndpointDurationStrategy) GetTeamID() uint32 {
+func (e *StrategyEndpoint) GetTeamID() uint32 {
 	return e.TeamID
 }
 
-func (e *EndpointDurationStrategy) GetStatus() vobj.Status {
+func (e *StrategyEndpoint) GetStatus() vobj.Status {
 	return e.Status
 }
 
-func (e *EndpointDurationStrategy) GetReceiverGroupIDs() []uint32 {
+func (e *StrategyEndpoint) GetReceiverGroupIDs() []uint32 {
 	return e.ReceiverGroupIDs
 }
 
-func (e *EndpointDurationStrategy) GetLabelNotices() []*LabelNotices {
+func (e *StrategyEndpoint) GetLabelNotices() []*LabelNotices {
 	return e.LabelNotices
 }
 
-func (e *EndpointDurationStrategy) GetAnnotations() map[string]string {
+func (e *StrategyEndpoint) GetAnnotations() map[string]string {
 	return e.Annotations
 }
 
-func (e *EndpointDurationStrategy) GetInterval() *types.Duration {
+func (e *StrategyEndpoint) GetInterval() *types.Duration {
 	return e.Interval
 }
 
-func (e *EndpointDurationStrategy) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
+func (e *StrategyEndpoint) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
+	if !e.Status.IsEnable() {
+		return nil, nil
+	}
 	return datasource.EndpointDuration(ctx, e.Url, e.Method, e.Headers, e.Body, time.Duration(e.Timeout)), nil
 }
 
-func (e *EndpointDurationStrategy) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
+func (e *StrategyEndpoint) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
 	if len(values) == 0 || !e.Status.IsEnable() {
 		return nil, false
 	}

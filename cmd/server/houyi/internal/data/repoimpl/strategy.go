@@ -41,19 +41,15 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrate
 	return nil
 }
 
-// Eval 评估策略 告警/恢复
-func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy) (*bo.Alarm, error) {
-	alarmInfo := strategy.BuilderAlarmBaseInfo()
-	var alerts []*bo.Alert
-	// 获取存在的告警标识列表
+func (s *strategyRepositoryImpl) resolvedAlerts(ctx context.Context, strategy bo.IStrategy, alertKeys ...string) (alerts []*bo.Alert) {
 	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
+	firingKeys := strings.Split(alertsStr, ",")
 	// 移除策略， 直接生成告警恢复事件
 	if !strategy.GetStatus().IsEnable() {
-		existAlerts := strings.Split(alertsStr, ",")
-		if len(existAlerts) == 0 {
-			return alarmInfo, nil
+		if len(firingKeys) == 0 {
+			return
 		}
-		for _, existAlert := range existAlerts {
+		for _, existAlert := range firingKeys {
 			resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
 			if err != nil {
 				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
@@ -61,9 +57,31 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 			}
 			alerts = append(alerts, resolvedAlert)
 		}
+		s.data.GetCacher().Delete(ctx, strategy.Index())
+		return alerts
+	}
+	firingKeyMap := types.ToMap(alertKeys, func(key string) string { return key })
+	for _, alertKey := range firingKeys {
+		if _, ok := firingKeyMap[alertKey]; !ok {
+			resolvedAlert, err := getResolvedAlert(ctx, s.data, alertKey)
+			if err != nil {
+				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
+				continue
+			}
+			alerts = append(alerts, resolvedAlert)
+		}
+	}
+
+	return alerts
+}
+
+// Eval 评估策略 告警/恢复
+func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy) (*bo.Alarm, error) {
+	alarmInfo := strategy.BuilderAlarmBaseInfo()
+	if !strategy.GetStatus().IsEnable() {
+		alerts := s.resolvedAlerts(ctx, strategy)
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
-		s.data.GetCacher().Delete(ctx, strategy.Index())
 		return alarmInfo, nil
 	}
 
@@ -73,6 +91,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		return nil, err
 	}
 
+	var alerts []*bo.Alert
 	receiverGroupIDsMap := types.ToMap(strategy.GetReceiverGroupIDs(), func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), id) })
 	for index, point := range evalPoints {
 		labels, ok := index.(*vobj.Labels)
@@ -127,28 +146,12 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
 	}
 
-	alertIndexList := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
+	firingKeys := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
 		return alert.Index(), alert.Status.IsFiring()
 	})
 	alarmInfo.Receiver = strings.Join(maps.Keys(receiverGroupIDsMap), ",")
 
-	if !types.TextIsNull(alertsStr) {
-		existAlerts := strings.Split(alertsStr, ",")
-		alertIndexListMap := make(map[string]struct{}, len(alerts))
-		for _, alertItem := range alerts {
-			alertIndexListMap[alertItem.Index()] = struct{}{}
-		}
-		for _, existAlert := range existAlerts {
-			if _, ok := alertIndexListMap[existAlert]; !ok {
-				resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
-				if err != nil {
-					log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
-					continue
-				}
-				alerts = append(alerts, resolvedAlert)
-			}
-		}
-	}
+	alerts = append(alerts, s.resolvedAlerts(ctx, strategy, firingKeys...)...)
 
 	if len(alerts) == 0 {
 		// 删除缓存
@@ -156,9 +159,9 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
 		return alarmInfo, nil
 	}
-	if len(alertIndexList) > 0 {
+	if len(firingKeys) > 0 {
 		// 缓存告警指纹， 用于完全消失时候的告警恢复
-		if err := s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(alertIndexList, ","), 0); err != nil {
+		if err := s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(firingKeys, ","), 0); err != nil {
 			log.Warnw("method", "storage.put", "error", err)
 		}
 	} else {
@@ -170,11 +173,11 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 
 func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Alert {
 	// 获取已存在的告警
-	resolvedAlertStr, err := d.GetCacher().Get(ctx, alert.Index())
+	firingKey, err := d.GetCacher().Get(ctx, alert.Index())
 	if err != nil {
 		log.Warnw("method", "storage.get", "error", err)
 	} else {
-		firingAlert, err := bo.NewAlertWithAlertStrInfo(resolvedAlertStr)
+		firingAlert, err := bo.NewAlertWithAlertStrInfo(firingKey)
 		if err != nil {
 			log.Warnw("method", "bo.NewAlertWithAlertStrInfo", "error", err)
 		} else {

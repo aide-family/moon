@@ -120,6 +120,9 @@ func (s *StrategyPing) GetInterval() *types.Duration {
 }
 
 func (s *StrategyPing) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
+	if !s.Status.IsEnable() {
+		return nil, nil
+	}
 	return datasource.EndpointPing(ctx, s.Address, time.Duration(s.Timeout))
 }
 
@@ -151,7 +154,7 @@ func (s *StrategyPing) IsCompletelyMeet(values []*datasource.Value) (map[string]
 
 	// Define threshold checks
 	thresholds := []struct {
-		configValue float64 // Strategy configuration value
+		configValue float64 // StrategyMetric configuration value
 		metricValue float64 // Actual metric value
 		condition   string  // Description for debugging
 		comparison  func(configVal, metricVal float64) bool
