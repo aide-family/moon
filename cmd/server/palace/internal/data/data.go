@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/oss"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
 	"github.com/aide-family/moon/pkg/util/email"
@@ -40,6 +41,8 @@ type Data struct {
 	teamBizDBMap *sync.Map
 	alarmDBMap   *sync.Map
 
+	ossClient oss.OssClient
+
 	// 策略队列
 	strategyQueue watch.Queue
 	// 告警队列
@@ -61,6 +64,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	bizConf := c.GetBizDatabase()
 	cacheConf := c.GetCache()
 	emailConf := c.GetEmailConfig()
+	ossConf := c.GetOss()
 	d := &Data{
 		bizDatabaseConf:         bizConf,
 		alarmDatabaseConf:       alarmConf,
@@ -89,6 +93,9 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	d.cacher = newCache(cacheConf)
+
+	d.ossClient = newOssCli(ossConf)
+
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close cache", d.cacher.Close())
 	})
@@ -409,4 +416,40 @@ func (d *Data) GetAlertConsumerStorage() watch.Storage {
 		log.Warn("alertConsumerStorage is nil")
 	}
 	return d.alertConsumerStorage
+}
+
+func newOssCli(c *conf.Oss) oss.OssClient {
+	var client oss.OssClient
+	switch c.GetType() {
+	case "aliyun":
+		aliOSS, err := oss.NewAliOSS(
+			c.GetAliOss().GetEndpoint(),
+			c.GetAliOss().GetAccessKeyID(),
+			c.GetAliOss().GetAccessKeySecret(),
+			c.GetAliOss().GetBucketName())
+		if err != nil {
+			return nil
+		}
+		client = aliOSS
+	case "tencent":
+		tencentOss, err := oss.NewTencentOss(
+			c.GetTencentOss().GetBucketURL(),
+			c.GetTencentOss().GetSecretID(),
+			c.GetTencentOss().GetSecretKey())
+		if err != nil {
+			return nil
+		}
+		client = tencentOss
+	case "minio":
+		minIOClient, err := oss.NewMinIO(c.GetMinio())
+		if err != nil {
+			return nil
+		}
+		client = minIOClient
+	case "local":
+		client = oss.NewLocalStorage(c.GetLocal().GetPath())
+	default:
+		client = oss.NewLocalStorage(c.GetLocal().GetPath())
+	}
+	return client
 }

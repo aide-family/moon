@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
+	yamlservice "github.com/aide-family/moon/cmd/server/palace/internal/service/yaml"
 
 	"github.com/google/wire"
 )
@@ -44,5 +45,6 @@ var ProviderSetService = wire.NewSet(
 	NewAlertService,
 	invite.NewInviteService,
 	historyservice.NewHistoryService,
+	yamlservice.NewYamlService,
 	NewServerService,
 )

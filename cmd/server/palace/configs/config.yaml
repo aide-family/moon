@@ -103,3 +103,15 @@ alarmDatabase:
 #  port: 25
 #  user:
 #  pass:
+
+oss:
+  type: "minio"
+#  local:
+#    path: "/data/moon_oss"
+#    url: 127.0.0.1
+  minio:
+    endpoint: 127.0.0.1:9000
+    accessKeyID: minio
+    accessKeySecret: minio
+    bucketName: moon-oss
+    secure: false
