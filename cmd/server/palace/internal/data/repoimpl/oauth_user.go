@@ -94,7 +94,7 @@ func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s str
 	sysUser.Email = s
 
 	err = userQuery.Transaction(func(tx *query.Query) error {
-		if err = tx.SysUser.WithContext(ctx).Create(sysUser); err != nil {
+		if err = g.createSysUser(ctx, tx, sysUser); err != nil {
 			return err
 		}
 		_, err = tx.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(oauthUser.ID)).
@@ -108,6 +108,17 @@ func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s str
 	_ = g.sendUserPassword(ctx, sysUser, randPass)
 
 	return sysUser, nil
+}
+
+func (g *githubUserRepositoryImpl) createSysUser(ctx context.Context, tx *query.Query, sysUser *model.SysUser) error {
+	total, err := tx.SysUser.WithContext(ctx).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if total == 0 {
+		sysUser.Role = vobj.RoleSuperAdmin
+	}
+	return tx.SysUser.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser)
 }
 
 func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, user auth.IOAuthUser) (sysUser *model.SysUser, err error) {
@@ -136,12 +147,11 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 			}
 		}()
 	}
-	// 调试用
-	//sysUser.Email = "1058165620@qq.com"
+
 	err = query.Use(g.data.GetMainDB(ctx)).Transaction(func(tx *query.Query) error {
 		if err := helper.CheckEmail(user.GetEmail()); types.IsNil(err) {
 			// 创建系统用户
-			if err = tx.SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser); !types.IsNil(err) {
+			if err = g.createSysUser(ctx, tx, sysUser); !types.IsNil(err) {
 				return err
 			}
 		}

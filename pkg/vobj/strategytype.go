@@ -20,4 +20,7 @@ const (
 
 	// StrategyTypePing 网络连通性策略
 	StrategyTypePing // ping
+
+	// StrategyTypeHTTP 网站可用性策略
+	StrategyTypeHTTP // http
 )

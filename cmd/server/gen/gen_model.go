@@ -55,7 +55,7 @@ func Run(datasource string, drive string, modelCode string) {
 	}
 
 	if modelCode == vobj.AlarmModelBizCode {
-		g.ApplyBasic(alarmmodel.AlarmModels()...)
+		g.ApplyBasic(alarmmodel.Models()...)
 	}
 
 	// Generate the code

@@ -1,7 +1,7 @@
 package alarmmodel
 
-// AlarmModels 注册biz alarm model下相关模型
-func AlarmModels() []any {
+// Models 注册biz alarm model下相关模型
+func Models() []any {
 	return []any{
 		&RealtimeAlarm{},
 		&AlarmHistory{},

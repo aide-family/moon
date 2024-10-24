@@ -26,24 +26,7 @@ func initMainDatabase(d *Data) error {
 		return err
 	}
 
-	pass := types.NewPassword(types.MD5("123456" + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
-	// 如果没有默认用户，则创建一个默认用户
-	user := &model.SysUser{
-		AllFieldModel: model.AllFieldModel{ID: 1},
-		Username:      "admin",
-		Nickname:      "超级管理员",
-		Password:      pass.String(),
-		Email:         "moonio@moon.com",
-		Phone:         "18812341234",
-		Remark:        "这是个人很懒， 没有设置备注信息",
-		Avatar:        "https://img0.baidu.com/it/u=1128422789,3129806361&fm=253&app=120&size=w931&n=0&f=JPEG&fmt=auto?sec=1719766800&t=ff6081f1e5a590b3033596a43d165f3e",
-		Salt:          pass.GetSalt(),
-		Gender:        vobj.GenderMale,
-		Role:          vobj.RoleSuperAdmin,
-		Status:        vobj.StatusEnable,
-	}
-
-	return query.Use(d.mainDB).SysUser.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
+	return nil
 }
 
 // syncBizDatabase 同步业务模型到各个团队， 保证数据一致性
@@ -102,7 +85,7 @@ func syncBizDatabase(d *Data) error {
 		if err != nil {
 			return err
 		}
-		if err = alarmDB.AutoMigrate(alarmmodel.AlarmModels()...); err != nil {
+		if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
 			return err
 		}
 		if len(dictList) > 0 {

@@ -12,6 +12,8 @@ const tableNameStrategy = "strategies"
 // Strategy mapped from table <Strategy>
 type Strategy struct {
 	model.AllFieldModel
+	// StrategyType 策略类型
+	StrategyType vobj.StrategyType `gorm:"column:strategy_type;type:int;not null;comment:策略类型" json:"strategy_type"`
 	// 模板ID, 用于标记是否从模板创建而来
 	TemplateID uint32                `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"template_id"`
 	GroupID    uint32                `gorm:"column:group_id;type:int unsigned;not null;comment:策略规则组ID;uniqueIndex:idx__strategy__group_id__name,priority:2" json:"group_id"`
@@ -29,8 +31,16 @@ type Strategy struct {
 
 	Datasource []*Datasource `gorm:"many2many:strategy_datasource;" json:"datasource"`
 	// 策略类型
-	Categories []*SysDict       `gorm:"many2many:strategy_categories" json:"categories"`
-	Levels     []*StrategyLevel `gorm:"foreignKey:StrategyID" json:"levels"`
+	Categories []*SysDict `gorm:"many2many:strategy_categories" json:"categories"`
+	// metric类型策略明细
+	Levels []*StrategyLevel `gorm:"foreignKey:StrategyID" json:"levels"`
+	// 域名证书｜端口 等级策略明细
+	DomainLevels []*StrategyDomain `gorm:"foreignKey:StrategyID" json:"domain_levels"`
+	// http 协议状态码响应时间 等级策略明细
+	HttpLevels []*StrategyHttp `gorm:"foreignKey:StrategyID" json:"http_levels"`
+	// 网络连通性 等级策略明细
+	PingLevels []*StrategyPing `gorm:"foreignKey:StrategyID" json:"ping_levels"`
+
 	// 策略告警组
 	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategies_alarm_groups;" json:"alarm_groups"`
 	// 策略组

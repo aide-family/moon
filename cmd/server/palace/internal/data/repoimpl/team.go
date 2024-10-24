@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/palace/model/query"
@@ -108,6 +109,11 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 		return err
 	}
 
+	// 创建团队数据库
+	if err = l.data.CreateBizAlarmDatabase(teamID); !types.IsNil(err) {
+		return err
+	}
+
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	sysApis, err := mainQuery.WithContext(ctx).SysAPI.Find()
 	if !types.IsNil(err) {
@@ -167,40 +173,51 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 	if !types.IsNil(bizDbErr) {
 		return err
 	}
-
-	modelList := bizmodel.Models()
-	if len(modelList) == 0 {
-		return nil
-	}
-
-	// 初始化数据表
-	if err = bizDB.AutoMigrate(modelList...); !types.IsNil(err) {
+	alarmDB, alarmDbErr := l.data.GetAlarmGormDB(teamID)
+	if !types.IsNil(alarmDbErr) {
 		return err
 	}
 
-	return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		bizQuery := bizquery.Use(tx)
-		if len(adminMembers) > 0 {
-			if err = bizQuery.SysTeamMember.Create(adminMembers...); !types.IsNil(err) {
-				return err
-			}
+	alarmModels := alarmmodel.Models()
+	if len(alarmModels) > 0 {
+		if err = alarmDB.AutoMigrate(alarmModels...); !types.IsNil(err) {
+			return err
+		}
+	}
+
+	modelList := bizmodel.Models()
+	if len(modelList) > 0 {
+		// 初始化数据表
+		if err = bizDB.AutoMigrate(modelList...); !types.IsNil(err) {
+			return err
 		}
 
-		if len(teamApis) > 0 {
-			// 迁移api数据到团队数据库
-			if err = bizQuery.SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
-				return err
+		return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			bizQuery := bizquery.Use(tx)
+			if len(adminMembers) > 0 {
+				if err = bizQuery.SysTeamMember.Create(adminMembers...); !types.IsNil(err) {
+					return err
+				}
 			}
-		}
 
-		if len(dictList) > 0 {
-			if err = bizQuery.SysDict.Create(dictList...); !types.IsNil(err) {
-				return err
+			if len(teamApis) > 0 {
+				// 迁移api数据到团队数据库
+				if err = bizQuery.SysTeamAPI.Create(teamApis...); !types.IsNil(err) {
+					return err
+				}
 			}
-		}
 
-		return nil
-	})
+			if len(dictList) > 0 {
+				if err = bizQuery.SysDict.Create(dictList...); !types.IsNil(err) {
+					return err
+				}
+			}
+
+			return nil
+		})
+	}
+
+	return nil
 }
 
 func (l *teamRepositoryImpl) UpdateTeam(ctx context.Context, team *bo.UpdateTeamParams) error {
