@@ -31,5 +31,8 @@ func Models() []any {
 		&AlarmHook{},
 		&StrategyLabelNotice{},
 		&StrategySubscriber{},
+		&StrategyDomain{},
+		&StrategyHttp{},
+		&StrategyPing{},
 	}
 }

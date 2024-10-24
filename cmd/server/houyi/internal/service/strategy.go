@@ -29,7 +29,7 @@ func NewStrategyService(strategyBiz *biz.StrategyBiz) *StrategyService {
 func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.PushStrategyRequest) (*strategyapi.PushStrategyReply, error) {
 	strategies := make([]bo.IStrategy, 0, len(req.GetStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies())+len(req.GetPingStrategies()))
 	if len(req.GetStrategies()) > 0 {
-		strategies = append(strategies, types.SliceTo(req.GetStrategies(), func(item *api.Strategy) bo.IStrategy {
+		strategies = append(strategies, types.SliceTo(req.GetStrategies(), func(item *api.MetricStrategyItem) bo.IStrategy {
 			return build.NewStrategyBuilder(item).ToBo()
 		})...)
 	}

@@ -156,7 +156,7 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 	teamIdMap := types.ToMap(conn.teamIds, func(t uint32) uint32 {
 		return t
 	})
-	list := make([]*api.Strategy, 0, len(in.Strategies))
+	list := make([]*api.MetricStrategyItem, 0, len(in.Strategies))
 	for _, strategyItem := range in.Strategies {
 		if len(teamIdMap) == 0 {
 			list = in.Strategies

@@ -247,8 +247,8 @@ type (
 	}
 
 	IBoStrategyBuilder interface {
-		ToAPI(*bo.Strategy) *api.Strategy
-		ToAPIs([]*bo.Strategy) []*api.Strategy
+		ToAPI(*bo.Strategy) *api.MetricStrategyItem
+		ToAPIs([]*bo.Strategy) []*api.MetricStrategyItem
 	}
 
 	boStrategyBuilder struct {
@@ -296,12 +296,12 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	})
 }
 
-func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.Strategy {
+func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.MetricStrategyItem {
 	if types.IsNil(strategyItem) || types.IsNil(b) {
 		return nil
 	}
 
-	return &api.Strategy{
+	return &api.MetricStrategyItem{
 		Alert:                      strategyItem.Alert,
 		Expr:                       strategyItem.Expr,
 		For:                        durationpb.New(time.Duration(strategyItem.For) * time.Second),
@@ -330,12 +330,12 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.Strategy {
 	}
 }
 
-func (b *boStrategyBuilder) ToAPIs(strategies []*bo.Strategy) []*api.Strategy {
+func (b *boStrategyBuilder) ToAPIs(strategies []*bo.Strategy) []*api.MetricStrategyItem {
 	if types.IsNil(strategies) || types.IsNil(b) {
 		return nil
 	}
 
-	return types.SliceTo(strategies, func(item *bo.Strategy) *api.Strategy {
+	return types.SliceTo(strategies, func(item *bo.Strategy) *api.MetricStrategyItem {
 		return b.ToAPI(item)
 	})
 }

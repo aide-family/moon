@@ -11,8 +11,8 @@ option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
-// 类型数据策略定义
-message Strategy {
+// metric数据策略定义
+message MetricStrategyItem {
   // 策略名称
   string alert = 1 [(buf.validate.field).cel = {
     id: "Strategy_alert"
@@ -84,6 +84,7 @@ message Strategy {
   repeated LabelNotices labelNotices = 19;
 }
 
+// 域名证书或者端口监控策略定义
 message DomainStrategyItem {
   // 策略ID
   uint32 strategyID = 1 [(buf.validate.field).cel = {
@@ -131,7 +132,6 @@ message DomainStrategyItem {
     expression: 'this.size() > 0'
     message: "域名不允许为空"
   }];
-  repeated LabelNotices labelNotices = 19;
   // 策略名称
   string alert = 20 [(buf.validate.field).cel = {
     id: "Strategy_alert"
@@ -152,6 +152,7 @@ message DomainStrategyItem {
   uint32 strategyType = 24;
 }
 
+// HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
 message HttpStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   uint32 strategyType = 1;
@@ -221,6 +222,7 @@ message HttpStrategyItem {
   string method = 17;
 }
 
+// Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 message PingStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   uint32 strategyType = 1;

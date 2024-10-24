@@ -9,22 +9,22 @@ import (
 
 // StrategyBuilder 策略构建器
 type StrategyBuilder struct {
-	*api.Strategy
+	*api.MetricStrategyItem
 }
 
 // NewStrategyBuilder 创建策略构建器
-func NewStrategyBuilder(strategyInfo *api.Strategy) *StrategyBuilder {
+func NewStrategyBuilder(strategyInfo *api.MetricStrategyItem) *StrategyBuilder {
 	return &StrategyBuilder{
-		Strategy: strategyInfo,
+		MetricStrategyItem: strategyInfo,
 	}
 }
 
 // ToBo 转换为业务对象
 func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
-	if types.IsNil(a) || types.IsNil(a.Strategy) {
+	if types.IsNil(a) || types.IsNil(a.MetricStrategyItem) {
 		return nil
 	}
-	strategyInfo := a.Strategy
+	strategyInfo := a.MetricStrategyItem
 	return &bo.StrategyMetric{
 		ReceiverGroupIDs: strategyInfo.GetReceiverGroupIDs(),
 		LabelNotices: types.SliceTo(strategyInfo.LabelNotices, func(item *api.LabelNotices) *bo.LabelNotices {
@@ -72,26 +72,19 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	}
 	return &bo.StrategyDomain{
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
-		LabelNotices: types.SliceTo(a.GetLabelNotices(), func(item *api.LabelNotices) *bo.LabelNotices {
-			return &bo.LabelNotices{
-				Key:              item.GetKey(),
-				Value:            item.GetValue(),
-				ReceiverGroupIDs: item.GetReceiverGroupIDs(),
-			}
-		}),
-		ID:          a.GetStrategyID(),
-		LevelID:     a.GetLevelID(),
-		TeamID:      a.GetTeamID(),
-		Status:      vobj.Status(a.GetStatus()),
-		Alert:       a.GetAlert(),
-		Threshold:   float64(a.GetThreshold()),
-		Labels:      vobj.NewLabels(a.GetLabels()),
-		Annotations: a.GetAnnotations(),
-		Domain:      a.GetDomain(),
-		Timeout:     types.Ternary(a.GetTimeout() > 0, a.GetTimeout(), 5),
-		Interval:    types.NewDuration(a.GetInterval()),
-		Port:        a.GetPort(),
-		Type:        vobj.StrategyType(a.GetStrategyType()),
+		ID:               a.GetStrategyID(),
+		LevelID:          a.GetLevelID(),
+		TeamID:           a.GetTeamID(),
+		Status:           vobj.Status(a.GetStatus()),
+		Alert:            a.GetAlert(),
+		Threshold:        float64(a.GetThreshold()),
+		Labels:           vobj.NewLabels(a.GetLabels()),
+		Annotations:      a.GetAnnotations(),
+		Domain:           a.GetDomain(),
+		Timeout:          types.Ternary(a.GetTimeout() > 0, a.GetTimeout(), 5),
+		Interval:         types.NewDuration(a.GetInterval()),
+		Port:             a.GetPort(),
+		Type:             vobj.StrategyType(a.GetStrategyType()),
 	}
 }
 

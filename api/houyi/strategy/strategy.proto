@@ -21,7 +21,7 @@ service Strategy {
 }
 
 message PushStrategyRequest {
-  repeated Strategy strategies = 1 [(buf.validate.field).cel = {
+  repeated MetricStrategyItem strategies = 1 [(buf.validate.field).cel = {
     id: "PushStrategyRequest_strategies_lte10",
     expression: "this.size() <= 10"
     message: "策略列表不能超过10个"

@@ -21,7 +21,7 @@ service PushAlert {
 
 message AlarmRequest {
 	// 策略
-	Strategy strategy = 1;
+	MetricStrategyItem strategy = 1;
 }
 message AlarmReply {
 	// 告警
