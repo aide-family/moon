@@ -33,6 +33,10 @@ type RealtimeAlarm struct {
 	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 实时告警详情
 	RealtimeDetails *RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
+	// 策略ID
+	StrategyID uint32 `gorm:"column:strategy_id;type:int;not null;comment:策略id"`
+	// 告警等级ID
+	LevelID uint32 `gorm:"column:level_id;type:int;not null;comment:告警等级id"`
 }
 
 // String json string

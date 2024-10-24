@@ -112,11 +112,11 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := alarmParam.Annotations
 		return &alarmmodel.RealtimeAlarm{
-			Summary:     annotations.GetSummary(),
-			Description: annotations.GetDescription(),
 			Status:      vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:    alarmParam.StartsAt,
 			EndsAt:      alarmParam.EndsAt,
+			Summary:     annotations.GetSummary(),
+			Description: annotations.GetDescription(),
 			Expr:        strategy.Expr,
 			Fingerprint: alarmParam.Fingerprint,
 			Labels:      labels,
@@ -127,6 +127,8 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 				Level:      strategyLevel.String(),
 				Datasource: param.GetDatasourceMap(vobj.NewLabels(alarmParam.Labels).GetDatasourceID()),
 			},
+			StrategyID: strategy.GetID(),
+			LevelID:    strategyLevel.GetID(),
 		}
 	})
 	return alarms

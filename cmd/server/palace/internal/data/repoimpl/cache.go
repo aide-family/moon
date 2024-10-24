@@ -146,6 +146,9 @@ func (l *cacheRepositoryImpl) GetUsers(ctx context.Context, userIDs []uint32) []
 	users := make([]*model.SysUser, 0, len(userIDs))
 	noExistIds := make([]uint32, 0, len(userIDs))
 	for _, userID := range userIDs {
+		if userID <= 0 {
+			continue
+		}
 		var user model.SysUser
 		if err := l.data.GetCacher().GetObject(ctx, userCacheKey(userID), &user); err != nil {
 			log.Warnf("get user %d failed: %s", userID, err)

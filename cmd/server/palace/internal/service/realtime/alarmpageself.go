@@ -7,6 +7,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // AlarmPageSelfService is a service that implements the AlarmPageSelfServer.
@@ -37,7 +39,13 @@ func (s *AlarmPageSelfService) ListAlarmPage(ctx context.Context, _ *pb.ListAlar
 	if err != nil {
 		return nil, err
 	}
+	alarmPageIDs := types.SliceTo(alarmPageList, func(item *bizmodel.AlarmPageSelf) uint32 {
+		return item.AlarmPageID
+	})
+	// 获取告警页面的告警数量
+	alertCounts := s.alarmPageBiz.GetAlertCounts(ctx, alarmPageIDs)
 	return &pb.ListAlarmPageReply{
-		List: builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoAlarmPageSelfBuilder().ToAPIs(alarmPageList),
+		List:        builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoAlarmPageSelfBuilder().ToAPIs(alarmPageList),
+		AlertCounts: alertCounts,
 	}, nil
 }
