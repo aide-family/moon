@@ -149,10 +149,15 @@ func (a *Alarm) Index() string {
 
 // Message gen alarm message
 func (a *Alarm) Message() *watch.Message {
-	return watch.NewMessage(a, vobj.TopicAlarm, watch.WithMessageRetryMax(3))
+	return watch.NewMessage(a, vobj.TopicAlarm, watch.WithMessageRetryMax(10))
 }
 
 // Message gen alert message
 func (a *Alert) Message() *watch.Message {
-	return watch.NewMessage(a, vobj.TopicAlert, watch.WithMessageRetryMax(3))
+	return watch.NewMessage(a, vobj.TopicAlert, watch.WithMessageRetryMax(10))
+}
+
+// PushedFlag gen pushed flag
+func (a *Alert) PushedFlag() string {
+	return "houyi:alert:pushed:" + a.Status.String() + ":" + a.GetFingerprint()
 }

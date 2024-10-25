@@ -4,10 +4,8 @@ import (
 	"context"
 
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
-	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -22,11 +20,11 @@ type strategyRepositoryImpl struct {
 	houyiClient *data.HouYiConn
 }
 
-func (s *strategyRepositoryImpl) Push(ctx context.Context, strategies []*bo.Strategy) error {
-	apiStrategies := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPIs(strategies)
-	strategyReply, err := s.houyiClient.PushStrategy(ctx, &strategyapi.PushStrategyRequest{
-		Strategies: apiStrategies,
-	})
+func (s *strategyRepositoryImpl) Push(ctx context.Context, strategies *strategyapi.PushStrategyRequest) error {
+	if strategies == nil {
+		return nil
+	}
+	strategyReply, err := s.houyiClient.PushStrategy(ctx, strategies)
 	if err != nil {
 		return err
 	}

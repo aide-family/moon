@@ -53,7 +53,24 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	}
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	l.srvs[key] = srv
+	oldSrv, ok := l.srvs[key]
+	if !ok {
+		l.srvs[key] = srv
+		return
+	}
+
+	// 判断配置是否相同
+	if oldSrv.srvInfo.GetEndpoint() != srv.srvInfo.GetEndpoint() ||
+		oldSrv.srvInfo.GetNetwork() != srv.srvInfo.GetNetwork() {
+		l.srvs[key] = srv
+		return
+	}
+
+	// 合并teamIds
+	teamIds := types.MergeSliceWithUnique(srv.teamIds, oldSrv.teamIds)
+	oldSrv.teamIds = teamIds
+	// 更新rpc注册时间
+	oldSrv.registerTime = time.Now()
 }
 
 func (l *SrvList) deleteSrv(key string) {

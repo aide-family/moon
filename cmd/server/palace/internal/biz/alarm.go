@@ -74,19 +74,19 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 		return err
 	}
 
-	// 查询策略
+	// 查询策略 TODO 增加缓存 2h
 	strategy, err := b.strategyRepository.GetTeamStrategy(ctx, &bo.GetTeamStrategyParams{TeamID: params.TeamID, StrategyID: params.StrategyID})
 	if !types.IsNil(err) {
 		return err
 	}
 
-	// 查询策略等级
+	// 查询策略等级 TODO 增加缓存 2h
 	level, err := b.strategyRepository.GetTeamStrategyLevel(ctx, &bo.GetTeamStrategyLevelParams{TeamID: params.TeamID, LevelID: params.LevelID})
 	if !types.IsNil(err) {
 		return err
 	}
 
-	// 查询告警列表数据源
+	// 查询告警列表数据源 TODO 增加缓存 2h
 	datasourceIds := types.SliceTo(params.Alerts, func(item *bo.AlertItemRawParams) uint32 {
 		if types.IsNil(item.Labels) {
 			return 0

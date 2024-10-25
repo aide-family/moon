@@ -2,7 +2,7 @@ env: dev # dev、test、prod、local
 
 dependPalace: true
 teams:
-  - 4
+#  - 4
 server:
   name: moon_houyi
   httpEndpoint: "127.0.0.1:8001"

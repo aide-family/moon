@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/watch"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -85,12 +85,8 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 				if !ok || !msg.GetTopic().IsStrategy() {
 					continue
 				}
-				strategyMsg, ok := msg.GetData().(*bo.Strategy)
-				if !ok {
-					log.Warnf("strategy watch get data error: %v", msg.GetData())
-					continue
-				}
-				if err := s.addJob(strategyMsg); err != nil {
+
+				if err := s.addJob(msg.GetData()); err != nil {
 					log.Errorw("add job err", err)
 				}
 			}
@@ -109,41 +105,14 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 	return s.data.GetStrategyQueue().Close()
 }
 
-func (s *StrategyWatch) addJob(strategyMsg *bo.Strategy) error {
+func (s *StrategyWatch) addJob(strategyMsg watch.Indexer) error {
+	// 转换数据
 	if s.dependHouYi {
 		// 推送到houyi服务去
-		return s.alertService.PushStrategy(context.Background(), []*bo.Strategy{strategyMsg})
-	}
-	// 删除策略任务
-	if _, exist := s.entryIDMap[strategyMsg.Index()]; exist {
-		log.Info("strategy watch remove job")
-		s.cronInstance.Remove(s.entryIDMap[strategyMsg.Index()])
-	}
-	if !strategyMsg.Status.IsEnable() {
-		return nil
+		return s.alertService.PushStrategy(context.Background(), strategyMsg)
 	}
 
-	// 重新加入
-	entryID, err := s.cronInstance.AddFunc(s.interval, func() {
-		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-		defer cancel()
-		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)
-		if err != nil {
-			log.Warnw("inner alarm err", err)
-			return
-		}
-
-		if err := s.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
-			log.Warnw("push inner alarm err", err)
-			return
-		}
-	})
-	if err != nil {
-		return err
-	}
-	s.entryIDMap[strategyMsg.Index()] = entryID
-
-	log.Infow("strategy watch add job", s.entryIDMap[strategyMsg.Index()])
+	log.Warnw("本地未实现告警功能，策略任务将不会执行")
 
 	return nil
 }

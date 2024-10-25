@@ -112,6 +112,7 @@ func (w *Watcher) clear() {
 
 // retry 重试
 func (w *Watcher) retry(msg *Message) {
+	log.Debugw("method", "retry message", "msg", msg)
 	if msg.GetRetry() >= msg.GetRetryMax() {
 		// 重试次数超过最大次数不再重试
 		return

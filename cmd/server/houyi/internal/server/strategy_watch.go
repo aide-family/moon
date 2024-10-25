@@ -150,6 +150,7 @@ func (s *StrategyWatch) alertResolve(strategyMsg bo.IStrategy) error {
 		return err
 	}
 
+	log.Debugw("method", "alertResolve", "innerAlarm", innerAlarm)
 	if err := s.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
 		log.Warnw("push inner alarm err", err)
 		return err

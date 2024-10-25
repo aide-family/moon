@@ -51,6 +51,33 @@ type (
 		DoStrategyLevelTemplateBuilder() IDoStrategyLevelTemplateBuilder
 
 		BoStrategyBuilder() IBoStrategyBuilder
+		BoStrategyDomainBuilder() IBoStrategyDomainBuilder
+		BoStrategyEndpointBuilder() IBoStrategyEndpointBuilder
+		BoStrategyPingBuilder() IBoStrategyPingBuilder
+	}
+
+	IBoStrategyDomainBuilder interface {
+		ToAPI(*bo.StrategyDomain) *api.DomainStrategyItem
+	}
+
+	boStrategyDomainBuilder struct {
+		ctx context.Context
+	}
+
+	IBoStrategyEndpointBuilder interface {
+		ToAPI(*bo.StrategyEndpoint) *api.HttpStrategyItem
+	}
+
+	boStrategyEndpointBuilder struct {
+		ctx context.Context
+	}
+
+	IBoStrategyPingBuilder interface {
+		ToAPI(*bo.StrategyPing) *api.PingStrategyItem
+	}
+
+	boStrategyPingBuilder struct {
+		ctx context.Context
 	}
 
 	ICreateStrategyGroupRequestBuilder interface {
@@ -255,6 +282,92 @@ type (
 		ctx context.Context
 	}
 )
+
+func (b *boStrategyDomainBuilder) ToAPI(domain *bo.StrategyDomain) *api.DomainStrategyItem {
+	if types.IsNil(domain) || types.IsNil(b) {
+		return nil
+	}
+	return &api.DomainStrategyItem{
+		StrategyID:       domain.ID,
+		LevelID:          domain.LevelID,
+		TeamID:           domain.TeamID,
+		ReceiverGroupIDs: domain.ReceiverGroupIDs,
+		Status:           api.Status(domain.Status),
+		Labels:           domain.Labels.Map(),
+		Annotations:      domain.Annotations,
+		Threshold:        domain.Threshold,
+		Domain:           domain.Domain,
+		Alert:            domain.Alert,
+		Timeout:          domain.Timeout,
+		Interval:         durationpb.New(time.Duration(domain.Interval) * time.Second),
+		Port:             domain.Port,
+		StrategyType:     uint32(domain.Type),
+	}
+}
+
+func (b *boStrategyEndpointBuilder) ToAPI(endpoint *bo.StrategyEndpoint) *api.HttpStrategyItem {
+	if types.IsNil(endpoint) || types.IsNil(b) {
+		return nil
+	}
+	return &api.HttpStrategyItem{
+		StrategyType:     uint32(endpoint.Type),
+		Url:              endpoint.Url,
+		StrategyID:       endpoint.ID,
+		LevelID:          endpoint.LevelID,
+		TeamID:           endpoint.TeamID,
+		ReceiverGroupIDs: endpoint.ReceiverGroupIDs,
+		Status:           api.Status(endpoint.Status),
+		Labels:           endpoint.Labels.Map(),
+		Annotations:      endpoint.Annotations,
+		Threshold:        endpoint.Threshold,
+		Timeout:          endpoint.Timeout,
+		Interval:         durationpb.New(time.Duration(endpoint.Interval) * time.Second),
+		StatusCodes:      endpoint.StatusCode,
+		Alert:            endpoint.Alert,
+		Headers:          endpoint.Headers,
+		Body:             endpoint.Body,
+		Method:           endpoint.Method.String(),
+	}
+}
+
+func (b *boStrategyPingBuilder) ToAPI(ping *bo.StrategyPing) *api.PingStrategyItem {
+	if types.IsNil(ping) || types.IsNil(b) {
+		return nil
+	}
+	return &api.PingStrategyItem{
+		StrategyType:     uint32(ping.Type),
+		StrategyID:       ping.ID,
+		TeamID:           ping.TeamID,
+		Status:           api.Status(ping.Status),
+		Alert:            ping.Alert,
+		Interval:         durationpb.New(time.Duration(ping.Interval) * time.Second),
+		LevelID:          ping.LevelID,
+		Timeout:          ping.Timeout,
+		Labels:           ping.Labels.Map(),
+		Annotations:      ping.Annotations,
+		ReceiverGroupIDs: ping.ReceiverGroupIDs,
+		Address:          ping.Address,
+		TotalCount:       ping.TotalPackets,
+		SuccessCount:     ping.SuccessPackets,
+		LossRate:         ping.LossRate,
+		AvgDelay:         ping.AvgDelay,
+		MaxDelay:         ping.MaxDelay,
+		MinDelay:         ping.MinDelay,
+		StdDev:           ping.StdDevDelay,
+	}
+}
+
+func (s *strategyModuleBuilder) BoStrategyDomainBuilder() IBoStrategyDomainBuilder {
+	return &boStrategyDomainBuilder{ctx: s.ctx}
+}
+
+func (s *strategyModuleBuilder) BoStrategyEndpointBuilder() IBoStrategyEndpointBuilder {
+	return &boStrategyEndpointBuilder{ctx: s.ctx}
+}
+
+func (s *strategyModuleBuilder) BoStrategyPingBuilder() IBoStrategyPingBuilder {
+	return &boStrategyPingBuilder{ctx: s.ctx}
+}
 
 func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	if types.IsNil(strategy) || types.IsNil(d) {

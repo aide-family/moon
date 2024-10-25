@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -108,7 +109,7 @@ func (b *StrategyBiz) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alar
 }
 
 // PushStrategy 推送策略
-func (b *StrategyBiz) PushStrategy(ctx context.Context, strategies []*bo.Strategy) error {
+func (b *StrategyBiz) PushStrategy(ctx context.Context, strategies *strategyapi.PushStrategyRequest) error {
 	return b.strategyRPCRepo.Push(ctx, strategies)
 }
 

@@ -101,7 +101,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	if realtimeAlarmQuery, err = types.WithPageQuery(realtimeAlarmQuery, params.Pagination); err != nil {
 		return nil, err
 	}
-	return realtimeAlarmQuery.Order(alarmQuery.RealtimeAlarm.ID.Desc()).Find()
+	return realtimeAlarmQuery.Order(alarmQuery.RealtimeAlarm.ID.Desc()).Preload(alarmQuery.RealtimeAlarm.RealtimeDetails).Find()
 }
 
 func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.RealtimeAlarm {

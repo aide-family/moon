@@ -101,25 +101,6 @@ func (m *Message) GetRetryMax() int {
 	return m.retryMax
 }
 
-// WithHandledPath 设置消息处理过的路径
-func (m *Message) WithHandledPath(index int, handle HandleFun) {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	m.handleCtx = context.WithValue(m.handleCtx, index, handle)
-}
-
-// IsHandled 判断消息是否已经处理过
-func (m *Message) IsHandled(index int) bool {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	v := m.handleCtx.Value(index)
-	if v == nil {
-		return false
-	}
-	_, ok := v.(HandleFun)
-	return ok
-}
-
 // WithMessageSchema 设置消息编码器
 func WithMessageSchema(schema Schemer) MessageOption {
 	return func(m *Message) {
