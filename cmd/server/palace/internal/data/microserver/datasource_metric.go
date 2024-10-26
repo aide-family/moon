@@ -87,13 +87,10 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 	for _, metric := range syncReply.GetMetrics() {
 		labels := make([]*bizmodel.MetricLabel, 0, len(metric.GetLabels()))
 		for labelName, labelValues := range metric.GetLabels() {
+			bs, _ := types.Marshal(labelValues.Values)
 			labels = append(labels, &bizmodel.MetricLabel{
-				Name: labelName,
-				LabelValues: types.SliceTo(labelValues.GetValues(), func(val string) *bizmodel.MetricLabelValue {
-					return &bizmodel.MetricLabelValue{
-						Name: val,
-					}
-				}),
+				Name:        labelName,
+				LabelValues: string(bs),
 			})
 		}
 		item := &bizmodel.DatasourceMetric{

@@ -99,10 +99,8 @@ func (s *MetricService) SyncMetric(ctx context.Context, req *datasourceapi.SyncM
 			Unit: metricInfo.GetUnit(),
 			Labels: types.SliceTo(metricInfo.GetLabels(), func(item *admin.MetricLabelItem) *bo.MetricLabel {
 				return &bo.MetricLabel{
-					Name: item.GetName(),
-					Values: types.SliceTo(item.GetValues(), func(item *admin.MetricLabelValueItem) string {
-						return item.GetValue()
-					}),
+					Name:   item.GetName(),
+					Values: item.GetValues(),
 				}
 			}),
 		},

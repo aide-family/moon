@@ -59,6 +59,7 @@ func (c *CreateMetricParams) ToModel() *bizmodel.DatasourceMetric {
 	if types.IsNil(c) || types.IsNil(c.Metric) {
 		return nil
 	}
+
 	return &bizmodel.DatasourceMetric{
 		Name:         c.Metric.Name,
 		Category:     c.Metric.Type,
@@ -66,13 +67,10 @@ func (c *CreateMetricParams) ToModel() *bizmodel.DatasourceMetric {
 		Remark:       c.Metric.Help,
 		DatasourceID: c.DatasourceID,
 		Labels: types.SliceTo(c.Metric.Labels, func(label *MetricLabel) *bizmodel.MetricLabel {
+			bs, _ := types.Marshal(label.Values)
 			return &bizmodel.MetricLabel{
-				Name: label.Name,
-				LabelValues: types.SliceTo(label.Values, func(value string) *bizmodel.MetricLabelValue {
-					return &bizmodel.MetricLabelValue{
-						Name: value,
-					}
-				}),
+				Name:        label.Name,
+				LabelValues: string(bs),
 			}
 		}),
 	}

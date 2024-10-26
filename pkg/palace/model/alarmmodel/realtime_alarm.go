@@ -30,7 +30,7 @@ type RealtimeAlarm struct {
 	// 注解
 	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	// 告警原始数据ID
-	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__notice__raw_info_id,priority:1" json:"rawInfoId"`
+	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__realtime__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 实时告警详情
 	RealtimeDetails *RealtimeDetails `gorm:"foreignKey:RealtimeAlarmID"`
 	// 策略ID

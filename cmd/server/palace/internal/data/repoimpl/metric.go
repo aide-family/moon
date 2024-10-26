@@ -70,7 +70,7 @@ func (m *metricRepositoryImpl) GetWithRelation(ctx context.Context, id uint32) (
 	return bizQuery.DatasourceMetric.
 		WithContext(ctx).
 		Where(bizQuery.DatasourceMetric.ID.Eq(id)).
-		Preload(bizQuery.DatasourceMetric.Labels.LabelValues).
+		Preload(bizQuery.DatasourceMetric.Labels).
 		First()
 }
 
@@ -90,18 +90,6 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 	if err != nil {
 		return err
 	}
-	// 查询所有的label value ids
-	var labelValueIds []uint32
-	if len(labelIds) > 0 {
-		err = bizQuery.MetricLabelValue.
-			WithContext(ctx).
-			Where(bizQuery.MetricLabelValue.LabelID.In(labelIds...)).
-			Select(bizQuery.MetricLabelValue.ID).
-			Scan(&labelValueIds)
-		if err != nil {
-			return err
-		}
-	}
 
 	metric := &bizmodel.DatasourceMetric{
 		AllFieldModel: model.AllFieldModel{ID: id},
@@ -118,8 +106,6 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 			return nil
 		}
 
-		// 删除关联数据
-		_, err = tx.MetricLabelValue.WithContext(ctx).Where(tx.MetricLabelValue.ID.In(labelValueIds...)).Delete()
 		return err
 	})
 }
@@ -179,25 +165,7 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32,
 	}
 	bizQuery := bizquery.Use(bizDB)
 
-	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := bizQuery.DatasourceMetric.WithContext(ctx).Omit(field.AssociationFields).Clauses(
-			clause.OnConflict{DoNothing: true},
-		).Create(metric); err != nil {
-			return err
-		}
-
-		labels := make([]*bizmodel.MetricLabel, 0, len(metric.Labels))
-		for _, label := range metric.Labels {
-			labelTmp := label
-			labelTmp.MetricID = metric.ID
-			labels = append(labels, labelTmp)
-		}
-		if err := bizQuery.MetricLabel.WithContext(ctx).Clauses(
-			clause.OnConflict{UpdateAll: true},
-		).Create(labels...); err != nil {
-			return err
-		}
-
-		return nil
-	})
+	return bizQuery.DatasourceMetric.WithContext(ctx).Clauses(
+		clause.OnConflict{DoNothing: true},
+	).Create(metric)
 }

@@ -16,7 +16,14 @@ type MetricLabel struct {
 	MetricID    uint32                `gorm:"column:metric_id;type:int unsigned;not null;comment:所属指标;uniqueIndex:idx__name__metric_id__deleted_at" json:"metric_id"` // 所属指标
 	DeletedAt   soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间;uniqueIndex:idx__name__metric_id__deleted_at" json:"deleted_at"`     // 删除时间
 	Remark      string                `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`                                                      // 备注
-	LabelValues []*MetricLabelValue   `gorm:"foreignKey:LabelID" json:"label_values"`
+	LabelValues string                `gorm:"column:label_values;type:text;not null;comment:标签值" json:"label_values"`
+}
+
+// GetLabelValues get label values
+func (c *MetricLabel) GetLabelValues() []string {
+	var values []string
+	_ = types.Unmarshal([]byte(c.LabelValues), &values)
+	return values
 }
 
 // String json string

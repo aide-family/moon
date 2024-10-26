@@ -16,7 +16,6 @@ import (
 	subscriberapi "github.com/aide-family/moon/api/admin/subscriber"
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	userapi "github.com/aide-family/moon/api/admin/user"
-	v1 "github.com/aide-family/moon/api/helloworld/v1"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
@@ -83,7 +82,6 @@ func RegisterService(
 	serverService *service.ServerService,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	greeter *service.GreeterService,
 	healthService *service.HealthService,
 	userService *user.Service,
 	authorizationService *authorization.Service,
@@ -107,7 +105,6 @@ func RegisterService(
 	historyService *history.Service,
 ) *Server {
 	// 注册GRPC服务
-	v1.RegisterGreeterServer(rpcSrv, greeter)
 	userapi.RegisterUserServer(rpcSrv, userService)
 	authorizationapi.RegisterAuthorizationServer(rpcSrv, authorizationService)
 	resourceapi.RegisterResourceServer(rpcSrv, resourceService)
@@ -133,7 +130,6 @@ func RegisterService(
 	api.RegisterServerServer(rpcSrv, serverService)
 
 	// 注册HTTP服务
-	v1.RegisterGreeterHTTPServer(httpSrv, greeter)
 	userapi.RegisterUserHTTPServer(httpSrv, userService)
 	authorizationapi.RegisterAuthorizationHTTPServer(httpSrv, authorizationService)
 	resourceapi.RegisterResourceHTTPServer(httpSrv, resourceService)

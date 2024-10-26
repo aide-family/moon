@@ -11,12 +11,10 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 )
 
@@ -121,30 +119,6 @@ func syncDatasourceMetaKey(datasourceID uint32) string {
 	return fmt.Sprintf("sync:datasource:meta:%d", datasourceID)
 }
 
-// SyncDatasourceMeta 同步数据源元数据
-func (b *DatasourceBiz) SyncDatasourceMeta(ctx context.Context, id uint32) error {
-	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
-		return merr.ErrorI18nToastDatasourceSyncing(ctx)
-	}
-	go func() {
-		defer after.RecoverX()
-		defer func() {
-			if err := b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id)); !types.IsNil(err) {
-				log.Errorw("unlock err", err)
-			}
-		}()
-
-		if err := b.syncDatasourceMeta(context.Background(), id, middleware.GetTeamID(ctx)); err != nil {
-			log.Debugw("sync", "datasource meta", "id", id)
-			log.Errorw("sync err", err)
-			b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
-			return
-		}
-	}()
-
-	return nil
-}
-
 // SyncDatasourceMetaV2 同步数据源元数据
 func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) (err error) {
 	if err := b.lock.Lock(ctx, syncDatasourceMetaKey(id), 10*time.Minute); !types.IsNil(err) {
@@ -185,25 +159,4 @@ func (b *DatasourceBiz) Query(ctx context.Context, params *bo.DatasourceQueryPar
 	}
 
 	return b.datasourceMetricMicroRepository.Query(ctx, params)
-}
-
-func (b *DatasourceBiz) syncDatasourceMeta(ctx context.Context, id, teamID uint32) error {
-	// 获取数据源详情
-	datasourceDetail, err := b.datasourceRepository.GetDatasourceNoAuth(ctx, id, teamID)
-	if !types.IsNil(err) {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return merr.ErrorI18nToastDataSourceNotFound(ctx)
-		}
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	// 获取元数据
-	metadata, err := b.datasourceMetricMicroRepository.GetMetadata(ctx, datasourceDetail)
-	if !types.IsNil(err) {
-		return err
-	}
-	// 创建元数据
-	if err = b.datasourceMetricRepository.CreateMetricsNoAuth(ctx, teamID, metadata...); !types.IsNil(err) {
-		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
-	}
-	return nil
 }

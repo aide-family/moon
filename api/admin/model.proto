@@ -264,7 +264,7 @@ message MetricLabelItem {
   // 标签名称
   string name = 1;
   // 标签值
-  repeated MetricLabelValueItem values = 2;
+  repeated string values = 2;
   // ID
   uint32 id = 3;
 }

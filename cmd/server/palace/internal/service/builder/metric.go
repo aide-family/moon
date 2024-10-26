@@ -26,8 +26,6 @@ type (
 		DoMetricBuilder() IDoMetricBuilder
 
 		DoMetricLabelBuilder() IDoMetricLabelBuilder
-
-		DoMetricLabelValueBuilder() IDoMetricLabelValueBuilder
 	}
 
 	IUpdateMetricRequestBuilder interface {
@@ -76,41 +74,7 @@ type (
 	doMetricLabelBuilder struct {
 		ctx context.Context
 	}
-
-	IDoMetricLabelValueBuilder interface {
-		ToAPI(*bizmodel.MetricLabelValue) *adminapi.MetricLabelValueItem
-		ToAPIs([]*bizmodel.MetricLabelValue) []*adminapi.MetricLabelValueItem
-	}
-
-	doMetricLabelValueBuilder struct {
-		ctx context.Context
-	}
 )
-
-func (d *doMetricLabelValueBuilder) ToAPI(value *bizmodel.MetricLabelValue) *adminapi.MetricLabelValueItem {
-	if types.IsNil(d) || types.IsNil(value) {
-		return nil
-	}
-
-	return &adminapi.MetricLabelValueItem{
-		Id:    value.ID,
-		Value: value.Name,
-	}
-}
-
-func (d *doMetricLabelValueBuilder) ToAPIs(values []*bizmodel.MetricLabelValue) []*adminapi.MetricLabelValueItem {
-	if types.IsNil(d) || types.IsNil(values) {
-		return nil
-	}
-
-	return types.SliceTo(values, func(value *bizmodel.MetricLabelValue) *adminapi.MetricLabelValueItem {
-		return d.ToAPI(value)
-	})
-}
-
-func (m *metricModuleBuilder) DoMetricLabelValueBuilder() IDoMetricLabelValueBuilder {
-	return &doMetricLabelValueBuilder{ctx: m.ctx}
-}
 
 func (d *doMetricLabelBuilder) ToAPI(label *bizmodel.MetricLabel) *adminapi.MetricLabelItem {
 	if types.IsNil(d) || types.IsNil(label) {
@@ -119,7 +83,7 @@ func (d *doMetricLabelBuilder) ToAPI(label *bizmodel.MetricLabel) *adminapi.Metr
 
 	return &adminapi.MetricLabelItem{
 		Name:   label.Name,
-		Values: NewParamsBuild().WithContext(d.ctx).MetricModuleBuilder().DoMetricLabelValueBuilder().ToAPIs(label.LabelValues),
+		Values: label.GetLabelValues(),
 		Id:     label.ID,
 	}
 }
