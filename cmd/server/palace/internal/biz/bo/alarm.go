@@ -196,7 +196,7 @@ func (a *AlertItemRawParams) GetAlertItemString() string {
 	return string(bs)
 }
 
-// Key redis key
-func (a *AlertItemRawParams) Key(route string) string {
-	return "palace:notice:" + route + ":" + a.Fingerprint + ":" + a.Status
+// NoticeKey redis key
+func (a *AlertItemRawParams) NoticeKey(route string) string {
+	return "palace:notice:" + route + ":" + a.Status + ":" + a.Fingerprint
 }

@@ -63,7 +63,7 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 		return nil
 	}
 	realtimeAlarmQuery := bizAlarmQuery.RealtimeAlarm
-	err = realtimeAlarmQuery.WithContext(ctx).Where(realtimeAlarmQuery.LevelID.In(levelIds...)).
+	err = realtimeAlarmQuery.WithContext(ctx).Where(realtimeAlarmQuery.LevelID.In(levelIds...), realtimeAlarmQuery.Status.Eq(vobj.AlertStatusFiring.GetValue())).
 		Select(realtimeAlarmQuery.LevelID, realtimeAlarmQuery.LevelID.Count().As("count")).
 		Group(realtimeAlarmQuery.LevelID).
 		Scan(&alertLevelCounts)

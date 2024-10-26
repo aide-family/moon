@@ -254,8 +254,6 @@ func (l *HouYiConn) syncStrategies(srv *Srv, strategies []*bo.Strategy) error {
 	_, err := l.pushStrategy(ctx, srv, &strategyapi.PushStrategyRequest{Strategies: items})
 	if !types.IsNil(err) {
 		log.Errorw("同步策略失败：", err)
-		// 移除服务
-		l.srvs.deleteSrv(genSrvUniqueKey(srv.srvInfo))
 		return err
 	}
 	return nil

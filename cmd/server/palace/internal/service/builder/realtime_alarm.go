@@ -3,6 +3,7 @@ package builder
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
@@ -536,10 +537,14 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 		StartsAt:    alarm.StartsAt,
 		EndsAt:      alarm.EndsAt,
 		Status:      api.AlertStatus(alarm.Status),
+		Level:       nil,
+		Strategy:    nil,
 		Summary:     alarm.Summary,
 		Description: alarm.Description,
 		Expr:        alarm.Expr,
+		Datasource:  nil,
 		Fingerprint: alarm.Fingerprint,
+		Duration:    types.NewTimeByUnix(time.Now().Unix()).Time.Sub(types.NewTimeByString(alarm.StartsAt).Time).String(),
 	}
 	details := alarm.RealtimeDetails
 	if !types.IsNil(details) {

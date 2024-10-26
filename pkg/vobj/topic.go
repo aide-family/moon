@@ -17,4 +17,7 @@ const (
 
 	// TopicAlarm 多条告警
 	TopicAlarm // 多条告警
+
+	// TopicAlertMsg 告警消息
+	TopicAlertMsg // 告警消息
 )

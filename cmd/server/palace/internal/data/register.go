@@ -73,15 +73,6 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	oldSrv.registerTime = time.Now()
 }
 
-func (l *SrvList) deleteSrv(key string) {
-	if !l.depend {
-		return
-	}
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	delete(l.srvs, key)
-}
-
 func (l *SrvList) getSrv(key string) (*Srv, bool) {
 	if !l.depend {
 		return nil, false
@@ -116,8 +107,8 @@ func (l *SrvList) getSrvs() []*Srv {
 
 // checkSrvIsAlive 检查服务是否存活
 func (l *Srv) checkSrvIsAlive() (err error) {
-	// 判断服务注册时间是否大于10秒 （当前时间是否在10之后）
-	if time.Now().Before(l.registerTime.Add(15 * time.Second)) {
+	// 判断服务注册时间是否大于1分钟
+	if time.Now().Before(l.registerTime.Add(1 * time.Minute)) {
 		return nil
 	}
 	return merr.ErrorNotificationSystemError("%s 服务不可用", l.srvInfo.GetName())

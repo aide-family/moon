@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/api/admin"
@@ -64,15 +65,24 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 
 	resItem := &admin.AlarmHistoryItem{
 		Id:          history.ID,
-		AlertStatus: api.AlertStatus(history.AlertStatus),
-		Expr:        history.Expr,
-		Fingerprint: history.Fingerprint,
 		StartsAt:    history.StartsAt,
 		EndsAt:      history.EndsAt,
-		Annotations: history.Annotations,
-		Labels:      history.Labels.Map(),
+		AlertStatus: api.AlertStatus(history.AlertStatus),
+		Level:       nil,
+		Strategy:    nil,
 		Description: history.Description,
+		Expr:        history.Expr,
+		Datasource:  nil,
+		Fingerprint: history.Fingerprint,
+		RawInfo:     "",
+		Labels:      history.Labels.Map(),
+		Annotations: history.Annotations,
 		Summary:     history.Summary,
+		Duration: types.Ternary(
+			history.AlertStatus.IsResolved(),
+			types.NewTimeByString(history.EndsAt).Sub(types.NewTimeByString(history.StartsAt).Time).String(),
+			time.Since(types.NewTimeByString(history.StartsAt).Time).String(),
+		),
 	}
 
 	details := history.HistoryDetails

@@ -11,12 +11,41 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/util/after"
-	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+var _ watch.Indexer = (*SendMsg)(nil)
+
+type SendMsg struct {
+	*hookapi.SendMsgRequest
+}
+
+func (s *SendMsg) Index() string {
+	return s.RequestID
+}
+
 func NewSendAlertRepository(data *data.Data, rabbitConn *data.RabbitConn) microrepository.SendAlert {
-	return &sendAlertRepositoryImpl{rabbitConn: rabbitConn, data: data}
+	s := &sendAlertRepositoryImpl{rabbitConn: rabbitConn, data: data}
+	go func() {
+		defer after.RecoverX()
+		msgCh := s.data.GetAlertPersistenceMsgQueue().Next()
+		for {
+			select {
+			case msg, ok := <-msgCh:
+				if !ok {
+					break
+				}
+				sendMsg, ok := msg.GetData().(*SendMsg)
+				if !ok {
+					break
+				}
+				s.send(sendMsg.SendMsgRequest)
+			}
+		}
+	}()
+	return s
 }
 
 type sendAlertRepositoryImpl struct {
@@ -37,19 +66,11 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alerts []*bo.AlertItem
 				continue
 			}
 			for _, route := range routes {
-				key := v.Key(route)
-				setOK, err := s.data.GetCacher().SetNX(context.Background(), key, v.Fingerprint, 2*time.Hour)
-				if err != nil {
-					log.Warnf("set cache failed: %v", err)
-					continue
-				}
-				if !setOK {
-					continue
-				}
+				key := v.NoticeKey(route)
 				task := &hookapi.SendMsgRequest{
 					Json:      v.GetAlertItemString(),
 					Route:     route,
-					RequestID: types.MD5(key),
+					RequestID: key,
 				}
 				s.send(task)
 				time.Sleep(100 * time.Millisecond)
@@ -60,9 +81,22 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alerts []*bo.AlertItem
 }
 
 func (s *sendAlertRepositoryImpl) send(task *hookapi.SendMsgRequest) {
+	setOK, err := s.data.GetCacher().SetNX(context.Background(), task.RequestID, "1", 2*time.Hour)
+	if err != nil {
+		log.Warnf("set cache failed: %v", err)
+		return
+	}
+	if !setOK {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.rabbitConn.SendMsg(ctx, task); err != nil {
-		log.Warnf("send alert failed: %v", err)
+		// 删除缓存
+		if err := s.data.GetCacher().Delete(context.Background(), task.RequestID); err != nil {
+			log.Warnf("send alert failed")
+		}
+		// 加入消息队列，重试
+		s.data.GetAlertPersistenceMsgQueue().Push(watch.NewMessage(&SendMsg{task}, vobj.TopicAlertMsg))
 	}
 }

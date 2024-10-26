@@ -11,7 +11,9 @@ import (
 )
 
 // Time 包装后的时间类型
-type Time time.Time
+type Time struct {
+	time.Time
+}
 
 // MarshalJSON 实现 json.Marshaler 接口
 func (t Time) MarshalJSON() ([]byte, error) {
@@ -24,7 +26,7 @@ func (t *Time) String() string {
 	if t == nil {
 		return ""
 	}
-	return time.Time(*t).Format(time.DateTime)
+	return t.Time.Format(time.DateTime)
 }
 
 // Unix implements Unix interface
@@ -32,12 +34,14 @@ func (t *Time) Unix() int64 {
 	if t == nil {
 		return 0
 	}
-	return time.Time(*t).Unix()
+	return t.Time.Unix()
 }
 
 // NewTime 创建一个 Time
 func NewTime(t time.Time) *Time {
-	return (*Time)(&t)
+	return &Time{
+		Time: t,
+	}
 }
 
 // NewTimeByString 从字符串创建一个 Time
@@ -50,28 +54,28 @@ func NewTimeByString(s string, layout ...string) *Time {
 	if err != nil {
 		return nil
 	}
-	return (*Time)(&t)
+	return NewTime(t)
 }
 
 // NewTimeByUnix 从unix 创建一个 Time
 func NewTimeByUnix(unix int64) *Time {
 	t := time.Unix(unix, 0)
-	return (*Time)(&t)
+	return NewTime(t)
 }
 
 // Scan 现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (t *Time) Scan(value interface{}) error {
 	switch value.(type) {
 	case time.Time:
-		*t = Time(value.(time.Time))
+		t.Time = value.(time.Time)
 	case string:
 		tt, err := time.ParseInLocation(time.DateTime, value.(string), time.Local)
 		if err != nil {
 			return err
 		}
-		*t = Time(tt)
+		t.Time = tt
 	case nil:
-		*t = Time(time.Time{})
+		t.Time = time.Time{}
 	default:
 		return fmt.Errorf("can not convert %v to Time", value)
 	}
@@ -80,7 +84,7 @@ func (t *Time) Scan(value interface{}) error {
 
 // Value 实现 driver.Valuer 接口，Value
 func (t Time) Value() (driver.Value, error) {
-	return time.Time(t), nil
+	return t.Time, nil
 }
 
 var _ driver.Valuer = (*Duration)(nil)

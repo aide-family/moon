@@ -540,6 +540,8 @@ message RealtimeAlarmItem {
   DatasourceItem datasource = 10;
   // 指纹
   string fingerprint = 11;
+  // 持续时间
+  string duration = 12;
 }
 
 message AlarmNoticeGroupItem {
@@ -647,6 +649,8 @@ message AlarmHistoryItem{
   map<string, string> annotations = 14;
   // 告警摘要
   string summary = 15;
+  // 持续时间
+  string duration = 16;
 }
 
 message NoticeUserMessage {

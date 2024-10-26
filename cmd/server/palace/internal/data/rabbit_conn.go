@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
@@ -82,29 +83,32 @@ func (l *RabbitConn) notifyObject(ctx context.Context, srv *Srv, in *pushapi.Not
 
 // SendMsg 发送消息
 func (l *RabbitConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, opts ...microserver.Option) error {
-	eg := new(errgroup.Group)
+	srvs := l.srvs.getSrvs()
+	if len(srvs) == 0 {
+		// 把消息存入队列， 防止消息丢失
+		log.Infow("method", "SendMsg", "消息存入队列", in)
+		return merr.ErrorNotificationSystemError("没有可用的rabbit服务")
+	}
 	for _, srv := range l.srvs.getSrvs() {
 		conn := srv
-		eg.Go(func() error {
-			switch conn.network {
-			case vobj.NetworkHTTP, vobj.NetworkHTTPS:
-				httpOpts := make([]http.CallOption, 0)
-				for _, opt := range opts {
-					httpOpts = append(httpOpts, opt.HTTPOpts...)
-				}
-				_, err := hookapi.NewHookHTTPClient(conn.httpClient).SendMsg(ctx, in, httpOpts...)
-				return err
-			default:
-				rpcOpts := make([]grpc.CallOption, 0)
-				for _, opt := range opts {
-					rpcOpts = append(rpcOpts, opt.RPCOpts...)
-				}
-				_, err := hookapi.NewHookClient(conn.rpcClient).SendMsg(ctx, in, rpcOpts...)
-				return err
+		switch conn.network {
+		case vobj.NetworkHTTP, vobj.NetworkHTTPS:
+			httpOpts := make([]http.CallOption, 0)
+			for _, opt := range opts {
+				httpOpts = append(httpOpts, opt.HTTPOpts...)
 			}
-		})
+			_, err := hookapi.NewHookHTTPClient(conn.httpClient).SendMsg(ctx, in, httpOpts...)
+			return err
+		default:
+			rpcOpts := make([]grpc.CallOption, 0)
+			for _, opt := range opts {
+				rpcOpts = append(rpcOpts, opt.RPCOpts...)
+			}
+			_, err := hookapi.NewHookClient(conn.rpcClient).SendMsg(ctx, in, rpcOpts...)
+			return err
+		}
 	}
-	return eg.Wait()
+	return nil
 }
 
 // Heartbeat 心跳

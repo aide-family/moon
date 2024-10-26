@@ -80,7 +80,9 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	if err != nil {
 		return nil, err
 	}
-	var wheres []gen.Condition
+	var wheres = []gen.Condition{
+		alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue()),
+	}
 	if !types.TextIsNull(params.EventAtStart) && !types.TextIsNull(params.EventAtEnd) {
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.StartsAt.Between(params.EventAtStart, params.EventAtEnd))
 	}
