@@ -30,7 +30,7 @@ jwt:
     - /api.admin.authorization.Authorization/SetEmailWithLogin
 
 cache:
-  driver: "redis"
+  driver: "free"
   redis:
     network: "tcp"
     addr: localhost:6379
@@ -43,7 +43,7 @@ cache:
     path: ./tmp/nutsdb
     bucket: test
   free:
-    size: 0
+    size: 104857600
 
 #tracer:
 #  driver: "jaeger"
@@ -62,24 +62,24 @@ cache:
 #    timeout: 50s
 
 database:
-  driver: "mysql"
-  debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-#  driver: "sqlite"
-#  debug: true
-#  dsn: "main.db"
-bizDatabase:
-  driver: "mysql"
-  debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/"
-#  driver: "sqlite"
-#  debug: true
-alarmDatabase:
-  driver: "mysql"
-  debug: false
-  dsn: "root:12345678@tcp(localhost:3306)/"
-#  driver: "sqlite"
+#  driver: "mysql"
 #  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+  driver: "sqlite"
+  debug: false
+  dsn: "main.db"
+bizDatabase:
+#  driver: "mysql"
+#  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: "sqlite"
+  debug: true
+alarmDatabase:
+#  driver: "mysql"
+#  debug: false
+#  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: "sqlite"
+  debug: false
 
 #oauth2:
 #  redirect_uri: "http://127.0.0.1:5173/"

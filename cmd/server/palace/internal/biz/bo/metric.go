@@ -66,6 +66,7 @@ func (c *CreateMetricParams) ToModel() *bizmodel.DatasourceMetric {
 		Unit:         c.Metric.Unit,
 		Remark:       c.Metric.Help,
 		DatasourceID: c.DatasourceID,
+		LabelCount:   uint32(len(c.Metric.Labels)),
 		Labels: types.SliceTo(c.Metric.Labels, func(label *MetricLabel) *bizmodel.MetricLabel {
 			bs, _ := types.Marshal(label.Values)
 			return &bizmodel.MetricLabel{

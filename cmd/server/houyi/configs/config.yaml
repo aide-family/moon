@@ -19,7 +19,7 @@ grpc:
   timeout: 50s
 
 cache:
-  driver: "redis"
+  driver: "free"
   redis:
     network: "tcp"
     addr: localhost:6379
@@ -32,7 +32,7 @@ cache:
     path: ./tmp/nutsdb
     bucket: test
   free:
-    size: 10485760
+    size: 104857600
 
 watch:
   strategy:

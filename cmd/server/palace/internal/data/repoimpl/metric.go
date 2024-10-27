@@ -2,7 +2,6 @@ package repoimpl
 
 import (
 	"context"
-
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -165,7 +164,18 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32,
 	}
 	bizQuery := bizquery.Use(bizDB)
 
-	return bizQuery.DatasourceMetric.WithContext(ctx).Clauses(
+	if err := bizQuery.DatasourceMetric.WithContext(ctx).Clauses(
 		clause.OnConflict{DoNothing: true},
-	).Create(metric)
+	).Omit(bizQuery.DatasourceMetric.Labels.Field()).Create(metric); !types.IsNil(err) {
+		return err
+	}
+	metricQueryDo, err := bizQuery.DatasourceMetric.WithContext(ctx).Where(bizQuery.DatasourceMetric.Name.Eq(metric.Name)).First()
+	if !types.IsNil(err) {
+		return err
+	}
+	labels := types.SliceTo(metric.Labels, func(item *bizmodel.MetricLabel) *bizmodel.MetricLabel {
+		item.MetricID = metricQueryDo.ID
+		return item
+	})
+	return bizQuery.MetricLabel.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(labels...)
 }

@@ -85,12 +85,8 @@ func (l *metricRepositoryImpl) PushMetric(ctx context.Context, req *bo.PushMetri
 	labels := make([]*admin.MetricLabelItem, 0, len(req.Labels))
 	for label, labelValue := range req.Labels {
 		labels = append(labels, &admin.MetricLabelItem{
-			Name: label,
-			Values: types.SliceTo(labelValue, func(item string) *admin.MetricLabelValueItem {
-				return &admin.MetricLabelValueItem{
-					Value: item,
-				}
-			}),
+			Name:   label,
+			Values: labelValue,
 		})
 	}
 

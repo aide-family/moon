@@ -257,6 +257,8 @@ message MetricItem {
   string unit = 5;
   // ID
   uint32 id = 6;
+  // 标签数量
+  uint32 labelCount = 7;
 }
 
 // 指标数据标签

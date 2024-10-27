@@ -20,7 +20,9 @@ type DatasourceMetric struct {
 	DatasourceID uint32          `gorm:"column:datasource_id;type:int unsigned;not null;comment:所属数据源;uniqueIndex:idx__name__datasource_id__deleted_at" json:"datasource_id"` // 所属数据源
 	// 更新时间
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;comment:删除时间;uniqueIndex:idx__name__datasource_id__deleted_at" json:"deleted_at"` // 删除时间
-	Labels    []*MetricLabel        `gorm:"foreignKey:MetricID" json:"labels"`
+	// 标签数量
+	LabelCount uint32         `gorm:"column:label_count;type:int;not null;default:0;comment:指标数量" json:"label_count"`
+	Labels     []*MetricLabel `gorm:"foreignKey:MetricID" json:"labels"`
 }
 
 // String json string
