@@ -22,6 +22,8 @@ message Bootstrap {
   bool dependPalace = 10;
   // 选择团队, 为空则默认为所有团队
   repeated uint32 teams = 11;
+  // metrics配置
+  string metricsToken = 19;
 }
 
 message Watch {

@@ -30,6 +30,8 @@ message Bootstrap {
   bool dependHouYi = 17;
   // 是否依赖Rabbit服务
   bool dependRabbit = 18;
+  // metrics配置
+  string metricsToken = 19;
 }
 
 // 微服务配置

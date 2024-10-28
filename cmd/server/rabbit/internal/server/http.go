@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/env"
+	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/plugin/slog"
 	"github.com/bufbuild/protovalidate-go"
@@ -35,6 +36,9 @@ func NewHTTPServer(bc *rabbitconf.Bootstrap) *http.Server {
 		opts = append(opts, http.Timeout(c.GetTimeout().AsDuration()))
 	}
 	srv := http.NewServer(opts...)
+
+	// metrics
+	srv.Handle("/metrics", metric.NewMetricHandler(bc.GetMetricsToken()))
 
 	if env.IsDev() || env.IsTest() || env.IsLocal() {
 		// doc

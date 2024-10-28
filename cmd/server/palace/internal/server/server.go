@@ -33,10 +33,12 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
+	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -153,6 +155,9 @@ func RegisterService(
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
 	api.RegisterServerHTTPServer(httpSrv, serverService)
 	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
+
+	// metrics
+	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))
 
 	// custom api
 	proxy := httpSrv.Route("/v1")

@@ -23,6 +23,8 @@ message Bootstrap {
   bool dependPalace = 12;
   // 月宫代理服务
   pkg.conf.MicroServer palace_server = 13;
+  // metrics配置
+  string metricsToken = 19;
 }
 
 

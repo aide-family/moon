@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/errors"
@@ -28,6 +29,7 @@ func Logging(logger log.Logger) middleware.Middleware {
 				kind = info.Kind().String()
 				operation = info.Operation()
 			}
+			metric.IncRequestCounter(kind, operation)
 			reply, err = handler(ctx, req)
 			if err != nil {
 				code = 500
@@ -36,8 +38,11 @@ func Logging(logger log.Logger) middleware.Middleware {
 					code = se.Code
 					reason = se.Reason
 				}
+				metric.IncCounterRequestErr(kind, operation, code)
 			}
 			latency := time.Since(startTime)
+			metric.RecordResponseTime(latency.Seconds())
+
 			level, stack := extractError(err)
 			_ = log.WithContext(ctx, logger).Log(level,
 				"kind", "server",
