@@ -545,6 +545,7 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 		Datasource:  nil,
 		Fingerprint: alarm.Fingerprint,
 		Duration:    types.NewTimeByUnix(time.Now().Unix()).Time.Sub(types.NewTimeByString(alarm.StartsAt).Time).String(),
+		RawInfo:     alarm.GetRawInfo().RawInfo,
 	}
 	details := alarm.RealtimeDetails
 	if !types.IsNil(details) {

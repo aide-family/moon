@@ -37,6 +37,16 @@ type RealtimeAlarm struct {
 	StrategyID uint32 `gorm:"column:strategy_id;type:int;not null;comment:策略id"`
 	// 告警等级ID
 	LevelID uint32 `gorm:"column:level_id;type:int;not null;comment:告警等级id"`
+	// 告警原始信息
+	RawInfo *AlarmRaw `gorm:"foreignKey:RawInfoID"`
+}
+
+// GetRawInfo 获取告警原始信息
+func (c *RealtimeAlarm) GetRawInfo() *AlarmRaw {
+	if types.IsNil(c) || types.IsNil(c.RawInfo) {
+		return &AlarmRaw{}
+	}
+	return c.RawInfo
 }
 
 // String json string

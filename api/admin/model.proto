@@ -544,6 +544,8 @@ message RealtimeAlarmItem {
   string fingerprint = 11;
   // 持续时间
   string duration = 12;
+  // 原始信息
+  string rawInfo = 13;
 }
 
 message AlarmNoticeGroupItem {
