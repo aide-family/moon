@@ -2,8 +2,6 @@ package conn
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/slog"
@@ -80,32 +78,4 @@ func NewGormDB(c GormDBConfig, logger ...log.Logger) (*gorm.DB, error) {
 	}
 
 	return conn, nil
-}
-
-// checkDBFileExists .
-func checkDBFileExists(filename string) error {
-	if filename == "" {
-		return merr.ErrorNotification("db file is empty")
-	}
-	file, err := os.Stat(filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// 创建文件夹
-			dir := filepath.Dir(filename)
-			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-				return err
-			}
-			// 创建文件
-			f, err := os.Create(filename)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-			return nil
-		}
-	}
-	if file.IsDir() {
-		return merr.ErrorNotification("db file is dir")
-	}
-	return err
 }

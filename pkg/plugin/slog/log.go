@@ -79,7 +79,7 @@ func NewLogger(l Logger) Logger {
 	//return log.NewStdLogger(os.Stdout)
 	ll := log.With(l,
 		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
+		"caller", log.Caller(5),
 		"service.id", ID(),
 		"service.name", Name(),
 		"service.version", Version(),
