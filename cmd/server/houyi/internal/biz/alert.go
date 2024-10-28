@@ -28,9 +28,10 @@ func (a *AlertBiz) SaveAlarm(ctx context.Context, alarm *bo.Alarm) error {
 }
 
 // PushAlarm 告警推送
-func (a *AlertBiz) PushAlarm(ctx context.Context, alarm *bo.Alarm) error {
+func (a *AlertBiz) PushAlarm(ctx context.Context, alarm *bo.Alarm) (err error) {
+	defer a.deleteAlarm(ctx, alarm, err)
 	// 缓存告警数据推送标记
-	alarm, err := a.cacheAlarm(ctx, alarm)
+	alarm, err = a.cacheAlarm(ctx, alarm)
 	if err != nil {
 		return err
 	}
@@ -56,4 +57,15 @@ func (a *AlertBiz) cacheAlarm(ctx context.Context, alarm *bo.Alarm) (*bo.Alarm, 
 	}
 	alarm.Alerts = pushAlerts
 	return alarm, nil
+}
+
+// deleteAlarm 删除告警数据
+func (a *AlertBiz) deleteAlarm(ctx context.Context, alarm *bo.Alarm, err error) {
+	if err == nil {
+		return
+	}
+	// 删除缓存
+	for _, alert := range alarm.Alerts {
+		a.cacheRepo.Cacher().Delete(ctx, alert.PushedFlag())
+	}
 }
