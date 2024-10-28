@@ -2,9 +2,9 @@ package rabbit
 
 import (
 	"github.com/aide-family/moon/pkg/helper/hello"
+	slog2 "github.com/aide-family/moon/pkg/plugin/slog"
 	"github.com/aide-family/moon/pkg/util/codec"
 	"github.com/aide-family/moon/pkg/util/conn"
-	sLog "github.com/aide-family/moon/pkg/util/log"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
@@ -60,7 +60,9 @@ func Run(flagconf, configType string) {
 	env.SetMetadata(bc.GetServer().GetMetadata())
 	env.SetEnv(bc.GetEnv())
 
-	logger := sLog.GetLogger()
+	logger := slog2.NewLogger(slog2.NewZapLogger())
+	defer logger.Sync()
+
 	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)
 	if !types.IsNil(err) {

@@ -9,9 +9,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/util/log"
-
+	"github.com/aide-family/moon/pkg/plugin/slog"
 	"github.com/bufbuild/protovalidate-go"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -35,7 +35,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			recovery.Recovery(recovery.WithHandler(log.RecoveryHandle)),
+			recovery.Recovery(recovery.WithHandler(slog.RecoveryHandle)),
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.I18N(),

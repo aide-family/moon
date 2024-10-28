@@ -1,8 +1,7 @@
-package log
+package slog
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"go.uber.org/zap"
@@ -32,9 +31,8 @@ func WithZapLogger(zl *zap.Logger) ZapLogOption {
 	}
 }
 
-// NewLogger new a zap logger.
-func NewLogger(opts ...ZapLogOption) log.Logger {
-	return log.NewStdLogger(os.Stdout)
+// NewZapLogger new a zap logger.
+func NewZapLogger(opts ...ZapLogOption) Logger {
 	l := &zapLogger{
 		log:    zap.NewExample(),
 		msgKey: log.DefaultMessageKey,

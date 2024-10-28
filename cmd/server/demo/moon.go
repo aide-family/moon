@@ -1,7 +1,7 @@
 package demo
 
 import (
-	sLog "github.com/aide-family/moon/pkg/util/log"
+	slog2 "github.com/aide-family/moon/pkg/plugin/slog"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
@@ -46,7 +46,9 @@ func Run(flagconf string) {
 	env.SetMetadata(bc.GetServer().GetMetadata())
 	env.SetEnv(bc.GetEnv())
 
-	logger := sLog.GetLogger()
+	logger := slog2.NewLogger(slog2.NewZapLogger())
+	defer logger.Sync()
+
 	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)
 	if !types.IsNil(err) {

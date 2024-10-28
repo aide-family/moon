@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/aide-family/moon/pkg/merr"
-	slog "github.com/aide-family/moon/pkg/util/log"
+	"github.com/aide-family/moon/pkg/plugin/slog"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"

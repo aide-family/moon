@@ -1,4 +1,4 @@
-package log
+package slog
 
 import (
 	"context"
@@ -11,6 +11,26 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 )
+
+type (
+	Logger interface {
+		log.Logger
+		Sync() error
+	}
+
+	_logger struct {
+		log  log.Logger
+		sync func() error
+	}
+)
+
+func (l *_logger) Log(level log.Level, keyvals ...interface{}) error {
+	return l.log.Log(level, keyvals...)
+}
+
+func (l *_logger) Sync() error {
+	return l.sync()
+}
 
 // ID 获取服务ID
 func ID() log.Valuer {
@@ -40,24 +60,8 @@ func Env() log.Valuer {
 	}
 }
 
-var defaultLogger = log.With(NewLogger(),
-	"ts", log.DefaultTimestamp,
-	"caller", log.DefaultCaller,
-	"service.id", ID(),
-	"service.name", Name(),
-	"service.version", Version(),
-	"service.env", Env(),
-	"trace.id", tracing.TraceID(),
-	"span.id", tracing.SpanID(),
-)
-
-// GetLogger 获取日志实例
-func GetLogger() log.Logger {
-	return defaultLogger
-}
-
 // RecoveryHandle 错误处理
-func RecoveryHandle(ctx context.Context, req, err interface{}) error {
+func RecoveryHandle(_ context.Context, req, err interface{}) error {
 	log.Errorw("panic", err)
 	myErr, ok := err.(*errors.Error)
 	if ok {
@@ -68,4 +72,20 @@ func RecoveryHandle(ctx context.Context, req, err interface{}) error {
 		"error":  fmt.Sprintf("%v", err),
 		"params": string(paramsBs),
 	})
+}
+
+// NewLogger new a logger.
+func NewLogger(l Logger) Logger {
+	//return log.NewStdLogger(os.Stdout)
+	ll := log.With(l,
+		"ts", log.DefaultTimestamp,
+		"caller", log.DefaultCaller,
+		"service.id", ID(),
+		"service.name", Name(),
+		"service.version", Version(),
+		"service.env", Env(),
+		"trace.id", tracing.TraceID(),
+		"span.id", tracing.SpanID(),
+	)
+	return &_logger{log: ll, sync: l.Sync}
 }
