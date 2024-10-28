@@ -71,6 +71,15 @@ type (
 		SetObject(ctx context.Context, key string, obj IObjectSchema, expiration time.Duration) error
 	}
 
+	// IKeyPrefixCacher 带前缀的缓存
+	IKeyPrefixCacher interface {
+		ICloser
+		// Keys 获取带前缀的缓存key
+		Keys(ctx context.Context, prefix string) ([]string, error)
+		// DelKeys 删除带前缀的缓存key
+		DelKeys(ctx context.Context, prefix string) error
+	}
+
 	// ICacher 缓存
 	ICacher interface {
 		ISimpleCacher
@@ -78,6 +87,7 @@ type (
 		IFloatCacher
 		IObjectCacher
 		IBoolCacher
+		IKeyPrefixCacher
 		// SetNX 设置缓存，如果key存在则返回false
 		SetNX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
 	}

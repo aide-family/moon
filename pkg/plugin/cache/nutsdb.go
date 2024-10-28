@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/nutsdb/nutsdb"
@@ -24,6 +25,43 @@ type (
 		bucket string
 	}
 )
+
+func (n *nutsDBCacher) Keys(_ context.Context, prefix string) ([]string, error) {
+	var keys []string
+	err := n.client.View(func(tx *nutsdb.Tx) error {
+		getKeys, err := tx.GetKeys(n.bucket)
+		if err != nil {
+			return err
+		}
+		for _, key := range getKeys {
+			if strings.HasPrefix(string(key), prefix) {
+				keys = append(keys, string(key))
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return keys, nil
+}
+
+func (n *nutsDBCacher) DelKeys(_ context.Context, prefix string) error {
+	return n.client.Update(func(tx *nutsdb.Tx) error {
+		getKeys, err := tx.GetKeys(n.bucket)
+		if err != nil {
+			return err
+		}
+		for _, key := range getKeys {
+			if strings.HasPrefix(string(key), prefix) {
+				if err := tx.Delete(n.bucket, key); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+}
 
 func (n *nutsDBCacher) Close() error {
 	if n == nil {

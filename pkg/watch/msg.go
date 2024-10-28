@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"context"
 	"sync"
 
 	"github.com/aide-family/moon/pkg/vobj"
@@ -14,12 +13,10 @@ const defaultRetryMax = 0
 // NewMessage 创建消息
 func NewMessage(data Indexer, topic vobj.Topic, opts ...MessageOption) *Message {
 	m := &Message{
-		data:      data,
-		topic:     topic,
-		schema:    NewEmptySchemer(),
-		retry:     0,
-		retryMax:  defaultRetryMax,
-		handleCtx: context.Background(),
+		data:     data,
+		topic:    topic,
+		retry:    0,
+		retryMax: defaultRetryMax,
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -38,17 +35,11 @@ type (
 		// 消息类型， 如需要增加新的类型，去vobj包增加
 		topic vobj.Topic
 
-		// 注册编码器
-		schema Schemer
-
 		// 重试次数
 		retry int
 
 		// 最大消息重试次数
 		retryMax int
-
-		// 是否已经处理过
-		handleCtx context.Context
 	}
 
 	// MessageOption 消息选项
@@ -67,13 +58,6 @@ func (m *Message) GetTopic() vobj.Topic {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.topic
-}
-
-// GetSchema 获取消息编码器
-func (m *Message) GetSchema() Schemer {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	return m.schema
 }
 
 // GetRetry 获取消息重试次数
@@ -95,13 +79,6 @@ func (m *Message) GetRetryMax() int {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.retryMax
-}
-
-// WithMessageSchema 设置消息编码器
-func WithMessageSchema(schema Schemer) MessageOption {
-	return func(m *Message) {
-		m.schema = schema
-	}
 }
 
 // WithMessageRetryMax 设置消息最大重试次数

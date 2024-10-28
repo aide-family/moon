@@ -67,6 +67,13 @@ func (w *Watcher) GetHandler() Handler {
 func (w *Watcher) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
+		// 把存储中的消息全部推送到消息队列
+		if !types.IsNil(w.storage) && !types.IsNil(w.queue) {
+			w.storage.Range(func(index Indexer, msg *Message) bool {
+				w.queue.Push(msg)
+				return true
+			})
+		}
 		for {
 			select {
 			case <-w.stopCh:

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // NewDefaultStorage 定义运行时存储
@@ -68,35 +69,47 @@ type (
 	}
 
 	// CacheStorageMsg 缓存存储器消息
-	CacheStorageMsg string
+	cacheStorageMsg struct {
+		Data     Indexer    `json:"data"`
+		Topic    vobj.Topic `json:"topic"`
+		Retry    int        `json:"retry"`
+		RetryMax int        `json:"retry_max"`
+	}
 )
 
-func (c CacheStorageMsg) String() string {
-	return string(c)
+func (c cacheStorageMsg) String() string {
+	bs, _ := types.Marshal(c)
+	return string(bs)
 }
 
-// Index 实现Indexer接口
-func (c CacheStorageMsg) Index() string {
-	return string(c)
-}
+func newMessage(data string) *Message {
+	var msg cacheStorageMsg
+	_ = types.Unmarshal([]byte(data), &msg)
 
-// Unmarshal 反序列化
-func (c CacheStorageMsg) Unmarshal(v any) error {
-	return types.Unmarshal([]byte(c), v)
+	return &Message{
+		data:     msg.Data,
+		topic:    msg.Topic,
+		retry:    msg.Retry,
+		retryMax: msg.RetryMax,
+	}
 }
 
 func (c *cacheStorage) Get(index Indexer) *Message {
-	var msg Message
-	cacheStr, err := c.cacher.Get(context.Background(), index.Index())
-	if err == nil {
-		msg.data = CacheStorageMsg(cacheStr)
-	}
-
-	return &msg
+	cacheStr, _ := c.cacher.Get(context.Background(), index.Index())
+	return newMessage(cacheStr)
 }
 
 func (c *cacheStorage) Put(msg *Message) error {
-	return c.cacher.Set(context.Background(), msg.data.Index(), msg.data.String(), 0)
+	if msg.data == nil {
+		return nil
+	}
+	cacheMsg := &cacheStorageMsg{
+		Data:     msg.data,
+		Topic:    msg.topic,
+		Retry:    msg.retry,
+		RetryMax: msg.retryMax,
+	}
+	return c.cacher.Set(context.Background(), cacheMsg.Data.Index(), cacheMsg.String(), 0)
 }
 
 func (c *cacheStorage) Clear() {
@@ -115,6 +128,24 @@ func (c *cacheStorage) Len() int {
 }
 
 func (c *cacheStorage) Range(f func(index Indexer, msg *Message) bool) {
+	keys, err := c.cacher.Keys(context.Background(), "")
+	if err != nil {
+		return
+	}
+	// 遍历缓存存储器，并将缓存消息反序列化为Message
+	for _, key := range keys {
+		d, err := c.cacher.Get(context.Background(), key)
+		if err != nil {
+			continue
+		}
+		msg := newMessage(d)
+		if msg.retryMax > 0 && msg.retry >= msg.retryMax {
+			continue
+		}
+		if !f(msg.data, msg) {
+			break
+		}
+	}
 }
 
 func (d *defaultStorage) Clear() {

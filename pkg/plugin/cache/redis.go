@@ -20,6 +20,21 @@ type (
 	}
 )
 
+func (r *redisCacher) Keys(ctx context.Context, prefix string) ([]string, error) {
+	return r.client.Keys(ctx, prefix).Result()
+}
+
+func (r *redisCacher) DelKeys(ctx context.Context, prefix string) error {
+	keys, err := r.Keys(ctx, prefix)
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	return r.client.Del(ctx, keys...).Err()
+}
+
 func (r *redisCacher) GetInt64(ctx context.Context, key string) (int64, error) {
 	return r.client.Get(ctx, key).Int64()
 }

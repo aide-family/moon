@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/types"
@@ -16,15 +17,40 @@ var _ ICacher = (*defaultCache)(nil)
 // NewFreeCache 创建一个默认的缓存
 func NewFreeCache(cli *freecache.Cache) ICacher {
 	return &defaultCache{
-		cli: cli,
+		cli:  cli,
+		keys: make(map[string]struct{}, 1024),
 	}
 }
 
 type (
 	defaultCache struct {
-		cli *freecache.Cache
+		cli  *freecache.Cache
+		keys map[string]struct{}
 	}
 )
+
+func (d *defaultCache) Keys(_ context.Context, prefix string) ([]string, error) {
+	keys := make([]string, 0, 1024)
+	for k := range d.keys {
+		if strings.HasPrefix(k, prefix) {
+			keys = append(keys, k)
+		}
+	}
+	return keys, nil
+}
+
+func (d *defaultCache) DelKeys(ctx context.Context, prefix string) error {
+	keys, err := d.Keys(ctx, prefix)
+	if err != nil {
+		return err
+	}
+	for _, k := range keys {
+		if err = d.Delete(ctx, k); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (d *defaultCache) GetInt64(ctx context.Context, key string) (int64, error) {
 	return d.getInt64(ctx, key)
