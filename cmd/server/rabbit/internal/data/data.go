@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/watch"
 
 	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/log"
@@ -21,13 +22,19 @@ var ProviderSetData = wire.NewSet(NewData)
 // Data .
 type Data struct {
 	cacher cache.ICacher
+
+	watchStorage watch.Storage
+	watchQueue   watch.Queue
 }
 
 var closeFuncList []func()
 
 // NewData .
 func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
-	d := &Data{}
+	d := &Data{
+		watchStorage: watch.NewDefaultStorage(),
+		watchQueue:   watch.NewDefaultQueue(1000),
+	}
 	d.cacher = newCache(c.GetCache())
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close cache", d.cacher.Close())
@@ -48,6 +55,16 @@ func (d *Data) GetCacher() cache.ICacher {
 		panic("cache is nil")
 	}
 	return d.cacher
+}
+
+// GetWatcherStorage 获取 watcher 存储
+func (d *Data) GetWatcherStorage() watch.Storage {
+	return d.watchStorage
+}
+
+// GetWatcherQueue 获取 watcher 队列
+func (d *Data) GetWatcherQueue() watch.Queue {
+	return d.watchQueue
 }
 
 // newCache new cache

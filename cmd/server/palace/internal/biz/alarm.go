@@ -2,7 +2,9 @@ package biz
 
 import (
 	"context"
+	"strings"
 
+	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -27,7 +29,7 @@ func NewAlarmBiz(
 		historyRepository:    historyRepository,
 		strategyRepository:   strategyRepository,
 		datasourceRepository: datasourceRepository,
-		sendAlert:            sendAlert,
+		sendAlertRepository:  sendAlert,
 	}
 }
 
@@ -38,7 +40,7 @@ type AlarmBiz struct {
 	historyRepository    repository.HistoryRepository
 	strategyRepository   repository.Strategy
 	datasourceRepository repository.Datasource
-	sendAlert            microrepository.SendAlert
+	sendAlertRepository  microrepository.SendAlert
 }
 
 // GetRealTimeAlarm 获取实时告警明细
@@ -127,8 +129,36 @@ func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmIn
 	}
 
 	// 发送告警
-	if err := b.sendAlert.Send(ctx, params.Alerts, params.RawInfoMap); !types.IsNil(err) {
+	if err := b.send(ctx, params.Alerts, params.RawInfoMap); !types.IsNil(err) {
 		return err
 	}
 	return nil
+}
+
+func (b *AlarmBiz) send(ctx context.Context, alerts []*bo.AlertItemRawParams, rowMap map[string]*alarmmodel.AlarmRaw) error {
+	for _, v := range alerts {
+		row, ok := rowMap[v.Fingerprint]
+		if !ok {
+			continue
+		}
+		routes := strings.Split(row.Receiver, ",")
+		if len(routes) == 0 {
+			continue
+		}
+		for _, route := range routes {
+			key := v.NoticeKey(route)
+			task := &hookapi.SendMsgRequest{
+				Json:      v.GetAlertItemString(),
+				Route:     route,
+				RequestID: key,
+			}
+			b.SendAlertMsg(ctx, &bo.SendMsg{SendMsgRequest: task})
+		}
+	}
+	return nil
+}
+
+// SendAlertMsg 发送告警消息
+func (b *AlarmBiz) SendAlertMsg(ctx context.Context, params *bo.SendMsg) {
+	b.sendAlertRepository.Send(ctx, params)
 }

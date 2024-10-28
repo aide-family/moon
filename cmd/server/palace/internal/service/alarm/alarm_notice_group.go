@@ -2,12 +2,17 @@ package alarm
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	alarmyapi "github.com/aide-family/moon/api/admin/alarm"
+	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 )
@@ -16,12 +21,14 @@ import (
 type GroupService struct {
 	alarmyapi.UnimplementedAlarmServer
 	alarmGroupBiz *biz.AlarmGroupBiz
+	alertBiz      *biz.AlarmBiz
 }
 
 // NewAlarmService 创建告警管理服务
-func NewAlarmService(alarmGroupBiz *biz.AlarmGroupBiz) *GroupService {
+func NewAlarmService(alarmGroupBiz *biz.AlarmGroupBiz, alertBiz *biz.AlarmBiz) *GroupService {
 	return &GroupService{
 		alarmGroupBiz: alarmGroupBiz,
+		alertBiz:      alertBiz,
 	}
 }
 
@@ -141,4 +148,17 @@ func (s *GroupService) MyAlarmGroupList(ctx context.Context, req *alarmyapi.MyAl
 			DoAlarmNoticeGroupItemBuilder().
 			ToAPIs(myAlarmGroup),
 	}, nil
+}
+
+// MessageTest 发送测试消息
+func (s *GroupService) MessageTest(ctx context.Context, req *alarmyapi.MessageTestRequest) (*alarmyapi.MessageTestReply, error) {
+	msg := &bo.SendMsg{
+		SendMsgRequest: &hookapi.SendMsgRequest{
+			Json:      req.GetMessage(),
+			Route:     fmt.Sprintf("team_%d_%d", middleware.GetTeamID(ctx), req.GetId()),
+			RequestID: types.MD5(time.Now().Format("2006-01-02 15:04")), // 限定一分钟发送一次
+		},
+	}
+	s.alertBiz.SendAlertMsg(ctx, msg)
+	return &alarmyapi.MessageTestReply{}, nil
 }

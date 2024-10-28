@@ -48,9 +48,6 @@ type Data struct {
 	alertPersistenceDBQueue watch.Queue
 	// 告警持久化存储
 	alertConsumerStorage watch.Storage
-
-	// 持久化消息发送队列
-	alertPersistenceMsgQueue watch.Queue
 	// 通用邮件发送器
 	emailer email.Interface
 }
@@ -65,17 +62,16 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	cacheConf := c.GetCache()
 	emailConf := c.GetEmailConfig()
 	d := &Data{
-		bizDatabaseConf:          bizConf,
-		alarmDatabaseConf:        alarmConf,
-		teamBizDBMap:             new(sync.Map),
-		alarmDBMap:               new(sync.Map),
-		enforcerMap:              new(sync.Map),
-		strategyQueue:            watch.NewDefaultQueue(100),
-		alertQueue:               watch.NewDefaultQueue(100),
-		alertPersistenceDBQueue:  watch.NewDefaultQueue(100),
-		alertConsumerStorage:     watch.NewDefaultStorage(),
-		alertPersistenceMsgQueue: watch.NewDefaultQueue(100),
-		emailer:                  email.NewMockEmail(),
+		bizDatabaseConf:         bizConf,
+		alarmDatabaseConf:       alarmConf,
+		teamBizDBMap:            new(sync.Map),
+		alarmDBMap:              new(sync.Map),
+		enforcerMap:             new(sync.Map),
+		strategyQueue:           watch.NewDefaultQueue(100),
+		alertQueue:              watch.NewDefaultQueue(100),
+		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
+		alertConsumerStorage:    watch.NewDefaultStorage(),
+		emailer:                 email.NewMockEmail(),
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -413,12 +409,4 @@ func (d *Data) GetAlertConsumerStorage() watch.Storage {
 		log.Warn("alertConsumerStorage is nil")
 	}
 	return d.alertConsumerStorage
-}
-
-// GetAlertPersistenceMsgQueue 获取告警消费队列
-func (d *Data) GetAlertPersistenceMsgQueue() watch.Queue {
-	if types.IsNil(d.alertPersistenceMsgQueue) {
-		log.Warn("alertPersistenceMsgQueue is nil")
-	}
-	return d.alertPersistenceMsgQueue
 }

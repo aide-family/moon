@@ -6,9 +6,11 @@ import (
 	"github.com/aide-family/moon/api"
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	pushapi "github.com/aide-family/moon/api/rabbit/push"
+	"github.com/aide-family/moon/cmd/server/rabbit/internal/data"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/service"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/watch"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -22,9 +24,10 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 
 // Server 服务
 type Server struct {
-	rpcSrv       *grpc.Server
-	httpSrv      *http.Server
-	heartbeatSrv *HeartbeatServer
+	rpcSrv        *grpc.Server
+	httpSrv       *http.Server
+	heartbeatSrv  *HeartbeatServer
+	consumerWatch *watch.Watcher
 }
 
 // GetRPCServer 获取rpc server
@@ -43,12 +46,14 @@ func (s *Server) GetServers() []transport.Server {
 		s.rpcSrv,
 		s.httpSrv,
 		s.heartbeatSrv,
+		s.consumerWatch,
 	}
 }
 
 // RegisterService 注册服务
 func RegisterService(
 	bc *rabbitconf.Bootstrap,
+	data *data.Data,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	configService *service.ConfigService,
@@ -71,8 +76,9 @@ func RegisterService(
 	r.POST("/v1/hook/send/{route}", hookService.HookSendMsgHTTPHandler())
 
 	return &Server{
-		rpcSrv:       rpcSrv,
-		httpSrv:      httpSrv,
-		heartbeatSrv: newHeartbeatServer(bc, healthService),
+		rpcSrv:        rpcSrv,
+		httpSrv:       httpSrv,
+		heartbeatSrv:  newHeartbeatServer(bc, healthService),
+		consumerWatch: newConsumer(bc, data, hookService),
 	}
 }

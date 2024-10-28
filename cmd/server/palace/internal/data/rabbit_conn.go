@@ -168,6 +168,7 @@ func (l *RabbitConn) sync(srv *Srv) error {
 		noticeGroupItems, err := teamBizQuery.WithContext(ctx).AlarmNoticeGroup.
 			Where(teamBizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
 			Preload(field.Associations).
+			Preload(teamBizQuery.AlarmNoticeGroup.NoticeMembers.Member).
 			Find()
 		if !types.IsNil(err) {
 			log.Errorw("获取告警组失败", err)

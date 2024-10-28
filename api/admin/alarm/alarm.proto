@@ -77,6 +77,14 @@ service Alarm {
       body: "*"
     };
   }
+
+  // 消息测试
+  rpc MessageTest (MessageTestRequest) returns (MessageTestReply) {
+    option (google.api.http) = {
+      post: "/v1/group/alarm/message/test"
+      body: "*"
+    };
+  }
 }
 
 message CreateAlarmGroupRequest {
@@ -192,3 +200,11 @@ message MyAlarmGroupReply {
   // 分页信息
   PaginationReply pagination = 2;
 }
+
+message MessageTestRequest {
+  // 告警组ID
+  uint32 id = 1 [(buf.validate.field).required = true];
+  // 消息内容json
+  string message = 2 [(buf.validate.field).required = true];
+}
+message MessageTestReply {}

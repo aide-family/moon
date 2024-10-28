@@ -30,7 +30,7 @@ func NewHookService(msgBiz *biz.MsgBiz) *HookService {
 // SendMsg 发送消息
 func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) (*hookapi.SendMsgReply, error) {
 	params := &bo.SendMsgParams{Route: req.GetRoute(), Data: []byte(req.GetJson()), RequestID: req.GetRequestID()}
-	if err := s.msgBiz.SendMsg(ctx, params); !types.IsNil(err) {
+	if err := s.Send(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
 	return &hookapi.SendMsgReply{
@@ -38,6 +38,14 @@ func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) 
 		Code: 0,
 		Time: types.NewTime(time.Now()).String(),
 	}, nil
+}
+
+func (s *HookService) Send(ctx context.Context, req *bo.SendMsgParams) error {
+	params := &bo.SendMsgParams{Route: req.Route, Data: req.Data, RequestID: req.RequestID}
+	if err := s.msgBiz.SendMsg(ctx, params); !types.IsNil(err) {
+		return err
+	}
+	return nil
 }
 
 // HookSendMsgHTTPHandler hook发送消息http handler

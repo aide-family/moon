@@ -342,6 +342,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 消息测试
+	{
+		Name:   "消息测试",
+		Path:   "/api.admin.alarm.Alarm/MessageTest",
+		Remark: "消息测试， 用于测试消息发送",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 	// 数据源管理模块
 	// 创建数据源
 	{

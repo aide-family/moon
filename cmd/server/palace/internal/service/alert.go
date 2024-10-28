@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/api"
 	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
+	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
@@ -69,4 +70,10 @@ func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookR
 // CreateAlarmInfo 创建告警信息
 func (s *AlertService) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHookRawParams) error {
 	return s.alertBiz.CreateAlarmInfo(ctx, params)
+}
+
+// SendAlertMsg 发送告警消息
+func (s *AlertService) SendAlertMsg(ctx context.Context, req *hookapi.SendMsgRequest) error {
+	s.alertBiz.SendAlertMsg(ctx, &bo.SendMsg{SendMsgRequest: req})
+	return nil
 }

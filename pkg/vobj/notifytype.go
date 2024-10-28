@@ -8,29 +8,29 @@ import (
 type NotifyType int
 
 const (
-	// Phone 电话通知
-	Phone = 1 << iota
+	// NotifyTypePhone 电话通知
+	NotifyTypePhone NotifyType = 1 << iota
 
-	// SMS 短信通知
-	SMS
+	// NotifyTypeSMS 短信通知
+	NotifyTypeSMS
 
-	// Email 邮件通知
-	Email
+	// NotifyTypeEmail 邮件通知
+	NotifyTypeEmail
 )
 
 // IsPhone 是否电话通知
 func (n NotifyType) IsPhone() bool {
-	return n&Phone != 0
+	return n&NotifyTypePhone != 0
 }
 
 // IsSMS 是否短信通知
 func (n NotifyType) IsSMS() bool {
-	return n&SMS != 0
+	return n&NotifyTypeSMS != 0
 }
 
 // IsEmail 是否邮件通知
 func (n NotifyType) IsEmail() bool {
-	return n&Email != 0
+	return n&NotifyTypeEmail != 0
 }
 
 func (n NotifyType) String() string {
@@ -46,6 +46,23 @@ func (n NotifyType) String() string {
 	}
 	if len(notify) == 0 {
 		return "未知"
+	}
+	return strings.Join(notify, ",")
+}
+
+func (n NotifyType) EnString() string {
+	notify := make([]string, 0, 4)
+	if n.IsPhone() {
+		notify = append(notify, "phone")
+	}
+	if n.IsSMS() {
+		notify = append(notify, "sms")
+	}
+	if n.IsEmail() {
+		notify = append(notify, "email")
+	}
+	if len(notify) == 0 {
+		return "unknown"
 	}
 	return strings.Join(notify, ",")
 }

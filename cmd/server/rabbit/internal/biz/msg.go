@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
@@ -70,8 +71,21 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		}
 
 		eg.Go(func() error {
+			key := msg.Key(vobj.NotifyTypeEmail.EnString())
+			if !types.TextIsNull(key) {
+				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return nil
+				}
+			}
 			if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); !types.IsNil(err) {
 				log.Warnw("send email error", err, "receiver", emailItem)
+				// 删除缓存 TODO 加入重试队列
+				b.data.GetWatcherQueue().Push(msg.Message())
+				b.data.GetCacher().Delete(ctx, key)
 				return err
 			}
 			return nil
@@ -87,7 +101,7 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		eg.Go(func() error {
 			key := msg.Key(newNotify.Type())
 			if !types.TextIsNull(key) {
-				ok, err := b.data.GetCacher().SetNX(ctx, msg.Key(newNotify.Type()), "ok", 1*time.Hour)
+				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
 				if err != nil {
 					return err
 				}
@@ -98,6 +112,9 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 
 			if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
 				log.Warnw("send hook error", err, "receiver", hookItem)
+				// 删除缓存 TODO 加入重试队列
+				b.data.GetWatcherQueue().Push(msg.Message())
+				b.data.GetCacher().Delete(ctx, key)
 				return err
 			}
 			return nil

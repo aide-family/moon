@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -23,6 +24,15 @@ func newAlertConsumer(c *palaceconf.Bootstrap, data *data.Data, alertService *se
 				params := msg.GetData().(*bo.CreateAlarmHookRawParams)
 				log.Info("create alarm hook raw params")
 				return alertService.CreateAlarmInfo(ctx, params)
+			}),
+			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlertMsg, func(ctx context.Context, msg *watch.Message) error {
+				params, ok := msg.GetData().(*bo.SendMsg)
+				if !ok {
+					return nil
+				}
+				// 消费的时候慢一点，防止阻塞
+				time.Sleep(time.Second * 1)
+				return alertService.SendAlertMsg(ctx, params.SendMsgRequest)
 			}),
 		)),
 	}
