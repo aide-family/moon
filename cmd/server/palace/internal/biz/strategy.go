@@ -129,3 +129,8 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 	}
 	return nil
 }
+
+// SyncStrategy 同步策略
+func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
+	return b.strategyRepo.Sync(ctx, id)
+}

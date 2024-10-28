@@ -37,6 +37,11 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
+	s.syncStrategiesByIds(ctx, id)
+	return nil
+}
+
 func (s *strategyRepositoryImpl) GetTeamStrategyLevel(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bizmodel.StrategyLevel, error) {
 	bizQuery, err := getTeamIdBizQuery(s.data, params.TeamID)
 	if !types.IsNil(err) {

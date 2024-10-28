@@ -223,3 +223,11 @@ func (s *Service) CopyStrategy(ctx context.Context, req *strategyapi.CopyStrateg
 	}
 	return &strategyapi.CopyStrategyReply{Id: strategy.ID}, nil
 }
+
+// PushStrategy 推送策略
+func (s *Service) PushStrategy(ctx context.Context, req *strategyapi.PushStrategyRequest) (*strategyapi.PushStrategyReply, error) {
+	if err := s.strategyBiz.SyncStrategy(ctx, req.GetId()); !types.IsNil(err) {
+		return nil, err
+	}
+	return &strategyapi.PushStrategyReply{}, nil
+}

@@ -40,4 +40,7 @@ type Strategy interface {
 
 	// GetTeamStrategyLevel 获取团队策略等级
 	GetTeamStrategyLevel(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bizmodel.StrategyLevel, error)
+
+	// Sync 同步策略
+	Sync(ctx context.Context, id uint32) error
 }
