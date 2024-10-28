@@ -525,7 +525,7 @@ func (s *strategyRepositoryImpl) GetByID(ctx context.Context, strategyID uint32)
 		Preload(bizQuery.Strategy.Levels.AlarmGroups).
 		Preload(bizQuery.Strategy.Levels.LabelNotices).
 		Preload(bizQuery.Strategy.Levels.LabelNotices.AlarmGroups).
-		Preload(bizQuery.Strategy.Levels.RelationField).
+		Preload(bizQuery.Strategy.Levels.Level).
 		First()
 	if !types.IsNil(err) {
 		return nil, err
