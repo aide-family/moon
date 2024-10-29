@@ -66,6 +66,18 @@ func (w *Watcher) GetHandler() Handler {
 // Start 启动监听
 func (w *Watcher) Start(_ context.Context) error {
 	go func() {
+		for {
+			select {
+			case <-w.stopCh:
+				return
+			default:
+				updateWatchQueueMetric(w.name, w.queue.Len())
+				updateWatchStorageMetric(w.name, w.storage.Len())
+				time.Sleep(10 * time.Second)
+			}
+		}
+	}()
+	go func() {
 		defer after.RecoverX()
 		// 把存储中的消息全部推送到消息队列
 		if !types.IsNil(w.storage) && !types.IsNil(w.queue) {

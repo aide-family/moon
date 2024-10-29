@@ -41,7 +41,7 @@ func Logging(logger log.Logger) middleware.Middleware {
 				metric.IncCounterRequestErr(kind, operation, code)
 			}
 			latency := time.Since(startTime)
-			metric.RecordResponseTime(latency.Seconds())
+			metric.RecordResponseTime(kind, operation, latency.Seconds())
 
 			level, stack := extractError(err)
 			_ = log.WithContext(ctx, logger).Log(level,
