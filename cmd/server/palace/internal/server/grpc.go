@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/plugin/slog"
+	"github.com/aide-family/moon/pkg/plugin/mlog"
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -16,7 +16,7 @@ func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
 	c := bc.GetGrpc()
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
-			recovery.Recovery(recovery.WithHandler(slog.RecoveryHandle)),
+			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(false)),

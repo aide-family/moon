@@ -25,6 +25,8 @@ message Bootstrap {
   pkg.conf.MicroServer palace_server = 13;
   // metrics配置
   string metricsToken = 19;
+  // log配置
+  pkg.conf.Log log = 20;
 }
 
 

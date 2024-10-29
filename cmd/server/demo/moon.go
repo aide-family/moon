@@ -1,12 +1,12 @@
 package demo
 
 import (
-	slog2 "github.com/aide-family/moon/pkg/plugin/slog"
-	"github.com/aide-family/moon/pkg/util/types"
-
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
 	"github.com/aide-family/moon/cmd/server/demo/internal/server"
 	"github.com/aide-family/moon/pkg/env"
+	"github.com/aide-family/moon/pkg/plugin/mlog"
+	"github.com/aide-family/moon/pkg/util/types"
+
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
@@ -46,7 +46,7 @@ func Run(flagconf string) {
 	env.SetMetadata(bc.GetServer().GetMetadata())
 	env.SetEnv(bc.GetEnv())
 
-	logger := slog2.NewLogger(slog2.NewZapLogger())
+	logger := mlog.NewLogger(mlog.NewZapLogger())
 	defer logger.Sync()
 
 	log.SetLogger(logger)

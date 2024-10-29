@@ -5,7 +5,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/server"
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/hello"
-	slog2 "github.com/aide-family/moon/pkg/plugin/slog"
+	"github.com/aide-family/moon/pkg/plugin/mlog"
 	"github.com/aide-family/moon/pkg/util/codec"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -67,10 +67,8 @@ func Run(flagconf, configType string) {
 	env.SetMetadata(bc.GetServer().GetMetadata())
 	env.SetEnv(bc.GetEnv())
 
-	logger := slog2.NewLogger(slog2.NewZapLogger())
-	defer logger.Sync()
+	logger := mlog.New(bc.GetLog())
 
-	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)
 	if !types.IsNil(err) {
 		panic(err)

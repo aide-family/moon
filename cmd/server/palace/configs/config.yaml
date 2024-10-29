@@ -81,6 +81,24 @@ alarmDatabase:
   driver: "sqlite"
   debug: false
 
+log:
+  #  default, slog, aliyun, zap
+  type: "slog"
+  level: "debug"
+  zapLogConfig:
+    json: true
+  slogConfig:
+    json: true
+  aliYunLogConfig:
+    accessKey: ""
+    accessSecret: ""
+    endpoint: ""
+    securityToken: ""
+    expireTime: "" # 2023-09-01 08:00:00
+    project: "moon"
+    store: "app"
+    json: true
+
 #oauth2:
 #  redirect_uri: "http://127.0.0.1:5173/"
 #  github:

@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/helper/middleware"
-	"github.com/aide-family/moon/pkg/plugin/slog"
+	"github.com/aide-family/moon/pkg/plugin/mlog"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/bufbuild/protovalidate-go"
@@ -21,7 +21,7 @@ func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			recovery.Recovery(recovery.WithHandler(slog.RecoveryHandle)),
+			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),
 			middleware.Validate(protovalidate.WithFailFast(false)),
 		),

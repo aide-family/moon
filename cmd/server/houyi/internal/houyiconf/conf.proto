@@ -24,6 +24,8 @@ message Bootstrap {
   repeated uint32 teams = 11;
   // metrics配置
   string metricsToken = 19;
+  // log配置
+  pkg.conf.Log log = 20;
 }
 
 message Watch {

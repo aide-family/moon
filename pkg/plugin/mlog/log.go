@@ -1,9 +1,12 @@
-package slog
+package mlog
 
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -12,24 +15,41 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 )
 
+// New a logger.
+func New(c *conf.Log) (l Logger) {
+	defer func() {
+		l = NewLogger(log.NewFilter(l, log.FilterLevel(log.ParseLevel(c.GetLevel()))))
+		log.SetLogger(l)
+	}()
+	switch strings.ToLower(c.GetType()) {
+	case "aliyun":
+		return NewAliYunLog(c.GetAliYunLogConfig())
+	case "slog":
+		return NewSlog(c.GetSlogConfig())
+	case "zap", "zaplog":
+		return NewZapLogger(c.GetZapLogConfig())
+	default:
+		return NewLogger(NewStdoutLogger(os.Stdout))
+	}
+}
+
+// NewHelper new a log helper.
+func NewHelper(logger Logger, module, domain string) *log.Helper {
+	return log.NewHelper(log.With(logger, "module", module, "domain", domain))
+}
+
 type (
 	Logger interface {
 		log.Logger
-		Sync() error
 	}
 
 	_logger struct {
-		log  log.Logger
-		sync func() error
+		log log.Logger
 	}
 )
 
 func (l *_logger) Log(level log.Level, keyvals ...interface{}) error {
 	return l.log.Log(level, keyvals...)
-}
-
-func (l *_logger) Sync() error {
-	return l.sync()
 }
 
 // ID 获取服务ID
@@ -87,5 +107,5 @@ func NewLogger(l Logger) Logger {
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
-	return &_logger{log: ll, sync: l.Sync}
+	return &_logger{log: ll}
 }

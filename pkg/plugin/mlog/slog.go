@@ -1,29 +1,47 @@
-package slog
+package mlog
 
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/exp/slog"
 )
 
-var _ Logger = (*Slog)(nil)
+var _ Logger = (*sLogger)(nil)
 
 // NewSlog returns a new slog logger.
-func NewSlog() Logger {
-	return &Slog{
-		log:    slog.With(),
+func NewSlog(c SLogConfig) Logger {
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			return a
+		},
+	}
+	s := slog.New(slog.NewTextHandler(os.Stdout, opts))
+	if c.GetJson() {
+		s = slog.New(slog.NewJSONHandler(os.Stdout, opts))
+	}
+
+	return &sLogger{
+		log:    s,
 		msgKey: "msg",
 	}
 }
 
-type Slog struct {
-	log    *slog.Logger
-	msgKey string
-}
+type (
+	SLogConfig interface {
+		GetJson() bool
+	}
 
-func (s *Slog) Log(level log.Level, keyvals ...interface{}) error {
+	sLogger struct {
+		log    *slog.Logger
+		msgKey string
+	}
+)
+
+func (s *sLogger) Log(level log.Level, keyvals ...interface{}) error {
 	var (
 		msg    = ""
 		keyLen = len(keyvals)
@@ -54,9 +72,5 @@ func (s *Slog) Log(level log.Level, keyvals ...interface{}) error {
 	case log.LevelFatal:
 		s.log.LogAttrs(ctx, slog.LevelError, msg, data...)
 	}
-	return nil
-}
-
-func (s *Slog) Sync() error {
 	return nil
 }

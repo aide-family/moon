@@ -32,6 +32,8 @@ message Bootstrap {
   bool dependRabbit = 18;
   // metrics配置
   string metricsToken = 19;
+  // log配置
+  pkg.conf.Log log = 20;
 }
 
 // 微服务配置

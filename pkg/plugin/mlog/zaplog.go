@@ -1,45 +1,40 @@
-package slog
+package mlog
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var _ log.Logger = (*zapLogger)(nil)
 
-type zapLogger struct {
-	log    *zap.Logger
-	msgKey string
-}
-
-// ZapLogOption is logger option.
-type ZapLogOption func(*zapLogger)
-
-// WithMessageKey with message key.
-func WithMessageKey(key string) ZapLogOption {
-	return func(l *zapLogger) {
-		l.msgKey = key
+type (
+	ZapLogConfig interface {
+		GetJson() bool
 	}
-}
 
-// WithZapLogger with zap logger.
-func WithZapLogger(zl *zap.Logger) ZapLogOption {
-	return func(l *zapLogger) {
-		l.log = zl
+	zapLogger struct {
+		log    *zap.Logger
+		msgKey string
 	}
-}
+)
 
 // NewZapLogger new a zap logger.
-func NewZapLogger(opts ...ZapLogOption) Logger {
+func NewZapLogger(c ZapLogConfig) Logger {
+	zapLog := zap.NewExample()
+	if c.GetJson() {
+		encoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{})
+		zapLog = zap.New(zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zap.DebugLevel))
+	}
+
 	l := &zapLogger{
-		log:    zap.NewExample(),
+		log:    zapLog,
 		msgKey: log.DefaultMessageKey,
 	}
-	for _, opt := range opts {
-		opt(l)
-	}
+
 	return l
 }
 
@@ -76,14 +71,4 @@ func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 		l.log.Fatal(msg, data...)
 	}
 	return nil
-}
-
-// Sync sync logger.
-func (l *zapLogger) Sync() error {
-	return l.log.Sync()
-}
-
-// Close logger.
-func (l *zapLogger) Close() error {
-	return l.Sync()
 }

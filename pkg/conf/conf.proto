@@ -216,3 +216,39 @@ message Receiver {
 
   EmailConfig emailConfig = 4;
 }
+
+
+message Log {
+  // default, slog, aliyun, zap
+  string type = 1;
+  // 日志级别
+  string level = 2;
+
+  // 阿里云日志
+  optional AliYunLogConfig aliYunLogConfig = 4;
+  // zap日志
+  optional ZapLogConfig zapLogConfig = 5;
+  // slog日志
+  optional SLogConfig slogConfig = 6;
+}
+
+message AliYunLogConfig {
+  string accessKey = 1;
+  string accessSecret = 2;
+  string endpoint = 3;
+  string securityToken = 4;
+  string expireTime = 5;
+  string project = 6;
+  string store = 7;
+  // 是否结构化
+  bool json = 8;
+}
+
+message ZapLogConfig {
+  // 是否结构化
+  bool json = 1;
+}
+
+message SLogConfig {
+  bool json = 1;
+}

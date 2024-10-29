@@ -1,4 +1,4 @@
-package slog
+package mlog
 
 import (
 	"fmt"
@@ -12,21 +12,33 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+type AliyunLogConfig interface {
+	GetAccessKey() string
+	GetAccessSecret() string
+	GetEndpoint() string
+	GetSecurityToken() string
+	GetExpireTime() string
+	GetProject() string
+	GetStore() string
+}
+
 // TODO 阿里云日志插件未测试
 
 // NewAliYunLog new an aliyun logger with options.
-func NewAliYunLog(options ...AliyunLogOption) Logger {
-	opts := defaultOptions()
-	for _, o := range options {
-		o(opts)
+func NewAliYunLog(c AliyunLogConfig) Logger {
+	if c == nil {
+		panic("aliyun log config is nil")
 	}
 
+	opts := c
+
 	providerAdapter := sls.NewUpdateFuncProviderAdapter(func() (accessKeyID, accessKeySecret, securityToken string, expireTime time.Time, err error) {
-		return opts.accessKey, opts.accessSecret, "", time.Time{}, nil
+		t, err := time.Parse(time.DateTime, opts.GetExpireTime())
+		return opts.GetAccessKey(), opts.GetAccessSecret(), opts.GetSecurityToken(), t, err
 	})
 	config := &producer.ProducerConfig{
 		CredentialsProvider: providerAdapter,
-		Endpoint:            opts.endpoint,
+		Endpoint:            opts.GetEndpoint(),
 	}
 	producerInst := producer.InitProducer(config)
 
@@ -36,68 +48,12 @@ func NewAliYunLog(options ...AliyunLogOption) Logger {
 	}
 }
 
-// WithAliYunLogEndpoint set endpoint
-func WithAliYunLogEndpoint(endpoint string) AliyunLogOption {
-	return func(alc *options) {
-		alc.endpoint = endpoint
-	}
-}
-
-// WithAliYunLogProject set project
-func WithAliYunLogProject(project string) AliyunLogOption {
-	return func(alc *options) {
-		alc.project = project
-	}
-}
-
-// WithAliYunLogStore set store
-func WithAliYunLogStore(store string) AliyunLogOption {
-	return func(alc *options) {
-		alc.store = store
-	}
-}
-
-// WithAliYunLogAccessKey set access key
-func WithAliYunLogAccessKey(ak string) AliyunLogOption {
-	return func(alc *options) {
-		alc.accessKey = ak
-	}
-}
-
-// WithAliYunLogAccessSecret set access secret
-func WithAliYunLogAccessSecret(as string) AliyunLogOption {
-	return func(alc *options) {
-		alc.accessSecret = as
-	}
-}
-
-func defaultOptions() *options {
-	return &options{
-		project: "moon",
-		store:   "app",
-	}
-}
-
 type (
 	aliyunLog struct {
 		producer *producer.Producer
-		opts     *options
+		opts     AliyunLogConfig
 	}
-
-	options struct {
-		accessKey    string
-		accessSecret string
-		endpoint     string
-		project      string
-		store        string
-	}
-
-	AliyunLogOption func(alc *options)
 )
-
-func (a *aliyunLog) Sync() error {
-	return a.producer.Close(5000)
-}
 
 func (a *aliyunLog) Log(level log.Level, keyvals ...interface{}) error {
 	contents := make([]*sls.LogContent, 0, len(keyvals)/2+1)
@@ -117,7 +73,7 @@ func (a *aliyunLog) Log(level log.Level, keyvals ...interface{}) error {
 		Time:     types.Of(uint32(time.Now().Unix())),
 		Contents: contents,
 	}
-	return a.producer.SendLog(a.opts.project, a.opts.store, "", "", logInst)
+	return a.producer.SendLog(a.opts.GetProject(), a.opts.GetStore(), "", "", logInst)
 }
 
 // toString convert any type to string
