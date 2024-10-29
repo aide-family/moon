@@ -50,7 +50,7 @@ func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 		keyLen = len(keyvals)
 	)
 	if keyLen == 0 || keyLen%2 != 0 {
-		l.log.Warn(fmt.Sprint("Keyvalues must appear in pairs: ", keyvals))
+		l.log.Warn(fmt.Sprintf("Keyvalues must appear in pairs: %v", keyvals))
 		return nil
 	}
 
