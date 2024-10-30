@@ -207,6 +207,15 @@ func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailC
 	return t.teamRepo.UpdateTeamMailConfig(ctx, params)
 }
 
+// GetTeamMailConfig 获取团队邮件配置
+func (t *TeamBiz) GetTeamMailConfig(ctx context.Context) (*model.SysTeamEmail, error) {
+	config, err := t.teamRepo.GetTeamMailConfig(ctx, middleware.GetTeamID(ctx))
+	if !types.IsNil(err) {
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return config, nil
+}
+
 // UpdateTeamMemberStatus 更新团队成员状态
 func (t *TeamBiz) UpdateTeamMemberStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	if err := t.teamRepo.UpdateTeamMemberStatus(ctx, status, ids...); !types.IsNil(err) {

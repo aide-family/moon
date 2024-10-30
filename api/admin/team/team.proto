@@ -115,6 +115,13 @@ service Team {
     };
   }
 
+  // 查看团队邮件配置信息
+  rpc GetTeamMailConfig (GetTeamMailConfigRequest) returns (GetTeamMailConfigReply) {
+    option (google.api.http) = {
+      get: "/v1/team/mail/config"
+    };
+  }
+
   // 更新团队成员状态
   rpc UpdateTeamMemberStatus (UpdateTeamMemberStatusRequest) returns (UpdateTeamMemberStatusReply) {
     option (google.api.http) = {
@@ -264,6 +271,12 @@ message SetTeamMailConfigRequest {
   }];
 }
 message SetTeamMailConfigReply {}
+
+message GetTeamMailConfigRequest {}
+message GetTeamMailConfigReply {
+  pkg.conf.EmailConfig config = 1;
+  string remark = 2;
+}
 
 message UpdateTeamMemberStatusRequest {
   repeated uint32 memberIds = 1;

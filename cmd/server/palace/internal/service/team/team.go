@@ -6,6 +6,7 @@ import (
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -154,6 +155,23 @@ func (s *Service) SetTeamMailConfig(ctx context.Context, req *teamapi.SetTeamMai
 		return nil, err
 	}
 	return &teamapi.SetTeamMailConfigReply{}, nil
+}
+
+// GetTeamMailConfig 获取团队邮件配置
+func (s *Service) GetTeamMailConfig(ctx context.Context, _ *teamapi.GetTeamMailConfigRequest) (*teamapi.GetTeamMailConfigReply, error) {
+	config, err := s.teamBiz.GetTeamMailConfig(ctx)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &teamapi.GetTeamMailConfigReply{
+		Config: &conf.EmailConfig{
+			User: config.User,
+			Pass: config.Pass,
+			Host: config.Host,
+			Port: config.Port,
+		},
+		Remark: config.Remark,
+	}, nil
 }
 
 // UpdateTeamMemberStatus 更新团队成员状态
