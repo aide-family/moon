@@ -70,7 +70,7 @@ func NewTimeByString(s string, layout ...string) *Time {
 	}
 	t, err := time.ParseInLocation(lay, s, time.Local)
 	if err != nil {
-		return nil
+		return NewTime(time.Now())
 	}
 	return NewTime(t)
 }

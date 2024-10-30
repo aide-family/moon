@@ -83,7 +83,7 @@ alarmDatabase:
 
 log:
   #  default, slog, aliyun, zap
-  type: "slog"
+#  type: "slog"
   level: "debug"
   zap:
     json: true

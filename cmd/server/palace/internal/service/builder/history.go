@@ -63,6 +63,10 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		return nil
 	}
 
+	endAt := history.EndsAt
+	if types.TextIsNull(endAt) {
+		endAt = types.NewTime(time.Now()).String()
+	}
 	resItem := &admin.AlarmHistoryItem{
 		Id:          history.ID,
 		StartsAt:    history.StartsAt,
@@ -78,11 +82,7 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		Labels:      history.Labels.Map(),
 		Annotations: history.Annotations,
 		Summary:     history.Summary,
-		Duration: types.Ternary(
-			history.AlertStatus.IsResolved(),
-			types.NewTimeByString(history.EndsAt).Sub(types.NewTimeByString(history.StartsAt).Time).String(),
-			time.Since(types.NewTimeByString(history.StartsAt).Time).String(),
-		),
+		Duration:    types.NewTimeByString(endAt).Sub(types.NewTimeByString(history.StartsAt).Time).String(),
 	}
 
 	details := history.HistoryDetails

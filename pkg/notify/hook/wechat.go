@@ -64,5 +64,5 @@ func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
 	if resp.ErrCode != 0 {
 		return &resp
 	}
-	return err
+	return nil
 }
