@@ -85,11 +85,11 @@ log:
   #  default, slog, aliyun, zap
   type: "slog"
   level: "debug"
-  zapLogConfig:
+  zap:
     json: true
-  slogConfig:
+  slog:
     json: true
-  aliYunLogConfig:
+  aliyun:
     accessKey: ""
     accessSecret: ""
     endpoint: ""

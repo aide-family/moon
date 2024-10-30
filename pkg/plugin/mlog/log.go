@@ -23,11 +23,13 @@ func New(c *conf.Log) (l Logger) {
 	}()
 	switch strings.ToLower(c.GetType()) {
 	case "aliyun":
-		return NewAliYunLog(c.GetAliYunLogConfig())
+		return NewAliYunLog(c.GetAliyun())
 	case "slog":
-		return NewSlog(c.GetSlogConfig())
+		return NewSlog(c.GetSlog())
 	case "zap", "zaplog":
-		return NewZapLogger(c.GetZapLogConfig())
+		return NewZapLogger(c.GetZap())
+	case "loki":
+		return NewLokiLogger(c.GetLoki())
 	default:
 		return NewLogger(NewStdoutLogger(os.Stdout))
 	}

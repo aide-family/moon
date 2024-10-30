@@ -46,9 +46,13 @@ func (s *sLogger) Log(level log.Level, keyvals ...interface{}) error {
 		msg    = ""
 		keyLen = len(keyvals)
 	)
-	if keyLen == 0 || keyLen%2 != 0 {
+	if keyLen == 0 {
 		s.log.Warn(fmt.Sprintf("Keyvalues must appear in pairs: %v", keyvals))
 		return nil
+	}
+	if keyLen%2 != 0 {
+		msg = fmt.Sprintf("%v", keyvals[len(keyvals)-1])
+		keyLen -= 1
 	}
 
 	data := make([]slog.Attr, 0, (keyLen/2)+1)

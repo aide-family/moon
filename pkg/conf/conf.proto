@@ -225,11 +225,13 @@ message Log {
   string level = 2;
 
   // 阿里云日志
-  optional AliYunLogConfig aliYunLogConfig = 4;
+  optional AliYunLogConfig aliyun = 4;
   // zap日志
-  optional ZapLogConfig zapLogConfig = 5;
+  optional ZapLogConfig zap = 5;
   // slog日志
-  optional SLogConfig slogConfig = 6;
+  optional SLogConfig slog = 6;
+  // loki日志
+  optional LokiLogConfig loki = 7;
 }
 
 message AliYunLogConfig {
@@ -251,4 +253,9 @@ message ZapLogConfig {
 
 message SLogConfig {
   bool json = 1;
+}
+
+message LokiLogConfig {
+  string url = 1;
+  string app = 2;
 }
