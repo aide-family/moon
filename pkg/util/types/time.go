@@ -3,12 +3,16 @@ package types
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/types/known/durationpb"
 )
+
+var _ json.Unmarshaler = (*Time)(nil)
 
 // Time 包装后的时间类型
 type Time struct {
@@ -19,6 +23,20 @@ type Time struct {
 func (t Time) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
 	return []byte(`"` + t.String() + `"`), nil
+}
+
+// UnmarshalJSON 实现 json.Unmarshaler 接口
+func (t *Time) UnmarshalJSON(data []byte) error {
+	// 去掉字符串中的引号
+	s := strings.Trim(string(data), `"`)
+	// 解析时间字符串
+	tt, err := time.ParseInLocation(time.DateTime, s, time.Local)
+	if err != nil {
+		return err
+	}
+	// 将解析后的时间赋值给 Time
+	t.Time = tt
+	return nil
 }
 
 // String implements Stringer interface
@@ -109,6 +127,19 @@ func (d *Duration) String() string {
 func (d *Duration) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
 	return []byte(`"` + d.String() + `"`), nil
+}
+
+func (d *Duration) UnmarshalJSON(data []byte) error {
+	// 去掉字符串中的引号
+	s := strings.Trim(string(data), `"`)
+	// 解析时间字符串
+	dur, err := time.ParseDuration(s)
+	if err != nil {
+		return err
+	}
+	// 将解析后的时间赋值给 Time
+	d.Duration = durationpb.New(dur)
+	return nil
 }
 
 // CronTime 定义一个时间间隔，单位为秒

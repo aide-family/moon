@@ -44,22 +44,6 @@ func (c *SysDict) GetID() uint32 {
 	return c.ID
 }
 
-// GetCreatedAt get created at
-func (c *SysDict) GetCreatedAt() *types.Time {
-	if types.IsNil(c) {
-		return &types.Time{}
-	}
-	return &c.CreatedAt
-}
-
-// GetUpdatedAt get updated at
-func (c *SysDict) GetUpdatedAt() *types.Time {
-	if types.IsNil(c) {
-		return &types.Time{}
-	}
-	return &c.UpdatedAt
-}
-
 // GetCreatorID get creator id
 func (c *SysDict) GetCreatorID() uint32 {
 	if types.IsNil(c) {

@@ -86,17 +86,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	if !types.TextIsNull(params.EventAtStart) && !types.TextIsNull(params.EventAtEnd) {
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.StartsAt.Between(params.EventAtStart, params.EventAtEnd))
 	}
-	if !types.TextIsNull(params.ResolvedAtStart) && !types.TextIsNull(params.ResolvedAtEnd) {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue()))
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.EndsAt.Between(params.ResolvedAtStart, params.ResolvedAtEnd))
-	}
 
-	if len(params.AlarmStatuses) > 0 {
-		statuses := types.SliceTo(params.AlarmStatuses, func(status vobj.AlertStatus) int {
-			return status.GetValue()
-		})
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.Status.In(statuses...))
-	}
 	// TODO 获取指定告警页面告警数据
 	// TODO 获取指定人员告警数据
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
