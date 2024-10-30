@@ -39,6 +39,10 @@ type RealtimeAlarm struct {
 	LevelID uint32 `gorm:"column:level_id;type:int;not null;comment:告警等级id"`
 	// 告警原始信息
 	RawInfo *AlarmRaw `gorm:"foreignKey:RawInfoID"`
+	// 关联的告警通知组列表 通过RealtimeAlarmID关联RealtimeAlarmReceiver表
+	Receiver []*RealtimeAlarmReceiver `gorm:"foreignKey:RealtimeAlarmID"`
+	// 关联告警页面列表
+	Pages []*RealtimeAlarmPage `gorm:"foreignKey:RealtimeAlarmID"`
 }
 
 // GetRawInfo 获取告警原始信息

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
@@ -104,15 +105,23 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 	datasourceMap := types.ToMap(datasourceList, func(datasource *bizmodel.Datasource) uint32 { return datasource.ID })
 
 	rawInfoMap := types.ToMap(rawModels, func(rawModel *alarmmodel.AlarmRaw) string { return rawModel.Fingerprint })
-
+	receiverGroupIDs := types.SliceToWithFilter(strings.Split(params.Receiver, ","), func(item string) (uint32, bool) {
+		ids := strings.Split(item, "_")
+		if len(ids) == 0 {
+			return 0, false
+		}
+		id, err := strconv.ParseUint(ids[len(ids)-1], 10, 32)
+		return uint32(id), err == nil
+	})
 	return b.SaveAlarmInfoDB(ctx,
 		&bo.CreateAlarmInfoParams{
-			RawInfoMap:    rawInfoMap,
-			TeamID:        params.TeamID,
-			Strategy:      strategy,
-			Level:         level,
-			Alerts:        params.Alerts,
-			DatasourceMap: datasourceMap,
+			ReceiverGroupIDs: receiverGroupIDs,
+			TeamID:           params.TeamID,
+			Alerts:           params.Alerts,
+			Strategy:         strategy,
+			Level:            level,
+			DatasourceMap:    datasourceMap,
+			RawInfoMap:       rawInfoMap,
 		})
 }
 

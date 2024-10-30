@@ -8,5 +8,7 @@ func Models() []any {
 		&HistoryDetails{},
 		&RealtimeDetails{},
 		&AlarmRaw{},
+		&RealtimeAlarmReceiver{},
+		&RealtimeAlarmPage{},
 	}
 }

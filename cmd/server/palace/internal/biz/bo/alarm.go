@@ -117,12 +117,13 @@ type (
 
 	// CreateAlarmInfoParams 创建告警信息参数
 	CreateAlarmInfoParams struct {
-		TeamID        uint32                          `json:"teamId"`
-		Alerts        []*AlertItemRawParams           `json:"alerts"`
-		Strategy      *bizmodel.Strategy              `json:"strategy"`
-		Level         *bizmodel.StrategyLevel         `json:"level"`
-		DatasourceMap map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
-		RawInfoMap    map[string]*alarmmodel.AlarmRaw `json:"rawIdMap"`
+		ReceiverGroupIDs []uint32                        `json:"receiver_group_ids"`
+		TeamID           uint32                          `json:"teamId"`
+		Alerts           []*AlertItemRawParams           `json:"alerts"`
+		Strategy         *bizmodel.Strategy              `json:"strategy"`
+		Level            *bizmodel.StrategyLevel         `json:"level"`
+		DatasourceMap    map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
+		RawInfoMap       map[string]*alarmmodel.AlarmRaw `json:"rawIdMap"`
 	}
 
 	// CreateAlarmHookRawParams 告警hook原始信息

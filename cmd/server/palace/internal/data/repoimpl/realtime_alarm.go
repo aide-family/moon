@@ -6,8 +6,10 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -87,8 +89,38 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		wheres = append(wheres, alarmQuery.RealtimeAlarm.StartsAt.Between(params.EventAtStart, params.EventAtEnd))
 	}
 
-	// TODO 获取指定告警页面告警数据
-	// TODO 获取指定人员告警数据
+	// 获取指定告警页面告警数据
+	if params.AlarmPageID > 0 {
+		var realtimeAlarmIDs []uint32
+		if err = alarmQuery.WithContext(ctx).RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.ID.Eq(params.AlarmPageID)).
+			Select(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).Group(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).
+			Scan(&realtimeAlarmIDs); err != nil {
+			return nil, err
+		}
+	}
+	// 获取指定人员告警数据
+	if params.MyAlarm {
+		// 获取我的通知告警组
+		bizQuery, err := getBizQuery(ctx, r.data)
+		if err != nil {
+			return nil, err
+		}
+		var alarmNoticeGroupIDs []uint32
+		if err = bizQuery.AlarmNoticeMember.WithContext(ctx).
+			Where(bizQuery.AlarmNoticeMember.MemberID.Eq(middleware.GetTeamMemberID(ctx))).
+			Select(bizQuery.AlarmNoticeMember.AlarmGroupID).Group(bizQuery.AlarmNoticeMember.AlarmGroupID).
+			Scan(alarmNoticeGroupIDs); err != nil {
+			return nil, err
+		}
+		var realtimeAlarmIDs []uint32
+		if err = alarmQuery.WithContext(ctx).RealtimeAlarmReceiver.
+			Where(alarmQuery.RealtimeAlarmReceiver.AlarmNoticeGroupID.In(alarmNoticeGroupIDs...)).
+			Select(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID).Group(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID).
+			Scan(&realtimeAlarmIDs); err != nil {
+			return nil, err
+		}
+	}
+
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
 	if realtimeAlarmQuery, err = types.WithPageQuery(realtimeAlarmQuery, params.Pagination); err != nil {
 		return nil, err
@@ -121,6 +153,12 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			},
 			StrategyID: strategy.GetID(),
 			LevelID:    strategyLevel.GetID(),
+			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
+				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
+			}),
+			Pages: types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
+			}),
 		}
 	})
 	return alarms
