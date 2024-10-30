@@ -62,6 +62,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	// 判断配置是否相同
 	if oldSrv.srvInfo.GetEndpoint() != srv.srvInfo.GetEndpoint() ||
 		oldSrv.srvInfo.GetNetwork() != srv.srvInfo.GetNetwork() {
+		oldSrv.close()
 		l.srvs[key] = srv
 		return
 	}
@@ -71,6 +72,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	oldSrv.teamIds = teamIds
 	// 更新rpc注册时间
 	oldSrv.registerTime = time.Now()
+	srv.close()
 	srv = oldSrv
 }
 
@@ -104,6 +106,15 @@ func (l *SrvList) getSrvs() []*Srv {
 		srvs = append(srvs, srv)
 	}
 	return srvs
+}
+
+func (l *Srv) close() {
+	if l.rpcClient != nil {
+		l.rpcClient.Close()
+	}
+	if l.httpClient != nil {
+		l.httpClient.Close()
+	}
 }
 
 // checkSrvIsAlive 检查服务是否存活
