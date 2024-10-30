@@ -46,8 +46,7 @@ func Run(flagconf string) {
 	env.SetMetadata(bc.GetServer().GetMetadata())
 	env.SetEnv(bc.GetEnv())
 
-	logger := mlog.NewLogger(mlog.NewZapLogger())
-	defer logger.Sync()
+	logger := mlog.New(bc.GetLog())
 
 	log.SetLogger(logger)
 	app, cleanup, err := wireApp(&bc, logger)

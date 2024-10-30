@@ -233,9 +233,37 @@ func genBizDatabaseName(teamID uint32) string {
 	return fmt.Sprintf("db_team_%d", teamID)
 }
 
+// GenBizDatabaseName 生成业务库名称
+func GenBizDatabaseName(teamID uint32) string {
+	return genBizDatabaseName(teamID)
+}
+
 // genAlarmDatabaseName 生成业务库名称
 func genAlarmDatabaseName(teamID uint32) string {
 	return fmt.Sprintf("db_team_alarm_%d", teamID)
+}
+
+// GetBizGormDBByName 获取业务库连接
+func (d *Data) GetBizGormDBByName(databaseName string) (*gorm.DB, error) {
+	if databaseName == "" {
+		return nil, merr.ErrorNotification("数据库服务异常")
+	}
+	dsn := databaseName
+	switch d.bizDatabaseConf.GetDriver() {
+	case "mysql":
+		dsn = d.bizDatabaseConf.GetDsn() + databaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	}
+
+	bizDbConf := &conf.Database{
+		Driver: d.bizDatabaseConf.GetDriver(),
+		Dsn:    dsn,
+		Debug:  d.bizDatabaseConf.GetDebug(),
+	}
+	bizDB, err := conn.NewGormDB(bizDbConf, log.GetLogger())
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizDB, nil
 }
 
 // GetBizGormDB 获取业务库连接

@@ -37,6 +37,14 @@ type teamRepositoryImpl struct {
 	cacheRepo repository.Cache
 }
 
+func (l *teamRepositoryImpl) MemberList(ctx context.Context, teamID uint32) ([]*bizmodel.SysTeamMember, error) {
+	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.SysTeamMember.WithContext(ctx).Find()
+}
+
 func (l *teamRepositoryImpl) GetTeamMailConfig(ctx context.Context, teamID uint32) (*model.SysTeamEmail, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
@@ -82,14 +90,32 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	if err == nil {
 		return nil, merr.ErrorI18nAlertTeamNameExistErr(ctx)
 	}
-
+	// 添加管理员成员
+	adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*bizmodel.SysTeamMember, bool) {
+		if memberId <= 0 {
+			return nil, false
+		}
+		if memberId == sysTeamModel.LeaderID {
+			return nil, false
+		}
+		return &bizmodel.SysTeamMember{
+			UserID: memberId,
+			Status: vobj.StatusEnable,
+			Role:   vobj.RoleAdmin,
+		}, true
+	})
+	adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
+		UserID: sysTeamModel.LeaderID,
+		Status: vobj.StatusEnable,
+		Role:   vobj.RoleSuperAdmin,
+	})
 	err = mainQuery.Transaction(func(tx *query.Query) error {
 		// 创建基础信息
 		if err = tx.SysTeam.Create(sysTeamModel); !types.IsNil(err) {
 			return err
 		}
 
-		return l.syncTeamBaseData(ctx, sysTeamModel, team)
+		return l.syncTeamBaseData(ctx, sysTeamModel, adminMembers)
 	})
 	if !types.IsNil(err) {
 		return nil, err
@@ -102,7 +128,11 @@ func (l *teamRepositoryImpl) CreateTeam(ctx context.Context, team *bo.CreateTeam
 	return sysTeamModel, nil
 }
 
-func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, team *bo.CreateTeamParams) (err error) {
+func (l *teamRepositoryImpl) SyncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, members []*bizmodel.SysTeamMember) (err error) {
+	return l.syncTeamBaseData(ctx, sysTeamModel, members)
+}
+
+func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel *model.SysTeam, members []*bizmodel.SysTeamMember) (err error) {
 	teamID := sysTeamModel.ID
 	// 创建团队数据库
 	if err = l.data.CreateBizDatabase(teamID); !types.IsNil(err) {
@@ -150,25 +180,6 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 		}, true
 	})
 
-	// 添加管理员成员
-	adminMembers := types.SliceToWithFilter(team.Admins, func(memberId uint32) (*bizmodel.SysTeamMember, bool) {
-		if memberId <= 0 {
-			return nil, false
-		}
-		if memberId == sysTeamModel.LeaderID {
-			return nil, false
-		}
-		return &bizmodel.SysTeamMember{
-			UserID: memberId,
-			Status: vobj.StatusEnable,
-			Role:   vobj.RoleAdmin,
-		}, true
-	})
-	adminMembers = append(adminMembers, &bizmodel.SysTeamMember{
-		UserID: sysTeamModel.LeaderID,
-		Status: vobj.StatusEnable,
-		Role:   vobj.RoleSuperAdmin,
-	})
 	bizDB, bizDbErr := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(bizDbErr) {
 		return err
@@ -194,8 +205,8 @@ func (l *teamRepositoryImpl) syncTeamBaseData(ctx context.Context, sysTeamModel 
 
 		return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 			bizQuery := bizquery.Use(tx)
-			if len(adminMembers) > 0 {
-				if err = bizQuery.SysTeamMember.Create(adminMembers...); !types.IsNil(err) {
+			if len(members) > 0 {
+				if err = bizQuery.SysTeamMember.Create(members...); !types.IsNil(err) {
 					return err
 				}
 			}

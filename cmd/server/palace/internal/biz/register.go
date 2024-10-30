@@ -28,4 +28,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewInviteBiz,
 	NewUserMessageBiz,
 	NewServerRegisterBiz,
+	NewSystemBiz,
 )

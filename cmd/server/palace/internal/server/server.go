@@ -14,6 +14,7 @@ import (
 	resourceapi "github.com/aide-family/moon/api/admin/resource"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	subscriberapi "github.com/aide-family/moon/api/admin/subscriber"
+	systemapi "github.com/aide-family/moon/api/admin/system"
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	userapi "github.com/aide-family/moon/api/admin/user"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -31,6 +32,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 	"github.com/aide-family/moon/pkg/helper/metric"
@@ -105,6 +107,7 @@ func RegisterService(
 	inviteService *invite.Service,
 	messageService *user.MessageService,
 	historyService *history.Service,
+	systemService *system.Service,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)
@@ -155,6 +158,7 @@ func RegisterService(
 	userapi.RegisterMessageHTTPServer(httpSrv, messageService)
 	api.RegisterServerHTTPServer(httpSrv, serverService)
 	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
+	systemapi.RegisterSystemHTTPServer(httpSrv, systemService)
 
 	// metrics
 	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))

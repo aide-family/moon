@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package api.admin.system;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/system;system";
+option java_multiple_files = true;
+option java_package = "api.admin.system";
+
+// 系统管理模块， 只对超级管理员开启
+service System {
+	// 重置团队数据库
+	rpc ResetTeam(ResetTeamRequest) returns (ResetTeamReply) {
+		option (google.api.http) = {
+			post: "/api/admin/system/team/reset"
+			body: "*"
+		};
+	}
+}
+
+message ResetTeamRequest {
+	uint32 teamID = 1 [(buf.validate.field).cel = {
+		message: "请先选择你要操作的团队"
+		expression: "this > 0"
+	}];
+}
+message ResetTeamReply {}

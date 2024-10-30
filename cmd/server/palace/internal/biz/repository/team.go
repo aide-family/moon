@@ -61,4 +61,10 @@ type Team interface {
 
 	// UpdateTeamMemberStatus 更新团队成员状态
 	UpdateTeamMemberStatus(context.Context, vobj.Status, ...uint32) error
+
+	// MemberList 成员列表
+	MemberList(context.Context, uint32) ([]*bizmodel.SysTeamMember, error)
+
+	// SyncTeamBaseData 同步团队基础数据
+	SyncTeamBaseData(context.Context, *model.SysTeam, []*bizmodel.SysTeamMember) error
 }

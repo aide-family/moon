@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/resource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 
@@ -44,4 +45,5 @@ var ProviderSetService = wire.NewSet(
 	invite.NewInviteService,
 	historyservice.NewHistoryService,
 	NewServerService,
+	system.NewSystemService,
 )
