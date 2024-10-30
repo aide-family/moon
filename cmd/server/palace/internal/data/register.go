@@ -71,6 +71,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	oldSrv.teamIds = teamIds
 	// 更新rpc注册时间
 	oldSrv.registerTime = time.Now()
+	srv = oldSrv
 }
 
 func (l *SrvList) getSrv(key string) (*Srv, bool) {

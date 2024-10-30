@@ -41,8 +41,7 @@ func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) 
 }
 
 func (s *HookService) Send(ctx context.Context, req *bo.SendMsgParams) error {
-	params := &bo.SendMsgParams{Route: req.Route, Data: req.Data, RequestID: req.RequestID}
-	if err := s.msgBiz.SendMsg(ctx, params); !types.IsNil(err) {
+	if err := s.msgBiz.SendMsg(ctx, req); !types.IsNil(err) {
 		return err
 	}
 	return nil
