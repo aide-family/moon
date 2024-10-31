@@ -12,7 +12,6 @@ import (
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
@@ -51,55 +50,32 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	tempMap := b.c.GetTemplates()
 	emailReceives := receives.GetEmails()
 	hookReceivers := receives.GetHooks()
-	hookList := make([]hook.Config, 0, len(hookReceivers)*4)
+	senderList := make([]notify.Notify, 0, len(emailReceives)*4+len(hookReceivers)*4)
 	for _, hookItem := range hookReceivers {
 		if types.IsNil(hookItem) {
 			continue
 		}
 		hookItem.Template = tempMap[hookItem.GetTemplate()]
-		hookList = append(hookList, hookItem)
-	}
-
-	eg := new(errgroup.Group)
-	for _, emailItem := range emailReceives {
-		if types.IsNil(emailItem) {
-			continue
-		}
-		tempKey := emailItem.GetTemplate()
-		if temp, ok := tempMap[tempKey]; ok {
-			emailItem.Template = temp
-		}
-
-		eg.Go(func() error {
-			key := msg.Key(vobj.NotifyTypeEmail.EnString())
-			if !types.TextIsNull(key) {
-				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
-				if err != nil {
-					return err
-				}
-				if !ok {
-					return nil
-				}
-			}
-			if err := email.New(globalEmailConfig, emailItem).Send(ctx, msgMap); !types.IsNil(err) {
-				log.Warnw("send email error", err, "receiver", emailItem)
-				// 删除缓存 TODO 加入重试队列
-				b.data.GetWatcherQueue().Push(msg.Message())
-				b.data.GetCacher().Delete(ctx, key)
-				return err
-			}
-			return nil
-		})
-	}
-
-	// 发送hook告警
-	for _, hookItem := range hookList {
 		newNotify, err := hook.NewNotify(hookItem)
 		if !types.IsNil(err) {
 			continue
 		}
+		senderList = append(senderList, newNotify)
+	}
+
+	for _, emailItem := range emailReceives {
+		if types.IsNil(emailItem) {
+			continue
+		}
+		emailItem.Template = tempMap[emailItem.GetTemplate()]
+		senderList = append(senderList, email.New(globalEmailConfig, emailItem))
+	}
+
+	eg := new(errgroup.Group)
+	// 发送hook告警
+	for _, sender := range senderList {
 		eg.Go(func() error {
-			key := msg.Key(newNotify.Type())
+			key := msg.Key(sender)
 			if !types.TextIsNull(key) {
 				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
 				if err != nil {
@@ -110,8 +86,8 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 				}
 			}
 
-			if err := newNotify.Send(ctx, msgMap); !types.IsNil(err) {
-				log.Warnw("send hook error", err, "receiver", hookItem)
+			if err := sender.Send(ctx, msgMap); !types.IsNil(err) {
+				log.Warnw("send hook error", err, "receiver", sender.Type())
 				// 删除缓存 TODO 加入重试队列
 				b.data.GetWatcherQueue().Push(msg.Message())
 				b.data.GetCacher().Delete(ctx, key)

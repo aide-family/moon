@@ -26,6 +26,10 @@ type wechat struct {
 	c Config
 }
 
+func (l *wechat) Hash() string {
+	return types.MD5(l.c.GetWebhook())
+}
+
 func (l *wechat) Type() string {
 	return l.c.GetType()
 }

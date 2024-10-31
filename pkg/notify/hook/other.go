@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/pkg/notify"
@@ -22,6 +23,10 @@ func NewOther(config Config) Notify {
 
 type other struct {
 	c Config
+}
+
+func (l *other) Hash() string {
+	return types.MD5(l.c.GetWebhook())
 }
 
 func (l *other) Type() string {

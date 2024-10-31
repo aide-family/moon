@@ -14,5 +14,7 @@ type (
 		Send(ctx context.Context, msg Msg) error
 		// Type returns the type of the notification service.
 		Type() string
+		// Hash returns the hash of the notification service.
+		Hash() string
 	}
 )
