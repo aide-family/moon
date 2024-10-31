@@ -74,8 +74,9 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	eg := new(errgroup.Group)
 	// 发送hook告警
 	for _, sender := range senderList {
+		send := sender
 		eg.Go(func() error {
-			key := msg.Key(sender)
+			key := msg.Key(send)
 			if !types.TextIsNull(key) {
 				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
 				if err != nil {
@@ -86,8 +87,8 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 				}
 			}
 
-			if err := sender.Send(ctx, msgMap); !types.IsNil(err) {
-				log.Warnw("send hook error", err, "receiver", sender.Type())
+			if err := send.Send(ctx, msgMap); !types.IsNil(err) {
+				log.Warnw("send hook error", err, "receiver", send.Type())
 				// 删除缓存 TODO 加入重试队列
 				b.data.GetWatcherQueue().Push(msg.Message())
 				b.data.GetCacher().Delete(ctx, key)
