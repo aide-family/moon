@@ -259,3 +259,61 @@ message LokiLogConfig {
   string url = 1;
   string app = 2;
 }
+
+// oss相关
+
+// minio
+message Minio{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+  // 是否使用https
+  bool secure = 5;
+}
+
+// tencent oss
+message TencentOss{
+  string bucketURL = 1;
+  string secretID = 2;
+  string secretKey = 3;
+  int64  expiry = 4;
+  string bucketName = 5;
+  bool isPublic = 6;
+  string region = 7;
+}
+
+
+// ali oss
+message AliOss{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+}
+
+// local
+message LocalStorage{
+  string  path = 1;
+  string url = 2;
+  string downloadPre = 3;
+}
+
+// 文件大小限制
+message FileLimit {
+  int64 max = 1;
+  int64 min = 2;
+}
+
+message Oss{
+  // oss类型
+  string type = 1;
+  Minio minio = 2;
+  TencentOss tencentOss = 3;
+  AliOss aliOss = 4;
+  LocalStorage local = 5;
+  // 文件大小
+  map <string, FileLimit> limitSize = 6;
+  // 是否打开oss
+  bool open = 7;
+}

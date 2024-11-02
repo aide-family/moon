@@ -5,6 +5,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/dict"
+	fileservice "github.com/aide-family/moon/cmd/server/palace/internal/service/file"
 	historyservice "github.com/aide-family/moon/cmd/server/palace/internal/service/history"
 	hookservice "github.com/aide-family/moon/cmd/server/palace/internal/service/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/invite"
@@ -16,7 +17,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
-
 	"github.com/google/wire"
 )
 
@@ -44,6 +44,7 @@ var ProviderSetService = wire.NewSet(
 	NewAlertService,
 	invite.NewInviteService,
 	historyservice.NewHistoryService,
+	fileservice.NewFileService,
 	NewServerService,
 	system.NewSystemService,
 )

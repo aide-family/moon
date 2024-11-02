@@ -15,6 +15,7 @@ message Bootstrap {
   pkg.conf.Cache cache = 6;
   pkg.conf.Tracer tracer = 7;
   pkg.conf.Discovery discovery = 8;
+  pkg.conf.Oss oss = 9;
   Watch watch = 10;
   OAuth2 oauth2 = 11;
   pkg.conf.EmailConfig email_config = 12;
