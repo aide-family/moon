@@ -14,7 +14,7 @@ import (
 
 // Service file操作相关服务
 type Service struct {
-	fileapi.UnimplementedFileServer
+	fileapi.UnimplementedFileManageServer
 
 	fileBiz *biz.FileBiz
 }
@@ -33,12 +33,7 @@ func (s *Service) UploadFile(ctx http.Context) error {
 
 	defer file.Close()
 	uploadType := ctx.Form().Get("uploadType")
-	if err != nil {
-		return err
-	}
-
 	fileName := fmt.Sprintf("%s-%s", random.UUIDToUpperCase(true), header.Filename)
-
 	params := &bo.ConvertFileParams{
 		File:       file,
 		UploadType: uploadType,

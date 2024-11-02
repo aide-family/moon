@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
@@ -39,7 +40,8 @@ func newStrategyWatch(c *houyiconf.Bootstrap, data *data.Data, alertService *ser
 		data:         data,
 		cronInstance: cronInstance,
 		stopCh:       make(chan struct{}),
-		entryIDMap:   make(map[string]cron.EntryID),
+		entryIDMap:   new(sync.Map),
+		strategyMap:  new(sync.Map),
 		alertService: alertService,
 		interval:     interval,
 		timeout:      timeout,
@@ -53,9 +55,12 @@ type StrategyWatch struct {
 	data         *data.Data
 	cronInstance *cron.Cron
 	stopCh       chan struct{}
-	entryIDMap   map[string]cron.EntryID
-	interval     string
-	timeout      time.Duration
+	//entryIDMap   map[string]cron.EntryID
+	entryIDMap *sync.Map
+	// 策略数据
+	strategyMap *sync.Map
+	interval    string
+	timeout     time.Duration
 
 	alertService *service.AlertService
 }
@@ -106,21 +111,38 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 }
 
 func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
-	// 删除策略任务
-	if _, exist := s.entryIDMap[strategyMsg.Index()]; exist {
-		log.Info("strategy watch remove job")
-		s.cronInstance.Remove(s.entryIDMap[strategyMsg.Index()])
-	}
 	if !strategyMsg.GetStatus().IsEnable() {
+		log.Info("strategy watch remove job")
+		// 移除任务
+		id, exist := s.entryIDMap.Load(strategyMsg.Index())
+		if exist {
+			s.cronInstance.Remove(id.(cron.EntryID))
+		}
 		// 生成告警恢复事件（如果有告警发生过）
 		return s.alertResolve(strategyMsg)
 	}
 
-	// 重新加入
-	entryID, err := s.cronInstance.AddFunc(strategyMsg.GetInterval().CronTime(), func() {
+	// 如果任务已经存在，则更新策略数据
+	if entryID, exist := s.entryIDMap.Load(strategyMsg.Index()); exist {
+		s.strategyMap.Store(entryID, strategyMsg)
+		return nil
+	}
+
+	// 不存在，则添加任务
+	entryID, err := s.cronInstance.AddFunc(strategyWatchJobSpec, func() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 		defer cancel()
-		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyMsg)
+		jobID, exist := s.entryIDMap.Load(strategyMsg.Index())
+		if !exist {
+			log.Warnf("strategy watch job not exist: %s", strategyMsg.Index())
+			return
+		}
+		strategyItem, exist := s.strategyMap.Load(jobID)
+		if !exist {
+			log.Warnf("strategy watch strategy not exist: %s", strategyMsg.Index())
+			return
+		}
+		innerAlarm, err := s.alertService.InnerAlarm(ctx, strategyItem.(bo.IStrategy))
 		if err != nil {
 			log.Warnw("inner alarm err", err)
 			return
@@ -134,10 +156,9 @@ func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
 	if err != nil {
 		return err
 	}
-	s.entryIDMap[strategyMsg.Index()] = entryID
-
-	log.Infow("strategy watch add job", s.entryIDMap[strategyMsg.Index()])
-
+	s.entryIDMap.Store(strategyMsg.Index(), entryID)
+	s.strategyMap.Store(entryID, strategyMsg)
+	log.Infow("strategy watch add job", entryID)
 	return nil
 }
 
