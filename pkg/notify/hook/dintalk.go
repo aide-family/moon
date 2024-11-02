@@ -31,6 +31,10 @@ type dingTalk struct {
 	c Config
 }
 
+func (l *dingTalk) Hash() string {
+	return types.MD5(l.c.GetWebhook())
+}
+
 func (l *dingTalk) Type() string {
 	return l.c.GetType()
 }

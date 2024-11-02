@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/types"
 
-	"github.com/aide-family/moon/pkg/notify"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -32,6 +33,10 @@ type e struct {
 	email.Config
 	to  *conf.ReceiverEmail
 	cli email.Interface
+}
+
+func (l *e) Hash() string {
+	return types.MD5(l.to.GetTo())
 }
 
 func (l *e) Type() string {

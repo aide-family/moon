@@ -31,6 +31,10 @@ type feiShu struct {
 	c Config
 }
 
+func (l *feiShu) Hash() string {
+	return types.MD5(l.c.GetWebhook())
+}
+
 func (l *feiShu) Type() string {
 	return l.c.GetType()
 }

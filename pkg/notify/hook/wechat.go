@@ -26,6 +26,10 @@ type wechat struct {
 	c Config
 }
 
+func (l *wechat) Hash() string {
+	return types.MD5(l.c.GetWebhook())
+}
+
 func (l *wechat) Type() string {
 	return l.c.GetType()
 }
@@ -64,5 +68,5 @@ func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
 	if resp.ErrCode != 0 {
 		return &resp
 	}
-	return err
+	return nil
 }
