@@ -199,7 +199,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})
 	// 发送用户密码到用户邮箱
-	return g.data.GetEmailer().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(user.Email).SetBody(body, "text/html").Send()
+	return g.data.GetEmail().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(user.Email).SetBody(body, "text/html").Send()
 }
 
 //go:embed verify_email.html
@@ -224,7 +224,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 		"APP":         g.bc.GetServer().GetName(),
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})
-	return g.data.GetEmailer().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
+	return g.data.GetEmail().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
 }
 
 // CheckVerifyEmailCode 检查验证码

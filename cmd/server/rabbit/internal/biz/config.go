@@ -2,24 +2,19 @@ package biz
 
 import (
 	"context"
-	"sync"
-	"time"
-
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/conf"
-	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
+	"sync"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 // NewConfigBiz 创建配置业务
-func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repository.CacheRepo) *ConfigBiz {
+func NewConfigBiz(c *rabbitconf.Bootstrap) *ConfigBiz {
 	return &ConfigBiz{
-		cacheRepo: cacheRepo,
-		c:         c,
+		c: c,
 	}
 }
 
@@ -27,104 +22,110 @@ func NewConfigBiz(c *rabbitconf.Bootstrap, cacheRepo repository.CacheRepo) *Conf
 func GetConfigData() *Config {
 	if types.IsNil(configData) {
 		configData = &Config{
-			Receivers: make(map[string]*conf.Receiver),
-			Templates: make(map[string]string),
+			Receivers: new(sync.Map),
+			Templates: new(sync.Map),
 		}
 	}
 	return configData
 }
 
 var configData = &Config{
-	Receivers: make(map[string]*conf.Receiver),
-	Templates: make(map[string]string),
+	Receivers: new(sync.Map),
+	Templates: new(sync.Map),
 }
 
 // GetReceivers 获取接收人
-func (l *Config) GetReceivers() map[string]*conf.Receiver {
+func (l *Config) GetReceivers(route string) (*conf.Receiver, bool) {
 	if types.IsNil(l) {
-		return map[string]*conf.Receiver{}
+		return nil, false
 	}
-	return GetConfigData().Receivers
+	val, ok := GetConfigData().Receivers.Load(route)
+	if ok {
+		receivers, ok := val.(*conf.Receiver)
+		return receivers, ok
+	}
+	return nil, false
 }
 
 // GetTemplates 获取模板
-func (l *Config) GetTemplates() map[string]string {
+func (l *Config) GetTemplates(temp string) string {
 	if types.IsNil(l) {
-		return map[string]string{}
+		return ""
 	}
-	return GetConfigData().Templates
+	val, ok := GetConfigData().Templates.Load(temp)
+	if ok {
+		template, ok := val.(string)
+		if ok {
+			return template
+		}
+	}
+	return ""
 }
 
 // ConfigBiz 配置业务
 type ConfigBiz struct {
-	cacheRepo repository.CacheRepo
-	c         *rabbitconf.Bootstrap
+	c *rabbitconf.Bootstrap
 }
 
 // Config 配置数据
 type Config struct {
-	Receivers map[string]*conf.Receiver `json:"receivers"`
-	Templates map[string]string         `json:"templates"`
-	sync.RWMutex
-}
-
-// Bytes json 序列化
-func (l *Config) Bytes() []byte {
-	l.Lock()
-	defer l.Unlock()
-
-	data, _ := types.Marshal(l)
-	return data
+	Receivers *sync.Map `json:"receivers"`
+	Templates *sync.Map `json:"templates"`
 }
 
 // Set 设置接收人
-func (l *Config) Set(ctx context.Context, cache cache.ICacher, params *bo.CacheConfigParams) error {
+func (l *Config) Set(_ context.Context, params *bo.CacheConfigParams) {
 	for k, v := range params.Receivers {
-		l.Receivers[k] = v
+		l.Receivers.Store(k, &conf.Receiver{
+			Hooks: types.SliceTo(v.GetHooks(), func(item *conf.ReceiverHook) *conf.ReceiverHook {
+				return &conf.ReceiverHook{
+					Type:     item.GetType(),
+					Webhook:  item.GetWebhook(),
+					Content:  item.GetContent(),
+					Template: item.GetTemplate(),
+					Secret:   item.GetSecret(),
+				}
+			}),
+			Phones: types.SliceTo(v.GetPhones(), func(item *conf.ReceiverPhone) *conf.ReceiverPhone {
+				return &conf.ReceiverPhone{}
+			}),
+			Emails: types.SliceTo(v.GetEmails(), func(item *conf.ReceiverEmail) *conf.ReceiverEmail {
+				return &conf.ReceiverEmail{
+					To:          item.GetTo(),
+					Subject:     item.GetSubject(),
+					Content:     item.GetContent(),
+					Template:    item.GetTemplate(),
+					Cc:          item.GetCc(),
+					AttachUrl:   item.GetAttachUrl(),
+					ContentType: item.GetContentType(),
+				}
+			}),
+			EmailConfig: &conf.EmailConfig{
+				User: v.GetEmailConfig().GetUser(),
+				Pass: v.GetEmailConfig().GetPass(),
+				Host: v.GetEmailConfig().GetHost(),
+				Port: v.GetEmailConfig().GetPort(),
+			},
+		})
 	}
 	for k, v := range params.Templates {
-		l.Templates[k] = v
-	}
-	return cache.Set(ctx, bo.CacheConfigKey, string(l.Bytes()), time.Hour)
-}
-
-// Get 获取接收人
-func (l *Config) Get() *bo.CacheConfigParams {
-	return &bo.CacheConfigParams{
-		Receivers: l.Receivers,
-		Templates: l.Templates,
+		l.Templates.Store(k, v)
 	}
 }
 
 // CacheConfig 缓存配置
-func (b *ConfigBiz) CacheConfig(ctx context.Context, params *bo.CacheConfigParams) error {
-	return configData.Set(ctx, b.cacheRepo.Cacher(), params)
+func (b *ConfigBiz) CacheConfig(ctx context.Context, params *bo.CacheConfigParams) {
+	configData.Set(ctx, params)
 }
 
 // LoadConfig 加载配置
-func (b *ConfigBiz) LoadConfig(ctx context.Context) error {
+func (b *ConfigBiz) LoadConfig(ctx context.Context) {
 	defer log.Debug("加载配置完成")
-	params := &bo.CacheConfigParams{
-		Receivers: make(map[string]*conf.Receiver),
-		Templates: make(map[string]string),
-	}
-	getJSONStr, _ := b.cacheRepo.Cacher().Get(ctx, bo.CacheConfigKey)
-	if !types.TextIsNull(getJSONStr) {
-		if err := types.Unmarshal([]byte(getJSONStr), &params); !types.IsNil(err) {
-			return err
-		}
-	}
-
-	configData = &Config{
-		Receivers: params.Receivers,
-		Templates: params.Templates,
-	}
-
 	// 加载配置文件配置进内存
 	yamlConfig := &bo.CacheConfigParams{
 		Receivers: b.c.GetReceivers(),
 		Templates: b.c.GetTemplates(),
 	}
 
-	return configData.Set(ctx, b.cacheRepo.Cacher(), yamlConfig)
+	configData.Set(ctx, yamlConfig)
 }

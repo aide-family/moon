@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/conf"
 	"time"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
@@ -14,7 +15,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
 )
 
 // NewMsgBiz 创建消息业务
@@ -35,9 +35,9 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		return err
 	}
 
-	hookData := GetConfigData()
-	receives := hookData.GetReceivers()[msg.Route]
-	if types.IsNil(receives) {
+	config := GetConfigData()
+	receives, ok := config.GetReceivers(msg.Route)
+	if !ok {
 		return merr.ErrorAlert("receiver not found")
 	}
 
@@ -47,7 +47,6 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		globalEmailConfig = receives.GetEmailConfig()
 	}
 
-	tempMap := b.c.GetTemplates()
 	emailReceives := receives.GetEmails()
 	hookReceivers := receives.GetHooks()
 	senderList := make([]notify.Notify, 0, len(emailReceives)*4+len(hookReceivers)*4)
@@ -55,8 +54,14 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		if types.IsNil(hookItem) {
 			continue
 		}
-		hookItem.Template = tempMap[hookItem.GetTemplate()]
-		newNotify, err := hook.NewNotify(hookItem)
+		hookNotify := &conf.ReceiverHook{
+			Type:     hookItem.GetType(),
+			Webhook:  hookItem.GetWebhook(),
+			Content:  hookItem.GetContent(),
+			Template: config.GetTemplates(hookItem.GetTemplate()),
+			Secret:   hookItem.GetSecret(),
+		}
+		newNotify, err := hook.NewNotify(hookNotify)
 		if !types.IsNil(err) {
 			continue
 		}
@@ -67,35 +72,38 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		if types.IsNil(emailItem) {
 			continue
 		}
-		emailItem.Template = tempMap[emailItem.GetTemplate()]
-		senderList = append(senderList, email.New(globalEmailConfig, emailItem))
+		emailItemNotify := &conf.ReceiverEmail{
+			To:          emailItem.GetTo(),
+			Subject:     emailItem.GetSubject(),
+			Content:     emailItem.GetContent(),
+			Template:    config.GetTemplates(emailItem.GetTemplate()),
+			Cc:          emailItem.GetCc(),
+			AttachUrl:   emailItem.GetAttachUrl(),
+			ContentType: emailItem.GetContentType(),
+		}
+		senderList = append(senderList, email.New(globalEmailConfig, emailItemNotify))
 	}
 
-	eg := new(errgroup.Group)
 	// 发送hook告警
 	for _, sender := range senderList {
 		send := sender
-		eg.Go(func() error {
-			key := msg.Key(send)
-			if !types.TextIsNull(key) {
-				ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
-				if err != nil {
-					return err
-				}
-				if !ok {
-					return nil
-				}
-			}
-
-			if err := send.Send(ctx, msgMap); !types.IsNil(err) {
-				log.Warnw("send hook error", err, "receiver", send.Type())
-				// 删除缓存 TODO 加入重试队列
-				b.data.GetWatcherQueue().Push(msg.Message())
-				b.data.GetCacher().Delete(ctx, key)
+		key := msg.Key(send)
+		if !types.TextIsNull(key) {
+			ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
+			if err != nil {
 				return err
 			}
-			return nil
-		})
+			if !ok {
+				return nil
+			}
+		}
+
+		if err := send.Send(ctx, msgMap); !types.IsNil(err) {
+			log.Warnw("send hook error", err, "receiver", send.Type())
+			// 删除缓存  加入重试队列
+			b.data.GetCacher().Delete(ctx, key)
+			return err
+		}
 	}
-	return eg.Wait()
+	return nil
 }

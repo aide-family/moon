@@ -42,5 +42,7 @@ message ServerItem {
 message HeartbeatRequest {
 	pkg.conf.MicroServer server = 1;
 	repeated uint32 teamIds = 2;
+	// 上线还是下线
+	bool online = 3;
 }
 message HeartbeatReply {}

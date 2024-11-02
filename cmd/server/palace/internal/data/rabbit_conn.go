@@ -117,6 +117,10 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 	defer l.lock.Unlock()
 	// 存储心跳数据
 	srvKey := genSrvUniqueKey(req.GetServer())
+	if !req.GetOnline() {
+		l.srvs.removeSrv(srvKey)
+		return nil
+	}
 	_, ok := l.srvs.getSrv(srvKey)
 	if ok {
 		return nil
@@ -241,8 +245,12 @@ func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *c
 
 // srvRegister 服务注册
 func (l *RabbitConn) srvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
+	srv, ok := l.srvs.getSrv(key)
+	if ok {
+		return srv, nil
+	}
 	network := vobj.ToNetwork(microServer.GetNetwork())
-	srv := &Srv{
+	srv = &Srv{
 		srvInfo:      microServer,
 		teamIds:      teamIds,
 		rpcClient:    nil,

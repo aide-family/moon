@@ -60,12 +60,13 @@ func (l *wechat) Send(ctx context.Context, msg notify.Msg) error {
 	if err != nil {
 		return err
 	}
-	log.Debugw("notify", string(resBytes))
 	var resp wechatHookResp
 	if err = types.Unmarshal(resBytes, &resp); err != nil {
+		log.Errorw("notify", msgStr, "err", err)
 		return err
 	}
 	if resp.ErrCode != 0 {
+		log.Errorw("notify", msgStr, "resp", resp)
 		return &resp
 	}
 	return nil

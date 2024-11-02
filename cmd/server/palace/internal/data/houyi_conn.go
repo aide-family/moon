@@ -212,6 +212,10 @@ func (l *HouYiConn) Health(ctx context.Context, req *api.CheckRequest) (*api.Che
 func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) error {
 	// 存储心跳数据
 	srvKey := genSrvUniqueKey(req.GetServer())
+	if !req.GetOnline() {
+		l.srvs.removeSrv(srvKey)
+		return nil
+	}
 	_, ok := l.srvs.getSrv(srvKey)
 	if ok {
 		return nil
@@ -316,8 +320,12 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 
 // srvRegister 服务注册
 func (l *HouYiConn) srvRegister(key string, microServer *conf.MicroServer, teamIds []uint32) (*Srv, error) {
+	srv, ok := l.srvs.getSrv(key)
+	if ok {
+		return srv, nil
+	}
 	network := vobj.ToNetwork(microServer.GetNetwork())
-	srv := &Srv{
+	srv = &Srv{
 		srvInfo:      microServer,
 		teamIds:      teamIds,
 		rpcClient:    nil,

@@ -58,10 +58,13 @@ func (h *HeartbeatServer) Start(ctx context.Context) error {
 		for {
 			select {
 			case <-h.stopCh:
+				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: false}); err != nil {
+					log.Errorw("heartbeat error", err)
+				}
 				log.Infof("[HeartbeatServer] server stopped")
 				return
 			case <-h.tick.C:
-				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds}); err != nil {
+				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: true}); err != nil {
 					log.Errorw("heartbeat error", err)
 				}
 			}

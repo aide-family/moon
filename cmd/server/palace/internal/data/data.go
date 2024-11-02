@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
@@ -53,7 +54,7 @@ type Data struct {
 	// 告警持久化存储
 	alertConsumerStorage watch.Storage
 	// 通用邮件发送器
-	emailer email.Interface
+	emailCli email.Interface
 }
 
 var closeFuncList []func()
@@ -76,7 +77,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		alertQueue:              watch.NewDefaultQueue(100),
 		alertPersistenceDBQueue: watch.NewDefaultQueue(100),
 		alertConsumerStorage:    watch.NewDefaultStorage(),
-		emailer:                 email.NewMockEmail(),
+		emailCli:                email.NewMockEmail(),
 		ossConf:                 ossConf,
 	}
 	cleanup := func() {
@@ -90,8 +91,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	})
 
 	if !types.IsNil(emailConf) {
-		emailer := email.New(emailConf)
-		d.emailer = emailer
+		d.emailCli = email.New(emailConf)
 	}
 
 	d.cacher = newCache(cacheConf)
@@ -208,7 +208,7 @@ func (d *Data) GetBizDB(_ context.Context) *sql.DB {
 
 // CreateBizDatabase 创建业务库
 func (d *Data) CreateBizDatabase(teamID uint32) error {
-	switch d.bizDatabaseConf.GetDriver() {
+	switch strings.ToLower(d.bizDatabaseConf.GetDriver()) {
 	case "mysql":
 		ctx := context.Background()
 		_, err := d.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + genBizDatabaseName(teamID) + "`")
@@ -221,7 +221,7 @@ func (d *Data) CreateBizDatabase(teamID uint32) error {
 
 // CreateBizAlarmDatabase 创建告警历史业务库
 func (d *Data) CreateBizAlarmDatabase(teamID uint32) error {
-	switch d.bizDatabaseConf.GetDriver() {
+	switch strings.ToLower(d.alarmDatabaseConf.GetDriver()) {
 	case "mysql":
 		ctx := context.Background()
 		_, err := d.GetBizDB(ctx).Exec("CREATE DATABASE IF NOT EXISTS " + "`" + genAlarmDatabaseName(teamID) + "`")
@@ -232,12 +232,12 @@ func (d *Data) CreateBizAlarmDatabase(teamID uint32) error {
 	}
 }
 
-// GetEmailer 获取邮件发送器
-func (d *Data) GetEmailer() email.Interface {
-	if types.IsNil(d.emailer) {
+// GetEmail 获取邮件发送器
+func (d *Data) GetEmail() email.Interface {
+	if types.IsNil(d.emailCli) {
 		return email.NewMockEmail()
 	}
-	return d.emailer
+	return d.emailCli
 }
 
 // genBizDatabaseName 生成业务库名称
@@ -261,13 +261,14 @@ func (d *Data) GetBizGormDBByName(databaseName string) (*gorm.DB, error) {
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 	dsn := databaseName
-	switch d.bizDatabaseConf.GetDriver() {
+	driver := strings.ToLower(d.bizDatabaseConf.GetDriver())
+	switch driver {
 	case "mysql":
 		dsn = d.bizDatabaseConf.GetDsn() + databaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	}
 
 	bizDbConf := &conf.Database{
-		Driver: d.bizDatabaseConf.GetDriver(),
+		Driver: driver,
 		Dsn:    dsn,
 		Debug:  d.bizDatabaseConf.GetDebug(),
 	}
@@ -294,7 +295,8 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 	dsn := genBizDatabaseName(teamID)
-	switch d.bizDatabaseConf.GetDriver() {
+	driver := strings.ToLower(d.bizDatabaseConf.GetDriver())
+	switch driver {
 	case "mysql":
 		if err := d.CreateBizDatabase(teamID); !types.IsNil(err) {
 			return nil, err
@@ -303,7 +305,7 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	}
 
 	bizDbConf := &conf.Database{
-		Driver: d.bizDatabaseConf.GetDriver(),
+		Driver: driver,
 		Dsn:    dsn,
 		Debug:  d.bizDatabaseConf.GetDebug(),
 	}
@@ -315,7 +317,7 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 	d.teamBizDBMap.Store(teamID, bizDB)
 	enforcer, err := rbac.InitCasbinModel(bizDB)
 	if !types.IsNil(err) {
-		log.Errorw("casbin init error", err)
+		log.Errorw("casbin", "init error", "err", err)
 		return nil, err
 	}
 	d.enforcerMap.Store(teamID, enforcer)
@@ -336,8 +338,9 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 		return nil, merr.ErrorNotification("数据库服务异常")
 	}
 
-	dsn := genBizDatabaseName(teamID)
-	switch d.bizDatabaseConf.GetDriver() {
+	dsn := genAlarmDatabaseName(teamID)
+	driver := strings.ToLower(d.alarmDatabaseConf.GetDriver())
+	switch driver {
 	case "mysql":
 		if err := d.CreateBizAlarmDatabase(teamID); !types.IsNil(err) {
 			return nil, err
@@ -346,7 +349,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 	}
 
 	alarmDbConf := &conf.Database{
-		Driver: d.alarmDatabaseConf.GetDriver(),
+		Driver: driver,
 		Dsn:    dsn,
 		Debug:  d.alarmDatabaseConf.GetDebug(),
 	}
@@ -370,14 +373,14 @@ func (d *Data) GetCacher() cache.ICacher {
 func (d *Data) GetCasbinByTx(tx *gorm.DB) *casbin.SyncedEnforcer {
 	enforcer, err := rbac.InitCasbinModel(tx)
 	if !types.IsNil(err) {
-		log.Errorw("casbin init error", err)
+		log.Errorw("casbin", "init error", "err", err)
 		panic(err)
 	}
 	return enforcer
 }
 
-// GetCasbin 获取casbin
-func (d *Data) GetCasbin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
+// GetCasBin 获取casbin
+func (d *Data) GetCasBin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
 	if len(tx) > 0 {
 		return d.GetCasbinByTx(tx[0])
 	}
@@ -397,23 +400,23 @@ func (d *Data) GetCasbin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
 
 // newCache new cache
 func newCache(c *conf.Cache) cache.ICacher {
-	switch c.GetDriver() {
-	case "redis", "REDIS":
-		log.Debugw("cache init", "redis")
+	switch strings.ToLower(c.GetDriver()) {
+	case "redis":
+		log.Debugw("cache", "init redis cache")
 		cli := conn.NewRedisClient(c.GetRedis())
 		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	case "nutsdb", "NUTSDB", "nust", "NUTS":
-		log.Debugw("cache init", "nutsdb")
+	case "nutsdb", "nust":
+		log.Debugw("cache", "init nuts db cache")
 		cli, err := conn.NewNutsDB(c.GetNutsDB())
 		if !types.IsNil(err) {
-			log.Warnw("nutsdb init error", err)
+			log.Warnw("nuts db init error", err)
 		}
 		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
 	default:
-		log.Debugw("cache init", "free")
+		log.Debugw("cache", "init free cache")
 		size := int(c.GetFree().GetSize())
 		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
 	}
