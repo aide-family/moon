@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ ICacher = (*defaultCache)(nil)
@@ -181,7 +180,6 @@ func (d *defaultCache) DecMin(ctx context.Context, key string, min int64, expira
 }
 
 func (d *defaultCache) Close() error {
-	log.Debugw("close free cache")
 	if d.cli == nil {
 		return nil
 	}

@@ -42,36 +42,27 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrate
 }
 
 func (s *strategyRepositoryImpl) resolvedAlerts(ctx context.Context, strategy bo.IStrategy, alertKeys ...string) (alerts []*bo.Alert) {
-	alertsStr, _ := s.data.GetCacher().Get(ctx, strategy.Index())
+	alertsStr, err := s.data.GetCacher().Get(ctx, strategy.Index())
+	if err != nil || alertsStr == "" {
+		return
+	}
 	firingKeys := strings.Split(alertsStr, ",")
-	// 移除策略， 直接生成告警恢复事件
-	if !strategy.GetStatus().IsEnable() {
-		if len(firingKeys) == 0 {
-			return
-		}
-		for _, existAlert := range firingKeys {
-			resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
-			if err != nil {
-				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
-				continue
-			}
-			alerts = append(alerts, resolvedAlert)
-		}
-		s.data.GetCacher().Delete(ctx, strategy.Index())
-		return alerts
+	// 生成告警恢复事件
+	if len(firingKeys) == 0 {
+		return
 	}
 	firingKeyMap := types.ToMap(alertKeys, func(key string) string { return key })
-	for _, alertKey := range firingKeys {
-		if _, ok := firingKeyMap[alertKey]; !ok {
-			resolvedAlert, err := getResolvedAlert(ctx, s.data, alertKey)
-			if err != nil {
-				log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
-				continue
-			}
-			alerts = append(alerts, resolvedAlert)
+	for _, existAlert := range firingKeys {
+		if _, ok := firingKeyMap[existAlert]; ok {
+			continue
 		}
+		resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
+		if err != nil {
+			log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
+			continue
+		}
+		alerts = append(alerts, resolvedAlert)
 	}
-
 	return alerts
 }
 
@@ -82,6 +73,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		alerts := s.resolvedAlerts(ctx, strategy)
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
+		s.data.GetCacher().Delete(ctx, strategy.Index())
+		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
 		return alarmInfo, nil
 	}
 
@@ -197,23 +190,18 @@ func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Aler
 
 func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.Alert, error) {
 	// 获取存在的告警信息
-	existAlertStr, err := d.GetCacher().Get(ctx, uniqueKey)
-	if err != nil {
+	var resolvedAlert bo.Alert
+	if err := d.GetCacher().GetObject(ctx, uniqueKey, &resolvedAlert); err != nil {
 		log.Warnw("method", "storage.get", "error", err)
 		return nil, err
 	}
 
-	resolvedAlert, err := bo.NewAlertWithAlertStrInfo(existAlertStr)
-	if err != nil {
-		log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
-		return nil, err
-	}
 	// 获取存在的告警信息， 并且更新为告警恢复状态
 	resolvedAlert.Status = vobj.AlertStatusResolved
 	resolvedAlert.EndsAt = types.NewTimeByUnix(time.Now().Unix())
 	// 删除缓存
 	d.GetCacher().Delete(ctx, uniqueKey)
-	return resolvedAlert, nil
+	return &resolvedAlert, nil
 }
 
 func findCommonKeys(maps ...*vobj.Labels) *vobj.Labels {

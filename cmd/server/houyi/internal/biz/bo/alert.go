@@ -61,6 +61,36 @@ type (
 	}
 )
 
+func (a *Alert) MarshalBinary() (data []byte, err error) {
+	alert := alertInfo{
+		Status:       a.Status.String(),
+		Labels:       a.Labels.Map(),
+		Annotations:  a.Annotations,
+		StartsAt:     a.StartsAt.String(),
+		EndsAt:       a.EndsAt.String(),
+		GeneratorURL: a.GeneratorURL,
+		Fingerprint:  a.Fingerprint,
+		Value:        a.Value,
+	}
+	return types.Marshal(alert)
+}
+
+func (a *Alert) UnmarshalBinary(data []byte) error {
+	var alert alertInfo
+	if err := types.Unmarshal(data, &alert); err != nil {
+		return err
+	}
+	a.Status = vobj.ToAlertStatus(alert.Status)
+	a.Labels = vobj.NewLabels(alert.Labels)
+	a.Annotations = alert.Annotations
+	a.StartsAt = types.NewTimeByString(alert.StartsAt)
+	a.EndsAt = types.NewTimeByString(alert.EndsAt)
+	a.GeneratorURL = alert.GeneratorURL
+	a.Fingerprint = alert.Fingerprint
+	a.Value = alert.Value
+	return nil
+}
+
 // NewAlertWithAlertStrInfo create alert from alert string
 func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
 	var a alertInfo
@@ -123,17 +153,7 @@ func (a *Alert) GetExternalURL() string {
 }
 
 func (a *Alert) String() string {
-	alert := alertInfo{
-		Status:       a.Status.String(),
-		Labels:       a.Labels.Map(),
-		Annotations:  a.Annotations,
-		StartsAt:     a.StartsAt.String(),
-		EndsAt:       a.EndsAt.String(),
-		GeneratorURL: a.GeneratorURL,
-		Fingerprint:  a.Fingerprint,
-		Value:        a.Value,
-	}
-	bs, _ := types.Marshal(alert)
+	bs, _ := a.MarshalBinary()
 	return string(bs)
 }
 
