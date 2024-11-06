@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/aide-family/moon/api"
@@ -44,7 +43,6 @@ func NewRabbitRPCConn(c *palaceconf.Bootstrap, data *Data) (*RabbitConn, error) 
 // RabbitConn rabbit服务连接
 type RabbitConn struct {
 	data *Data
-	lock sync.Mutex
 	// 服务实例原始信息
 	srvs          *SrvList
 	discoveryConf *conf.Discovery
@@ -113,15 +111,13 @@ func (l *RabbitConn) SendMsg(ctx context.Context, in *hookapi.SendMsgRequest, op
 
 // Heartbeat 心跳
 func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
 	// 存储心跳数据
 	srvKey := genSrvUniqueKey(req.GetServer())
 	if !req.GetOnline() {
 		l.srvs.removeSrv(srvKey)
 		return nil
 	}
-	_, ok := l.srvs.getSrv(srvKey)
+	_, ok := l.srvs.getSrv(srvKey, true)
 	if ok {
 		return nil
 	}

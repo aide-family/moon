@@ -216,7 +216,7 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 		l.srvs.removeSrv(srvKey)
 		return nil
 	}
-	_, ok := l.srvs.getSrv(srvKey)
+	_, ok := l.srvs.getSrv(srvKey, true)
 	if ok {
 		return nil
 	}

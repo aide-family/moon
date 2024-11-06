@@ -30,6 +30,10 @@ type MsgBiz struct {
 
 // SendMsg 发送消息
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
+	if types.TextIsNull(msg.Route) {
+		return nil
+	}
+
 	var msgMap notify.Msg
 	if err := types.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
 		return err

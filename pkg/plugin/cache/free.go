@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/errors"
 )
@@ -189,7 +188,8 @@ func (d *defaultCache) Close() error {
 }
 
 func (d *defaultCache) Delete(_ context.Context, key string) error {
-	return types.Ternary(d.cli.Del([]byte(key)), nil, errors.New(500, "FREE_CACHE_ERR", "cache delete error"))
+	d.cli.Del([]byte(key))
+	return nil
 }
 
 func (d *defaultCache) Exist(ctx context.Context, key string) (bool, error) {

@@ -58,7 +58,6 @@ func (s *strategyRepositoryImpl) resolvedAlerts(ctx context.Context, strategy bo
 		}
 		resolvedAlert, err := getResolvedAlert(ctx, s.data, existAlert)
 		if err != nil {
-			log.Warnw("method", "NewAlertWithAlertStrInfo", "error", err)
 			continue
 		}
 		alerts = append(alerts, resolvedAlert)
@@ -167,9 +166,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Alert {
 	// 获取已存在的告警
 	firingKey, err := d.GetCacher().Get(ctx, alert.Index())
-	if err != nil {
-		log.Warnw("method", "storage.get", "error", err)
-	} else {
+	if err == nil {
 		firingAlert, err := bo.NewAlertWithAlertStrInfo(firingKey)
 		if err != nil {
 			log.Warnw("method", "bo.NewAlertWithAlertStrInfo", "error", err)
@@ -192,7 +189,6 @@ func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.
 	// 获取存在的告警信息
 	var resolvedAlert bo.Alert
 	if err := d.GetCacher().GetObject(ctx, uniqueKey, &resolvedAlert); err != nil {
-		log.Warnw("method", "storage.get", "error", err)
 		return nil, err
 	}
 

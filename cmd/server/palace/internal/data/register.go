@@ -61,7 +61,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	srv = oldSrv
 }
 
-func (l *SrvList) getSrv(key string) (*Srv, bool) {
+func (l *SrvList) getSrv(key string, isRegister ...bool) (*Srv, bool) {
 	if !l.depend {
 		return nil, false
 	}
@@ -70,6 +70,10 @@ func (l *SrvList) getSrv(key string) (*Srv, bool) {
 	srv, ok := l.srvs[key]
 	if !ok {
 		return nil, false
+	}
+	if len(isRegister) > 0 && isRegister[0] {
+		srv.registerTime = time.Now()
+		return srv, true
 	}
 	if err := srv.checkSrvIsAlive(); err != nil {
 		return nil, false
