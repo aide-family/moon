@@ -118,6 +118,7 @@ func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
 		if exist {
 			s.cronInstance.Remove(id.(cron.EntryID))
 		}
+		s.entryIDMap.Delete(strategyMsg.Index())
 		// 生成告警恢复事件（如果有告警发生过）
 		return s.alertResolve(strategyMsg)
 	}
