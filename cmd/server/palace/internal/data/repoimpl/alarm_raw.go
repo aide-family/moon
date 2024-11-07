@@ -37,7 +37,11 @@ func (r *alarmRawRepositoryImpl) CreateAlarmRaws(ctx context.Context, param []*b
 			Fingerprint: item.Fingerprint,
 		}
 	})
-	err = alarmQuery.AlarmRaw.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(alarmRawModels, len(alarmRawModels))
+	columns := []string{"receiver", "raw_info"}
+	err = alarmQuery.AlarmRaw.WithContext(ctx).
+		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
+			DoUpdates: clause.AssignmentColumns(columns)}).
+		CreateInBatches(alarmRawModels, len(alarmRawModels))
 	if err != nil {
 		log.Error("AlarmRaw CreateInBatches err: ", err.Error())
 		return nil, err
