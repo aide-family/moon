@@ -91,7 +91,7 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 					log.Warnf("strategy watch get data error: %v", msg.GetData())
 					continue
 				}
-				if err := s.addJob(strategyMsg); err != nil {
+				if err := s.addStrategy(strategyMsg); err != nil {
 					log.Errorw("add job err", err)
 				}
 			}
@@ -110,19 +110,30 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 	return nil
 }
 
-func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
-	if !strategyMsg.GetStatus().IsEnable() {
-		log.Info("strategy watch remove job")
-		// 移除任务
-		id, exist := s.entryIDMap.Load(strategyMsg.Index())
-		if exist {
-			s.cronInstance.Remove(id.(cron.EntryID))
-		}
-		s.entryIDMap.Delete(strategyMsg.Index())
-		// 生成告警恢复事件（如果有告警发生过）
-		return s.alertResolve(strategyMsg)
+// 添加策略任务
+func (s *StrategyWatch) addStrategy(strategyMsg bo.IStrategy) error {
+	if strategyMsg.GetStatus().IsEnable() {
+		return s.triggerEnableStrategy(strategyMsg)
+	} else {
+		return s.triggerDisableStrategy(strategyMsg)
 	}
+}
 
+// triggerDisableStrategy 触发策略关闭
+func (s *StrategyWatch) triggerDisableStrategy(strategyMsg bo.IStrategy) error {
+	log.Info("strategy watch remove job")
+	// 移除任务
+	id, exist := s.entryIDMap.Load(strategyMsg.Index())
+	if exist {
+		s.cronInstance.Remove(id.(cron.EntryID))
+	}
+	s.entryIDMap.Delete(strategyMsg.Index())
+	// 生成告警恢复事件（如果有告警发生过）
+	return s.alertResolve(strategyMsg)
+}
+
+// triggerEnableStrategy 触发策略开启
+func (s *StrategyWatch) triggerEnableStrategy(strategyMsg bo.IStrategy) error {
 	// 如果任务已经存在，则更新策略数据
 	if entryID, exist := s.entryIDMap.Load(strategyMsg.Index()); exist {
 		s.strategyMap.Store(entryID, strategyMsg)
@@ -160,6 +171,7 @@ func (s *StrategyWatch) addJob(strategyMsg bo.IStrategy) error {
 	s.entryIDMap.Store(strategyMsg.Index(), entryID)
 	s.strategyMap.Store(entryID, strategyMsg)
 	log.Infow("strategy watch add job", entryID)
+
 	return nil
 }
 
