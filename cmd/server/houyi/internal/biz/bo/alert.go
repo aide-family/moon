@@ -141,7 +141,7 @@ func (a *Alert) GetFingerprint() string {
 	fingerprint := a.Fingerprint
 	if types.TextIsNull(fingerprint) {
 		// 唯一索引+告警时间生成唯一告警指纹
-		fingerprint = types.MD5(a.Index() + a.StartsAt.String())
+		fingerprint = types.MD5(types.TextJoin(a.Index(), a.StartsAt.String()))
 	}
 	return fingerprint
 }
@@ -159,12 +159,12 @@ func (a *Alert) String() string {
 
 // Index gen alert index
 func (a *Alert) Index() string {
-	return "houyi:alert:" + types.MD5(a.Labels.String())
+	return types.TextJoin("houyi:alert:", types.MD5(a.Labels.String()))
 }
 
 // Index gen alarm index
 func (a *Alarm) Index() string {
-	return "houyi:alarm:" + types.MD5(a.GroupLabels.String())
+	return types.TextJoin("houyi:alarm:", types.MD5(a.GroupLabels.String()))
 }
 
 // Message gen alarm message
@@ -179,5 +179,5 @@ func (a *Alert) Message() *watch.Message {
 
 // PushedFlag gen pushed flag
 func (a *Alert) PushedFlag() string {
-	return "houyi:alert:pushed:" + a.Status.String() + ":" + a.GetFingerprint()
+	return types.TextJoin("houyi:alert:pushed:", a.Status.String(), ":", a.GetFingerprint())
 }

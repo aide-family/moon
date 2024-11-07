@@ -17,11 +17,11 @@ type SendMsgParams struct {
 }
 
 func (s *SendMsgParams) String() string {
-	return "rabbit:" + s.Route + ":" + s.RequestID
+	return types.TextJoin("rabbit:", s.Route, ":", s.RequestID)
 }
 
 func (s *SendMsgParams) Key(app notify.Notify) string {
-	return "rabbit:" + app.Type() + ":" + s.Route + ":" + types.MD5(s.RequestID+app.Hash())
+	return types.TextJoin("rabbit:", app.Type(), ":", s.Route, ":", types.MD5(types.TextJoin(s.RequestID, app.Hash())))
 }
 
 func (s *SendMsgParams) Index() string {

@@ -68,7 +68,7 @@ func (p *password) GetValue() string {
 
 // GeneratePassword 生成密码
 func generatePassword(password, salt string) string {
-	newPass := MD5(password + salt)
+	newPass := MD5(TextJoin(password, salt))
 	return newPass
 }
 
@@ -78,7 +78,7 @@ func generateSalt() string {
 }
 
 func validatePassword(password, checkPass, salt string) (err error) {
-	if password == MD5(checkPass+salt) {
+	if password == MD5(TextJoin(checkPass, salt)) {
 		return nil
 	}
 	return ErrValidatePassword

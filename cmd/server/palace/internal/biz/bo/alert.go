@@ -104,12 +104,12 @@ func (a *Alert) String() string {
 
 // Index gen alert index
 func (a *Alert) Index() string {
-	return "houyi:alert:" + types.MD5(a.Labels.String())
+	return types.TextJoin("houyi:alert:", types.MD5(a.Labels.String()))
 }
 
 // Index gen alarm index
 func (a *Alarm) Index() string {
-	return "houyi:alarm:" + types.MD5(a.GroupLabels.String())
+	return types.TextJoin("houyi:alarm:", types.MD5(a.GroupLabels.String()))
 }
 
 // Message gen alarm message
