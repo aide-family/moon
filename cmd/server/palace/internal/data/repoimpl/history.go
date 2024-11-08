@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -38,15 +39,31 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 		return err
 	}
 	historyList := a.createAlarmHistoryToModels(param)
-	// 更新的字段
-	columns := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
-	if err := alarmQuery.AlarmHistory.WithContext(ctx).
-		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-			DoUpdates: clause.AssignmentColumns(columns)}).
-		CreateInBatches(historyList, len(historyList)); err != nil {
-		return err
-	}
-	return nil
+	// 所更新的字段
+	historyCol := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
+	detailCol := []string{"strategy", "level", "datasource"}
+	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
+		for _, history := range historyList {
+			// 告警历史表
+			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(historyCol)}).Create(history); err != nil {
+				return err
+			}
+
+			// 告警详情表
+			detail := &alarmmodel.HistoryDetails{
+				AlarmHistoryID: history.ID,
+				Strategy:       param.Strategy.String(),
+				Level:          param.Level.String(),
+				Datasource:     param.GetDatasourceMap(history.Labels.GetDatasourceID()),
+			}
+			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "alarm_history_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (a *alarmHistoryRepositoryImpl) GetAlarmHistory(ctx context.Context, param *bo.GetAlarmHistoryParams) (*alarmmodel.AlarmHistory, error) {
@@ -100,7 +117,6 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 
 func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.AlarmHistory {
 	strategy := param.Strategy
-	strategyLevel := param.Level
 	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.AlarmHistory {
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := alarmParam.Annotations
@@ -116,11 +132,6 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 			Labels:      labels,
 			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
-			HistoryDetails: &alarmmodel.HistoryDetails{
-				Strategy:   strategy.String(),
-				Level:      strategyLevel.String(),
-				Datasource: param.GetDatasourceMap(labels.GetDatasourceID()),
-			},
 		}
 	})
 	return historyList

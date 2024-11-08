@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
+	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -36,15 +37,32 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 	}
 
 	realTimes := r.createRealTimeAlarmToModels(param)
-	// 更新的字段
-	columns := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
-	if err := alarmQuery.RealtimeAlarm.WithContext(ctx).
-		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-			DoUpdates: clause.AssignmentColumns(columns)}).
-		CreateInBatches(realTimes, len(realTimes)); err != nil {
-		return err
-	}
-	return nil
+	// 所更新的字段
+	realCol := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
+	detailCol := []string{"strategy", "level", "datasource"}
+
+	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
+		for _, realTime := range realTimes {
+			// 实时告警表
+			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(realCol)}).Create(realTime); err != nil {
+				return err
+			}
+
+			// 告警详情表
+			detail := &alarmmodel.RealtimeDetails{
+				RealtimeAlarmID: realTime.ID,
+				Strategy:        param.Strategy.String(),
+				Level:           param.Level.String(),
+				Datasource:      param.GetDatasourceMap(realTime.Labels.GetDatasourceID()),
+			}
+			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "realtime_alarm_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (r *realtimeAlarmRepositoryImpl) SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error {
@@ -146,13 +164,8 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			Labels:      labels,
 			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
-			RealtimeDetails: &alarmmodel.RealtimeDetails{
-				Strategy:   strategy.String(),
-				Level:      strategyLevel.String(),
-				Datasource: param.GetDatasourceMap(vobj.NewLabels(alarmParam.Labels).GetDatasourceID()),
-			},
-			StrategyID: strategy.GetID(),
-			LevelID:    strategyLevel.GetID(),
+			StrategyID:  strategy.GetID(),
+			LevelID:     strategyLevel.GetID(),
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
 				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
 			}),
