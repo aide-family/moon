@@ -1,8 +1,7 @@
 package types
 
 import (
-	"strconv"
-	"strings"
+	"fmt"
 )
 
 // TextIsNull 判断字符串是否为空
@@ -10,41 +9,74 @@ func TextIsNull(text string) bool {
 	return len(text) == 0
 }
 
-// StrToUint32 将字符串转换为uint32类型
-func StrToUint32(s string) (uint32, error) {
-	value, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		return 0, err
+// TextJoinToBytes 拼接字符串
+func TextJoinToBytes(ss ...string) []byte {
+	if len(ss) == 0 {
+		return nil
 	}
-	// Cast to uint32 after parsing
-	return uint32(value), nil
-}
-
-// StrToUint64 将字符串转换为uint64类型
-func StrToUint64(s string) (uint64, error) {
-	value, err := strconv.ParseUint(s, 10, 64)
-	if err != nil {
-		return 0, err
+	if len(ss) == 1 {
+		return []byte(ss[0])
 	}
-	// Cast to uint64 after parsing
-	return uint64(value), nil
-}
-
-// StrToInt64 将字符串转换为int64类型
-func StrToInt64(s string) (int64, error) {
-	value, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return 0, err
+	length := 0
+	for _, s := range ss {
+		length += len(s)
 	}
-	return value, nil
+	buf := make([]byte, 0, length)
+	for _, s := range ss {
+		buf = append(buf, s...)
+	}
+	return buf
 }
 
-// TextTrim 移除字符串首尾空格
-func TextTrim(text string) string {
-	return strings.TrimSpace(text)
+// TextJoin 拼接字符串
+func TextJoin(s ...string) string {
+	return string(TextJoinToBytes(s...))
 }
 
-// TextTrimIsNull 判断字符串首尾空格后是否为空
-func TextTrimIsNull(text string) bool {
-	return len(strings.TrimSpace(text)) == 0
+// TextJoinByStringerToBytes 拼接字符串
+func TextJoinByStringerToBytes(ss ...fmt.Stringer) []byte {
+	if len(ss) == 0 {
+		return nil
+	}
+	if len(ss) == 1 {
+		return []byte(ss[0].String())
+	}
+	length := 0
+	for _, s := range ss {
+		length += len(s.String())
+	}
+	buf := make([]byte, 0, length)
+	for _, s := range ss {
+		buf = append(buf, s.String()...)
+	}
+	return buf
+}
+
+// TextJoinByStringer 拼接字符串
+func TextJoinByStringer(s ...fmt.Stringer) string {
+	return string(TextJoinByStringerToBytes(s...))
+}
+
+// TextJoinByBytesToBytes 拼接字符串
+func TextJoinByBytesToBytes(ss ...[]byte) []byte {
+	if len(ss) == 0 {
+		return nil
+	}
+	if len(ss) == 1 {
+		return ss[0]
+	}
+	length := 0
+	for _, s := range ss {
+		length += len(s)
+	}
+	buf := make([]byte, 0, length)
+	for _, s := range ss {
+		buf = append(buf, s...)
+	}
+	return buf
+}
+
+// TextJoinByBytes 拼接字符串
+func TextJoinByBytes(s ...[]byte) string {
+	return string(TextJoinByBytesToBytes(s...))
 }

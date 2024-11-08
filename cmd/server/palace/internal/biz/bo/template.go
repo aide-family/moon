@@ -17,7 +17,7 @@ type (
 		// 标签
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
-		Annotations vobj.Annotations `json:"annotations"`
+		Annotations *vobj.Annotations `json:"annotations"`
 		// 告警等级数据
 		StrategyLevelTemplates []*CreateStrategyLevelTemplate `json:"strategyLevelTemplates"`
 		//策略模板类型

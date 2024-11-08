@@ -126,5 +126,5 @@ func (l *Srv) checkSrvIsAlive() (err error) {
 
 // genSrvUniqueKey 生成服务唯一标识
 func genSrvUniqueKey(srv *conf.MicroServer) string {
-	return types.MD5(srv.GetName() + srv.GetEndpoint())
+	return types.MD5(types.TextJoin(srv.GetName(), srv.GetEndpoint()))
 }

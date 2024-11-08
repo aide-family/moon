@@ -33,7 +33,7 @@ type (
 		// 标签
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
-		Annotations vobj.Annotations `json:"annotations"`
+		Annotations *vobj.Annotations `json:"annotations"`
 		// 告警表达式
 		Expr string `json:"expr"`
 		// 策略类型
@@ -219,7 +219,7 @@ type (
 		// 策略标签
 		Labels *vobj.Labels `json:"labels"`
 		// 策略注解
-		Annotations vobj.Annotations `json:"annotations"`
+		Annotations *vobj.Annotations `json:"annotations"`
 		// 执行频率
 		Interval int64 `json:"interval,omitempty"`
 		// 数据源

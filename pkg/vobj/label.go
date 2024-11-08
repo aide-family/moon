@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -66,15 +65,16 @@ func (l *Labels) String() string {
 	if types.IsNil(l) || l.label == nil {
 		return "{}"
 	}
-	bs := strings.Builder{}
-	bs.WriteString(`{`)
+
 	labelKeys := maps.Keys(l.label)
 	sort.Strings(labelKeys)
+	list := make([]string, 0, len(labelKeys)*5)
+	list = append(list, "{")
 	for _, k := range labelKeys {
-		bs.WriteString(`"` + k + `":"` + l.label[k] + `",`)
+		list = append(list, `"`, k, `":"`, l.label[k], `"`, ",")
 	}
-	str := strings.TrimRight(bs.String(), ",")
-	return str + "}"
+	list = append(list[:len(list)-1], "}")
+	return types.TextJoin(list...)
 }
 
 // Map 转map
@@ -131,25 +131,12 @@ func (l *Labels) AppendMap(m map[string]string) *Labels {
 
 // Index 索引
 func (l *Labels) Index() string {
-	str := strings.Builder{}
-	str.WriteString("{")
-	keys := maps.Keys(l.label)
-	// 排序
-	sort.Strings(keys)
-	for _, key := range keys {
-		k := key
-		v := l.label[key]
-		str.WriteString(`"` + k + `"`)
-		str.WriteString(":")
-		str.WriteString(`"` + v + `"`)
-		str.WriteString(",")
-	}
-	return strings.TrimRight(str.String(), ",") + "}"
+	return l.String()
 }
 
 // Value 实现 driver.Valuer 接口
-func (l Labels) Value() (driver.Value, error) {
-	return types.Marshal(l.label)
+func (l *Labels) Value() (driver.Value, error) {
+	return l.String(), nil
 }
 
 // Scan 实现 sql.Scanner 接口

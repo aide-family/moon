@@ -22,7 +22,7 @@ type Time struct {
 // MarshalJSON 实现 json.Marshaler 接口
 func (t Time) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
-	return []byte(`"` + t.String() + `"`), nil
+	return TextJoinToBytes(`"`, t.String(), `"`), nil
 }
 
 // UnmarshalJSON 实现 json.Unmarshaler 接口
@@ -126,7 +126,7 @@ func (d *Duration) String() string {
 
 func (d *Duration) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
-	return []byte(`"` + d.String() + `"`), nil
+	return TextJoinToBytes(`"`, d.String(), `"`), nil
 }
 
 func (d *Duration) UnmarshalJSON(data []byte) error {
@@ -148,7 +148,7 @@ func (d *Duration) CronTime() string {
 	if seconds < 10 {
 		seconds = 10
 	}
-	return "@every " + strconv.Itoa(int(d.GetDuration().AsDuration().Seconds())) + "s"
+	return TextJoin("@every ", strconv.Itoa(int(seconds)), "s")
 }
 
 // Value 实现 driver.Valuer 接口，Value

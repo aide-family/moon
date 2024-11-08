@@ -156,7 +156,7 @@ func (a *CreateAlarmHookRawParams) String() string {
 }
 
 func (a *CreateAlarmHookRawParams) Index() string {
-	return "palace:alert:hook:" + types.MD5(a.GroupLabels.String())
+	return types.TextJoin("palace:alert:hook:", types.MD5(a.GroupLabels.String()))
 }
 
 func (a *CreateAlarmHookRawParams) Message() *watch.Message {
@@ -199,5 +199,5 @@ func (a *AlertItemRawParams) GetAlertItemString() string {
 
 // NoticeKey redis key
 func (a *AlertItemRawParams) NoticeKey(route string) string {
-	return "palace:notice:" + route + ":" + a.Status + ":" + a.Fingerprint
+	return types.TextJoin("palace:notice:", route, ":", a.Status, ":", a.Fingerprint)
 }

@@ -36,15 +36,15 @@ const (
 )
 
 func userCacheKey(userID uint32) string {
-	return cachePrefix + ":" + cacheKeyUser + ":" + strconv.Itoa(int(userID))
+	return types.TextJoin(cachePrefix, ":", cacheKeyUser, ":", strconv.Itoa(int(userID)))
 }
 
 func teamCacheKey(teamID uint32) string {
-	return cachePrefix + ":" + cacheKeyTeam + ":" + strconv.Itoa(int(teamID))
+	return types.TextJoin(cachePrefix, ":", cacheKeyTeam, ":", strconv.Itoa(int(teamID)))
 }
 
 func userTeamCacheKey(teamID uint32) string {
-	return cachePrefix + ":" + cacheKeyUserTeam + ":" + strconv.Itoa(int(teamID))
+	return types.TextJoin(cachePrefix, ":", cacheKeyUserTeam, ":", strconv.Itoa(int(teamID)))
 }
 
 func (l *cacheRepositoryImpl) GetUser(ctx context.Context, userID uint32) *model.SysUser {
@@ -70,15 +70,11 @@ func (l *cacheRepositoryImpl) GetTeam(ctx context.Context, teamID uint32) *model
 }
 
 func (l *cacheRepositoryImpl) AppendUser(ctx context.Context, user *model.SysUser) {
-	if err := l.data.GetCacher().SetObject(ctx, userCacheKey(user.ID), user, 12*time.Hour); err != nil {
-		log.Warnf("cache user %d failed: %s", user.ID, err)
-	}
+	_ = l.data.GetCacher().SetObject(ctx, userCacheKey(user.ID), user, 12*time.Hour)
 }
 
 func (l *cacheRepositoryImpl) AppendTeam(ctx context.Context, team *model.SysTeam) {
-	if err := l.data.GetCacher().SetObject(ctx, teamCacheKey(team.ID), team, 12*time.Hour); err != nil {
-		log.Warnf("cache team %d failed: %s", team.ID, err)
-	}
+	_ = l.data.GetCacher().SetObject(ctx, teamCacheKey(team.ID), team, 12*time.Hour)
 }
 
 func (l *cacheRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32) []*model.SysTeam {
@@ -94,7 +90,6 @@ func (l *cacheRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32
 	for _, teamID := range teamIDs {
 		var team *model.SysTeam
 		if err := l.data.GetCacher().GetObject(ctx, teamCacheKey(teamID), team); err != nil {
-			log.Warnf("get team %d failed: %s", teamID, err)
 			teamIds = append(teamIds, teamID)
 			continue
 		}
@@ -103,10 +98,9 @@ func (l *cacheRepositoryImpl) GetUserTeamList(ctx context.Context, userID uint32
 	if len(teamIds) > 0 {
 		teamQuery := query.Use(l.data.GetMainDB(ctx)).SysTeam
 		teamList, err := teamQuery.WithContext(ctx).Where(teamQuery.ID.In(teamIds...)).Find()
-		if err != nil {
-			log.Warnf("get team list failed: %s", err)
+		if err == nil {
+			list = append(list, teamList...)
 		}
-		list = append(list, teamList...)
 	}
 	return list
 }
@@ -151,7 +145,6 @@ func (l *cacheRepositoryImpl) GetUsers(ctx context.Context, userIDs []uint32) []
 		}
 		var user model.SysUser
 		if err := l.data.GetCacher().GetObject(ctx, userCacheKey(userID), &user); err != nil {
-			log.Warnf("get user %d failed: %s", userID, err)
 			noExistIds = append(noExistIds, userID)
 			continue
 		}
@@ -160,10 +153,9 @@ func (l *cacheRepositoryImpl) GetUsers(ctx context.Context, userIDs []uint32) []
 	if len(noExistIds) > 0 {
 		userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
 		sysUsers, err := userQuery.WithContext(ctx).Where(userQuery.ID.In(noExistIds...)).Find()
-		if err != nil {
-			log.Warnf("get user list failed: %s", err)
+		if err == nil {
+			users = append(users, sysUsers...)
 		}
-		users = append(users, sysUsers...)
 	}
 	for _, user := range users {
 		l.AppendUser(ctx, user)
