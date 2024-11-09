@@ -20,7 +20,7 @@ type Time struct {
 }
 
 // MarshalJSON 实现 json.Marshaler 接口
-func (t Time) MarshalJSON() ([]byte, error) {
+func (t *Time) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
 	return TextJoinToBytes(`"`, t.String(), `"`), nil
 }
@@ -101,7 +101,7 @@ func (t *Time) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value
-func (t Time) Value() (driver.Value, error) {
+func (t *Time) Value() (driver.Value, error) {
 	return t.Time, nil
 }
 

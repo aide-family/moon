@@ -152,7 +152,7 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
 		labels := vobj.NewLabels(alarmParam.Labels)
-		annotations := alarmParam.Annotations
+		annotations := vobj.NewAnnotations(alarmParam.Annotations)
 		return &alarmmodel.RealtimeAlarm{
 			Status:      vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:    alarmParam.StartsAt,

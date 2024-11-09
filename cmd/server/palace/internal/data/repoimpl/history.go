@@ -119,7 +119,7 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 	strategy := param.Strategy
 	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.AlarmHistory {
 		labels := vobj.NewLabels(alarmParam.Labels)
-		annotations := alarmParam.Annotations
+		annotations := vobj.NewAnnotations(alarmParam.Annotations)
 		alertStatus := vobj.ToAlertStatus(alarmParam.Status)
 		return &alarmmodel.AlarmHistory{
 			Summary:     annotations.GetSummary(),

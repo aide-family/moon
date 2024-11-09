@@ -80,7 +80,7 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		Fingerprint: history.Fingerprint,
 		RawInfo:     "",
 		Labels:      history.Labels.Map(),
-		Annotations: history.Annotations,
+		Annotations: history.Annotations.Map(),
 		Summary:     history.Summary,
 		Duration:    types.NewTimeByString(endAt).Sub(types.NewTimeByString(history.StartsAt).Time).String(),
 	}

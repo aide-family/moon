@@ -30,7 +30,7 @@ type AlarmHistory struct {
 	// 标签
 	Labels *vobj.Labels `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
 	// 注解
-	Annotations vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
+	Annotations *vobj.Annotations `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	// 告警原始数据ID
 	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__history__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 附加信息
