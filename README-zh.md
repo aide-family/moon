@@ -27,6 +27,12 @@
 
 ![architecture](docs/images/architecture.png)
 
+## 演示地址
+访问我们的在线演示：[演示地址](https://moon.aide-cloud.cn/)
+
+> 注意：演示环境中的数据可能会定期重置，仅供测试使用。
+
+
 ## 开发前需要了解的
 
 * [Gopher](docs/i18n/zh-CN/gopher.md)
