@@ -17,8 +17,8 @@ var _ imodel.IBaseModel = (*BaseModel)(nil)
 type BaseModel struct {
 	ctx context.Context `gorm:"-"`
 
-	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
 
 	// 创建人
@@ -29,7 +29,7 @@ func (u *BaseModel) GetCreatedAt() *types.Time {
 	if types.IsNil(u.CreatedAt) {
 		return &types.Time{}
 	}
-	return &u.CreatedAt
+	return u.CreatedAt
 }
 
 func (u *BaseModel) GetUpdatedAt() *types.Time {
@@ -37,7 +37,7 @@ func (u *BaseModel) GetUpdatedAt() *types.Time {
 		return &types.Time{}
 	}
 
-	return &u.UpdatedAt
+	return u.UpdatedAt
 }
 
 func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
@@ -76,8 +76,8 @@ var _ imodel.IEasyModel = (*EasyModel)(nil)
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
 	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt types.Time            `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt types.Time            `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
 }
 
@@ -94,7 +94,7 @@ func (e *EasyModel) GetCreatedAt() *types.Time {
 		return &types.Time{}
 	}
 
-	return &e.CreatedAt
+	return e.CreatedAt
 }
 
 func (e *EasyModel) GetUpdatedAt() *types.Time {
@@ -102,7 +102,7 @@ func (e *EasyModel) GetUpdatedAt() *types.Time {
 		return &types.Time{}
 	}
 
-	return &e.UpdatedAt
+	return e.UpdatedAt
 }
 
 func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
