@@ -21,7 +21,7 @@ func NewHistoryService(alarmHistoryBiz *biz.AlarmHistoryBiz) *Service {
 }
 
 func (s *Service) GetHistory(ctx context.Context, req *historyapi.GetHistoryRequest) (*historyapi.GetHistoryReply, error) {
-	param := builder.NewParamsBuild().
+	param := builder.NewParamsBuild(ctx).
 		AlarmHistoryModuleBuilder().
 		WithGetAlarmHistoryRequest(req).
 		ToBo()
@@ -31,15 +31,14 @@ func (s *Service) GetHistory(ctx context.Context, req *historyapi.GetHistoryRequ
 	}
 	return &historyapi.GetHistoryReply{
 		AlarmHistory: builder.
-			NewParamsBuild().
-			WithContext(ctx).
+			NewParamsBuild(ctx).
 			AlarmHistoryModuleBuilder().
 			DoAlarmHistoryItemBuilder().
 			ToAPI(history),
 	}, nil
 }
 func (s *Service) ListHistory(ctx context.Context, req *historyapi.ListHistoryRequest) (*historyapi.ListHistoryReply, error) {
-	param := builder.NewParamsBuild().
+	param := builder.NewParamsBuild(ctx).
 		AlarmHistoryModuleBuilder().
 		WithListAlarmHistoryRequest(req).
 		ToBo()
@@ -48,10 +47,10 @@ func (s *Service) ListHistory(ctx context.Context, req *historyapi.ListHistoryRe
 		return nil, err
 	}
 	return &historyapi.ListHistoryReply{
-		List: builder.NewParamsBuild().
+		List: builder.NewParamsBuild(ctx).
 			AlarmHistoryModuleBuilder().
 			DoAlarmHistoryItemBuilder().
 			ToAPIs(histories),
-		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }

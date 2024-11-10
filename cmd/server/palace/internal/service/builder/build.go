@@ -5,8 +5,8 @@ import (
 )
 
 // NewParamsBuild 创建参数构造器
-func NewParamsBuild() IPramsBuilder {
-	return &paramsBuilder{}
+func NewParamsBuild(ctx context.Context) IPramsBuilder {
+	return &paramsBuilder{ctx: ctx}
 }
 
 type (
@@ -15,8 +15,6 @@ type (
 	}
 
 	IPramsBuilder interface {
-		WithContext(ctx context.Context) IPramsBuilder
-
 		PaginationModuleBuilder() IPaginationModuleBuilder
 
 		AlarmNoticeGroupModuleBuilder() IAlarmNoticeGroupModuleBuilder
@@ -137,9 +135,4 @@ func (p *paramsBuilder) PaginationModuleBuilder() IPaginationModuleBuilder {
 
 func (p *paramsBuilder) AlarmNoticeGroupModuleBuilder() IAlarmNoticeGroupModuleBuilder {
 	return &alarmNoticeGroupModuleBuilder{ctx: p.ctx}
-}
-
-func (p *paramsBuilder) WithContext(ctx context.Context) IPramsBuilder {
-	p.ctx = ctx
-	return p
 }

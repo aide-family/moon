@@ -75,11 +75,11 @@ func (d *doInviteBuilder) ToAPI(invite *model.SysTeamInvite) *admin.InviteItem {
 	teamInfo := d.TeamInfo
 	if !types.IsNil(teamInfo) && !types.IsNil(teamInfo.TeamMap) {
 		team := teamInfo.TeamMap[invite.TeamID]
-		resItem.Team = NewParamsBuild().TeamModuleBuilder().DoTeamBuilder().ToAPI(team)
+		resItem.Team = NewParamsBuild(d.ctx).TeamModuleBuilder().DoTeamBuilder().ToAPI(team)
 	}
 
 	if !types.IsNil(teamInfo) && !types.IsNil(teamInfo.TeamRoles) {
-		resItem.Roles = NewParamsBuild().RoleModuleBuilder().DoRoleBuilder().ToAPIs(teamInfo.TeamRoles)
+		resItem.Roles = NewParamsBuild(d.ctx).RoleModuleBuilder().DoRoleBuilder().ToAPIs(teamInfo.TeamRoles)
 	}
 	return resItem
 }

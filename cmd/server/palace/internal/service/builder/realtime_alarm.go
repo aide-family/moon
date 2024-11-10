@@ -410,9 +410,9 @@ func (d *doDashboardBuilder) ToAPI(dashboard *bizmodel.Dashboard) *adminapi.Dash
 		CreatedAt: dashboard.CreatedAt.String(),
 		UpdatedAt: dashboard.UpdatedAt.String(),
 		Color:     dashboard.Color,
-		Charts:    NewParamsBuild().WithContext(d.ctx).RealtimeAlarmModuleBuilder().DoChartBuilder().ToAPIs(dashboard.Charts),
+		Charts:    NewParamsBuild(d.ctx).RealtimeAlarmModuleBuilder().DoChartBuilder().ToAPIs(dashboard.Charts),
 		Status:    api.Status(dashboard.Status),
-		Groups:    NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().ToAPIs(dashboard.StrategyGroups),
+		Groups:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().ToAPIs(dashboard.StrategyGroups),
 	}
 }
 
@@ -486,7 +486,7 @@ func (u *updateDashboardRequestBuilder) ToBo() *bo.UpdateDashboardParams {
 		Name:           u.GetTitle(),
 		Remark:         u.GetRemark(),
 		Color:          u.GetColor(),
-		Charts:         NewParamsBuild().WithContext(u.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(u.GetCharts()),
+		Charts:         NewParamsBuild(u.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(u.GetCharts()),
 		StrategyGroups: u.GetStrategyGroups(),
 	}
 }
@@ -500,7 +500,7 @@ func (c *createDashboardRequestBuilder) ToBo() *bo.AddDashboardParams {
 		Name:           c.GetTitle(),
 		Remark:         c.GetRemark(),
 		Color:          c.GetColor(),
-		Charts:         NewParamsBuild().WithContext(c.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(c.GetCharts()),
+		Charts:         NewParamsBuild(c.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(c.GetCharts()),
 		StrategyGroups: c.GetStrategyGroups(),
 	}
 }
@@ -511,7 +511,7 @@ func (d *doAlarmPageSelfBuilder) ToAPI(self *bizmodel.AlarmPageSelf) *adminapi.D
 	}
 
 	alarmPageInfo := self.AlarmPage
-	return NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPI(alarmPageInfo)
+	return NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPI(alarmPageInfo)
 }
 
 func (d *doAlarmPageSelfBuilder) ToAPIs(selves []*bizmodel.AlarmPageSelf) []*adminapi.DictItem {
@@ -552,15 +552,15 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 
 		datasource := &bizmodel.Datasource{}
 		_ = datasource.UnmarshalBinary([]byte(details.Datasource))
-		resItem.Datasource = NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
+		resItem.Datasource = NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
 
 		strategy := &bizmodel.Strategy{}
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
-		resItem.Strategy = NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
+		resItem.Strategy = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
 		level := &bizmodel.StrategyLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.Level = NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.Level = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
 	}
 	return resItem
 }

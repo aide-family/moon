@@ -80,7 +80,7 @@ func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole, userMaps ...map[uint32
 		CreatedAt: role.CreatedAt.String(),
 		UpdatedAt: role.UpdatedAt.String(),
 		Status:    api.Status(role.Status),
-		Resources: NewParamsBuild().WithContext(d.ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPIs(
+		Resources: NewParamsBuild(d.ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPIs(
 			types.SliceTo(role.Apis, func(api *bizmodel.SysTeamAPI) imodel.IResource {
 				return api
 			}),

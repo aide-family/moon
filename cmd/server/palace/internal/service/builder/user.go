@@ -210,7 +210,7 @@ func (d *doNoticeUserBuilder) ToAPI(user *bizmodel.AlarmNoticeMember) *adminapi.
 		return nil
 	}
 	return &adminapi.NoticeItem{
-		Member:     NewParamsBuild().WithContext(d.ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(user.GetMember()),
+		Member:     NewParamsBuild(d.ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(user.GetMember()),
 		NotifyType: api.NotifyType(user.AlarmNoticeType),
 	}
 }

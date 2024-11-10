@@ -89,15 +89,15 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 	if !types.IsNil(details) {
 		datasource := &bizmodel.Datasource{}
 		_ = datasource.UnmarshalBinary([]byte(details.Datasource))
-		resItem.Datasource = NewParamsBuild().DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
+		resItem.Datasource = NewParamsBuild(a.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPI(datasource)
 
 		strategy := &bizmodel.Strategy{}
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
-		resItem.Strategy = NewParamsBuild().StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
+		resItem.Strategy = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
 		level := &bizmodel.StrategyLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.Level = NewParamsBuild().StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.Level = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
 	}
 
 	return resItem

@@ -26,7 +26,7 @@ func NewInviteService(inviteBiz *biz.InviteBiz) *Service {
 }
 
 func (s *Service) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*pb.InviteUserReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().WithInviteUserRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithInviteUserRequest(req).ToBo()
 	err := s.inviteBiz.InviteUser(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
@@ -34,7 +34,7 @@ func (s *Service) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*p
 	return &pb.InviteUserReply{}, nil
 }
 func (s *Service) UpdateInviteStatus(ctx context.Context, req *pb.UpdateInviteStatusRequest) (*pb.UpdateInviteStatusReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().WithUpdateInviteStatusRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithUpdateInviteStatusRequest(req).ToBo()
 	err := s.inviteBiz.UpdateInviteStatus(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
@@ -61,11 +61,11 @@ func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.
 		TeamRoles: roles,
 	}
 	return &pb.GetInviteReply{
-		Detail: builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
+		Detail: builder.NewParamsBuild(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
 	}, nil
 }
 func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequest) (*pb.ListUserInviteReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().WithListInviteUserRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithListInviteUserRequest(req).ToBo()
 	list, err := s.inviteBiz.UserInviteList(ctx, param)
 
 	if !types.IsNil(err) {
@@ -82,7 +82,7 @@ func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequ
 	}
 
 	return &pb.ListUserInviteReply{
-		List:       builder.NewParamsBuild().WithContext(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPIs(list),
-		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		List:       builder.NewParamsBuild(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPIs(list),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }

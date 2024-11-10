@@ -254,7 +254,7 @@ func (l *HouYiConn) syncStrategies(srv *Srv, strategies []*bo.Strategy) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	items := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPIs(strategies)
+	items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPIs(strategies)
 	_, err := l.pushStrategy(ctx, srv, &strategyapi.PushStrategyRequest{Strategies: items})
 	if !types.IsNil(err) {
 		log.Errorw("同步策略失败：", err)
@@ -301,7 +301,7 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 			}
 			list := make([]*bo.Strategy, 0, len(strategies)*5)
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 				if items == nil || len(items) == 0 {
 					continue
 				}

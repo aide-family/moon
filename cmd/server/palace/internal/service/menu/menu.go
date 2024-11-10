@@ -24,7 +24,7 @@ func NewMenuService(menuBiz *biz.MenuBiz) *Service {
 
 // BatchCreateMenu 批量创建菜单
 func (m *Service) BatchCreateMenu(ctx context.Context, req *menuapi.BatchCreateMenuRequest) (*menuapi.BatchCreateMenuReply, error) {
-	params := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().WithBatchCreateMenuRequest(req).ToBos()
+	params := builder.NewParamsBuild(ctx).MenuModuleBuilder().WithBatchCreateMenuRequest(req).ToBos()
 	err := m.menuBiz.BatchCreateMenu(ctx, params)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (m *Service) BatchCreateMenu(ctx context.Context, req *menuapi.BatchCreateM
 
 // UpdateMenu 更新菜单
 func (m *Service) UpdateMenu(ctx context.Context, req *menuapi.UpdateMenuRequest) (*menuapi.UpdateMenuReply, error) {
-	updateParams := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().WithUpdateMenuRequest(req).ToBo()
+	updateParams := builder.NewParamsBuild(ctx).MenuModuleBuilder().WithUpdateMenuRequest(req).ToBo()
 	if err := m.menuBiz.UpdateMenu(ctx, updateParams); !types.IsNil(err) {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (m *Service) GetMenu(ctx context.Context, req *menuapi.GetMenuRequest) (*me
 	}
 
 	return &menuapi.GetMenuReply{
-		Menu: builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPI(menuDetail),
+		Menu: builder.NewParamsBuild(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPI(menuDetail),
 	}, nil
 }
 
@@ -69,26 +69,26 @@ func (m *Service) TreeMenu(ctx context.Context, req *menuapi.TreeMenuRequest) (*
 		return nil, err
 	}
 
-	menuTrees := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPITree(dbMenuList)
+	menuTrees := builder.NewParamsBuild(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPITree(dbMenuList)
 	return &menuapi.TreeMenuReply{MenuTree: menuTrees}, nil
 }
 
 // MenuListPage 菜单列表
 func (m *Service) MenuListPage(ctx context.Context, req *menuapi.ListMenuRequest) (*menuapi.ListMenuReply, error) {
-	queryParams := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().WithListMenuRequest(req).ToBo()
+	queryParams := builder.NewParamsBuild(ctx).MenuModuleBuilder().WithListMenuRequest(req).ToBo()
 	menuPage, err := m.menuBiz.ListMenuPage(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &menuapi.ListMenuReply{
-		List:       builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPIs(menuPage),
-		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild(ctx).MenuModuleBuilder().DoMenuBuilder().ToAPIs(menuPage),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
 	}, nil
 }
 
 // BatchUpdateDictStatus 批量更新菜单状态
 func (m *Service) BatchUpdateDictStatus(ctx context.Context, req *menuapi.BatchUpdateMenuStatusRequest) (*menuapi.BatchUpdateMenuStatusReply, error) {
-	params := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().WithBatchUpdateMenuStatusRequest(req).ToBo()
+	params := builder.NewParamsBuild(ctx).MenuModuleBuilder().WithBatchUpdateMenuStatusRequest(req).ToBo()
 	err := m.menuBiz.UpdateMenuStatus(ctx, params)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (m *Service) BatchUpdateDictStatus(ctx context.Context, req *menuapi.BatchU
 
 // BatchUpdateMenuType 批量更新菜单类型
 func (m *Service) BatchUpdateMenuType(ctx context.Context, req *menuapi.BatchUpdateMenuTypeRequest) (*menuapi.BatchUpdateMenuTypeReply, error) {
-	params := builder.NewParamsBuild().WithContext(ctx).MenuModuleBuilder().WithUpdateMenuTypeParams(req).ToBo()
+	params := builder.NewParamsBuild(ctx).MenuModuleBuilder().WithUpdateMenuTypeParams(req).ToBo()
 	if err := m.menuBiz.UpdateMenuTypes(ctx, params); err != nil {
 		return nil, err
 	}

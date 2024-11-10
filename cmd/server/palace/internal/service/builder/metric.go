@@ -111,7 +111,7 @@ func (d *doMetricBuilder) ToAPI(metric *bizmodel.DatasourceMetric) *adminapi.Met
 		Name:       metric.Name,
 		Help:       metric.Remark,
 		Type:       api.MetricType(metric.Category),
-		Labels:     NewParamsBuild().WithContext(d.ctx).MetricModuleBuilder().DoMetricLabelBuilder().ToAPIs(metric.Labels),
+		Labels:     NewParamsBuild(d.ctx).MetricModuleBuilder().DoMetricLabelBuilder().ToAPIs(metric.Labels),
 		Unit:       metric.Unit,
 		Id:         metric.ID,
 		LabelCount: metric.LabelCount,

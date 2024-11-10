@@ -42,8 +42,7 @@ func (s *GroupService) CreateAlarmGroup(ctx context.Context, req *alarmyapi.Crea
 	}); has {
 		return nil, merr.ErrorI18nAlertAlertObjectDuplicate(ctx)
 	}
-	param := builder.NewParamsBuild().
-		WithContext(ctx).
+	param := builder.NewParamsBuild(ctx).
 		AlarmNoticeGroupModuleBuilder().
 		WithCreateAlarmGroupRequest(req).
 		ToBo()
@@ -63,14 +62,14 @@ func (s *GroupService) DeleteAlarmGroup(ctx context.Context, req *alarmyapi.Dele
 
 // ListAlarmGroup 获取告警组列表
 func (s *GroupService) ListAlarmGroup(ctx context.Context, req *alarmyapi.ListAlarmGroupRequest) (*alarmyapi.ListAlarmGroupReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().WithListAlarmGroupRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().WithListAlarmGroupRequest(req).ToBo()
 	alarmGroups, err := s.alarmGroupBiz.ListPage(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &alarmyapi.ListAlarmGroupReply{
-		Pagination: builder.NewParamsBuild().PaginationModuleBuilder().ToAPI(param.Page),
-		List:       builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(alarmGroups),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
+		List:       builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(alarmGroups),
 	}, nil
 }
 
@@ -81,7 +80,7 @@ func (s *GroupService) GetAlarmGroup(ctx context.Context, req *alarmyapi.GetAlar
 		return nil, err
 	}
 	return &alarmyapi.GetAlarmGroupReply{
-		Detail: builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPI(detail),
+		Detail: builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPI(detail),
 	}, nil
 }
 
@@ -95,7 +94,7 @@ func (s *GroupService) UpdateAlarmGroup(ctx context.Context, req *alarmyapi.Upda
 	}); has {
 		return nil, merr.ErrorI18nAlertAlertObjectDuplicate(ctx)
 	}
-	param := builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().WithUpdateAlarmGroupRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().WithUpdateAlarmGroupRequest(req).ToBo()
 	err := s.alarmGroupBiz.UpdateAlarmGroup(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
@@ -105,7 +104,7 @@ func (s *GroupService) UpdateAlarmGroup(ctx context.Context, req *alarmyapi.Upda
 
 // UpdateAlarmGroupStatus 更新告警组状态
 func (s *GroupService) UpdateAlarmGroupStatus(ctx context.Context, req *alarmyapi.UpdateAlarmGroupStatusRequest) (*alarmyapi.UpdateAlarmGroupStatusReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().WithUpdateAlarmGroupStatusRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().WithUpdateAlarmGroupStatusRequest(req).ToBo()
 	err := s.alarmGroupBiz.UpdateStatus(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
@@ -115,20 +114,19 @@ func (s *GroupService) UpdateAlarmGroupStatus(ctx context.Context, req *alarmyap
 
 // ListAlarmGroupSelect 获取告警组下拉列表
 func (s *GroupService) ListAlarmGroupSelect(ctx context.Context, req *alarmyapi.ListAlarmGroupRequest) (*alarmyapi.ListAlarmGroupSelectReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().WithListAlarmGroupRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().WithListAlarmGroupRequest(req).ToBo()
 	alarmGroups, err := s.alarmGroupBiz.ListPage(ctx, param)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &alarmyapi.ListAlarmGroupSelectReply{
-		List: builder.NewParamsBuild().WithContext(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToSelects(alarmGroups),
+		List: builder.NewParamsBuild(ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToSelects(alarmGroups),
 	}, nil
 }
 
 // MyAlarmGroupList 获取我的告警组
 func (s *GroupService) MyAlarmGroupList(ctx context.Context, req *alarmyapi.MyAlarmGroupRequest) (*alarmyapi.MyAlarmGroupReply, error) {
-	param := builder.NewParamsBuild().
-		WithContext(ctx).
+	param := builder.NewParamsBuild(ctx).
 		AlarmNoticeGroupModuleBuilder().
 		WithAPIMyAlarmGroupListRequest(req).
 		ToBo()
@@ -139,11 +137,10 @@ func (s *GroupService) MyAlarmGroupList(ctx context.Context, req *alarmyapi.MyAl
 	}
 
 	return &alarmyapi.MyAlarmGroupReply{
-		Pagination: builder.NewParamsBuild().
+		Pagination: builder.NewParamsBuild(ctx).
 			PaginationModuleBuilder().
 			ToAPI(param.Page),
-		List: builder.NewParamsBuild().
-			WithContext(ctx).
+		List: builder.NewParamsBuild(ctx).
 			AlarmNoticeGroupModuleBuilder().
 			DoAlarmNoticeGroupItemBuilder().
 			ToAPIs(myAlarmGroup),

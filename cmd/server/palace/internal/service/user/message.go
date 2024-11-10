@@ -41,7 +41,7 @@ func (s *MessageService) ListMessage(ctx context.Context, req *pb.ListMessageReq
 	if err != nil {
 		return nil, err
 	}
-	build := builder.NewParamsBuild().WithContext(ctx)
+	build := builder.NewParamsBuild(ctx)
 	return &pb.ListMessageReply{
 		List:       build.UserModuleBuilder().NoticeUserMessageBuilder().ToAPIs(list),
 		Pagination: build.PaginationModuleBuilder().ToAPI(params.Page),

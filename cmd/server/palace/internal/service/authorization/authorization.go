@@ -67,7 +67,7 @@ func (s *Service) Login(ctx context.Context, req *authorizationapi.LoginRequest)
 		return nil, err
 	}
 	return &authorizationapi.LoginReply{
-		User:     builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginJwtClaims.User),
+		User:     builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginJwtClaims.User),
 		Token:    token,
 		Redirect: "/",
 	}, nil
@@ -111,7 +111,7 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 	}
 	return &authorizationapi.RefreshTokenReply{
 		Token: token,
-		User:  builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(tokenRes.User),
+		User:  builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(tokenRes.User),
 	}, nil
 }
 
@@ -160,7 +160,7 @@ func (s *Service) CheckToken(ctx context.Context, _ *authorizationapi.CheckToken
 	}
 	return &authorizationapi.CheckTokenReply{
 		IsLogin: true,
-		User:    builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
+		User:    builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
 	}, nil
 }
 
@@ -217,7 +217,7 @@ func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.S
 	}
 	log.Infow("token", token)
 	return &authorizationapi.SetEmailWithLoginReply{
-		User:  builder.NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
+		User:  builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
 		Token: token,
 	}, nil
 }

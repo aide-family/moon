@@ -107,7 +107,7 @@ func (d *doSubscriberBuilder) ToStrategies(subscribers []*bizmodel.StrategySubsc
 			return nil, false
 		}
 		strategyInfo := subscriber.Strategy
-		return NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategyInfo), true
+		return NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategyInfo), true
 	})
 }
 

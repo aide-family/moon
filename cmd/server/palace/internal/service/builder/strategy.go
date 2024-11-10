@@ -398,7 +398,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Labels:                     strategy.Labels,
 			Annotations:                strategy.Annotations,
 			Interval:                   level.Interval,
-			Datasource:                 NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
+			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
 				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
 			Step:      strategy.Step,
@@ -424,7 +424,7 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.MetricStrategy
 		Labels:                     strategyItem.Labels.Map(),
 		Annotations:                strategyItem.Annotations.Map(),
 		Interval:                   durationpb.New(time.Duration(strategyItem.Interval) * time.Second),
-		Datasource:                 NewParamsBuild().WithContext(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToAPIs(strategyItem.Datasource),
+		Datasource:                 NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToAPIs(strategyItem.Datasource),
 		Id:                         strategyItem.ID,
 		Status:                     api.Status(strategyItem.Status),
 		Step:                       strategyItem.Step,
@@ -484,7 +484,7 @@ func (m *mutationStrategyLevelBuilder) ToBo(request *strategyapi.CreateStrategyL
 		AlarmPageIds:       request.GetAlarmPageIds(),
 		AlarmGroupIds:      request.GetAlarmGroupIds(),
 		StrategyID:         m.StrategyID,
-		LabelNotices:       NewParamsBuild().WithContext(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
+		LabelNotices:       NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
 	}
 }
 
@@ -516,13 +516,13 @@ func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyLevel, userMaps .
 		Status:       api.Status(level.Status),
 		Id:           level.ID,
 		LevelId:      level.LevelID,
-		Level:        NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.Level),
-		AlarmPages:   NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPage, func(item *bizmodel.SysDict) imodel.IDict { return item })),
+		Level:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.Level),
+		AlarmPages:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPage, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		Threshold:    level.Threshold,
 		StrategyId:   level.StrategyID,
 		Condition:    api.Condition(level.Condition),
-		AlarmGroups:  NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
-		LabelNotices: NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoLabelNoticeBuilder().ToAPIs(level.LabelNotices),
+		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
+		LabelNotices: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoLabelNoticeBuilder().ToAPIs(level.LabelNotices),
 		Creator:      userMap[level.CreatorID],
 	}
 }
@@ -595,7 +595,7 @@ func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemp
 		SustainType: api.SustainType(template.SustainType),
 		Status:      api.Status(template.Status),
 		LevelId:     template.LevelID,
-		Level:       NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(template.Level),
+		Level:       NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(template.Level),
 		Threshold:   template.Threshold,
 		Condition:   api.Condition(template.Condition),
 		StrategyId:  template.StrategyTemplateID,
@@ -629,7 +629,7 @@ func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate, user
 		Id:          template.ID,
 		Alert:       template.Alert,
 		Expr:        template.Expr,
-		Levels:      NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyLevelTemplateBuilder().ToAPIs(template.StrategyLevelTemplates),
+		Levels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelTemplateBuilder().ToAPIs(template.StrategyLevelTemplates),
 		Labels:      template.Labels.Map(),
 		Annotations: template.Annotations.Map(),
 		Status:      api.Status(template.Status),
@@ -637,7 +637,7 @@ func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate, user
 		UpdatedAt:   template.UpdatedAt.String(),
 		Remark:      template.Remark,
 		Creator:     userMap[template.CreatorID],
-		Categories:  NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(template.Categories, func(item *model.SysDict) imodel.IDict { return item })),
+		Categories:  NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(template.Categories, func(item *model.SysDict) imodel.IDict { return item })),
 	}
 }
 
@@ -714,7 +714,7 @@ func (u *updateTemplateStrategyRequestBuilder) ToBo() *bo.UpdateTemplateStrategy
 			Remark:                 u.GetRemark(),
 			Labels:                 vobj.NewLabels(u.GetLabels()),
 			Annotations:            vobj.NewAnnotations(u.GetAnnotations()),
-			StrategyLevelTemplates: NewParamsBuild().WithContext(u.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().WithStrategyTemplateID(u.GetId()).ToBos(u.GetLevels()),
+			StrategyLevelTemplates: NewParamsBuild(u.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().WithStrategyTemplateID(u.GetId()).ToBos(u.GetLevels()),
 			CategoriesIDs:          u.GetCategoriesIds(),
 		},
 	}
@@ -731,7 +731,7 @@ func (c *createTemplateStrategyRequestBuilder) ToBo() *bo.CreateTemplateStrategy
 		Remark:                 c.GetRemark(),
 		Labels:                 vobj.NewLabels(c.GetLabels()),
 		Annotations:            vobj.NewAnnotations(c.GetAnnotations()),
-		StrategyLevelTemplates: NewParamsBuild().WithContext(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().ToBos(c.GetLevels()),
+		StrategyLevelTemplates: NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().ToBos(c.GetLevels()),
 		CategoriesIDs:          c.GetCategoriesIds(),
 	}
 }
@@ -745,22 +745,22 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 	return &adminapi.StrategyItem{
 		Name:              strategy.Name,
 		Expr:              strategy.Expr,
-		Levels:            NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(strategy.Levels),
+		Levels:            NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(strategy.Levels),
 		Labels:            strategy.Labels.Map(),
 		Annotations:       strategy.Annotations.Map(),
 		Step:              strategy.Step,
-		Datasource:        NewParamsBuild().WithContext(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPIs(strategy.Datasource),
+		Datasource:        NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPIs(strategy.Datasource),
 		Id:                strategy.ID,
 		Status:            api.Status(strategy.Status),
 		CreatedAt:         strategy.CreatedAt.String(),
 		UpdatedAt:         strategy.UpdatedAt.String(),
 		Remark:            strategy.Remark,
 		GroupId:           strategy.GroupID,
-		Group:             NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().ToAPI(strategy.Group),
+		Group:             NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyGroupBuilder().ToAPI(strategy.Group),
 		TemplateId:        strategy.TemplateID,
 		TemplateSource:    api.TemplateSourceType(strategy.TemplateSource),
-		Categories:        NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(strategy.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
-		AlarmNoticeGroups: NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(strategy.AlarmNoticeGroups),
+		Categories:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(strategy.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
+		AlarmNoticeGroups: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(strategy.AlarmNoticeGroups),
 		Creator:           userMap[strategy.CreatorID],
 	}
 }
@@ -831,7 +831,7 @@ func (u *updateStrategyRequestBuilder) ToBo() *bo.UpdateStrategyParams {
 
 	return &bo.UpdateStrategyParams{
 		ID:          u.GetId(),
-		UpdateParam: NewParamsBuild().WithContext(u.ctx).StrategyModuleBuilder().WithCreateStrategyRequest(u.GetData()).ToBo(),
+		UpdateParam: NewParamsBuild(u.ctx).StrategyModuleBuilder().WithCreateStrategyRequest(u.GetData()).ToBo(),
 	}
 }
 
@@ -841,17 +841,16 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 	}
 
 	return &bo.CreateStrategyParams{
-		GroupID:    c.GetGroupId(),
-		TemplateID: c.GetTemplateId(),
-		Remark:     c.GetRemark(),
-		//Status:         vobj.Status(c.GetStatus()),
+		GroupID:        c.GetGroupId(),
+		TemplateID:     c.GetTemplateId(),
+		Remark:         c.GetRemark(),
 		Status:         vobj.StatusEnable,
 		Step:           c.GetStep(),
 		DatasourceIDs:  c.GetDatasourceIds(),
 		TemplateSource: vobj.StrategyTemplateSource(c.GetSourceType()),
 		Name:           c.GetName(),
 		TeamID:         middleware.GetTeamID(c.ctx),
-		Levels:         NewParamsBuild().WithContext(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToBos(c.GetStrategyLevel()),
+		Levels:         NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToBos(c.GetStrategyLevel()),
 		Labels:         vobj.NewLabels(c.GetLabels()),
 		Annotations:    vobj.NewAnnotations(c.GetAnnotations()),
 		Expr:           c.GetExpr(),
@@ -882,10 +881,10 @@ func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup, userMaps .
 		Remark:              group.Remark,
 		Creator:             userMap[group.CreatorID],
 		CreatorId:           group.CreatorID,
-		Strategies:          NewParamsBuild().WithContext(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPIs(group.Strategies),
+		Strategies:          NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPIs(group.Strategies),
 		StrategyCount:       strategyCount.GetStrategyCountMap(group.ID),
 		EnableStrategyCount: strategyCount.GetStrategyEnableMap(group.ID),
-		Categories:          NewParamsBuild().WithContext(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(group.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
+		Categories:          NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(group.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 	}
 }
 
@@ -943,7 +942,7 @@ func (u *updateStrategyGroupRequestBuilder) ToBo() *bo.UpdateStrategyGroupParams
 
 	return &bo.UpdateStrategyGroupParams{
 		ID:          u.GetId(),
-		UpdateParam: NewParamsBuild().WithContext(u.ctx).StrategyModuleBuilder().WithCreateStrategyGroupRequest(u.GetUpdate()).ToBo(),
+		UpdateParam: NewParamsBuild(u.ctx).StrategyModuleBuilder().WithCreateStrategyGroupRequest(u.GetUpdate()).ToBo(),
 	}
 }
 

@@ -31,20 +31,20 @@ func (s *Service) GetResource(ctx context.Context, req *resourceapi.GetResourceR
 		return nil, err
 	}
 	return &resourceapi.GetResourceReply{
-		Detail: builder.NewParamsBuild().WithContext(ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPI(resourceDo),
+		Detail: builder.NewParamsBuild(ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPI(resourceDo),
 	}, nil
 }
 
 // ListResource 获取资源列表
 func (s *Service) ListResource(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.ListResourceReply, error) {
-	queryParams := builder.NewParamsBuild().WithContext(ctx).ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
+	queryParams := builder.NewParamsBuild(ctx).ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
 	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 	return &resourceapi.ListResourceReply{
-		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
-		List:       builder.NewParamsBuild().WithContext(ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPIs(resourceDos),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild(ctx).ResourceModuleBuilder().DoResourceBuilder().ToAPIs(resourceDos),
 	}, nil
 }
 
@@ -58,14 +58,14 @@ func (s *Service) BatchUpdateResourceStatus(ctx context.Context, req *resourceap
 
 // GetResourceSelectList 获取资源下拉列表
 func (s *Service) GetResourceSelectList(ctx context.Context, req *resourceapi.ListResourceRequest) (*resourceapi.GetResourceSelectListReply, error) {
-	queryParams := builder.NewParamsBuild().WithContext(ctx).ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
+	queryParams := builder.NewParamsBuild(ctx).ResourceModuleBuilder().WithListResourceRequest(req).ToBo()
 	resourceDos, err := s.resourceBiz.ListResource(ctx, queryParams)
 	if !types.IsNil(err) {
 		return nil, err
 	}
 
 	return &resourceapi.GetResourceSelectListReply{
-		Pagination: builder.NewParamsBuild().WithContext(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
-		List:       builder.NewParamsBuild().WithContext(ctx).ResourceModuleBuilder().DoResourceBuilder().ToSelects(resourceDos),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(queryParams.Page),
+		List:       builder.NewParamsBuild(ctx).ResourceModuleBuilder().DoResourceBuilder().ToSelects(resourceDos),
 	}, nil
 }

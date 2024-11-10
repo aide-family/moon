@@ -45,7 +45,7 @@ func (s *AlarmPageSelfService) ListAlarmPage(ctx context.Context, _ *pb.ListAlar
 	// 获取告警页面的告警数量
 	alertCounts := s.alarmPageBiz.GetAlertCounts(ctx, alarmPageIDs)
 	return &pb.ListAlarmPageReply{
-		List:        builder.NewParamsBuild().WithContext(ctx).RealtimeAlarmModuleBuilder().DoAlarmPageSelfBuilder().ToAPIs(alarmPageList),
+		List:        builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoAlarmPageSelfBuilder().ToAPIs(alarmPageList),
 		AlertCounts: alertCounts,
 	}, nil
 }

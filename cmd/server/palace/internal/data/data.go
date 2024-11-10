@@ -97,7 +97,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	d.cacher = newCache(cacheConf)
 
 	// 是否开启oss
-	if ossConf.Open {
+	if ossConf.GetOpen() {
 		d.ossClient = newOssCli(ossConf)
 	}
 

@@ -200,7 +200,7 @@ func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *c
 		m := member.GetMember()
 		return m, m != nil || member.AlarmNoticeType.IsEmail() // TODO 后面兼容短信
 	})
-	members := builder.NewParamsBuild().WithContext(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPIs(member)
+	members := builder.NewParamsBuild(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPIs(member)
 	params := &pushapi.NotifyObjectRequest{
 		Receivers: map[string]*conf.Receiver{
 			fmt.Sprintf("team_%d_%d", teamID, noticeGroupItem.ID): {

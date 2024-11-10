@@ -168,7 +168,7 @@ func (u *updateHookRequestBuilder) ToBo() *bo.UpdateAlarmHookParams {
 
 	return &bo.UpdateAlarmHookParams{
 		ID:          u.GetId(),
-		UpdateParam: NewParamsBuild().WithContext(u.ctx).HookModuleBuilder().WithCreateHookRequest(u.GetUpdate()).ToBo(),
+		UpdateParam: NewParamsBuild(u.ctx).HookModuleBuilder().WithCreateHookRequest(u.GetUpdate()).ToBo(),
 	}
 }
 

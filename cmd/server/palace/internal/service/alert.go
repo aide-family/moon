@@ -43,13 +43,13 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexe
 	// TODO 完成策略数据转换
 	switch item := strategies.(type) {
 	case *bo.Strategy:
-		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))
+		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))
 	case *bo.StrategyDomain:
-		strategyDetail.DomainStrategies = append(strategyDetail.DomainStrategies, builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyDomainBuilder().ToAPI(item))
+		strategyDetail.DomainStrategies = append(strategyDetail.DomainStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyDomainBuilder().ToAPI(item))
 	case *bo.StrategyEndpoint:
-		strategyDetail.HttpStrategies = append(strategyDetail.HttpStrategies, builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyEndpointBuilder().ToAPI(item))
+		strategyDetail.HttpStrategies = append(strategyDetail.HttpStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyEndpointBuilder().ToAPI(item))
 	case *bo.StrategyPing:
-		strategyDetail.PingStrategies = append(strategyDetail.PingStrategies, builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().BoStrategyPingBuilder().ToAPI(item))
+		strategyDetail.PingStrategies = append(strategyDetail.PingStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyPingBuilder().ToAPI(item))
 	default:
 		return nil
 	}
@@ -59,7 +59,7 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexe
 
 // Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
-	param := builder.NewParamsBuild().WithContext(ctx).AlarmModuleBuilder().WithCreateAlarmRawInfoRequest(req).ToBo()
+	param := builder.NewParamsBuild(ctx).AlarmModuleBuilder().WithCreateAlarmRawInfoRequest(req).ToBo()
 	err := s.alertBiz.SaveAlertQueue(param)
 	if !types.IsNil(err) {
 		return nil, err

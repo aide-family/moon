@@ -72,8 +72,8 @@ func (b *boMetricDataBuilder) ToAPI(data *bo.MetricQueryData) *api.MetricQueryRe
 	return &api.MetricQueryResult{
 		Labels:     data.Labels,
 		ResultType: data.ResultType,
-		Values:     NewParamsBuild().MetricDataModuleBuilder().BoMetricDataValueBuilder().ToAPIs(data.Values),
-		Value:      NewParamsBuild().MetricDataModuleBuilder().BoMetricDataValueBuilder().ToAPI(data.Value),
+		Values:     NewParamsBuild(b.ctx).MetricDataModuleBuilder().BoMetricDataValueBuilder().ToAPIs(data.Values),
+		Value:      NewParamsBuild(b.ctx).MetricDataModuleBuilder().BoMetricDataValueBuilder().ToAPI(data.Value),
 	}
 }
 

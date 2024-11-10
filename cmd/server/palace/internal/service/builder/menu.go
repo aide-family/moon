@@ -231,7 +231,7 @@ func (u *updateMenuRequestBuilder) ToBo() *bo.UpdateMenuParams {
 
 	return &bo.UpdateMenuParams{
 		ID:          u.GetId(),
-		UpdateParam: NewParamsBuild().MenuModuleBuilder().WithCreateMenuRequest(u.GetData()).ToBo(),
+		UpdateParam: NewParamsBuild(u.ctx).MenuModuleBuilder().WithCreateMenuRequest(u.GetData()).ToBo(),
 	}
 }
 
@@ -241,7 +241,7 @@ func (b *batchCreateMenuRequestBuilder) ToBos() []*bo.CreateMenuParams {
 	}
 
 	return types.SliceTo(b.GetMenus(), func(item *menuapi.CreateMenuRequest) *bo.CreateMenuParams {
-		return NewParamsBuild().WithContext(b.ctx).MenuModuleBuilder().WithCreateMenuRequest(item).ToBo()
+		return NewParamsBuild(b.ctx).MenuModuleBuilder().WithCreateMenuRequest(item).ToBo()
 	})
 }
 

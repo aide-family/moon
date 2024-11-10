@@ -46,7 +46,7 @@ func (d *doTeamMemberBuilder) ToAPI(member *bizmodel.SysTeamMember) *adminapi.Te
 		Status:    api.Status(member.Status),
 		CreatedAt: member.CreatedAt.String(),
 		UpdatedAt: member.UpdatedAt.String(),
-		User:      NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoUserBuilder().ToAPI(biz.RuntimeCache.GetUser(d.ctx, member.UserID)),
+		User:      NewParamsBuild(d.ctx).UserModuleBuilder().DoUserBuilder().ToAPI(biz.RuntimeCache.GetUser(d.ctx, member.UserID)),
 	}
 }
 

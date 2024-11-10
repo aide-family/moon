@@ -172,7 +172,7 @@ func (u *updateDictRequestBuilder) ToBo() *bo.UpdateDictParams {
 
 	return &bo.UpdateDictParams{
 		ID:          u.GetId(),
-		UpdateParam: NewParamsBuild().WithContext(u.ctx).DictModuleBuilder().WithCreateDictRequest(u.GetData()).ToBo(),
+		UpdateParam: NewParamsBuild(u.ctx).DictModuleBuilder().WithCreateDictRequest(u.GetData()).ToBo(),
 	}
 }
 

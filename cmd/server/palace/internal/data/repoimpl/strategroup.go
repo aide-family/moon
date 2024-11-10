@@ -62,7 +62,7 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild().WithContext(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 				if items == nil || len(items) == 0 {
 					continue
 				}

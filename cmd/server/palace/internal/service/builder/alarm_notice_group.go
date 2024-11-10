@@ -158,7 +158,7 @@ func (d *doLabelNoticeBuilder) ToAPI(notice *bizmodel.StrategyLabelNotice) *admi
 	return &adminapi.LabelNoticeItem{
 		Name:        notice.Name,
 		Value:       notice.Value,
-		AlarmGroups: NewParamsBuild().WithContext(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(notice.AlarmGroups),
+		AlarmGroups: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(notice.AlarmGroups),
 	}
 }
 
@@ -203,7 +203,7 @@ func (d *doAlarmNoticeGroupItemBuilder) ToSelects(groups []*bizmodel.AlarmNotice
 
 func getUsers(ctx context.Context, userMaps []map[uint32]*adminapi.UserItem, userIDs ...uint32) map[uint32]*adminapi.UserItem {
 	userMap := make(map[uint32]*adminapi.UserItem)
-	userDoBuilder := NewParamsBuild().WithContext(ctx).UserModuleBuilder().DoUserBuilder()
+	userDoBuilder := NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder()
 	noExistIds := make([]uint32, 0, len(userIDs))
 	if len(userMaps) > 0 && len(userMaps[0]) > 0 {
 		userMap = userMaps[0]
@@ -240,8 +240,8 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup, 
 		Remark:      group.Remark,
 		Creator:     userMap[group.CreatorID], // TODO impl
 		CreatorId:   group.CreatorID,
-		NoticeUsers: NewParamsBuild().WithContext(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
-		Hooks:       NewParamsBuild().WithContext(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
+		NoticeUsers: NewParamsBuild(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
+		Hooks:       NewParamsBuild(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
 	}
 }
 
@@ -285,7 +285,7 @@ func (u *updateAlarmGroupRequestBuilder) ToBo() *bo.UpdateAlarmNoticeGroupParams
 	}
 	return &bo.UpdateAlarmNoticeGroupParams{
 		ID: u.GetId(),
-		UpdateParam: NewParamsBuild().WithContext(u.ctx).
+		UpdateParam: NewParamsBuild(u.ctx).
 			AlarmNoticeGroupModuleBuilder().
 			WithCreateAlarmGroupRequest(u.GetUpdate()).
 			ToBo(),
