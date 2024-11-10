@@ -27,6 +27,12 @@ A one-stop monitoring system started with prometheus and ultimately beyond prome
 
 ![architecture-en.png](docs/images/architecture-en.png)
 
+## Demo URL
+Access our online demo: [Demo URL](https://moon.aide-cloud.cn/)
+
+> Note: The data in the demo environment may be reset periodically and is for testing purposes only.
+
+
 ## Developer
 
 * [develop a document](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
