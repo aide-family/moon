@@ -148,7 +148,6 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	}
 	if len(srvs) == 0 {
 		srvs = l.srvs.getSrvs()
-		return nil
 	}
 	if len(srvs) == 0 {
 		return nil
