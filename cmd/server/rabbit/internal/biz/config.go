@@ -2,11 +2,12 @@ package biz
 
 import (
 	"context"
+	"sync"
+
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/types"
-	"sync"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -75,6 +76,7 @@ type Config struct {
 
 // Set 设置接收人
 func (l *Config) Set(_ context.Context, params *bo.CacheConfigParams) {
+	log.Debugw("method", "设置接收人", "params", params)
 	for k, v := range params.Receivers {
 		l.Receivers.Store(k, &conf.Receiver{
 			Hooks: types.SliceTo(v.GetHooks(), func(item *conf.ReceiverHook) *conf.ReceiverHook {
