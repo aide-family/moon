@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbit
+  namespace: application
+  labels:
+    app: rabbit
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbit
+  ports:
+  - name: http
+    port: 8002
+    targetPort: http
+  - name: grpc
+    port: 9002
+    targetPort: grpc
+

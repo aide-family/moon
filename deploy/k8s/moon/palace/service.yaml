@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: palace
+  namespace: application
+  labels:
+    app: palace
+spec:
+  type: ClusterIP
+  selector:
+    app: palace
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+  - name: grpc
+    port: 9000
+    targetPort: grpc
+

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: houyi
+  namespace: application
+  labels:
+    app: houyi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: houyi
+  template:
+    metadata:
+      labels:
+        app: houyi
+    spec:
+      containers:
+      - name: houyi
+        image: docker.cloudimages.asia/aidemoonio/houyi:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8001
+        - name: grpc
+          containerPort: 9001
+        volumeMounts:
+        - name: houyi-config
+          mountPath: /data/conf/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: houyi-config
+        configMap:
+          name: houyi-config
