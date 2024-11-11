@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -17,15 +18,17 @@ import (
 )
 
 // NewAlarmHookRepository new alarm repository
-func NewAlarmHookRepository(data *data.Data) repository.AlarmHook {
+func NewAlarmHookRepository(data *data.Data, rabbitConn *data.RabbitConn) repository.AlarmHook {
 	return &alarmHookRepositoryImpl{
-		data: data,
+		data:       data,
+		rabbitConn: rabbitConn,
 	}
 }
 
 type (
 	alarmHookRepositoryImpl struct {
-		data *data.Data
+		data       *data.Data
+		rabbitConn *data.RabbitConn
 	}
 )
 
@@ -62,6 +65,7 @@ func (a *alarmHookRepositoryImpl) CreateAlarmHook(ctx context.Context, params *b
 	if err = bizQuery.AlarmHook.WithContext(ctx).Create(hookModel); !types.IsNil(err) {
 		return nil, err
 	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 
 	return hookModel, nil
 }
@@ -90,7 +94,11 @@ func (a *alarmHookRepositoryImpl) UpdateAlarmHook(ctx context.Context, params *b
 	updateParam := params.UpdateParam
 	hookModel := createAlarmHookParamsToModel(ctx, updateParam)
 	_, err = bizQuery.AlarmHook.WithContext(ctx).Where(bizQuery.AlarmHook.ID.Eq(params.ID)).Updates(hookModel)
-	return err
+	if !types.IsNil(err) {
+		return err
+	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	return nil
 }
 
 func (a *alarmHookRepositoryImpl) DeleteAlarmHook(ctx context.Context, ID uint32) error {
@@ -99,7 +107,11 @@ func (a *alarmHookRepositoryImpl) DeleteAlarmHook(ctx context.Context, ID uint32
 		return err
 	}
 	_, err = bizQuery.AlarmHook.WithContext(ctx).Where(bizQuery.AlarmHook.ID.Eq(ID)).Delete()
-	return err
+	if !types.IsNil(err) {
+		return err
+	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	return nil
 }
 
 func (a *alarmHookRepositoryImpl) GetAlarmHook(ctx context.Context, ID uint32) (*bizmodel.AlarmHook, error) {
@@ -149,7 +161,11 @@ func (a *alarmHookRepositoryImpl) UpdateAlarmHookStatus(ctx context.Context, par
 		return err
 	}
 	_, err = bizQuery.AlarmHook.WithContext(ctx).Where(bizQuery.AlarmHook.ID.In(params.IDs...)).Update(bizQuery.AlarmHook.Status, params.Status)
-	return err
+	if !types.IsNil(err) {
+		return err
+	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	return nil
 }
 
 func createAlarmHookParamsToModel(ctx context.Context, params *bo.CreateAlarmHookParams) *bizmodel.AlarmHook {

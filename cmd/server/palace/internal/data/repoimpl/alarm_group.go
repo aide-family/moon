@@ -21,15 +21,17 @@ import (
 )
 
 // NewAlarmGroupRepository 创建策略分组仓库
-func NewAlarmGroupRepository(data *data.Data) repository.AlarmGroup {
+func NewAlarmGroupRepository(data *data.Data, rabbitConn *data.RabbitConn) repository.AlarmGroup {
 	return &alarmGroupRepositoryImpl{
-		data: data,
+		data:       data,
+		rabbitConn: rabbitConn,
 	}
 }
 
 type (
 	alarmGroupRepositoryImpl struct {
-		data *data.Data
+		data       *data.Data
+		rabbitConn *data.RabbitConn
 	}
 )
 
@@ -129,6 +131,7 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 	return alarmGroupModel, nil
 
 }
@@ -162,6 +165,9 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 	})
 	//告警组关联通知人中间表操作
 	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+	defer func() {
+		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		bizQueryTx := bizquery.Use(tx)
 		// 告警通知人与hook参数为空则清空
@@ -209,6 +215,9 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 	if !types.IsNil(err) {
 		return err
 	}
+	defer func() {
+		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		bizQueryTx := bizquery.Use(tx)
 		// 清除通知人员关联信息
@@ -272,6 +281,10 @@ func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.
 	}
 
 	_, err = bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.In(params.IDs...)).Update(bizQuery.AlarmNoticeGroup.Status, params.Status)
+	if !types.IsNil(err) {
+		return err
+	}
+	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 	return nil
 }
 

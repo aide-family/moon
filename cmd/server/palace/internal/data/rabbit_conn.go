@@ -142,6 +142,55 @@ func (l *RabbitConn) getTeamEmailConfig(teamId uint32) (*model.SysTeamEmail, err
 	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamId)).First()
 }
 
+func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) error {
+	if teamID <= 0 {
+		return nil
+	}
+	if len(srvs) == 0 {
+		srvs = l.srvs.getSrvs()
+		return nil
+	}
+	if len(srvs) == 0 {
+		return nil
+	}
+	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	emailConfigDo, _ := mainQuery.SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
+	// 获取所有的有效告警组
+	teamDB, err := l.data.GetBizGormDB(teamID)
+	if !types.IsNil(err) {
+		return err
+	}
+	teamBizQuery := bizquery.Use(teamDB)
+	noticeGroupItems, err := teamBizQuery.WithContext(ctx).AlarmNoticeGroup.
+		Where(teamBizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
+		Preload(field.Associations).
+		Preload(teamBizQuery.AlarmNoticeGroup.NoticeMembers.Member).
+		Find()
+	if !types.IsNil(err) {
+		log.Errorw("获取告警组失败", err)
+		return err
+	}
+	var emailConfig *conf.EmailConfig
+	if emailConfigDo != nil {
+		emailConfig = &conf.EmailConfig{
+			User: emailConfigDo.User,
+			Pass: emailConfigDo.Pass,
+			Host: emailConfigDo.Host,
+			Port: emailConfigDo.Port,
+		}
+	}
+	for _, noticeGroupItem := range noticeGroupItems {
+		for _, srv := range srvs {
+			if err := l.syncNoticeGroup(srv, teamID, emailConfig, noticeGroupItem); !types.IsNil(err) {
+				log.Errorw("同步告警组失败", err)
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
 func (l *RabbitConn) sync(srv *Srv) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -153,41 +202,13 @@ func (l *RabbitConn) sync(srv *Srv) error {
 		wheres = append(wheres, mainQuery.SysTeam.ID.In(srv.teamIds...))
 	}
 
-	teamDos, err := query.Use(l.data.GetMainDB(ctx)).SysTeam.Where(wheres...).Find()
+	teamDos, err := mainQuery.SysTeam.Where(wheres...).Find()
 	if !types.IsNil(err) {
 		return err
 	}
 	for _, teamDo := range teamDos {
-		emailConfigDo, _ := mainQuery.SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamDo.ID)).First()
-		// 获取所有的有效告警组
-		teamDB, err := l.data.GetBizGormDB(teamDo.ID)
-		if !types.IsNil(err) {
-			return err
-		}
-		teamBizQuery := bizquery.Use(teamDB)
-		noticeGroupItems, err := teamBizQuery.WithContext(ctx).AlarmNoticeGroup.
-			Where(teamBizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
-			Preload(field.Associations).
-			Preload(teamBizQuery.AlarmNoticeGroup.NoticeMembers.Member).
-			Find()
-		if !types.IsNil(err) {
-			log.Errorw("获取告警组失败", err)
-			continue
-		}
-		var emailConfig *conf.EmailConfig
-		if emailConfigDo != nil {
-			emailConfig = &conf.EmailConfig{
-				User: emailConfigDo.User,
-				Pass: emailConfigDo.Pass,
-				Host: emailConfigDo.Host,
-				Port: emailConfigDo.Port,
-			}
-		}
-		for _, noticeGroupItem := range noticeGroupItems {
-			if err := l.syncNoticeGroup(srv, teamDo.ID, emailConfig, noticeGroupItem); !types.IsNil(err) {
-				log.Errorw("同步告警组失败", err)
-				continue
-			}
+		if err = l.SyncTeam(ctx, teamDo.ID, srv); !types.IsNil(err) {
+			log.Errorw("method", "同步团队告警对象失败", "err", err)
 		}
 	}
 	return nil
