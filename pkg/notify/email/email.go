@@ -44,7 +44,7 @@ func (l *e) Type() string {
 }
 
 func (l *e) Send(ctx context.Context, msg notify.Msg) error {
-	log.Debugw("send email", "email", l, "msg", msg)
+	log.Debugw("email", l.to, "msg", msg)
 	body := l.to.GetContent()
 	if l.to.GetTemplate() != "" {
 		body = l.to.GetTemplate()
