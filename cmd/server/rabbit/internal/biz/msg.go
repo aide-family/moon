@@ -2,8 +2,9 @@ package biz
 
 import (
 	"context"
-	"github.com/aide-family/moon/pkg/conf"
 	"time"
+
+	"github.com/aide-family/moon/pkg/conf"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/data"
@@ -42,7 +43,7 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	config := GetConfigData()
 	receives, ok := config.GetReceivers(msg.Route)
 	if !ok {
-		return merr.ErrorAlert("receiver not found")
+		return merr.ErrorAlert("%s receiver not found", msg.Route)
 	}
 
 	globalEmailConfig := b.c.GetGlobalEmailConfig()
