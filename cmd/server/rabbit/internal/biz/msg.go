@@ -29,7 +29,7 @@ type MsgBiz struct {
 	data *data.Data
 }
 
-// SendMsg 发送消息
+// SendMsg 发送消息  TODO 标记后续改造发送通知
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	if types.TextIsNull(msg.Route) {
 		return nil
@@ -107,7 +107,6 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 			log.Warnw("send hook error", err, "receiver", send.Type())
 			// 删除缓存  加入重试队列
 			b.data.GetCacher().Delete(ctx, key)
-			return err
 		}
 	}
 	return nil

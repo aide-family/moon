@@ -78,7 +78,7 @@ type Config struct {
 func (l *Config) Set(_ context.Context, params *bo.CacheConfigParams) {
 	log.Debugw("method", "设置接收人", "params", params)
 	for k, v := range params.Receivers {
-		l.Receivers.Store(k, &conf.Receiver{
+		r := &conf.Receiver{
 			Hooks: types.SliceTo(v.GetHooks(), func(item *conf.ReceiverHook) *conf.ReceiverHook {
 				return &conf.ReceiverHook{
 					Type:     item.GetType(),
@@ -102,13 +102,16 @@ func (l *Config) Set(_ context.Context, params *bo.CacheConfigParams) {
 					ContentType: item.GetContentType(),
 				}
 			}),
-			EmailConfig: &conf.EmailConfig{
+		}
+		if !types.IsNil(v.GetEmailConfig()) {
+			r.EmailConfig = &conf.EmailConfig{
 				User: v.GetEmailConfig().GetUser(),
 				Pass: v.GetEmailConfig().GetPass(),
 				Host: v.GetEmailConfig().GetHost(),
 				Port: v.GetEmailConfig().GetPort(),
-			},
-		})
+			}
+		}
+		l.Receivers.Store(k, r)
 	}
 	for k, v := range params.Templates {
 		l.Templates.Store(k, v)
