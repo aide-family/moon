@@ -7,5 +7,5 @@
 * [rabbit](../../../deploy/k8s/moon/rabbit/configmap.yaml)
 * [frontend](../../../deploy/k8s/moon/moon-frontend/ingress.yaml)
 
-> 如果你部署遇到了困难， 不防在社区联系我们， 我们会及时回复。或者提issue， 我们也会及时回复。
+> 如果你部署遇到了困难， 不妨在社区联系我们， 我们会及时回复。或者提issue， 我们也会及时回复。
 
