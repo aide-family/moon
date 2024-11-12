@@ -110,6 +110,7 @@ func RegisterService(
 	historyService *history.Service,
 	fileService *file.Service,
 	systemService *system.Service,
+	alarmSendService *alarm.AlarmSendService,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)
@@ -128,6 +129,7 @@ func RegisterService(
 	realtimeapi.RegisterAlarmServer(rpcSrv, alarmService)
 	realtimeapi.RegisterAlarmPageSelfServer(rpcSrv, alarmPageSelfService)
 	alarmapi.RegisterAlarmServer(rpcSrv, alarmGroupService)
+	alarmapi.RegisterSendServer(rpcSrv, alarmSendService)
 	subscriberapi.RegisterSubscriberServer(rpcSrv, subscriberService)
 	hookapi.RegisterHookServer(rpcSrv, hookService)
 	api.RegisterAlertServer(rpcSrv, alertService)
@@ -153,6 +155,7 @@ func RegisterService(
 	realtimeapi.RegisterAlarmHTTPServer(httpSrv, alarmService)
 	realtimeapi.RegisterAlarmPageSelfHTTPServer(httpSrv, alarmPageSelfService)
 	alarmapi.RegisterAlarmHTTPServer(httpSrv, alarmGroupService)
+	alarmapi.RegisterSendHTTPServer(httpSrv, alarmSendService)
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 	api.RegisterAlertHTTPServer(httpSrv, alertService)

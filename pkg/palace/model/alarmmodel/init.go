@@ -10,5 +10,6 @@ func Models() []any {
 		&AlarmRaw{},
 		&RealtimeAlarmReceiver{},
 		&RealtimeAlarmPage{},
+		&AlarmSendHistory{},
 	}
 }

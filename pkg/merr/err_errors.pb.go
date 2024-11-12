@@ -3388,6 +3388,68 @@ func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) 
 	})
 }
 
+const ErrorToastAlarmSendHistoryNotFoundID = "TOAST__ALARM_SEND_HISTORY_NOT_FOUND"
+
+// IsToastAlarmSendHistoryNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_SEND_HISTORY_NOT_FOUND
+//	告警发送历史不存在
+func IsToastAlarmSendHistoryNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorToastAlarmSendHistoryNotFoundID && e.Code == 404
+}
+
+// ErrorToastAlarmSendHistoryNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_SEND_HISTORY_NOT_FOUND
+//	告警发送历史不存在
+func ErrorToastAlarmSendHistoryNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastAlarmSendHistoryNotFoundID, fmt.Sprintf(format, args...))
+}
+
+// ErrorToastAlarmSendHistoryNotFoundWithContext 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_SEND_HISTORY_NOT_FOUND
+//	告警发送历史不存在
+//	带上下文，支持国际化输出元数据
+func ErrorToastAlarmSendHistoryNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastAlarmSendHistoryNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"alarmSendHistory": GetI18nMessage(ctx, "ALARM_SEND_HISTORY_NOT_FOUND"),
+	})
+}
+
+// ErrorI18nToastAlarmSendHistoryNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_SEND_HISTORY_NOT_FOUND
+//	告警发送历史不存在
+//	支持国际化输出
+func ErrorI18nToastAlarmSendHistoryNotFound(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "告警发送历史不存在"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(404, ErrorToastAlarmSendHistoryNotFoundID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorToastAlarmSendHistoryNotFoundID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(404, ErrorToastAlarmSendHistoryNotFoundID, msg).WithCause(err1)
+		} else {
+			err = errors.New(404, ErrorToastAlarmSendHistoryNotFoundID, localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"alarmSendHistory": GetI18nMessage(ctx, "ALARM_SEND_HISTORY_NOT_FOUND"),
+	})
+}
+
 const ErrorToastRoleHasRelationID = "TOAST__ROLE_HAS_RELATION"
 
 // IsToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
@@ -4632,6 +4694,206 @@ func ErrorI18nFileRelatedOssNotOpened(ctx context.Context, args ...interface{}) 
 			err = errors.New(430, ErrorFileRelatedOssNotOpenedID, msg).WithCause(err1)
 		} else {
 			err = errors.New(430, ErrorFileRelatedOssNotOpenedID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorParameterRelatedID = "PARAMETER_RELATED"
+
+func IsParameterRelated(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorParameterRelatedID && e.Code == 431
+}
+
+func ErrorParameterRelated(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedID, fmt.Sprintf(format, args...))
+}
+
+func ErrorParameterRelatedWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedID, fmt.Sprintf(format, args...))
+}
+
+func ErrorI18nParameterRelated(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "参数相关异常"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(431, ErrorParameterRelatedID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorParameterRelatedID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(431, ErrorParameterRelatedID, msg).WithCause(err1)
+		} else {
+			err = errors.New(431, ErrorParameterRelatedID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorParameterRelatedUpdateParameterNotFoundID = "PARAMETER_RELATED__UPDATE_PARAMETER_NOT_FOUND"
+
+func IsParameterRelatedUpdateParameterNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorParameterRelatedUpdateParameterNotFoundID && e.Code == 431
+}
+
+func ErrorParameterRelatedUpdateParameterNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedUpdateParameterNotFoundID, fmt.Sprintf(format, args...))
+}
+
+func ErrorParameterRelatedUpdateParameterNotFoundWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedUpdateParameterNotFoundID, fmt.Sprintf(format, args...))
+}
+
+func ErrorI18nParameterRelatedUpdateParameterNotFound(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "更新参数不存在！"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(431, ErrorParameterRelatedUpdateParameterNotFoundID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorParameterRelatedUpdateParameterNotFoundID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(431, ErrorParameterRelatedUpdateParameterNotFoundID, msg).WithCause(err1)
+		} else {
+			err = errors.New(431, ErrorParameterRelatedUpdateParameterNotFoundID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorParameterRelatedCreateParameterNotFoundID = "PARAMETER_RELATED__CREATE_PARAMETER_NOT_FOUND"
+
+func IsParameterRelatedCreateParameterNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorParameterRelatedCreateParameterNotFoundID && e.Code == 431
+}
+
+func ErrorParameterRelatedCreateParameterNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedCreateParameterNotFoundID, fmt.Sprintf(format, args...))
+}
+
+func ErrorParameterRelatedCreateParameterNotFoundWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedCreateParameterNotFoundID, fmt.Sprintf(format, args...))
+}
+
+func ErrorI18nParameterRelatedCreateParameterNotFound(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "创建参数不存在！"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(431, ErrorParameterRelatedCreateParameterNotFoundID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorParameterRelatedCreateParameterNotFoundID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(431, ErrorParameterRelatedCreateParameterNotFoundID, msg).WithCause(err1)
+		} else {
+			err = errors.New(431, ErrorParameterRelatedCreateParameterNotFoundID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorParameterRelatedIdMustNotBeEmptyID = "PARAMETER_RELATED__ID_MUST_NOT_BE_EMPTY"
+
+func IsParameterRelatedIdMustNotBeEmpty(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorParameterRelatedIdMustNotBeEmptyID && e.Code == 431
+}
+
+func ErrorParameterRelatedIdMustNotBeEmpty(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, fmt.Sprintf(format, args...))
+}
+
+func ErrorParameterRelatedIdMustNotBeEmptyWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, fmt.Sprintf(format, args...))
+}
+
+func ErrorI18nParameterRelatedIdMustNotBeEmpty(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "id不允许为空！"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorParameterRelatedIdMustNotBeEmptyID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, msg).WithCause(err1)
+		} else {
+			err = errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID = "PARAMETER_RELATED__ALARM_SENDING_AND_RECEIVING_PARAMETERS_ARE_INVALID"
+
+func IsParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID && e.Code == 431
+}
+
+func ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID, fmt.Sprintf(format, args...))
+}
+
+func ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID, fmt.Sprintf(format, args...))
+}
+
+func ErrorI18nParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "告警发送接收参数不合法！"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(431, ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(431, ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID, msg).WithCause(err1)
+		} else {
+			err = errors.New(431, ErrorParameterRelatedAlarmSendingAndReceivingParametersAreInvalidID, localize)
 		}
 	}
 

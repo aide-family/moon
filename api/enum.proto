@@ -332,3 +332,21 @@ enum InviteType {
   // 邀请加入项目
   INVITE_TYPE_REJECTED = 3;
 }
+
+enum SendStatus{
+  SEND_STATUS_UNKNOWN = 0;
+  Sending = 1;
+  SentSuccess = 2;
+  SendFail = 3;
+}
+
+enum AlarmSendType{
+  AlarmSend_Type_UNKNOWN = 0;
+  Alarm_Send_Type_Email = 1;
+  Alarm_Send_Type_SMS = 2;
+  Alarm_Send_Type_Ding_Talk = 3;
+  Alarm_Send_Type_FeiShu = 4;
+  Alarm_Send_Type_Wechat = 5;
+}
+
+

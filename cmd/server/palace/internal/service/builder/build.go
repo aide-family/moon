@@ -46,15 +46,22 @@ type (
 		RoleModuleBuilder() IRoleModuleBuilder
 
 		TeamModuleBuilder() ITeamModuleBuilder
+
 		InviteModuleBuilder() InviteModuleBuilder
 
 		AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder
 
 		AlarmModuleBuilder() IAlarmModuleBuilder
+
 		YamlModuleBuilder() IFileModuleBuild
+
+		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
 	}
 )
 
+func (p *paramsBuilder) AlarmSendModuleBuilder() IAlarmSendModuleBuilder {
+	return &alarmSendModuleBuilder{ctx: p.ctx}
+}
 func (p *paramsBuilder) YamlModuleBuilder() IFileModuleBuild {
 	return &fileModuleBuild{ctx: p.ctx}
 }
