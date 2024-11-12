@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: moon-frontend
-        image: docker.cloudimages.asia/aidemoonio/web:latest
+        image: docker.cloudimages.asia/aidemoonio/moon-frontend:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
