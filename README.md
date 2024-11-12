@@ -32,12 +32,14 @@ Access our online demo: [Demo URL](https://moon.aide-cloud.cn/)
 
 > Note: The data in the demo environment may be reset periodically and is for testing purposes only.
 
+## Things to know before developing
+
+* [Gopher](docs/i18n/zh-CN/gopher.md)
+* [Moon Development Guidelines](docs/i18n/zh-CN/dev.md)
 
 ## Developer
 
-* [develop a document](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
-
-* [Demand pool](https://byiraveryh.feishu.cn/docx/SaFMd58DboPAg7xeoOZc0M6Wn7f?from=from_copylink)
+* [Demand pool](https://github.com/orgs/aide-family/projects/1/views/1)
 
 ## User
 

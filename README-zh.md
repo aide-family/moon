@@ -32,7 +32,6 @@
 
 > 注意：演示环境中的数据可能会定期重置，仅供测试使用。
 
-
 ## 开发前需要了解的
 
 * [Gopher](docs/i18n/zh-CN/gopher.md)
@@ -40,9 +39,7 @@
 
 ## 开发者
 
-* [开发文档](https://byiraveryh.feishu.cn/docx/NDdadBoeoo7JWuxCMjIc3RtinTe?from=from_copylink)
-
-* [需求池](https://byiraveryh.feishu.cn/docx/SaFMd58DboPAg7xeoOZc0M6Wn7f?from=from_copylink)
+* [需求池](https://github.com/orgs/aide-family/projects/1/views/1)
 
 ## 使用者
 
