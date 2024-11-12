@@ -2,11 +2,6 @@ package datasource
 
 import (
 	"context"
-	"io"
-	nethttp "net/http"
-	"net/url"
-	"strings"
-
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -14,10 +9,11 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
-
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"io"
+	nethttp "net/http"
+	"net/url"
 )
 
 // Service 数据源服务
@@ -200,13 +196,13 @@ func (s *Service) MetricProxy() http.HandlerFunc {
 		}
 
 		// 获取请求头JWT
-		token := ctx.Header().Get("Authorization")
-		auths := strings.SplitN(token, " ", 2)
-		if len(auths) != 2 || !strings.EqualFold(auths[0], "Bearer") {
-			return jwt.ErrMissingJwtToken
-		}
-		jwtToken := auths[1]
-		log.Debugw("jwtToken", jwtToken)
+		//token := ctx.Header().Get("Authorization")
+		//auths := strings.SplitN(token, " ", 2)
+		//if len(auths) != 2 || !strings.EqualFold(auths[0], "Bearer") {
+		//	return jwt.ErrMissingJwtToken
+		//}
+		//jwtToken := auths[1]
+		//log.Debugw("jwtToken", jwtToken)
 
 		_ctx := middleware.WithTeamIDContextKey(ctx, in.GetTeamID())
 		log.Debugw("teamID", middleware.GetTeamID(_ctx), "req", &in)
