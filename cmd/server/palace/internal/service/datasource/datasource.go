@@ -14,6 +14,7 @@ import (
 	"io"
 	nethttp "net/http"
 	"net/url"
+	"strings"
 )
 
 // Service 数据源服务
@@ -184,6 +185,18 @@ func (s *Service) ProxyQuery(ctx http.Context) error {
 
 func (s *Service) MetricProxy() http.HandlerFunc {
 	return func(ctx http.Context) error {
+		isContentType := false
+		for k := range ctx.Request().Header {
+			if strings.EqualFold(k, "Content-Type") {
+				isContentType = true
+				break
+			}
+		}
+		if !isContentType {
+			ctx.Header().Set("Content-Type", "application/json")
+			ctx.Request().Header.Set("Content-Type", "application/json")
+		}
+
 		var in datasourceapi.ProxyMetricDatasourceQueryRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
