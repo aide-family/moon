@@ -164,7 +164,7 @@ func RegisterService(
 
 	// metrics
 	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))
-
+	registerMetricRoute(httpSrv, datasourceService)
 	// custom api
 	proxy := httpSrv.Route("/v1")
 	proxy.GET("/proxy", datasourceService.ProxyQuery)
@@ -201,4 +201,11 @@ func RegisterService(
 		strategyWatch:      newStrategyWatch(c, data, alertService),
 		alertConsumerWatch: newAlertConsumer(c, data, alertService),
 	}
+}
+
+func registerMetricRoute(httpSrv *http.Server, datasourceService *datasource.Service) {
+	metricRoute := httpSrv.Route("/metric")
+	// /api/v1/query
+	metricRoute.GET("/{teamID}/{id}/{to:[^/]+(?:/[^?]*)}", datasourceService.MetricProxy())
+	metricRoute.POST("/{teamID}/{id}/{to:[^/]+(?:/[^?]*)}", datasourceService.MetricProxy())
 }

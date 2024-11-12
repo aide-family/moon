@@ -4,13 +4,17 @@ import (
 	"context"
 	"io"
 	nethttp "net/http"
+	"net/url"
+	"strings"
 
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -179,5 +183,87 @@ func (s *Service) ProxyQuery(ctx http.Context) error {
 	response.WriteHeader(resp.StatusCode)
 	// 将响应体复制到客户端
 	_, err = io.Copy(response, resp.Body)
+	return err
+}
+
+func (s *Service) MetricProxy() http.HandlerFunc {
+	return func(ctx http.Context) error {
+		var in datasourceapi.ProxyMetricDatasourceQueryRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+
+		// 获取请求头JWT
+		token := ctx.Header().Get("Authorization")
+		auths := strings.SplitN(token, " ", 2)
+		if len(auths) != 2 || !strings.EqualFold(auths[0], "Bearer") {
+			return jwt.ErrMissingJwtToken
+		}
+		jwtToken := auths[1]
+		log.Debugw("jwtToken", jwtToken)
+
+		_ctx := middleware.WithTeamIDContextKey(ctx, in.GetTeamID())
+		log.Debugw("teamID", middleware.GetTeamID(_ctx), "req", &in)
+		datasourceDetail, err := s.datasourceBiz.GetDatasource(_ctx, in.GetId())
+		if !types.IsNil(err) {
+			log.Errorw("err", err)
+			return err
+		}
+
+		to, err := url.JoinPath(datasourceDetail.Endpoint, in.To)
+		if !types.IsNil(err) {
+			return err
+		}
+		log.Debugw("to", to)
+		// 直接转发请求
+		return s.proxy(ctx, to)
+	}
+}
+
+// proxy
+func (s *Service) proxy(ctx http.Context, to string) error {
+	w := ctx.Response()
+	r := ctx.Request()
+
+	// 获取query data
+	query := r.URL.Query()
+	// 绑定query到to
+	toUrl, err := url.Parse(to)
+	if !types.IsNil(err) {
+		return err
+	}
+	toUrl.RawQuery = query.Encode()
+	// body
+	body := r.Body
+	//
+	// 发起一个新请求， 把数据写回w
+	proxyReq, err := nethttp.NewRequestWithContext(ctx, r.Method, toUrl.String(), body)
+	if !types.IsNil(err) {
+		return err
+	}
+	proxyReq.Header = r.Header
+	proxyReq.Form = r.Form
+	proxyReq.Body = r.Body
+	client := &nethttp.Client{}
+	resp, err := client.Do(proxyReq)
+	if !types.IsNil(err) {
+		return err
+	}
+	defer resp.Body.Close()
+	for k, v := range resp.Header {
+		if len(v) == 0 {
+			continue
+		}
+		w.Header().Set(k, v[0])
+	}
+
+	_, err = io.Copy(w, resp.Body)
+
 	return err
 }

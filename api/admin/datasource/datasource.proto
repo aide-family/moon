@@ -205,3 +205,9 @@ message ProxyQueryRequest {
   // 数据源明细信息
   DatasourceItem datasource = 3;
 }
+
+message ProxyMetricDatasourceQueryRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+  uint32 teamID = 2 [(buf.validate.field).required = true];
+  string to = 3;
+}
