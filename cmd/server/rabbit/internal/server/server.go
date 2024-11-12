@@ -72,6 +72,7 @@ func RegisterService(
 	// 注册HTTP服务
 	pushapi.RegisterConfigHTTPServer(httpSrv, configService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
+	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	r := httpSrv.Route("/")
 	r.POST("/v1/hook/send/{route}", hookService.HookSendMsgHTTPHandler())
 

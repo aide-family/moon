@@ -23,7 +23,7 @@ func NewHealthService(heartbeatBiz *biz.HeartbeatBiz) *HealthService {
 }
 
 // Check 检查
-func (s *HealthService) Check(ctx context.Context, req *api.CheckRequest) (*api.CheckReply, error) {
+func (s *HealthService) Check(_ context.Context, _ *api.CheckRequest) (*api.CheckReply, error) {
 	return &api.CheckReply{Healthy: true, Version: env.Version()}, nil
 }
 
