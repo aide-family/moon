@@ -20,6 +20,7 @@ jobs:
         run: |
           chmod +x build_images.sh
           ./build_images.sh "${{ secrets.REPO }}"
+          curl -X POST -H "Content-Type: application/json"  -d '{"msg_type":"text","content":{"text":"moon镜像打包完成"}}' ${{ secrets.HOOK }}
         env:
           REPO: ${{ secrets.REPO }}
           REPO_PASS: ${{ secrets.REPO_PASS }}
