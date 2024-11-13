@@ -17,40 +17,40 @@
 ![Forks](https://img.shields.io/github/forks/aide-family/moon?style=flat)
 </div>
 
-## Introduction
+## 介绍
 
-* [中文](README-zh.md)
+* [英文](README-en.md)
 
-A one-stop monitoring system started with prometheus and ultimately beyond prometheus, designed to simplify the operation and maintenance of cloud-native monitoring, designed to help enterprises quickly deploy cloud-native monitoring systems, reduce operation costs, and improve operation and maintenance efficiency.
+一款始于prometheus，不止于prometheus的一站式监控系统， 专为简化云原生监控的运维工作而设计， 旨在帮助企业快速部署云原生监控系统， 降低运维成本， 提升运维效率。
 
-## Architecture
+## 架构
 
-![architecture-en.png](docs/images/architecture-en.png)
+![architecture](docs/images/architecture.png)
 
-## Demo URL
-Access our online demo: [Demo URL](https://moon.aide-cloud.cn/)
+## 演示地址
+访问我们的在线演示：[演示地址](https://moon.aide-cloud.cn/)
 
-> Note: The data in the demo environment may be reset periodically and is for testing purposes only.
+> 注意：演示环境中的数据可能会定期重置，仅供测试使用。
 
-## Things to know before developing
+## 开发前需要了解的
 
 * [Gopher](docs/i18n/zh-CN/gopher.md)
-* [Moon Development Guidelines](docs/i18n/zh-CN/dev.md)
+* [Moon开发指南](docs/i18n/zh-CN/dev.md)
 
-## Developer
+## 开发者
 
-* [Demand pool](https://github.com/orgs/aide-family/projects/1/views/1)
+* [需求池](https://github.com/orgs/aide-family/projects/1/views/1)
 
-## User
+## 使用者
 
-* [quick start](docs/i18n/quick-start.md)
+* [快速开始](docs/i18n/zh-CN/quick-start.md)
 
-## License
+## 许可证
 
 [MIT](LICENSE)
 
-## Contributors
+## 贡献者
 
-* [contributors](https://github.com/aide-family/moon/graphs/contributors) This project exists thanks to all the people who have contributed.
+* [贡献者](https://github.com/aide-family/moon/graphs/contributors) 这个项目的存在要感谢所有做出贡献的人。
 
 <a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
