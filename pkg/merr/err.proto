@@ -372,6 +372,11 @@ enum ErrorReason {
     (errors.biz_reason) = {
       reason: "UNSUPPORTED_DATA_SOURCE"
       message: "不支持的数据源类型",
+    },
+    // 数据源配置错误
+    (errors.biz_reason) = {
+      reason: "DATA_SOURCE_CONFIGURATION_ERROR"
+      message: "数据源配置错误,请检查数据格式!",
     }
   ];
 

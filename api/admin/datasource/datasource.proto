@@ -134,6 +134,8 @@ message UpdateDatasourceRequest {
   DatasourceType datasourceType = 5 [(buf.validate.field).enum = {not_in: [0]}];
   // 存储器类型
   StorageType storageType = 6[(buf.validate.field).enum = {not_in: [0]}];
+  // config 配置
+  string  configValue = 7;
 }
 message UpdateDatasourceReply {}
 

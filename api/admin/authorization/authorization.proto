@@ -110,6 +110,8 @@ message RefreshTokenReply {
   string token = 1;
   // 用户信息
   UserItem user = 2;
+  // 团队ID
+  uint32 teamID = 5;
 }
 
 // 登录验证码

@@ -46,6 +46,8 @@ type (
 		Name string `json:"name"`
 		// 状态
 		Status vobj.Status `json:"status"`
+		// 数据源配置(json 字符串)
+		ConfigValue string `json:"configValue"`
 		// 描述
 		Remark         string              `json:"remark"`
 		StorageType    vobj.StorageType    `json:"storageType"`
@@ -56,7 +58,7 @@ type (
 	UpdateDatasourceConfigParams struct {
 		ID uint32 `json:"id"`
 		// 数据源配置(json 字符串)
-		Config string `json:"config"`
+		ConfigValue string `json:"configValue"`
 		// 数据源类型
 		Type vobj.DatasourceType `json:"type"`
 		// 存储器类型

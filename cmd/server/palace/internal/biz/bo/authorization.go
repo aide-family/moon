@@ -44,4 +44,5 @@ type RefreshTokenParams struct {
 type RefreshTokenReply struct {
 	JwtClaims *middleware.JwtClaims
 	User      *model.SysUser
+	TeamID    uint32 `json:"teamID"`
 }

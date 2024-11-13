@@ -25,12 +25,9 @@ func WithLocalize(ctx context.Context, localize *i18n.Localizer) context.Context
 }
 
 // GetI18nMessage 获取错误信息
-func GetI18nMessage(ctx context.Context, id, defaultMsg string, args ...interface{}) string {
-	if defaultMsg == "" {
-		defaultMsg = id
-	}
+func GetI18nMessage(ctx context.Context, id string, args ...interface{}) string {
 	if id == "" {
-		return defaultMsg
+		return id
 	}
 	config := &i18n.LocalizeConfig{
 		MessageID: id,
@@ -40,11 +37,11 @@ func GetI18nMessage(ctx context.Context, id, defaultMsg string, args ...interfac
 	}
 	local, ok := FromContext(ctx)
 	if !ok {
-		return defaultMsg
+		return id
 	}
 	localize, err := local.Localize(config)
 	if err != nil {
-		return defaultMsg
+		return id
 	}
 	return localize
 }
@@ -72,14 +69,9 @@ func ErrorAlertWithContext(_ context.Context, format string, args ...interface{}
 	return errors.New(400, ErrorAlertID, fmt.Sprintf(format, args...))
 }
 
-var _AlertMsg = &i18n.Message{
-	ID:    ErrorAlertID,
-	One:   "参数错误",
-	Other: "参数错误",
-}
-
 // ErrorI18nAlert 用于表单验证错误
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nAlert(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "参数错误"
 	if len(args) > 0 {
@@ -89,8 +81,7 @@ func ErrorI18nAlert(ctx context.Context, args ...interface{}) *errors.Error {
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertID,
-			DefaultMessage: _AlertMsg,
+			MessageID: ErrorAlertID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -132,20 +123,15 @@ func ErrorAlertCreateAlarmGroupRequestNameLen(format string, args ...interface{}
 //	带上下文，支持国际化输出元数据
 func ErrorAlertCreateAlarmGroupRequestNameLenWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertCreateAlarmGroupRequestNameLenID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Name_Len", "告警组名称长度限制在1-20个字符"),
+		"name": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Name_Len"),
 	})
 }
 
-var _AlertCreateAlarmGroupRequestNameLenMsg = &i18n.Message{
-	ID:    ErrorAlertCreateAlarmGroupRequestNameLenID,
-	One:   "用户名错误",
-	Other: "用户名错误",
-}
-
 // ErrorI18nAlertCreateAlarmGroupRequestNameLen 用于表单验证错误
-//  CreateAlarmGroupRequest_Name_Len
-//  用户名错误
-//  支持国际化输出
+//
+//	CreateAlarmGroupRequest_Name_Len
+//	用户名错误
+//	支持国际化输出
 func ErrorI18nAlertCreateAlarmGroupRequestNameLen(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户名错误"
 	if len(args) > 0 {
@@ -155,8 +141,7 @@ func ErrorI18nAlertCreateAlarmGroupRequestNameLen(ctx context.Context, args ...i
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertCreateAlarmGroupRequestNameLenID,
-			DefaultMessage: _AlertCreateAlarmGroupRequestNameLenMsg,
+			MessageID: ErrorAlertCreateAlarmGroupRequestNameLenID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -167,7 +152,7 @@ func ErrorI18nAlertCreateAlarmGroupRequestNameLen(ctx context.Context, args ...i
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Name_Len", "告警组名称长度限制在1-20个字符"),
+		"name": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Name_Len"),
 	})
 }
 
@@ -200,20 +185,15 @@ func ErrorAlertCreateAlarmGroupRequestRemarkLen(format string, args ...interface
 //	带上下文，支持国际化输出元数据
 func ErrorAlertCreateAlarmGroupRequestRemarkLenWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertCreateAlarmGroupRequestRemarkLenID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"id": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Remark_Len", "告警组说明长度限制在0-200个字符"),
+		"id": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Remark_Len"),
 	})
 }
 
-var _AlertCreateAlarmGroupRequestRemarkLenMsg = &i18n.Message{
-	ID:    ErrorAlertCreateAlarmGroupRequestRemarkLenID,
-	One:   "告警组说明长度限制在0-200个字符",
-	Other: "告警组说明长度限制在0-200个字符",
-}
-
 // ErrorI18nAlertCreateAlarmGroupRequestRemarkLen 用于表单验证错误
-//  CreateAlarmGroupRequest_Remark_Len
-//  告警组说明长度限制在0-200个字符
-//  支持国际化输出
+//
+//	CreateAlarmGroupRequest_Remark_Len
+//	告警组说明长度限制在0-200个字符
+//	支持国际化输出
 func ErrorI18nAlertCreateAlarmGroupRequestRemarkLen(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组说明长度限制在0-200个字符"
 	if len(args) > 0 {
@@ -223,8 +203,7 @@ func ErrorI18nAlertCreateAlarmGroupRequestRemarkLen(ctx context.Context, args ..
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertCreateAlarmGroupRequestRemarkLenID,
-			DefaultMessage: _AlertCreateAlarmGroupRequestRemarkLenMsg,
+			MessageID: ErrorAlertCreateAlarmGroupRequestRemarkLenID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -235,7 +214,7 @@ func ErrorI18nAlertCreateAlarmGroupRequestRemarkLen(ctx context.Context, args ..
 	}
 
 	return err.WithMetadata(map[string]string{
-		"id": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Remark_Len", "告警组说明长度限制在0-200个字符"),
+		"id": GetI18nMessage(ctx, "ALERT__CreateAlarmGroupRequest_Remark_Len"),
 	})
 }
 
@@ -268,20 +247,15 @@ func ErrorAlertPasswordErr(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorAlertPasswordErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertPasswordErrID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"password": GetI18nMessage(ctx, "PASSWORD_ERR", "密码错误"),
+		"password": GetI18nMessage(ctx, "PASSWORD_ERR"),
 	})
 }
 
-var _AlertPasswordErrMsg = &i18n.Message{
-	ID:    ErrorAlertPasswordErrID,
-	One:   "密码错误",
-	Other: "密码错误",
-}
-
 // ErrorI18nAlertPasswordErr 用于表单验证错误
-//  PASSWORD_ERR
-//  密码错误
-//  支持国际化输出
+//
+//	PASSWORD_ERR
+//	密码错误
+//	支持国际化输出
 func ErrorI18nAlertPasswordErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "密码错误"
 	if len(args) > 0 {
@@ -291,8 +265,7 @@ func ErrorI18nAlertPasswordErr(ctx context.Context, args ...interface{}) *errors
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertPasswordErrID,
-			DefaultMessage: _AlertPasswordErrMsg,
+			MessageID: ErrorAlertPasswordErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -303,7 +276,7 @@ func ErrorI18nAlertPasswordErr(ctx context.Context, args ...interface{}) *errors
 	}
 
 	return err.WithMetadata(map[string]string{
-		"password": GetI18nMessage(ctx, "PASSWORD_ERR", "密码错误"),
+		"password": GetI18nMessage(ctx, "PASSWORD_ERR"),
 	})
 }
 
@@ -336,20 +309,15 @@ func ErrorAlertPasswordSameErr(format string, args ...interface{}) *errors.Error
 //	带上下文，支持国际化输出元数据
 func ErrorAlertPasswordSameErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertPasswordSameErrID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"newPassword": GetI18nMessage(ctx, "PASSWORD_SAME_ERR", "新旧密码不能相同"),
+		"newPassword": GetI18nMessage(ctx, "PASSWORD_SAME_ERR"),
 	})
 }
 
-var _AlertPasswordSameErrMsg = &i18n.Message{
-	ID:    ErrorAlertPasswordSameErrID,
-	One:   "新旧密码不能相同",
-	Other: "新旧密码不能相同",
-}
-
 // ErrorI18nAlertPasswordSameErr 用于表单验证错误
-//  PASSWORD_SAME_ERR
-//  新旧密码不能相同
-//  支持国际化输出
+//
+//	PASSWORD_SAME_ERR
+//	新旧密码不能相同
+//	支持国际化输出
 func ErrorI18nAlertPasswordSameErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "新旧密码不能相同"
 	if len(args) > 0 {
@@ -359,8 +327,7 @@ func ErrorI18nAlertPasswordSameErr(ctx context.Context, args ...interface{}) *er
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertPasswordSameErrID,
-			DefaultMessage: _AlertPasswordSameErrMsg,
+			MessageID: ErrorAlertPasswordSameErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -371,7 +338,7 @@ func ErrorI18nAlertPasswordSameErr(ctx context.Context, args ...interface{}) *er
 	}
 
 	return err.WithMetadata(map[string]string{
-		"newPassword": GetI18nMessage(ctx, "PASSWORD_SAME_ERR", "新旧密码不能相同"),
+		"newPassword": GetI18nMessage(ctx, "PASSWORD_SAME_ERR"),
 	})
 }
 
@@ -404,20 +371,15 @@ func ErrorAlertTeamNameExistErr(format string, args ...interface{}) *errors.Erro
 //	带上下文，支持国际化输出元数据
 func ErrorAlertTeamNameExistErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertTeamNameExistErrID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "TEAM_NAME_EXIST_ERR", ""),
+		"name": GetI18nMessage(ctx, "TEAM_NAME_EXIST_ERR"),
 	})
 }
 
-var _AlertTeamNameExistErrMsg = &i18n.Message{
-	ID:    ErrorAlertTeamNameExistErrID,
-	One:   "团队名称已存在",
-	Other: "团队名称已存在",
-}
-
 // ErrorI18nAlertTeamNameExistErr 用于表单验证错误
-//  TEAM_NAME_EXIST_ERR
-//  团队名称已存在
-//  支持国际化输出
+//
+//	TEAM_NAME_EXIST_ERR
+//	团队名称已存在
+//	支持国际化输出
 func ErrorI18nAlertTeamNameExistErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队名称已存在"
 	if len(args) > 0 {
@@ -427,8 +389,7 @@ func ErrorI18nAlertTeamNameExistErr(ctx context.Context, args ...interface{}) *e
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertTeamNameExistErrID,
-			DefaultMessage: _AlertTeamNameExistErrMsg,
+			MessageID: ErrorAlertTeamNameExistErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -439,7 +400,7 @@ func ErrorI18nAlertTeamNameExistErr(ctx context.Context, args ...interface{}) *e
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "TEAM_NAME_EXIST_ERR", ""),
+		"name": GetI18nMessage(ctx, "TEAM_NAME_EXIST_ERR"),
 	})
 }
 
@@ -472,20 +433,15 @@ func ErrorAlertCaptchaErr(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorAlertCaptchaErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertCaptchaErrID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "CAPTCHA_ERR", "验证码错误"),
+		"code": GetI18nMessage(ctx, "CAPTCHA_ERR"),
 	})
 }
 
-var _AlertCaptchaErrMsg = &i18n.Message{
-	ID:    ErrorAlertCaptchaErrID,
-	One:   "验证码错误",
-	Other: "验证码错误",
-}
-
 // ErrorI18nAlertCaptchaErr 用于表单验证错误
-//  CAPTCHA_ERR
-//  验证码错误
-//  支持国际化输出
+//
+//	CAPTCHA_ERR
+//	验证码错误
+//	支持国际化输出
 func ErrorI18nAlertCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "验证码错误"
 	if len(args) > 0 {
@@ -495,8 +451,7 @@ func ErrorI18nAlertCaptchaErr(ctx context.Context, args ...interface{}) *errors.
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertCaptchaErrID,
-			DefaultMessage: _AlertCaptchaErrMsg,
+			MessageID: ErrorAlertCaptchaErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -507,7 +462,7 @@ func ErrorI18nAlertCaptchaErr(ctx context.Context, args ...interface{}) *errors.
 	}
 
 	return err.WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "CAPTCHA_ERR", "验证码错误"),
+		"code": GetI18nMessage(ctx, "CAPTCHA_ERR"),
 	})
 }
 
@@ -540,20 +495,15 @@ func ErrorAlertCaptchaExpire(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorAlertCaptchaExpireWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertCaptchaExpireID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "CAPTCHA_EXPIRE", "验证码已过期"),
+		"code": GetI18nMessage(ctx, "CAPTCHA_EXPIRE"),
 	})
 }
 
-var _AlertCaptchaExpireMsg = &i18n.Message{
-	ID:    ErrorAlertCaptchaExpireID,
-	One:   "验证码已过期",
-	Other: "验证码已过期",
-}
-
 // ErrorI18nAlertCaptchaExpire 用于表单验证错误
-//  CAPTCHA_EXPIRE
-//  验证码已过期
-//  支持国际化输出
+//
+//	CAPTCHA_EXPIRE
+//	验证码已过期
+//	支持国际化输出
 func ErrorI18nAlertCaptchaExpire(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "验证码已过期"
 	if len(args) > 0 {
@@ -563,8 +513,7 @@ func ErrorI18nAlertCaptchaExpire(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertCaptchaExpireID,
-			DefaultMessage: _AlertCaptchaExpireMsg,
+			MessageID: ErrorAlertCaptchaExpireID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -575,7 +524,7 @@ func ErrorI18nAlertCaptchaExpire(ctx context.Context, args ...interface{}) *erro
 	}
 
 	return err.WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "CAPTCHA_EXPIRE", "验证码已过期"),
+		"code": GetI18nMessage(ctx, "CAPTCHA_EXPIRE"),
 	})
 }
 
@@ -608,20 +557,15 @@ func ErrorAlertStrategyGroupNotEnable(format string, args ...interface{}) *error
 //	带上下文，支持国际化输出元数据
 func ErrorAlertStrategyGroupNotEnableWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertStrategyGroupNotEnableID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_ENABLE", "策略组未启用,不允许开启策略"),
+		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_ENABLE"),
 	})
 }
 
-var _AlertStrategyGroupNotEnableMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyGroupNotEnableID,
-	One:   "策略组[%s]未启用, 不允许开启策略[%s]",
-	Other: "策略组[%s]未启用, 不允许开启策略[%s]",
-}
-
 // ErrorI18nAlertStrategyGroupNotEnable 用于表单验证错误
-//  STRATEGY_GROUP_NOT_ENABLE
-//  策略组[%s]未启用, 不允许开启策略[%s]
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_ENABLE
+//	策略组[%s]未启用, 不允许开启策略[%s]
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNotEnable(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组[%s]未启用, 不允许开启策略[%s]"
 	if len(args) > 0 {
@@ -631,8 +575,7 @@ func ErrorI18nAlertStrategyGroupNotEnable(ctx context.Context, args ...interface
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyGroupNotEnableID,
-			DefaultMessage: _AlertStrategyGroupNotEnableMsg,
+			MessageID: ErrorAlertStrategyGroupNotEnableID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -643,7 +586,7 @@ func ErrorI18nAlertStrategyGroupNotEnable(ctx context.Context, args ...interface
 	}
 
 	return err.WithMetadata(map[string]string{
-		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_ENABLE", "策略组未启用,不允许开启策略"),
+		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_ENABLE"),
 	})
 }
 
@@ -676,20 +619,15 @@ func ErrorAlertAlertObjectDuplicate(format string, args ...interface{}) *errors.
 //	带上下文，支持国际化输出元数据
 func ErrorAlertAlertObjectDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertAlertObjectDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"alertObject": GetI18nMessage(ctx, "ALERT_OBJECT_DUPLICATE", "告警对象重复"),
+		"alertObject": GetI18nMessage(ctx, "ALERT_OBJECT_DUPLICATE"),
 	})
 }
 
-var _AlertAlertObjectDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertAlertObjectDuplicateID,
-	One:   "告警对象重复",
-	Other: "告警对象重复",
-}
-
 // ErrorI18nAlertAlertObjectDuplicate 用于表单验证错误
-//  ALERT_OBJECT_DUPLICATE
-//  告警对象重复
-//  支持国际化输出
+//
+//	ALERT_OBJECT_DUPLICATE
+//	告警对象重复
+//	支持国际化输出
 func ErrorI18nAlertAlertObjectDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警对象重复"
 	if len(args) > 0 {
@@ -699,8 +637,7 @@ func ErrorI18nAlertAlertObjectDuplicate(ctx context.Context, args ...interface{}
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertObjectDuplicateID,
-			DefaultMessage: _AlertAlertObjectDuplicateMsg,
+			MessageID: ErrorAlertAlertObjectDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -711,7 +648,7 @@ func ErrorI18nAlertAlertObjectDuplicate(ctx context.Context, args ...interface{}
 	}
 
 	return err.WithMetadata(map[string]string{
-		"alertObject": GetI18nMessage(ctx, "ALERT_OBJECT_DUPLICATE", "告警对象重复"),
+		"alertObject": GetI18nMessage(ctx, "ALERT_OBJECT_DUPLICATE"),
 	})
 }
 
@@ -744,20 +681,15 @@ func ErrorAlertAlertLevelDuplicate(format string, args ...interface{}) *errors.E
 //	带上下文，支持国际化输出元数据
 func ErrorAlertAlertLevelDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertAlertLevelDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"alertLevel": GetI18nMessage(ctx, "ALERT_LEVEL_DUPLICATE", "策略告警等级重复"),
+		"alertLevel": GetI18nMessage(ctx, "ALERT_LEVEL_DUPLICATE"),
 	})
 }
 
-var _AlertAlertLevelDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertAlertLevelDuplicateID,
-	One:   "策略告警等级重复",
-	Other: "策略告警等级重复",
-}
-
 // ErrorI18nAlertAlertLevelDuplicate 用于表单验证错误
-//  ALERT_LEVEL_DUPLICATE
-//  策略告警等级重复
-//  支持国际化输出
+//
+//	ALERT_LEVEL_DUPLICATE
+//	策略告警等级重复
+//	支持国际化输出
 func ErrorI18nAlertAlertLevelDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略告警等级重复"
 	if len(args) > 0 {
@@ -767,8 +699,7 @@ func ErrorI18nAlertAlertLevelDuplicate(ctx context.Context, args ...interface{})
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertLevelDuplicateID,
-			DefaultMessage: _AlertAlertLevelDuplicateMsg,
+			MessageID: ErrorAlertAlertLevelDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -779,7 +710,7 @@ func ErrorI18nAlertAlertLevelDuplicate(ctx context.Context, args ...interface{})
 	}
 
 	return err.WithMetadata(map[string]string{
-		"alertLevel": GetI18nMessage(ctx, "ALERT_LEVEL_DUPLICATE", "策略告警等级重复"),
+		"alertLevel": GetI18nMessage(ctx, "ALERT_LEVEL_DUPLICATE"),
 	})
 }
 
@@ -812,20 +743,15 @@ func ErrorAlertEmailCaptchaErr(format string, args ...interface{}) *errors.Error
 //	带上下文，支持国际化输出元数据
 func ErrorAlertEmailCaptchaErrWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertEmailCaptchaErrID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "EMAIL_CAPTCHA_ERR", ""),
+		"code": GetI18nMessage(ctx, "EMAIL_CAPTCHA_ERR"),
 	})
 }
 
-var _AlertEmailCaptchaErrMsg = &i18n.Message{
-	ID:    ErrorAlertEmailCaptchaErrID,
-	One:   "邮箱验证码错误",
-	Other: "邮箱验证码错误",
-}
-
 // ErrorI18nAlertEmailCaptchaErr 用于表单验证错误
-//  EMAIL_CAPTCHA_ERR
-//  邮箱验证码错误
-//  支持国际化输出
+//
+//	EMAIL_CAPTCHA_ERR
+//	邮箱验证码错误
+//	支持国际化输出
 func ErrorI18nAlertEmailCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "邮箱验证码错误"
 	if len(args) > 0 {
@@ -835,8 +761,7 @@ func ErrorI18nAlertEmailCaptchaErr(ctx context.Context, args ...interface{}) *er
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertEmailCaptchaErrID,
-			DefaultMessage: _AlertEmailCaptchaErrMsg,
+			MessageID: ErrorAlertEmailCaptchaErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -847,7 +772,7 @@ func ErrorI18nAlertEmailCaptchaErr(ctx context.Context, args ...interface{}) *er
 	}
 
 	return err.WithMetadata(map[string]string{
-		"code": GetI18nMessage(ctx, "EMAIL_CAPTCHA_ERR", ""),
+		"code": GetI18nMessage(ctx, "EMAIL_CAPTCHA_ERR"),
 	})
 }
 
@@ -882,16 +807,11 @@ func ErrorAlertSelectAlertPageErrWithContext(_ context.Context, format string, a
 	return errors.New(400, ErrorAlertSelectAlertPageErrID, fmt.Sprintf(format, args...))
 }
 
-var _AlertSelectAlertPageErrMsg = &i18n.Message{
-	ID:    ErrorAlertSelectAlertPageErrID,
-	One:   "选择告警页面错误，请重新选择",
-	Other: "选择告警页面错误，请重新选择",
-}
-
 // ErrorI18nAlertSelectAlertPageErr 用于表单验证错误
-//  SELECT_ALERT_PAGE_ERR
-//  选择告警页面错误，请重新选择
-//  支持国际化输出
+//
+//	SELECT_ALERT_PAGE_ERR
+//	选择告警页面错误，请重新选择
+//	支持国际化输出
 func ErrorI18nAlertSelectAlertPageErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "选择告警页面错误，请重新选择"
 	if len(args) > 0 {
@@ -901,8 +821,7 @@ func ErrorI18nAlertSelectAlertPageErr(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertSelectAlertPageErrID,
-			DefaultMessage: _AlertSelectAlertPageErrMsg,
+			MessageID: ErrorAlertSelectAlertPageErrID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -944,20 +863,15 @@ func ErrorAlertHookNameDuplicate(format string, args ...interface{}) *errors.Err
 //	带上下文，支持国际化输出元数据
 func ErrorAlertHookNameDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertHookNameDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "HOOK_NAME_DUPLICATE", "hook名称重复"),
+		"name": GetI18nMessage(ctx, "HOOK_NAME_DUPLICATE"),
 	})
 }
 
-var _AlertHookNameDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertHookNameDuplicateID,
-	One:   "hook名称重复",
-	Other: "hook名称重复",
-}
-
 // ErrorI18nAlertHookNameDuplicate 用于表单验证错误
-//  HOOK_NAME_DUPLICATE
-//  hook名称重复
-//  支持国际化输出
+//
+//	HOOK_NAME_DUPLICATE
+//	hook名称重复
+//	支持国际化输出
 func ErrorI18nAlertHookNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "hook名称重复"
 	if len(args) > 0 {
@@ -967,8 +881,7 @@ func ErrorI18nAlertHookNameDuplicate(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertHookNameDuplicateID,
-			DefaultMessage: _AlertHookNameDuplicateMsg,
+			MessageID: ErrorAlertHookNameDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -979,7 +892,7 @@ func ErrorI18nAlertHookNameDuplicate(ctx context.Context, args ...interface{}) *
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "HOOK_NAME_DUPLICATE", "hook名称重复"),
+		"name": GetI18nMessage(ctx, "HOOK_NAME_DUPLICATE"),
 	})
 }
 
@@ -1012,20 +925,15 @@ func ErrorAlertAlertGroupNameDuplicate(format string, args ...interface{}) *erro
 //	带上下文，支持国际化输出元数据
 func ErrorAlertAlertGroupNameDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertAlertGroupNameDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "ALERT_GROUP_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "ALERT_GROUP_NAME_DUPLICATE"),
 	})
 }
 
-var _AlertAlertGroupNameDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertAlertGroupNameDuplicateID,
-	One:   "告警组名称重复",
-	Other: "告警组名称重复",
-}
-
 // ErrorI18nAlertAlertGroupNameDuplicate 用于表单验证错误
-//  ALERT_GROUP_NAME_DUPLICATE
-//  告警组名称重复
-//  支持国际化输出
+//
+//	ALERT_GROUP_NAME_DUPLICATE
+//	告警组名称重复
+//	支持国际化输出
 func ErrorI18nAlertAlertGroupNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组名称重复"
 	if len(args) > 0 {
@@ -1035,8 +943,7 @@ func ErrorI18nAlertAlertGroupNameDuplicate(ctx context.Context, args ...interfac
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertGroupNameDuplicateID,
-			DefaultMessage: _AlertAlertGroupNameDuplicateMsg,
+			MessageID: ErrorAlertAlertGroupNameDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1047,7 +954,7 @@ func ErrorI18nAlertAlertGroupNameDuplicate(ctx context.Context, args ...interfac
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "ALERT_GROUP_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "ALERT_GROUP_NAME_DUPLICATE"),
 	})
 }
 
@@ -1080,20 +987,15 @@ func ErrorAlertStrategyGroupNameDuplicate(format string, args ...interface{}) *e
 //	带上下文，支持国际化输出元数据
 func ErrorAlertStrategyGroupNameDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertStrategyGroupNameDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "STRATEGY_GROUP_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "STRATEGY_GROUP_NAME_DUPLICATE"),
 	})
 }
 
-var _AlertStrategyGroupNameDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyGroupNameDuplicateID,
-	One:   "策略组名称重复",
-	Other: "策略组名称重复",
-}
-
 // ErrorI18nAlertStrategyGroupNameDuplicate 用于表单验证错误
-//  STRATEGY_GROUP_NAME_DUPLICATE
-//  策略组名称重复
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NAME_DUPLICATE
+//	策略组名称重复
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组名称重复"
 	if len(args) > 0 {
@@ -1103,8 +1005,7 @@ func ErrorI18nAlertStrategyGroupNameDuplicate(ctx context.Context, args ...inter
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyGroupNameDuplicateID,
-			DefaultMessage: _AlertStrategyGroupNameDuplicateMsg,
+			MessageID: ErrorAlertStrategyGroupNameDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1115,7 +1016,7 @@ func ErrorI18nAlertStrategyGroupNameDuplicate(ctx context.Context, args ...inter
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "STRATEGY_GROUP_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "STRATEGY_GROUP_NAME_DUPLICATE"),
 	})
 }
 
@@ -1148,20 +1049,15 @@ func ErrorAlertStrategyNameDuplicate(format string, args ...interface{}) *errors
 //	带上下文，支持国际化输出元数据
 func ErrorAlertStrategyNameDuplicateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertStrategyNameDuplicateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "STRATEGY_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "STRATEGY_NAME_DUPLICATE"),
 	})
 }
 
-var _AlertStrategyNameDuplicateMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyNameDuplicateID,
-	One:   "策略名称重复",
-	Other: "策略名称重复",
-}
-
 // ErrorI18nAlertStrategyNameDuplicate 用于表单验证错误
-//  STRATEGY_NAME_DUPLICATE
-//  策略名称重复
-//  支持国际化输出
+//
+//	STRATEGY_NAME_DUPLICATE
+//	策略名称重复
+//	支持国际化输出
 func ErrorI18nAlertStrategyNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略名称重复"
 	if len(args) > 0 {
@@ -1171,8 +1067,7 @@ func ErrorI18nAlertStrategyNameDuplicate(ctx context.Context, args ...interface{
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyNameDuplicateID,
-			DefaultMessage: _AlertStrategyNameDuplicateMsg,
+			MessageID: ErrorAlertStrategyNameDuplicateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1183,7 +1078,7 @@ func ErrorI18nAlertStrategyNameDuplicate(ctx context.Context, args ...interface{
 	}
 
 	return err.WithMetadata(map[string]string{
-		"name": GetI18nMessage(ctx, "STRATEGY_NAME_DUPLICATE", ""),
+		"name": GetI18nMessage(ctx, "STRATEGY_NAME_DUPLICATE"),
 	})
 }
 
@@ -1216,20 +1111,15 @@ func ErrorAlertStrategyGroupTypeNotExist(format string, args ...interface{}) *er
 //	带上下文，支持国际化输出元数据
 func ErrorAlertStrategyGroupTypeNotExistWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertStrategyGroupTypeNotExistID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"type": GetI18nMessage(ctx, "STRATEGY_GROUP_TYPE_NOT_EXIST", ""),
+		"type": GetI18nMessage(ctx, "STRATEGY_GROUP_TYPE_NOT_EXIST"),
 	})
 }
 
-var _AlertStrategyGroupTypeNotExistMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyGroupTypeNotExistID,
-	One:   "策略组类型不存在",
-	Other: "策略组类型不存在",
-}
-
 // ErrorI18nAlertStrategyGroupTypeNotExist 用于表单验证错误
-//  STRATEGY_GROUP_TYPE_NOT_EXIST
-//  策略组类型不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_TYPE_NOT_EXIST
+//	策略组类型不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupTypeNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组类型不存在"
 	if len(args) > 0 {
@@ -1239,8 +1129,7 @@ func ErrorI18nAlertStrategyGroupTypeNotExist(ctx context.Context, args ...interf
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyGroupTypeNotExistID,
-			DefaultMessage: _AlertStrategyGroupTypeNotExistMsg,
+			MessageID: ErrorAlertStrategyGroupTypeNotExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1251,7 +1140,7 @@ func ErrorI18nAlertStrategyGroupTypeNotExist(ctx context.Context, args ...interf
 	}
 
 	return err.WithMetadata(map[string]string{
-		"type": GetI18nMessage(ctx, "STRATEGY_GROUP_TYPE_NOT_EXIST", ""),
+		"type": GetI18nMessage(ctx, "STRATEGY_GROUP_TYPE_NOT_EXIST"),
 	})
 }
 
@@ -1284,20 +1173,15 @@ func ErrorAlertStrategyTypeNotExist(format string, args ...interface{}) *errors.
 //	带上下文，支持国际化输出元数据
 func ErrorAlertStrategyTypeNotExistWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(400, ErrorAlertStrategyTypeNotExistID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"type": GetI18nMessage(ctx, "STRATEGY_TYPE_NOT_EXIST", ""),
+		"type": GetI18nMessage(ctx, "STRATEGY_TYPE_NOT_EXIST"),
 	})
 }
 
-var _AlertStrategyTypeNotExistMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyTypeNotExistID,
-	One:   "策略类型不存在",
-	Other: "策略类型不存在",
-}
-
 // ErrorI18nAlertStrategyTypeNotExist 用于表单验证错误
-//  STRATEGY_TYPE_NOT_EXIST
-//  策略类型不存在
-//  支持国际化输出
+//
+//	STRATEGY_TYPE_NOT_EXIST
+//	策略类型不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyTypeNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略类型不存在"
 	if len(args) > 0 {
@@ -1307,8 +1191,7 @@ func ErrorI18nAlertStrategyTypeNotExist(ctx context.Context, args ...interface{}
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyTypeNotExistID,
-			DefaultMessage: _AlertStrategyTypeNotExistMsg,
+			MessageID: ErrorAlertStrategyTypeNotExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1319,7 +1202,7 @@ func ErrorI18nAlertStrategyTypeNotExist(ctx context.Context, args ...interface{}
 	}
 
 	return err.WithMetadata(map[string]string{
-		"type": GetI18nMessage(ctx, "STRATEGY_TYPE_NOT_EXIST", ""),
+		"type": GetI18nMessage(ctx, "STRATEGY_TYPE_NOT_EXIST"),
 	})
 }
 
@@ -1354,16 +1237,11 @@ func ErrorAlertAlertGroupNotFoundWithContext(_ context.Context, format string, a
 	return errors.New(400, ErrorAlertAlertGroupNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertAlertGroupNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertAlertGroupNotFoundID,
-	One:   "告警组不存在",
-	Other: "告警组不存在",
-}
-
 // ErrorI18nAlertAlertGroupNotFound 用于表单验证错误
-//  ALERT_GROUP_NOT_FOUND
-//  告警组不存在
-//  支持国际化输出
+//
+//	ALERT_GROUP_NOT_FOUND
+//	告警组不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组不存在"
 	if len(args) > 0 {
@@ -1373,8 +1251,7 @@ func ErrorI18nAlertAlertGroupNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertGroupNotFoundID,
-			DefaultMessage: _AlertAlertGroupNotFoundMsg,
+			MessageID: ErrorAlertAlertGroupNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1418,16 +1295,11 @@ func ErrorAlertStrategyGroupNotFoundWithContext(_ context.Context, format string
 	return errors.New(400, ErrorAlertStrategyGroupNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertStrategyGroupNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyGroupNotFoundID,
-	One:   "策略组不存在",
-	Other: "策略组不存在",
-}
-
 // ErrorI18nAlertStrategyGroupNotFound 用于表单验证错误
-//  STRATEGY_GROUP_NOT_FOUND
-//  策略组不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_FOUND
+//	策略组不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组不存在"
 	if len(args) > 0 {
@@ -1437,8 +1309,7 @@ func ErrorI18nAlertStrategyGroupNotFound(ctx context.Context, args ...interface{
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyGroupNotFoundID,
-			DefaultMessage: _AlertStrategyGroupNotFoundMsg,
+			MessageID: ErrorAlertStrategyGroupNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1482,16 +1353,11 @@ func ErrorAlertDatasourceNotFoundWithContext(_ context.Context, format string, a
 	return errors.New(400, ErrorAlertDatasourceNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertDatasourceNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertDatasourceNotFoundID,
-	One:   "数据源不存在",
-	Other: "数据源不存在",
-}
-
 // ErrorI18nAlertDatasourceNotFound 用于表单验证错误
-//  DATASOURCE_NOT_FOUND
-//  数据源不存在
-//  支持国际化输出
+//
+//	DATASOURCE_NOT_FOUND
+//	数据源不存在
+//	支持国际化输出
 func ErrorI18nAlertDatasourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源不存在"
 	if len(args) > 0 {
@@ -1501,8 +1367,7 @@ func ErrorI18nAlertDatasourceNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertDatasourceNotFoundID,
-			DefaultMessage: _AlertDatasourceNotFoundMsg,
+			MessageID: ErrorAlertDatasourceNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1546,16 +1411,11 @@ func ErrorAlertAlertPageNotFoundWithContext(_ context.Context, format string, ar
 	return errors.New(400, ErrorAlertAlertPageNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertAlertPageNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertAlertPageNotFoundID,
-	One:   "告警页面不存在",
-	Other: "告警页面不存在",
-}
-
 // ErrorI18nAlertAlertPageNotFound 用于表单验证错误
-//  ALERT_PAGE_NOT_FOUND
-//  告警页面不存在
-//  支持国际化输出
+//
+//	ALERT_PAGE_NOT_FOUND
+//	告警页面不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertPageNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警页面不存在"
 	if len(args) > 0 {
@@ -1565,8 +1425,7 @@ func ErrorI18nAlertAlertPageNotFound(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertPageNotFoundID,
-			DefaultMessage: _AlertAlertPageNotFoundMsg,
+			MessageID: ErrorAlertAlertPageNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1610,16 +1469,11 @@ func ErrorAlertAlertLevelNotFoundWithContext(_ context.Context, format string, a
 	return errors.New(400, ErrorAlertAlertLevelNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertAlertLevelNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertAlertLevelNotFoundID,
-	One:   "告警等级不存在",
-	Other: "告警等级不存在",
-}
-
 // ErrorI18nAlertAlertLevelNotFound 用于表单验证错误
-//  ALERT_LEVEL_NOT_FOUND
-//  告警等级不存在
-//  支持国际化输出
+//
+//	ALERT_LEVEL_NOT_FOUND
+//	告警等级不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertLevelNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警等级不存在"
 	if len(args) > 0 {
@@ -1629,8 +1483,7 @@ func ErrorI18nAlertAlertLevelNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertAlertLevelNotFoundID,
-			DefaultMessage: _AlertAlertLevelNotFoundMsg,
+			MessageID: ErrorAlertAlertLevelNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1674,16 +1527,11 @@ func ErrorAlertStrategyTemplateNotFoundWithContext(_ context.Context, format str
 	return errors.New(400, ErrorAlertStrategyTemplateNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _AlertStrategyTemplateNotFoundMsg = &i18n.Message{
-	ID:    ErrorAlertStrategyTemplateNotFoundID,
-	One:   "策略模板不存在",
-	Other: "策略模板不存在",
-}
-
 // ErrorI18nAlertStrategyTemplateNotFound 用于表单验证错误
-//  STRATEGY_TEMPLATE_NOT_FOUND
-//  策略模板不存在
-//  支持国际化输出
+//
+//	STRATEGY_TEMPLATE_NOT_FOUND
+//	策略模板不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyTemplateNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略模板不存在"
 	if len(args) > 0 {
@@ -1693,8 +1541,7 @@ func ErrorI18nAlertStrategyTemplateNotFound(ctx context.Context, args ...interfa
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorAlertStrategyTemplateNotFoundID,
-			DefaultMessage: _AlertStrategyTemplateNotFoundMsg,
+			MessageID: ErrorAlertStrategyTemplateNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1730,14 +1577,9 @@ func ErrorModalWithContext(_ context.Context, format string, args ...interface{}
 	return errors.New(405, ErrorModalID, fmt.Sprintf(format, args...))
 }
 
-var _ModalMsg = &i18n.Message{
-	ID:    ErrorModalID,
-	One:   "请确认",
-	Other: "请确认",
-}
-
 // ErrorI18nModal 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nModal(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请确认"
 	if len(args) > 0 {
@@ -1747,8 +1589,7 @@ func ErrorI18nModal(ctx context.Context, args ...interface{}) *errors.Error {
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorModalID,
-			DefaultMessage: _ModalMsg,
+			MessageID: ErrorModalID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1790,22 +1631,17 @@ func ErrorModalConfirmDelete(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorModalConfirmDeleteWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorModalConfirmDeleteID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"confirm":   GetI18nMessage(ctx, "CONFIRM_DELETE", ""),
-		"cancel":    GetI18nMessage(ctx, "CANCEL_DELETE", ""),
-		"requestID": GetI18nMessage(ctx, "", ""),
+		"confirm":   GetI18nMessage(ctx, "CONFIRM_DELETE"),
+		"cancel":    GetI18nMessage(ctx, "CANCEL_DELETE"),
+		"requestID": GetI18nMessage(ctx, ""),
 	})
 }
 
-var _ModalConfirmDeleteMsg = &i18n.Message{
-	ID:    ErrorModalConfirmDeleteID,
-	One:   "确认删除",
-	Other: "确认删除",
-}
-
 // ErrorI18nModalConfirmDelete 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  CONFIRM_DELETE
-//  确认删除
-//  支持国际化输出
+//
+//	CONFIRM_DELETE
+//	确认删除
+//	支持国际化输出
 func ErrorI18nModalConfirmDelete(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "确认删除"
 	if len(args) > 0 {
@@ -1815,8 +1651,7 @@ func ErrorI18nModalConfirmDelete(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorModalConfirmDeleteID,
-			DefaultMessage: _ModalConfirmDeleteMsg,
+			MessageID: ErrorModalConfirmDeleteID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1827,9 +1662,9 @@ func ErrorI18nModalConfirmDelete(ctx context.Context, args ...interface{}) *erro
 	}
 
 	return err.WithMetadata(map[string]string{
-		"confirm":   GetI18nMessage(ctx, "CONFIRM_DELETE", ""),
-		"cancel":    GetI18nMessage(ctx, "CANCEL_DELETE", ""),
-		"requestID": GetI18nMessage(ctx, "", ""),
+		"confirm":   GetI18nMessage(ctx, "CONFIRM_DELETE"),
+		"cancel":    GetI18nMessage(ctx, "CANCEL_DELETE"),
+		"requestID": GetI18nMessage(ctx, ""),
 	})
 }
 
@@ -1862,22 +1697,17 @@ func ErrorModalConfirmUpdate(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorModalConfirmUpdateWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(405, ErrorModalConfirmUpdateID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"confirm":   GetI18nMessage(ctx, "CONFIRM_UPDATE", ""),
-		"cancel":    GetI18nMessage(ctx, "CANCEL_UPDATE", ""),
-		"requestID": GetI18nMessage(ctx, "", ""),
+		"confirm":   GetI18nMessage(ctx, "CONFIRM_UPDATE"),
+		"cancel":    GetI18nMessage(ctx, "CANCEL_UPDATE"),
+		"requestID": GetI18nMessage(ctx, ""),
 	})
 }
 
-var _ModalConfirmUpdateMsg = &i18n.Message{
-	ID:    ErrorModalConfirmUpdateID,
-	One:   "确认修改",
-	Other: "确认修改",
-}
-
 // ErrorI18nModalConfirmUpdate 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  CONFIRM_UPDATE
-//  确认修改
-//  支持国际化输出
+//
+//	CONFIRM_UPDATE
+//	确认修改
+//	支持国际化输出
 func ErrorI18nModalConfirmUpdate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "确认修改"
 	if len(args) > 0 {
@@ -1887,8 +1717,7 @@ func ErrorI18nModalConfirmUpdate(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorModalConfirmUpdateID,
-			DefaultMessage: _ModalConfirmUpdateMsg,
+			MessageID: ErrorModalConfirmUpdateID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1899,9 +1728,9 @@ func ErrorI18nModalConfirmUpdate(ctx context.Context, args ...interface{}) *erro
 	}
 
 	return err.WithMetadata(map[string]string{
-		"confirm":   GetI18nMessage(ctx, "CONFIRM_UPDATE", ""),
-		"cancel":    GetI18nMessage(ctx, "CANCEL_UPDATE", ""),
-		"requestID": GetI18nMessage(ctx, "", ""),
+		"confirm":   GetI18nMessage(ctx, "CONFIRM_UPDATE"),
+		"cancel":    GetI18nMessage(ctx, "CANCEL_UPDATE"),
+		"requestID": GetI18nMessage(ctx, ""),
 	})
 }
 
@@ -1928,14 +1757,9 @@ func ErrorToastWithContext(_ context.Context, format string, args ...interface{}
 	return errors.New(404, ErrorToastID, fmt.Sprintf(format, args...))
 }
 
-var _ToastMsg = &i18n.Message{
-	ID:    ErrorToastID,
-	One:   "资源不存在",
-	Other: "资源不存在",
-}
-
 // ErrorI18nToast 用于toast验证错误， 资源不存在或者已存在时候提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nToast(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源不存在"
 	if len(args) > 0 {
@@ -1945,8 +1769,7 @@ func ErrorI18nToast(ctx context.Context, args ...interface{}) *errors.Error {
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastID,
-			DefaultMessage: _ToastMsg,
+			MessageID: ErrorToastID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -1990,16 +1813,11 @@ func ErrorToastResourceNotFoundWithContext(_ context.Context, format string, arg
 	return errors.New(404, ErrorToastResourceNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastResourceNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastResourceNotFoundID,
-	One:   "资源不存在",
-	Other: "资源不存在",
-}
-
 // ErrorI18nToastResourceNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  RESOURCE_NOT_FOUND
-//  资源不存在
-//  支持国际化输出
+//
+//	RESOURCE_NOT_FOUND
+//	资源不存在
+//	支持国际化输出
 func ErrorI18nToastResourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源不存在"
 	if len(args) > 0 {
@@ -2009,8 +1827,7 @@ func ErrorI18nToastResourceNotFound(ctx context.Context, args ...interface{}) *e
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastResourceNotFoundID,
-			DefaultMessage: _ToastResourceNotFoundMsg,
+			MessageID: ErrorToastResourceNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2054,16 +1871,11 @@ func ErrorToastResourceExistWithContext(_ context.Context, format string, args .
 	return errors.New(404, ErrorToastResourceExistID, fmt.Sprintf(format, args...))
 }
 
-var _ToastResourceExistMsg = &i18n.Message{
-	ID:    ErrorToastResourceExistID,
-	One:   "资源已存在",
-	Other: "资源已存在",
-}
-
 // ErrorI18nToastResourceExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  RESOURCE_EXIST
-//  资源已存在
-//  支持国际化输出
+//
+//	RESOURCE_EXIST
+//	资源已存在
+//	支持国际化输出
 func ErrorI18nToastResourceExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源已存在"
 	if len(args) > 0 {
@@ -2073,8 +1885,7 @@ func ErrorI18nToastResourceExist(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastResourceExistID,
-			DefaultMessage: _ToastResourceExistMsg,
+			MessageID: ErrorToastResourceExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2118,16 +1929,11 @@ func ErrorToastUserNotFoundWithContext(_ context.Context, format string, args ..
 	return errors.New(404, ErrorToastUserNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastUserNotFoundID,
-	One:   "用户不存在",
-	Other: "用户不存在",
-}
-
 // ErrorI18nToastUserNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_FOUND
-//  用户不存在
-//  支持国际化输出
+//
+//	USER_NOT_FOUND
+//	用户不存在
+//	支持国际化输出
 func ErrorI18nToastUserNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户不存在"
 	if len(args) > 0 {
@@ -2137,8 +1943,7 @@ func ErrorI18nToastUserNotFound(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotFoundID,
-			DefaultMessage: _ToastUserNotFoundMsg,
+			MessageID: ErrorToastUserNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2182,16 +1987,11 @@ func ErrorToastUsernameExistWithContext(_ context.Context, format string, args .
 	return errors.New(404, ErrorToastUsernameExistID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUsernameExistMsg = &i18n.Message{
-	ID:    ErrorToastUsernameExistID,
-	One:   "用户名已存在",
-	Other: "用户名已存在",
-}
-
 // ErrorI18nToastUsernameExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USERNAME_EXIST
-//  用户名已存在
-//  支持国际化输出
+//
+//	USERNAME_EXIST
+//	用户名已存在
+//	支持国际化输出
 func ErrorI18nToastUsernameExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户名已存在"
 	if len(args) > 0 {
@@ -2201,8 +2001,7 @@ func ErrorI18nToastUsernameExist(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUsernameExistID,
-			DefaultMessage: _ToastUsernameExistMsg,
+			MessageID: ErrorToastUsernameExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2246,16 +2045,11 @@ func ErrorToastAlertGroupNotFoundWithContext(_ context.Context, format string, a
 	return errors.New(404, ErrorToastAlertGroupNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastAlertGroupNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastAlertGroupNotFoundID,
-	One:   "告警组不存在",
-	Other: "告警组不存在",
-}
-
 // ErrorI18nToastAlertGroupNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ALERT_GROUP_NOT_FOUND
-//  告警组不存在
-//  支持国际化输出
+//
+//	ALERT_GROUP_NOT_FOUND
+//	告警组不存在
+//	支持国际化输出
 func ErrorI18nToastAlertGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组不存在"
 	if len(args) > 0 {
@@ -2265,8 +2059,7 @@ func ErrorI18nToastAlertGroupNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastAlertGroupNotFoundID,
-			DefaultMessage: _ToastAlertGroupNotFoundMsg,
+			MessageID: ErrorToastAlertGroupNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2310,16 +2103,11 @@ func ErrorToastDatasourceSyncingWithContext(_ context.Context, format string, ar
 	return errors.New(404, ErrorToastDatasourceSyncingID, fmt.Sprintf(format, args...))
 }
 
-var _ToastDatasourceSyncingMsg = &i18n.Message{
-	ID:    ErrorToastDatasourceSyncingID,
-	One:   "数据源同步中",
-	Other: "数据源同步中",
-}
-
 // ErrorI18nToastDatasourceSyncing 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DATASOURCE_SYNCING
-//  数据源同步中
-//  支持国际化输出
+//
+//	DATASOURCE_SYNCING
+//	数据源同步中
+//	支持国际化输出
 func ErrorI18nToastDatasourceSyncing(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源同步中"
 	if len(args) > 0 {
@@ -2329,8 +2117,7 @@ func ErrorI18nToastDatasourceSyncing(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastDatasourceSyncingID,
-			DefaultMessage: _ToastDatasourceSyncingMsg,
+			MessageID: ErrorToastDatasourceSyncingID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2374,16 +2161,11 @@ func ErrorToastUserNotSubscribeWithContext(_ context.Context, format string, arg
 	return errors.New(404, ErrorToastUserNotSubscribeID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotSubscribeMsg = &i18n.Message{
-	ID:    ErrorToastUserNotSubscribeID,
-	One:   "用户未订阅此策略",
-	Other: "用户未订阅此策略",
-}
-
 // ErrorI18nToastUserNotSubscribe 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_SUBSCRIBE
-//  用户未订阅此策略
-//  支持国际化输出
+//
+//	USER_NOT_SUBSCRIBE
+//	用户未订阅此策略
+//	支持国际化输出
 func ErrorI18nToastUserNotSubscribe(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户未订阅此策略"
 	if len(args) > 0 {
@@ -2393,8 +2175,7 @@ func ErrorI18nToastUserNotSubscribe(ctx context.Context, args ...interface{}) *e
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotSubscribeID,
-			DefaultMessage: _ToastUserNotSubscribeMsg,
+			MessageID: ErrorToastUserNotSubscribeID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2438,16 +2219,11 @@ func ErrorToastTeamNotFoundWithContext(_ context.Context, format string, args ..
 	return errors.New(404, ErrorToastTeamNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastTeamNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastTeamNotFoundID,
-	One:   "团队不存在",
-	Other: "团队不存在",
-}
-
 // ErrorI18nToastTeamNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_NOT_FOUND
-//  团队不存在
-//  支持国际化输出
+//
+//	TEAM_NOT_FOUND
+//	团队不存在
+//	支持国际化输出
 func ErrorI18nToastTeamNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队不存在"
 	if len(args) > 0 {
@@ -2457,8 +2233,7 @@ func ErrorI18nToastTeamNotFound(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastTeamNotFoundID,
-			DefaultMessage: _ToastTeamNotFoundMsg,
+			MessageID: ErrorToastTeamNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2502,16 +2277,11 @@ func ErrorToastUserNotAllowRemoveSelfWithContext(_ context.Context, format strin
 	return errors.New(404, ErrorToastUserNotAllowRemoveSelfID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotAllowRemoveSelfMsg = &i18n.Message{
-	ID:    ErrorToastUserNotAllowRemoveSelfID,
-	One:   "不允许移除自己",
-	Other: "不允许移除自己",
-}
-
 // ErrorI18nToastUserNotAllowRemoveSelf 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_REMOVE_SELF
-//  不允许移除自己
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_REMOVE_SELF
+//	不允许移除自己
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowRemoveSelf(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许移除自己"
 	if len(args) > 0 {
@@ -2521,8 +2291,7 @@ func ErrorI18nToastUserNotAllowRemoveSelf(ctx context.Context, args ...interface
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotAllowRemoveSelfID,
-			DefaultMessage: _ToastUserNotAllowRemoveSelfMsg,
+			MessageID: ErrorToastUserNotAllowRemoveSelfID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2566,16 +2335,11 @@ func ErrorToastUserNotAllowRemoveAdminWithContext(_ context.Context, format stri
 	return errors.New(404, ErrorToastUserNotAllowRemoveAdminID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotAllowRemoveAdminMsg = &i18n.Message{
-	ID:    ErrorToastUserNotAllowRemoveAdminID,
-	One:   "不允许移除团队管理员",
-	Other: "不允许移除团队管理员",
-}
-
 // ErrorI18nToastUserNotAllowRemoveAdmin 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_REMOVE_ADMIN
-//  不允许移除团队管理员
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_REMOVE_ADMIN
+//	不允许移除团队管理员
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowRemoveAdmin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许移除团队管理员"
 	if len(args) > 0 {
@@ -2585,8 +2349,7 @@ func ErrorI18nToastUserNotAllowRemoveAdmin(ctx context.Context, args ...interfac
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotAllowRemoveAdminID,
-			DefaultMessage: _ToastUserNotAllowRemoveAdminMsg,
+			MessageID: ErrorToastUserNotAllowRemoveAdminID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2630,16 +2393,11 @@ func ErrorToastUserNotAllowOperateAdminWithContext(_ context.Context, format str
 	return errors.New(404, ErrorToastUserNotAllowOperateAdminID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotAllowOperateAdminMsg = &i18n.Message{
-	ID:    ErrorToastUserNotAllowOperateAdminID,
-	One:   "不允许操作自己的管理员身份",
-	Other: "不允许操作自己的管理员身份",
-}
-
 // ErrorI18nToastUserNotAllowOperateAdmin 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_OPERATE_ADMIN
-//  不允许操作自己的管理员身份
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_OPERATE_ADMIN
+//	不允许操作自己的管理员身份
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowOperateAdmin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许操作自己的管理员身份"
 	if len(args) > 0 {
@@ -2649,8 +2407,7 @@ func ErrorI18nToastUserNotAllowOperateAdmin(ctx context.Context, args ...interfa
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotAllowOperateAdminID,
-			DefaultMessage: _ToastUserNotAllowOperateAdminMsg,
+			MessageID: ErrorToastUserNotAllowOperateAdminID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2694,16 +2451,11 @@ func ErrorToastRoleNotFoundWithContext(_ context.Context, format string, args ..
 	return errors.New(404, ErrorToastRoleNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastRoleNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastRoleNotFoundID,
-	One:   "角色不存在",
-	Other: "角色不存在",
-}
-
 // ErrorI18nToastRoleNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ROLE_NOT_FOUND
-//  角色不存在
-//  支持国际化输出
+//
+//	ROLE_NOT_FOUND
+//	角色不存在
+//	支持国际化输出
 func ErrorI18nToastRoleNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "角色不存在"
 	if len(args) > 0 {
@@ -2713,8 +2465,7 @@ func ErrorI18nToastRoleNotFound(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastRoleNotFoundID,
-			DefaultMessage: _ToastRoleNotFoundMsg,
+			MessageID: ErrorToastRoleNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2758,16 +2509,11 @@ func ErrorToastTemplateStrategyNotFoundWithContext(_ context.Context, format str
 	return errors.New(404, ErrorToastTemplateStrategyNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastTemplateStrategyNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastTemplateStrategyNotFoundID,
-	One:   "策略模板不存在",
-	Other: "策略模板不存在",
-}
-
 // ErrorI18nToastTemplateStrategyNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEMPLATE_STRATEGY_NOT_FOUND
-//  策略模板不存在
-//  支持国际化输出
+//
+//	TEMPLATE_STRATEGY_NOT_FOUND
+//	策略模板不存在
+//	支持国际化输出
 func ErrorI18nToastTemplateStrategyNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略模板不存在"
 	if len(args) > 0 {
@@ -2777,8 +2523,7 @@ func ErrorI18nToastTemplateStrategyNotFound(ctx context.Context, args ...interfa
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastTemplateStrategyNotFoundID,
-			DefaultMessage: _ToastTemplateStrategyNotFoundMsg,
+			MessageID: ErrorToastTemplateStrategyNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2822,16 +2567,11 @@ func ErrorToastUserNotExistWithContext(_ context.Context, format string, args ..
 	return errors.New(404, ErrorToastUserNotExistID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserNotExistMsg = &i18n.Message{
-	ID:    ErrorToastUserNotExistID,
-	One:   "用户不存在",
-	Other: "用户不存在",
-}
-
 // ErrorI18nToastUserNotExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_EXIST
-//  用户不存在
-//  支持国际化输出
+//
+//	USER_NOT_EXIST
+//	用户不存在
+//	支持国际化输出
 func ErrorI18nToastUserNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户不存在"
 	if len(args) > 0 {
@@ -2841,8 +2581,7 @@ func ErrorI18nToastUserNotExist(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserNotExistID,
-			DefaultMessage: _ToastUserNotExistMsg,
+			MessageID: ErrorToastUserNotExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2886,16 +2625,11 @@ func ErrorToastDashboardNotFoundWithContext(_ context.Context, format string, ar
 	return errors.New(404, ErrorToastDashboardNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastDashboardNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastDashboardNotFoundID,
-	One:   "图表大盘不存在",
-	Other: "图表大盘不存在",
-}
-
 // ErrorI18nToastDashboardNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DASHBOARD_NOT_FOUND
-//  图表大盘不存在
-//  支持国际化输出
+//
+//	DASHBOARD_NOT_FOUND
+//	图表大盘不存在
+//	支持国际化输出
 func ErrorI18nToastDashboardNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "图表大盘不存在"
 	if len(args) > 0 {
@@ -2905,8 +2639,7 @@ func ErrorI18nToastDashboardNotFound(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastDashboardNotFoundID,
-			DefaultMessage: _ToastDashboardNotFoundMsg,
+			MessageID: ErrorToastDashboardNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -2950,16 +2683,11 @@ func ErrorToastRealtimeAlarmNotFoundWithContext(_ context.Context, format string
 	return errors.New(404, ErrorToastRealtimeAlarmNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastRealtimeAlarmNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastRealtimeAlarmNotFoundID,
-	One:   "实时告警不存在",
-	Other: "实时告警不存在",
-}
-
 // ErrorI18nToastRealtimeAlarmNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  REALTIME_ALARM_NOT_FOUND
-//  实时告警不存在
-//  支持国际化输出
+//
+//	REALTIME_ALARM_NOT_FOUND
+//	实时告警不存在
+//	支持国际化输出
 func ErrorI18nToastRealtimeAlarmNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "实时告警不存在"
 	if len(args) > 0 {
@@ -2969,8 +2697,7 @@ func ErrorI18nToastRealtimeAlarmNotFound(ctx context.Context, args ...interface{
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastRealtimeAlarmNotFoundID,
-			DefaultMessage: _ToastRealtimeAlarmNotFoundMsg,
+			MessageID: ErrorToastRealtimeAlarmNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3014,16 +2741,11 @@ func ErrorToastHistoryAlarmNotFoundWithContext(_ context.Context, format string,
 	return errors.New(404, ErrorToastHistoryAlarmNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastHistoryAlarmNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastHistoryAlarmNotFoundID,
-	One:   "历史告警不存在",
-	Other: "历史告警不存在",
-}
-
 // ErrorI18nToastHistoryAlarmNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  HISTORY_ALARM_NOT_FOUND
-//  历史告警不存在
-//  支持国际化输出
+//
+//	HISTORY_ALARM_NOT_FOUND
+//	历史告警不存在
+//	支持国际化输出
 func ErrorI18nToastHistoryAlarmNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "历史告警不存在"
 	if len(args) > 0 {
@@ -3033,8 +2755,7 @@ func ErrorI18nToastHistoryAlarmNotFound(ctx context.Context, args ...interface{}
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastHistoryAlarmNotFoundID,
-			DefaultMessage: _ToastHistoryAlarmNotFoundMsg,
+			MessageID: ErrorToastHistoryAlarmNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3076,20 +2797,15 @@ func ErrorToastDataSourceNotFound(format string, args ...interface{}) *errors.Er
 //	带上下文，支持国际化输出元数据
 func ErrorToastDataSourceNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastDataSourceNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"dataSource": GetI18nMessage(ctx, "DATA_SOURCE_NOT_FOUND", ""),
+		"dataSource": GetI18nMessage(ctx, "DATA_SOURCE_NOT_FOUND"),
 	})
 }
 
-var _ToastDataSourceNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastDataSourceNotFoundID,
-	One:   "数据源不存在",
-	Other: "数据源不存在",
-}
-
 // ErrorI18nToastDataSourceNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DATA_SOURCE_NOT_FOUND
-//  数据源不存在
-//  支持国际化输出
+//
+//	DATA_SOURCE_NOT_FOUND
+//	数据源不存在
+//	支持国际化输出
 func ErrorI18nToastDataSourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源不存在"
 	if len(args) > 0 {
@@ -3099,8 +2815,7 @@ func ErrorI18nToastDataSourceNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastDataSourceNotFoundID,
-			DefaultMessage: _ToastDataSourceNotFoundMsg,
+			MessageID: ErrorToastDataSourceNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3111,7 +2826,7 @@ func ErrorI18nToastDataSourceNotFound(ctx context.Context, args ...interface{}) 
 	}
 
 	return err.WithMetadata(map[string]string{
-		"dataSource": GetI18nMessage(ctx, "DATA_SOURCE_NOT_FOUND", ""),
+		"dataSource": GetI18nMessage(ctx, "DATA_SOURCE_NOT_FOUND"),
 	})
 }
 
@@ -3144,20 +2859,15 @@ func ErrorToastDictNotFound(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorToastDictNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastDictNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"dict": GetI18nMessage(ctx, "DICT_NOT_FOUND", ""),
+		"dict": GetI18nMessage(ctx, "DICT_NOT_FOUND"),
 	})
 }
 
-var _ToastDictNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastDictNotFoundID,
-	One:   "字典不存在",
-	Other: "字典不存在",
-}
-
 // ErrorI18nToastDictNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DICT_NOT_FOUND
-//  字典不存在
-//  支持国际化输出
+//
+//	DICT_NOT_FOUND
+//	字典不存在
+//	支持国际化输出
 func ErrorI18nToastDictNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "字典不存在"
 	if len(args) > 0 {
@@ -3167,8 +2877,7 @@ func ErrorI18nToastDictNotFound(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastDictNotFoundID,
-			DefaultMessage: _ToastDictNotFoundMsg,
+			MessageID: ErrorToastDictNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3179,7 +2888,7 @@ func ErrorI18nToastDictNotFound(ctx context.Context, args ...interface{}) *error
 	}
 
 	return err.WithMetadata(map[string]string{
-		"dict": GetI18nMessage(ctx, "DICT_NOT_FOUND", ""),
+		"dict": GetI18nMessage(ctx, "DICT_NOT_FOUND"),
 	})
 }
 
@@ -3212,20 +2921,15 @@ func ErrorToastAlarmHookNotFound(format string, args ...interface{}) *errors.Err
 //	带上下文，支持国际化输出元数据
 func ErrorToastAlarmHookNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastAlarmHookNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"alertHook": GetI18nMessage(ctx, "ALERT_HOOK_NOT_FOUND", ""),
+		"alertHook": GetI18nMessage(ctx, "ALERT_HOOK_NOT_FOUND"),
 	})
 }
 
-var _ToastAlarmHookNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastAlarmHookNotFoundID,
-	One:   "告警hook不存在",
-	Other: "告警hook不存在",
-}
-
 // ErrorI18nToastAlarmHookNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ALARM_HOOK_NOT_FOUND
-//  告警hook不存在
-//  支持国际化输出
+//
+//	ALARM_HOOK_NOT_FOUND
+//	告警hook不存在
+//	支持国际化输出
 func ErrorI18nToastAlarmHookNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警hook不存在"
 	if len(args) > 0 {
@@ -3235,8 +2939,7 @@ func ErrorI18nToastAlarmHookNotFound(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastAlarmHookNotFoundID,
-			DefaultMessage: _ToastAlarmHookNotFoundMsg,
+			MessageID: ErrorToastAlarmHookNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3247,7 +2950,7 @@ func ErrorI18nToastAlarmHookNotFound(ctx context.Context, args ...interface{}) *
 	}
 
 	return err.WithMetadata(map[string]string{
-		"alertHook": GetI18nMessage(ctx, "ALERT_HOOK_NOT_FOUND", ""),
+		"alertHook": GetI18nMessage(ctx, "ALERT_HOOK_NOT_FOUND"),
 	})
 }
 
@@ -3280,20 +2983,15 @@ func ErrorToastMenuNotFound(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorToastMenuNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastMenuNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"menu": GetI18nMessage(ctx, "MENU_NOT_FOUND", ""),
+		"menu": GetI18nMessage(ctx, "MENU_NOT_FOUND"),
 	})
 }
 
-var _ToastMenuNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastMenuNotFoundID,
-	One:   "菜单不存在",
-	Other: "菜单不存在",
-}
-
 // ErrorI18nToastMenuNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  MENU_NOT_FOUND
-//  菜单不存在
-//  支持国际化输出
+//
+//	MENU_NOT_FOUND
+//	菜单不存在
+//	支持国际化输出
 func ErrorI18nToastMenuNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "菜单不存在"
 	if len(args) > 0 {
@@ -3303,8 +3001,7 @@ func ErrorI18nToastMenuNotFound(ctx context.Context, args ...interface{}) *error
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastMenuNotFoundID,
-			DefaultMessage: _ToastMenuNotFoundMsg,
+			MessageID: ErrorToastMenuNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3315,7 +3012,7 @@ func ErrorI18nToastMenuNotFound(ctx context.Context, args ...interface{}) *error
 	}
 
 	return err.WithMetadata(map[string]string{
-		"menu": GetI18nMessage(ctx, "MENU_NOT_FOUND", ""),
+		"menu": GetI18nMessage(ctx, "MENU_NOT_FOUND"),
 	})
 }
 
@@ -3348,20 +3045,15 @@ func ErrorToastMetricNotFound(format string, args ...interface{}) *errors.Error 
 //	带上下文，支持国际化输出元数据
 func ErrorToastMetricNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastMetricNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"metric": GetI18nMessage(ctx, "METRIC_NOT_FOUND", ""),
+		"metric": GetI18nMessage(ctx, "METRIC_NOT_FOUND"),
 	})
 }
 
-var _ToastMetricNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastMetricNotFoundID,
-	One:   "指标不存在",
-	Other: "指标不存在",
-}
-
 // ErrorI18nToastMetricNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  METRIC_NOT_FOUND
-//  指标不存在
-//  支持国际化输出
+//
+//	METRIC_NOT_FOUND
+//	指标不存在
+//	支持国际化输出
 func ErrorI18nToastMetricNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "指标不存在"
 	if len(args) > 0 {
@@ -3371,8 +3063,7 @@ func ErrorI18nToastMetricNotFound(ctx context.Context, args ...interface{}) *err
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastMetricNotFoundID,
-			DefaultMessage: _ToastMetricNotFoundMsg,
+			MessageID: ErrorToastMetricNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3383,7 +3074,7 @@ func ErrorI18nToastMetricNotFound(ctx context.Context, args ...interface{}) *err
 	}
 
 	return err.WithMetadata(map[string]string{
-		"metric": GetI18nMessage(ctx, "METRIC_NOT_FOUND", ""),
+		"metric": GetI18nMessage(ctx, "METRIC_NOT_FOUND"),
 	})
 }
 
@@ -3416,20 +3107,15 @@ func ErrorToastApiNotFound(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorToastApiNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastApiNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"api": GetI18nMessage(ctx, "API_NOT_FOUND", ""),
+		"api": GetI18nMessage(ctx, "API_NOT_FOUND"),
 	})
 }
 
-var _ToastApiNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastApiNotFoundID,
-	One:   "API不存在",
-	Other: "API不存在",
-}
-
 // ErrorI18nToastApiNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  API_NOT_FOUND
-//  API不存在
-//  支持国际化输出
+//
+//	API_NOT_FOUND
+//	API不存在
+//	支持国际化输出
 func ErrorI18nToastApiNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "API不存在"
 	if len(args) > 0 {
@@ -3439,8 +3125,7 @@ func ErrorI18nToastApiNotFound(ctx context.Context, args ...interface{}) *errors
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastApiNotFoundID,
-			DefaultMessage: _ToastApiNotFoundMsg,
+			MessageID: ErrorToastApiNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3451,7 +3136,7 @@ func ErrorI18nToastApiNotFound(ctx context.Context, args ...interface{}) *errors
 	}
 
 	return err.WithMetadata(map[string]string{
-		"api": GetI18nMessage(ctx, "API_NOT_FOUND", ""),
+		"api": GetI18nMessage(ctx, "API_NOT_FOUND"),
 	})
 }
 
@@ -3484,20 +3169,15 @@ func ErrorToastStrategyNotFound(format string, args ...interface{}) *errors.Erro
 //	带上下文，支持国际化输出元数据
 func ErrorToastStrategyNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastStrategyNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"alertStrategy": GetI18nMessage(ctx, "ALERT_STRATEGY_NOT_FOUND", ""),
+		"alertStrategy": GetI18nMessage(ctx, "ALERT_STRATEGY_NOT_FOUND"),
 	})
 }
 
-var _ToastStrategyNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastStrategyNotFoundID,
-	One:   "告警策略不存在",
-	Other: "告警策略不存在",
-}
-
 // ErrorI18nToastStrategyNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  STRATEGY_NOT_FOUND
-//  告警策略不存在
-//  支持国际化输出
+//
+//	STRATEGY_NOT_FOUND
+//	告警策略不存在
+//	支持国际化输出
 func ErrorI18nToastStrategyNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警策略不存在"
 	if len(args) > 0 {
@@ -3507,8 +3187,7 @@ func ErrorI18nToastStrategyNotFound(ctx context.Context, args ...interface{}) *e
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastStrategyNotFoundID,
-			DefaultMessage: _ToastStrategyNotFoundMsg,
+			MessageID: ErrorToastStrategyNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3519,7 +3198,7 @@ func ErrorI18nToastStrategyNotFound(ctx context.Context, args ...interface{}) *e
 	}
 
 	return err.WithMetadata(map[string]string{
-		"alertStrategy": GetI18nMessage(ctx, "ALERT_STRATEGY_NOT_FOUND", ""),
+		"alertStrategy": GetI18nMessage(ctx, "ALERT_STRATEGY_NOT_FOUND"),
 	})
 }
 
@@ -3552,20 +3231,15 @@ func ErrorToastStrategyGroupNotFound(format string, args ...interface{}) *errors
 //	带上下文，支持国际化输出元数据
 func ErrorToastStrategyGroupNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastStrategyGroupNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_FOUND", ""),
+		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_FOUND"),
 	})
 }
 
-var _ToastStrategyGroupNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastStrategyGroupNotFoundID,
-	One:   "策略组不存在",
-	Other: "策略组不存在",
-}
-
 // ErrorI18nToastStrategyGroupNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  STRATEGY_GROUP_NOT_FOUND
-//  策略组不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_FOUND
+//	策略组不存在
+//	支持国际化输出
 func ErrorI18nToastStrategyGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组不存在"
 	if len(args) > 0 {
@@ -3575,8 +3249,7 @@ func ErrorI18nToastStrategyGroupNotFound(ctx context.Context, args ...interface{
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastStrategyGroupNotFoundID,
-			DefaultMessage: _ToastStrategyGroupNotFoundMsg,
+			MessageID: ErrorToastStrategyGroupNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3587,7 +3260,7 @@ func ErrorI18nToastStrategyGroupNotFound(ctx context.Context, args ...interface{
 	}
 
 	return err.WithMetadata(map[string]string{
-		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_FOUND", ""),
+		"strategyGroup": GetI18nMessage(ctx, "STRATEGY_GROUP_NOT_FOUND"),
 	})
 }
 
@@ -3620,20 +3293,15 @@ func ErrorToastTeamInviteAlreadyExists(format string, args ...interface{}) *erro
 //	带上下文，支持国际化输出元数据
 func ErrorToastTeamInviteAlreadyExistsWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastTeamInviteAlreadyExistsID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_ALREADY_EXISTS", ""),
+		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_ALREADY_EXISTS"),
 	})
 }
 
-var _ToastTeamInviteAlreadyExistsMsg = &i18n.Message{
-	ID:    ErrorToastTeamInviteAlreadyExistsID,
-	One:   "%s,邀请记录已存在,或者已经加入团队!",
-	Other: "%s,邀请记录已存在,或者已经加入团队!",
-}
-
 // ErrorI18nToastTeamInviteAlreadyExists 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_INVITE_ALREADY_EXISTS
-//  %s,邀请记录已存在,或者已经加入团队!
-//  支持国际化输出
+//
+//	TEAM_INVITE_ALREADY_EXISTS
+//	%s,邀请记录已存在,或者已经加入团队!
+//	支持国际化输出
 func ErrorI18nToastTeamInviteAlreadyExists(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "%s,邀请记录已存在,或者已经加入团队!"
 	if len(args) > 0 {
@@ -3643,8 +3311,7 @@ func ErrorI18nToastTeamInviteAlreadyExists(ctx context.Context, args ...interfac
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastTeamInviteAlreadyExistsID,
-			DefaultMessage: _ToastTeamInviteAlreadyExistsMsg,
+			MessageID: ErrorToastTeamInviteAlreadyExistsID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3655,7 +3322,7 @@ func ErrorI18nToastTeamInviteAlreadyExists(ctx context.Context, args ...interfac
 	}
 
 	return err.WithMetadata(map[string]string{
-		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_ALREADY_EXISTS", ""),
+		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_ALREADY_EXISTS"),
 	})
 }
 
@@ -3688,20 +3355,15 @@ func ErrorToastTeamInviteNotFound(format string, args ...interface{}) *errors.Er
 //	带上下文，支持国际化输出元数据
 func ErrorToastTeamInviteNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(404, ErrorToastTeamInviteNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_NOT_FOUND", ""),
+		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_NOT_FOUND"),
 	})
 }
 
-var _ToastTeamInviteNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastTeamInviteNotFoundID,
-	One:   "邀请记录不存在",
-	Other: "邀请记录不存在",
-}
-
 // ErrorI18nToastTeamInviteNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_INVITE_NOT_FOUND
-//  邀请记录不存在
-//  支持国际化输出
+//
+//	TEAM_INVITE_NOT_FOUND
+//	邀请记录不存在
+//	支持国际化输出
 func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "邀请记录不存在"
 	if len(args) > 0 {
@@ -3711,8 +3373,7 @@ func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastTeamInviteNotFoundID,
-			DefaultMessage: _ToastTeamInviteNotFoundMsg,
+			MessageID: ErrorToastTeamInviteNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3723,7 +3384,7 @@ func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) 
 	}
 
 	return err.WithMetadata(map[string]string{
-		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_NOT_FOUND", ""),
+		"teamInvite": GetI18nMessage(ctx, "TEAM_INVITE_NOT_FOUND"),
 	})
 }
 
@@ -3758,16 +3419,11 @@ func ErrorToastRoleHasRelationWithContext(_ context.Context, format string, args
 	return errors.New(404, ErrorToastRoleHasRelationID, fmt.Sprintf(format, args...))
 }
 
-var _ToastRoleHasRelationMsg = &i18n.Message{
-	ID:    ErrorToastRoleHasRelationID,
-	One:   "角色存在关联关系",
-	Other: "角色存在关联关系",
-}
-
 // ErrorI18nToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ROLE_HAS_RELATION
-//  角色存在关联关系
-//  支持国际化输出
+//
+//	ROLE_HAS_RELATION
+//	角色存在关联关系
+//	支持国际化输出
 func ErrorI18nToastRoleHasRelation(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "角色存在关联关系"
 	if len(args) > 0 {
@@ -3777,8 +3433,7 @@ func ErrorI18nToastRoleHasRelation(ctx context.Context, args ...interface{}) *er
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastRoleHasRelationID,
-			DefaultMessage: _ToastRoleHasRelationMsg,
+			MessageID: ErrorToastRoleHasRelationID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3822,16 +3477,11 @@ func ErrorToastTeamMemberNotFoundWithContext(_ context.Context, format string, a
 	return errors.New(404, ErrorToastTeamMemberNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastTeamMemberNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastTeamMemberNotFoundID,
-	One:   "团队成员不存在",
-	Other: "团队成员不存在",
-}
-
 // ErrorI18nToastTeamMemberNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_MEMBER_NOT_FOUND
-//  团队成员不存在
-//  支持国际化输出
+//
+//	TEAM_MEMBER_NOT_FOUND
+//	团队成员不存在
+//	支持国际化输出
 func ErrorI18nToastTeamMemberNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队成员不存在"
 	if len(args) > 0 {
@@ -3841,8 +3491,7 @@ func ErrorI18nToastTeamMemberNotFound(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastTeamMemberNotFoundID,
-			DefaultMessage: _ToastTeamMemberNotFoundMsg,
+			MessageID: ErrorToastTeamMemberNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3886,16 +3535,11 @@ func ErrorToastUserMessageNotFoundWithContext(_ context.Context, format string, 
 	return errors.New(404, ErrorToastUserMessageNotFoundID, fmt.Sprintf(format, args...))
 }
 
-var _ToastUserMessageNotFoundMsg = &i18n.Message{
-	ID:    ErrorToastUserMessageNotFoundID,
-	One:   "消息不存在",
-	Other: "消息不存在",
-}
-
 // ErrorI18nToastUserMessageNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_MESSAGE_NOT_FOUND
-//  消息不存在
-//  支持国际化输出
+//
+//	USER_MESSAGE_NOT_FOUND
+//	消息不存在
+//	支持国际化输出
 func ErrorI18nToastUserMessageNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "消息不存在"
 	if len(args) > 0 {
@@ -3905,8 +3549,7 @@ func ErrorI18nToastUserMessageNotFound(ctx context.Context, args ...interface{})
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorToastUserMessageNotFoundID,
-			DefaultMessage: _ToastUserMessageNotFoundMsg,
+			MessageID: ErrorToastUserMessageNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -3942,14 +3585,9 @@ func ErrorNotificationWithContext(_ context.Context, format string, args ...inte
 	return errors.New(500, ErrorNotificationID, fmt.Sprintf(format, args...))
 }
 
-var _NotificationMsg = &i18n.Message{
-	ID:    ErrorNotificationID,
-	One:   "服务器可能遇到了意外，非常抱歉！",
-	Other: "服务器可能遇到了意外，非常抱歉！",
-}
-
 // ErrorI18nNotification 用于通知验证错误， 系统级别错误
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nNotification(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "服务器可能遇到了意外，非常抱歉！"
 	if len(args) > 0 {
@@ -3959,8 +3597,7 @@ func ErrorI18nNotification(ctx context.Context, args ...interface{}) *errors.Err
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorNotificationID,
-			DefaultMessage: _NotificationMsg,
+			MessageID: ErrorNotificationID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4004,16 +3641,11 @@ func ErrorNotificationSystemErrorWithContext(_ context.Context, format string, a
 	return errors.New(500, ErrorNotificationSystemErrorID, fmt.Sprintf(format, args...))
 }
 
-var _NotificationSystemErrorMsg = &i18n.Message{
-	ID:    ErrorNotificationSystemErrorID,
-	One:   "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......",
-	Other: "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......",
-}
-
 // ErrorI18nNotificationSystemError 用于通知验证错误， 系统级别错误
-//  SYSTEM_ERROR
-//  服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......
-//  支持国际化输出
+//
+//	SYSTEM_ERROR
+//	服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......
+//	支持国际化输出
 func ErrorI18nNotificationSystemError(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......"
 	if len(args) > 0 {
@@ -4023,8 +3655,7 @@ func ErrorI18nNotificationSystemError(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorNotificationSystemErrorID,
-			DefaultMessage: _NotificationSystemErrorMsg,
+			MessageID: ErrorNotificationSystemErrorID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4068,16 +3699,11 @@ func ErrorNotificationUnsupportedDataSourceWithContext(_ context.Context, format
 	return errors.New(500, ErrorNotificationUnsupportedDataSourceID, fmt.Sprintf(format, args...))
 }
 
-var _NotificationUnsupportedDataSourceMsg = &i18n.Message{
-	ID:    ErrorNotificationUnsupportedDataSourceID,
-	One:   "不支持的数据源类型",
-	Other: "不支持的数据源类型",
-}
-
 // ErrorI18nNotificationUnsupportedDataSource 用于通知验证错误， 系统级别错误
-//  UNSUPPORTED_DATA_SOURCE
-//  不支持的数据源类型
-//  支持国际化输出
+//
+//	UNSUPPORTED_DATA_SOURCE
+//	不支持的数据源类型
+//	支持国际化输出
 func ErrorI18nNotificationUnsupportedDataSource(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不支持的数据源类型"
 	if len(args) > 0 {
@@ -4087,14 +3713,71 @@ func ErrorI18nNotificationUnsupportedDataSource(ctx context.Context, args ...int
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorNotificationUnsupportedDataSourceID,
-			DefaultMessage: _NotificationUnsupportedDataSourceMsg,
+			MessageID: ErrorNotificationUnsupportedDataSourceID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
 			err = errors.New(500, ErrorNotificationUnsupportedDataSourceID, msg).WithCause(err1)
 		} else {
 			err = errors.New(500, ErrorNotificationUnsupportedDataSourceID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorNotificationDataSourceConfigurationErrorID = "NOTIFICATION__DATA_SOURCE_CONFIGURATION_ERROR"
+
+// IsNotificationDataSourceConfigurationError 用于通知验证错误， 系统级别错误
+//
+//	DATA_SOURCE_CONFIGURATION_ERROR
+//	数据源配置错误,请检查数据格式!
+func IsNotificationDataSourceConfigurationError(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorNotificationDataSourceConfigurationErrorID && e.Code == 500
+}
+
+// ErrorNotificationDataSourceConfigurationError 用于通知验证错误， 系统级别错误
+//
+//	DATA_SOURCE_CONFIGURATION_ERROR
+//	数据源配置错误,请检查数据格式!
+func ErrorNotificationDataSourceConfigurationError(format string, args ...interface{}) *errors.Error {
+	return errors.New(500, ErrorNotificationDataSourceConfigurationErrorID, fmt.Sprintf(format, args...))
+}
+
+// ErrorNotificationDataSourceConfigurationErrorWithContext 用于通知验证错误， 系统级别错误
+//
+//	DATA_SOURCE_CONFIGURATION_ERROR
+//	数据源配置错误,请检查数据格式!
+//	带上下文，支持国际化输出元数据
+func ErrorNotificationDataSourceConfigurationErrorWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(500, ErrorNotificationDataSourceConfigurationErrorID, fmt.Sprintf(format, args...))
+}
+
+// ErrorI18nNotificationDataSourceConfigurationError 用于通知验证错误， 系统级别错误
+//
+//	DATA_SOURCE_CONFIGURATION_ERROR
+//	数据源配置错误,请检查数据格式!
+//	支持国际化输出
+func ErrorI18nNotificationDataSourceConfigurationError(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "数据源配置错误,请检查数据格式!"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(500, ErrorNotificationDataSourceConfigurationErrorID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID: ErrorNotificationDataSourceConfigurationErrorID,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(500, ErrorNotificationDataSourceConfigurationErrorID, msg).WithCause(err1)
+		} else {
+			err = errors.New(500, ErrorNotificationDataSourceConfigurationErrorID, localize)
 		}
 	}
 
@@ -4122,18 +3805,13 @@ func ErrorUnauthorized(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedID,
-	One:   "请先登录",
-	Other: "请先登录",
-}
-
 // ErrorI18nUnauthorized 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nUnauthorized(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请先登录"
 	if len(args) > 0 {
@@ -4143,8 +3821,7 @@ func ErrorI18nUnauthorized(ctx context.Context, args ...interface{}) *errors.Err
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedID,
-			DefaultMessage: _UnauthorizedMsg,
+			MessageID: ErrorUnauthorizedID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4155,7 +3832,7 @@ func ErrorI18nUnauthorized(ctx context.Context, args ...interface{}) *errors.Err
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4188,20 +3865,15 @@ func ErrorUnauthorizedJwtExpire(format string, args ...interface{}) *errors.Erro
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedJwtExpireWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedJwtExpireID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedJwtExpireMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedJwtExpireID,
-	One:   "登录已过期",
-	Other: "登录已过期",
-}
-
 // ErrorI18nUnauthorizedJwtExpire 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_EXPIRE
-//  登录已过期
-//  支持国际化输出
+//
+//	JWT_EXPIRE
+//	登录已过期
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtExpire(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "登录已过期"
 	if len(args) > 0 {
@@ -4211,8 +3883,7 @@ func ErrorI18nUnauthorizedJwtExpire(ctx context.Context, args ...interface{}) *e
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedJwtExpireID,
-			DefaultMessage: _UnauthorizedJwtExpireMsg,
+			MessageID: ErrorUnauthorizedJwtExpireID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4223,7 +3894,7 @@ func ErrorI18nUnauthorizedJwtExpire(ctx context.Context, args ...interface{}) *e
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4256,20 +3927,15 @@ func ErrorUnauthorizedJwtOtherLogin(format string, args ...interface{}) *errors.
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedJwtOtherLoginWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedJwtOtherLoginID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedJwtOtherLoginMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedJwtOtherLoginID,
-	One:   "账号已在其他地方登录",
-	Other: "账号已在其他地方登录",
-}
-
 // ErrorI18nUnauthorizedJwtOtherLogin 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_OTHER_LOGIN
-//  账号已在其他地方登录
-//  支持国际化输出
+//
+//	JWT_OTHER_LOGIN
+//	账号已在其他地方登录
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtOtherLogin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "账号已在其他地方登录"
 	if len(args) > 0 {
@@ -4279,8 +3945,7 @@ func ErrorI18nUnauthorizedJwtOtherLogin(ctx context.Context, args ...interface{}
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedJwtOtherLoginID,
-			DefaultMessage: _UnauthorizedJwtOtherLoginMsg,
+			MessageID: ErrorUnauthorizedJwtOtherLoginID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4291,7 +3956,7 @@ func ErrorI18nUnauthorizedJwtOtherLogin(ctx context.Context, args ...interface{}
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4324,20 +3989,15 @@ func ErrorUnauthorizedJwtBan(format string, args ...interface{}) *errors.Error {
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedJwtBanWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedJwtBanID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedJwtBanMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedJwtBanID,
-	One:   "认证信息已登出，请重新登录",
-	Other: "认证信息已登出，请重新登录",
-}
-
 // ErrorI18nUnauthorizedJwtBan 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_BAN
-//  认证信息已登出，请重新登录
-//  支持国际化输出
+//
+//	JWT_BAN
+//	认证信息已登出，请重新登录
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtBan(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "认证信息已登出，请重新登录"
 	if len(args) > 0 {
@@ -4347,8 +4007,7 @@ func ErrorI18nUnauthorizedJwtBan(ctx context.Context, args ...interface{}) *erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedJwtBanID,
-			DefaultMessage: _UnauthorizedJwtBanMsg,
+			MessageID: ErrorUnauthorizedJwtBanID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4359,7 +4018,7 @@ func ErrorI18nUnauthorizedJwtBan(ctx context.Context, args ...interface{}) *erro
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4392,20 +4051,15 @@ func ErrorUnauthorizedUserNotFound(format string, args ...interface{}) *errors.E
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedUserNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedUserNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedUserNotFoundMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedUserNotFoundID,
-	One:   "账号不存在",
-	Other: "账号不存在",
-}
-
 // ErrorI18nUnauthorizedUserNotFound 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  USER_NOT_FOUND
-//  账号不存在
-//  支持国际化输出
+//
+//	USER_NOT_FOUND
+//	账号不存在
+//	支持国际化输出
 func ErrorI18nUnauthorizedUserNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "账号不存在"
 	if len(args) > 0 {
@@ -4415,8 +4069,7 @@ func ErrorI18nUnauthorizedUserNotFound(ctx context.Context, args ...interface{})
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedUserNotFoundID,
-			DefaultMessage: _UnauthorizedUserNotFoundMsg,
+			MessageID: ErrorUnauthorizedUserNotFoundID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4427,7 +4080,7 @@ func ErrorI18nUnauthorizedUserNotFound(ctx context.Context, args ...interface{})
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4460,20 +4113,15 @@ func ErrorUnauthorizedUserBan(format string, args ...interface{}) *errors.Error 
 //	带上下文，支持国际化输出元数据
 func ErrorUnauthorizedUserBanWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
 	return errors.New(401, ErrorUnauthorizedUserBanID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
-var _UnauthorizedUserBanMsg = &i18n.Message{
-	ID:    ErrorUnauthorizedUserBanID,
-	One:   "您已被禁止使用该系统，请联系官方解除",
-	Other: "您已被禁止使用该系统，请联系官方解除",
-}
-
 // ErrorI18nUnauthorizedUserBan 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  USER_BAN
-//  您已被禁止使用该系统，请联系官方解除
-//  支持国际化输出
+//
+//	USER_BAN
+//	您已被禁止使用该系统，请联系官方解除
+//	支持国际化输出
 func ErrorI18nUnauthorizedUserBan(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已被禁止使用该系统，请联系官方解除"
 	if len(args) > 0 {
@@ -4483,8 +4131,7 @@ func ErrorI18nUnauthorizedUserBan(ctx context.Context, args ...interface{}) *err
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorUnauthorizedUserBanID,
-			DefaultMessage: _UnauthorizedUserBanMsg,
+			MessageID: ErrorUnauthorizedUserBanID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4495,7 +4142,7 @@ func ErrorI18nUnauthorizedUserBan(ctx context.Context, args ...interface{}) *err
 	}
 
 	return err.WithMetadata(map[string]string{
-		"redirect": GetI18nMessage(ctx, "/login", ""),
+		"redirect": GetI18nMessage(ctx, "/login"),
 	})
 }
 
@@ -4522,14 +4169,9 @@ func ErrorForbiddenWithContext(_ context.Context, format string, args ...interfa
 	return errors.New(403, ErrorForbiddenID, fmt.Sprintf(format, args...))
 }
 
-var _ForbiddenMsg = &i18n.Message{
-	ID:    ErrorForbiddenID,
-	One:   "您没有操作权限, 请联系管理员开通该权限",
-	Other: "您没有操作权限, 请联系管理员开通该权限",
-}
-
 // ErrorI18nForbidden 权限不足时候提示, toast提示 权限级别提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nForbidden(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您没有操作权限, 请联系管理员开通该权限"
 	if len(args) > 0 {
@@ -4539,8 +4181,7 @@ func ErrorI18nForbidden(ctx context.Context, args ...interface{}) *errors.Error 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorForbiddenID,
-			DefaultMessage: _ForbiddenMsg,
+			MessageID: ErrorForbiddenID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4584,16 +4225,11 @@ func ErrorForbiddenUserNotInTeamWithContext(_ context.Context, format string, ar
 	return errors.New(403, ErrorForbiddenUserNotInTeamID, fmt.Sprintf(format, args...))
 }
 
-var _ForbiddenUserNotInTeamMsg = &i18n.Message{
-	ID:    ErrorForbiddenUserNotInTeamID,
-	One:   "您已不属于该团队",
-	Other: "您已不属于该团队",
-}
-
 // ErrorI18nForbiddenUserNotInTeam 权限不足时候提示, toast提示 权限级别提示
-//  USER_NOT_IN_TEAM
-//  您已不属于该团队
-//  支持国际化输出
+//
+//	USER_NOT_IN_TEAM
+//	您已不属于该团队
+//	支持国际化输出
 func ErrorI18nForbiddenUserNotInTeam(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已不属于该团队"
 	if len(args) > 0 {
@@ -4603,8 +4239,7 @@ func ErrorI18nForbiddenUserNotInTeam(ctx context.Context, args ...interface{}) *
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorForbiddenUserNotInTeamID,
-			DefaultMessage: _ForbiddenUserNotInTeamMsg,
+			MessageID: ErrorForbiddenUserNotInTeamID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4648,16 +4283,11 @@ func ErrorForbiddenMemberDisabledWithContext(_ context.Context, format string, a
 	return errors.New(403, ErrorForbiddenMemberDisabledID, fmt.Sprintf(format, args...))
 }
 
-var _ForbiddenMemberDisabledMsg = &i18n.Message{
-	ID:    ErrorForbiddenMemberDisabledID,
-	One:   "您已被该团队禁用操作，请联系管理员",
-	Other: "您已被该团队禁用操作，请联系管理员",
-}
-
 // ErrorI18nForbiddenMemberDisabled 权限不足时候提示, toast提示 权限级别提示
-//  MEMBER_DISABLED
-//  您已被该团队禁用操作，请联系管理员
-//  支持国际化输出
+//
+//	MEMBER_DISABLED
+//	您已被该团队禁用操作，请联系管理员
+//	支持国际化输出
 func ErrorI18nForbiddenMemberDisabled(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已被该团队禁用操作，请联系管理员"
 	if len(args) > 0 {
@@ -4667,8 +4297,7 @@ func ErrorI18nForbiddenMemberDisabled(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorForbiddenMemberDisabledID,
-			DefaultMessage: _ForbiddenMemberDisabledMsg,
+			MessageID: ErrorForbiddenMemberDisabledID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4704,14 +4333,9 @@ func ErrorTooManyRequestsWithContext(_ context.Context, format string, args ...i
 	return errors.New(429, ErrorTooManyRequestsID, fmt.Sprintf(format, args...))
 }
 
-var _TooManyRequestsMsg = &i18n.Message{
-	ID:    ErrorTooManyRequestsID,
-	One:   "请求太频繁，请稍后再试",
-	Other: "请求太频繁，请稍后再试",
-}
-
 // ErrorI18nTooManyRequests 触发频率限制
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nTooManyRequests(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请求太频繁，请稍后再试"
 	if len(args) > 0 {
@@ -4721,8 +4345,7 @@ func ErrorI18nTooManyRequests(ctx context.Context, args ...interface{}) *errors.
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorTooManyRequestsID,
-			DefaultMessage: _TooManyRequestsMsg,
+			MessageID: ErrorTooManyRequestsID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4758,14 +4381,9 @@ func ErrorFileRelatedWithContext(_ context.Context, format string, args ...inter
 	return errors.New(430, ErrorFileRelatedID, fmt.Sprintf(format, args...))
 }
 
-var _FileRelatedMsg = &i18n.Message{
-	ID:    ErrorFileRelatedID,
-	One:   "文件相关异常",
-	Other: "文件相关异常",
-}
-
 // ErrorI18nFileRelated 文件相关
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nFileRelated(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "文件相关异常"
 	if len(args) > 0 {
@@ -4775,8 +4393,7 @@ func ErrorI18nFileRelated(ctx context.Context, args ...interface{}) *errors.Erro
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorFileRelatedID,
-			DefaultMessage: _FileRelatedMsg,
+			MessageID: ErrorFileRelatedID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4820,16 +4437,11 @@ func ErrorFileRelatedFileContentDoesNotExistWithContext(_ context.Context, forma
 	return errors.New(430, ErrorFileRelatedFileContentDoesNotExistID, fmt.Sprintf(format, args...))
 }
 
-var _FileRelatedFileContentDoesNotExistMsg = &i18n.Message{
-	ID:    ErrorFileRelatedFileContentDoesNotExistID,
-	One:   "文件:[%s]内容不存在！",
-	Other: "文件:[%s]内容不存在！",
-}
-
 // ErrorI18nFileRelatedFileContentDoesNotExist 文件相关
-//  FILE_CONTENT_DOES_NOT_EXIST
-//  文件:[%s]内容不存在！
-//  支持国际化输出
+//
+//	FILE_CONTENT_DOES_NOT_EXIST
+//	文件:[%s]内容不存在！
+//	支持国际化输出
 func ErrorI18nFileRelatedFileContentDoesNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "文件:[%s]内容不存在！"
 	if len(args) > 0 {
@@ -4839,8 +4451,7 @@ func ErrorI18nFileRelatedFileContentDoesNotExist(ctx context.Context, args ...in
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorFileRelatedFileContentDoesNotExistID,
-			DefaultMessage: _FileRelatedFileContentDoesNotExistMsg,
+			MessageID: ErrorFileRelatedFileContentDoesNotExistID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4884,16 +4495,11 @@ func ErrorFileRelatedFileNotSupportedUploadWithContext(_ context.Context, format
 	return errors.New(430, ErrorFileRelatedFileNotSupportedUploadID, fmt.Sprintf(format, args...))
 }
 
-var _FileRelatedFileNotSupportedUploadMsg = &i18n.Message{
-	ID:    ErrorFileRelatedFileNotSupportedUploadID,
-	One:   "不支持该文件类型：%s上传",
-	Other: "不支持该文件类型：%s上传",
-}
-
 // ErrorI18nFileRelatedFileNotSupportedUpload 文件相关
-//  FILE_NOT_SUPPORTED_UPLOAD
-//  不支持该文件类型：%s上传
-//  支持国际化输出
+//
+//	FILE_NOT_SUPPORTED_UPLOAD
+//	不支持该文件类型：%s上传
+//	支持国际化输出
 func ErrorI18nFileRelatedFileNotSupportedUpload(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不支持该文件类型：%s上传"
 	if len(args) > 0 {
@@ -4903,8 +4509,7 @@ func ErrorI18nFileRelatedFileNotSupportedUpload(ctx context.Context, args ...int
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorFileRelatedFileNotSupportedUploadID,
-			DefaultMessage: _FileRelatedFileNotSupportedUploadMsg,
+			MessageID: ErrorFileRelatedFileNotSupportedUploadID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -4948,16 +4553,11 @@ func ErrorFileRelatedFileMaximumLimitWithContext(_ context.Context, format strin
 	return errors.New(430, ErrorFileRelatedFileMaximumLimitID, fmt.Sprintf(format, args...))
 }
 
-var _FileRelatedFileMaximumLimitMsg = &i18n.Message{
-	ID:    ErrorFileRelatedFileMaximumLimitID,
-	One:   "该类型[%s]文件大小超过最大限制!",
-	Other: "该类型[%s]文件大小超过最大限制!",
-}
-
 // ErrorI18nFileRelatedFileMaximumLimit 文件相关
-//  FILE_MAXIMUM_LIMIT
-//  该类型[%s]文件大小超过最大限制!
-//  支持国际化输出
+//
+//	FILE_MAXIMUM_LIMIT
+//	该类型[%s]文件大小超过最大限制!
+//	支持国际化输出
 func ErrorI18nFileRelatedFileMaximumLimit(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "该类型[%s]文件大小超过最大限制!"
 	if len(args) > 0 {
@@ -4967,8 +4567,7 @@ func ErrorI18nFileRelatedFileMaximumLimit(ctx context.Context, args ...interface
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorFileRelatedFileMaximumLimitID,
-			DefaultMessage: _FileRelatedFileMaximumLimitMsg,
+			MessageID: ErrorFileRelatedFileMaximumLimitID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
@@ -5012,16 +4611,11 @@ func ErrorFileRelatedOssNotOpenedWithContext(_ context.Context, format string, a
 	return errors.New(430, ErrorFileRelatedOssNotOpenedID, fmt.Sprintf(format, args...))
 }
 
-var _FileRelatedOssNotOpenedMsg = &i18n.Message{
-	ID:    ErrorFileRelatedOssNotOpenedID,
-	One:   "oss未打开,不允许上传文件!",
-	Other: "oss未打开,不允许上传文件!",
-}
-
 // ErrorI18nFileRelatedOssNotOpened 文件相关
-//  OSS_NOT_OPENED
-//  oss未打开,不允许上传文件!
-//  支持国际化输出
+//
+//	OSS_NOT_OPENED
+//	oss未打开,不允许上传文件!
+//	支持国际化输出
 func ErrorI18nFileRelatedOssNotOpened(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "oss未打开,不允许上传文件!"
 	if len(args) > 0 {
@@ -5031,8 +4625,7 @@ func ErrorI18nFileRelatedOssNotOpened(ctx context.Context, args ...interface{}) 
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorFileRelatedOssNotOpenedID,
-			DefaultMessage: _FileRelatedOssNotOpenedMsg,
+			MessageID: ErrorFileRelatedOssNotOpenedID,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
