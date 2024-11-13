@@ -16,12 +16,18 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.REPO_PASS }}" | docker login -u "${{ secrets.REPO }}" --password-stdin
 
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags --always)
+          echo "Latest tag is $latest_tag"
+          echo "::set-output name=latest_tag::$latest_tag"
+
       - name: Build and push Docker image
         run: |
           chmod +x build_images.sh
           ./build_images.sh "${{ secrets.REPO }}"
-          VERSION=$(git describe --tags --always)
-          curl -X POST -H "Content-Type: application/json"  -d '{"msg_type":"text","content":{"text":"moon镜像打包完成, 当前版本为：$VERSION"}}' ${{ secrets.HOOK }}
+          curl -X POST -H "Content-Type: application/json"  -d '{"msg_type":"text","content":{"text":"moon镜像打包完成, 当前版本为：${{ steps.get_latest_tag.outputs.latest_tag }}"}}' ${{ secrets.HOOK }}
         env:
           REPO: ${{ secrets.REPO }}
           REPO_PASS: ${{ secrets.REPO_PASS }}
