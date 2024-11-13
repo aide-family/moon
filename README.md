@@ -54,3 +54,9 @@
 * [贡献者](https://github.com/aide-family/moon/graphs/contributors) 这个项目的存在要感谢所有做出贡献的人。
 
 <a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
+
+## 加入讨论
+
+> 以下为方便讨论建立的群组，非公司，欢迎加入。
+
+![feishu](docs/images/feishu-moon.png)
