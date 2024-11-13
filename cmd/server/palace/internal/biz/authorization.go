@@ -271,6 +271,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	return &bo.RefreshTokenReply{
 		User:      userDo,
 		JwtClaims: jwtClaims,
+		TeamID:    middleware.GetTeamID(ctx),
 	}, nil
 }
 

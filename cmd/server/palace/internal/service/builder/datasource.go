@@ -158,6 +158,7 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 		Remark:         u.GetRemark(),
 		StorageType:    vobj.StorageType(u.GetStorageType()),
 		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
+		ConfigValue:    u.GetConfigValue(),
 	}
 }
 

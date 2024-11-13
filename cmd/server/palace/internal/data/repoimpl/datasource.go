@@ -148,6 +148,7 @@ func (l *datasourceRepositoryImpl) UpdateDatasourceBaseInfo(ctx context.Context,
 		bizQuery.Datasource.Remark.Value(datasource.Remark),
 		bizQuery.Datasource.StorageType.Value(datasource.StorageType.GetValue()),
 		bizQuery.Datasource.Category.Value(datasource.DatasourceType.GetValue()),
+		bizQuery.Datasource.Config.Value(datasource.ConfigValue),
 	)
 	return err
 }
@@ -158,7 +159,7 @@ func (l *datasourceRepositoryImpl) UpdateDatasourceConfig(ctx context.Context, d
 		return err
 	}
 	_, err = bizQuery.Datasource.WithContext(ctx).Where(bizQuery.Datasource.ID.Eq(datasource.ID)).UpdateColumnSimple(
-		bizQuery.Datasource.Config.Value(datasource.Config),
+		bizQuery.Datasource.Config.Value(datasource.ConfigValue),
 		bizQuery.Datasource.Category.Value(datasource.Type.GetValue()),
 		bizQuery.Datasource.StorageType.Value(datasource.StorageType.GetValue()),
 	)

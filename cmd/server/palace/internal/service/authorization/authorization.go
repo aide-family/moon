@@ -110,8 +110,9 @@ func (s *Service) RefreshToken(ctx context.Context, req *authorizationapi.Refres
 		return nil, err
 	}
 	return &authorizationapi.RefreshTokenReply{
-		Token: token,
-		User:  builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(tokenRes.User),
+		Token:  token,
+		User:   builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(tokenRes.User),
+		TeamID: tokenRes.TeamID,
 	}, nil
 }
 
