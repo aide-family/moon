@@ -61,6 +61,14 @@ service Authorization {
     };
   }
 
+  // 邮箱注册
+  rpc RegisterWithEmail (RegisterWithEmailRequest) returns (RegisterWithEmailReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/register_with_email"
+      body: "*"
+    };
+  }
+
   // 校验用户在当前资源下是否有权限
   rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
 
@@ -206,3 +214,29 @@ message VerifyEmailRequest {
   AuthCaptcha captcha = 2 [(buf.validate.field).required = true];
 }
 message VerifyEmailReply {}
+
+message RegisterWithEmailRequest {
+  string username = 1 [(buf.validate.field).cel = {
+    message: "必须输入用户名",
+    expression: "this.size() > 0"
+  }];
+  string email = 2 [(buf.validate.field).cel = {
+    message: "必须输入邮箱",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "必须为有效的电子邮件地址",
+    expression: "this.isEmail()"
+  }];
+  string password = 3 [(buf.validate.field).cel = {
+    message: "必须输入密码",
+    expression: "this.size() > 0"
+  }];
+  string code = 4 [(buf.validate.field).cel = {
+    message: "必须输入验证码",
+    expression: "this.size() > 0"
+  }];
+}
+message RegisterWithEmailReply {
+  UserItem user = 1;
+  string token = 2;
+}

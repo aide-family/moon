@@ -11,6 +11,8 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/errors"
+	"gorm.io/gorm"
 
 	"gorm.io/gen"
 )
@@ -86,9 +88,18 @@ func (l *userRepositoryImpl) UpdatePassword(ctx context.Context, id uint32, pass
 }
 
 func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
+	// 根据email查询用户，如果存在，则返回错误
+	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
+	if sysUser, err := userQuery.WithContext(ctx).Where(userQuery.Email.Eq(user.Email)).First(); !types.IsNil(err) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	} else {
+		return sysUser, nil
+	}
 	userModel := createUserParamsToModel(ctx, user)
 	userModel.WithContext(ctx)
-	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
+
 	if err := userQuery.WithContext(ctx).Create(userModel); !types.IsNil(err) {
 		return nil, err
 	}

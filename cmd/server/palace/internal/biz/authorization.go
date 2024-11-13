@@ -437,3 +437,36 @@ func (b *AuthorizationBiz) OAuthLoginVerifyEmail(ctx context.Context, e string) 
 	}
 	return b.oAuthRepo.SendVerifyEmail(ctx, e)
 }
+
+// EmailLoginVerifyEmail 验证邮箱
+func (b *AuthorizationBiz) EmailLoginVerifyEmail(ctx context.Context, req *auth.EmailLoginParams) error {
+	if err := helper.CheckEmail(req.Email); err != nil {
+		return err
+	}
+	return b.oAuthRepo.CheckVerifyEmailCode(ctx, req.Email, req.Code)
+}
+
+// RegisterWithEmail 邮箱注册
+func (b *AuthorizationBiz) RegisterWithEmail(ctx context.Context, req *auth.RegisterWithEmailParams) (*bo.RefreshTokenReply, error) {
+	pass := types.NewPassword(req.Password)
+	// 创建用户
+	sysUserDo, err := b.userRepo.Create(ctx, &bo.CreateUserParams{
+		Name:     req.Username,
+		Password: pass,
+		Email:    req.Email,
+		Status:   vobj.StatusEnable,
+		Role:     vobj.RoleUser,
+	})
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	base, err := b.getJwtBaseInfo(ctx, sysUserDo, 0)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	jwtClaims := middleware.NewJwtClaims(base)
+	return &bo.RefreshTokenReply{
+		User:      sysUserDo,
+		JwtClaims: jwtClaims,
+	}, nil
+}

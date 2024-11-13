@@ -201,7 +201,7 @@ func (s *Service) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 
 // SetEmailWithLogin 设置邮箱并登录
 func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.SetEmailWithLoginRequest) (*authorizationapi.SetEmailWithLoginReply, error) {
-	// TODO 验证临时密码
+	// 验证临时密码
 	params := &auth.OauthLoginParams{
 		Code:    req.GetCode(),
 		Email:   req.GetEmail(),
@@ -225,7 +225,6 @@ func (s *Service) SetEmailWithLogin(ctx context.Context, req *authorizationapi.S
 
 // VerifyEmail 验证邮箱
 func (s *Service) VerifyEmail(ctx context.Context, req *authorizationapi.VerifyEmailRequest) (*authorizationapi.VerifyEmailReply, error) {
-	// TODO 验证临时密码
 	captchaInfo := req.GetCaptcha()
 	// 校验验证码
 	if err := s.captchaBiz.VerifyCaptcha(ctx, &bo.ValidateCaptchaParams{ID: captchaInfo.GetId(), Value: captchaInfo.GetCode()}); !types.IsNil(err) {
@@ -235,4 +234,34 @@ func (s *Service) VerifyEmail(ctx context.Context, req *authorizationapi.VerifyE
 		return nil, err
 	}
 	return &authorizationapi.VerifyEmailReply{}, nil
+}
+
+// RegisterWithEmail 通过邮箱注册
+func (s *Service) RegisterWithEmail(ctx context.Context, req *authorizationapi.RegisterWithEmailRequest) (*authorizationapi.RegisterWithEmailReply, error) {
+	// 验证邮箱和code
+	params := &auth.EmailLoginParams{
+		Code:  req.GetCode(),
+		Email: req.GetEmail(),
+	}
+	if err := s.authorizationBiz.EmailLoginVerifyEmail(ctx, params); !types.IsNil(err) {
+		return nil, err
+	}
+
+	// 创建并登陆
+	loginReply, err := s.authorizationBiz.RegisterWithEmail(ctx, &auth.RegisterWithEmailParams{
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+		Username: req.GetUsername(),
+	})
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	token, err := loginReply.JwtClaims.GetToken()
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return &authorizationapi.RegisterWithEmailReply{
+		User:  builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
+		Token: token,
+	}, nil
 }
