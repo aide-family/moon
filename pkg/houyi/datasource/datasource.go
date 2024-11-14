@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/aide-family/moon/api"
@@ -68,20 +69,31 @@ type EvalFunc func(ctx context.Context, expr string, duration *types.Duration) (
 
 func MetricEval(items ...MetricDatasource) EvalFunc {
 	return func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
-		evalRes := make(map[watch.Indexer]*Point)
+		var wg sync.WaitGroup
+		evalRes := new(sync.Map)
 		endAt := time.Now()
 		startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
 		for _, item := range items {
-			list, err := metricEval(ctx, item, expr, startAt.Unix(), endAt.Unix())
-			if err != nil {
-				log.Warnw("eval", err)
-				continue
-			}
-			for k, v := range list {
-				evalRes[k] = v
-			}
+			wg.Add(1)
+			go func(d MetricDatasource) {
+				defer wg.Done()
+				list, err := metricEval(ctx, item, expr, startAt.Unix(), endAt.Unix())
+				if err != nil {
+					log.Warnw("eval", err)
+					return
+				}
+				for k, v := range list {
+					evalRes.Store(k, v)
+				}
+			}(item)
 		}
-		return evalRes, nil
+		wg.Wait()
+		res := make(map[watch.Indexer]*Point)
+		evalRes.Range(func(k, v any) bool {
+			res[k.(watch.Indexer)] = v.(*Point)
+			return true
+		})
+		return res, nil
 	}
 }
 
