@@ -8,6 +8,7 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -76,6 +77,7 @@ func MetricEval(items ...MetricDatasource) EvalFunc {
 		for _, item := range items {
 			wg.Add(1)
 			go func(d MetricDatasource) {
+				defer after.RecoverX()
 				defer wg.Done()
 				list, err := metricEval(ctx, item, expr, startAt.Unix(), endAt.Unix())
 				if err != nil {
