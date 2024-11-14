@@ -22,3 +22,7 @@ type ServerRegisterBiz struct {
 func (s *ServerRegisterBiz) Heartbeat(ctx context.Context, request *api.HeartbeatRequest) error {
 	return s.serverRegisterRepository.Heartbeat(ctx, request)
 }
+
+func (s *ServerRegisterBiz) GetServerList(ctx context.Context, request *api.GetServerListRequest) (*api.GetServerListReply, error) {
+	return s.serverRegisterRepository.GetServerList(ctx, request)
+}

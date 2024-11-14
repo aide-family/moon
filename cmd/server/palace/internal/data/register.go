@@ -45,6 +45,8 @@ type Srv struct {
 	httpClient *http.Client
 	// 服务注册时间
 	registerTime time.Time
+	// 服务开始时间
+	firstRegisterTime time.Time
 }
 
 func (l *SrvList) appendSrv(key string, srv *Srv) {
@@ -53,6 +55,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	}
 	l.lock.Lock()
 	defer l.lock.Unlock()
+	srv.firstRegisterTime = time.Now()
 	oldSrv, ok := l.srvs[key]
 	if !ok {
 		l.srvs[key] = srv

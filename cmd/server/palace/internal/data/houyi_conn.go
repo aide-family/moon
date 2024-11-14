@@ -66,6 +66,35 @@ type HouYiConn struct {
 	teamIds       []uint32
 }
 
+// 获取houyi服务列表
+func (l *HouYiConn) GetServerList() (*api.GetServerListReply, error) {
+	var list []*api.ServerItem
+	for _, conn := range l.srvs.getSrvs() {
+		var httpEndpoint string
+		var grpcEndpoint string
+		if conn.srvInfo.Network == "http" || conn.srvInfo.Network == "https" {
+			httpEndpoint = conn.srvInfo.Endpoint
+		} else if conn.srvInfo.Network == "rpc" {
+			grpcEndpoint = conn.srvInfo.Endpoint
+		}
+		upTime := time.Now().Sub(conn.firstRegisterTime).String()
+		list = append(list, &api.ServerItem{
+			Version: conn.srvInfo.NodeVersion,
+			Server: &conf.Server{
+				Name:         conn.srvInfo.Name,
+				HttpEndpoint: httpEndpoint,
+				GrpcEndpoint: grpcEndpoint,
+				Network:      conn.srvInfo.Network,
+				StartTime:    conn.firstRegisterTime.Format("2006-01-02 15:04:05"),
+				UpTime:       upTime,
+			},
+		})
+	}
+	return &api.GetServerListReply{
+		List: list,
+	}, nil
+}
+
 func (l *HouYiConn) setTeamIds(teamIds []uint32) {
 	l.lock.Lock()
 	defer l.lock.Unlock()

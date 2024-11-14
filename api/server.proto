@@ -18,6 +18,13 @@ service Server {
 		};
 	}
 
+	//获取服务列表
+	rpc GetServerList(GetServerListRequest) returns(GetServerListReply){
+		option(google.api.http) = {
+			get:"/v1/server/list"
+		};
+	}
+
 	// 心跳
 	rpc Heartbeat (HeartbeatRequest) returns (HeartbeatReply) {
 		option (google.api.http) = {
@@ -25,6 +32,16 @@ service Server {
 			body: "*"
 		};
 	}
+
+
+}
+
+message GetServerListRequest{
+	string type = 1;
+}
+
+message GetServerListReply {
+	repeated  ServerItem list = 1;
 }
 
 message GetServerInfoRequest {
