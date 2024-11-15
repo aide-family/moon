@@ -29,7 +29,7 @@ const (
 )
 
 // Judge 判断是否符合条件
-func (c Condition) Judge(threshold, value float64) bool {
+func (c Condition) Judge(value, threshold float64) bool {
 	switch c {
 	case ConditionEQ:
 		return threshold == value

@@ -12,16 +12,16 @@ var _ watch.Indexer = (*Alert)(nil)
 type (
 	// Alarm alarm detail info
 	Alarm struct {
-		Receiver          string           `json:"receiver"`
-		Status            vobj.AlertStatus `json:"status"`
-		Alerts            []*Alert         `json:"alerts"`
-		GroupLabels       *vobj.Labels     `json:"groupLabels"`
-		CommonLabels      *vobj.Labels     `json:"commonLabels"`
-		CommonAnnotations vobj.Annotations `json:"commonAnnotations"`
-		ExternalURL       string           `json:"externalURL"`
-		Version           string           `json:"version"`
-		GroupKey          string           `json:"groupKey"`
-		TruncatedAlerts   int32            `json:"truncatedAlerts"`
+		Receiver          string            `json:"receiver"`
+		Status            vobj.AlertStatus  `json:"status"`
+		Alerts            []*Alert          `json:"alerts"`
+		GroupLabels       *vobj.Labels      `json:"groupLabels"`
+		CommonLabels      *vobj.Labels      `json:"commonLabels"`
+		CommonAnnotations *vobj.Annotations `json:"commonAnnotations"`
+		ExternalURL       string            `json:"externalURL"`
+		Version           string            `json:"version"`
+		GroupKey          string            `json:"groupKey"`
+		TruncatedAlerts   int32             `json:"truncatedAlerts"`
 	}
 
 	alarmInfo struct {
@@ -127,7 +127,7 @@ func (a *Alarm) String() string {
 		}),
 		GroupLabels:       a.GroupLabels.Map(),
 		CommonLabels:      a.CommonLabels.Map(),
-		CommonAnnotations: a.CommonAnnotations,
+		CommonAnnotations: a.CommonAnnotations.Map(),
 		ExternalURL:       a.ExternalURL,
 		Version:           a.Version,
 		GroupKey:          a.GroupKey,

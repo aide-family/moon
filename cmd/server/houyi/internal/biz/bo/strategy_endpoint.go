@@ -38,7 +38,7 @@ type (
 		// 策略标签
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
-		Annotations vobj.Annotations `json:"annotations,omitempty"`
+		Annotations *vobj.Annotations `json:"annotations,omitempty"`
 		// 接收者 （告警组ID列表）
 		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
 		// 自定义接收者匹配对象
@@ -112,7 +112,7 @@ func (e *StrategyEndpoint) GetLabelNotices() []*LabelNotices {
 }
 
 func (e *StrategyEndpoint) GetAnnotations() map[string]string {
-	return e.Annotations
+	return e.Annotations.Map()
 }
 
 func (e *StrategyEndpoint) GetInterval() *types.Duration {
