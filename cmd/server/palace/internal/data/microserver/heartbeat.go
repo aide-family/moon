@@ -23,6 +23,17 @@ type serverRegisterRepositoryImpl struct {
 	rabbitConn *data.RabbitConn
 }
 
+func (s *serverRegisterRepositoryImpl) GetServerList(ctx context.Context, request *api.GetServerListRequest) (*api.GetServerListReply, error) {
+	if request.Type == "houyi" {
+		return s.houyiConn.GetServerList()
+	} else if request.Type == "rabbit" {
+		return s.rabbitConn.GetServerList()
+	} else {
+		return &api.GetServerListReply{}, nil
+	}
+
+}
+
 func (s *serverRegisterRepositoryImpl) Heartbeat(ctx context.Context, request *api.HeartbeatRequest) error {
 	srv := request.GetServer()
 	srvName := strings.ToLower(srv.GetName())

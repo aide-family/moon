@@ -19,6 +19,10 @@ message Server {
   // 网络类型
   string network = 5;
   optional string secret = 6;
+  //上线时间
+  string startTime = 7;
+  //在线时长
+  string upTime = 8;
 }
 
 // http服务配置
