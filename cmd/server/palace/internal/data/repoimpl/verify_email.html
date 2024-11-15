@@ -2,16 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>邮箱验证码</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #007bff;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .message {
+            font-size: 16px;
+            margin: 20px 0;
+            color: #555;
+            text-align: center;
+        }
+
+        .info-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .info-list li {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .highlight {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .footer {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+            line-height: 1.4;
+        }
+    </style>
 </head>
 <body>
-<div>
-    <h2>欢迎使用<a href="{{.RedirectURI}}">{{.APP}}</a></h2>
-    <p>{{.Remark}}</P>
-    <ul>
-        <li>用户名：{{.Email}}</li>
-        <li>验证码：{{.Code}}</li>
+<div class="container">
+    <div class="header">
+        <h2>欢迎使用 <a href="{{.RedirectURI}}" style="color: inherit; text-decoration: none;">{{.APP}}</a></h2>
+    </div>
+    <p class="message">{{.Remark}}</p>
+    <ul class="info-list">
+        <li>用户名：<span class="highlight">{{.Email}}</span></li>
+        <li>验证码：<span class="highlight">{{.Code}}</span></li>
     </ul>
+    <p style="text-align: center; font-size: 14px; color: #999;">请在5分钟内使用该验证码完成操作。</p>
+    <div style="text-align: center;">
+        <a href="{{.RedirectURI}}" class="button">立即访问 {{.APP}}</a>
+    </div>
+    <div class="footer">
+        <p>如果不是您本人操作，请忽略此邮件，您的账户将保持安全。</p>
+        <p>如有任何疑问，请联系我们的<a href="https://github.com/aide-family/moon">支持团队</a>。</p>
+    </div>
 </div>
 </body>
 </html>

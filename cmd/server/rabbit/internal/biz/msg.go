@@ -2,19 +2,19 @@ package biz
 
 import (
 	"context"
+	"sync"
 	"time"
-
-	"github.com/aide-family/moon/pkg/conf"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/data"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/notify"
 	"github.com/aide-family/moon/pkg/notify/email"
 	"github.com/aide-family/moon/pkg/notify/hook"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
-
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -33,11 +33,6 @@ type MsgBiz struct {
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	if types.TextIsNull(msg.Route) {
 		return nil
-	}
-
-	var msgMap notify.Msg
-	if err := types.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
-		return err
 	}
 
 	config := GetConfigData()
@@ -89,25 +84,55 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 		senderList = append(senderList, email.New(globalEmailConfig, emailItemNotify))
 	}
 
-	// 发送hook告警
-	for _, sender := range senderList {
-		send := sender
-		key := msg.Key(send)
-		if !types.TextIsNull(key) {
-			ok, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return nil
-			}
-		}
-
-		if err := send.Send(ctx, msgMap); !types.IsNil(err) {
-			log.Warnw("send hook error", err, "receiver", send.Type())
-			// 删除缓存  加入重试队列
-			b.data.GetCacher().Delete(ctx, key)
-		}
-	}
+	// 异步发送消息
+	b.sendMsg(ctx, msg, senderList...)
 	return nil
+}
+
+func (b *MsgBiz) sendMsg(ctx context.Context, msg *bo.SendMsgParams, sends ...notify.Notify) {
+	if types.IsNil(msg) || len(sends) == 0 {
+		return
+	}
+
+	var msgMap notify.Msg
+	if err := types.Unmarshal(msg.Data, &msgMap); !types.IsNil(err) {
+		return
+	}
+
+	if msgMap == nil || len(msgMap) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+	// 发送hook告警
+	for _, sender := range sends {
+		if sender == nil {
+			continue
+		}
+		wg.Add(1)
+		go func(send notify.Notify) {
+			defer after.RecoverX()
+			defer wg.Done()
+			key := msg.Key(send)
+			if types.TextIsNull(key) {
+				return
+			}
+
+			nxOK, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
+			if err != nil {
+				log.Warnw("method", "set cache error", "err", err)
+				return
+			}
+			if !nxOK {
+				return
+			}
+
+			if err := send.Send(ctx, msgMap); !types.IsNil(err) {
+				log.Warnw("method", "send hook error", "err", err, "receiver", send.Type())
+				// 删除缓存  加入重试队列
+				_ = b.data.GetCacher().Delete(ctx, key)
+			}
+		}(sender)
+	}
+	wg.Wait()
 }
