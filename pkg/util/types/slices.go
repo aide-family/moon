@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"math/rand"
 	"sort"
 )
 
@@ -231,4 +232,18 @@ func NewUint32SlicePointer(uint32Slice []uint32) *Slice[uint32] {
 	}
 	slice := uint32Slice
 	return (*Slice[uint32])(&slice)
+}
+
+// GetRandomElement 获取随机元素
+func GetRandomElement[T any](slice []T) T {
+	if len(slice) == 0 {
+		var zero T
+		return zero
+	}
+
+	// 生成一个随机索引
+	randomIndex := rand.Intn(len(slice))
+
+	// 返回随机索引对应的对象
+	return slice[randomIndex]
 }

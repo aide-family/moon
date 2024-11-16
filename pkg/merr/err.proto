@@ -342,6 +342,12 @@ enum ErrorReason {
       message: "邀请记录不存在",
       metadata: {key: "teamInvite", value: "TEAM_INVITE_NOT_FOUND"}
     },
+    // 告警发送历史不存在
+    (errors.biz_reason) = {
+      reason: "ALARM_SEND_HISTORY_NOT_FOUND"
+      message: "告警发送历史不存在",
+      metadata: {key: "alarmSendHistory", value: "ALARM_SEND_HISTORY_NOT_FOUND"}
+    },
     // 角色存在关联关系
     (errors.biz_reason) = {
       reason: "ROLE_HAS_RELATION"
@@ -458,6 +464,31 @@ enum ErrorReason {
       // oss未打开
       reason: "OSS_NOT_OPENED"
       message: "oss未打开,不允许上传文件!",
+    }
+  ];
+  PARAMETER_RELATED = 8[
+    (errors.code) = 431,
+    (errors.message) = "参数相关异常",
+    (errors.id) = "PARAMETER_RELATED",
+    (errors.biz_reason) = {
+      // 更新参数不存在
+      reason: "UPDATE_PARAMETER_NOT_FOUND"
+      message: "更新参数不存在！",
+    },
+    (errors.biz_reason) = {
+      // 创建参数不存在
+      reason: "CREATE_PARAMETER_NOT_FOUND"
+      message: "创建参数不存在！",
+    },
+    (errors.biz_reason) = {
+      // id不允许为空！
+      reason: "ID_MUST_NOT_BE_EMPTY"
+      message: "id不允许为空！",
+    },
+    (errors.biz_reason) = {
+      // 告警发送接收参数不合法！
+      reason: "ALARM_SENDING_AND_RECEIVING_PARAMETERS_ARE_INVALID"
+      message: "告警发送接收参数不合法！",
     }
   ];
 }

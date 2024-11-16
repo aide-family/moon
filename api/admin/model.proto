@@ -675,3 +675,25 @@ message InviteItem{
   uint32 id = 3;
   InviteType inviteType = 4;
 }
+
+// alarm send item
+message AlarmSendItem{
+  // 告警组id
+  uint32 alarmGroupId = 1;
+  // 发送数据
+  string sendData = 2;
+  // 重试次数
+  int32 RetryNumber = 3;
+  // 请求id
+  string requestId = 4;
+  // 发送状态
+  SendStatus sendStatus = 5;
+  // 发送时间
+  string sendTime = 6;
+  uint32 id = 7;
+  // 告警组
+  AlarmNoticeGroupItem alarmGroup = 8;
+}
+
+
+

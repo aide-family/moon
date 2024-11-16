@@ -30,4 +30,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewServerRegisterBiz,
 	NewFileBiz,
 	NewSystemBiz,
+	NewAlarmSendBiz,
 )

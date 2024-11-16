@@ -261,6 +261,13 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
 
+	if req.Team == 0 {
+		teamList := b.cacheRepo.GetUserTeamList(ctx, userDo.ID)
+		if len(teamList) > 0 {
+			req.Team = types.GetRandomElement(teamList).ID
+		}
+	}
+
 	// 生成token
 	base, err := b.getJwtBaseInfo(ctx, userDo, req.Team)
 	if !types.IsNil(err) {
@@ -271,7 +278,7 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	return &bo.RefreshTokenReply{
 		User:      userDo,
 		JwtClaims: jwtClaims,
-		TeamID:    middleware.GetTeamID(ctx),
+		TeamID:    jwtClaims.TeamID,
 	}, nil
 }
 

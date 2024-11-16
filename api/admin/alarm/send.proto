@@ -1,0 +1,66 @@
+syntax = "proto3";
+package api.admin.alarm;
+
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/alarm;alarm";
+option java_multiple_files = true;
+option java_package = "api.admin.alarm";
+
+service Send {
+  // 获取发送详情
+  rpc GetAlarmSendHistory (GetAlarmSendRequest) returns (GetAlarmSendReply){
+    option (google.api.http) = {
+      get: "/v1/admin/alarm/send/{id}"
+    };
+  };
+  // 告警发送列表
+  rpc ListSendHistory (ListAlarmSendRequest) returns (ListAlarmSendReply){
+    option (google.api.http) = {
+      post: "/v1/admin/alarm/send/list"
+      body: "*"
+    };
+  };
+  // 重试发送
+  rpc RetrySend (RetrySendRequest) returns (RetrySendReply){
+    option (google.api.http) = {
+      post: "/v1/admin/alarm/send/retry"
+      body: "*"
+    };
+  };
+}
+
+message RetrySendRequest {
+  string requestId = 1 [(buf.validate.field).required = true];
+}
+
+message RetrySendReply{}
+
+message GetAlarmSendRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+}
+message GetAlarmSendReply {
+  AlarmSendItem detail = 1;
+}
+
+message ListAlarmSendRequest {
+  PaginationReq pagination = 1;
+  string keyword = 2 [(buf.validate.field).cel = {
+    id: "keyword",
+    message: "关键字查询限制在20字以内",
+    expression: "this.size() <= 20"
+  }];
+  repeated SendStatus sendStatus = 3;
+  // 时间范围
+  string sendStartTime = 4;
+  string sendEndTime = 5;
+}
+message ListAlarmSendReply {
+  PaginationReply pagination = 1;
+  repeated AlarmSendItem list = 2;
+}
