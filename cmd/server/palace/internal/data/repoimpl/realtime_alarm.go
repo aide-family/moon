@@ -127,7 +127,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		if err = bizQuery.AlarmNoticeMember.WithContext(ctx).
 			Where(bizQuery.AlarmNoticeMember.MemberID.Eq(middleware.GetTeamMemberID(ctx))).
 			Select(bizQuery.AlarmNoticeMember.AlarmGroupID).Group(bizQuery.AlarmNoticeMember.AlarmGroupID).
-			Scan(alarmNoticeGroupIDs); err != nil {
+			Scan(&alarmNoticeGroupIDs); err != nil {
 			return nil, err
 		}
 		var realtimeAlarmIDs []uint32
