@@ -201,6 +201,12 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 	// 生成token
 	base := new(middleware.JwtBaseInfo)
 	base.SetUserInfo(userDo.ID)
+	if teamID == 0 {
+		teamList := b.cacheRepo.GetUserTeamList(ctx, userDo.ID)
+		if len(teamList) > 0 {
+			teamID = teamList[0].ID
+		}
+	}
 	// 查询用户所属团队是否存在，存在着set temId memberId
 	if teamID > 0 {
 		memberItem, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, teamID)
@@ -259,13 +265,6 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 			return nil, merr.ErrorI18nUnauthorizedUserNotFound(ctx)
 		}
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
-	}
-
-	if req.Team == 0 {
-		teamList := b.cacheRepo.GetUserTeamList(ctx, userDo.ID)
-		if len(teamList) > 0 {
-			req.Team = types.GetRandomElement(teamList).ID
-		}
 	}
 
 	// 生成token

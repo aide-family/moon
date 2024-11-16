@@ -48,7 +48,7 @@ type RabbitConn struct {
 	discoveryConf *conf.Discovery
 }
 
-// 获取rabbit服务列表
+// GetServerList 获取rabbit服务列表
 func (l *RabbitConn) GetServerList() (*api.GetServerListReply, error) {
 	var list []*api.ServerItem
 	for _, conn := range l.srvs.getSrvs() {
@@ -59,7 +59,9 @@ func (l *RabbitConn) GetServerList() (*api.GetServerListReply, error) {
 		} else if conn.srvInfo.Network == "rpc" {
 			grpcEndpoint = conn.srvInfo.Endpoint
 		}
-		upTime := time.Now().Sub(conn.firstRegisterTime).String()
+		now := time.Now().Unix()
+		firstRegisterTime := conn.firstRegisterTime.Unix()
+		upTime := time.Unix(now, 0).Sub(time.Unix(firstRegisterTime, 0)).String()
 		list = append(list, &api.ServerItem{
 			Version: conn.srvInfo.NodeVersion,
 			Server: &conf.Server{
@@ -67,7 +69,7 @@ func (l *RabbitConn) GetServerList() (*api.GetServerListReply, error) {
 				HttpEndpoint: httpEndpoint,
 				GrpcEndpoint: grpcEndpoint,
 				Network:      conn.srvInfo.Network,
-				StartTime:    conn.firstRegisterTime.Format("2006-01-02 15:04:05"),
+				StartTime:    types.NewTime(conn.firstRegisterTime).String(),
 				UpTime:       upTime,
 			},
 		})
