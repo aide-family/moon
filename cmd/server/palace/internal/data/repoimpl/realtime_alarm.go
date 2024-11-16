@@ -115,6 +115,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 			Scan(&realtimeAlarmIDs); err != nil {
 			return nil, err
 		}
+		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.In(realtimeAlarmIDs...))
 	}
 	// 获取指定人员告警数据
 	if params.MyAlarm {
@@ -137,6 +138,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 			Scan(&realtimeAlarmIDs); err != nil {
 			return nil, err
 		}
+		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.In(realtimeAlarmIDs...))
 	}
 
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)
