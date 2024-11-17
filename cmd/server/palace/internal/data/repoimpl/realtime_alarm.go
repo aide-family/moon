@@ -122,7 +122,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	// 获取指定告警页面告警数据
 	if params.AlarmPageID > 0 {
 		var realtimeAlarmIDs []uint32
-		if err = alarmQuery.WithContext(ctx).RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.ID.Eq(params.AlarmPageID)).
+		if err = alarmQuery.WithContext(ctx).RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.PageID.Eq(params.AlarmPageID)).
 			Select(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).Group(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).
 			Scan(&realtimeAlarmIDs); err != nil {
 			return nil, err
