@@ -56,9 +56,15 @@ type (
 		YamlModuleBuilder() IFileModuleBuild
 
 		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
+		MqDataSourceModuleBuild() IMqDataSourceModuleBuild
 	}
 )
 
+func (p *paramsBuilder) MqDataSourceModuleBuild() IMqDataSourceModuleBuild {
+	return &mqDatasourceModuleBuild{
+		ctx: p.ctx,
+	}
+}
 func (p *paramsBuilder) AlarmSendModuleBuilder() IAlarmSendModuleBuilder {
 	return &alarmSendModuleBuilder{ctx: p.ctx}
 }

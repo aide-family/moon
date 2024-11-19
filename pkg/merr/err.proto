@@ -481,11 +481,6 @@ enum ErrorReason {
       message: "创建参数不存在！",
     },
     (errors.biz_reason) = {
-      // id不允许为空！
-      reason: "ID_MUST_NOT_BE_EMPTY"
-      message: "id不允许为空！",
-    },
-    (errors.biz_reason) = {
       // 告警发送接收参数不合法！
       reason: "ALARM_SENDING_AND_RECEIVING_PARAMETERS_ARE_INVALID"
       message: "告警发送接收参数不合法！",

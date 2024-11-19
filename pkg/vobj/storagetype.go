@@ -15,3 +15,11 @@ const (
 	// StorageTypeVictoriametrics VictoriaMetrics
 	StorageTypeVictoriametrics // VictoriaMetrics
 )
+
+const (
+	StorageTypeMQUnknown StorageType = iota + 9
+	StorageTypeKafka                 // Kafka
+	StorageTypeRabbitMQ              // RabbitMQ
+	StorageTypeRocketMQ              // RocketMQ
+	StorageTypeMQTT                  // MQTT
+)
