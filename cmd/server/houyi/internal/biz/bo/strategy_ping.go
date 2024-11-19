@@ -37,7 +37,7 @@ type StrategyPing struct {
 	// 策略标签
 	Labels *vobj.Labels `json:"labels,omitempty"`
 	// 策略注解
-	Annotations vobj.Annotations `json:"annotations,omitempty"`
+	Annotations *vobj.Annotations `json:"annotations,omitempty"`
 	// 接收者 （告警组ID列表）
 	ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
 	// 域名或IP
@@ -112,7 +112,7 @@ func (s *StrategyPing) GetLabelNotices() []*LabelNotices {
 }
 
 func (s *StrategyPing) GetAnnotations() map[string]string {
-	return s.Annotations
+	return s.Annotations.Map()
 }
 
 func (s *StrategyPing) GetInterval() *types.Duration {

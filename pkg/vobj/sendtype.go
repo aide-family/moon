@@ -1,6 +1,6 @@
 package vobj
 
-// SendType 字典类型
+// SendType 发送类型
 //
 //go:generate go run ../../cmd/server/stringer/cmd.go -type=SendType -linecomment
 type SendType int

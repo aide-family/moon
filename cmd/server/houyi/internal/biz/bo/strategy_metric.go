@@ -67,7 +67,7 @@ type (
 		// 策略标签
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
-		Annotations vobj.Annotations `json:"annotations,omitempty"`
+		Annotations *vobj.Annotations `json:"annotations,omitempty"`
 		// 执行频率
 		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源
@@ -139,7 +139,7 @@ func (s *StrategyMetric) GetLabelNotices() []*LabelNotices {
 }
 
 func (s *StrategyMetric) GetAnnotations() map[string]string {
-	return s.Annotations
+	return s.Annotations.Map()
 }
 
 func (s *StrategyMetric) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {

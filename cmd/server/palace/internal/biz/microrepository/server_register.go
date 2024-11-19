@@ -10,6 +10,6 @@ import (
 type ServerRegister interface {
 	// Heartbeat 心跳
 	Heartbeat(context.Context, *api.HeartbeatRequest) error
-	// GetServerList 列表
+	// GetServerList 获取服务列表
 	GetServerList(context.Context, *api.GetServerListRequest) (*api.GetServerListReply, error)
 }

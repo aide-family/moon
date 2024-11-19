@@ -100,6 +100,18 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	if err != nil {
 		return nil, err
 	}
+
+	// 删除已经恢复的告警及关联数据
+	var resolvedIds []uint32
+	_ = alarmQuery.WithContext(ctx).RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).
+		Select(alarmQuery.RealtimeAlarm.ID).Scan(&resolvedIds)
+	if len(resolvedIds) > 0 {
+		_, _ = alarmQuery.RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).Delete()
+		_, _ = alarmQuery.RealtimeDetails.Where(alarmQuery.RealtimeDetails.RealtimeAlarmID.In(resolvedIds...)).Delete()
+		_, _ = alarmQuery.RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID.In(resolvedIds...)).Delete()
+		_, _ = alarmQuery.RealtimeAlarmReceiver.Where(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID.In(resolvedIds...)).Delete()
+	}
+
 	var wheres = []gen.Condition{
 		alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue()),
 	}
@@ -110,11 +122,12 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 	// 获取指定告警页面告警数据
 	if params.AlarmPageID > 0 {
 		var realtimeAlarmIDs []uint32
-		if err = alarmQuery.WithContext(ctx).RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.ID.Eq(params.AlarmPageID)).
+		if err = alarmQuery.WithContext(ctx).RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.PageID.Eq(params.AlarmPageID)).
 			Select(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).Group(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID).
 			Scan(&realtimeAlarmIDs); err != nil {
 			return nil, err
 		}
+		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.In(realtimeAlarmIDs...))
 	}
 	// 获取指定人员告警数据
 	if params.MyAlarm {
@@ -127,7 +140,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		if err = bizQuery.AlarmNoticeMember.WithContext(ctx).
 			Where(bizQuery.AlarmNoticeMember.MemberID.Eq(middleware.GetTeamMemberID(ctx))).
 			Select(bizQuery.AlarmNoticeMember.AlarmGroupID).Group(bizQuery.AlarmNoticeMember.AlarmGroupID).
-			Scan(alarmNoticeGroupIDs); err != nil {
+			Scan(&alarmNoticeGroupIDs); err != nil {
 			return nil, err
 		}
 		var realtimeAlarmIDs []uint32
@@ -137,6 +150,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 			Scan(&realtimeAlarmIDs); err != nil {
 			return nil, err
 		}
+		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.In(realtimeAlarmIDs...))
 	}
 
 	realtimeAlarmQuery := alarmQuery.WithContext(ctx).RealtimeAlarm.Where(wheres...)

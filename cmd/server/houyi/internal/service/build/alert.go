@@ -27,7 +27,7 @@ func (a *AlarmAPIBuilder) ToBo() *bo.Alarm {
 	})
 	return &bo.Alarm{
 		Alerts:            alerts,
-		CommonAnnotations: a.GetCommonAnnotations(),
+		CommonAnnotations: vobj.NewAnnotations(a.GetCommonAnnotations()),
 		CommonLabels:      vobj.NewLabels(a.GetCommonLabels()),
 		ExternalURL:       a.GetExternalURL(),
 		GroupKey:          a.GetGroupKey(),

@@ -37,7 +37,7 @@ type StrategyDomain struct {
 	// 策略标签
 	Labels *vobj.Labels `json:"labels,omitempty"`
 	// 策略注解
-	Annotations vobj.Annotations `json:"annotations,omitempty"`
+	Annotations *vobj.Annotations `json:"annotations,omitempty"`
 	// 域名
 	Domain string `json:"domain,omitempty"`
 	// 超时时间
@@ -137,7 +137,7 @@ func (s *StrategyDomain) GetLabelNotices() []*LabelNotices {
 }
 
 func (s *StrategyDomain) GetAnnotations() map[string]string {
-	return s.Annotations
+	return s.Annotations.Map()
 }
 
 func (s *StrategyDomain) GetInterval() *types.Duration {
