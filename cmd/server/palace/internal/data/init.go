@@ -1337,4 +1337,12 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	//实时监控获取服务列表
+	{
+		Name:   "获取rabbit houyi 服务列表",
+		Path:   "/api.Server/GetServerList",
+		Remark: "获取rabbit houyi 服务列表 用于前台展示",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowNone,
+	},
 }
