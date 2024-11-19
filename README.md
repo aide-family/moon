@@ -40,7 +40,7 @@
 ## 开发者
 
 * [需求池](https://github.com/orgs/aide-family/projects/1/views/1)
-* [Issues](https://github.com/aide-family/moon/issues)]
+* [Issues](https://github.com/aide-family/moon/issues)
 
 ## 使用者
 

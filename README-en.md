@@ -40,7 +40,7 @@ Access our online demo: [Demo URL](https://moon.aide-cloud.cn/)
 ## Developer
 
 * [Demand pool](https://github.com/orgs/aide-family/projects/1/views/1)
-* [Issues](https://github.com/aide-family/moon/issues)]
+* [Issues](https://github.com/aide-family/moon/issues)
 
 ## User
 
