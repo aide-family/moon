@@ -40,10 +40,12 @@
 ## 开发者
 
 * [需求池](https://github.com/orgs/aide-family/projects/1/views/1)
+* [Issues](https://github.com/aide-family/moon/issues)]
 
 ## 使用者
 
 * [快速开始](docs/i18n/zh-CN/quick-start.md)
+* [快速创建告警](https://aide-family.github.io/blog/new-strategy)
 
 ## 许可证
 
