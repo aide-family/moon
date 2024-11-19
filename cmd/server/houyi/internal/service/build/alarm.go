@@ -32,7 +32,7 @@ func (a *AlarmBuilder) ToAPI() *api.AlarmItem {
 		}),
 		GroupLabels:       alarm.GroupLabels.Map(),
 		CommonLabels:      alarm.CommonLabels.Map(),
-		CommonAnnotations: alarm.CommonAnnotations,
+		CommonAnnotations: alarm.CommonAnnotations.Map(),
 		ExternalURL:       alarm.ExternalURL,
 		Version:           alarm.Version,
 		GroupKey:          alarm.GroupKey,
