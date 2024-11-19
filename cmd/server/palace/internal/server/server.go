@@ -165,6 +165,8 @@ func RegisterService(
 	// metrics
 	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))
 	registerMetricRoute(httpSrv, datasourceService)
+
+	registerDataSourceRoute(httpSrv, datasourceService)
 	// custom api
 	proxy := httpSrv.Route("/v1")
 	proxy.GET("/proxy", datasourceService.ProxyQuery)
@@ -208,4 +210,9 @@ func registerMetricRoute(httpSrv *http.Server, datasourceService *datasource.Ser
 	// /api/v1/query
 	metricRoute.GET("/{teamID}/{id}/{to:[^/]+(?:/[^?]*)}", datasourceService.MetricProxy())
 	metricRoute.POST("/{teamID}/{id}/{to:[^/]+(?:/[^?]*)}", datasourceService.MetricProxy())
+}
+
+func registerDataSourceRoute(httpSrv *http.Server, datasourceService *datasource.Service) {
+	datasourceRoute := httpSrv.Route("/v1")
+	datasourceRoute.POST("/datasource/health", datasourceService.DataSourceProxy())
 }

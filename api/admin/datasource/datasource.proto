@@ -86,6 +86,18 @@ service Datasource {
   }
 }
 
+message DataSourceHealthRequest{
+  string url = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源地址长度在 1 到 255 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 255'
+  }, (buf.validate.field).cel = {
+    message: "数据源地址必须是有效的 URI",
+    expression: "this.isUri()",
+  }];
+  uint32 type = 2;
+}
+
+
 message CreateDatasourceRequest {
   // 数据源名称
   string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
@@ -213,3 +225,4 @@ message ProxyMetricDatasourceQueryRequest {
   uint32 teamID = 2 [(buf.validate.field).required = true];
   string to = 3;
 }
+

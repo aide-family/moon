@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
@@ -14,6 +15,7 @@ import (
 	"io"
 	nethttp "net/http"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -127,6 +129,36 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 	return &datasourceapi.DatasourceQueryReply{
 		List: builder.NewParamsBuild(ctx).MetricDataModuleBuilder().BoMetricDataBuilder().ToAPIs(query),
 	}, nil
+}
+
+func (s *Service) DataSourceProxy() http.HandlerFunc {
+	return func(ctx http.Context) error {
+		var in datasourceapi.DataSourceHealthRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		if !isValidURL(in.Url) {
+			return merr.ErrorAlert("数据源地址错误，请检查")
+		}
+		toUrl := in.Url + "/-/ready"
+		log.Debugw("to", toUrl)
+		return s.proxy(ctx, toUrl)
+	}
+}
+
+func isValidURL(url string) bool {
+	// 定义正则表达式来匹配网址
+	regex := `^(https?|ftp):\/\/(?:www\.)?((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3}|(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4})(?::\d{1,5})?(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;%=]*)?$`
+	re := regexp.MustCompile(regex)
+
+	// 使用正则表达式进行匹配
+	return re.MatchString(url)
 }
 
 // ProxyQuery 查询数据
@@ -271,8 +303,6 @@ func (s *Service) proxy(ctx http.Context, to string) error {
 		}
 		w.Header().Set(k, v[0])
 	}
-
 	_, err = io.Copy(w, resp.Body)
-
 	return err
 }
