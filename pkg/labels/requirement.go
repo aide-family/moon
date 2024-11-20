@@ -70,7 +70,7 @@ func NewRequirement(key string, op Operator, vals []string) (*Requirement, error
 			return nil, fmt.Errorf("values must have exactly one entry for operator %q", op)
 		}
 		if _, err := strconv.ParseInt(vals[0], 10, 64); err != nil {
-			return nil, fmt.Errorf("invalid value for operator %q: %v", op, err)
+			return nil, fmt.Errorf("invalid value for operator %q: %w", op, err)
 		}
 	default:
 		return nil, fmt.Errorf("unknown operator %q", op)

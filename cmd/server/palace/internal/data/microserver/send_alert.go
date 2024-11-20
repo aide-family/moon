@@ -53,7 +53,7 @@ func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	sendStatus := vobj.Sending
+	sendStatus := vobj.SentSuccess
 	if err := s.rabbitConn.SendMsg(ctx, task.SendMsgRequest); err != nil {
 		// 删除缓存
 		if err := s.data.GetCacher().Delete(context.Background(), task.RequestID); err != nil {
@@ -63,12 +63,15 @@ func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
 		retryNum, err := s.getSendRetryNum(ctx, task.SendMsgRequest)
 		//TODO  判断是否重试 默认最大重试次数5次，后续改造可配置
 		if err == nil && retryNum > 5 {
+			sendStatus = vobj.Sending
 			// 加入消息队列，重试
-			s.data.GetAlertPersistenceDBQueue().Push(watch.NewMessage(task, vobj.TopicAlertMsg))
+			if err := s.data.GetAlertPersistenceDBQueue().Push(watch.NewMessage(task, vobj.TopicAlertMsg)); err != nil {
+				log.Warnf("send alert failed: %v", err)
+				sendStatus = vobj.SendFail
+			}
 		}
 	}
 
-	sendStatus = vobj.SentSuccess
 	if err = s.alarmSendHistorySave(ctx, task.SendMsgRequest, sendStatus); err != nil {
 		log.Error("alarmSendHistorySave failed: ", err)
 	}

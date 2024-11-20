@@ -134,7 +134,7 @@ func (s *StrategyPing) Eval(ctx context.Context) (map[watch.Indexer]*datasource.
 	if !s.Status.IsEnable() {
 		return nil, nil
 	}
-	return datasource.EndpointPing(ctx, s.Address, time.Duration(s.Timeout))
+	return datasource.EndpointPing(ctx, s.Address, time.Duration(s.Timeout)*time.Second)
 }
 
 // IsCompletelyMeet 是否完全满足策略条件

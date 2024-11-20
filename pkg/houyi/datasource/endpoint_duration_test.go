@@ -14,21 +14,21 @@ func TestEndpointDuration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	url := "http://www.baidu.com"
-	res := datasource.EndpointDuration(ctx, url, vobj.HTTPMethodGet, nil, "", 5)
+	res := datasource.EndpointDuration(ctx, url, vobj.HTTPMethodGet, nil, "", 5*time.Second)
 	for _, point := range res {
 		bs, _ := json.Marshal(point)
 		t.Log(string(bs))
 	}
 
 	url = "https://www.baidu.com"
-	res = datasource.EndpointDuration(ctx, url, vobj.HTTPMethodGet, nil, "", 5)
+	res = datasource.EndpointDuration(ctx, url, vobj.HTTPMethodGet, nil, "", 5*time.Second)
 	for _, point := range res {
 		bs, _ := json.Marshal(point)
 		t.Log(string(bs))
 	}
 
 	url = "https://www.baidu.com"
-	res = datasource.EndpointDuration(ctx, url, vobj.HTTPMethodPost, nil, "", 5)
+	res = datasource.EndpointDuration(ctx, url, vobj.HTTPMethodPost, nil, "", 5*time.Second)
 	for _, point := range res {
 		bs, _ := json.Marshal(point)
 		t.Log(string(bs))

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/palace/model"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 const tableNameAlarmRaws = "alarm_raws"
@@ -21,7 +23,11 @@ type AlarmRaw struct {
 
 // String json string
 func (a *AlarmRaw) String() string {
-	bs, _ := json.Marshal(a)
+	bs, err := json.Marshal(a)
+	if err != nil {
+		log.Warnw("method", "AlarmRaw.string", "err", err)
+		return ""
+	}
 	return string(bs)
 }
 

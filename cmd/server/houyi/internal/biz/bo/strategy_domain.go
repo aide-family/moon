@@ -115,9 +115,9 @@ func (s *StrategyDomain) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 		return nil, nil
 	}
 	if s.Type.IsDomainport() {
-		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout))
+		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
 	}
-	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout))
+	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
 }
 
 // GetTeamID 获取团队ID

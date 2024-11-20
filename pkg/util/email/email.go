@@ -178,7 +178,7 @@ func (l *Email) Send() error {
 	   自动开启SSL，这个时候需要指定TLSConfig
 	*/
 	d := gomail.NewDialer(l.config.GetHost(), int(l.config.GetPort()), l.config.GetUser(), l.config.GetPass()) // 设置邮件正文
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true, ServerName: l.config.GetHost()}
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: l.config.GetHost(), MinVersion: tls.VersionTLS12}
 	err := d.DialAndSend(l.mail)
 	return err
 }

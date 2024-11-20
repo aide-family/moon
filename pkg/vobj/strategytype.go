@@ -23,4 +23,7 @@ const (
 
 	// StrategyTypeHTTP 网站可用性策略
 	StrategyTypeHTTP // http
+
+	// StrategyTypeMQ 消息队列策略
+	StrategyTypeMQ // mq
 )

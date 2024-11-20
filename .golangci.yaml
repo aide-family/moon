@@ -1,0 +1,43 @@
+run:
+  go: '1.22.0'
+  tests: false
+  skip-dirs:
+    - api
+    - third_party
+linters:
+  #  disable-all: true  # 关闭其他linter
+  enable: #下面注释的部分是因为golang1.20和 golangci-lint 有兼容问题
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - durationcheck
+#    - errcheck
+    - errchkjson
+    - errorlint
+#    - exhaustive
+    - exportloopref
+#    - gosec
+    - govet
+    - loggercheck
+    - makezero
+    - nilerr
+    - noctx
+    - reassign
+    - staticcheck
+    - typecheck
+  disable:
+    - unused
+linters-settings:
+  #  errcheck:
+  #    check-type-assertions: true   # 检查类型断言
+  errorlint:
+    errorf: true                # 检查fmt.Errorf错误是否用%w
+  gosec:
+    excludes:
+      - G401 # Detect the usage of DES, RC4, MD5 or SHA1
+      - G501 # Import blocklist: crypto/md5
+      - G502 # Import blocklist: crypto/des
+      - G503 # Import blocklist: crypto/rc4
+      - G504 # Import blocklist: net/http/cgi
+      - G505 # Import blocklist: crypto/sha1

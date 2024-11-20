@@ -116,7 +116,7 @@ func (c *cacheStorage) Clear() {
 }
 
 func (c *cacheStorage) Remove(index Indexer) {
-	c.cacher.Delete(context.Background(), index.Index())
+	_ = c.cacher.Delete(context.Background(), index.Index())
 }
 
 func (c *cacheStorage) Close() error {

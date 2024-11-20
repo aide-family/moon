@@ -12,16 +12,16 @@ import (
 )
 
 // EndpointDuration 函数用于获取指定endpoint的请求相应时间和状态码
-func EndpointDuration(_ context.Context, url string, method vobj.HTTPMethod, headers map[string]string, body string, timeout time.Duration) map[watch.Indexer]*Point {
+func EndpointDuration(ctx context.Context, url string, method vobj.HTTPMethod, headers map[string]string, body string, timeout time.Duration) map[watch.Indexer]*Point {
 	now := time.Now()
 	var elapsed time.Duration
 	var statusCode int
 	var err error
 	switch method {
 	case vobj.HTTPMethodPost:
-		elapsed, statusCode, _ = postResponseTimeAndStatusCode(url, headers, body, timeout)
+		elapsed, statusCode, _ = postResponseTimeAndStatusCode(ctx, url, headers, body, timeout)
 	default:
-		elapsed, statusCode, err = getResponseTimeAndStatusCode(url, headers, timeout)
+		elapsed, statusCode, err = getResponseTimeAndStatusCode(ctx, url, headers, timeout)
 		if err != nil {
 			log.Error(err)
 		}
@@ -50,18 +50,18 @@ func EndpointDuration(_ context.Context, url string, method vobj.HTTPMethod, hea
 }
 
 // getResponseTimeAndStatusCode 函数用于获取指定url的响应时间和状态码
-func getResponseTimeAndStatusCode(url string, headers map[string]string, timeout time.Duration) (time.Duration, int, error) {
+func getResponseTimeAndStatusCode(ctx context.Context, url string, headers map[string]string, timeout time.Duration) (time.Duration, int, error) {
 	start := time.Now() // 记录开始时间
 
-	req, err := http.NewRequest(http.MethodGet, url, nil) // 构造请求
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil) // 构造请求
 	if err != nil {
 		return 0, 0, err // 返回错误
 	}
 	for k, v := range headers {
 		req.Header.Set(k, v) // 设置请求头
 	}
-	client := http.Client{Timeout: timeout * time.Second} // 构造客户端
-	resp, err := client.Do(req)                           // 发送请求
+	client := http.Client{Timeout: timeout} // 构造客户端
+	resp, err := client.Do(req)             // 发送请求
 	if err != nil {
 		return 0, 0, err // 返回错误
 	}
@@ -72,18 +72,18 @@ func getResponseTimeAndStatusCode(url string, headers map[string]string, timeout
 }
 
 // postResponseTimeAndStatusCode 函数用于获取指定url的响应时间和状态码
-func postResponseTimeAndStatusCode(url string, headers map[string]string, body string, timeout time.Duration) (time.Duration, int, error) {
+func postResponseTimeAndStatusCode(ctx context.Context, url string, headers map[string]string, body string, timeout time.Duration) (time.Duration, int, error) {
 	start := time.Now() // 记录开始时间
 
-	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body)) // 构造请求
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(body)) // 构造请求
 	if err != nil {
 		return 0, 0, err // 返回错误
 	}
 	for k, v := range headers {
 		req.Header.Set(k, v) // 设置请求头
 	}
-	client := http.Client{Timeout: timeout * time.Second} // 构造客户端
-	resp, err := client.Do(req)                           // 发送请求
+	client := http.Client{Timeout: timeout} // 构造客户端
+	resp, err := client.Do(req)             // 发送请求
 	if err != nil {
 		return 0, 0, err // 返回错误
 	}

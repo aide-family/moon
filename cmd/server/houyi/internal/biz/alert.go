@@ -66,6 +66,6 @@ func (a *AlertBiz) deleteAlarm(ctx context.Context, alarm *bo.Alarm, err error) 
 	}
 	// 删除缓存
 	for _, alert := range alarm.Alerts {
-		a.cacheRepo.Cacher().Delete(ctx, alert.PushedFlag())
+		_ = a.cacheRepo.Cacher().Delete(ctx, alert.PushedFlag())
 	}
 }

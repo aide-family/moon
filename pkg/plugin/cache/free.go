@@ -130,7 +130,7 @@ func (d *defaultCache) getFloat64(_ context.Context, key string) (float64, error
 	}
 	var parseFloat float64
 	if len(dataBytes) > 0 {
-		parseFloat, err = strconv.ParseFloat(string(dataBytes), 10)
+		parseFloat, err = strconv.ParseFloat(string(dataBytes), 64)
 		if err != nil {
 			return 0, err
 		}

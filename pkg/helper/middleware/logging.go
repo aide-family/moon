@@ -76,5 +76,5 @@ func extractArgs(req any) string {
 	if err != nil {
 		return fmt.Sprintf("%+v", req)
 	}
-	return fmt.Sprintf("%s", string(bytes))
+	return string(bytes)
 }

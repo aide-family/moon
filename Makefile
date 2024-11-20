@@ -41,6 +41,7 @@ format:
 	go mod tidy
 	go mod verify
 	goimports -w .
+	golangci-lint run ./...
 
 .PHONY: config
 # generate internal config

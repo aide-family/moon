@@ -83,11 +83,11 @@ func NewTimeByUnix(unix int64) *Time {
 
 // Scan 现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (t *Time) Scan(value interface{}) error {
-	switch value.(type) {
+	switch s := value.(type) {
 	case time.Time:
-		t.Time = value.(time.Time)
+		t.Time = s
 	case string:
-		tt, err := time.ParseInLocation(time.DateTime, value.(string), time.Local)
+		tt, err := time.ParseInLocation(time.DateTime, s, time.Local)
 		if err != nil {
 			return err
 		}
@@ -161,12 +161,12 @@ func (d *Duration) Value() (driver.Value, error) {
 
 // Scan 现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (d *Duration) Scan(src any) error {
-	switch src.(type) {
+	switch s := src.(type) {
 	case int:
-		d.Duration = durationpb.New(time.Duration(src.(int)))
+		d.Duration = durationpb.New(time.Duration(s))
 		return nil
 	case int64:
-		d.Duration = durationpb.New(time.Duration(src.(int64)))
+		d.Duration = durationpb.New(time.Duration(s))
 		return nil
 	default:
 		return fmt.Errorf("can not convert %v to Duration", src)

@@ -91,7 +91,9 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRole(ctx context.Context, teamRole *b
 		return err
 	}
 	roleIDStr := strconv.FormatUint(uint64(sysTeamRoleModel.ID), 10)
-	defer l.data.GetCasBin(teamID).LoadPolicy()
+	defer func() {
+		_ = l.data.GetCasBin(teamID).LoadPolicy()
+	}()
 	return bizDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		casbinEnforce := l.data.GetCasbinByTx(tx)
 		// 删除角色权限
@@ -129,7 +131,9 @@ func (l *teamRoleRepositoryImpl) DeleteTeamRole(ctx context.Context, id uint32) 
 	if !types.IsNil(err) {
 		return err
 	}
-	defer l.data.GetCasBin(teamID).LoadPolicy()
+	defer func() {
+		_ = l.data.GetCasBin(teamID).LoadPolicy()
+	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		_, err = l.data.GetCasbinByTx(tx).DeletePermission(strconv.Itoa(int(id)))
 		if !types.IsNil(err) {
@@ -214,7 +218,9 @@ func (l *teamRoleRepositoryImpl) UpdateTeamRoleStatus(ctx context.Context, statu
 	idStrList := types.SliceTo(ids, func(id uint32) string {
 		return strconv.FormatUint(uint64(id), 10)
 	})
-	defer l.data.GetCasBin(teamID).LoadPolicy()
+	defer func() {
+		_ = l.data.GetCasBin(teamID).LoadPolicy()
+	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		queryTx := bizquery.Use(tx)
 		if _, err = queryTx.SysTeamRole.WithContext(ctx).

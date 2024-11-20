@@ -133,7 +133,7 @@ func (b *DatasourceBiz) SyncDatasourceMetaV2(ctx context.Context, id uint32) (er
 	}
 	defer func() {
 		if err != nil {
-			b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
+			_ = b.lock.UnLock(context.Background(), syncDatasourceMetaKey(id))
 		}
 	}()
 

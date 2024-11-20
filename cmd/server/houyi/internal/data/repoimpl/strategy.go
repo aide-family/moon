@@ -72,8 +72,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		alerts := s.resolvedAlerts(ctx, strategy)
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
-		s.data.GetCacher().Delete(ctx, strategy.Index())
-		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
+		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
+		_ = s.data.GetCacher().Delete(ctx, alarmInfo.Index())
 		return alarmInfo, nil
 	}
 
@@ -147,8 +147,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 
 	if len(alerts) == 0 {
 		// 删除缓存
-		s.data.GetCacher().Delete(ctx, strategy.Index())
-		s.data.GetCacher().Delete(ctx, alarmInfo.Index())
+		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
+		_ = s.data.GetCacher().Delete(ctx, alarmInfo.Index())
 		return alarmInfo, nil
 	}
 	if len(firingKeys) > 0 {
@@ -157,7 +157,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 			log.Warnw("method", "storage.put", "error", err)
 		}
 	} else {
-		s.data.GetCacher().Delete(ctx, strategy.Index())
+		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
 	}
 	alarmInfo.Alerts = alerts
 	return alarmInfo, nil
@@ -196,7 +196,7 @@ func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.
 	resolvedAlert.Status = vobj.AlertStatusResolved
 	resolvedAlert.EndsAt = types.NewTimeByUnix(time.Now().Unix())
 	// 删除缓存
-	d.GetCacher().Delete(ctx, uniqueKey)
+	_ = d.GetCacher().Delete(ctx, uniqueKey)
 	return &resolvedAlert, nil
 }
 

@@ -49,10 +49,12 @@ func userTeamCacheKey(teamID uint32) string {
 
 func (l *cacheRepositoryImpl) GetUser(ctx context.Context, userID uint32) *model.SysUser {
 	var user *model.SysUser
-	err := l.data.GetCacher().GetObject(ctx, userCacheKey(userID), user)
-	if err != nil {
+	if err := l.data.GetCacher().GetObject(ctx, userCacheKey(userID), user); err != nil {
 		userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
 		user, err = userQuery.WithContext(ctx).Where(userQuery.ID.Eq(userID)).First()
+		if err != nil {
+			return nil
+		}
 	}
 	defer l.AppendUser(ctx, user)
 	return user
@@ -60,10 +62,12 @@ func (l *cacheRepositoryImpl) GetUser(ctx context.Context, userID uint32) *model
 
 func (l *cacheRepositoryImpl) GetTeam(ctx context.Context, teamID uint32) *model.SysTeam {
 	var team *model.SysTeam
-	err := l.data.GetCacher().GetObject(ctx, teamCacheKey(teamID), team)
-	if err != nil {
+	if err := l.data.GetCacher().GetObject(ctx, teamCacheKey(teamID), team); err != nil {
 		teamQuery := query.Use(l.data.GetMainDB(ctx)).SysTeam
 		team, err = teamQuery.WithContext(ctx).Where(teamQuery.ID.Eq(teamID)).First()
+		if err != nil {
+			return nil
+		}
 	}
 	defer l.AppendTeam(ctx, team)
 	return team

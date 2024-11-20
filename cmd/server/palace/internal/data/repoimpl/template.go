@@ -69,6 +69,9 @@ func (l *templateRepositoryImpl) UpdateTemplateStrategy(ctx context.Context, upd
 				queryInstance.StrategyTemplate.Annotations.Value(updateParam.Data.Annotations),
 				queryInstance.StrategyTemplate.Alert.Value(updateParam.Data.Alert),
 			)
+		if err != nil {
+			return err
+		}
 		// 删除全部关联模板类型数据
 		if _, err = tx.StrategyTemplateCategories.WithContext(ctx).Where(queryInstance.StrategyTemplateCategories.StrategyTemplateID.Eq(updateParam.ID)).Delete(); err != nil {
 			return err

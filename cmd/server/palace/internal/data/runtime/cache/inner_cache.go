@@ -173,7 +173,7 @@ func (ic *innerCacheMap) addInformerToMap(kind string, obj any) (*entry, error) 
 	}
 	keyFunc, err := ic.scheme.ObjectKeyFunc(obj)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get key func: %v", err)
+		return nil, fmt.Errorf("failed to get key func: %w", err)
 	}
 
 	indexer := cache.NewIndexer(keyFunc, cache.Indexers{})

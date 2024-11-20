@@ -18,7 +18,12 @@ type Response struct {
 func writeJSON(w kratoshttp.Context, status int, response interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Response().WriteHeader(status)
-	json.NewEncoder(w.Response()).Encode(response)
+	if err := json.NewEncoder(w.Response()).Encode(response); err != nil {
+		// 处理编码错误，可以记录日志或返回一个通用错误响应
+		w.Response().WriteHeader(http.StatusInternalServerError)
+		// 注意：这里我们不能再次使用 Encode，因为可能会再次失败
+		_, _ = w.Response().Write([]byte(`{"code":500,"message":"Internal Server Error"}`))
+	}
 }
 
 // Success 返回一个成功的响应

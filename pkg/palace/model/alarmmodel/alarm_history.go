@@ -6,6 +6,8 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 const tableNameAlarmHistories = "alarm_histories"
@@ -39,7 +41,11 @@ type AlarmHistory struct {
 
 // String json string
 func (a *AlarmHistory) String() string {
-	bs, _ := json.Marshal(a)
+	bs, err := json.Marshal(a)
+	if err != nil {
+		log.Warnw("method", "AlarmHistory.string", "err", err)
+		return ""
+	}
 	return string(bs)
 }
 

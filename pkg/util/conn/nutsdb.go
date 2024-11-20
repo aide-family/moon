@@ -24,7 +24,9 @@ func NewNutsDB(cfg NutsDbConfig) (*nutsdb.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Commit()
+	defer func() {
+		_ = tx.Commit()
+	}()
 	if !tx.ExistBucket(nutsdb.DataStructureBTree, bucket) {
 		if err = tx.NewBucket(nutsdb.DataStructureBTree, bucket); err != nil {
 			return nil, err

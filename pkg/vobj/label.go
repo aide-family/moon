@@ -141,11 +141,11 @@ func (l *Labels) Value() (driver.Value, error) {
 
 // Scan 实现 sql.Scanner 接口
 func (l *Labels) Scan(src any) (err error) {
-	switch src.(type) {
+	switch s := src.(type) {
 	case []byte:
-		err = types.Unmarshal(src.([]byte), &l.label)
+		err = types.Unmarshal(s, &l.label)
 	case string:
-		err = types.Unmarshal([]byte(src.(string)), &l.label)
+		err = types.Unmarshal([]byte(s), &l.label)
 	default:
 		err = ErrUnsupportedType
 	}

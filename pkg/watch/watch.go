@@ -82,7 +82,10 @@ func (w *Watcher) Start(_ context.Context) error {
 		// 把存储中的消息全部推送到消息队列
 		if !types.IsNil(w.storage) && !types.IsNil(w.queue) {
 			w.storage.Range(func(index Indexer, msg *Message) bool {
-				w.queue.Push(msg)
+				if err := w.queue.Push(msg); err != nil {
+					log.Errorw("method", "push message to queue error", "error", err)
+					return false
+				}
 				return true
 			})
 		}

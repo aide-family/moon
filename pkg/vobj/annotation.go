@@ -41,11 +41,11 @@ func (l *Annotations) Map() map[string]string {
 
 // Scan 实现 sql.Scanner 接口
 func (l *Annotations) Scan(src any) error {
-	switch src.(type) {
+	switch s := src.(type) {
 	case []byte:
-		return types.Unmarshal(src.([]byte), l)
+		return types.Unmarshal(s, l)
 	case string:
-		return types.Unmarshal([]byte(src.(string)), l)
+		return types.Unmarshal([]byte(s), l)
 	default:
 		return ErrUnsupportedType
 	}

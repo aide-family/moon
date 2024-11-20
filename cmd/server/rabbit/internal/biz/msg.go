@@ -99,7 +99,7 @@ func (b *MsgBiz) sendMsg(ctx context.Context, msg *bo.SendMsgParams, sends ...no
 		return
 	}
 
-	if msgMap == nil || len(msgMap) == 0 {
+	if len(msgMap) == 0 {
 		return
 	}
 

@@ -152,7 +152,7 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 		defer func() {
 			if err == nil {
 				// 发送用户密码到用户邮箱
-				g.sendUserPassword(ctx, sysUser, randPass)
+				_ = g.sendUserPassword(ctx, sysUser, randPass)
 			}
 		}()
 	}

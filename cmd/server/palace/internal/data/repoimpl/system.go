@@ -9,6 +9,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/types"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 // NewSystemRepository 创建系统相关功能实现
@@ -58,7 +60,10 @@ func (s *systemRepositoryImpl) backupTeam(ctx context.Context, databaseName, old
 		if !types.IsNil(err) {
 			err = merr.ErrorAlert("备份团队数据失败").WithCause(err)
 			// 删除备份数据库
-			s.data.GetBizDB(ctx).Exec("DROP DATABASE IF EXISTS `" + databaseName + "`")
+			_, err = s.data.GetBizDB(ctx).Exec("DROP DATABASE IF EXISTS `" + databaseName + "`")
+			if !types.IsNil(err) {
+				log.Errorf("删除备份数据库失败: %v", err)
+			}
 		}
 	}()
 	// 创建备份数据库

@@ -264,15 +264,9 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 			log.Errorw("获取策略失败", err)
 			return
 		}
-		for {
-			select {
-			case strategies, ok := <-strategiesCh:
-				if !ok {
-					return
-				}
-				if err := l.syncStrategies(srv, strategies); err != nil {
-					return
-				}
+		for strategies := range strategiesCh {
+			if err := l.syncStrategies(srv, strategies); err != nil {
+				return
 			}
 		}
 	}()
@@ -333,7 +327,7 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 			list := make([]*bo.Strategy, 0, len(strategies)*5)
 			for _, strategy := range strategies {
 				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
-				if items == nil || len(items) == 0 {
+				if len(items) == 0 {
 					continue
 				}
 				list = append(list, items...)

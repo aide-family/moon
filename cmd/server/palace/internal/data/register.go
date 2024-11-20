@@ -65,7 +65,8 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 		l.srvs[key] = srv
 		return
 	}
-	srv = oldSrv
+	oldSrv.registerTime = srv.registerTime
+	*srv = *oldSrv
 }
 
 // getSrv 获取服务

@@ -144,8 +144,8 @@ func (a *alarmSendRepositoryImpl) RetryAlarmSend(ctx context.Context, param *bo.
 	sendMsg := &bo.SendMsg{
 		SendMsgRequest: sendMsgRequest,
 	}
-	a.data.GetAlertPersistenceDBQueue().Push(watch.NewMessage(sendMsg, vobj.TopicAlertMsg))
-	return nil
+
+	return a.data.GetAlertPersistenceDBQueue().Push(watch.NewMessage(sendMsg, vobj.TopicAlertMsg))
 }
 
 func createAlarmSendHistoryToModel(param *bo.CreateAlarmSendParams) *alarmmodel.AlarmSendHistory {

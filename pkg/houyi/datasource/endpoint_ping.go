@@ -28,8 +28,8 @@ type PingDetail struct {
 }
 
 // EndpointPing 是ping探测器的实现
-func EndpointPing(_ context.Context, endpoint string, timeout time.Duration) (map[watch.Indexer]*Point, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+func EndpointPing(_ context.Context, endpoint string, seconds time.Duration) (map[watch.Indexer]*Point, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), seconds)
 	defer cancel()
 	pinger, err := ping.NewPinger(endpoint)
 	if err != nil {
@@ -37,10 +37,8 @@ func EndpointPing(_ context.Context, endpoint string, timeout time.Duration) (ma
 	}
 
 	go func() {
-		select {
-		case <-ctx.Done():
-			pinger.Stop()
-		}
+		<-ctx.Done()
+		pinger.Stop()
 	}()
 	now := time.Now()
 	points := make(map[watch.Indexer]*Point)

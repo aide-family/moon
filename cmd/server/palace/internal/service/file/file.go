@@ -65,5 +65,5 @@ func (s *Service) DownloadFile(ctx http.Context) error {
 	ctx.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", in.FilePath))
 	ctx.Response().Header().Set("Content-Type", "application/octet-stream")
 	_, err = io.Copy(ctx.Response(), file)
-	return nil
+	return err
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/palace/model"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 const tableNameRealtimeDetails = "realtime_details"
@@ -25,7 +27,11 @@ type RealtimeDetails struct {
 
 // String 字符串
 func (c *RealtimeDetails) String() string {
-	bs, _ := json.Marshal(c)
+	bs, err := json.Marshal(c)
+	if err != nil {
+		log.Warnw("method", "RealtimeDetails.string", "err", err)
+		return ""
+	}
 	return string(bs)
 }
 

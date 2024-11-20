@@ -103,7 +103,7 @@ func (b *UserBiz) ListUser(ctx context.Context, params *bo.QueryUserListParams) 
 
 // BatchUpdateUserStatus 批量更新用户状态
 func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpdateUserStatusParams) error {
-	if !!middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
+	if !middleware.GetUserRole(ctx).IsAdminOrSuperAdmin() {
 		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 不允许修改管理员状态

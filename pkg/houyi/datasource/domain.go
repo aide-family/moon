@@ -18,7 +18,7 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 	now := time.Now()
 	points := make(map[watch.Indexer]*Point)
 	// 创建 TCP 连接
-	conn, err := net.DialTimeout("tcp", domain+":"+strconv.FormatUint(uint64(port), 10), timeout*time.Second)
+	conn, err := net.DialTimeout("tcp", domain+":"+strconv.FormatUint(uint64(port), 10), timeout)
 	if err != nil {
 		// 超时或者连接失败，返回空切片和错误信息
 		labels := vobj.NewLabels(map[string]string{vobj.Domain: domain, vobj.DomainPort: strconv.FormatUint(uint64(port), 10)})

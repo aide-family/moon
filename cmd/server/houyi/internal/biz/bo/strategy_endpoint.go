@@ -134,7 +134,7 @@ func (e *StrategyEndpoint) Eval(ctx context.Context) (map[watch.Indexer]*datasou
 	if !e.Status.IsEnable() {
 		return nil, nil
 	}
-	return datasource.EndpointDuration(ctx, e.URL, e.Method, e.Headers, e.Body, time.Duration(e.Timeout)), nil
+	return datasource.EndpointDuration(ctx, e.URL, e.Method, e.Headers, e.Body, time.Duration(e.Timeout)*time.Second), nil
 }
 
 // IsCompletelyMeet 是否完全满足策略条件

@@ -48,10 +48,10 @@ func (h *HTTPX) SetBasicAuth(username, password string) *HTTPX {
 }
 
 // POST 发起post请求
-func (h *HTTPX) POST(url string, data []byte) (*http.Response, error) {
+func (h *HTTPX) POST(ctx context.Context, url string, data []byte) (*http.Response, error) {
 	reader := bytes.NewReader(data)
 	// 设置请求头
-	req, err := http.NewRequest(http.MethodPost, url, reader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +93,13 @@ func (h *HTTPX) POSTWithContext(ctx context.Context, url string, data []byte) (*
 }
 
 // GET 发起get请求
-func (h *HTTPX) GET(u string) (*http.Response, error) {
+func (h *HTTPX) GET(ctx context.Context, u string) (*http.Response, error) {
 	// 验证URL是否有效
 	if u == "" || !isValidURL(u) {
 		return nil, errors.New("invalid URL")
 	}
 	// 设置请求头
-	req, err := http.NewRequest(http.MethodGet, u, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func isValidURL(u string) bool {
 
 // ParseQuery 处理结构体转为query参数
 func ParseQuery(qr map[string]any) string {
-	if qr == nil || len(qr) == 0 {
+	if len(qr) == 0 {
 		return ""
 	}
 	query := url.Values{}
