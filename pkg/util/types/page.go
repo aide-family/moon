@@ -9,28 +9,32 @@ import (
 var _ Pagination = (*page)(nil)
 
 type (
+	// page 分页器
 	page struct {
 		PageNum  int32 `json:"pageNum"`
 		PageSize int32 `json:"pageSize"`
 		total    int64
 	}
 
+	// IPaginationReq 分页请求参数接口
 	IPaginationReq interface {
 		GetPageNum() int32
 		GetPageSize() int32
 	}
 
-	// Pagination 分页器
+	// Pagination 分页器接口
 	Pagination interface {
 		IPaginationReq
 		GetTotal() int64
 		SetTotal(total int64)
 	}
+
+	// Limiter 限制器接口
 	Limiter[T any] interface {
 		Limit(limit int) T
 	}
 
-	// PageQuery 分页查询
+	// PageQuery 分页查询接口
 	PageQuery[T any] interface {
 		Limit(limit int) T
 		Offset(offset int) T
@@ -63,6 +67,7 @@ func WithPageQuery[T any, Q PageQuery[T]](q Q, page Pagination) (T, error) {
 	return res, nil
 }
 
+// Limit 查询限制器
 func Limit(t any, limit int) any {
 	// 通过反射调用Limit方法
 	call := reflect.ValueOf(t).MethodByName("Limit").Call([]reflect.Value{reflect.ValueOf(limit)})

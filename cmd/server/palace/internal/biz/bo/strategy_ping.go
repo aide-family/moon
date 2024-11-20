@@ -53,11 +53,13 @@ type StrategyPing struct {
 	StdDevDelay int64 `json:"stdDevDelay,omitempty"`
 }
 
+// String 将策略转换为字符串
 func (s *StrategyPing) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)
 }
 
+// Index 生成策略索引
 func (s *StrategyPing) Index() string {
 	if types.IsNil(s) {
 		return "houyi:strategy:0:ping"
@@ -65,6 +67,7 @@ func (s *StrategyPing) Index() string {
 	return fmt.Sprintf("houyi:strategy:%d:%d:%d:%s", s.TeamID, s.ID, s.LevelID, types.MD5(s.Address))
 }
 
+// Message 生成策略消息
 func (s *StrategyPing) Message() *watch.Message {
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }

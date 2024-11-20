@@ -28,12 +28,6 @@ func (m *MyMsg) Index() string {
 func msgHandle(ctx context.Context, msg *watch.Message) error {
 	log.Debugw("default handler", msg.GetData())
 
-	if err := msg.GetSchema().Encode(msg, msg.GetData()); err != nil {
-		log.Errorw("method", "Encode", "err", err)
-	}
-	if err := msg.GetSchema().Decode(msg, msg.GetData()); err != nil {
-		log.Errorw("method", "Decode", "err", err)
-	}
 	d := msg.GetData().(*MyMsg)
 	if d.Data%3 == 0 {
 		return errors.New("模拟错误， 检测重试")
@@ -60,9 +54,7 @@ func TestNewWatcher(t *testing.T) {
 	w.Start(ctx)
 
 	msgCount := 100
-	schema := watch.NewDefaultSchemer()
 	msgOpts := []watch.MessageOption{
-		watch.WithMessageSchema(schema),
 		watch.WithMessageRetryMax(3),
 	}
 	go func() {

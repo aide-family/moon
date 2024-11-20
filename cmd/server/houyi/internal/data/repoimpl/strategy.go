@@ -90,7 +90,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		if !ok {
 			continue
 		}
-		extJson, ok := strategy.IsCompletelyMeet(point.Values)
+		extJSON, ok := strategy.IsCompletelyMeet(point.Values)
 		if !ok {
 			continue
 		}
@@ -116,7 +116,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 			"value":  endPointValue.Value,
 			"time":   endPointValue.Timestamp,
 			"labels": labels.Map(),
-			"ext":    extJson,
+			"ext":    extJSON,
 		}
 		annotations := make(vobj.Annotations, len(strategy.GetAnnotations()))
 

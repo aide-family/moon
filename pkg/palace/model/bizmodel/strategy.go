@@ -37,7 +37,7 @@ type Strategy struct {
 	// 域名证书｜端口 等级策略明细
 	DomainLevels []*StrategyDomain `gorm:"foreignKey:StrategyID" json:"domain_levels"`
 	// http 协议状态码响应时间 等级策略明细
-	HttpLevels []*StrategyHttp `gorm:"foreignKey:StrategyID" json:"http_levels"`
+	HTTPLevels []*StrategyHTTP `gorm:"foreignKey:StrategyID" json:"http_levels"`
 	// 网络连通性 等级策略明细
 	PingLevels []*StrategyPing `gorm:"foreignKey:StrategyID" json:"ping_levels"`
 

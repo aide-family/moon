@@ -18,7 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-// NewResourceRepository 创建资源仓库
+// NewResourceRepository 创建资源实现
 func NewResourceRepository(data *data.Data) repository.Resource {
 	return &resourceRepositoryImpl{
 		data: data,
@@ -29,28 +29,31 @@ type resourceRepositoryImpl struct {
 	data *data.Data
 }
 
+// CheckPath 检查路径是否存在
 func (l *resourceRepositoryImpl) CheckPath(ctx context.Context, s string) (imodel.IResource, error) {
 	// 1. 检查主库API是否存在且开启
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	mainApiDo, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.Path.Eq(s)).First()
+	mainAPIDo, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.Path.Eq(s)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nForbidden(ctx)
 		}
 		return nil, err
 	}
-	if !mainApiDo.Status.IsEnable() {
+	if !mainAPIDo.Status.IsEnable() {
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
-	return mainApiDo, nil
+	return mainAPIDo, nil
 }
 
+// GetByID 根据ID获取资源
 func (l *resourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	return mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.ID.Eq(id)).First()
 }
 
+// FindByPage 分页查询资源
 func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	apiQuery := mainQuery.SysAPI.WithContext(ctx)
@@ -79,12 +82,14 @@ func (l *resourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 	return types.SliceTo(list, func(api *model.SysAPI) imodel.IResource { return api }), nil
 }
 
+// UpdateStatus 更新资源状态
 func (l *resourceRepositoryImpl) UpdateStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	_, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.ID.In(ids...)).Update(mainQuery.SysAPI.Status, status)
 	return err
 }
 
+// FindSelectByPage 分页查询资源
 func (l *resourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
 	apiQuery := mainQuery.SysAPI.WithContext(ctx)

@@ -18,7 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-// NewTeamResourceRepository 创建资源仓库
+// NewTeamResourceRepository 创建资源实现
 func NewTeamResourceRepository(data *data.Data) repository.TeamResource {
 	return &teamResourceRepositoryImpl{
 		data: data,
@@ -29,22 +29,23 @@ type teamResourceRepositoryImpl struct {
 	data *data.Data
 }
 
+// CheckPath 检查路径是否存在
 func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) (imodel.IResource, error) {
 	// 1. 检查主库API是否存在且开启
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	mainApiDo, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.Path.Eq(s)).First()
+	mainAPIDo, err := mainQuery.SysAPI.WithContext(ctx).Where(mainQuery.SysAPI.Path.Eq(s)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nForbidden(ctx)
 		}
 		return nil, err
 	}
-	if !mainApiDo.Status.IsEnable() {
+	if !mainAPIDo.Status.IsEnable() {
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
-	if !(mainApiDo.Allow.IsRbac() || mainApiDo.Allow.IsTeam()) {
-		return mainApiDo, nil
+	if !(mainAPIDo.Allow.IsRbac() || mainAPIDo.Allow.IsTeam()) {
+		return mainAPIDo, nil
 	}
 
 	// 2. 检查业务库API是否存在且开启
@@ -53,19 +54,20 @@ func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) (i
 		return nil, err
 	}
 
-	bizApiDo, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.Path.Eq(s)).First()
+	bizAPIDo, err := bizQuery.SysTeamAPI.WithContext(ctx).Where(bizQuery.SysTeamAPI.Path.Eq(s)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nForbidden(ctx)
 		}
 		return nil, err
 	}
-	if !bizApiDo.Status.IsEnable() {
+	if !bizAPIDo.Status.IsEnable() {
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
-	return bizApiDo, nil
+	return bizAPIDo, nil
 }
 
+// GetByID 根据ID获取资源
 func (l *teamResourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.IResource, error) {
 	mainQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
@@ -74,6 +76,7 @@ func (l *teamResourceRepositoryImpl) GetByID(ctx context.Context, id uint32) (im
 	return mainQuery.SysTeamAPI.WithContext(ctx).Where(mainQuery.SysTeamAPI.ID.Eq(id)).First()
 }
 
+// FindByPage 分页查询资源
 func (l *teamResourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
@@ -106,6 +109,7 @@ func (l *teamResourceRepositoryImpl) FindByPage(ctx context.Context, params *bo.
 	return types.SliceTo(list, func(api *bizmodel.SysTeamAPI) imodel.IResource { return api }), nil
 }
 
+// UpdateStatus 更新资源状态
 func (l *teamResourceRepositoryImpl) UpdateStatus(ctx context.Context, status vobj.Status, ids ...uint32) error {
 	mainQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {
@@ -115,6 +119,7 @@ func (l *teamResourceRepositoryImpl) UpdateStatus(ctx context.Context, status vo
 	return err
 }
 
+// FindSelectByPage 分页查询资源
 func (l *teamResourceRepositoryImpl) FindSelectByPage(ctx context.Context, params *bo.QueryResourceListParams) ([]imodel.IResource, error) {
 	mainQuery, err := getBizQuery(ctx, l.data)
 	if !types.IsNil(err) {

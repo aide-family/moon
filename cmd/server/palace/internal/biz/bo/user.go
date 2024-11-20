@@ -93,6 +93,7 @@ type (
 		*model.SysUser
 	}
 
+	// NoticeUserMessage 用户消息
 	NoticeUserMessage struct {
 		ID        uint32
 		Category  vobj.UserMessageType
@@ -103,6 +104,7 @@ type (
 		BizID     uint32
 	}
 
+	// QueryUserMessageListParams 查询用户消息列表参数
 	QueryUserMessageListParams struct {
 		Keyword string
 		Page    types.Pagination

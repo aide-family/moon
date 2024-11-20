@@ -66,6 +66,7 @@ type (
 		GetBasicInfo() *BasicInfo
 	}
 
+	// BasicInfo 数据源信息
 	BasicInfo struct {
 		Endpoint  string     `json:"endpoint"`
 		ID        uint32     `json:"id"`

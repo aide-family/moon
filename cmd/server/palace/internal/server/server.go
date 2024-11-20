@@ -111,7 +111,7 @@ func RegisterService(
 	historyService *history.Service,
 	fileService *file.Service,
 	systemService *system.Service,
-	alarmSendService *alarm.AlarmSendService,
+	alarmSendService *alarm.SendService,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)

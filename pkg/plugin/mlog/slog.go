@@ -31,6 +31,7 @@ func NewSlog(c SLogConfig) Logger {
 }
 
 type (
+	// SLogConfig slog日志配置
 	SLogConfig interface {
 		GetJson() bool
 	}
@@ -41,6 +42,7 @@ type (
 	}
 )
 
+// Log 日志
 func (s *sLogger) Log(level log.Level, keyvals ...interface{}) error {
 	var (
 		msg    = ""
@@ -52,7 +54,7 @@ func (s *sLogger) Log(level log.Level, keyvals ...interface{}) error {
 	}
 	if keyLen%2 != 0 {
 		msg = fmt.Sprintf("%v", keyvals[len(keyvals)-1])
-		keyLen -= 1
+		keyLen--
 	}
 
 	data := make([]slog.Attr, 0, (keyLen/2)+1)

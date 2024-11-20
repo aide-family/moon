@@ -9,18 +9,21 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 )
 
-type AlarmSendService struct {
+// SendService 告警发送
+type SendService struct {
 	pb.UnimplementedSendServer
 
 	alarmSendBiz  *biz.AlarmSendBiz
 	alarmGroupBiz *biz.AlarmGroupBiz
 }
 
-// NewSendService new a send service.
-func NewSendService(alarmSendBiz *biz.AlarmSendBiz, alarmGroupBiz *biz.AlarmGroupBiz) *AlarmSendService {
-	return &AlarmSendService{alarmSendBiz: alarmSendBiz, alarmGroupBiz: alarmGroupBiz}
+// NewSendService 创建告警发送服务
+func NewSendService(alarmSendBiz *biz.AlarmSendBiz, alarmGroupBiz *biz.AlarmGroupBiz) *SendService {
+	return &SendService{alarmSendBiz: alarmSendBiz, alarmGroupBiz: alarmGroupBiz}
 }
-func (s *AlarmSendService) GetAlarmSendHistory(ctx context.Context, req *pb.GetAlarmSendRequest) (*pb.GetAlarmSendReply, error) {
+
+// GetAlarmSendHistory 获取告警发送历史
+func (s *SendService) GetAlarmSendHistory(ctx context.Context, req *pb.GetAlarmSendRequest) (*pb.GetAlarmSendReply, error) {
 	sendDetail, err := s.alarmSendBiz.GetAlarmSendDetail(ctx, &bo.GetAlarmSendHistoryParams{ID: req.Id})
 	if err != nil {
 		return nil, err
@@ -34,7 +37,9 @@ func (s *AlarmSendService) GetAlarmSendHistory(ctx context.Context, req *pb.GetA
 			ToAPI(sendDetail, groupDetail),
 	}, nil
 }
-func (s *AlarmSendService) ListSendHistory(ctx context.Context, req *pb.ListAlarmSendRequest) (*pb.ListAlarmSendReply, error) {
+
+// ListSendHistory 获取告警发送历史列表
+func (s *SendService) ListSendHistory(ctx context.Context, req *pb.ListAlarmSendRequest) (*pb.ListAlarmSendReply, error) {
 	param := builder.NewParamsBuild(ctx).AlarmSendModuleBuilder().WithListAlarmSendRequest(ctx, req).ToBo()
 	sendHistories, err := s.alarmSendBiz.ListAlarmSendHistories(ctx, param)
 	if err != nil {
@@ -45,7 +50,9 @@ func (s *AlarmSendService) ListSendHistory(ctx context.Context, req *pb.ListAlar
 		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }
-func (s *AlarmSendService) RetrySend(ctx context.Context, req *pb.RetrySendRequest) (*pb.RetrySendReply, error) {
+
+// RetrySend 重试告警发送
+func (s *SendService) RetrySend(ctx context.Context, req *pb.RetrySendRequest) (*pb.RetrySendReply, error) {
 	err := s.alarmSendBiz.RetryAlarmSend(ctx, &bo.RetryAlarmSendParams{RequestID: req.RequestId})
 	if err != nil {
 		return nil, err

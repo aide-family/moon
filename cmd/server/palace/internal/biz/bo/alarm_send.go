@@ -40,6 +40,7 @@ type (
 		Route        string          `json:"route"`
 	}
 
+	// UpdateAlarmSendParams 更新告警发送请求参数
 	UpdateAlarmSendParams struct {
 		ID          uint32 `json:"id"`
 		UpdateParam *CreateAlarmSendParams

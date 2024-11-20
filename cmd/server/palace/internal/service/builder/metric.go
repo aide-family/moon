@@ -19,16 +19,23 @@ type (
 		ctx context.Context
 	}
 
+	// IMetricModuleBuilder 指标模块构造器
 	IMetricModuleBuilder interface {
+		// WithUpdateMetricRequest 更新指标请求参数构造器
 		WithUpdateMetricRequest(*datasourceapi.UpdateMetricRequest) IUpdateMetricRequestBuilder
+		// WithGetMetricRequest 获取指标请求参数构造器
 		WithGetMetricRequest(*datasourceapi.GetMetricRequest) IGetMetricRequestBuilder
+		// WithListMetricRequest 获取指标列表请求参数构造器
 		WithListMetricRequest(*datasourceapi.ListMetricRequest) IListMetricRequestBuilder
+		// DoMetricBuilder 指标条目构造器
 		DoMetricBuilder() IDoMetricBuilder
-
+		// DoMetricLabelBuilder 指标标签条目构造器
 		DoMetricLabelBuilder() IDoMetricLabelBuilder
 	}
 
+	// IUpdateMetricRequestBuilder 更新指标请求参数构造器
 	IUpdateMetricRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateMetricParams
 	}
 
@@ -37,7 +44,9 @@ type (
 		*datasourceapi.UpdateMetricRequest
 	}
 
+	// IGetMetricRequestBuilder 获取指标请求参数构造器
 	IGetMetricRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.GetMetricParams
 	}
 
@@ -46,7 +55,9 @@ type (
 		*datasourceapi.GetMetricRequest
 	}
 
+	// IListMetricRequestBuilder 获取指标列表请求参数构造器
 	IListMetricRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryMetricListParams
 	}
 
@@ -55,10 +66,15 @@ type (
 		*datasourceapi.ListMetricRequest
 	}
 
+	// IDoMetricBuilder 指标条目构造器
 	IDoMetricBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.DatasourceMetric) *adminapi.MetricItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.DatasourceMetric) []*adminapi.MetricItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.DatasourceMetric) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.DatasourceMetric) []*adminapi.SelectItem
 	}
 
@@ -66,8 +82,11 @@ type (
 		ctx context.Context
 	}
 
+	// IDoMetricLabelBuilder 指标标签条目构造器
 	IDoMetricLabelBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.MetricLabel) *adminapi.MetricLabelItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.MetricLabel) []*adminapi.MetricLabelItem
 	}
 

@@ -263,7 +263,7 @@ func (l *teamRoleRepositoryImpl) CheckRbac(_ context.Context, teamID uint32, rol
 }
 
 func (l *teamRoleRepositoryImpl) GetBizTeamRolesByIds(ctx context.Context, teamID uint32, roleIds []uint32) ([]*bizmodel.SysTeamRole, error) {
-	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
+	bizQuery, err := getTeamIDBizQuery(l.data, teamID)
 	if err != nil {
 		return nil, err
 	}

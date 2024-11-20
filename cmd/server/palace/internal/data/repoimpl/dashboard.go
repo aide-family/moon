@@ -43,7 +43,7 @@ func (d *dashboardRepositoryImpl) BatchUpdateDashboardStatus(ctx context.Context
 
 func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddDashboardParams) error {
 	dashboardModuleBuilder := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithBoAddDashboardParams(req)
-	dashboardModel := dashboardModuleBuilder.ToDo()
+	dashboardModel := dashboardModuleBuilder.ToModel()
 	bizQuery, err := getBizQuery(ctx, d.data)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (d *dashboardRepositoryImpl) DeleteDashboard(ctx context.Context, req *bo.D
 
 func (d *dashboardRepositoryImpl) UpdateDashboard(ctx context.Context, req *bo.UpdateDashboardParams) error {
 	dashboardModuleBuilder := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithBoUpdateDashboardParams(req)
-	dashboardModel := dashboardModuleBuilder.ToDo()
+	dashboardModel := dashboardModuleBuilder.ToModel()
 	strategyGroups := dashboardModuleBuilder.ToDoStrategyGroups()
 	charts := dashboardModuleBuilder.ToDoCharts()
 	bizQuery, err := getBizQuery(ctx, d.data)

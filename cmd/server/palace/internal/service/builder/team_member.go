@@ -18,14 +18,21 @@ type (
 		ctx context.Context
 	}
 
+	// ITeamMemberModuleBuilder 团队成员模块条目构造器
 	ITeamMemberModuleBuilder interface {
+		// DoTeamMemberBuilder 获取团队成员条目构造器
 		DoTeamMemberBuilder() IDoTeamMemberBuilder
 	}
 
+	// IDoTeamMemberBuilder 团队成员条目构造器
 	IDoTeamMemberBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.SysTeamMember) *adminapi.TeamMemberItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.SysTeamMember) []*adminapi.TeamMemberItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.SysTeamMember) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.SysTeamMember) []*adminapi.SelectItem
 	}
 

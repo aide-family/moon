@@ -12,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// AliyunLogConfig 阿里云日志配置
 type AliyunLogConfig interface {
 	GetAccessKey() string
 	GetAccessSecret() string
@@ -55,6 +56,7 @@ type (
 	}
 )
 
+// Log 日志
 func (a *aliyunLog) Log(level log.Level, keyvals ...interface{}) error {
 	contents := make([]*sls.LogContent, 0, len(keyvals)/2+1)
 

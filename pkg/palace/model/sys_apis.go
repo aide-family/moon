@@ -22,6 +22,7 @@ type SysAPI struct {
 	Allow  vobj.Allow  `gorm:"column:allow;type:tinyint;not null;comment:允许类型" json:"allow"`                                           // 放行规则
 }
 
+// GetAllow 获取放行规则
 func (c *SysAPI) GetAllow() vobj.Allow {
 	if c == nil {
 		return 0
@@ -30,6 +31,7 @@ func (c *SysAPI) GetAllow() vobj.Allow {
 	return c.Allow
 }
 
+// GetName 获取API名称
 func (c *SysAPI) GetName() string {
 	if c == nil {
 		return ""
@@ -38,6 +40,7 @@ func (c *SysAPI) GetName() string {
 	return c.Name
 }
 
+// GetPath 获取API路径
 func (c *SysAPI) GetPath() string {
 	if c == nil {
 		return ""
@@ -46,6 +49,7 @@ func (c *SysAPI) GetPath() string {
 	return c.Path
 }
 
+// GetStatus 获取状态
 func (c *SysAPI) GetStatus() vobj.Status {
 	if c == nil {
 		return 0
@@ -53,6 +57,7 @@ func (c *SysAPI) GetStatus() vobj.Status {
 	return c.Status
 }
 
+// GetRemark 获取备注
 func (c *SysAPI) GetRemark() string {
 	if c == nil {
 		return ""
@@ -61,6 +66,7 @@ func (c *SysAPI) GetRemark() string {
 	return c.Remark
 }
 
+// GetModule 获取模块
 func (c *SysAPI) GetModule() int32 {
 	if c == nil {
 		return 0
@@ -69,6 +75,7 @@ func (c *SysAPI) GetModule() int32 {
 	return c.Module
 }
 
+// GetDomain 获取领域
 func (c *SysAPI) GetDomain() int32 {
 	if c == nil {
 		return 0
@@ -77,7 +84,7 @@ func (c *SysAPI) GetDomain() int32 {
 	return c.Domain
 }
 
-// String json string
+// String 字符串
 func (c *SysAPI) String() string {
 	bs, _ := types.Marshal(c)
 	return string(bs)
@@ -93,7 +100,7 @@ func (c *SysAPI) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }
 
-// TableName SysAPI's table name
+// TableName 表名
 func (*SysAPI) TableName() string {
 	return tableNameSysAPI
 }

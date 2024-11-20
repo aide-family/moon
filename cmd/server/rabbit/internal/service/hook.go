@@ -40,6 +40,7 @@ func (s *HookService) SendMsg(ctx context.Context, req *hookapi.SendMsgRequest) 
 	}, nil
 }
 
+// Send 发送消息
 func (s *HookService) Send(ctx context.Context, req *bo.SendMsgParams) error {
 	if err := s.msgBiz.SendMsg(ctx, req); !types.IsNil(err) {
 		return err

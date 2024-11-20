@@ -15,7 +15,9 @@ func TestTextJoin(t *testing.T) {
 	}
 
 	ts := time.Now()
-	defer t.Log(time.Since(ts))
+	defer func() {
+		t.Log(time.Since(ts))
+	}()
 
 	TextJoin(s...)
 }
@@ -37,7 +39,9 @@ func TestTextJoinByStringer(t *testing.T) {
 	}
 
 	ts := time.Now()
-	defer t.Log(time.Since(ts))
+	defer func() {
+		t.Log(time.Since(ts))
+	}()
 
 	TextJoinByStringer(s...)
 }
@@ -49,6 +53,8 @@ func TestTextJoinByBytes(t *testing.T) {
 		s = append(s, []byte("hello"))
 	}
 	ts := time.Now()
-	defer t.Log(time.Since(ts))
+	defer func() {
+		t.Log(time.Since(ts))
+	}()
 	TextJoinByBytes(s...)
 }

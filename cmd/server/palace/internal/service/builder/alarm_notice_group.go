@@ -83,6 +83,7 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateStrategyLabelNoticeRequestBuilder 创建策略标签通知请求参数构造器
 	ICreateStrategyLabelNoticeRequestBuilder interface {
 		ToBo(*strategyapi.CreateStrategyLabelNoticeRequest) *bo.StrategyLabelNotice
 		ToBos([]*strategyapi.CreateStrategyLabelNoticeRequest) []*bo.StrategyLabelNotice
@@ -92,6 +93,7 @@ type (
 		ctx context.Context
 	}
 
+	// IMyAlarmGroupListParamsBuilder 获取我的告警组列表请求参数构造器
 	IMyAlarmGroupListParamsBuilder interface {
 		ToBo() *bo.MyAlarmGroupListParams
 	}
@@ -101,6 +103,7 @@ type (
 		*alarmapi.MyAlarmGroupRequest
 	}
 
+	// IAlarmNoticeGroupModuleBuilder 告警组模块构造器
 	IAlarmNoticeGroupModuleBuilder interface {
 		WithCreateAlarmGroupRequest(*alarmapi.CreateAlarmGroupRequest) ICreateAlarmGroupRequestBuilder
 		WithUpdateAlarmGroupRequest(*alarmapi.UpdateAlarmGroupRequest) IUpdateAlarmGroupRequestBuilder
@@ -113,6 +116,7 @@ type (
 	}
 )
 
+// ToBo 转换为业务对象
 func (a *myAlarmGroupListParamsBuilder) ToBo() *bo.MyAlarmGroupListParams {
 	if types.IsNil(a) || types.IsNil(a.MyAlarmGroupRequest) {
 		return nil

@@ -52,5 +52,5 @@ func (y *fileRepositoryImpl) UploadFile(ctx context.Context, params *bo.UploadFi
 	if !types.IsNil(err) {
 		return "", err
 	}
-	return y.data.GetOssCli().GetFileUrl(ctx, params.FileName)
+	return y.data.GetOssCli().GetFileURL(ctx, params.FileName)
 }

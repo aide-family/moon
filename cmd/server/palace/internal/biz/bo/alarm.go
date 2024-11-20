@@ -144,6 +144,7 @@ type (
 	}
 )
 
+// String 将告警hook原始信息转换为字符串
 func (a *CreateAlarmHookRawParams) String() string {
 	if types.IsNil(a) {
 		return ""
@@ -155,10 +156,12 @@ func (a *CreateAlarmHookRawParams) String() string {
 	return string(bs)
 }
 
+// Index 生成告警hook索引
 func (a *CreateAlarmHookRawParams) Index() string {
 	return types.TextJoin("palace:alert:hook:", types.MD5(a.GroupLabels.String()))
 }
 
+// Message 生成告警hook消息
 func (a *CreateAlarmHookRawParams) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlarm)
 }
@@ -174,8 +177,8 @@ func (a *CreateAlarmInfoParams) GetDatasourceMap(datasourceID uint32) string {
 	return ""
 }
 
-// GetRawInfoId 获取原始信息id
-func (a *CreateAlarmInfoParams) GetRawInfoId(fingerprint string) uint32 {
+// GetRawInfoID 获取原始信息id
+func (a *CreateAlarmInfoParams) GetRawInfoID(fingerprint string) uint32 {
 	if types.IsNil(a) || types.IsNil(a.RawInfoMap) {
 		return 0
 	}
@@ -197,7 +200,7 @@ func (a *AlertItemRawParams) GetAlertItemString() string {
 	return string(bs)
 }
 
-// NoticeKey redis key
+// NoticeKey 生成告警通知缓存key
 func (a *AlertItemRawParams) NoticeKey(route string) string {
 	return types.TextJoin("palace:notice:", route, ":", a.Status, ":", a.Fingerprint)
 }

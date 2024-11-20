@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// RuntimeCache 运行时缓存
 var RuntimeCache repository.Cache
 var runtimeCacheOnce = sync.Once{}
 

@@ -11,7 +11,7 @@ const tableNameSysTeamAPI = "sys_team_apis"
 
 var _ imodel.IResource = (*SysTeamAPI)(nil)
 
-// SysTeamAPI mapped from table <sys_apis>
+// SysTeamAPI API资源管理
 type SysTeamAPI struct {
 	model.AllFieldModel
 	Name   string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__team_api__name,priority:1;comment:api名称" json:"name"`  // api名称
@@ -23,6 +23,7 @@ type SysTeamAPI struct {
 	Allow  vobj.Allow  `gorm:"column:allow;type:tinyint;not null;comment:允许类型" json:"allow"`                                                // 放行规则
 }
 
+// GetAllow 获取放行规则
 func (c *SysTeamAPI) GetAllow() vobj.Allow {
 	if c == nil {
 		return 0
@@ -31,6 +32,7 @@ func (c *SysTeamAPI) GetAllow() vobj.Allow {
 	return c.Allow
 }
 
+// GetName 获取API名称
 func (c *SysTeamAPI) GetName() string {
 	if c == nil {
 		return ""
@@ -39,6 +41,7 @@ func (c *SysTeamAPI) GetName() string {
 	return c.Name
 }
 
+// GetPath 获取API路径
 func (c *SysTeamAPI) GetPath() string {
 	if c == nil {
 		return ""
@@ -47,6 +50,7 @@ func (c *SysTeamAPI) GetPath() string {
 	return c.Path
 }
 
+// GetStatus 获取状态
 func (c *SysTeamAPI) GetStatus() vobj.Status {
 	if c == nil {
 		return 0
@@ -54,6 +58,7 @@ func (c *SysTeamAPI) GetStatus() vobj.Status {
 	return c.Status
 }
 
+// GetRemark 获取备注
 func (c *SysTeamAPI) GetRemark() string {
 	if c == nil {
 		return ""
@@ -62,6 +67,7 @@ func (c *SysTeamAPI) GetRemark() string {
 	return c.Remark
 }
 
+// GetModule 获取模块
 func (c *SysTeamAPI) GetModule() int32 {
 	if c == nil {
 		return 0
@@ -70,6 +76,7 @@ func (c *SysTeamAPI) GetModule() int32 {
 	return c.Module
 }
 
+// GetDomain 获取领域
 func (c *SysTeamAPI) GetDomain() int32 {
 	if c == nil {
 		return 0
@@ -78,7 +85,7 @@ func (c *SysTeamAPI) GetDomain() int32 {
 	return c.Domain
 }
 
-// String json string
+// String 字符串
 func (c *SysTeamAPI) String() string {
 	bs, _ := types.Marshal(c)
 	return string(bs)
@@ -94,7 +101,7 @@ func (c *SysTeamAPI) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }
 
-// TableName SysTeamAPI's table name
+// TableName 表名
 func (*SysTeamAPI) TableName() string {
 	return tableNameSysTeamAPI
 }

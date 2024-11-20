@@ -27,10 +27,13 @@ type Scheme struct {
 	typeToKeyFunc map[reflect.Type]cache.KeyFunc
 }
 
+// SchemeObject 方案对象
 type SchemeObject interface {
+	// KeyFunc 获取对象的键
 	KeyFunc(obj interface{}) (string, error)
 }
 
+// NewScheme 创建方案
 func NewScheme() *Scheme {
 	return &Scheme{
 		kindToType:    map[string]reflect.Type{},
@@ -40,6 +43,7 @@ func NewScheme() *Scheme {
 	}
 }
 
+// AddKnownTypes 添加已知类型
 func (s *Scheme) AddKnownTypes(types ...any) error {
 	for _, obj := range types {
 		object, ok := obj.(SchemeObject)
@@ -59,6 +63,7 @@ func (s *Scheme) AddKnownTypes(types ...any) error {
 	return nil
 }
 
+// AddKnownTypeWithName 添加已知类型
 func (s *Scheme) AddKnownTypeWithName(kind string, obj any, keyFunc cache.KeyFunc) error {
 	if len(kind) == 0 {
 		return fmt.Errorf("kind is required and cannot be empty")
@@ -86,6 +91,7 @@ func (s *Scheme) AddKnownTypeWithName(kind string, obj any, keyFunc cache.KeyFun
 	return nil
 }
 
+// ObjectKind 获取对象的类型
 func (s *Scheme) ObjectKind(obj any) (string, error) {
 	v, err := ptr.EnforcePtr(obj)
 	if err != nil {
@@ -98,6 +104,7 @@ func (s *Scheme) ObjectKind(obj any) (string, error) {
 	return "", fmt.Errorf("kind not registered for type %v", v.Type())
 }
 
+// ObjectsKind 获取对象的类型
 func (s *Scheme) ObjectsKind(objs any) (string, error) {
 	obj, err := ptr.GenerateElementPtrBySlice(objs)
 	if err != nil {
@@ -106,6 +113,7 @@ func (s *Scheme) ObjectsKind(objs any) (string, error) {
 	return s.ObjectKind(obj)
 }
 
+// ObjectKeyFunc 获取对象的键
 func (s *Scheme) ObjectKeyFunc(obj any) (cache.KeyFunc, error) {
 	v, err := ptr.EnforcePtr(obj)
 	if err != nil {
@@ -118,6 +126,7 @@ func (s *Scheme) ObjectKeyFunc(obj any) (cache.KeyFunc, error) {
 	return nil, fmt.Errorf("keyFunc not registered for type %v", v.Type())
 }
 
+// ObjectsKeyFunc 获取对象的键
 func (s *Scheme) ObjectsKeyFunc(objs any) (cache.KeyFunc, error) {
 	obj, err := ptr.GenerateElementPtrBySlice(objs)
 	if err != nil {
@@ -126,24 +135,26 @@ func (s *Scheme) ObjectsKeyFunc(objs any) (cache.KeyFunc, error) {
 	return s.ObjectKeyFunc(obj)
 }
 
+// KindKeyFunc 获取类型的键
 func (s *Scheme) KindKeyFunc(kind string) (cache.KeyFunc, error) {
-
 	if keyFunc, ok := s.kindToKeyFunc[kind]; ok {
 		return keyFunc, nil
 	}
 	return nil, fmt.Errorf("keyFunc not registered for kind %v", kind)
 }
 
+// Recognizes 是否识别类型
 func (s *Scheme) Recognizes(kind string) bool {
 	_, exists := s.kindToType[kind]
 	return exists
 }
 
-// AllKnownTypes returns the all known types.
+// AllKnownTypes 获取所有已知类型
 func (s *Scheme) AllKnownTypes() map[string]reflect.Type {
 	return s.kindToType
 }
 
+// New 创建对象
 func (s *Scheme) New(kind string) (any, error) {
 	if t, exists := s.kindToType[kind]; exists {
 		return reflect.New(t).Interface(), nil

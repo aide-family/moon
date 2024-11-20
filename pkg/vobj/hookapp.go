@@ -22,6 +22,7 @@ const (
 	HookAPPFeiShu // 飞书
 )
 
+// EnUSString 英文字符串
 func (h HookAPP) EnUSString() string {
 	switch h {
 	case HookAPPDingTalk:

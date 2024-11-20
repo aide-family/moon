@@ -2,12 +2,13 @@ package cache_test
 
 import (
 	"context"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/coocood/freecache"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/coocood/freecache"
 )
 
 var cli = freecache.NewCache(1024 * 1024 * 10)

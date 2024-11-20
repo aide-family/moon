@@ -39,7 +39,7 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// String implements Stringer interface
+// String 字符串
 func (t *Time) String() string {
 	if t == nil {
 		return ""
@@ -47,7 +47,7 @@ func (t *Time) String() string {
 	return t.Time.Format(time.DateTime)
 }
 
-// Unix implements Unix interface
+// Unix 时间戳
 func (t *Time) Unix() int64 {
 	if t == nil {
 		return 0
@@ -120,15 +120,18 @@ type Duration struct {
 	Duration *durationpb.Duration
 }
 
+// String 字符串
 func (d *Duration) String() string {
 	return d.GetDuration().String()
 }
 
+// MarshalJSON 实现 json.Marshaler 接口
 func (d *Duration) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
 	return TextJoinToBytes(`"`, d.String(), `"`), nil
 }
 
+// UnmarshalJSON 实现 json.Unmarshaler 接口
 func (d *Duration) UnmarshalJSON(data []byte) error {
 	// 去掉字符串中的引号
 	s := strings.Trim(string(data), `"`)

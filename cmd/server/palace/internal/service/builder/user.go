@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
 	userapi "github.com/aide-family/moon/api/admin/user"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
@@ -22,22 +23,37 @@ type (
 		ctx context.Context
 	}
 
+	// IUserModuleBuilder 用户模块条目构造器
 	IUserModuleBuilder interface {
+		// WithCreateUserRequest 设置创建用户请求
 		WithCreateUserRequest(*userapi.CreateUserRequest) ICreateUserRequestBuilder
+		// WithUpdateUserRequest 设置更新用户请求
 		WithUpdateUserRequest(*userapi.UpdateUserRequest) IUpdateUserRequestBuilder
+		// WithListUserRequest 设置获取用户列表请求
 		WithListUserRequest(*userapi.ListUserRequest) IListUserRequestBuilder
+		// WithBatchUpdateUserStatusRequest 设置批量更新用户状态请求
 		WithBatchUpdateUserStatusRequest(*userapi.BatchUpdateUserStatusRequest) IBatchUpdateUserStatusRequestBuilder
+		// WithResetUserPasswordBySelfRequest 设置重置用户密码请求
 		WithResetUserPasswordBySelfRequest(*userapi.ResetUserPasswordBySelfRequest) IResetUserPasswordBySelfRequestBuilder
+		// WithUpdateUserPhoneRequest 设置更新用户手机请求
 		WithUpdateUserPhoneRequest(*userapi.UpdateUserPhoneRequest) IUpdateUserPhoneRequestBuilder
+		// WithUpdateUserEmailRequest 设置更新用户邮箱请求
 		WithUpdateUserEmailRequest(*userapi.UpdateUserEmailRequest) IUpdateUserEmailRequestBuilder
+		// WithUpdateUserAvatarRequest 设置更新用户头像请求
 		WithUpdateUserAvatarRequest(*userapi.UpdateUserAvatarRequest) IUpdateUserAvatarRequestBuilder
+		// WithUpdateUserBaseInfoRequest 设置更新用户基础信息请求
 		WithUpdateUserBaseInfoRequest(*userapi.UpdateUserBaseInfoRequest) IUpdateUserBaseInfoRequestBuilder
+		// DoUserBuilder 获取用户条目构造器
 		DoUserBuilder() IDoUserBuilder
+		// DoNoticeUserBuilder 获取通知用户条目构造器
 		DoNoticeUserBuilder() INoticeUserBuilder
+		// NoticeUserMessageBuilder 获取通知用户消息条目构造器
 		NoticeUserMessageBuilder() INoticeUserMessageBuilder
 	}
 
+	// ICreateUserRequestBuilder 创建用户请求参数构造器
 	ICreateUserRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateUserParams
 	}
 
@@ -46,7 +62,9 @@ type (
 		*userapi.CreateUserRequest
 	}
 
+	// IUpdateUserRequestBuilder 更新用户请求参数构造器
 	IUpdateUserRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateUserParams
 	}
 
@@ -55,7 +73,9 @@ type (
 		*userapi.UpdateUserRequest
 	}
 
+	// IListUserRequestBuilder 获取用户列表请求参数构造器
 	IListUserRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryUserListParams
 	}
 
@@ -64,7 +84,9 @@ type (
 		*userapi.ListUserRequest
 	}
 
+	// IBatchUpdateUserStatusRequestBuilder 批量更新用户状态请求参数构造器
 	IBatchUpdateUserStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.BatchUpdateUserStatusParams
 	}
 
@@ -73,8 +95,11 @@ type (
 		*userapi.BatchUpdateUserStatusRequest
 	}
 
+	// IResetUserPasswordBySelfRequestBuilder 重置用户密码请求参数构造器
 	IResetUserPasswordBySelfRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.ResetUserPasswordBySelfParams
+		// WithUserInfo 设置用户信息
 		WithUserInfo(f func(ctx context.Context, id uint32) (*model.SysUser, error)) (IResetUserPasswordBySelfRequestBuilder, error)
 	}
 
@@ -84,7 +109,9 @@ type (
 		*userapi.ResetUserPasswordBySelfRequest
 	}
 
+	// IUpdateUserPhoneRequestBuilder 更新用户手机请求参数构造器
 	IUpdateUserPhoneRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateUserPhoneRequest
 	}
 
@@ -93,7 +120,9 @@ type (
 		*userapi.UpdateUserPhoneRequest
 	}
 
+	// IUpdateUserEmailRequestBuilder 更新用户邮箱请求参数构造器
 	IUpdateUserEmailRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateUserEmailRequest
 	}
 
@@ -102,7 +131,9 @@ type (
 		*userapi.UpdateUserEmailRequest
 	}
 
+	// IUpdateUserAvatarRequestBuilder 更新用户头像请求参数构造器
 	IUpdateUserAvatarRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateUserAvatarRequest
 	}
 
@@ -111,7 +142,9 @@ type (
 		*userapi.UpdateUserAvatarRequest
 	}
 
+	// IUpdateUserBaseInfoRequestBuilder 更新用户基础信息请求参数构造器
 	IUpdateUserBaseInfoRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateUserBaseParams
 	}
 
@@ -120,10 +153,17 @@ type (
 		*userapi.UpdateUserBaseInfoRequest
 	}
 
+	// IDoUserBuilder 用户条目构造器
 	IDoUserBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.SysUser) *adminapi.UserItem
+		// ToAPIByID 转换为API对象
+		ToAPIByID(ctx context.Context, id uint32) *adminapi.UserItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysUser) []*adminapi.UserItem
+		// ToSelect 转换为选择对象
 		ToSelect(*model.SysUser) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*model.SysUser) []*adminapi.SelectItem
 	}
 
@@ -131,8 +171,11 @@ type (
 		ctx context.Context
 	}
 
+	// INoticeUserBuilder 通知用户条目构造器
 	INoticeUserBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.AlarmNoticeMember) *adminapi.NoticeItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.AlarmNoticeMember) []*adminapi.NoticeItem
 	}
 
@@ -140,17 +183,31 @@ type (
 		ctx context.Context
 	}
 
+	// INoticeUserMessageBuilder 通知用户消息条目构造器
 	INoticeUserMessageBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.SysUserMessage) *adminapi.NoticeUserMessage
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysUserMessage) []*adminapi.NoticeUserMessage
-		ToDo(*bo.NoticeUserMessage) *model.SysUserMessage
-		ToDos([]*bo.NoticeUserMessage) []*model.SysUserMessage
+		// ToModel 转换为业务对象
+		ToModel(*bo.NoticeUserMessage) *model.SysUserMessage
+		// ToModels 转换为业务对象列表
+		ToModels([]*bo.NoticeUserMessage) []*model.SysUserMessage
 	}
 
 	noticeUserMessageBuilder struct {
 		ctx context.Context
 	}
 )
+
+// ToAPIByID implements IDoUserBuilder.
+func (d *doUserBuilder) ToAPIByID(ctx context.Context, id uint32) *adminapi.UserItem {
+	userDo := biz.RuntimeCache.GetUser(ctx, id)
+	if types.IsNil(userDo) {
+		return nil
+	}
+	return d.ToAPI(userDo)
+}
 
 func (n *noticeUserMessageBuilder) ToAPI(message *model.SysUserMessage) *adminapi.NoticeUserMessage {
 	if types.IsNil(message) {
@@ -177,7 +234,7 @@ func (n *noticeUserMessageBuilder) ToAPIs(messages []*model.SysUserMessage) []*a
 	})
 }
 
-func (n *noticeUserMessageBuilder) ToDo(message *bo.NoticeUserMessage) *model.SysUserMessage {
+func (n *noticeUserMessageBuilder) ToModel(message *bo.NoticeUserMessage) *model.SysUserMessage {
 	if types.IsNil(message) {
 		return nil
 	}
@@ -192,12 +249,12 @@ func (n *noticeUserMessageBuilder) ToDo(message *bo.NoticeUserMessage) *model.Sy
 	}
 }
 
-func (n *noticeUserMessageBuilder) ToDos(messages []*bo.NoticeUserMessage) []*model.SysUserMessage {
+func (n *noticeUserMessageBuilder) ToModels(messages []*bo.NoticeUserMessage) []*model.SysUserMessage {
 	if types.IsNil(messages) {
 		return nil
 	}
 	return types.SliceTo(messages, func(message *bo.NoticeUserMessage) *model.SysUserMessage {
-		return n.ToDo(message)
+		return n.ToModel(message)
 	})
 }
 

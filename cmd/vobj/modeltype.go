@@ -1,15 +1,20 @@
 package vobj
 
 const (
-	ModelCodeUnknown  = "unknown" // 未知
-	MainCode          = "main"    // 主库
-	BizModelCode      = "biz"     // 业务库
-	AlarmModelBizCode = "alarm"   // 告警库
+	// MainCode 主库
+	MainCode = "main" // 主库
+	// BizModelCode 业务库
+	BizModelCode = "biz" // 业务库
+	// AlarmModelBizCode 告警库
+	AlarmModelBizCode = "alarm" // 告警库
 )
 
 const (
-	MainPath          = "./pkg/palace/model/query"
-	BizModelPath      = "./pkg/palace/model/bizmodel/bizquery"
+	// MainPath 主库路径
+	MainPath = "./pkg/palace/model/query"
+	// BizModelPath 业务库路径
+	BizModelPath = "./pkg/palace/model/bizmodel/bizquery"
+	// AlarmModelBizPath 告警库路径
 	AlarmModelBizPath = "./pkg/palace/model/alarmmodel/alarmquery"
 )
 

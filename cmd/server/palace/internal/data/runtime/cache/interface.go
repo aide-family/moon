@@ -8,10 +8,12 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// Reader 缓存读取器
 type Reader interface {
 	runtime.Reader
 }
 
+// Writer 缓存写入器
 type Writer interface {
 	Add(ctx context.Context, object any) error
 	Replace(ctx context.Context, objects any) error
@@ -32,6 +34,7 @@ type Informers interface {
 	GetInformerForKind(ctx context.Context, kind string) (Informer, error)
 }
 
+// Informer 缓存通知器
 type Informer interface {
 	// AddIndexers adds more indexers to this store.  If you call this after you already have data
 	// in the store, the results are undefined.
@@ -40,6 +43,7 @@ type Informer interface {
 	GetIndexer() cache.Indexer
 }
 
+// Interface 缓存接口
 type Interface interface {
 	Reader
 	Writer

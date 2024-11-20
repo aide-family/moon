@@ -19,6 +19,7 @@ var ProviderSetRPCConn = wire.NewSet(
 	NewRabbitRPCConn,
 )
 
+// NewSrvList 创建服务列表
 func NewSrvList(depend bool) *SrvList {
 	return &SrvList{
 		srvs:   make(map[string]*Srv, 10),
@@ -26,12 +27,14 @@ func NewSrvList(depend bool) *SrvList {
 	}
 }
 
+// SrvList 服务列表
 type SrvList struct {
 	lock   sync.Mutex
 	srvs   map[string]*Srv
 	depend bool
 }
 
+// Srv 服务
 type Srv struct {
 	// 服务实例信息
 	srvInfo *conf.MicroServer
@@ -49,6 +52,7 @@ type Srv struct {
 	firstRegisterTime time.Time
 }
 
+// appendSrv 添加服务
 func (l *SrvList) appendSrv(key string, srv *Srv) {
 	if !l.depend {
 		return
@@ -64,6 +68,7 @@ func (l *SrvList) appendSrv(key string, srv *Srv) {
 	srv = oldSrv
 }
 
+// getSrv 获取服务
 func (l *SrvList) getSrv(key string, isRegister ...bool) (*Srv, bool) {
 	if !l.depend {
 		return nil, false
@@ -84,6 +89,7 @@ func (l *SrvList) getSrv(key string, isRegister ...bool) (*Srv, bool) {
 	return srv, ok
 }
 
+// removeSrv 删除服务
 func (l *SrvList) removeSrv(key string) {
 	if !l.depend {
 		return
@@ -93,6 +99,7 @@ func (l *SrvList) removeSrv(key string) {
 	delete(l.srvs, key)
 }
 
+// getSrvs 获取服务列表
 func (l *SrvList) getSrvs() []*Srv {
 	if !l.depend {
 		return []*Srv{}
@@ -109,6 +116,7 @@ func (l *SrvList) getSrvs() []*Srv {
 	return srvs
 }
 
+// close 关闭服务
 func (l *Srv) close() {
 	if l.rpcClient != nil {
 		l.rpcClient.Close()

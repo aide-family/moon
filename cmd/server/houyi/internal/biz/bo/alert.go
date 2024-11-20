@@ -61,6 +61,7 @@ type (
 	}
 )
 
+// MarshalBinary 将告警信息编码为二进制
 func (a *Alert) MarshalBinary() (data []byte, err error) {
 	alert := alertInfo{
 		Status:       a.Status.String(),
@@ -75,6 +76,7 @@ func (a *Alert) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(alert)
 }
 
+// UnmarshalBinary 将告警信息解码为告警结构体
 func (a *Alert) UnmarshalBinary(data []byte) error {
 	var alert alertInfo
 	if err := types.Unmarshal(data, &alert); err != nil {
@@ -91,7 +93,7 @@ func (a *Alert) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// NewAlertWithAlertStrInfo create alert from alert string
+// NewAlertWithAlertStrInfo 从告警字符串信息创建告警结构体
 func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
 	var a alertInfo
 	if err := types.Unmarshal([]byte(info), &a); err != nil {
@@ -109,6 +111,7 @@ func NewAlertWithAlertStrInfo(info string) (*Alert, error) {
 	}, nil
 }
 
+// String 将告警信息转换为字符串
 func (a *Alarm) String() string {
 	alarm := alarmInfo{
 		Receiver: a.Receiver,
@@ -136,7 +139,7 @@ func (a *Alarm) String() string {
 	return string(bs)
 }
 
-// GetFingerprint gen alert fingerprint
+// GetFingerprint 生成告警指纹
 func (a *Alert) GetFingerprint() string {
 	fingerprint := a.Fingerprint
 	if types.TextIsNull(fingerprint) {
@@ -146,7 +149,7 @@ func (a *Alert) GetFingerprint() string {
 	return fingerprint
 }
 
-// GetExternalURL gen alert external url
+// GetExternalURL 生成告警外部链接
 func (a *Alert) GetExternalURL() string {
 	// TODO 生成图表链接
 	return a.GeneratorURL
@@ -157,27 +160,27 @@ func (a *Alert) String() string {
 	return string(bs)
 }
 
-// Index gen alert index
+// Index 生成告警索引
 func (a *Alert) Index() string {
 	return types.TextJoin("houyi:alert:", types.MD5(a.Labels.String()))
 }
 
-// Index gen alarm index
+// Index 生成告警索引
 func (a *Alarm) Index() string {
 	return types.TextJoin("houyi:alarm:", types.MD5(a.GroupLabels.String()))
 }
 
-// Message gen alarm message
+// Message 生成告警消息
 func (a *Alarm) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlarm, watch.WithMessageRetryMax(10))
 }
 
-// Message gen alert message
+// Message 生成告警消息
 func (a *Alert) Message() *watch.Message {
 	return watch.NewMessage(a, vobj.TopicAlert, watch.WithMessageRetryMax(10))
 }
 
-// PushedFlag gen pushed flag
+// PushedFlag 生成推送标识
 func (a *Alert) PushedFlag() string {
 	return types.TextJoin("houyi:alert:pushed:", a.Status.String(), ":", a.GetFingerprint())
 }

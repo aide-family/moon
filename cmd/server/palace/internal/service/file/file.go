@@ -2,8 +2,9 @@ package file
 
 import (
 	"fmt"
-	"github.com/go-kratos/kratos/v2/transport/http"
 	"io"
+
+	"github.com/go-kratos/kratos/v2/transport/http"
 
 	fileapi "github.com/aide-family/moon/api/admin/file"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
@@ -19,12 +20,14 @@ type Service struct {
 	fileBiz *biz.FileBiz
 }
 
+// NewFileService 创建文件操作服务
 func NewFileService(fileBiz *biz.FileBiz) *Service {
 	return &Service{
 		fileBiz: fileBiz,
 	}
 }
 
+// UploadFile 上传文件
 func (s *Service) UploadFile(ctx http.Context) error {
 	file, header, err := ctx.Request().FormFile("file")
 	if err != nil {
@@ -43,10 +46,11 @@ func (s *Service) UploadFile(ctx http.Context) error {
 	if err != nil {
 		return err
 	}
-	httpres.Success(ctx, "success", &bo.UploadResParams{Url: url})
+	httpres.Success(ctx, "success", &bo.UploadResParams{URL: url})
 	return nil
 }
 
+// DownloadFile 下载文件
 func (s *Service) DownloadFile(ctx http.Context) error {
 	var in bo.DownLoadFileParams
 	if err := ctx.BindVars(&in); err != nil {

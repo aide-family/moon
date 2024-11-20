@@ -44,7 +44,7 @@ func (b *UserMessageBiz) ListUserMessage(ctx context.Context, params *bo.QueryUs
 //	根据不同的业务类型，完成不同的业务动作
 func (b *UserMessageBiz) ConfirmUserMessage(ctx context.Context, id uint32) error {
 	// 查询用户消息
-	userMessage, err := b.userMessageRepository.GetById(ctx, id)
+	userMessage, err := b.userMessageRepository.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (b *UserMessageBiz) ConfirmUserMessage(ctx context.Context, id uint32) erro
 // CancelUserMessage 取消用户通知消息
 func (b *UserMessageBiz) CancelUserMessage(ctx context.Context, id uint32) error {
 	// 查询用户消息
-	userMessage, err := b.userMessageRepository.GetById(ctx, id)
+	userMessage, err := b.userMessageRepository.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 // Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 const tableNameStrategyPing = "strategy_ping"
 
+// StrategyPing Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 type StrategyPing struct {
 	model.AllFieldModel
 	// 所属策略

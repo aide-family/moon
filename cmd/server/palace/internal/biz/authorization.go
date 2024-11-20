@@ -372,6 +372,7 @@ func (b *AuthorizationBiz) giteeLogin(ctx context.Context, code string) (string,
 	return b.oauthLogin(ctx, &userInfo)
 }
 
+// oauthLogin oauth登录
 func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthUser) (string, error) {
 	sysUserDo, err := b.oAuthRepo.OAuthUserFirstOrCreate(ctx, userInfo)
 	if !types.IsNil(err) {
@@ -409,6 +410,7 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 	return redirect, nil
 }
 
+// OAuthLoginWithEmail oauth登录并绑定邮箱
 func (b *AuthorizationBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *auth.OauthLoginParams) (*bo.RefreshTokenReply, error) {
 	// 校验临时token
 	if err := oauthParams.VerifyToken(ctx, b.cacheRepo.Cacher()); err != nil {

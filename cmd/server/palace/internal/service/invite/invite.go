@@ -18,13 +18,14 @@ type Service struct {
 	inviteBiz *biz.InviteBiz
 }
 
-// NewInviteService new a InviteService
+// NewInviteService 创建邀请操作服务
 func NewInviteService(inviteBiz *biz.InviteBiz) *Service {
 	return &Service{
 		inviteBiz: inviteBiz,
 	}
 }
 
+// InviteUser 邀请用户
 func (s *Service) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*pb.InviteUserReply, error) {
 	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithInviteUserRequest(req).ToBo()
 	err := s.inviteBiz.InviteUser(ctx, param)
@@ -33,6 +34,8 @@ func (s *Service) InviteUser(ctx context.Context, req *pb.InviteUserRequest) (*p
 	}
 	return &pb.InviteUserReply{}, nil
 }
+
+// UpdateInviteStatus 更新邀请状态
 func (s *Service) UpdateInviteStatus(ctx context.Context, req *pb.UpdateInviteStatusRequest) (*pb.UpdateInviteStatusReply, error) {
 	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithUpdateInviteStatusRequest(req).ToBo()
 	err := s.inviteBiz.UpdateInviteStatus(ctx, param)
@@ -41,6 +44,8 @@ func (s *Service) UpdateInviteStatus(ctx context.Context, req *pb.UpdateInviteSt
 	}
 	return &pb.UpdateInviteStatusReply{}, nil
 }
+
+// DeleteInvite 删除邀请
 func (s *Service) DeleteInvite(ctx context.Context, req *pb.DeleteInviteRequest) (*pb.DeleteInviteReply, error) {
 	err := s.inviteBiz.DeleteInvite(ctx, req.GetId())
 	if !types.IsNil(err) {
@@ -48,6 +53,8 @@ func (s *Service) DeleteInvite(ctx context.Context, req *pb.DeleteInviteRequest)
 	}
 	return &pb.DeleteInviteReply{}, nil
 }
+
+// GetInvite 获取邀请详情
 func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.GetInviteReply, error) {
 	detail, err := s.inviteBiz.TeamInviteDetail(ctx, req.GetId())
 	if !types.IsNil(err) {
@@ -64,6 +71,8 @@ func (s *Service) GetInvite(ctx context.Context, req *pb.GetInviteRequest) (*pb.
 		Detail: builder.NewParamsBuild(ctx).InviteModuleBuilder().DoInviteBuilder(teamInfo).ToAPI(detail),
 	}, nil
 }
+
+// UserInviteList 获取用户邀请列表
 func (s *Service) UserInviteList(ctx context.Context, req *pb.ListUserInviteRequest) (*pb.ListUserInviteReply, error) {
 	param := builder.NewParamsBuild(ctx).InviteModuleBuilder().WithListInviteUserRequest(req).ToBo()
 	list, err := s.inviteBiz.UserInviteList(ctx, param)

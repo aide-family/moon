@@ -15,7 +15,7 @@ type StrategyEndpoint struct {
 	// 类型
 	Type vobj.StrategyType `json:"type,omitempty"`
 	// url 地址
-	Url string `json:"url,omitempty"`
+	URL string `json:"url,omitempty"`
 	// 超时时间
 	Timeout uint32 `json:"timeout,omitempty"`
 	// 状态码 200 404 500
@@ -25,7 +25,7 @@ type StrategyEndpoint struct {
 	// 请求体
 	Body string `json:"body,omitempty"`
 	// 请求方式
-	Method vobj.HttpMethod `json:"method,omitempty"`
+	Method vobj.HTTPMethod `json:"method,omitempty"`
 	// 相应时间阈值
 	Threshold int64 `json:"threshold,omitempty"`
 	// 策略标签
@@ -50,18 +50,21 @@ type StrategyEndpoint struct {
 	ID uint32 `json:"id,omitempty"`
 }
 
+// String 字符串
 func (e *StrategyEndpoint) String() string {
 	bs, _ := types.Marshal(e)
 	return string(bs)
 }
 
+// Index 索引
 func (e *StrategyEndpoint) Index() string {
 	if types.IsNil(e) {
 		return "houyi:strategy:0:endpoint"
 	}
-	return fmt.Sprintf("houyi:strategy:%d:%d:%d:%s", e.TeamID, e.ID, e.LevelID, types.MD5(e.Url))
+	return fmt.Sprintf("houyi:strategy:%d:%d:%d:%s", e.TeamID, e.ID, e.LevelID, types.MD5(e.URL))
 }
 
+// Message 消息
 func (e *StrategyEndpoint) Message() *watch.Message {
 	return watch.NewMessage(e, vobj.TopicStrategy)
 }

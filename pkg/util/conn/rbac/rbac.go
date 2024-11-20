@@ -2,6 +2,7 @@ package rbac
 
 import (
 	_ "embed"
+
 	"sync"
 
 	"github.com/casbin/casbin/v2"
@@ -15,7 +16,7 @@ var rbacModelConf string
 var rbacOnce sync.Once
 var enforcer *casbin.SyncedEnforcer
 
-// InitCasbinModel init casbin model
+// InitCasbinModel 初始化 casbin 模型
 func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	if enforcer != nil {
 		return enforcer, nil
@@ -47,7 +48,7 @@ func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	return enforcer, nil
 }
 
-// NewCasbinModel new casbin model
+// NewCasbinModel 创建 casbin 模型
 func NewCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	var adapter *gormadapter.Adapter
 	var rbacModel casbinModel.Model
@@ -67,7 +68,7 @@ func NewCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {
 	return enforcer, nil
 }
 
-// Enforcer casbin enforcer
+// Enforcer casbin 执行器
 func Enforcer() *casbin.SyncedEnforcer {
 	if enforcer == nil {
 		panic("casbin enforcer is nil, please init casbin model first")

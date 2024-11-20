@@ -20,15 +20,23 @@ type (
 		ctx context.Context
 	}
 
+	// ISubscriberModuleBuilder 订阅模块条目构造器
 	ISubscriberModuleBuilder interface {
+		// WithUserSubscriberListRequest 设置用户订阅列表请求
 		WithUserSubscriberListRequest(*sbscriberapi.UserSubscriberListRequest) IUserSubscriberListRequestBuilder
+		// WithSubscriberStrategyRequest 设置订阅策略请求
 		WithSubscriberStrategyRequest(*sbscriberapi.SubscriberStrategyRequest) ISubscriberStrategyRequestBuilder
+		// WithUnSubscriberRequest 设置取消订阅请求
 		WithUnSubscriberRequest(*sbscriberapi.UnSubscriberRequest) IUnSubscriberRequestBuilder
+		// WithStrategySubscriberRequest 设置策略订阅请求
 		WithStrategySubscriberRequest(*sbscriberapi.StrategySubscriberRequest) IStrategySubscriberRequestBuilder
+		// DoSubscriberBuilder 获取订阅条目构造器
 		DoSubscriberBuilder() IDoSubscriberBuilder
 	}
 
+	// IUserSubscriberListRequestBuilder 用户订阅列表请求参数构造器
 	IUserSubscriberListRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryUserSubscriberParams
 	}
 
@@ -37,7 +45,9 @@ type (
 		*sbscriberapi.UserSubscriberListRequest
 	}
 
+	// ISubscriberStrategyRequestBuilder 订阅策略请求参数构造器
 	ISubscriberStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.SubscriberStrategyParams
 	}
 
@@ -46,7 +56,9 @@ type (
 		*sbscriberapi.SubscriberStrategyRequest
 	}
 
+	// IUnSubscriberRequestBuilder 取消订阅请求参数构造器
 	IUnSubscriberRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UnSubscriberStrategyParams
 	}
 
@@ -55,7 +67,9 @@ type (
 		*sbscriberapi.UnSubscriberRequest
 	}
 
+	// IStrategySubscriberRequestBuilder 策略订阅请求参数构造器
 	IStrategySubscriberRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryStrategySubscriberParams
 	}
 
@@ -64,9 +78,13 @@ type (
 		*sbscriberapi.StrategySubscriberRequest
 	}
 
+	// IDoSubscriberBuilder 订阅条目构造器
 	IDoSubscriberBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.StrategySubscriber) *adminapi.StrategySubscriberItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.StrategySubscriber) []*adminapi.StrategySubscriberItem
+		// ToStrategies 转换为策略对象列表
 		ToStrategies([]*bizmodel.StrategySubscriber) []*adminapi.StrategyItem
 	}
 
@@ -82,7 +100,7 @@ func (d *doSubscriberBuilder) ToAPI(subscriber *bizmodel.StrategySubscriber) *ad
 
 	return &adminapi.StrategySubscriberItem{
 		Id:         subscriber.ID,
-		User:       nil, // TODO get user info
+		User:       NewParamsBuild(d.ctx).UserModuleBuilder().DoUserBuilder().ToAPIByID(d.ctx, subscriber.UserID),
 		NotifyType: api.NotifyType(subscriber.AlarmNoticeType),
 	}
 }

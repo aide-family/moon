@@ -9,6 +9,7 @@ import (
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 
+// AliOSS 阿里云OSS
 type AliOSS struct {
 	client *alioss.Client
 	conf   *conf.AliOss
@@ -26,6 +27,7 @@ func NewAliOSS(conf *conf.AliOss) (*AliOSS, error) {
 	}, nil
 }
 
+// UploadFile 上传文件
 func (a *AliOSS) UploadFile(_ context.Context, objectName string, reader io.Reader, _ int64) error {
 	bucket, err := a.client.Bucket(a.conf.GetBucketName())
 	if err != nil {
@@ -34,6 +36,7 @@ func (a *AliOSS) UploadFile(_ context.Context, objectName string, reader io.Read
 	return bucket.PutObject(objectName, reader)
 }
 
+// DownloadFile 下载文件
 func (a *AliOSS) DownloadFile(_ context.Context, objectName string) (io.ReadCloser, error) {
 	bucket, err := a.client.Bucket(a.conf.GetBucketName())
 	if err != nil {
@@ -42,6 +45,7 @@ func (a *AliOSS) DownloadFile(_ context.Context, objectName string) (io.ReadClos
 	return bucket.GetObject(objectName)
 }
 
+// DeleteFile 删除文件
 func (a *AliOSS) DeleteFile(_ context.Context, objectName string) error {
 	bucket, err := a.client.Bucket(a.conf.GetBucketName())
 	if err != nil {
@@ -50,7 +54,8 @@ func (a *AliOSS) DeleteFile(_ context.Context, objectName string) error {
 	return bucket.DeleteObject(objectName)
 }
 
-func (a *AliOSS) GetFileUrl(_ context.Context, objectName string) (string, error) {
+// GetFileURL 获取文件URL
+func (a *AliOSS) GetFileURL(_ context.Context, objectName string) (string, error) {
 	url := fmt.Sprintf("https://%s.%s/%s", a.conf.GetBucketName(), a.conf.GetEndpoint(), objectName)
 	return url, nil
 }

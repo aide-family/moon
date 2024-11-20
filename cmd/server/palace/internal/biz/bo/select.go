@@ -29,6 +29,7 @@ type (
 		*bizmodel.DatasourceMetric
 	}
 
+	// MqDatasourceBuild mq 数据源选项构建器
 	MqDatasourceBuild struct {
 		*bizmodel.MqDatasource
 	}

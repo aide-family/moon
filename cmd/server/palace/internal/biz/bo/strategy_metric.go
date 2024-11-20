@@ -188,6 +188,7 @@ func (s *StrategyCountMap) GetStrategyEnableMap(strategyGroupIds uint32) uint64 
 var _ watch.Indexer = (*Strategy)(nil)
 
 type (
+	// LabelNotices 策略标签通知对象
 	LabelNotices struct {
 		Key   string `json:"key,omitempty"`
 		Value string `json:"value,omitempty"`
@@ -251,6 +252,7 @@ type (
 	}
 )
 
+// String 字符串
 func (s *Strategy) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)

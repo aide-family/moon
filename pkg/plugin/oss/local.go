@@ -3,10 +3,11 @@ package oss
 import (
 	"context"
 	"fmt"
-	"github.com/aide-family/moon/pkg/conf"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/aide-family/moon/pkg/conf"
 )
 
 // LocalStorage 本地存储实现
@@ -57,8 +58,8 @@ func (l *LocalStorage) DeleteFile(_ context.Context, objectName string) error {
 	return os.Remove(fullPath)
 }
 
-// GetFileUrl 获取文件的URL
-func (l *LocalStorage) GetFileUrl(_ context.Context, objectName string) (string, error) {
+// GetFileURL 获取文件的URL
+func (l *LocalStorage) GetFileURL(_ context.Context, objectName string) (string, error) {
 	fileURL := fmt.Sprintf("%s/%s/%s", l.conf.GetUrl(), l.conf.GetDownloadPre(), objectName)
 	return fileURL, nil
 }

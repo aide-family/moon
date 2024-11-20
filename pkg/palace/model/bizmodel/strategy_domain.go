@@ -8,6 +8,7 @@ import (
 // 证书过期、端口开闭监控策略
 const tableNameStrategyDomain = "strategy_domain"
 
+// StrategyDomain 域名证书｜端口 等级策略明细
 type StrategyDomain struct {
 	model.AllFieldModel
 	// 所属策略

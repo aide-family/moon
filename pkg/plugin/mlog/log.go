@@ -41,6 +41,7 @@ func NewHelper(logger Logger, module, domain string) *log.Helper {
 }
 
 type (
+	// Logger 日志
 	Logger interface {
 		log.Logger
 	}

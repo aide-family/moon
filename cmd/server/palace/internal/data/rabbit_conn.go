@@ -166,13 +166,15 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 	return nil
 }
 
-func (l *RabbitConn) getTeamEmailConfig(teamId uint32) (*model.SysTeamEmail, error) {
+// getTeamEmailConfig 获取团队邮箱配置
+func (l *RabbitConn) getTeamEmailConfig(teamID uint32) (*model.SysTeamEmail, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamId)).First()
+	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
 }
 
+// SyncTeam 同步团队
 func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) error {
 	if teamID <= 0 {
 		return nil
@@ -221,6 +223,7 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	return nil
 }
 
+// sync 同步团队通知对象
 func (l *RabbitConn) sync(srv *Srv) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -244,6 +247,7 @@ func (l *RabbitConn) sync(srv *Srv) error {
 	return nil
 }
 
+// syncNoticeGroup 同步告警组
 func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *conf.EmailConfig, noticeGroupItem *bizmodel.AlarmNoticeGroup) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

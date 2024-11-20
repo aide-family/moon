@@ -43,7 +43,7 @@ func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
 }
 
 func (s *strategyRepositoryImpl) GetTeamStrategyLevel(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bizmodel.StrategyLevel, error) {
-	bizQuery, err := getTeamIdBizQuery(s.data, params.TeamID)
+	bizQuery, err := getTeamIDBizQuery(s.data, params.TeamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (s *strategyRepositoryImpl) GetTeamStrategyLevel(ctx context.Context, param
 }
 
 func (s *strategyRepositoryImpl) GetTeamStrategy(ctx context.Context, params *bo.GetTeamStrategyParams) (*bizmodel.Strategy, error) {
-	bizQuery, err := getTeamIdBizQuery(s.data, params.TeamID)
+	bizQuery, err := getTeamIDBizQuery(s.data, params.TeamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}
@@ -305,8 +305,8 @@ func (s *strategyRepositoryImpl) checkStrategyCategory(ctx context.Context, cate
 }
 
 // 校验策略模板是否存在
-func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, templateId uint32) error {
-	if templateId == 0 {
+func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, templateID uint32) error {
+	if templateID == 0 {
 		return nil
 	}
 	var err error
@@ -316,7 +316,7 @@ func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, temp
 		mainQuery := query.Use(s.data.GetMainDB(ctx))
 		_, err = mainQuery.WithContext(ctx).StrategyTemplate.
 			Where(mainQuery.StrategyTemplate.Status.Eq(vobj.StatusEnable.GetValue())).
-			Where(mainQuery.StrategyTemplate.ID.Eq(templateId)).First()
+			Where(mainQuery.StrategyTemplate.ID.Eq(templateID)).First()
 	} else {
 		// TODO 查询团队模板是否存在
 		bizQuery, errX := getBizQuery(ctx, s.data)
@@ -325,7 +325,7 @@ func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, temp
 		}
 		_, err = bizQuery.StrategyTemplate.WithContext(ctx).
 			Where(bizQuery.StrategyTemplate.Status.Eq(vobj.StatusEnable.GetValue())).
-			Where(bizQuery.StrategyTemplate.ID.Eq(templateId)).First()
+			Where(bizQuery.StrategyTemplate.ID.Eq(templateID)).First()
 	}
 
 	if types.IsNil(err) {

@@ -33,6 +33,7 @@ func (n NotifyType) IsEmail() bool {
 	return n&NotifyTypeEmail != 0
 }
 
+// String 中文字符串
 func (n NotifyType) String() string {
 	notify := make([]string, 0, 4)
 	if n.IsPhone() {
@@ -50,6 +51,7 @@ func (n NotifyType) String() string {
 	return strings.Join(notify, ",")
 }
 
+// EnString 英文字符串
 func (n NotifyType) EnString() string {
 	notify := make([]string, 0, 4)
 	if n.IsPhone() {

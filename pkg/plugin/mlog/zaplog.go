@@ -12,6 +12,7 @@ import (
 var _ log.Logger = (*zapLogger)(nil)
 
 type (
+	// ZapLogConfig zap日志配置
 	ZapLogConfig interface {
 		GetJson() bool
 	}
@@ -51,7 +52,7 @@ func (l *zapLogger) Log(level log.Level, keyvals ...interface{}) error {
 
 	if keyLen%2 != 0 {
 		msg = fmt.Sprintf("%v", keyvals[len(keyvals)-1])
-		keyLen -= 1
+		keyLen--
 	}
 
 	data := make([]zap.Field, 0, (keyLen/2)+1)

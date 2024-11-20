@@ -71,6 +71,7 @@ func (b *AlarmBiz) CreateAlarmRawInfo(ctx context.Context, param *bo.CreateAlarm
 	return b.alarmRawRepository.CreateAlarmRaws(ctx, rawParamList, param.TeamID)
 }
 
+// CreateAlarmInfo 创建告警信息
 func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHookRawParams) error {
 	rawModels, err := b.CreateAlarmRawInfo(ctx, params)
 	if !types.IsNil(err) {
@@ -144,6 +145,7 @@ func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmIn
 	return nil
 }
 
+// send 发送告警
 func (b *AlarmBiz) send(ctx context.Context, alerts []*bo.AlertItemRawParams, rowMap map[string]*alarmmodel.AlarmRaw) error {
 	for _, v := range alerts {
 		row, ok := rowMap[v.Fingerprint]

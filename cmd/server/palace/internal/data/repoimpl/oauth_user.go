@@ -1,8 +1,9 @@
 package repoimpl
 
 import (
-	"context"
 	_ "embed"
+
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -24,15 +25,18 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// NewGithubUserRepository 创建Github用户实现
 func NewGithubUserRepository(bc *palaceconf.Bootstrap, data *data.Data) repository.OAuth {
 	return &githubUserRepositoryImpl{data: data, bc: bc}
 }
 
+// githubUserRepositoryImpl Github用户实现
 type githubUserRepositoryImpl struct {
 	data *data.Data
 	bc   *palaceconf.Bootstrap
 }
 
+// buildSysUserModel 构建系统用户模型
 func buildSysUserModel(u auth.IOAuthUser, pass types.Password) *model.SysUser {
 	return &model.SysUser{
 		Username: u.GetUsername(),
@@ -48,12 +52,14 @@ func buildSysUserModel(u auth.IOAuthUser, pass types.Password) *model.SysUser {
 	}
 }
 
+// genPassword 生成密码
 func genPassword() (string, types.Password) {
 	randPass := types.MD5(time.Now().String())[:8]
 	password := types.NewPassword(types.MD5(randPass + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
 	return randPass, password
 }
 
+// GetSysUserByOAuthID 获取系统OAuth用户
 func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u uint32, app vobj.OAuthAPP) (*model.SysOAuthUser, error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx))
 	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(
@@ -66,6 +72,7 @@ func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u ui
 	return oauthUser, nil
 }
 
+// SetEmail 设置邮箱
 func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s string) (sysUser *model.SysUser, err error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx))
 	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(u)).First()
@@ -110,6 +117,7 @@ func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s str
 	return sysUser, nil
 }
 
+// createSysUser 创建系统用户
 func (g *githubUserRepositoryImpl) createSysUser(ctx context.Context, tx *query.Query, sysUser *model.SysUser) error {
 	total, err := tx.SysUser.WithContext(ctx).Count()
 	if !types.IsNil(err) {
@@ -121,6 +129,7 @@ func (g *githubUserRepositoryImpl) createSysUser(ctx context.Context, tx *query.
 	return tx.SysUser.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(sysUser)
 }
 
+// OAuthUserFirstOrCreate 创建或获取OAuth用户
 func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, user auth.IOAuthUser) (sysUser *model.SysUser, err error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx)).SysOAuthUser
 	first, err := userQuery.WithContext(ctx).Where(userQuery.OAuthID.Eq(user.GetOAuthID()), userQuery.APP.Eq(user.GetAPP().GetValue())).First()
@@ -173,11 +182,13 @@ func (g *githubUserRepositoryImpl) OAuthUserFirstOrCreate(ctx context.Context, u
 	return sysUser, nil
 }
 
+// getSysUserByID 获取系统用户
 func (g *githubUserRepositoryImpl) getSysUserByID(ctx context.Context, id uint32) (*model.SysUser, error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx)).SysUser
 	return userQuery.WithContext(ctx).Where(userQuery.ID.Eq(id)).First()
 }
 
+// getSysUserByEmail 获取系统用户
 func (g *githubUserRepositoryImpl) getSysUserByEmail(ctx context.Context, email string) (*model.SysUser, error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx)).SysUser
 	return userQuery.WithContext(ctx).Where(userQuery.Email.Eq(email)).First()
@@ -186,6 +197,7 @@ func (g *githubUserRepositoryImpl) getSysUserByEmail(ctx context.Context, email 
 //go:embed welcome.html
 var body string
 
+// sendUserPassword 发送用户密码
 func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *model.SysUser, pass string) error {
 	if err := helper.CheckEmail(user.Email); err != nil {
 		return err
@@ -203,7 +215,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 }
 
 //go:embed verify_email.html
-var verifyEmailHtml string
+var verifyEmailHTML string
 
 // SendVerifyEmail 发送验证邮件
 func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email string) error {
@@ -217,7 +229,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 		return err
 	}
 	// 发送验证码到用户邮箱
-	emailBody := format.Formatter(verifyEmailHtml, map[string]string{
+	emailBody := format.Formatter(verifyEmailHTML, map[string]string{
 		"Email":       email,
 		"Code":        code,
 		"RedirectURI": g.bc.GetOauth2().GetRedirectUri(),

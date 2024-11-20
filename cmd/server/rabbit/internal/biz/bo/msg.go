@@ -16,14 +16,17 @@ type SendMsgParams struct {
 	RequestID string
 }
 
+// String 转换为字符串
 func (s *SendMsgParams) String() string {
 	return types.TextJoin("rabbit:", s.Route, ":", s.RequestID)
 }
 
+// Key 获取消息的键
 func (s *SendMsgParams) Key(app notify.Notify) string {
 	return types.TextJoin("rabbit:", app.Type(), ":", s.Route, ":", types.MD5(types.TextJoin(s.RequestID, app.Hash())))
 }
 
+// Index 获取消息的索引
 func (s *SendMsgParams) Index() string {
 	return s.RequestID
 }

@@ -10,18 +10,21 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// MessageService 用户消息操作服务
 type MessageService struct {
 	pb.UnimplementedMessageServer
 
 	userMessageBiz *biz.UserMessageBiz
 }
 
+// NewMessageService 创建用户消息操作服务
 func NewMessageService(userMessageBiz *biz.UserMessageBiz) *MessageService {
 	return &MessageService{
 		userMessageBiz: userMessageBiz,
 	}
 }
 
+// DeleteMessages 删除用户消息
 func (s *MessageService) DeleteMessages(ctx context.Context, req *pb.DeleteMessagesRequest) (*pb.DeleteMessagesReply, error) {
 	if req.GetAll() {
 		return &pb.DeleteMessagesReply{}, s.userMessageBiz.DeleteAllUserMessage(ctx)
@@ -32,6 +35,7 @@ func (s *MessageService) DeleteMessages(ctx context.Context, req *pb.DeleteMessa
 	return &pb.DeleteMessagesReply{}, nil
 }
 
+// ListMessage 获取用户消息列表
 func (s *MessageService) ListMessage(ctx context.Context, req *pb.ListMessageRequest) (*pb.ListMessageReply, error) {
 	params := &bo.QueryUserMessageListParams{
 		Keyword: req.GetKeyword(),
@@ -48,6 +52,7 @@ func (s *MessageService) ListMessage(ctx context.Context, req *pb.ListMessageReq
 	}, nil
 }
 
+// ConfirmMessage 确认用户消息
 func (s *MessageService) ConfirmMessage(ctx context.Context, req *pb.ConfirmMessageRequest) (*pb.ConfirmMessageReply, error) {
 	if err := s.userMessageBiz.ConfirmUserMessage(ctx, req.GetId()); err != nil {
 		return nil, err
@@ -55,6 +60,7 @@ func (s *MessageService) ConfirmMessage(ctx context.Context, req *pb.ConfirmMess
 	return &pb.ConfirmMessageReply{}, nil
 }
 
+// CancelMessage 取消用户消息
 func (s *MessageService) CancelMessage(ctx context.Context, req *pb.CancelMessageRequest) (*pb.CancelMessageReply, error) {
 	if err := s.userMessageBiz.CancelUserMessage(ctx, req.GetId()); err != nil {
 		return nil, err

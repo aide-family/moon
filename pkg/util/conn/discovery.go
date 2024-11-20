@@ -26,6 +26,7 @@ type (
 		GetDriver() string
 	}
 
+	// discoveryConfig 服务发现配置
 	discoveryConfig struct {
 		Type string
 		Etcd IEtcdConfig
@@ -95,6 +96,7 @@ func NewRegister(c IDiscoveryConfig, opts ...DiscoveryConfigBuilderOptions) (reg
 	}
 }
 
+// WithDiscoveryConfigEtcd 设置 etcd 配置
 func WithDiscoveryConfigEtcd(etcdConf IEtcdConfig) DiscoveryConfigBuilderOptions {
 	return func(cfg *discoveryConfig) {
 		cfg.Etcd = etcdConf

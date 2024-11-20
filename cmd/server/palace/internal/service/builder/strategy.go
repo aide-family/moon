@@ -25,38 +25,61 @@ type (
 		ctx context.Context
 	}
 
+	// IStrategyModuleBuilder 策略模块构造器
 	IStrategyModuleBuilder interface {
+		// WithCreateStrategyGroupRequest 设置创建策略组请求参数
 		WithCreateStrategyGroupRequest(*strategyapi.CreateStrategyGroupRequest) ICreateStrategyGroupRequestBuilder
+		// WithDeleteStrategyGroupRequest 设置删除策略组请求参数
 		WithDeleteStrategyGroupRequest(*strategyapi.DeleteStrategyGroupRequest) IDeleteStrategyGroupRequestBuilder
+		// WithListStrategyGroupRequest 设置获取策略组列表请求参数
 		WithListStrategyGroupRequest(*strategyapi.ListStrategyGroupRequest) IListStrategyGroupRequestBuilder
+		// WithUpdateStrategyGroupRequest 设置更新策略组请求参数
 		WithUpdateStrategyGroupRequest(*strategyapi.UpdateStrategyGroupRequest) IUpdateStrategyGroupRequestBuilder
+		// WithUpdateStrategyGroupStatusRequest 设置更新策略组状态请求参数
 		WithUpdateStrategyGroupStatusRequest(*strategyapi.UpdateStrategyGroupStatusRequest) IUpdateStrategyGroupStatusRequestBuilder
+		// DoStrategyGroupBuilder 策略组条目构造器
 		DoStrategyGroupBuilder() IDoStrategyGroupBuilder
-
+		// WithCreateStrategyRequest 设置创建策略请求参数
 		WithCreateStrategyRequest(*strategyapi.CreateStrategyRequest) ICreateStrategyRequestBuilder
+		// WithUpdateStrategyRequest 设置更新策略请求参数
 		WithUpdateStrategyRequest(*strategyapi.UpdateStrategyRequest) IUpdateStrategyRequestBuilder
+		// WithListStrategyRequest 设置获取策略列表请求参数
 		WithListStrategyRequest(*strategyapi.ListStrategyRequest) IListStrategyRequestBuilder
+		// WithUpdateStrategyStatusRequest 设置更新策略状态请求参数
 		WithUpdateStrategyStatusRequest(*strategyapi.UpdateStrategyStatusRequest) IUpdateStrategyStatusRequestBuilder
+		// DoStrategyBuilder 策略条目构造器
 		DoStrategyBuilder() IDoStrategyBuilder
+		// DoStrategyLevelBuilder 策略等级条目构造器
 		DoStrategyLevelBuilder() IDoStrategyLevelBuilder
-
+		// WithCreateTemplateStrategyRequest 设置创建模板策略请求参数
 		WithCreateTemplateStrategyRequest(*strategyapi.CreateTemplateStrategyRequest) ICreateTemplateStrategyRequestBuilder
+		// WithUpdateTemplateStrategyRequest 设置更新模板策略请求参数
 		WithUpdateTemplateStrategyRequest(*strategyapi.UpdateTemplateStrategyRequest) IUpdateTemplateStrategyRequestBuilder
+		// WithListTemplateStrategyRequest 设置获取模板策略列表请求参数
 		WithListTemplateStrategyRequest(*strategyapi.ListTemplateStrategyRequest) IListTemplateStrategyRequestBuilder
+		// WithUpdateTemplateStrategyStatusRequest 设置更新模板策略状态请求参数
 		WithUpdateTemplateStrategyStatusRequest(*strategyapi.UpdateTemplateStrategyStatusRequest) IUpdateTemplateStrategyStatusRequestBuilder
+		// DoTemplateStrategyBuilder 模板策略条目构造器
 		DoTemplateStrategyBuilder() IDoTemplateStrategyBuilder
-
+		// APIMutationStrategyLevelTemplateItems 转换为API对象
 		APIMutationStrategyLevelTemplateItems() IMutationStrategyLevelTemplateBuilder
+		// APIMutationStrategyLevelItems 转换为API对象
 		APIMutationStrategyLevelItems() IMutationStrategyLevelBuilder
+		// DoStrategyLevelTemplateBuilder 策略等级模板条目构造器
 		DoStrategyLevelTemplateBuilder() IDoStrategyLevelTemplateBuilder
-
+		// BoStrategyBuilder 策略业务对象构造器
 		BoStrategyBuilder() IBoStrategyBuilder
+		// BoStrategyDomainBuilder 策略域名业务对象构造器
 		BoStrategyDomainBuilder() IBoStrategyDomainBuilder
+		// BoStrategyEndpointBuilder 策略端点业务对象构造器
 		BoStrategyEndpointBuilder() IBoStrategyEndpointBuilder
+		// BoStrategyPingBuilder 策略Ping业务对象构造器
 		BoStrategyPingBuilder() IBoStrategyPingBuilder
 	}
 
+	// IBoStrategyDomainBuilder 策略域名业务对象构造器
 	IBoStrategyDomainBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.StrategyDomain) *api.DomainStrategyItem
 	}
 
@@ -64,7 +87,9 @@ type (
 		ctx context.Context
 	}
 
+	// IBoStrategyEndpointBuilder 策略端点业务对象构造器
 	IBoStrategyEndpointBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.StrategyEndpoint) *api.HttpStrategyItem
 	}
 
@@ -72,7 +97,9 @@ type (
 		ctx context.Context
 	}
 
+	// IBoStrategyPingBuilder 策略Ping业务对象构造器
 	IBoStrategyPingBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.StrategyPing) *api.PingStrategyItem
 	}
 
@@ -80,7 +107,9 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateStrategyGroupRequestBuilder 创建策略组请求参数构造器
 	ICreateStrategyGroupRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateStrategyGroupParams
 	}
 
@@ -89,7 +118,9 @@ type (
 		*strategyapi.CreateStrategyGroupRequest
 	}
 
+	// IDeleteStrategyGroupRequestBuilder 删除策略组请求参数构造器
 	IDeleteStrategyGroupRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.DelStrategyGroupParams
 	}
 
@@ -98,7 +129,9 @@ type (
 		*strategyapi.DeleteStrategyGroupRequest
 	}
 
+	// IListStrategyGroupRequestBuilder 获取策略组列表请求参数构造器
 	IListStrategyGroupRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryStrategyGroupListParams
 	}
 
@@ -107,7 +140,9 @@ type (
 		*strategyapi.ListStrategyGroupRequest
 	}
 
+	// IUpdateStrategyGroupRequestBuilder 更新策略组请求参数构造器
 	IUpdateStrategyGroupRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateStrategyGroupParams
 	}
 
@@ -116,7 +151,9 @@ type (
 		*strategyapi.UpdateStrategyGroupRequest
 	}
 
+	// IUpdateStrategyGroupStatusRequestBuilder 更新策略组状态请求参数构造器
 	IUpdateStrategyGroupStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateStrategyGroupStatusParams
 	}
 
@@ -125,7 +162,9 @@ type (
 		*strategyapi.UpdateStrategyGroupStatusRequest
 	}
 
+	// ICreateStrategyRequestBuilder 创建策略请求参数构造器
 	ICreateStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateStrategyParams
 	}
 
@@ -134,7 +173,9 @@ type (
 		*strategyapi.CreateStrategyRequest
 	}
 
+	// IUpdateStrategyRequestBuilder 更新策略请求参数构造器
 	IUpdateStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateStrategyParams
 	}
 
@@ -143,7 +184,9 @@ type (
 		*strategyapi.UpdateStrategyRequest
 	}
 
+	// IListStrategyRequestBuilder 获取策略列表请求参数构造器
 	IListStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryStrategyListParams
 	}
 
@@ -152,7 +195,9 @@ type (
 		*strategyapi.ListStrategyRequest
 	}
 
+	// IUpdateStrategyStatusRequestBuilder 更新策略状态请求参数构造器
 	IUpdateStrategyStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateStrategyStatusParams
 	}
 
@@ -161,7 +206,9 @@ type (
 		*strategyapi.UpdateStrategyStatusRequest
 	}
 
+	// ICreateTemplateStrategyRequestBuilder 创建模板策略请求参数构造器
 	ICreateTemplateStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateTemplateStrategyParams
 	}
 
@@ -170,7 +217,9 @@ type (
 		*strategyapi.CreateTemplateStrategyRequest
 	}
 
+	// IUpdateTemplateStrategyRequestBuilder 更新模板策略请求参数构造器
 	IUpdateTemplateStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateTemplateStrategyParams
 	}
 
@@ -179,7 +228,9 @@ type (
 		*strategyapi.UpdateTemplateStrategyRequest
 	}
 
+	// IListTemplateStrategyRequestBuilder 获取模板策略列表请求参数构造器
 	IListTemplateStrategyRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryTemplateStrategyListParams
 	}
 
@@ -188,7 +239,9 @@ type (
 		*strategyapi.ListTemplateStrategyRequest
 	}
 
+	// IUpdateTemplateStrategyStatusRequestBuilder 更新模板策略状态请求参数构造器
 	IUpdateTemplateStrategyStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateTemplateStrategyStatusParams
 	}
 
@@ -197,11 +250,17 @@ type (
 		*strategyapi.UpdateTemplateStrategyStatusRequest
 	}
 
+	// IDoStrategyGroupBuilder 策略组条目构造器
 	IDoStrategyGroupBuilder interface {
+		// WithStrategyCountMap 设置策略计数映射
 		WithStrategyCountMap(*bo.StrategyCountMap) IDoStrategyGroupBuilder
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.StrategyGroup, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyGroupItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.StrategyGroup) []*adminapi.StrategyGroupItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.StrategyGroup) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.StrategyGroup) []*adminapi.SelectItem
 	}
 
@@ -210,11 +269,17 @@ type (
 		strategyCountMap *bo.StrategyCountMap
 	}
 
+	// IDoStrategyBuilder 策略条目构造器
 	IDoStrategyBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.Strategy, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Strategy) []*adminapi.StrategyItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.Strategy) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.Strategy) []*adminapi.SelectItem
+		// ToBos 转换为业务对象列表
 		ToBos(*bizmodel.Strategy) []*bo.Strategy
 	}
 
@@ -222,10 +287,15 @@ type (
 		ctx context.Context
 	}
 
+	// IDoTemplateStrategyBuilder 模板策略条目构造器
 	IDoTemplateStrategyBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.StrategyTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyTemplateItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.StrategyTemplate) []*adminapi.StrategyTemplateItem
+		// ToSelect 转换为选择对象
 		ToSelect(*model.StrategyTemplate) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*model.StrategyTemplate) []*adminapi.SelectItem
 	}
 
@@ -233,8 +303,11 @@ type (
 		ctx context.Context
 	}
 
+	// IDoStrategyLevelTemplateBuilder 策略等级模板条目构造器
 	IDoStrategyLevelTemplateBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.StrategyLevelTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelTemplateItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.StrategyLevelTemplate) []*adminapi.StrategyLevelTemplateItem
 	}
 
@@ -242,9 +315,13 @@ type (
 		ctx context.Context
 	}
 
+	// IMutationStrategyLevelTemplateBuilder 策略等级模板条目构造器
 	IMutationStrategyLevelTemplateBuilder interface {
+		// WithStrategyTemplateID 设置策略模板ID
 		WithStrategyTemplateID(uint32) IMutationStrategyLevelTemplateBuilder
+		// ToBo 转换为业务对象
 		ToBo(*strategyapi.MutationStrategyLevelTemplateItem) *bo.CreateStrategyLevelTemplate
+		// ToBos 转换为业务对象列表
 		ToBos([]*strategyapi.MutationStrategyLevelTemplateItem) []*bo.CreateStrategyLevelTemplate
 	}
 
@@ -253,9 +330,13 @@ type (
 		StrategyTemplateID uint32
 	}
 
+	// IMutationStrategyLevelBuilder 策略等级条目构造器
 	IMutationStrategyLevelBuilder interface {
+		// WithStrategyID 设置策略ID
 		WithStrategyID(uint32) IMutationStrategyLevelBuilder
+		// ToBo 转换为业务对象
 		ToBo(*strategyapi.CreateStrategyLevelRequest) *bo.CreateStrategyLevel
+		// ToBos 转换为业务对象列表
 		ToBos([]*strategyapi.CreateStrategyLevelRequest) []*bo.CreateStrategyLevel
 	}
 
@@ -264,8 +345,11 @@ type (
 		StrategyID uint32
 	}
 
+	// IDoStrategyLevelBuilder 策略等级条目构造器
 	IDoStrategyLevelBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.StrategyLevel, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.StrategyLevel) []*adminapi.StrategyLevelItem
 	}
 
@@ -273,8 +357,11 @@ type (
 		ctx context.Context
 	}
 
+	// IBoStrategyBuilder 策略业务对象构造器
 	IBoStrategyBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.Strategy) *api.MetricStrategyItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.Strategy) []*api.MetricStrategyItem
 	}
 
@@ -311,7 +398,7 @@ func (b *boStrategyEndpointBuilder) ToAPI(endpoint *bo.StrategyEndpoint) *api.Ht
 	}
 	return &api.HttpStrategyItem{
 		StrategyType:     uint32(endpoint.Type),
-		Url:              endpoint.Url,
+		Url:              endpoint.URL,
 		StrategyID:       endpoint.ID,
 		LevelID:          endpoint.LevelID,
 		TeamID:           endpoint.TeamID,

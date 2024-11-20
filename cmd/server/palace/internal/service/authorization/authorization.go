@@ -1,8 +1,9 @@
 package authorization
 
 import (
-	"context"
 	_ "embed"
+
+	"context"
 	nhttp "net/http"
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"

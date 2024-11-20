@@ -177,7 +177,7 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			Fingerprint: alarmParam.Fingerprint,
 			Labels:      labels,
 			Annotations: annotations,
-			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
+			RawInfoID:   param.GetRawInfoID(alarmParam.Fingerprint),
 			StrategyID:  strategy.GetID(),
 			LevelID:     strategyLevel.GetID(),
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {

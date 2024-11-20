@@ -19,6 +19,7 @@ import (
 var _ IStrategy = (*StrategyMetric)(nil)
 
 type (
+	// IStrategy 策略接口
 	IStrategy interface {
 		watch.Indexer
 		Message() *watch.Message
@@ -33,6 +34,7 @@ type (
 		IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool)
 	}
 
+	// LabelNotices 自定义接收者匹配对象
 	LabelNotices struct {
 		// label key
 		Key string `json:"key,omitempty"`
@@ -99,10 +101,12 @@ type (
 	}
 )
 
+// GetInterval 获取执行频率
 func (s *StrategyMetric) GetInterval() *types.Duration {
 	return s.Interval
 }
 
+// BuilderAlarmBaseInfo 生成告警基础信息
 func (s *StrategyMetric) BuilderAlarmBaseInfo() *Alarm {
 	s.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(s.ID), 10))
 	s.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
@@ -122,26 +126,32 @@ func (s *StrategyMetric) BuilderAlarmBaseInfo() *Alarm {
 	}
 }
 
+// GetTeamID 获取团队ID
 func (s *StrategyMetric) GetTeamID() uint32 {
 	return s.TeamID
 }
 
+// GetStatus 获取策略状态
 func (s *StrategyMetric) GetStatus() vobj.Status {
 	return s.Status
 }
 
+// GetReceiverGroupIDs 获取接收者组ID列表
 func (s *StrategyMetric) GetReceiverGroupIDs() []uint32 {
 	return s.ReceiverGroupIDs
 }
 
+// GetLabelNotices 获取自定义接收者匹配对象
 func (s *StrategyMetric) GetLabelNotices() []*LabelNotices {
 	return s.LabelNotices
 }
 
+// GetAnnotations 获取策略注解
 func (s *StrategyMetric) GetAnnotations() map[string]string {
 	return s.Annotations.Map()
 }
 
+// Eval 评估策略
 func (s *StrategyMetric) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
 	if !s.Status.IsEnable() {
 		return nil, nil
@@ -153,6 +163,7 @@ func (s *StrategyMetric) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 	return datasource.MetricEval(datasourceCliList...)(ctx, s.Expr, s.For)
 }
 
+// getDatasourceCliList 获取数据源客户端列表
 func (s *StrategyMetric) getDatasourceCliList() ([]datasource.MetricDatasource, error) {
 	datasourceList := s.Datasource
 	datasourceCliList := make([]datasource.MetricDatasource, 0, len(datasourceList))
@@ -182,6 +193,7 @@ func (s *StrategyMetric) getDatasourceCliList() ([]datasource.MetricDatasource, 
 	return datasourceCliList, nil
 }
 
+// String 将策略转换为字符串
 func (s *StrategyMetric) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)

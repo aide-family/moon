@@ -18,13 +18,14 @@ type MqDataSourceBiz struct {
 	datasourceRepo repository.MQDataSource
 }
 
+// NewMqDataSourceBiz 创建 mq 数据源业务
 func NewMqDataSourceBiz(datasourceRepo repository.MQDataSource) *MqDataSourceBiz {
 	return &MqDataSourceBiz{
 		datasourceRepo: datasourceRepo,
 	}
 }
 
-// GetMqDataSource get mq datasource detail
+// GetMqDataSource 获取 mq 数据源详情
 func (m *MqDataSourceBiz) GetMqDataSource(ctx context.Context, ID uint32) (*bizmodel.MqDatasource, error) {
 	detail, err := m.datasourceRepo.GetMqDatasource(ctx, ID)
 	if !types.IsNil(err) {
@@ -36,7 +37,7 @@ func (m *MqDataSourceBiz) GetMqDataSource(ctx context.Context, ID uint32) (*bizm
 	return detail, nil
 }
 
-// CreateMqDataSource create mq datasource
+// CreateMqDataSource 创建 mq 数据源
 func (m *MqDataSourceBiz) CreateMqDataSource(ctx context.Context, params *bo.CreateMqDatasourceParams) error {
 	if err := m.datasourceRepo.CreateMqDatasource(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -44,7 +45,7 @@ func (m *MqDataSourceBiz) CreateMqDataSource(ctx context.Context, params *bo.Cre
 	return nil
 }
 
-// UpdateMqDataSource update mq datasource
+// UpdateMqDataSource 更新 mq 数据源
 func (m *MqDataSourceBiz) UpdateMqDataSource(ctx context.Context, param *bo.UpdateMqDatasourceParams) error {
 	// 参数校验
 	if param.UpdateParam == nil {
@@ -56,7 +57,7 @@ func (m *MqDataSourceBiz) UpdateMqDataSource(ctx context.Context, param *bo.Upda
 	return nil
 }
 
-// UpdateMqDataSourceStatus update mq datasource status
+// UpdateMqDataSourceStatus 更新 mq 数据源状态
 func (m *MqDataSourceBiz) UpdateMqDataSourceStatus(ctx context.Context, params *bo.UpdateMqDatasourceStatusParams) error {
 	if err := m.datasourceRepo.UpdateMqDatasourceStatus(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -64,7 +65,7 @@ func (m *MqDataSourceBiz) UpdateMqDataSourceStatus(ctx context.Context, params *
 	return nil
 }
 
-// MqDataSourceList mq datasource list
+// MqDataSourceList 获取 mq 数据源列表
 func (m *MqDataSourceBiz) MqDataSourceList(ctx context.Context, params *bo.QueryMqDatasourceListParams) ([]*bizmodel.MqDatasource, error) {
 	datasource, err := m.datasourceRepo.ListMqDatasource(ctx, params)
 	if !types.IsNil(err) {
@@ -73,7 +74,7 @@ func (m *MqDataSourceBiz) MqDataSourceList(ctx context.Context, params *bo.Query
 	return datasource, nil
 }
 
-// GetMqDatasourceSelect mq datasource select
+// GetMqDatasourceSelect 获取 mq 数据源选择列表
 func (m *MqDataSourceBiz) GetMqDatasourceSelect(ctx context.Context, param *bo.QueryMqDatasourceListParams) ([]*bizmodel.MqDatasource, error) {
 	list, err := m.datasourceRepo.ListMqDatasource(ctx, param)
 	if !types.IsNil(err) {
@@ -82,8 +83,9 @@ func (m *MqDataSourceBiz) GetMqDatasourceSelect(ctx context.Context, param *bo.Q
 	return list, nil
 }
 
-func (m *MqDataSourceBiz) DeleteMqDatasource(ctx context.Context, ID uint32) error {
-	if err := m.datasourceRepo.DeleteMqDatasource(ctx, ID); !types.IsNil(err) {
+// DeleteMqDatasource 删除 mq 数据源
+func (m *MqDataSourceBiz) DeleteMqDatasource(ctx context.Context, id uint32) error {
+	if err := m.datasourceRepo.DeleteMqDatasource(ctx, id); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil

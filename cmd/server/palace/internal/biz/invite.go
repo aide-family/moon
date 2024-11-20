@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// NewInviteBiz 创建InviteBiz
+// NewInviteBiz 创建邀请业务对象
 func NewInviteBiz(
 	inviteRepo repository.TeamInvite,
 	userRepo repository.User,
@@ -37,6 +37,7 @@ func NewInviteBiz(
 }
 
 type (
+	// InviteBiz 邀请业务对象
 	InviteBiz struct {
 		inviteRepo      repository.TeamInvite
 		userRepo        repository.User
@@ -146,8 +147,9 @@ func (i *InviteBiz) DeleteInvite(ctx context.Context, inviteID uint32) error {
 	return nil
 }
 
+// checkInviteDataExists 检查邀请数据是否存在
 func (i *InviteBiz) checkInviteDataExists(ctx context.Context, params *bo.InviteUserParams) error {
-	teamInvite, _ := i.inviteRepo.GetInviteUserByUserIdAndType(ctx, params)
+	teamInvite, _ := i.inviteRepo.GetInviteUserByUserIDAndType(ctx, params)
 	if !types.IsNil(teamInvite) && !teamInvite.InviteType.IsRejected() {
 		return merr.ErrorI18nToastTeamInviteAlreadyExists(ctx, params.InviteCode)
 	}
@@ -173,6 +175,7 @@ func (i *InviteBiz) GetTeamMapByIds(ctx context.Context, teamIds []uint32) map[u
 	return teamMap
 }
 
+// GetTeamRoles 获取团队角色
 func (i *InviteBiz) GetTeamRoles(ctx context.Context, teamID uint32, roleIds []uint32) []*bizmodel.SysTeamRole {
 	teamRoles, err := i.teamRoleRepo.GetBizTeamRolesByIds(ctx, teamID, roleIds)
 	if !types.IsNil(err) {

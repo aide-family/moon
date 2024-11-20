@@ -11,11 +11,13 @@ import (
 )
 
 const (
-	SummaryKey     = "summary"
+	// SummaryKey 告警摘要
+	SummaryKey = "summary"
+	// DescriptionKey 告警描述
 	DescriptionKey = "description"
 )
 
-// NewAnnotations returns a new Annotations object.
+// NewAnnotations 返回一个新的 Annotations 对象
 func NewAnnotations(annotations map[string]string) *Annotations {
 	if annotations == nil {
 		annotations = make(map[string]string)
@@ -29,7 +31,7 @@ var _ driver.Valuer = (*Annotations)(nil)
 // Annotations 告警文案
 type Annotations map[string]string
 
-// Map converts the Annotations object to a map.
+// Map 转换为 map
 func (l *Annotations) Map() map[string]string {
 	if l == nil {
 		return nil
@@ -37,7 +39,7 @@ func (l *Annotations) Map() map[string]string {
 	return *l
 }
 
-// Scan implements the sql.Scanner interface.
+// Scan 实现 sql.Scanner 接口
 func (l *Annotations) Scan(src any) error {
 	switch src.(type) {
 	case []byte:
@@ -55,6 +57,7 @@ func (l *Annotations) MarshalJSON() ([]byte, error) {
 	return []byte(l.String()), nil
 }
 
+// String 字符串
 func (l *Annotations) String() string {
 	if types.IsNil(l) {
 		return "{}"
@@ -72,6 +75,7 @@ func (l *Annotations) String() string {
 	return types.TextJoin(list...)
 }
 
+// Get 获取 key 对应的 value
 func (l *Annotations) Get(key string) string {
 	if types.IsNil(l) {
 		return ""
@@ -79,6 +83,7 @@ func (l *Annotations) Get(key string) string {
 	return (*l)[key]
 }
 
+// Set 设置 key 对应的 value
 func (l *Annotations) Set(key, value string) {
 	if types.IsNil(l) {
 		return
@@ -96,7 +101,7 @@ func (l *Annotations) GetDescription() string {
 	return l.Get(DescriptionKey)
 }
 
-// Value implements the driver.Valuer interface.
+// Value 实现 driver.Valuer 接口
 func (l *Annotations) Value() (driver.Value, error) {
 	return l.String(), nil
 }

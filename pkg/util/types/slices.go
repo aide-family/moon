@@ -197,6 +197,7 @@ var _ sql.Scanner = (*Slice[int32])(nil)
 var _ driver.Valuer = (*Slice[int32])(nil)
 
 type (
+	// Slice 切片
 	Slice[T comparable] []T
 )
 

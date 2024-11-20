@@ -23,28 +23,41 @@ type (
 		ctx context.Context
 	}
 
+	// IRealtimeAlarmModuleBuilder 实时告警模块构造器
 	IRealtimeAlarmModuleBuilder interface {
+		// WithGetAlarmRequest 获取告警请求参数构造器
 		WithGetAlarmRequest(*realtimeapi.GetAlarmRequest) IGetAlarmRequestBuilder
+		// WithListAlarmRequest 获取告警列表请求参数构造器
 		WithListAlarmRequest(*realtimeapi.ListAlarmRequest) IListAlarmRequestBuilder
+		// DoRealtimeAlarmBuilder 告警条目构造器
 		DoRealtimeAlarmBuilder() IDoRealtimeAlarmBuilder
-
+		// DoAlarmPageSelfBuilder 告警页面自定义字段条目构造器
 		DoAlarmPageSelfBuilder() IDoAlarmPageSelfBuilder
-
+		// WithCreateDashboardRequest 创建仪表盘请求参数构造器
 		WithCreateDashboardRequest(*realtimeapi.CreateDashboardRequest) ICreateDashboardRequestBuilder
+		// WithUpdateDashboardRequest 更新仪表盘请求参数构造器
 		WithUpdateDashboardRequest(*realtimeapi.UpdateDashboardRequest) IUpdateDashboardRequestBuilder
+		// WithDeleteDashboardRequest 删除仪表盘请求参数构造器
 		WithDeleteDashboardRequest(*realtimeapi.DeleteDashboardRequest) IDeleteDashboardRequestBuilder
+		// WithListDashboardRequest 获取仪表盘列表请求参数构造器
 		WithListDashboardRequest(*realtimeapi.ListDashboardRequest) IListDashboardRequestBuilder
+		// WithBatchUpdateDashboardStatusRequest 批量更新仪表盘状态请求参数构造器
 		WithBatchUpdateDashboardStatusRequest(*realtimeapi.BatchUpdateDashboardStatusRequest) IBatchUpdateDashboardStatusRequestBuilder
+		// DoDashboardBuilder 仪表盘条目构造器
 		DoDashboardBuilder() IDoDashboardBuilder
-
+		// BoChartBuilder 图表条目构造器
 		BoChartBuilder() IBoChartBuilder
+		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
-
+		// WithBoAddDashboardParams 添加仪表盘请求参数构造器
 		WithBoAddDashboardParams(*bo.AddDashboardParams) IBoAddDashboardParamsBuilder
+		// WithBoUpdateDashboardParams 更新仪表盘请求参数构造器
 		WithBoUpdateDashboardParams(*bo.UpdateDashboardParams) IBoUpdateDashboardParamsBuilder
 	}
 
+	// IBatchUpdateDashboardStatusRequestBuilder 批量更新仪表盘状态请求参数构造器
 	IBatchUpdateDashboardStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.BatchUpdateDashboardStatusParams
 	}
 
@@ -53,10 +66,15 @@ type (
 		ctx context.Context
 	}
 
+	// IBoAddDashboardParamsBuilder 添加仪表盘请求参数构造器
 	IBoAddDashboardParamsBuilder interface {
-		ToDo() *bizmodel.Dashboard
+		// ToModel 转换为业务对象
+		ToModel() *bizmodel.Dashboard
+		// WithDashboardID 设置仪表盘ID
 		WithDashboardID(uint32) IBoAddDashboardParamsBuilder
+		// ToDoStrategyGroups 转换为策略组列表
 		ToDoStrategyGroups() []*bizmodel.StrategyGroup
+		// ToDoCharts 转换为图表列表
 		ToDoCharts() []*bizmodel.DashboardChart
 	}
 
@@ -66,10 +84,15 @@ type (
 		*bo.AddDashboardParams
 	}
 
+	// IBoUpdateDashboardParamsBuilder 更新仪表盘请求参数构造器
 	IBoUpdateDashboardParamsBuilder interface {
-		ToDo() *bizmodel.Dashboard
+		// ToModel 转换为业务对象
+		ToModel() *bizmodel.Dashboard
+		// WithDashboardID 设置仪表盘ID
 		WithDashboardID(uint32) IBoUpdateDashboardParamsBuilder
+		// ToDoStrategyGroups 转换为策略组列表
 		ToDoStrategyGroups() []*bizmodel.StrategyGroup
+		// ToDoCharts 转换为图表列表
 		ToDoCharts() []*bizmodel.DashboardChart
 	}
 
@@ -79,7 +102,9 @@ type (
 		*bo.UpdateDashboardParams
 	}
 
+	// IGetAlarmRequestBuilder 获取告警请求参数构造器
 	IGetAlarmRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.GetRealTimeAlarmParams
 	}
 
@@ -88,7 +113,9 @@ type (
 		*realtimeapi.GetAlarmRequest
 	}
 
+	// IListAlarmRequestBuilder 获取告警列表请求参数构造器
 	IListAlarmRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.GetRealTimeAlarmsParams
 	}
 
@@ -97,8 +124,11 @@ type (
 		*realtimeapi.ListAlarmRequest
 	}
 
+	// IDoRealtimeAlarmBuilder 告警条目构造器
 	IDoRealtimeAlarmBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*alarmmodel.RealtimeAlarm) *adminapi.RealtimeAlarmItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*alarmmodel.RealtimeAlarm) []*adminapi.RealtimeAlarmItem
 	}
 
@@ -106,8 +136,11 @@ type (
 		ctx context.Context
 	}
 
+	// IDoAlarmPageSelfBuilder 告警页面自定义字段条目构造器
 	IDoAlarmPageSelfBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.AlarmPageSelf) *adminapi.DictItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.AlarmPageSelf) []*adminapi.DictItem
 	}
 
@@ -115,7 +148,9 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateDashboardRequestBuilder 创建仪表盘请求参数构造器
 	ICreateDashboardRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.AddDashboardParams
 	}
 
@@ -124,7 +159,9 @@ type (
 		*realtimeapi.CreateDashboardRequest
 	}
 
+	// IUpdateDashboardRequestBuilder 更新仪表盘请求参数构造器
 	IUpdateDashboardRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateDashboardParams
 	}
 
@@ -133,7 +170,9 @@ type (
 		*realtimeapi.UpdateDashboardRequest
 	}
 
+	// IDeleteDashboardRequestBuilder 删除仪表盘请求参数构造器
 	IDeleteDashboardRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.DeleteDashboardParams
 	}
 
@@ -142,7 +181,9 @@ type (
 		*realtimeapi.DeleteDashboardRequest
 	}
 
+	// IListDashboardRequestBuilder 获取仪表盘列表请求参数构造器
 	IListDashboardRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.ListDashboardParams
 	}
 
@@ -151,10 +192,15 @@ type (
 		*realtimeapi.ListDashboardRequest
 	}
 
+	// IDoDashboardBuilder 仪表盘条目构造器
 	IDoDashboardBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.Dashboard) *adminapi.DashboardItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Dashboard) []*adminapi.DashboardItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.Dashboard) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.Dashboard) []*adminapi.SelectItem
 	}
 
@@ -162,9 +208,13 @@ type (
 		ctx context.Context
 	}
 
+	// IBoChartBuilder 图表条目构造器
 	IBoChartBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo(*adminapi.ChartItem) *bo.ChartItem
+		// ToBos 转换为业务对象列表
 		ToBos([]*adminapi.ChartItem) []*bo.ChartItem
+		// WithDashboardID 设置仪表盘ID
 		WithDashboardID(uint32) IBoChartBuilder
 	}
 
@@ -173,8 +223,11 @@ type (
 		dashboardID uint32
 	}
 
+	// IDoChartBuilder 图表条目构造器
 	IDoChartBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.DashboardChart) *adminapi.ChartItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.DashboardChart) []*adminapi.ChartItem
 	}
 
@@ -200,7 +253,7 @@ func (r *realtimeAlarmModuleBuilder) WithBatchUpdateDashboardStatusRequest(reque
 	}
 }
 
-func (b *boUpdateDashboardParamsBuilder) ToDo() *bizmodel.Dashboard {
+func (b *boUpdateDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
 	if types.IsNil(b) || types.IsNil(b.UpdateDashboardParams) {
 		return nil
 	}
@@ -256,7 +309,7 @@ func (b *boUpdateDashboardParamsBuilder) ToDoCharts() []*bizmodel.DashboardChart
 	})
 }
 
-func (b *boAddDashboardParamsBuilder) ToDo() *bizmodel.Dashboard {
+func (b *boAddDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
 	if types.IsNil(b) || types.IsNil(b.AddDashboardParams) {
 		return nil
 	}

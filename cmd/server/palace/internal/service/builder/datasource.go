@@ -19,21 +19,42 @@ type (
 		ctx context.Context
 	}
 
+	// IDatasourceModuleBuilder 数据源模块构造器
 	IDatasourceModuleBuilder interface {
+		// DoDatasourceBuilder 数据源条目构造器
 		DoDatasourceBuilder() IDoDatasourceBuilder
+
+		// WithCreateDatasourceRequest 创建数据源请求参数构造器
 		WithCreateDatasourceRequest(*datasourceapi.CreateDatasourceRequest) ICreateDatasourceRequestBuilder
+
+		// WithUpdateDatasourceRequest 更新数据源请求参数构造器
 		WithUpdateDatasourceRequest(*datasourceapi.UpdateDatasourceRequest) IUpdateDatasourceRequestBuilder
+
+		// WithListDatasourceRequest 获取数据源列表请求参数构造器
 		WithListDatasourceRequest(*datasourceapi.ListDatasourceRequest) IListDatasourceRequestBuilder
 
+		// BoDatasourceBuilder 业务对象构造器
 		BoDatasourceBuilder() IBoDatasourceBuilder
 	}
 
+	// IDoDatasourceBuilder 数据源条目构造器
 	IDoDatasourceBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.Datasource, ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem
+
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Datasource) []*adminapi.DatasourceItem
+
+		// ToBo 转换为业务对象
 		ToBo(*bizmodel.Datasource) *bo.Datasource
+
+		// ToBos 转换为业务对象列表
 		ToBos([]*bizmodel.Datasource) []*bo.Datasource
+
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.Datasource) *adminapi.SelectItem
+
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.Datasource) []*adminapi.SelectItem
 	}
 
@@ -41,7 +62,9 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateDatasourceRequestBuilder 创建数据源请求参数构造器
 	ICreateDatasourceRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateDatasourceParams
 	}
 
@@ -50,6 +73,7 @@ type (
 		*datasourceapi.CreateDatasourceRequest
 	}
 
+	// IUpdateDatasourceRequestBuilder 更新数据源请求参数构造器
 	IUpdateDatasourceRequestBuilder interface {
 		ToBo() *bo.UpdateDatasourceBaseInfoParams
 	}
@@ -59,7 +83,9 @@ type (
 		*datasourceapi.UpdateDatasourceRequest
 	}
 
+	// IListDatasourceRequestBuilder 获取数据源列表请求参数构造器
 	IListDatasourceRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryDatasourceListParams
 	}
 
@@ -68,8 +94,12 @@ type (
 		*datasourceapi.ListDatasourceRequest
 	}
 
+	// IBoDatasourceBuilder 业务对象构造器
 	IBoDatasourceBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.Datasource) *api.Datasource
+
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.Datasource) []*api.Datasource
 	}
 

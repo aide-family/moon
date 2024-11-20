@@ -17,19 +17,23 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewSendAlertRepository 创建告警发送仓库
 func NewSendAlertRepository(data *data.Data, rabbitConn *data.RabbitConn, alarmSendRepository repository.AlarmSendRepository) microrepository.SendAlert {
 	return &sendAlertRepositoryImpl{rabbitConn: rabbitConn, data: data, alarmSendRepository: alarmSendRepository}
 }
 
+// sendAlertRepositoryImpl 告警发送仓库
 type sendAlertRepositoryImpl struct {
 	data                *data.Data
 	rabbitConn          *data.RabbitConn
 	alarmSendRepository repository.AlarmSendRepository
 }
 
+// Send 发送告警
 func (s *sendAlertRepositoryImpl) Send(_ context.Context, alertMsg *bo.SendMsg) {
 	go func() {
 		defer after.RecoverX()
@@ -37,6 +41,7 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alertMsg *bo.SendMsg) 
 	}()
 }
 
+// send 发送告警
 func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
 	setOK, err := s.data.GetCacher().SetNX(context.Background(), task.RequestID, "1", 2*time.Hour)
 	if err != nil {
@@ -84,9 +89,9 @@ func (s *sendAlertRepositoryImpl) alarmSendHistorySave(ctx context.Context, send
 		return merr.ErrorI18nParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(ctx)
 	}
 	// 解析告警team_id
-	param.TeamID = getTeamIdByRoute(routeParts)
+	param.TeamID = getTeamIDByRoute(routeParts)
 	// 解析告警组id
-	param.AlarmGroupID = getAlarmGroupIdByRoute(routeParts)
+	param.AlarmGroupID = getAlarmGroupIDByRoute(routeParts)
 	param.SendTime = types.NewTime(time.Now())
 	return s.alarmSendRepository.SaveAlarmSendHistory(ctx, param)
 }
@@ -102,18 +107,18 @@ func (s *sendAlertRepositoryImpl) getSendRetryNum(ctx context.Context, sendMsg *
 		return 0, merr.ErrorI18nParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(ctx)
 	}
 
-	teamID := getTeamIdByRoute(routeParts)
+	teamID := getTeamIDByRoute(routeParts)
 	return s.alarmSendRepository.GetRetryNumberByRequestID(ctx, requestID, teamID)
 }
 
 // 解析告警team id
-func getTeamIdByRoute(routeParts []string) uint32 {
+func getTeamIDByRoute(routeParts []string) uint32 {
 	teamID, _ := strconv.ParseInt(routeParts[1], 10, 32)
 	return uint32(teamID)
 }
 
 // 解析告警组id
-func getAlarmGroupIdByRoute(routeParts []string) uint32 {
+func getAlarmGroupIDByRoute(routeParts []string) uint32 {
 	teamID, _ := strconv.ParseInt(routeParts[2], 10, 32)
 	return uint32(teamID)
 }

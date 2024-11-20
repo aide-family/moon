@@ -9,6 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// NewSystemBiz 创建系统业务对象
 func NewSystemBiz(systemRepository repository.System, teamRepository repository.Team) *SystemBiz {
 	return &SystemBiz{
 		systemRepository: systemRepository,
@@ -16,7 +17,7 @@ func NewSystemBiz(systemRepository repository.System, teamRepository repository.
 	}
 }
 
-// SystemBiz .
+// SystemBiz 系统业务对象
 type SystemBiz struct {
 	systemRepository repository.System
 	teamRepository   repository.Team

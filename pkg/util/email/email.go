@@ -34,6 +34,7 @@ type (
 		GetPort() uint32
 	}
 
+	// config 邮件配置
 	config struct {
 		user string
 		pass string
@@ -41,34 +42,41 @@ type (
 		port uint32
 	}
 
-	mockEmail struct {
-	}
+	// mockEmail 邮件模拟
+	mockEmail struct{}
 )
 
+// Send 发送邮件
 func (m *mockEmail) Send() error {
 	return nil
 }
 
+// SetTo 设置收件人
 func (m *mockEmail) SetTo(to ...string) Interface {
 	return m
 }
 
+// SetSubject 设置邮件主题
 func (m *mockEmail) SetSubject(subject string) Interface {
 	return m
 }
 
+// SetBody 设置邮件正文
 func (m *mockEmail) SetBody(body string, contentType ...string) Interface {
 	return m
 }
 
+// SetAttach 设置附件
 func (m *mockEmail) SetAttach(attach ...string) Interface {
 	return m
 }
 
+// SetCc 设置抄送人
 func (m *mockEmail) SetCc(cc ...string) Interface {
 	return m
 }
 
+// NewMockEmail 创建邮件模拟
 func NewMockEmail() Interface {
 	return &mockEmail{}
 }
@@ -100,6 +108,7 @@ const (
 
 var _ Config = (*config)(nil)
 
+// init 初始化
 func (l *Email) init() Interface {
 	if l.mail == nil {
 		l.mail = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
@@ -148,6 +157,7 @@ func (l *Email) SetAttach(attach ...string) Interface {
 	return l
 }
 
+// setFrom 设置发件人
 func (l *Email) setFrom(from string) *Email {
 	domain := DOMAIN
 	if from != "" {

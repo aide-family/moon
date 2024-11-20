@@ -19,15 +19,23 @@ type (
 		ctx context.Context
 	}
 
+	// IHookModuleBuilder 钩子模块构造器
 	IHookModuleBuilder interface {
+		// WithCreateHookRequest 创建钩子请求参数构造器
 		WithCreateHookRequest(*hookapi.CreateHookRequest) ICreateHookRequestBuilder
+		// WithUpdateHookRequest 更新钩子请求参数构造器
 		WithUpdateHookRequest(*hookapi.UpdateHookRequest) IUpdateHookRequestBuilder
+		// WithListHookRequest 获取钩子列表请求参数构造器
 		WithListHookRequest(*hookapi.ListHookRequest) IListHookRequestBuilder
+		// WithUpdateHookStatusRequest 更新钩子状态请求参数构造器
 		WithUpdateHookStatusRequest(*hookapi.UpdateHookStatusRequest) IUpdateHookStatusRequestBuilder
+		// DoHookBuilder 钩子条目构造器
 		DoHookBuilder() IDoHookBuilder
 	}
 
+	// ICreateHookRequestBuilder 创建钩子请求参数构造器
 	ICreateHookRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateAlarmHookParams
 	}
 
@@ -36,7 +44,9 @@ type (
 		*hookapi.CreateHookRequest
 	}
 
+	// IUpdateHookRequestBuilder 更新钩子请求参数构造器
 	IUpdateHookRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateAlarmHookParams
 	}
 
@@ -45,7 +55,9 @@ type (
 		*hookapi.UpdateHookRequest
 	}
 
+	// IListHookRequestBuilder 获取钩子列表请求参数构造器
 	IListHookRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryAlarmHookListParams
 	}
 
@@ -54,7 +66,9 @@ type (
 		*hookapi.ListHookRequest
 	}
 
+	// IUpdateHookStatusRequestBuilder 更新钩子状态请求参数构造器
 	IUpdateHookStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateAlarmHookStatusParams
 	}
 
@@ -63,10 +77,15 @@ type (
 		*hookapi.UpdateHookStatusRequest
 	}
 
+	// IDoHookBuilder 钩子条目构造器
 	IDoHookBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.AlarmHook, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmHookItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.AlarmHook) []*adminapi.AlarmHookItem
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.AlarmHook) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.AlarmHook) []*adminapi.SelectItem
 	}
 

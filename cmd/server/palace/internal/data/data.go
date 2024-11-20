@@ -42,7 +42,7 @@ type Data struct {
 	teamBizDBMap *sync.Map
 	alarmDBMap   *sync.Map
 
-	ossClient oss.OssClient
+	ossClient oss.Client
 	ossConf   *conf.Oss
 
 	// 策略队列
@@ -370,6 +370,7 @@ func (d *Data) GetCacher() cache.ICacher {
 	return d.cacher
 }
 
+// GetCasbinByTx 获取casbin
 func (d *Data) GetCasbinByTx(tx *gorm.DB) *casbin.SyncedEnforcer {
 	enforcer, err := rbac.InitCasbinModel(tx)
 	if !types.IsNil(err) {
@@ -398,7 +399,7 @@ func (d *Data) GetCasBin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
 	return enforce
 }
 
-// newCache new cache
+// newCache 创建缓存
 func newCache(c *conf.Cache) cache.ICacher {
 	switch strings.ToLower(c.GetDriver()) {
 	case "redis":
@@ -454,8 +455,8 @@ func (d *Data) GetAlertConsumerStorage() watch.Storage {
 	return d.alertConsumerStorage
 }
 
-func newOssCli(c *conf.Oss) oss.OssClient {
-	var client oss.OssClient
+func newOssCli(c *conf.Oss) oss.Client {
+	var client oss.Client
 	switch c.GetType() {
 	case "aliyun":
 		aliOSS, err := oss.NewAliOSS(c.GetAliOss())
@@ -484,7 +485,7 @@ func newOssCli(c *conf.Oss) oss.OssClient {
 }
 
 // GetOssCli 获取oss客户端
-func (d *Data) GetOssCli() oss.OssClient {
+func (d *Data) GetOssCli() oss.Client {
 	if types.IsNil(d.ossClient) {
 		log.Warn("persistence ossClient is nil")
 	}

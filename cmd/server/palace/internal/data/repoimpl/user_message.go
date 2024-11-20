@@ -17,7 +17,7 @@ import (
 	"gorm.io/gen"
 )
 
-// NewUserMessageRepository creates a new UserMessageRepository instance.
+// NewUserMessageRepository 创建用户消息实现
 func NewUserMessageRepository(data *data.Data) repository.UserMessage {
 	return &userMessageRepositoryImpl{data: data}
 }
@@ -26,10 +26,11 @@ type userMessageRepositoryImpl struct {
 	data *data.Data
 }
 
-func (u *userMessageRepositoryImpl) GetById(ctx context.Context, u2 uint32) (*model.SysUserMessage, error) {
+// GetByID 根据ID获取用户消息
+func (u *userMessageRepositoryImpl) GetByID(ctx context.Context, id uint32) (*model.SysUserMessage, error) {
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	messageDo, err := mainQuery.WithContext(ctx).SysUserMessage.Where(
-		mainQuery.SysUserMessage.ID.Eq(u2),
+		mainQuery.SysUserMessage.ID.Eq(id),
 		mainQuery.SysUserMessage.UserID.Eq(middleware.GetUserID(ctx)),
 	).First()
 	if err != nil {
@@ -41,6 +42,7 @@ func (u *userMessageRepositoryImpl) GetById(ctx context.Context, u2 uint32) (*mo
 	return messageDo, nil
 }
 
+// DeleteAll 删除所有用户消息
 func (u *userMessageRepositoryImpl) DeleteAll(ctx context.Context) error {
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	_, err := mainQuery.WithContext(ctx).SysUserMessage.Where(
@@ -49,20 +51,23 @@ func (u *userMessageRepositoryImpl) DeleteAll(ctx context.Context) error {
 	return err
 }
 
+// Create 创建用户消息
 func (u *userMessageRepositoryImpl) Create(ctx context.Context, message *model.SysUserMessage) error {
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	return mainQuery.WithContext(ctx).SysUserMessage.Create(message)
 }
 
-func (u *userMessageRepositoryImpl) Delete(ctx context.Context, uint32s []uint32) error {
+// Delete 删除用户消息
+func (u *userMessageRepositoryImpl) Delete(ctx context.Context, ids []uint32) error {
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
 	_, err := mainQuery.WithContext(ctx).SysUserMessage.Where(
-		mainQuery.SysUserMessage.ID.In(uint32s...),
+		mainQuery.SysUserMessage.ID.In(ids...),
 		mainQuery.SysUserMessage.UserID.Eq(middleware.GetUserID(ctx)),
 	).Delete()
 	return err
 }
 
+// List 分页查询用户消息
 func (u *userMessageRepositoryImpl) List(ctx context.Context, params *bo.QueryUserMessageListParams) ([]*model.SysUserMessage, error) {
 	mainQuery := query.Use(u.data.GetMainDB(ctx)).SysUserMessage
 	userCtxQuery := mainQuery.WithContext(ctx)

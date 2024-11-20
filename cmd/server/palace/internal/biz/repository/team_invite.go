@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 )
 
+// TeamInvite 团队邀请接口
 type TeamInvite interface {
 	// InviteUser 邀请用户加入团队
 	InviteUser(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error)
@@ -14,10 +15,10 @@ type TeamInvite interface {
 	UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error
 	// UserInviteList 受邀请列表
 	UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*model.SysTeamInvite, error)
-	// GetInviteUserByUserIdAndType 获取邀请用户信息
-	GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error)
+	// GetInviteUserByUserIDAndType 获取邀请用户信息
+	GetInviteUserByUserIDAndType(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error)
 	// GetInviteDetail 获取邀请详情
-	GetInviteDetail(ctx context.Context, inviteId uint32) (*model.SysTeamInvite, error)
+	GetInviteDetail(ctx context.Context, inviteID uint32) (*model.SysTeamInvite, error)
 	// DeleteInvite 删除邀请
-	DeleteInvite(ctx context.Context, inviteId uint32) error
+	DeleteInvite(ctx context.Context, inviteID uint32) error
 }

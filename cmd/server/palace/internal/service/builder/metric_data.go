@@ -15,13 +15,19 @@ type (
 		ctx context.Context
 	}
 
+	// IMetricDataModuleBuilder 指标数据模块构造器
 	IMetricDataModuleBuilder interface {
+		// BoMetricDataBuilder 指标数据条目构造器
 		BoMetricDataBuilder() IBoMetricDataBuilder
+		// BoMetricDataValueBuilder 指标数据值条目构造器
 		BoMetricDataValueBuilder() IBoMetricDataValueBuilder
 	}
 
+	// IBoMetricDataBuilder 指标数据条目构造器
 	IBoMetricDataBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.MetricQueryData) *api.MetricQueryResult
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.MetricQueryData) []*api.MetricQueryResult
 	}
 
@@ -29,8 +35,11 @@ type (
 		ctx context.Context
 	}
 
+	// IBoMetricDataValueBuilder 指标数据值条目构造器
 	IBoMetricDataValueBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bo.DatasourceQueryValue) *api.MetricQueryValue
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.DatasourceQueryValue) []*api.MetricQueryValue
 	}
 

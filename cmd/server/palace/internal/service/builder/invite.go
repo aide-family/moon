@@ -16,17 +16,25 @@ import (
 var _ InviteModuleBuilder = (*inviteModuleBuilder)(nil)
 
 type (
+	// InviteModuleBuilder 邀请模块构造器
 	InviteModuleBuilder interface {
+		// WithInviteUserRequest 创建邀请用户请求参数构造器
 		WithInviteUserRequest(*inviteapi.InviteUserRequest) ICreateInviteUserRequestBuilder
+		// WithUpdateInviteStatusRequest 更新邀请状态请求参数构造器
 		WithUpdateInviteStatusRequest(*inviteapi.UpdateInviteStatusRequest) IUpdateInviteStatusRequestBuilder
+		// WithListInviteUserRequest 获取邀请用户列表请求参数构造器
 		WithListInviteUserRequest(*inviteapi.ListUserInviteRequest) IListInviteUserRequestBuilder
+		// DoInviteBuilder 邀请条目构造器
 		DoInviteBuilder(*bo.InviteTeamInfoParams) IDoInviteBuilder
 	}
+
 	inviteModuleBuilder struct {
 		ctx context.Context
 	}
 
+	// ICreateInviteUserRequestBuilder 创建邀请用户请求参数构造器
 	ICreateInviteUserRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.InviteUserParams
 	}
 
@@ -35,7 +43,9 @@ type (
 		*inviteapi.InviteUserRequest
 	}
 
+	// IUpdateInviteStatusRequestBuilder 更新邀请状态请求参数构造器
 	IUpdateInviteStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateInviteStatusParams
 	}
 	updateInviteStatusRequestBuilder struct {
@@ -43,7 +53,9 @@ type (
 		*inviteapi.UpdateInviteStatusRequest
 	}
 
+	// IListInviteUserRequestBuilder 获取邀请用户列表请求参数构造器
 	IListInviteUserRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryInviteListParams
 	}
 
@@ -52,8 +64,11 @@ type (
 		*inviteapi.ListUserInviteRequest
 	}
 
+	// IDoInviteBuilder 邀请条目构造器
 	IDoInviteBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.SysTeamInvite) *admin.InviteItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysTeamInvite) []*admin.InviteItem
 	}
 

@@ -41,6 +41,7 @@ func getMsg(msg string) string {
 	return msg
 }
 
+// ValidateHandler 验证请求参数处理器
 type ValidateHandler func(ctx context.Context, req interface{}) error
 
 // ValidateParams 验证请求参数

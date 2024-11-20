@@ -120,26 +120,32 @@ func (s *StrategyDomain) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout))
 }
 
+// GetTeamID 获取团队ID
 func (s *StrategyDomain) GetTeamID() uint32 {
 	return s.TeamID
 }
 
+// GetStatus 获取策略状态
 func (s *StrategyDomain) GetStatus() vobj.Status {
 	return s.Status
 }
 
+// GetReceiverGroupIDs 获取接收者组ID列表
 func (s *StrategyDomain) GetReceiverGroupIDs() []uint32 {
 	return s.ReceiverGroupIDs
 }
 
+// GetLabelNotices 获取自定义接收者匹配对象
 func (s *StrategyDomain) GetLabelNotices() []*LabelNotices {
 	return s.LabelNotices
 }
 
+// GetAnnotations 获取策略注解
 func (s *StrategyDomain) GetAnnotations() map[string]string {
 	return s.Annotations.Map()
 }
 
+// GetInterval 获取执行频率
 func (s *StrategyDomain) GetInterval() *types.Duration {
 	return s.Interval
 }

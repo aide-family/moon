@@ -14,6 +14,7 @@ type (
 		notify.Notify
 	}
 
+	// Config 通知配置
 	Config interface {
 		GetWebhook() string
 		GetSecret() string

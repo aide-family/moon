@@ -19,17 +19,27 @@ type (
 		ctx context.Context
 	}
 
+	// IMenuModuleBuilder 菜单模块构造器
 	IMenuModuleBuilder interface {
+		// WithCreateMenuRequest 创建菜单请求参数构造器
 		WithCreateMenuRequest(*menuapi.CreateMenuRequest) ICreateMenuRequestBuilder
+		// WithBatchCreateMenuRequest 批量创建菜单请求参数构造器
 		WithBatchCreateMenuRequest(*menuapi.BatchCreateMenuRequest) IBatchCreateMenuRequestBuilder
+		// WithUpdateMenuRequest 更新菜单请求参数构造器
 		WithUpdateMenuRequest(*menuapi.UpdateMenuRequest) IUpdateMenuRequestBuilder
+		// WithListMenuRequest 获取菜单列表请求参数构造器
 		WithListMenuRequest(*menuapi.ListMenuRequest) IListMenuRequestBuilder
+		// WithBatchUpdateMenuStatusRequest 批量更新菜单状态请求参数构造器
 		WithBatchUpdateMenuStatusRequest(*menuapi.BatchUpdateMenuStatusRequest) IBatchUpdateMenuStatusRequestBuilder
+		// WithUpdateMenuTypeParams 更新菜单类型请求参数构造器
 		WithUpdateMenuTypeParams(*menuapi.BatchUpdateMenuTypeRequest) IUpdateMenuTypeParams
+		// DoMenuBuilder 菜单条目构造器
 		DoMenuBuilder() IDoMenuBuilder
 	}
 
+	// ICreateMenuRequestBuilder 创建菜单请求参数构造器
 	ICreateMenuRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateMenuParams
 	}
 
@@ -38,7 +48,9 @@ type (
 		*menuapi.CreateMenuRequest
 	}
 
+	// IBatchCreateMenuRequestBuilder 批量创建菜单请求参数构造器
 	IBatchCreateMenuRequestBuilder interface {
+		// ToBos 转换为业务对象列表
 		ToBos() []*bo.CreateMenuParams
 	}
 
@@ -47,7 +59,9 @@ type (
 		*menuapi.BatchCreateMenuRequest
 	}
 
+	// IUpdateMenuRequestBuilder 更新菜单请求参数构造器
 	IUpdateMenuRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateMenuParams
 	}
 
@@ -56,7 +70,9 @@ type (
 		*menuapi.UpdateMenuRequest
 	}
 
+	// IListMenuRequestBuilder 获取菜单列表请求参数构造器
 	IListMenuRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryMenuListParams
 	}
 
@@ -65,7 +81,9 @@ type (
 		*menuapi.ListMenuRequest
 	}
 
+	// IBatchUpdateMenuStatusRequestBuilder 批量更新菜单状态请求参数构造器
 	IBatchUpdateMenuStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateMenuStatusParams
 	}
 
@@ -74,7 +92,9 @@ type (
 		*menuapi.BatchUpdateMenuStatusRequest
 	}
 
+	// IUpdateMenuTypeParams 更新菜单类型请求参数构造器
 	IUpdateMenuTypeParams interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateMenuTypeParams
 	}
 
@@ -83,9 +103,13 @@ type (
 		*menuapi.BatchUpdateMenuTypeRequest
 	}
 
+	// IDoMenuBuilder 菜单条目构造器
 	IDoMenuBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.SysMenu) *adminapi.MenuItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysMenu) []*adminapi.MenuItem
+		// ToAPITree 转换为API树形对象列表
 		ToAPITree([]*model.SysMenu) []*adminapi.MenuTree
 	}
 
@@ -151,13 +175,13 @@ func (d *doMenuBuilder) ToAPIs(menus []*model.SysMenu) []*adminapi.MenuItem {
 	})
 }
 
-func (d *doMenuBuilder) toAPITree(menus []*model.SysMenu, parentId uint32) []*adminapi.MenuTree {
+func (d *doMenuBuilder) toAPITree(menus []*model.SysMenu, parentID uint32) []*adminapi.MenuTree {
 	if types.IsNil(d) || types.IsNil(menus) {
 		return nil
 	}
 
 	return types.SliceToWithFilter(menus, func(item *model.SysMenu) (*adminapi.MenuTree, bool) {
-		if item.ParentID != parentId {
+		if item.ParentID != parentID {
 			return nil, false
 		}
 

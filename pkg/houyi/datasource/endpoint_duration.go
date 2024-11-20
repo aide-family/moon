@@ -12,13 +12,13 @@ import (
 )
 
 // EndpointDuration 函数用于获取指定endpoint的请求相应时间和状态码
-func EndpointDuration(_ context.Context, url string, method vobj.HttpMethod, headers map[string]string, body string, timeout time.Duration) map[watch.Indexer]*Point {
+func EndpointDuration(_ context.Context, url string, method vobj.HTTPMethod, headers map[string]string, body string, timeout time.Duration) map[watch.Indexer]*Point {
 	now := time.Now()
 	var elapsed time.Duration
 	var statusCode int
 	var err error
 	switch method {
-	case vobj.HttpMethodPost:
+	case vobj.HTTPMethodPost:
 		elapsed, statusCode, _ = postResponseTimeAndStatusCode(url, headers, body, timeout)
 	default:
 		elapsed, statusCode, err = getResponseTimeAndStatusCode(url, headers, timeout)
@@ -28,8 +28,8 @@ func EndpointDuration(_ context.Context, url string, method vobj.HttpMethod, hea
 	}
 	points := make(map[watch.Indexer]*Point)
 	labels := vobj.NewLabels(map[string]string{
-		vobj.StrategyHttpPath:   url,
-		vobj.StrategyHttpMethod: method.String(),
+		vobj.StrategyHTTPPath:   url,
+		vobj.StrategyHTTPMethod: method.String(),
 	})
 	points[labels] = &Point{
 		Labels: labels.Map(),

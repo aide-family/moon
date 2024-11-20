@@ -7,13 +7,14 @@ import (
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/repository"
 )
 
+// NewHeartbeatBiz 创建心跳包业务对象
 func NewHeartbeatBiz(heartbeatRepository repository.Heartbeat) *HeartbeatBiz {
 	return &HeartbeatBiz{
 		heartbeatRepository: heartbeatRepository,
 	}
 }
 
-// HeartbeatBiz .
+// HeartbeatBiz 心跳包业务对象
 type HeartbeatBiz struct {
 	heartbeatRepository repository.Heartbeat
 }

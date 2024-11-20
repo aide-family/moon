@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// NewSystemRepository 创建系统相关功能实现
 func NewSystemRepository(data *data.Data) repository.System {
 	return &systemRepositoryImpl{data: data}
 }
@@ -19,15 +20,18 @@ type systemRepositoryImpl struct {
 	data *data.Data
 }
 
+// DeleteBackup 删除备份数据库
 func (s *systemRepositoryImpl) DeleteBackup(ctx context.Context, teamID uint32) {
 	databaseName := s.getBackupTeamDatabaseName(teamID)
 	_ = s.resetTeam(ctx, databaseName)
 }
 
+// RestoreData 恢复团队数据
 func (s *systemRepositoryImpl) RestoreData(ctx context.Context, teamID uint32) error {
 	return s.restoreData(ctx, teamID)
 }
 
+// ResetTeam 重置团队数据库
 func (s *systemRepositoryImpl) ResetTeam(ctx context.Context, teamID uint32) error {
 	databaseName := s.getBackupTeamDatabaseName(teamID)
 	oldDatabaseName := data.GenBizDatabaseName(teamID)
@@ -43,6 +47,7 @@ func (s *systemRepositoryImpl) ResetTeam(ctx context.Context, teamID uint32) err
 	return nil
 }
 
+// getBackupTeamDatabaseName 获取备份团队数据库名称
 func (s *systemRepositoryImpl) getBackupTeamDatabaseName(teamID uint32) string {
 	return "biz_backup_team_" + strconv.FormatUint(uint64(teamID), 10)
 }
@@ -106,12 +111,13 @@ func (s *systemRepositoryImpl) backupTeam(ctx context.Context, databaseName, old
 	return nil
 }
 
+// resetTeam 删除数据库
 func (s *systemRepositoryImpl) resetTeam(ctx context.Context, databaseName string) error {
-	// 删除数据库
 	_, err := s.data.GetBizDB(ctx).Exec("DROP DATABASE IF EXISTS `" + databaseName + "`")
 	return err
 }
 
+// restoreData 恢复团队数据
 func (s *systemRepositoryImpl) restoreData(ctx context.Context, teamID uint32) error {
 	databaseName := s.getBackupTeamDatabaseName(teamID)
 	oldDatabaseName := data.GenBizDatabaseName(teamID)

@@ -8,11 +8,12 @@ import (
 )
 
 type (
+	// MQDataSource mq 数据源
 	MQDataSource interface {
 		// CreateMqDatasource 创建MQ数据源
 		CreateMqDatasource(ctx context.Context, params *bo.CreateMqDatasourceParams) error
 		// DeleteMqDatasource 删除MQ数据源
-		DeleteMqDatasource(ctx context.Context, ID uint32) error
+		DeleteMqDatasource(ctx context.Context, id uint32) error
 		// UpdateMqDatasource 更新MQ数据源
 		UpdateMqDatasource(ctx context.Context, params *bo.UpdateMqDatasourceParams) error
 		// GetMqDatasource 获取MQ数据源

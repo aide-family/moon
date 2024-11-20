@@ -8,8 +8,7 @@ import (
 
 const tableNameRealtimeDetails = "realtime_details"
 
-// RealtimeDetails mapped from table <RealtimeDetails>
-
+// RealtimeDetails 实时告警详情
 type RealtimeDetails struct {
 	model.EasyModel
 	// 相关策略
@@ -24,7 +23,7 @@ type RealtimeDetails struct {
 	RealtimeAlarm *RealtimeAlarm `gorm:"foreignKey:RealtimeAlarmID" json:"realtime_alarm"`
 }
 
-// String json string
+// String 字符串
 func (c *RealtimeDetails) String() string {
 	bs, _ := json.Marshal(c)
 	return string(bs)
@@ -40,7 +39,7 @@ func (c *RealtimeDetails) MarshalBinary() (data []byte, err error) {
 	return json.Marshal(c)
 }
 
-// TableName RealtimeDetails's table name
+// TableName 表名
 func (*RealtimeDetails) TableName() string {
 	return tableNameRealtimeDetails
 }

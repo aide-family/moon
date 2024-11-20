@@ -58,15 +58,18 @@ func NewMinIO(minioConf *conf.Minio) (*MinIOClient, error) {
 	}, nil
 }
 
+// UploadFile 上传文件
 func (m *MinIOClient) UploadFile(ctx context.Context, objectName string, reader io.Reader, objectSize int64) error {
 	_, err := m.client.PutObject(ctx, m.bucketName, objectName, reader, objectSize, minio.PutObjectOptions{})
 	return err
 }
 
+// DownloadFile 下载文件
 func (m *MinIOClient) DownloadFile(ctx context.Context, objectName string) (io.ReadCloser, error) {
 	return m.client.GetObject(ctx, m.bucketName, objectName, minio.GetObjectOptions{})
 }
 
+// DeleteFile 删除文件
 func (m *MinIOClient) DeleteFile(ctx context.Context, objectName string) error {
 	return m.client.RemoveObject(ctx, m.bucketName, objectName, minio.RemoveObjectOptions{})
 }
@@ -91,8 +94,8 @@ func setBucketPublic(ctx context.Context, minioClient *minio.Client, bucketName 
 	return minioClient.SetBucketPolicy(ctx, bucketName, policy)
 }
 
-// getFileUrl 获取文件的URL
-func (m *MinIOClient) getFileUrl(objectName string) string {
+// getFileURL 获取文件的URL
+func (m *MinIOClient) getFileURL(objectName string) string {
 	secure := "http"
 	if m.secure {
 		secure = "https"
@@ -101,6 +104,7 @@ func (m *MinIOClient) getFileUrl(objectName string) string {
 	return fileURL
 }
 
-func (m *MinIOClient) GetFileUrl(_ context.Context, objectName string) (string, error) {
-	return m.getFileUrl(objectName), nil
+// GetFileURL 获取文件URL
+func (m *MinIOClient) GetFileURL(_ context.Context, objectName string) (string, error) {
+	return m.getFileURL(objectName), nil
 }

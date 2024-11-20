@@ -35,8 +35,10 @@ func NewVictoriametricsDatasource(opts ...VictoriametricsDatasourceOption) Metri
 }
 
 type (
+	// VictoriametricsDatasourceOption victoriametrics数据源选项
 	VictoriametricsDatasourceOption func(*victoriametricsDatasource)
 
+	// victoriametricsDatasource victoriametrics数据源
 	victoriametricsDatasource struct {
 		// basicAuth 数据源基础认证
 		basicAuth *BasicAuth
@@ -54,6 +56,7 @@ type (
 		metadataAPI   string
 	}
 
+	// VictoriametricsMetadataResponse victoriametrics元数据响应
 	VictoriametricsMetadataResponse struct {
 		Status string   `json:"status"`
 		Data   []string `json:"data"`

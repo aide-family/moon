@@ -115,7 +115,7 @@ func (l *cacheRepositoryImpl) SyncUserTeamList(ctx context.Context, userID uint3
 	teamIDs := make([]uint32, 0, len(teamList))
 	for _, teamItem := range teamList {
 		// 查询该用户是否在团队中
-		bizQuery, err := getTeamIdBizQuery(l.data, teamItem.ID)
+		bizQuery, err := getTeamIDBizQuery(l.data, teamItem.ID)
 		if err != nil {
 			continue
 		}

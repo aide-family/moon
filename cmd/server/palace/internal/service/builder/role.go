@@ -21,14 +21,21 @@ type (
 		ctx context.Context
 	}
 
+	// IRoleModuleBuilder 角色模块构造器
 	IRoleModuleBuilder interface {
+		// WithCreateRoleRequest 设置创建角色请求参数
 		WithCreateRoleRequest(*teamapi.CreateRoleRequest) ICreateRoleRequestBuilder
+		// WithUpdateRoleRequest 设置更新角色请求参数
 		WithUpdateRoleRequest(*teamapi.UpdateRoleRequest) IUpdateRoleRequestBuilder
+		// WithListRoleRequest 设置获取角色列表请求参数
 		WithListRoleRequest(*teamapi.ListRoleRequest) IListRoleRequestBuilder
+		// DoRoleBuilder 角色条目构造器
 		DoRoleBuilder() IDoRoleBuilder
 	}
 
+	// ICreateRoleRequestBuilder 创建角色请求参数构造器
 	ICreateRoleRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateTeamRoleParams
 	}
 
@@ -37,7 +44,9 @@ type (
 		*teamapi.CreateRoleRequest
 	}
 
+	// IUpdateRoleRequestBuilder 更新角色请求参数构造器
 	IUpdateRoleRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateTeamRoleParams
 	}
 
@@ -46,7 +55,9 @@ type (
 		*teamapi.UpdateRoleRequest
 	}
 
+	// IListRoleRequestBuilder 获取角色列表请求参数构造器
 	IListRoleRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.ListTeamRoleParams
 	}
 
@@ -55,10 +66,15 @@ type (
 		*teamapi.ListRoleRequest
 	}
 
+	// IDoRoleBuilder 角色条目构造器
 	IDoRoleBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*bizmodel.SysTeamRole, ...map[uint32]*adminapi.UserItem) *adminapi.TeamRole
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.SysTeamRole) []*adminapi.TeamRole
+		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.SysTeamRole) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*bizmodel.SysTeamRole) []*adminapi.SelectItem
 	}
 

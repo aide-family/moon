@@ -25,6 +25,7 @@ func NewLokiLogger(c LokiConfig) Logger {
 }
 
 type (
+	// LokiConfig 日志配置
 	LokiConfig interface {
 		GetUrl() string
 	}
@@ -34,6 +35,7 @@ type (
 	}
 )
 
+// Log 日志
 func (l *lokiLog) Log(level log.Level, keyvals ...interface{}) error {
 	var (
 		msg    = ""
@@ -44,7 +46,7 @@ func (l *lokiLog) Log(level log.Level, keyvals ...interface{}) error {
 	}
 	if keyLen%2 != 0 {
 		msg = fmt.Sprintf("%v", keyvals[len(keyvals)-1])
-		keyLen -= 1
+		keyLen--
 	}
 	labels := make(model.LabelSet)
 	for i := 0; i < keyLen; i += 2 {

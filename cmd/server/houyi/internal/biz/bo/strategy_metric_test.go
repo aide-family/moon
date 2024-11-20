@@ -2,12 +2,13 @@ package bo
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"testing"
-	"time"
 )
 
 func TestStrategyMetric_Eval(t *testing.T) {
@@ -48,11 +49,11 @@ func TestStrategyMetric_Eval(t *testing.T) {
 		return
 	}
 	for _, point := range evalPoints {
-		extJson, ok := strategy.IsCompletelyMeet(point.Values)
+		extJSON, ok := strategy.IsCompletelyMeet(point.Values)
 		if !ok {
 			log.Warnw("method", "IsCompletelyMeet", "error", "not meet")
 			continue
 		}
-		log.Infow("method", "IsCompletelyMeet", "extJson", extJson)
+		log.Infow("method", "IsCompletelyMeet", "extJSON", extJSON)
 	}
 }

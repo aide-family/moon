@@ -133,6 +133,7 @@ func (s *Service) DatasourceQuery(ctx context.Context, req *datasourceapi.Dataso
 	}, nil
 }
 
+// DataSourceProxy 数据源健康检查
 func (s *Service) DataSourceProxy() http.HandlerFunc {
 	return func(ctx http.Context) error {
 		var in datasourceapi.DataSourceHealthRequest
@@ -148,12 +149,16 @@ func (s *Service) DataSourceProxy() http.HandlerFunc {
 		if !isValidURL(in.Url) {
 			return merr.ErrorAlert("数据源地址错误，请检查")
 		}
-		toUrl := in.Url + "/-/ready"
-		log.Debugw("to", toUrl)
-		return s.proxy(ctx, toUrl)
+		toURL, err := url.JoinPath(in.Url, "/-/ready")
+		if !types.IsNil(err) {
+			return err
+		}
+		log.Debugw("to", toURL)
+		return s.proxy(ctx, toURL)
 	}
 }
 
+// isValidURL 验证URL是否有效
 func isValidURL(url string) bool {
 	// 定义正则表达式来匹配网址
 	regex := `^(https?|ftp):\/\/(?:www\.)?((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3}|(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4})(?::\d{1,5})?(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;%=]*)?$`
@@ -217,6 +222,7 @@ func (s *Service) ProxyQuery(ctx http.Context) error {
 	return err
 }
 
+// MetricProxy 指标数据源代理
 func (s *Service) MetricProxy() http.HandlerFunc {
 	return func(ctx http.Context) error {
 		isContentType := false
@@ -277,16 +283,16 @@ func (s *Service) proxy(ctx http.Context, to string) error {
 	// 获取query data
 	query := r.URL.Query()
 	// 绑定query到to
-	toUrl, err := url.Parse(to)
+	toURL, err := url.Parse(to)
 	if !types.IsNil(err) {
 		return err
 	}
-	toUrl.RawQuery = query.Encode()
+	toURL.RawQuery = query.Encode()
 	// body
 	body := r.Body
 	//
 	// 发起一个新请求， 把数据写回w
-	proxyReq, err := nethttp.NewRequestWithContext(ctx, r.Method, toUrl.String(), body)
+	proxyReq, err := nethttp.NewRequestWithContext(ctx, r.Method, toURL.String(), body)
 	if !types.IsNil(err) {
 		return err
 	}

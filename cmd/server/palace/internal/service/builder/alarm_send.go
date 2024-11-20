@@ -31,6 +31,7 @@ type (
 		*hookapi.SendMsgRequest
 	}
 
+	// IUpdateAlarmSendRequestBuilder 更新告警发送记录请求参数构造器
 	IUpdateAlarmSendRequestBuilder interface {
 		ToBo() *bo.UpdateAlarmSendParams
 	}
@@ -39,6 +40,7 @@ type (
 		ctx context.Context
 	}
 
+	// IListAlarmSendRequestBuilder 获取告警发送历史列表请求参数构造器
 	IListAlarmSendRequestBuilder interface {
 		ToBo() *bo.QueryAlarmSendHistoryListParams
 	}
@@ -48,6 +50,7 @@ type (
 		*alarmapi.ListAlarmSendRequest
 	}
 
+	// IDoAlarmSendItemBuilder 告警发送记录条目构造器
 	IDoAlarmSendItemBuilder interface {
 		ToAPI(history *alarmmodel.AlarmSendHistory, group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmSendItem
 		ToAPIs(histories []*alarmmodel.AlarmSendHistory) []*adminapi.AlarmSendItem

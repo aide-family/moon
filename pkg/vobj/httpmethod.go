@@ -4,65 +4,65 @@ import (
 	"strings"
 )
 
-// HttpMethod http 请求方法枚举
+// HTTPMethod http 请求方法枚举
 //
-//go:generate go run ../../cmd/server/stringer/cmd.go -type=HttpMethod -linecomment
-type HttpMethod int
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=HTTPMethod -linecomment
+type HTTPMethod int
 
 const (
-	// HttpMethodUnknown 未知
-	HttpMethodUnknown HttpMethod = iota // unknown
+	// HTTPMethodUnknown 未知
+	HTTPMethodUnknown HTTPMethod = iota // unknown
 
-	// HttpMethodGet GET 请求
-	HttpMethodGet // GET
+	// HTTPMethodGet GET 请求
+	HTTPMethodGet // GET
 
-	// HttpMethodPost POST 请求
-	HttpMethodPost // POST
+	// HTTPMethodPost POST 请求
+	HTTPMethodPost // POST
 
-	// HttpMethodPut PUT 请求
-	HttpMethodPut // PUT
+	// HTTPMethodPut PUT 请求
+	HTTPMethodPut // PUT
 
-	// HttpMethodDelete DELETE 请求
-	HttpMethodDelete // DELETE
+	// HTTPMethodDelete DELETE 请求
+	HTTPMethodDelete // DELETE
 
-	// HttpMethodHead HEAD 请求
-	HttpMethodHead // HEAD
+	// HTTPMethodHead HEAD 请求
+	HTTPMethodHead // HEAD
 
-	// HttpMethodOptions OPTIONS 请求
-	HttpMethodOptions // OPTIONS
+	// HTTPMethodOptions OPTIONS 请求
+	HTTPMethodOptions // OPTIONS
 
-	// HttpMethodTrace TRACE 请求
-	HttpMethodTrace // TRACE
+	// HTTPMethodTrace TRACE 请求
+	HTTPMethodTrace // TRACE
 
-	// HttpMethodConnect CONNECT 请求
-	HttpMethodConnect // CONNECT
+	// HTTPMethodConnect CONNECT 请求
+	HTTPMethodConnect // CONNECT
 
-	// HttpMethodPatch PATCH 请求
-	HttpMethodPatch // PATCH
+	// HTTPMethodPatch PATCH 请求
+	HTTPMethodPatch // PATCH
 )
 
 // ToHTTPMethod 将字符串转换为 HttpMethod 枚举
-func ToHTTPMethod(method string) HttpMethod {
+func ToHTTPMethod(method string) HTTPMethod {
 	switch strings.ToUpper(method) {
 	case "GET":
-		return HttpMethodGet
+		return HTTPMethodGet
 	case "POST":
-		return HttpMethodPost
+		return HTTPMethodPost
 	case "PUT":
-		return HttpMethodPut
+		return HTTPMethodPut
 	case "DELETE":
-		return HttpMethodDelete
+		return HTTPMethodDelete
 	case "HEAD":
-		return HttpMethodHead
+		return HTTPMethodHead
 	case "OPTIONS":
-		return HttpMethodOptions
+		return HTTPMethodOptions
 	case "TRACE":
-		return HttpMethodTrace
+		return HTTPMethodTrace
 	case "CONNECT":
-		return HttpMethodConnect
+		return HTTPMethodConnect
 	case "PATCH":
-		return HttpMethodPatch
+		return HTTPMethodPatch
 	default:
-		return HttpMethodUnknown
+		return HTTPMethodUnknown
 	}
 }

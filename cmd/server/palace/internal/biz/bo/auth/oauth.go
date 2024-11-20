@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// IOAuthUser OAuth用户接口
 type IOAuthUser interface {
 	fmt.Stringer
 	GetOAuthID() uint32
@@ -21,6 +22,7 @@ type IOAuthUser interface {
 	GetAPP() vobj.OAuthAPP
 }
 
+// OauthLoginParams OAuth登录参数
 type OauthLoginParams struct {
 	Code    string `json:"code"`
 	Email   string `json:"email"`
@@ -52,6 +54,7 @@ func (o *OauthLoginParams) GetTokenKey() string {
 	return fmt.Sprintf("oauth:%d:%s", o.OAuthID, o.Token)
 }
 
+// NewOAuthRowData 创建OAuth用户
 func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 	switch app {
 	case vobj.OAuthAPPGithub:
@@ -63,6 +66,6 @@ func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 		err := types.Unmarshal([]byte(row), &giteeUser)
 		return &giteeUser, err
 	default:
-		return nil, merr.ErrorI18nNotificationSystemError(nil)
+		return nil, merr.ErrorI18nNotificationSystemError(context.Background())
 	}
 }

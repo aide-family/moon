@@ -41,6 +41,7 @@ type (
 		Status vobj.Status `json:"status"`
 	}
 
+	// UpdateMqDatasourceStatusParams 更新 mq 数据源状态参数
 	UpdateMqDatasourceStatusParams struct {
 		ID     uint32      `json:"id"`
 		Status vobj.Status `json:"status"`

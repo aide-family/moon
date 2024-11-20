@@ -23,7 +23,7 @@ type (
 	}
 	// UploadResParams 上传文件返回参数
 	UploadResParams struct {
-		Url string `json:"url"`
+		URL string `json:"url"`
 	}
 
 	// DownLoadFileParams 下载文件参数

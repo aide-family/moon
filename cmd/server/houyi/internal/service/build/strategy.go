@@ -56,16 +56,19 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 	}
 }
 
+// DomainStrategyBuilder 域名策略构建器
 type DomainStrategyBuilder struct {
 	*api.DomainStrategyItem
 }
 
+// NewDomainStrategyBuilder 创建域名策略构建器
 func NewDomainStrategyBuilder(strategyInfo *api.DomainStrategyItem) *DomainStrategyBuilder {
 	return &DomainStrategyBuilder{
 		DomainStrategyItem: strategyInfo,
 	}
 }
 
+// ToBo 转换为业务对象
 func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	if types.IsNil(a) || types.IsNil(a.DomainStrategyItem) {
 		return nil
@@ -88,23 +91,26 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	}
 }
 
+// HTTPStrategyBuilder HTTP策略构建器
 type HTTPStrategyBuilder struct {
 	*api.HttpStrategyItem
 }
 
+// NewHTTPStrategyBuilder 创建HTTP策略构建器
 func NewHTTPStrategyBuilder(strategyInfo *api.HttpStrategyItem) *HTTPStrategyBuilder {
 	return &HTTPStrategyBuilder{
 		HttpStrategyItem: strategyInfo,
 	}
 }
 
+// ToBo 转换为业务对象
 func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyEndpoint {
 	if types.IsNil(a) || types.IsNil(a.HttpStrategyItem) {
 		return nil
 	}
 	return &bo.StrategyEndpoint{
 		Type:             vobj.StrategyType(a.GetStrategyType()),
-		Url:              a.GetUrl(),
+		URL:              a.GetUrl(),
 		Timeout:          a.GetTimeout(),
 		StatusCode:       a.GetStatusCodes(),
 		Headers:          a.GetHeaders(),
@@ -124,16 +130,19 @@ func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyEndpoint {
 	}
 }
 
+// PingStrategyBuilder Ping策略构建器
 type PingStrategyBuilder struct {
 	*api.PingStrategyItem
 }
 
+// NewPingStrategyBuilder 创建Ping策略构建器
 func NewPingStrategyBuilder(strategyInfo *api.PingStrategyItem) *PingStrategyBuilder {
 	return &PingStrategyBuilder{
 		PingStrategyItem: strategyInfo,
 	}
 }
 
+// ToBo 转换为业务对象
 func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 	if types.IsNil(a) || types.IsNil(a.PingStrategyItem) {
 		return nil

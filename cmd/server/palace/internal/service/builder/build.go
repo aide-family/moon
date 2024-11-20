@@ -14,47 +14,68 @@ type (
 		ctx context.Context
 	}
 
+	// IPramsBuilder 参数构造器
 	IPramsBuilder interface {
+		// PaginationModuleBuilder 分页模块构造器
 		PaginationModuleBuilder() IPaginationModuleBuilder
 
+		// AlarmNoticeGroupModuleBuilder 告警组模块构造器
 		AlarmNoticeGroupModuleBuilder() IAlarmNoticeGroupModuleBuilder
 
+		// UserModuleBuilder 用户模块构造器
 		UserModuleBuilder() IUserModuleBuilder
 
+		// TeamMemberModuleBuilder 团队成员模块构造器
 		TeamMemberModuleBuilder() ITeamMemberModuleBuilder
 
+		// DatasourceModuleBuilder 数据源模块构造器
 		DatasourceModuleBuilder() IDatasourceModuleBuilder
 
+		// MetricDataModuleBuilder 指标数据模块构造器
 		MetricDataModuleBuilder() IMetricDataModuleBuilder
 
+		// MetricModuleBuilder 指标模块构造器
 		MetricModuleBuilder() IMetricModuleBuilder
 
+		// DictModuleBuilder 字典模块构造器
 		DictModuleBuilder() IDictModuleBuilder
 
+		// HookModuleBuilder 钩子模块构造器
 		HookModuleBuilder() IHookModuleBuilder
 
 		MenuModuleBuilder() IMenuModuleBuilder
 
+		// RealtimeAlarmModuleBuilder 实时告警模块构造器
 		RealtimeAlarmModuleBuilder() IRealtimeAlarmModuleBuilder
 
+		// ResourceModuleBuilder 资源模块构造器
 		ResourceModuleBuilder() IResourceModuleBuilder
 
+		// StrategyModuleBuilder 策略模块构造器
 		StrategyModuleBuilder() IStrategyModuleBuilder
 
+		// SubscriberModuleBuilder 订阅者模块构造器
 		SubscriberModuleBuilder() ISubscriberModuleBuilder
 
+		// RoleModuleBuilder 角色模块构造器
 		RoleModuleBuilder() IRoleModuleBuilder
 
+		// TeamModuleBuilder 团队模块构造器
 		TeamModuleBuilder() ITeamModuleBuilder
 
+		// InviteModuleBuilder 邀请模块构造器
 		InviteModuleBuilder() InviteModuleBuilder
 
+		// AlarmHistoryModuleBuilder 告警历史模块构造器
 		AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder
 
+		// AlarmModuleBuilder 告警模块构造器
 		AlarmModuleBuilder() IAlarmModuleBuilder
 
+		// YamlModuleBuilder 文件模块构造器
 		YamlModuleBuilder() IFileModuleBuild
 
+		// AlarmSendModuleBuilder 告警发送模块构造器
 		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
 		MqDataSourceModuleBuild() IMqDataSourceModuleBuild
 	}
@@ -68,9 +89,11 @@ func (p *paramsBuilder) MqDataSourceModuleBuild() IMqDataSourceModuleBuild {
 func (p *paramsBuilder) AlarmSendModuleBuilder() IAlarmSendModuleBuilder {
 	return &alarmSendModuleBuilder{ctx: p.ctx}
 }
+
 func (p *paramsBuilder) YamlModuleBuilder() IFileModuleBuild {
 	return &fileModuleBuild{ctx: p.ctx}
 }
+
 func (p *paramsBuilder) AlarmModuleBuilder() IAlarmModuleBuilder {
 	return &alarmModuleBuilder{ctx: p.ctx}
 }
@@ -82,6 +105,7 @@ func (p *paramsBuilder) AlarmHistoryModuleBuilder() IAlarmHistoryModuleBuilder {
 func (p *paramsBuilder) InviteModuleBuilder() InviteModuleBuilder {
 	return &inviteModuleBuilder{ctx: p.ctx}
 }
+
 func (p *paramsBuilder) TeamModuleBuilder() ITeamModuleBuilder {
 	return &teamModuleBuilder{ctx: p.ctx}
 }

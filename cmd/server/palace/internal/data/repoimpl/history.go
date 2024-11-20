@@ -131,7 +131,7 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 			Fingerprint: alarmParam.Fingerprint,
 			Labels:      labels,
 			Annotations: annotations,
-			RawInfoID:   param.GetRawInfoId(alarmParam.Fingerprint),
+			RawInfoID:   param.GetRawInfoID(alarmParam.Fingerprint),
 		}
 	})
 	return historyList

@@ -10,8 +10,11 @@ import (
 var _ IPaginationModuleBuilder = (*paginationModuleBuilder)(nil)
 
 type (
+	// IPaginationModuleBuilder 分页模块构造器
 	IPaginationModuleBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo(*api.PaginationReq) types.Pagination
+		// ToAPI 转换为API对象
 		ToAPI(types.Pagination) *api.PaginationReply
 	}
 

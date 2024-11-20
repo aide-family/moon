@@ -26,8 +26,8 @@ type datasourceRepositoryImpl struct {
 	data *data.Data
 }
 
-// getTeamIdBizQuery 获取团队数据库
-func getTeamIdBizQuery(data *data.Data, teamID uint32) (*bizquery.Query, error) {
+// getTeamIDBizQuery 获取团队数据库
+func getTeamIDBizQuery(data *data.Data, teamID uint32) (*bizquery.Query, error) {
 	bizDB, err := data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
 		return nil, err
@@ -176,7 +176,7 @@ func (l *datasourceRepositoryImpl) DeleteDatasourceByID(ctx context.Context, id 
 }
 
 func (l *datasourceRepositoryImpl) GetTeamDatasource(ctx context.Context, teamID uint32, ids []uint32) ([]*bizmodel.Datasource, error) {
-	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
+	bizQuery, err := getTeamIDBizQuery(l.data, teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}

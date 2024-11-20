@@ -59,11 +59,13 @@ type StrategyPing struct {
 	StdDevDelay float64 `json:"stdDevDelay,omitempty"`
 }
 
+// String 将策略转换为字符串
 func (s *StrategyPing) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)
 }
 
+// Index 生成策略索引
 func (s *StrategyPing) Index() string {
 	if types.IsNil(s) {
 		return "houyi:strategy:0:ping"
@@ -71,10 +73,12 @@ func (s *StrategyPing) Index() string {
 	return fmt.Sprintf("houyi:strategy:%d:%d:%d:%s", s.TeamID, s.StrategyID, s.LevelID, types.MD5(s.Address))
 }
 
+// Message 生成策略消息
 func (s *StrategyPing) Message() *watch.Message {
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }
 
+// BuilderAlarmBaseInfo 生成告警基础信息
 func (s *StrategyPing) BuilderAlarmBaseInfo() *Alarm {
 	s.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(s.StrategyID), 10))
 	s.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
@@ -95,30 +99,37 @@ func (s *StrategyPing) BuilderAlarmBaseInfo() *Alarm {
 	}
 }
 
+// GetTeamID 获取团队ID
 func (s *StrategyPing) GetTeamID() uint32 {
 	return s.TeamID
 }
 
+// GetStatus 获取策略状态
 func (s *StrategyPing) GetStatus() vobj.Status {
 	return s.Status
 }
 
+// GetReceiverGroupIDs 获取接收者组ID列表
 func (s *StrategyPing) GetReceiverGroupIDs() []uint32 {
 	return s.ReceiverGroupIDs
 }
 
+// GetLabelNotices 获取自定义接收者匹配对象
 func (s *StrategyPing) GetLabelNotices() []*LabelNotices {
 	return make([]*LabelNotices, 0)
 }
 
+// GetAnnotations 获取策略注解
 func (s *StrategyPing) GetAnnotations() map[string]string {
 	return s.Annotations.Map()
 }
 
+// GetInterval 获取执行频率
 func (s *StrategyPing) GetInterval() *types.Duration {
 	return s.Interval
 }
 
+// Eval 评估策略
 func (s *StrategyPing) Eval(ctx context.Context) (map[watch.Indexer]*datasource.Point, error) {
 	if !s.Status.IsEnable() {
 		return nil, nil
@@ -126,7 +137,7 @@ func (s *StrategyPing) Eval(ctx context.Context) (map[watch.Indexer]*datasource.
 	return datasource.EndpointPing(ctx, s.Address, time.Duration(s.Timeout))
 }
 
-// IsCompletelyMeet checks if the ping metrics meet the strategy criteria
+// IsCompletelyMeet 是否完全满足策略条件
 func (s *StrategyPing) IsCompletelyMeet(values []*datasource.Value) (map[string]any, bool) {
 	const expectedMetricsCount = 7
 
@@ -147,9 +158,9 @@ func (s *StrategyPing) IsCompletelyMeet(values []*datasource.Value) (map[string]
 	}
 
 	// Prepare extended info
-	extJson := make(map[string]any, len(metrics))
+	extJSON := make(map[string]any, len(metrics))
 	for k, v := range metrics {
-		extJson[k] = v
+		extJSON[k] = v
 	}
 
 	// Define threshold checks
@@ -170,9 +181,9 @@ func (s *StrategyPing) IsCompletelyMeet(values []*datasource.Value) (map[string]
 	// Check each threshold
 	for _, check := range thresholds {
 		if check.comparison(check.configValue, check.metricValue) {
-			return extJson, true
+			return extJSON, true
 		}
 	}
 
-	return extJson, false
+	return extJSON, false
 }

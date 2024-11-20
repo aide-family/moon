@@ -20,6 +20,7 @@ type AlarmNoticeMember struct {
 	Member          *SysTeamMember        `gorm:"foreignKey:MemberID" json:"member"`
 }
 
+// GetMember 获取通知人
 func (c *AlarmNoticeMember) GetMember() *SysTeamMember {
 	if c == nil {
 		return nil
@@ -37,7 +38,7 @@ func (c *AlarmNoticeMember) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }
 
-// TableName AlarmNoticeMember's table name
+// TableName 表名
 func (*AlarmNoticeMember) TableName() string {
 	return tableNameAlarmNoticeMembers
 }

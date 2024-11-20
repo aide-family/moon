@@ -19,12 +19,17 @@ type (
 		ctx context.Context
 	}
 
+	// IResourceModuleBuilder 资源模块构造器
 	IResourceModuleBuilder interface {
+		// WithListResourceRequest 设置获取资源列表请求参数
 		WithListResourceRequest(*resourceapi.ListResourceRequest) IListResourceRequestBuilder
+		// DoResourceBuilder 资源条目构造器
 		DoResourceBuilder() IDoResourceBuilder
 	}
 
+	// IListResourceRequestBuilder 获取资源列表请求参数构造器
 	IListResourceRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryResourceListParams
 	}
 
@@ -33,10 +38,15 @@ type (
 		*resourceapi.ListResourceRequest
 	}
 
+	// IDoResourceBuilder 资源条目构造器
 	IDoResourceBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(imodel.IResource) *adminapi.ResourceItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]imodel.IResource) []*adminapi.ResourceItem
+		// ToSelect 转换为选择对象
 		ToSelect(imodel.IResource) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]imodel.IResource) []*adminapi.SelectItem
 	}
 

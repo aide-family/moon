@@ -18,7 +18,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// NewInviteRepository 创建邀请仓库
+// NewInviteRepository 创建团队邀请实现
 func NewInviteRepository(data *data.Data, cacheRepo repository.Cache) repository.TeamInvite {
 	return &InviteRepositoryImpl{
 		data:      data,
@@ -27,24 +27,28 @@ func NewInviteRepository(data *data.Data, cacheRepo repository.Cache) repository
 }
 
 type (
+	// InviteRepositoryImpl 团队邀请实现
 	InviteRepositoryImpl struct {
 		data      *data.Data
 		cacheRepo repository.Cache
 	}
 )
 
-func (i *InviteRepositoryImpl) DeleteInvite(ctx context.Context, inviteId uint32) error {
+// DeleteInvite 删除邀请
+func (i *InviteRepositoryImpl) DeleteInvite(ctx context.Context, inviteID uint32) error {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
-	_, err := mainQuery.SysTeamInvite.WithContext(ctx).Where(mainQuery.SysTeamInvite.ID.Eq(inviteId)).Delete()
+	_, err := mainQuery.SysTeamInvite.WithContext(ctx).Where(mainQuery.SysTeamInvite.ID.Eq(inviteID)).Delete()
 	return err
 }
 
-func (i *InviteRepositoryImpl) GetInviteDetail(ctx context.Context, inviteId uint32) (*model.SysTeamInvite, error) {
+// GetInviteDetail 获取邀请详情
+func (i *InviteRepositoryImpl) GetInviteDetail(ctx context.Context, inviteID uint32) (*model.SysTeamInvite, error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
-	return mainQuery.SysTeamInvite.WithContext(ctx).Where(mainQuery.SysTeamInvite.ID.Eq(inviteId)).First()
+	return mainQuery.SysTeamInvite.WithContext(ctx).Where(mainQuery.SysTeamInvite.ID.Eq(inviteID)).First()
 }
 
-func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error) {
+// GetInviteUserByUserIDAndType 获取邀请用户
+func (i *InviteRepositoryImpl) GetInviteUserByUserIDAndType(ctx context.Context, params *bo.InviteUserParams) (*model.SysTeamInvite, error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
 	var wheres []gen.Condition
 	wheres = append(wheres, mainQuery.SysTeamInvite.UserID.Eq(params.UserID))
@@ -52,6 +56,7 @@ func (i *InviteRepositoryImpl) GetInviteUserByUserIdAndType(ctx context.Context,
 	return mainQuery.SysTeamInvite.WithContext(ctx).Where(wheres...).First()
 }
 
+// InviteUser 邀请用户
 func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.InviteUserParams) (teamInvite *model.SysTeamInvite, err error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
 	teamInvite, err = mainQuery.SysTeamInvite.WithContext(ctx).
@@ -83,6 +88,7 @@ func (i *InviteRepositoryImpl) InviteUser(ctx context.Context, params *bo.Invite
 	return
 }
 
+// UpdateInviteStatus 更新邀请状态
 func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *bo.UpdateInviteStatusParams) error {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
 	if _, err := mainQuery.SysTeamInvite.WithContext(ctx).Where(mainQuery.SysTeamInvite.ID.Eq(params.InviteID)).Update(mainQuery.SysTeamInvite.InviteType, params.InviteType.GetValue()); err != nil {
@@ -104,6 +110,7 @@ func (i *InviteRepositoryImpl) UpdateInviteStatus(ctx context.Context, params *b
 	return nil
 }
 
+// UserInviteList 用户邀请列表
 func (i *InviteRepositoryImpl) UserInviteList(ctx context.Context, params *bo.QueryInviteListParams) ([]*model.SysTeamInvite, error) {
 	mainQuery := query.Use(i.data.GetMainDB(ctx))
 	var wheres []gen.Condition
@@ -118,8 +125,9 @@ func (i *InviteRepositoryImpl) UserInviteList(ctx context.Context, params *bo.Qu
 	return queryWrapper.Order(mainQuery.SysTeamInvite.ID.Desc()).Find()
 }
 
+// createTeamMemberInfo 创建团队成员信息
 func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite *model.SysTeamInvite) error {
-	bizQuery, err := getTeamIdBizQuery(i.data, invite.TeamID)
+	bizQuery, err := getTeamIDBizQuery(i.data, invite.TeamID)
 	if !types.IsNil(err) {
 		return err
 	}

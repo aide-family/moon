@@ -16,13 +16,18 @@ type (
 		ctx context.Context
 	}
 
+	// IFileModuleBuild 文件模块构造器
 	IFileModuleBuild interface {
+		// WithUpdateFileRequest 更新文件请求参数构造器
 		WithUpdateFileRequest(bytes []byte) IUploadFileRequest
 	}
 
+	// IUploadFileRequest 上传文件请求参数构造器
 	IUploadFileRequest interface {
-		ToJson() string
-		ToYaml() string
+		// ToJson 转换为JSON字符串
+		ToJSON() string
+		// ToYaml 转换为YAML字符串
+		ToYAML() string
 	}
 	updateFileRequest struct {
 		ctx   context.Context
@@ -30,7 +35,8 @@ type (
 	}
 )
 
-func (u *updateFileRequest) ToYaml() string {
+// ToYAML 转换为YAML字符串
+func (u *updateFileRequest) ToYAML() string {
 	var content map[string]interface{}
 	if types.IsNil(u) || types.IsNil(u.bytes) {
 		return ""
@@ -47,7 +53,8 @@ func (u *updateFileRequest) ToYaml() string {
 	return string(yamlData)
 }
 
-func (u *updateFileRequest) ToJson() string {
+// ToJSON 转换为JSON字符串
+func (u *updateFileRequest) ToJSON() string {
 	var content map[string]interface{}
 	if types.IsNil(u) || types.IsNil(u.bytes) {
 		return ""
@@ -65,6 +72,7 @@ func (u *updateFileRequest) ToJson() string {
 	return string(yamlData)
 }
 
+// WithUpdateFileRequest 更新文件请求参数构造器
 func (u *fileModuleBuild) WithUpdateFileRequest(bytes []byte) IUploadFileRequest {
 	return &updateFileRequest{
 		ctx:   u.ctx,

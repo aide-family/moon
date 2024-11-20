@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/backoff"
 )
 
+// NewRPCConn 创建RPC连接
 func NewRPCConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*grpc.ClientConn, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()
@@ -68,6 +69,7 @@ func NewRPCConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*
 	return grpcConn, nil
 }
 
+// NewHTTPConn 创建HTTP连接
 func NewHTTPConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*http.Client, error) {
 	timeout := microServerConf.GetTimeout().AsDuration()
 	endpoint := microServerConf.GetEndpoint()

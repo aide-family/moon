@@ -66,8 +66,10 @@ func NewDatasource(config *api.Datasource) Datasource {
 	return &datasource{config: config}
 }
 
+// EvalFunc 指标评估函数
 type EvalFunc func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error)
 
+// MetricEval 指标评估函数
 func MetricEval(items ...MetricDatasource) EvalFunc {
 	return func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
 		var wg sync.WaitGroup
@@ -99,6 +101,7 @@ func MetricEval(items ...MetricDatasource) EvalFunc {
 	}
 }
 
+// metricEval 指标评估
 func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, endAt int64) (map[watch.Indexer]*Point, error) {
 	queryRange, err := d.QueryRange(ctx, expr, startAt, endAt, d.Step())
 	if err != nil {

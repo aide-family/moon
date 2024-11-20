@@ -19,16 +19,25 @@ type (
 		ctx context.Context
 	}
 
+	// IDictModuleBuilder 字典模块构造器
 	IDictModuleBuilder interface {
+		// WithCreateDictRequest 创建字典请求参数构造器
 		WithCreateDictRequest(*dictapi.CreateDictRequest) ICreateDictRequestBuilder
+		// WithUpdateDictRequest 更新字典请求参数构造器
 		WithUpdateDictRequest(*dictapi.UpdateDictRequest) IUpdateDictRequestBuilder
+		// WithListDictRequest 获取字典列表请求参数构造器
 		WithListDictRequest(*dictapi.ListDictRequest) IListDictRequestBuilder
+		// WithUpdateDictStatusParams 更新字典状态请求参数构造器
 		WithUpdateDictStatusParams(*dictapi.BatchUpdateDictStatusRequest) IUpdateDictStatusParamsBuilder
+		// DoDictBuilder 字典条目构造器
 		DoDictBuilder() IDoDictBuilder
+		// DictTypeList 字典类型列表
 		DictTypeList() []*api.EnumItem
 	}
 
+	// ICreateDictRequestBuilder 创建字典请求参数构造器
 	ICreateDictRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateDictParams
 	}
 
@@ -37,7 +46,9 @@ type (
 		*dictapi.CreateDictRequest
 	}
 
+	// IUpdateDictRequestBuilder 更新字典请求参数构造器
 	IUpdateDictRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateDictParams
 	}
 
@@ -46,7 +57,9 @@ type (
 		*dictapi.UpdateDictRequest
 	}
 
+	// IListDictRequestBuilder 获取字典列表请求参数构造器
 	IListDictRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryDictListParams
 	}
 
@@ -55,7 +68,9 @@ type (
 		*dictapi.ListDictRequest
 	}
 
+	// IUpdateDictStatusParamsBuilder 更新字典状态请求参数构造器
 	IUpdateDictStatusParamsBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateDictStatusParams
 	}
 
@@ -64,10 +79,15 @@ type (
 		*dictapi.BatchUpdateDictStatusRequest
 	}
 
+	// IDoDictBuilder 字典条目构造器
 	IDoDictBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(imodel.IDict, ...map[uint32]*adminapi.UserItem) *adminapi.DictItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]imodel.IDict) []*adminapi.DictItem
+		// ToSelect 转换为选择对象
 		ToSelect(imodel.IDict) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]imodel.IDict) []*adminapi.SelectItem
 	}
 

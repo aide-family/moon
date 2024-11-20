@@ -20,15 +20,18 @@ func NewAlarmPageRepository(data *data.Data) repository.AlarmPage {
 	return &alarmPageRepositoryImpl{data: data}
 }
 
+// alarmPageRepositoryImpl 告警页面管理操作
 type alarmPageRepositoryImpl struct {
 	data *data.Data
 }
 
+// AlertLevelCount 告警等级统计
 type AlertLevelCount struct {
 	LevelID uint32 `gorm:"column:level_id"`
 	Count   int64  `gorm:"column:count"`
 }
 
+// GetAlertCounts 获取告警数量
 func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[uint32]int64 {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if err != nil {
@@ -89,6 +92,7 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 	return alertCounts
 }
 
+// ReplaceAlarmPages 替换告警页面
 func (a *alarmPageRepositoryImpl) ReplaceAlarmPages(ctx context.Context, userID uint32, alarmPageIDs []uint32) error {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if err != nil {
@@ -144,6 +148,7 @@ func (a *alarmPageRepositoryImpl) ReplaceAlarmPages(ctx context.Context, userID 
 	})
 }
 
+// ListAlarmPages 获取告警页面
 func (a *alarmPageRepositoryImpl) ListAlarmPages(ctx context.Context, userID uint32) ([]*bizmodel.AlarmPageSelf, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if err != nil {

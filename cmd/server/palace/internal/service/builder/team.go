@@ -20,21 +20,35 @@ type (
 		ctx context.Context
 	}
 
+	// ITeamModuleBuilder 团队模块条目构造器
 	ITeamModuleBuilder interface {
+		// WithCreateTeamRequest 设置创建团队请求
 		WithCreateTeamRequest(*teamapi.CreateTeamRequest) ICreateTeamRequestBuilder
+		// WithUpdateTeamRequest 设置更新团队请求
 		WithUpdateTeamRequest(*teamapi.UpdateTeamRequest) IUpdateTeamRequestBuilder
+		// WithListTeamRequest 设置获取团队列表请求
 		WithListTeamRequest(*teamapi.ListTeamRequest) IListTeamRequestBuilder
+		// WithRemoveTeamMemberRequest 设置移除团队成员请求
 		WithRemoveTeamMemberRequest(*teamapi.RemoveTeamMemberRequest) IRemoveTeamMemberRequestBuilder
+		// WithSetTeamAdminRequest 设置设置团队管理员请求
 		WithSetTeamAdminRequest(*teamapi.SetTeamAdminRequest) ISetTeamAdminRequestBuilder
+		// WithRemoveTeamAdminRequest 设置移除团队管理员请求
 		WithRemoveTeamAdminRequest(*teamapi.RemoveTeamAdminRequest) IRemoveTeamAdminRequestBuilder
+		// WithSetMemberRoleRequest 设置设置成员角色请求
 		WithSetMemberRoleRequest(*teamapi.SetMemberRoleRequest) ISetMemberRoleRequestBuilder
+		// WithListTeamMemberRequest 设置获取团队成员列表请求
 		WithListTeamMemberRequest(*teamapi.ListTeamMemberRequest) IListTeamMemberRequestBuilder
+		// WithTransferTeamLeaderRequest 设置转移团队领导请求
 		WithTransferTeamLeaderRequest(*teamapi.TransferTeamLeaderRequest) ITransferTeamLeaderRequestBuilder
+		// WithSetTeamMailConfigRequest 设置设置团队邮箱配置请求
 		WithSetTeamMailConfigRequest(*teamapi.SetTeamMailConfigRequest) ISetTeamMailConfigRequestBuilder
+		// DoTeamBuilder 获取团队条目构造器
 		DoTeamBuilder() IDoTeamBuilder
 	}
 
+	// ICreateTeamRequestBuilder 创建团队请求参数构造器
 	ICreateTeamRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.CreateTeamParams
 	}
 
@@ -43,7 +57,9 @@ type (
 		*teamapi.CreateTeamRequest
 	}
 
+	// IUpdateTeamRequestBuilder 更新团队请求参数构造器
 	IUpdateTeamRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.UpdateTeamParams
 	}
 
@@ -52,7 +68,9 @@ type (
 		*teamapi.UpdateTeamRequest
 	}
 
+	// IListTeamRequestBuilder 获取团队列表请求参数构造器
 	IListTeamRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.QueryTeamListParams
 	}
 
@@ -61,11 +79,15 @@ type (
 		*teamapi.ListTeamRequest
 	}
 
+	// IAddTeamMemberRequestBuilder 添加团队成员请求参数构造器
 	IAddTeamMemberRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.AddTeamMemberParams
 	}
 
+	// IRemoveTeamMemberRequestBuilder 移除团队成员请求参数构造器
 	IRemoveTeamMemberRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.RemoveTeamMemberParams
 	}
 
@@ -74,7 +96,9 @@ type (
 		*teamapi.RemoveTeamMemberRequest
 	}
 
+	// ISetTeamAdminRequestBuilder 设置团队管理员请求参数构造器
 	ISetTeamAdminRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.SetMemberAdminParams
 	}
 
@@ -83,7 +107,9 @@ type (
 		*teamapi.SetTeamAdminRequest
 	}
 
+	// IRemoveTeamAdminRequestBuilder 移除团队管理员请求参数构造器
 	IRemoveTeamAdminRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.SetMemberAdminParams
 	}
 
@@ -92,7 +118,9 @@ type (
 		*teamapi.RemoveTeamAdminRequest
 	}
 
+	// ISetMemberRoleRequestBuilder 设置成员角色请求参数构造器
 	ISetMemberRoleRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.SetMemberRoleParams
 	}
 
@@ -101,7 +129,9 @@ type (
 		*teamapi.SetMemberRoleRequest
 	}
 
+	// IListTeamMemberRequestBuilder 获取团队成员列表请求参数构造器
 	IListTeamMemberRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.ListTeamMemberParams
 	}
 
@@ -110,7 +140,9 @@ type (
 		*teamapi.ListTeamMemberRequest
 	}
 
+	// ITransferTeamLeaderRequestBuilder 转移团队领导请求参数构造器
 	ITransferTeamLeaderRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.TransferTeamLeaderParams
 	}
 
@@ -119,7 +151,9 @@ type (
 		*teamapi.TransferTeamLeaderRequest
 	}
 
+	// ISetTeamMailConfigRequestBuilder 设置团队邮箱配置请求参数构造器
 	ISetTeamMailConfigRequestBuilder interface {
+		// ToBo 转换为业务对象
 		ToBo() *bo.SetTeamMailConfigParams
 	}
 
@@ -128,10 +162,15 @@ type (
 		*teamapi.SetTeamMailConfigRequest
 	}
 
+	// IDoTeamBuilder 团队条目构造器
 	IDoTeamBuilder interface {
+		// ToAPI 转换为API对象
 		ToAPI(*model.SysTeam, ...map[uint32]*adminapi.UserItem) *adminapi.TeamItem
+		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysTeam) []*adminapi.TeamItem
+		// ToSelect 转换为选择对象
 		ToSelect(*model.SysTeam) *adminapi.SelectItem
+		// ToSelects 转换为选择对象列表
 		ToSelects([]*model.SysTeam) []*adminapi.SelectItem
 	}
 

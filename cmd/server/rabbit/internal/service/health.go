@@ -27,6 +27,7 @@ func (s *HealthService) Check(_ context.Context, _ *api.CheckRequest) (*api.Chec
 	return &api.CheckReply{Healthy: true, Version: env.Version()}, nil
 }
 
+// Heartbeat 心跳包
 func (s *HealthService) Heartbeat(ctx context.Context, in *api.HeartbeatRequest) error {
 	return s.heartbeatBiz.Heartbeat(ctx, in)
 }

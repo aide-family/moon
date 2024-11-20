@@ -16,7 +16,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("add known types failed: %v", err)
 	}
-	err = scheme.AddKnownTypeWithName("ExampleStruct2", &ExampleStruct2{}, KeyFunc)
+	err = scheme.AddKnownTypeWithName("ExampleStruct2", &ExampleStruct2{}, func(obj interface{}) (string, error) {
+		return obj.(*ExampleStruct2).Name, nil
+	})
 	if err != nil {
 		log.Fatalf("add known types failed: %v", err)
 	}
@@ -100,7 +102,7 @@ func main() {
 
 	informer, err := cacheEntry.GetInformer(ctx, &ExampleStruct1{})
 	if err != nil {
-		log.Fatalf("delete failed", err)
+		log.Fatalf("delete failed: %v", err)
 	}
 	err = informer.AddIndexers(cache.Indexers{
 		"name": func(obj interface{}) ([]string, error) {
@@ -108,35 +110,39 @@ func main() {
 		},
 	})
 	if err != nil {
-		log.Fatalf("add by indexer failed", err)
+		log.Fatalf("add by indexer failed: %v", err)
 	}
 	index, err := informer.GetIndexer().ByIndex("name", "1a")
 	if err != nil {
-		log.Fatalf("get 1a by index failed", err)
+		log.Fatalf("get 1a by index failed: %v", err)
 	}
 	log.Infof("get 1a by index: %v", index)
 
 	index, err = informer.GetIndexer().ByIndex("name", "1b")
 	if err != nil {
-		log.Fatalf("get 1b by index failed", err)
+		log.Fatalf("get 1b by index failed: %v", err)
 	}
 	for i := range index {
 		log.Infof("get 1b by index: %v", index[i])
 	}
 }
 
+// ExampleStruct1 示例结构体1
 type ExampleStruct1 struct {
 	Name string
 }
 
+// KeyFunc 示例结构体1的键函数
 func (e *ExampleStruct1) KeyFunc(obj interface{}) (string, error) {
 	return obj.(*ExampleStruct1).Name, nil
 }
 
+// ExampleStruct2 示例结构体2
 type ExampleStruct2 struct {
 	Name string
 }
 
-func KeyFunc(obj interface{}) (string, error) {
+// KeyFunc 示例结构体2的键函数
+func (e *ExampleStruct2) KeyFunc(obj interface{}) (string, error) {
 	return obj.(*ExampleStruct2).Name, nil
 }

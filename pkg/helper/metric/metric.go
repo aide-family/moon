@@ -13,10 +13,12 @@ type metric struct {
 	token string
 }
 
+// NewMetricHandler 创建指标处理对象
 func NewMetricHandler(token string) http.Handler {
 	return &metric{token: strings.TrimSpace(token)}
 }
 
+// ServeHTTP 处理HTTP请求
 func (m *metric) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	// 从URL中获取token
 	if m.validateToken(request) {
@@ -31,8 +33,5 @@ func (m *metric) validateToken(request *http.Request) bool {
 		return false
 	}
 	token := request.URL.Query().Get("token")
-	if token == m.token {
-		return true
-	}
-	return false
+	return token == m.token
 }

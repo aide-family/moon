@@ -25,6 +25,7 @@ type BaseModel struct {
 	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
 }
 
+// GetCreatedAt 获取创建时间
 func (u *BaseModel) GetCreatedAt() *types.Time {
 	if types.IsNil(u.CreatedAt) {
 		return &types.Time{}
@@ -32,6 +33,7 @@ func (u *BaseModel) GetCreatedAt() *types.Time {
 	return u.CreatedAt
 }
 
+// GetUpdatedAt 获取更新时间
 func (u *BaseModel) GetUpdatedAt() *types.Time {
 	if types.IsNil(u.UpdatedAt) {
 		return &types.Time{}
@@ -40,6 +42,7 @@ func (u *BaseModel) GetUpdatedAt() *types.Time {
 	return u.UpdatedAt
 }
 
+// GetDeletedAt 获取删除时间
 func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
 	if types.IsNil(u.DeletedAt) {
 		return 0
@@ -48,6 +51,7 @@ func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
 	return u.DeletedAt
 }
 
+// GetCreatorID 获取创建者ID
 func (u *BaseModel) GetCreatorID() uint32 {
 	if types.IsNil(u.CreatorID) {
 		return 0
@@ -64,6 +68,7 @@ type AllFieldModel struct {
 	BaseModel
 }
 
+// GetID 获取ID
 func (a *AllFieldModel) GetID() uint32 {
 	if types.IsNil(a.ID) {
 		return 0
@@ -81,6 +86,7 @@ type EasyModel struct {
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
 }
 
+// GetID 获取ID
 func (e *EasyModel) GetID() uint32 {
 	if types.IsNil(e.ID) {
 		return 0
@@ -89,6 +95,7 @@ func (e *EasyModel) GetID() uint32 {
 	return e.ID
 }
 
+// GetCreatedAt 获取创建时间
 func (e *EasyModel) GetCreatedAt() *types.Time {
 	if types.IsNil(e.CreatedAt) {
 		return &types.Time{}
@@ -97,6 +104,7 @@ func (e *EasyModel) GetCreatedAt() *types.Time {
 	return e.CreatedAt
 }
 
+// GetUpdatedAt 获取更新时间
 func (e *EasyModel) GetUpdatedAt() *types.Time {
 	if types.IsNil(e.UpdatedAt) {
 		return &types.Time{}
@@ -105,6 +113,7 @@ func (e *EasyModel) GetUpdatedAt() *types.Time {
 	return e.UpdatedAt
 }
 
+// GetDeletedAt 获取删除时间
 func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
 	if types.IsNil(e.DeletedAt) {
 		return 0
@@ -113,7 +122,7 @@ func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
 	return e.DeletedAt
 }
 
-// WithContext 获取上下文
+// WithContext 设置上下文
 func (u *BaseModel) WithContext(ctx context.Context) *BaseModel {
 	u.ctx = ctx
 	return u

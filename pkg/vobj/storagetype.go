@@ -17,9 +17,15 @@ const (
 )
 
 const (
-	StorageTypeMQUnknown StorageType = iota + 9
-	StorageTypeKafka                 // Kafka
-	StorageTypeRabbitMQ              // RabbitMQ
-	StorageTypeRocketMQ              // RocketMQ
-	StorageTypeMQTT                  // MQTT
+	// StorageTypeKafka Kafka
+	StorageTypeKafka StorageType = iota + 10 // Kafka
+
+	// StorageTypeRabbitMQ RabbitMQ
+	StorageTypeRabbitMQ // RabbitMQ
+
+	// StorageTypeRocketMQ RocketMQ
+	StorageTypeRocketMQ // RocketMQ
+
+	// StorageTypeMQTT MQTT
+	StorageTypeMQTT // MQTT
 )

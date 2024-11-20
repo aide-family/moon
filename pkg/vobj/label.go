@@ -32,10 +32,10 @@ const (
 	DomainExpiresOn = "__moon__domain_expires_on__"
 	// DomainPort 端口
 	DomainPort = "__moon__domain_port__"
-	// StrategyHttpMethod http方法
-	StrategyHttpMethod = "__moon__http_method__"
-	// StrategyHttpPath http路径
-	StrategyHttpPath = "__moon__http_path__"
+	// StrategyHTTPMethod http方法
+	StrategyHTTPMethod = "__moon__http_method__"
+	// StrategyHTTPPath http路径
+	StrategyHTTPPath = "__moon__http_path__"
 )
 
 var _ sql.Scanner = (*Labels)(nil)

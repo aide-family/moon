@@ -15,11 +15,12 @@ type Service struct {
 	alarmHistoryBiz *biz.AlarmHistoryBiz
 }
 
-// NewHistoryService new a history service.
+// NewHistoryService 创建告警历史操作服务
 func NewHistoryService(alarmHistoryBiz *biz.AlarmHistoryBiz) *Service {
 	return &Service{alarmHistoryBiz: alarmHistoryBiz}
 }
 
+// GetHistory 获取告警历史详情
 func (s *Service) GetHistory(ctx context.Context, req *historyapi.GetHistoryRequest) (*historyapi.GetHistoryReply, error) {
 	param := builder.NewParamsBuild(ctx).
 		AlarmHistoryModuleBuilder().
@@ -37,6 +38,8 @@ func (s *Service) GetHistory(ctx context.Context, req *historyapi.GetHistoryRequ
 			ToAPI(history),
 	}, nil
 }
+
+// ListHistory 获取告警历史列表
 func (s *Service) ListHistory(ctx context.Context, req *historyapi.ListHistoryRequest) (*historyapi.ListHistoryReply, error) {
 	param := builder.NewParamsBuild(ctx).
 		AlarmHistoryModuleBuilder().

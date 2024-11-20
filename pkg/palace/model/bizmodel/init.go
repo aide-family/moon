@@ -31,7 +31,7 @@ func Models() []any {
 		&StrategyLabelNotice{},
 		&StrategySubscriber{},
 		&StrategyDomain{},
-		&StrategyHttp{},
+		&StrategyHTTP{},
 		&StrategyPing{},
 		&MqDatasource{},
 	}

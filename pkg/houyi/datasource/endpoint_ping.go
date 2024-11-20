@@ -9,6 +9,7 @@ import (
 	"github.com/go-ping/ping"
 )
 
+// PingDetail ping探测器详情
 type PingDetail struct {
 	// 总包数
 	TotalPackets float64 `json:"totalPackets,omitempty"`

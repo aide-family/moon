@@ -38,6 +38,7 @@ func newHeartbeatServer(bc *houyiconf.Bootstrap, healthService *service.HealthSe
 	}
 }
 
+// HeartbeatServer 心跳服务
 type HeartbeatServer struct {
 	healthService *service.HealthService
 
@@ -48,6 +49,7 @@ type HeartbeatServer struct {
 	dependPalace bool
 }
 
+// Start 启动心跳服务
 func (h *HeartbeatServer) Start(ctx context.Context) error {
 	go func() {
 		defer after.RecoverX()
@@ -73,6 +75,7 @@ func (h *HeartbeatServer) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop 停止心跳服务
 func (h *HeartbeatServer) Stop(_ context.Context) error {
 	h.tick.Stop()
 	close(h.stopCh)

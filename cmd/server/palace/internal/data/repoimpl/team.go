@@ -38,7 +38,7 @@ type teamRepositoryImpl struct {
 }
 
 func (l *teamRepositoryImpl) MemberList(ctx context.Context, teamID uint32) ([]*bizmodel.SysTeamMember, error) {
-	bizQuery, err := getTeamIdBizQuery(l.data, teamID)
+	bizQuery, err := getTeamIDBizQuery(l.data, teamID)
 	if !types.IsNil(err) {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ type (
 		ctx context.Context
 	}
 
+	// IMqDataSourceModuleBuild mq 数据源模块构建器
 	IMqDataSourceModuleBuild interface {
 		DoDataSourceModuleBuild() IDoMqDataSourceBuild
 		WithCreateMqDatasourceRequest(*mqapi.CreateMqDatasourceRequest) ICreateMqCreateDatasourceRequestBuilder
@@ -27,6 +28,7 @@ type (
 		WithDatasourceSelectRequest(request *mqapi.GetMqDatasourceSelectRequest) IDatasourceSelectBuilder
 	}
 
+	// IDoMqDataSourceBuild mq 数据源构建器
 	IDoMqDataSourceBuild interface {
 		ToAPI(*bizmodel.MqDatasource, ...map[uint32]*adminapi.UserItem) *adminapi.MqDatasourceItem
 		ToAPIs([]*bizmodel.MqDatasource) []*adminapi.MqDatasourceItem
@@ -38,6 +40,7 @@ type (
 		ctx context.Context
 	}
 
+	// ICreateMqCreateDatasourceRequestBuilder 创建 mq 数据源请求构建器
 	ICreateMqCreateDatasourceRequestBuilder interface {
 		ToBo() *bo.CreateMqDatasourceParams
 	}
@@ -46,6 +49,8 @@ type (
 		ctx     context.Context
 		request *mqapi.CreateMqDatasourceRequest
 	}
+
+	// IUpdateMqDatasourceRequestBuilder 更新 mq 数据源请求构建器
 	IUpdateMqDatasourceRequestBuilder interface {
 		ToBo() *bo.UpdateMqDatasourceParams
 	}
@@ -55,17 +60,21 @@ type (
 		request *mqapi.UpdateMqDatasourceRequest
 	}
 
+	// IListMqDatasourceRequest 列表 mq 数据源请求构建器
 	IListMqDatasourceRequest interface {
 		ToBo() *bo.QueryMqDatasourceListParams
 	}
+
 	listMqDatasourceRequest struct {
 		ctx     context.Context
 		request *mqapi.ListMqDatasourceRequest
 	}
 
+	// IDatasourceSelectBuilder 数据源选择构建器
 	IDatasourceSelectBuilder interface {
 		ToBo() *bo.QueryMqDatasourceListParams
 	}
+
 	datasourceSelectBuilder struct {
 		ctx     context.Context
 		request *mqapi.GetMqDatasourceSelectRequest

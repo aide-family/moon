@@ -114,9 +114,8 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 func (s *StrategyWatch) addStrategy(strategyMsg bo.IStrategy) error {
 	if strategyMsg.GetStatus().IsEnable() {
 		return s.triggerEnableStrategy(strategyMsg)
-	} else {
-		return s.triggerDisableStrategy(strategyMsg)
 	}
+	return s.triggerDisableStrategy(strategyMsg)
 }
 
 // triggerDisableStrategy 触发策略关闭
