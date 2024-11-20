@@ -138,6 +138,9 @@ enum DatasourceType {
 
   // Log
   DatasourceTypeLog = 3;
+
+  // MQ
+  DatasourceTypeMQ= 4;
 }
 
 // 存储器类型 prometheus、victoriametrics等
@@ -150,6 +153,17 @@ enum StorageType {
 
   // VictoriaMetrics
   StorageTypeVictoriaMetrics = 2;
+
+  //...
+
+  // Kafka
+  StorageTypeKafka = 10;
+  // Rocketmq
+  StorageTypeRocketmq = 11;
+  // Rabbitmq
+  StorageTypeRabbitmq = 12;
+  // Mqtt
+  StorageTypeMQTT = 13;
 }
 
 // 指标类型

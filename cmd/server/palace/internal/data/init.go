@@ -1337,12 +1337,68 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	//实时监控获取服务列表
+	// 实时监控获取服务列表
 	{
 		Name:   "获取rabbit houyi 服务列表",
 		Path:   "/api.Server/GetServerList",
 		Remark: "获取rabbit houyi 服务列表 用于前台展示",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowNone,
+	},
+	// 创建mq数据源
+	{
+		Name:   "创建mq数据源",
+		Path:   "/api.admin.datasource.MqDatasource/CreateMqDatasource",
+		Remark: "创建mq数据源,用于创建kafka、rabbitMQ、MQTT等数据源",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 更新mq数据源
+	{
+		Name:   "更新mq数据源",
+		Path:   "/api.admin.datasource.MqDatasource/UpdateMqDatasource",
+		Remark: "更新mq数据源",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 删除mq数据源
+	{
+		Name:   "删除mq数据源",
+		Path:   "/api.admin.datasource.MqDatasource/DeleteMqDatasource",
+		Remark: "删除mq数据源",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取mq数据源
+	{
+		Name:   "获取mq数据源",
+		Path:   "/api.admin.datasource.MqDatasource/GetMqDatasource",
+		Remark: "获取mq数据源",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取mq数据源列表
+	{
+		Name:   "获取mq数据源列表",
+		Path:   "/api.admin.datasource.MqDatasource/ListMqDatasource",
+		Remark: "获取mq数据源列表分页",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 更新mq数据源状态
+	{
+		Name:   "更新mq数据源状态",
+		Path:   "/api.admin.datasource.MqDatasource/UpdateMqDatasourceStatus",
+		Remark: "更新mq数据源状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取mq数据源下拉列表
+	{
+		Name:   "获取mq数据源下拉列表",
+		Path:   "/api.admin.datasource.MqDatasource/GetMqDatasourceSelect",
+		Remark: "更新mq数据源状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
 	},
 }

@@ -5397,47 +5397,47 @@ func ErrorI18nParameterRelatedCreateParameterNotFound(ctx context.Context, args 
 	return err
 }
 
-const ErrorParameterRelatedIdMustNotBeEmptyID = "PARAMETER_RELATED__ID_MUST_NOT_BE_EMPTY"
+const ErrorParameterRelatedIdNotAllowedToBeZeroID = "PARAMETER_RELATED__ID_NOT_ALLOWED_TO_BE_ZERO"
 
-func IsParameterRelatedIdMustNotBeEmpty(err error) bool {
+func IsParameterRelatedIdNotAllowedToBeZero(err error) bool {
 	if err == nil {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == ErrorParameterRelatedIdMustNotBeEmptyID && e.Code == 431
+	return e.Reason == ErrorParameterRelatedIdNotAllowedToBeZeroID && e.Code == 431
 }
 
-func ErrorParameterRelatedIdMustNotBeEmpty(format string, args ...interface{}) *errors.Error {
-	return errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, fmt.Sprintf(format, args...))
+func ErrorParameterRelatedIdNotAllowedToBeZero(format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedIdNotAllowedToBeZeroID, fmt.Sprintf(format, args...))
 }
 
-func ErrorParameterRelatedIdMustNotBeEmptyWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
-	return errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, fmt.Sprintf(format, args...))
+func ErrorParameterRelatedIdNotAllowedToBeZeroWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(431, ErrorParameterRelatedIdNotAllowedToBeZeroID, fmt.Sprintf(format, args...))
 }
 
-var _ParameterRelatedIdMustNotBeEmptyMsg = &i18n.Message{
-	ID:    ErrorParameterRelatedIdMustNotBeEmptyID,
-	One:   "id不允许为空！",
-	Other: "id不允许为空！",
+var _ParameterRelatedIdNotAllowedToBeZeroMsg = &i18n.Message{
+	ID:    ErrorParameterRelatedIdNotAllowedToBeZeroID,
+	One:   "对应数据不存在！",
+	Other: "对应数据不存在！",
 }
 
-func ErrorI18nParameterRelatedIdMustNotBeEmpty(ctx context.Context, args ...interface{}) *errors.Error {
-	msg := "id不允许为空！"
+func ErrorI18nParameterRelatedIdNotAllowedToBeZero(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "对应数据不存在！"
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
-	err := errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, msg)
+	err := errors.New(431, ErrorParameterRelatedIdNotAllowedToBeZeroID, msg)
 	local, ok := FromContext(ctx)
 	if ok {
 		config := &i18n.LocalizeConfig{
-			MessageID:      ErrorParameterRelatedIdMustNotBeEmptyID,
-			DefaultMessage: _ParameterRelatedIdMustNotBeEmptyMsg,
+			MessageID:      ErrorParameterRelatedIdNotAllowedToBeZeroID,
+			DefaultMessage: _ParameterRelatedIdNotAllowedToBeZeroMsg,
 		}
 		localize, err1 := local.Localize(config)
 		if err1 != nil {
-			err = errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, msg).WithCause(err1)
+			err = errors.New(431, ErrorParameterRelatedIdNotAllowedToBeZeroID, msg).WithCause(err1)
 		} else {
-			err = errors.New(431, ErrorParameterRelatedIdMustNotBeEmptyID, localize)
+			err = errors.New(431, ErrorParameterRelatedIdNotAllowedToBeZeroID, localize)
 		}
 	}
 

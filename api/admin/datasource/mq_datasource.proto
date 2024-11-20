@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package api.admin.datasource;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "enum.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/./api/admin/datasource;datasource";
+option java_multiple_files = true;
+option java_package = "api.admin.datasource";
+
+service MqDatasource {
+  // 创建mq数据源
+  rpc CreateMqDatasource (CreateMqDatasourceRequest) returns (CreateMqDatasourceReply){
+    option (google.api.http) = {
+      post: "/v1/mqDatasource/create"
+      body: "*"
+    };
+  }
+  // 更新mq数据源
+  rpc UpdateMqDatasource (UpdateMqDatasourceRequest) returns (UpdateMqDatasourceReply){
+    option (google.api.http) = {
+      put: "/v1/mqDatasource/update/{id}"
+      body: "*"
+    };
+  }
+  // 删除mq数据源
+  rpc DeleteMqDatasource (DeleteMqDatasourceRequest) returns (DeleteMqDatasourceReply){
+    option (google.api.http) = {
+      delete: "/v1/mqDatasource/delete/{id}"
+    };
+  }
+  // 获取mq数据源
+  rpc GetMqDatasource (GetMqDatasourceRequest) returns (GetMqDatasourceReply){
+    option (google.api.http) = {
+      get: "/v1/mqDatasource/get/{id}"
+    };
+  }
+  // 获取mq数据源列表
+  rpc ListMqDatasource (ListMqDatasourceRequest) returns (ListMqDatasourceReply){
+    option (google.api.http) = {
+      post: "/v1/mqDatasource/list"
+      body: "*"
+    };
+  }
+
+  // 更新mq数据源状态
+  rpc UpdateMqDatasourceStatus (UpdateMqDatasourceStatusRequest) returns (UpdateMqDatasourceStatusReply){
+    option (google.api.http) = {
+      put: "/v1/mqDatasource/{id}/status"
+      body: "*"
+    };
+  }
+
+  // 获取mq数据源下拉列表
+  rpc GetMqDatasourceSelect(GetMqDatasourceSelectRequest) returns (GetMqDatasourceSelectReply){
+    option (google.api.http) = {
+      get: "/v1/mqDatasource/select"
+    };
+  }
+}
+
+message CreateMqDatasourceRequest {
+  // 数据源名称
+  string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源名称长度在 1 到 50 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 50'
+  }];
+  // 数据源类型
+  DatasourceType datasourceType = 2 [(buf.validate.field).required = true];
+  // 数据源地址
+  string endpoint = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "数据源地址长度在 1 到 255 个字符之间"
+    expression: 'this.size() >= 1 && this.size() <= 255'
+  }, (buf.validate.field).cel = {
+    message: "数据源地址必须是有效的 URI",
+    expression: "this.isUri()",
+  }];
+  // 状态
+  Status status = 4 [(buf.validate.field).required = true];
+  // 描述
+  string remark = 5 [(buf.validate.field).cel = {
+    message: "描述长度在255 个字符以内",
+    expression: 'this.size() <= 255'
+  }];
+  // 数据源配置
+  map<string, string> config = 6;
+  // 存储器类型
+  StorageType storageType = 7;
+}
+message CreateMqDatasourceReply {}
+
+message UpdateMqDatasourceRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+  CreateMqDatasourceRequest updateParam = 2 [(buf.validate.field).required = true];
+}
+message UpdateMqDatasourceReply {}
+
+message DeleteMqDatasourceRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+}
+message DeleteMqDatasourceReply {}
+
+message GetMqDatasourceRequest {
+  uint32 id = 1 [(buf.validate.field).required = true];
+}
+message GetMqDatasourceReply {
+  MqDatasourceItem detail = 1;
+}
+
+message ListMqDatasourceRequest {
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "模糊查询长度在 20 个字符以内",
+    expression: 'this.size() <= 20'
+  }];
+  // 状态
+  Status status = 3;
+  // 数据源类型
+  DatasourceType datasourceType = 4;
+  // 存储器类型
+  StorageType storageType = 5;
+}
+message ListMqDatasourceReply {
+  repeated MqDatasourceItem list = 1;
+  // 分页参数
+  PaginationReply pagination = 2;
+}
+
+message UpdateMqDatasourceStatusRequest{
+  uint32 id = 1 [(buf.validate.field).required = true];
+  Status status = 2 [(buf.validate.field).required = true];
+}
+message UpdateMqDatasourceStatusReply{}
+
+message GetMqDatasourceSelectRequest {
+  // 分页参数
+  PaginationReq pagination = 1 [(buf.validate.field).required = true];
+  // 模糊查询
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "模糊查询长度在 20 个字符以内",
+    expression: 'this.size() <= 20'
+  }];
+  // 状态
+  Status status = 3;
+  // 数据源类型
+  DatasourceType datasourceType = 4;
+  // 存储器类型
+  StorageType storageType = 5;
+}
+
+message GetMqDatasourceSelectReply {
+  // 数据
+  repeated SelectItem list = 1;
+  // 分页参数
+  PaginationReply pagination = 2;
+}

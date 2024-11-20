@@ -35,7 +35,7 @@ func (a *AlarmSendBiz) ListAlarmSendHistories(ctx context.Context, param *bo.Que
 // RetryAlarmSend 重试告警发送
 func (a *AlarmSendBiz) RetryAlarmSend(ctx context.Context, param *bo.RetryAlarmSendParams) error {
 	if types.IsNil(param.RequestID) {
-		return merr.ErrorI18nParameterRelatedIdMustNotBeEmpty(ctx)
+		return merr.ErrorI18nAlert(ctx)
 	}
 	return a.alarmSendRepository.RetryAlarmSend(ctx, param)
 }

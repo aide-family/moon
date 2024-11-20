@@ -33,5 +33,6 @@ func Models() []any {
 		&StrategyDomain{},
 		&StrategyHttp{},
 		&StrategyPing{},
+		&MqDatasource{},
 	}
 }

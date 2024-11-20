@@ -17,4 +17,6 @@ const (
 
 	// DatasourceTypeLog 日志
 	DatasourceTypeLog // 日志
+
+	DatasourceTypeMQ // MQ
 )
