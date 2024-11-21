@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
@@ -32,7 +33,7 @@ type AlertLevelCount struct {
 }
 
 // GetAlertCounts 获取告警数量
-func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[uint32]int64 {
+func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[int32]int64 {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if err != nil {
 		return nil
@@ -79,17 +80,53 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 		alertLevelCountsMap[alertLevelCount.LevelID] = alertLevelCount.Count
 	}
 
-	alertCounts := make(map[uint32]int64, len(alarmPageSelves))
+	alertCounts := make(map[int32]int64, len(alarmPageSelves))
 	for pageID, pageLevels := range pageLevelMap {
-		alertCounts[pageID] = 0
+		pgID := int32(pageID)
+		alertCounts[pgID] = 0
 		for _, pageLevel := range pageLevels {
 			if count, ok := alertLevelCountsMap[pageLevel]; ok {
-				alertCounts[pageID] += count
+				alertCounts[pgID] += count
 			}
 		}
 	}
+	alertCounts[-1] = a.countMyAlarm(ctx)
 
 	return alertCounts
+}
+
+// countMyAlarm 统计我的告警数量
+func (a *alarmPageRepositoryImpl) countMyAlarm(ctx context.Context) int64 {
+	bizQuery, err := getBizQuery(ctx, a.data)
+	if err != nil {
+		return 0
+	}
+
+	var alarmNoticeGroupIDs []uint32
+	if err = bizQuery.AlarmNoticeMember.WithContext(ctx).
+		Where(bizQuery.AlarmNoticeMember.MemberID.Eq(middleware.GetTeamMemberID(ctx))).
+		Select(bizQuery.AlarmNoticeMember.AlarmGroupID).Group(bizQuery.AlarmNoticeMember.AlarmGroupID).
+		Scan(&alarmNoticeGroupIDs); err != nil {
+		return 0
+	}
+	alarmQuery, err := getBizAlarmQuery(ctx, a.data)
+	if err != nil {
+		return 0
+	}
+	var realtimeAlarmIDs []uint32
+	if err = alarmQuery.WithContext(ctx).RealtimeAlarmReceiver.
+		Where(alarmQuery.RealtimeAlarmReceiver.AlarmNoticeGroupID.In(alarmNoticeGroupIDs...)).
+		Select(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID).Group(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID).
+		Scan(&realtimeAlarmIDs); err != nil {
+		return 0
+	}
+	count, err := alarmQuery.WithContext(ctx).RealtimeAlarm.
+		Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue())).
+		Where(alarmQuery.RealtimeAlarm.ID.In(realtimeAlarmIDs...)).Count()
+	if err != nil {
+		return 0
+	}
+	return count
 }
 
 // ReplaceAlarmPages 替换告警页面

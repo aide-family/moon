@@ -42,5 +42,5 @@ message ListAlarmPageReply {
 	// 告警页面
 	repeated DictItem list = 1;
 	// 告警数量 告警页面ID -> 告警数量
-	map<uint32, int64> alertCounts = 2;
+	map<int32, int64> alertCounts = 2;
 }

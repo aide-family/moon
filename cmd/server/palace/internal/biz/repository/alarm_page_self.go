@@ -15,5 +15,5 @@ type AlarmPage interface {
 	ListAlarmPages(ctx context.Context, userID uint32) ([]*bizmodel.AlarmPageSelf, error)
 
 	// GetAlertCounts 获取告警页面的告警数量
-	GetAlertCounts(ctx context.Context, pageIDs []uint32) map[uint32]int64
+	GetAlertCounts(ctx context.Context, pageIDs []uint32) map[int32]int64
 }

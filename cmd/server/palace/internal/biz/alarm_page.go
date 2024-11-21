@@ -30,6 +30,6 @@ func (b *AlarmPageBiz) ListAlarmPage(ctx context.Context, userID uint32) ([]*biz
 }
 
 // GetAlertCounts 获取告警数量
-func (b *AlarmPageBiz) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[uint32]int64 {
+func (b *AlarmPageBiz) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[int32]int64 {
 	return b.alarmPageRepository.GetAlertCounts(ctx, pageIDs)
 }
