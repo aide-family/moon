@@ -75,8 +75,8 @@ type (
 
 	// IDoLabelNoticeBuilder 告警组标签通知对象返回值构造器
 	IDoLabelNoticeBuilder interface {
-		ToAPI(*bizmodel.StrategyLabelNotice) *adminapi.LabelNoticeItem
-		ToAPIs([]*bizmodel.StrategyLabelNotice) []*adminapi.LabelNoticeItem
+		ToAPI(*bizmodel.StrategyMetricsLabelNotice) *adminapi.LabelNoticeItem
+		ToAPIs([]*bizmodel.StrategyMetricsLabelNotice) []*adminapi.LabelNoticeItem
 	}
 
 	doLabelNoticeBuilder struct {
@@ -154,7 +154,7 @@ func (a *alarmNoticeGroupModuleBuilder) APICreateStrategyLabelNoticeRequest() IC
 	return &createStrategyLabelNoticeRequestBuilder{ctx: a.ctx}
 }
 
-func (d *doLabelNoticeBuilder) ToAPI(notice *bizmodel.StrategyLabelNotice) *adminapi.LabelNoticeItem {
+func (d *doLabelNoticeBuilder) ToAPI(notice *bizmodel.StrategyMetricsLabelNotice) *adminapi.LabelNoticeItem {
 	if types.IsNil(notice) || types.IsNil(d) {
 		return nil
 	}
@@ -166,12 +166,12 @@ func (d *doLabelNoticeBuilder) ToAPI(notice *bizmodel.StrategyLabelNotice) *admi
 	}
 }
 
-func (d *doLabelNoticeBuilder) ToAPIs(notices []*bizmodel.StrategyLabelNotice) []*adminapi.LabelNoticeItem {
+func (d *doLabelNoticeBuilder) ToAPIs(notices []*bizmodel.StrategyMetricsLabelNotice) []*adminapi.LabelNoticeItem {
 	if types.IsNil(notices) || types.IsNil(d) {
 		return nil
 	}
 
-	return types.SliceTo(notices, func(notice *bizmodel.StrategyLabelNotice) *adminapi.LabelNoticeItem {
+	return types.SliceTo(notices, func(notice *bizmodel.StrategyMetricsLabelNotice) *adminapi.LabelNoticeItem {
 		return d.ToAPI(notice)
 	})
 }

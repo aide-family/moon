@@ -310,7 +310,7 @@ message DictItem{
   UserItem creator = 14;
 }
 
-message StrategyLevelItem {
+message StrategyMetricLevelItem {
   // 策略持续时间
   int64 duration = 3;
   // 持续次数
@@ -349,39 +349,40 @@ message StrategyItem {
   // 策略语句
   string expr = 2;
   // 根据策略等级配置的详细策略， key为策略等级ID
-  repeated StrategyLevelItem levels = 3;
+  repeated StrategyMetricLevelItem metricLevels = 3;
   // 策略标签
   map<string, string> labels = 6;
   // 策略注解
   map<string, string> annotations = 7;
   // 采样率
-  uint32 step = 8;
   // 数据源
-  repeated DatasourceItem datasource = 9;
+  repeated DatasourceItem datasource = 8;
   // 策略ID
-  uint32 id = 10;
+  uint32 id = 9;
   // 策略状态
-  Status status = 11;
+  Status status = 10;
   // 创建时间
-  string createdAt = 12;
+  string createdAt = 11;
   // 更新时间
-  string updatedAt = 13;
+  string updatedAt = 12;
   // 策略说明信息
-  string remark = 14;
+  string remark = 13;
   // 所属策略组
-  uint32 groupId = 15;
+  uint32 groupId = 14;
   // 策略组信息
-  StrategyGroupItem group = 16;
+  StrategyGroupItem group = 15;
   // 模板id
-  uint32 templateId = 20;
+  uint32 templateId = 16;
   // 模板来源
-  TemplateSourceType templateSource = 23;
+  TemplateSourceType templateSource = 17;
   // 策略类型
-  repeated DictItem categories = 24;
+  repeated DictItem categories = 18;
   // 告警分组
-  repeated AlarmNoticeGroupItem alarmNoticeGroups = 25;
+  repeated AlarmNoticeGroupItem alarmNoticeGroups = 19;
   // 创建人
-  UserItem creator = 17;
+  UserItem creator = 20;
+  // MQ等级
+  repeated StrategyMQLevelItem mqLevels = 21;
 }
 
 message StrategyGroupItem {
@@ -528,8 +529,8 @@ message RealtimeAlarmItem {
   string endsAt = 3;
   // 告警状态
   AlertStatus status = 4;
-  // 告警级别
-  StrategyLevelItem level = 5;
+  // Metric告警级别
+  StrategyMetricLevelItem metricLevel = 5;
   // 告警策略
   StrategyItem  strategy = 6;
   // 告警摘要
@@ -633,8 +634,8 @@ message AlarmHistoryItem{
   string  endsAt = 3;
   // 告警状态
   AlertStatus alertStatus = 4;
-  // 告警级别
-  StrategyLevelItem level = 5;
+  // Metric告警级别
+  StrategyMetricLevelItem metricLevel = 5;
   // 告警策略
   StrategyItem strategy = 7;
   // 告警详情
@@ -655,6 +656,8 @@ message AlarmHistoryItem{
   string summary = 15;
   // 持续时间
   string duration = 16;
+  // MQ告警级别
+  StrategyMQLevelItem mqLevel = 17;
 }
 
 message NoticeUserMessage {
@@ -721,5 +724,27 @@ message MqDatasourceItem{
   StorageType storageType = 11;
 }
 
+
+message StrategyMQLevelItem{
+  uint32 id = 1;
+  // 值
+  string value = 2;
+  // 条件
+  MQCondition condition = 3;
+  // 数据类型
+  MQDataType dataType = 4;
+  // 告警等级ID
+  uint32 AlarmLevelId = 5;
+  // 告警等级明细
+  SelectItem AlarmLevel = 6;
+  // 告警页面
+  repeated SelectItem alarmPages = 7;
+  // 所属策略
+  uint32 strategyId = 8;
+  // 告警分组
+  repeated AlarmNoticeGroupItem alarmGroups = 9;
+  // 创建人
+  UserItem creator = 10;
+}
 
 

@@ -22,9 +22,10 @@ import (
 )
 
 // NewStrategyGroupRepository 创建策略分组仓库
-func NewStrategyGroupRepository(data *data.Data) repository.StrategyGroup {
+func NewStrategyGroupRepository(data *data.Data, strategyRepo repository.Strategy) repository.StrategyGroup {
 	return &strategyGroupRepositoryImpl{
-		data: data,
+		data:         data,
+		strategyRepo: strategyRepo,
 	}
 }
 
@@ -37,7 +38,8 @@ func NewStrategyCountRepository(data *data.Data) repository.StrategyCountRepo {
 
 type (
 	strategyGroupRepositoryImpl struct {
-		data *data.Data
+		data         *data.Data
+		strategyRepo repository.Strategy
 	}
 
 	strategyCountRepositoryImpl struct {
@@ -59,10 +61,33 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 		if !types.IsNil(err) {
 			continue
 		}
+
+		strategyIds := types.To(strategies, func(strategy *bizmodel.Strategy) uint32 {
+			return strategy.ID
+		})
+		metricLevels, err := s.strategyRepo.GetStrategyMetricLevels(ctx, strategyIds)
+		if err != nil {
+			return
+		}
+
+		strategyMQLevels, err := s.strategyRepo.GetStrategyMQLevels(ctx, strategyIds)
+		if err != nil {
+			return
+		}
+
+		metricsLevelMap := types.ToMapSlice(metricLevels, func(level *bizmodel.StrategyMetricsLevel) uint32 {
+			return level.StrategyID
+		})
+
+		mqLevelMap := types.ToMapSlice(strategyMQLevels, func(level *bizmodel.StrategyMQLevel) uint32 {
+			return level.StrategyID
+		})
+
+		strategyDetailMap := &bo.StrategyLevelDetailModel{MetricsLevelMap: metricsLevelMap, MQLevelMap: mqLevelMap}
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyDetailMap).ToBos(strategy)
 				if len(items) == 0 {
 					continue
 				}

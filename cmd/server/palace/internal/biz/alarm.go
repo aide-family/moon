@@ -85,7 +85,7 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 	}
 
 	// 查询策略等级 TODO 增加缓存 2h
-	level, err := b.strategyRepository.GetTeamStrategyLevel(ctx, &bo.GetTeamStrategyLevelParams{TeamID: params.TeamID, LevelID: params.LevelID})
+	level, err := b.strategyRepository.GetTeamStrategyLevelByLevelID(ctx, &bo.GetTeamStrategyLevelParams{TeamID: params.TeamID, LevelID: params.LevelID, StrategyType: strategy.StrategyType})
 	if !types.IsNil(err) {
 		return err
 	}

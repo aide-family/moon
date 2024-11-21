@@ -76,8 +76,6 @@ type (
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态
 		Status vobj.Status `json:"status,omitempty"`
-		// 策略采样率
-		Step uint32 `json:"step,omitempty"`
 		// 判断条件
 		Condition vobj.Condition `json:"condition,omitempty"`
 		// 阈值

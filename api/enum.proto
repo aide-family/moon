@@ -140,7 +140,7 @@ enum DatasourceType {
   DatasourceTypeLog = 3;
 
   // MQ
-  DatasourceTypeMQ= 4;
+  DatasourceTypeMQ = 4;
 }
 
 // 存储器类型 prometheus、victoriametrics等
@@ -271,6 +271,53 @@ enum Condition {
   ConditionLTE = 6;
 }
 
+// MQ判断条件
+enum  MQCondition {
+  // 未知
+  MQConditionUnknown = 0;
+  // 等于
+  MQConditionEQ = 1;
+
+  // 不等于
+  MQConditionNE = 2;
+
+  // 大于等于
+  MQConditionGTE = 4;
+
+  // 小于
+  MQConditionLT = 5;
+
+  // 小于等于
+  MQConditionLTE = 6;
+
+  // 包含
+  MQConditionContain = 7;
+
+  // 前缀
+  MQConditionPrefix = 8;
+
+  // 后缀
+  MQConditionSuffix = 9;
+
+  // 正则
+  MQConditionRegular = 10;
+}
+
+
+enum MQDataType{
+  // 未知
+  MQDataTypeUnknown = 0;
+
+  // string
+  MQDataTypeString = 1;
+
+  // number
+  MQDataTypeNumber = 2;
+
+  // object
+  MQDataTypeObject = 3;
+}
+
 
 // 模板来源类型
 enum TemplateSourceType {
@@ -362,5 +409,24 @@ enum AlarmSendType{
   Alarm_Send_Type_FeiShu = 4;
   Alarm_Send_Type_Wechat = 5;
 }
+
+enum StrategyType{
+  // 未知
+  StrategyTypeUnknown = 0;
+  // Metric
+  StrategyTypeMetric = 1;
+  // DomainCertificate
+  StrategyTypeDomainCertificate = 2;
+  // DomainPort
+  StrategyTypeDomainPort = 3;
+  // Ping
+  StrategyTypePing = 4;
+  // HTTP
+  StrategyTypeHTTP = 5;
+  // MQ
+  StrategyTypeMQ = 6;
+}
+
+
 
 

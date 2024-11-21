@@ -49,7 +49,6 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
 		Status:    vobj.Status(strategyInfo.GetStatus()),
-		Step:      strategyInfo.GetStep(),
 		Condition: vobj.Condition(strategyInfo.GetCondition()),
 		Threshold: strategyInfo.GetThreshold(),
 		TeamID:    strategyInfo.GetTeamID(),

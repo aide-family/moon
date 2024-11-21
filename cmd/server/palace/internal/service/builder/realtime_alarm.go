@@ -590,7 +590,7 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 		StartsAt:    alarm.StartsAt,
 		EndsAt:      alarm.EndsAt,
 		Status:      api.AlertStatus(alarm.Status),
-		Level:       nil,
+		MetricLevel: nil,
 		Strategy:    nil,
 		Summary:     alarm.Summary,
 		Description: alarm.Description,
@@ -611,9 +611,9 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
 		resItem.Strategy = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
-		level := &bizmodel.StrategyLevel{}
+		level := &bizmodel.StrategyMetricsLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.Level = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.MetricLevel = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
 	}
 	return resItem
 }

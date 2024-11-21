@@ -72,7 +72,7 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		StartsAt:    history.StartsAt,
 		EndsAt:      history.EndsAt,
 		AlertStatus: api.AlertStatus(history.AlertStatus),
-		Level:       nil,
+		MetricLevel: nil,
 		Strategy:    nil,
 		Description: history.Description,
 		Expr:        history.Expr,
@@ -95,9 +95,9 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
 		resItem.Strategy = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
-		level := &bizmodel.StrategyLevel{}
+		level := &bizmodel.StrategyMetricsLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.Level = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.MetricLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
 	}
 
 	return resItem

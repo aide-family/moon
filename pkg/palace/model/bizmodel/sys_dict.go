@@ -30,7 +30,7 @@ type SysDict struct {
 	Remark       string        `gorm:"column:remark;type:varchar(500);not null;comment:字典备注"`
 	//DeletedAt    soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;uniqueIndex:idx__p__del__dict,priority:3;index:idx__p__name__dict,priority:2;index:idx__dict,priority:1;default:0;" json:"deleted_at"`
 
-	StrategyLevels []*StrategyLevel `gorm:"many2many:strategy_level_alarm_pages" json:"strategy_levels"`
+	StrategyMetricsLevel []*StrategyMetricsLevel `gorm:"many2many:strategy_metrics_level_alarm_pages" json:"strategy_levels"`
 }
 
 // GetDeletedAt get deleted at

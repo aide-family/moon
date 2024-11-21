@@ -5,10 +5,10 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-const tableNameStrategyLabelNotices = "strategy_label_notices"
+const tableNameStrategyMetricsLabelNotices = "strategy_metrics_label_notices"
 
-// StrategyLabelNotice 策略labels表
-type StrategyLabelNotice struct {
+// StrategyMetricsLabelNotice 策略labels表
+type StrategyMetricsLabelNotice struct {
 	model.AllFieldModel
 	// label key
 	Name string `gorm:"column:name;type:varchar(255);not null;comment:label名称;uniqueIndex:idx__level_id__name" json:"name"`
@@ -17,20 +17,20 @@ type StrategyLabelNotice struct {
 	// 策略等级ID
 	LevelID uint32 `gorm:"column:level_id;type:int unsigned;not null;comment:策略等级ID;uniqueIndex:idx__level_id__name" json:"level_id"`
 	// labels告警组
-	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategies_labels_alarm_groups;" json:"alarm_groups"`
+	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_metrics_labels_alarm_groups;" json:"alarm_groups"`
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategyLabelNotice) UnmarshalBinary(data []byte) error {
+func (c *StrategyMetricsLabelNotice) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategyLabelNotice) MarshalBinary() (data []byte, err error) {
+func (c *StrategyMetricsLabelNotice) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }
 
 // TableName StrategyLabelNotice 's table name
-func (*StrategyLabelNotice) TableName() string {
-	return tableNameStrategyLabelNotices
+func (*StrategyMetricsLabelNotice) TableName() string {
+	return tableNameStrategyMetricsLabelNotices
 }
