@@ -41,7 +41,10 @@ func NewAliYunLog(c AliyunLogConfig) Logger {
 		CredentialsProvider: providerAdapter,
 		Endpoint:            opts.GetEndpoint(),
 	}
-	producerInst := producer.InitProducer(config)
+	producerInst, err := producer.NewProducer(config)
+	if err != nil {
+		panic(err)
+	}
 
 	return &aliyunLog{
 		opts:     opts,

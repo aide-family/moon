@@ -1,8 +1,8 @@
 package rbac
 
 import (
+	// 导入 embed 来加载内置配置
 	_ "embed"
-
 	"sync"
 
 	"github.com/casbin/casbin/v2"

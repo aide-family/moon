@@ -1,9 +1,10 @@
 run:
   go: '1.22.0'
   tests: false
-  skip-dirs:
-    - api
-    - third_party
+issues:
+  exclude-dirs:
+    - "third_party"
+    - "api"
 linters:
   #  disable-all: true  # 关闭其他linter
   enable: #下面注释的部分是因为golang1.20和 golangci-lint 有兼容问题
@@ -16,7 +17,8 @@ linters:
     - errchkjson
     - errorlint
 #    - exhaustive
-    - exportloopref
+#    - exportloopref
+    - copyloopvar
 #    - gosec
     - govet
     - loggercheck

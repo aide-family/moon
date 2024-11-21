@@ -1,9 +1,9 @@
 package authorization
 
 import (
-	_ "embed"
-
 	"context"
+	// 导入 embed 来加载内置配置
+	_ "embed"
 	nhttp "net/http"
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"

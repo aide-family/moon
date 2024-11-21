@@ -1,9 +1,9 @@
 package repoimpl
 
 import (
-	_ "embed"
-
 	"context"
+	// 导入 embed 来加载内置配置
+	_ "embed"
 	"fmt"
 	"strings"
 	"time"
