@@ -1,4 +1,4 @@
-package httpres
+package response
 
 import (
 	"encoding/json"

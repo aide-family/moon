@@ -1,4 +1,4 @@
-FROM golang:1.22.0
+FROM golang:1.23.0
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138 \
     && echo "deb https://deb.debian.org/debian bookworm main" > /etc/apt/sources.list \

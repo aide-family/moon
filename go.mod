@@ -1,6 +1,6 @@
 module github.com/aide-family/moon
 
-go 1.22.0
+go 1.23
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.2-20240920164238-5a7b106cbb87.1
@@ -30,7 +30,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.58
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.59
 	go.etcd.io/etcd/client/v3 v3.5.17
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.32.0
@@ -53,7 +53,7 @@ require (
 	gorm.io/gorm v1.25.12
 	gorm.io/plugin/dbresolver v1.5.3
 	gorm.io/plugin/soft_delete v1.2.1
-	k8s.io/client-go v0.31.2
+	k8s.io/client-go v0.31.3
 )
 
 require (
@@ -151,7 +151,7 @@ require (
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
-	golang.org/x/image v0.18.0 // indirect
+	golang.org/x/image v0.13.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
@@ -167,7 +167,7 @@ require (
 	gorm.io/driver/postgres v1.5.9 // indirect
 	gorm.io/driver/sqlserver v1.5.3 // indirect
 	gorm.io/hints v1.1.0 // indirect
-	k8s.io/apimachinery v0.31.2 // indirect
+	k8s.io/apimachinery v0.31.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8 // indirect
 	modernc.org/libc v1.22.2 // indirect

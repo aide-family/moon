@@ -46,7 +46,7 @@ func (s *Service) UploadFile(ctx http.Context) error {
 	if err != nil {
 		return err
 	}
-	httpres.Success(ctx, "success", &bo.UploadResParams{URL: url})
+	response.Success(ctx, "success", &bo.UploadResParams{URL: url})
 	return nil
 }
 
