@@ -33,6 +33,7 @@ func New(limit, multiple int) *GoRoutine {
 }
 
 type (
+	// GoRoutine 协程池
 	GoRoutine struct {
 		lock sync.Mutex
 		stop int32
@@ -43,6 +44,7 @@ type (
 	}
 )
 
+// Go 协程池执行任务
 func (g *GoRoutine) Go(f func()) {
 	if g.isStop() {
 		return
@@ -58,6 +60,7 @@ func (g *GoRoutine) isStop() bool {
 	return atomic.LoadInt32(&g.stop) == 1
 }
 
+// Start 启动协程池
 func (g *GoRoutine) Start(_ context.Context) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
@@ -81,6 +84,7 @@ func (g *GoRoutine) Start(_ context.Context) error {
 	return nil
 }
 
+// Stop 停止协程池
 func (g *GoRoutine) Stop(_ context.Context) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()

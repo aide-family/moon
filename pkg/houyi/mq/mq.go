@@ -1,5 +1,6 @@
 package mq
 
+// IMQ mq接口
 type IMQ interface {
 	// Send 发送消息
 	Send(topic string, data []byte) error
@@ -28,6 +29,7 @@ type (
 		q map[string]chan *Msg
 	}
 
+	// Msg 消息结构
 	Msg struct {
 		Data  []byte
 		Topic []byte
