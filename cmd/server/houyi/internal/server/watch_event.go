@@ -43,6 +43,13 @@ type (
 )
 
 func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
+	if mqCli, ok := m.mqMap.Get(c.Index()); ok {
+		if !c.Status.IsEnable() {
+			mqCli.Close()
+			m.mqMap.Delete(c.Index())
+		}
+		return mqCli, nil
+	}
 	mqCli, err := event.NewEvent(c.GetMQConfig())
 	if err != nil {
 		log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
