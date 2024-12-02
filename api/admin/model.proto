@@ -724,7 +724,6 @@ message MqDatasourceItem{
   StorageType storageType = 11;
 }
 
-
 message StrategyMQLevelItem{
   uint32 id = 1;
   // 值
