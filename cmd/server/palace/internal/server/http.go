@@ -19,6 +19,7 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service) *http.Server {
+	middleware.SetJwtConfig(bc.GetJwt())
 	httpConf := bc.GetHttp()
 	allowAPIList := bc.GetJwt().GetAllowList()
 	// 验证是否登录
