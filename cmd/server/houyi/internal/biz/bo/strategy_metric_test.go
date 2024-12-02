@@ -35,7 +35,6 @@ func TestStrategyMetric_Eval(t *testing.T) {
 			ID:          1,
 		}},
 		Status:    vobj.StatusEnable,
-		Step:      10,
 		Condition: vobj.ConditionGT,
 		Threshold: 10,
 		TeamID:    1,

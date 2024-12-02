@@ -103,6 +103,10 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 		Preload(field.Associations).
 		Preload(bizQuery.Strategy.AlarmNoticeGroups).
 		Find()
+	if !types.IsNil(err) {
+		log.Errorw("method", "syncStrategiesByIds", "err", err)
+		return
+	}
 
 	metricLevels, err := s.GetStrategyMetricLevels(ctx, strategyIds)
 	if err != nil {
@@ -124,10 +128,6 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 
 	strategyDetailMap := &bo.StrategyLevelDetailModel{MetricsLevelMap: metricsLevelMap, MQLevelMap: mqLevelMap}
 
-	if !types.IsNil(err) {
-		log.Errorw("method", "syncStrategiesByIds", "err", err)
-		return
-	}
 	go func() {
 		defer after.RecoverX()
 		for _, strategy := range strategies {
@@ -408,11 +408,8 @@ func (s *strategyRepositoryImpl) getAlarmGroupIds(params *bo.CreateStrategyParam
 				alarmGroupIds = append(alarmGroupIds, notice.AlarmGroupIds...)
 			}
 		}
-		break
 	case vobj.StrategyTypeMQ:
-		return nil
 	default:
-		return nil
 	}
 	return alarmGroupIds
 }
