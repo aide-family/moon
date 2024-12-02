@@ -58,11 +58,9 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 			}
 			switch param.Strategy.StrategyType {
 			case vobj.StrategyTypeMetric:
-				detail.Level = param.Level.MQLevel.String()
-				break
+				detail.Level = param.Level.MetricsLevel.String()
 			case vobj.StrategyTypeMQ:
 				detail.Level = param.Level.MQLevel.String()
-				break
 			default:
 				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
 			}
