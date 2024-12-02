@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/tidwall/gjson"
 )
 
 // MQCondition MQ条件判断
@@ -49,10 +50,12 @@ const (
 )
 
 // Judge 判断是否符合条件
-func (c MQCondition) Judge(data []byte, dataType MQDataType, threshold string) bool {
+func (c MQCondition) Judge(data []byte, dataType MQDataType, key, threshold string) bool {
 	switch dataType {
 	case MQDataTypeNumber:
 		return c.numberJudge(data, threshold)
+	case MQDataTypeObject:
+		return c.objectJudge(data, key, threshold)
 	default:
 		return c.stringJudge(string(data), threshold)
 	}
@@ -123,7 +126,11 @@ func (c MQCondition) numberJudge(data []byte, threshold string) bool {
 }
 
 // objectJudge 对象数据判断
-func (c MQCondition) objectJudge(data []byte, threshold string) bool {
-	// TODO 待实现
-	return false
+func (c MQCondition) objectJudge(data []byte, key, threshold string) bool {
+	result := gjson.GetBytes(data, key)
+	if !result.Exists() {
+		log.Warnw("method", "objectJudge", "action", "key not found in json data", "key", key)
+		return false
+	}
+	return c.stringJudge(result.String(), threshold)
 }

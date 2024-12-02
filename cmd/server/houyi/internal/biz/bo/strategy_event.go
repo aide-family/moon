@@ -52,6 +52,8 @@ type StrategyEvent struct {
 	Condition vobj.MQCondition `json:"condition,omitempty"`
 	// 数据类型
 	DataType vobj.MQDataType `json:"dataType,omitempty"`
+	// 数据 Key
+	DataKey string `json:"dataKey,omitempty"`
 	// 数据源
 	Datasource []*MQDatasource `json:"datasource,omitempty"`
 	// 策略状态
@@ -196,7 +198,7 @@ func (s *StrategyEvent) Eval(_ context.Context) (map[watch.Indexer]*datasource.P
 }
 
 func (s *StrategyEvent) isCompletelyMeet() float64 {
-	has := s.Condition.Judge(s.msg.Data, s.DataType, s.Threshold)
+	has := s.Condition.Judge(s.msg.Data, s.DataType, s.DataKey, s.Threshold)
 	if has {
 		return 1
 	}
