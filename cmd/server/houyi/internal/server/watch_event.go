@@ -61,6 +61,7 @@ func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
 
 func (m *eventStrategyWatch) Start(_ context.Context) error {
 	go func() {
+		defer after.RecoverX()
 		for mqConf := range m.data.GetEventMQQueue().Next() {
 			if !mqConf.GetTopic().IsMqdatasource() {
 				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
