@@ -3,6 +3,8 @@ package bo
 import (
 	"fmt"
 
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -19,8 +21,6 @@ type (
 		Remark string `json:"remark"`
 		// 状态
 		Status vobj.Status `json:"status"`
-		// 采样率
-		Step uint32 `json:"step"`
 		// 数据源id
 		DatasourceIDs []uint32 `json:"datasource_ids"`
 		// 模板来源
@@ -28,8 +28,6 @@ type (
 		// 策略名称
 		Name   string `json:"name"`
 		TeamID uint32 `json:"teamID"`
-		// 策略等级
-		Levels []*CreateStrategyLevel `json:"strategyLevel"`
 		// 标签
 		Labels *vobj.Labels `json:"labels"`
 		// 注解
@@ -40,6 +38,12 @@ type (
 		CategoriesIds []uint32 `json:"categoriesIds"`
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 策略类型
+		StrategyType vobj.StrategyType `json:"strategyType"`
+		// Metric策略等级
+		MetricLevels []*CreateStrategyMetricLevel `json:"metricLevels"`
+		// MQ策略等级
+		MqLevels []*CreateStrategyMQLevel `json:"mqLevels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -63,8 +67,8 @@ type (
 		Status vobj.Status
 	}
 
-	// CreateStrategyLevel 策略模板策略等级
-	CreateStrategyLevel struct {
+	// CreateStrategyMetricLevel 创建metric策略等级
+	CreateStrategyMetricLevel struct {
 		ID uint32 `json:"id"`
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`
@@ -92,6 +96,29 @@ type (
 		StrategyID uint32 `json:"strategyID"`
 		// 策略标签
 		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+	}
+
+	// CreateStrategyMQLevel 创建mq策略等级
+	CreateStrategyMQLevel struct {
+		ID uint32 `json:"id"`
+		// 值
+		Value string `json:"value"`
+		// 条件
+		Condition vobj.MQCondition `json:"condition"`
+		// 数据类型
+		MQDataType vobj.MQDataType `json:"mqDataType"`
+		// 告警等级 对应sys_dict字典id
+		AlarmLevelID uint32 `json:"alarmLevelID"`
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 告警页面
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 策略ID
+		StrategyID uint32 `json:"strategyID"`
+		// PathKey
+		PathKey string `json:"pathKey"`
 	}
 
 	// CreateStrategyGroupParams 创建策略组请求参数
@@ -161,6 +188,21 @@ type (
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
 	}
+
+	// StrategyLevelDetailModel 策略等级明细
+	StrategyLevelDetailModel struct {
+		// MetricsLevelMap
+		MetricsLevelMap map[uint32][]*bizmodel.StrategyMetricsLevel `json:"metricsLevelMap"`
+		// MQ
+		MQLevelMap map[uint32][]*bizmodel.StrategyMQLevel `json:"mqLevelMap"`
+	}
+
+	// TeamStrategyLevelModel 策略等级
+	TeamStrategyLevelModel struct {
+		MetricsLevel *bizmodel.StrategyMetricsLevel `json:"metricsLeve"`
+		// MQ
+		MQLevel *bizmodel.StrategyMQLevel `json:"mqLevel"`
+	}
 )
 
 // GetStrategyCountMap 获取策略总数
@@ -209,32 +251,36 @@ type (
 		Alert string `json:"alert,omitempty"`
 		// 策略语句
 		Expr string `json:"expr,omitempty"`
-		// 策略持续时间
-		For int64 `json:"for,omitempty"`
-		// 持续次数
-		Count uint32 `json:"count,omitempty"`
-		// 持续的类型
-		SustainType vobj.Sustain `json:"sustainType,omitempty"`
 		// 多数据源持续类型
 		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
 		Labels *vobj.Labels `json:"labels"`
 		// 策略注解
 		Annotations *vobj.Annotations `json:"annotations"`
-		// 执行频率
-		Interval int64 `json:"interval,omitempty"`
 		// 数据源
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态
 		Status vobj.Status `json:"status,omitempty"`
+		// 团队ID
+		TeamID       uint32                     `json:"teamID,omitempty"`
+		StrategyType vobj.StrategyType          `json:"strategyType,omitempty"`
+		MetricLevel  *CreateStrategyMetricLevel `json:"metricLevels,omitempty"`
+		MQLevel      *CreateStrategyMQLevel     `json:"mqLevels,omitempty"`
+		// 策略持续时间
+		For int64 `json:"for,omitempty"`
+		// 持续次数
+		Count uint32 `json:"count,omitempty"`
+		// 持续的类型
+		SustainType vobj.Sustain `json:"sustainType,omitempty"`
+
+		// 执行频率
+		Interval int64 `json:"interval,omitempty"`
 		// 策略采样率
 		Step uint32 `json:"step,omitempty"`
 		// 判断条件
 		Condition vobj.Condition `json:"condition,omitempty"`
 		// 阈值
 		Threshold float64 `json:"threshold,omitempty"`
-		// 团队ID
-		TeamID uint32 `json:"teamID,omitempty"`
 	}
 
 	// Datasource 数据源明细

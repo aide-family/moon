@@ -121,7 +121,7 @@ type (
 		TeamID           uint32                          `json:"teamId"`
 		Alerts           []*AlertItemRawParams           `json:"alerts"`
 		Strategy         *bizmodel.Strategy              `json:"strategy"`
-		Level            *bizmodel.StrategyLevel         `json:"level"`
+		Level            *TeamStrategyLevelModel         `json:"level"`
 		DatasourceMap    map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
 		RawInfoMap       map[string]*alarmmodel.AlarmRaw `json:"rawIdMap"`
 	}

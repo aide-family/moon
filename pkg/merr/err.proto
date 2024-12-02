@@ -137,10 +137,10 @@ enum ErrorReason {
       message: "策略组类型不存在",
       metadata: {key: "type", value: "STRATEGY_GROUP_TYPE_NOT_EXIST"}
     },
-    // 策略类型不存在
+    // 策略分类不存在
     (errors.biz_reason) = {
       reason: "STRATEGY_TYPE_NOT_EXIST"
-      message: "策略类型不存在",
+      message: "策略分类不存在",
       metadata: {key: "type", value: "STRATEGY_TYPE_NOT_EXIST"}
     },
     // 告警组不存在
@@ -362,6 +362,12 @@ enum ErrorReason {
     (errors.biz_reason) = {
       reason: "USER_MESSAGE_NOT_FOUND"
       message: "消息不存在",
+    },
+    // 策略类型不存在
+    (errors.biz_reason) = {
+      reason: "STRATEGY_TYPE_NOT_EXIST"
+      message: "策略类型不存在",
+      metadata: {key: "type", value: "STRATEGY_TYPE_NOT_EXIST"}
     }
   ];
 
