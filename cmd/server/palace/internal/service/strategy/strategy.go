@@ -142,11 +142,7 @@ func (s *Service) UpdateStrategyGroupStatus(ctx context.Context, req *strategyap
 // CreateStrategy 创建策略
 func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStrategyRequest) (*strategyapi.CreateStrategyReply, error) {
 	// 校验数组是否有重复数据
-	if has := types.SlicesHasDuplicates(req.GetStrategyLevel(), func(request *strategyapi.CreateStrategyLevelRequest) string {
-		var sb strings.Builder
-		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
-		return sb.String()
-	}); has {
+	if checkStrategyLevelIsDuplicates(req) {
 		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild(ctx).StrategyModuleBuilder().WithCreateStrategyRequest(req).ToBo()
@@ -156,14 +152,30 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 	return &strategyapi.CreateStrategyReply{}, nil
 }
 
+// 校验策略等级是否重复
+func checkStrategyLevelIsDuplicates(req *strategyapi.CreateStrategyRequest) bool {
+	switch vobj.StrategyType(req.GetStrategyType()) {
+	case vobj.StrategyTypeMetric:
+		return types.SlicesHasDuplicates(req.GetStrategyMetricLevel(), func(request *strategyapi.CreateStrategyMetricLevelRequest) string {
+			var sb strings.Builder
+			sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
+			return sb.String()
+		})
+	case vobj.StrategyTypeMQ:
+		return types.SlicesHasDuplicates(req.GetStrategyMqLevel(), func(request *strategyapi.CreateStrategyMQLevelRequest) string {
+			var sb strings.Builder
+			sb.WriteString(strconv.FormatInt(int64(request.GetAlarmLevelId()), 10))
+			return sb.String()
+		})
+	default:
+		return false
+	}
+}
+
 // UpdateStrategy 更新策略
 func (s *Service) UpdateStrategy(ctx context.Context, req *strategyapi.UpdateStrategyRequest) (*strategyapi.UpdateStrategyReply, error) {
 	// 校验数组是否有重复数据
-	if has := types.SlicesHasDuplicates(req.GetData().GetStrategyLevel(), func(request *strategyapi.CreateStrategyLevelRequest) string {
-		var sb strings.Builder
-		sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
-		return sb.String()
-	}); has {
+	if checkStrategyLevelIsDuplicates(req.GetData()) {
 		return nil, merr.ErrorI18nAlertAlertLevelDuplicate(ctx)
 	}
 	param := builder.NewParamsBuild(ctx).StrategyModuleBuilder().WithUpdateStrategyRequest(req).ToBo()
@@ -187,8 +199,9 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 	if err != nil {
 		return nil, err
 	}
+	strategyLevel, _ := s.strategyBiz.GetStrategyLevel(ctx, strategy.GetID(), strategy.StrategyType)
 	return &strategyapi.GetStrategyReply{
-		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy),
+		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyLevel).ToAPI(strategy),
 	}, nil
 }
 

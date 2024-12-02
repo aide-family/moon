@@ -26,21 +26,9 @@ type Strategy struct {
 	Annotations    *vobj.Annotations           `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	Remark         string                      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	Status         vobj.Status                 `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
-	// 采样率
-	Step uint32 `gorm:"column:step;type:int;not null;comment:采样率" json:"step"`
-
-	Datasource []*Datasource `gorm:"many2many:strategy_datasource;" json:"datasource"`
+	Datasource     []*Datasource               `gorm:"many2many:strategy_datasource;" json:"datasource"`
 	// 策略类型
 	Categories []*SysDict `gorm:"many2many:strategy_categories" json:"categories"`
-	// metric类型策略明细
-	Levels []*StrategyLevel `gorm:"foreignKey:StrategyID" json:"levels"`
-	// 域名证书｜端口 等级策略明细
-	DomainLevels []*StrategyDomain `gorm:"foreignKey:StrategyID" json:"domain_levels"`
-	// http 协议状态码响应时间 等级策略明细
-	HTTPLevels []*StrategyHTTP `gorm:"foreignKey:StrategyID" json:"http_levels"`
-	// 网络连通性 等级策略明细
-	PingLevels []*StrategyPing `gorm:"foreignKey:StrategyID" json:"ping_levels"`
-
 	// 策略告警组
 	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategies_alarm_groups;" json:"alarm_groups"`
 	// 策略组

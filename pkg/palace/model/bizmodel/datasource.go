@@ -18,10 +18,6 @@ type Datasource struct {
 	Endpoint    string              `gorm:"column:endpoint;type:varchar(255);not null;comment:数据源地址" json:"endpoint"` // 数据源地址
 	Status      vobj.Status         `gorm:"column:status;type:int;not null;comment:数据源状态" json:"status"`              // 数据源状态
 	Remark      string              `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"`      // 描述信息
-	Metrics     []*DatasourceMetric `gorm:"foreignKey:DatasourceID" json:"metrics"`
-
-	// 采样率
-	Step uint32 `gorm:"column:step;type:int;not null;comment:采样率" json:"step"`
 }
 
 // String json string

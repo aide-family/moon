@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -10,7 +11,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -53,9 +53,20 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 			detail := &alarmmodel.RealtimeDetails{
 				RealtimeAlarmID: realTime.ID,
 				Strategy:        param.Strategy.String(),
-				Level:           param.Level.String(),
 				Datasource:      param.GetDatasourceMap(realTime.Labels.GetDatasourceID()),
 			}
+
+			switch param.Strategy.StrategyType {
+			case vobj.StrategyTypeMetric:
+				detail.Level = param.Level.MQLevel.String()
+				break
+			case vobj.StrategyTypeMQ:
+				detail.Level = param.Level.MQLevel.String()
+				break
+			default:
+				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
+			}
+
 			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "realtime_alarm_id"}},
 				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
 				return err
@@ -162,8 +173,8 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 
 func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.RealtimeAlarm {
 	strategy := param.Strategy
-	strategyLevel := param.Level
-
+	levelID := param.Level.MetricsLevel.LevelID
+	strategyLevel := param.Level.MetricsLevel
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := vobj.NewAnnotations(alarmParam.Annotations)
@@ -179,10 +190,10 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoID(alarmParam.Fingerprint),
 			StrategyID:  strategy.GetID(),
-			LevelID:     strategyLevel.GetID(),
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
 				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
 			}),
+			LevelID: levelID,
 			Pages: types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
 				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
 			}),

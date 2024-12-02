@@ -6,10 +6,10 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const tableNameStrategyLevel = "strategy_level"
+const tableNameStrategyMetricsLevel = "strategy_metrics_level"
 
-// StrategyLevel 策略等级
-type StrategyLevel struct {
+// StrategyMetricsLevel 策略等级
+type StrategyMetricsLevel struct {
 	model.AllFieldModel
 	// 所属策略
 	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__level_id" json:"strategy_id"`
@@ -32,30 +32,30 @@ type StrategyLevel struct {
 	// 状态
 	Status vobj.Status `gorm:"column:status;type:int;not null;default:1;comment:策略状态" json:"status"`
 	// 告警页面
-	AlarmPage []*SysDict `gorm:"many2many:strategy_level_alarm_pages" json:"alarm_page"`
+	AlarmPage []*SysDict `gorm:"many2many:strategy_metrics_level_alarm_pages" json:"alarm_page"`
 	// 策略告警组
-	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_level_alarm_groups;" json:"alarm_groups"`
+	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_metrics_level_alarm_groups;" json:"alarm_groups"`
 	// 策略labels
-	LabelNotices []*StrategyLabelNotice `gorm:"foreignKey:LevelID;" json:"label_notices"`
+	LabelNotices []*StrategyMetricsLabelNotice `gorm:"foreignKey:LevelID;" json:"label_notices"`
 }
 
 // String json string
-func (c *StrategyLevel) String() string {
+func (c *StrategyMetricsLevel) String() string {
 	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategyLevel) UnmarshalBinary(data []byte) error {
+func (c *StrategyMetricsLevel) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategyLevel) MarshalBinary() (data []byte, err error) {
+func (c *StrategyMetricsLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }
 
-// TableName StrategyLevel's table name
-func (*StrategyLevel) TableName() string {
-	return tableNameStrategyLevel
+// TableName StrategyMetricsLevel's table name
+func (*StrategyMetricsLevel) TableName() string {
+	return tableNameStrategyMetricsLevel
 }

@@ -1,5 +1,7 @@
 package bo
 
+import "github.com/aide-family/moon/pkg/vobj"
+
 type (
 
 	// CreateAlarmRawParams 创建告警原始数据参数
@@ -17,8 +19,9 @@ type (
 
 	// GetTeamStrategyLevelParams 获取团队策略等级参数
 	GetTeamStrategyLevelParams struct {
-		TeamID  uint32 `json:"teamId"`
-		LevelID uint32 `json:"level"`
+		TeamID       uint32            `json:"teamId"`
+		LevelID      uint32            `json:"level"`
+		StrategyType vobj.StrategyType `json:"strategyType"`
 	}
 
 	//GetTeamDatasourceParams  获取团队数据源信息参数

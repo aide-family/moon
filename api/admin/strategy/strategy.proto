@@ -222,11 +222,8 @@ message CreateStrategyRequest {
     message: "策略名称长度必须大于0且小于50"
     id: "CreateStrategyRequestName"
   }];
-  // 策略等级
-  repeated CreateStrategyLevelRequest strategyLevel = 9 [(buf.validate.field).cel = {
-    message: "请填写策略等级数据",
-    expression: "this.size() > 0"
-  }];
+  // Metric策略等级
+  repeated CreateStrategyMetricLevelRequest strategyMetricLevel = 9 ;
   // 策略标签
   map<string, string> labels = 10;
   // 策略注解
@@ -257,6 +254,22 @@ message CreateStrategyRequest {
     message: "告警组重复",
     expression: "this.unique()"
   }];
+
+  // 策略类型
+  StrategyType strategyType = 15;
+  //  MQ策略等级
+  repeated CreateStrategyMQLevelRequest strategyMqLevel = 16 ;
+  option (buf.validate.message).cel = {
+    id: "StrategyMetricLevelRequired",
+    expression: "this.strategyType != 1 || (this.strategyMetricLevel.size() > 0)",
+    message: "StrategyMetricLevel不能为空"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "StrategyMqLevelRequired",
+    expression: "this.strategyType != 6 || (this.strategyMqLevel.size() > 0)",
+    message: "StrategyMqLevel不能为空"
+  };
 }
 message CreateStrategyReply {}
 
@@ -326,7 +339,36 @@ message UpdateStrategyStatusRequest {
 }
 message UpdateStrategyStatusReply {}
 
-message CreateStrategyLevelRequest{
+message CreateStrategyMQLevelRequest{
+  // 值
+  string value = 1 [(buf.validate.field).required = true];
+  // 条件
+  MQCondition condition = 2 [(buf.validate.field).required = true];
+  // 数据类型
+  MQDataType dataType = 3 [(buf.validate.field).required = true];
+  // 状态
+  Status status = 4;
+  // 告警等级ID
+  uint32 alarmLevelId = 5;
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 6 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  repeated uint32 alarmGroupIds = 7 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 8;
+  // path key
+  string  pathKey = 9;
+}
+
+message CreateStrategyMetricLevelRequest{
   // 策略持续时间
   int64 duration = 1;
   // 持续次数

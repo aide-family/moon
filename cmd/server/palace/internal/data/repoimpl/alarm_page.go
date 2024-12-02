@@ -43,14 +43,14 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 	alarmPageSelves, err := alarmPageSelfQuery.WithContext(ctx).
 		Where(alarmPageSelfQuery.ID.In(pageIDs...)).
 		Where(alarmPageSelfQuery.DictType.Eq(vobj.DictTypeAlarmPage.GetValue())).
-		Preload(alarmPageSelfQuery.StrategyLevels).Find()
+		Preload(alarmPageSelfQuery.StrategyMetricsLevel).Find()
 	if err != nil {
 		return nil
 	}
 	pageLevelMap := make(map[uint32][]uint32, len(alarmPageSelves))
 	levelIds := make([]uint32, 0, len(alarmPageSelves)*3)
 	for _, alarmPageSelf := range alarmPageSelves {
-		pageLevels := types.SliceTo(alarmPageSelf.StrategyLevels, func(item *bizmodel.StrategyLevel) uint32 {
+		pageLevels := types.SliceTo(alarmPageSelf.StrategyMetricsLevel, func(item *bizmodel.StrategyMetricsLevel) uint32 {
 			return item.ID
 		})
 		pageLevelMap[alarmPageSelf.ID] = pageLevels
