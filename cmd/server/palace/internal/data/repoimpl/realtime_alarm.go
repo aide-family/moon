@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
