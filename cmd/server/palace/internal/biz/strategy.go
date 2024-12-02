@@ -149,7 +149,6 @@ func (b *StrategyBiz) GetStrategyLevel(ctx context.Context, strategyID uint32, s
 			return level.StrategyID
 		})
 		detailModel.MetricsLevelMap = strategyLevelMap
-		break
 	case vobj.StrategyTypeMQ:
 		mqLevels, err := b.strategyRepo.GetStrategyMQLevels(ctx, []uint32{strategyID})
 		if err != nil {
@@ -159,7 +158,6 @@ func (b *StrategyBiz) GetStrategyLevel(ctx context.Context, strategyID uint32, s
 			return level.StrategyID
 		})
 		detailModel.MQLevelMap = mqLevelMap
-		break
 	default:
 		return nil, merr.ErrorI18nToastStrategyTypeNotExist(ctx)
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -58,11 +60,9 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 
 			switch param.Strategy.StrategyType {
 			case vobj.StrategyTypeMetric:
-				detail.Level = param.Level.MQLevel.String()
-				break
+				detail.Level = param.Level.MetricsLevel.String()
 			case vobj.StrategyTypeMQ:
 				detail.Level = param.Level.MQLevel.String()
-				break
 			default:
 				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
 			}
