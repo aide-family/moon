@@ -200,9 +200,9 @@ func (s *StrategyMetric) String() string {
 // Index 策略唯一索引
 func (s *StrategyMetric) Index() string {
 	if types.IsNil(s) {
-		return "houyi:strategy:0"
+		return "houyi:strategy:0:0:0"
 	}
-	return fmt.Sprintf("houyi:strategy:%d:%d:%d", s.TeamID, s.ID, s.LevelID)
+	return types.TextJoin("houyi:strategy:", strconv.Itoa(int(s.TeamID)), ":", strconv.Itoa(int(s.ID)), ":", strconv.Itoa(int(s.LevelID)))
 }
 
 // Message 策略转消息

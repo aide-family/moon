@@ -21,11 +21,12 @@ var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, RegisterServic
 
 // Server 服务
 type Server struct {
-	rpcSrv          *grpc.Server
-	httpSrv         *http.Server
-	strategyWatch   *StrategyWatch
-	alertWatch      *watch.Watcher
-	heartbeatServer *HeartbeatServer
+	rpcSrv             *grpc.Server
+	httpSrv            *http.Server
+	strategyWatch      *StrategyWatch
+	alertWatch         *watch.Watcher
+	heartbeatServer    *HeartbeatServer
+	eventStrategyWatch *eventStrategyWatch
 }
 
 // GetRPCServer 获取rpc server
@@ -46,6 +47,7 @@ func (s *Server) GetServers() []transport.Server {
 		s.strategyWatch,
 		s.alertWatch,
 		s.heartbeatServer,
+		s.eventStrategyWatch,
 	}
 }
 
@@ -74,10 +76,11 @@ func RegisterService(
 	api.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	return &Server{
-		rpcSrv:          rpcSrv,
-		httpSrv:         httpSrv,
-		strategyWatch:   newStrategyWatch(c, data, alertService),
-		alertWatch:      newAlertWatch(c, data, alertService),
-		heartbeatServer: newHeartbeatServer(c, healthService),
+		rpcSrv:             rpcSrv,
+		httpSrv:            httpSrv,
+		strategyWatch:      newStrategyWatch(c, data, alertService),
+		alertWatch:         newAlertWatch(c, data, alertService),
+		heartbeatServer:    newHeartbeatServer(c, healthService),
+		eventStrategyWatch: newEventStrategyWatch(c, data, alertService),
 	}
 }

@@ -321,3 +321,27 @@ message Oss{
   // 是否打开oss
   bool open = 7;
 }
+
+// rocketmq配置
+message RocketMQ {
+  // 组名
+  string groupName = 1;
+  // 端点
+  string endpoint = 2;
+  // 区域
+  string region = 3;
+  // 访问密钥
+  string accessKey = 4;
+  // 秘密密钥
+  string secretKey = 5;
+  // 命名空间
+  string namespace = 6;
+}
+
+// mq配置
+message MQ {
+  // mq类型
+  string type = 1;
+  // rocketmq配置
+  RocketMQ rocketMQ = 2;
+}

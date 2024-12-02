@@ -22,7 +22,9 @@ var ProviderSetData = wire.NewSet(NewData)
 type Data struct {
 	cacher cache.ICacher
 
-	strategyQueue watch.Queue
+	strategyQueue      watch.Queue
+	eventMQQueue       watch.Queue
+	eventStrategyQueue watch.Queue
 
 	alertQueue   watch.Queue
 	alertStorage watch.Storage
@@ -33,9 +35,11 @@ var closeFuncList []func()
 // NewData .
 func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
-		strategyQueue: watch.NewDefaultQueue(100),
-		alertQueue:    watch.NewDefaultQueue(100),
-		alertStorage:  watch.NewDefaultStorage(),
+		strategyQueue:      watch.NewDefaultQueue(100),
+		eventMQQueue:       watch.NewDefaultQueue(100),
+		eventStrategyQueue: watch.NewDefaultQueue(100),
+		alertQueue:         watch.NewDefaultQueue(100),
+		alertStorage:       watch.NewDefaultStorage(),
 	}
 
 	cacheConf := c.GetCache()
@@ -85,6 +89,22 @@ func (d *Data) GetAlertStorage() watch.Storage {
 		log.Warn("alertStorage is nil")
 	}
 	return d.alertStorage
+}
+
+// GetEventMQQueue 获取事件队列
+func (d *Data) GetEventMQQueue() watch.Queue {
+	if types.IsNil(d.eventMQQueue) {
+		log.Warn("eventMQQueue is nil")
+	}
+	return d.eventMQQueue
+}
+
+// GetEventStrategyQueue 获取事件策略队列
+func (d *Data) GetEventStrategyQueue() watch.Queue {
+	if types.IsNil(d.eventStrategyQueue) {
+		log.Warn("eventStrategyQueue is nil")
+	}
+	return d.eventStrategyQueue
 }
 
 // newCache new cache
