@@ -154,6 +154,10 @@ func (r *RocketMQEvent) RemoveReceiver(topic string) {
 
 // Close 关闭 mq
 func (r *RocketMQEvent) Close() {
+	// 关闭通道
+	for _, ch := range r.topicChanelMap.List() {
+		close(ch)
+	}
 	if err := r.consumer.GracefulStop(); err != nil {
 		log.Errorw("method", "RocketMQEvent.Close", "err", err)
 		return
