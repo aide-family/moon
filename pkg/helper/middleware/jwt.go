@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
@@ -26,6 +27,23 @@ var (
 	expireOnce  sync.Once
 	issuerOnce  sync.Once
 )
+
+// JWTConfig jwt config
+type JWTConfig interface {
+	// GetSignKey get sign key
+	GetSignKey() string
+	// GetExpire get expire
+	GetExpire() *durationpb.Duration
+	// GetIssuer get issuer
+	GetIssuer() string
+}
+
+// SetJwtConfig set jwt config
+func SetJwtConfig(cfg JWTConfig) {
+	SetSignKey(cfg.GetSignKey())
+	SetExpire(cfg.GetExpire().AsDuration())
+	SetIssuer(cfg.GetIssuer())
+}
 
 // SetSignKey set sign key
 func SetSignKey(key string) {
