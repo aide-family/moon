@@ -349,7 +349,7 @@ message MQStrategyItem {
     message: "主题不允许为空"
   }];
   // 数据源
-  repeated Datasource datasource = 16 [(buf.validate.field).cel = {
+  repeated MQDatasource datasource = 16 [(buf.validate.field).cel = {
     id: "Strategy_datasource"
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
