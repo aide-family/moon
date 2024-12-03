@@ -30,15 +30,17 @@ type Data struct {
 	alertStorage watch.Storage
 }
 
+const queueMaxSize = 1 << 32
+
 var closeFuncList []func()
 
 // NewData .
 func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
-		strategyQueue:      watch.NewDefaultQueue(100),
-		eventMQQueue:       watch.NewDefaultQueue(100),
-		eventStrategyQueue: watch.NewDefaultQueue(100),
-		alertQueue:         watch.NewDefaultQueue(100),
+		strategyQueue:      watch.NewDefaultQueue(queueMaxSize),
+		eventMQQueue:       watch.NewDefaultQueue(queueMaxSize),
+		eventStrategyQueue: watch.NewDefaultQueue(queueMaxSize),
+		alertQueue:         watch.NewDefaultQueue(queueMaxSize),
 		alertStorage:       watch.NewDefaultStorage(),
 	}
 

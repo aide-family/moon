@@ -29,11 +29,13 @@ type Data struct {
 
 var closeFuncList []func()
 
+const queueMaxSize = 1 << 32
+
 // NewData .
 func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
 		watchStorage: watch.NewDefaultStorage(),
-		watchQueue:   watch.NewDefaultQueue(1000),
+		watchQueue:   watch.NewDefaultQueue(queueMaxSize),
 	}
 	d.cacher = newCache(c.GetCache())
 	closeFuncList = append(closeFuncList, func() {
