@@ -33,7 +33,7 @@ var closeFuncList []func()
 func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
 		watchStorage: watch.NewDefaultStorage(),
-		watchQueue:   watch.NewDefaultQueue(1000),
+		watchQueue:   watch.NewDefaultQueue(watch.QueueMaxSize),
 	}
 	d.cacher = newCache(c.GetCache())
 	closeFuncList = append(closeFuncList, func() {

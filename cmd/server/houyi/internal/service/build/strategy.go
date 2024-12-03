@@ -169,3 +169,39 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 		StdDevDelay:      float64(a.GetStdDev()),
 	}
 }
+
+// EventStrategyBuilder MQ策略构建器
+type EventStrategyBuilder struct {
+	*api.MQStrategyItem
+}
+
+// NewMQStrategyBuilder 创建MQ策略构建器
+func NewMQStrategyBuilder(strategyInfo *api.MQStrategyItem) *EventStrategyBuilder {
+	return &EventStrategyBuilder{
+		MQStrategyItem: strategyInfo,
+	}
+}
+
+// ToBo 转换为业务对象
+func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
+	if types.IsNil(a) || types.IsNil(a.MQStrategyItem) {
+		return nil
+	}
+	return &bo.StrategyEvent{
+		StrategyType:     vobj.StrategyType(a.GetStrategyType()),
+		TeamID:           a.GetTeamID(),
+		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
+		ID:               a.GetStrategyID(),
+		LevelID:          a.GetLevelID(),
+		Alert:            a.GetAlert(),
+		Expr:             a.GetTopic(),
+		Threshold:        a.GetValue(),
+		Condition:        vobj.MQCondition(a.GetCondition()),
+		DataType:         vobj.MQDataType(a.GetDataType()),
+		DataKey:          a.GetDataKey(),
+		Datasource:       NewMQDatasourceAPIBuilder(a.GetDatasource()...).ToBos(),
+		Status:           vobj.Status(a.GetStatus()),
+		Labels:           vobj.NewLabels(a.GetLabels()),
+		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
+	}
+}

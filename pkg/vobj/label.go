@@ -36,6 +36,8 @@ const (
 	StrategyHTTPMethod = "__moon__http_method__"
 	// StrategyHTTPPath http路径
 	StrategyHTTPPath = "__moon__http_path__"
+	// StrategyEventExpr 事件表达式
+	StrategyEventExpr = "__moon__event_expr__"
 )
 
 var _ sql.Scanner = (*Labels)(nil)

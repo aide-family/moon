@@ -1,5 +1,8 @@
 package watch
 
+// QueueMaxSize 默认消息队列最大长度
+const QueueMaxSize = 1 << 32
+
 // NewDefaultQueue 定义接收消息和发送消息的消息队列
 func NewDefaultQueue(size int) Queue {
 	return &defaultQueue{

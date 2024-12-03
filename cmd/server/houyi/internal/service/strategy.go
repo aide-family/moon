@@ -48,6 +48,11 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 			return build.NewPingStrategyBuilder(item).ToBo()
 		})...)
 	}
+	if len(req.GetMqStrategies()) > 0 {
+		strategies = append(strategies, types.SliceTo(req.GetMqStrategies(), func(item *api.MQStrategyItem) bo.IStrategy {
+			return build.NewMQStrategyBuilder(item).ToBo()
+		})...)
+	}
 	if len(strategies) == 0 {
 		return &strategyapi.PushStrategyReply{}, nil
 	}

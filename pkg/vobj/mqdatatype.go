@@ -9,8 +9,8 @@ const (
 	// MQDataTypeUnknown 未知
 	MQDataTypeUnknown MQDataType = iota // 未知
 
-	// MQDataTypeString json
-	MQDataTypeString // json
+	// MQDataTypeString string
+	MQDataTypeString // string
 
 	// MQDataTypeNumber number
 	MQDataTypeNumber // number

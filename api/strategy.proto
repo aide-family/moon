@@ -82,6 +82,7 @@ message MetricStrategyItem {
   // 接收对象列表（告警组ID列表）
   repeated uint32 receiverGroupIDs = 18;
   repeated LabelNotices labelNotices = 19;
+  StrategyType strategyType = 20;
 }
 
 // 域名证书或者端口监控策略定义
@@ -149,13 +150,13 @@ message DomainStrategyItem {
     message: "端口必须大于0"
   }];
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
-  uint32 strategyType = 24;
+  StrategyType strategyType = 24;
 }
 
 // HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
 message HttpStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
-  uint32 strategyType = 1;
+  StrategyType strategyType = 1;
   // URL
   string url = 2 [(buf.validate.field).cel = {
     id: "HttpStrategyItem_url"
@@ -225,7 +226,7 @@ message HttpStrategyItem {
 // Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 message PingStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
-  uint32 strategyType = 1;
+  StrategyType strategyType = 1;
   // 策略ID
   uint32 strategyID = 2 [(buf.validate.field).cel = {
     id: "PingStrategyItem_strategyID"
@@ -290,6 +291,77 @@ message PingStrategyItem {
   int64 minDelay = 18;
   // 标准差
   int64 stdDev = 19;
+}
+
+message MQStrategyItem {
+  // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
+  StrategyType strategyType = 1;
+  // 策略ID
+  uint32 strategyID = 2 [(buf.validate.field).cel = {
+    id: "PingStrategyItem_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
+  // 团队ID
+  uint32 teamID = 3 [(buf.validate.field).cel = {
+    id: "PingStrategyItem_teamID"
+    expression: 'this > 0'
+    message: "团队ID必须大于0"
+  }];
+  // 状态
+  Status status = 4 [(buf.validate.field).enum.defined_only = true];
+  // 策略名称
+  string alert = 5 [(buf.validate.field).cel = {
+    id: "Strategy_alert"
+    expression: 'this.size() > 0'
+    message: "策略名称不允许为空"
+  }];
+  // 策略等级ID
+  uint32 levelID = 7 [(buf.validate.field).cel = {
+    id: "PingStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 策略标签
+  map<string, string> labels = 9 [(buf.validate.field).cel = {
+    id: "PingStrategyItem_labels"
+    expression: 'this.size() > 0'
+    message: "策略标签不允许为空"
+  }];
+  // 策略注解
+  map<string, string> annotations = 10 [(buf.validate.field).cel = {
+    id: "PingStrategyItem_annotations"
+    expression: 'this.size() > 0'
+    message: "策略注解不允许为空"
+  }];
+  // 接收者
+  repeated uint32 receiverGroupIDs = 11;
+  // 值
+  string value = 12;
+  // 条件
+  MQCondition condition = 13;
+  // 数据类型
+  MQDataType dataType = 14;
+  // 策略语句
+  string topic = 15 [(buf.validate.field).cel = {
+    id: "Strategy_topic"
+    expression: 'this.size() > 0'
+    message: "主题不允许为空"
+  }];
+  // 数据源
+  repeated MQDatasource datasource = 16 [(buf.validate.field).cel = {
+    id: "Strategy_datasource"
+    expression: 'this.size() > 0'
+    message: "数据源不允许为空"
+  }];
+  // 数据 key 当前数据类型为json时，key不允许为空
+  string dataKey = 17;
+
+  // 当前数据类型为json时，key不允许为空
+  option (buf.validate.message).cel = {
+    message: '当前数据类型为 Object 时，数据 key 不允许为空'
+    expression: 'this.dataType != 3 || this.dataKey.size() > 0'
+  };
 }
 
 message LabelNotices {

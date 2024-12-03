@@ -33,3 +33,41 @@ func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
 		ID:          b.GetId(),
 	}
 }
+
+// MQDatasourceAPIBuilder MQ数据源api构建器
+type MQDatasourceAPIBuilder struct {
+	list []*api.MQDatasource
+}
+
+// NewMQDatasourceAPIBuilder 创建MQ数据源api构建器
+func NewMQDatasourceAPIBuilder(datasource ...*api.MQDatasource) *MQDatasourceAPIBuilder {
+	return &MQDatasourceAPIBuilder{
+		list: datasource,
+	}
+}
+
+// ToBo 转换为业务对象
+func (b *MQDatasourceAPIBuilder) ToBo() *bo.MQDatasource {
+	if types.IsNil(b) || len(b.list) == 0 {
+		return nil
+	}
+
+	item := b.list[0]
+	return &bo.MQDatasource{
+		TeamID: item.GetTeamID(),
+		ID:     item.GetId(),
+		Status: vobj.Status(item.GetStatus()),
+		Conf:   item.GetMq(),
+	}
+}
+
+// ToBos 转换为业务对象数组
+func (b *MQDatasourceAPIBuilder) ToBos() []*bo.MQDatasource {
+	if types.IsNil(b) || len(b.list) == 0 {
+		return nil
+	}
+
+	return types.SliceTo(b.list, func(item *api.MQDatasource) *bo.MQDatasource {
+		return NewMQDatasourceAPIBuilder(item).ToBo()
+	})
+}

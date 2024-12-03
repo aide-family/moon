@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "enum.proto";
+import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
@@ -20,4 +21,18 @@ message Datasource {
   string endpoint = 4;
   // 数据源ID
   uint32 id = 5;
+  // 状态
+  Status status = 6;
+}
+
+// MQ数据源
+message MQDatasource {
+  // 数据源ID
+  uint32 id = 1;
+  // 状态
+  Status status = 2;
+  // 配置
+  pkg.conf.MQ mq = 3;
+  // 租户ID
+  uint32 teamID = 4;
 }

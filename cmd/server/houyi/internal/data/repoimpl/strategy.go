@@ -29,9 +29,17 @@ type strategyRepositoryImpl struct {
 // Save 保存策略
 func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrategy) error {
 	queue := s.data.GetStrategyQueue()
+	mqQueue := s.data.GetEventMQQueue()
 	go func() {
 		defer after.RecoverX()
 		for _, strategyItem := range strategies {
+			item, ok := strategyItem.(bo.IStrategyEvent)
+			if ok {
+				if err := mqQueue.Push(item.Message()); err != nil {
+					log.Errorw("method", "mqQueue.push", "error", err)
+				}
+				continue
+			}
 			if err := queue.Push(strategyItem.Message()); err != nil {
 				log.Errorw("method", "queue.push", "error", err)
 			}

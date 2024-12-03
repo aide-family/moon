@@ -584,7 +584,7 @@ func (b *boStrategyDomainBuilder) ToAPI(domain *bo.StrategyDomain) *api.DomainSt
 		Timeout:          domain.Timeout,
 		Interval:         durationpb.New(time.Duration(domain.Interval) * time.Second),
 		Port:             domain.Port,
-		StrategyType:     uint32(domain.Type),
+		StrategyType:     api.StrategyType(domain.Type),
 	}
 }
 
@@ -593,7 +593,7 @@ func (b *boStrategyEndpointBuilder) ToAPI(endpoint *bo.StrategyEndpoint) *api.Ht
 		return nil
 	}
 	return &api.HttpStrategyItem{
-		StrategyType:     uint32(endpoint.Type),
+		StrategyType:     api.StrategyType(endpoint.Type),
 		Url:              endpoint.URL,
 		StrategyID:       endpoint.ID,
 		LevelID:          endpoint.LevelID,
@@ -618,7 +618,7 @@ func (b *boStrategyPingBuilder) ToAPI(ping *bo.StrategyPing) *api.PingStrategyIt
 		return nil
 	}
 	return &api.PingStrategyItem{
-		StrategyType:     uint32(ping.Type),
+		StrategyType:     api.StrategyType(ping.Type),
 		StrategyID:       ping.ID,
 		TeamID:           ping.TeamID,
 		Status:           api.Status(ping.Status),
