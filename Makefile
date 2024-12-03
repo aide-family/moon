@@ -149,6 +149,11 @@ rabbit:
 palace:
 	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/palace/palace/cmd.go -c cmd/server/palace/configs
 
+.PHONY: jadeTree
+# local run palace
+jadeTree:
+	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/jadeTree/jadeTree/cmd.go -c cmd/server/jadeTree/configs
+
 # show help
 help:
 	@echo ''

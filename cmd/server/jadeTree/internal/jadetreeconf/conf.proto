@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package moon.cmd.server.demo.internal.jadetreeconf;
+
+import "conf/conf.proto";
+
+option go_package = "github.com/aide-family/moon/cmd/server/rabbit/internal/jadetreeconf;jadetreeconf";
+
+message Bootstrap {
+  pkg.conf.Server server = 1;
+  string env = 3;
+  // 服务发现配置， 如果配置了服务发现，endpoint则会被当作服务发现地址, 没有配置直接当作服务地址
+  pkg.conf.Discovery discovery = 7;
+  pkg.conf.HTTPServer http = 8;
+  pkg.conf.GRPCServer grpc = 9;
+  pkg.conf.Cache cache = 10;
+  repeated uint32 teams = 11;
+  bool dependPalace = 12;
+  // 月宫代理服务
+  pkg.conf.MicroServer palace_server = 13;
+  // metrics配置
+  string metricsToken = 19;
+  // log配置
+  pkg.conf.Log log = 20;
+}
+
+
