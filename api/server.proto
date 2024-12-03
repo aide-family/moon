@@ -3,6 +3,7 @@ syntax = "proto3";
 package api;
 
 import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
 import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
@@ -32,16 +33,16 @@ service Server {
 			body: "*"
 		};
 	}
-
-
 }
 
 message GetServerListRequest{
-	string type = 1;
+	string type = 1 [(buf.validate.field).string = {
+		in: ["rabbit", "houyi", "jadetree"]
+	}];
 }
 
 message GetServerListReply {
-	repeated  ServerItem list = 1;
+	repeated ServerItem list = 1;
 }
 
 message GetServerInfoRequest {
