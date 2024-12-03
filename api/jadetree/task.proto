@@ -43,6 +43,32 @@ service Task {
 			body: "*"
 		};
 	}
+	// 创建Secrets
+	rpc CreateSecrets (CreateSecretsRequest) returns (CreateSecretsReply) {
+		option (google.api.http) = {
+			post: "/v1/secret/create"
+			body: "*"
+		};
+	}
+	// 获取Secrets
+	rpc GetSecrets (GetSecretsRequest) returns (GetSecretsReply) {
+		option (google.api.http) = {
+			get: "/v1/secret/get"
+		};
+	}
+	// 创建env
+	rpc CreateEnv (CreateEnvRequest) returns (CreateEnvReply) {
+		option (google.api.http) = {
+			post: "/v1/env/create"
+			body: "*"
+		};
+	}
+	// 获取env
+	rpc GetEnv (GetEnvRequest) returns (GetEnvReply) {
+		option (google.api.http) = {
+			get: "/v1/env/get"
+		};
+	}
 }
 
 // 创建任务请求参数
@@ -105,6 +131,48 @@ message ExecuteTaskRequest {
 message ExecuteTaskReply {
 	// 执行结果 key: 任务ID value: 执行结果
 	map<string, string> result = 1;
+}
+
+// 创建Secrets请求参数
+message CreateSecretsRequest {
+	// 签名
+	string sign = 1 [(buf.validate.field).required = true];
+	// 秘钥
+	map<string, string> secrets = 2 [(buf.validate.field).required = true];
+}
+// 创建Secrets响应参数
+message CreateSecretsReply {}
+
+// 获取Secrets请求参数
+message GetSecretsRequest {
+	// 签名
+	string sign = 1 [(buf.validate.field).required = true];
+}
+// 获取Secrets响应参数
+message GetSecretsReply {
+	// 秘钥
+	repeated string secrets = 1;
+}
+
+// 创建env请求参数
+message CreateEnvRequest {
+	// 签名
+	string sign = 1 [(buf.validate.field).required = true];
+	// env
+	map<string, string> env = 2 [(buf.validate.field).required = true];
+}
+// 创建env响应参数
+message CreateEnvReply {}
+
+// 获取env请求参数
+message GetEnvRequest {
+	// 签名
+	string sign = 1 [(buf.validate.field).required = true];
+}
+// 获取env响应参数
+message GetEnvReply {
+	// env
+	map<string, string> env = 1;
 }
 
 // 医药包
