@@ -79,7 +79,6 @@ type (
 		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
 
 		// MqDataSourceModuleBuild mq数据源模块构造器
-		MqDataSourceModuleBuild() IMqDataSourceModuleBuild
 
 		// OauthModuleBuilder oauth模块构造器
 		OauthModuleBuilder() IOauthModuleBuilder
@@ -91,11 +90,6 @@ func (p *paramsBuilder) OauthModuleBuilder() IOauthModuleBuilder {
 	return NewOauthModuleBuilder(p.ctx)
 }
 
-func (p *paramsBuilder) MqDataSourceModuleBuild() IMqDataSourceModuleBuild {
-	return &mqDatasourceModuleBuild{
-		ctx: p.ctx,
-	}
-}
 func (p *paramsBuilder) AlarmSendModuleBuilder() IAlarmSendModuleBuilder {
 	return &alarmSendModuleBuilder{ctx: p.ctx}
 }

@@ -380,12 +380,46 @@ type (
 		ToAPI(*bo.Strategy) *api.MetricStrategyItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.Strategy) []*api.MetricStrategyItem
+		// ToMqAPI 转换为mq API对象
+		ToMqAPI(*bo.Strategy) *api.MQStrategyItem
+		// ToMqAPIs 转换为mq API对象列表
+		ToMqAPIs([]*bo.Strategy) *[]api.MQStrategyItem
 	}
 
 	boStrategyBuilder struct {
 		ctx context.Context
 	}
 )
+
+func (b *boStrategyBuilder) ToMqAPI(strategy *bo.Strategy) *api.MQStrategyItem {
+	if types.IsNil(strategy) || types.IsNil(strategy.MQLevel) || types.IsNil(b) {
+		return nil
+	}
+	mqLevel := strategy.MQLevel
+	item := &api.MQStrategyItem{
+		StrategyType:     api.StrategyType(strategy.StrategyType),
+		StrategyID:       strategy.ID,
+		TeamID:           strategy.TeamID,
+		Status:           api.Status(strategy.Status),
+		Alert:            strategy.Alert,
+		Labels:           strategy.Labels.Map(),
+		Annotations:      strategy.Annotations.Map(),
+		ReceiverGroupIDs: strategy.ReceiverGroupIDs,
+		LevelID:          mqLevel.ID,
+		Value:            mqLevel.Value,
+		Condition:        api.MQCondition(mqLevel.Condition),
+		DataType:         api.MQDataType(mqLevel.MQDataType),
+		Topic:            strategy.Expr,
+		Datasource:       NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToMqAPIs(strategy.Datasource),
+	}
+
+	return item
+}
+
+func (b *boStrategyBuilder) ToMqAPIs(strategies []*bo.Strategy) *[]api.MQStrategyItem {
+	//TODO implement me
+	panic("implement me")
+}
 
 func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strategy {
 	if types.IsNil(strategy) || types.IsNil(d) || types.IsNil(d.strategyLevelDetail) {
@@ -463,6 +497,7 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 			MultiDatasourceSustainType: 0, // TODO 多数据源控制
 			Labels:                     strategy.Labels,
 			Annotations:                strategy.Annotations,
+			StrategyType:               strategy.StrategyType,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
 				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
