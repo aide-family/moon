@@ -58,3 +58,11 @@ func TestTextJoinByBytes(t *testing.T) {
 	}()
 	TextJoinByBytes(s...)
 }
+
+func TestGetAPI(t *testing.T) {
+	t.Log(GetAPI("/api/v1/oauth/github/callback"))
+	api := "http://localhost:8000/auth/gitee/callback"
+	t.Log(GetAPI(api))
+	api = "http://localhost:8000/auth/github/callback"
+	t.Log(GetAPI(api))
+}

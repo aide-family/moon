@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo/auth"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
@@ -26,16 +27,20 @@ import (
 type Service struct {
 	authorizationapi.UnimplementedAuthorizationServer
 
+	oauth2Config *palaceconf.OAuth2
+
 	captchaBiz       *biz.CaptchaBiz
 	authorizationBiz *biz.AuthorizationBiz
 }
 
 // NewAuthorizationService 创建权限服务
 func NewAuthorizationService(
+	bc *palaceconf.Bootstrap,
 	captchaBiz *biz.CaptchaBiz,
 	authorizationBiz *biz.AuthorizationBiz,
 ) *Service {
 	return &Service{
+		oauth2Config:     bc.GetOauth2(),
 		captchaBiz:       captchaBiz,
 		authorizationBiz: authorizationBiz,
 	}
@@ -264,5 +269,12 @@ func (s *Service) RegisterWithEmail(ctx context.Context, req *authorizationapi.R
 	return &authorizationapi.RegisterWithEmailReply{
 		User:  builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(loginReply.User),
 		Token: token,
+	}, nil
+}
+
+// ListOauth 展示oauth列表
+func (s *Service) ListOauth(ctx context.Context, req *authorizationapi.ListOauthRequest) (*authorizationapi.ListOauthReply, error) {
+	return &authorizationapi.ListOauthReply{
+		List: builder.NewParamsBuild(ctx).OauthModuleBuilder().ToAPI(s.oauth2Config),
 	}, nil
 }

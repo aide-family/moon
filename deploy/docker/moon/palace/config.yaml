@@ -2,7 +2,7 @@ env: dev
 dependHouYi: true
 dependRabbit: true
 server:
-  name: "Palace"
+  name: 'Palace'
   metadata:
     description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
     background: 寓意为月宫，表示moon系列的统一管理平台
@@ -16,8 +16,8 @@ grpc:
   timeout: 50s
 
 jwt:
-  sign_key: "moon-sign_key"
-  issuer: "moon-palace"
+  sign_key: 'moon-sign_key'
+  issuer: 'moon-palace'
   expire: 3600s
 
   allow_list:
@@ -28,55 +28,56 @@ jwt:
     - /api.Alert/Hook
     - /api.admin.authorization.Authorization/VerifyEmail
     - /api.admin.authorization.Authorization/SetEmailWithLogin
+    - /api.admin.authorization.Authorization/ListOauth
 
 cache:
-  driver: "redis"
+  driver: 'redis'
   redis:
-    network: "tcp"
+    network: 'tcp'
     addr: redis.middleware.svc.cluster.local:6379
     db: 0
-    password: "lQz8OMgje7UyoD"
+    password: 'lQz8OMgje7UyoD'
     read_timeout: 0.2s
     write_timeout: 0.2s
     dial_timeout: 0.2s
 
 database:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: 'root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local'
 
 bizDatabase:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/"
+  dsn: 'root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/'
 
 alarmDatabase:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/"
+  dsn: 'root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/'
 
 log:
-  type: "slog"
-  level: "debug"
+  type: 'slog'
+  level: 'debug'
   slog:
     json: true
 
 oauth2:
-  redirect_uri: "https://moon.aide-cloud.cn"
+  redirect_uri: 'https://moon.aide-cloud.cn'
   github:
-    client_id: ""
-    client_secret: ""
-    callback_uri: "https://moon.aide-cloud.cn/api/auth/github/callback"
+    client_id: ''
+    client_secret: ''
+    callback_uri: 'https://moon.aide-cloud.cn/api/auth/github/callback'
     scopes:
-      - "user"
-      - "email"
+      - 'user'
+      - 'email'
   gitee:
-    client_id: ""
-    client_secret: ""
-    callback_uri: "https://moon.aide-cloud.cn/api/auth/gitee/callback"
+    client_id: ''
+    client_secret: ''
+    callback_uri: 'https://moon.aide-cloud.cn/api/auth/gitee/callback'
     scopes:
-      - "user_info"
-      - "emails"
+      - 'user_info'
+      - 'emails'
 
 email_config:
   host: smtp.163.com
@@ -85,13 +86,13 @@ email_config:
   pass:
 
 oss:
-  type: "local"
+  type: 'local'
   limitSize:
     yml:
       max: 524228
     yaml:
       max: 524228
   local:
-    path: "./data/moon_oss"
+    path: './data/moon_oss'
     url: https://moon.aide-cloud.cn/api
-    downloadPre: "/file/download"
+    downloadPre: '/file/download'

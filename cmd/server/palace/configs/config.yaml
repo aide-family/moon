@@ -2,7 +2,7 @@ env: dev
 dependHouYi: true
 dependRabbit: true
 server:
-  name: "Palace"
+  name: 'Palace'
   metadata:
     description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
     background: 寓意为月宫，表示moon系列的统一管理平台
@@ -16,8 +16,8 @@ grpc:
   timeout: 50s
 
 jwt:
-  sign_key: "moon-sign_key"
-  issuer: "moon-palace"
+  sign_key: 'moon-sign_key'
+  issuer: 'moon-palace'
   expire: 3600s
 
   allow_list:
@@ -28,14 +28,15 @@ jwt:
     - /api.Alert/Hook
     - /api.admin.authorization.Authorization/VerifyEmail
     - /api.admin.authorization.Authorization/SetEmailWithLogin
+    - /api.admin.authorization.Authorization/ListOauth
 
 cache:
-  driver: "free"
+  driver: 'free'
   redis:
-    network: "tcp"
+    network: 'tcp'
     addr: localhost:6379
     db: 0
-    password: ""
+    password: ''
     read_timeout: 0.2s
     write_timeout: 0.2s
     dial_timeout: 0.2s
@@ -62,41 +63,41 @@ cache:
 #    timeout: 50s
 
 database:
-#  driver: "mysql"
-#  debug: false
-#  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-  driver: "sqlite"
+  #  driver: "mysql"
+  #  debug: false
+  #  dsn: "root:12345678@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+  driver: 'sqlite'
   debug: false
-  dsn: "main.db"
+  dsn: 'main.db'
 bizDatabase:
-#  driver: "mysql"
-#  debug: false
-#  dsn: "root:12345678@tcp(localhost:3306)/"
-  driver: "sqlite"
+  #  driver: "mysql"
+  #  debug: false
+  #  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: 'sqlite'
   debug: false
 alarmDatabase:
-#  driver: "mysql"
-#  debug: false
-#  dsn: "root:12345678@tcp(localhost:3306)/"
-  driver: "sqlite"
+  #  driver: "mysql"
+  #  debug: false
+  #  dsn: "root:12345678@tcp(localhost:3306)/"
+  driver: 'sqlite'
   debug: false
 
 log:
   #  default, slog, aliyun, zap
-#  type: "slog"
-  level: "debug"
+  #  type: "slog"
+  level: 'debug'
   zap:
     json: true
   slog:
     json: true
   aliyun:
-    accessKey: ""
-    accessSecret: ""
-    endpoint: ""
-    securityToken: ""
-    expireTime: "" # 2023-09-01 08:00:00
-    project: "moon"
-    store: "app"
+    accessKey: ''
+    accessSecret: ''
+    endpoint: ''
+    securityToken: ''
+    expireTime: '' # 2023-09-01 08:00:00
+    project: 'moon'
+    store: 'app'
     json: true
 
 #oauth2:
@@ -123,16 +124,16 @@ log:
 #  pass:
 
 oss:
-  type: "minio"
+  type: 'minio'
   limitSize:
     yml:
       max: 524228
     yaml:
       max: 524228
-#  local:
-#    path: "./data/moon_oss"
-#    url: http://127.0.0.1:8001
-#    downloadPre: "/file/download"
+  #  local:
+  #    path: "./data/moon_oss"
+  #    url: http://127.0.0.1:8001
+  #    downloadPre: "/file/download"
   minio:
     endpoint: 127.0.0.1:9000
     accessKeyID: minio
