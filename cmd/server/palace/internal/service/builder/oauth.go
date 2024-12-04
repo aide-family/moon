@@ -7,10 +7,12 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 )
 
+// IOauthModuleBuilder 构建oauth模块
 type IOauthModuleBuilder interface {
 	ToAPI(config *palaceconf.OAuth2) []*authorizationapi.OauthItem
 }
 
+// NewOauthModuleBuilder 创建oauth模块构建器
 func NewOauthModuleBuilder(ctx context.Context) IOauthModuleBuilder {
 	return &oauthModuleBuilder{ctx: ctx}
 }
