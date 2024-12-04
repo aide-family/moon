@@ -69,6 +69,13 @@ service Authorization {
     };
   }
 
+  // 展示oauth列表
+  rpc ListOauth (ListOauthRequest) returns (ListOauthReply) {
+    option (google.api.http) = {
+      get: "/v1/authorization/oauth"
+    };
+  }
+
   // 校验用户在当前资源下是否有权限
   rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionReply);
 
@@ -239,4 +246,21 @@ message RegisterWithEmailRequest {
 message RegisterWithEmailReply {
   UserItem user = 1;
   string token = 2;
+}
+
+// 展示oauth列表
+message ListOauthRequest {}
+// 展示oauth列表回复
+message ListOauthReply {
+  // oauth列表
+  repeated OauthItem list = 1;
+}
+
+message OauthItem {
+  // 图标
+  string icon = 1;
+  // 标签
+  string label = 2;
+  // 重定向地址
+  string redirect = 3;
 }

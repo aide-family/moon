@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 )
 
 // TextIsNull 判断字符串是否为空
@@ -79,4 +81,23 @@ func TextJoinByBytesToBytes(ss ...[]byte) []byte {
 // TextJoinByBytes 拼接字符串
 func TextJoinByBytes(s ...[]byte) string {
 	return string(TextJoinByBytesToBytes(s...))
+}
+
+// GetAPI 从url中获取api
+func GetAPI(path string) string {
+	addr := strings.TrimPrefix(path, "http://")
+	addr = strings.TrimPrefix(addr, "https://")
+	// 按照/分割
+	parts := strings.Split(addr, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	u, err := url.JoinPath("/", parts[1:]...)
+	if err != nil {
+		return ""
+	}
+	return u
 }

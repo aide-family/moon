@@ -69,6 +69,7 @@ message OAuth2 {
     string client_id = 1;
     string client_secret = 2;
     string callback_uri = 3;
+    string authorize_uri = 4;
     repeated string scopes = 5;
   }
   string redirect_uri = 1;

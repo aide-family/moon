@@ -13,20 +13,20 @@ data:
       metadata:
         description: palace是moon监控系列的监控平台，用于管理告警、监控、配置、日志、数据源等
         background: 寓意为月宫，表示moon系列的统一管理平台
-    
+
     http:
       addr: 0.0.0.0:8000
       timeout: 50s
-    
+
     grpc:
       addr: 0.0.0.0:9000
       timeout: 50s
-    
+
     jwt:
       sign_key: "moon-sign_key"
       issuer: "moon-palace"
       expire: 3600s
-    
+
       allow_list:
         - /api.admin.authorization.Authorization/Login
         - /api.admin.authorization.Authorization/Captcha
@@ -35,7 +35,8 @@ data:
         - /api.Alert/Hook
         - /api.admin.authorization.Authorization/VerifyEmail
         - /api.admin.authorization.Authorization/SetEmailWithLogin
-    
+        - /api.admin.authorization.Authorization/ListOauth
+
     cache:
       driver: "redis"
       redis:
@@ -46,34 +47,35 @@ data:
         read_timeout: 0.2s
         write_timeout: 0.2s
         dial_timeout: 0.2s
-    
+
     database:
       driver: "mysql"
       debug: false
       dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
-    
+
     bizDatabase:
       driver: "mysql"
       debug: false
       dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/"
-    
+
     alarmDatabase:
       driver: "mysql"
       debug: false
       dsn: "root:FfVodQL2BLo02H@tcp(mysql.middleware.svc.cluster.local:3306)/"
-    
+
     log:
       type: "slog"
       level: "debug"
       slog:
         json: true
-    
+
     oauth2:
       redirect_uri: "https://moon.aide-cloud.cn"
       github:
         client_id: ""
         client_secret: ""
         callback_uri: "https://moon.aide-cloud.cn/api/auth/github/callback"
+        authorize_uri: "https://moon.aide-cloud.cn/api/auth/github"
         scopes:
           - "user"
           - "email"
@@ -81,10 +83,11 @@ data:
         client_id: ""
         client_secret: ""
         callback_uri: "https://moon.aide-cloud.cn/api/auth/gitee/callback"
+        authorize_uri: "https://moon.aide-cloud.cn/api/auth/gitee"
         scopes:
           - "user_info"
           - "emails"
-    
+
     email_config:
       host: smtp.163.com
       port: 25
