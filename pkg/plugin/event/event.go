@@ -11,6 +11,8 @@ import (
 const (
 	mockMQ   = "mock"
 	rocketMQ = "rocketmq"
+	kafkaMQ  = "kafka"
+	mqttMQ   = "mqtt"
 )
 
 // NewEvent 创建消息队列
@@ -20,6 +22,10 @@ func NewEvent(c *conf.MQ) (mq.IMQ, error) {
 		return NewRocketMQEvent(c.GetRocketMQ())
 	case mockMQ:
 		return mq.NewMockMQ(), nil
+	case mqttMQ:
+		return NewMqttEvent(c.GetMqtt())
+	case kafkaMQ:
+		return NewKafkaEvent(c.GetKafka())
 	default:
 		return nil, merr.ErrorNotificationSystemError("不支持的消息队列类型")
 	}

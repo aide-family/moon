@@ -7,6 +7,7 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -101,6 +102,10 @@ type (
 
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.Datasource) []*api.Datasource
+		// ToMqAPI 转换为MQ API对象
+		ToMqAPI(*bo.Datasource) *api.MQDatasource
+		// ToMqAPIs 转换为MQ API对象列表
+		ToMqAPIs([]*bo.Datasource) []*api.MQDatasource
 	}
 
 	boDatasourceBuilder struct {
@@ -108,19 +113,56 @@ type (
 	}
 )
 
+func (b *boDatasourceBuilder) ToMqAPI(datasource *bo.Datasource) *api.MQDatasource {
+	if types.IsNil(b) || types.IsNil(datasource) {
+		return nil
+	}
+
+	mqConfig := &conf.MQ{}
+	switch datasource.StorageType {
+	case vobj.StorageTypeMQTT:
+		mqConfig.Mqtt = datasource.Config.GetMQTT()
+		mqConfig.Type = "mqtt"
+	case vobj.StorageTypeKafka:
+		mqConfig.Kafka = datasource.Config.GetKafka()
+		mqConfig.Type = "kafka"
+	case vobj.StorageTypeRocketMQ:
+		mqConfig.RocketMQ = datasource.Config.GetRocketMQ()
+		mqConfig.Type = "rocketmq"
+	case vobj.StorageTypeRabbitMQ:
+	default:
+		return nil
+	}
+
+	item := &api.MQDatasource{
+		Id:     datasource.ID,
+		Mq:     mqConfig,
+		Status: api.Status(datasource.Status),
+	}
+	return item
+}
+
+func (b *boDatasourceBuilder) ToMqAPIs(datasources []*bo.Datasource) []*api.MQDatasource {
+	if types.IsNil(datasources) || types.IsNil(b) {
+		return nil
+	}
+	return types.SliceTo(datasources, func(item *bo.Datasource) *api.MQDatasource {
+		return b.ToMqAPI(item)
+	})
+}
+
 func (d *doDatasourceBuilder) ToBo(datasource *bizmodel.Datasource) *bo.Datasource {
 	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
 
-	config := make(map[string]string)
-	_ = types.Unmarshal([]byte(datasource.Config), &config)
 	return &bo.Datasource{
 		Category:    datasource.Category,
 		StorageType: datasource.StorageType,
-		Config:      config,
+		Config:      datasource.Config,
 		Endpoint:    datasource.Endpoint,
 		ID:          datasource.ID,
+		Status:      datasource.Status,
 	}
 }
 
@@ -142,7 +184,7 @@ func (b *boDatasourceBuilder) ToAPI(datasource *bo.Datasource) *api.Datasource {
 	return &api.Datasource{
 		Category:    api.DatasourceType(datasource.Category),
 		StorageType: api.StorageType(datasource.StorageType),
-		Config:      datasource.Config,
+		Config:      datasource.Config.Map(),
 		Endpoint:    datasource.Endpoint,
 		Id:          datasource.ID,
 	}
@@ -188,7 +230,7 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 		Remark:         u.GetRemark(),
 		StorageType:    vobj.StorageType(u.GetStorageType()),
 		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
-		ConfigValue:    u.GetConfigValue(),
+		ConfigValue:    vobj.NewDatasourceConfig(u.GetConfigValue()),
 	}
 }
 
@@ -203,7 +245,7 @@ func (c *createDatasourceRequestBuilder) ToBo() *bo.CreateDatasourceParams {
 		Endpoint:       c.GetEndpoint(),
 		Status:         vobj.Status(c.GetStatus()),
 		Remark:         c.GetRemark(),
-		Config:         c.GetConfig(),
+		Config:         vobj.NewDatasourceConfig(c.GetConfig()),
 		StorageType:    vobj.StorageType(c.GetStorageType()),
 	}
 }
@@ -214,9 +256,6 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ..
 	}
 
 	userMap := getUsers(d.ctx, userMaps, datasource.CreatorID)
-
-	config := make(map[string]string)
-	_ = types.Unmarshal([]byte(datasource.Config), &config)
 	return &adminapi.DatasourceItem{
 		Id:             datasource.ID,
 		Name:           datasource.Name,
@@ -225,7 +264,7 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ..
 		Status:         api.Status(datasource.Status),
 		CreatedAt:      datasource.CreatedAt.String(),
 		UpdatedAt:      datasource.UpdatedAt.String(),
-		Config:         config,
+		Config:         datasource.Config.Map(),
 		Remark:         datasource.Remark,
 		StorageType:    api.StorageType(datasource.StorageType),
 		Creator:        userMap[datasource.CreatorID],
