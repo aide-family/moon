@@ -1,0 +1,232 @@
+env: dev # dev、test、prod、local
+
+dependPalace: true
+server:
+  name: moon_rabbit
+  httpEndpoint: "127.0.0.1:8003"
+  grpcEndpoint: "127.0.0.1:9003"
+  network: "rpc"
+  secret: ""
+  metadata:
+    description: 是moon监控系列的消息组件，可以独立部署，接受任意的hook消息，并支持邮件、钉钉、企业微信、飞书等告警
+    background: 寓意为月宫中的玉兔，专门用于消息通知
+
+http:
+  addr: 0.0.0.0:8003
+  timeout: 2s
+grpc:
+  addr: 0.0.0.0:9003
+  timeout: 2s
+
+cache:
+  driver: "free"
+  redis:
+    network: "tcp"
+    addr: 127.0.0.1:6379
+    db: 0
+    password: ""
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+    dial_timeout: 0.2s
+  nutsDB:
+    path: ./tmp/nutsdb
+    bucket: test
+  free:
+    size: 104857600
+
+# TODO 调整模板结构， 支持多租户
+templates:
+  email: |
+    <h1>监控告警</h1>
+    <p>{{ .annotations.summary }}</p>
+    <p>{{ .annotations.description }}</p>
+    <p>时间: {{ .startsAt }} 至 {{ .endsAt }}</p>
+  dingtalk: |
+    {{- $status := .status -}}
+    {{- $labels := .labels -}}
+    {{- $annotations := .annotations -}}
+    
+    {
+        "msgtype": "markdown",
+        "markdown": {
+          "title": "平台状态通知",
+          "text": "### {{if eq $status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\n\n  \n**时间**: `{{ .startsAt }}` 至 `{{ .endsAt }}`  \n\n<hr/>\n\n**摘要**:  \n`{{ $annotations.summary }}`  \n\n**描述**:  \n`{{ $annotations.description }}`  \n\n<hr/>\n\n**标签**:  \n- **数据源 ID**: {{ index $labels "__moon__datasource_id__" }}  \n- **数据源 URL**: [链接]({{ index $labels "__moon__datasource_url__" }})  \n- **级别 ID**: {{ index $labels "__moon__level_id__" }}  \n- **策略 ID**: {{ index $labels "__moon__strategy_id__" }}  \n- **团队 ID**: {{ index $labels "__moon__team_id__" }}  \n- **实例**: `{{ index $labels "instance" }}`  \n- **IP**: `{{ index $labels "ip" }}`  \n- **作业**: `{{ index $labels "job" }}`  \n\n<hr/>\n\n请根据以上信息进行后续处理！"
+        }
+    }
+
+  feishu: |
+    {
+        "msg_type": "interactive",
+        "card": {
+            "config": {
+                "wide_screen_mode": true
+            },
+            "header": {
+                "title": {
+                    "tag": "plain_text",
+                    "content": "{{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}"
+                },
+                "template": "{{if eq .status `resolved`}}green{{else}}red{{end}}"
+            },
+            "elements": [
+                {
+                    "tag": "div",
+                    "fields": [
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🔍 告警摘要**\n{{.annotations.summary}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🔍 告警描述**\n{{.annotations.description}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "**🕒 开始时间**\n{{.startsAt}}"
+                            }
+                        },
+                        {
+                            "is_short": false,
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "{{if eq .status `resolved`}}**🕒 恢复时间**\n{{.endsAt}}{{end}}"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "tag": "hr"
+                },
+                {
+                  "tag": "div",
+                  "fields": [
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**❗ 状态**\n<font color=\"warning\">{{.status}}</font>"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🌐 数据源**\n[点击查看]({{.labels.__moon__datasource_url__}})"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**📛 告警名称**\n<font color=\"info\">{{.labels.__name__}}</font>"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🔗 策略 ID**\n{{.labels.__moon__strategy_id__}}"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**🆔 团队 ID**\n{{.labels.__moon__team_id__}}"
+                      }
+                    },
+                    {
+                      "is_short": true,
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**💻 IP 地址**\n{{.labels.ip}}"
+                      }
+                    }
+                  ]
+                },
+                {
+                    "tag": "hr"
+                },
+                {
+                    "tag": "action",
+                    "actions": [
+                        {
+                            "tag": "button",
+                            "text": {
+                                "tag": "lark_md",
+                                "content": "📄 查看详情"
+                            },
+                            "url": "{{.labels.__moon__datasource_url__}}",
+                            "type": "primary"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+
+
+
+
+
+  wechat: |
+    {
+        "msgtype": "markdown",
+        "markdown": {
+          "content": "### {{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\n\n {{ .annotations }}"
+        }
+    }
+
+
+
+
+global_email_config:
+  host: smtp.163.com
+  port: 25
+  user:
+  pass:
+
+receivers:
+  test:
+    emails:
+      - to: "1058165620@qq.com"
+        subject: "Moon监控测试告警"
+        content: ""
+        template: "email"
+        contentType: "text/plain"
+        cc:
+        attachUrl:
+#    hooks:
+#      - dingTalk:
+#          webhook: "https://oapi.dingtalk.com/robot/send?access_token="
+#          secret: ""
+#          content: ""
+#          template: "dingTalk"
+
+#discovery:
+#  driver: "etcd"
+#  etcd:
+#    endpoints:
+#      - 127.0.0.1:20000
+#      - 127.0.0.1:20002
+#      - 127.0.0.1:20004
+#    username: ""
+#    password: ""
+#    timeout: 10s
+
+palace_server:
+  network: "rpc"
+  nodeVersion: ""
+  #  endpoint: "discovery:///moon_palace"
+  endpoint: "127.0.0.1:9001"
+  timeout: 50s
+  secret: ""

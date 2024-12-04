@@ -147,7 +147,7 @@ message UpdateDatasourceRequest {
   // 存储器类型
   StorageType storageType = 6[(buf.validate.field).enum = {not_in: [0]}];
   // config 配置
-  string  configValue = 7;
+  map<string, string>  configValue = 7;
 }
 message UpdateDatasourceReply {}
 
