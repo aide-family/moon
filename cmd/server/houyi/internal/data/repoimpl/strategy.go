@@ -34,6 +34,7 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrate
 		defer after.RecoverX()
 		for _, strategyItem := range strategies {
 			item, ok := strategyItem.(bo.IStrategyEvent)
+			log.Debugw("strategyItem:", item)
 			if ok {
 				if err := mqQueue.Push(item.Message()); err != nil {
 					log.Errorw("method", "mqQueue.push", "error", err)

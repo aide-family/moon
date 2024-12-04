@@ -67,12 +67,10 @@ func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasou
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	config, _ := types.Marshal(datasource.Config)
-
 	datasourceModel := &bizmodel.Datasource{
 		Name:        datasource.Name,
 		Category:    datasource.DatasourceType,
-		Config:      string(config),
+		Config:      datasource.Config,
 		Endpoint:    datasource.Endpoint,
 		Status:      datasource.Status,
 		Remark:      datasource.Remark,

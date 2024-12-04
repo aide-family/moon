@@ -3,8 +3,8 @@ package bo
 import (
 	"fmt"
 
+	"github.com/aide-family/moon/pkg/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -289,12 +289,14 @@ type (
 		Category vobj.DatasourceType `json:"category,omitempty"`
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
-		// 数据源配置 json
-		Config map[string]string `json:"config,omitempty"`
+		// 数据源配置
+		Config *datasource.DatasourceConfig `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID
 		ID uint32 `json:"id,omitempty"`
+		// 状态
+		Status vobj.Status
 	}
 )
 
@@ -314,5 +316,8 @@ func (s *Strategy) Index() string {
 
 // Message 策略转消息
 func (s *Strategy) Message() *watch.Message {
+	if s.StrategyType.IsMq() {
+		return watch.NewMessage(s, vobj.TopicEventStrategy)
+	}
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }

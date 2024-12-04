@@ -97,7 +97,6 @@ func RegisterService(
 	teamRoleService *team.RoleService,
 	datasourceService *datasource.Service,
 	metricService *datasource.MetricService,
-	mqDatasourceService *datasource.MqDatasourceService,
 	menuService *menu.Service,
 	dictService *dict.Service,
 	strategyService *strategy.Service,
@@ -124,7 +123,6 @@ func RegisterService(
 	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceServer(rpcSrv, datasourceService)
 	datasourceapi.RegisterMetricServer(rpcSrv, metricService)
-	datasourceapi.RegisterMqDatasourceServer(rpcSrv, mqDatasourceService)
 	dictapi.RegisterDictServer(rpcSrv, dictService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
@@ -151,7 +149,6 @@ func RegisterService(
 	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
 	datasourceapi.RegisterMetricHTTPServer(httpSrv, metricService)
-	datasourceapi.RegisterMqDatasourceHTTPServer(httpSrv, mqDatasourceService)
 	dictapi.RegisterDictHTTPServer(httpSrv, dictService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)

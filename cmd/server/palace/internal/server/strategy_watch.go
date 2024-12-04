@@ -82,7 +82,7 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 			case <-s.stopCh:
 				return
 			case msg, ok := <-s.data.GetStrategyQueue().Next():
-				if !ok || !msg.GetTopic().IsStrategy() {
+				if !ok || (!msg.GetTopic().IsStrategy() && !msg.GetTopic().IsEventstrategy()) {
 					continue
 				}
 

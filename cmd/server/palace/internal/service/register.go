@@ -32,7 +32,6 @@ var ProviderSetService = wire.NewSet(
 	team.NewRoleService,
 	datasource.NewDatasourceService,
 	datasource.NewMetricService,
-	datasource.NewMqDatasourceService,
 	strategy.NewStrategyService,
 	strategy.NewTemplateService,
 	dict.NewDictService,

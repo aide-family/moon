@@ -69,9 +69,6 @@ type StrategyEvent struct {
 
 // GetTopic 获取主题
 func (s *StrategyEvent) GetTopic() string {
-	if s.msg == nil {
-		return ""
-	}
 	return s.Expr
 }
 
@@ -191,7 +188,7 @@ func (s *StrategyEvent) Eval(_ context.Context) (map[watch.Indexer]*datasource.P
 			Values: []*datasource.Value{
 				{
 					Value:     s.isCompletelyMeet(),
-					Timestamp: 0,
+					Timestamp: s.getEventTime().Unix(),
 				},
 			},
 		},
@@ -204,6 +201,14 @@ func (s *StrategyEvent) isCompletelyMeet() float64 {
 		return 1
 	}
 	return 0
+}
+
+// getEventTime 获取告警时间
+func (s *StrategyEvent) getEventTime() *types.Time {
+	if s.msg.Timestamp == nil {
+		return types.NewTime(time.Now())
+	}
+	return s.msg.Timestamp
 }
 
 // IsCompletelyMeet 实现 IStrategy 接口
