@@ -11,213 +11,215 @@ option java_package = "api.jadetree";
 
 // 任务管理模块
 service Task {
-	// 创建任务
-	rpc CreateTask (CreateTaskRequest) returns (CreateTaskReply) {
-		option (google.api.http) = {
-			post: "/v1/task/create"
-			body: "*"
-		};
-	}
-	// 删除任务
-	rpc DeleteTask (DeleteTaskRequest) returns (DeleteTaskReply) {
-		option (google.api.http) = {
-			delete: "/v1/task/delete"
-		};
-	}
-	// 获取任务详情
-	rpc GetTask (GetTaskRequest) returns (GetTaskReply) {
-		option (google.api.http) = {
-			get: "/v1/task/get"
-		};
-	}
-	// 获取任务列表
-	rpc ListTask (ListTaskRequest) returns (ListTaskReply) {
-		option (google.api.http) = {
-			get: "/v1/task/list"
-		};
-	}
-	// 执行任务
-	rpc ExecuteTask (ExecuteTaskRequest) returns (ExecuteTaskReply) {
-		option (google.api.http) = {
-			post: "/v1/task/execute"
-			body: "*"
-		};
-	}
-	// 创建Secrets
-	rpc CreateSecrets (CreateSecretsRequest) returns (CreateSecretsReply) {
-		option (google.api.http) = {
-			post: "/v1/secret/create"
-			body: "*"
-		};
-	}
-	// 获取Secrets
-	rpc GetSecrets (GetSecretsRequest) returns (GetSecretsReply) {
-		option (google.api.http) = {
-			get: "/v1/secret/get"
-		};
-	}
-	// 创建env
-	rpc CreateEnv (CreateEnvRequest) returns (CreateEnvReply) {
-		option (google.api.http) = {
-			post: "/v1/env/create"
-			body: "*"
-		};
-	}
-	// 获取env
-	rpc GetEnv (GetEnvRequest) returns (GetEnvReply) {
-		option (google.api.http) = {
-			get: "/v1/env/get"
-		};
-	}
+  // 创建任务
+  rpc CreateTask (CreateTaskRequest) returns (CreateTaskReply) {
+    option (google.api.http) = {
+      post: "/v1/task/create"
+      body: "*"
+    };
+  }
+  // 删除任务
+  rpc DeleteTask (DeleteTaskRequest) returns (DeleteTaskReply) {
+    option (google.api.http) = {
+      delete: "/v1/task/delete"
+    };
+  }
+  // 获取任务详情
+  rpc GetTask (GetTaskRequest) returns (GetTaskReply) {
+    option (google.api.http) = {
+      get: "/v1/task/get"
+    };
+  }
+  // 获取任务列表
+  rpc ListTask (ListTaskRequest) returns (ListTaskReply) {
+    option (google.api.http) = {
+      get: "/v1/task/list"
+    };
+  }
+  // 执行任务
+  rpc ExecuteTask (ExecuteTaskRequest) returns (ExecuteTaskReply) {
+    option (google.api.http) = {
+      post: "/v1/task/execute"
+      body: "*"
+    };
+  }
+  // 创建Secrets
+  rpc CreateSecrets (CreateSecretsRequest) returns (CreateSecretsReply) {
+    option (google.api.http) = {
+      post: "/v1/secret/create"
+      body: "*"
+    };
+  }
+  // 获取Secrets
+  rpc GetSecrets (GetSecretsRequest) returns (GetSecretsReply) {
+    option (google.api.http) = {
+      get: "/v1/secret/get"
+    };
+  }
+  // 创建env
+  rpc CreateEnv (CreateEnvRequest) returns (CreateEnvReply) {
+    option (google.api.http) = {
+      post: "/v1/env/create"
+      body: "*"
+    };
+  }
+  // 获取env
+  rpc GetEnv (GetEnvRequest) returns (GetEnvReply) {
+    option (google.api.http) = {
+      get: "/v1/env/get"
+    };
+  }
 }
 
 // 创建任务请求参数
 message CreateTaskRequest {
-	// 医药包
-	MedicineItem medicine = 1 [(buf.validate.field).required = true];
-	// 签名
-	string sign = 2 [(buf.validate.field).required = true];
+  // 医药包
+  MedicineItem medicine = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 2 [(buf.validate.field).required = true];
 }
 // 创建任务响应参数
 message CreateTaskReply {}
 
 // 删除任务请求参数
 message DeleteTaskRequest {
-	// uuid
-	string uuid = 1 [(buf.validate.field).cel = {
-		message: "uuid格式不正确",
-		expression: "this.matches('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')"
-	}];
-	// 签名
-	string sign = 2 [(buf.validate.field).required = true];
+  // uuid
+  string uuid = 1 [(buf.validate.field).cel = {
+    message: "uuid格式不正确",
+    expression: "this.matches('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')"
+  }];
+  // 签名
+  string sign = 2 [(buf.validate.field).required = true];
 }
 // 删除任务响应参数
 message DeleteTaskReply {}
 
 // 获取任务详情请求参数
 message GetTaskRequest {
-	// uuid
-	string uuid = 1 [(buf.validate.field).required = true];
-	// 签名
-	string sign = 2 [(buf.validate.field).required = true];
+  // uuid
+  string uuid = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 2 [(buf.validate.field).required = true];
 }
 // 获取任务详情响应参数
 message GetTaskReply {
-	// 任务
-	MedicineItem detail = 1;
+  // 任务
+  MedicineItem detail = 1;
 }
 
 // 获取任务列表请求参数
 message ListTaskRequest {
-	// 签名
-	string sign = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 1 [(buf.validate.field).required = true];
 }
 // 获取任务列表响应参数
 message ListTaskReply {
-	// 任务列表
-	repeated MedicineItem list = 1;
+  // 任务列表
+  repeated MedicineItem list = 1;
 }
 
 // 执行任务请求参数
 message ExecuteTaskRequest {
-	// 医药包
-	MedicineItem medicine = 1 [(buf.validate.field).required = true];
-	// 签名
-	string sign = 2 [(buf.validate.field).required = true];
-	// 参考数据 告警时候推送的是告警信息（json 字符串）
-	string reference = 3;
+  // 医药包ID
+  string uuid = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 2 [(buf.validate.field).required = true];
+  // 参考数据 告警时候推送的是告警信息（json 字符串）
+  string reference = 3;
 }
 // 执行任务响应参数
 message ExecuteTaskReply {
-	// 执行结果 key: 任务ID value: 执行结果
-	map<string, string> result = 1;
+  // 执行结果 key: 任务ID value: 执行结果
+  map<string, string> result = 1;
+  // 任务ID
+  string uuid = 2;
 }
 
 // 创建Secrets请求参数
 message CreateSecretsRequest {
-	// 签名
-	string sign = 1 [(buf.validate.field).required = true];
-	// 秘钥
-	map<string, string> secrets = 2 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 1 [(buf.validate.field).required = true];
+  // 秘钥
+  map<string, string> secrets = 2 [(buf.validate.field).required = true];
 }
 // 创建Secrets响应参数
 message CreateSecretsReply {}
 
 // 获取Secrets请求参数
 message GetSecretsRequest {
-	// 签名
-	string sign = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 1 [(buf.validate.field).required = true];
 }
 // 获取Secrets响应参数
 message GetSecretsReply {
-	// 秘钥
-	repeated string secrets = 1;
+  // 秘钥
+  repeated string secrets = 1;
 }
 
 // 创建env请求参数
 message CreateEnvRequest {
-	// 签名
-	string sign = 1 [(buf.validate.field).required = true];
-	// env
-	map<string, string> env = 2 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 1 [(buf.validate.field).required = true];
+  // env
+  map<string, string> env = 2 [(buf.validate.field).required = true];
 }
 // 创建env响应参数
 message CreateEnvReply {}
 
 // 获取env请求参数
 message GetEnvRequest {
-	// 签名
-	string sign = 1 [(buf.validate.field).required = true];
+  // 签名
+  string sign = 1 [(buf.validate.field).required = true];
 }
 // 获取env响应参数
 message GetEnvReply {
-	// env
-	map<string, string> env = 1;
+  // env
+  map<string, string> env = 1;
 }
 
 // 医药包
 message MedicineItem {
-	// 名称
-	string name = 1 [(buf.validate.field).cel = {
-		message: "名称长度限制在1-20个字符",
-		expression: "this.size() >= 1 && this.size() <= 20"
-	}];
-	// 描述
-	string remark = 2 [(buf.validate.field).cel = {
-		message: "描述长度限制在0-200个字符",
-		expression: "this.size() <= 200"
-	}];
-	// 版本
-	string version = 3 [(buf.validate.field).required = true];
-	// uuid
-	string uuid = 4 [(buf.validate.field).cel = {
-		message: "uuid格式不正确",
-		expression: "this.matches('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')"
-	}];
-	// 任务列表
-	repeated JobItem steps = 5 [(buf.validate.field).cel = {
-		message: "任务列表不能为空",
-		expression: "this.size() > 0"
-	}];
-	// 数据
-	map<string, string> outputs = 6;
+  // 名称
+  string name = 1 [(buf.validate.field).cel = {
+    message: "名称长度限制在1-20个字符",
+    expression: "this.size() >= 1 && this.size() <= 20"
+  }];
+  // 描述
+  string remark = 2 [(buf.validate.field).cel = {
+    message: "描述长度限制在0-200个字符",
+    expression: "this.size() <= 200"
+  }];
+  // 版本
+  string version = 3 [(buf.validate.field).required = true];
+  // uuid
+  string uuid = 4 [(buf.validate.field).cel = {
+    message: "uuid格式不正确",
+    expression: "this.matches('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')"
+  }];
+  // 任务列表
+  repeated JobItem steps = 5 [(buf.validate.field).cel = {
+    message: "任务列表不能为空",
+    expression: "this.size() > 0"
+  }];
+  // 数据
+  map<string, string> outputs = 6;
 }
 
 // 任务
 message JobItem {
-	// 名称
-	string name = 1 [(buf.validate.field).required = true];
-	// 描述
-	string remark = 2 [(buf.validate.field).cel = {
-		message: "描述长度限制在0-200个字符",
-		expression: "this.size() <= 200"
-	}];
-	// 任务ID
-	string id = 3 [(buf.validate.field).required = true];
-	// 运行
-	string run = 4 [(buf.validate.field).required = true];
-	// env
-	map<string, string> env = 5;
-	// 数据
-	map<string, string> with = 6;
+  // 名称
+  string name = 1 [(buf.validate.field).required = true];
+  // 描述
+  string remark = 2 [(buf.validate.field).cel = {
+    message: "描述长度限制在0-200个字符",
+    expression: "this.size() <= 200"
+  }];
+  // 任务ID
+  string id = 3 [(buf.validate.field).required = true];
+  // 运行
+  string run = 4 [(buf.validate.field).required = true];
+  // env
+  map<string, string> env = 5;
+  // 数据
+  map<string, string> with = 6;
 }
