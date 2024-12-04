@@ -172,12 +172,10 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 
 func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.RealtimeAlarm {
 	strategy := param.Strategy
-	levelID := param.Level.MetricsLevel.LevelID
-	strategyLevel := param.Level.MetricsLevel
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := vobj.NewAnnotations(alarmParam.Annotations)
-		return &alarmmodel.RealtimeAlarm{
+		alarm := &alarmmodel.RealtimeAlarm{
 			Status:      vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:    alarmParam.StartsAt,
 			EndsAt:      alarmParam.EndsAt,
@@ -192,11 +190,26 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
 				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
 			}),
-			LevelID: levelID,
-			Pages: types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
-				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
-			}),
 		}
+
+		strategyLevel := param.Level.MetricsLevel
+		mqLevel := param.Level.MQLevel
+
+		switch strategy.StrategyType {
+		case vobj.StrategyTypeMetric:
+			alarm.Pages = types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
+			})
+			alarm.LevelID = strategyLevel.LevelID
+		case vobj.StrategyTypeMQ:
+			alarm.Pages = types.SliceTo(mqLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
+			})
+			alarm.LevelID = mqLevel.ID
+		default:
+			panic("unknown strategy type")
+		}
+		return alarm
 	})
 	return alarms
 }

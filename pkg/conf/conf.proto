@@ -342,10 +342,68 @@ message RocketMQ {
   string namespace = 6;
 }
 
+// mqtt配置
+message MQTT {
+  // broker地址
+  string  broker = 1;
+  // 用户名
+  string  username = 2;
+  // 密码
+  string  password = 3;
+  // client
+  string clientId = 4;
+  // 是否自动重连
+  bool autoReconnect = 5;
+  // qos  0 1 2
+  int32  qos = 6;
+}
+
+// kafka配置
+message Kafka{
+  // broker地址
+  string brokers = 1;
+  // topic
+  string topic = 2;
+  // 消费组
+  string groupName = 3;
+  // 策略
+  string strategy = 4;
+  // 用户名
+  string username = 5;
+  // 密码
+  string password = 6;
+  // 是否开启sasl
+  bool saslEnable = 7;
+  // version
+  string version = 8;
+}
+
+// rabbitmq配置
+message RabbitMQ {
+  // url
+  string url = 1;
+  // exchange
+  string exchange = 2;
+  // routingKey
+  string routingKey = 3;
+  // type Fanout  Direct  Topic Headers
+  string type = 4;
+  // queue
+  string queue = 5;
+}
+
+
+
 // mq配置
 message MQ {
   // mq类型
   string type = 1;
   // rocketmq配置
   RocketMQ rocketMQ = 2;
+  // mqtt配置
+  MQTT mqtt = 3;
+  // kafka配置
+  Kafka kafka = 4;
+  // rabbitmq配置
+  RabbitMQ rabbitMQ = 5;
 }
