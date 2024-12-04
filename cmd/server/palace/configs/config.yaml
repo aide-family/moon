@@ -106,6 +106,7 @@ log:
 #    client_id: ""
 #    client_secret: ""
 #    callback_uri: "http://localhost:8000/auth/github/callback"
+#    authorize_uri: "http://localhost:8000/auth/github"
 #    scopes:
 #      - "user"
 #      - "email"
@@ -113,6 +114,7 @@ log:
 #    client_id: ""
 #    client_secret: ""
 #    callback_uri: "http://localhost:8000/auth/gitee/callback"
+#    authorize_uri: "http://localhost:8000/auth/gitee"
 #    scopes:
 #      - "user_info"
 #      - "emails"

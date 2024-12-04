@@ -5,7 +5,6 @@ import (
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
-	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type IOauthModuleBuilder interface {
@@ -29,14 +28,14 @@ func (b *oauthModuleBuilder) ToAPI(config *palaceconf.OAuth2) []*authorizationap
 		list = append(list, &authorizationapi.OauthItem{
 			Icon:     "github",
 			Label:    "Github登录",
-			Redirect: types.GetAPI(config.GetGithub().GetCallbackUri()),
+			Redirect: config.GetGithub().GetAuthorizeUri(),
 		})
 	}
 	if config.Gitee != nil {
 		list = append(list, &authorizationapi.OauthItem{
 			Icon:     "gitee",
 			Label:    "Gitee登录",
-			Redirect: types.GetAPI(config.GetGitee().GetCallbackUri()),
+			Redirect: config.GetGitee().GetAuthorizeUri(),
 		})
 	}
 	return list

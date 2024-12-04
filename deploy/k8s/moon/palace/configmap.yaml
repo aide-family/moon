@@ -75,6 +75,7 @@ data:
         client_id: ""
         client_secret: ""
         callback_uri: "https://moon.aide-cloud.cn/api/auth/github/callback"
+        authorize_uri: "https://moon.aide-cloud.cn/api/auth/github"
         scopes:
           - "user"
           - "email"
@@ -82,6 +83,7 @@ data:
         client_id: ""
         client_secret: ""
         callback_uri: "https://moon.aide-cloud.cn/api/auth/gitee/callback"
+        authorize_uri: "https://moon.aide-cloud.cn/api/auth/gitee"
         scopes:
           - "user_info"
           - "emails"
