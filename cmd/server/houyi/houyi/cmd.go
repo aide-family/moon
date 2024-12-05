@@ -1,12 +1,11 @@
 package main
 
 import (
-	"net/http"
-	_ "net/http/pprof"
+	"flag"
 
 	_ "go.uber.org/automaxprocs"
 
-	"flag"
+	"github.com/aide-family/moon/pkg/helper"
 
 	"github.com/aide-family/moon/cmd/server/houyi"
 	"github.com/aide-family/moon/pkg/env"
@@ -36,11 +35,6 @@ func init() {
 func main() {
 	flag.Parse()
 	env.SetVersion(Version)
-
-	go func() {
-		if pprofAddress != "" {
-			http.ListenAndServe(pprofAddress, nil)
-		}
-	}()
+	helper.Pprof(pprofAddress)
 	houyi.Run(flagconf, configType)
 }

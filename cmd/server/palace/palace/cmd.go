@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"net/http"
-	_ "net/http/pprof"
 
 	_ "go.uber.org/automaxprocs"
+
+	"github.com/aide-family/moon/pkg/helper"
 
 	"github.com/aide-family/moon/cmd/server/palace"
 	"github.com/aide-family/moon/pkg/env"
@@ -35,10 +35,6 @@ func init() {
 func main() {
 	flag.Parse()
 	env.SetVersion(Version)
-	go func() {
-		if pprofAddress != "" {
-			http.ListenAndServe(pprofAddress, nil)
-		}
-	}()
+	helper.Pprof(pprofAddress)
 	palace.Run(flagconf, configType)
 }
