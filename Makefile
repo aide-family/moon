@@ -137,17 +137,17 @@ clean:
 .PHONY: houyi
 # local run houyi
 houyi:
-	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/houyi/houyi/cmd.go -c cmd/server/houyi/configs
+	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/houyi/houyi/cmd.go -c cmd/server/houyi/configs -pprof_address 0.0.0.0:6062
 
 .PHONY: rabbit
 # local run rabbit
 rabbit:
-	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/rabbit/rabbit/cmd.go -c cmd/server/rabbit/configs
+	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/rabbit/rabbit/cmd.go -c cmd/server/rabbit/configs -pprof_address 0.0.0.0:6061
 
 .PHONY: palace
 # local run palace
 palace:
-	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/palace/palace/cmd.go -c cmd/server/palace/configs
+	go run -ldflags "-X main.Version=$(VERSION)" cmd/server/palace/palace/cmd.go -c cmd/server/palace/configs -pprof_address 0.0.0.0:6060
 
 # show help
 help:
