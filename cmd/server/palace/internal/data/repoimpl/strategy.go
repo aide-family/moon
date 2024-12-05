@@ -705,7 +705,11 @@ func (s *strategyRepositoryImpl) GetStrategyMetricLevels(ctx context.Context, st
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.WithContext(ctx).StrategyMetricsLevel.Where(bizQuery.StrategyMetricsLevel.StrategyID.In(strategyIds...)).Find()
+	return bizQuery.WithContext(ctx).
+		StrategyMetricsLevel.
+		Where(bizQuery.StrategyMetricsLevel.StrategyID.In(strategyIds...)).
+		Preload(field.Associations).
+		Find()
 }
 
 // GetStrategyMQLevels 获取MQ策略等级
@@ -714,7 +718,11 @@ func (s *strategyRepositoryImpl) GetStrategyMQLevels(ctx context.Context, strate
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.WithContext(ctx).StrategyMQLevel.Preload(field.Associations).Where(bizQuery.StrategyMQLevel.StrategyID.In(strategyIds...)).Find()
+	return bizQuery.WithContext(ctx).
+		StrategyMQLevel.
+		Where(bizQuery.StrategyMQLevel.StrategyID.In(strategyIds...)).
+		Preload(field.Associations).
+		Find()
 }
 
 func createStrategyMetricLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyMetricLevel, strategyID uint32) []*bizmodel.StrategyMetricsLevel {
