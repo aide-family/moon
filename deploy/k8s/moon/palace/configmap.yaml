@@ -36,6 +36,7 @@ data:
         - /api.admin.authorization.Authorization/VerifyEmail
         - /api.admin.authorization.Authorization/SetEmailWithLogin
         - /api.admin.authorization.Authorization/ListOauth
+        - /api.admin.authorization.Authorization/RegisterWithEmail
 
     cache:
       driver: "redis"
