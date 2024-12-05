@@ -72,7 +72,7 @@ service Authorization {
   // 展示oauth列表
   rpc ListOauth (ListOauthRequest) returns (ListOauthReply) {
     option (google.api.http) = {
-      get: "/v1/authorization/oauth"
+      get: "/v1/authorization/oauths"
     };
   }
 

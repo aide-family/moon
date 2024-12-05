@@ -394,14 +394,14 @@ enum InviteType {
   INVITE_TYPE_REJECTED = 3;
 }
 
-enum SendStatus{
+enum SendStatus {
   SEND_STATUS_UNKNOWN = 0;
   Sending = 1;
   SentSuccess = 2;
   SendFail = 3;
 }
 
-enum AlarmSendType{
+enum AlarmSendType {
   AlarmSend_Type_UNKNOWN = 0;
   Alarm_Send_Type_Email = 1;
   Alarm_Send_Type_SMS = 2;
@@ -410,7 +410,7 @@ enum AlarmSendType{
   Alarm_Send_Type_Wechat = 5;
 }
 
-enum StrategyType{
+enum StrategyType {
   // 未知
   StrategyTypeUnknown = 0;
   // Metric
