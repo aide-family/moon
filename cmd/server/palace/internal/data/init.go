@@ -116,6 +116,7 @@ var defaultDictList = []*model.SysDict{
 		DictType:      vobj.DictTypeAlarmLevel,
 		Status:        vobj.StatusEnable,
 		LanguageCode:  vobj.LanguageZHCN,
+		CSSClass:      "#a8071a",
 	},
 	{
 		AllFieldModel: model.AllFieldModel{ID: 2},
@@ -124,6 +125,7 @@ var defaultDictList = []*model.SysDict{
 		DictType:      vobj.DictTypeAlarmLevel,
 		Status:        vobj.StatusEnable,
 		LanguageCode:  vobj.LanguageZHCN,
+		CSSClass:      "#ff9c6e",
 	},
 	{
 		AllFieldModel: model.AllFieldModel{ID: 3},
@@ -132,6 +134,7 @@ var defaultDictList = []*model.SysDict{
 		DictType:      vobj.DictTypeAlarmLevel,
 		Status:        vobj.StatusEnable,
 		LanguageCode:  vobj.LanguageZHCN,
+		CSSClass:      "#fa8c16",
 	},
 	{
 		AllFieldModel: model.AllFieldModel{ID: 4},
@@ -140,6 +143,7 @@ var defaultDictList = []*model.SysDict{
 		DictType:      vobj.DictTypeAlarmLevel,
 		Status:        vobj.StatusEnable,
 		LanguageCode:  vobj.LanguageZHCN,
+		CSSClass:      "#d48806",
 	},
 	{
 		AllFieldModel: model.AllFieldModel{ID: 5},
@@ -148,6 +152,7 @@ var defaultDictList = []*model.SysDict{
 		DictType:      vobj.DictTypeAlarmLevel,
 		Status:        vobj.StatusEnable,
 		LanguageCode:  vobj.LanguageZHCN,
+		CSSClass:      "#d4b106",
 	},
 	{
 		AllFieldModel: model.AllFieldModel{ID: 6},

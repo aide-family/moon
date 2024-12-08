@@ -19,7 +19,7 @@ type SysDict struct {
 	Name         string        `gorm:"column:name;type:varchar(100);not null;uniqueIndex:idx__p__name__dict,priority:1;comment:字典名称"`
 	Value        string        `gorm:"column:value;type:varchar(100);not null;default:'';comment:字典键值"`
 	DictType     vobj.DictType `gorm:"column:dict_type;type:tinyint;not null;uniqueIndex:idx__p__name__dict,priority:2;index:idx__dict,priority:1;comment:字典类型"`
-	ColorType    string        `gorm:"column:color_type;type:varchar(32);not null;default:warning;comment:颜色类型"`
+	ColorType    string        `gorm:"column:color_type;type:varchar(32);not null;default:hex;comment:颜色类型"`
 	CSSClass     string        `gorm:"column:css_class;type:varchar(100);not null;default:#165DFF;comment:css 样式"`
 	Icon         string        `gorm:"column:icon;type:varchar(500);default:'';comment:图标"`
 	ImageURL     string        `gorm:"column:image_url;type:varchar(500);default:'';comment:图片url"`
