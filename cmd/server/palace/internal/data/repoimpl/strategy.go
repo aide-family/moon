@@ -837,12 +837,12 @@ func saveStrategyLevels(ctx context.Context, params *bo.CreateStrategyParams, st
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
 		metricLevelModels := createStrategyMetricLevelParamsToModel(ctx, params.MetricLevels, strategyID)
-		if err := tx.StrategyMetricsLevel.WithContext(ctx).Create(metricLevelModels...); !types.IsNil(err) {
+		if err := tx.StrategyMetricsLevel.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(metricLevelModels...); !types.IsNil(err) {
 			return err
 		}
 	case vobj.StrategyTypeMQ:
 		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.MqLevels, strategyID)
-		if err := tx.StrategyMQLevel.WithContext(ctx).Create(mqLevelModels...); !types.IsNil(err) {
+		if err := tx.StrategyMQLevel.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(mqLevelModels...); !types.IsNil(err) {
 			return err
 		}
 	default:

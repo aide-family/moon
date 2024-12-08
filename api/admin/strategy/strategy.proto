@@ -201,11 +201,6 @@ message CreateStrategyRequest {
   }];
   // 状态
   Status status = 4;
-  // 采样率
-  uint32 step = 5 [(buf.validate.field).cel = {
-    message: "采样率不能为空！",
-    expression: "this > 0"
-  }];
   // 数据源id
   repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
     message: "请选择至少一个数据源",
