@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"gorm.io/gorm/clause"
 
@@ -26,69 +25,35 @@ type alarmPageRepositoryImpl struct {
 	data *data.Data
 }
 
-// AlertLevelCount 告警等级统计
-type AlertLevelCount struct {
-	LevelID uint32 `gorm:"column:level_id"`
-	Count   int64  `gorm:"column:count"`
+// AlertPageCount 告警页面统计
+type AlertPageCount struct {
+	PageID uint32 `gorm:"column:page_id"`
+	Count  int64  `gorm:"column:count"`
 }
 
 // GetAlertCounts 获取告警数量
 func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []uint32) map[int32]int64 {
-	bizQuery, err := getBizQuery(ctx, a.data)
-	if err != nil {
+	if len(pageIDs) == 0 {
 		return nil
 	}
 
-	alarmPageSelfQuery := bizQuery.SysDict
-	alarmPageSelves, err := alarmPageSelfQuery.WithContext(ctx).
-		Where(alarmPageSelfQuery.ID.In(pageIDs...)).
-		Where(alarmPageSelfQuery.DictType.Eq(vobj.DictTypeAlarmPage.GetValue())).
-		Preload(alarmPageSelfQuery.StrategyMetricsLevel).Find()
-	if err != nil {
-		return nil
-	}
-	pageLevelMap := make(map[uint32][]uint32, len(alarmPageSelves))
-	levelIds := make([]uint32, 0, len(alarmPageSelves)*3)
-	for _, alarmPageSelf := range alarmPageSelves {
-		pageLevels := types.SliceTo(alarmPageSelf.StrategyMetricsLevel, func(item *bizmodel.StrategyMetricsLevel) uint32 {
-			return item.LevelID
-		})
-		pageLevelMap[alarmPageSelf.ID] = pageLevels
-		levelIds = append(levelIds, pageLevels...)
-	}
-
-	if len(levelIds) == 0 {
-		return nil
-	}
 	// 统计实时告警这些等级的告警数量
-	var alertLevelCounts []AlertLevelCount
 	bizAlarmQuery, err := getBizAlarmQuery(ctx, a.data)
 	if err != nil {
 		return nil
 	}
-	realtimeAlarmQuery := bizAlarmQuery.RealtimeAlarm
-	err = realtimeAlarmQuery.WithContext(ctx).Where(realtimeAlarmQuery.LevelID.In(levelIds...), realtimeAlarmQuery.Status.Eq(vobj.AlertStatusFiring.GetValue())).
-		Select(realtimeAlarmQuery.LevelID, realtimeAlarmQuery.LevelID.Count().As("count")).
-		Group(realtimeAlarmQuery.LevelID).
-		Scan(&alertLevelCounts)
+	realtimeAlarmPageQuery := bizAlarmQuery.RealtimeAlarmPage
+	realtimeAlarmList, err := realtimeAlarmPageQuery.WithContext(ctx).Where(realtimeAlarmPageQuery.PageID.In(pageIDs...)).
+		Select(realtimeAlarmPageQuery.PageID, realtimeAlarmPageQuery.RealtimeAlarmID).
+		Group(realtimeAlarmPageQuery.RealtimeAlarmID).
+		Find()
 	if err != nil {
 		return nil
 	}
 
-	alertLevelCountsMap := make(map[uint32]int64, len(alertLevelCounts))
-	for _, alertLevelCount := range alertLevelCounts {
-		alertLevelCountsMap[alertLevelCount.LevelID] = alertLevelCount.Count
-	}
-
-	alertCounts := make(map[int32]int64, len(alarmPageSelves))
-	for pageID, pageLevels := range pageLevelMap {
-		pgID := int32(pageID)
-		alertCounts[pgID] = 0
-		for _, pageLevel := range pageLevels {
-			if count, ok := alertLevelCountsMap[pageLevel]; ok {
-				alertCounts[pgID] += count
-			}
-		}
+	alertCounts := make(map[int32]int64, len(realtimeAlarmList))
+	for _, item := range realtimeAlarmList {
+		alertCounts[int32(item.PageID)] += 1
 	}
 	alertCounts[-1] = a.countMyAlarm(ctx)
 
