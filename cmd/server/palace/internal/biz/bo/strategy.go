@@ -315,5 +315,8 @@ func (s *Strategy) Index() string {
 
 // Message 策略转消息
 func (s *Strategy) Message() *watch.Message {
+	if s.StrategyType.IsMq() {
+		return watch.NewMessage(s, vobj.TopicEventStrategy)
+	}
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }
