@@ -61,24 +61,10 @@ func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
 }
 
 func (m *eventStrategyWatch) Start(_ context.Context) error {
-	go func() {
-		defer after.RecoverX()
-		for mqConf := range m.data.GetEventMQQueue().Next() {
-			if !mqConf.GetTopic().IsMqdatasource() {
-				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
-				continue
-			}
-			c := mqConf.GetData().(*bo.MQDatasource)
-			if _, err := m.registerEvent(c); err != nil {
-				log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
-				continue
-			}
-		}
-	}()
 
 	go func() {
 		defer after.RecoverX()
-		for msg := range m.data.GetEventStrategyQueue().Next() {
+		for msg := range m.data.GetEventMQQueue().Next() {
 			if !msg.GetTopic().IsEventstrategy() {
 				log.Warnw("method", "eventStrategyWatch", "topic", msg.GetTopic().String())
 				continue
@@ -103,6 +89,21 @@ func (m *eventStrategyWatch) Start(_ context.Context) error {
 				}
 
 				m.receive(mqCli, strategyMsg)
+			}
+		}
+	}()
+
+	go func() {
+		defer after.RecoverX()
+		for mqConf := range m.data.GetEventMQQueue().Next() {
+			if !mqConf.GetTopic().IsMqdatasource() {
+				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
+				continue
+			}
+			c := mqConf.GetData().(*bo.MQDatasource)
+			if _, err := m.registerEvent(c); err != nil {
+				log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
+				continue
 			}
 		}
 	}()
