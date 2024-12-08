@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/houyi/mq"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/log"
@@ -123,7 +124,7 @@ func (m *MqttEvent) init() error {
 	// 设置 MQTT 客户端选项
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(m.c.GetBroker())
-	opts.SetClientID(m.c.GetClientId())
+	opts.SetClientID(random.UUIDToUpperCase(true))
 	opts.SetUsername(m.c.GetUsername())
 	opts.SetAutoReconnect(m.c.GetAutoReconnect())
 
