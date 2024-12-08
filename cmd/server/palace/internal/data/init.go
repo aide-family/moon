@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -13,6 +14,9 @@ import (
 )
 
 func initMainDatabase(d *Data) error {
+	if env.Env() != "dev" {
+		return nil
+	}
 	if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
 		return err
 	}
@@ -31,6 +35,9 @@ func initMainDatabase(d *Data) error {
 
 // syncBizDatabase 同步业务模型到各个团队， 保证数据一致性
 func syncBizDatabase(d *Data) error {
+	if env.Env() != "dev" {
+		return nil
+	}
 	// 获取所有团队
 	teams, err := query.Use(d.mainDB).SysTeam.Find()
 	if err != nil {
