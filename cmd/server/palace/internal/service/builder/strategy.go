@@ -673,7 +673,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			ReceiverGroupIDs:           types.MergeSliceWithUnique(receiverGroupIDs),
 			LabelNotices:               labelNotices,
 			ID:                         strategy.ID,
-			LevelID:                    level.ID,
+			LevelID:                    level.LevelID,
 			Alert:                      strategy.Name,
 			Expr:                       strategy.Expr,
 			For:                        level.Duration,

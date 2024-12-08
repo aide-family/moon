@@ -51,7 +51,7 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 	levelIds := make([]uint32, 0, len(alarmPageSelves)*3)
 	for _, alarmPageSelf := range alarmPageSelves {
 		pageLevels := types.SliceTo(alarmPageSelf.StrategyMetricsLevel, func(item *bizmodel.StrategyMetricsLevel) uint32 {
-			return item.ID
+			return item.LevelID
 		})
 		pageLevelMap[alarmPageSelf.ID] = pageLevels
 		levelIds = append(levelIds, pageLevels...)
