@@ -122,10 +122,13 @@ func (b *boDatasourceBuilder) ToMqAPI(datasource *bo.Datasource) *api.MQDatasour
 	switch datasource.StorageType {
 	case vobj.StorageTypeMQTT:
 		mqConfig.Mqtt = datasource.Config.GetMQTT()
+		mqConfig.Type = "mqtt"
 	case vobj.StorageTypeKafka:
 		mqConfig.Kafka = datasource.Config.GetKafka()
+		mqConfig.Type = "kafka"
 	case vobj.StorageTypeRocketMQ:
 		mqConfig.RocketMQ = datasource.Config.GetRocketMQ()
+		mqConfig.Type = "rocketmq"
 	case vobj.StorageTypeRabbitMQ:
 	default:
 		return nil
