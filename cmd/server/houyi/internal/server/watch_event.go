@@ -117,9 +117,14 @@ func (m *eventStrategyWatch) receive(mqCli mq.IMQ, strategyMsg bo.IStrategyEvent
 		defer after.RecoverX()
 		for eventMsg := range cli.Receive(strategy.GetTopic()) {
 			// 往 InnerAlarm 推送
-			if _, err := m.alertService.InnerAlarm(context.Background(), strategyMsg.SetValue(eventMsg)); err != nil {
+			innerAlarm, err := m.alertService.InnerAlarm(context.Background(), strategyMsg.SetValue(eventMsg))
+			if err != nil {
 				log.Errorw("method", "eventStrategyWatch.receive", "err", err)
 				continue
+			}
+			if err := m.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
+				log.Warnw("push inner alarm err", err)
+				return
 			}
 		}
 	}(mqCli, strategyMsg)
