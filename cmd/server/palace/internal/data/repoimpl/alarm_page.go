@@ -53,7 +53,7 @@ func (a *alarmPageRepositoryImpl) GetAlertCounts(ctx context.Context, pageIDs []
 
 	alertCounts := make(map[int32]int64, len(realtimeAlarmList))
 	for _, item := range realtimeAlarmList {
-		alertCounts[int32(item.PageID)] += 1
+		alertCounts[int32(item.PageID)]++
 	}
 	alertCounts[-1] = a.countMyAlarm(ctx)
 
