@@ -69,9 +69,6 @@ type StrategyEvent struct {
 
 // GetTopic 获取主题
 func (s *StrategyEvent) GetTopic() string {
-	if s.msg == nil {
-		return ""
-	}
 	return s.Expr
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -43,7 +44,7 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexe
 	// TODO 完成策略数据转换
 	switch item := strategies.(type) {
 	case *bo.Strategy:
-		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))
+		strategyDetail = s.setStrategyByType(ctx, item)
 	case *bo.StrategyDomain:
 		strategyDetail.DomainStrategies = append(strategyDetail.DomainStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyDomainBuilder().ToAPI(item))
 	case *bo.StrategyEndpoint:
@@ -55,6 +56,19 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexe
 	}
 
 	return s.strategyBiz.PushStrategy(ctx, &strategyDetail)
+}
+
+func (s *AlertService) setStrategyByType(ctx context.Context, item *bo.Strategy) strategyapi.PushStrategyRequest {
+	var strategyDetail strategyapi.PushStrategyRequest
+	switch item.StrategyType {
+	case vobj.StrategyTypeMQ:
+		strategyDetail.MqStrategies = append(strategyDetail.MqStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToMqAPI(item))
+	case vobj.StrategyTypeMetric:
+		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))
+	default:
+		return strategyDetail
+	}
+	return strategyDetail
 }
 
 // Hook 告警hook

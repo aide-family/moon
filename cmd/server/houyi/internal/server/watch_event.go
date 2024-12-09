@@ -61,24 +61,10 @@ func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
 }
 
 func (m *eventStrategyWatch) Start(_ context.Context) error {
-	go func() {
-		defer after.RecoverX()
-		for mqConf := range m.data.GetEventMQQueue().Next() {
-			if !mqConf.GetTopic().IsMqdatasource() {
-				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
-				continue
-			}
-			c := mqConf.GetData().(*bo.MQDatasource)
-			if _, err := m.registerEvent(c); err != nil {
-				log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
-				continue
-			}
-		}
-	}()
 
 	go func() {
 		defer after.RecoverX()
-		for msg := range m.data.GetEventStrategyQueue().Next() {
+		for msg := range m.data.GetEventMQQueue().Next() {
 			if !msg.GetTopic().IsEventstrategy() {
 				log.Warnw("method", "eventStrategyWatch", "topic", msg.GetTopic().String())
 				continue
@@ -107,6 +93,21 @@ func (m *eventStrategyWatch) Start(_ context.Context) error {
 		}
 	}()
 
+	go func() {
+		defer after.RecoverX()
+		for mqConf := range m.data.GetEventMQQueue().Next() {
+			if !mqConf.GetTopic().IsMqdatasource() {
+				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
+				continue
+			}
+			c := mqConf.GetData().(*bo.MQDatasource)
+			if _, err := m.registerEvent(c); err != nil {
+				log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
+				continue
+			}
+		}
+	}()
+
 	log.Infof("[eventStrategyWatch] started")
 	return nil
 }
@@ -116,9 +117,14 @@ func (m *eventStrategyWatch) receive(mqCli mq.IMQ, strategyMsg bo.IStrategyEvent
 		defer after.RecoverX()
 		for eventMsg := range cli.Receive(strategy.GetTopic()) {
 			// 往 InnerAlarm 推送
-			if _, err := m.alertService.InnerAlarm(context.Background(), strategyMsg.SetValue(eventMsg)); err != nil {
+			innerAlarm, err := m.alertService.InnerAlarm(context.Background(), strategyMsg.SetValue(eventMsg))
+			if err != nil {
 				log.Errorw("method", "eventStrategyWatch.receive", "err", err)
 				continue
+			}
+			if err := m.data.GetAlertQueue().Push(innerAlarm.Message()); err != nil {
+				log.Warnw("push inner alarm err", err)
+				return
 			}
 		}
 	}(mqCli, strategyMsg)
