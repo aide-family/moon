@@ -35,6 +35,8 @@ message Bootstrap {
   string metricsToken = 19;
   // log配置
   pkg.conf.Log log = 20;
+  // Ollama AI 配置
+  pkg.conf.OllamaConfig ollama = 21;
 }
 
 // 微服务配置

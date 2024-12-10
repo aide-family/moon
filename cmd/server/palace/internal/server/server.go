@@ -36,7 +36,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/helper/metric"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -189,6 +191,11 @@ func RegisterService(
 	fileRoute.POST("/upload/file", fileService.UploadFile)
 	fileRoute.GET("/download/{filePath}", fileService.DownloadFile)
 
+	// Ollama
+	ollamaRoute := httpSrv.Route("/ollama", middleware.Cors())
+	ollama := helper.NewOllama(c.GetOllama().GetUrl(), helper.WithOllamaModel(c.GetOllama().GetModel()))
+	ollamaRoute.POST("/chat", ollama.HandleChat())
+	ollamaRoute.GET("/chat", ollama.HandleChat())
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {
 		var err error

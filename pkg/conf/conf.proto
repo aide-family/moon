@@ -221,7 +221,6 @@ message Receiver {
   EmailConfig emailConfig = 4;
 }
 
-
 message Log {
   // default, slog, aliyun, zap
   string type = 1;
@@ -236,6 +235,11 @@ message Log {
   optional SLogConfig slog = 6;
   // loki日志
   optional LokiLogConfig loki = 7;
+}
+
+message OllamaConfig {
+  string model = 1;
+  string url = 2;
 }
 
 message AliYunLogConfig {
