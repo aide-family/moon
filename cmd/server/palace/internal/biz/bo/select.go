@@ -28,31 +28,12 @@ type (
 	DatasourceMetricOptionBuild struct {
 		*bizmodel.DatasourceMetric
 	}
-
-	// MqDatasourceBuild mq 数据源选项构建器
-	MqDatasourceBuild struct {
-		*bizmodel.MqDatasource
-	}
 )
 
 // NewDatasourceOptionBuild 创建数据源选项构建器
 func NewDatasourceOptionBuild(datasource *bizmodel.Datasource) *DatasourceOptionBuild {
 	return &DatasourceOptionBuild{
 		Datasource: datasource,
-	}
-}
-
-// NewMqDatasourceBuild 创建mq数据源选项构建器
-func NewMqDatasourceBuild(datasource *bizmodel.MqDatasource) *MqDatasourceBuild {
-	return &MqDatasourceBuild{datasource}
-}
-
-// ToSelectOption 转换为选择项
-func (b *MqDatasourceBuild) ToSelectOption() *SelectOptionBo {
-	return &SelectOptionBo{
-		Value:    b.ID,
-		Label:    b.Name,
-		Disabled: b.DeletedAt > 0 || !b.Status.IsEnable(),
 	}
 }
 

@@ -1,5 +1,7 @@
 package mq
 
+import "github.com/aide-family/moon/pkg/util/types"
+
 // IMQ mq接口
 type IMQ interface {
 	// Send 发送消息
@@ -31,8 +33,9 @@ type (
 
 	// Msg 消息结构
 	Msg struct {
-		Data  []byte
-		Topic []byte
+		Data      []byte
+		Topic     []byte
+		Timestamp *types.Time
 	}
 )
 
