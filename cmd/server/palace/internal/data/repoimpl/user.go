@@ -188,6 +188,7 @@ func createUserParamsToModel(ctx context.Context, user *bo.CreateUserParams) *mo
 		Avatar:   user.Avatar,
 		Salt:     user.Password.GetSalt(),
 		Gender:   user.Gender,
+		Role:     user.Role,
 	}
 	userItem.WithContext(ctx)
 	return userItem
