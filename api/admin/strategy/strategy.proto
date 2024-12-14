@@ -467,8 +467,6 @@ message CreateStrategyPortLevelRequest {
   int64 threshold = 7;
   // 端口
   uint32 port = 8;
-  // 判断条件
-  Condition condition = 11;
 }
 
 message CopyStrategyRequest {
