@@ -254,6 +254,11 @@ message CreateStrategyRequest {
   StrategyType strategyType = 15;
   //  MQ策略等级
   repeated CreateStrategyMQLevelRequest strategyMqLevel = 16 ;
+  // 域名证书或者端口监控策略定义
+  repeated CreateStrategyDomainLevelRequest strategyDomainLevel = 17 ;
+  // 端口监控策略定义
+  repeated CreateStrategyPortLevelRequest strategyPortLevel = 18 ;
+
   option (buf.validate.message).cel = {
     id: "StrategyMetricLevelRequired",
     expression: "this.strategyType != 1 || (this.strategyMetricLevel.size() > 0)",
@@ -396,6 +401,74 @@ message CreateStrategyMetricLevelRequest{
   repeated CreateStrategyLabelNoticeRequest labelNotices = 15;
   // ID
   uint32 id = 16;
+}
+
+// 域名证书监控策略定义
+message CreateStrategyDomainLevelRequest{
+  // 策略等级ID
+  uint32 levelID = 1 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+   // 状态
+   Status status = 2;
+   // 告警页面ID
+   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
+  // ID
+  uint32 id = 6;
+  // 阈值
+  int64 threshold = 7;
+  // 判断条件
+  Condition condition = 11;
+}
+
+// 端口监控策略定义
+message CreateStrategyPortLevelRequest {
+  // 策略等级ID
+  uint32 levelID = 1 [(buf.validate.field).cel = {
+    id: "PortStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+   // 状态
+   Status status = 2;
+   // 告警页面ID
+   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
+  // ID
+  uint32 id = 6;
+  // 阈值
+  int64 threshold = 7;
+  // 端口
+  uint32 port = 8;
+  // 判断条件
+  Condition condition = 11;
 }
 
 message CopyStrategyRequest {
