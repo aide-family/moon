@@ -383,6 +383,8 @@ message StrategyItem {
   UserItem creator = 20;
   // MQ等级
   repeated StrategyMQLevelItem mqLevels = 21;
+  // 策略类型
+  StrategyType strategyType = 22;
 }
 
 message StrategyGroupItem {
@@ -748,6 +750,8 @@ message StrategyMQLevelItem{
   Status status = 11;
   // 对象状态下的数据KEY
   string pathKey = 12;
+  // label匹配的告警通知组
+  repeated LabelNoticeItem labelNotices = 26;
 }
 
 

@@ -521,6 +521,7 @@ func (d *doStrategyLevelBuilder) ToMqAPI(level *bizmodel.StrategyMQLevel, userMa
 		Creator:      userMap[level.CreatorID],
 		Status:       api.Status(level.Status),
 		PathKey:      level.PathKey,
+		LabelNotices: nil,
 	}
 }
 
@@ -1031,6 +1032,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 	strategyItem := &adminapi.StrategyItem{
 		Name:              strategy.Name,
 		Expr:              strategy.Expr,
+		MetricLevels:      nil,
 		Labels:            strategy.Labels.Map(),
 		Annotations:       strategy.Annotations.Map(),
 		Datasource:        NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToAPIs(strategy.Datasource),
@@ -1046,6 +1048,8 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 		Categories:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(strategy.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		AlarmNoticeGroups: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(strategy.AlarmNoticeGroups),
 		Creator:           userMap[strategy.CreatorID],
+		MqLevels:          nil,
+		StrategyType:      api.StrategyType(strategy.StrategyType),
 	}
 
 	if !types.IsNil(d.strategyLevelDetail) {
