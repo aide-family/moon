@@ -519,6 +519,8 @@ func (d *doStrategyLevelBuilder) ToMqAPI(level *bizmodel.StrategyMQLevel, userMa
 		StrategyId:   level.StrategyID,
 		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
 		Creator:      userMap[level.CreatorID],
+		Status:       api.Status(level.Status),
+		PathKey:      level.PathKey,
 	}
 }
 

@@ -744,6 +744,10 @@ message StrategyMQLevelItem{
   repeated AlarmNoticeGroupItem alarmGroups = 9;
   // 创建人
   UserItem creator = 10;
+  // 状态
+  Status status = 11;
+  // 对象状态下的数据KEY
+  string pathKey = 12;
 }
 
 

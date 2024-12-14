@@ -29,7 +29,7 @@ type strategyRepositoryImpl struct {
 // Save 保存策略
 func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrategy) error {
 	queue := s.data.GetStrategyQueue()
-	mqQueue := s.data.GetEventMQQueue()
+	mqQueue := s.data.GetEventStrategyQueue()
 	go func() {
 		defer after.RecoverX()
 		for _, strategyItem := range strategies {
