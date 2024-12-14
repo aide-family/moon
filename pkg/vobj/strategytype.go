@@ -26,4 +26,7 @@ const (
 
 	// StrategyTypeMQ 消息队列策略
 	StrategyTypeMQ // mq
+
+	// StrategyTypeLog 日志策略
+	StrategyTypeLog // log
 )
