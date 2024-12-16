@@ -343,13 +343,91 @@ message StrategyMetricLevelItem {
   UserItem creator = 17;
 }
 
+// 端口监控策略等级
+message StrategyPortLevelItem {
+  // 策略等级ID
+  uint32 levelID = 1;
+  // 告警等级明细
+  SelectItem level = 2;
+  // 状态
+  Status status = 3;
+  // 告警页面
+  repeated SelectItem alarmPages = 4;
+  // 告警组
+  repeated AlarmNoticeGroupItem alarmGroups = 5;
+  // 策略Labels
+  repeated LabelNoticeItem labelNotices = 6;
+  // ID
+  uint32 id = 7;
+  // 阈值
+  int64 threshold = 8;
+  // 端口
+  uint32 port = 9;
+}
+
+// HTTP监控策略等级
+message StrategyHTTPLevelItem {
+  // 策略等级ID
+  uint32 levelID = 1;
+  // 告警等级明细
+  SelectItem level = 2;
+  // 状态
+  Status status = 3;
+  // 告警页面
+  repeated SelectItem alarmPages = 4;
+  // 告警组
+  repeated AlarmNoticeGroupItem alarmGroups = 5;
+  // 策略Labels
+  repeated LabelNoticeItem labelNotices = 6;
+  // ID
+  uint32 id = 7;
+  // 状态码
+  uint32 statusCodes = 8;
+  // 响应时间
+  uint32 responseTime = 9;
+  // 请求头
+  map<string, string> headers = 10;
+  // 请求体
+  string body = 11;
+  // 查询参数
+  string queryParams = 12;
+  // 请求方式
+  string method = 13;
+  // 状态码判断条件
+  Condition statusCodeCondition = 14;
+  // 响应时间判断条件
+  Condition responseTimeCondition = 15;
+}
+
+// 域名监控策略等级
+message StrategyDomainLevelItem {
+  // 策略等级ID
+  uint32 levelID = 1;
+  // 告警等级明细
+  SelectItem level = 2;
+  // 状态
+  Status status = 3;
+  // 告警页面
+  repeated SelectItem alarmPages = 4;
+  // 告警组
+  repeated AlarmNoticeGroupItem alarmGroups = 5;
+  // 策略Labels
+  repeated LabelNoticeItem labelNotices = 6;
+  // ID
+  uint32 id = 7;
+  // 阈值
+  int64 threshold = 8;
+  // 判断条件
+  Condition condition = 9;
+}
+
 message StrategyItem {
   // 策略名称
   string name = 1;
   // 策略语句
   string expr = 2;
-  // 根据策略等级配置的详细策略， key为策略等级ID
-  repeated StrategyMetricLevelItem metricLevels = 3;
+   // 策略类型
+  StrategyType strategyType = 3;
   // 策略标签
   map<string, string> labels = 6;
   // 策略注解
@@ -381,10 +459,16 @@ message StrategyItem {
   repeated AlarmNoticeGroupItem alarmNoticeGroups = 19;
   // 创建人
   UserItem creator = 20;
+  // 根据策略等级配置的详细策略， key为策略等级ID
+  repeated StrategyMetricLevelItem metricLevels = 21;
   // MQ等级
-  repeated StrategyMQLevelItem mqLevels = 21;
-  // 策略类型
-  StrategyType strategyType = 22;
+  repeated StrategyMQLevelItem mqLevels = 22;
+  // 端口监控策略
+  repeated StrategyPortLevelItem portLevels = 23;
+  // HTTP监控策略
+  repeated StrategyHTTPLevelItem httpLevels = 24;
+  // 域名监控策略
+  repeated StrategyDomainLevelItem domainLevels = 25;
 }
 
 message StrategyGroupItem {

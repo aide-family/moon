@@ -42,8 +42,8 @@ type (
 		StrategyType vobj.StrategyType `json:"strategyType"`
 		// Metric策略等级
 		MetricLevels []*CreateStrategyMetricLevel `json:"metricLevels"`
-		// MQ策略等级
-		MqLevels []*CreateStrategyMQLevel `json:"mqLevels"`
+		// 事件策略等级
+		EventLevels []*CreateStrategyEventLevel `json:"mqLevels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -98,8 +98,8 @@ type (
 		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
 	}
 
-	// CreateStrategyMQLevel 创建mq策略等级
-	CreateStrategyMQLevel struct {
+	// CreateStrategyEventLevel 创建事件策略等级
+	CreateStrategyEventLevel struct {
 		ID uint32 `json:"id"`
 		// 值
 		Value string `json:"value"`
@@ -265,7 +265,7 @@ type (
 		TeamID       uint32                     `json:"teamID,omitempty"`
 		StrategyType vobj.StrategyType          `json:"strategyType,omitempty"`
 		MetricLevel  *CreateStrategyMetricLevel `json:"metricLevels,omitempty"`
-		MQLevel      *CreateStrategyMQLevel     `json:"mqLevels,omitempty"`
+		MQLevel      *CreateStrategyEventLevel  `json:"mqLevels,omitempty"`
 		// 策略持续时间
 		For int64 `json:"for,omitempty"`
 		// 持续次数

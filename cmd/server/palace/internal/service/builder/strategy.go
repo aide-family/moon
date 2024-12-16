@@ -348,9 +348,9 @@ type (
 		// ToMetricBos 转换为业务对象列表
 		ToMetricBos([]*strategyapi.CreateStrategyMetricLevelRequest) []*bo.CreateStrategyMetricLevel
 		// ToMQBo 转换为业务对象
-		ToMQBo(request *strategyapi.CreateStrategyMQLevelRequest) *bo.CreateStrategyMQLevel
+		ToMQBo(request *strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel
 		// ToMQBos 转换为业务对象列表
-		ToMQBos(request []*strategyapi.CreateStrategyMQLevelRequest) []*bo.CreateStrategyMQLevel
+		ToMQBos(request []*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel
 	}
 
 	mutationStrategyLevelBuilder struct {
@@ -467,7 +467,7 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
 				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
 			TeamID: middleware.GetTeamID(d.ctx),
-			MQLevel: &bo.CreateStrategyMQLevel{
+			MQLevel: &bo.CreateStrategyEventLevel{
 				ID:           level.ID,
 				Value:        level.Value,
 				Condition:    level.Condition,
@@ -536,12 +536,13 @@ func (d *doStrategyLevelBuilder) ToMqAPIs(levels []*bizmodel.StrategyMQLevel) []
 	})
 }
 
-func (m *mutationStrategyLevelBuilder) ToMQBo(request *strategyapi.CreateStrategyMQLevelRequest) *bo.CreateStrategyMQLevel {
+func (m *mutationStrategyLevelBuilder) ToMQBo(request *strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel {
 	if types.IsNil(request) || types.IsNil(m) {
 		return nil
 	}
-	return &bo.CreateStrategyMQLevel{
+	return &bo.CreateStrategyEventLevel{
 		Value:         request.GetValue(),
+		Condition:     vobj.MQCondition(request.GetCondition()),
 		MQDataType:    vobj.MQDataType(request.DataType),
 		AlarmLevelID:  request.GetAlarmLevelId(),
 		Status:        vobj.Status(request.GetStatus()),
@@ -552,11 +553,11 @@ func (m *mutationStrategyLevelBuilder) ToMQBo(request *strategyapi.CreateStrateg
 	}
 }
 
-func (m *mutationStrategyLevelBuilder) ToMQBos(request []*strategyapi.CreateStrategyMQLevelRequest) []*bo.CreateStrategyMQLevel {
+func (m *mutationStrategyLevelBuilder) ToMQBos(request []*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel {
 	if types.IsNil(request) || types.IsNil(m) {
 		return nil
 	}
-	return types.SliceTo(request, func(item *strategyapi.CreateStrategyMQLevelRequest) *bo.CreateStrategyMQLevel {
+	return types.SliceTo(request, func(item *strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel {
 		return m.ToMQBo(item)
 	})
 }
@@ -1163,8 +1164,8 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		CategoriesIds:  c.GetCategoriesIds(),
 		AlarmGroupIds:  c.GetAlarmGroupIds(),
 		StrategyType:   vobj.StrategyType(c.GetStrategyType()),
-		MetricLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMetricBos(c.GetStrategyMetricLevel()),
-		MqLevels:       NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMQBos(c.GetStrategyMqLevel()),
+		MetricLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMetricBos(c.GetStrategyMetricLevels()),
+		EventLevels:    NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMQBos(c.GetStrategyEventLevels()),
 	}
 }
 
