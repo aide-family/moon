@@ -418,7 +418,7 @@ func (s *strategyRepositoryImpl) getLevelIds(params *bo.CreateStrategyParams) []
 	case vobj.StrategyTypeMetric:
 		return types.SliceTo(params.MetricLevels, func(level *bo.CreateStrategyMetricLevel) uint32 { return level.LevelID })
 	case vobj.StrategyTypeMQ:
-		return types.SliceTo(params.MqLevels, func(level *bo.CreateStrategyMQLevel) uint32 { return level.AlarmLevelID })
+		return types.SliceTo(params.EventLevels, func(level *bo.CreateStrategyEventLevel) uint32 { return level.AlarmLevelID })
 	default:
 		return nil
 	}
@@ -805,8 +805,8 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 	return strategyModel
 }
 
-func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyMQLevel, strategyID uint32) []*bizmodel.StrategyMQLevel {
-	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyMQLevel) *bizmodel.StrategyMQLevel {
+func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyEventLevel, strategyID uint32) []*bizmodel.StrategyMQLevel {
+	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyMQLevel {
 		strategyLevel := &bizmodel.StrategyMQLevel{
 			AllFieldModel: model.AllFieldModel{ID: item.ID},
 			Value:         item.Value,
@@ -841,7 +841,7 @@ func saveStrategyLevels(ctx context.Context, params *bo.CreateStrategyParams, st
 			return err
 		}
 	case vobj.StrategyTypeMQ:
-		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.MqLevels, strategyID)
+		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.EventLevels, strategyID)
 		if err := tx.StrategyMQLevel.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(mqLevelModels...); !types.IsNil(err) {
 			return err
 		}

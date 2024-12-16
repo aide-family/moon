@@ -156,13 +156,13 @@ func (s *Service) CreateStrategy(ctx context.Context, req *strategyapi.CreateStr
 func checkStrategyLevelIsDuplicates(req *strategyapi.CreateStrategyRequest) bool {
 	switch vobj.StrategyType(req.GetStrategyType()) {
 	case vobj.StrategyTypeMetric:
-		return types.SlicesHasDuplicates(req.GetStrategyMetricLevel(), func(request *strategyapi.CreateStrategyMetricLevelRequest) string {
+		return types.SlicesHasDuplicates(req.GetStrategyMetricLevels(), func(request *strategyapi.CreateStrategyMetricLevelRequest) string {
 			var sb strings.Builder
 			sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 			return sb.String()
 		})
 	case vobj.StrategyTypeMQ:
-		return types.SlicesHasDuplicates(req.GetStrategyMqLevel(), func(request *strategyapi.CreateStrategyMQLevelRequest) string {
+		return types.SlicesHasDuplicates(req.GetStrategyEventLevels(), func(request *strategyapi.CreateStrategyEventLevelRequest) string {
 			var sb strings.Builder
 			sb.WriteString(strconv.FormatInt(int64(request.GetAlarmLevelId()), 10))
 			return sb.String()
