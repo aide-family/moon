@@ -217,8 +217,8 @@ message CreateStrategyRequest {
     message: "策略名称长度必须大于0且小于50"
     id: "CreateStrategyRequestName"
   }];
-  // Metric策略等级
-  repeated CreateStrategyMetricLevelRequest strategyMetricLevel = 9 ;
+  // 策略类型
+  StrategyType strategyType = 9;
   // 策略标签
   map<string, string> labels = 10;
   // 策略注解
@@ -250,14 +250,16 @@ message CreateStrategyRequest {
     expression: "this.unique()"
   }];
 
-  // 策略类型
-  StrategyType strategyType = 15;
+  // Metric策略等级
+  repeated CreateStrategyMetricLevelRequest strategyMetricLevel = 15;
   //  MQ策略等级
-  repeated CreateStrategyMQLevelRequest strategyMqLevel = 16 ;
-  // 域名证书或者端口监控策略定义
-  repeated CreateStrategyDomainLevelRequest strategyDomainLevel = 17 ;
+  repeated CreateStrategyMQLevelRequest strategyMqLevel = 16;
+  // 域名证书监控策略定义
+  repeated CreateStrategyDomainLevelRequest strategyDomainLevel = 17;
   // 端口监控策略定义
-  repeated CreateStrategyPortLevelRequest strategyPortLevel = 18 ;
+  repeated CreateStrategyPortLevelRequest strategyPortLevel = 18;
+  // HTTP监控策略定义
+  repeated CreateStrategyHTTPLevelRequest strategyHTTPLevel = 19;
 
   option (buf.validate.message).cel = {
     id: "StrategyMetricLevelRequired",
@@ -467,6 +469,50 @@ message CreateStrategyPortLevelRequest {
   int64 threshold = 7;
   // 端口
   uint32 port = 8;
+}
+
+message CreateStrategyHTTPLevelRequest {
+  // 策略等级ID
+  uint32 levelID = 1 [(buf.validate.field).cel = {
+    id: "PortStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 状态
+  Status status = 2;
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
+  // ID
+  uint32 id = 6;
+  // 响应时间 s
+  uint32 responseTime = 7;
+  // 状态码
+  uint32 statusCodes = 8;
+  // 请求头
+  map<string, string> headers = 9;
+  // 请求体
+  string body = 10;
+  // 查询参数
+  string queryParams = 11;
+  // 请求方式
+  string method = 12;
+  // 状态码判断条件
+  Condition statusCodeCondition = 13;
+  // 响应时间判断条件
+  Condition responseTimeCondition = 14;
 }
 
 message CopyStrategyRequest {
