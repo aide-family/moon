@@ -8,7 +8,7 @@ import (
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/conf"
-	"github.com/aide-family/moon/pkg/datasource"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -227,11 +227,12 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 	return &bo.UpdateDatasourceBaseInfoParams{
 		ID:             u.GetId(),
 		Name:           u.GetName(),
+		Endpoint:       u.GetEndpoint(),
 		Status:         vobj.Status(u.GetStatus()),
+		Config:         datasource.NewDatasourceConfig(u.GetConfig()),
 		Remark:         u.GetRemark(),
 		StorageType:    vobj.StorageType(u.GetStorageType()),
 		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
-		ConfigValue:    datasource.NewDatasourceConfig(u.GetConfigValue()),
 	}
 }
 

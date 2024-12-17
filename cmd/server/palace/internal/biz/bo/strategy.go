@@ -3,7 +3,7 @@ package bo
 import (
 	"fmt"
 
-	"github.com/aide-family/moon/pkg/datasource"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -290,7 +290,7 @@ type (
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
 		// 数据源配置
-		Config *datasource.DatasourceConfig `json:"config,omitempty"`
+		Config *datasource.Config `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID

@@ -12,16 +12,16 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-var _ sql.Scanner = (*DatasourceConfig)(nil)
-var _ driver.Valuer = (*DatasourceConfig)(nil)
+var _ sql.Scanner = (*Config)(nil)
+var _ driver.Valuer = (*Config)(nil)
 
-// DatasourceConfig 数据源配置
-type DatasourceConfig struct {
+// Config 数据源配置
+type Config struct {
 	datasourceConfig map[string]string
 }
 
 // Scan 实现 sql.Scanner 接口
-func (d *DatasourceConfig) Scan(src any) (err error) {
+func (d *Config) Scan(src any) (err error) {
 	switch s := src.(type) {
 	case []byte:
 		err = types.Unmarshal(s, &d.datasourceConfig)
@@ -34,24 +34,24 @@ func (d *DatasourceConfig) Scan(src any) (err error) {
 }
 
 // Value 实现 driver.Valuer 接口
-func (d *DatasourceConfig) Value() (driver.Value, error) {
+func (d *Config) Value() (driver.Value, error) {
 	return d.String(), nil
 }
 
 // NewDatasourceConfig 基于map创建DatasourceConfig
-func NewDatasourceConfig(datasourceConfig map[string]string) *DatasourceConfig {
-	return &DatasourceConfig{datasourceConfig: datasourceConfig}
+func NewDatasourceConfig(datasourceConfig map[string]string) *Config {
+	return &Config{datasourceConfig: datasourceConfig}
 }
 
 // MarshalJSON 实现 json.Marshaler 接口
-func (d *DatasourceConfig) MarshalJSON() ([]byte, error) {
+func (d *Config) MarshalJSON() ([]byte, error) {
 	// 返回字符串形式的时间
 	return []byte(d.String()), nil
 }
 
 // String 转json字符串
-func (d *DatasourceConfig) String() string {
-	if types.IsNil(d) || d.datasourceConfig == nil {
+func (d *Config) String() string {
+	if types.IsNil(d) || len(d.datasourceConfig) == 0 {
 		return "{}"
 	}
 
@@ -67,7 +67,7 @@ func (d *DatasourceConfig) String() string {
 }
 
 // Map 转map
-func (d *DatasourceConfig) Map() map[string]string {
+func (d *Config) Map() map[string]string {
 	if d == nil || d.datasourceConfig == nil {
 		return make(map[string]string)
 	}
@@ -75,7 +75,7 @@ func (d *DatasourceConfig) Map() map[string]string {
 }
 
 // GetRocketMQ 获取RocketMQ配置
-func (d *DatasourceConfig) GetRocketMQ() *conf.RocketMQ {
+func (d *Config) GetRocketMQ() *conf.RocketMQ {
 	config := &conf.RocketMQ{}
 	if d == nil || d.datasourceConfig == nil {
 		return config
@@ -85,7 +85,7 @@ func (d *DatasourceConfig) GetRocketMQ() *conf.RocketMQ {
 }
 
 // GetMQTT 获取MQTT配置
-func (d *DatasourceConfig) GetMQTT() *conf.MQTT {
+func (d *Config) GetMQTT() *conf.MQTT {
 	config := &conf.MQTT{}
 	if d == nil || d.datasourceConfig == nil {
 		return config
@@ -95,7 +95,7 @@ func (d *DatasourceConfig) GetMQTT() *conf.MQTT {
 }
 
 // GetKafka 获取Kafka配置
-func (d *DatasourceConfig) GetKafka() *conf.Kafka {
+func (d *Config) GetKafka() *conf.Kafka {
 	config := &conf.Kafka{}
 	if d == nil || d.datasourceConfig == nil {
 		return config

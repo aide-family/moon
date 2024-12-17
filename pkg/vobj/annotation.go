@@ -59,7 +59,7 @@ func (l *Annotations) MarshalJSON() ([]byte, error) {
 
 // String 字符串
 func (l *Annotations) String() string {
-	if types.IsNil(l) {
+	if types.IsNil(l) || len(*l) == 0 {
 		return "{}"
 	}
 	bs := strings.Builder{}
