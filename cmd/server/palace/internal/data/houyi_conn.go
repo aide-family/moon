@@ -187,21 +187,29 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 	teamIDMap := types.ToMap(conn.teamIds, func(t uint32) uint32 {
 		return t
 	})
-	list := make([]*api.MetricStrategyItem, 0, len(in.Strategies))
-	for _, strategyItem := range in.Strategies {
-		if len(teamIDMap) == 0 {
-			list = in.Strategies
-			break
-		}
-		if teamIDMap[strategyItem.TeamID] <= 0 {
-			continue
-		}
-		list = append(list, strategyItem)
+
+	if len(teamIDMap) > 0 {
+		in.Strategies = types.Filter(in.Strategies, func(item *api.MetricStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.MqStrategies = types.Filter(in.MqStrategies, func(item *api.MQStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.DomainStrategies = types.Filter(in.DomainStrategies, func(item *api.DomainStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.HttpStrategies = types.Filter(in.HttpStrategies, func(item *api.HttpStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.PingStrategies = types.Filter(in.PingStrategies, func(item *api.PingStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
 	}
-	if len(list) <= 0 {
-		return &strategyapi.PushStrategyReply{}, nil
-	}
-	in.Strategies = list
+
 	var err error
 	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:

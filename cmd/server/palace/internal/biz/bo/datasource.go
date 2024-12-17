@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -20,7 +21,7 @@ type (
 		// 描述
 		Remark string `json:"remark"`
 		// 数据源配置(json 字符串)
-		Config map[string]string `json:"config"`
+		Config *datasource.DatasourceConfig `json:"config"`
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storageType"`
 	}
@@ -46,8 +47,8 @@ type (
 		Name string `json:"name"`
 		// 状态
 		Status vobj.Status `json:"status"`
-		// 数据源配置(json 字符串)
-		ConfigValue string `json:"configValue"`
+		// 数据源配置
+		ConfigValue *datasource.DatasourceConfig `json:"configValue"`
 		// 描述
 		Remark         string              `json:"remark"`
 		StorageType    vobj.StorageType    `json:"storageType"`
@@ -57,8 +58,8 @@ type (
 	// UpdateDatasourceConfigParams 更新数据源配置请求参数
 	UpdateDatasourceConfigParams struct {
 		ID uint32 `json:"id"`
-		// 数据源配置(json 字符串)
-		ConfigValue string `json:"configValue"`
+		// 数据源配置
+		ConfigValue *datasource.DatasourceConfig `json:"configValue"`
 		// 数据源类型
 		Type vobj.DatasourceType `json:"type"`
 		// 存储器类型
