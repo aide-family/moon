@@ -103,3 +103,13 @@ func (d *DatasourceConfig) GetKafka() *conf.Kafka {
 	_ = json.Unmarshal([]byte(d.String()), config)
 	return config
 }
+
+// GetRabbit 获取RabbitMQ配置
+func (d *DatasourceConfig) GetRabbit() *conf.RabbitMQ {
+	config := &conf.RabbitMQ{}
+	if d == nil || d.datasourceConfig == nil {
+		return config
+	}
+	_ = json.Unmarshal([]byte(d.String()), config)
+	return config
+}

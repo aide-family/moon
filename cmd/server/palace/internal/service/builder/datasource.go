@@ -131,6 +131,8 @@ func (b *boDatasourceBuilder) ToMqAPI(datasource *bo.Datasource) *api.MQDatasour
 		mqConfig.RocketMQ = datasource.Config.GetRocketMQ()
 		mqConfig.Type = vobj.StorageTypeRocketMQ.String()
 	case vobj.StorageTypeRabbitMQ:
+		mqConfig.RabbitMQ = datasource.Config.GetRabbit()
+		mqConfig.Type = vobj.StorageTypeRabbitMQ.String()
 	default:
 		return nil
 	}

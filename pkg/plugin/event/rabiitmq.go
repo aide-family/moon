@@ -65,6 +65,7 @@ func (r *RabbitMQEvent) Receive(topic string) <-chan *mq.Msg {
 		nil,   // 额外参数
 	)
 	if err != nil {
+		log.Errorw("method", "RabbitMQEvent.Receive", "queue err", err)
 		r.topicChanelMap.Delete(topic)
 		close(ch)
 	}
@@ -78,12 +79,12 @@ func (r *RabbitMQEvent) Receive(topic string) <-chan *mq.Msg {
 		nil,
 	)
 
-	r.queue = &queue
-
 	if err != nil {
+		log.Errorw("method", "RabbitMQEvent.Receive", "QueueBind err", err)
 		r.topicChanelMap.Delete(topic)
 		close(ch)
 	}
+	r.queue = &queue
 
 	// 开启消费者接收消息
 	go func() {
@@ -114,6 +115,7 @@ func (r *RabbitMQEvent) receive(topic string) ([]*mq.Msg, error) {
 		nil,
 	)
 	if err != nil {
+		log.Errorw("method", "RabbitMQEvent.receive", "Consume err", err)
 		r.topicChanelMap.Delete(topic)
 		return nil, err
 	}

@@ -392,8 +392,6 @@ message RabbitMQ {
   string queue = 5;
 }
 
-
-
 // mq配置
 message MQ {
   // mq类型
