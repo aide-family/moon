@@ -380,12 +380,40 @@ type (
 		ToAPI(*bo.Strategy) *api.MetricStrategyItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bo.Strategy) []*api.MetricStrategyItem
+		// ToMqAPI 转换为mq API对象
+		ToMqAPI(*bo.Strategy) *api.MQStrategyItem
 	}
 
 	boStrategyBuilder struct {
 		ctx context.Context
 	}
 )
+
+func (b *boStrategyBuilder) ToMqAPI(strategy *bo.Strategy) *api.MQStrategyItem {
+	if types.IsNil(strategy) || types.IsNil(strategy.MQLevel) || types.IsNil(b) {
+		return nil
+	}
+	mqLevel := strategy.MQLevel
+	item := &api.MQStrategyItem{
+		StrategyType:     api.StrategyType(strategy.StrategyType),
+		StrategyID:       strategy.ID,
+		TeamID:           strategy.TeamID,
+		Status:           api.Status(strategy.Status),
+		Alert:            strategy.Alert,
+		Labels:           strategy.Labels.Map(),
+		Annotations:      strategy.Annotations.Map(),
+		ReceiverGroupIDs: strategy.ReceiverGroupIDs,
+		LevelID:          mqLevel.ID,
+		Value:            mqLevel.Value,
+		Condition:        api.MQCondition(mqLevel.Condition),
+		DataType:         api.MQDataType(mqLevel.MQDataType),
+		Topic:            strategy.Expr,
+		Datasource:       NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToMqAPIs(strategy.Datasource),
+		DataKey:          mqLevel.PathKey,
+	}
+
+	return item
+}
 
 func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strategy {
 	if types.IsNil(strategy) || types.IsNil(d) || types.IsNil(d.strategyLevelDetail) {
@@ -426,6 +454,7 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 				Condition:          level.Condition,
 				Threshold:          level.Threshold,
 				Status:             level.Status,
+				LevelID:            level.LevelID,
 				AlarmPageIds: types.SliceTo(level.AlarmPage, func(page *bizmodel.SysDict) uint32 {
 					return page.ID
 				}),
@@ -441,6 +470,7 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 					}
 				}),
 			},
+			StrategyType: strategy.StrategyType,
 		}
 	})
 }
@@ -463,6 +493,7 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 			MultiDatasourceSustainType: 0, // TODO 多数据源控制
 			Labels:                     strategy.Labels,
 			Annotations:                strategy.Annotations,
+			StrategyType:               strategy.StrategyType,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
 				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
@@ -699,36 +730,39 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 }
 
 func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.MetricStrategyItem {
-	if types.IsNil(strategyItem) || types.IsNil(b) {
+	if types.IsNil(strategyItem) || types.IsNil(strategyItem.MetricLevel) || types.IsNil(b) {
 		return nil
 	}
+
+	metricLevel := strategyItem.MetricLevel
 
 	return &api.MetricStrategyItem{
 		Alert:                      strategyItem.Alert,
 		Expr:                       strategyItem.Expr,
 		For:                        durationpb.New(time.Duration(strategyItem.For) * time.Second),
 		Count:                      strategyItem.Count,
-		SustainType:                api.SustainType(strategyItem.SustainType),
+		SustainType:                api.SustainType(metricLevel.SustainType),
 		MultiDatasourceSustainType: api.MultiDatasourceSustainType(strategyItem.MultiDatasourceSustainType),
 		Labels:                     strategyItem.Labels.Map(),
 		Annotations:                strategyItem.Annotations.Map(),
-		Interval:                   durationpb.New(time.Duration(strategyItem.Interval) * time.Second),
+		Interval:                   durationpb.New(time.Duration(metricLevel.Interval) * time.Second),
 		Datasource:                 NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToAPIs(strategyItem.Datasource),
 		Id:                         strategyItem.ID,
-		Status:                     api.Status(strategyItem.Status),
+		Status:                     api.Status(metricLevel.Status),
 		Step:                       strategyItem.Step,
 		Condition:                  api.Condition(strategyItem.Condition),
-		Threshold:                  strategyItem.Threshold,
-		LevelID:                    strategyItem.LevelID,
+		Threshold:                  metricLevel.Threshold,
+		LevelID:                    metricLevel.LevelID,
 		TeamID:                     strategyItem.TeamID,
 		ReceiverGroupIDs:           strategyItem.ReceiverGroupIDs,
-		LabelNotices: types.SliceTo(strategyItem.LabelNotices, func(item *bo.LabelNotices) *api.LabelNotices {
+		LabelNotices: types.SliceTo(metricLevel.LabelNotices, func(item *bo.StrategyLabelNotice) *api.LabelNotices {
 			return &api.LabelNotices{
-				Key:              item.Key,
+				Key:              item.Name,
 				Value:            item.Value,
-				ReceiverGroupIDs: item.ReceiverGroupIDs,
+				ReceiverGroupIDs: item.AlarmGroupIds,
 			}
 		}),
+		StrategyType: api.StrategyType(strategyItem.StrategyType),
 	}
 }
 func (b *boStrategyBuilder) ToAPIs(strategies []*bo.Strategy) []*api.MetricStrategyItem {
