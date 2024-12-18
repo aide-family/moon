@@ -431,10 +431,10 @@ message CreateStrategyDomainLevelRequest{
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-   // 状态
-   Status status = 2;
-   // 告警页面ID
-   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+  // 状态
+  Status status = 2;
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
@@ -464,10 +464,10 @@ message CreateStrategyPortLevelRequest {
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-   // 状态
-   Status status = 2;
-   // 告警页面ID
-   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+  // 状态
+  Status status = 2;
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
@@ -520,7 +520,7 @@ message CreateStrategyHTTPLevelRequest {
   // 状态码
   uint32 statusCodes = 8;
   // 请求头
-  map<string, string> headers = 9;
+  repeated HeaderItem headers = 9;
   // 请求体
   string body = 10;
   // 查询参数
@@ -531,6 +531,19 @@ message CreateStrategyHTTPLevelRequest {
   Condition statusCodeCondition = 13;
   // 响应时间判断条件
   Condition responseTimeCondition = 14;
+}
+
+message HeaderItem {
+  string key = 1 [(buf.validate.field).cel = {
+    message: "标签名称长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
+    id: "HeaderItem_key"
+  }];
+  string value = 2 [(buf.validate.field).cel = {
+    message: "标签名称长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
+    id: "HeaderItem_value"
+  }];
 }
 
 message CopyStrategyRequest {
