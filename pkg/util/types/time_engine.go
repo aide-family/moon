@@ -124,6 +124,9 @@ func (tr *TimeEngine) IsAllowed(t time.Time) bool {
 // Matches 检查时间是否符合当前配置
 func (tr *TimeEngine) matches(t time.Time) bool {
 	for _, config := range tr.Configurations {
+		if config == nil {
+			continue
+		}
 		if !config.Match(t) {
 			return false
 		}

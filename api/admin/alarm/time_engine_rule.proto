@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package api.admin.alarm;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "admin/model.proto";
+import "global.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/alarm;alarm";
+option java_multiple_files = true;
+option java_package = "api.admin.alarm";
+
+// 时间引擎规则管理模块
+service TimeEngineRule {
+  // 创建时间引擎规则
+  rpc CreateTimeEngineRule (CreateTimeEngineRuleRequest) returns (CreateTimeEngineRuleReply) {
+    option (google.api.http) = {
+      post: "/v1/admin/alarm/time_engine_rule/create"
+      body: "*"
+    };
+  }
+  // 更新时间引擎规则
+  rpc UpdateTimeEngineRule (UpdateTimeEngineRuleRequest) returns (UpdateTimeEngineRuleReply) {
+    option (google.api.http) = {
+      put: "/v1/admin/alarm/time_engine_rule/update"
+      body: "*"
+    };
+  }
+  // 删除时间引擎规则
+  rpc DeleteTimeEngineRule (DeleteTimeEngineRuleRequest) returns (DeleteTimeEngineRuleReply) {
+    option (google.api.http) = {
+      delete: "/v1/admin/alarm/time_engine_rule/delete/{id}"
+    };
+  }
+  // 获取时间引擎规则
+  rpc GetTimeEngineRule (GetTimeEngineRuleRequest) returns (GetTimeEngineRuleReply) {
+    option (google.api.http) = {
+      get: "/v1/admin/alarm/time_engine_rule/get/{id}"
+    };
+  }
+  // 获取时间引擎规则列表
+  rpc ListTimeEngineRule (ListTimeEngineRuleRequest) returns (ListTimeEngineRuleReply) {
+    option (google.api.http) = {
+      post: "/v1/admin/alarm/time_engine_rule/list"
+      body: "*"
+    };
+  }
+}
+
+// 创建时间引擎规则请求
+message CreateTimeEngineRuleRequest {
+  // 规则名称
+  string name = 1 [(buf.validate.field).cel = {
+    expression: "this.len() > 0 && this.len() < 64",
+    message: "规则名称长度必须在1到64之间"
+  }];
+  // 规则类型
+  int32 category = 2 [(buf.validate.field).cel = {
+    expression: "this > 1 && this < 5",
+    message: "规则类型必须在1到5之间"
+  }];
+  // 规则
+  repeated int32 rule = 3 [(buf.validate.field).cel = {
+    expression: "this.len() > 0",
+    message: "规则不能为空"
+  }];
+  // 状态
+  int32 status = 4 [(buf.validate.field).cel = {
+    expression: "this == 1 || this == 2",
+    message: "状态必须为1:启用,2:禁用"
+  }];
+  // 备注
+  string remark = 5 [(buf.validate.field).cel = {
+    expression: "this.len() < 255",
+    message: "备注长度不能超过255"
+  }];
+}
+// 创建时间引擎规则返回
+message CreateTimeEngineRuleReply {}
+
+// 更新时间引擎规则请求
+message UpdateTimeEngineRuleRequest {
+  // 规则ID
+  uint32 id = 1 [(buf.validate.field).cel = {
+    expression: "this > 0",
+    message: "更新必须指定规则"
+  }];
+  // 明细数据
+  CreateTimeEngineRuleRequest data = 2;
+}
+// 更新时间引擎规则返回
+message UpdateTimeEngineRuleReply {}
+
+// 删除时间引擎规则请求
+message DeleteTimeEngineRuleRequest {
+  // 规则ID
+  uint32 id = 1 [(buf.validate.field).cel = {
+    expression: "this > 0",
+    message: "删除必须指定规则"
+  }];
+}
+// 删除时间引擎规则返回
+message DeleteTimeEngineRuleReply {}
+
+// 获取时间引擎规则请求
+message GetTimeEngineRuleRequest {
+  // 规则ID
+  uint32 id = 1 [(buf.validate.field).cel = {
+    expression: "this > 0",
+    message: "获取详情必须指定规则"
+  }];
+}
+// 获取时间引擎规则返回
+message GetTimeEngineRuleReply {
+  // 规则
+  TimeEngineRuleItem detail = 1;
+}
+
+// 获取时间引擎规则列表请求
+message ListTimeEngineRuleRequest {
+  // 分页
+  PaginationReq pagination = 1;
+  // 模糊查询
+  string keyword = 2;
+  // 状态
+  int32 status = 3;
+  // 规则类型
+  int32 category = 4;
+}
+// 获取时间引擎规则列表返回
+message ListTimeEngineRuleReply {
+  // 规则列表
+  repeated TimeEngineRuleItem list = 1;
+  // 分页
+  PaginationReply pagination = 2;
+}

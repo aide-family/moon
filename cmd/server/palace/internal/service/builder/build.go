@@ -78,12 +78,18 @@ type (
 		// AlarmSendModuleBuilder 告警发送模块构造器
 		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
 
-		// MqDataSourceModuleBuild mq数据源模块构造器
+		// TimeEngineRuleModuleBuilder 时间引擎规则模块构造器
+		TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder
 
 		// OauthModuleBuilder oauth模块构造器
 		OauthModuleBuilder() IOauthModuleBuilder
 	}
 )
+
+// TimeEngineRuleModuleBuilder implements IPramsBuilder.
+func (p *paramsBuilder) TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder {
+	return &timeEngineRuleModuleBuilderImpl{ctx: p.ctx}
+}
 
 // OauthModuleBuilder implements IPramsBuilder.
 func (p *paramsBuilder) OauthModuleBuilder() IOauthModuleBuilder {
