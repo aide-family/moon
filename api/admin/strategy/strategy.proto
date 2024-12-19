@@ -263,7 +263,7 @@ message CreateStrategyRequest {
 
   option (buf.validate.message).cel = {
     id: "StrategyMetricLevelRequired",
-    expression: "this.strategyType != 1 || (this.strategyMetricLevel.size() > 0)",
+    expression: "this.strategyType != 1 || (this.strategyMetricLevels.size() > 0)",
     message: "strategyMetricLevels 不能为空"
   };
 
@@ -337,6 +337,8 @@ message ListStrategyRequest {
   // 状态查询
   Status status = 3;
   DatasourceType datasourceType = 4;
+  // 策略类型
+  repeated StrategyType strategyTypes = 5;
 }
 message ListStrategyReply {
   // 分页信息

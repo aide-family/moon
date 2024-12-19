@@ -54,11 +54,12 @@ type (
 
 	// QueryStrategyListParams 查询策略列表请求参数
 	QueryStrategyListParams struct {
-		Keyword    string `json:"keyword"`
-		Page       types.Pagination
-		Alert      string
-		Status     vobj.Status
-		SourceType vobj.StrategyTemplateSource
+		Keyword       string
+		Page          types.Pagination
+		Alert         string
+		Status        vobj.Status
+		SourceType    vobj.StrategyTemplateSource
+		StrategyTypes []vobj.StrategyType
 	}
 
 	// UpdateStrategyStatusParams 更新策略状态请求参数

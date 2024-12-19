@@ -610,6 +610,12 @@ func (s *strategyRepositoryImpl) FindByPage(ctx context.Context, params *bo.Quer
 		wheres = append(wheres, bizQuery.Strategy.Status.Eq(params.Status.GetValue()))
 	}
 
+	if len(params.StrategyTypes) > 0 {
+		wheres = append(wheres, bizQuery.Strategy.StrategyType.In(types.SliceTo(params.StrategyTypes, func(item vobj.StrategyType) int {
+			return int(item)
+		})...))
+	}
+
 	if !types.TextIsNull(params.Keyword) {
 		strategyWrapper = strategyWrapper.Or(bizQuery.Strategy.Name.Like(params.Keyword))
 		strategyWrapper = strategyWrapper.Or(bizQuery.Strategy.Remark.Like(params.Keyword))

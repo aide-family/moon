@@ -1161,9 +1161,14 @@ func (l *listStrategyRequestBuilder) ToBo() *bo.QueryStrategyListParams {
 	}
 
 	return &bo.QueryStrategyListParams{
-		Keyword: l.GetKeyword(),
-		Page:    types.NewPagination(l.GetPagination()),
-		Status:  vobj.Status(l.GetStatus()),
+		Keyword:    l.GetKeyword(),
+		Page:       types.NewPagination(l.GetPagination()),
+		Alert:      "",
+		Status:     vobj.Status(l.GetStatus()),
+		SourceType: vobj.StrategyTemplateSource(l.GetDatasourceType()),
+		StrategyTypes: types.SliceTo(l.GetStrategyTypes(), func(item api.StrategyType) vobj.StrategyType {
+			return vobj.StrategyType(item)
+		}),
 	}
 }
 
