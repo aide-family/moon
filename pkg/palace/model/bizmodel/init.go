@@ -33,7 +33,9 @@ func Models() []any {
 		&StrategyDomain{},
 		&StrategyHTTP{},
 		&StrategyPing{},
-		&MqDatasource{},
 		&StrategyMQLevel{},
+		&TimeEngineRule{},
+		&TimeEngine{},
+		&StrategyLevels{},
 	}
 }

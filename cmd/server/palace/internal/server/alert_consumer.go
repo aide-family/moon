@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"time"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -27,8 +26,6 @@ func newAlertConsumer(c *palaceconf.Bootstrap, data *data.Data, alertService *se
 				if !ok {
 					return nil
 				}
-				// 消费的时候慢一点，防止阻塞
-				time.Sleep(time.Second * 5)
 				return alertService.SendAlertMsg(ctx, params.SendMsgRequest)
 			}),
 		)),

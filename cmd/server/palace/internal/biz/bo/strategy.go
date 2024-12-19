@@ -2,9 +2,8 @@ package bo
 
 import (
 	"fmt"
-
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -44,6 +43,12 @@ type (
 		MetricLevels []*CreateStrategyMetricLevel `json:"metricLevels"`
 		// 事件策略等级
 		EventLevels []*CreateStrategyEventLevel `json:"mqLevels"`
+		// 域名证书等级
+		DomainLevels []*CreateStrategyDomainLevel `json:"domainLevels"`
+		// 端口证书等级
+		PortLevels []*CreateStrategyPortLevel `json:"portLevels"`
+		// HTTP策略等级
+		HTTPLevels []*CreateStrategyHTTPLevel `json:"httpLevels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -54,11 +59,12 @@ type (
 
 	// QueryStrategyListParams 查询策略列表请求参数
 	QueryStrategyListParams struct {
-		Keyword    string `json:"keyword"`
-		Page       types.Pagination
-		Alert      string
-		Status     vobj.Status
-		SourceType vobj.StrategyTemplateSource
+		Keyword       string
+		Page          types.Pagination
+		Alert         string
+		Status        vobj.Status
+		SourceType    vobj.StrategyTemplateSource
+		StrategyTypes []vobj.StrategyType
 	}
 
 	// UpdateStrategyStatusParams 更新策略状态请求参数
@@ -119,6 +125,68 @@ type (
 		StrategyID uint32 `json:"strategyID"`
 		// PathKey
 		PathKey string `json:"pathKey"`
+	}
+
+	// CreateStrategyDomainLevel 创建域名证书监控策略
+	CreateStrategyDomainLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+
+		Condition vobj.Condition `json:"condition"`
+		// 阈值
+		Threshold int64 `json:"threshold"`
+	}
+
+	// CreateStrategyPortLevel 创建端口监控策略
+	CreateStrategyPortLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 阈值
+		Threshold int64 `json:"threshold"`
+		// 端口
+		Port uint32 `json:"port"`
+	}
+
+	// CreateStrategyHTTPLevel 创建http监控策略
+	CreateStrategyHTTPLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 告警页面
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
+		// 响应时间 s
+		ResponseTime uint32 `json:"responseTime"`
+		// 状态码
+		StatusCodes uint32 `json:"statusCodes"`
+		// 请求体
+		Body string `json:"body"`
+		// 查询参数
+		QueryParams string `json:"queryParams"`
+		// 请求方式
+		Method string `json:"method"`
+		// 状态码判断条件
+		StatusCodeCondition vobj.Condition `json:"condition"`
+		// 响应时间判断条件
+		ResponseTimeCondition vobj.Condition `json:"responseTimeCondition"`
+		// 请求头
+		Headers []*HeaderItem `json:"headers"`
+	}
+
+	// HeaderItem 请求头
+	HeaderItem struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
 	}
 
 	// CreateStrategyGroupParams 创建策略组请求参数
@@ -191,10 +259,8 @@ type (
 
 	// StrategyLevelDetailModel 策略等级明细
 	StrategyLevelDetailModel struct {
-		// MetricsLevelMap
-		MetricsLevelMap map[uint32][]*bizmodel.StrategyMetricsLevel `json:"metricsLevelMap"`
-		// MQ
-		MQLevelMap map[uint32][]*bizmodel.StrategyMQLevel `json:"mqLevelMap"`
+		// LevelMap
+		LevelMap map[uint32][]*bizmodel.StrategyLevels `json:"levelMap"`
 	}
 
 	// TeamStrategyLevelModel 策略等级
@@ -289,12 +355,14 @@ type (
 		Category vobj.DatasourceType `json:"category,omitempty"`
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
-		// 数据源配置 json
-		Config map[string]string `json:"config,omitempty"`
+		// 数据源配置
+		Config *datasource.Config `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID
 		ID uint32 `json:"id,omitempty"`
+		// 状态
+		Status vobj.Status
 	}
 )
 
@@ -314,5 +382,8 @@ func (s *Strategy) Index() string {
 
 // Message 策略转消息
 func (s *Strategy) Message() *watch.Message {
+	if s.StrategyType.IsMq() {
+		return watch.NewMessage(s, vobj.TopicEventStrategy)
+	}
 	return watch.NewMessage(s, vobj.TopicStrategy)
 }

@@ -65,29 +65,21 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 		strategyIds := types.To(strategies, func(strategy *bizmodel.Strategy) uint32 {
 			return strategy.ID
 		})
-		metricLevels, err := s.strategyRepo.GetStrategyMetricLevels(ctx, strategyIds)
+
+		strategyLevels, err := s.strategyRepo.GetStrategyLevels(ctx, strategyIds)
 		if err != nil {
 			return
 		}
 
-		strategyMQLevels, err := s.strategyRepo.GetStrategyMQLevels(ctx, strategyIds)
-		if err != nil {
-			return
-		}
-
-		metricsLevelMap := types.ToMapSlice(metricLevels, func(level *bizmodel.StrategyMetricsLevel) uint32 {
+		levelMap := types.ToMapSlice(strategyLevels, func(level *bizmodel.StrategyLevels) uint32 {
 			return level.StrategyID
 		})
 
-		mqLevelMap := types.ToMapSlice(strategyMQLevels, func(level *bizmodel.StrategyMQLevel) uint32 {
-			return level.StrategyID
-		})
-
-		strategyDetailMap := &bo.StrategyLevelDetailModel{MetricsLevelMap: metricsLevelMap, MQLevelMap: mqLevelMap}
+		strategyDetailMap := &bo.StrategyLevelDetailModel{LevelMap: levelMap}
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyDetailMap).ToBos(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyDetailMap).ToBosV2(strategy)
 				if len(items) == 0 {
 					continue
 				}

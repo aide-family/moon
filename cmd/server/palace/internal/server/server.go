@@ -97,7 +97,6 @@ func RegisterService(
 	teamRoleService *team.RoleService,
 	datasourceService *datasource.Service,
 	metricService *datasource.MetricService,
-	mqDatasourceService *datasource.MqDatasourceService,
 	menuService *menu.Service,
 	dictService *dict.Service,
 	strategyService *strategy.Service,
@@ -114,6 +113,7 @@ func RegisterService(
 	fileService *file.Service,
 	systemService *system.Service,
 	alarmSendService *alarm.SendService,
+	timeEngineRuleService *alarm.TimeEngineRuleService,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)
@@ -124,7 +124,6 @@ func RegisterService(
 	teamapi.RegisterRoleServer(rpcSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceServer(rpcSrv, datasourceService)
 	datasourceapi.RegisterMetricServer(rpcSrv, metricService)
-	datasourceapi.RegisterMqDatasourceServer(rpcSrv, mqDatasourceService)
 	dictapi.RegisterDictServer(rpcSrv, dictService)
 	api.RegisterHealthServer(rpcSrv, healthService)
 	strategyapi.RegisterStrategyServer(rpcSrv, strategyService)
@@ -134,6 +133,7 @@ func RegisterService(
 	realtimeapi.RegisterAlarmPageSelfServer(rpcSrv, alarmPageSelfService)
 	alarmapi.RegisterAlarmServer(rpcSrv, alarmGroupService)
 	alarmapi.RegisterSendServer(rpcSrv, alarmSendService)
+	alarmapi.RegisterTimeEngineRuleServer(rpcSrv, timeEngineRuleService)
 	subscriberapi.RegisterSubscriberServer(rpcSrv, subscriberService)
 	hookapi.RegisterHookServer(rpcSrv, hookService)
 	api.RegisterAlertServer(rpcSrv, alertService)
@@ -151,7 +151,6 @@ func RegisterService(
 	teamapi.RegisterRoleHTTPServer(httpSrv, teamRoleService)
 	datasourceapi.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
 	datasourceapi.RegisterMetricHTTPServer(httpSrv, metricService)
-	datasourceapi.RegisterMqDatasourceHTTPServer(httpSrv, mqDatasourceService)
 	dictapi.RegisterDictHTTPServer(httpSrv, dictService)
 	api.RegisterHealthHTTPServer(httpSrv, healthService)
 	strategyapi.RegisterStrategyHTTPServer(httpSrv, strategyService)
@@ -161,6 +160,7 @@ func RegisterService(
 	realtimeapi.RegisterAlarmPageSelfHTTPServer(httpSrv, alarmPageSelfService)
 	alarmapi.RegisterAlarmHTTPServer(httpSrv, alarmGroupService)
 	alarmapi.RegisterSendHTTPServer(httpSrv, alarmSendService)
+	alarmapi.RegisterTimeEngineRuleHTTPServer(httpSrv, timeEngineRuleService)
 	subscriberapi.RegisterSubscriberHTTPServer(httpSrv, subscriberService)
 	hookapi.RegisterHookHTTPServer(httpSrv, hookService)
 	api.RegisterAlertHTTPServer(httpSrv, alertService)

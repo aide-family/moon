@@ -64,7 +64,7 @@ func (l *Labels) MarshalJSON() ([]byte, error) {
 
 // String 转json字符串
 func (l *Labels) String() string {
-	if types.IsNil(l) || l.label == nil {
+	if types.IsNil(l) || len(l.label) == 0 {
 		return "{}"
 	}
 
