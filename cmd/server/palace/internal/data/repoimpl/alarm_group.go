@@ -268,6 +268,17 @@ func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID ui
 		First()
 }
 
+func (a *alarmGroupRepositoryImpl) GetAlarmGroupsByIDs(ctx context.Context, ids []uint32) ([]*bizmodel.AlarmNoticeGroup, error) {
+	bizQuery, err := getBizQuery(ctx, a.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.In(ids...)).
+		Preload(field.Associations, bizQuery.AlarmNoticeGroup.NoticeMembers.Member).
+		Preload(bizQuery.AlarmNoticeGroup.TimeEngines).
+		Find()
+}
+
 func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {
 	bizQuery, err := getBizQuery(ctx, a.data)
 	if !types.IsNil(err) {

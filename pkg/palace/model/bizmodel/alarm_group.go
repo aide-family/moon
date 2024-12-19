@@ -1,6 +1,8 @@
 package bizmodel
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -8,6 +10,8 @@ import (
 )
 
 const tableNameAlarmNoticeGroup = "alarm_notice_group"
+
+var _ types.TimeEngineer = (*AlarmNoticeGroup)(nil)
 
 // AlarmNoticeGroup 告警通知组
 type AlarmNoticeGroup struct {
@@ -19,6 +23,19 @@ type AlarmNoticeGroup struct {
 	NoticeMembers []*AlarmNoticeMember  `gorm:"foreignKey:AlarmGroupID;comment:通知人信息中间表" json:"notice_members"`
 	AlarmHooks    []*AlarmHook          `gorm:"many2many:alarm_group_hook" json:"alarm_hooks"`
 	TimeEngines   []*TimeEngine         `gorm:"many2many:alarm_group_time_engine" json:"time_engines"`
+}
+
+func (c *AlarmNoticeGroup) IsAllowed(t time.Time) bool {
+	if c == nil || len(c.TimeEngines) == 0 {
+		return true
+	}
+
+	for _, engine := range c.TimeEngines {
+		if engine.IsAllowed(t) {
+			return true
+		}
+	}
+	return false
 }
 
 // UnmarshalBinary redis存储实现
