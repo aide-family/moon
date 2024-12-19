@@ -6,6 +6,7 @@ package vobj
 type TimeEngineRuleType int
 
 const (
+	// TimeEngineRuleTypeUnknown 未知
 	TimeEngineRuleTypeUnknown TimeEngineRuleType = iota // 未知
 
 	// TimeEngineRuleTypeHourRange 小时范围 24小时制

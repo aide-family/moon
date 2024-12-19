@@ -35,5 +35,6 @@ func Models() []any {
 		&StrategyPing{},
 		&StrategyMQLevel{},
 		&TimeEngineRule{},
+		&TimeEngine{},
 	}
 }

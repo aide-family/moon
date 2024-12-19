@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
 	alarmapi "github.com/aide-family/moon/api/admin/alarm"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -26,8 +27,72 @@ type (
 		WithGetTimeEngineRuleRequest(req *alarmapi.GetTimeEngineRuleRequest) IGetTimeEngineRuleRequestBuilder
 		// WithListTimeEngineRuleRequest 获取时间引擎规则列表请求构造器
 		WithListTimeEngineRuleRequest(req *alarmapi.ListTimeEngineRuleRequest) IListTimeEngineRuleRequestBuilder
+		// WithBatchUpdateTimeEngineRuleStatusRequest 批量更新时间引擎规则状态请求构造器
+		WithBatchUpdateTimeEngineRuleStatusRequest(req *alarmapi.BatchUpdateTimeEngineRuleStatusRequest) IBatchUpdateTimeEngineRuleStatusRequestBuilder
 		// Do 执行
 		Do() ITimeEngineRuleDoBuilder
+	}
+
+	// ITimeEngineModuleBuilder 时间引擎模块构造器
+	ITimeEngineModuleBuilder interface {
+		// WithCreateTimeEngineRequest 创建时间引擎请求构造器
+		WithCreateTimeEngineRequest(req *alarmapi.CreateTimeEngineRequest) ICreateTimeEngineRequestBuilder
+		// WithUpdateTimeEngineRequest 更新时间引擎请求构造器
+		WithUpdateTimeEngineRequest(req *alarmapi.UpdateTimeEngineRequest) IUpdateTimeEngineRequestBuilder
+		// WithDeleteTimeEngineRequest 删除时间引擎请求构造器
+		WithDeleteTimeEngineRequest(req *alarmapi.DeleteTimeEngineRequest) IDeleteTimeEngineRequestBuilder
+		// WithGetTimeEngineRequest 获取时间引擎请求构造器
+		WithGetTimeEngineRequest(req *alarmapi.GetTimeEngineRequest) IGetTimeEngineRequestBuilder
+		// WithListTimeEngineRequest 获取时间引擎列表请求构造器
+		WithListTimeEngineRequest(req *alarmapi.ListTimeEngineRequest) IListTimeEngineRequestBuilder
+		// WithBatchUpdateTimeEngineStatusRequest 批量更新时间引擎状态请求构造器
+		WithBatchUpdateTimeEngineStatusRequest(req *alarmapi.BatchUpdateTimeEngineStatusRequest) IBatchUpdateTimeEngineStatusRequestBuilder
+		// Do 执行
+		Do() ITimeEngineDoBuilder
+	}
+
+	// ICreateTimeEngineRequestBuilder 创建时间引擎请求构造器
+	ICreateTimeEngineRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.CreateTimeEngineRequest
+	}
+
+	// IUpdateTimeEngineRequestBuilder 更新时间引擎请求构造器
+	IUpdateTimeEngineRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.UpdateTimeEngineRequest
+	}
+
+	// IDeleteTimeEngineRequestBuilder 删除时间引擎请求构造器
+	IDeleteTimeEngineRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.DeleteTimeEngineRequest
+	}
+
+	// IGetTimeEngineRequestBuilder 获取时间引擎请求构造器
+	IGetTimeEngineRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.GetTimeEngineRequest
+	}
+
+	// IListTimeEngineRequestBuilder 获取时间引擎列表请求构造器
+	IListTimeEngineRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.ListTimeEngineRequest
+	}
+
+	// IBatchUpdateTimeEngineStatusRequestBuilder 批量更新时间引擎状态请求构造器
+	IBatchUpdateTimeEngineStatusRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.BatchUpdateTimeEngineStatusRequest
+	}
+
+	// ITimeEngineDoBuilder 时间引擎执行构造器
+	ITimeEngineDoBuilder interface {
+		// ToAPI 转换为API
+		ToAPI(*bizmodel.TimeEngine) *adminapi.TimeEngineItem
+		// ToAPIs 转换为API列表
+		ToAPIs([]*bizmodel.TimeEngine) []*adminapi.TimeEngineItem
 	}
 
 	// ICreateTimeEngineRuleRequestBuilder 创建时间引擎规则请求构造器
@@ -58,6 +123,12 @@ type (
 	IListTimeEngineRuleRequestBuilder interface {
 		// ToBo 转换为BO
 		ToBo() *bo.ListTimeEngineRuleRequest
+	}
+
+	// IBatchUpdateTimeEngineRuleStatusRequestBuilder 批量更新时间引擎规则状态请求构造器
+	IBatchUpdateTimeEngineRuleStatusRequestBuilder interface {
+		// ToBo 转换为BO
+		ToBo() *bo.BatchUpdateTimeEngineRuleStatusRequest
 	}
 
 	// ITimeEngineRuleDoBuilder 时间引擎规则执行构造器
@@ -93,6 +164,11 @@ type (
 		ctx context.Context
 	}
 
+	batchUpdateTimeEngineRuleStatusRequestBuilderImpl struct {
+		*alarmapi.BatchUpdateTimeEngineRuleStatusRequest
+		ctx context.Context
+	}
+
 	timeEngineRuleDoBuilderImpl struct {
 		ctx context.Context
 	}
@@ -100,7 +176,176 @@ type (
 	timeEngineRuleModuleBuilderImpl struct {
 		ctx context.Context
 	}
+
+	createTimeEngineRequestBuilderImpl struct {
+		*alarmapi.CreateTimeEngineRequest
+		ctx context.Context
+	}
+
+	updateTimeEngineRequestBuilderImpl struct {
+		*alarmapi.UpdateTimeEngineRequest
+		ctx context.Context
+	}
+
+	deleteTimeEngineRequestBuilderImpl struct {
+		*alarmapi.DeleteTimeEngineRequest
+		ctx context.Context
+	}
+
+	getTimeEngineRequestBuilderImpl struct {
+		*alarmapi.GetTimeEngineRequest
+		ctx context.Context
+	}
+
+	listTimeEngineRequestBuilderImpl struct {
+		*alarmapi.ListTimeEngineRequest
+		ctx context.Context
+	}
+
+	batchUpdateTimeEngineStatusRequestBuilderImpl struct {
+		*alarmapi.BatchUpdateTimeEngineStatusRequest
+		ctx context.Context
+	}
+
+	timeEngineDoBuilderImpl struct {
+		ctx context.Context
+	}
+
+	timeEngineModuleBuilderImpl struct {
+		ctx context.Context
+	}
 )
+
+// ToBo implements ICreateTimeEngineRequestBuilder.
+func (c *createTimeEngineRequestBuilderImpl) ToBo() *bo.CreateTimeEngineRequest {
+	if c == nil || c.CreateTimeEngineRequest == nil {
+		return nil
+	}
+	return &bo.CreateTimeEngineRequest{
+		Name:    c.GetName(),
+		Remark:  c.GetRemark(),
+		Status:  vobj.Status(c.GetStatus()),
+		RuleIDs: c.GetRules(),
+	}
+}
+
+// ToBo implements IUpdateTimeEngineRequestBuilder.
+func (u *updateTimeEngineRequestBuilderImpl) ToBo() *bo.UpdateTimeEngineRequest {
+	if u == nil || u.UpdateTimeEngineRequest == nil {
+		return nil
+	}
+	return &bo.UpdateTimeEngineRequest{
+		ID:      u.GetId(),
+		Name:    u.GetData().GetName(),
+		Remark:  u.GetData().GetRemark(),
+		Status:  vobj.Status(u.GetData().GetStatus()),
+		RuleIDs: u.GetData().GetRules(),
+	}
+}
+
+// ToBo implements IDeleteTimeEngineRequestBuilder.
+func (d *deleteTimeEngineRequestBuilderImpl) ToBo() *bo.DeleteTimeEngineRequest {
+	if d == nil || d.DeleteTimeEngineRequest == nil {
+		return nil
+	}
+	return &bo.DeleteTimeEngineRequest{
+		ID: d.GetId(),
+	}
+}
+
+// ToBo implements IGetTimeEngineRequestBuilder.
+func (g *getTimeEngineRequestBuilderImpl) ToBo() *bo.GetTimeEngineRequest {
+	if g == nil || g.GetTimeEngineRequest == nil {
+		return nil
+	}
+	return &bo.GetTimeEngineRequest{
+		ID: g.GetId(),
+	}
+}
+
+// ToBo implements IListTimeEngineRequestBuilder.
+func (l *listTimeEngineRequestBuilderImpl) ToBo() *bo.ListTimeEngineRequest {
+	if l == nil || l.ListTimeEngineRequest == nil {
+		return nil
+	}
+	return &bo.ListTimeEngineRequest{
+		Page:    types.NewPagination(l.GetPagination()),
+		Status:  vobj.Status(l.GetStatus()),
+		Keyword: l.GetKeyword(),
+	}
+}
+
+// ToBo implements IBatchUpdateTimeEngineStatusRequestBuilder.
+func (b *batchUpdateTimeEngineStatusRequestBuilderImpl) ToBo() *bo.BatchUpdateTimeEngineStatusRequest {
+	if b == nil || b.BatchUpdateTimeEngineStatusRequest == nil {
+		return nil
+	}
+	return &bo.BatchUpdateTimeEngineStatusRequest{
+		IDs:    b.GetIds(),
+		Status: vobj.Status(b.GetStatus()),
+	}
+}
+
+// ToAPI implements ITimeEngineDoBuilder.
+func (t *timeEngineDoBuilderImpl) ToAPI(timeEngine *bizmodel.TimeEngine) *adminapi.TimeEngineItem {
+	if t == nil || timeEngine == nil {
+		return nil
+	}
+	userMap := getUsers(t.ctx, nil, timeEngine.GetCreatorID())
+	return &adminapi.TimeEngineItem{
+		Id:        timeEngine.ID,
+		Name:      timeEngine.Name,
+		Status:    api.Status(timeEngine.Status),
+		Remark:    timeEngine.Remark,
+		CreatedAt: timeEngine.CreatedAt.Unix(),
+		UpdatedAt: timeEngine.UpdatedAt.Unix(),
+		Rules:     NewParamsBuild(t.ctx).TimeEngineRuleModuleBuilder().Do().ToAPIs(timeEngine.Rules),
+		Creator:   userMap[timeEngine.GetCreatorID()],
+	}
+}
+
+// ToAPIs implements ITimeEngineDoBuilder.
+func (t *timeEngineDoBuilderImpl) ToAPIs(timeEngines []*bizmodel.TimeEngine) []*adminapi.TimeEngineItem {
+	if t == nil || timeEngines == nil {
+		return nil
+	}
+	return types.SliceTo(timeEngines, t.ToAPI)
+}
+
+// WithCreateTimeEngineRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithCreateTimeEngineRequest(req *alarmapi.CreateTimeEngineRequest) ICreateTimeEngineRequestBuilder {
+	return &createTimeEngineRequestBuilderImpl{CreateTimeEngineRequest: req, ctx: b.ctx}
+}
+
+// WithUpdateTimeEngineRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithUpdateTimeEngineRequest(req *alarmapi.UpdateTimeEngineRequest) IUpdateTimeEngineRequestBuilder {
+	return &updateTimeEngineRequestBuilderImpl{UpdateTimeEngineRequest: req, ctx: b.ctx}
+}
+
+// WithDeleteTimeEngineRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithDeleteTimeEngineRequest(req *alarmapi.DeleteTimeEngineRequest) IDeleteTimeEngineRequestBuilder {
+	return &deleteTimeEngineRequestBuilderImpl{DeleteTimeEngineRequest: req, ctx: b.ctx}
+}
+
+// WithGetTimeEngineRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithGetTimeEngineRequest(req *alarmapi.GetTimeEngineRequest) IGetTimeEngineRequestBuilder {
+	return &getTimeEngineRequestBuilderImpl{GetTimeEngineRequest: req, ctx: b.ctx}
+}
+
+// WithListTimeEngineRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithListTimeEngineRequest(req *alarmapi.ListTimeEngineRequest) IListTimeEngineRequestBuilder {
+	return &listTimeEngineRequestBuilderImpl{ListTimeEngineRequest: req, ctx: b.ctx}
+}
+
+// WithBatchUpdateTimeEngineStatusRequest implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) WithBatchUpdateTimeEngineStatusRequest(req *alarmapi.BatchUpdateTimeEngineStatusRequest) IBatchUpdateTimeEngineStatusRequestBuilder {
+	return &batchUpdateTimeEngineStatusRequestBuilderImpl{BatchUpdateTimeEngineStatusRequest: req, ctx: b.ctx}
+}
+
+// Do implements ITimeEngineModuleBuilder.
+func (b *timeEngineModuleBuilderImpl) Do() ITimeEngineDoBuilder {
+	return &timeEngineDoBuilderImpl{ctx: b.ctx}
+}
 
 // WithCreateTimeEngineRuleRequest implements ITimeEngineRuleModuleBuilder.
 func (b *timeEngineRuleModuleBuilderImpl) WithCreateTimeEngineRuleRequest(req *alarmapi.CreateTimeEngineRuleRequest) ICreateTimeEngineRuleRequestBuilder {
@@ -127,6 +372,11 @@ func (b *timeEngineRuleModuleBuilderImpl) WithListTimeEngineRuleRequest(req *ala
 	return &listTimeEngineRuleRequestBuilderImpl{ListTimeEngineRuleRequest: req, ctx: b.ctx}
 }
 
+// WithBatchUpdateTimeEngineRuleStatusRequest implements ITimeEngineRuleModuleBuilder.
+func (b *timeEngineRuleModuleBuilderImpl) WithBatchUpdateTimeEngineRuleStatusRequest(req *alarmapi.BatchUpdateTimeEngineRuleStatusRequest) IBatchUpdateTimeEngineRuleStatusRequestBuilder {
+	return &batchUpdateTimeEngineRuleStatusRequestBuilderImpl{BatchUpdateTimeEngineRuleStatusRequest: req, ctx: b.ctx}
+}
+
 // Do implements ITimeEngineRuleModuleBuilder.
 func (b *timeEngineRuleModuleBuilderImpl) Do() ITimeEngineRuleDoBuilder {
 	return &timeEngineRuleDoBuilderImpl{ctx: b.ctx}
@@ -142,7 +392,7 @@ func (b *createTimeEngineRuleRequestBuilderImpl) ToBo() *bo.CreateTimeEngineRule
 		Remark:   b.GetRemark(),
 		Status:   vobj.Status(b.GetStatus()),
 		Category: vobj.TimeEngineRuleType(b.GetCategory()),
-		Rule: strings.Join(types.SliceTo(b.GetRule(), func(v int32) string {
+		Rule: strings.Join(types.SliceTo(b.GetRules(), func(v int32) string {
 			return strconv.Itoa(int(v))
 		}), ","),
 	}
@@ -154,12 +404,12 @@ func (b *updateTimeEngineRuleRequestBuilderImpl) ToBo() *bo.UpdateTimeEngineRule
 		return nil
 	}
 	return &bo.UpdateTimeEngineRuleRequest{
-		ID:       uint32(b.GetId()),
+		ID:       b.GetId(),
 		Name:     b.GetData().GetName(),
 		Remark:   b.GetData().GetRemark(),
 		Status:   vobj.Status(b.GetData().GetStatus()),
 		Category: vobj.TimeEngineRuleType(b.GetData().GetCategory()),
-		Rule: strings.Join(types.SliceTo(b.GetData().GetRule(), func(v int32) string {
+		Rule: strings.Join(types.SliceTo(b.GetData().GetRules(), func(v int32) string {
 			return strconv.Itoa(int(v))
 		}), ","),
 	}
@@ -171,7 +421,7 @@ func (b *deleteTimeEngineRuleRequestBuilderImpl) ToBo() *bo.DeleteTimeEngineRule
 		return nil
 	}
 	return &bo.DeleteTimeEngineRuleRequest{
-		ID: uint32(b.GetId()),
+		ID: b.GetId(),
 	}
 }
 
@@ -181,7 +431,7 @@ func (b *getTimeEngineRuleRequestBuilderImpl) ToBo() *bo.GetTimeEngineRuleReques
 		return nil
 	}
 	return &bo.GetTimeEngineRuleRequest{
-		ID: uint32(b.GetId()),
+		ID: b.GetId(),
 	}
 }
 
@@ -205,10 +455,10 @@ func (b *timeEngineRuleDoBuilderImpl) ToAPI(timeEngineRule *bizmodel.TimeEngineR
 	}
 	userMap := getUsers(b.ctx, nil, timeEngineRule.GetCreatorID())
 	return &adminapi.TimeEngineRuleItem{
-		Id:       uint32(timeEngineRule.ID),
+		Id:       timeEngineRule.ID,
 		Name:     timeEngineRule.Name,
 		Category: int32(timeEngineRule.Category),
-		Rule: types.SliceTo(strings.Split(timeEngineRule.Rule, ","), func(v string) int32 {
+		Rules: types.SliceTo(strings.Split(timeEngineRule.Rule, ","), func(v string) int32 {
 			n, err := strconv.Atoi(v)
 			if err != nil {
 				return 0
@@ -229,4 +479,15 @@ func (b *timeEngineRuleDoBuilderImpl) ToAPIs(timeEngineRules []*bizmodel.TimeEng
 		return nil
 	}
 	return types.SliceTo(timeEngineRules, b.ToAPI)
+}
+
+// ToBo implements IBatchUpdateTimeEngineRuleStatusRequestBuilder.
+func (b *batchUpdateTimeEngineRuleStatusRequestBuilderImpl) ToBo() *bo.BatchUpdateTimeEngineRuleStatusRequest {
+	if b == nil || b.BatchUpdateTimeEngineRuleStatusRequest == nil {
+		return nil
+	}
+	return &bo.BatchUpdateTimeEngineRuleStatusRequest{
+		IDs:    b.GetIds(),
+		Status: vobj.Status(b.GetStatus()),
+	}
 }

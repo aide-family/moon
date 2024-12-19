@@ -81,10 +81,18 @@ type (
 		// TimeEngineRuleModuleBuilder 时间引擎规则模块构造器
 		TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder
 
+		// TimeEngineModuleBuilder 时间引擎模块构造器
+		TimeEngineModuleBuilder() ITimeEngineModuleBuilder
+
 		// OauthModuleBuilder oauth模块构造器
 		OauthModuleBuilder() IOauthModuleBuilder
 	}
 )
+
+// TimeEngineRuleModuleBuilder implements IPramsBuilder.
+func (p *paramsBuilder) TimeEngineModuleBuilder() ITimeEngineModuleBuilder {
+	return &timeEngineModuleBuilderImpl{ctx: p.ctx}
+}
 
 // TimeEngineRuleModuleBuilder implements IPramsBuilder.
 func (p *paramsBuilder) TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder {

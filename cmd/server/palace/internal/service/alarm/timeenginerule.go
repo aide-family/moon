@@ -73,3 +73,73 @@ func (s *TimeEngineRuleService) ListTimeEngineRule(ctx context.Context, req *pb.
 		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
+
+// BatchUpdateTimeEngineRuleStatus 批量更新时间引擎规则状态
+func (s *TimeEngineRuleService) BatchUpdateTimeEngineRuleStatus(ctx context.Context, req *pb.BatchUpdateTimeEngineRuleStatusRequest) (*pb.BatchUpdateTimeEngineRuleStatusReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineRuleModuleBuilder().WithBatchUpdateTimeEngineRuleStatusRequest(req).ToBo()
+	if err := s.timeEngineRuleBiz.BatchUpdateTimeEngineRuleStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &pb.BatchUpdateTimeEngineRuleStatusReply{}, nil
+}
+
+// CreateTimeEngine 创建时间引擎
+func (s *TimeEngineRuleService) CreateTimeEngine(ctx context.Context, req *pb.CreateTimeEngineRequest) (*pb.CreateTimeEngineReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithCreateTimeEngineRequest(req).ToBo()
+	if err := s.timeEngineRuleBiz.CreateTimeEngine(ctx, params); err != nil {
+		return nil, err
+	}
+	return &pb.CreateTimeEngineReply{}, nil
+}
+
+// UpdateTimeEngine 更新时间引擎
+func (s *TimeEngineRuleService) UpdateTimeEngine(ctx context.Context, req *pb.UpdateTimeEngineRequest) (*pb.UpdateTimeEngineReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithUpdateTimeEngineRequest(req).ToBo()
+	if err := s.timeEngineRuleBiz.UpdateTimeEngine(ctx, params); err != nil {
+		return nil, err
+	}
+	return &pb.UpdateTimeEngineReply{}, nil
+}
+
+// DeleteTimeEngine 删除时间引擎
+func (s *TimeEngineRuleService) DeleteTimeEngine(ctx context.Context, req *pb.DeleteTimeEngineRequest) (*pb.DeleteTimeEngineReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithDeleteTimeEngineRequest(req).ToBo()
+	if err := s.timeEngineRuleBiz.DeleteTimeEngine(ctx, params); err != nil {
+		return nil, err
+	}
+	return &pb.DeleteTimeEngineReply{}, nil
+}
+
+// GetTimeEngine 获取时间引擎
+func (s *TimeEngineRuleService) GetTimeEngine(ctx context.Context, req *pb.GetTimeEngineRequest) (*pb.GetTimeEngineReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithGetTimeEngineRequest(req).ToBo()
+	timeEngine, err := s.timeEngineRuleBiz.GetTimeEngine(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetTimeEngineReply{
+		Detail: builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().Do().ToAPI(timeEngine),
+	}, nil
+}
+
+// ListTimeEngine 获取时间引擎列表
+func (s *TimeEngineRuleService) ListTimeEngine(ctx context.Context, req *pb.ListTimeEngineRequest) (*pb.ListTimeEngineReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithListTimeEngineRequest(req).ToBo()
+	timeEngines, err := s.timeEngineRuleBiz.ListTimeEngine(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ListTimeEngineReply{
+		List:       builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().Do().ToAPIs(timeEngines),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+	}, nil
+}
+
+// BatchUpdateTimeEngineStatus 批量更新时间引擎状态
+func (s *TimeEngineRuleService) BatchUpdateTimeEngineStatus(ctx context.Context, req *pb.BatchUpdateTimeEngineStatusRequest) (*pb.BatchUpdateTimeEngineStatusReply, error) {
+	params := builder.NewParamsBuild(ctx).TimeEngineModuleBuilder().WithBatchUpdateTimeEngineStatusRequest(req).ToBo()
+	if err := s.timeEngineRuleBiz.BatchUpdateTimeEngineStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &pb.BatchUpdateTimeEngineStatusReply{}, nil
+}
