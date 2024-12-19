@@ -297,8 +297,8 @@ func (t *timeEngineDoBuilderImpl) ToAPI(timeEngine *bizmodel.TimeEngine) *admina
 		Name:      timeEngine.Name,
 		Status:    api.Status(timeEngine.Status),
 		Remark:    timeEngine.Remark,
-		CreatedAt: timeEngine.CreatedAt.Unix(),
-		UpdatedAt: timeEngine.UpdatedAt.Unix(),
+		CreatedAt: timeEngine.CreatedAt.String(),
+		UpdatedAt: timeEngine.UpdatedAt.String(),
 		Rules:     NewParamsBuild(t.ctx).TimeEngineRuleModuleBuilder().Do().ToAPIs(timeEngine.Rules),
 		Creator:   userMap[timeEngine.GetCreatorID()],
 	}
@@ -467,8 +467,8 @@ func (b *timeEngineRuleDoBuilderImpl) ToAPI(timeEngineRule *bizmodel.TimeEngineR
 		}),
 		Status:    int32(timeEngineRule.Status),
 		Remark:    timeEngineRule.Remark,
-		CreatedAt: timeEngineRule.CreatedAt.Unix(),
-		UpdatedAt: timeEngineRule.UpdatedAt.Unix(),
+		CreatedAt: timeEngineRule.CreatedAt.String(),
+		UpdatedAt: timeEngineRule.UpdatedAt.String(),
 		Creator:   userMap[timeEngineRule.GetCreatorID()],
 	}
 }

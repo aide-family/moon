@@ -853,9 +853,9 @@ message TimeEngineRuleItem {
   // 备注
   string remark = 6;
   // 创建时间
-  int64 createdAt = 7;
+  string createdAt = 7;
   // 更新时间
-  int64 updatedAt = 8;
+  string updatedAt = 8;
   // 创建人
   UserItem creator = 9;
 }
@@ -871,9 +871,9 @@ message TimeEngineItem {
   // 引擎备注
   string remark = 4;
   // 创建时间
-  int64 createdAt = 5;
+  string createdAt = 5;
   // 更新时间
-  int64 updatedAt = 6;
+  string updatedAt = 6;
   // 引擎规则列表
   repeated TimeEngineRuleItem rules = 7;
   // 引擎创建人
