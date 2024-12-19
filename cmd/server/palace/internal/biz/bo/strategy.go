@@ -2,7 +2,6 @@ package bo
 
 import (
 	"fmt"
-
 	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -44,6 +43,12 @@ type (
 		MetricLevels []*CreateStrategyMetricLevel `json:"metricLevels"`
 		// 事件策略等级
 		EventLevels []*CreateStrategyEventLevel `json:"mqLevels"`
+		// 域名证书等级
+		DomainLevels []*CreateStrategyDomainLevel `json:"domainLevels"`
+		// 端口证书等级
+		PortLevels []*CreateStrategyPortLevel `json:"portLevels"`
+		// HTTP策略等级
+		HTTPLevels []*CreateStrategyHTTPLevel `json:"httpLevels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -120,6 +125,68 @@ type (
 		StrategyID uint32 `json:"strategyID"`
 		// PathKey
 		PathKey string `json:"pathKey"`
+	}
+
+	// CreateStrategyDomainLevel 创建域名证书监控策略
+	CreateStrategyDomainLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+
+		Condition vobj.Condition `json:"condition"`
+		// 阈值
+		Threshold int64 `json:"threshold"`
+	}
+
+	// CreateStrategyPortLevel 创建端口监控策略
+	CreateStrategyPortLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 阈值
+		Threshold int64 `json:"threshold"`
+		// 端口
+		Port uint32 `json:"port"`
+	}
+
+	// CreateStrategyHTTPLevel 创建http监控策略
+	CreateStrategyHTTPLevel struct {
+		// 状态
+		Status vobj.Status `json:"status"`
+		// 策略标签
+		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 告警页面
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
+		// 响应时间 s
+		ResponseTime uint32 `json:"responseTime"`
+		// 状态码
+		StatusCodes uint32 `json:"statusCodes"`
+		// 请求体
+		Body string `json:"body"`
+		// 查询参数
+		QueryParams string `json:"queryParams"`
+		// 请求方式
+		Method string `json:"method"`
+		// 状态码判断条件
+		StatusCodeCondition vobj.Condition `json:"condition"`
+		// 响应时间判断条件
+		ResponseTimeCondition vobj.Condition `json:"responseTimeCondition"`
+		// 请求头
+		Headers []*HeaderItem `json:"headers"`
+	}
+
+	// HeaderItem 请求头
+	HeaderItem struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
 	}
 
 	// CreateStrategyGroupParams 创建策略组请求参数

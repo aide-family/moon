@@ -348,9 +348,21 @@ type (
 		// ToMetricBos 转换为业务对象列表
 		ToMetricBos([]*strategyapi.CreateStrategyMetricLevelRequest) []*bo.CreateStrategyMetricLevel
 		// ToMQBo 转换为业务对象
-		ToMQBo(request *strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel
+		ToMQBo(*strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel
 		// ToMQBos 转换为业务对象列表
-		ToMQBos(request []*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel
+		ToMQBos([]*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel
+		// ToDomainBo 转换为领域对象
+		ToDomainBo(*strategyapi.CreateStrategyDomainLevelRequest) *bo.CreateStrategyDomainLevel
+		// ToDomainBos 转换为领域对象列表
+		ToDomainBos([]*strategyapi.CreateStrategyDomainLevelRequest) []*bo.CreateStrategyDomainLevel
+		// ToPortBo 转换为业务对象
+		ToPortBo(*strategyapi.CreateStrategyPortLevelRequest) *bo.CreateStrategyPortLevel
+		// ToPortBos 转换为业务对象列表
+		ToPortBos([]*strategyapi.CreateStrategyPortLevelRequest) []*bo.CreateStrategyPortLevel
+		// ToHttpBo 转换为业务对象
+		ToHttpBo(*strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel
+		// ToHttpBos 转换为业务对象列表
+		ToHttpBos([]*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel
 	}
 
 	mutationStrategyLevelBuilder struct {
@@ -388,6 +400,85 @@ type (
 		ctx context.Context
 	}
 )
+
+func (m *mutationStrategyLevelBuilder) ToDomainBo(request *strategyapi.CreateStrategyDomainLevelRequest) *bo.CreateStrategyDomainLevel {
+	if types.IsNil(request) || types.IsNil(m) {
+		return nil
+	}
+	return &bo.CreateStrategyDomainLevel{
+		Status:        vobj.Status(request.GetStatus()),
+		LabelNotices:  NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
+		AlarmGroupIds: request.GetAlarmGroupIds(),
+		Condition:     vobj.Condition(request.GetCondition()),
+		Threshold:     request.GetThreshold(),
+	}
+}
+
+func (m *mutationStrategyLevelBuilder) ToDomainBos(requests []*strategyapi.CreateStrategyDomainLevelRequest) []*bo.CreateStrategyDomainLevel {
+	if types.IsNil(requests) || types.IsNil(m) {
+		return nil
+	}
+	return types.SliceTo(requests, func(request *strategyapi.CreateStrategyDomainLevelRequest) *bo.CreateStrategyDomainLevel {
+		return m.ToDomainBo(request)
+	})
+}
+
+func (m *mutationStrategyLevelBuilder) ToPortBo(request *strategyapi.CreateStrategyPortLevelRequest) *bo.CreateStrategyPortLevel {
+	if types.IsNil(request) || types.IsNil(m) {
+		return nil
+	}
+	return &bo.CreateStrategyPortLevel{
+		Status:        vobj.Status(request.GetStatus()),
+		LabelNotices:  NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
+		AlarmGroupIds: request.GetAlarmGroupIds(),
+		Threshold:     request.GetThreshold(),
+		Port:          request.GetPort(),
+	}
+}
+
+func (m *mutationStrategyLevelBuilder) ToPortBos(requests []*strategyapi.CreateStrategyPortLevelRequest) []*bo.CreateStrategyPortLevel {
+	if types.IsNil(requests) || types.IsNil(m) {
+		return nil
+	}
+	return types.SliceTo(requests, func(request *strategyapi.CreateStrategyPortLevelRequest) *bo.CreateStrategyPortLevel {
+		return m.ToPortBo(request)
+	})
+}
+
+func (m *mutationStrategyLevelBuilder) ToHttpBo(request *strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel {
+	if types.IsNil(request) || types.IsNil(m) {
+		return nil
+	}
+
+	return &bo.CreateStrategyHTTPLevel{
+		Status:                vobj.Status(request.GetStatus()),
+		LabelNotices:          NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
+		AlarmGroupIds:         request.GetAlarmGroupIds(),
+		AlarmPageIds:          request.GetAlarmPageIds(),
+		ResponseTime:          request.GetResponseTime(),
+		StatusCodes:           request.GetStatusCodes(),
+		Body:                  request.GetBody(),
+		QueryParams:           request.GetQueryParams(),
+		Method:                request.GetMethod(),
+		StatusCodeCondition:   vobj.Condition(request.GetStatusCodeCondition()),
+		ResponseTimeCondition: vobj.Condition(request.GetResponseTimeCondition()),
+		Headers: types.SliceTo(request.GetHeaders(), func(item *strategyapi.HeaderItem) *bo.HeaderItem {
+			return &bo.HeaderItem{
+				Key:   item.GetKey(),
+				Value: item.GetValue(),
+			}
+		}),
+	}
+}
+
+func (m *mutationStrategyLevelBuilder) ToHttpBos(requests []*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel {
+	if types.IsNil(requests) || types.IsNil(m) {
+		return nil
+	}
+	return types.SliceTo(requests, func(request *strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel {
+		return m.ToHttpBo(request)
+	})
+}
 
 func (b *boStrategyBuilder) ToMqAPI(strategy *bo.Strategy) *api.MQStrategyItem {
 	if types.IsNil(strategy) || types.IsNil(strategy.MQLevel) || types.IsNil(b) {
@@ -1222,6 +1313,9 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		StrategyType:   vobj.StrategyType(c.GetStrategyType()),
 		MetricLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMetricBos(c.GetStrategyMetricLevels()),
 		EventLevels:    NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMQBos(c.GetStrategyEventLevels()),
+		DomainLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToDomainBos(c.GetStrategyDomainLevels()),
+		PortLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToPortBos(c.GetStrategyPortLevels()),
+		HTTPLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToHttpBos(c.GetStrategyHTTPLevels()),
 	}
 }
 

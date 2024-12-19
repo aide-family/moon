@@ -823,6 +823,20 @@ func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.Create
 	return strategyLevels
 }
 
+func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyDomainLevel) []*bizmodel.StrategyDomain {
+
+	return nil
+}
+
+func createStrategyHttpLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
+
+	return nil
+}
+
+func createStrategyDomainPortLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyPortLevel) []*bizmodel.StrategyHTTP {
+	return nil
+}
+
 func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.StrategyLevels, error) {
 	level := &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
 	switch params.StrategyType {
@@ -844,6 +858,12 @@ func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyP
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
 		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
+	case vobj.StrategyTypeDomainCertificate:
+
+	case vobj.StrategyTypeHTTP:
+
+	case vobj.StrategyTypeDomainPort:
+
 	default:
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
