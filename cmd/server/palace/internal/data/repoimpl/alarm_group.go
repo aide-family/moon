@@ -131,6 +131,14 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	if !types.IsNil(err) {
 		return nil, err
 	}
+	if len(params.TimeEngineIds) > 0 {
+		timeEngines := types.SliceTo(params.TimeEngineIds, func(timeEngineID uint32) *bizmodel.TimeEngine {
+			return &bizmodel.TimeEngine{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}
+		})
+		if err := bizQuery.AlarmNoticeGroup.TimeEngines.Model(alarmGroupModel).Append(timeEngines...); err != nil {
+			return nil, err
+		}
+	}
 	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 	return alarmGroupModel, nil
 
@@ -167,6 +175,18 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 	defer func() {
 		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+		if len(params.UpdateParam.TimeEngineIds) > 0 {
+			timeEngines := types.SliceTo(params.UpdateParam.TimeEngineIds, func(timeEngineID uint32) *bizmodel.TimeEngine {
+				return &bizmodel.TimeEngine{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}
+			})
+			bizQuery, err := getBizQuery(ctx, a.data)
+			if !types.IsNil(err) {
+				return
+			}
+			if err := bizQuery.AlarmNoticeGroup.TimeEngines.Model(groupModel).Replace(timeEngines...); err != nil {
+				return
+			}
+		}
 	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		bizQueryTx := bizquery.Use(tx)
@@ -242,7 +262,10 @@ func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID ui
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).Preload(field.Associations, bizQuery.AlarmNoticeGroup.NoticeMembers.Member).First()
+	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).
+		Preload(field.Associations, bizQuery.AlarmNoticeGroup.NoticeMembers.Member).
+		Preload(bizQuery.AlarmNoticeGroup.TimeEngines).
+		First()
 }
 
 func (a *alarmGroupRepositoryImpl) AlarmGroupPage(ctx context.Context, params *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error) {

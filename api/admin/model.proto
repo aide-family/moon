@@ -656,6 +656,8 @@ message AlarmNoticeGroupItem {
   repeated NoticeItem noticeUsers = 9;
   // hooks
   repeated AlarmHookItem hooks = 10;
+  // 时间引擎
+  repeated TimeEngineItem timeEngines = 11;
 }
 
 // 通知人
