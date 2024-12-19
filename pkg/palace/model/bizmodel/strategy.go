@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"gorm.io/plugin/soft_delete"
 )
 
@@ -33,6 +34,8 @@ type Strategy struct {
 	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategies_alarm_groups;" json:"alarm_groups"`
 	// 策略组
 	Group *StrategyGroup `gorm:"foreignKey:GroupID" json:"group"`
+	// 策略等级
+	Level *StrategyLevels `gorm:"foreignKey:StrategyID" json:"level"`
 }
 
 // String json string

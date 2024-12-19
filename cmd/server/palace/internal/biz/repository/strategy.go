@@ -49,4 +49,7 @@ type Strategy interface {
 
 	// GetStrategyMQLevels 获取MQ策略等级
 	GetStrategyMQLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyMQLevel, error)
+
+	// GetStrategyLevels 获取策略等级
+	GetStrategyLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyLevels, error)
 }

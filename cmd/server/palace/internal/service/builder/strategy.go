@@ -420,7 +420,12 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 		return nil
 	}
 	levelDetail := d.strategyLevelDetail
-	strategyMetricsLevels := levelDetail.MetricsLevelMap[strategy.ID]
+
+	strategyLevels := levelDetail.LevelMap[strategy.ID]
+	strategyMetricsLevels := make([]*bizmodel.StrategyMetricsLevel, 0)
+	for _, item := range strategyLevels {
+		strategyMetricsLevels = append(strategyMetricsLevels, item.GetStrategyMetricLevel()...)
+	}
 	receiverGroupIDs := types.SliceTo(strategy.AlarmNoticeGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })
 	return types.SliceTo(strategyMetricsLevels, func(level *bizmodel.StrategyMetricsLevel) *bo.Strategy {
 		receiverGroupIDs = append(receiverGroupIDs, types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })...)
@@ -480,7 +485,11 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 		return nil
 	}
 	levelDetail := d.strategyLevelDetail
-	mqLevels := levelDetail.MQLevelMap[strategy.ID]
+	strategyLevels := levelDetail.LevelMap[strategy.ID]
+	mqLevels := make([]*bizmodel.StrategyMQLevel, 0)
+	for _, item := range strategyLevels {
+		mqLevels = append(mqLevels, item.GetStrategyMQLevel()...)
+	}
 
 	receiverGroupIDs := types.SliceTo(strategy.AlarmNoticeGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })
 	return types.SliceTo(mqLevels, func(level *bizmodel.StrategyMQLevel) *bo.Strategy {
@@ -693,9 +702,13 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	}
 
 	levelDetail := d.strategyLevelDetail
-	strategyMetricsLevels := levelDetail.MetricsLevelMap[strategy.ID]
+	levels := levelDetail.LevelMap[strategy.ID]
+	metricsLevels := make([]*bizmodel.StrategyMetricsLevel, 0)
+	for _, item := range levels {
+		metricsLevels = append(metricsLevels, item.GetStrategyMetricLevel()...)
+	}
 	receiverGroupIDs := types.SliceTo(strategy.AlarmNoticeGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })
-	return types.SliceTo(strategyMetricsLevels, func(level *bizmodel.StrategyMetricsLevel) *bo.Strategy {
+	return types.SliceTo(metricsLevels, func(level *bizmodel.StrategyMetricsLevel) *bo.Strategy {
 		receiverGroupIDs = append(receiverGroupIDs, types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 { return group.ID })...)
 		labelNotices := types.SliceTo(level.LabelNotices, func(notice *bizmodel.StrategyMetricsLabelNotice) *bo.LabelNotices {
 			return &bo.LabelNotices{
@@ -1087,20 +1100,24 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 		StrategyType:      api.StrategyType(strategy.StrategyType),
 	}
 
-	if !types.IsNil(d.strategyLevelDetail) {
+	if !types.IsNil(d.strategyLevelDetail) && !types.IsNil(d.strategyLevelDetail.LevelMap) {
 		switch strategy.StrategyType {
 		case vobj.StrategyTypeMetric:
-			if !types.IsNil(d.strategyLevelDetail.MetricsLevelMap) {
-				metricsLevel := d.strategyLevelDetail.MetricsLevelMap[strategy.ID]
-				strategyItem.MetricLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(metricsLevel)
-				break
+			levels := d.strategyLevelDetail.LevelMap[strategy.ID]
+			metricsLevels := make([]*bizmodel.StrategyMetricsLevel, 0)
+			for _, item := range levels {
+				metricsLevels = append(metricsLevels, item.GetStrategyMetricLevel()...)
 			}
+			strategyItem.MetricLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(metricsLevels)
+			break
 		case vobj.StrategyTypeMQ:
-			if !types.IsNil(d.strategyLevelDetail.MQLevelMap) {
-				mqLevels := d.strategyLevelDetail.MQLevelMap[strategy.ID]
-				strategyItem.MqLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMqAPIs(mqLevels)
-				break
+			levels := d.strategyLevelDetail.LevelMap[strategy.ID]
+			mqLevels := make([]*bizmodel.StrategyMQLevel, 0)
+			for _, item := range levels {
+				mqLevels = append(mqLevels, item.GetStrategyMQLevel()...)
 			}
+			strategyItem.MqLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMqAPIs(mqLevels)
+			break
 		default:
 			break
 		}

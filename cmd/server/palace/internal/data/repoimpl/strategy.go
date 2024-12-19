@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -35,6 +36,18 @@ func NewStrategyRepository(data *data.Data) repository.Strategy {
 
 type strategyRepositoryImpl struct {
 	data *data.Data
+}
+
+func (s *strategyRepositoryImpl) GetStrategyLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyLevels, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.WithContext(ctx).
+		StrategyLevels.
+		Where(bizQuery.StrategyMetricsLevel.StrategyID.In(strategyIds...)).
+		Preload(field.Associations).
+		Find()
 }
 
 func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
@@ -108,25 +121,16 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 		return
 	}
 
-	metricLevels, err := s.GetStrategyMetricLevels(ctx, strategyIds)
+	strategyLevels, err := s.GetStrategyLevels(ctx, strategyIds)
 	if err != nil {
 		return
 	}
 
-	strategyMQLevels, err := s.GetStrategyMQLevels(ctx, strategyIds)
-	if err != nil {
-		return
-	}
-
-	metricsLevelMap := types.ToMapSlice(metricLevels, func(level *bizmodel.StrategyMetricsLevel) uint32 {
+	levelMap := types.ToMapSlice(strategyLevels, func(level *bizmodel.StrategyLevels) uint32 {
 		return level.StrategyID
 	})
 
-	mqLevelMap := types.ToMapSlice(strategyMQLevels, func(level *bizmodel.StrategyMQLevel) uint32 {
-		return level.StrategyID
-	})
-
-	strategyDetailMap := &bo.StrategyLevelDetailModel{MetricsLevelMap: metricsLevelMap, MQLevelMap: mqLevelMap}
+	strategyDetailMap := &bo.StrategyLevelDetailModel{LevelMap: levelMap}
 	go func() {
 		defer after.RecoverX()
 		for _, strategy := range strategies {
@@ -461,9 +465,6 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 		if err := tx.Strategy.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(strategyModel); !types.IsNil(err) {
 			return err
 		}
-		if err := saveStrategyLevels(ctx, params, strategyModel.ID, tx); !types.IsNil(err) {
-			return err
-		}
 		return nil
 	})
 	if !types.IsNil(err) {
@@ -537,6 +538,11 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	})
 
 	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+
+	levelRawModel, err := createStrategyLevelRawModel(ctx, updateParam)
+	if err != nil {
+		return merr.ErrorI18nNotificationSystemError(ctx)
+	}
 	defer s.syncStrategiesByIds(ctx, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// Datasource
@@ -553,16 +559,11 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		if err = tx.Strategy.AlarmNoticeGroups.Model(strategyModel).Replace(alarmGroups...); !types.IsNil(err) {
 			return err
 		}
-		// 删除策略等级数据
-		if err := s.deleteStrategyLevel(ctx, params.ID, tx); !types.IsNil(err) {
+
+		// strategy level
+		if err := tx.Strategy.Level.Model(strategyModel).Replace(levelRawModel); err != nil {
 			return err
 		}
-
-		// 更新策略等级数据
-		if err := saveStrategyLevels(ctx, updateParam, strategyModel.ID, tx); !types.IsNil(err) {
-			return err
-		}
-
 		// 更新策略
 		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(params.ID)).UpdateSimple(
 			tx.Strategy.Name.Value(updateParam.Name),
@@ -668,34 +669,12 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 	strategy.Name = fmt.Sprintf("%s-%d-%s", strategy.Name, strategyID, "copy")
 	strategy.ID = 0
 	strategy.Status = vobj.StatusDisable
+	strategy.Level.StrategyID = 0
 
 	err = bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err := tx.WithContext(ctx).Strategy.Create(strategy); !types.IsNil(err) {
 			return err
 		}
-		// 复制策略等级
-		switch strategy.StrategyType {
-		case vobj.StrategyTypeMetric:
-			strategyMetricsLevel, err := tx.StrategyMetricsLevel.Where(tx.StrategyMetricsLevel.StrategyID.Eq(strategyID)).Find()
-			if !types.IsNil(err) {
-				return err
-			}
-			if err := tx.StrategyMetricsLevel.WithContext(ctx).Create(strategyMetricsLevel...); !types.IsNil(err) {
-				return err
-			}
-		case vobj.StrategyTypeMQ:
-			strategyMQLevel, err := tx.StrategyMQLevel.Where(tx.StrategyMQLevel.StrategyID.Eq(strategyID)).Find()
-			if !types.IsNil(err) {
-				return err
-			}
-			if err := tx.StrategyMQLevel.WithContext(ctx).Create(strategyMQLevel...); !types.IsNil(err) {
-				return err
-			}
-
-		default:
-			return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
-		}
-
 		return nil
 	})
 	if !types.IsNil(err) {
@@ -731,11 +710,10 @@ func (s *strategyRepositoryImpl) GetStrategyMQLevels(ctx context.Context, strate
 		Find()
 }
 
-func createStrategyMetricLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyMetricLevel, strategyID uint32) []*bizmodel.StrategyMetricsLevel {
+func createStrategyMetricLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyMetricLevel) []*bizmodel.StrategyMetricsLevel {
 	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyMetricLevel) *bizmodel.StrategyMetricsLevel {
 		strategyLevel := &bizmodel.StrategyMetricsLevel{
 			AllFieldModel: model.AllFieldModel{ID: item.ID},
-			StrategyID:    strategyID,
 			Duration:      item.Duration,
 			Count:         item.Count,
 			SustainType:   item.SustainType,
@@ -807,17 +785,23 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 		}),
 		StrategyType: params.StrategyType,
 	}
+
+	// set strategy level
+	strategyLevelRawModel, err := createStrategyLevelRawModel(ctx, params)
+	if err != nil {
+		panic("createStrategyLevelRawModel failed！")
+	}
+	strategyModel.Level = strategyLevelRawModel
 	strategyModel.WithContext(ctx)
 	return strategyModel
 }
 
-func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyEventLevel, strategyID uint32) []*bizmodel.StrategyMQLevel {
+func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyEventLevel) []*bizmodel.StrategyMQLevel {
 	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyMQLevel {
 		strategyLevel := &bizmodel.StrategyMQLevel{
 			AllFieldModel: model.AllFieldModel{ID: item.ID},
 			Value:         item.Value,
 			DataType:      item.MQDataType,
-			StrategyID:    strategyID,
 			Condition:     item.Condition,
 			AlarmLevelID:  item.AlarmLevelID,
 			Status:        item.Status,
@@ -839,20 +823,29 @@ func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.Create
 	return strategyLevels
 }
 
-func saveStrategyLevels(ctx context.Context, params *bo.CreateStrategyParams, strategyID uint32, tx *bizquery.Query) error {
+func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.StrategyLevels, error) {
+	level := &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
-		metricLevelModels := createStrategyMetricLevelParamsToModel(ctx, params.MetricLevels, strategyID)
-		if err := tx.StrategyMetricsLevel.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(metricLevelModels...); !types.IsNil(err) {
-			return err
+		metricLevelModels := createStrategyMetricLevelParamsToModel(ctx, params.MetricLevels)
+		bytes, err := json.Marshal(metricLevelModels)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
+		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeMQ:
-		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.EventLevels, strategyID)
-		if err := tx.StrategyMQLevel.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(mqLevelModels...); !types.IsNil(err) {
-			return err
+		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.EventLevels)
+
+		bytes, err := json.Marshal(mqLevelModels)
+		if err != nil {
+			return nil, err
 		}
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
+		}
+		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	default:
-		return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
+		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
-	return nil
+	return level, nil
 }

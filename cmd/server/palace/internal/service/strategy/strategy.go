@@ -199,7 +199,7 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 	if err != nil {
 		return nil, err
 	}
-	strategyLevel, _ := s.strategyBiz.GetStrategyLevel(ctx, strategy.GetID(), strategy.StrategyType)
+	strategyLevel, _ := s.strategyBiz.GetStrategyLevel(ctx, strategy.GetID())
 	return &strategyapi.GetStrategyReply{
 		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyLevel).ToAPI(strategy),
 	}, nil

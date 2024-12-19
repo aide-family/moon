@@ -192,10 +192,8 @@ type (
 
 	// StrategyLevelDetailModel 策略等级明细
 	StrategyLevelDetailModel struct {
-		// MetricsLevelMap
-		MetricsLevelMap map[uint32][]*bizmodel.StrategyMetricsLevel `json:"metricsLevelMap"`
-		// MQ
-		MQLevelMap map[uint32][]*bizmodel.StrategyMQLevel `json:"mqLevelMap"`
+		// LevelMap
+		LevelMap map[uint32][]*bizmodel.StrategyLevels `json:"levelMap"`
 	}
 
 	// TeamStrategyLevelModel 策略等级
