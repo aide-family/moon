@@ -2,6 +2,7 @@ package bo
 
 import (
 	"fmt"
+
 	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -139,6 +140,10 @@ type (
 		Condition vobj.Condition `json:"condition"`
 		// 阈值
 		Threshold int64 `json:"threshold"`
+		// 策略等级ID
+		LevelID uint32 `json:"levelID"`
+		// 告警页面ID
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
 	}
 
 	// CreateStrategyPortLevel 创建端口监控策略
@@ -153,6 +158,10 @@ type (
 		Threshold int64 `json:"threshold"`
 		// 端口
 		Port uint32 `json:"port"`
+		// 策略等级ID
+		LevelID uint32 `json:"levelID"`
+		// 告警页面ID
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
 	}
 
 	// CreateStrategyHTTPLevel 创建http监控策略
@@ -181,6 +190,8 @@ type (
 		ResponseTimeCondition vobj.Condition `json:"responseTimeCondition"`
 		// 请求头
 		Headers []*HeaderItem `json:"headers"`
+		// 策略等级ID
+		LevelID uint32 `json:"levelID"`
 	}
 
 	// HeaderItem 请求头

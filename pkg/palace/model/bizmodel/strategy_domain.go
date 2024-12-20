@@ -17,12 +17,12 @@ type StrategyDomain struct {
 	// 告警等级ID
 	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级ID" json:"level_id"`
 	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
-	// 执行频率
-	Interval uint32 `gorm:"column:interval;type:int unsigned;not null;comment:执行频率seconds" json:"interval"`
 	// 阈值 （证书类型就是剩余天数，端口就是0：关闭，1：开启）
-	Threshold uint32 `gorm:"column:threshold;type:int unsigned;not null;comment:阈值" json:"threshold"`
+	Threshold int64 `gorm:"column:threshold;type:int unsigned;not null;comment:阈值" json:"threshold"`
 	// 策略告警组
 	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_domain_alarm_groups;" json:"alarm_groups"`
+	// 告警页面
+	AlarmPage []*SysDict `gorm:"many2many:strategy_domain_level_alarm_pages" json:"alarm_page"`
 }
 
 // TableName 表名

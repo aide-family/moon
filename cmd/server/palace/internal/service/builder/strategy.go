@@ -411,6 +411,8 @@ func (m *mutationStrategyLevelBuilder) ToDomainBo(request *strategyapi.CreateStr
 		AlarmGroupIds: request.GetAlarmGroupIds(),
 		Condition:     vobj.Condition(request.GetCondition()),
 		Threshold:     request.GetThreshold(),
+		LevelID:       request.GetLevelID(),
+		AlarmPageIds:  request.GetAlarmPageIds(),
 	}
 }
 

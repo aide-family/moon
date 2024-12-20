@@ -824,17 +824,65 @@ func createStrategyMQLevelParamsToModel(ctx context.Context, params []*bo.Create
 }
 
 func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyDomainLevel) []*bizmodel.StrategyDomain {
-
-	return nil
+	domainLevels := types.SliceTo(params, func(item *bo.CreateStrategyDomainLevel) *bizmodel.StrategyDomain {
+		domainLevel := &bizmodel.StrategyDomain{
+			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+				return &bizmodel.SysDict{
+					AllFieldModel: model.AllFieldModel{
+						ID: pageID,
+					},
+				}
+			}),
+			AlarmNoticeGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+			}),
+			Threshold: item.Threshold,
+			LevelID:   item.LevelID,
+		}
+		return domainLevel
+	})
+	return domainLevels
 }
 
 func createStrategyHttpLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
+	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyHTTPLevel) *bizmodel.StrategyHTTP {
+		httpLevel := &bizmodel.StrategyHTTP{
+			LevelID: item.LevelID,
+			AlarmNoticeGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+			}),
+			StatusCodes:           item.StatusCodes,
+			ResponseTime:          item.ResponseTime,
+			Body:                  item.Body,
+			Method:                vobj.ToHTTPMethod(item.Method),
+			QueryParams:           item.QueryParams,
+			StatusCodeCondition:   item.StatusCodeCondition,
+			ResponseTimeCondition: item.ResponseTimeCondition,
+		}
 
-	return nil
+		return httpLevel
+	})
+
+	return httpLevels
 }
 
-func createStrategyDomainPortLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyPortLevel) []*bizmodel.StrategyHTTP {
-	return nil
+func createStrategyDomainPortLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyPortLevel) []*bizmodel.StrategyPort {
+	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyPortLevel) *bizmodel.StrategyPort {
+		httpLevel := &bizmodel.StrategyPort{
+			LevelID: item.LevelID,
+			AlarmNoticeGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+			}),
+			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+			}),
+			Port:      item.Port,
+			Threshold: item.Threshold,
+		}
+		return httpLevel
+	})
+
+	return httpLevels
 }
 
 func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.StrategyLevels, error) {
@@ -849,7 +897,6 @@ func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyP
 		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeMQ:
 		mqLevelModels := createStrategyMQLevelParamsToModel(ctx, params.EventLevels)
-
 		bytes, err := json.Marshal(mqLevelModels)
 		if err != nil {
 			return nil, err
@@ -859,11 +906,26 @@ func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyP
 		}
 		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeDomainCertificate:
-
+		domainLevel := createStrategyDomainLevelParamsToModel(ctx, params.DomainLevels)
+		bytes, err := json.Marshal(domainLevel)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
+		}
+		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeHTTP:
-
+		httpLevels := createStrategyHttpLevelParamsToModel(ctx, params.HTTPLevels)
+		bytes, err := json.Marshal(httpLevels)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
+		}
+		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeDomainPort:
-
+		portLevels := createStrategyDomainPortLevelParamsToModel(ctx, params.PortLevels)
+		bytes, err := json.Marshal(portLevels)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
+		}
+		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	default:
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
