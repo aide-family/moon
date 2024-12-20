@@ -111,7 +111,7 @@ message CreateTimeEngineRuleRequest {
   }];
   // 规则类型
   int32 category = 2 [(buf.validate.field).cel = {
-    expression: "this > 1 && this < 5",
+    expression: "this >= 1 && this < 5",
     message: "规则类型必须在1到5之间"
   }];
   // 规则
