@@ -1211,6 +1211,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowSystem,
 	},
+	// 设置用户角色
+	{
+		Name:   "设置用户角色",
+		Path:   "/api.admin.user.User/SetUserRole",
+		Remark: "设置用户角色， 用于设置用户角色",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowSystem,
+	},
 	// 重置用户密码
 	{
 		Name:   "重置用户密码",
