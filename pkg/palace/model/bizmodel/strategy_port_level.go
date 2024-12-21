@@ -1,31 +1,23 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-const tableNameStrategyPort = "strategy_port_level"
-
 type StrategyPort struct {
-	model.AllFieldModel
 
 	// 告警等级ID
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级ID" json:"level_id"`
-	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
+	LevelID uint32 `json:"level_id,omitempty"`
 	// 策略告警组
-	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_port_alarm_groups;" json:"alarm_groups"`
+	AlarmNoticeGroupIds []uint32            `json:"alarm_group_ids,omitempty"`
+	AlarmNoticeGroups   []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 阈值
-	Threshold int64 `gorm:"column:threshold;type:bigint;not null;comment:阈值" json:"threshold"`
+	Threshold int64 `json:"threshold,omitempty"`
 	// 端口
-	Port uint32 `gorm:"column:port;type:int unsigned;not null;comment:端口" json:"port"`
+	Port uint32 `json:"port,omitempty"`
 	// 告警页面
-	AlarmPage []*SysDict `gorm:"many2many:strategy_port_level_alarm_pages" json:"alarm_page"`
-}
-
-// TableName 表名
-func (*StrategyPort) TableName() string {
-	return tableNameStrategyPort
+	AlarmPageIds []uint32   `json:"alarm_page_ids,omitempty"`
+	AlarmPage    []*SysDict `json:"alarm_page,omitempty"`
 }
 
 // String 字符串

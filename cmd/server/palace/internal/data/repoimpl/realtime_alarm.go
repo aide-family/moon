@@ -205,7 +205,6 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			alarm.Pages = types.SliceTo(mqLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
 				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
 			})
-			alarm.LevelID = mqLevel.ID
 		default:
 			panic("unknown strategy type")
 		}

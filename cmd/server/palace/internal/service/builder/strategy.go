@@ -540,10 +540,9 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 			Annotations:                strategy.Annotations,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
-				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
+				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
 			TeamID: middleware.GetTeamID(d.ctx),
 			MetricLevel: &bo.CreateStrategyMetricLevel{
-				ID:                 level.ID,
 				StrategyTemplateID: strategy.TemplateID,
 				Duration:           level.Duration,
 				Count:              level.Count,
@@ -553,13 +552,9 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 				Threshold:          level.Threshold,
 				Status:             level.Status,
 				LevelID:            level.LevelID,
-				AlarmPageIds: types.SliceTo(level.AlarmPage, func(page *bizmodel.SysDict) uint32 {
-					return page.ID
-				}),
-				AlarmGroupIds: types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
-					return group.ID
-				}),
-				StrategyID: strategy.ID,
+				AlarmPageIds:       level.AlarmPageIds,
+				AlarmGroupIds:      level.AlarmGroupIds,
+				StrategyID:         strategy.ID,
 				LabelNotices: types.SliceTo(level.LabelNotices, func(notice *bizmodel.StrategyMetricsLabelNotice) *bo.StrategyLabelNotice {
 					return &bo.StrategyLabelNotice{
 						Name:          notice.Name,
@@ -598,23 +593,18 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 			StrategyType:               strategy.StrategyType,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
-				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
+				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
 			TeamID: middleware.GetTeamID(d.ctx),
 			MQLevel: &bo.CreateStrategyEventLevel{
-				ID:           level.ID,
-				Value:        level.Value,
-				Condition:    level.Condition,
-				Status:       level.Status,
-				MQDataType:   level.DataType,
-				AlarmLevelID: level.AlarmLevelID,
-				PathKey:      level.PathKey,
-				AlarmPageIds: types.SliceTo(level.AlarmPage, func(page *bizmodel.SysDict) uint32 {
-					return page.ID
-				}),
-				AlarmGroupIds: types.SliceTo(level.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
-					return group.ID
-				}),
-				StrategyID: strategy.ID,
+				Value:         level.Value,
+				Condition:     level.Condition,
+				Status:        level.Status,
+				MQDataType:    level.DataType,
+				AlarmLevelID:  level.AlarmLevelID,
+				PathKey:       level.PathKey,
+				AlarmPageIds:  level.AlarmPageIds,
+				AlarmGroupIds: level.AlarmGroupIds,
+				StrategyID:    strategy.ID,
 			},
 		}
 	})
@@ -639,10 +629,7 @@ func (d *doStrategyLevelBuilder) ToMqAPI(level *bizmodel.StrategyMQLevel, userMa
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, level.CreatorID)
-
 	return &adminapi.StrategyMQLevelItem{
-		Id:           level.ID,
 		Value:        level.Value,
 		Condition:    api.MQCondition(level.Condition),
 		DataType:     api.MQDataType(level.DataType),
@@ -651,7 +638,6 @@ func (d *doStrategyLevelBuilder) ToMqAPI(level *bizmodel.StrategyMQLevel, userMa
 		AlarmPages:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPage, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		StrategyId:   level.StrategyID,
 		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
-		Creator:      userMap[level.CreatorID],
 		Status:       api.Status(level.Status),
 		PathKey:      level.PathKey,
 		LabelNotices: nil,
@@ -662,10 +648,8 @@ func (d *doStrategyLevelBuilder) ToMqAPIs(levels []*bizmodel.StrategyMQLevel) []
 	if types.IsNil(d) || types.IsNil(levels) {
 		return nil
 	}
-	ids := types.SliceTo(levels, func(level *bizmodel.StrategyMQLevel) uint32 { return level.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(levels, func(level *bizmodel.StrategyMQLevel) *adminapi.StrategyMQLevelItem {
-		return d.ToMqAPI(level, userMap)
+		return d.ToMqAPI(level)
 	})
 }
 
@@ -826,7 +810,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Interval:                   level.Interval,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
-				!level.Status.IsEnable() || level.DeletedAt > 0, vobj.StatusDisable, vobj.StatusEnable),
+				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
 			Condition:    level.Condition,
 			Threshold:    level.Threshold,
 			StrategyType: strategy.StrategyType,
@@ -935,23 +919,19 @@ func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyMetricsLevel, use
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, level.CreatorID)
 	return &adminapi.StrategyMetricLevelItem{
 		Duration:     level.Duration,
 		Count:        level.Count,
 		SustainType:  api.SustainType(level.SustainType),
 		Interval:     level.Interval,
 		Status:       api.Status(level.Status),
-		Id:           level.ID,
 		LevelId:      level.LevelID,
 		Level:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.Level),
 		AlarmPages:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPage, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		Threshold:    level.Threshold,
-		StrategyId:   level.StrategyID,
 		Condition:    api.Condition(level.Condition),
 		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroups),
 		LabelNotices: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoLabelNoticeBuilder().ToAPIs(level.LabelNotices),
-		Creator:      userMap[level.CreatorID],
 	}
 }
 
@@ -959,11 +939,8 @@ func (d *doStrategyLevelBuilder) ToAPIs(levels []*bizmodel.StrategyMetricsLevel)
 	if types.IsNil(d) || types.IsNil(levels) {
 		return nil
 	}
-
-	ids := types.SliceTo(levels, func(level *bizmodel.StrategyMetricsLevel) uint32 { return level.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(levels, func(level *bizmodel.StrategyMetricsLevel) *adminapi.StrategyMetricLevelItem {
-		return d.ToAPI(level, userMap)
+		return d.ToAPI(level)
 	})
 }
 

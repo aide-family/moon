@@ -1,36 +1,34 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const tableNameStrategyMqLevel = "strategy_mq_level"
-
 // StrategyMQLevel MQ策略等级
 type StrategyMQLevel struct {
-	model.AllFieldModel
 	// 值
-	Value string `gorm:"column:value;type:varchar(255);not null;comment:MQ值" json:"value"`
+	Value string `json:"value,omitempty"`
 	// 数据类型
-	DataType vobj.MQDataType `gorm:"column:data_type;type:int;not null;comment:数据类型" json:"data_type"`
+	DataType vobj.MQDataType `json:"data_type,omitempty"`
 	// 条件
-	Condition vobj.MQCondition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition"`
+	Condition vobj.MQCondition `json:"condition,omitempty"`
 	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__mq_level_id" json:"strategyID"`
-	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
+	StrategyID uint32 `json:"strategyID,omitempty"`
 	// 告警等级
-	AlarmLevelID uint32   `gorm:"column:alarm_level_id;type:int unsigned;not null;comment:告警等级;uniqueIndex:idx__strategy_id__alarm_level_id" json:"alarmLevelID"`
-	AlarmLevel   *SysDict `gorm:"foreignKey:AlarmLevelID" json:"alarmLevel"`
+	AlarmLevelID uint32   `json:"alarmLevelID,omitempty"`
+	AlarmLevel   *SysDict `json:"alarmLevel,omitempty"`
 	// 状态
-	Status vobj.Status `gorm:"column:status;type:int;not null;default:1;comment:策略状态" json:"status"`
+	Status vobj.Status `json:"status,omitempty"`
 	// 告警页面
-	AlarmPage []*SysDict `gorm:"many2many:strategy_mq_level_alarm_pages" json:"alarm_page"`
+	AlarmPageIds []uint32 `json:"alarm_page_ids,omitempty"`
+	// 告警页面
+	AlarmPage []*SysDict `json:"alarm_page"`
 	// 策略告警组
-	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_mq_level_alarm_groups;" json:"alarm_groups"`
+	AlarmGroupIds []uint32            `json:"alarm_group_ids,omitempty"`
+	AlarmGroups   []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// object path key
-	PathKey string `gorm:"column:path_key;path_key:varchar(255);not null;comment:objectPathKey" json:"path_key"`
+	PathKey string `json:"path_key,omitempty"`
 }
 
 // String json string
@@ -47,9 +45,4 @@ func (c *StrategyMQLevel) UnmarshalBinary(data []byte) error {
 // MarshalBinary redis存储实现
 func (c *StrategyMQLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
-}
-
-// TableName StrategyMQLevel's table name
-func (*StrategyMQLevel) TableName() string {
-	return tableNameStrategyMqLevel
 }

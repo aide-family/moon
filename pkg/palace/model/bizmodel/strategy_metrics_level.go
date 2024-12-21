@@ -1,42 +1,38 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-const tableNameStrategyMetricsLevel = "strategy_metrics_level"
-
 // StrategyMetricsLevel 策略等级
 type StrategyMetricsLevel struct {
-	model.AllFieldModel
-	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__level_id" json:"strategy_id"`
-	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 	// 持续时间
-	Duration int64 `gorm:"column:duration;type:bigint(20);not null;comment:告警持续时间" json:"duration"`
+	Duration int64 `json:"duration,omitempty"`
 	// 持续次数
-	Count uint32 `gorm:"column:count;type:int unsigned;not null;comment:持续次数" json:"count"`
+	Count uint32 `gorm:"column:count;type:int unsigned;not null;comment:持续次数" json:"count,omitempty"`
 	// 持续事件类型
-	SustainType vobj.Sustain `gorm:"column:sustain_type;type:int(11);not null;comment:持续类型" json:"sustain_type"`
+	SustainType vobj.Sustain `gorm:"column:sustain_type;type:int(11);not null;comment:持续类型" json:"sustain_type,omitempty"`
 	// 执行频率
-	Interval int64 `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval"`
+	Interval int64 `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval,omitempty"`
 	// 条件
-	Condition vobj.Condition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition"`
+	Condition vobj.Condition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition,omitempty"`
 	// 阈值
-	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold"`
+	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold,omitempty"`
 	// 告警等级
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级;uniqueIndex:idx__strategy_id__level_id" json:"level_id"`
-	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
+	LevelID uint32   `json:"level_id,omitempty"`
+	Level   *SysDict `json:"level,omitempty"`
 	// 状态
-	Status vobj.Status `gorm:"column:status;type:int;not null;default:1;comment:策略状态" json:"status"`
+	Status vobj.Status `json:"status,omitempty"`
 	// 告警页面
-	AlarmPage []*SysDict `gorm:"many2many:strategy_metrics_level_alarm_pages" json:"alarm_page"`
+	AlarmPageIds []uint32   `json:"alarm_page_ids,omitempty"`
+	AlarmPage    []*SysDict `json:"alarm_page,omitempty"`
 	// 策略告警组
-	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_metrics_level_alarm_groups;" json:"alarm_groups"`
+	AlarmGroupIds []uint32            `json:"alarm_group_ids"`
+	AlarmGroups   []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 策略labels
-	LabelNotices []*StrategyMetricsLabelNotice `gorm:"foreignKey:LevelID;" json:"label_notices"`
+	LabelNoticeIds []uint32                      `json:"labelNoticeIds"`
+	LabelNotices   []*StrategyMetricsLabelNotice `json:"label_notices,omitempty"`
 }
 
 // String json string
@@ -53,9 +49,4 @@ func (c *StrategyMetricsLevel) UnmarshalBinary(data []byte) error {
 // MarshalBinary redis存储实现
 func (c *StrategyMetricsLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
-}
-
-// TableName StrategyMetricsLevel's table name
-func (*StrategyMetricsLevel) TableName() string {
-	return tableNameStrategyMetricsLevel
 }

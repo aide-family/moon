@@ -11,16 +11,16 @@ const tableNameStrategyDomain = "strategy_domain"
 // StrategyDomain 域名证书｜端口 等级策略明细
 type StrategyDomain struct {
 	model.AllFieldModel
-	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__domain__strategy_id__level_id" json:"strategy_id"`
-	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 	// 告警等级ID
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级ID" json:"level_id"`
-	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
+	LevelID uint32   `json:"level_id,omitempty"`
+	Level   *SysDict `json:"level"`
 	// 阈值 （证书类型就是剩余天数，端口就是0：关闭，1：开启）
-	Threshold int64 `gorm:"column:threshold;type:int unsigned;not null;comment:阈值" json:"threshold"`
+	Threshold           int64   `json:"threshold,omitempty"`
+	AlarmNoticeGroupIds []int64 `json:"alarm_notice_group_ids,omitempty"`
 	// 策略告警组
 	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_domain_alarm_groups;" json:"alarm_groups"`
+	// 告警页面ID
+	AlarmPageIds []int64 `json:"alarm_page_ids,omitempty"`
 	// 告警页面
 	AlarmPage []*SysDict `gorm:"many2many:strategy_domain_level_alarm_pages" json:"alarm_page"`
 }

@@ -44,12 +44,6 @@ type Strategy interface {
 	// Sync 同步策略
 	Sync(ctx context.Context, id uint32) error
 
-	// GetStrategyMetricLevels 获取Metric策略等级
-	GetStrategyMetricLevels(ctx context.Context, strategyID []uint32) ([]*bizmodel.StrategyMetricsLevel, error)
-
-	// GetStrategyMQLevels 获取MQ策略等级
-	GetStrategyMQLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyMQLevel, error)
-
 	// GetStrategyLevels 获取策略等级
 	GetStrategyLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyLevels, error)
 }
