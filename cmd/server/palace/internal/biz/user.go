@@ -112,9 +112,10 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
+	opRole := middleware.GetUserRole(ctx)
 	for _, user := range userDos {
-		if user.Role.IsAdmin() {
-			return merr.ErrorI18nForbidden(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
+		if !opRole.GT(user.Role) {
+			return merr.ErrorI18nForbiddenPermissionDenied(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 		}
 	}
 
