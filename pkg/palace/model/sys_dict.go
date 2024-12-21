@@ -28,6 +28,16 @@ type SysDict struct {
 	Remark       string        `gorm:"column:remark;type:varchar(500);not null;comment:字典备注"`
 }
 
+// MarshalBinary marshal binary
+func (c *SysDict) MarshalBinary() (data []byte, err error) {
+	return types.Marshal(c)
+}
+
+// UnmarshalBinary unmarshal binary
+func (c *SysDict) UnmarshalBinary(data []byte) error {
+	return types.Unmarshal(data, c)
+}
+
 // GetDeletedAt get deleted at
 func (c *SysDict) GetDeletedAt() soft_delete.DeletedAt {
 	if types.IsNil(c) {

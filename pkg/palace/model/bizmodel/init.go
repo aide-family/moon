@@ -15,7 +15,6 @@ func Models() []any {
 		&SysTeamMenu{},
 		&SysDict{},
 		&Strategy{},
-		&StrategyMetricsLevel{},
 		&StrategyTemplate{},
 		&StrategyLevelTemplate{},
 		&SendStrategy{},
@@ -30,10 +29,8 @@ func Models() []any {
 		&AlarmHook{},
 		&StrategyMetricsLabelNotice{},
 		&StrategySubscriber{},
-		&StrategyDomain{},
-		&StrategyHTTP{},
-		&StrategyPing{},
-		&MqDatasource{},
-		&StrategyMQLevel{},
+		&TimeEngineRule{},
+		&TimeEngine{},
+		&StrategyLevels{},
 	}
 }

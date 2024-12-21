@@ -16,5 +16,4 @@ func TestStrategyLevel_UnmarshalBinary(t *testing.T) {
 
 	t.Log(level)
 	t.Log(level.Level)
-	t.Log(level.Strategy)
 }

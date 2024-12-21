@@ -109,6 +109,12 @@ type (
 		Keyword string
 		Page    types.Pagination
 	}
+
+	// SetUserRoleParams 设置用户角色参数
+	SetUserRoleParams struct {
+		UserID uint32    `json:"userId"`
+		Role   vobj.Role `json:"role"`
+	}
 )
 
 // NewUserSelectOptionBuild 创建选择项构建器

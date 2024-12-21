@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/duke-git/lancet/v2/retry"
 	"github.com/go-kratos/kratos/v2/errors"
@@ -73,6 +74,11 @@ func (i *InviteBiz) InviteUser(ctx context.Context, params *bo.InviteUserParams)
 	teamInvite, err := i.inviteRepo.InviteUser(ctx, params)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+
+	// 发送邀请邮件
+	if err := i.inviteRepo.SendInviteEmail(ctx, params, opUser, user); !types.IsNil(err) {
+		log.Errorf("send invite email failed: %v", err)
 	}
 
 	return retry.Retry(func() error {

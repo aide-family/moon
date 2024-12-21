@@ -122,6 +122,14 @@ service User {
       body: "*"
     };
   }
+
+  // 设置用户角色
+  rpc SetUserRole (SetUserRoleRequest) returns (SetUserRoleReply) {
+    option (google.api.http) = {
+      put: "/v1/user/role"
+      body: "*"
+    };
+  }
 }
 
 message CreateUserRequest {
@@ -353,3 +361,17 @@ message GetUserSelfBasicRequest {}
 message GetUserSelfBasicReply {
   UserItem detail = 1;
 }
+
+message SetUserRoleRequest {
+  // 用户id
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "必须选择具体要操作的用户",
+    expression: "this > 0"
+  }];
+  // 角色
+  Role role = 2 [(buf.validate.field).cel = {
+    expression: "(this in [1, 2, 3])",
+    message: "角色值必须在[超级管理员(1), 管理员(2), 普通用户(3)]之间",
+  }];
+}
+message SetUserRoleReply {}

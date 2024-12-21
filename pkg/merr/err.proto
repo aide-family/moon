@@ -436,6 +436,16 @@ enum ErrorReason {
       // 您已被该团队禁用操作，请联系管理员
       reason: "MEMBER_DISABLED"
       message: "您已被该团队禁用操作，请联系管理员",
+    },
+    (errors.biz_reason) = {
+      // 您的权限不足以操作此数据
+      reason: "PERMISSION_DENIED"
+      message: "您的权限不足以操作此数据",
+    },
+    (errors.biz_reason) = {
+      // 不能设置成同等权限
+      reason: "CANNOT_SET_EQUAL_PERMISSION"
+      message: "不能设置成同等权限",
     }
   ];
 

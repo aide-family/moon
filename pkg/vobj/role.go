@@ -23,3 +23,8 @@ const (
 func (i Role) IsAdminOrSuperAdmin() bool {
 	return i == RoleAdmin || i == RoleSuperAdmin
 }
+
+// GT 判断是否大于等于
+func (i Role) GT(j Role) bool {
+	return !i.IsAll() && i < j
+}

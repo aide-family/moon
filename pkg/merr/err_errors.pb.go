@@ -4956,6 +4956,136 @@ func ErrorI18nForbiddenMemberDisabled(ctx context.Context, args ...interface{}) 
 	return err
 }
 
+const ErrorForbiddenPermissionDeniedID = "FORBIDDEN__PERMISSION_DENIED"
+
+// IsForbiddenPermissionDenied 权限不足时候提示, toast提示 权限级别提示
+//
+//	PERMISSION_DENIED
+//	您的权限不足以操作此数据
+func IsForbiddenPermissionDenied(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorForbiddenPermissionDeniedID && e.Code == 403
+}
+
+// ErrorForbiddenPermissionDenied 权限不足时候提示, toast提示 权限级别提示
+//
+//	PERMISSION_DENIED
+//	您的权限不足以操作此数据
+func ErrorForbiddenPermissionDenied(format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ErrorForbiddenPermissionDeniedID, fmt.Sprintf(format, args...))
+}
+
+// ErrorForbiddenPermissionDeniedWithContext 权限不足时候提示, toast提示 权限级别提示
+//
+//	PERMISSION_DENIED
+//	您的权限不足以操作此数据
+//	带上下文，支持国际化输出元数据
+func ErrorForbiddenPermissionDeniedWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ErrorForbiddenPermissionDeniedID, fmt.Sprintf(format, args...))
+}
+
+var _ForbiddenPermissionDeniedMsg = &i18n.Message{
+	ID:    ErrorForbiddenPermissionDeniedID,
+	One:   "您的权限不足以操作此数据",
+	Other: "您的权限不足以操作此数据",
+}
+
+// ErrorI18nForbiddenPermissionDenied 权限不足时候提示, toast提示 权限级别提示
+//
+//	PERMISSION_DENIED
+//	您的权限不足以操作此数据
+//	支持国际化输出
+func ErrorI18nForbiddenPermissionDenied(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "您的权限不足以操作此数据"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(403, ErrorForbiddenPermissionDeniedID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID:      ErrorForbiddenPermissionDeniedID,
+			DefaultMessage: _ForbiddenPermissionDeniedMsg,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(403, ErrorForbiddenPermissionDeniedID, msg).WithCause(err1)
+		} else {
+			err = errors.New(403, ErrorForbiddenPermissionDeniedID, localize)
+		}
+	}
+
+	return err
+}
+
+const ErrorForbiddenCannotSetEqualPermissionID = "FORBIDDEN__CANNOT_SET_EQUAL_PERMISSION"
+
+// IsForbiddenCannotSetEqualPermission 权限不足时候提示, toast提示 权限级别提示
+//
+//	CANNOT_SET_EQUAL_PERMISSION
+//	不能设置成同等权限
+func IsForbiddenCannotSetEqualPermission(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorForbiddenCannotSetEqualPermissionID && e.Code == 403
+}
+
+// ErrorForbiddenCannotSetEqualPermission 权限不足时候提示, toast提示 权限级别提示
+//
+//	CANNOT_SET_EQUAL_PERMISSION
+//	不能设置成同等权限
+func ErrorForbiddenCannotSetEqualPermission(format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ErrorForbiddenCannotSetEqualPermissionID, fmt.Sprintf(format, args...))
+}
+
+// ErrorForbiddenCannotSetEqualPermissionWithContext 权限不足时候提示, toast提示 权限级别提示
+//
+//	CANNOT_SET_EQUAL_PERMISSION
+//	不能设置成同等权限
+//	带上下文，支持国际化输出元数据
+func ErrorForbiddenCannotSetEqualPermissionWithContext(_ context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ErrorForbiddenCannotSetEqualPermissionID, fmt.Sprintf(format, args...))
+}
+
+var _ForbiddenCannotSetEqualPermissionMsg = &i18n.Message{
+	ID:    ErrorForbiddenCannotSetEqualPermissionID,
+	One:   "不能设置成同等权限",
+	Other: "不能设置成同等权限",
+}
+
+// ErrorI18nForbiddenCannotSetEqualPermission 权限不足时候提示, toast提示 权限级别提示
+//
+//	CANNOT_SET_EQUAL_PERMISSION
+//	不能设置成同等权限
+//	支持国际化输出
+func ErrorI18nForbiddenCannotSetEqualPermission(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "不能设置成同等权限"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(403, ErrorForbiddenCannotSetEqualPermissionID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID:      ErrorForbiddenCannotSetEqualPermissionID,
+			DefaultMessage: _ForbiddenCannotSetEqualPermissionMsg,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(403, ErrorForbiddenCannotSetEqualPermissionID, msg).WithCause(err1)
+		} else {
+			err = errors.New(403, ErrorForbiddenCannotSetEqualPermissionID, localize)
+		}
+	}
+
+	return err
+}
+
 const ErrorTooManyRequestsID = "TOO_MANY_REQUESTS"
 
 // IsTooManyRequests 触发频率限制

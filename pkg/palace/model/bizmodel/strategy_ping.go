@@ -1,45 +1,33 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-// Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
-const tableNameStrategyPing = "strategy_ping"
-
 // StrategyPing Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 type StrategyPing struct {
-	model.AllFieldModel
-	// 所属策略
-	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__ping__strategy_id__level_id" json:"strategy_id"`
-	Strategy   *Strategy `gorm:"foreignKey:StrategyID" json:"strategy"`
 	// 告警等级ID
-	LevelID uint32   `gorm:"column:level_id;type:int unsigned;not null;comment:告警等级ID" json:"level_id"`
-	Level   *SysDict `gorm:"foreignKey:LevelID" json:"level"`
+	LevelID uint32 `json:"level_id,omitempty"`
 	// 执行频率
-	Interval uint32 `gorm:"column:interval;type:int unsigned;not null;comment:执行频率seconds" json:"interval"`
+	Interval uint32 `json:"interval,omitempty"`
 	// 策略告警组
-	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_ping_alarm_groups;" json:"alarm_groups"`
+	AlarmNoticeGroupIds []uint32 `json:"alarm_group_ids,omitempty"`
+	// 策略告警组
+	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 总包数
-	Total uint32 `gorm:"column:total;type:int unsigned;not null;comment:总包数" json:"total"`
+	Total uint32 `json:"total,omitempty"`
 	// 成功包数
-	Success uint32 `gorm:"column:success;type:int unsigned;not null;comment:成功包数" json:"success"`
+	Success uint32 `json:"success,omitempty"`
 	// 丢包率
-	LossRate float64 `gorm:"column:loss_rate;type:float;not null;comment:丢包率" json:"loss_rate"`
+	LossRate float64 `json:"loss_rate,omitempty"`
 	// 平均延迟
-	AvgDelay uint32 `gorm:"column:avg_delay;type:int unsigned;not null;comment:平均延迟" json:"avg_delay"`
+	AvgDelay uint32 `json:"avg_delay,omitempty"`
 	// 最大延迟
-	MaxDelay uint32 `gorm:"column:max_delay;type:int unsigned;not null;comment:最大延迟" json:"max_delay"`
+	MaxDelay uint32 `json:"max_delay,omitempty"`
 	// 最小延迟
-	MinDelay uint32 `gorm:"column:min_delay;type:int unsigned;not null;comment:最小延迟" json:"min_delay"`
+	MinDelay uint32 `json:"min_delay,omitempty"`
 	// 标准差
-	StdDev uint32 `gorm:"column:std_dev;type:int unsigned;not null;comment:标准差" json:"std_dev"`
-}
-
-// TableName 表名
-func (*StrategyPing) TableName() string {
-	return tableNameStrategyPing
+	StdDev uint32 `json:"std_dev,omitempty"`
 }
 
 // String 字符串
