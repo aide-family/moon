@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邀请加入团队 {{.APP}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #007bff;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .message {
+            font-size: 16px;
+            margin: 20px 0;
+            color: #555;
+            text-align: center;
+        }
+
+        .info-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .info-list li {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .highlight {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .footer {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>邀请您加入团队 <a href="{{.RedirectURI}}" style="color: inherit; text-decoration: none;">{{.APP}}</a></h2>
+    </div>
+    <p class="message">{{.Inviter}} 邀请您加入团队 "{{.TeamName}}"。</p>
+    <ul class="info-list">
+        <li>邀请人：<span class="highlight">{{.Inviter}}</span></li>
+        <li>团队名称：<span class="highlight">{{.TeamName}}</span></li>
+        <li>团队角色：<span class="highlight">{{.TeamRole}}</span></li>
+        <li>业务角色：<span class="highlight">{{.BusinessRoles}}</span></li>
+    </ul>
+    <div style="text-align: center;">
+        <a href="{{.RedirectURI}}" class="button">点击接受邀请</a>
+    </div>
+    <div class="footer">
+        <p>如果您不想加入此团队，您可以忽略此邮件。如有任何问题，请与我们联系。</p>
+    </div>
+</div>
+</body>
+</html>

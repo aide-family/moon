@@ -788,7 +788,7 @@ func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.Cr
 	return domainLevels
 }
 
-func createStrategyHttpLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
+func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
 	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyHTTPLevel) *bizmodel.StrategyHTTP {
 		httpLevel := &bizmodel.StrategyHTTP{
 			LevelID:               item.LevelID,
@@ -858,7 +858,7 @@ func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyP
 		}
 		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeHTTP:
-		httpLevels := createStrategyHttpLevelParamsToModel(params.HTTPLevels)
+		httpLevels := createStrategyHTTPLevelParamsToModel(params.HTTPLevels)
 		bytes, err := json.Marshal(httpLevels)
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)

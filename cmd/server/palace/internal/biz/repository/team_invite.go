@@ -21,4 +21,6 @@ type TeamInvite interface {
 	GetInviteDetail(ctx context.Context, inviteID uint32) (*model.SysTeamInvite, error)
 	// DeleteInvite 删除邀请
 	DeleteInvite(ctx context.Context, inviteID uint32) error
+	// SendInviteEmail 发送邀请邮件
+	SendInviteEmail(ctx context.Context, params *bo.InviteUserParams, opUser, user *model.SysUser) error
 }

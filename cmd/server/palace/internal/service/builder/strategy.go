@@ -360,9 +360,9 @@ type (
 		// ToPortBos 转换为业务对象列表
 		ToPortBos([]*strategyapi.CreateStrategyPortLevelRequest) []*bo.CreateStrategyPortLevel
 		// ToHttpBo 转换为业务对象
-		ToHttpBo(*strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel
+		ToHTTPBo(*strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel
 		// ToHttpBos 转换为业务对象列表
-		ToHttpBos([]*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel
+		ToHTTPBos([]*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel
 	}
 
 	mutationStrategyLevelBuilder struct {
@@ -447,7 +447,7 @@ func (m *mutationStrategyLevelBuilder) ToPortBos(requests []*strategyapi.CreateS
 	})
 }
 
-func (m *mutationStrategyLevelBuilder) ToHttpBo(request *strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel {
+func (m *mutationStrategyLevelBuilder) ToHTTPBo(request *strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel {
 	if types.IsNil(request) || types.IsNil(m) {
 		return nil
 	}
@@ -473,12 +473,12 @@ func (m *mutationStrategyLevelBuilder) ToHttpBo(request *strategyapi.CreateStrat
 	}
 }
 
-func (m *mutationStrategyLevelBuilder) ToHttpBos(requests []*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel {
+func (m *mutationStrategyLevelBuilder) ToHTTPBos(requests []*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel {
 	if types.IsNil(requests) || types.IsNil(m) {
 		return nil
 	}
 	return types.SliceTo(requests, func(request *strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel {
-		return m.ToHttpBo(request)
+		return m.ToHTTPBo(request)
 	})
 }
 
@@ -1179,7 +1179,6 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 				metricsLevels = append(metricsLevels, item.GetStrategyMetricLevel()...)
 			}
 			strategyItem.MetricLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPIs(metricsLevels)
-			break
 		case vobj.StrategyTypeMQ:
 			levels := d.strategyLevelDetail.LevelMap[strategy.ID]
 			mqLevels := make([]*bizmodel.StrategyMQLevel, 0)
@@ -1187,9 +1186,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[u
 				mqLevels = append(mqLevels, item.GetStrategyMQLevel()...)
 			}
 			strategyItem.MqLevels = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMqAPIs(mqLevels)
-			break
 		default:
-			break
 		}
 	}
 	return strategyItem
@@ -1294,7 +1291,7 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		EventLevels:    NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMQBos(c.GetStrategyEventLevels()),
 		DomainLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToDomainBos(c.GetStrategyDomainLevels()),
 		PortLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToPortBos(c.GetStrategyPortLevels()),
-		HTTPLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToHttpBos(c.GetStrategyHTTPLevels()),
+		HTTPLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToHTTPBos(c.GetStrategyHTTPLevels()),
 	}
 }
 

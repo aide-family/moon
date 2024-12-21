@@ -53,7 +53,7 @@ func (l *cacheRepositoryImpl) GetUser(ctx context.Context, userID uint32) *model
 		userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
 		user, err = userQuery.WithContext(ctx).Where(userQuery.ID.Eq(userID)).First()
 		if err != nil {
-			return nil
+			return new(model.SysUser)
 		}
 	}
 	defer l.AppendUser(ctx, user)
@@ -66,7 +66,7 @@ func (l *cacheRepositoryImpl) GetTeam(ctx context.Context, teamID uint32) *model
 		teamQuery := query.Use(l.data.GetMainDB(ctx)).SysTeam
 		team, err = teamQuery.WithContext(ctx).Where(teamQuery.ID.Eq(teamID)).First()
 		if err != nil {
-			return nil
+			return new(model.SysTeam)
 		}
 	}
 	defer l.AppendTeam(ctx, team)

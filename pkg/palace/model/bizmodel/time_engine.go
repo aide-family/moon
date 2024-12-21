@@ -21,6 +21,7 @@ type TimeEngine struct {
 	Rules  []*TimeEngineRule `gorm:"many2many:time_engine_rule_relation;" json:"rules"`
 }
 
+// IsAllowed 判断条件是否允许
 func (c *TimeEngine) IsAllowed(time time.Time) bool {
 	if c == nil || len(c.Rules) == 0 {
 		return true

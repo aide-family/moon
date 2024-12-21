@@ -74,12 +74,12 @@ func (c *StrategyLevels) GetStrategyDoMain() []*StrategyDomain {
 
 // GetStrategyHTTP get strategy http
 func (c *StrategyLevels) GetStrategyHTTP() []*StrategyHTTP {
-	strategyHttp := make([]*StrategyHTTP, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &strategyHttp)
+	strategyHTTPS := make([]*StrategyHTTP, 0)
+	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &strategyHTTPS)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())
 	}
-	return strategyHttp
+	return strategyHTTPS
 }
 
 // GetStrategyPing get strategy ping

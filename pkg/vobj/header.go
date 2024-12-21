@@ -1,6 +1,7 @@
 package vobj
 
 type (
+	// Header http请求头
 	Header struct {
 		Name  string
 		Value string

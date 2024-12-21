@@ -22,6 +22,7 @@ func NewStrategyLevel(rawInfo string) *StrategyRawLevel {
 	}
 }
 
+// Scan scan value into struct from database driver
 func (s *StrategyRawLevel) Scan(src any) (err error) {
 	switch v := src.(type) {
 	case []byte:
@@ -34,10 +35,12 @@ func (s *StrategyRawLevel) Scan(src any) (err error) {
 	return err
 }
 
+// Value return json value, implement driver.Valuer interface
 func (s *StrategyRawLevel) Value() (driver.Value, error) {
 	return s.GetRawInfo(), nil
 }
 
+// GetRawInfo get raw info
 func (s *StrategyRawLevel) GetRawInfo() string {
 	if types.IsNil(s) || s.rawInfo == "" {
 		return "[]"

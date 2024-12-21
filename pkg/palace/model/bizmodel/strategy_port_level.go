@@ -4,8 +4,8 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// StrategyPort 策略端口
 type StrategyPort struct {
-
 	// 告警等级ID
 	LevelID uint32 `json:"level_id,omitempty"`
 	// 策略告警组

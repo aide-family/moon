@@ -25,6 +25,7 @@ type AlarmNoticeGroup struct {
 	TimeEngines   []*TimeEngine         `gorm:"many2many:alarm_group_time_engine" json:"time_engines"`
 }
 
+// IsAllowed 判断条件是否允许
 func (c *AlarmNoticeGroup) IsAllowed(t time.Time) bool {
 	if c == nil || len(c.TimeEngines) == 0 {
 		return true
