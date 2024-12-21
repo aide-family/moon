@@ -28,10 +28,10 @@ type StrategyMetricsLevel struct {
 	AlarmPageIds []uint32   `json:"alarm_page_ids,omitempty"`
 	AlarmPage    []*SysDict `json:"alarm_page,omitempty"`
 	// 策略告警组
-	AlarmGroupIds []uint32            `json:"alarm_group_ids"`
+	AlarmGroupIds []uint32            `json:"alarm_group_ids,omitempty"`
 	AlarmGroups   []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 策略labels
-	LabelNoticeIds []uint32                      `json:"labelNoticeIds"`
+	LabelNoticeIds []uint32                      `json:"labelNoticeIds,omitempty"`
 	LabelNotices   []*StrategyMetricsLabelNotice `json:"label_notices,omitempty"`
 }
 

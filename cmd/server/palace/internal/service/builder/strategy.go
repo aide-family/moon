@@ -630,7 +630,7 @@ func (d *doStrategyLevelBuilder) ToMqAPI(level *bizmodel.StrategyMQLevel, userMa
 	}
 
 	return &adminapi.StrategyMQLevelItem{
-		Value:        level.Value,
+		Threshold:    level.Value,
 		Condition:    api.MQCondition(level.Condition),
 		DataType:     api.MQDataType(level.DataType),
 		AlarmLevelId: level.AlarmLevelID,
@@ -658,7 +658,7 @@ func (m *mutationStrategyLevelBuilder) ToMQBo(request *strategyapi.CreateStrateg
 		return nil
 	}
 	return &bo.CreateStrategyEventLevel{
-		Value:         request.GetValue(),
+		Value:         request.GetThreshold(),
 		Condition:     vobj.MQCondition(request.GetCondition()),
 		MQDataType:    vobj.MQDataType(request.DataType),
 		AlarmLevelID:  request.GetAlarmLevelId(),

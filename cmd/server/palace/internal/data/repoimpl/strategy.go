@@ -832,6 +832,7 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 
 func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.StrategyLevels, error) {
 	level := &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
+	level.WithContext(ctx)
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
 		metricLevelModels := createStrategyMetricLevelParamsToModel(params.MetricLevels)

@@ -363,7 +363,7 @@ message UpdateStrategyStatusReply {}
 
 message CreateStrategyEventLevelRequest{
   // 值
-  string value = 1 [(buf.validate.field).required = true];
+  string threshold = 1 [(buf.validate.field).required = true];
   // 条件
   MQCondition condition = 2 [(buf.validate.field).required = true];
   // 数据类型

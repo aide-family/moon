@@ -5,6 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/palace/imodel"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/palace/model"
@@ -15,15 +19,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-// NewCacheRepository 创建缓存操作
-func NewCacheRepository(data *data.Data) repository.Cache {
-	return &cacheRepositoryImpl{data: data}
-}
-
-type cacheRepositoryImpl struct {
-	data *data.Data
-}
-
 const (
 	// 缓存前缀
 	cachePrefix = "palace"
@@ -33,6 +28,8 @@ const (
 	cacheKeyTeam = "team"
 
 	cacheKeyUserTeam = "user_team"
+
+	cacheKeyUserDict = "user_dict"
 )
 
 func userCacheKey(userID uint32) string {
@@ -45,6 +42,23 @@ func teamCacheKey(teamID uint32) string {
 
 func userTeamCacheKey(teamID uint32) string {
 	return types.TextJoin(cachePrefix, ":", cacheKeyUserTeam, ":", strconv.Itoa(int(teamID)))
+}
+
+func dictCacheKey(ctx context.Context, dictID uint32, isBiz bool) string {
+	teamID := strconv.Itoa(int(middleware.GetTeamID(ctx)))
+	if isBiz {
+		return types.TextJoin(cachePrefix, ":", cacheKeyUserDict, ":", teamID, ":", "biz", ":", strconv.Itoa(int(dictID)))
+	}
+	return types.TextJoin(cachePrefix, ":", cacheKeyUserTeam, ":", teamID, ":", strconv.Itoa(int(dictID)))
+}
+
+// NewCacheRepository 创建缓存操作
+func NewCacheRepository(data *data.Data) repository.Cache {
+	return &cacheRepositoryImpl{data: data}
+}
+
+type cacheRepositoryImpl struct {
+	data *data.Data
 }
 
 func (l *cacheRepositoryImpl) GetUser(ctx context.Context, userID uint32) *model.SysUser {
@@ -165,6 +179,54 @@ func (l *cacheRepositoryImpl) GetUsers(ctx context.Context, userIDs []uint32) []
 		l.AppendUser(ctx, user)
 	}
 	return users
+}
+
+func (l *cacheRepositoryImpl) AppendDict(ctx context.Context, dict imodel.IDict, isBiz bool) {
+	_ = l.data.GetCacher().SetObject(ctx, dictCacheKey(ctx, dict.GetID(), isBiz), dict, 12*time.Hour)
+}
+
+func (l *cacheRepositoryImpl) AppendDictList(ctx context.Context, dict []imodel.IDict, isBiz bool) {
+	for _, item := range dict {
+		_ = l.data.GetCacher().SetObject(ctx, dictCacheKey(ctx, item.GetID(), isBiz), item, 12*time.Hour)
+	}
+}
+
+func (l *cacheRepositoryImpl) GetDict(ctx context.Context, id uint32, isBiz bool) imodel.IDict {
+	if isBiz {
+		var dict bizmodel.SysDict
+		if err := l.data.GetCacher().GetObject(ctx, dictCacheKey(ctx, id, isBiz), &dict); err != nil {
+			log.Warnf("bizmodel.SysDict is nil")
+			bizQuery, err := getBizQuery(ctx, l.data)
+			if !types.IsNil(err) {
+				return &dict
+			}
+			iDict, err := bizQuery.SysDict.WithContext(ctx).Where(bizQuery.SysDict.ID.Eq(id)).First()
+			if err != nil {
+				return &dict
+			}
+			return iDict
+		}
+		return &dict
+	}
+	var dict model.SysDict
+	if err := l.data.GetCacher().GetObject(ctx, dictCacheKey(ctx, id, isBiz), &dict); err != nil {
+		log.Warnf("model.SysDict is nil")
+		mainQuery := query.Use(l.data.GetMainDB(ctx))
+		sysDict, err := mainQuery.SysDict.WithContext(ctx).Where(mainQuery.SysDict.ID.Eq(id)).First()
+		if err != nil {
+			return &dict
+		}
+		return sysDict
+	}
+	return &dict
+}
+
+func (l *cacheRepositoryImpl) GetDictList(ctx context.Context, ids []uint32, isBiz bool) []imodel.IDict {
+	dictList := make([]imodel.IDict, 0, len(ids))
+	for _, id := range ids {
+		dictList = append(dictList, l.GetDict(ctx, id, isBiz))
+	}
+	return dictList
 }
 
 // Cacher 获取缓存实例

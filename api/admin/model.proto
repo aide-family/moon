@@ -815,7 +815,7 @@ message MqDatasourceItem{
 message StrategyMQLevelItem{
   uint32 id = 1;
   // 值
-  string value = 2;
+  string threshold = 2;
   // 条件
   MQCondition condition = 3;
   // 数据类型

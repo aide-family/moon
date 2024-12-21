@@ -17,12 +17,12 @@ var _ imodel.IBaseModel = (*BaseModel)(nil)
 type BaseModel struct {
 	ctx context.Context `gorm:"-"`
 
-	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,omitempty"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,omitempty"`
+	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 
 	// 创建人
-	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
+	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id,omitempty"`
 }
 
 // GetCreatedAt 获取创建时间
@@ -64,7 +64,7 @@ var _ imodel.IAllFieldModel = (*AllFieldModel)(nil)
 
 // AllFieldModel gorm包含所有字段的模型
 type AllFieldModel struct {
-	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
 	BaseModel
 }
 
@@ -80,10 +80,10 @@ var _ imodel.IEasyModel = (*EasyModel)(nil)
 
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
-	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
+	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,o,omitempty"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,o,omitempty"`
+	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 }
 
 // GetID 获取ID
