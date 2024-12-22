@@ -382,7 +382,7 @@ message StrategyHTTPLevelItem {
   // ID
   uint32 id = 7;
   // 状态码
-  uint32 statusCodes = 8;
+  string statusCode = 8;
   // 响应时间
   uint32 responseTime = 9;
   // 请求头
@@ -402,7 +402,7 @@ message StrategyHTTPLevelItem {
 // 域名监控策略等级
 message StrategyDomainLevelItem {
   // 策略等级ID
-  uint32 levelID = 1;
+  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态

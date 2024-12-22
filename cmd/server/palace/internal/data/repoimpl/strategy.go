@@ -783,7 +783,7 @@ func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) 
 		httpLevel := &bizmodel.StrategyHTTP{
 			LevelID:               item.LevelID,
 			NoticeGroupIds:        item.AlarmGroupIds,
-			StatusCodes:           item.StatusCodes,
+			StatusCode:            item.StatusCode,
 			ResponseTime:          item.ResponseTime,
 			Body:                  item.Body,
 			Method:                vobj.ToHTTPMethod(item.Method),

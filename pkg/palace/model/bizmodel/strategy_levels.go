@@ -24,9 +24,10 @@ type StrategyLevels struct {
 	// 映射数据
 	StrategyMetricsLevels []*StrategyMetricsLevel `gorm:"-" json:"strategyMetricsLevels,omitempty"`
 	StrategyMQLevels      []*StrategyMQLevel      `gorm:"-" json:"strategyMQLevels,omitempty"`
-	StrategyDomain        []*StrategyDomain       `gorm:"-" json:"strategyDomain,omitempty"`
-	StrategyHTTP          []*StrategyHTTP         `gorm:"-" json:"strategyHTTP,omitempty"`
-	StrategyPing          []*StrategyPing         `gorm:"-" json:"strategyPing,omitempty"`
+	StrategyDomains       []*StrategyDomain       `gorm:"-" json:"strategyDomain,omitempty"`
+	StrategyPorts         []*StrategyPort         `gorm:"-" json:"strategyPort,omitempty"`
+	StrategyHTTPs         []*StrategyHTTP         `gorm:"-" json:"strategyHTTP,omitempty"`
+	StrategyPings         []*StrategyPing         `gorm:"-" json:"strategyPing,omitempty"`
 }
 
 func (c *StrategyLevels) AfterFind(tx *gorm.DB) (err error) {
@@ -39,11 +40,13 @@ func (c *StrategyLevels) AfterFind(tx *gorm.DB) (err error) {
 	case vobj.StrategyTypeMQ:
 		c.StrategyMQLevels = c.getStrategyMQLevel()
 	case vobj.StrategyTypeDomainCertificate:
-		c.StrategyDomain = c.getStrategyDoMain()
+		c.StrategyDomains = c.getStrategyDoMain()
 	case vobj.StrategyTypeHTTP:
-		c.StrategyHTTP = c.getStrategyHTTP()
+		c.StrategyHTTPs = c.getStrategyHTTP()
 	case vobj.StrategyTypePing:
-		c.StrategyPing = c.getStrategyPing()
+		c.StrategyPings = c.getStrategyPing()
+	case vobj.StrategyTypeDomainPort:
+		c.StrategyPorts = c.getStrategyPort()
 	default:
 	}
 	return
@@ -118,4 +121,14 @@ func (c *StrategyLevels) getStrategyPing() []*StrategyPing {
 		panic("get strategy mqLevel err" + err.Error())
 	}
 	return pings
+}
+
+// getStrategyPort get strategy port
+func (c *StrategyLevels) getStrategyPort() []*StrategyPort {
+	ports := make([]*StrategyPort, 0)
+	err := json.Unmarshal([]byte(c.RawInfo), &ports)
+	if err != nil {
+		panic("get strategy mqLevel err" + err.Error())
+	}
+	return ports
 }

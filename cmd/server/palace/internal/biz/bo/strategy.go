@@ -177,7 +177,7 @@ type (
 		// 响应时间 s
 		ResponseTime uint32 `json:"responseTime"`
 		// 状态码
-		StatusCodes uint32 `json:"statusCodes"`
+		StatusCode string `json:"statusCodes"`
 		// 请求体
 		Body string `json:"body"`
 		// 查询参数

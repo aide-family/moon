@@ -203,9 +203,6 @@ message CreateStrategyRequest {
   Status status = 4;
   // 数据源id
   repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
-    message: "请选择至少一个数据源",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "数据源重复",
     expression: "this.unique()"
   }];
@@ -267,11 +264,23 @@ message CreateStrategyRequest {
     message: "strategyMetricLevels 不能为空"
   };
 
+//  option (buf.validate.message).cel = {
+//    id: "StrategyMetricLevelRequired",
+//    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
+//    message: "请选择至少一个数据源"
+//  };
+
   option (buf.validate.message).cel = {
     id: "StrategyEventLevelRequired",
     expression: "this.strategyType != 2 || (this.strategyDomainLevels.size() > 0)",
     message: "StrategyDomainLevels 不能为空"
   };
+
+//  option (buf.validate.message).cel = {
+//    id: "StrategyMetricLevelRequired",
+//    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
+//    message: "请选择至少一个数据源"
+//  };
 
   option (buf.validate.message).cel = {
     id: "StrategyPortLevelRequired",
@@ -428,7 +437,7 @@ message CreateStrategyMetricLevelRequest{
 // 域名证书监控策略定义
 message CreateStrategyDomainLevelRequest{
   // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
+  uint32 levelId = 1 [(buf.validate.field).cel = {
     id: "DomainStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -520,7 +529,7 @@ message CreateStrategyHTTPLevelRequest {
   // 响应时间 s
   uint32 responseTime = 7;
   // 状态码
-  uint32 statusCodes = 8;
+  string statusCode = 8;
   // 请求头
   repeated HeaderItem headers = 9;
   // 请求体

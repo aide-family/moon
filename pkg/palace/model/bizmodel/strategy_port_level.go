@@ -7,7 +7,8 @@ import (
 // StrategyPort 策略端口
 type StrategyPort struct {
 	// 告警等级ID
-	LevelID uint32 `json:"level_id,omitempty"`
+	LevelID uint32   `json:"level_id,omitempty"`
+	Level   *SysDict `json:"level,omitempty"`
 	// 策略告警组
 	AlarmNoticeGroupIds []uint32            `json:"alarm_group_ids,omitempty"`
 	AlarmNoticeGroups   []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`

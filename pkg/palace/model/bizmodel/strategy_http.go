@@ -8,18 +8,19 @@ import (
 // StrategyHTTP HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
 type StrategyHTTP struct {
 	// 所属策略
-	StrategyID uint32 `json:"strategy_id,omitempty"`
+	StrategyID uint32 `json:"strategyID,omitempty"`
 	// 告警等级ID
-	LevelID uint32   `json:"level_id,omitempty"`
+	LevelID uint32   `json:"levelID,omitempty"`
 	Level   *SysDict `json:"level,omitempty"`
 	// 策略告警组
 	NoticeGroupIds []uint32 `json:"noticeGroupIds,omitempty"`
-
-	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
+	// 告警页面
+	AlarmPages        []*SysDict          `json:"alarmPages,omitempty"`
+	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarmNoticeGroups,omitempty"`
 	// 状态码
-	StatusCodes uint32 `json:"status_codes,omitempty"`
+	StatusCode string `json:"statusCode,omitempty"`
 	// 响应时间
-	ResponseTime uint32 `json:"response_time,omitempty"`
+	ResponseTime uint32 `json:"responseTime,omitempty"`
 	// 请求头
 	Headers []*vobj.Header `json:"headers,omitempty"`
 	// 请求body
@@ -27,11 +28,11 @@ type StrategyHTTP struct {
 	// 请求方式
 	Method vobj.HTTPMethod `json:"method,omitempty"`
 	// 查询参数
-	QueryParams string `json:"query_params,omitempty"`
+	QueryParams string `json:"queryParams,omitempty"`
 	// 状态码判断条件
 	StatusCodeCondition vobj.Condition `json:"condition,omitempty"`
 	// 响应时间判断条件
-	ResponseTimeCondition vobj.Condition `json:"response_time_condition,omitempty"`
+	ResponseTimeCondition vobj.Condition `json:"responseTimeCondition,omitempty"`
 }
 
 // String 字符串

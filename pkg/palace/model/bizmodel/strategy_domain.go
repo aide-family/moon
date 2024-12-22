@@ -3,31 +3,26 @@ package bizmodel
 import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
-
-// 证书过期、端口开闭监控策略
-const tableNameStrategyDomain = "strategy_domain"
 
 // StrategyDomain 域名证书｜端口 等级策略明细
 type StrategyDomain struct {
 	model.AllFieldModel
 	// 告警等级ID
 	LevelID uint32   `json:"level_id,omitempty"`
-	Level   *SysDict `json:"level"`
+	Level   *SysDict `json:"level,omitempty"`
 	// 阈值 （证书类型就是剩余天数，端口就是0：关闭，1：开启）
 	Threshold           int64   `json:"threshold,omitempty"`
 	AlarmNoticeGroupIds []int64 `json:"alarm_notice_group_ids,omitempty"`
 	// 策略告警组
-	AlarmNoticeGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_domain_alarm_groups;" json:"alarm_groups"`
+	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 告警页面ID
 	AlarmPageIds []int64 `json:"alarm_page_ids,omitempty"`
 	// 告警页面
-	AlarmPage []*SysDict `gorm:"many2many:strategy_domain_level_alarm_pages" json:"alarm_page"`
-}
-
-// TableName 表名
-func (*StrategyDomain) TableName() string {
-	return tableNameStrategyDomain
+	AlarmPage []*SysDict `json:"alarm_page,omitempty"`
+	// 判断条件
+	Condition vobj.Condition `json:"condition,omitempty"`
 }
 
 // String 字符串
