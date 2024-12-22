@@ -371,7 +371,7 @@ message CreateStrategyEventLevelRequest{
   // 状态
   Status status = 4;
   // 告警等级ID
-  uint32 alarmLevelId = 5;
+  uint32 levelId = 5;
   // 告警页面ID
   repeated uint32 alarmPageIds = 6 [(buf.validate.field).cel = {
     message: "请选择告警页面",

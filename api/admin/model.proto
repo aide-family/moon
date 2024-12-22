@@ -462,7 +462,7 @@ message StrategyItem {
   // 根据策略等级配置的详细策略， key为策略等级ID
   repeated StrategyMetricLevelItem metricLevels = 21;
   // MQ等级
-  repeated StrategyMQLevelItem mqLevels = 22;
+  repeated StrategyMQLevelItem eventLevels = 22;
   // 端口监控策略
   repeated StrategyPortLevelItem portLevels = 23;
   // HTTP监控策略
@@ -745,7 +745,7 @@ message AlarmHistoryItem{
   // 持续时间
   string duration = 16;
   // MQ告警级别
-  StrategyMQLevelItem mqLevel = 17;
+  StrategyMQLevelItem eventLevel = 17;
 }
 
 message NoticeUserMessage {
@@ -821,9 +821,9 @@ message StrategyMQLevelItem{
   // 数据类型
   MQDataType dataType = 4;
   // 告警等级ID
-  uint32 AlarmLevelId = 5;
+  uint32 levelId = 5;
   // 告警等级明细
-  SelectItem AlarmLevel = 6;
+  SelectItem level = 6;
   // 告警页面
   repeated SelectItem alarmPages = 7;
   // 所属策略

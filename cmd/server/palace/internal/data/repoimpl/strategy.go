@@ -108,22 +108,11 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 		return
 	}
 
-	strategyLevels, err := s.GetStrategyLevels(ctx, strategyIds)
-	if err != nil {
-		return
-	}
-
-	levelMap := types.ToMapSlice(strategyLevels, func(level *bizmodel.StrategyLevels) uint32 {
-		return level.StrategyID
-	})
-
-	strategyDetailMap := &bo.StrategyLevelDetailModel{LevelMap: levelMap}
 	go func() {
 		defer after.RecoverX()
 		for _, strategy := range strategies {
 			// TODO 完成其他策略类型转换
-			items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().
-				WithStrategyLevelDetail(strategyDetailMap).ToBosV2(strategy)
+			items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBosV2(strategy)
 			if len(items) == 0 {
 				continue
 			}
@@ -395,7 +384,7 @@ func (s *strategyRepositoryImpl) getLevelIds(params *bo.CreateStrategyParams) []
 	case vobj.StrategyTypeMetric:
 		return types.SliceTo(params.MetricLevels, func(level *bo.CreateStrategyMetricLevel) uint32 { return level.LevelID })
 	case vobj.StrategyTypeMQ:
-		return types.SliceTo(params.EventLevels, func(level *bo.CreateStrategyEventLevel) uint32 { return level.AlarmLevelID })
+		return types.SliceTo(params.EventLevels, func(level *bo.CreateStrategyEventLevel) uint32 { return level.LevelID })
 	default:
 		return nil
 	}
@@ -747,7 +736,7 @@ func createStrategyMQLevelParamsToModel(params []*bo.CreateStrategyEventLevel) [
 			Value:        item.Value,
 			DataType:     item.MQDataType,
 			Condition:    item.Condition,
-			AlarmLevelID: item.AlarmLevelID,
+			AlarmLevelID: item.LevelID,
 			Status:       item.Status,
 			PathKey:      item.PathKey,
 			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
@@ -783,6 +772,7 @@ func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.Cr
 			Threshold: item.Threshold,
 			LevelID:   item.LevelID,
 		}
+		domainLevel.WithContext(ctx)
 		return domainLevel
 	})
 	return domainLevels
@@ -830,50 +820,47 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 	return httpLevels
 }
 
-func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (*bizmodel.StrategyLevels, error) {
-	level := &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
+func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (level *bizmodel.StrategyLevels, err error) {
+	var bytes []byte
+	level = &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
 	level.WithContext(ctx)
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
 		metricLevelModels := createStrategyMetricLevelParamsToModel(params.MetricLevels)
-		bytes, err := json.Marshal(metricLevelModels)
+		bytes, err = json.Marshal(metricLevelModels)
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeMQ:
 		mqLevelModels := createStrategyMQLevelParamsToModel(params.EventLevels)
-		bytes, err := json.Marshal(mqLevelModels)
+		bytes, err = json.Marshal(mqLevelModels)
 		if err != nil {
 			return nil, err
 		}
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeDomainCertificate:
 		domainLevel := createStrategyDomainLevelParamsToModel(ctx, params.DomainLevels)
-		bytes, err := json.Marshal(domainLevel)
+		bytes, err = json.Marshal(domainLevel)
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeHTTP:
 		httpLevels := createStrategyHTTPLevelParamsToModel(params.HTTPLevels)
-		bytes, err := json.Marshal(httpLevels)
+		bytes, err = json.Marshal(httpLevels)
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	case vobj.StrategyTypeDomainPort:
 		portLevels := createStrategyDomainPortLevelParamsToModel(params.PortLevels)
-		bytes, err := json.Marshal(portLevels)
+		bytes, err = json.Marshal(portLevels)
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-		level.RawInfo = vobj.NewStrategyLevel(string(bytes))
 	default:
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
+	level.RawInfo = string(bytes)
 	return level, nil
 }

@@ -2,6 +2,7 @@ package bizmodel
 
 import (
 	"encoding/json"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -16,9 +17,36 @@ type StrategyLevels struct {
 	// StrategyType 策略类型
 	StrategyType vobj.StrategyType `gorm:"column:strategy_type;type:int;not null;comment:策略类型" json:"strategy_type"`
 	// 策略等级json
-	RawInfo    *vobj.StrategyRawLevel `gorm:"column:raw_info;type:text;not null;comment:策略等级json"`
-	StrategyID uint32                 `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__levels_id" json:"strategyID"`
-	Strategy   *Strategy              `gorm:"foreignKey:StrategyID"`
+	RawInfo    string    `gorm:"column:raw_info;type:text;not null;comment:策略等级json"`
+	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__levels_id" json:"strategyID"`
+	Strategy   *Strategy `gorm:"foreignKey:StrategyID"`
+
+	// 映射数据
+	StrategyMetricsLevels []*StrategyMetricsLevel `gorm:"-" json:"strategyMetricsLevels,omitempty"`
+	StrategyMQLevels      []*StrategyMQLevel      `gorm:"-" json:"strategyMQLevels,omitempty"`
+	StrategyDomain        []*StrategyDomain       `gorm:"-" json:"strategyDomain,omitempty"`
+	StrategyHTTP          []*StrategyHTTP         `gorm:"-" json:"strategyHTTP,omitempty"`
+	StrategyPing          []*StrategyPing         `gorm:"-" json:"strategyPing,omitempty"`
+}
+
+func (c *StrategyLevels) AfterFind(tx *gorm.DB) (err error) {
+	if c.RawInfo == "" {
+		return nil
+	}
+	switch c.StrategyType {
+	case vobj.StrategyTypeMetric:
+		c.StrategyMetricsLevels = c.getStrategyMetricLevel()
+	case vobj.StrategyTypeMQ:
+		c.StrategyMQLevels = c.getStrategyMQLevel()
+	case vobj.StrategyTypeDomainCertificate:
+		c.StrategyDomain = c.getStrategyDoMain()
+	case vobj.StrategyTypeHTTP:
+		c.StrategyHTTP = c.getStrategyHTTP()
+	case vobj.StrategyTypePing:
+		c.StrategyPing = c.getStrategyPing()
+	default:
+	}
+	return
 }
 
 // String json string
@@ -42,10 +70,10 @@ func (*StrategyLevels) TableName() string {
 	return tableNameStrategyLevels
 }
 
-// GetStrategyMetricLevel get strategy metric level
-func (c *StrategyLevels) GetStrategyMetricLevel() []*StrategyMetricsLevel {
+// getStrategyMetricLevel get strategy metric level
+func (c *StrategyLevels) getStrategyMetricLevel() []*StrategyMetricsLevel {
 	metricsLevels := make([]*StrategyMetricsLevel, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &metricsLevels)
+	err := json.Unmarshal([]byte(c.RawInfo), &metricsLevels)
 	if err != nil {
 		panic("get strategy metricLevel err" + err.Error())
 	}
@@ -53,9 +81,9 @@ func (c *StrategyLevels) GetStrategyMetricLevel() []*StrategyMetricsLevel {
 }
 
 // GetStrategyMQLevel get strategy mq level
-func (c *StrategyLevels) GetStrategyMQLevel() []*StrategyMQLevel {
+func (c *StrategyLevels) getStrategyMQLevel() []*StrategyMQLevel {
 	mqLevels := make([]*StrategyMQLevel, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &mqLevels)
+	err := json.Unmarshal([]byte(c.RawInfo), &mqLevels)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())
 	}
@@ -63,9 +91,9 @@ func (c *StrategyLevels) GetStrategyMQLevel() []*StrategyMQLevel {
 }
 
 // GetStrategyDoMain get strategy domain
-func (c *StrategyLevels) GetStrategyDoMain() []*StrategyDomain {
+func (c *StrategyLevels) getStrategyDoMain() []*StrategyDomain {
 	domains := make([]*StrategyDomain, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &domains)
+	err := json.Unmarshal([]byte(c.RawInfo), &domains)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())
 	}
@@ -73,9 +101,9 @@ func (c *StrategyLevels) GetStrategyDoMain() []*StrategyDomain {
 }
 
 // GetStrategyHTTP get strategy http
-func (c *StrategyLevels) GetStrategyHTTP() []*StrategyHTTP {
+func (c *StrategyLevels) getStrategyHTTP() []*StrategyHTTP {
 	strategyHTTPS := make([]*StrategyHTTP, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &strategyHTTPS)
+	err := json.Unmarshal([]byte(c.RawInfo), &strategyHTTPS)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())
 	}
@@ -83,9 +111,9 @@ func (c *StrategyLevels) GetStrategyHTTP() []*StrategyHTTP {
 }
 
 // GetStrategyPing get strategy ping
-func (c *StrategyLevels) GetStrategyPing() []*StrategyPing {
+func (c *StrategyLevels) getStrategyPing() []*StrategyPing {
 	pings := make([]*StrategyPing, 0)
-	err := json.Unmarshal([]byte(c.RawInfo.GetRawInfo()), &pings)
+	err := json.Unmarshal([]byte(c.RawInfo), &pings)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())
 	}

@@ -62,24 +62,10 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 			continue
 		}
 
-		strategyIds := types.To(strategies, func(strategy *bizmodel.Strategy) uint32 {
-			return strategy.ID
-		})
-
-		strategyLevels, err := s.strategyRepo.GetStrategyLevels(ctx, strategyIds)
-		if err != nil {
-			return
-		}
-
-		levelMap := types.ToMapSlice(strategyLevels, func(level *bizmodel.StrategyLevels) uint32 {
-			return level.StrategyID
-		})
-
-		strategyDetailMap := &bo.StrategyLevelDetailModel{LevelMap: levelMap}
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyDetailMap).ToBosV2(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBosV2(strategy)
 				if len(items) == 0 {
 					continue
 				}

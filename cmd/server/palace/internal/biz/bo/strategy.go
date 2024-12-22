@@ -115,7 +115,7 @@ type (
 		// 数据类型
 		MQDataType vobj.MQDataType `json:"mqDataType"`
 		// 告警等级 对应sys_dict字典id
-		AlarmLevelID uint32 `json:"alarmLevelID"`
+		LevelID uint32 `json:"levelID"`
 		// 状态
 		Status vobj.Status `json:"status"`
 		// 告警页面
