@@ -470,7 +470,7 @@ message CreateStrategyDomainLevelRequest{
 // 端口监控策略定义
 message CreateStrategyPortLevelRequest {
   // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
+  uint32 levelId = 1 [(buf.validate.field).cel = {
     id: "PortStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -502,7 +502,7 @@ message CreateStrategyPortLevelRequest {
 
 message CreateStrategyHTTPLevelRequest {
   // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
+  uint32 levelId = 1 [(buf.validate.field).cel = {
     id: "PortStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"

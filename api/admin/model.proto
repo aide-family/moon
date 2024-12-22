@@ -346,7 +346,7 @@ message StrategyMetricLevelItem {
 // 端口监控策略等级
 message StrategyPortLevelItem {
   // 策略等级ID
-  uint32 levelID = 1;
+  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态
@@ -368,7 +368,7 @@ message StrategyPortLevelItem {
 // HTTP监控策略等级
 message StrategyHTTPLevelItem {
   // 策略等级ID
-  uint32 levelID = 1;
+  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态

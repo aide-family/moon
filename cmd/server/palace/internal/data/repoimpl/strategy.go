@@ -502,6 +502,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
 
 	levelRawModel, err := createStrategyLevelRawModel(ctx, updateParam)
+	levelRawModel.StrategyID = params.ID
 	if err != nil {
 		return merr.ErrorI18nNotificationSystemError(ctx)
 	}
@@ -523,7 +524,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		}
 
 		// strategy level
-		if err := tx.Strategy.Level.Model(strategyModel).Replace(levelRawModel); err != nil {
+		if _, err := tx.StrategyLevels.WithContext(ctx).Where(tx.StrategyLevels.StrategyID.Eq(params.ID)).Updates(levelRawModel); err != nil {
 			return err
 		}
 		// 更新策略
@@ -781,18 +782,28 @@ func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.Cr
 func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
 	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyHTTPLevel) *bizmodel.StrategyHTTP {
 		httpLevel := &bizmodel.StrategyHTTP{
-			LevelID:               item.LevelID,
-			NoticeGroupIds:        item.AlarmGroupIds,
-			StatusCode:            item.StatusCode,
-			ResponseTime:          item.ResponseTime,
+			StrategyID:     0,
+			LevelID:        item.LevelID,
+			Level:          nil,
+			NoticeGroupIds: item.AlarmGroupIds,
+			AlarmPages: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+				return &bizmodel.SysDict{
+					AllFieldModel: model.AllFieldModel{
+						ID: pageID,
+					},
+				}
+			}),
+			AlarmNoticeGroups: nil,
+			StatusCode:        item.StatusCode,
+			ResponseTime:      item.ResponseTime,
+			Headers: types.SliceTo(item.Headers, func(item *bo.HeaderItem) *vobj.Header {
+				return vobj.NewHeader(item.Key, item.Value)
+			}),
 			Body:                  item.Body,
 			Method:                vobj.ToHTTPMethod(item.Method),
 			QueryParams:           item.QueryParams,
 			StatusCodeCondition:   item.StatusCodeCondition,
 			ResponseTimeCondition: item.ResponseTimeCondition,
-			Headers: types.SliceTo(item.Headers, func(item *bo.HeaderItem) *vobj.Header {
-				return vobj.NewHeader(item.Key, item.Value)
-			}),
 		}
 
 		return httpLevel

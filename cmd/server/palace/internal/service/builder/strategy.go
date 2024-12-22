@@ -442,7 +442,7 @@ func (d *doStrategyLevelBuilder) ToPortAPI(port *bizmodel.StrategyPort) *adminap
 	}
 
 	return &adminapi.StrategyPortLevelItem{
-		LevelID: port.LevelID,
+		LevelId: port.LevelID,
 		Level:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(port.Level),
 		Status:  1,
 		AlarmPages: NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(port.AlarmPage, func(item *bizmodel.SysDict) imodel.IDict {
@@ -466,8 +466,12 @@ func (d *doStrategyLevelBuilder) ToHTTPAPI(http *bizmodel.StrategyHTTP) *adminap
 	if types.IsNil(http) {
 		return nil
 	}
+	header := make(map[string]string, len(http.Headers))
+	for _, item := range http.Headers {
+		header[item.Name] = item.Value
+	}
 	return &adminapi.StrategyHTTPLevelItem{
-		LevelID: http.LevelID,
+		LevelId: http.LevelID,
 		Level:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(http.Level),
 		Status:  1,
 		AlarmPages: NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(http.AlarmPages, func(item *bizmodel.SysDict) imodel.IDict {
@@ -478,7 +482,7 @@ func (d *doStrategyLevelBuilder) ToHTTPAPI(http *bizmodel.StrategyHTTP) *adminap
 		Id:                    0,
 		StatusCode:            http.StatusCode,
 		ResponseTime:          http.ResponseTime,
-		Headers:               nil,
+		Headers:               header,
 		Body:                  http.Body,
 		QueryParams:           http.QueryParams,
 		Method:                http.Method.String(),
@@ -527,6 +531,8 @@ func (m *mutationStrategyLevelBuilder) ToPortBo(request *strategyapi.CreateStrat
 		AlarmGroupIds: request.GetAlarmGroupIds(),
 		Threshold:     request.GetThreshold(),
 		Port:          request.GetPort(),
+		LevelID:       request.GetLevelId(),
+		AlarmPageIds:  request.GetAlarmPageIds(),
 	}
 }
 
@@ -562,6 +568,7 @@ func (m *mutationStrategyLevelBuilder) ToHTTPBo(request *strategyapi.CreateStrat
 				Value: item.GetValue(),
 			}
 		}),
+		LevelID: request.GetLevelId(),
 	}
 }
 
@@ -585,10 +592,10 @@ func (b *boStrategyBuilder) ToMqAPI(strategy *bo.Strategy) *api.MQStrategyItem {
 		TeamID:           strategy.TeamID,
 		Status:           api.Status(strategy.Status),
 		Alert:            strategy.Alert,
+		LevelId:          mqLevel.LevelID,
 		Labels:           strategy.Labels.Map(),
 		Annotations:      strategy.Annotations.Map(),
 		ReceiverGroupIDs: strategy.ReceiverGroupIDs,
-		LevelID:          mqLevel.ID,
 		Value:            mqLevel.Value,
 		Condition:        api.MQCondition(mqLevel.Condition),
 		DataType:         api.MQDataType(mqLevel.MQDataType),
@@ -690,13 +697,13 @@ func (d *doStrategyBuilder) ToMQs(strategy *bizmodel.Strategy) []*bo.Strategy {
 			MQLevel: &bo.CreateStrategyEventLevel{
 				Value:         level.Value,
 				Condition:     level.Condition,
-				Status:        level.Status,
 				MQDataType:    level.DataType,
 				LevelID:       level.AlarmLevelID,
-				PathKey:       level.PathKey,
+				Status:        level.Status,
 				AlarmPageIds:  level.AlarmPageIds,
 				AlarmGroupIds: level.AlarmGroupIds,
 				StrategyID:    strategy.ID,
+				PathKey:       level.PathKey,
 			},
 		}
 	})
@@ -777,7 +784,7 @@ func (b *boStrategyDomainBuilder) ToAPI(domain *bo.StrategyDomain) *api.DomainSt
 	}
 	return &api.DomainStrategyItem{
 		StrategyID:       domain.ID,
-		LevelID:          domain.LevelID,
+		LevelId:          domain.LevelID,
 		TeamID:           domain.TeamID,
 		ReceiverGroupIDs: domain.ReceiverGroupIDs,
 		Status:           api.Status(domain.Status),
@@ -801,7 +808,7 @@ func (b *boStrategyEndpointBuilder) ToAPI(endpoint *bo.StrategyEndpoint) *api.Ht
 		StrategyType:     api.StrategyType(endpoint.Type),
 		Url:              endpoint.URL,
 		StrategyID:       endpoint.ID,
-		LevelID:          endpoint.LevelID,
+		LevelId:          endpoint.LevelID,
 		TeamID:           endpoint.TeamID,
 		ReceiverGroupIDs: endpoint.ReceiverGroupIDs,
 		Status:           api.Status(endpoint.Status),
@@ -829,7 +836,7 @@ func (b *boStrategyPingBuilder) ToAPI(ping *bo.StrategyPing) *api.PingStrategyIt
 		Status:           api.Status(ping.Status),
 		Alert:            ping.Alert,
 		Interval:         durationpb.New(time.Duration(ping.Interval) * time.Second),
-		LevelID:          ping.LevelID,
+		LevelId:          ping.LevelID,
 		Timeout:          ping.Timeout,
 		Labels:           ping.Labels.Map(),
 		Annotations:      ping.Annotations,
@@ -926,7 +933,7 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.MetricStrategy
 		Step:                       strategyItem.Step,
 		Condition:                  api.Condition(strategyItem.Condition),
 		Threshold:                  metricLevel.Threshold,
-		LevelID:                    metricLevel.LevelID,
+		LevelId:                    metricLevel.LevelID,
 		TeamID:                     strategyItem.TeamID,
 		ReceiverGroupIDs:           strategyItem.ReceiverGroupIDs,
 		LabelNotices: types.SliceTo(metricLevel.LabelNotices, func(item *bo.StrategyLabelNotice) *api.LabelNotices {

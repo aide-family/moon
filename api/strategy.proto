@@ -68,7 +68,7 @@ message MetricStrategyItem {
   // 阈值
   double threshold = 15;
   // 策略等级ID
-  uint32 levelID = 16 [(buf.validate.field).cel = {
+  uint32 levelId = 16 [(buf.validate.field).cel = {
     id: "Strategy_level"
     expression: 'this > 0'
     message: "策略等级必须大于0"
@@ -94,7 +94,7 @@ message DomainStrategyItem {
     message: "策略ID必须大于0"
   }];
   // 策略等级ID
-  uint32 levelID = 2 [(buf.validate.field).cel = {
+  uint32 levelId = 2 [(buf.validate.field).cel = {
     id: "DomainStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -170,7 +170,7 @@ message HttpStrategyItem {
     message: "策略ID必须大于0"
   }];
   // 策略等级ID
-  uint32 levelID = 4 [(buf.validate.field).cel = {
+  uint32 levelId = 4 [(buf.validate.field).cel = {
     id: "HttpStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -250,7 +250,7 @@ message PingStrategyItem {
   // 执行频率
   google.protobuf.Duration interval = 6;
   // 策略等级ID
-  uint32 levelID = 7 [(buf.validate.field).cel = {
+  uint32 levelId = 7 [(buf.validate.field).cel = {
     id: "PingStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -317,7 +317,7 @@ message MQStrategyItem {
     message: "策略名称不允许为空"
   }];
   // 策略等级ID
-  uint32 levelID = 7 [(buf.validate.field).cel = {
+  uint32 levelId = 7 [(buf.validate.field).cel = {
     id: "PingStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
