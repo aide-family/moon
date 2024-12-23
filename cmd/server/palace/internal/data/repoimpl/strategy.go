@@ -506,6 +506,15 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 
+		// 更新 levelRawModel的关联数据
+		if err = tx.StrategyLevel.DictList.Model(levelRawModel).Replace(levelRawModel.DictList...); !types.IsNil(err) {
+			return err
+		}
+
+		if err = tx.StrategyLevel.AlarmGroups.Model(levelRawModel).Replace(levelRawModel.AlarmGroups...); !types.IsNil(err) {
+			return err
+		}
+
 		// 更新策略
 		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(params.ID)).UpdateSimple(
 			tx.Strategy.Name.Value(updateParam.Name),
