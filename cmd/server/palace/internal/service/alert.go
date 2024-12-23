@@ -61,7 +61,7 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexe
 func (s *AlertService) setStrategyByType(ctx context.Context, item *bo.Strategy) *strategyapi.PushStrategyRequest {
 	var strategyDetail strategyapi.PushStrategyRequest
 	switch item.StrategyType {
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 		strategyDetail.MqStrategies = append(strategyDetail.MqStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToMqAPI(item))
 	case vobj.StrategyTypeMetric:
 		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))

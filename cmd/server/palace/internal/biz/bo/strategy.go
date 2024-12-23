@@ -271,12 +271,12 @@ type (
 	// StrategyLevelDetailModel 策略等级明细
 	StrategyLevelDetailModel struct {
 		// LevelMap
-		LevelMap map[uint32][]*bizmodel.StrategyLevels `json:"levelMap"`
+		LevelMap map[uint32][]*bizmodel.StrategyLevel `json:"levelMap"`
 	}
 
 	// TeamStrategyLevelModel 策略等级
 	TeamStrategyLevelModel struct {
-		MetricsLevel *bizmodel.StrategyMetricsLevel `json:"metricsLeve"`
+		MetricsLevel *bizmodel.StrategyMetricLevel `json:"metricsLeve"`
 		// MQ
 		MQLevel *bizmodel.StrategyEventLevel `json:"mqLevel"`
 	}
@@ -393,7 +393,7 @@ func (s *Strategy) Index() string {
 
 // Message 策略转消息
 func (s *Strategy) Message() *watch.Message {
-	if s.StrategyType.IsMq() {
+	if s.StrategyType.IsEvent() {
 		return watch.NewMessage(s, vobj.TopicEventStrategy)
 	}
 	return watch.NewMessage(s, vobj.TopicStrategy)

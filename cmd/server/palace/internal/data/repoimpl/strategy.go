@@ -38,18 +38,6 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
-func (s *strategyRepositoryImpl) GetStrategyLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyLevels, error) {
-	bizQuery, err := getBizQuery(ctx, s.data)
-	if !types.IsNil(err) {
-		return nil, err
-	}
-	return bizQuery.WithContext(ctx).
-		StrategyLevels.
-		Where(bizQuery.StrategyLevels.StrategyID.In(strategyIds...)).
-		Preload(field.Associations).
-		Find()
-}
-
 func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
 	s.syncStrategiesByIds(ctx, id)
 	return nil
@@ -61,7 +49,7 @@ func (s *strategyRepositoryImpl) GetTeamStrategyLevelByLevelID(ctx context.Conte
 	case vobj.StrategyTypeMetric:
 
 		return nil, nil
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 
 		return nil, nil
 	default:
@@ -176,7 +164,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 }
 
 func (s *strategyRepositoryImpl) deleteStrategyLevel(ctx context.Context, strategyID uint32, tx *bizquery.Query) error {
-	_, err := tx.StrategyLevels.WithContext(ctx).Where(tx.StrategyLevels.StrategyID.Eq(strategyID)).Delete()
+	_, err := tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(strategyID)).Delete()
 	if !types.IsNil(err) {
 		return err
 	}
@@ -373,7 +361,7 @@ func (s *strategyRepositoryImpl) getAlarmGroupIds(params *bo.CreateStrategyParam
 				alarmGroupIds = append(alarmGroupIds, notice.AlarmGroupIds...)
 			}
 		}
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 	default:
 	}
 	return alarmGroupIds
@@ -383,7 +371,7 @@ func (s *strategyRepositoryImpl) getLevelIds(params *bo.CreateStrategyParams) []
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
 		return types.SliceTo(params.MetricLevels, func(level *bo.CreateStrategyMetricLevel) uint32 { return level.LevelID })
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 		return types.SliceTo(params.EventLevels, func(level *bo.CreateStrategyEventLevel) uint32 { return level.LevelID })
 	default:
 		return nil
@@ -524,7 +512,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		}
 
 		// strategy level
-		if _, err := tx.StrategyLevels.WithContext(ctx).Where(tx.StrategyLevels.StrategyID.Eq(params.ID)).Updates(levelRawModel); err != nil {
+		if _, err := tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Updates(levelRawModel); err != nil {
 			return err
 		}
 		// 更新策略
@@ -647,32 +635,30 @@ func (s *strategyRepositoryImpl) CopyStrategy(ctx context.Context, strategyID ui
 	return strategy, nil
 }
 
-func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLevel) []*bizmodel.StrategyMetricsLevel {
-	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyMetricLevel) *bizmodel.StrategyMetricsLevel {
-		strategyLevel := &bizmodel.StrategyMetricsLevel{
+func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLevel) []*bizmodel.StrategyMetricLevel {
+	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyMetricLevel) *bizmodel.StrategyMetricLevel {
+		strategyLevel := &bizmodel.StrategyMetricLevel{
 			Duration:    item.Duration,
 			Count:       item.Count,
 			SustainType: item.SustainType,
 			Interval:    item.Interval,
 			Condition:   item.Condition,
 			Threshold:   item.Threshold,
-			LevelID:     item.LevelID,
 			Status:      item.Status,
-			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{
 						ID: pageID,
 					},
 				}
 			}),
-			AlarmGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
 				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
 			}),
-			LabelNotices: types.SliceTo(item.LabelNotices, func(notice *bo.StrategyLabelNotice) *bizmodel.StrategyMetricsLabelNotice {
+			LabelNoticeList: types.SliceTo(item.LabelNotices, func(notice *bo.StrategyLabelNotice) *bizmodel.StrategyMetricsLabelNotice {
 				return &bizmodel.StrategyMetricsLabelNotice{
-					Name:    notice.Name,
-					Value:   notice.Value,
-					LevelID: item.LevelID,
+					Name:  notice.Name,
+					Value: notice.Value,
 					AlarmGroups: types.SliceTo(notice.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
 						return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
 					}),
@@ -734,20 +720,19 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 func createStrategyMQLevelParamsToModel(params []*bo.CreateStrategyEventLevel) []*bizmodel.StrategyEventLevel {
 	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyEventLevel {
 		strategyLevel := &bizmodel.StrategyEventLevel{
-			Value:        item.Value,
-			DataType:     item.MQDataType,
-			Condition:    item.Condition,
-			AlarmLevelID: item.LevelID,
-			Status:       item.Status,
-			PathKey:      item.PathKey,
-			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+			Value:     item.Value,
+			DataType:  item.MQDataType,
+			Condition: item.Condition,
+			Status:    item.Status,
+			PathKey:   item.PathKey,
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{
 						ID: pageID,
 					},
 				}
 			}),
-			AlarmGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
 				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
 			}),
 		}
@@ -756,10 +741,10 @@ func createStrategyMQLevelParamsToModel(params []*bo.CreateStrategyEventLevel) [
 	return strategyLevels
 }
 
-func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyDomainLevel) []*bizmodel.StrategyDomain {
-	domainLevels := types.SliceTo(params, func(item *bo.CreateStrategyDomainLevel) *bizmodel.StrategyDomain {
-		domainLevel := &bizmodel.StrategyDomain{
-			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.CreateStrategyDomainLevel) []*bizmodel.StrategyDomainLevel {
+	domainLevels := types.SliceTo(params, func(item *bo.CreateStrategyDomainLevel) *bizmodel.StrategyDomainLevel {
+		domainLevel := &bizmodel.StrategyDomainLevel{
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{
 						ID: pageID,
@@ -767,35 +752,30 @@ func createStrategyDomainLevelParamsToModel(ctx context.Context, params []*bo.Cr
 				}
 			}),
 
-			AlarmNoticeGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
 				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
 			}),
 			Threshold: item.Threshold,
-			LevelID:   item.LevelID,
 		}
-		domainLevel.WithContext(ctx)
 		return domainLevel
 	})
 	return domainLevels
 }
 
-func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTP {
-	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyHTTPLevel) *bizmodel.StrategyHTTP {
-		httpLevel := &bizmodel.StrategyHTTP{
-			StrategyID:     0,
-			LevelID:        item.LevelID,
-			Level:          nil,
-			NoticeGroupIds: item.AlarmGroupIds,
-			AlarmPages: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) []*bizmodel.StrategyHTTPLevel {
+	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyHTTPLevel) *bizmodel.StrategyHTTPLevel {
+		httpLevel := &bizmodel.StrategyHTTPLevel{
+			Level: nil,
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{
 						ID: pageID,
 					},
 				}
 			}),
-			AlarmNoticeGroups: nil,
-			StatusCode:        item.StatusCode,
-			ResponseTime:      item.ResponseTime,
+			AlarmGroupList: nil,
+			StatusCode:     item.StatusCode,
+			ResponseTime:   item.ResponseTime,
 			Headers: types.SliceTo(item.Headers, func(item *bo.HeaderItem) *vobj.Header {
 				return vobj.NewHeader(item.Key, item.Value)
 			}),
@@ -812,14 +792,13 @@ func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) 
 	return httpLevels
 }
 
-func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortLevel) []*bizmodel.StrategyPort {
-	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyPortLevel) *bizmodel.StrategyPort {
-		httpLevel := &bizmodel.StrategyPort{
-			LevelID: item.LevelID,
-			AlarmNoticeGroups: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortLevel) []*bizmodel.StrategyPortLevel {
+	httpLevels := types.SliceTo(params, func(item *bo.CreateStrategyPortLevel) *bizmodel.StrategyPortLevel {
+		httpLevel := &bizmodel.StrategyPortLevel{
+			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
 				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
 			}),
-			AlarmPage: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
 			}),
 			Port:      item.Port,
@@ -831,9 +810,9 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 	return httpLevels
 }
 
-func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (level *bizmodel.StrategyLevels, err error) {
+func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (level *bizmodel.StrategyLevel, err error) {
 	var bytes []byte
-	level = &bizmodel.StrategyLevels{StrategyType: params.StrategyType}
+	level = &bizmodel.StrategyLevel{StrategyType: params.StrategyType}
 	level.WithContext(ctx)
 	switch params.StrategyType {
 	case vobj.StrategyTypeMetric:
@@ -842,7 +821,7 @@ func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyP
 		if !types.IsNil(err) {
 			return nil, merr.ErrorI18nNotificationSystemError(ctx)
 		}
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 		mqLevelModels := createStrategyMQLevelParamsToModel(params.EventLevels)
 		bytes, err = json.Marshal(mqLevelModels)
 		if err != nil {

@@ -321,18 +321,12 @@ message StrategyMetricLevelItem {
   int64 interval = 8;
   // 状态
   Status status = 9;
-  // 数据主键
-  uint32 id = 10;
-  // 告警等级ID
-  uint32 levelId = 11;
   // 告警等级明细
   SelectItem level = 12;
   // 告警页面
   repeated SelectItem alarmPages = 13;
   // 阈值
   double threshold = 14;
-  // 所属策略
-  uint32 strategyId = 15;
   // 条件
   Condition condition = 16;
   // 告警分组
@@ -345,8 +339,6 @@ message StrategyMetricLevelItem {
 
 // 端口监控策略等级
 message StrategyPortLevelItem {
-  // 策略等级ID
-  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态
@@ -357,8 +349,6 @@ message StrategyPortLevelItem {
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 阈值
   int64 threshold = 8;
   // 端口
@@ -367,8 +357,6 @@ message StrategyPortLevelItem {
 
 // HTTP监控策略等级
 message StrategyHTTPLevelItem {
-  // 策略等级ID
-  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态
@@ -379,8 +367,6 @@ message StrategyHTTPLevelItem {
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 状态码
   string statusCode = 8;
   // 响应时间
@@ -401,8 +387,6 @@ message StrategyHTTPLevelItem {
 
 // 域名监控策略等级
 message StrategyDomainLevelItem {
-  // 策略等级ID
-  uint32 levelId = 1;
   // 告警等级明细
   SelectItem level = 2;
   // 状态
@@ -413,8 +397,6 @@ message StrategyDomainLevelItem {
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 阈值
   int64 threshold = 8;
   // 判断条件
@@ -462,7 +444,7 @@ message StrategyItem {
   // 根据策略等级配置的详细策略， key为策略等级ID
   repeated StrategyMetricLevelItem metricLevels = 21;
   // MQ等级
-  repeated StrategyMQLevelItem eventLevels = 22;
+  repeated StrategyEventLevelItem eventLevels = 22;
   // 端口监控策略
   repeated StrategyPortLevelItem portLevels = 23;
   // HTTP监控策略
@@ -745,7 +727,7 @@ message AlarmHistoryItem{
   // 持续时间
   string duration = 16;
   // MQ告警级别
-  StrategyMQLevelItem eventLevel = 17;
+  StrategyEventLevelItem eventLevel = 17;
 }
 
 message NoticeUserMessage {
@@ -812,22 +794,17 @@ message MqDatasourceItem{
   StorageType storageType = 11;
 }
 
-message StrategyMQLevelItem{
-  uint32 id = 1;
+message StrategyEventLevelItem{
   // 值
   string threshold = 2;
   // 条件
   MQCondition condition = 3;
   // 数据类型
   MQDataType dataType = 4;
-  // 告警等级ID
-  uint32 levelId = 5;
   // 告警等级明细
   SelectItem level = 6;
   // 告警页面
   repeated SelectItem alarmPages = 7;
-  // 所属策略
-  uint32 strategyId = 8;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmGroups = 9;
   // 创建人

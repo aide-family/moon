@@ -134,20 +134,3 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 	return b.strategyRepo.Sync(ctx, id)
 }
-
-// GetStrategyLevel 获取策略层级详情
-func (b *StrategyBiz) GetStrategyLevel(ctx context.Context, strategyID uint32) (*bo.StrategyLevelDetailModel, error) {
-	detailModel := &bo.StrategyLevelDetailModel{}
-	strategyLevels, err := b.strategyRepo.GetStrategyLevels(ctx, []uint32{strategyID})
-
-	if !types.IsNil(err) {
-		return nil, err
-	}
-
-	strategyLevelMap := types.ToMapSlice(strategyLevels, func(level *bizmodel.StrategyLevels) uint32 {
-		return level.StrategyID
-	})
-
-	detailModel.LevelMap = strategyLevelMap
-	return detailModel, nil
-}

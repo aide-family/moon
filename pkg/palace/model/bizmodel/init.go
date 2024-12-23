@@ -27,10 +27,9 @@ func Models() []any {
 		&DashboardSelf{},
 		&AlarmPageSelf{},
 		&AlarmHook{},
-		&StrategyMetricsLabelNotice{},
 		&StrategySubscriber{},
 		&TimeEngineRule{},
 		&TimeEngine{},
-		&StrategyLevels{},
+		&StrategyLevel{},
 	}
 }

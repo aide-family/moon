@@ -60,7 +60,7 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 			switch param.Strategy.StrategyType {
 			case vobj.StrategyTypeMetric:
 				detail.Level = param.Level.MetricsLevel.String()
-			case vobj.StrategyTypeMQ:
+			case vobj.StrategyTypeEvent:
 				detail.Level = param.Level.MQLevel.String()
 			default:
 				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
@@ -197,12 +197,11 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 
 		switch strategy.StrategyType {
 		case vobj.StrategyTypeMetric:
-			alarm.Pages = types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+			alarm.Pages = types.SliceTo(strategyLevel.AlarmPageList, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
 				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
 			})
-			alarm.LevelID = strategyLevel.LevelID
-		case vobj.StrategyTypeMQ:
-			alarm.Pages = types.SliceTo(mqLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+		case vobj.StrategyTypeEvent:
+			alarm.Pages = types.SliceTo(mqLevel.AlarmPageList, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
 				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
 			})
 		default:

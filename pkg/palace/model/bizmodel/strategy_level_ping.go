@@ -4,16 +4,16 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
-// StrategyPing Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
-type StrategyPing struct {
+// StrategyPingLevel Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
+type StrategyPingLevel struct {
+	// 告警页面
+	AlarmPageList []*SysDict `json:"alarmPageList,omitempty"`
 	// 告警等级ID
-	LevelID uint32 `json:"level_id,omitempty"`
+	Level *SysDict `json:"level,omitempty"`
 	// 执行频率
 	Interval uint32 `json:"interval,omitempty"`
 	// 策略告警组
-	AlarmNoticeGroupIds []uint32 `json:"alarm_group_ids,omitempty"`
-	// 策略告警组
-	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
+	AlarmGroupList []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 	// 总包数
 	Total uint32 `json:"total,omitempty"`
 	// 成功包数
@@ -31,17 +31,17 @@ type StrategyPing struct {
 }
 
 // String 字符串
-func (s *StrategyPing) String() string {
+func (s *StrategyPingLevel) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
-func (s *StrategyPing) UnmarshalBinary(data []byte) error {
+func (s *StrategyPingLevel) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, s)
 }
 
 // MarshalBinary redis存储实现
-func (s *StrategyPing) MarshalBinary() (data []byte, err error) {
+func (s *StrategyPingLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(s)
 }

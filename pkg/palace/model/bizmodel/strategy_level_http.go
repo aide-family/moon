@@ -5,18 +5,13 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-// StrategyHTTP HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
-type StrategyHTTP struct {
-	// 所属策略
-	StrategyID uint32 `json:"strategyID,omitempty"`
-	// 告警等级ID
-	LevelID uint32   `json:"levelID,omitempty"`
-	Level   *SysDict `json:"level,omitempty"`
-	// 策略告警组
-	NoticeGroupIds []uint32 `json:"noticeGroupIds,omitempty"`
+// StrategyHTTPLevel HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
+type StrategyHTTPLevel struct {
+	// 告警等级
+	Level *SysDict `json:"level,omitempty"`
 	// 告警页面
-	AlarmPages        []*SysDict          `json:"alarmPages,omitempty"`
-	AlarmNoticeGroups []*AlarmNoticeGroup `json:"alarmNoticeGroups,omitempty"`
+	AlarmPageList  []*SysDict          `json:"alarmPageList,omitempty"`
+	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 	// 状态码
 	StatusCode string `json:"statusCode,omitempty"`
 	// 响应时间
@@ -36,17 +31,17 @@ type StrategyHTTP struct {
 }
 
 // String 字符串
-func (s *StrategyHTTP) String() string {
+func (s *StrategyHTTPLevel) String() string {
 	bs, _ := types.Marshal(s)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
-func (s *StrategyHTTP) UnmarshalBinary(data []byte) error {
+func (s *StrategyHTTPLevel) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, s)
 }
 
 // MarshalBinary redis存储实现
-func (s *StrategyHTTP) MarshalBinary() (data []byte, err error) {
+func (s *StrategyHTTPLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(s)
 }

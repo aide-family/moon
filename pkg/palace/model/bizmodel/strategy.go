@@ -35,7 +35,7 @@ type Strategy struct {
 	// 策略组
 	Group *StrategyGroup `gorm:"foreignKey:GroupID" json:"group"`
 	// 策略等级
-	Level *StrategyLevels `gorm:"foreignKey:StrategyID" json:"level"`
+	Level *StrategyLevel `gorm:"foreignKey:StrategyID" json:"level"`
 }
 
 // String json string
