@@ -291,7 +291,7 @@ func (t *timeEngineDoBuilderImpl) ToAPI(timeEngine *bizmodel.TimeEngine) *admina
 	if t == nil || timeEngine == nil {
 		return nil
 	}
-	userMap := getUsers(t.ctx, nil, timeEngine.GetCreatorID())
+	userMap := getUsers(t.ctx, timeEngine.GetCreatorID())
 	return &adminapi.TimeEngineItem{
 		Id:        timeEngine.ID,
 		Name:      timeEngine.Name,
@@ -453,7 +453,7 @@ func (b *timeEngineRuleDoBuilderImpl) ToAPI(timeEngineRule *bizmodel.TimeEngineR
 	if b == nil || timeEngineRule == nil {
 		return nil
 	}
-	userMap := getUsers(b.ctx, nil, timeEngineRule.GetCreatorID())
+	userMap := getUsers(b.ctx, timeEngineRule.GetCreatorID())
 	return &adminapi.TimeEngineRuleItem{
 		Id:       timeEngineRule.ID,
 		Name:     timeEngineRule.Name,

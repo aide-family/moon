@@ -501,15 +501,6 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 
-		// 更新 levelRawModel的关联数据
-		if err = tx.StrategyLevel.DictList.Model(levelRawModel).Replace(levelRawModel.DictList...); !types.IsNil(err) {
-			return err
-		}
-
-		if err = tx.StrategyLevel.AlarmGroups.Model(levelRawModel).Replace(levelRawModel.AlarmGroups...); !types.IsNil(err) {
-			return err
-		}
-
 		// strategy level
 		if _, err := tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Clauses(clause.OnConflict{UpdateAll: true}).Updates(levelRawModel); err != nil {
 			return err
@@ -540,6 +531,8 @@ func (s *strategyRepositoryImpl) GetByID(ctx context.Context, strategyID uint32)
 	strategy, err := bizWrapper.
 		Where(bizQuery.Strategy.ID.Eq(strategyID)).
 		Preload(field.Associations).
+		Preload(bizQuery.Strategy.Level.DictList).
+		Preload(bizQuery.Strategy.Level.AlarmGroups).
 		First()
 	if !types.IsNil(err) {
 		return nil, err

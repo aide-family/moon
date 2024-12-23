@@ -23,7 +23,7 @@ type StrategyLevel struct {
 	StrategyID uint32    `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略ID;uniqueIndex:idx__strategy_id__levels_id" json:"strategyID"`
 	Strategy   *Strategy `gorm:"foreignKey:StrategyID"`
 	// 告警页面 + 告警等级
-	DictList []*SysDict `gorm:"many2many:strategy_metrics_level_dict_list" json:"dictList"`
+	DictList []*SysDict `gorm:"many2many:strategy_level_dict_list" json:"dictList"`
 	// 告警组列表
 	AlarmGroups []*AlarmNoticeGroup `gorm:"many2many:strategy_levels_alarm_groups"`
 
@@ -99,6 +99,7 @@ func (c *StrategyLevel) getStrategyMetricLevel() []*StrategyMetricLevel {
 		return nil
 	}
 	return types.SliceTo(metricsLevels, func(item *StrategyMetricLevel) *StrategyMetricLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})
@@ -127,6 +128,7 @@ func (c *StrategyLevel) getStrategyEventLevel() []*StrategyEventLevel {
 		return nil
 	}
 	return types.SliceTo(eventLevels, func(item *StrategyEventLevel) *StrategyEventLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})
@@ -146,6 +148,7 @@ func (c *StrategyLevel) getStrategyDoMain() []*StrategyDomainLevel {
 		return nil
 	}
 	return types.SliceTo(domains, func(item *StrategyDomainLevel) *StrategyDomainLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})
@@ -165,6 +168,7 @@ func (c *StrategyLevel) getStrategyHTTP() []*StrategyHTTPLevel {
 		return nil
 	}
 	return types.SliceTo(strategyHTTPS, func(item *StrategyHTTPLevel) *StrategyHTTPLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})
@@ -184,6 +188,7 @@ func (c *StrategyLevel) getStrategyPing() []*StrategyPingLevel {
 		return nil
 	}
 	return types.SliceTo(pings, func(item *StrategyPingLevel) *StrategyPingLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})
@@ -203,6 +208,7 @@ func (c *StrategyLevel) getStrategyPort() []*StrategyPortLevel {
 		return nil
 	}
 	return types.SliceTo(ports, func(item *StrategyPortLevel) *StrategyPortLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
 			return c.dictMap[dictItem.GetID()]
 		})

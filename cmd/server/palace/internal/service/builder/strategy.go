@@ -255,7 +255,7 @@ type (
 		// WithStrategyCountMap 设置策略计数映射
 		WithStrategyCountMap(*bo.StrategyCountMap) IDoStrategyGroupBuilder
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.StrategyGroup, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyGroupItem
+		ToAPI(*bizmodel.StrategyGroup) *adminapi.StrategyGroupItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.StrategyGroup) []*adminapi.StrategyGroupItem
 		// ToSelect 转换为选择对象
@@ -272,7 +272,7 @@ type (
 	// IDoStrategyBuilder 策略条目构造器
 	IDoStrategyBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.Strategy, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyItem
+		ToAPI(*bizmodel.Strategy) *adminapi.StrategyItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Strategy) []*adminapi.StrategyItem
 		// ToSelect 转换为选择对象
@@ -297,7 +297,7 @@ type (
 	// IDoTemplateStrategyBuilder 模板策略条目构造器
 	IDoTemplateStrategyBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*model.StrategyTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyTemplateItem
+		ToAPI(*model.StrategyTemplate) *adminapi.StrategyTemplateItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.StrategyTemplate) []*adminapi.StrategyTemplateItem
 		// ToSelect 转换为选择对象
@@ -313,7 +313,7 @@ type (
 	// IDoStrategyLevelTemplateBuilder 策略等级模板条目构造器
 	IDoStrategyLevelTemplateBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*model.StrategyLevelTemplate, ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelTemplateItem
+		ToAPI(*model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.StrategyLevelTemplate) []*adminapi.StrategyLevelTemplateItem
 	}
@@ -348,7 +348,7 @@ type (
 		// ToMQBo 转换为业务对象
 		ToMQBo(*strategyapi.CreateStrategyEventLevelRequest) *bo.CreateStrategyEventLevel
 		// ToMQBos 转换为业务对象列表
-		ToMQBos([]*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel
+		ToEventBos([]*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel
 		// ToDomainBo 转换为领域对象
 		ToDomainBo(*strategyapi.CreateStrategyDomainLevelRequest) *bo.CreateStrategyDomainLevel
 		// ToDomainBos 转换为领域对象列表
@@ -753,7 +753,7 @@ func (m *mutationStrategyLevelBuilder) ToMQBo(request *strategyapi.CreateStrateg
 	}
 }
 
-func (m *mutationStrategyLevelBuilder) ToMQBos(request []*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel {
+func (m *mutationStrategyLevelBuilder) ToEventBos(request []*strategyapi.CreateStrategyEventLevelRequest) []*bo.CreateStrategyEventLevel {
 	if types.IsNil(request) || types.IsNil(m) {
 		return nil
 	}
@@ -873,21 +873,25 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			ReceiverGroupIDs:           types.MergeSliceWithUnique(receiverGroupIDs),
 			LabelNotices:               labelNotices,
 			ID:                         strategy.ID,
+			LevelID:                    0,
 			Alert:                      strategy.Name,
 			Expr:                       strategy.Expr,
-			For:                        level.Duration,
-			Count:                      level.Count,
-			SustainType:                level.SustainType,
 			MultiDatasourceSustainType: 0, // TODO 多数据源控制
 			Labels:                     strategy.Labels,
 			Annotations:                strategy.Annotations,
-			Interval:                   level.Interval,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
 			Status:                     types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0, vobj.StatusDisable, vobj.StatusEnable),
+			TeamID:                     middleware.GetTeamID(d.ctx),
+			StrategyType:               strategy.StrategyType,
+			MetricLevel:                nil,
+			MQLevel:                    nil,
+			For:                        level.Duration,
+			Count:                      level.Count,
+			SustainType:                level.SustainType,
+			Interval:                   level.Interval,
+			Step:                       0,
 			Condition:                  level.Condition,
 			Threshold:                  level.Threshold,
-			StrategyType:               strategy.StrategyType,
-			TeamID:                     middleware.GetTeamID(d.ctx),
 		}
 	})
 }
@@ -1055,12 +1059,12 @@ func (s *strategyModuleBuilder) APIMutationStrategyLevelTemplateItems() IMutatio
 	return &mutationStrategyLevelTemplateBuilder{ctx: s.ctx}
 }
 
-func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemplate, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyLevelTemplateItem {
+func (d *doStrategyLevelTemplateBuilder) ToAPI(template *model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem {
 	if types.IsNil(d) || types.IsNil(template) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, template.CreatorID)
+	userMap := getUsers(d.ctx, template.CreatorID)
 
 	return &adminapi.StrategyLevelTemplateItem{
 		Id:          template.ID,
@@ -1082,10 +1086,8 @@ func (d *doStrategyLevelTemplateBuilder) ToAPIs(templates []*model.StrategyLevel
 		return nil
 	}
 
-	ids := types.SliceTo(templates, func(item *model.StrategyLevelTemplate) uint32 { return item.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(templates, func(item *model.StrategyLevelTemplate) *adminapi.StrategyLevelTemplateItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 
@@ -1093,12 +1095,12 @@ func (s *strategyModuleBuilder) DoStrategyLevelTemplateBuilder() IDoStrategyLeve
 	return &doStrategyLevelTemplateBuilder{ctx: s.ctx}
 }
 
-func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyTemplateItem {
+func (d *doTemplateStrategyBuilder) ToAPI(template *model.StrategyTemplate) *adminapi.StrategyTemplateItem {
 	if types.IsNil(d) || types.IsNil(template) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, template.CreatorID)
+	userMap := getUsers(d.ctx, template.CreatorID)
 	return &adminapi.StrategyTemplateItem{
 		Id:          template.ID,
 		Alert:       template.Alert,
@@ -1120,10 +1122,8 @@ func (d *doTemplateStrategyBuilder) ToAPIs(templates []*model.StrategyTemplate) 
 		return nil
 	}
 
-	ids := types.SliceTo(templates, func(item *model.StrategyTemplate) uint32 { return item.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(templates, func(item *model.StrategyTemplate) *adminapi.StrategyTemplateItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 
@@ -1210,12 +1210,12 @@ func (c *createTemplateStrategyRequestBuilder) ToBo() *bo.CreateTemplateStrategy
 	}
 }
 
-func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyItem {
+func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.StrategyItem {
 	if types.IsNil(d) || types.IsNil(strategy) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, strategy.CreatorID)
+	userMap := getUsers(d.ctx, strategy.CreatorID)
 	strategyItem := &adminapi.StrategyItem{
 		Name:              strategy.Name,
 		Expr:              strategy.Expr,
@@ -1250,10 +1250,8 @@ func (d *doStrategyBuilder) ToAPIs(strategies []*bizmodel.Strategy) []*adminapi.
 		return nil
 	}
 
-	ids := types.SliceTo(strategies, func(item *bizmodel.Strategy) uint32 { return item.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(strategies, func(item *bizmodel.Strategy) *adminapi.StrategyItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 
@@ -1341,7 +1339,7 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		AlarmGroupIds:  c.GetAlarmGroupIds(),
 		StrategyType:   vobj.StrategyType(c.GetStrategyType()),
 		MetricLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMetricBos(c.GetStrategyMetricLevels()),
-		EventLevels:    NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToMQBos(c.GetStrategyEventLevels()),
+		EventLevels:    NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToEventBos(c.GetStrategyEventLevels()),
 		DomainLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToDomainBos(c.GetStrategyDomainLevels()),
 		PortLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToPortBos(c.GetStrategyPortLevels()),
 		HTTPLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToHTTPBos(c.GetStrategyHTTPLevels()),
@@ -1355,11 +1353,11 @@ func (d *doStrategyGroupBuilder) WithStrategyCountMap(countMap *bo.StrategyCount
 	return d
 }
 
-func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.StrategyGroupItem {
+func (d *doStrategyGroupBuilder) ToAPI(group *bizmodel.StrategyGroup) *adminapi.StrategyGroupItem {
 	if types.IsNil(d) || types.IsNil(group) {
 		return nil
 	}
-	userMap := getUsers(d.ctx, userMaps, group.CreatorID)
+	userMap := getUsers(d.ctx, group.CreatorID)
 	strategyCount := d.strategyCountMap
 	return &adminapi.StrategyGroupItem{
 		Id:                  group.ID,
@@ -1382,10 +1380,8 @@ func (d *doStrategyGroupBuilder) ToAPIs(groups []*bizmodel.StrategyGroup) []*adm
 		return nil
 	}
 
-	ids := types.SliceTo(groups, func(item *bizmodel.StrategyGroup) uint32 { return item.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(groups, func(item *bizmodel.StrategyGroup) *adminapi.StrategyGroupItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 

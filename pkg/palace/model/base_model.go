@@ -27,7 +27,7 @@ type BaseModel struct {
 
 // GetCreatedAt 获取创建时间
 func (u *BaseModel) GetCreatedAt() *types.Time {
-	if types.IsNil(u.CreatedAt) {
+	if types.IsNil(u) {
 		return &types.Time{}
 	}
 	return u.CreatedAt
@@ -35,7 +35,7 @@ func (u *BaseModel) GetCreatedAt() *types.Time {
 
 // GetUpdatedAt 获取更新时间
 func (u *BaseModel) GetUpdatedAt() *types.Time {
-	if types.IsNil(u.UpdatedAt) {
+	if types.IsNil(u) {
 		return &types.Time{}
 	}
 
@@ -44,7 +44,7 @@ func (u *BaseModel) GetUpdatedAt() *types.Time {
 
 // GetDeletedAt 获取删除时间
 func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
-	if types.IsNil(u.DeletedAt) {
+	if types.IsNil(u) {
 		return 0
 	}
 
@@ -53,7 +53,7 @@ func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
 
 // GetCreatorID 获取创建者ID
 func (u *BaseModel) GetCreatorID() uint32 {
-	if types.IsNil(u.CreatorID) {
+	if types.IsNil(u) {
 		return 0
 	}
 
@@ -70,7 +70,7 @@ type AllFieldModel struct {
 
 // GetID 获取ID
 func (a *AllFieldModel) GetID() uint32 {
-	if types.IsNil(a.ID) {
+	if types.IsNil(a) {
 		return 0
 	}
 	return a.ID
@@ -88,7 +88,7 @@ type EasyModel struct {
 
 // GetID 获取ID
 func (e *EasyModel) GetID() uint32 {
-	if types.IsNil(e.ID) {
+	if types.IsNil(e) {
 		return 0
 	}
 
@@ -97,7 +97,7 @@ func (e *EasyModel) GetID() uint32 {
 
 // GetCreatedAt 获取创建时间
 func (e *EasyModel) GetCreatedAt() *types.Time {
-	if types.IsNil(e.CreatedAt) {
+	if types.IsNil(e) {
 		return &types.Time{}
 	}
 
@@ -106,7 +106,7 @@ func (e *EasyModel) GetCreatedAt() *types.Time {
 
 // GetUpdatedAt 获取更新时间
 func (e *EasyModel) GetUpdatedAt() *types.Time {
-	if types.IsNil(e.UpdatedAt) {
+	if types.IsNil(e) {
 		return &types.Time{}
 	}
 
@@ -115,7 +115,7 @@ func (e *EasyModel) GetUpdatedAt() *types.Time {
 
 // GetDeletedAt 获取删除时间
 func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
-	if types.IsNil(e.DeletedAt) {
+	if types.IsNil(e) {
 		return 0
 	}
 

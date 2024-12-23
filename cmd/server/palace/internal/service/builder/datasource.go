@@ -42,7 +42,7 @@ type (
 	// IDoDatasourceBuilder 数据源条目构造器
 	IDoDatasourceBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.Datasource, ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem
+		ToAPI(*bizmodel.Datasource) *adminapi.DatasourceItem
 
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Datasource) []*adminapi.DatasourceItem
@@ -252,12 +252,12 @@ func (c *createDatasourceRequestBuilder) ToBo() *bo.CreateDatasourceParams {
 	}
 }
 
-func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem {
+func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.DatasourceItem {
 	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, datasource.CreatorID)
+	userMap := getUsers(d.ctx, datasource.CreatorID)
 	return &adminapi.DatasourceItem{
 		Id:             datasource.ID,
 		Name:           datasource.Name,
@@ -278,12 +278,8 @@ func (d *doDatasourceBuilder) ToAPIs(datasources []*bizmodel.Datasource) []*admi
 		return nil
 	}
 
-	ids := types.SliceTo(datasources, func(item *bizmodel.Datasource) uint32 {
-		return item.CreatorID
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 
