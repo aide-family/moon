@@ -278,7 +278,7 @@ type (
 	TeamStrategyLevelModel struct {
 		MetricsLevel *bizmodel.StrategyMetricsLevel `json:"metricsLeve"`
 		// MQ
-		MQLevel *bizmodel.StrategyMQLevel `json:"mqLevel"`
+		MQLevel *bizmodel.StrategyEventLevel `json:"mqLevel"`
 	}
 )
 

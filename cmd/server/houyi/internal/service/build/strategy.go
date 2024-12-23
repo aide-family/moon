@@ -35,7 +35,7 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 			}
 		}),
 		ID:                         strategyInfo.GetId(),
-		LevelID:                    strategyInfo.GetLevelID(),
+		LevelID:                    strategyInfo.GetLevelId(),
 		Alert:                      strategyInfo.GetAlert(),
 		Expr:                       strategyInfo.GetExpr(),
 		For:                        types.NewDuration(strategyInfo.GetFor()),
@@ -75,7 +75,7 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	return &bo.StrategyDomain{
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		ID:               a.GetStrategyID(),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		TeamID:           a.GetTeamID(),
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
@@ -124,7 +124,7 @@ func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyEndpoint {
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
 		Interval:         types.NewDuration(a.GetInterval()),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		ID:               a.GetStrategyID(),
 	}
 }
@@ -154,7 +154,7 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
 		Interval:         types.NewDuration(a.GetInterval()),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		Timeout:          a.GetTimeout(),
 		Labels:           vobj.NewLabels(a.GetLabels()),
 		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
@@ -192,7 +192,7 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 		TeamID:           a.GetTeamID(),
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		ID:               a.GetStrategyID(),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		Alert:            a.GetAlert(),
 		Expr:             a.GetTopic(),
 		Threshold:        a.GetValue(),

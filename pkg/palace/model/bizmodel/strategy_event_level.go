@@ -5,8 +5,8 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-// StrategyMQLevel MQ策略等级
-type StrategyMQLevel struct {
+// StrategyEventLevel MQ策略等级
+type StrategyEventLevel struct {
 	// 值
 	Value string `json:"value,omitempty"`
 	// 数据类型
@@ -32,17 +32,17 @@ type StrategyMQLevel struct {
 }
 
 // String json string
-func (c *StrategyMQLevel) String() string {
+func (c *StrategyEventLevel) String() string {
 	bs, _ := types.Marshal(c)
 	return string(bs)
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategyMQLevel) UnmarshalBinary(data []byte) error {
+func (c *StrategyEventLevel) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, c)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategyMQLevel) MarshalBinary() (data []byte, err error) {
+func (c *StrategyEventLevel) MarshalBinary() (data []byte, err error) {
 	return types.Marshal(c)
 }

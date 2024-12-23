@@ -81,8 +81,8 @@ var _ imodel.IEasyModel = (*EasyModel)(nil)
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
 	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
-	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,o,omitempty"`
-	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,o,omitempty"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,omitempty"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,omitempty"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 }
 

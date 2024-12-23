@@ -2,6 +2,7 @@ package bizmodel
 
 import (
 	"encoding/json"
+
 	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/pkg/palace/model"
@@ -22,31 +23,32 @@ type StrategyLevels struct {
 	Strategy   *Strategy `gorm:"foreignKey:StrategyID"`
 
 	// 映射数据
-	StrategyMetricsLevels []*StrategyMetricsLevel `gorm:"-" json:"strategyMetricsLevels,omitempty"`
-	StrategyMQLevels      []*StrategyMQLevel      `gorm:"-" json:"strategyMQLevels,omitempty"`
-	StrategyDomains       []*StrategyDomain       `gorm:"-" json:"strategyDomain,omitempty"`
-	StrategyPorts         []*StrategyPort         `gorm:"-" json:"strategyPort,omitempty"`
-	StrategyHTTPs         []*StrategyHTTP         `gorm:"-" json:"strategyHTTP,omitempty"`
-	StrategyPings         []*StrategyPing         `gorm:"-" json:"strategyPing,omitempty"`
+	StrategyMetricsLevelList []*StrategyMetricsLevel `gorm:"-" json:"strategyMetricsLevelList,omitempty"`
+	StrategyMQLevelList      []*StrategyEventLevel   `gorm:"-" json:"strategyMQLevelList,omitempty"`
+	StrategyDomainList       []*StrategyDomain       `gorm:"-" json:"strategyDomainList,omitempty"`
+	StrategyPortList         []*StrategyPort         `gorm:"-" json:"strategyPortList,omitempty"`
+	StrategyHTTPList         []*StrategyHTTP         `gorm:"-" json:"strategyHTTPList,omitempty"`
+	StrategyPingList         []*StrategyPing         `gorm:"-" json:"strategyPingList,omitempty"`
 }
 
+// AfterFind get strategy level
 func (c *StrategyLevels) AfterFind(tx *gorm.DB) (err error) {
 	if c.RawInfo == "" {
 		return nil
 	}
 	switch c.StrategyType {
 	case vobj.StrategyTypeMetric:
-		c.StrategyMetricsLevels = c.getStrategyMetricLevel()
+		c.StrategyMetricsLevelList = c.getStrategyMetricLevel()
 	case vobj.StrategyTypeMQ:
-		c.StrategyMQLevels = c.getStrategyMQLevel()
+		c.StrategyMQLevelList = c.getStrategyMQLevel()
 	case vobj.StrategyTypeDomainCertificate:
-		c.StrategyDomains = c.getStrategyDoMain()
+		c.StrategyDomainList = c.getStrategyDoMain()
 	case vobj.StrategyTypeHTTP:
-		c.StrategyHTTPs = c.getStrategyHTTP()
+		c.StrategyHTTPList = c.getStrategyHTTP()
 	case vobj.StrategyTypePing:
-		c.StrategyPings = c.getStrategyPing()
+		c.StrategyPingList = c.getStrategyPing()
 	case vobj.StrategyTypeDomainPort:
-		c.StrategyPorts = c.getStrategyPort()
+		c.StrategyPortList = c.getStrategyPort()
 	default:
 	}
 	return
@@ -84,8 +86,8 @@ func (c *StrategyLevels) getStrategyMetricLevel() []*StrategyMetricsLevel {
 }
 
 // GetStrategyMQLevel get strategy mq level
-func (c *StrategyLevels) getStrategyMQLevel() []*StrategyMQLevel {
-	mqLevels := make([]*StrategyMQLevel, 0)
+func (c *StrategyLevels) getStrategyMQLevel() []*StrategyEventLevel {
+	mqLevels := make([]*StrategyEventLevel, 0)
 	err := json.Unmarshal([]byte(c.RawInfo), &mqLevels)
 	if err != nil {
 		panic("get strategy mqLevel err" + err.Error())

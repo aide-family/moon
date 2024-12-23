@@ -731,9 +731,9 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 	return strategyModel
 }
 
-func createStrategyMQLevelParamsToModel(params []*bo.CreateStrategyEventLevel) []*bizmodel.StrategyMQLevel {
-	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyMQLevel {
-		strategyLevel := &bizmodel.StrategyMQLevel{
+func createStrategyMQLevelParamsToModel(params []*bo.CreateStrategyEventLevel) []*bizmodel.StrategyEventLevel {
+	strategyLevels := types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyEventLevel {
+		strategyLevel := &bizmodel.StrategyEventLevel{
 			Value:        item.Value,
 			DataType:     item.MQDataType,
 			Condition:    item.Condition,

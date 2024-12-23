@@ -1,4 +1,4 @@
-package vobj
+package config
 
 const (
 	// MainCode 主库
