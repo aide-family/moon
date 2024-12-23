@@ -632,9 +632,8 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 			Labels:                     strategy.Labels,
 			Annotations:                strategy.Annotations,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
-			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
-				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
-			TeamID: middleware.GetTeamID(d.ctx),
+			Status:                     types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0, vobj.StatusDisable, vobj.StatusEnable),
+			TeamID:                     middleware.GetTeamID(d.ctx),
 			MetricLevel: &bo.CreateStrategyMetricLevel{
 				StrategyTemplateID: strategy.TemplateID,
 				Duration:           level.Duration,
@@ -643,7 +642,6 @@ func (d *doStrategyBuilder) ToBoMetrics(strategy *bizmodel.Strategy) []*bo.Strat
 				Interval:           level.Interval,
 				Condition:          level.Condition,
 				Threshold:          level.Threshold,
-				Status:             level.Status,
 				StrategyID:         strategy.ID,
 				LabelNotices: types.SliceTo(level.LabelNoticeList, func(notice *bizmodel.StrategyMetricsLabelNotice) *bo.StrategyLabelNotice {
 					return &bo.StrategyLabelNotice{
@@ -885,12 +883,11 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 			Annotations:                strategy.Annotations,
 			Interval:                   level.Interval,
 			Datasource:                 NewParamsBuild(d.ctx).DatasourceModuleBuilder().DoDatasourceBuilder().ToBos(strategy.Datasource),
-			Status: types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0 ||
-				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
-			Condition:    level.Condition,
-			Threshold:    level.Threshold,
-			StrategyType: strategy.StrategyType,
-			TeamID:       middleware.GetTeamID(d.ctx),
+			Status:                     types.Ternary(!strategy.Status.IsEnable() || strategy.GetDeletedAt() > 0, vobj.StatusDisable, vobj.StatusEnable),
+			Condition:                  level.Condition,
+			Threshold:                  level.Threshold,
+			StrategyType:               strategy.StrategyType,
+			TeamID:                     middleware.GetTeamID(d.ctx),
 		}
 	})
 }
@@ -913,8 +910,6 @@ func (b *boStrategyBuilder) ToAPI(strategyItem *bo.Strategy) *api.MetricStrategy
 		Annotations:                strategyItem.Annotations.Map(),
 		Interval:                   durationpb.New(time.Duration(metricLevel.Interval) * time.Second),
 		Datasource:                 NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToAPIs(strategyItem.Datasource),
-		Id:                         strategyItem.ID,
-		Status:                     api.Status(metricLevel.Status),
 		Step:                       strategyItem.Step,
 		Condition:                  api.Condition(strategyItem.Condition),
 		Threshold:                  metricLevel.Threshold,
@@ -968,7 +963,6 @@ func (m *mutationStrategyLevelBuilder) ToMetricBo(request *strategyapi.CreateStr
 		Condition:          vobj.Condition(request.Condition),
 		Threshold:          request.Threshold,
 		LevelID:            request.LevelId,
-		Status:             vobj.Status(request.Status),
 		AlarmPageIds:       request.GetAlarmPageIds(),
 		AlarmGroupIds:      request.GetAlarmGroupIds(),
 		StrategyID:         m.StrategyID,
@@ -1000,7 +994,6 @@ func (d *doStrategyLevelBuilder) ToAPI(level *bizmodel.StrategyMetricLevel) *adm
 		Count:        level.Count,
 		SustainType:  api.SustainType(level.SustainType),
 		Interval:     level.Interval,
-		Status:       api.Status(level.Status),
 		Level:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.Level),
 		AlarmPages:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPageList, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		Threshold:    level.Threshold,

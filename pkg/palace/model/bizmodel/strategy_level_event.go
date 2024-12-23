@@ -13,16 +13,17 @@ type StrategyEventLevel struct {
 	DataType vobj.MQDataType `json:"dataType,omitempty"`
 	// 条件
 	Condition vobj.MQCondition `json:"condition,omitempty"`
-	// 告警等级
-	Level *SysDict `json:"level,omitempty"`
 	// 状态
 	Status vobj.Status `json:"status,omitempty"`
-	// 告警页面
-	AlarmPageList []*SysDict `json:"alarmPageList"`
-	// 策略告警组
-	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 	// object path key
 	PathKey string `json:"pathKey,omitempty"`
+
+	// 告警等级ID
+	Level *SysDict `json:"level,omitempty"`
+	// 告警页面
+	AlarmPageList []*SysDict `json:"alarmPageList,omitempty"`
+	// 策略告警组
+	AlarmGroupList []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 }
 
 // String json string

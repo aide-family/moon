@@ -53,14 +53,6 @@ message MetricStrategyItem {
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
   }];
-  // 策略ID, 用于标识唯一性
-  uint32 id = 11 [(buf.validate.field).cel = {
-    id: "Strategy_id"
-    expression: 'this > 0'
-    message: "策略ID必须大于0"
-  }];
-  // 策略状态
-  Status status = 12 [(buf.validate.field).enum.defined_only = true];
   // 采样率
   uint32 step = 13;
   // 判断条件

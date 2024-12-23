@@ -14,6 +14,12 @@ type StrategyMetricsLabelNotice struct {
 	AlarmGroups []*AlarmNoticeGroup `json:"alarm_groups"`
 }
 
+// String json 序列化实现
+func (c *StrategyMetricsLabelNotice) String() string {
+	bs, _ := types.Marshal(c)
+	return string(bs)
+}
+
 // UnmarshalBinary redis存储实现
 func (c *StrategyMetricsLabelNotice) UnmarshalBinary(data []byte) error {
 	return types.Unmarshal(data, c)

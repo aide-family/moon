@@ -644,7 +644,6 @@ func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLev
 			Interval:    item.Interval,
 			Condition:   item.Condition,
 			Threshold:   item.Threshold,
-			Status:      item.Status,
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
 				return &bizmodel.SysDict{
 					AllFieldModel: model.AllFieldModel{

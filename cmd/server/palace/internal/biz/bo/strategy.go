@@ -93,8 +93,6 @@ type (
 		Threshold float64 `json:"threshold"`
 		// 告警等级 对应sys_dict字典id
 		LevelID uint32 `json:"LevelID"`
-		// 状态
-		Status vobj.Status `json:"status"`
 		// 告警页面
 		AlarmPageIds []uint32 `json:"alarmPageIds"`
 		// 告警组

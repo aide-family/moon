@@ -7,11 +7,6 @@ import (
 
 // StrategyHTTPLevel HTTP监控策略定义， 用于监控指定URL的响应时间、状态码
 type StrategyHTTPLevel struct {
-	// 告警等级
-	Level *SysDict `json:"level,omitempty"`
-	// 告警页面
-	AlarmPageList  []*SysDict          `json:"alarmPageList,omitempty"`
-	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 	// 状态码
 	StatusCode string `json:"statusCode,omitempty"`
 	// 响应时间
@@ -28,6 +23,13 @@ type StrategyHTTPLevel struct {
 	StatusCodeCondition vobj.Condition `json:"condition,omitempty"`
 	// 响应时间判断条件
 	ResponseTimeCondition vobj.Condition `json:"responseTimeCondition,omitempty"`
+
+	// 告警等级ID
+	Level *SysDict `json:"level,omitempty"`
+	// 告警页面
+	AlarmPageList []*SysDict `json:"alarmPageList,omitempty"`
+	// 策略告警组
+	AlarmGroupList []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 }
 
 // String 字符串

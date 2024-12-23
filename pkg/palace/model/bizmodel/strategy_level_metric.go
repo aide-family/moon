@@ -18,10 +18,9 @@ type StrategyMetricLevel struct {
 	// 条件
 	Condition vobj.Condition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition,omitempty"`
 	// 阈值
-	Threshold float64  `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold,omitempty"`
-	Level     *SysDict `json:"level,omitempty"`
-	// 状态
-	Status          vobj.Status                   `json:"status,omitempty"`
+	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold,omitempty"`
+
+	Level           *SysDict                      `json:"level,omitempty"`
 	AlarmPageList   []*SysDict                    `json:"alarm_page,omitempty"`
 	AlarmGroupList  []*AlarmNoticeGroup           `json:"alarm_groups,omitempty"`
 	LabelNoticeList []*StrategyMetricsLabelNotice `json:"label_notices,omitempty"`

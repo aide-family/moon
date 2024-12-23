@@ -6,16 +6,17 @@ import (
 
 // StrategyPortLevel 策略端口
 type StrategyPortLevel struct {
-	// 告警等级I
-	Level *SysDict `json:"level,omitempty"`
-	// 策略告警组
-	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 	// 阈值
 	Threshold int64 `json:"threshold,omitempty"`
 	// 端口
 	Port uint32 `json:"port,omitempty"`
+
+	// 告警等级I
+	Level *SysDict `json:"level,omitempty"`
 	// 告警页面
 	AlarmPageList []*SysDict `json:"alarmPageList,omitempty"`
+	// 策略告警组
+	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 }
 
 // String 字符串
