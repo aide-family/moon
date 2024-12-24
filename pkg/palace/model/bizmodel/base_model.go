@@ -26,11 +26,13 @@ func (u *AllFieldModel) GetTeamID() uint32 {
 }
 
 // BeforeCreate 创建前的hook
-func (u *AllFieldModel) BeforeCreate(_ *gorm.DB) (err error) {
+func (u *AllFieldModel) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.GetContext() == nil {
 		return
 	}
-
+	if err := u.AllFieldModel.BeforeCreate(tx); err != nil {
+		return err
+	}
 	u.TeamID = middleware.GetTeamID(u.GetContext())
 	return
 }
