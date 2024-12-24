@@ -3,36 +3,25 @@ syntax = "proto3";
 package api;
 
 import "enum.proto";
-import "conf/conf.proto";
 
 option go_package = "github.com/aide-family/moon/api;api";
 option java_multiple_files = true;
 option java_package = "api";
 
 // 数据源基础交互数据类型
-message Datasource {
+message DatasourceItem {
   // 数据源类型
   DatasourceType category = 1;
   // 存储器类型
-  StorageType storage_type = 2;
+  StorageType storageType = 2;
   // 数据源配置 json
-  map<string, string> config = 3;
+  string config = 3;
   // 数据源地址
   string endpoint = 4;
   // 数据源ID
   uint32 id = 5;
   // 状态
   Status status = 6;
-}
-
-// MQ数据源
-message MQDatasource {
-  // 数据源ID
-  uint32 id = 1;
-  // 状态
-  Status status = 2;
-  // 配置
-  pkg.conf.MQ mq = 3;
-  // 租户ID
-  uint32 teamID = 4;
+  // 团队ID
+  uint32 teamId = 7;
 }

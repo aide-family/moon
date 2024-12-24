@@ -99,7 +99,7 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 		defer after.RecoverX()
 		for _, strategy := range strategies {
 			// TODO 完成其他策略类型转换
-			items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBosV2(strategy)
+			items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 			if len(items) == 0 {
 				continue
 			}

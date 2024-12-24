@@ -97,7 +97,7 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 
 		level := &bizmodel.StrategyMetricLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.MetricLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.MetricLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPI(level)
 	}
 
 	return resItem

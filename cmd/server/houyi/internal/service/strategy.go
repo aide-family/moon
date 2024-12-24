@@ -27,9 +27,9 @@ func NewStrategyService(strategyBiz *biz.StrategyBiz) *StrategyService {
 
 // PushStrategy 推送策略
 func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.PushStrategyRequest) (*strategyapi.PushStrategyReply, error) {
-	strategies := make([]bo.IStrategy, 0, len(req.GetStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies())+len(req.GetPingStrategies()))
-	if len(req.GetStrategies()) > 0 {
-		strategies = append(strategies, types.SliceTo(req.GetStrategies(), func(item *api.MetricStrategyItem) bo.IStrategy {
+	strategies := make([]bo.IStrategy, 0, len(req.GetMetricStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies())+len(req.GetPingStrategies()))
+	if len(req.GetMetricStrategies()) > 0 {
+		strategies = append(strategies, types.SliceTo(req.GetMetricStrategies(), func(item *api.MetricStrategyItem) bo.IStrategy {
 			return build.NewStrategyBuilder(item).ToBo()
 		})...)
 	}
@@ -48,8 +48,8 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 			return build.NewPingStrategyBuilder(item).ToBo()
 		})...)
 	}
-	if len(req.GetMqStrategies()) > 0 {
-		strategies = append(strategies, types.SliceTo(req.GetMqStrategies(), func(item *api.EventStrategyItem) bo.IStrategy {
+	if len(req.GetEventStrategies()) > 0 {
+		strategies = append(strategies, types.SliceTo(req.GetEventStrategies(), func(item *api.EventStrategyItem) bo.IStrategy {
 			return build.NewMQStrategyBuilder(item).ToBo()
 		})...)
 	}

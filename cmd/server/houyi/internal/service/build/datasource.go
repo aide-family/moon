@@ -3,25 +3,26 @@ package build
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // DatasourceAPIBuilder 数据源api构建器
 type DatasourceAPIBuilder struct {
-	*api.Datasource
+	*api.DatasourceItem
 }
 
 // NewDatasourceAPIBuilder 创建数据源api构建器
-func NewDatasourceAPIBuilder(datasource *api.Datasource) *DatasourceAPIBuilder {
+func NewDatasourceAPIBuilder(datasource *api.DatasourceItem) *DatasourceAPIBuilder {
 	return &DatasourceAPIBuilder{
-		Datasource: datasource,
+		DatasourceItem: datasource,
 	}
 }
 
 // ToBo 转换为业务对象
 func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
-	if types.IsNil(b) || types.IsNil(b.Datasource) {
+	if types.IsNil(b) || types.IsNil(b.DatasourceItem) {
 		return nil
 	}
 
@@ -34,40 +35,42 @@ func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
 	}
 }
 
-// MQDatasourceAPIBuilder MQ数据源api构建器
-type MQDatasourceAPIBuilder struct {
-	list []*api.MQDatasource
-}
-
-// NewMQDatasourceAPIBuilder 创建MQ数据源api构建器
-func NewMQDatasourceAPIBuilder(datasource ...*api.MQDatasource) *MQDatasourceAPIBuilder {
-	return &MQDatasourceAPIBuilder{
-		list: datasource,
-	}
-}
-
-// ToBo 转换为业务对象
-func (b *MQDatasourceAPIBuilder) ToBo() *bo.MQDatasource {
-	if types.IsNil(b) || len(b.list) == 0 {
+// ToEventBo 转换为事件对象
+func (b *DatasourceAPIBuilder) ToEventBo() *bo.EventDatasource {
+	if types.IsNil(b) || types.IsNil(b.DatasourceItem) {
 		return nil
 	}
 
-	item := b.list[0]
-	return &bo.MQDatasource{
-		TeamID: item.GetTeamID(),
-		ID:     item.GetId(),
-		Status: vobj.Status(item.GetStatus()),
-		Conf:   item.GetMq(),
-	}
-}
+	storageType := vobj.StorageType(b.GetStorageType())
 
-// ToBos 转换为业务对象数组
-func (b *MQDatasourceAPIBuilder) ToBos() []*bo.MQDatasource {
-	if types.IsNil(b) || len(b.list) == 0 {
-		return nil
+	eventDatasource := &bo.EventDatasource{
+		TeamID: b.GetTeamId(),
+		ID:     b.GetId(),
+		Status: vobj.Status(b.GetStatus()),
+		Conf: &conf.Event{
+			Type:     storageType.String(),
+			RocketMQ: &conf.RocketMQ{},
+			Mqtt:     &conf.MQTT{},
+			Kafka:    &conf.Kafka{},
+		},
 	}
 
-	return types.SliceTo(b.list, func(item *api.MQDatasource) *bo.MQDatasource {
-		return NewMQDatasourceAPIBuilder(item).ToBo()
-	})
+	switch storageType {
+	case vobj.StorageTypeKafka:
+		kafka := conf.Kafka{}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &kafka)
+		eventDatasource.Conf.Kafka = &kafka
+	case vobj.StorageTypeRocketMQ:
+		rocketMQ := conf.RocketMQ{}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &rocketMQ)
+		eventDatasource.Conf.RocketMQ = &rocketMQ
+	case vobj.StorageTypeMQTT:
+		mqtt := conf.MQTT{}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &mqtt)
+		eventDatasource.Conf.Mqtt = &mqtt
+	case vobj.StorageTypeRabbitMQ:
+		// TODO: 未实现
+	}
+
+	return eventDatasource
 }

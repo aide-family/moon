@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
@@ -82,7 +83,7 @@ func (s *StrategyWatch) Start(_ context.Context) error {
 			case <-s.stopCh:
 				return
 			case msg, ok := <-s.data.GetStrategyQueue().Next():
-				if !ok || (!msg.GetTopic().IsStrategy() && !msg.GetTopic().IsEventstrategy()) {
+				if !ok || !msg.GetTopic().IsStrategy() {
 					continue
 				}
 
@@ -108,8 +109,12 @@ func (s *StrategyWatch) Stop(_ context.Context) error {
 func (s *StrategyWatch) addJob(strategyMsg watch.Indexer) error {
 	// 转换数据
 	if s.dependHouYi {
+		strategyBo, ok := strategyMsg.(*bo.Strategy)
+		if !ok {
+			return merr.ErrorNotificationSystemError("strategy msg type error")
+		}
 		// 推送到houyi服务去
-		return s.alertService.PushStrategy(context.Background(), strategyMsg)
+		return s.alertService.PushStrategy(context.Background(), strategyBo)
 	}
 
 	log.Warnw("本地未实现告警功能，策略任务将不会执行")

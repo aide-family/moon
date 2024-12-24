@@ -234,7 +234,7 @@ message DatasourceItem {
   // 更新时间
   string updatedAt = 7;
   // 配置信息
-  map<string, string> config = 8;
+  string config = 8;
   // 描述
   string remark = 9;
   // 存储器类型

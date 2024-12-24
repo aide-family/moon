@@ -189,11 +189,11 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 	})
 
 	if len(teamIDMap) > 0 {
-		in.Strategies = types.Filter(in.Strategies, func(item *api.MetricStrategyItem) bool {
+		in.MetricStrategies = types.Filter(in.MetricStrategies, func(item *api.MetricStrategyItem) bool {
 			return teamIDMap[item.TeamID] > 0
 		})
 
-		in.MqStrategies = types.Filter(in.MqStrategies, func(item *api.EventStrategyItem) bool {
+		in.EventStrategies = types.Filter(in.EventStrategies, func(item *api.EventStrategyItem) bool {
 			return teamIDMap[item.TeamID] > 0
 		})
 
@@ -287,8 +287,8 @@ func (l *HouYiConn) syncStrategies(srv *Srv, strategies []*bo.Strategy) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPIs(strategies)
-	_, err := l.pushStrategy(ctx, srv, &strategyapi.PushStrategyRequest{Strategies: items})
+	item := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(strategies...)
+	_, err := l.pushStrategy(ctx, srv, item)
 	if !types.IsNil(err) {
 		log.Errorw("同步策略失败：", err)
 		return err

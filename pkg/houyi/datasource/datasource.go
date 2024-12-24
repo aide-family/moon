@@ -40,7 +40,7 @@ type Datasource interface {
 }
 
 type datasource struct {
-	config *api.Datasource
+	config *api.DatasourceItem
 }
 
 func (d *datasource) Metric() (MetricDatasource, error) {
@@ -52,17 +52,21 @@ func (d *datasource) Metric() (MetricDatasource, error) {
 	if !dataType.IsMetrics() {
 		return nil, merr.ErrorNotificationSystemError("not a metric datasource: %s", dataType)
 	}
+	config := make(map[string]any)
+	_ = types.Unmarshal([]byte(d.config.GetConfig()), &config)
+	username, _ := config["username"].(string)
+	password, _ := config["password"].(string)
 	opts := []MetricDatasourceBuildOption{
 		WithMetricID(d.config.GetId()),
 		WithMetricStep(10),
 		WithMetricEndpoint(d.config.GetEndpoint()),
-		WithMetricBasicAuth(d.config.GetConfig()["username"], d.config.GetConfig()["password"]),
+		WithMetricBasicAuth(username, password),
 	}
 	return NewMetricDatasource(vobj.StorageType(d.config.GetStorageType()), opts...)
 }
 
 // NewDatasource 根据配置创建对应的数据源
-func NewDatasource(config *api.Datasource) Datasource {
+func NewDatasource(config *api.DatasourceItem) Datasource {
 	return &datasource{config: config}
 }
 

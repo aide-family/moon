@@ -16,7 +16,7 @@ const (
 )
 
 // NewEvent 创建消息队列
-func NewEvent(c *conf.MQ) (mq.IMQ, error) {
+func NewEvent(c *conf.Event) (mq.IMQ, error) {
 	switch strings.ToLower(c.GetType()) {
 	case rocketMQ:
 		return NewRocketMQEvent(c.GetRocketMQ())

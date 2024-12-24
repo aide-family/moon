@@ -7,7 +7,6 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -35,8 +34,8 @@ type (
 		// WithListDatasourceRequest 获取数据源列表请求参数构造器
 		WithListDatasourceRequest(*datasourceapi.ListDatasourceRequest) IListDatasourceRequestBuilder
 
-		// BoDatasourceBuilder 业务对象构造器
-		BoDatasourceBuilder() IBoDatasourceBuilder
+		// DatasourceBuilder 业务对象构造器
+		DatasourceBuilder() IDatasourceBuilder
 	}
 
 	// IDoDatasourceBuilder 数据源条目构造器
@@ -46,12 +45,6 @@ type (
 
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Datasource) []*adminapi.DatasourceItem
-
-		// ToBo 转换为业务对象
-		ToBo(*bizmodel.Datasource) *bo.Datasource
-
-		// ToBos 转换为业务对象列表
-		ToBos([]*bizmodel.Datasource) []*bo.Datasource
 
 		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.Datasource) *adminapi.SelectItem
@@ -96,17 +89,12 @@ type (
 		*datasourceapi.ListDatasourceRequest
 	}
 
-	// IBoDatasourceBuilder 业务对象构造器
-	IBoDatasourceBuilder interface {
+	// IDatasourceBuilder 业务对象构造器
+	IDatasourceBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bo.Datasource) *api.Datasource
-
+		ToAPI(*bizmodel.Datasource) *api.DatasourceItem
 		// ToAPIs 转换为API对象列表
-		ToAPIs([]*bo.Datasource) []*api.Datasource
-		// ToMqAPI 转换为MQ API对象
-		ToMqAPI(*bo.Datasource) *api.MQDatasource
-		// ToMqAPIs 转换为MQ API对象列表
-		ToMqAPIs([]*bo.Datasource) []*api.MQDatasource
+		ToAPIs([]*bizmodel.Datasource) []*api.DatasourceItem
 	}
 
 	boDatasourceBuilder struct {
@@ -114,94 +102,27 @@ type (
 	}
 )
 
-func (b *boDatasourceBuilder) ToMqAPI(datasource *bo.Datasource) *api.MQDatasource {
+func (b *boDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *api.DatasourceItem {
 	if types.IsNil(b) || types.IsNil(datasource) {
 		return nil
 	}
-
-	mqConfig := &conf.MQ{}
-	switch datasource.StorageType {
-	case vobj.StorageTypeMQTT:
-		mqConfig.Mqtt = datasource.Config.GetMQTT()
-		mqConfig.Type = vobj.StorageTypeMQTT.String()
-	case vobj.StorageTypeKafka:
-		mqConfig.Kafka = datasource.Config.GetKafka()
-		mqConfig.Type = vobj.StorageTypeKafka.String()
-	case vobj.StorageTypeRocketMQ:
-		mqConfig.RocketMQ = datasource.Config.GetRocketMQ()
-		mqConfig.Type = vobj.StorageTypeRocketMQ.String()
-	case vobj.StorageTypeRabbitMQ:
-	default:
-		return nil
-	}
-
-	item := &api.MQDatasource{
-		Id:     datasource.ID,
-		Mq:     mqConfig,
-		Status: api.Status(datasource.Status),
-	}
-	return item
-}
-
-func (b *boDatasourceBuilder) ToMqAPIs(datasources []*bo.Datasource) []*api.MQDatasource {
-	if types.IsNil(datasources) || types.IsNil(b) {
-		return nil
-	}
-	return types.SliceTo(datasources, func(item *bo.Datasource) *api.MQDatasource {
-		return b.ToMqAPI(item)
-	})
-}
-
-func (d *doDatasourceBuilder) ToBo(datasource *bizmodel.Datasource) *bo.Datasource {
-	if types.IsNil(datasource) || types.IsNil(d) {
-		return nil
-	}
-
-	return &bo.Datasource{
-		Category:    datasource.Category,
-		StorageType: datasource.StorageType,
-		Config:      datasource.Config,
-		Endpoint:    datasource.Endpoint,
-		ID:          datasource.ID,
-		Status:      datasource.Status,
-	}
-}
-
-func (d *doDatasourceBuilder) ToBos(datasources []*bizmodel.Datasource) []*bo.Datasource {
-	if types.IsNil(datasources) || types.IsNil(d) {
-		return nil
-	}
-
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *bo.Datasource {
-		return d.ToBo(item)
-	})
-}
-
-func (b *boDatasourceBuilder) ToAPI(datasource *bo.Datasource) *api.Datasource {
-	if types.IsNil(datasource) || types.IsNil(b) {
-		return nil
-	}
-
-	return &api.Datasource{
+	return &api.DatasourceItem{
 		Category:    api.DatasourceType(datasource.Category),
 		StorageType: api.StorageType(datasource.StorageType),
-		Config:      datasource.Config.Map(),
+		Config:      datasource.Config.String(),
 		Endpoint:    datasource.Endpoint,
 		Id:          datasource.ID,
+		Status:      api.Status(datasource.Status),
 	}
 }
 
-func (b *boDatasourceBuilder) ToAPIs(datasources []*bo.Datasource) []*api.Datasource {
-	if types.IsNil(datasources) || types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(datasources, func(item *bo.Datasource) *api.Datasource {
+func (b *boDatasourceBuilder) ToAPIs(datasource []*bizmodel.Datasource) []*api.DatasourceItem {
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *api.DatasourceItem {
 		return b.ToAPI(item)
 	})
 }
 
-func (d *datasourceModuleBuilder) BoDatasourceBuilder() IBoDatasourceBuilder {
+func (d *datasourceModuleBuilder) DatasourceBuilder() IDatasourceBuilder {
 	return &boDatasourceBuilder{ctx: d.ctx}
 }
 
@@ -229,7 +150,7 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 		Name:           u.GetName(),
 		Endpoint:       u.GetEndpoint(),
 		Status:         vobj.Status(u.GetStatus()),
-		Config:         datasource.NewDatasourceConfig(u.GetConfig()),
+		Config:         datasource.NewDatasourceConfigByString(u.GetConfig()),
 		Remark:         u.GetRemark(),
 		StorageType:    vobj.StorageType(u.GetStorageType()),
 		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
@@ -247,7 +168,7 @@ func (c *createDatasourceRequestBuilder) ToBo() *bo.CreateDatasourceParams {
 		Endpoint:       c.GetEndpoint(),
 		Status:         vobj.Status(c.GetStatus()),
 		Remark:         c.GetRemark(),
-		Config:         datasource.NewDatasourceConfig(c.GetConfig()),
+		Config:         datasource.NewDatasourceConfigByString(c.GetConfig()),
 		StorageType:    vobj.StorageType(c.GetStorageType()),
 	}
 }
@@ -266,7 +187,7 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.D
 		Status:         api.Status(datasource.Status),
 		CreatedAt:      datasource.CreatedAt.String(),
 		UpdatedAt:      datasource.UpdatedAt.String(),
-		Config:         datasource.Config.Map(),
+		Config:         datasource.Config.String(),
 		Remark:         datasource.Remark,
 		StorageType:    api.StorageType(datasource.StorageType),
 		Creator:        userMap[datasource.CreatorID],

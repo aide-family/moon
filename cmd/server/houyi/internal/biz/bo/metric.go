@@ -1,14 +1,15 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type (
 	// GetMetricsParams 查询指标请求参数
 	GetMetricsParams struct {
-		Endpoint string            `json:"endpoint"`
-		Config   map[string]string `json:"config"`
+		Endpoint string             `json:"endpoint"`
+		Config   *datasource.Config `json:"config"`
 		// 存储类型
 		StorageType vobj.StorageType `json:"storageType"`
 	}

@@ -613,7 +613,7 @@ func (d *doRealtimeAlarmBuilder) ToAPI(alarm *alarmmodel.RealtimeAlarm) *adminap
 
 		level := &bizmodel.StrategyMetricLevel{}
 		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.MetricLevel = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToAPI(level)
+		resItem.MetricLevel = NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPI(level)
 	}
 	return resItem
 }

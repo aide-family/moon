@@ -66,8 +66,6 @@ type (
 		Count uint32 `json:"count,omitempty"`
 		// 持续的类型
 		SustainType vobj.Sustain `json:"sustainType,omitempty"`
-		// 多数据源持续类型
-		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
@@ -91,7 +89,7 @@ type (
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
 		// 数据源配置 json
-		Config map[string]string `json:"config,omitempty"`
+		Config string `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID
@@ -171,7 +169,7 @@ func (s *StrategyMetric) getDatasourceCliList() ([]datasource.MetricDatasource, 
 			log.Warnw("method", "Eval", "error", "datasource category is not same")
 			continue
 		}
-		cfg := &api.Datasource{
+		cfg := &api.DatasourceItem{
 			Category:    api.DatasourceType(datasourceItem.Category),
 			StorageType: api.StorageType(datasourceItem.StorageType),
 			Config:      datasourceItem.Config,

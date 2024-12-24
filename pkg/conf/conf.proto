@@ -379,7 +379,7 @@ message Kafka{
 }
 
 // mq配置
-message MQ {
+message Event {
   // mq类型
   string type = 1;
   // rocketmq配置

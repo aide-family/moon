@@ -43,7 +43,7 @@ type (
 	}
 )
 
-func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
+func (m *eventStrategyWatch) registerEvent(c *bo.EventDatasource) (mq.IMQ, error) {
 	if mqCli, ok := m.mqMap.Get(c.Index()); ok {
 		if !c.Status.IsEnable() {
 			mqCli.Close()
@@ -51,7 +51,7 @@ func (m *eventStrategyWatch) registerEvent(c *bo.MQDatasource) (mq.IMQ, error) {
 		}
 		return mqCli, nil
 	}
-	mqCli, err := event.NewEvent(c.GetMQConfig())
+	mqCli, err := event.NewEvent(c.GetConfig())
 	if err != nil {
 		log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
 		return nil, err
@@ -100,11 +100,11 @@ func (m *eventStrategyWatch) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
 		for mqConf := range m.data.GetEventMQQueue().Next() {
-			if !mqConf.GetTopic().IsMqdatasource() {
+			if !mqConf.GetTopic().IsEventdatasource() {
 				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
 				continue
 			}
-			c := mqConf.GetData().(*bo.MQDatasource)
+			c := mqConf.GetData().(*bo.EventDatasource)
 			if _, err := m.registerEvent(c); err != nil {
 				log.Errorf("[eventStrategyWatch] 创建 mq 失败: %v", err)
 				continue

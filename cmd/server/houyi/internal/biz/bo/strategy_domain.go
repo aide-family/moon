@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyDomain)(nil)
@@ -40,10 +41,6 @@ type StrategyDomain struct {
 	Annotations *vobj.Annotations `json:"annotations,omitempty"`
 	// 域名
 	Domain string `json:"domain,omitempty"`
-	// 超时时间
-	Timeout uint32 `json:"timeout,omitempty"`
-	// 执行频率
-	Interval *types.Duration `json:"interval,omitempty"`
 	// 端口
 	Port uint32 `json:"port,omitempty"`
 	// 类型
@@ -115,9 +112,9 @@ func (s *StrategyDomain) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 		return nil, nil
 	}
 	if s.Type.IsDomainport() {
-		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
+		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, 10*time.Second)
 	}
-	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
+	return datasource.DomainEval(ctx, s.Domain, s.Port, 10*time.Second)
 }
 
 // GetTeamID 获取团队ID
@@ -147,5 +144,5 @@ func (s *StrategyDomain) GetAnnotations() map[string]string {
 
 // GetInterval 获取执行频率
 func (s *StrategyDomain) GetInterval() *types.Duration {
-	return s.Interval
+	return types.NewDuration(durationpb.New(5 * time.Second))
 }

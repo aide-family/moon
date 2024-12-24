@@ -4,12 +4,10 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"sort"
 
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"golang.org/x/exp/maps"
 )
 
 var _ sql.Scanner = (*Config)(nil)
@@ -17,7 +15,7 @@ var _ driver.Valuer = (*Config)(nil)
 
 // Config 数据源配置
 type Config struct {
-	datasourceConfig map[string]string
+	datasourceConfig map[string]any
 }
 
 // Scan 实现 sql.Scanner 接口
@@ -39,8 +37,15 @@ func (d *Config) Value() (driver.Value, error) {
 }
 
 // NewDatasourceConfig 基于map创建DatasourceConfig
-func NewDatasourceConfig(datasourceConfig map[string]string) *Config {
+func NewDatasourceConfig(datasourceConfig map[string]any) *Config {
 	return &Config{datasourceConfig: datasourceConfig}
+}
+
+// NewDatasourceConfigByString 基于string创建DatasourceConfig
+func NewDatasourceConfigByString(datasourceConfig string) *Config {
+	m := make(map[string]any)
+	_ = json.Unmarshal([]byte(datasourceConfig), &m)
+	return &Config{datasourceConfig: m}
 }
 
 // MarshalJSON 实现 json.Marshaler 接口
@@ -55,21 +60,14 @@ func (d *Config) String() string {
 		return "{}"
 	}
 
-	confKeys := maps.Keys(d.datasourceConfig)
-	sort.Strings(confKeys)
-	list := make([]string, 0, len(confKeys)*5)
-	list = append(list, "{")
-	for _, k := range confKeys {
-		list = append(list, `"`, k, `":"`, d.datasourceConfig[k], `"`, ",")
-	}
-	list = append(list[:len(list)-1], "}")
-	return types.TextJoin(list...)
+	bs, _ := types.Marshal(d.datasourceConfig)
+	return string(bs)
 }
 
 // Map 转map
-func (d *Config) Map() map[string]string {
+func (d *Config) Map() map[string]any {
 	if d == nil || d.datasourceConfig == nil {
-		return make(map[string]string)
+		return make(map[string]any)
 	}
 	return d.datasourceConfig
 }

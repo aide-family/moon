@@ -112,9 +112,44 @@ type (
 		APICreateStrategyLabelNoticeRequest() ICreateStrategyLabelNoticeRequestBuilder
 		DoAlarmNoticeGroupItemBuilder() IDoAlarmNoticeGroupItemBuilder
 		DoLabelNoticeBuilder() IDoLabelNoticeBuilder
+		AlarmNoticeGroupItemBuilder() IAlarmNoticeGroupItemBuilder
 		WithAPIMyAlarmGroupListRequest(*alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder
 	}
+
+	// IAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
+	IAlarmNoticeGroupItemBuilder interface {
+		ToAPI(*bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices
+		ToAPIs([]*bizmodel.StrategyMetricsLabelNotice) []*api.LabelNotices
+	}
+
+	alarmNoticeGroupItemBuilder struct {
+		ctx context.Context
+	}
 )
+
+func (a *alarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices {
+	if types.IsNil(group) || types.IsNil(a) {
+		return nil
+	}
+
+	return &api.LabelNotices{
+		Key:   group.Name,
+		Value: group.Value,
+		ReceiverGroupIDs: types.SliceUnique(types.SliceTo(group.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
+			return group.ID
+		})),
+	}
+}
+
+func (a *alarmNoticeGroupItemBuilder) ToAPIs(groups []*bizmodel.StrategyMetricsLabelNotice) []*api.LabelNotices {
+	return types.SliceTo(groups, func(group *bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices {
+		return a.ToAPI(group)
+	})
+}
+
+func (a *alarmNoticeGroupModuleBuilder) AlarmNoticeGroupItemBuilder() IAlarmNoticeGroupItemBuilder {
+	return &alarmNoticeGroupItemBuilder{ctx: a.ctx}
+}
 
 // ToBo 转换为业务对象
 func (a *myAlarmGroupListParamsBuilder) ToBo() *bo.MyAlarmGroupListParams {

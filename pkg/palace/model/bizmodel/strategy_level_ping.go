@@ -6,8 +6,6 @@ import (
 
 // StrategyPingLevel Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
 type StrategyPingLevel struct {
-	// 执行频率
-	Interval uint32 `json:"interval,omitempty"`
 	// 总包数
 	Total uint32 `json:"total,omitempty"`
 	// 成功包数

@@ -26,7 +26,7 @@ type IStrategyEvent interface {
 	// SetValue 设置数据
 	SetValue(msg *mq.Msg) IStrategyEvent
 	// GetDatasource 获取数据源
-	GetDatasource() []*MQDatasource
+	GetDatasource() []*EventDatasource
 	// GetTopic 获取主题
 	GetTopic() string
 }
@@ -56,7 +56,7 @@ type StrategyEvent struct {
 	// 数据 Key
 	DataKey string `json:"dataKey,omitempty"`
 	// 数据源
-	Datasource []*MQDatasource `json:"datasource,omitempty"`
+	Datasource []*EventDatasource `json:"datasource,omitempty"`
 	// 策略状态
 	Status vobj.Status `json:"status,omitempty"`
 	// 策略标签
@@ -73,7 +73,7 @@ func (s *StrategyEvent) GetTopic() string {
 }
 
 // GetDatasource 获取数据源
-func (s *StrategyEvent) GetDatasource() []*MQDatasource {
+func (s *StrategyEvent) GetDatasource() []*EventDatasource {
 	if types.IsNil(s) {
 		return nil
 	}

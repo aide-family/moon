@@ -31,7 +31,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 		Range:       req.TimeRange,
 		Step:        req.Step,
 		Endpoint:    req.Endpoint,
-		Config:      req.Config.Map(),
+		Config:      req.Config.String(),
 		StorageType: api.StorageType(req.StorageType),
 	}
 	queryReply, err := l.cli.Query(ctx, in)
@@ -65,7 +65,7 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error) {
 	in := &metadata.SyncMetadataRequest{
 		Endpoint:    datasourceInfo.Endpoint,
-		Config:      datasourceInfo.Config.Map(),
+		Config:      datasourceInfo.Config.String(),
 		StorageType: api.StorageType(datasourceInfo.StorageType),
 	}
 	syncReply, err := l.cli.Sync(ctx, in)
@@ -100,7 +100,7 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error {
 	in := &metadata.SyncMetadataV2Request{
 		Endpoint:     datasourceInfo.Endpoint,
-		Config:       datasourceInfo.Config.Map(),
+		Config:       datasourceInfo.Config.String(),
 		StorageType:  api.StorageType(datasourceInfo.StorageType),
 		DatasourceId: datasourceInfo.ID,
 		TeamId:       middleware.GetTeamID(ctx),
