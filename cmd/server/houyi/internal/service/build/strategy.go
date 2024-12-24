@@ -34,7 +34,7 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 				ReceiverGroupIDs: item.GetReceiverGroupIDs(),
 			}
 		}),
-		ID:                         strategyInfo.GetId(),
+		ID:                         strategyInfo.GetStrategyID(),
 		LevelID:                    strategyInfo.GetLevelId(),
 		Alert:                      strategyInfo.GetAlert(),
 		Expr:                       strategyInfo.GetExpr(),
@@ -44,7 +44,6 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(strategyInfo.GetMultiDatasourceSustainType()),
 		Labels:                     vobj.NewLabels(strategyInfo.GetLabels()),
 		Annotations:                vobj.NewAnnotations(strategyInfo.GetAnnotations()),
-		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
 		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
 			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
@@ -197,7 +196,7 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 		Expr:             a.GetTopic(),
 		Threshold:        a.GetValue(),
 		Condition:        vobj.EventCondition(a.GetCondition()),
-		DataType:         vobj.MQDataType(a.GetDataType()),
+		DataType:         vobj.EventDataType(a.GetDataType()),
 		DataKey:          a.GetDataKey(),
 		Datasource:       NewMQDatasourceAPIBuilder(a.GetDatasource()...).ToBos(),
 		Status:           vobj.Status(a.GetStatus()),

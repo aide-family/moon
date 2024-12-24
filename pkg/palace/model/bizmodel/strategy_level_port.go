@@ -7,9 +7,9 @@ import (
 // StrategyPortLevel 策略端口
 type StrategyPortLevel struct {
 	// 阈值
-	Threshold int64 `json:"threshold,omitempty"`
+	Threshold int64 `json:"threshold"`
 	// 端口
-	Port uint32 `json:"port,omitempty"`
+	Port uint32 `json:"port"`
 
 	// 告警等级I
 	Level *SysDict `json:"level,omitempty"`

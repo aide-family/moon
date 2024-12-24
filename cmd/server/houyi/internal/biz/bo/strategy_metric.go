@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/env"
@@ -14,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyMetric)(nil)
@@ -70,8 +72,6 @@ type (
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
 		Annotations *vobj.Annotations `json:"annotations,omitempty"`
-		// 执行频率
-		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态
@@ -101,7 +101,7 @@ type (
 
 // GetInterval 获取执行频率
 func (s *StrategyMetric) GetInterval() *types.Duration {
-	return s.Interval
+	return types.NewDuration(durationpb.New(time.Second * 10))
 }
 
 // BuilderAlarmBaseInfo 生成告警基础信息

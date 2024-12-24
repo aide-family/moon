@@ -45,16 +45,13 @@ message MetricStrategyItem {
     expression: 'this.size() > 0'
     message: "策略注解不允许为空"
   }];
-  // 执行频率
-  google.protobuf.Duration interval = 9;
+  Status status = 9;
   // 数据源
   repeated Datasource datasource = 10 [(buf.validate.field).cel = {
     id: "Strategy_datasource"
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
   }];
-  // 采样率
-  uint32 step = 13;
   // 判断条件
   Condition condition = 14;
   // 阈值
@@ -75,6 +72,12 @@ message MetricStrategyItem {
   repeated uint32 receiverGroupIDs = 18;
   repeated LabelNotices labelNotices = 19;
   StrategyType strategyType = 20;
+  // 策略ID
+  uint32 strategyID = 21 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
 }
 
 // 域名证书或者端口监控策略定义

@@ -317,8 +317,6 @@ message StrategyMetricLevelItem {
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5;
-  // 执行频率
-  int64 interval = 8;
   // 告警等级明细
   SelectItem level = 12;
   // 告警页面

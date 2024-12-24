@@ -52,7 +52,7 @@ type StrategyEvent struct {
 	// 判断条件
 	Condition vobj.EventCondition `json:"condition,omitempty"`
 	// 数据类型
-	DataType vobj.MQDataType `json:"dataType,omitempty"`
+	DataType vobj.EventDataType `json:"dataType,omitempty"`
 	// 数据 Key
 	DataKey string `json:"dataKey,omitempty"`
 	// 数据源

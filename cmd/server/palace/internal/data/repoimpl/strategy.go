@@ -637,7 +637,6 @@ func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLev
 			Duration:    item.Duration,
 			Count:       item.Count,
 			SustainType: item.SustainType,
-			Interval:    item.Interval,
 			Condition:   item.Condition,
 			Threshold:   item.Threshold,
 			Level:       &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},

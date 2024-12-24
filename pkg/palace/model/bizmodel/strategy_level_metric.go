@@ -13,12 +13,10 @@ type StrategyMetricLevel struct {
 	Count uint32 `gorm:"column:count;type:int unsigned;not null;comment:持续次数" json:"count,omitempty"`
 	// 持续事件类型
 	SustainType vobj.Sustain `gorm:"column:sustain_type;type:int(11);not null;comment:持续类型" json:"sustain_type,omitempty"`
-	// 执行频率
-	Interval int64 `gorm:"column:interval;type:bigint(20);not null;comment:执行频率" json:"interval,omitempty"`
 	// 条件
 	Condition vobj.Condition `gorm:"column:condition;type:int;not null;comment:条件" json:"condition,omitempty"`
 	// 阈值
-	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold,omitempty"`
+	Threshold float64 `gorm:"column:threshold;type:text;not null;comment:阈值" json:"threshold"`
 
 	Level           *SysDict                      `json:"level,omitempty"`
 	AlarmPageList   []*SysDict                    `json:"alarm_page,omitempty"`

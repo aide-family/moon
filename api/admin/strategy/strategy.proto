@@ -406,8 +406,6 @@ message CreateStrategyMetricLevelRequest{
   uint32 count = 2;
   // 持续的类型
   SustainType sustainType = 3;
-  // 执行频率
-  int64 interval = 4;
   // 告警等级ID
   uint32 levelId = 6;
   // 阈值

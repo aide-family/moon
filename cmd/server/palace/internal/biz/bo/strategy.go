@@ -85,8 +85,6 @@ type (
 		Count uint32 `json:"count"`
 		// 持续事件类型
 		SustainType vobj.Sustain `json:"sustainType"`
-		// 执行频率
-		Interval int64 `json:"interval"`
 		// 条件
 		Condition vobj.Condition `json:"condition"`
 		// 阈值
@@ -348,10 +346,6 @@ type (
 		// 持续的类型
 		SustainType vobj.Sustain `json:"sustainType,omitempty"`
 
-		// 执行频率
-		Interval int64 `json:"interval,omitempty"`
-		// 策略采样率
-		Step uint32 `json:"step,omitempty"`
 		// 判断条件
 		Condition vobj.Condition `json:"condition,omitempty"`
 		// 阈值
