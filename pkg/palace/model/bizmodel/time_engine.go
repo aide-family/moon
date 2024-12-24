@@ -3,7 +3,6 @@ package bizmodel
 import (
 	"time"
 
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -14,7 +13,7 @@ var _ types.TimeEngineer = (*TimeEngine)(nil)
 
 // TimeEngine 时间引擎
 type TimeEngine struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name   string            `gorm:"column:name;type:varchar(64);not null;comment:规则名称" json:"name"`    // 规则名称
 	Remark string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"` // 备注
 	Status vobj.Status       `gorm:"column:status;type:int;not null;comment:状态" json:"status"`          // 状态

@@ -3,7 +3,6 @@ package bizmodel
 import (
 	"time"
 
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"gorm.io/plugin/soft_delete"
@@ -15,7 +14,7 @@ var _ types.TimeEngineer = (*AlarmNoticeGroup)(nil)
 
 // AlarmNoticeGroup 告警通知组
 type AlarmNoticeGroup struct {
-	model.AllFieldModel
+	AllFieldModel
 	DeletedAt     soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;uniqueIndex:idx__alarm_notice_group__name,priority:1;" json:"deleted_at,omitempty"`
 	Name          string                `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__alarm_notice_group__name,priority:1;comment:告警组名称" json:"name,omitempty"`
 	Status        vobj.Status           `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用" json:"status,omitempty"`

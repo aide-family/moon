@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -15,7 +14,7 @@ const tableNameStrategyLevels = "strategy_levels"
 
 // StrategyLevel mapped from table <StrategyLevel>
 type StrategyLevel struct {
-	model.AllFieldModel
+	AllFieldModel
 	// StrategyType 策略类型
 	StrategyType vobj.StrategyType `gorm:"column:strategy_type;type:int;not null;comment:策略类型" json:"strategy_type"`
 	// 策略等级json

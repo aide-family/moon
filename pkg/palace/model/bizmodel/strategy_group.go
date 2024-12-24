@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"gorm.io/plugin/soft_delete"
@@ -11,7 +10,7 @@ const tableNameStrategyGroup = "strategy_group"
 
 // StrategyGroup 告警规则组
 type StrategyGroup struct {
-	model.AllFieldModel
+	AllFieldModel
 	DeletedAt  soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;uniqueIndex:idx__strategy_group__name,priority:2" json:"deleted_at"`
 	Name       string                `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__strategy_group__name,priority:1;comment:规则组名称"`
 	Status     vobj.Status           `gorm:"column:status;type:tinyint;not null;default:1;comment:启用状态1:启用;2禁用"`

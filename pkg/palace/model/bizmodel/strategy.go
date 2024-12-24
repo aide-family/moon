@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -12,7 +11,7 @@ const tableNameStrategy = "strategies"
 
 // Strategy mapped from table <Strategy>
 type Strategy struct {
-	model.AllFieldModel
+	AllFieldModel
 	// StrategyType 策略类型
 	StrategyType vobj.StrategyType `gorm:"column:strategy_type;type:int;not null;comment:策略类型" json:"strategy_type"`
 	// 模板ID, 用于标记是否从模板创建而来

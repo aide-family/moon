@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameDashboard = "dashboard"
 
 // Dashboard mapped from table <dashboard>
 type Dashboard struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name   string      `gorm:"column:name;type:varchar(64);not null;comment:仪表盘名称" json:"name"`     // 仪表盘名称
 	Status vobj.Status `gorm:"column:status;type:int;not null;comment:仪表盘状态" json:"status"`         // 仪表盘状态
 	Remark string      `gorm:"column:remark;type:varchar(255);not null;comment:描述信息" json:"remark"` // 描述信息

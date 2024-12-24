@@ -146,7 +146,7 @@ func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite 
 		Status: vobj.StatusEnable,
 		TeamRoles: types.SliceTo(invite.RolesIds.ToSlice(), func(roleID uint32) *bizmodel.SysTeamRole {
 			return &bizmodel.SysTeamRole{
-				AllFieldModel: model.AllFieldModel{ID: roleID},
+				AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: roleID}},
 			}
 		}),
 	}

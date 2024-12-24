@@ -2,7 +2,6 @@ package bizmodel
 
 import (
 	"github.com/aide-family/moon/pkg/houyi/datasource"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -11,7 +10,7 @@ const tableNameDatasource = "datasource"
 
 // Datasource mapped from table <datasource>
 type Datasource struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name        string              `gorm:"column:name;type:varchar(64);not null;comment:数据源名称" json:"name"` // 数据源名称
 	Category    vobj.DatasourceType `gorm:"column:category;type:int;not null;comment:数据源类型" json:"category"` // 数据源类型
 	StorageType vobj.StorageType    `gorm:"column:storage_type;type:int;not null;comment:存储类型" json:"storage_type"`

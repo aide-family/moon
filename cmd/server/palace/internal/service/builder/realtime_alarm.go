@@ -259,7 +259,9 @@ func (b *boUpdateDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
 	}
 
 	return &bizmodel.Dashboard{
-		AllFieldModel:  model.AllFieldModel{ID: b.dashboardID},
+		AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: b.dashboardID},
+		},
 		Name:           b.Name,
 		Status:         vobj.StatusEnable,
 		Remark:         b.Remark,
@@ -284,7 +286,9 @@ func (b *boUpdateDashboardParamsBuilder) ToDoStrategyGroups() []*bizmodel.Strate
 
 	return types.SliceTo(b.StrategyGroups, func(strategyGroupId uint32) *bizmodel.StrategyGroup {
 		return &bizmodel.StrategyGroup{
-			AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
+			AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
+			},
 		}
 	})
 }
@@ -296,15 +300,17 @@ func (b *boUpdateDashboardParamsBuilder) ToDoCharts() []*bizmodel.DashboardChart
 
 	return types.SliceTo(b.Charts, func(chartItem *bo.ChartItem) *bizmodel.DashboardChart {
 		return &bizmodel.DashboardChart{
-			AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
-			Name:          chartItem.Name,
-			Status:        chartItem.Status,
-			Remark:        chartItem.Remark,
-			URL:           chartItem.URL,
-			DashboardID:   b.dashboardID,
-			ChartType:     chartItem.ChartType,
-			Width:         chartItem.Width,
-			Height:        chartItem.Height,
+			AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
+			},
+			Name:        chartItem.Name,
+			Status:      chartItem.Status,
+			Remark:      chartItem.Remark,
+			URL:         chartItem.URL,
+			DashboardID: b.dashboardID,
+			ChartType:   chartItem.ChartType,
+			Width:       chartItem.Width,
+			Height:      chartItem.Height,
 		}
 	})
 }
@@ -315,7 +321,9 @@ func (b *boAddDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
 	}
 
 	return &bizmodel.Dashboard{
-		AllFieldModel:  model.AllFieldModel{ID: b.dashboardID},
+		AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: b.dashboardID},
+		},
 		Name:           b.Name,
 		Status:         vobj.StatusEnable,
 		Remark:         b.Remark,
@@ -340,7 +348,9 @@ func (b *boAddDashboardParamsBuilder) ToDoStrategyGroups() []*bizmodel.StrategyG
 
 	return types.SliceTo(b.StrategyGroups, func(strategyGroupId uint32) *bizmodel.StrategyGroup {
 		return &bizmodel.StrategyGroup{
-			AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
+			AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
+			},
 		}
 	})
 }
@@ -352,15 +362,17 @@ func (b *boAddDashboardParamsBuilder) ToDoCharts() []*bizmodel.DashboardChart {
 
 	return types.SliceTo(b.Charts, func(chartItem *bo.ChartItem) *bizmodel.DashboardChart {
 		return &bizmodel.DashboardChart{
-			AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
-			Name:          chartItem.Name,
-			Status:        chartItem.Status,
-			Remark:        chartItem.Remark,
-			URL:           chartItem.URL,
-			DashboardID:   b.dashboardID,
-			ChartType:     chartItem.ChartType,
-			Width:         chartItem.Width,
-			Height:        chartItem.Height,
+			AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
+			},
+			Name:        chartItem.Name,
+			Status:      chartItem.Status,
+			Remark:      chartItem.Remark,
+			URL:         chartItem.URL,
+			DashboardID: b.dashboardID,
+			ChartType:   chartItem.ChartType,
+			Width:       chartItem.Width,
+			Height:      chartItem.Height,
 		}
 	})
 }

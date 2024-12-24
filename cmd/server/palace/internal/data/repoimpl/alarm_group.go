@@ -133,7 +133,10 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	}
 	if len(params.TimeEngineIds) > 0 {
 		timeEngines := types.SliceTo(params.TimeEngineIds, func(timeEngineID uint32) *bizmodel.TimeEngine {
-			return &bizmodel.TimeEngine{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}
+			return &bizmodel.TimeEngine{AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: timeEngineID},
+				TeamID:        middleware.GetTeamID(ctx),
+			}}
 		})
 		if err := bizQuery.AlarmNoticeGroup.TimeEngines.Model(alarmGroupModel).Append(timeEngines...); err != nil {
 			return nil, err
@@ -169,15 +172,18 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 	noticeMembers := createAlarmNoticeUsersToModel(ctx, params.UpdateParam.NoticeMembers, params.ID)
 	// 替换告警hook关联信息
 	hookModels := types.SliceTo(params.UpdateParam.HookIds, func(hookID uint32) *bizmodel.AlarmHook {
-		return &bizmodel.AlarmHook{AllFieldModel: model.AllFieldModel{ID: hookID}}
+		return &bizmodel.AlarmHook{AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: hookID},
+			TeamID:        middleware.GetTeamID(ctx),
+		}}
 	})
 	//告警组关联通知人中间表操作
-	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
 	defer func() {
 		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 		if len(params.UpdateParam.TimeEngineIds) > 0 {
 			timeEngines := types.SliceTo(params.UpdateParam.TimeEngineIds, func(timeEngineID uint32) *bizmodel.TimeEngine {
-				return &bizmodel.TimeEngine{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}
+				return &bizmodel.TimeEngine{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}}
 			})
 			bizQuery, err := getBizQuery(ctx, a.data)
 			if !types.IsNil(err) {
@@ -246,7 +252,7 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 		}
 
 		// 清除告警hook信息
-		if err = bizQueryTx.AlarmNoticeGroup.AlarmHooks.WithContext(ctx).Model(&bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: alarmID}}).Clear(); err != nil {
+		if err = bizQueryTx.AlarmNoticeGroup.AlarmHooks.WithContext(ctx).Model(&bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: alarmID}}}).Clear(); err != nil {
 			return err
 		}
 
@@ -370,7 +376,7 @@ func createAlarmGroupParamsToModel(ctx context.Context, params *bo.CreateAlarmNo
 		Status: params.Status,
 		Remark: params.Remark,
 		AlarmHooks: types.SliceTo(params.HookIds, func(hookID uint32) *bizmodel.AlarmHook {
-			return &bizmodel.AlarmHook{AllFieldModel: model.AllFieldModel{ID: hookID}}
+			return &bizmodel.AlarmHook{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: hookID}}}
 		}),
 	}
 	alarmGroup.WithContext(ctx)

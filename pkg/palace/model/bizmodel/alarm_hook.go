@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameAlarmHook = "alarm_hook"
 
 // AlarmHook mapped from table <alarm_hook>
 type AlarmHook struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name   string       `gorm:"column:name;type:varchar(64);not null;unique;comment:hook名称" json:"name"`
 	Remark string       `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	URL    string       `gorm:"column:url;type:varchar(255);not null;comment:hook URL" json:"url"`

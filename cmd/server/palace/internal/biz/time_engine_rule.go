@@ -22,15 +22,13 @@ type TimeEngineRuleBiz struct {
 
 // CreateTimeEngineRule 创建时间引擎规则
 func (b *TimeEngineRuleBiz) CreateTimeEngineRule(ctx context.Context, req *bo.CreateTimeEngineRuleRequest) error {
-	timeEngineRule := req.Do()
-	timeEngineRule.WithContext(ctx)
+	timeEngineRule := req.Do(ctx)
 	return b.timeEngineRuleRepository.CreateTimeEngineRule(ctx, timeEngineRule)
 }
 
 // UpdateTimeEngineRule 更新时间引擎规则
 func (b *TimeEngineRuleBiz) UpdateTimeEngineRule(ctx context.Context, req *bo.UpdateTimeEngineRuleRequest) error {
-	timeEngineRule := req.Do()
-	timeEngineRule.WithContext(ctx)
+	timeEngineRule := req.Do(ctx)
 	return b.timeEngineRuleRepository.UpdateTimeEngineRule(ctx, timeEngineRule)
 }
 
@@ -61,15 +59,13 @@ func (b *TimeEngineRuleBiz) GetTimeEngineRuleByID(ctx context.Context, id uint32
 
 // CreateTimeEngine 创建时间引擎
 func (b *TimeEngineRuleBiz) CreateTimeEngine(ctx context.Context, req *bo.CreateTimeEngineRequest) error {
-	timeEngine := req.Do()
-	timeEngine.WithContext(ctx)
+	timeEngine := req.Do(ctx)
 	return b.timeEngineRuleRepository.CreateTimeEngine(ctx, timeEngine)
 }
 
 // UpdateTimeEngine 更新时间引擎
 func (b *TimeEngineRuleBiz) UpdateTimeEngine(ctx context.Context, req *bo.UpdateTimeEngineRequest) error {
-	timeEngine := req.Do()
-	timeEngine.WithContext(ctx)
+	timeEngine := req.Do(ctx)
 	return b.timeEngineRuleRepository.UpdateTimeEngine(ctx, timeEngine)
 }
 

@@ -1,6 +1,9 @@
 package bo
 
 import (
+	"context"
+
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -93,27 +96,13 @@ type (
 )
 
 // Do 转换为时间引擎规则
-func (r *CreateTimeEngineRuleRequest) Do() *bizmodel.TimeEngineRule {
+func (r *CreateTimeEngineRuleRequest) Do(ctx context.Context) *bizmodel.TimeEngineRule {
 	if r == nil {
 		return nil
 	}
-	return &bizmodel.TimeEngineRule{
-		Name:     r.Name,
-		Remark:   r.Remark,
-		Status:   r.Status,
-		Category: r.Category,
-		Rule:     r.Rule,
-	}
-}
-
-// Do 转换为时间引擎规则
-func (r *UpdateTimeEngineRuleRequest) Do() *bizmodel.TimeEngineRule {
-	if r == nil {
-		return nil
-	}
-	return &bizmodel.TimeEngineRule{
-		AllFieldModel: model.AllFieldModel{
-			ID: r.ID,
+	do := &bizmodel.TimeEngineRule{
+		AllFieldModel: bizmodel.AllFieldModel{
+			TeamID: middleware.GetTeamID(ctx),
 		},
 		Name:     r.Name,
 		Remark:   r.Remark,
@@ -121,43 +110,77 @@ func (r *UpdateTimeEngineRuleRequest) Do() *bizmodel.TimeEngineRule {
 		Category: r.Category,
 		Rule:     r.Rule,
 	}
+	do.WithContext(ctx)
+	return do
 }
 
-// Do 转换为时间引擎
-func (r *CreateTimeEngineRequest) Do() *bizmodel.TimeEngine {
+// Do 转换为时间引擎规则
+func (r *UpdateTimeEngineRuleRequest) Do(ctx context.Context) *bizmodel.TimeEngineRule {
 	if r == nil {
 		return nil
 	}
-	return &bizmodel.TimeEngine{
+	do := &bizmodel.TimeEngineRule{
+		AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: r.ID},
+			TeamID:        middleware.GetTeamID(ctx),
+		},
+		Name:     r.Name,
+		Remark:   r.Remark,
+		Status:   r.Status,
+		Category: r.Category,
+		Rule:     r.Rule,
+	}
+	do.WithContext(ctx)
+	return do
+}
+
+// Do 转换为时间引擎
+func (r *CreateTimeEngineRequest) Do(ctx context.Context) *bizmodel.TimeEngine {
+	if r == nil {
+		return nil
+	}
+	do := &bizmodel.TimeEngine{
 		Name:   r.Name,
 		Remark: r.Remark,
 		Status: r.Status,
-		Rules:  buildRules(r.RuleIDs),
+		Rules:  buildRules(ctx, r.RuleIDs),
 	}
+	do.WithContext(ctx)
+	return do
 }
 
 // Do 转换为时间引擎
-func (r *UpdateTimeEngineRequest) Do() *bizmodel.TimeEngine {
+func (r *UpdateTimeEngineRequest) Do(ctx context.Context) *bizmodel.TimeEngine {
 	if r == nil {
 		return nil
 	}
-	return &bizmodel.TimeEngine{
-		AllFieldModel: model.AllFieldModel{ID: r.ID},
-		Name:          r.Name,
-		Remark:        r.Remark,
-		Status:        r.Status,
-		Rules:         buildRules(r.RuleIDs),
+	do := &bizmodel.TimeEngine{
+		AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: r.ID},
+			TeamID:        middleware.GetTeamID(ctx),
+		},
+		Name:   r.Name,
+		Remark: r.Remark,
+		Status: r.Status,
+		Rules:  buildRules(ctx, r.RuleIDs),
 	}
+	do.WithContext(ctx)
+	return do
 }
 
 // buildRules 构建规则
-func buildRules(ruleIDs []uint32) []*bizmodel.TimeEngineRule {
+func buildRules(ctx context.Context, ruleIDs []uint32) []*bizmodel.TimeEngineRule {
 	if len(ruleIDs) == 0 {
 		return nil
 	}
 	return types.SliceTo(ruleIDs, func(id uint32) *bizmodel.TimeEngineRule {
-		return &bizmodel.TimeEngineRule{
-			AllFieldModel: model.AllFieldModel{ID: id},
+		do := &bizmodel.TimeEngineRule{
+			AllFieldModel: bizmodel.AllFieldModel{
+				AllFieldModel: model.AllFieldModel{ID: id},
+				TeamID:        middleware.GetTeamID(ctx),
+			},
 		}
+		do.WithContext(ctx)
+		return do
 	})
 }

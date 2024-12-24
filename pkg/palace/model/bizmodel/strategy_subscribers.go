@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameStrategySubscribers = "strategy_subscribers"
 
 // StrategySubscriber 策略订阅者信息
 type StrategySubscriber struct {
-	model.AllFieldModel
+	AllFieldModel
 	Strategy        *Strategy       `gorm:"foreignKey:StrategyID" json:"strategy"`
 	AlarmNoticeType vobj.NotifyType `gorm:"column:notice_type;type:int;not null;comment:通知类型;" json:"alarm_notice_type"`
 	UserID          uint32          `gorm:"column:user_id;type:int;not null;comment:订阅人id;uniqueIndex:idx__strategy_subscriber_user_id,priority:1" json:"user_id"`

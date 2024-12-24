@@ -2,7 +2,6 @@ package bizmodel
 
 import (
 	"github.com/aide-family/moon/pkg/palace/imodel"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -16,7 +15,7 @@ const tableNameSysDict = "sys_dict"
 
 // SysDict 字典数据
 type SysDict struct {
-	model.AllFieldModel
+	AllFieldModel
 
 	Name         string        `gorm:"column:name;type:varchar(100);not null;uniqueIndex:idx__p__name__dict,priority:1;comment:字典名称" json:"name,omitempty"`
 	Value        string        `gorm:"column:value;type:varchar(100);not null;default:'';comment:字典键值" json:"value,omitempty"`

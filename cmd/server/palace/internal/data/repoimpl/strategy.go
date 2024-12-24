@@ -132,7 +132,7 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 	if !types.IsNil(err) {
 		return err
 	}
-	strategy := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: strategyID}}
+	strategy := &bizmodel.Strategy{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: strategyID}}}
 	defer s.syncStrategiesByIds(ctx, strategyID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 移除策略数据源中间表关联关系
@@ -459,7 +459,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return nil, false
 		}
 		return &bizmodel.Datasource{
-			AllFieldModel: model.AllFieldModel{ID: datasourceId},
+			AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: datasourceId}},
 		}, true
 	})
 	// 策略类型
@@ -468,7 +468,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return nil, false
 		}
 		return &bizmodel.SysDict{
-			AllFieldModel: model.AllFieldModel{ID: categoriesID},
+			AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: categoriesID}},
 		}, true
 	})
 
@@ -477,10 +477,10 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 		if alarmGroupsID <= 0 {
 			return nil, false
 		}
-		return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: alarmGroupsID}}, true
+		return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: alarmGroupsID}}}, true
 	})
 
-	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+	strategyModel := &bizmodel.Strategy{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
 	levelRawModel, err := s.createStrategyLevelRawModel(ctx, updateParam, params.ID)
 	if err != nil {
 		return merr.ErrorI18nNotificationSystemError(ctx)
@@ -651,19 +651,19 @@ func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLev
 			SustainType: item.SustainType,
 			Condition:   item.Condition,
 			Threshold:   item.Threshold,
-			Level:       &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},
+			Level:       &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
-				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
 			}),
 			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 			}),
 			LabelNoticeList: types.SliceTo(item.LabelNotices, func(notice *bo.StrategyLabelNotice) *bizmodel.StrategyMetricsLabelNotice {
 				return &bizmodel.StrategyMetricsLabelNotice{
 					Name:  notice.Name,
 					Value: notice.Value,
 					AlarmGroups: types.SliceTo(notice.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-						return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+						return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 					}),
 				}
 			}),
@@ -689,16 +689,16 @@ func (s *strategyRepositoryImpl) createStrategyParamsToModel(ctx context.Context
 			if datasourceId <= 0 {
 				return nil, false
 			}
-			return &bizmodel.Datasource{AllFieldModel: model.AllFieldModel{ID: datasourceId}}, true
+			return &bizmodel.Datasource{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: datasourceId}}}, true
 		}),
 		Categories: types.SliceToWithFilter(params.CategoriesIds, func(categoriesID uint32) (*bizmodel.SysDict, bool) {
 			if categoriesID <= 0 {
 				return nil, false
 			}
-			return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: categoriesID}}, true
+			return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: categoriesID}}}, true
 		}),
 		AlarmNoticeGroups: types.SliceToWithFilter(params.AlarmGroupIds, func(groupID uint32) (*bizmodel.AlarmNoticeGroup, bool) {
-			return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}, true
+			return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}, true
 		}),
 	}
 
@@ -720,12 +720,12 @@ func createStrategyEventLevelParamsToModel(params []*bo.CreateStrategyEventLevel
 			Condition: item.Condition,
 			Status:    item.Status,
 			PathKey:   item.PathKey,
-			Level:     &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},
+			Level:     &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
-				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
 			}),
 			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 			}),
 		}
 	})
@@ -736,12 +736,12 @@ func createStrategyDomainLevelParamsToModel(params []*bo.CreateStrategyDomainLev
 		return &bizmodel.StrategyDomainLevel{
 			Threshold: item.Threshold,
 			Condition: item.Condition,
-			Level:     &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},
+			Level:     &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
-				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
 			}),
 			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 			}),
 		}
 	})
@@ -760,12 +760,12 @@ func createStrategyHTTPLevelParamsToModel(params []*bo.CreateStrategyHTTPLevel) 
 			QueryParams:           item.QueryParams,
 			StatusCodeCondition:   item.StatusCodeCondition,
 			ResponseTimeCondition: item.ResponseTimeCondition,
-			Level:                 &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},
+			Level:                 &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
-				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
 			}),
 			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 			}),
 		}
 	})
@@ -776,12 +776,12 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 		return &bizmodel.StrategyPortLevel{
 			Threshold: item.Threshold,
 			Port:      item.Port,
-			Level:     &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: item.LevelID}},
+			Level:     &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
-				return &bizmodel.SysDict{AllFieldModel: model.AllFieldModel{ID: pageID}}
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
 			}),
 			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
-				return &bizmodel.AlarmNoticeGroup{AllFieldModel: model.AllFieldModel{ID: groupID}}
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
 			}),
 		}
 	})

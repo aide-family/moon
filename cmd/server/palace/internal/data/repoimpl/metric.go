@@ -92,7 +92,7 @@ func (m *metricRepositoryImpl) Delete(ctx context.Context, id uint32) error {
 	}
 
 	metric := &bizmodel.DatasourceMetric{
-		AllFieldModel: model.AllFieldModel{ID: id},
+		AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: id}},
 	}
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		cnt, err := tx.DatasourceMetric.WithContext(ctx).
