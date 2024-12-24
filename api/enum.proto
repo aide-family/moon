@@ -139,8 +139,8 @@ enum DatasourceType {
   // Log
   DatasourceTypeLog = 3;
 
-  // MQ
-  DatasourceTypeMQ = 4;
+  //  Event
+  DatasourceTypeEvent = 4;
 }
 
 // 存储器类型 prometheus、victoriametrics等
@@ -271,51 +271,52 @@ enum Condition {
   ConditionLTE = 6;
 }
 
-// MQ判断条件
-enum MQCondition {
+//  Event判断条件
+enum EventCondition {
   // 未知
-  MQConditionUnknown = 0;
+  EventConditionUnknown = 0;
+
   // 等于
-  MQConditionEQ = 1;
+  EventConditionEQ = 1;
 
   // 不等于
-  MQConditionNE = 2;
+  EventConditionNE = 2;
 
   // 大于等于
-  MQConditionGTE = 4;
+  EventConditionGTE = 4;
 
   // 小于
-  MQConditionLT = 5;
+  EventConditionLT = 5;
 
   // 小于等于
-  MQConditionLTE = 6;
+  EventConditionLTE = 6;
 
   // 包含
-  MQConditionContain = 7;
+  EventConditionContain = 7;
 
   // 前缀
-  MQConditionPrefix = 8;
+  EventConditionPrefix = 8;
 
   // 后缀
-  MQConditionSuffix = 9;
+  EventConditionSuffix = 9;
 
   // 正则
-  MQConditionRegular = 10;
+  EventConditionRegular = 10;
 }
 
-// MQ数据类型
-enum MQDataType {
+//  Event数据类型
+enum  EventDataType {
   // 未知
-  MQDataTypeUnknown = 0;
+  EventDataTypeUnknown = 0;
 
   // string
-  MQDataTypeString = 1;
+  EventDataTypeString = 1;
 
   // number
-  MQDataTypeNumber = 2;
+  EventDataTypeNumber = 2;
 
   // object
-  MQDataTypeObject = 3;
+  EventDataTypeObject = 3;
 }
 
 

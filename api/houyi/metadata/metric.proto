@@ -44,7 +44,7 @@ message SyncMetadataRequest {
   // 数据源地址
   string endpoint = 1;
   // 配置信息
-  map<string, string> config = 2;
+  string config = 2;
   // 存储类型
   StorageType storageType = 3;
 }
@@ -58,7 +58,7 @@ message SyncMetadataV2Request {
   // 数据源地址
   string endpoint = 1;
   // 配置信息
-  map<string, string> config = 2;
+  string config = 2;
   // 存储类型
   StorageType storageType = 3;
   // 数据源ID
@@ -81,7 +81,7 @@ message QueryRequest {
   // 数据源
   string endpoint = 4;
   // 配置信息
-  map<string, string> config = 5;
+  string config = 5;
   // 存储类型
   StorageType storageType = 6;
 }

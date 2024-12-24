@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameStrategyTemplate = "strategy_templates"
 
 // StrategyTemplate 策略模板
 type StrategyTemplate struct {
-	model.AllFieldModel
+	AllFieldModel
 	Alert       string           `gorm:"column:alert;type:varchar(64);not null;comment:策略名称" json:"alert"`
 	Expr        string           `gorm:"column:expr;type:text;not null;comment:告警表达式" json:"expr"`
 	Status      vobj.Status      `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`

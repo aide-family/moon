@@ -2,7 +2,6 @@ package bizmodel
 
 import (
 	"github.com/aide-family/moon/pkg/palace/imodel"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -13,7 +12,7 @@ var _ imodel.IResource = (*SysTeamAPI)(nil)
 
 // SysTeamAPI API资源管理
 type SysTeamAPI struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name   string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__team_api__name,priority:1;comment:api名称" json:"name"`  // api名称
 	Path   string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__team_api__path,priority:1;comment:api路径" json:"path"` // api路径
 	Status vobj.Status `gorm:"column:status;type:tinyint;not null;comment:状态" json:"status"`                                                // 状态

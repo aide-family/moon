@@ -165,7 +165,7 @@ type (
 	// IDoTeamBuilder 团队条目构造器
 	IDoTeamBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*model.SysTeam, ...map[uint32]*adminapi.UserItem) *adminapi.TeamItem
+		ToAPI(*model.SysTeam) *adminapi.TeamItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*model.SysTeam) []*adminapi.TeamItem
 		// ToSelect 转换为选择对象
@@ -200,11 +200,11 @@ func (t *teamModuleBuilder) WithSetTeamMailConfigRequest(request *teamapi.SetTea
 	return &setTeamMailConfigRequestBuilder{ctx: t.ctx, SetTeamMailConfigRequest: request}
 }
 
-func (d *doTeamBuilder) ToAPI(team *model.SysTeam, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.TeamItem {
+func (d *doTeamBuilder) ToAPI(team *model.SysTeam) *adminapi.TeamItem {
 	if types.IsNil(d) || types.IsNil(team) {
 		return nil
 	}
-	userMap := getUsers(d.ctx, userMaps, append(team.Admins, team.LeaderID, team.CreatorID)...)
+	userMap := getUsers(d.ctx, append(team.Admins, team.LeaderID, team.CreatorID)...)
 	admins := make([]*adminapi.UserItem, 0, len(team.Admins))
 	for _, adminID := range team.Admins {
 		admins = append(admins, userMap[adminID])
@@ -228,10 +228,9 @@ func (d *doTeamBuilder) ToAPIs(teams []*model.SysTeam) []*adminapi.TeamItem {
 	if types.IsNil(d) || types.IsNil(teams) {
 		return nil
 	}
-	ids := types.SliceTo(teams, func(item *model.SysTeam) uint32 { return item.CreatorID })
-	userMap := getUsers(d.ctx, nil, ids...)
+
 	return types.SliceTo(teams, func(item *model.SysTeam) *adminapi.TeamItem {
-		return d.ToAPI(item, userMap)
+		return d.ToAPI(item)
 	})
 }
 

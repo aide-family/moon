@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameSendStrategy = "send_strategies"
 
 // SendStrategy 发送策略， 用于控制发送的消息完成抑制或聚合动作
 type SendStrategy struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name string `gorm:"column:name;type:varchar(64);not null;comment:策略名称" json:"name"`
 	// 标签组
 	Labels vobj.Labels `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`

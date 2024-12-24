@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -9,7 +8,7 @@ const tableNameDashboardSelf = "dashboard_self"
 
 // DashboardSelf mapped from table <dashboard_self>
 type DashboardSelf struct {
-	model.AllFieldModel
+	AllFieldModel
 	DashboardID uint `gorm:"column:dashboard_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:2;comment:DashboardID" json:"dashboard_id"`
 	UserID      uint `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:1;comment:用户ID" json:"user_id"`
 	MemberID    uint `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`

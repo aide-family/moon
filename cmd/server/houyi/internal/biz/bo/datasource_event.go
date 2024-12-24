@@ -9,30 +9,30 @@ import (
 	"github.com/aide-family/moon/pkg/watch"
 )
 
-var _ watch.Indexer = (*MQDatasource)(nil)
+var _ watch.Indexer = (*EventDatasource)(nil)
 
-// MQDatasource MQ 数据源配置
-type MQDatasource struct {
+// EventDatasource MQ 数据源配置
+type EventDatasource struct {
 	TeamID uint32      `json:"team_id"`
 	ID     uint32      `json:"id"`
 	Status vobj.Status `json:"status"`
 
-	Conf *conf.MQ `json:"conf"`
+	Conf *conf.Event `json:"conf"`
 }
 
 // Index 实现 watch.Indexer 接口
-func (m *MQDatasource) Index() string {
+func (m *EventDatasource) Index() string {
 	return types.TextJoin(strconv.Itoa(int(m.TeamID)), ":", strconv.Itoa(int(m.ID)))
 }
 
 // String 实现 fmt.Stringer 接口
-func (m *MQDatasource) String() string {
+func (m *EventDatasource) String() string {
 	bs, _ := types.Marshal(m)
 	return string(bs)
 }
 
 // GetMQConfig 获取 MQ 配置
-func (m *MQDatasource) GetMQConfig() *conf.MQ {
+func (m *EventDatasource) GetConfig() *conf.Event {
 	if m == nil {
 		return nil
 	}

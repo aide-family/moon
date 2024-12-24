@@ -24,6 +24,8 @@ type (
 		NoticeMembers []*CreateNoticeMemberParams `json:"noticeMembers,omitempty"`
 		// hook ids
 		HookIds []uint32 `json:"hookIds"`
+		// 时间引擎ids
+		TimeEngineIds []uint32 `json:"timeEngineIds"`
 	}
 
 	// CreateNoticeMemberParams 创建通知人参数

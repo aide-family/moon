@@ -34,18 +34,16 @@ func (a *StrategyBuilder) ToBo() *bo.StrategyMetric {
 				ReceiverGroupIDs: item.GetReceiverGroupIDs(),
 			}
 		}),
-		ID:                         strategyInfo.GetId(),
-		LevelID:                    strategyInfo.GetLevelID(),
-		Alert:                      strategyInfo.GetAlert(),
-		Expr:                       strategyInfo.GetExpr(),
-		For:                        types.NewDuration(strategyInfo.GetFor()),
-		Count:                      strategyInfo.GetCount(),
-		SustainType:                vobj.Sustain(strategyInfo.GetSustainType()),
-		MultiDatasourceSustainType: vobj.MultiDatasourceSustain(strategyInfo.GetMultiDatasourceSustainType()),
-		Labels:                     vobj.NewLabels(strategyInfo.GetLabels()),
-		Annotations:                vobj.NewAnnotations(strategyInfo.GetAnnotations()),
-		Interval:                   types.NewDuration(strategyInfo.GetInterval()),
-		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.Datasource) *bo.Datasource {
+		ID:          strategyInfo.GetStrategyID(),
+		LevelID:     strategyInfo.GetLevelId(),
+		Alert:       strategyInfo.GetAlert(),
+		Expr:        strategyInfo.GetExpr(),
+		For:         types.NewDuration(strategyInfo.GetFor()),
+		Count:       strategyInfo.GetCount(),
+		SustainType: vobj.Sustain(strategyInfo.GetSustainType()),
+		Labels:      vobj.NewLabels(strategyInfo.GetLabels()),
+		Annotations: vobj.NewAnnotations(strategyInfo.GetAnnotations()),
+		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.DatasourceItem) *bo.Datasource {
 			return NewDatasourceAPIBuilder(ds).ToBo()
 		}),
 		Status:    vobj.Status(strategyInfo.GetStatus()),
@@ -75,7 +73,7 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 	return &bo.StrategyDomain{
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		ID:               a.GetStrategyID(),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		TeamID:           a.GetTeamID(),
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
@@ -83,8 +81,6 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 		Labels:           vobj.NewLabels(a.GetLabels()),
 		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
 		Domain:           a.GetDomain(),
-		Timeout:          types.Ternary(a.GetTimeout() > 0, a.GetTimeout(), 5),
-		Interval:         types.NewDuration(a.GetInterval()),
 		Port:             a.GetPort(),
 		Type:             vobj.StrategyType(a.GetStrategyType()),
 	}
@@ -108,24 +104,24 @@ func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyEndpoint {
 		return nil
 	}
 	return &bo.StrategyEndpoint{
-		Type:             vobj.StrategyType(a.GetStrategyType()),
-		URL:              a.GetUrl(),
-		Timeout:          a.GetTimeout(),
-		StatusCode:       a.GetStatusCodes(),
-		Headers:          a.GetHeaders(),
-		Body:             a.GetBody(),
-		Method:           vobj.ToHTTPMethod(a.GetMethod()),
-		Threshold:        float64(a.GetThreshold()),
-		Labels:           vobj.NewLabels(a.GetLabels()),
-		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
-		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
-		LabelNotices:     nil,
-		TeamID:           a.GetTeamID(),
-		Status:           vobj.Status(a.GetStatus()),
-		Alert:            a.GetAlert(),
-		Interval:         types.NewDuration(a.GetInterval()),
-		LevelID:          a.GetLevelID(),
-		ID:               a.GetStrategyID(),
+		Type:                  vobj.StrategyType(a.GetStrategyType()),
+		URL:                   a.GetUrl(),
+		StatusCode:            a.GetStatusCode(),
+		StatusCodeCondition:   vobj.Condition(a.GetStatusCodeCondition()),
+		Headers:               a.GetHeaders(),
+		Body:                  a.GetBody(),
+		Method:                vobj.ToHTTPMethod(a.GetMethod()),
+		ResponseTime:          float64(a.GetResponseTime()),
+		ResponseTimeCondition: vobj.Condition(a.GetResponseTimeCondition()),
+		Labels:                vobj.NewLabels(a.GetLabels()),
+		Annotations:           vobj.NewAnnotations(a.GetAnnotations()),
+		ReceiverGroupIDs:      a.GetReceiverGroupIDs(),
+		LabelNotices:          nil,
+		TeamID:                a.GetTeamID(),
+		Status:                vobj.Status(a.GetStatus()),
+		Alert:                 a.GetAlert(),
+		LevelID:               a.GetLevelId(),
+		ID:                    a.GetStrategyID(),
 	}
 }
 
@@ -153,9 +149,7 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 		TeamID:           a.GetTeamID(),
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
-		Interval:         types.NewDuration(a.GetInterval()),
-		LevelID:          a.GetLevelID(),
-		Timeout:          a.GetTimeout(),
+		LevelID:          a.GetLevelId(),
 		Labels:           vobj.NewLabels(a.GetLabels()),
 		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
@@ -172,19 +166,19 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 
 // EventStrategyBuilder MQ策略构建器
 type EventStrategyBuilder struct {
-	*api.MQStrategyItem
+	*api.EventStrategyItem
 }
 
 // NewMQStrategyBuilder 创建MQ策略构建器
-func NewMQStrategyBuilder(strategyInfo *api.MQStrategyItem) *EventStrategyBuilder {
+func NewMQStrategyBuilder(strategyInfo *api.EventStrategyItem) *EventStrategyBuilder {
 	return &EventStrategyBuilder{
-		MQStrategyItem: strategyInfo,
+		EventStrategyItem: strategyInfo,
 	}
 }
 
 // ToBo 转换为业务对象
 func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
-	if types.IsNil(a) || types.IsNil(a.MQStrategyItem) {
+	if types.IsNil(a) || types.IsNil(a.EventStrategyItem) {
 		return nil
 	}
 	return &bo.StrategyEvent{
@@ -192,16 +186,18 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 		TeamID:           a.GetTeamID(),
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		ID:               a.GetStrategyID(),
-		LevelID:          a.GetLevelID(),
+		LevelID:          a.GetLevelId(),
 		Alert:            a.GetAlert(),
 		Expr:             a.GetTopic(),
 		Threshold:        a.GetValue(),
-		Condition:        vobj.MQCondition(a.GetCondition()),
-		DataType:         vobj.MQDataType(a.GetDataType()),
+		Condition:        vobj.EventCondition(a.GetCondition()),
+		DataType:         vobj.EventDataType(a.GetDataType()),
 		DataKey:          a.GetDataKey(),
-		Datasource:       NewMQDatasourceAPIBuilder(a.GetDatasource()...).ToBos(),
-		Status:           vobj.Status(a.GetStatus()),
-		Labels:           vobj.NewLabels(a.GetLabels()),
-		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
+		Datasource: types.SliceTo(a.GetDatasource(), func(ds *api.DatasourceItem) *bo.EventDatasource {
+			return NewDatasourceAPIBuilder(ds).ToEventBo()
+		}),
+		Status:      vobj.Status(a.GetStatus()),
+		Labels:      vobj.NewLabels(a.GetLabels()),
+		Annotations: vobj.NewAnnotations(a.GetAnnotations()),
 	}
 }

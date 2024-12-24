@@ -70,7 +70,7 @@ func (d *dashboardRepositoryImpl) DeleteDashboard(ctx context.Context, req *bo.D
 		return err
 	}
 	dashboardModel := &bizmodel.Dashboard{
-		AllFieldModel: model.AllFieldModel{ID: req.ID},
+		AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: req.ID}},
 	}
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		if err = tx.Dashboard.Charts.Model(dashboardModel).Clear(); err != nil {

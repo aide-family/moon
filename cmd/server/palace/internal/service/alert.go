@@ -4,14 +4,11 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/api"
-	strategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/watch"
-
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -38,23 +35,9 @@ func (s *AlertService) InnerAlarm(ctx context.Context, req *bo.Strategy) (*bo.Al
 }
 
 // PushStrategy 推送策略
-func (s *AlertService) PushStrategy(ctx context.Context, strategies watch.Indexer) error {
-	var strategyDetail strategyapi.PushStrategyRequest
-	// TODO 完成策略数据转换
-	switch item := strategies.(type) {
-	case *bo.Strategy:
-		strategyDetail.Strategies = append(strategyDetail.Strategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(item))
-	case *bo.StrategyDomain:
-		strategyDetail.DomainStrategies = append(strategyDetail.DomainStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyDomainBuilder().ToAPI(item))
-	case *bo.StrategyEndpoint:
-		strategyDetail.HttpStrategies = append(strategyDetail.HttpStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyEndpointBuilder().ToAPI(item))
-	case *bo.StrategyPing:
-		strategyDetail.PingStrategies = append(strategyDetail.PingStrategies, builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyPingBuilder().ToAPI(item))
-	default:
-		return nil
-	}
-
-	return s.strategyBiz.PushStrategy(ctx, &strategyDetail)
+func (s *AlertService) PushStrategy(ctx context.Context, strategies *bo.Strategy) error {
+	strategyDetail := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(strategies)
+	return s.strategyBiz.PushStrategy(ctx, strategyDetail)
 }
 
 // Hook 告警hook

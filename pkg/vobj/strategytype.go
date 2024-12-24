@@ -24,8 +24,8 @@ const (
 	// StrategyTypeHTTP 网站可用性策略
 	StrategyTypeHTTP // http
 
-	// StrategyTypeMQ 消息队列策略
-	StrategyTypeMQ // mq
+	// StrategyTypeEvent 事件策略
+	StrategyTypeEvent // event
 
 	// StrategyTypeLog 日志策略
 	StrategyTypeLog // log

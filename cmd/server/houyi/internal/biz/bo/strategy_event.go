@@ -26,7 +26,7 @@ type IStrategyEvent interface {
 	// SetValue 设置数据
 	SetValue(msg *mq.Msg) IStrategyEvent
 	// GetDatasource 获取数据源
-	GetDatasource() []*MQDatasource
+	GetDatasource() []*EventDatasource
 	// GetTopic 获取主题
 	GetTopic() string
 }
@@ -50,13 +50,13 @@ type StrategyEvent struct {
 	// 阈值
 	Threshold string `json:"threshold,omitempty"`
 	// 判断条件
-	Condition vobj.MQCondition `json:"condition,omitempty"`
+	Condition vobj.EventCondition `json:"condition,omitempty"`
 	// 数据类型
-	DataType vobj.MQDataType `json:"dataType,omitempty"`
+	DataType vobj.EventDataType `json:"dataType,omitempty"`
 	// 数据 Key
 	DataKey string `json:"dataKey,omitempty"`
 	// 数据源
-	Datasource []*MQDatasource `json:"datasource,omitempty"`
+	Datasource []*EventDatasource `json:"datasource,omitempty"`
 	// 策略状态
 	Status vobj.Status `json:"status,omitempty"`
 	// 策略标签
@@ -69,14 +69,11 @@ type StrategyEvent struct {
 
 // GetTopic 获取主题
 func (s *StrategyEvent) GetTopic() string {
-	if s.msg == nil {
-		return ""
-	}
 	return s.Expr
 }
 
 // GetDatasource 获取数据源
-func (s *StrategyEvent) GetDatasource() []*MQDatasource {
+func (s *StrategyEvent) GetDatasource() []*EventDatasource {
 	if types.IsNil(s) {
 		return nil
 	}
@@ -191,7 +188,7 @@ func (s *StrategyEvent) Eval(_ context.Context) (map[watch.Indexer]*datasource.P
 			Values: []*datasource.Value{
 				{
 					Value:     s.isCompletelyMeet(),
-					Timestamp: 0,
+					Timestamp: s.getEventTime().Unix(),
 				},
 			},
 		},
@@ -204,6 +201,14 @@ func (s *StrategyEvent) isCompletelyMeet() float64 {
 		return 1
 	}
 	return 0
+}
+
+// getEventTime 获取告警时间
+func (s *StrategyEvent) getEventTime() *types.Time {
+	if s.msg.Timestamp == nil {
+		return types.NewTime(time.Now())
+	}
+	return s.msg.Timestamp
 }
 
 // IsCompletelyMeet 实现 IStrategy 接口

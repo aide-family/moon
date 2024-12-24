@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyEndpoint)(nil)
@@ -23,18 +24,20 @@ type (
 		Type vobj.StrategyType `json:"type,omitempty"`
 		// url 地址
 		URL string `json:"url,omitempty"`
-		// 超时时间
-		Timeout uint32 `json:"timeout,omitempty"`
 		// 状态码 200 404 500
-		StatusCode uint32 `json:"statusCode,omitempty"`
+		StatusCode string `json:"statusCode,omitempty"`
+		// 状态码匹配模式
+		StatusCodeCondition vobj.Condition `json:"statusCodeCondition,omitempty"`
 		// 请求头
 		Headers map[string]string `json:"headers,omitempty"`
 		// 请求体
 		Body string `json:"body,omitempty"`
 		// 请求方式
 		Method vobj.HTTPMethod `json:"method,omitempty"`
-		// 相应时间阈值
-		Threshold float64 `json:"threshold,omitempty"`
+		// 响应时间阈值
+		ResponseTime float64 `json:"responseTime,omitempty"`
+		// 响应时间阈值条件
+		ResponseTimeCondition vobj.Condition `json:"responseTimeCondition,omitempty"`
 		// 策略标签
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
@@ -49,8 +52,6 @@ type (
 		Status vobj.Status `json:"status,omitempty"`
 		// 策略名称
 		Alert string `json:"alert,omitempty"`
-		// 执行频率
-		Interval *types.Duration `json:"interval,omitempty"`
 		// 策略级别ID
 		LevelID uint32 `json:"levelId,omitempty"`
 		// 策略ID
@@ -126,7 +127,7 @@ func (e *StrategyEndpoint) GetAnnotations() map[string]string {
 
 // GetInterval 获取执行频率
 func (e *StrategyEndpoint) GetInterval() *types.Duration {
-	return e.Interval
+	return types.NewDuration(durationpb.New(10 * time.Second))
 }
 
 // Eval 评估策略
@@ -134,7 +135,7 @@ func (e *StrategyEndpoint) Eval(ctx context.Context) (map[watch.Indexer]*datasou
 	if !e.Status.IsEnable() {
 		return nil, nil
 	}
-	return datasource.EndpointDuration(ctx, e.URL, e.Method, e.Headers, e.Body, time.Duration(e.Timeout)*time.Second), nil
+	return datasource.EndpointDuration(ctx, e.URL, e.Method, e.Headers, e.Body, 10*time.Second), nil
 }
 
 // IsCompletelyMeet 是否完全满足策略条件
@@ -152,12 +153,9 @@ func (e *StrategyEndpoint) IsCompletelyMeet(values []*datasource.Value) (map[str
 		"code":     code,
 		"duration": duration,
 	}
-	if e.StatusCode != 0 && (float64(e.StatusCode) == code || code == 0) {
-		return extJSON, true
-	}
-	if e.Threshold != 0 && (duration >= e.Threshold || duration == 0) {
-		return extJSON, true
-	}
 
-	return extJSON, false
+	codeMatch := types.MatchStatusCodes(e.StatusCode, int(code))
+	responseTimeMatch := e.ResponseTimeCondition.Judge(duration, e.ResponseTime)
+
+	return extJSON, codeMatch && responseTimeMatch
 }

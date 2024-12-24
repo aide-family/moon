@@ -18,6 +18,7 @@ type (
 		DeleteAlarmGroup(context.Context, uint32) error
 		// GetAlarmGroup 获取告警详情
 		GetAlarmGroup(context.Context, uint32) (*bizmodel.AlarmNoticeGroup, error)
+		GetAlarmGroupsByIDs(context.Context, []uint32) ([]*bizmodel.AlarmNoticeGroup, error)
 		// AlarmGroupPage 告警列表
 		AlarmGroupPage(context.Context, *bo.QueryAlarmNoticeGroupListParams) ([]*bizmodel.AlarmNoticeGroup, error)
 		// UpdateStatus 更新状态

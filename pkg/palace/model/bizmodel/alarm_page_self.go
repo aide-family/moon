@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
@@ -9,7 +8,7 @@ const tableNameAlarmPageSelf = "alarm_page_self"
 
 // AlarmPageSelf mapped from table <alarm_page_self>
 type AlarmPageSelf struct {
-	model.AllFieldModel
+	AllFieldModel
 	UserID      uint32 `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__alarm_page__id,priority:1;comment:用户ID" json:"user_id"`
 	MemberID    uint32 `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`
 	Sort        uint32 `gorm:"column:sort;type:int unsigned;not null;default:0;comment:排序(值越小越靠前， 默认为0)" json:"sort"`

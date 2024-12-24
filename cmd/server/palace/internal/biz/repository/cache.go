@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"github.com/aide-family/moon/pkg/palace/imodel"
+
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 )
@@ -28,4 +30,13 @@ type Cache interface {
 	SyncUserTeamList(ctx context.Context, userID uint32)
 
 	GetUsers(ctx context.Context, userIDs []uint32) []*model.SysUser
+
+	// AppendDict 设置字典信息
+	AppendDict(ctx context.Context, dict imodel.IDict, isBiz bool)
+	// AppendDictList 设置字典信息列表
+	AppendDictList(ctx context.Context, dict []imodel.IDict, isBiz bool)
+	// GetDict 获取字典信息
+	GetDict(ctx context.Context, id uint32, isBiz bool) imodel.IDict
+	// GetDictList 获取字典信息列表
+	GetDictList(ctx context.Context, ids []uint32, isBiz bool) []imodel.IDict
 }

@@ -80,7 +80,7 @@ type (
 	// IDoHookBuilder 钩子条目构造器
 	IDoHookBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.AlarmHook, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmHookItem
+		ToAPI(*bizmodel.AlarmHook) *adminapi.AlarmHookItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.AlarmHook) []*adminapi.AlarmHookItem
 		// ToSelect 转换为选择对象
@@ -94,12 +94,12 @@ type (
 	}
 )
 
-func (d *doHookBuilder) ToAPI(hook *bizmodel.AlarmHook, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.AlarmHookItem {
+func (d *doHookBuilder) ToAPI(hook *bizmodel.AlarmHook) *adminapi.AlarmHookItem {
 	if types.IsNil(d) || types.IsNil(hook) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, hook.CreatorID)
+	userMap := getUsers(d.ctx, hook.CreatorID)
 
 	return &adminapi.AlarmHookItem{
 		Id:        hook.ID,
@@ -119,13 +119,9 @@ func (d *doHookBuilder) ToAPIs(hooks []*bizmodel.AlarmHook) []*adminapi.AlarmHoo
 	if types.IsNil(d) || types.IsNil(hooks) {
 		return nil
 	}
-	ids := types.SliceTo(hooks, func(hook *bizmodel.AlarmHook) uint32 {
-		return hook.CreatorID
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
 
 	return types.SliceTo(hooks, func(hook *bizmodel.AlarmHook) *adminapi.AlarmHookItem {
-		return d.ToAPI(hook, userMap)
+		return d.ToAPI(hook)
 	})
 }
 

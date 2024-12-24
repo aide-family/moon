@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -23,8 +24,10 @@ func NewAlarmBiz(
 	datasourceRepository repository.Datasource,
 	historyRepository repository.HistoryRepository,
 	sendAlert microrepository.SendAlert,
+	alarmGroup repository.AlarmGroup,
 ) *AlarmBiz {
 	return &AlarmBiz{
+		alarmGroup:           alarmGroup,
 		alarmRepository:      alarmRepository,
 		alarmRawRepository:   alarmRawRepository,
 		historyRepository:    historyRepository,
@@ -36,6 +39,7 @@ func NewAlarmBiz(
 
 // AlarmBiz 告警相关业务逻辑
 type AlarmBiz struct {
+	alarmGroup           repository.AlarmGroup
 	alarmRepository      repository.Alarm
 	alarmRawRepository   repository.AlarmRaw
 	historyRepository    repository.HistoryRepository
@@ -139,24 +143,35 @@ func (b *AlarmBiz) SaveAlarmInfoDB(ctx context.Context, params *bo.CreateAlarmIn
 	}
 
 	// 发送告警
-	if err := b.send(ctx, params.Alerts, params.RawInfoMap); !types.IsNil(err) {
+	if err := b.send(ctx, params); !types.IsNil(err) {
 		return err
 	}
 	return nil
 }
 
 // send 发送告警
-func (b *AlarmBiz) send(ctx context.Context, alerts []*bo.AlertItemRawParams, rowMap map[string]*alarmmodel.AlarmRaw) error {
-	for _, v := range alerts {
-		row, ok := rowMap[v.Fingerprint]
-		if !ok {
+func (b *AlarmBiz) send(ctx context.Context, params *bo.CreateAlarmInfoParams) error {
+	// 过滤不在允许条件内的告警
+	alarmGroups, err := b.alarmGroup.GetAlarmGroupsByIDs(ctx, params.ReceiverGroupIDs)
+	if !types.IsNil(err) {
+		return err
+	}
+
+	for _, v := range params.Alerts {
+		// 以告警发生时刻的时间作为时间引擎的判断时间
+		ts := types.NewTimeByString(v.StartsAt)
+		receivers := make([]string, 0, len(alarmGroups))
+		for _, v := range alarmGroups {
+			if !v.IsAllowed(ts.Time) {
+				continue
+			}
+			receivers = append(receivers, fmt.Sprintf("team_%d_%d", params.TeamID, v.ID))
+		}
+
+		if len(receivers) == 0 {
 			continue
 		}
-		routes := strings.Split(row.Receiver, ",")
-		if len(routes) == 0 {
-			continue
-		}
-		for _, route := range routes {
+		for _, route := range receivers {
 			key := v.NoticeKey(route)
 			task := &hookapi.SendMsgRequest{
 				Json:      v.GetAlertItemString(),

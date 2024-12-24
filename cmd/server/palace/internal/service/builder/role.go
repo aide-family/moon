@@ -69,7 +69,7 @@ type (
 	// IDoRoleBuilder 角色条目构造器
 	IDoRoleBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.SysTeamRole, ...map[uint32]*adminapi.UserItem) *adminapi.TeamRole
+		ToAPI(*bizmodel.SysTeamRole) *adminapi.TeamRole
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.SysTeamRole) []*adminapi.TeamRole
 		// ToSelect 转换为选择对象
@@ -83,12 +83,12 @@ type (
 	}
 )
 
-func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.TeamRole {
+func (d *doRoleBuilder) ToAPI(role *bizmodel.SysTeamRole) *adminapi.TeamRole {
 	if types.IsNil(d) || types.IsNil(role) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, role.CreatorID)
+	userMap := getUsers(d.ctx, role.CreatorID)
 	return &adminapi.TeamRole{
 		Id:        role.ID,
 		Name:      role.Name,
@@ -110,12 +110,8 @@ func (d *doRoleBuilder) ToAPIs(roles []*bizmodel.SysTeamRole) []*adminapi.TeamRo
 		return nil
 	}
 
-	ids := types.SliceTo(roles, func(role *bizmodel.SysTeamRole) uint32 {
-		return role.CreatorID
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(roles, func(role *bizmodel.SysTeamRole) *adminapi.TeamRole {
-		return d.ToAPI(role, userMap)
+		return d.ToAPI(role)
 	})
 }
 

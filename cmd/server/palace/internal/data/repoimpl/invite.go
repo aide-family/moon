@@ -2,16 +2,23 @@ package repoimpl
 
 import (
 	"context"
+	// 导入邀请邮件模板
+	_ "embed"
+	"strings"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
@@ -19,8 +26,9 @@ import (
 )
 
 // NewInviteRepository 创建团队邀请实现
-func NewInviteRepository(data *data.Data, cacheRepo repository.Cache) repository.TeamInvite {
+func NewInviteRepository(bc *palaceconf.Bootstrap, data *data.Data, cacheRepo repository.Cache) repository.TeamInvite {
 	return &InviteRepositoryImpl{
+		bc:        bc,
 		data:      data,
 		cacheRepo: cacheRepo,
 	}
@@ -30,6 +38,7 @@ type (
 	// InviteRepositoryImpl 团队邀请实现
 	InviteRepositoryImpl struct {
 		data      *data.Data
+		bc        *palaceconf.Bootstrap
 		cacheRepo repository.Cache
 	}
 )
@@ -137,10 +146,45 @@ func (i *InviteRepositoryImpl) createTeamMemberInfo(ctx context.Context, invite 
 		Status: vobj.StatusEnable,
 		TeamRoles: types.SliceTo(invite.RolesIds.ToSlice(), func(roleID uint32) *bizmodel.SysTeamRole {
 			return &bizmodel.SysTeamRole{
-				AllFieldModel: model.AllFieldModel{ID: roleID},
+				AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: roleID}},
 			}
 		}),
 	}
 	defer i.cacheRepo.SyncUserTeamList(ctx, invite.UserID)
 	return bizQuery.SysTeamMember.WithContext(ctx).Create(teamMember)
+}
+
+//go:embed invite_email.html
+var inviteEmailHTML string
+
+// SendInviteEmail 发送邀请邮件
+func (i *InviteRepositoryImpl) SendInviteEmail(ctx context.Context, params *bo.InviteUserParams, opUser, user *model.SysUser) error {
+	email := user.Email
+	if err := helper.CheckEmail(email); err != nil {
+		return err
+	}
+	bizQuery, err := getTeamIDBizQuery(i.data, params.TeamID)
+	if !types.IsNil(err) {
+		return err
+	}
+	// 获取团队详情
+	teamInfo := i.cacheRepo.GetTeam(ctx, params.TeamID)
+	// 获取团队角色
+	teamRoles, err := bizQuery.SysTeamRole.WithContext(ctx).Where(bizQuery.SysTeamRole.ID.In(params.TeamRoleIds.ToSlice()...)).Find()
+	if !types.IsNil(err) {
+		log.Errorw("method", "SendInviteEmail", "err", err)
+	}
+	// 发送验证码到用户邮箱
+	emailBody := format.Formatter(inviteEmailHTML, map[string]string{
+		"Inviter":  opUser.Username,
+		"TeamName": teamInfo.Name,
+		"TeamRole": params.Role.String(),
+		"BusinessRoles": strings.Join(types.SliceTo(teamRoles, func(role *bizmodel.SysTeamRole) string {
+			return role.Name
+		}), "、"),
+		"RedirectURI": i.bc.GetOauth2().GetRedirectUri(),
+		"APP":         i.bc.GetServer().GetName(),
+		"Remark":      i.bc.GetServer().GetMetadata()["description"],
+	})
+	return i.data.GetEmail().SetSubject("欢迎使用"+i.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
 }

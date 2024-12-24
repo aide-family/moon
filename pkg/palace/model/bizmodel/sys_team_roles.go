@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameSysTeamRole = "sys_team_roles"
 
 // SysTeamRole mapped from table <sys_team_roles>
 type SysTeamRole struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name    string           `gorm:"column:name;type:varchar(64);not null;comment:角色名称" json:"name"`    // 角色名称
 	Status  vobj.Status      `gorm:"column:status;type:int;not null;comment:状态" json:"status"`          // 状态
 	Remark  string           `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"` // 备注

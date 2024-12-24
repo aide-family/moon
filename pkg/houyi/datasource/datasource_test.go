@@ -12,10 +12,10 @@ import (
 )
 
 func TestMetricEval(t *testing.T) {
-	dConfig := &api.Datasource{
+	dConfig := &api.DatasourceItem{
 		Category:    api.DatasourceType(vobj.DatasourceTypeMetrics),
 		StorageType: api.StorageType(vobj.StorageTypeVictoriametrics),
-		Config:      nil,
+		Config:      "{}",
 		Endpoint:    "https://prometheus.aide-cloud.cn/",
 		Id:          1,
 	}
@@ -37,10 +37,10 @@ func TestMetricEval(t *testing.T) {
 func TestCPUUsage(t *testing.T) {
 	expr := `100 - (avg(irate(node_cpu_seconds_total{mode="idle",}[5m])) by (instance) * 100)`
 
-	dConfig := &api.Datasource{
+	dConfig := &api.DatasourceItem{
 		Category:    api.DatasourceType(vobj.DatasourceTypeMetrics),
 		StorageType: api.StorageType(vobj.StorageTypeVictoriametrics),
-		Config:      nil,
+		Config:      "{}",
 		Endpoint:    "https://prometheus.aide-cloud.cn/",
 		Id:          1,
 	}

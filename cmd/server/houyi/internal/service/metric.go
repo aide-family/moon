@@ -33,7 +33,7 @@ func NewMetricService(metricBiz *biz.MetricBiz) *MetricService {
 func (s *MetricService) SyncMetadata(ctx context.Context, req *metadataapi.SyncMetadataRequest) (*metadataapi.SyncMetadataReply, error) {
 	params := &bo.GetMetricsParams{
 		Endpoint:    req.GetEndpoint(),
-		Config:      req.GetConfig(),
+		Config:      datasource.NewDatasourceConfigByString(req.GetConfig()),
 		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	metrics, err := s.metricBiz.SyncMetrics(ctx, params)
@@ -52,7 +52,7 @@ func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest
 	params := &bo.QueryQLParams{
 		GetMetricsParams: bo.GetMetricsParams{
 			Endpoint:    req.GetEndpoint(),
-			Config:      req.GetConfig(),
+			Config:      datasource.NewDatasourceConfigByString(req.GetConfig()),
 			StorageType: vobj.StorageType(req.GetStorageType()),
 		},
 		QueryQL:   req.GetQuery(),
@@ -74,7 +74,7 @@ func (s *MetricService) Query(ctx context.Context, req *metadataapi.QueryRequest
 func (s *MetricService) SyncMetadataV2(ctx context.Context, req *metadataapi.SyncMetadataV2Request) (*metadataapi.SyncMetadataV2Reply, error) {
 	params := &bo.GetMetricsParams{
 		Endpoint:    req.GetEndpoint(),
-		Config:      req.GetConfig(),
+		Config:      datasource.NewDatasourceConfigByString(req.GetConfig()),
 		StorageType: vobj.StorageType(req.GetStorageType()),
 	}
 	metrics, err := s.metricBiz.SyncMetrics(ctx, params)

@@ -62,32 +62,10 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 			continue
 		}
 
-		strategyIds := types.To(strategies, func(strategy *bizmodel.Strategy) uint32 {
-			return strategy.ID
-		})
-		metricLevels, err := s.strategyRepo.GetStrategyMetricLevels(ctx, strategyIds)
-		if err != nil {
-			return
-		}
-
-		strategyMQLevels, err := s.strategyRepo.GetStrategyMQLevels(ctx, strategyIds)
-		if err != nil {
-			return
-		}
-
-		metricsLevelMap := types.ToMapSlice(metricLevels, func(level *bizmodel.StrategyMetricsLevel) uint32 {
-			return level.StrategyID
-		})
-
-		mqLevelMap := types.ToMapSlice(strategyMQLevels, func(level *bizmodel.StrategyMQLevel) uint32 {
-			return level.StrategyID
-		})
-
-		strategyDetailMap := &bo.StrategyLevelDetailModel{MetricsLevelMap: metricsLevelMap, MQLevelMap: mqLevelMap}
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyDetailMap).ToBos(strategy)
+				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 				if len(items) == 0 {
 					continue
 				}
@@ -211,11 +189,12 @@ func (s *strategyGroupRepositoryImpl) UpdateStrategyGroup(ctx context.Context, p
 					return nil, false
 				}
 				return &bizmodel.SysDict{
-					AllFieldModel: model.AllFieldModel{ID: id},
+					AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: id}},
 				}, true
 			})
 			if err = tx.StrategyGroup.Categories.
-				Model(&bizmodel.StrategyGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}).Replace(Categories...); !types.IsNil(err) {
+				Model(&bizmodel.StrategyGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}).
+				Replace(Categories...); !types.IsNil(err) {
 				return err
 			}
 		}
@@ -235,7 +214,7 @@ func (s *strategyGroupRepositoryImpl) DeleteStrategyGroup(ctx context.Context, p
 	if !types.IsNil(err) {
 		return err
 	}
-	groupModel := &bizmodel.StrategyGroup{AllFieldModel: model.AllFieldModel{ID: params.ID}}
+	groupModel := &bizmodel.StrategyGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
 	defer s.syncStrategiesByGroupIds(ctx, params.ID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 清除策略类型中间表信息
@@ -334,7 +313,7 @@ func createStrategyGroupParamsToModel(ctx context.Context, params *bo.CreateStra
 				return nil, false
 			}
 			return &bizmodel.SysDict{
-				AllFieldModel: model.AllFieldModel{ID: id},
+				AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: id}},
 			}, true
 		}),
 	}
