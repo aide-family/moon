@@ -113,6 +113,7 @@ func (b *boDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *api.Dataso
 		Endpoint:    datasource.Endpoint,
 		Id:          datasource.ID,
 		Status:      api.Status(datasource.Status),
+		TeamId:      datasource.TeamID,
 	}
 }
 

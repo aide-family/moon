@@ -541,6 +541,7 @@ func (d *doStrategyLevelsBuilder) ToDomainAPI(strategy *bizmodel.Strategy, level
 		Threshold:        level.Threshold,
 		Domain:           strategy.Expr,
 		Alert:            strategy.Name,
+		Port:             0,
 		StrategyType:     api.StrategyType(strategy.StrategyType),
 	}
 }
