@@ -305,6 +305,8 @@ var _ watch.Indexer = (*Strategy)(nil)
 type (
 	// Strategy 策略明细
 	Strategy struct {
+		// 团队ID
+		TeamID uint32 `json:"teamID"`
 		// 策略ID
 		StrategyID uint32 `json:"strategyID"`
 		// 策略类型

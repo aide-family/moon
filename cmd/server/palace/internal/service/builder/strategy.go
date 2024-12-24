@@ -418,7 +418,7 @@ func (d *doStrategyLevelsBuilder) ToPingAPI(strategy *bizmodel.Strategy, level *
 	return &api.PingStrategyItem{
 		StrategyType:     api.StrategyType(strategy.StrategyType),
 		StrategyID:       strategy.ID,
-		TeamID:           middleware.GetTeamID(d.ctx),
+		TeamID:           strategy.TeamID,
 		Status:           api.Status(strategy.Status),
 		Alert:            strategy.Name,
 		LevelId:          level.Level.ID,
@@ -467,7 +467,7 @@ func (d *doStrategyLevelsBuilder) ToMetricAPI(strategy *bizmodel.Strategy, level
 		Condition:        api.Condition(level.Condition),
 		Threshold:        level.Threshold,
 		LevelId:          level.Level.ID,
-		TeamID:           middleware.GetTeamID(d.ctx),
+		TeamID:           strategy.TeamID,
 		ReceiverGroupIDs: receiverGroupIDs,
 		LabelNotices:     NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().AlarmNoticeGroupItemBuilder().ToAPIs(level.LabelNoticeList),
 		StrategyType:     api.StrategyType(strategy.StrategyType),
@@ -496,7 +496,7 @@ func (d *doStrategyLevelsBuilder) ToEventAPI(strategy *bizmodel.Strategy, level 
 	return &api.EventStrategyItem{
 		StrategyType:     api.StrategyType(strategy.StrategyType),
 		StrategyID:       strategy.ID,
-		TeamID:           middleware.GetTeamID(d.ctx),
+		TeamID:           strategy.TeamID,
 		Status:           api.Status(strategy.Status),
 		Alert:            strategy.Name,
 		LevelId:          level.Level.ID,
@@ -533,7 +533,7 @@ func (d *doStrategyLevelsBuilder) ToDomainAPI(strategy *bizmodel.Strategy, level
 	return &api.DomainStrategyItem{
 		StrategyID:       strategy.ID,
 		LevelId:          level.Level.ID,
-		TeamID:           middleware.GetTeamID(d.ctx),
+		TeamID:           strategy.TeamID,
 		ReceiverGroupIDs: receiverGroupIDs,
 		Status:           api.Status(strategy.Status),
 		Labels:           strategy.Labels.Map(),
@@ -566,7 +566,7 @@ func (d *doStrategyLevelsBuilder) ToPortAPI(strategy *bizmodel.Strategy, level *
 	return &api.DomainStrategyItem{
 		StrategyID:       strategy.ID,
 		LevelId:          level.Level.ID,
-		TeamID:           middleware.GetTeamID(d.ctx),
+		TeamID:           strategy.TeamID,
 		ReceiverGroupIDs: receiverGroupIDs,
 		Status:           api.Status(strategy.Status),
 		Labels:           strategy.Labels.Map(),
@@ -606,7 +606,7 @@ func (d *doStrategyLevelsBuilder) ToHttpAPI(strategy *bizmodel.Strategy, level *
 		Url:                   strategy.Expr,
 		StrategyID:            strategy.ID,
 		LevelId:               level.Level.ID,
-		TeamID:                middleware.GetTeamID(d.ctx),
+		TeamID:                strategy.TeamID,
 		ReceiverGroupIDs:      receiverGroupIDs,
 		Status:                api.Status(strategy.Status),
 		Labels:                strategy.Labels.Map(),
@@ -890,6 +890,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypeMetric:
 		return types.SliceTo(strategy.Level.StrategyMetricsLevelList, func(item *bizmodel.StrategyMetricLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				MetricLevel:  NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToMetricAPI(strategy, item),
@@ -898,6 +899,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypeHTTP:
 		return types.SliceTo(strategy.Level.StrategyHTTPLevelList, func(item *bizmodel.StrategyHTTPLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				HTTPLevel:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToHttpAPI(strategy, item),
@@ -906,6 +908,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypeEvent:
 		return types.SliceTo(strategy.Level.StrategyEventLevelList, func(item *bizmodel.StrategyEventLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				EventLevel:   NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToEventAPI(strategy, item),
@@ -914,6 +917,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypeDomainPort:
 		return types.SliceTo(strategy.Level.StrategyPortLevelList, func(item *bizmodel.StrategyPortLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				PortLevel:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToPortAPI(strategy, item),
@@ -922,6 +926,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypeDomainCertificate:
 		return types.SliceTo(strategy.Level.StrategyDomainLevelList, func(item *bizmodel.StrategyDomainLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				DomainLevel:  NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToDomainAPI(strategy, item),
@@ -930,6 +935,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 	case vobj.StrategyTypePing:
 		return types.SliceTo(strategy.Level.StrategyPingLevelList, func(item *bizmodel.StrategyPingLevel) *bo.Strategy {
 			return &bo.Strategy{
+				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
 				PingLevel:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToPingAPI(strategy, item),
