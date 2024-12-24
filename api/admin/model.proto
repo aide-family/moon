@@ -339,8 +339,6 @@ message StrategyMetricLevelItem {
 message StrategyPortLevelItem {
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
@@ -357,8 +355,6 @@ message StrategyPortLevelItem {
 message StrategyHTTPLevelItem {
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
@@ -387,8 +383,6 @@ message StrategyHTTPLevelItem {
 message StrategyDomainLevelItem {
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
@@ -796,9 +790,9 @@ message StrategyEventLevelItem{
   // 值
   string threshold = 2;
   // 条件
-  MQCondition condition = 3;
+  EventCondition condition = 3;
   // 数据类型
-  MQDataType dataType = 4;
+  EventDataType dataType = 4;
   // 告警等级明细
   SelectItem level = 6;
   // 告警页面

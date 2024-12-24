@@ -285,7 +285,7 @@ message PingStrategyItem {
   int64 stdDev = 19;
 }
 
-message MQStrategyItem {
+message EventStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   StrategyType strategyType = 1;
   // 策略ID
@@ -331,9 +331,9 @@ message MQStrategyItem {
   // 值
   string value = 12;
   // 条件
-  MQCondition condition = 13;
+  EventCondition condition = 13;
   // 数据类型
-  MQDataType dataType = 14;
+  EventDataType dataType = 14;
   // 策略语句
   string topic = 15 [(buf.validate.field).cel = {
     id: "Strategy_topic"

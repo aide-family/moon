@@ -193,7 +193,7 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 			return teamIDMap[item.TeamID] > 0
 		})
 
-		in.MqStrategies = types.Filter(in.MqStrategies, func(item *api.MQStrategyItem) bool {
+		in.MqStrategies = types.Filter(in.MqStrategies, func(item *api.EventStrategyItem) bool {
 			return teamIDMap[item.TeamID] > 0
 		})
 

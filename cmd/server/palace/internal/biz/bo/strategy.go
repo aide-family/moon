@@ -340,7 +340,7 @@ type (
 		TeamID       uint32                     `json:"teamID,omitempty"`
 		StrategyType vobj.StrategyType          `json:"strategyType,omitempty"`
 		MetricLevel  *CreateStrategyMetricLevel `json:"metricLevels,omitempty"`
-		MQLevel      *CreateStrategyEventLevel  `json:"mqLevels,omitempty"`
+		EventLevel   *CreateStrategyEventLevel  `json:"mqLevels,omitempty"`
 		// 策略持续时间
 		For int64 `json:"for,omitempty"`
 		// 持续次数

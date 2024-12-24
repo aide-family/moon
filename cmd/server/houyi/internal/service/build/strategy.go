@@ -172,19 +172,19 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 
 // EventStrategyBuilder MQ策略构建器
 type EventStrategyBuilder struct {
-	*api.MQStrategyItem
+	*api.EventStrategyItem
 }
 
 // NewMQStrategyBuilder 创建MQ策略构建器
-func NewMQStrategyBuilder(strategyInfo *api.MQStrategyItem) *EventStrategyBuilder {
+func NewMQStrategyBuilder(strategyInfo *api.EventStrategyItem) *EventStrategyBuilder {
 	return &EventStrategyBuilder{
-		MQStrategyItem: strategyInfo,
+		EventStrategyItem: strategyInfo,
 	}
 }
 
 // ToBo 转换为业务对象
 func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
-	if types.IsNil(a) || types.IsNil(a.MQStrategyItem) {
+	if types.IsNil(a) || types.IsNil(a.EventStrategyItem) {
 		return nil
 	}
 	return &bo.StrategyEvent{

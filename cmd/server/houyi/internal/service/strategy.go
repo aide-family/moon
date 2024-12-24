@@ -49,7 +49,7 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 		})...)
 	}
 	if len(req.GetMqStrategies()) > 0 {
-		strategies = append(strategies, types.SliceTo(req.GetMqStrategies(), func(item *api.MQStrategyItem) bo.IStrategy {
+		strategies = append(strategies, types.SliceTo(req.GetMqStrategies(), func(item *api.EventStrategyItem) bo.IStrategy {
 			return build.NewMQStrategyBuilder(item).ToBo()
 		})...)
 	}

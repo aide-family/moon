@@ -374,9 +374,9 @@ message CreateStrategyEventLevelRequest{
   // 值
   string threshold = 1 [(buf.validate.field).required = true];
   // 条件
-  MQCondition condition = 2 [(buf.validate.field).required = true];
+  EventCondition condition = 2 [(buf.validate.field).required = true];
   // 数据类型
-  MQDataType dataType = 3 [(buf.validate.field).required = true];
+  EventDataType dataType = 3 [(buf.validate.field).required = true];
   // 状态
   Status status = 4;
   // 告警等级ID

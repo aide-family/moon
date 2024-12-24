@@ -45,7 +45,7 @@ message PushStrategyRequest {
     message: "PING策略列表不能超过10个"
   }];
   // MQ 策略
-  repeated MQStrategyItem mqStrategies = 5 [(buf.validate.field).cel = {
+  repeated EventStrategyItem mqStrategies = 5 [(buf.validate.field).cel = {
     id: "PushStrategyRequest_mq_strategies_lte10",
     expression: "this.size() <= 10"
     message: "MQ策略列表不能超过10个"
