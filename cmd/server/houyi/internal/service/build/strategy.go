@@ -196,7 +196,7 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 		Alert:            a.GetAlert(),
 		Expr:             a.GetTopic(),
 		Threshold:        a.GetValue(),
-		Condition:        vobj.MQCondition(a.GetCondition()),
+		Condition:        vobj.EventCondition(a.GetCondition()),
 		DataType:         vobj.MQDataType(a.GetDataType()),
 		DataKey:          a.GetDataKey(),
 		Datasource:       NewMQDatasourceAPIBuilder(a.GetDatasource()...).ToBos(),

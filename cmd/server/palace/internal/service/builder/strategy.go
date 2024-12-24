@@ -581,7 +581,7 @@ func (b *boStrategyBuilder) ToEventAPI(strategy *bo.Strategy) *api.EventStrategy
 		ReceiverGroupIDs: strategy.ReceiverGroupIDs,
 		Value:            eventLevel.Value,
 		Condition:        api.EventCondition(eventLevel.Condition),
-		DataType:         api.EventDataType(eventLevel.MQDataType),
+		DataType:         api.EventDataType(eventLevel.EventDataType),
 		Topic:            strategy.Expr,
 		Datasource:       NewParamsBuild(b.ctx).DatasourceModuleBuilder().BoDatasourceBuilder().ToMqAPIs(strategy.Datasource),
 		DataKey:          eventLevel.PathKey,
@@ -673,12 +673,12 @@ func (d *doStrategyBuilder) ToBoEvents(strategy *bizmodel.Strategy) []*bo.Strate
 				!level.Status.IsEnable(), vobj.StatusDisable, vobj.StatusEnable),
 			TeamID: middleware.GetTeamID(d.ctx),
 			EventLevel: &bo.CreateStrategyEventLevel{
-				Value:      level.Value,
-				Condition:  level.Condition,
-				MQDataType: level.DataType,
-				Status:     level.Status,
-				StrategyID: strategy.ID,
-				PathKey:    level.PathKey,
+				Value:         level.Value,
+				Condition:     level.Condition,
+				EventDataType: level.DataType,
+				Status:        level.Status,
+				StrategyID:    strategy.ID,
+				PathKey:       level.PathKey,
 			},
 		}
 	})
@@ -731,8 +731,8 @@ func (m *mutationStrategyLevelBuilder) ToEventBo(request *strategyapi.CreateStra
 	}
 	return &bo.CreateStrategyEventLevel{
 		Value:         request.GetThreshold(),
-		Condition:     vobj.MQCondition(request.GetCondition()),
-		MQDataType:    vobj.MQDataType(request.DataType),
+		Condition:     vobj.EventCondition(request.GetCondition()),
+		EventDataType: vobj.EventDataType(request.DataType),
 		LevelID:       request.GetLevelId(),
 		Status:        vobj.Status(request.GetStatus()),
 		AlarmPageIds:  request.GetAlarmPageIds(),

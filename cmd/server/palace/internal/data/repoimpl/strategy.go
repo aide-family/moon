@@ -705,7 +705,7 @@ func createStrategyEventLevelParamsToModel(params []*bo.CreateStrategyEventLevel
 	return types.SliceTo(params, func(item *bo.CreateStrategyEventLevel) *bizmodel.StrategyEventLevel {
 		return &bizmodel.StrategyEventLevel{
 			Value:     item.Value,
-			DataType:  item.MQDataType,
+			DataType:  item.EventDataType,
 			Condition: item.Condition,
 			Status:    item.Status,
 			PathKey:   item.PathKey,

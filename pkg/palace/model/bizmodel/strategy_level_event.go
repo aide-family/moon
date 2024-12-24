@@ -10,9 +10,9 @@ type StrategyEventLevel struct {
 	// 值
 	Value string `json:"value,omitempty"`
 	// 数据类型
-	DataType vobj.MQDataType `json:"dataType,omitempty"`
+	DataType vobj.EventDataType `json:"dataType,omitempty"`
 	// 条件
-	Condition vobj.MQCondition `json:"condition,omitempty"`
+	Condition vobj.EventCondition `json:"condition,omitempty"`
 	// 状态
 	Status vobj.Status `json:"status,omitempty"`
 	// object path key

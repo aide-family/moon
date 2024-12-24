@@ -50,7 +50,7 @@ type StrategyEvent struct {
 	// 阈值
 	Threshold string `json:"threshold,omitempty"`
 	// 判断条件
-	Condition vobj.MQCondition `json:"condition,omitempty"`
+	Condition vobj.EventCondition `json:"condition,omitempty"`
 	// 数据类型
 	DataType vobj.MQDataType `json:"dataType,omitempty"`
 	// 数据 Key

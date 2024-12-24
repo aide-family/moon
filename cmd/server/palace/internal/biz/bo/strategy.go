@@ -109,9 +109,9 @@ type (
 		// 值
 		Value string `json:"value"`
 		// 条件
-		Condition vobj.MQCondition `json:"condition"`
+		Condition vobj.EventCondition `json:"condition"`
 		// 数据类型
-		MQDataType vobj.MQDataType `json:"mqDataType"`
+		EventDataType vobj.EventDataType `json:"mqDataType"`
 		// 告警等级 对应sys_dict字典id
 		LevelID uint32 `json:"levelID"`
 		// 状态

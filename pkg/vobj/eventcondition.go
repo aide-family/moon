@@ -9,52 +9,52 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// MQCondition MQ条件判断
+// EventCondition Event条件判断
 //
-//go:generate go run ../../cmd/server/stringer/cmd.go -type=MQCondition -linecomment
-type MQCondition int
+//go:generate go run ../../cmd/server/stringer/cmd.go -type=EventCondition -linecomment
+type EventCondition int
 
 const (
-	// MQConditionUnknown 未知
-	MQConditionUnknown MQCondition = iota // 未知
+	// EventConditionUnknown 未知
+	EventConditionUnknown EventCondition = iota // 未知
 
-	// MQConditionEQ 等于
-	MQConditionEQ // 等于
+	// EventConditionEQ 等于
+	EventConditionEQ // 等于
 
-	// MQConditionNE 不等于
-	MQConditionNE // 不等于
+	// EventConditionNE 不等于
+	EventConditionNE // 不等于
 
-	// MQConditionGT 大于
-	MQConditionGT // 大于
+	// EventConditionGT 大于
+	EventConditionGT // 大于
 
-	// MQConditionGTE 大于等于
-	MQConditionGTE // 大于
+	// EventConditionGTE 大于等于
+	EventConditionGTE // 大于
 
-	// MQConditionLT 小于
-	MQConditionLT // 小于
+	// EventConditionLT 小于
+	EventConditionLT // 小于
 
-	// MQConditionLTE 小于等于
-	MQConditionLTE // 小于等于
+	// EventConditionLTE 小于等于
+	EventConditionLTE // 小于等于
 
-	// MQConditionContain 包含
-	MQConditionContain // 包含
+	// EventConditionContain 包含
+	EventConditionContain // 包含
 
-	// MQConditionPrefix 前缀
-	MQConditionPrefix // 前缀
+	// EventConditionPrefix 前缀
+	EventConditionPrefix // 前缀
 
-	// MQConditionSuffix 后缀
-	MQConditionSuffix // 后缀
+	// EventConditionSuffix 后缀
+	EventConditionSuffix // 后缀
 
-	// MQConditionRegular 正则
-	MQConditionRegular // 正则
+	// EventConditionRegular 正则
+	EventConditionRegular // 正则
 )
 
 // Judge 判断是否符合条件
-func (c MQCondition) Judge(data []byte, dataType MQDataType, key, threshold string) bool {
+func (c EventCondition) Judge(data []byte, dataType EventDataType, key, threshold string) bool {
 	switch dataType {
-	case MQDataTypeNumber:
+	case EventDataTypeNumber:
 		return c.numberJudge(data, threshold)
-	case MQDataTypeObject:
+	case EventDataTypeObject:
 		return c.objectJudge(data, key, threshold)
 	default:
 		return c.stringJudge(string(data), threshold)
@@ -62,27 +62,27 @@ func (c MQCondition) Judge(data []byte, dataType MQDataType, key, threshold stri
 }
 
 // stringJudge 字符串判断
-func (c MQCondition) stringJudge(data string, threshold string) bool {
+func (c EventCondition) stringJudge(data string, threshold string) bool {
 	switch c {
-	case MQConditionEQ:
+	case EventConditionEQ:
 		return data == threshold
-	case MQConditionNE:
+	case EventConditionNE:
 		return data != threshold
-	case MQConditionGT:
+	case EventConditionGT:
 		return data > threshold
-	case MQConditionGTE:
+	case EventConditionGTE:
 		return data >= threshold
-	case MQConditionLT:
+	case EventConditionLT:
 		return data < threshold
-	case MQConditionLTE:
+	case EventConditionLTE:
 		return data <= threshold
-	case MQConditionContain:
+	case EventConditionContain:
 		return strings.Contains(data, threshold)
-	case MQConditionPrefix:
+	case EventConditionPrefix:
 		return strings.HasPrefix(data, threshold)
-	case MQConditionSuffix:
+	case EventConditionSuffix:
 		return strings.HasSuffix(data, threshold)
-	case MQConditionRegular:
+	case EventConditionRegular:
 		matchReg := threshold
 		compile, err := regexp.Compile(matchReg)
 		if err != nil {
@@ -96,7 +96,7 @@ func (c MQCondition) stringJudge(data string, threshold string) bool {
 }
 
 // numberJudge 数字判断
-func (c MQCondition) numberJudge(data []byte, threshold string) bool {
+func (c EventCondition) numberJudge(data []byte, threshold string) bool {
 	num, err := strconv.ParseFloat(string(data), 64)
 	if err != nil {
 		log.Warnw("method", "numberJudge", "acton", "parse value float error", "err", err)
@@ -108,17 +108,17 @@ func (c MQCondition) numberJudge(data []byte, threshold string) bool {
 		return false
 	}
 	switch c {
-	case MQConditionEQ:
+	case EventConditionEQ:
 		return num == thresholdVal
-	case MQConditionNE:
+	case EventConditionNE:
 		return num != thresholdVal
-	case MQConditionGT:
+	case EventConditionGT:
 		return num > thresholdVal
-	case MQConditionGTE:
+	case EventConditionGTE:
 		return num >= thresholdVal
-	case MQConditionLT:
+	case EventConditionLT:
 		return num < thresholdVal
-	case MQConditionLTE:
+	case EventConditionLTE:
 		return num <= thresholdVal
 	default:
 		return false
@@ -126,7 +126,7 @@ func (c MQCondition) numberJudge(data []byte, threshold string) bool {
 }
 
 // objectJudge 对象数据判断
-func (c MQCondition) objectJudge(data []byte, key, threshold string) bool {
+func (c EventCondition) objectJudge(data []byte, key, threshold string) bool {
 	result := gjson.GetBytes(data, key)
 	if !result.Exists() {
 		log.Warnw("method", "objectJudge", "action", "key not found in json data", "key", key)
