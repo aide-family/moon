@@ -409,7 +409,7 @@ func (s *strategyRepositoryImpl) CreateStrategy(ctx context.Context, params *bo.
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	strategyModel := createStrategyParamsToModel(ctx, params)
+	strategyModel := s.createStrategyParamsToModel(ctx, params)
 	if err = bizQuery.Strategy.WithContext(ctx).Clauses(clause.OnConflict{UpdateAll: true}).Create(strategyModel); !types.IsNil(err) {
 		return nil, err
 	}
@@ -481,7 +481,7 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 	})
 
 	strategyModel := &bizmodel.Strategy{AllFieldModel: model.AllFieldModel{ID: params.ID}}
-	levelRawModel, err := createStrategyLevelRawModel(ctx, updateParam)
+	levelRawModel, err := s.createStrategyLevelRawModel(ctx, updateParam, params.ID)
 	if err != nil {
 		return merr.ErrorI18nNotificationSystemError(ctx)
 	}
@@ -501,18 +501,30 @@ func (s *strategyRepositoryImpl) UpdateByID(ctx context.Context, params *bo.Upda
 			return err
 		}
 
-		// strategy level
-		if _, err := tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).Clauses(clause.OnConflict{UpdateAll: true}).Updates(levelRawModel); err != nil {
-			return err
-		}
+		if levelRawModel.GetID() > 0 {
+			// 更新 levelRawModel的关联数据
+			if err = tx.StrategyLevel.DictList.Model(levelRawModel).Replace(levelRawModel.DictList...); !types.IsNil(err) {
+				return err
+			}
 
-		// 更新 levelRawModel的关联数据
-		if err = tx.StrategyLevel.DictList.Model(levelRawModel).Replace(levelRawModel.DictList...); !types.IsNil(err) {
-			return err
-		}
-
-		if err = tx.StrategyLevel.AlarmGroups.Model(levelRawModel).Replace(levelRawModel.AlarmGroups...); !types.IsNil(err) {
-			return err
+			if err = tx.StrategyLevel.AlarmGroups.Model(levelRawModel).Replace(levelRawModel.AlarmGroups...); !types.IsNil(err) {
+				return err
+			}
+			// strategy level
+			if _, err := tx.StrategyLevel.WithContext(ctx).
+				Where(tx.StrategyLevel.StrategyID.Eq(params.ID)).
+				Clauses(clause.OnConflict{UpdateAll: true}).
+				UpdateSimple(
+					tx.StrategyLevel.StrategyID.Value(levelRawModel.StrategyID),
+					tx.StrategyLevel.RawInfo.Value(levelRawModel.RawInfo),
+					tx.StrategyLevel.StrategyType.Value(levelRawModel.StrategyType.GetValue()),
+				); err != nil {
+				return err
+			}
+		} else {
+			if err = tx.StrategyLevel.WithContext(ctx).Create(levelRawModel); !types.IsNil(err) {
+				return err
+			}
 		}
 
 		// 更新策略
@@ -661,7 +673,7 @@ func createStrategyMetricLevelParamsToModel(params []*bo.CreateStrategyMetricLev
 	return strategyLevels
 }
 
-func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyParams) *bizmodel.Strategy {
+func (s *strategyRepositoryImpl) createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyParams) *bizmodel.Strategy {
 	strategyModel := &bizmodel.Strategy{
 		StrategyType:   params.StrategyType,
 		TemplateID:     params.TemplateID,
@@ -691,7 +703,7 @@ func createStrategyParamsToModel(ctx context.Context, params *bo.CreateStrategyP
 	}
 
 	// set strategy level
-	strategyLevelRawModel, err := createStrategyLevelRawModel(ctx, params)
+	strategyLevelRawModel, err := s.createStrategyLevelRawModel(ctx, params, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -775,10 +787,29 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 	})
 }
 
-func createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams) (level *bizmodel.StrategyLevel, err error) {
+func (s *strategyRepositoryImpl) createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams, strategyID uint32) (level *bizmodel.StrategyLevel, err error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
 	var bytes []byte
 	level = &bizmodel.StrategyLevel{
 		StrategyType: params.StrategyType,
+		StrategyID:   strategyID,
+	}
+	if strategyID > 0 {
+		level, err = bizQuery.StrategyLevel.Where(bizQuery.StrategyLevel.StrategyID.Eq(strategyID)).First()
+		if !types.IsNil(err) {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			}
+		} else {
+			level = &bizmodel.StrategyLevel{
+				AllFieldModel: level.AllFieldModel,
+				StrategyType:  params.StrategyType,
+				StrategyID:    strategyID,
+			}
+		}
 	}
 	level.WithContext(ctx)
 	switch params.StrategyType {
