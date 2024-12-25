@@ -107,18 +107,18 @@ service Team {
     };
   }
 
-  // 设置团队邮件配置
-  rpc SetTeamMailConfig (SetTeamMailConfigRequest) returns (SetTeamMailConfigReply) {
+  // 设置团队配置
+  rpc SetTeamConfig (SetTeamConfigRequest) returns (SetTeamConfigReply) {
     option (google.api.http) = {
-      put: "/v1/team/mail/config"
+      put: "/v1/team/config"
       body: "*"
     };
   }
 
-  // 查看团队邮件配置信息
-  rpc GetTeamMailConfig (GetTeamMailConfigRequest) returns (GetTeamMailConfigReply) {
+  // 查看团队配置信息
+  rpc GetTeamConfig (GetTeamConfigRequest) returns (GetTeamConfigReply) {
     option (google.api.http) = {
-      get: "/v1/team/mail/config"
+      get: "/v1/team/config"
     };
   }
 
@@ -262,20 +262,24 @@ message TransferTeamLeaderRequest {
 }
 message TransferTeamLeaderReply {}
 
-message SetTeamMailConfigRequest {
-  // 邮件配置
-  pkg.conf.EmailConfig config = 2 [(buf.validate.field).required = true];
-  string remark = 3 [(buf.validate.field).cel = {
-    message: "备注长度在0-200个字符之间"
-    expression: 'this.size() <= 200'
-  }];
+message SetTeamConfigRequest {
+  // 邮箱配置
+  pkg.conf.EmailConfig emailConfig = 1;
+  // 对称加密配置
+  pkg.conf.SymmetricEncryptionConfig symmetricEncryptionConfig = 2;
+  // 非对称加密配置
+  pkg.conf.AsymmetricEncryptionConfig asymmetricEncryptionConfig = 3;
 }
-message SetTeamMailConfigReply {}
+message SetTeamConfigReply {}
 
-message GetTeamMailConfigRequest {}
-message GetTeamMailConfigReply {
-  pkg.conf.EmailConfig config = 1;
-  string remark = 2;
+message GetTeamConfigRequest {}
+message GetTeamConfigReply {
+  // 邮箱配置
+  pkg.conf.EmailConfig emailConfig = 1;
+  // 对称加密配置
+  pkg.conf.SymmetricEncryptionConfig symmetricEncryptionConfig = 2;
+  // 非对称加密配置
+  pkg.conf.AsymmetricEncryptionConfig asymmetricEncryptionConfig = 3;
 }
 
 message UpdateTeamMemberStatusRequest {

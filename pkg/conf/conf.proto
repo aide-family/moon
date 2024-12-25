@@ -389,3 +389,20 @@ message Event {
   // kafka配置
   Kafka kafka = 4;
 }
+
+
+// 对称加密配置
+message SymmetricEncryptionConfig {
+  // 密钥
+  string key = 1;
+  // 初始化向量
+  string iv = 2;
+}
+
+// 非对称加密配置
+message AsymmetricEncryptionConfig {
+  // 公钥
+  string publicKey = 1;
+  // 私钥
+  string privateKey = 2;
+}

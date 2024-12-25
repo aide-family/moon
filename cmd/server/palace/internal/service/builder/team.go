@@ -40,8 +40,8 @@ type (
 		WithListTeamMemberRequest(*teamapi.ListTeamMemberRequest) IListTeamMemberRequestBuilder
 		// WithTransferTeamLeaderRequest 设置转移团队领导请求
 		WithTransferTeamLeaderRequest(*teamapi.TransferTeamLeaderRequest) ITransferTeamLeaderRequestBuilder
-		// WithSetTeamMailConfigRequest 设置设置团队邮箱配置请求
-		WithSetTeamMailConfigRequest(*teamapi.SetTeamMailConfigRequest) ISetTeamMailConfigRequestBuilder
+		// WithSetTeamConfigRequest 设置设置团队配置请求
+		WithSetTeamConfigRequest(*teamapi.SetTeamConfigRequest) ISetTeamConfigRequestBuilder
 		// DoTeamBuilder 获取团队条目构造器
 		DoTeamBuilder() IDoTeamBuilder
 	}
@@ -151,15 +151,15 @@ type (
 		*teamapi.TransferTeamLeaderRequest
 	}
 
-	// ISetTeamMailConfigRequestBuilder 设置团队邮箱配置请求参数构造器
-	ISetTeamMailConfigRequestBuilder interface {
+	// ISetTeamConfigRequestBuilder 设置团队配置请求参数构造器
+	ISetTeamConfigRequestBuilder interface {
 		// ToBo 转换为业务对象
-		ToBo() *bo.SetTeamMailConfigParams
+		ToBo() *bo.SetTeamConfigParams
 	}
 
-	setTeamMailConfigRequestBuilder struct {
+	setTeamConfigRequestBuilder struct {
 		ctx context.Context
-		*teamapi.SetTeamMailConfigRequest
+		*teamapi.SetTeamConfigRequest
 	}
 
 	// IDoTeamBuilder 团队条目构造器
@@ -179,25 +179,23 @@ type (
 	}
 )
 
-func (s *setTeamMailConfigRequestBuilder) ToBo() *bo.SetTeamMailConfigParams {
-	if types.IsNil(s) || types.IsNil(s.SetTeamMailConfigRequest) {
+func (s *setTeamConfigRequestBuilder) ToBo() *bo.SetTeamConfigParams {
+	if types.IsNil(s) || types.IsNil(s.SetTeamConfigRequest) {
 		return nil
 	}
-	config := s.GetConfig()
-	return &bo.SetTeamMailConfigParams{
-		User:     config.GetUser(),
-		Password: config.GetPass(),
-		Host:     config.GetHost(),
-		Port:     config.GetPort(),
-		Remark:   s.GetRemark(),
+	config := s.SetTeamConfigRequest
+	return &bo.SetTeamConfigParams{
+		EmailConfig:                config.GetEmailConfig(),
+		SymmetricEncryptionConfig:  config.GetSymmetricEncryptionConfig(),
+		AsymmetricEncryptionConfig: config.GetAsymmetricEncryptionConfig(),
 	}
 }
 
-func (t *teamModuleBuilder) WithSetTeamMailConfigRequest(request *teamapi.SetTeamMailConfigRequest) ISetTeamMailConfigRequestBuilder {
+func (t *teamModuleBuilder) WithSetTeamConfigRequest(request *teamapi.SetTeamConfigRequest) ISetTeamConfigRequestBuilder {
 	if types.IsNil(t) || types.IsNil(request) {
 		return nil
 	}
-	return &setTeamMailConfigRequestBuilder{ctx: t.ctx, SetTeamMailConfigRequest: request}
+	return &setTeamConfigRequestBuilder{ctx: t.ctx, SetTeamConfigRequest: request}
 }
 
 func (d *doTeamBuilder) ToAPI(team *model.SysTeam) *adminapi.TeamItem {

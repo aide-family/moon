@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/server/demo/internal/democonf"
-	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -52,8 +51,6 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 			mainDBClose, _ := d.mainDB.DB()
 			log.Debugw("close main db", mainDBClose.Close())
 		})
-		// 开发需要开启
-		query.SetDefault(mainDB)
 	}
 
 	if !types.IsNil(bizConf) && !types.TextIsNull(bizConf.GetDsn()) {

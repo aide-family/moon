@@ -50,14 +50,14 @@ type Team interface {
 	// TransferTeamLeader 移交团队
 	TransferTeamLeader(context.Context, *bo.TransferTeamLeaderParams) error
 
-	// GetTeamMailConfig 获取团队邮件配置
-	GetTeamMailConfig(context.Context, uint32) (*model.SysTeamEmail, error)
+	// GetTeamConfig 获取团队配置
+	GetTeamConfig(context.Context, uint32) (*model.SysTeamConfig, error)
 
-	// CreateTeamMailConfig 创建团队邮件配置
-	CreateTeamMailConfig(context.Context, *bo.SetTeamMailConfigParams) error
+	// CreateTeamConfig 创建团队配置
+	CreateTeamConfig(context.Context, *bo.SetTeamConfigParams) error
 
-	// UpdateTeamMailConfig 更新团队邮件配置
-	UpdateTeamMailConfig(context.Context, *bo.SetTeamMailConfigParams) error
+	// UpdateTeamConfig 更新团队配置
+	UpdateTeamConfig(context.Context, *bo.SetTeamConfigParams) error
 
 	// UpdateTeamMemberStatus 更新团队成员状态
 	UpdateTeamMemberStatus(context.Context, vobj.Status, ...uint32) error
