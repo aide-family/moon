@@ -119,12 +119,12 @@ func (d *doDictBuilder) ToAPI(dict imodel.IDict) *adminapi.DictItem {
 	}
 }
 
-func (d *doDictBuilder) ToAPIs(dicts []imodel.IDict) []*adminapi.DictItem {
-	if types.IsNil(d) || types.IsNil(dicts) {
+func (d *doDictBuilder) ToAPIs(dictList []imodel.IDict) []*adminapi.DictItem {
+	if types.IsNil(d) || types.IsNil(dictList) {
 		return nil
 	}
 
-	return types.SliceTo(dicts, func(item imodel.IDict) *adminapi.DictItem {
+	return types.SliceTo(dictList, func(item imodel.IDict) *adminapi.DictItem {
 		return d.ToAPI(item)
 	})
 }
@@ -148,12 +148,12 @@ func (d *doDictBuilder) ToSelect(dict imodel.IDict) *adminapi.SelectItem {
 	}
 }
 
-func (d *doDictBuilder) ToSelects(dicts []imodel.IDict) []*adminapi.SelectItem {
-	if types.IsNil(d) || types.IsNil(dicts) {
+func (d *doDictBuilder) ToSelects(dictList []imodel.IDict) []*adminapi.SelectItem {
+	if types.IsNil(d) || types.IsNil(dictList) {
 		return nil
 	}
 
-	return types.SliceTo(dicts, func(item imodel.IDict) *adminapi.SelectItem {
+	return types.SliceTo(dictList, func(item imodel.IDict) *adminapi.SelectItem {
 		return d.ToSelect(item)
 	})
 }

@@ -89,7 +89,7 @@ type (
 	}
 )
 
-// TimeEngineRuleModuleBuilder implements IPramsBuilder.
+// TimeEngineModuleBuilder implements IPramsBuilder.
 func (p *paramsBuilder) TimeEngineModuleBuilder() ITimeEngineModuleBuilder {
 	return &timeEngineModuleBuilderImpl{ctx: p.ctx}
 }

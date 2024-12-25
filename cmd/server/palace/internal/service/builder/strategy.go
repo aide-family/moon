@@ -73,10 +73,6 @@ type (
 		BoStrategyBuilder() IBoStrategyBuilder
 	}
 
-	boStrategyEndpointBuilder struct {
-		ctx context.Context
-	}
-
 	// ICreateStrategyGroupRequestBuilder 创建策略组请求参数构造器
 	ICreateStrategyGroupRequestBuilder interface {
 		// ToBo 转换为业务对象
@@ -350,9 +346,9 @@ type (
 		ToPortAPI(*bizmodel.StrategyPortLevel) *adminapi.StrategyPortLevelItem
 		// ToPortAPIs 转换为API对象列表
 		ToPortAPIs([]*bizmodel.StrategyPortLevel) []*adminapi.StrategyPortLevelItem
-		// ToHttpAPI 转换为API对象
+		// ToHTTPLevelAPI 转换为API对象
 		ToHTTPLevelAPI(*bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem
-		// ToHttpAPIs 转换为API对象列表
+		// ToHTTPLevelAPIs 转换为API对象列表
 		ToHTTPLevelAPIs([]*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem
 	}
 
@@ -458,7 +454,7 @@ func (d *doStrategyLevelsBuilder) ToMetricAPI(strategy *bizmodel.Strategy, level
 		Alert:            strategy.Name,
 		Expr:             strategy.Expr,
 		For:              durationpb.New(time.Duration(level.Duration) * time.Second),
-		Count:            uint32(level.Count),
+		Count:            level.Count,
 		SustainType:      api.SustainType(level.SustainType),
 		Labels:           strategy.Labels.Map(),
 		Annotations:      strategy.Annotations.Map(),

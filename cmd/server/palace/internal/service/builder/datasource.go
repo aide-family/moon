@@ -195,12 +195,12 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.D
 	}
 }
 
-func (d *doDatasourceBuilder) ToAPIs(datasources []*bizmodel.Datasource) []*adminapi.DatasourceItem {
-	if types.IsNil(datasources) || types.IsNil(d) {
+func (d *doDatasourceBuilder) ToAPIs(datasource []*bizmodel.Datasource) []*adminapi.DatasourceItem {
+	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
 
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
 		return d.ToAPI(item)
 	})
 }
@@ -221,12 +221,12 @@ func (d *doDatasourceBuilder) ToSelect(datasource *bizmodel.Datasource) *adminap
 	}
 }
 
-func (d *doDatasourceBuilder) ToSelects(datasources []*bizmodel.Datasource) []*adminapi.SelectItem {
-	if types.IsNil(d) || types.IsNil(datasources) {
+func (d *doDatasourceBuilder) ToSelects(datasource []*bizmodel.Datasource) []*adminapi.SelectItem {
+	if types.IsNil(d) || types.IsNil(datasource) {
 		return nil
 	}
 
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.SelectItem {
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *adminapi.SelectItem {
 		return d.ToSelect(item)
 	})
 }

@@ -63,7 +63,7 @@ type (
 
 	// IDoAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
 	IDoAlarmNoticeGroupItemBuilder interface {
-		ToAPI(*bizmodel.AlarmNoticeGroup, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem
+		ToAPI(*bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem
 		ToAPIs([]*bizmodel.AlarmNoticeGroup) []*adminapi.AlarmNoticeGroupItem
 		ToSelect(*bizmodel.AlarmNoticeGroup) *adminapi.SelectItem
 		ToSelects([]*bizmodel.AlarmNoticeGroup) []*adminapi.SelectItem
@@ -253,7 +253,7 @@ func getUsers(ctx context.Context, userIDs ...uint32) map[uint32]*adminapi.UserI
 	return userMap
 }
 
-func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem {
+func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
 	if types.IsNil(group) || types.IsNil(d) {
 		return nil
 	}
@@ -278,15 +278,8 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPIs(groups []*bizmodel.AlarmNoticeGro
 	if types.IsNil(groups) || types.IsNil(d) {
 		return nil
 	}
-	ids := types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
-		if types.IsNil(group) {
-			return 0
-		}
-		return group.GetCreatorID()
-	})
-	userMap := getUsers(d.ctx, ids...)
 	return types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
-		return d.ToAPI(group, userMap)
+		return d.ToAPI(group)
 	})
 }
 
