@@ -40,9 +40,9 @@ type (
 func (c *SymmetricEncryptionConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
-		return types.Unmarshal(v, c)
+		return types.Unmarshal(v, &c)
 	case string:
-		return types.Unmarshal([]byte(v), c)
+		return types.Unmarshal([]byte(v), &c)
 	default:
 		return merr.ErrorNotificationSystemError("invalid type")
 	}
@@ -50,6 +50,9 @@ func (c *SymmetricEncryptionConfig) Scan(value interface{}) error {
 
 // 实现gorm的Value方法
 func (c *SymmetricEncryptionConfig) Value() (driver.Value, error) {
+	if types.IsNil(c) {
+		return []byte("{}"), nil
+	}
 	return types.Marshal(c)
 }
 
@@ -57,9 +60,9 @@ func (c *SymmetricEncryptionConfig) Value() (driver.Value, error) {
 func (c *AsymmetricEncryptionConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
-		return types.Unmarshal(v, c)
+		return types.Unmarshal(v, &c)
 	case string:
-		return types.Unmarshal([]byte(v), c)
+		return types.Unmarshal([]byte(v), &c)
 	default:
 		return merr.ErrorNotificationSystemError("invalid type")
 	}
@@ -67,6 +70,9 @@ func (c *AsymmetricEncryptionConfig) Scan(value interface{}) error {
 
 // 实现gorm的Value方法
 func (c *AsymmetricEncryptionConfig) Value() (driver.Value, error) {
+	if types.IsNil(c) {
+		return []byte("{}"), nil
+	}
 	return types.Marshal(c)
 }
 

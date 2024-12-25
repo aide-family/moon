@@ -131,8 +131,8 @@ type (
 
 // ToModel 转换为model
 func (t *SetTeamConfigParams) ToModel(ctx context.Context) *model.SysTeamConfig {
-	if !types.IsNil(t) {
-		return nil
+	if types.IsNil(t) {
+		panic("SetTeamConfigParams is nil")
 	}
 	return &model.SysTeamConfig{
 		TeamID:                     middleware.GetTeamID(ctx),

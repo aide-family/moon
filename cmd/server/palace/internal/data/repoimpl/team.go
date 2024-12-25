@@ -57,9 +57,14 @@ func (l *teamRepositoryImpl) CreateTeamConfig(ctx context.Context, params *bo.Se
 
 func (l *teamRepositoryImpl) UpdateTeamConfig(ctx context.Context, params *bo.SetTeamConfigParams) error {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
+	teamConfig := params.ToModel(ctx)
 	rows, err := mainQuery.WithContext(ctx).SysTeamConfig.
 		Where(mainQuery.SysTeamConfig.TeamID.Eq(middleware.GetTeamID(ctx))).
-		Updates(params.ToModel(ctx))
+		UpdateColumnSimple(
+			mainQuery.SysTeamConfig.EmailConfig.Value(teamConfig.EmailConfig),
+			mainQuery.SysTeamConfig.SymmetricEncryptionConfig.Value(teamConfig.SymmetricEncryptionConfig),
+			mainQuery.SysTeamConfig.AsymmetricEncryptionConfig.Value(teamConfig.AsymmetricEncryptionConfig),
+		)
 	if !types.IsNil(err) {
 		return err
 	}

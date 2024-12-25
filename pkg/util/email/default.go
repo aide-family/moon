@@ -12,10 +12,10 @@ var _ Config = (*DefaultConfig)(nil)
 
 // DefaultConfig 默认邮件配置
 type DefaultConfig struct {
-	User string
-	Pass string
-	Host string
-	Port uint32
+	User string `json:"user"`
+	Pass string `json:"pass"`
+	Host string `json:"host"`
+	Port uint32 `json:"port"`
 }
 
 // GetHost implements Config.
@@ -54,9 +54,9 @@ func (d *DefaultConfig) GetUser() string {
 func (d *DefaultConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
-		return types.Unmarshal(v, d)
+		return types.Unmarshal(v, &d)
 	case string:
-		return types.Unmarshal([]byte(v), d)
+		return types.Unmarshal([]byte(v), &d)
 	default:
 		return merr.ErrorNotificationSystemError("invalid type")
 	}
@@ -64,6 +64,9 @@ func (d *DefaultConfig) Scan(value interface{}) error {
 
 // Value 实现gorm的Value方法
 func (d *DefaultConfig) Value() (driver.Value, error) {
+	if types.IsNil(d) {
+		return []byte("{}"), nil
+	}
 	return types.Marshal(d)
 }
 

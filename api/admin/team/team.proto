@@ -110,7 +110,7 @@ service Team {
   // 设置团队配置
   rpc SetTeamConfig (SetTeamConfigRequest) returns (SetTeamConfigReply) {
     option (google.api.http) = {
-      put: "/v1/team/config"
+      put: "/v1/team/set/config"
       body: "*"
     };
   }
@@ -118,7 +118,7 @@ service Team {
   // 查看团队配置信息
   rpc GetTeamConfig (GetTeamConfigRequest) returns (GetTeamConfigReply) {
     option (google.api.http) = {
-      get: "/v1/team/config"
+      get: "/v1/team/get/config"
     };
   }
 

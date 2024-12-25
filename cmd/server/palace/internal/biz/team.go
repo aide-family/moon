@@ -10,6 +10,8 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/cipher"
+	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -214,6 +216,16 @@ func (t *TeamBiz) SetTeamConfig(ctx context.Context, params *bo.SetTeamConfigPar
 func (t *TeamBiz) GetTeamConfig(ctx context.Context) (*model.SysTeamConfig, error) {
 	config, err := t.teamRepo.GetTeamConfig(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 没有配置， 返回默认空结构体
+			return &model.SysTeamConfig{
+				AllFieldModel:              model.AllFieldModel{},
+				TeamID:                     middleware.GetTeamID(ctx),
+				EmailConfig:                &email.DefaultConfig{},
+				SymmetricEncryptionConfig:  &cipher.SymmetricEncryptionConfig{},
+				AsymmetricEncryptionConfig: &cipher.AsymmetricEncryptionConfig{},
+			}, nil
+		}
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return config, nil
