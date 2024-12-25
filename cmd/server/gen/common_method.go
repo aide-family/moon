@@ -9,8 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ encoding.BinaryMarshaler = (*CommonMethod)(nil)
-var _ encoding.BinaryUnmarshaler = (*CommonMethod)(nil)
+var (
+	_ encoding.BinaryMarshaler   = (*CommonMethod)(nil)
+	_ encoding.BinaryUnmarshaler = (*CommonMethod)(nil)
+)
 
 // CommonMethod common method
 type CommonMethod struct {

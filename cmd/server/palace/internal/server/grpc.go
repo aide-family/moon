@@ -14,7 +14,7 @@ import (
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *palaceconf.Bootstrap) *grpc.Server {
 	c := bc.GetGrpc()
-	var opts = []grpc.ServerOption{
+	opts := []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			tracing.Server(),

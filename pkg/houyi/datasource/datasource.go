@@ -112,7 +112,7 @@ func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, e
 		return nil, err
 	}
 	basicInfo := d.GetBasicInfo()
-	var responseMap = make(map[watch.Indexer]*Point)
+	responseMap := make(map[watch.Indexer]*Point)
 	for _, response := range queryRange {
 		labels := response.Labels
 		values := make([]*Value, 0, len(response.Values))

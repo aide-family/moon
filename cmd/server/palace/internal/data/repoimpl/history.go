@@ -45,8 +45,10 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, history := range historyList {
 			// 告警历史表
-			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-				DoUpdates: clause.AssignmentColumns(historyCol)}).Create(history); err != nil {
+			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(historyCol),
+			}).Create(history); err != nil {
 				return err
 			}
 
@@ -64,8 +66,10 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 			default:
 				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
 			}
-			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "alarm_history_id"}},
-				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "alarm_history_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol),
+			}).Create(detail); err != nil {
 				return err
 			}
 		}

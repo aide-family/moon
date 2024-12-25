@@ -18,8 +18,10 @@ import (
 )
 
 // RuntimeCache 运行时缓存
-var RuntimeCache repository.Cache
-var runtimeCacheOnce = sync.Once{}
+var (
+	RuntimeCache     repository.Cache
+	runtimeCacheOnce = sync.Once{}
+)
 
 // NewTeamBiz 创建团队业务
 func NewTeamBiz(teamRepo repository.Team, cacheRepo repository.Cache) *TeamBiz {

@@ -6,8 +6,10 @@ import (
 	"github.com/aide-family/moon/pkg/watch"
 )
 
-var _ watch.Indexer = (*Alarm)(nil)
-var _ watch.Indexer = (*Alert)(nil)
+var (
+	_ watch.Indexer = (*Alarm)(nil)
+	_ watch.Indexer = (*Alert)(nil)
+)
 
 type (
 	// Alarm alarm detail info

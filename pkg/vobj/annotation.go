@@ -25,8 +25,10 @@ func NewAnnotations(annotations map[string]string) *Annotations {
 	return (*Annotations)(&annotations)
 }
 
-var _ sql.Scanner = (*Annotations)(nil)
-var _ driver.Valuer = (*Annotations)(nil)
+var (
+	_ sql.Scanner   = (*Annotations)(nil)
+	_ driver.Valuer = (*Annotations)(nil)
+)
 
 // Annotations 告警文案
 type Annotations map[string]string

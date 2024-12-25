@@ -74,7 +74,7 @@ func main() {
 		log.Fatalf("get failed with a not exist key")
 	}
 
-	//list
+	// list
 	e1outList := []ExampleStruct1{}
 	err = cacheEntry.List(ctx, &e1outList)
 	if err != nil {

@@ -45,8 +45,10 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, realTime := range realTimes {
 			// 实时告警表
-			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-				DoUpdates: clause.AssignmentColumns(realCol)}).Create(realTime); err != nil {
+			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(realCol),
+			}).Create(realTime); err != nil {
 				return err
 			}
 
@@ -66,8 +68,10 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
 			}
 
-			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "realtime_alarm_id"}},
-				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "realtime_alarm_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol),
+			}).Create(detail); err != nil {
 				return err
 			}
 		}
@@ -122,7 +126,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		_, _ = alarmQuery.RealtimeAlarmReceiver.Where(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID.In(resolvedIds...)).Delete()
 	}
 
-	var wheres = []gen.Condition{
+	wheres := []gen.Condition{
 		alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue()),
 	}
 	if !types.TextIsNull(params.EventAtStart) && !types.TextIsNull(params.EventAtEnd) {

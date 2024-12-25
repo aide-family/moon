@@ -34,7 +34,6 @@ func NewMinIO(minioConf *conf.Minio) (*MinIOClient, error) {
 	bucketName := minioConf.BucketName
 	// 确保 Bucket 存在，否则创建
 	exists, err := client.BucketExists(context.Background(), bucketName)
-
 	if err != nil {
 		return nil, err
 	}

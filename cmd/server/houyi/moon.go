@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	//增加这段代码
+	// 增加这段代码
 	json.MarshalOptions = protojson.MarshalOptions{
 		UseEnumNumbers: true, // 将枚举值作为数字发出，默认为枚举值的字符串
 	}

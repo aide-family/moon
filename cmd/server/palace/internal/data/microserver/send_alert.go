@@ -61,7 +61,7 @@ func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
 		}
 		sendStatus = vobj.SendFail
 		retryNum, err := s.getSendRetryNum(ctx, task.SendMsgRequest)
-		//TODO  判断是否重试 默认最大重试次数5次，后续改造可配置
+		// TODO  判断是否重试 默认最大重试次数5次，后续改造可配置
 		if err == nil && retryNum > 5 {
 			sendStatus = vobj.Sending
 			// 加入消息队列，重试

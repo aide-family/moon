@@ -34,6 +34,7 @@ func (s *subscriberStrategyRepository) UserSubscriberStrategy(ctx context.Contex
 	subscriberModel := createSubscriberStrategyToModel(ctx, params)
 	return bizQuery.StrategySubscriber.Create(subscriberModel)
 }
+
 func (s *subscriberStrategyRepository) UserUnSubscriberStrategy(ctx context.Context, params *bo.UnSubscriberStrategyParams) error {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {

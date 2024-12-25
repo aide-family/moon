@@ -9,7 +9,6 @@ import (
 )
 
 func TestReader_Get(t *testing.T) {
-
 	indexer := cache.NewIndexer(ts.KeyFunc, cache.Indexers{})
 	reader := &reader{
 		indexer: indexer,
@@ -49,7 +48,6 @@ func TestReader_Get(t *testing.T) {
 }
 
 func TestReader_List(t *testing.T) {
-
 	indexer := cache.NewIndexer(ts.KeyFunc, cache.Indexers{})
 	reader := &reader{
 		indexer: indexer,

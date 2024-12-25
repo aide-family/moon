@@ -44,7 +44,7 @@ func (a *AesCipher) EncryptBase64(origData []byte) (string, error) {
 	// 根据CryptBlocks方法的说明，如下方式初始化crypt也可以
 	bm := cipher.NewCBCEncrypter(a.block, a.iv)
 	bm.CryptBlocks(crypt, origData)
-	var b = base64.StdEncoding.EncodeToString(crypt)
+	b := base64.StdEncoding.EncodeToString(crypt)
 	return b, nil
 }
 

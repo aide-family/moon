@@ -1,6 +1,6 @@
 package vobj
 
-//var _ driver.Valuer = Sustain(0)
+// var _ driver.Valuer = Sustain(0)
 
 // Sustain 持续类型定义
 //

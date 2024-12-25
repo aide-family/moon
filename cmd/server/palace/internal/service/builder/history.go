@@ -152,6 +152,7 @@ func (a *alarmHistoryModuleBuilder) WithGetAlarmHistoryRequest(request *historya
 		GetHistoryRequest: request,
 	}
 }
+
 func (a *alarmHistoryModuleBuilder) DoAlarmHistoryBuilder() IDoAlarmHistoryBuilder {
 	return &doAlarmHistoryBuilder{
 		ctx: a.ctx,

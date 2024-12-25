@@ -24,7 +24,7 @@ type (
 		StrategyType vobj.StrategyType `json:"strategyType"`
 	}
 
-	//GetTeamDatasourceParams  获取团队数据源信息参数
+	// GetTeamDatasourceParams  获取团队数据源信息参数
 	GetTeamDatasourceParams struct {
 		TeamID        uint32   `json:"teamId"`
 		DatasourceIds []uint32 `json:"datasourceIds"`

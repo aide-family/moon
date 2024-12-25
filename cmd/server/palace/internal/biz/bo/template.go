@@ -20,7 +20,7 @@ type (
 		Annotations *vobj.Annotations `json:"annotations"`
 		// 告警等级数据
 		StrategyLevelTemplates []*CreateStrategyLevelTemplate `json:"strategyLevelTemplates"`
-		//策略模板类型
+		// 策略模板类型
 		CategoriesIDs []uint32 `json:"categoriesIds"`
 	}
 

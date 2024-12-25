@@ -2,10 +2,12 @@ package types
 
 import "time"
 
-var _ Matcher = (*HourRange)(nil)
-var _ Matcher = (*DaysOfWeek)(nil)
-var _ Matcher = (*DaysOfMonth)(nil)
-var _ Matcher = (*Months)(nil)
+var (
+	_ Matcher = (*HourRange)(nil)
+	_ Matcher = (*DaysOfWeek)(nil)
+	_ Matcher = (*DaysOfMonth)(nil)
+	_ Matcher = (*Months)(nil)
+)
 
 type (
 	// Matcher 匹配器接口

@@ -33,6 +33,7 @@ init:
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/aide-cloud/protoc-gen-go-errors@latest
+	go install mvdan.cc/gofumpt@latest
 
 .PHONY: format
 format:
@@ -43,6 +44,7 @@ format:
 	go mod verify
 	goimports -w .
 	golangci-lint run ./...
+	gofumpt -l -w .
 
 .PHONY: config
 # generate internal config
@@ -127,7 +129,7 @@ model:
 
 .PHONY: all
 # generate all
-all: error api config stringer model wire
+all: error api config stringer model wire format
 	go mod tidy
 
 .PHONY: clean

@@ -5,6 +5,7 @@ package merr
 import (
 	context "context"
 	fmt "fmt"
+
 	errors "github.com/go-kratos/kratos/v2/errors"
 	i18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -79,7 +80,8 @@ var _AlertMsg = &i18n.Message{
 }
 
 // ErrorI18nAlert 用于表单验证错误
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nAlert(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "参数错误"
 	if len(args) > 0 {
@@ -143,9 +145,10 @@ var _AlertCreateAlarmGroupRequestNameLenMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertCreateAlarmGroupRequestNameLen 用于表单验证错误
-//  CreateAlarmGroupRequest_Name_Len
-//  用户名错误
-//  支持国际化输出
+//
+//	CreateAlarmGroupRequest_Name_Len
+//	用户名错误
+//	支持国际化输出
 func ErrorI18nAlertCreateAlarmGroupRequestNameLen(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户名错误"
 	if len(args) > 0 {
@@ -211,9 +214,10 @@ var _AlertCreateAlarmGroupRequestRemarkLenMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertCreateAlarmGroupRequestRemarkLen 用于表单验证错误
-//  CreateAlarmGroupRequest_Remark_Len
-//  告警组说明长度限制在0-200个字符
-//  支持国际化输出
+//
+//	CreateAlarmGroupRequest_Remark_Len
+//	告警组说明长度限制在0-200个字符
+//	支持国际化输出
 func ErrorI18nAlertCreateAlarmGroupRequestRemarkLen(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组说明长度限制在0-200个字符"
 	if len(args) > 0 {
@@ -279,9 +283,10 @@ var _AlertPasswordErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertPasswordErr 用于表单验证错误
-//  PASSWORD_ERR
-//  密码错误
-//  支持国际化输出
+//
+//	PASSWORD_ERR
+//	密码错误
+//	支持国际化输出
 func ErrorI18nAlertPasswordErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "密码错误"
 	if len(args) > 0 {
@@ -347,9 +352,10 @@ var _AlertPasswordSameErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertPasswordSameErr 用于表单验证错误
-//  PASSWORD_SAME_ERR
-//  新旧密码不能相同
-//  支持国际化输出
+//
+//	PASSWORD_SAME_ERR
+//	新旧密码不能相同
+//	支持国际化输出
 func ErrorI18nAlertPasswordSameErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "新旧密码不能相同"
 	if len(args) > 0 {
@@ -415,9 +421,10 @@ var _AlertTeamNameExistErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertTeamNameExistErr 用于表单验证错误
-//  TEAM_NAME_EXIST_ERR
-//  团队名称已存在
-//  支持国际化输出
+//
+//	TEAM_NAME_EXIST_ERR
+//	团队名称已存在
+//	支持国际化输出
 func ErrorI18nAlertTeamNameExistErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队名称已存在"
 	if len(args) > 0 {
@@ -483,9 +490,10 @@ var _AlertCaptchaErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertCaptchaErr 用于表单验证错误
-//  CAPTCHA_ERR
-//  验证码错误
-//  支持国际化输出
+//
+//	CAPTCHA_ERR
+//	验证码错误
+//	支持国际化输出
 func ErrorI18nAlertCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "验证码错误"
 	if len(args) > 0 {
@@ -551,9 +559,10 @@ var _AlertCaptchaExpireMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertCaptchaExpire 用于表单验证错误
-//  CAPTCHA_EXPIRE
-//  验证码已过期
-//  支持国际化输出
+//
+//	CAPTCHA_EXPIRE
+//	验证码已过期
+//	支持国际化输出
 func ErrorI18nAlertCaptchaExpire(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "验证码已过期"
 	if len(args) > 0 {
@@ -619,9 +628,10 @@ var _AlertStrategyGroupNotEnableMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyGroupNotEnable 用于表单验证错误
-//  STRATEGY_GROUP_NOT_ENABLE
-//  策略组[%s]未启用, 不允许开启策略[%s]
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_ENABLE
+//	策略组[%s]未启用, 不允许开启策略[%s]
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNotEnable(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组[%s]未启用, 不允许开启策略[%s]"
 	if len(args) > 0 {
@@ -687,9 +697,10 @@ var _AlertAlertObjectDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertObjectDuplicate 用于表单验证错误
-//  ALERT_OBJECT_DUPLICATE
-//  告警对象重复
-//  支持国际化输出
+//
+//	ALERT_OBJECT_DUPLICATE
+//	告警对象重复
+//	支持国际化输出
 func ErrorI18nAlertAlertObjectDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警对象重复"
 	if len(args) > 0 {
@@ -755,9 +766,10 @@ var _AlertAlertLevelDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertLevelDuplicate 用于表单验证错误
-//  ALERT_LEVEL_DUPLICATE
-//  策略告警等级重复
-//  支持国际化输出
+//
+//	ALERT_LEVEL_DUPLICATE
+//	策略告警等级重复
+//	支持国际化输出
 func ErrorI18nAlertAlertLevelDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略告警等级重复"
 	if len(args) > 0 {
@@ -823,9 +835,10 @@ var _AlertEmailCaptchaErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertEmailCaptchaErr 用于表单验证错误
-//  EMAIL_CAPTCHA_ERR
-//  邮箱验证码错误
-//  支持国际化输出
+//
+//	EMAIL_CAPTCHA_ERR
+//	邮箱验证码错误
+//	支持国际化输出
 func ErrorI18nAlertEmailCaptchaErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "邮箱验证码错误"
 	if len(args) > 0 {
@@ -889,9 +902,10 @@ var _AlertSelectAlertPageErrMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertSelectAlertPageErr 用于表单验证错误
-//  SELECT_ALERT_PAGE_ERR
-//  选择告警页面错误，请重新选择
-//  支持国际化输出
+//
+//	SELECT_ALERT_PAGE_ERR
+//	选择告警页面错误，请重新选择
+//	支持国际化输出
 func ErrorI18nAlertSelectAlertPageErr(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "选择告警页面错误，请重新选择"
 	if len(args) > 0 {
@@ -955,9 +969,10 @@ var _AlertHookNameDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertHookNameDuplicate 用于表单验证错误
-//  HOOK_NAME_DUPLICATE
-//  hook名称重复
-//  支持国际化输出
+//
+//	HOOK_NAME_DUPLICATE
+//	hook名称重复
+//	支持国际化输出
 func ErrorI18nAlertHookNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "hook名称重复"
 	if len(args) > 0 {
@@ -1023,9 +1038,10 @@ var _AlertAlertGroupNameDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertGroupNameDuplicate 用于表单验证错误
-//  ALERT_GROUP_NAME_DUPLICATE
-//  告警组名称重复
-//  支持国际化输出
+//
+//	ALERT_GROUP_NAME_DUPLICATE
+//	告警组名称重复
+//	支持国际化输出
 func ErrorI18nAlertAlertGroupNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组名称重复"
 	if len(args) > 0 {
@@ -1091,9 +1107,10 @@ var _AlertStrategyGroupNameDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyGroupNameDuplicate 用于表单验证错误
-//  STRATEGY_GROUP_NAME_DUPLICATE
-//  策略组名称重复
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NAME_DUPLICATE
+//	策略组名称重复
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组名称重复"
 	if len(args) > 0 {
@@ -1159,9 +1176,10 @@ var _AlertStrategyNameDuplicateMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyNameDuplicate 用于表单验证错误
-//  STRATEGY_NAME_DUPLICATE
-//  策略名称重复
-//  支持国际化输出
+//
+//	STRATEGY_NAME_DUPLICATE
+//	策略名称重复
+//	支持国际化输出
 func ErrorI18nAlertStrategyNameDuplicate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略名称重复"
 	if len(args) > 0 {
@@ -1227,9 +1245,10 @@ var _AlertStrategyGroupTypeNotExistMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyGroupTypeNotExist 用于表单验证错误
-//  STRATEGY_GROUP_TYPE_NOT_EXIST
-//  策略组类型不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_TYPE_NOT_EXIST
+//	策略组类型不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupTypeNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组类型不存在"
 	if len(args) > 0 {
@@ -1295,9 +1314,10 @@ var _AlertStrategyTypeNotExistMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyTypeNotExist 用于表单验证错误
-//  STRATEGY_TYPE_NOT_EXIST
-//  策略分类不存在
-//  支持国际化输出
+//
+//	STRATEGY_TYPE_NOT_EXIST
+//	策略分类不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyTypeNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略分类不存在"
 	if len(args) > 0 {
@@ -1361,9 +1381,10 @@ var _AlertAlertGroupNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertGroupNotFound 用于表单验证错误
-//  ALERT_GROUP_NOT_FOUND
-//  告警组不存在
-//  支持国际化输出
+//
+//	ALERT_GROUP_NOT_FOUND
+//	告警组不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组不存在"
 	if len(args) > 0 {
@@ -1425,9 +1446,10 @@ var _AlertStrategyGroupNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyGroupNotFound 用于表单验证错误
-//  STRATEGY_GROUP_NOT_FOUND
-//  策略组不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_FOUND
+//	策略组不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组不存在"
 	if len(args) > 0 {
@@ -1489,9 +1511,10 @@ var _AlertDatasourceNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertDatasourceNotFound 用于表单验证错误
-//  DATASOURCE_NOT_FOUND
-//  数据源不存在
-//  支持国际化输出
+//
+//	DATASOURCE_NOT_FOUND
+//	数据源不存在
+//	支持国际化输出
 func ErrorI18nAlertDatasourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源不存在"
 	if len(args) > 0 {
@@ -1553,9 +1576,10 @@ var _AlertAlertPageNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertPageNotFound 用于表单验证错误
-//  ALERT_PAGE_NOT_FOUND
-//  告警页面不存在
-//  支持国际化输出
+//
+//	ALERT_PAGE_NOT_FOUND
+//	告警页面不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertPageNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警页面不存在"
 	if len(args) > 0 {
@@ -1617,9 +1641,10 @@ var _AlertAlertLevelNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertAlertLevelNotFound 用于表单验证错误
-//  ALERT_LEVEL_NOT_FOUND
-//  告警等级不存在
-//  支持国际化输出
+//
+//	ALERT_LEVEL_NOT_FOUND
+//	告警等级不存在
+//	支持国际化输出
 func ErrorI18nAlertAlertLevelNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警等级不存在"
 	if len(args) > 0 {
@@ -1681,9 +1706,10 @@ var _AlertStrategyTemplateNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nAlertStrategyTemplateNotFound 用于表单验证错误
-//  STRATEGY_TEMPLATE_NOT_FOUND
-//  策略模板不存在
-//  支持国际化输出
+//
+//	STRATEGY_TEMPLATE_NOT_FOUND
+//	策略模板不存在
+//	支持国际化输出
 func ErrorI18nAlertStrategyTemplateNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略模板不存在"
 	if len(args) > 0 {
@@ -1737,7 +1763,8 @@ var _ModalMsg = &i18n.Message{
 }
 
 // ErrorI18nModal 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nModal(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请确认"
 	if len(args) > 0 {
@@ -1803,9 +1830,10 @@ var _ModalConfirmDeleteMsg = &i18n.Message{
 }
 
 // ErrorI18nModalConfirmDelete 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  CONFIRM_DELETE
-//  确认删除
-//  支持国际化输出
+//
+//	CONFIRM_DELETE
+//	确认删除
+//	支持国际化输出
 func ErrorI18nModalConfirmDelete(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "确认删除"
 	if len(args) > 0 {
@@ -1875,9 +1903,10 @@ var _ModalConfirmUpdateMsg = &i18n.Message{
 }
 
 // ErrorI18nModalConfirmUpdate 用于弹窗验证错误, 需要提供确认按钮和确认请求的幂等键
-//  CONFIRM_UPDATE
-//  确认修改
-//  支持国际化输出
+//
+//	CONFIRM_UPDATE
+//	确认修改
+//	支持国际化输出
 func ErrorI18nModalConfirmUpdate(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "确认修改"
 	if len(args) > 0 {
@@ -1935,7 +1964,8 @@ var _ToastMsg = &i18n.Message{
 }
 
 // ErrorI18nToast 用于toast验证错误， 资源不存在或者已存在时候提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nToast(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源不存在"
 	if len(args) > 0 {
@@ -1997,9 +2027,10 @@ var _ToastResourceNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastResourceNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  RESOURCE_NOT_FOUND
-//  资源不存在
-//  支持国际化输出
+//
+//	RESOURCE_NOT_FOUND
+//	资源不存在
+//	支持国际化输出
 func ErrorI18nToastResourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源不存在"
 	if len(args) > 0 {
@@ -2061,9 +2092,10 @@ var _ToastResourceExistMsg = &i18n.Message{
 }
 
 // ErrorI18nToastResourceExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  RESOURCE_EXIST
-//  资源已存在
-//  支持国际化输出
+//
+//	RESOURCE_EXIST
+//	资源已存在
+//	支持国际化输出
 func ErrorI18nToastResourceExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "资源已存在"
 	if len(args) > 0 {
@@ -2125,9 +2157,10 @@ var _ToastUserNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_FOUND
-//  用户不存在
-//  支持国际化输出
+//
+//	USER_NOT_FOUND
+//	用户不存在
+//	支持国际化输出
 func ErrorI18nToastUserNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户不存在"
 	if len(args) > 0 {
@@ -2189,9 +2222,10 @@ var _ToastUsernameExistMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUsernameExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USERNAME_EXIST
-//  用户名已存在
-//  支持国际化输出
+//
+//	USERNAME_EXIST
+//	用户名已存在
+//	支持国际化输出
 func ErrorI18nToastUsernameExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户名已存在"
 	if len(args) > 0 {
@@ -2253,9 +2287,10 @@ var _ToastAlertGroupNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastAlertGroupNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ALERT_GROUP_NOT_FOUND
-//  告警组不存在
-//  支持国际化输出
+//
+//	ALERT_GROUP_NOT_FOUND
+//	告警组不存在
+//	支持国际化输出
 func ErrorI18nToastAlertGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警组不存在"
 	if len(args) > 0 {
@@ -2317,9 +2352,10 @@ var _ToastDatasourceSyncingMsg = &i18n.Message{
 }
 
 // ErrorI18nToastDatasourceSyncing 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DATASOURCE_SYNCING
-//  数据源同步中
-//  支持国际化输出
+//
+//	DATASOURCE_SYNCING
+//	数据源同步中
+//	支持国际化输出
 func ErrorI18nToastDatasourceSyncing(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源同步中"
 	if len(args) > 0 {
@@ -2381,9 +2417,10 @@ var _ToastUserNotSubscribeMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotSubscribe 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_SUBSCRIBE
-//  用户未订阅此策略
-//  支持国际化输出
+//
+//	USER_NOT_SUBSCRIBE
+//	用户未订阅此策略
+//	支持国际化输出
 func ErrorI18nToastUserNotSubscribe(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户未订阅此策略"
 	if len(args) > 0 {
@@ -2445,9 +2482,10 @@ var _ToastTeamNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastTeamNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_NOT_FOUND
-//  团队不存在
-//  支持国际化输出
+//
+//	TEAM_NOT_FOUND
+//	团队不存在
+//	支持国际化输出
 func ErrorI18nToastTeamNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队不存在"
 	if len(args) > 0 {
@@ -2509,9 +2547,10 @@ var _ToastUserNotAllowRemoveSelfMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotAllowRemoveSelf 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_REMOVE_SELF
-//  不允许移除自己
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_REMOVE_SELF
+//	不允许移除自己
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowRemoveSelf(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许移除自己"
 	if len(args) > 0 {
@@ -2573,9 +2612,10 @@ var _ToastUserNotAllowRemoveAdminMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotAllowRemoveAdmin 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_REMOVE_ADMIN
-//  不允许移除团队管理员
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_REMOVE_ADMIN
+//	不允许移除团队管理员
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowRemoveAdmin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许移除团队管理员"
 	if len(args) > 0 {
@@ -2637,9 +2677,10 @@ var _ToastUserNotAllowOperateAdminMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotAllowOperateAdmin 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_ALLOW_OPERATE_ADMIN
-//  不允许操作自己的管理员身份
-//  支持国际化输出
+//
+//	USER_NOT_ALLOW_OPERATE_ADMIN
+//	不允许操作自己的管理员身份
+//	支持国际化输出
 func ErrorI18nToastUserNotAllowOperateAdmin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不允许操作自己的管理员身份"
 	if len(args) > 0 {
@@ -2701,9 +2742,10 @@ var _ToastRoleNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastRoleNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ROLE_NOT_FOUND
-//  角色不存在
-//  支持国际化输出
+//
+//	ROLE_NOT_FOUND
+//	角色不存在
+//	支持国际化输出
 func ErrorI18nToastRoleNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "角色不存在"
 	if len(args) > 0 {
@@ -2765,9 +2807,10 @@ var _ToastTemplateStrategyNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastTemplateStrategyNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEMPLATE_STRATEGY_NOT_FOUND
-//  策略模板不存在
-//  支持国际化输出
+//
+//	TEMPLATE_STRATEGY_NOT_FOUND
+//	策略模板不存在
+//	支持国际化输出
 func ErrorI18nToastTemplateStrategyNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略模板不存在"
 	if len(args) > 0 {
@@ -2829,9 +2872,10 @@ var _ToastUserNotExistMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserNotExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_NOT_EXIST
-//  用户不存在
-//  支持国际化输出
+//
+//	USER_NOT_EXIST
+//	用户不存在
+//	支持国际化输出
 func ErrorI18nToastUserNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "用户不存在"
 	if len(args) > 0 {
@@ -2893,9 +2937,10 @@ var _ToastDashboardNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastDashboardNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DASHBOARD_NOT_FOUND
-//  图表大盘不存在
-//  支持国际化输出
+//
+//	DASHBOARD_NOT_FOUND
+//	图表大盘不存在
+//	支持国际化输出
 func ErrorI18nToastDashboardNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "图表大盘不存在"
 	if len(args) > 0 {
@@ -2957,9 +3002,10 @@ var _ToastRealtimeAlarmNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastRealtimeAlarmNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  REALTIME_ALARM_NOT_FOUND
-//  实时告警不存在
-//  支持国际化输出
+//
+//	REALTIME_ALARM_NOT_FOUND
+//	实时告警不存在
+//	支持国际化输出
 func ErrorI18nToastRealtimeAlarmNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "实时告警不存在"
 	if len(args) > 0 {
@@ -3021,9 +3067,10 @@ var _ToastHistoryAlarmNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastHistoryAlarmNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  HISTORY_ALARM_NOT_FOUND
-//  历史告警不存在
-//  支持国际化输出
+//
+//	HISTORY_ALARM_NOT_FOUND
+//	历史告警不存在
+//	支持国际化输出
 func ErrorI18nToastHistoryAlarmNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "历史告警不存在"
 	if len(args) > 0 {
@@ -3087,9 +3134,10 @@ var _ToastDataSourceNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastDataSourceNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DATA_SOURCE_NOT_FOUND
-//  数据源不存在
-//  支持国际化输出
+//
+//	DATA_SOURCE_NOT_FOUND
+//	数据源不存在
+//	支持国际化输出
 func ErrorI18nToastDataSourceNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源不存在"
 	if len(args) > 0 {
@@ -3155,9 +3203,10 @@ var _ToastDictNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastDictNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  DICT_NOT_FOUND
-//  字典不存在
-//  支持国际化输出
+//
+//	DICT_NOT_FOUND
+//	字典不存在
+//	支持国际化输出
 func ErrorI18nToastDictNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "字典不存在"
 	if len(args) > 0 {
@@ -3223,9 +3272,10 @@ var _ToastAlarmHookNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastAlarmHookNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ALARM_HOOK_NOT_FOUND
-//  告警hook不存在
-//  支持国际化输出
+//
+//	ALARM_HOOK_NOT_FOUND
+//	告警hook不存在
+//	支持国际化输出
 func ErrorI18nToastAlarmHookNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警hook不存在"
 	if len(args) > 0 {
@@ -3291,9 +3341,10 @@ var _ToastMenuNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastMenuNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  MENU_NOT_FOUND
-//  菜单不存在
-//  支持国际化输出
+//
+//	MENU_NOT_FOUND
+//	菜单不存在
+//	支持国际化输出
 func ErrorI18nToastMenuNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "菜单不存在"
 	if len(args) > 0 {
@@ -3359,9 +3410,10 @@ var _ToastMetricNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastMetricNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  METRIC_NOT_FOUND
-//  指标不存在
-//  支持国际化输出
+//
+//	METRIC_NOT_FOUND
+//	指标不存在
+//	支持国际化输出
 func ErrorI18nToastMetricNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "指标不存在"
 	if len(args) > 0 {
@@ -3427,9 +3479,10 @@ var _ToastApiNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastApiNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  API_NOT_FOUND
-//  API不存在
-//  支持国际化输出
+//
+//	API_NOT_FOUND
+//	API不存在
+//	支持国际化输出
 func ErrorI18nToastApiNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "API不存在"
 	if len(args) > 0 {
@@ -3495,9 +3548,10 @@ var _ToastStrategyNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastStrategyNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  STRATEGY_NOT_FOUND
-//  告警策略不存在
-//  支持国际化输出
+//
+//	STRATEGY_NOT_FOUND
+//	告警策略不存在
+//	支持国际化输出
 func ErrorI18nToastStrategyNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警策略不存在"
 	if len(args) > 0 {
@@ -3563,9 +3617,10 @@ var _ToastStrategyGroupNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastStrategyGroupNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  STRATEGY_GROUP_NOT_FOUND
-//  策略组不存在
-//  支持国际化输出
+//
+//	STRATEGY_GROUP_NOT_FOUND
+//	策略组不存在
+//	支持国际化输出
 func ErrorI18nToastStrategyGroupNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略组不存在"
 	if len(args) > 0 {
@@ -3631,9 +3686,10 @@ var _ToastTeamInviteAlreadyExistsMsg = &i18n.Message{
 }
 
 // ErrorI18nToastTeamInviteAlreadyExists 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_INVITE_ALREADY_EXISTS
-//  %s,邀请记录已存在,或者已经加入团队!
-//  支持国际化输出
+//
+//	TEAM_INVITE_ALREADY_EXISTS
+//	%s,邀请记录已存在,或者已经加入团队!
+//	支持国际化输出
 func ErrorI18nToastTeamInviteAlreadyExists(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "%s,邀请记录已存在,或者已经加入团队!"
 	if len(args) > 0 {
@@ -3699,9 +3755,10 @@ var _ToastTeamInviteNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastTeamInviteNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_INVITE_NOT_FOUND
-//  邀请记录不存在
-//  支持国际化输出
+//
+//	TEAM_INVITE_NOT_FOUND
+//	邀请记录不存在
+//	支持国际化输出
 func ErrorI18nToastTeamInviteNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "邀请记录不存在"
 	if len(args) > 0 {
@@ -3767,9 +3824,10 @@ var _ToastAlarmSendHistoryNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastAlarmSendHistoryNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ALARM_SEND_HISTORY_NOT_FOUND
-//  告警发送历史不存在
-//  支持国际化输出
+//
+//	ALARM_SEND_HISTORY_NOT_FOUND
+//	告警发送历史不存在
+//	支持国际化输出
 func ErrorI18nToastAlarmSendHistoryNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "告警发送历史不存在"
 	if len(args) > 0 {
@@ -3833,9 +3891,10 @@ var _ToastRoleHasRelationMsg = &i18n.Message{
 }
 
 // ErrorI18nToastRoleHasRelation 用于toast验证错误， 资源不存在或者已存在时候提示
-//  ROLE_HAS_RELATION
-//  角色存在关联关系
-//  支持国际化输出
+//
+//	ROLE_HAS_RELATION
+//	角色存在关联关系
+//	支持国际化输出
 func ErrorI18nToastRoleHasRelation(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "角色存在关联关系"
 	if len(args) > 0 {
@@ -3897,9 +3956,10 @@ var _ToastTeamMemberNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastTeamMemberNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  TEAM_MEMBER_NOT_FOUND
-//  团队成员不存在
-//  支持国际化输出
+//
+//	TEAM_MEMBER_NOT_FOUND
+//	团队成员不存在
+//	支持国际化输出
 func ErrorI18nToastTeamMemberNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "团队成员不存在"
 	if len(args) > 0 {
@@ -3961,9 +4021,10 @@ var _ToastUserMessageNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nToastUserMessageNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
-//  USER_MESSAGE_NOT_FOUND
-//  消息不存在
-//  支持国际化输出
+//
+//	USER_MESSAGE_NOT_FOUND
+//	消息不存在
+//	支持国际化输出
 func ErrorI18nToastUserMessageNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "消息不存在"
 	if len(args) > 0 {
@@ -4027,9 +4088,10 @@ var _ToastStrategyTypeNotExistMsg = &i18n.Message{
 }
 
 // ErrorI18nToastStrategyTypeNotExist 用于toast验证错误， 资源不存在或者已存在时候提示
-//  STRATEGY_TYPE_NOT_EXIST
-//  策略类型不存在
-//  支持国际化输出
+//
+//	STRATEGY_TYPE_NOT_EXIST
+//	策略类型不存在
+//	支持国际化输出
 func ErrorI18nToastStrategyTypeNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "策略类型不存在"
 	if len(args) > 0 {
@@ -4085,7 +4147,8 @@ var _NotificationMsg = &i18n.Message{
 }
 
 // ErrorI18nNotification 用于通知验证错误， 系统级别错误
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nNotification(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "服务器可能遇到了意外，非常抱歉！"
 	if len(args) > 0 {
@@ -4147,9 +4210,10 @@ var _NotificationSystemErrorMsg = &i18n.Message{
 }
 
 // ErrorI18nNotificationSystemError 用于通知验证错误， 系统级别错误
-//  SYSTEM_ERROR
-//  服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......
-//  支持国际化输出
+//
+//	SYSTEM_ERROR
+//	服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......
+//	支持国际化输出
 func ErrorI18nNotificationSystemError(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "服务器遭遇了外星人攻击，攻城狮和程序猿们正在抢修......"
 	if len(args) > 0 {
@@ -4211,9 +4275,10 @@ var _NotificationUnsupportedDataSourceMsg = &i18n.Message{
 }
 
 // ErrorI18nNotificationUnsupportedDataSource 用于通知验证错误， 系统级别错误
-//  UNSUPPORTED_DATA_SOURCE
-//  不支持的数据源类型
-//  支持国际化输出
+//
+//	UNSUPPORTED_DATA_SOURCE
+//	不支持的数据源类型
+//	支持国际化输出
 func ErrorI18nNotificationUnsupportedDataSource(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不支持的数据源类型"
 	if len(args) > 0 {
@@ -4275,9 +4340,10 @@ var _NotificationDataSourceConfigurationErrorMsg = &i18n.Message{
 }
 
 // ErrorI18nNotificationDataSourceConfigurationError 用于通知验证错误， 系统级别错误
-//  DATA_SOURCE_CONFIGURATION_ERROR
-//  数据源配置错误,请检查数据格式!
-//  支持国际化输出
+//
+//	DATA_SOURCE_CONFIGURATION_ERROR
+//	数据源配置错误,请检查数据格式!
+//	支持国际化输出
 func ErrorI18nNotificationDataSourceConfigurationError(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "数据源配置错误,请检查数据格式!"
 	if len(args) > 0 {
@@ -4333,7 +4399,8 @@ var _UnauthorizedMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorized 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nUnauthorized(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请先登录"
 	if len(args) > 0 {
@@ -4399,9 +4466,10 @@ var _UnauthorizedJwtExpireMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorizedJwtExpire 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_EXPIRE
-//  登录已过期
-//  支持国际化输出
+//
+//	JWT_EXPIRE
+//	登录已过期
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtExpire(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "登录已过期"
 	if len(args) > 0 {
@@ -4467,9 +4535,10 @@ var _UnauthorizedJwtOtherLoginMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorizedJwtOtherLogin 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_OTHER_LOGIN
-//  账号已在其他地方登录
-//  支持国际化输出
+//
+//	JWT_OTHER_LOGIN
+//	账号已在其他地方登录
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtOtherLogin(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "账号已在其他地方登录"
 	if len(args) > 0 {
@@ -4535,9 +4604,10 @@ var _UnauthorizedJwtBanMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorizedJwtBan 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  JWT_BAN
-//  认证信息已登出，请重新登录
-//  支持国际化输出
+//
+//	JWT_BAN
+//	认证信息已登出，请重新登录
+//	支持国际化输出
 func ErrorI18nUnauthorizedJwtBan(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "认证信息已登出，请重新登录"
 	if len(args) > 0 {
@@ -4603,9 +4673,10 @@ var _UnauthorizedUserNotFoundMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorizedUserNotFound 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  USER_NOT_FOUND
-//  账号不存在
-//  支持国际化输出
+//
+//	USER_NOT_FOUND
+//	账号不存在
+//	支持国际化输出
 func ErrorI18nUnauthorizedUserNotFound(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "账号不存在"
 	if len(args) > 0 {
@@ -4671,9 +4742,10 @@ var _UnauthorizedUserBanMsg = &i18n.Message{
 }
 
 // ErrorI18nUnauthorizedUserBan 用于重定向验证错误, 跳转到指定页面， 认证级别提示
-//  USER_BAN
-//  您已被禁止使用该系统，请联系官方解除
-//  支持国际化输出
+//
+//	USER_BAN
+//	您已被禁止使用该系统，请联系官方解除
+//	支持国际化输出
 func ErrorI18nUnauthorizedUserBan(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已被禁止使用该系统，请联系官方解除"
 	if len(args) > 0 {
@@ -4729,7 +4801,8 @@ var _ForbiddenMsg = &i18n.Message{
 }
 
 // ErrorI18nForbidden 权限不足时候提示, toast提示 权限级别提示
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nForbidden(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您没有操作权限, 请联系管理员开通该权限"
 	if len(args) > 0 {
@@ -4791,9 +4864,10 @@ var _ForbiddenUserNotInTeamMsg = &i18n.Message{
 }
 
 // ErrorI18nForbiddenUserNotInTeam 权限不足时候提示, toast提示 权限级别提示
-//  USER_NOT_IN_TEAM
-//  您已不属于该团队
-//  支持国际化输出
+//
+//	USER_NOT_IN_TEAM
+//	您已不属于该团队
+//	支持国际化输出
 func ErrorI18nForbiddenUserNotInTeam(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已不属于该团队"
 	if len(args) > 0 {
@@ -4855,9 +4929,10 @@ var _ForbiddenMemberDisabledMsg = &i18n.Message{
 }
 
 // ErrorI18nForbiddenMemberDisabled 权限不足时候提示, toast提示 权限级别提示
-//  MEMBER_DISABLED
-//  您已被该团队禁用操作，请联系管理员
-//  支持国际化输出
+//
+//	MEMBER_DISABLED
+//	您已被该团队禁用操作，请联系管理员
+//	支持国际化输出
 func ErrorI18nForbiddenMemberDisabled(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您已被该团队禁用操作，请联系管理员"
 	if len(args) > 0 {
@@ -4919,9 +4994,10 @@ var _ForbiddenPermissionDeniedMsg = &i18n.Message{
 }
 
 // ErrorI18nForbiddenPermissionDenied 权限不足时候提示, toast提示 权限级别提示
-//  PERMISSION_DENIED
-//  您的权限不足以操作此数据
-//  支持国际化输出
+//
+//	PERMISSION_DENIED
+//	您的权限不足以操作此数据
+//	支持国际化输出
 func ErrorI18nForbiddenPermissionDenied(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "您的权限不足以操作此数据"
 	if len(args) > 0 {
@@ -4983,9 +5059,10 @@ var _ForbiddenCannotSetEqualPermissionMsg = &i18n.Message{
 }
 
 // ErrorI18nForbiddenCannotSetEqualPermission 权限不足时候提示, toast提示 权限级别提示
-//  CANNOT_SET_EQUAL_PERMISSION
-//  不能设置成同等权限
-//  支持国际化输出
+//
+//	CANNOT_SET_EQUAL_PERMISSION
+//	不能设置成同等权限
+//	支持国际化输出
 func ErrorI18nForbiddenCannotSetEqualPermission(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不能设置成同等权限"
 	if len(args) > 0 {
@@ -5039,7 +5116,8 @@ var _TooManyRequestsMsg = &i18n.Message{
 }
 
 // ErrorI18nTooManyRequests 触发频率限制
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nTooManyRequests(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "请求太频繁，请稍后再试"
 	if len(args) > 0 {
@@ -5093,7 +5171,8 @@ var _FileRelatedMsg = &i18n.Message{
 }
 
 // ErrorI18nFileRelated 文件相关
-//  支持国际化输出
+//
+//	支持国际化输出
 func ErrorI18nFileRelated(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "文件相关异常"
 	if len(args) > 0 {
@@ -5155,9 +5234,10 @@ var _FileRelatedFileContentDoesNotExistMsg = &i18n.Message{
 }
 
 // ErrorI18nFileRelatedFileContentDoesNotExist 文件相关
-//  FILE_CONTENT_DOES_NOT_EXIST
-//  文件:[%s]内容不存在！
-//  支持国际化输出
+//
+//	FILE_CONTENT_DOES_NOT_EXIST
+//	文件:[%s]内容不存在！
+//	支持国际化输出
 func ErrorI18nFileRelatedFileContentDoesNotExist(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "文件:[%s]内容不存在！"
 	if len(args) > 0 {
@@ -5219,9 +5299,10 @@ var _FileRelatedFileNotSupportedUploadMsg = &i18n.Message{
 }
 
 // ErrorI18nFileRelatedFileNotSupportedUpload 文件相关
-//  FILE_NOT_SUPPORTED_UPLOAD
-//  不支持该文件类型：%s上传
-//  支持国际化输出
+//
+//	FILE_NOT_SUPPORTED_UPLOAD
+//	不支持该文件类型：%s上传
+//	支持国际化输出
 func ErrorI18nFileRelatedFileNotSupportedUpload(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "不支持该文件类型：%s上传"
 	if len(args) > 0 {
@@ -5283,9 +5364,10 @@ var _FileRelatedFileMaximumLimitMsg = &i18n.Message{
 }
 
 // ErrorI18nFileRelatedFileMaximumLimit 文件相关
-//  FILE_MAXIMUM_LIMIT
-//  该类型[%s]文件大小超过最大限制!
-//  支持国际化输出
+//
+//	FILE_MAXIMUM_LIMIT
+//	该类型[%s]文件大小超过最大限制!
+//	支持国际化输出
 func ErrorI18nFileRelatedFileMaximumLimit(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "该类型[%s]文件大小超过最大限制!"
 	if len(args) > 0 {
@@ -5347,9 +5429,10 @@ var _FileRelatedOssNotOpenedMsg = &i18n.Message{
 }
 
 // ErrorI18nFileRelatedOssNotOpened 文件相关
-//  OSS_NOT_OPENED
-//  oss未打开,不允许上传文件!
-//  支持国际化输出
+//
+//	OSS_NOT_OPENED
+//	oss未打开,不允许上传文件!
+//	支持国际化输出
 func ErrorI18nFileRelatedOssNotOpened(ctx context.Context, args ...interface{}) *errors.Error {
 	msg := "oss未打开,不允许上传文件!"
 	if len(args) > 0 {

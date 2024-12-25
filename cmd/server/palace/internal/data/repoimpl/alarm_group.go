@@ -144,7 +144,6 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	}
 	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
 	return alarmGroupModel, nil
-
 }
 
 func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params *bo.UpdateAlarmNoticeGroupParams) error {
@@ -177,7 +176,7 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 			TeamID:        middleware.GetTeamID(ctx),
 		}}
 	})
-	//告警组关联通知人中间表操作
+	// 告警组关联通知人中间表操作
 	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
 	defer func() {
 		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))

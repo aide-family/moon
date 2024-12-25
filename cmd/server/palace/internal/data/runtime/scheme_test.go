@@ -24,8 +24,10 @@ func (t *AnotherStruct) KeyFunc(obj interface{}) (string, error) {
 	return "", nil
 }
 
-var ts = &TestStruct{}
-var as = &AnotherStruct{}
+var (
+	ts = &TestStruct{}
+	as = &AnotherStruct{}
+)
 
 func TestNewScheme(t *testing.T) {
 	s := NewScheme()

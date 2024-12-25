@@ -61,7 +61,6 @@ func (m *eventStrategyWatch) registerEvent(c *bo.EventDatasource) (mq.IMQ, error
 }
 
 func (m *eventStrategyWatch) Start(_ context.Context) error {
-
 	go func() {
 		defer after.RecoverX()
 		for msg := range m.data.GetEventStrategyQueue().Next() {

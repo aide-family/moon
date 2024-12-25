@@ -351,9 +351,9 @@ type (
 		// ToPortAPIs 转换为API对象列表
 		ToPortAPIs([]*bizmodel.StrategyPortLevel) []*adminapi.StrategyPortLevelItem
 		// ToHttpAPI 转换为API对象
-		ToHttpAPI(*bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem
+		ToHTTPLevelAPI(*bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem
 		// ToHttpAPIs 转换为API对象列表
-		ToHttpAPIs([]*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem
+		ToHTTPLevelAPIs([]*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem
 	}
 
 	doStrategyLevelBuilder struct {
@@ -378,10 +378,10 @@ type (
 		ToPortAPI(*bizmodel.Strategy, *bizmodel.StrategyPortLevel) *api.DomainStrategyItem
 		// ToPortAPIs 转换为API对象列表
 		ToPortAPIs(*bizmodel.Strategy, []*bizmodel.StrategyPortLevel) []*api.DomainStrategyItem
-		// ToHttpAPI 转换为API对象
-		ToHttpAPI(*bizmodel.Strategy, *bizmodel.StrategyHTTPLevel) *api.HttpStrategyItem
-		// ToHttpAPIs 转换为API对象列表
-		ToHttpAPIs(*bizmodel.Strategy, []*bizmodel.StrategyHTTPLevel) []*api.HttpStrategyItem
+		// ToHTTPLevelAPI 转换为API对象
+		ToHTTPLevelAPI(*bizmodel.Strategy, *bizmodel.StrategyHTTPLevel) *api.HttpStrategyItem
+		// ToHTTPLevelAPIs 转换为API对象列表
+		ToHTTPLevelAPIs(*bizmodel.Strategy, []*bizmodel.StrategyHTTPLevel) []*api.HttpStrategyItem
 		// ToPingAPI 转换为API对象
 		ToPingAPI(*bizmodel.Strategy, *bizmodel.StrategyPingLevel) *api.PingStrategyItem
 		// ToPingAPIs 转换为API对象列表
@@ -586,7 +586,7 @@ func (d *doStrategyLevelsBuilder) ToPortAPIs(strategy *bizmodel.Strategy, levels
 	})
 }
 
-func (d *doStrategyLevelsBuilder) ToHttpAPI(strategy *bizmodel.Strategy, level *bizmodel.StrategyHTTPLevel) *api.HttpStrategyItem {
+func (d *doStrategyLevelsBuilder) ToHTTPLevelAPI(strategy *bizmodel.Strategy, level *bizmodel.StrategyHTTPLevel) *api.HttpStrategyItem {
 	if types.IsNil(strategy) || types.IsNil(level) || types.IsNil(d) {
 		return nil
 	}
@@ -623,9 +623,9 @@ func (d *doStrategyLevelsBuilder) ToHttpAPI(strategy *bizmodel.Strategy, level *
 	}
 }
 
-func (d *doStrategyLevelsBuilder) ToHttpAPIs(strategy *bizmodel.Strategy, levels []*bizmodel.StrategyHTTPLevel) []*api.HttpStrategyItem {
+func (d *doStrategyLevelsBuilder) ToHTTPLevelAPIs(strategy *bizmodel.Strategy, levels []*bizmodel.StrategyHTTPLevel) []*api.HttpStrategyItem {
 	return types.SliceTo(levels, func(level *bizmodel.StrategyHTTPLevel) *api.HttpStrategyItem {
-		return d.ToHttpAPI(strategy, level)
+		return d.ToHTTPLevelAPI(strategy, level)
 	})
 }
 
@@ -713,7 +713,7 @@ func (d *doStrategyLevelBuilder) ToPortAPIs(ports []*bizmodel.StrategyPortLevel)
 	})
 }
 
-func (d *doStrategyLevelBuilder) ToHttpAPI(http *bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem {
+func (d *doStrategyLevelBuilder) ToHTTPLevelAPI(http *bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem {
 	if types.IsNil(http) {
 		return nil
 	}
@@ -736,9 +736,9 @@ func (d *doStrategyLevelBuilder) ToHttpAPI(http *bizmodel.StrategyHTTPLevel) *ad
 	}
 }
 
-func (d *doStrategyLevelBuilder) ToHttpAPIs(https []*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem {
+func (d *doStrategyLevelBuilder) ToHTTPLevelAPIs(https []*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem {
 	return types.SliceTo(https, func(http *bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem {
-		return d.ToHttpAPI(http)
+		return d.ToHTTPLevelAPI(http)
 	})
 }
 
@@ -903,7 +903,7 @@ func (d *doStrategyBuilder) ToBos(strategy *bizmodel.Strategy) []*bo.Strategy {
 				TeamID:       strategy.TeamID,
 				StrategyID:   strategy.ID,
 				StrategyType: strategy.StrategyType,
-				HTTPLevel:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToHttpAPI(strategy, item),
+				HTTPLevel:    NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelsBuilder().ToHTTPLevelAPI(strategy, item),
 			}
 		})
 	case vobj.StrategyTypeEvent:
@@ -1243,7 +1243,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.Strateg
 		MetricLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPIs(strategy.Level.StrategyMetricsLevelList),
 		EventLevels:       NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToEventAPIs(strategy.Level.StrategyEventLevelList),
 		PortLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToPortAPIs(strategy.Level.StrategyPortLevelList),
-		HttpLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHttpAPIs(strategy.Level.StrategyHTTPLevelList),
+		HttpLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHTTPLevelAPIs(strategy.Level.StrategyHTTPLevelList),
 		DomainLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToDomainAPIs(strategy.Level.StrategyDomainLevelList),
 	}
 

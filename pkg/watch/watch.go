@@ -158,7 +158,7 @@ func (w *Watcher) reader(msg *Message) {
 			}
 		}
 	}()
-	//log.Debugw("method", "reader message", "msg", msg)
+	// log.Debugw("method", "reader message", "msg", msg)
 	if !types.IsNil(w.handler) {
 		// 递交消息给处理器，由处理器决定消息去留， 如果失败，会进入重试逻辑
 		ctx, cancel := context.WithTimeout(context.Background(), w.timeout)

@@ -99,7 +99,7 @@ func RecoveryHandle(_ context.Context, req, err interface{}) error {
 
 // NewLogger new a logger.
 func NewLogger(l Logger) Logger {
-	//return log.NewStdLogger(os.Stdout)
+	// return log.NewStdLogger(os.Stdout)
 	ll := log.With(l,
 		"ts", log.DefaultTimestamp,
 		"caller", log.Caller(5),

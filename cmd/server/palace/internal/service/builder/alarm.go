@@ -22,8 +22,7 @@ type (
 	}
 
 	// ICreateAlarmItemRequestBuilder 创建报警项请求构建器
-	ICreateAlarmItemRequestBuilder interface {
-	}
+	ICreateAlarmItemRequestBuilder interface{}
 
 	createAlarmItemRequestBuilder struct {
 		ctx context.Context

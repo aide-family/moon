@@ -31,7 +31,7 @@ func (m *EventDatasource) String() string {
 	return string(bs)
 }
 
-// GetMQConfig 获取 MQ 配置
+// GetConfig 获取 MQ 配置
 func (m *EventDatasource) GetConfig() *conf.Event {
 	if m == nil {
 		return nil

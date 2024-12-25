@@ -40,8 +40,10 @@ const (
 	StrategyEventExpr = "__moon__event_expr__"
 )
 
-var _ sql.Scanner = (*Labels)(nil)
-var _ driver.Valuer = (*Labels)(nil)
+var (
+	_ sql.Scanner   = (*Labels)(nil)
+	_ driver.Valuer = (*Labels)(nil)
+)
 
 // ErrUnsupportedType 不支持的类型错误
 var ErrUnsupportedType = errors.New("unsupported type")

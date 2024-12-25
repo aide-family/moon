@@ -223,7 +223,7 @@ func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, er
 		metricNames = append(metricNames, metricName)
 	}
 
-	//metricNames = metricNames[:151]
+	// metricNames = metricNames[:151]
 	metrics := make([]*Metric, 0, len(metricNames))
 	lock := new(sync.RWMutex)
 	batchNum := 20

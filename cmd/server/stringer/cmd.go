@@ -104,7 +104,7 @@ func main() {
 		baseName := fmt.Sprintf("%s_string.go", types[0])
 		outputName = filepath.Join(dir, strings.ToLower(baseName))
 	}
-	err := os.WriteFile(outputName, src, 0644)
+	err := os.WriteFile(outputName, src, 0o644)
 	if err != nil {
 		log.Fatalf("writing output: %s", err)
 	}
@@ -239,7 +239,7 @@ func (g *Generator) generate(typeName string) {
 		g.buildMap(runs, typeName)
 	}
 
-	//add by 甘向东
+	// add by 甘向东
 	for _, v := range values {
 		funcName := getFuncName(typeName, v.originalName)
 		g.Printf("\n// %s 是否是：%s\n", funcName, v.name)
@@ -247,7 +247,7 @@ func (g *Generator) generate(typeName string) {
 		g.Printf("\t return i == %s\n", v.originalName)
 		g.Printf("}\n")
 	}
-	//获取原始类型的值
+	// 获取原始类型的值
 	originValueMethodName := "GetValue"
 	originTypeName := values[0].UnderlyingType
 	g.Printf("\n// %s 获取原始类型值\n", originValueMethodName)

@@ -12,7 +12,7 @@ import (
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *democonf.Bootstrap) *grpc.Server {
 	c := bc.GetServer()
-	var opts = []grpc.ServerOption{
+	opts := []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			middleware.Validate(protovalidate.WithFailFast(true)),

@@ -10,8 +10,10 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-var _ sql.Scanner = (*Config)(nil)
-var _ driver.Valuer = (*Config)(nil)
+var (
+	_ sql.Scanner   = (*Config)(nil)
+	_ driver.Valuer = (*Config)(nil)
+)
 
 // Config 数据源配置
 type Config struct {
