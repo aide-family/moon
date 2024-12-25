@@ -5,7 +5,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
-// StrategyEventLevel MQ策略等级
+// StrategyEventLevel 事件策略等级
 type StrategyEventLevel struct {
 	// 值
 	Value string `json:"value,omitempty"`
@@ -13,8 +13,6 @@ type StrategyEventLevel struct {
 	DataType vobj.EventDataType `json:"dataType,omitempty"`
 	// 条件
 	Condition vobj.EventCondition `json:"condition,omitempty"`
-	// 状态
-	Status vobj.Status `json:"status,omitempty"`
 	// object path key
 	PathKey string `json:"pathKey,omitempty"`
 

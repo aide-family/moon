@@ -76,7 +76,6 @@ type (
 
 	// CreateStrategyMetricLevel 创建metric策略等级
 	CreateStrategyMetricLevel struct {
-		ID uint32 `json:"id"`
 		// 所属策略模板id
 		StrategyTemplateID uint32 `json:"strategyTemplateID"`
 		// 持续时间
@@ -103,7 +102,6 @@ type (
 
 	// CreateStrategyEventLevel 创建事件策略等级
 	CreateStrategyEventLevel struct {
-		ID uint32 `json:"id"`
 		// 值
 		Value string `json:"value"`
 		// 条件
@@ -112,8 +110,6 @@ type (
 		EventDataType vobj.EventDataType `json:"mqDataType"`
 		// 告警等级 对应sys_dict字典id
 		LevelID uint32 `json:"levelID"`
-		// 状态
-		Status vobj.Status `json:"status"`
 		// 告警页面
 		AlarmPageIds []uint32 `json:"alarmPageIds"`
 		// 告警组
@@ -126,13 +122,11 @@ type (
 
 	// CreateStrategyDomainLevel 创建域名证书监控策略
 	CreateStrategyDomainLevel struct {
-		// 状态
-		Status vobj.Status `json:"status"`
 		// 策略标签
 		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
-
+		// 条件
 		Condition vobj.Condition `json:"condition"`
 		// 阈值
 		Threshold int64 `json:"threshold"`
@@ -144,8 +138,6 @@ type (
 
 	// CreateStrategyPortLevel 创建端口监控策略
 	CreateStrategyPortLevel struct {
-		// 状态
-		Status vobj.Status `json:"status"`
 		// 策略标签
 		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
 		// 告警组
@@ -162,8 +154,6 @@ type (
 
 	// CreateStrategyHTTPLevel 创建http监控策略
 	CreateStrategyHTTPLevel struct {
-		// 状态
-		Status vobj.Status `json:"status"`
 		// 策略标签
 		LabelNotices []*StrategyLabelNotice `json:"labelNotices"`
 		// 告警组

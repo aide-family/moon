@@ -377,8 +377,6 @@ message CreateStrategyEventLevelRequest{
   EventCondition condition = 2 [(buf.validate.field).required = true];
   // 数据类型
   EventDataType dataType = 3 [(buf.validate.field).required = true];
-  // 状态
-  Status status = 4;
   // 告警等级ID
   uint32 levelId = 5;
   // 告警页面ID
@@ -426,8 +424,6 @@ message CreateStrategyMetricLevelRequest{
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 15;
-  // ID
-  uint32 id = 16;
 }
 
 // 域名证书监控策略定义
@@ -438,8 +434,6 @@ message CreateStrategyDomainLevelRequest{
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-  // 状态
-  Status status = 2;
   // 告警页面ID
   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
@@ -455,8 +449,6 @@ message CreateStrategyDomainLevelRequest{
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
   // 阈值
   int64 threshold = 7;
   // 判断条件
@@ -471,8 +463,6 @@ message CreateStrategyPortLevelRequest {
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-  // 状态
-  Status status = 2;
   // 告警页面ID
   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
@@ -488,8 +478,6 @@ message CreateStrategyPortLevelRequest {
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
   // 阈值
   int64 threshold = 7;
   // 端口
@@ -503,8 +491,6 @@ message CreateStrategyHTTPLevelRequest {
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-  // 状态
-  Status status = 2;
   // 告警页面ID
   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
@@ -520,8 +506,6 @@ message CreateStrategyHTTPLevelRequest {
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
   // 响应时间 s
   uint32 responseTime = 7;
   // 状态码

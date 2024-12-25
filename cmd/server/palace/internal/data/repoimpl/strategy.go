@@ -718,7 +718,6 @@ func createStrategyEventLevelParamsToModel(params []*bo.CreateStrategyEventLevel
 			Value:     item.Value,
 			DataType:  item.EventDataType,
 			Condition: item.Condition,
-			Status:    item.Status,
 			PathKey:   item.PathKey,
 			Level:     &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
 			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {

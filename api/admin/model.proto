@@ -329,8 +329,6 @@ message StrategyMetricLevelItem {
   repeated AlarmNoticeGroupItem alarmGroups = 25;
   // label匹配的告警通知组
   repeated LabelNoticeItem labelNotices = 26;
-  // 创建人
-  UserItem creator = 17;
 }
 
 // 端口监控策略等级
@@ -759,7 +757,7 @@ message AlarmSendItem{
 }
 
 // mq datasource item
-message MqDatasourceItem{
+message EventDatasourceItem{
   // 数据源ID
   uint32 id = 1;
   // 数据源名称
@@ -797,10 +795,6 @@ message StrategyEventLevelItem{
   repeated SelectItem alarmPages = 7;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmGroups = 9;
-  // 创建人
-  UserItem creator = 10;
-  // 状态
-  Status status = 11;
   // 对象状态下的数据KEY
   string pathKey = 12;
   // label匹配的告警通知组

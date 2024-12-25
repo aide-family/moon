@@ -747,7 +747,6 @@ func (m *mutationStrategyLevelBuilder) ToDomainBo(request *strategyapi.CreateStr
 		return nil
 	}
 	return &bo.CreateStrategyDomainLevel{
-		Status:        vobj.Status(request.GetStatus()),
 		LabelNotices:  NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
 		AlarmGroupIds: request.GetAlarmGroupIds(),
 		Condition:     vobj.Condition(request.GetCondition()),
@@ -771,7 +770,6 @@ func (m *mutationStrategyLevelBuilder) ToPortBo(request *strategyapi.CreateStrat
 		return nil
 	}
 	return &bo.CreateStrategyPortLevel{
-		Status:        vobj.Status(request.GetStatus()),
 		LabelNotices:  NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
 		AlarmGroupIds: request.GetAlarmGroupIds(),
 		Threshold:     request.GetThreshold(),
@@ -796,7 +794,6 @@ func (m *mutationStrategyLevelBuilder) ToHTTPBo(request *strategyapi.CreateStrat
 	}
 
 	return &bo.CreateStrategyHTTPLevel{
-		Status:                vobj.Status(request.GetStatus()),
 		LabelNotices:          NewParamsBuild(m.ctx).AlarmNoticeGroupModuleBuilder().APICreateStrategyLabelNoticeRequest().ToBos(request.GetLabelNotices()),
 		AlarmGroupIds:         request.GetAlarmGroupIds(),
 		AlarmPageIds:          request.GetAlarmPageIds(),
@@ -845,7 +842,6 @@ func (d *doStrategyLevelBuilder) ToEventAPI(level *bizmodel.StrategyEventLevel) 
 		Level:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.Level),
 		AlarmPages:   NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.AlarmPageList, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroupList),
-		Status:       api.Status(level.Status),
 		PathKey:      level.PathKey,
 		LabelNotices: nil,
 	}
@@ -869,7 +865,6 @@ func (m *mutationStrategyLevelBuilder) ToEventBo(request *strategyapi.CreateStra
 		Condition:     vobj.EventCondition(request.GetCondition()),
 		EventDataType: vobj.EventDataType(request.DataType),
 		LevelID:       request.GetLevelId(),
-		Status:        vobj.Status(request.GetStatus()),
 		AlarmPageIds:  request.GetAlarmPageIds(),
 		AlarmGroupIds: request.GetAlarmGroupIds(),
 		StrategyID:    m.StrategyID,
@@ -965,7 +960,6 @@ func (m *mutationStrategyLevelBuilder) ToMetricBo(request *strategyapi.CreateStr
 	}
 
 	return &bo.CreateStrategyMetricLevel{
-		ID:                 request.GetId(),
 		StrategyTemplateID: m.StrategyID,
 		Duration:           request.GetDuration(),
 		Count:              request.Count,
@@ -1009,7 +1003,6 @@ func (d *doStrategyLevelBuilder) ToMetricAPI(level *bizmodel.StrategyMetricLevel
 		Condition:    api.Condition(level.Condition),
 		AlarmGroups:  NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.AlarmGroupList),
 		LabelNotices: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoLabelNoticeBuilder().ToAPIs(level.LabelNoticeList),
-		Creator:      nil,
 	}
 }
 
