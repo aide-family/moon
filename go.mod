@@ -25,7 +25,6 @@ require (
 	github.com/minio/minio-go/v7 v7.0.80
 	github.com/mojocn/base64Captcha v1.3.6
 	github.com/nicksnyder/go-i18n/v2 v2.4.1
-	github.com/nutsdb/nutsdb v1.0.4
 	github.com/prometheus/client_golang v1.20.5
 	github.com/prometheus/common v0.60.1
 	github.com/redis/go-redis/v9 v9.7.0
@@ -79,12 +78,9 @@ require (
 	cel.dev/expr v0.18.0 // indirect
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/antlabs/stl v0.0.1 // indirect
-	github.com/antlabs/timer v0.0.11 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.6.1 // indirect
-	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/casbin/govaluate v1.2.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -117,7 +113,6 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
-	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
@@ -169,13 +164,10 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
-	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/xujiajun/mmap-go v1.0.1 // indirect
-	github.com/xujiajun/utils v0.0.0-20220904132955-5f7c5b914235 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.17 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.17 // indirect
 	go.opencensus.io v0.23.0 // indirect

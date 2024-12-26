@@ -120,14 +120,5 @@ func newCache(c *democonf.Data_Cache) cache.ICacher {
 		return cache.NewRedisCacher(cli)
 	}
 
-	if !types.IsNil(c.GetNutsDB()) {
-		log.Debugw("cache init", "nutsdb")
-		cli, err := conn.NewNutsDB(c.GetNutsDB())
-		if !types.IsNil(err) {
-			log.Warnw("nutsdb init error", err)
-		}
-		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
-	}
-
 	return cache.NewFreeCache(freecache.NewCache(10 * 1024 * 1024))
 }

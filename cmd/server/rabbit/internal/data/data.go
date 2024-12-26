@@ -77,13 +77,6 @@ func newCache(c *conf.Cache) cache.ICacher {
 			log.Warnw("redis ping error", err)
 		}
 		return cache.NewRedisCacher(cli)
-	case "nutsdb":
-		log.Debugw("cache init", "nutsdb")
-		cli, err := conn.NewNutsDB(c.GetNutsDB())
-		if !types.IsNil(err) {
-			log.Warnw("nutsdb init error", err)
-		}
-		return cache.NewNutsDbCacher(cli, c.GetNutsDB().GetBucket())
 	default:
 		log.Debugw("cache init", "free")
 		size := int(c.GetFree().GetSize())
