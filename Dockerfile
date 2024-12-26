@@ -4,7 +4,7 @@ FROM aidemoonio/build:latest AS builder
 COPY . /src
 WORKDIR /src
 
-RUN GOPROXY=https://goproxy.cn make build
+RUN make build
 
 #FROM debian:stable-slim
 FROM aidemoonio/deploy:latest
