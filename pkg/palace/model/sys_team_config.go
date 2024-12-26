@@ -19,6 +19,30 @@ type SysTeamConfig struct {
 	AsymmetricEncryptionConfig *cipher.AsymmetricEncryptionConfig `gorm:"column:asymmetric_encryption;type:text;not null;comment:非对称加密配置" json:"asymmetric_encryption_config"`
 }
 
+// GetEmailConfig 获取邮箱配置
+func (c *SysTeamConfig) GetEmailConfig() *email.DefaultConfig {
+	if c == nil || c.EmailConfig == nil {
+		return nil
+	}
+	return c.EmailConfig
+}
+
+// GetSymmetricEncryptionConfig 获取对称加密配置
+func (c *SysTeamConfig) GetSymmetricEncryptionConfig() *cipher.SymmetricEncryptionConfig {
+	if c == nil || c.SymmetricEncryptionConfig == nil {
+		return nil
+	}
+	return c.SymmetricEncryptionConfig
+}
+
+// GetAsymmetricEncryptionConfig 获取非对称加密配置
+func (c *SysTeamConfig) GetAsymmetricEncryptionConfig() *cipher.AsymmetricEncryptionConfig {
+	if c == nil || c.AsymmetricEncryptionConfig == nil {
+		return nil
+	}
+	return c.AsymmetricEncryptionConfig
+}
+
 // String json string of SysTeamConfig
 func (c *SysTeamConfig) String() string {
 	bs, _ := types.Marshal(c)

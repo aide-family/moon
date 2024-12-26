@@ -11,9 +11,11 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"gorm.io/gen"
@@ -142,7 +144,13 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 			return nil, err
 		}
 	}
-	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	go func() {
+		defer after.RecoverX()
+		ctx := types.CopyValueCtx(ctx)
+		if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+			log.Errorw("method", "SyncTeam", "error", err)
+		}
+	}()
 	return alarmGroupModel, nil
 }
 
@@ -179,7 +187,13 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 	// 告警组关联通知人中间表操作
 	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
 	defer func() {
-		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+		go func() {
+			defer after.RecoverX()
+			ctx := types.CopyValueCtx(ctx)
+			if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+				log.Errorw("method", "SyncTeam", "error", err)
+			}
+		}()
 		if len(params.UpdateParam.TimeEngineIds) > 0 {
 			timeEngines := types.SliceTo(params.UpdateParam.TimeEngineIds, func(timeEngineID uint32) *bizmodel.TimeEngine {
 				return &bizmodel.TimeEngine{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: timeEngineID}}}
@@ -241,7 +255,13 @@ func (a *alarmGroupRepositoryImpl) DeleteAlarmGroup(ctx context.Context, alarmID
 		return err
 	}
 	defer func() {
-		_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+		go func() {
+			defer after.RecoverX()
+			ctx := types.CopyValueCtx(ctx)
+			if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+				log.Errorw("method", "SyncTeam", "error", err)
+			}
+		}()
 	}()
 	return bizDB.Transaction(func(tx *gorm.DB) error {
 		bizQueryTx := bizquery.Use(tx)
@@ -323,7 +343,13 @@ func (a *alarmGroupRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.
 	if !types.IsNil(err) {
 		return err
 	}
-	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	go func() {
+		defer after.RecoverX()
+		ctx := types.CopyValueCtx(ctx)
+		if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+			log.Errorw("method", "SyncTeam", "error", err)
+		}
+	}()
 	return nil
 }
 

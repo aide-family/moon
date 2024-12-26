@@ -202,7 +202,7 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 		log.Errorw("获取告警组失败", err)
 		return err
 	}
-	emailConfig := teamConfigDo.EmailConfig.ToConf()
+	emailConfig := teamConfigDo.GetEmailConfig().ToConf()
 	for _, noticeGroupItem := range noticeGroupItems {
 		for _, srv := range srvs {
 			if err := l.syncNoticeGroup(srv, teamID, emailConfig, noticeGroupItem); !types.IsNil(err) {

@@ -62,8 +62,8 @@ func (l *teamRepositoryImpl) UpdateTeamConfig(ctx context.Context, params *bo.Se
 		Where(mainQuery.SysTeamConfig.TeamID.Eq(middleware.GetTeamID(ctx))).
 		UpdateColumnSimple(
 			mainQuery.SysTeamConfig.EmailConfig.Value(teamConfig.EmailConfig),
-			mainQuery.SysTeamConfig.SymmetricEncryptionConfig.Value(teamConfig.SymmetricEncryptionConfig),
-			mainQuery.SysTeamConfig.AsymmetricEncryptionConfig.Value(teamConfig.AsymmetricEncryptionConfig),
+			mainQuery.SysTeamConfig.SymmetricEncryptionConfig.Value(teamConfig.GetSymmetricEncryptionConfig()),
+			mainQuery.SysTeamConfig.AsymmetricEncryptionConfig.Value(teamConfig.GetAsymmetricEncryptionConfig()),
 		)
 	if !types.IsNil(err) {
 		return err

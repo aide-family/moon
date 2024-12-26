@@ -9,9 +9,11 @@ import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"gorm.io/gen"
@@ -65,7 +67,13 @@ func (a *alarmHookRepositoryImpl) CreateAlarmHook(ctx context.Context, params *b
 	if err = bizQuery.AlarmHook.WithContext(ctx).Create(hookModel); !types.IsNil(err) {
 		return nil, err
 	}
-	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	go func() {
+		defer after.RecoverX()
+		ctx := types.CopyValueCtx(ctx)
+		if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+			log.Errorw("method", "SyncTeam", "error", err)
+		}
+	}()
 
 	return hookModel, nil
 }
@@ -97,7 +105,13 @@ func (a *alarmHookRepositoryImpl) UpdateAlarmHook(ctx context.Context, params *b
 	if !types.IsNil(err) {
 		return err
 	}
-	_ = a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx))
+	go func() {
+		defer after.RecoverX()
+		ctx := types.CopyValueCtx(ctx)
+		if err := a.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+			log.Errorw("method", "SyncTeam", "error", err)
+		}
+	}()
 	return nil
 }
 

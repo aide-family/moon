@@ -163,9 +163,9 @@ func (s *Service) GetTeamConfig(ctx context.Context, _ *teamapi.GetTeamConfigReq
 		return nil, err
 	}
 	return &teamapi.GetTeamConfigReply{
-		EmailConfig:                config.EmailConfig.ToConf(),
-		SymmetricEncryptionConfig:  config.SymmetricEncryptionConfig.ToConf(),
-		AsymmetricEncryptionConfig: config.AsymmetricEncryptionConfig.ToConf(),
+		EmailConfig:                config.GetEmailConfig().ToConf(),
+		SymmetricEncryptionConfig:  config.GetSymmetricEncryptionConfig().ToConf(),
+		AsymmetricEncryptionConfig: config.GetAsymmetricEncryptionConfig().ToConf(),
 	}, nil
 }
 
