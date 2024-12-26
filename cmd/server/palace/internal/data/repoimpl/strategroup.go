@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -54,18 +55,24 @@ func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Conte
 	}
 
 	for _, groupID := range groupIds {
-		strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
+		strategies, err := bizQuery.Strategy.WithContext(ctx).
 			Where(bizQuery.Strategy.GroupID.Eq(groupID)).
 			Preload(field.Associations).
+			Preload(bizQuery.Strategy.AlarmNoticeGroups).
+			Preload(bizQuery.Strategy.Datasource).
+			Preload(bizQuery.Strategy.Level).
+			Preload(bizQuery.Strategy.Level.AlarmGroups).
+			Preload(bizQuery.Strategy.Level.DictList).
 			Find()
 		if !types.IsNil(err) {
+			log.Errorw("method", "syncStrategiesByGroupIds", "err", err)
 			continue
 		}
 
 		go func() {
 			defer after.RecoverX()
 			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+				items := builder.NewParamsBuild(types.CopyValueCtx(ctx)).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 				if len(items) == 0 {
 					continue
 				}

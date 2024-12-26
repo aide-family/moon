@@ -250,8 +250,7 @@ type (
 	}
 
 	doStrategyBuilder struct {
-		ctx                 context.Context
-		strategyLevelDetail *bo.StrategyLevelDetailModel
+		ctx context.Context
 	}
 
 	// IDoTemplateStrategyBuilder 模板策略条目构造器

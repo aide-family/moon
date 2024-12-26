@@ -193,6 +193,16 @@ func SlicesHasDuplicates[T any, R comparable](arr []T, keyFunc func(T) R) bool {
 	return false
 }
 
+// SliceFind 查找元素
+func SliceFind[T any](list []T, f func(T) bool) (v T) {
+	for _, item := range list {
+		if f(item) {
+			return item
+		}
+	}
+	return
+}
+
 var (
 	_ sql.Scanner   = (*Slice[int32])(nil)
 	_ driver.Valuer = (*Slice[int32])(nil)

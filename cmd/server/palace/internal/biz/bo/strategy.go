@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/aide-family/moon/api"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -252,19 +251,6 @@ type (
 		Value string `json:"value"`
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
-	}
-
-	// StrategyLevelDetailModel 策略等级明细
-	StrategyLevelDetailModel struct {
-		// LevelMap
-		LevelMap map[uint32][]*bizmodel.StrategyLevel `json:"levelMap"`
-	}
-
-	// TeamStrategyLevelModel 策略等级
-	TeamStrategyLevelModel struct {
-		MetricsLevel *bizmodel.StrategyMetricLevel `json:"metricsLeve"`
-		// MQ
-		MQLevel *bizmodel.StrategyEventLevel `json:"mqLevel"`
 	}
 )
 

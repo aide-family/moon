@@ -54,17 +54,11 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 
 			// 告警详情表
 			detail := &alarmmodel.HistoryDetails{
-				AlarmHistoryID: history.ID,
 				Strategy:       param.Strategy.String(),
+				Level:          param.Level,
 				Datasource:     param.GetDatasourceMap(history.Labels.GetDatasourceID()),
-			}
-			switch param.Strategy.StrategyType {
-			case vobj.StrategyTypeMetric:
-				detail.Level = param.Level.MetricsLevel.String()
-			case vobj.StrategyTypeEvent:
-				detail.Level = param.Level.MQLevel.String()
-			default:
-				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
+				AlarmHistoryID: history.ID,
+				AlarmHistory:   history,
 			}
 			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{
 				Columns:   []clause.Column{{Name: "alarm_history_id"}},

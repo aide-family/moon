@@ -89,6 +89,57 @@ func (*StrategyLevel) TableName() string {
 	return tableNameStrategyLevels
 }
 
+// GetAlarmPageList 获取告警页面列表
+func (c *StrategyLevel) GetAlarmPageList() []*SysDict {
+	return types.Filter(c.DictList, func(item *SysDict) bool {
+		return item.DictType.IsAlarmPage()
+	})
+}
+
+// GetLevelByID 获取等级
+func (c *StrategyLevel) GetLevelByID(id uint32) string {
+	switch c.StrategyType {
+	case vobj.StrategyTypeMetric:
+		levels := c.getStrategyMetricLevel()
+		level := types.SliceFind(levels, func(item *StrategyMetricLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypeEvent:
+		levels := c.getStrategyEventLevel()
+		level := types.SliceFind(levels, func(item *StrategyEventLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypeDomainCertificate:
+		levels := c.getStrategyDoMain()
+		level := types.SliceFind(levels, func(item *StrategyDomainLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypeHTTP:
+		levels := c.getStrategyHTTP()
+		level := types.SliceFind(levels, func(item *StrategyHTTPLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypePing:
+		levels := c.getStrategyPing()
+		level := types.SliceFind(levels, func(item *StrategyPingLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypeDomainPort:
+		levels := c.getStrategyPort()
+		level := types.SliceFind(levels, func(item *StrategyPortLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	default:
+		return ""
+	}
+}
+
 // getStrategyMetricLevel get strategy metric level
 func (c *StrategyLevel) getStrategyMetricLevel() []*StrategyMetricLevel {
 	metricsLevels := make([]*StrategyMetricLevel, 0)

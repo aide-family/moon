@@ -2,11 +2,13 @@ package builder
 
 import (
 	"context"
+
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // NewParamsBuild 创建参数构造器
 func NewParamsBuild(ctx context.Context) IPramsBuilder {
-	return &paramsBuilder{ctx: ctx}
+	return &paramsBuilder{ctx: types.CopyValueCtx(ctx)}
 }
 
 type (

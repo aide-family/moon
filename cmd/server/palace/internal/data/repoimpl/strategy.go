@@ -42,20 +42,6 @@ func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
 	return nil
 }
 
-func (s *strategyRepositoryImpl) GetTeamStrategyLevelByLevelID(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bo.TeamStrategyLevelModel, error) {
-	strategyType := params.StrategyType
-	switch strategyType {
-	case vobj.StrategyTypeMetric:
-
-		return nil, nil
-	case vobj.StrategyTypeEvent:
-
-		return nil, nil
-	default:
-		return nil, merr.ErrorI18nToastStrategyTypeNotExist(ctx)
-	}
-}
-
 func (s *strategyRepositoryImpl) GetTeamStrategy(ctx context.Context, params *bo.GetTeamStrategyParams) (*bizmodel.Strategy, error) {
 	bizQuery, err := getTeamIDBizQuery(s.data, params.TeamID)
 	if !types.IsNil(err) {
@@ -74,23 +60,37 @@ func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uin
 }
 
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
-	// TODO 告警评估
 	return nil, merr.ErrorNotification("未实现本地告警评估逻辑")
 }
 
-func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strategyIds ...uint32) {
+// getSyncStrategiesByIds 获取策略信息
+func (s *strategyRepositoryImpl) getSyncStrategiesByIds(ctx context.Context, strategyIds ...uint32) ([]*bizmodel.Strategy, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if err != nil {
 		log.Errorw("method", "syncStrategiesByIds", "err", err)
-		return
+		return nil, err
 	}
 	// 关联查询等级等明细信息
-	strategies, err := bizQuery.Strategy.WithContext(ctx).Unscoped().
+	strategies, err := bizQuery.Strategy.WithContext(ctx).
 		Where(bizQuery.Strategy.ID.In(strategyIds...)).
 		Preload(field.Associations).
 		Preload(bizQuery.Strategy.AlarmNoticeGroups).
+		Preload(bizQuery.Strategy.Datasource).
+		Preload(bizQuery.Strategy.Level).
+		Preload(bizQuery.Strategy.Level.AlarmGroups).
+		Preload(bizQuery.Strategy.Level.DictList).
 		Find()
-	if !types.IsNil(err) {
+	if err != nil {
+		log.Errorw("method", "syncStrategiesByIds", "err", err)
+		return nil, err
+	}
+	return strategies, nil
+}
+
+func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strategyIds ...uint32) {
+	// 关联查询等级等明细信息
+	strategies, err := s.getSyncStrategiesByIds(ctx, strategyIds...)
+	if err != nil {
 		log.Errorw("method", "syncStrategiesByIds", "err", err)
 		return
 	}
@@ -98,8 +98,7 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 	go func() {
 		defer after.RecoverX()
 		for _, strategy := range strategies {
-			// TODO 完成其他策略类型转换
-			items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+			items := builder.NewParamsBuild(types.CopyValueCtx(ctx)).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
 			if len(items) == 0 {
 				continue
 			}
@@ -120,7 +119,8 @@ func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.Up
 	_, err = bizQuery.WithContext(ctx).
 		Strategy.Where(bizQuery.Strategy.ID.In(params.Ids...)).
 		Update(bizQuery.Strategy.Status, params.Status)
-	if !types.IsNil(err) {
+	if err != nil {
+		log.Errorw("method", "UpdateStatus", "err", err)
 		return err
 	}
 	s.syncStrategiesByIds(ctx, params.Ids...)
@@ -129,33 +129,38 @@ func (s *strategyRepositoryImpl) UpdateStatus(ctx context.Context, params *bo.Up
 
 func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint32) error {
 	bizQuery, err := getBizQuery(ctx, s.data)
-	if !types.IsNil(err) {
+	if err != nil {
 		return err
 	}
 	strategy := &bizmodel.Strategy{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: strategyID}}}
 	defer s.syncStrategiesByIds(ctx, strategyID)
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
 		// 移除策略数据源中间表关联关系
-		if err = tx.Strategy.Datasource.Model(strategy).Clear(); !types.IsNil(err) {
+		if err = tx.Strategy.Datasource.Model(strategy).Clear(); err != nil {
+			log.Errorw("method", "DeleteByID", "err", err)
 			return err
 		}
 
 		// 移除策略类型中间表关联关系
-		if err = tx.Strategy.Categories.Model(strategy).Clear(); !types.IsNil(err) {
+		if err = tx.Strategy.Categories.Model(strategy).Clear(); err != nil {
+			log.Errorw("method", "DeleteByID", "err", err)
 			return err
 		}
 
 		// 移除告警组中间表
-		if err = tx.Strategy.AlarmNoticeGroups.Model(strategy).Clear(); !types.IsNil(err) {
+		if err = tx.Strategy.AlarmNoticeGroups.Model(strategy).Clear(); err != nil {
+			log.Errorw("method", "DeleteByID", "err", err)
 			return err
 		}
 
 		// 移除策略等级中间表
-		if err := s.deleteStrategyLevel(ctx, strategyID, tx); !types.IsNil(err) {
+		if err := s.deleteStrategyLevel(ctx, strategyID, tx); err != nil {
+			log.Errorw("method", "DeleteByID", "err", err)
 			return err
 		}
 
-		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(strategyID)).Delete(); !types.IsNil(err) {
+		if _, err = tx.Strategy.WithContext(ctx).Where(tx.Strategy.ID.Eq(strategyID)).Delete(); err != nil {
+			log.Errorw("method", "DeleteByID", "err", err)
 			return err
 		}
 		return nil
@@ -164,27 +169,30 @@ func (s *strategyRepositoryImpl) DeleteByID(ctx context.Context, strategyID uint
 
 func (s *strategyRepositoryImpl) deleteStrategyLevel(ctx context.Context, strategyID uint32, tx *bizquery.Query) error {
 	_, err := tx.StrategyLevel.WithContext(ctx).Where(tx.StrategyLevel.StrategyID.Eq(strategyID)).Delete()
-	if !types.IsNil(err) {
+	if err != nil {
+		log.Errorw("method", "deleteStrategyLevel", "err", err)
 		return err
 	}
-	return err
+	return nil
 }
 
 // 校验策略名称是否存在
 func (s *strategyRepositoryImpl) checkStrategyName(ctx context.Context, name string, strategyGroupID, id uint32) error {
 	bizQuery, err := getBizQuery(ctx, s.data)
-	if !types.IsNil(err) {
+	if err != nil {
+		log.Errorw("method", "checkStrategyName", "err", err)
 		return err
 	}
 	strategyDo, err := bizQuery.Strategy.WithContext(ctx).
 		Where(bizQuery.Strategy.Name.Eq(name)).
 		Where(bizQuery.Strategy.GroupID.Eq(strategyGroupID)).
 		First()
-	if !types.IsNil(err) {
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
-		return nil
+		log.Errorw("method", "checkStrategyName", "err", err)
+		return err
 	}
 
 	if (id > 0 && strategyDo.ID != id) || id == 0 {
@@ -324,13 +332,13 @@ func (s *strategyRepositoryImpl) checkStrategyTemplate(ctx context.Context, temp
 	var err error
 	sourceType := middleware.GetSourceType(ctx)
 	if sourceType.IsTeam() {
-		// TODO 查询系统模板是否存在
+		// 查询系统模板是否存在
 		mainQuery := query.Use(s.data.GetMainDB(ctx))
 		_, err = mainQuery.WithContext(ctx).StrategyTemplate.
 			Where(mainQuery.StrategyTemplate.Status.Eq(vobj.StatusEnable.GetValue())).
 			Where(mainQuery.StrategyTemplate.ID.Eq(templateID)).First()
 	} else {
-		// TODO 查询团队模板是否存在
+		// 查询团队模板是否存在
 		bizQuery, errX := getBizQuery(ctx, s.data)
 		if !types.IsNil(errX) {
 			return errX
