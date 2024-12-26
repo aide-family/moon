@@ -129,7 +129,7 @@ model:
 
 .PHONY: all
 # generate all
-all: error api config stringer model wire format
+all: error api config stringer model wire
 	go mod tidy
 
 .PHONY: clean
