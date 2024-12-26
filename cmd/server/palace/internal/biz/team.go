@@ -129,7 +129,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	opUserID := middleware.GetUserID(ctx)
 	for _, teamMember := range teamMemberList {
 		role := teamMember.Role
-		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
+		if role.IsSuperAdmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
 			return merr.ErrorI18nToastUserNotAllowRemoveAdmin(ctx)
 		}
 		if teamMember.UserID == opUserID {

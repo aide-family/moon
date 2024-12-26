@@ -73,11 +73,11 @@ func (s *StrategyDomain) IsCompletelyMeet(values []*datasource.Value) (map[strin
 	}
 	for _, point := range values {
 		// 域名证书检测、小于等于阈值都是满足条件的
-		if s.Type.IsDomaincertificate() && point.Value <= s.Threshold {
+		if s.Type.IsDomainCertificate() && point.Value <= s.Threshold {
 			return nil, true
 		}
 		// 端口检测、等于阈值才是满足条件的 1开启， 0关闭
-		if s.Type.IsDomainport() && point.Value == s.Threshold {
+		if s.Type.IsDomainPort() && point.Value == s.Threshold {
 			return nil, true
 		}
 	}
@@ -111,7 +111,7 @@ func (s *StrategyDomain) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 	if !s.Status.IsEnable() {
 		return nil, nil
 	}
-	if s.Type.IsDomainport() {
+	if s.Type.IsDomainPort() {
 		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, 10*time.Second)
 	}
 	return datasource.DomainEval(ctx, s.Domain, s.Port, 10*time.Second)

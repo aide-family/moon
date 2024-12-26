@@ -239,7 +239,6 @@ func (g *Generator) generate(typeName string) {
 		g.buildMap(runs, typeName)
 	}
 
-	// add by 甘向东
 	for _, v := range values {
 		funcName := getFuncName(typeName, v.originalName)
 		g.Printf("\n// %s 是否是：%s\n", funcName, v.name)
@@ -265,6 +264,10 @@ func getFuncName(typeName, originalName string) string {
 	b.WriteString("Is")
 	b.Grow(len(fieldName))
 	words := strings.Split(fieldName, "_")
+	if len(words) == 1 {
+		b.WriteString(fieldName)
+		return b.String()
+	}
 	for _, word := range words {
 		word = strings.ToLower(word)
 		b.WriteString(cases.Title(language.English).String(word))
@@ -330,7 +333,6 @@ type Value struct {
 	signed bool   // Whether the constant is a signed type.
 	str    string // The string representation given by the "go/constant" package.
 
-	// add by 甘向东：增加底层类型
 	UnderlyingType string
 }
 
@@ -436,7 +438,6 @@ func (f *File) genDecl(node ast.Node) bool {
 				signed:       info&types.IsUnsigned == 0,
 				str:          value.String(),
 
-				// add by 甘向东：增加底层类型
 				UnderlyingType: obj.Type().Underlying().String(),
 			}
 			if c := vspec.Comment; f.lineComment && c != nil && len(c.List) == 1 {

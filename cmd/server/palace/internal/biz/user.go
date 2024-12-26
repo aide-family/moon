@@ -72,7 +72,7 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
-	if !middleware.GetUserRole(ctx).IsSuperadmin() && userDo.Role.IsAdmin() {
+	if !middleware.GetUserRole(ctx).IsSuperAdmin() && userDo.Role.IsAdmin() {
 		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 记录操作日志

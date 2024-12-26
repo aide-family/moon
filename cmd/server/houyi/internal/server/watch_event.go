@@ -64,7 +64,7 @@ func (m *eventStrategyWatch) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
 		for msg := range m.data.GetEventStrategyQueue().Next() {
-			if !msg.GetTopic().IsEventstrategy() {
+			if !msg.GetTopic().IsEventStrategy() {
 				log.Warnw("method", "eventStrategyWatch", "topic", msg.GetTopic().String())
 				continue
 			}
@@ -99,7 +99,7 @@ func (m *eventStrategyWatch) Start(_ context.Context) error {
 	go func() {
 		defer after.RecoverX()
 		for mqConf := range m.data.GetEventMQQueue().Next() {
-			if !mqConf.GetTopic().IsEventdatasource() {
+			if !mqConf.GetTopic().IsEventDatasource() {
 				log.Warnw("method", "eventStrategyWatch", "topic", mqConf.GetTopic().String())
 				continue
 			}

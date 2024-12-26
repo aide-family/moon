@@ -25,9 +25,9 @@ func newHeartbeatServer(bc *houyiconf.Bootstrap, healthService *service.HealthSe
 		healthService: healthService,
 		tick:          time.NewTicker(time.Second * 10),
 		srv: &conf.MicroServer{
-			Endpoint:    types.Ternary(network.IsRpc(), server.GetGrpcEndpoint(), server.GetHttpEndpoint()),
+			Endpoint:    types.Ternary(network.IsRPC(), server.GetGrpcEndpoint(), server.GetHttpEndpoint()),
 			Secret:      types.Of(server.GetSecret()),
-			Timeout:     types.Ternary(network.IsRpc(), bc.GetGrpc().GetTimeout(), bc.GetHttp().GetTimeout()),
+			Timeout:     types.Ternary(network.IsRPC(), bc.GetGrpc().GetTimeout(), bc.GetHttp().GetTimeout()),
 			Network:     server.GetNetwork(),
 			NodeVersion: env.Version(),
 			Name:        server.GetName(),
