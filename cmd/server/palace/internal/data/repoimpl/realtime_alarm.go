@@ -39,31 +39,16 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 		return err
 	}
 
-	realtimeAlarmDoQuery := alarmQuery.RealtimeAlarm
-	realtimeDetailsDoQuery := alarmQuery.RealtimeDetails
 	realTimes := r.createRealTimeAlarmToModels(param)
 	// 所更新的字段
-	realCol := []string{
-		realtimeAlarmDoQuery.Summary.ColumnName().String(),
-		realtimeAlarmDoQuery.Description.ColumnName().String(),
-		realtimeAlarmDoQuery.Status.ColumnName().String(),
-		realtimeAlarmDoQuery.StartsAt.ColumnName().String(),
-		realtimeAlarmDoQuery.EndsAt.ColumnName().String(),
-		realtimeAlarmDoQuery.Expr.ColumnName().String(),
-		realtimeAlarmDoQuery.Labels.ColumnName().String(),
-		realtimeAlarmDoQuery.Annotations.ColumnName().String(),
-	}
-	detailCol := []string{
-		realtimeDetailsDoQuery.Strategy.ColumnName().String(),
-		realtimeDetailsDoQuery.Level.ColumnName().String(),
-		realtimeDetailsDoQuery.Datasource.ColumnName().String(),
-	}
+	realCol := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
+	detailCol := []string{"strategy", "level", "datasource"}
 
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, realTime := range realTimes {
 			// 实时告警表
 			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: realtimeAlarmDoQuery.Fingerprint.ColumnName().String()}},
+				Columns:   []clause.Column{{Name: "fingerprint"}},
 				DoUpdates: clause.AssignmentColumns(realCol),
 			}).Create(realTime); err != nil {
 				log.Errorw("method", "CreateRealTimeAlarm", "error", err)
@@ -79,7 +64,7 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 				RealtimeAlarm:   realTime,
 			}
 			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: realtimeDetailsDoQuery.RealtimeAlarmID.ColumnName().String()}},
+				Columns:   []clause.Column{{Name: "realtime_alarm_id"}},
 				DoUpdates: clause.AssignmentColumns(detailCol),
 			}).Create(detail); err != nil {
 				log.Errorw("method", "CreateRealTimeAlarm", "error", err)
