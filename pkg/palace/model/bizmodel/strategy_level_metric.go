@@ -24,9 +24,47 @@ type StrategyMetricLevel struct {
 	LabelNoticeList []*StrategyMetricsLabelNotice `json:"label_notices,omitempty"`
 }
 
+// GetLevel 获取告警等级
+func (s *StrategyMetricLevel) GetLevel() *SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.Level
+}
+
+// GetAlarmPageList 获取告警页面
+func (s *StrategyMetricLevel) GetAlarmPageList() []*SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmPageList
+}
+
+// GetAlarmGroupList 获取告警组
+func (s *StrategyMetricLevel) GetAlarmGroupList() []*AlarmNoticeGroup {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmGroupList
+}
+
+// GetLabelNoticeList 获取标签告警
+func (s *StrategyMetricLevel) GetLabelNoticeList() []*StrategyMetricsLabelNotice {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.LabelNoticeList
+}
+
 // String json string
 func (c *StrategyMetricLevel) String() string {
-	bs, _ := types.Marshal(c)
+	if c == nil {
+		return "{}"
+	}
+	bs, err := types.Marshal(c)
+	if err != nil {
+		return "{}"
+	}
 	return string(bs)
 }
 

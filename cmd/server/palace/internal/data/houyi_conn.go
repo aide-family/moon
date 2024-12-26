@@ -325,6 +325,10 @@ func (l *HouYiConn) getStrategies(srv *Srv) (<-chan []*bo.Strategy, error) {
 				Where(bizQuery.Strategy.Status.Eq(vobj.StatusEnable.GetValue())).
 				Preload(field.Associations).
 				Preload(bizQuery.Strategy.AlarmNoticeGroups).
+				Preload(bizQuery.Strategy.Datasource).
+				Preload(bizQuery.Strategy.Level).
+				Preload(bizQuery.Strategy.Level.AlarmGroups).
+				Preload(bizQuery.Strategy.Level.DictList).
 				Find()
 			if !types.IsNil(err) {
 				log.Errorw("查询策略失败：", err, "teamId", teamItem.ID)

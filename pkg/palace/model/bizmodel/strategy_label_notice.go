@@ -16,7 +16,13 @@ type StrategyMetricsLabelNotice struct {
 
 // String json 序列化实现
 func (c *StrategyMetricsLabelNotice) String() string {
-	bs, _ := types.Marshal(c)
+	if c == nil {
+		return "{}"
+	}
+	bs, err := types.Marshal(c)
+	if err != nil {
+		return "{}"
+	}
 	return string(bs)
 }
 

@@ -20,9 +20,39 @@ type StrategyDomainLevel struct {
 	AlarmGroupList []*AlarmNoticeGroup `json:"alarm_groups,omitempty"`
 }
 
+// GetLevel 获取告警等级
+func (s *StrategyDomainLevel) GetLevel() *SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.Level
+}
+
+// GetAlarmPageList 获取告警页面
+func (s *StrategyDomainLevel) GetAlarmPageList() []*SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmPageList
+}
+
+// GetAlarmGroupList 获取告警组
+func (s *StrategyDomainLevel) GetAlarmGroupList() []*AlarmNoticeGroup {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmGroupList
+}
+
 // String 字符串
 func (s *StrategyDomainLevel) String() string {
-	bs, _ := types.Marshal(s)
+	if s == nil {
+		return "{}"
+	}
+	bs, err := types.Marshal(s)
+	if err != nil {
+		return "{}"
+	}
 	return string(bs)
 }
 

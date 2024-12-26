@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -38,19 +39,35 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 		return err
 	}
 
+	realtimeAlarmDoQuery := alarmQuery.RealtimeAlarm
+	realtimeDetailsDoQuery := alarmQuery.RealtimeDetails
 	realTimes := r.createRealTimeAlarmToModels(param)
 	// 所更新的字段
-	realCol := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
-	detailCol := []string{"strategy", "level", "datasource"}
+	realCol := []string{
+		realtimeAlarmDoQuery.Summary.ColumnName().String(),
+		realtimeAlarmDoQuery.Description.ColumnName().String(),
+		realtimeAlarmDoQuery.Status.ColumnName().String(),
+		realtimeAlarmDoQuery.StartsAt.ColumnName().String(),
+		realtimeAlarmDoQuery.EndsAt.ColumnName().String(),
+		realtimeAlarmDoQuery.Expr.ColumnName().String(),
+		realtimeAlarmDoQuery.Labels.ColumnName().String(),
+		realtimeAlarmDoQuery.Annotations.ColumnName().String(),
+	}
+	detailCol := []string{
+		realtimeDetailsDoQuery.Strategy.ColumnName().String(),
+		realtimeDetailsDoQuery.Level.ColumnName().String(),
+		realtimeDetailsDoQuery.Datasource.ColumnName().String(),
+	}
 
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, realTime := range realTimes {
 			// 实时告警表
 			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "fingerprint"}},
+				Columns:   []clause.Column{{Name: realtimeAlarmDoQuery.Fingerprint.ColumnName().String()}},
 				DoUpdates: clause.AssignmentColumns(realCol),
 			}).Create(realTime); err != nil {
-				return err
+				log.Errorw("method", "CreateRealTimeAlarm", "error", err)
+				continue
 			}
 
 			// 告警详情表
@@ -62,10 +79,11 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 				RealtimeAlarm:   realTime,
 			}
 			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "realtime_alarm_id"}},
+				Columns:   []clause.Column{{Name: realtimeDetailsDoQuery.RealtimeAlarmID.ColumnName().String()}},
 				DoUpdates: clause.AssignmentColumns(detailCol),
 			}).Create(detail); err != nil {
-				return err
+				log.Errorw("method", "CreateRealTimeAlarm", "error", err)
+				continue
 			}
 		}
 		return nil

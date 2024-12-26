@@ -88,7 +88,7 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 		return err
 	}
 
-	level := strategy.Level.GetLevelByID(params.LevelID)
+	level := strategy.GetLevel().GetLevelByID(params.LevelID)
 
 	// 查询告警列表数据源 TODO 增加缓存 2h
 	datasourceIds := types.SliceTo(params.Alerts, func(item *bo.AlertItemRawParams) uint32 {

@@ -19,9 +19,39 @@ type StrategyPortLevel struct {
 	AlarmGroupList []*AlarmNoticeGroup `json:"alarmGroupList,omitempty"`
 }
 
+// GetLevel 获取告警等级
+func (s *StrategyPortLevel) GetLevel() *SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.Level
+}
+
+// GetAlarmPageList 获取告警页面
+func (s *StrategyPortLevel) GetAlarmPageList() []*SysDict {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmPageList
+}
+
+// GetAlarmGroupList 获取告警组
+func (s *StrategyPortLevel) GetAlarmGroupList() []*AlarmNoticeGroup {
+	if types.IsNil(s) {
+		return nil
+	}
+	return s.AlarmGroupList
+}
+
 // String 字符串
 func (s *StrategyPortLevel) String() string {
-	bs, _ := types.Marshal(s)
+	if s == nil {
+		return "{}"
+	}
+	bs, err := types.Marshal(s)
+	if err != nil {
+		return "{}"
+	}
 	return string(bs)
 }
 

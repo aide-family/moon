@@ -3,11 +3,11 @@ package bizmodel
 import (
 	"encoding/json"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm"
-
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 )
 
 const tableNameStrategyLevels = "strategy_levels"
@@ -36,6 +36,62 @@ type StrategyLevel struct {
 	StrategyPortLevelList    []*StrategyPortLevel   `gorm:"-" json:"strategyPortList,omitempty"`
 	StrategyHTTPLevelList    []*StrategyHTTPLevel   `gorm:"-" json:"strategyHTTPList,omitempty"`
 	StrategyPingLevelList    []*StrategyPingLevel   `gorm:"-" json:"strategyPingList,omitempty"`
+}
+
+// GetStrategy 获取策略
+func (c *StrategyLevel) GetStrategy() *Strategy {
+	if c == nil {
+		return nil
+	}
+	return c.Strategy
+}
+
+// GetStrategyMetricsLevelList 获取metric策略等级列表
+func (c *StrategyLevel) GetStrategyMetricsLevelList() []*StrategyMetricLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyMetricsLevelList
+}
+
+// GetStrategyEventLevelList 获取event策略等级列表
+func (c *StrategyLevel) GetStrategyEventLevelList() []*StrategyEventLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyEventLevelList
+}
+
+// GetStrategyDomainLevelList 获取domain策略等级列表
+func (c *StrategyLevel) GetStrategyDomainLevelList() []*StrategyDomainLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyDomainLevelList
+}
+
+// GetStrategyPortLevelList 获取port策略等级列表
+func (c *StrategyLevel) GetStrategyPortLevelList() []*StrategyPortLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyPortLevelList
+}
+
+// GetStrategyHTTPLevelList 获取http策略等级列表
+func (c *StrategyLevel) GetStrategyHTTPLevelList() []*StrategyHTTPLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyHTTPLevelList
+}
+
+// GetStrategyPingLevelList 获取ping策略等级列表
+func (c *StrategyLevel) GetStrategyPingLevelList() []*StrategyPingLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyPingLevelList
 }
 
 // AfterFind get strategy level
@@ -136,7 +192,7 @@ func (c *StrategyLevel) GetLevelByID(id uint32) string {
 		})
 		return level.String()
 	default:
-		return ""
+		return "{}"
 	}
 }
 
@@ -150,20 +206,24 @@ func (c *StrategyLevel) getStrategyMetricLevel() []*StrategyMetricLevel {
 	}
 	return types.SliceTo(metricsLevels, func(item *StrategyMetricLevel) *StrategyMetricLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
-		item.LabelNoticeList = types.SliceTo(item.LabelNoticeList, func(labelNoticeItem *StrategyMetricsLabelNotice) *StrategyMetricsLabelNotice {
-			return &StrategyMetricsLabelNotice{
+		item.LabelNoticeList = types.SliceToWithFilter(item.LabelNoticeList, func(labelNoticeItem *StrategyMetricsLabelNotice) (*StrategyMetricsLabelNotice, bool) {
+			notice := &StrategyMetricsLabelNotice{
 				Name:  labelNoticeItem.Name,
 				Value: labelNoticeItem.Value,
-				AlarmGroups: types.SliceTo(labelNoticeItem.AlarmGroups, func(groupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-					return c.alarmGroupMap[groupItem.GetID()]
+				AlarmGroups: types.SliceToWithFilter(labelNoticeItem.AlarmGroups, func(groupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+					group, ok := c.alarmGroupMap[groupItem.GetID()]
+					return group, ok
 				}),
 			}
+			return notice, len(notice.AlarmGroups) > 0
 		})
 		return item
 	})
@@ -179,11 +239,13 @@ func (c *StrategyLevel) getStrategyEventLevel() []*StrategyEventLevel {
 	}
 	return types.SliceTo(eventLevels, func(item *StrategyEventLevel) *StrategyEventLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
 		return item
 	})
@@ -199,11 +261,13 @@ func (c *StrategyLevel) getStrategyDoMain() []*StrategyDomainLevel {
 	}
 	return types.SliceTo(domains, func(item *StrategyDomainLevel) *StrategyDomainLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
 		return item
 	})
@@ -219,11 +283,13 @@ func (c *StrategyLevel) getStrategyHTTP() []*StrategyHTTPLevel {
 	}
 	return types.SliceTo(strategyHTTPS, func(item *StrategyHTTPLevel) *StrategyHTTPLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
 		return item
 	})
@@ -239,11 +305,13 @@ func (c *StrategyLevel) getStrategyPing() []*StrategyPingLevel {
 	}
 	return types.SliceTo(pings, func(item *StrategyPingLevel) *StrategyPingLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
 		return item
 	})
@@ -259,11 +327,13 @@ func (c *StrategyLevel) getStrategyPort() []*StrategyPortLevel {
 	}
 	return types.SliceTo(ports, func(item *StrategyPortLevel) *StrategyPortLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
-		item.AlarmPageList = types.SliceTo(item.AlarmPageList, func(dictItem *SysDict) *SysDict {
-			return c.dictMap[dictItem.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
 		})
-		item.AlarmGroupList = types.SliceTo(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) *AlarmNoticeGroup {
-			return c.alarmGroupMap[alarmGroupItem.GetID()]
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
 		})
 		return item
 	})

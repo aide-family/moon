@@ -48,7 +48,7 @@ func (s *strategyRepositoryImpl) GetTeamStrategy(ctx context.Context, params *bo
 		return nil, err
 	}
 
-	return bizQuery.Strategy.WithContext(ctx).Preload(field.Associations).Where(bizQuery.Strategy.ID.Eq(params.StrategyID)).First()
+	return s.withStrategyPreloadALL(ctx, bizQuery).Where(bizQuery.Strategy.ID.Eq(params.StrategyID)).First()
 }
 
 func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uint32) ([]*bizmodel.Strategy, error) {
@@ -56,11 +56,22 @@ func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uin
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return bizQuery.Strategy.WithContext(ctx).Preload(bizQuery.Strategy.Group).Where(bizQuery.Strategy.ID.In(ids...)).Find()
+	return s.withStrategyPreloadALL(ctx, bizQuery).Where(bizQuery.Strategy.ID.In(ids...)).Find()
 }
 
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
 	return nil, merr.ErrorNotification("未实现本地告警评估逻辑")
+}
+
+// withStrategyPreloadALL 预加载所有关联信息
+func (s *strategyRepositoryImpl) withStrategyPreloadALL(ctx context.Context, bizQuery *bizquery.Query) bizquery.IStrategyDo {
+	return bizQuery.Strategy.WithContext(ctx).
+		Preload(field.Associations).
+		Preload(bizQuery.Strategy.AlarmNoticeGroups).
+		Preload(bizQuery.Strategy.Datasource).
+		Preload(bizQuery.Strategy.Level).
+		Preload(bizQuery.Strategy.Level.AlarmGroups).
+		Preload(bizQuery.Strategy.Level.DictList)
 }
 
 // getSyncStrategiesByIds 获取策略信息
@@ -71,14 +82,8 @@ func (s *strategyRepositoryImpl) getSyncStrategiesByIds(ctx context.Context, str
 		return nil, err
 	}
 	// 关联查询等级等明细信息
-	strategies, err := bizQuery.Strategy.WithContext(ctx).
+	strategies, err := s.withStrategyPreloadALL(ctx, bizQuery).
 		Where(bizQuery.Strategy.ID.In(strategyIds...)).
-		Preload(field.Associations).
-		Preload(bizQuery.Strategy.AlarmNoticeGroups).
-		Preload(bizQuery.Strategy.Datasource).
-		Preload(bizQuery.Strategy.Level).
-		Preload(bizQuery.Strategy.Level.AlarmGroups).
-		Preload(bizQuery.Strategy.Level.DictList).
 		Find()
 	if err != nil {
 		log.Errorw("method", "syncStrategiesByIds", "err", err)

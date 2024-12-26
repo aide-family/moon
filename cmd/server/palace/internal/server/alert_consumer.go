@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 )
@@ -19,6 +20,7 @@ func newAlertConsumer(c *palaceconf.Bootstrap, data *data.Data, alertService *se
 		watch.WithWatcherHandler(watch.NewDefaultHandler(
 			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlarm, func(ctx context.Context, msg *watch.Message) error {
 				params := msg.GetData().(*bo.CreateAlarmHookRawParams)
+				ctx = middleware.WithTeamIDContextKey(ctx, params.TeamID)
 				return alertService.CreateAlarmInfo(ctx, params)
 			}),
 			watch.WithDefaultHandlerTopicHandle(vobj.TopicAlertMsg, func(ctx context.Context, msg *watch.Message) error {

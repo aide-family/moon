@@ -37,6 +37,22 @@ type Strategy struct {
 	Level *StrategyLevel `gorm:"foreignKey:StrategyID" json:"level"`
 }
 
+// GetLevel 获取策略等级
+func (c *Strategy) GetLevel() *StrategyLevel {
+	if c == nil {
+		return nil
+	}
+	return c.Level
+}
+
+// GetAlarmNoticeGroups 获取告警组
+func (c *Strategy) GetAlarmNoticeGroups() []*AlarmNoticeGroup {
+	if types.IsNil(c) {
+		return nil
+	}
+	return c.AlarmNoticeGroups
+}
+
 // String json string
 func (c *Strategy) String() string {
 	bs, _ := types.Marshal(c)

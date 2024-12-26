@@ -14,8 +14,10 @@ type Alarm interface {
 
 	// GetRealTimeAlarms 获取实时告警列表
 	GetRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*alarmmodel.RealtimeAlarm, error)
+
 	// SaveAlertQueue 保存告警队列
 	SaveAlertQueue(param *bo.CreateAlarmHookRawParams) error
+
 	// CreateRealTimeAlarm 创建实时告警
 	CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error
 }
