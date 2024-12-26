@@ -87,7 +87,7 @@ func syncBizDatabase(d *Data) error {
 		if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
 			return err
 		}
-		// TODO 同步实时告警数据库
+		// 同步实时告警数据库
 		alarmDB, err := d.GetAlarmGormDB(team.ID)
 		if err != nil {
 			return err
@@ -101,6 +101,15 @@ func syncBizDatabase(d *Data) error {
 			}
 		}
 		if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
+			return err
+		}
+		teamMember := &bizmodel.SysTeamMember{
+			UserID: team.GetCreatorID(),
+			Status: vobj.StatusEnable,
+			Role:   vobj.RoleSuperAdmin,
+		}
+		// 把创建人同步到团队成员表
+		if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
 			return err
 		}
 	}

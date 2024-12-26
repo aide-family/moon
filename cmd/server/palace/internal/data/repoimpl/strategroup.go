@@ -48,42 +48,50 @@ type (
 	}
 )
 
-func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Context, groupIds ...uint32) {
+// getSyncStrategiesByGroupIds 获取策略信息
+func (s *strategyGroupRepositoryImpl) getSyncStrategiesByGroupIds(ctx context.Context, groupIds ...uint32) ([]*bizmodel.Strategy, error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+
+	strategies, err := bizQuery.Strategy.WithContext(ctx).
+		Where(bizQuery.Strategy.GroupID.In(groupIds...)).
+		Preload(field.Associations).
+		Preload(bizQuery.Strategy.AlarmNoticeGroups).
+		Preload(bizQuery.Strategy.Datasource).
+		Preload(bizQuery.Strategy.Level).
+		Preload(bizQuery.Strategy.Level.AlarmGroups).
+		Preload(bizQuery.Strategy.Level.DictList).
+		Find()
+	if !types.IsNil(err) {
+		log.Errorw("method", "getSyncStrategiesByGroupIds", "err", err)
+		return nil, err
+	}
+	return strategies, nil
+}
+
+func (s *strategyGroupRepositoryImpl) syncStrategiesByGroupIds(ctx context.Context, groupIds ...uint32) {
+	strategies, err := s.getSyncStrategiesByGroupIds(ctx, groupIds...)
 	if !types.IsNil(err) {
 		return
 	}
 
-	for _, groupID := range groupIds {
-		strategies, err := bizQuery.Strategy.WithContext(ctx).
-			Where(bizQuery.Strategy.GroupID.Eq(groupID)).
-			Preload(field.Associations).
-			Preload(bizQuery.Strategy.AlarmNoticeGroups).
-			Preload(bizQuery.Strategy.Datasource).
-			Preload(bizQuery.Strategy.Level).
-			Preload(bizQuery.Strategy.Level.AlarmGroups).
-			Preload(bizQuery.Strategy.Level.DictList).
-			Find()
-		if !types.IsNil(err) {
-			log.Errorw("method", "syncStrategiesByGroupIds", "err", err)
-			continue
-		}
-
-		go func() {
-			defer after.RecoverX()
-			for _, strategy := range strategies {
-				items := builder.NewParamsBuild(types.CopyValueCtx(ctx)).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
-				if len(items) == 0 {
+	go func() {
+		defer after.RecoverX()
+		for _, strategy := range strategies {
+			items := builder.NewParamsBuild(types.CopyValueCtx(ctx)).StrategyModuleBuilder().DoStrategyBuilder().ToBos(strategy)
+			if len(items) == 0 {
+				continue
+			}
+			for _, item := range items {
+				if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
+					log.Errorw("method", "syncStrategiesByGroupIds", "err", err)
 					continue
 				}
-				for _, item := range items {
-					if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
-						return
-					}
-				}
 			}
-		}()
-	}
+		}
+	}()
 }
 
 func (s *strategyCountRepositoryImpl) FindStrategyCount(ctx context.Context, params *bo.GetStrategyCountParams) ([]*bo.StrategyCountModel, error) {

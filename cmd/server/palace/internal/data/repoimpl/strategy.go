@@ -104,7 +104,8 @@ func (s *strategyRepositoryImpl) syncStrategiesByIds(ctx context.Context, strate
 			}
 			for _, item := range items {
 				if err = s.data.GetStrategyQueue().Push(item.Message()); err != nil {
-					return
+					log.Errorw("method", "syncStrategiesByIds", "err", err)
+					continue
 				}
 			}
 		}
