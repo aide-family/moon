@@ -360,7 +360,7 @@ message StrategyHTTPLevelItem {
   // 状态码
   string statusCode = 8;
   // 响应时间
-  uint32 responseTime = 9;
+  double responseTime = 9;
   // 请求头
   map<string, string> headers = 10;
   // 请求体

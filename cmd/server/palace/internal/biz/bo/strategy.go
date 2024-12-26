@@ -160,7 +160,7 @@ type (
 		// 告警页面
 		AlarmPageIds []uint32 `json:"alarmPageIds"`
 		// 响应时间 s
-		ResponseTime uint32 `json:"responseTime"`
+		ResponseTime float64 `json:"responseTime"`
 		// 状态码
 		StatusCode string `json:"statusCodes"`
 		// 请求体

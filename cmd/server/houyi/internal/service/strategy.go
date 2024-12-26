@@ -30,7 +30,7 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 	strategies := make([]bo.IStrategy, 0, len(req.GetMetricStrategies())+len(req.GetDomainStrategies())+len(req.GetHttpStrategies())+len(req.GetPingStrategies()))
 	if len(req.GetMetricStrategies()) > 0 {
 		strategies = append(strategies, types.SliceTo(req.GetMetricStrategies(), func(item *api.MetricStrategyItem) bo.IStrategy {
-			return build.NewStrategyBuilder(item).ToBo()
+			return build.NewMetricStrategyBuilder(item).ToBo()
 		})...)
 	}
 	if len(req.GetDomainStrategies()) > 0 {

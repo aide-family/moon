@@ -20,8 +20,8 @@ func NewDatasourceAPIBuilder(datasource *api.DatasourceItem) *DatasourceAPIBuild
 	}
 }
 
-// ToBo 转换为业务对象
-func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
+// ToMetricBo 转换为业务对象
+func (b *DatasourceAPIBuilder) ToMetricBo() *bo.Datasource {
 	if types.IsNil(b) || types.IsNil(b.DatasourceItem) {
 		return nil
 	}
@@ -32,6 +32,8 @@ func (b *DatasourceAPIBuilder) ToBo() *bo.Datasource {
 		Config:      b.GetConfig(),
 		Endpoint:    b.GetEndpoint(),
 		ID:          b.GetId(),
+		Status:      vobj.Status(b.GetStatus()),
+		TeamID:      b.GetTeamId(),
 	}
 }
 
@@ -57,15 +59,15 @@ func (b *DatasourceAPIBuilder) ToEventBo() *bo.EventDatasource {
 
 	switch storageType {
 	case vobj.StorageTypeKafka:
-		kafka := conf.Kafka{}
+		kafka := conf.Kafka{Brokers: b.GetEndpoint()}
 		_ = types.Unmarshal([]byte(b.GetConfig()), &kafka)
 		eventDatasource.Conf.Kafka = &kafka
 	case vobj.StorageTypeRocketMQ:
-		rocketMQ := conf.RocketMQ{}
+		rocketMQ := conf.RocketMQ{Endpoint: b.GetEndpoint()}
 		_ = types.Unmarshal([]byte(b.GetConfig()), &rocketMQ)
 		eventDatasource.Conf.RocketMQ = &rocketMQ
 	case vobj.StorageTypeMQTT:
-		mqtt := conf.MQTT{}
+		mqtt := conf.MQTT{Broker: b.GetEndpoint()}
 		_ = types.Unmarshal([]byte(b.GetConfig()), &mqtt)
 		eventDatasource.Conf.Mqtt = &mqtt
 	case vobj.StorageTypeRabbitMQ:

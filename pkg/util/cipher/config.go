@@ -19,7 +19,7 @@ func NewAsymmetricEncryptionConfig(publicKey, privateKey string) *AsymmetricEncr
 }
 
 type (
-	// 对称加密配置
+	// SymmetricEncryptionConfig 对称加密配置
 	SymmetricEncryptionConfig struct {
 		// 密钥
 		Key string `json:"key"`
@@ -27,7 +27,7 @@ type (
 		Iv string `json:"iv"`
 	}
 
-	// 非对称加密配置
+	// AsymmetricEncryptionConfig 非对称加密配置
 	AsymmetricEncryptionConfig struct {
 		// 公钥
 		PublicKey string `json:"public_key"`
@@ -36,7 +36,7 @@ type (
 	}
 )
 
-// 实现gorm的Scan方法
+// Scan 实现gorm的Scan方法
 func (c *SymmetricEncryptionConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
@@ -48,7 +48,7 @@ func (c *SymmetricEncryptionConfig) Scan(value interface{}) error {
 	}
 }
 
-// 实现gorm的Value方法
+// Value 实现gorm的Value方法
 func (c *SymmetricEncryptionConfig) Value() (driver.Value, error) {
 	if types.IsNil(c) {
 		return []byte("{}"), nil
@@ -56,7 +56,7 @@ func (c *SymmetricEncryptionConfig) Value() (driver.Value, error) {
 	return types.Marshal(c)
 }
 
-// 实现gorm的Scan方法
+// Scan 实现gorm的Scan方法
 func (c *AsymmetricEncryptionConfig) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case []byte:
@@ -68,7 +68,7 @@ func (c *AsymmetricEncryptionConfig) Scan(value interface{}) error {
 	}
 }
 
-// 实现gorm的Value方法
+// Value 实现gorm的Value方法
 func (c *AsymmetricEncryptionConfig) Value() (driver.Value, error) {
 	if types.IsNil(c) {
 		return []byte("{}"), nil

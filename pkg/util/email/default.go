@@ -42,7 +42,7 @@ func (d *DefaultConfig) GetPort() uint32 {
 	return d.Port
 }
 
-// 实现email.Config接口
+// GetUser 实现email.Config接口
 func (d *DefaultConfig) GetUser() string {
 	if d == nil {
 		return ""

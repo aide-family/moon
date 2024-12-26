@@ -133,11 +133,7 @@ message DomainStrategyItem {
     message: "策略名称不允许为空"
   }];
   // 端口
-  uint32 port = 23 [(buf.validate.field).cel = {
-    id: "DomainStrategyItem_port"
-    expression: 'this > 0'
-    message: "端口必须大于0"
-  }];
+  uint32 port = 23;
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   StrategyType strategyType = 24;
 }
@@ -201,7 +197,7 @@ message HttpStrategyItem {
   // 请求方式
   string method = 17;
   // 响应时间
-  uint32 responseTime = 18;
+  double responseTime = 18;
   // 状态码判断条件
   Condition statusCodeCondition = 19;
   // 响应时间判断条件

@@ -507,7 +507,7 @@ message CreateStrategyHTTPLevelRequest {
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
   // 响应时间 s
-  uint32 responseTime = 7;
+  double responseTime = 7;
   // 状态码
   string statusCode = 8;
   // 请求头

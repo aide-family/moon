@@ -80,6 +80,8 @@ type (
 		Threshold float64 `json:"threshold,omitempty"`
 		// 团队ID
 		TeamID uint32 `json:"teamId,omitempty"`
+		// 策略类型
+		StrategyType vobj.StrategyType `json:"strategyType,omitempty"`
 	}
 
 	// Datasource 数据源明细
@@ -94,6 +96,10 @@ type (
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID
 		ID uint32 `json:"id,omitempty"`
+		// 状态
+		Status vobj.Status `json:"status,omitempty"`
+		// 团队ID
+		TeamID uint32 `json:"teamId,omitempty"`
 	}
 )
 

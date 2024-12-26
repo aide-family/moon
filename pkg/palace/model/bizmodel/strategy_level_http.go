@@ -10,7 +10,7 @@ type StrategyHTTPLevel struct {
 	// 状态码
 	StatusCode string `json:"statusCode,omitempty"`
 	// 响应时间
-	ResponseTime uint32 `json:"responseTime,omitempty"`
+	ResponseTime float64 `json:"responseTime,omitempty"`
 	// 请求头
 	Headers []*vobj.Header `json:"headers,omitempty"`
 	// 请求body
